@@ -8,7 +8,10 @@
     "ProstKeySlice.": "ProstSkipSlice.",
     "ProstKeyCandidate": "LoopSupportSkip",
     "ProtoParseWork.KeyReferenceWork.Generated.key_step": "SkipTranslatorWork.Generated.skip",
-    "ProtoParseWork.KeyReferenceWork.Replayed": "SkipTranslatorWork.Replayed"
+    "ProtoParseWork.KeyReferenceWork.Replayed": "SkipTranslatorWork.Replayed",
+    "ProstKeyVarint.": "ProstSkipBuf.",
+    "LibSignalReference.Candidate.ProstKey": "LibSignalReference.Candidate.ProstSkipKey",
+    "ProtoParseWork.KeyReferenceWork.KeyValue": "SkipTranslatorWork.KeyValue"
   },
   "files": {
     "BufModel": {
@@ -46,7 +49,15 @@
     "Consumption": {
       "source_sha256": "fae49d6826ecb4ff9c27cd3430537a3b562b4fec7fad1704a8ab086bc20648f3",
       "destination_sha256": "ee1bfb11821c9287c383aac0f69cd2db03f1d9f7511f47aa11c2acf1dee2e801"
+    },
+    "KeyValue": {
+      "source_sha256": "7b64e9b37e493202956615bc8db1fc30c0c7feb027031cf1fde99bfa136ef727",
+      "destination_sha256": "c78236bcc99a06a22ba8ff9fa11705d6ebfa12a0d9835993889aadf3cc3e901d"
+    },
+    "KeyReference": {
+      "source_sha256": "274891ccc9b323694365302aa98ed01eb1a5e839316407ad4a8e05398edeb796",
+      "destination_sha256": "b61f9d68a7e3450d0e6ed9ccc543cd7dd75a98bee5fee02330fd8b613a2d4803"
     }
   },
-  "script_sha256": "5e8baf18e54bfe6e7444a40fb0502e3b6ac1c8b4fb21e7c57f2c8213b943a22c"
+  "script_sha256": "cd58021c79996ce8fa63d8d65bd62b033e5e3463815c632ab26435ca4886a376"
 }

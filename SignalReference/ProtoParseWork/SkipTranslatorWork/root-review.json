@@ -1,0 +1,41 @@
+{
+  "reviewed_at_utc": "2026-11-07T21:44:25.376882+00:00",
+  "accepted_scope": "Finite SkipSemantics derivations refine the actual pinned Prost skip_field translation, under the explicitly reviewed translation and external-model trust boundary.",
+  "accepted_for_reference_composition": true,
+  "full_signal_parser_refinement": false,
+  "numeric_skip_circuit_refinement": false,
+  "totality_proved": false,
+  "translator_globally_verified": false,
+  "independent_root_axiom_audit_endpoints": 27,
+  "independent_root_axiom_audit_sha256": "7e399a47589c9f986df370c8308a580789ec9db6dc9e6b47070e61077503dda3",
+  "freeze_manifest_sha256": "1ab987f7bd4cfb8ec504de3f3edafb204b69ebc2a499d1e5f7cc4603c3e48415",
+  "kernel_report_sha256": "c56845da6042a35990d2e0c1d18bad88314077bab6336eb1d30afee37fd2954a",
+  "reviewed_sources": [
+    "continuation-pass.diff",
+    "Modules/SkipTranslatorWork/LoopMonotone.lean",
+    "Modules/SkipTranslatorWork/Generated/skip/FunsExternal.lean",
+    "Modules/SkipTranslatorWork/SkipLeaf.lean",
+    "Modules/SkipTranslatorWork/SkipGroup.lean",
+    "Modules/SkipTranslatorWork/SkipSemantics.lean",
+    "result-map.rs",
+    "result-map-provenance.json",
+    "candidate-comparison.json"
+  ],
+  "checks": [
+    "Revalidated frozen source, LLBC, generated code, binary and accepted dependency hashes using freeze.py.",
+    "Independently invoked Lean ProofAudit: 26 endpoints use only foundational axioms; one uses no axioms.",
+    "Inspected existing remove_useless_joins: terminal statements bypass continuation, fallthrough receives it, loop body is traversed with empty outer continuation. Exact patch adds this existing pass once before update_loops and leaves later invocation intact.",
+    "Inspected generated recursive skip bodies and grammar rules: key/varint decoder premises remain explicit; recursion decreases once per group child; successful group matching and error buffer positions are retained.",
+    "Inspected pinned core Result::map excerpt and external model. Actual generated closure is capture-free (Unit representation), ignores U64 input and returns U64 zero. Generic destructor behavior is outside accepted use."
+  ],
+  "trust_boundary": [
+    "Pinned Charon/Aeneas extraction, selected metadata-only LLBC edits and the extra existing-pass invocation remain trusted transformations.",
+    "Previously accepted contiguous-byte-slice Buf and valid-usize index models are inherited.",
+    "Result::map external model accepted only for the actual capture-free closure used here.",
+    "Kernel proofs establish statements about translated/modelled code, not compiler soundness or arbitrary Rust Buf implementations."
+  ],
+  "remaining": [
+    "Construct numeric parser/skip bridge and compose it with this reference.",
+    "Complete whole Signal parser and remaining session/protocol refinement."
+  ]
+}

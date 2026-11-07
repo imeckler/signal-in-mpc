@@ -1,0 +1,9 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "rust_source": ".deps/rust-nightly-2026-08-18/lib/rustlib/src/rust/library/core/src/result.rs",
+  "rust_source_sha256": "b7a1da21e96c0fbb74af31dfcf4904c8f74a974733aa62a69b0ae41c2107a196",
+  "excerpt_sha256": "5bb56fe39950c33f5b098e235bd6ff3ad34566e34a8ae02dfe6a093830e04b99",
+  "model": "Modules/SkipTranslatorWork/Generated/skip/FunsExternal.lean:core.result.Result.map",
+  "scope": "Actual skip_field closure is Unit with no captures or custom Drop; Rust Ok invokes closure exactly once, Err propagates error. No arbitrary destructors or generic Buf claim."
+}

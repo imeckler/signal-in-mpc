@@ -24,3 +24,18 @@
 'LibSignalReference.Candidate.ProstSkip.length_delimited_error' depends on axioms: [propext,
  Classical.choice,
  Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.start_group' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_key_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_end_after' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_child_after' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_loop_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_loop_cont' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.group_trace_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.enter_recursion_value' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.skip_semantics_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

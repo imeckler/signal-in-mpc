@@ -1,0 +1,165 @@
+Checking SkipTranslatorWork.LoopMonotone
+Checking SkipTranslatorWork.Generated.skip.Types
+Checking SkipTranslatorWork.Generated.skip.FunsExternal
+Checking SkipTranslatorWork.Generated.skip.Funs
+Checking SkipTranslatorWork.Generated.regressions.Types
+Checking SkipTranslatorWork.Generated.regressions.Funs
+Checking SkipTranslatorWork.Replayed.BufModel
+Checking SkipTranslatorWork.Replayed.SliceReference
+'LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.access_bound' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.get_unchecked_at' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.initialChecks_ok' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.add_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.sub_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.shift_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.cast8_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_two' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.cast32_number' depends on axioms: [propext, Quot.sound]
+Checking SkipTranslatorWork.Replayed.SliceBridge
+'LibSignalReference.Candidate.ProstSkipSlice.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.prefix_rejected_tenth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.pack_count' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.mask254_large' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.prefix_accepted' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.spqr_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.payload_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.or_number_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.terminates_of_large' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.payload_zero_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.terminates_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.decode_first' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.pack_valueBytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipSlice.prefix_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking SkipTranslatorWork.Replayed.SliceAdapter
+Checking SkipTranslatorWork.Replayed.SlowReference
+'LibSignalReference.Candidate.ProstSkipBuf.slow_loop_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.slow_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.body_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.body_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking SkipTranslatorWork.Replayed.StateBridge
+'LibSignalReference.Candidate.ProstSkipBuf.slice_count_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.stateResult_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.slow_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking SkipTranslatorWork.Replayed.WrapperReference
+'LibSignalReference.Candidate.ProstSkipBuf.finishSlice' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.fast_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.first_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking SkipTranslatorWork.Replayed.ArtifactBridge
+'LibSignalReference.Candidate.ProstSkipBuf.post_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking SkipTranslatorWork.Replayed.Consumption
+'LibSignalReference.Candidate.ProstSkipBuf.run_not_done' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.slow_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.fast_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking SkipTranslatorWork.KeyValue
+'LibSignalReference.Candidate.ProstSkipKey.wire_reference' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstSkipKey.wire_ok' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstSkipKey.key_after_varint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.key_after_varint_error' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking SkipTranslatorWork.KeyReference
+'LibSignalReference.Candidate.ProstSkipKey.key_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.key_success_fields' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.key_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.key_from_varint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.decode_key_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipKey.decode_key_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking SkipTranslatorWork.SkipLeaf
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipLeaf.lean:21:4: warning: This simp argument is unused:
+  core.convert.FromSame
+
+Hint: Omit it from the simp argument list.
+  simp [encoding.DecodeContext.limit_reached, ̲decodeError,
+  ̵  ̵ ̵ ̵core.convert.IntoFrom.into,
+  ̲ ̲ ̲ ̲ ̲error.DecodeError.Insts.CoreConvertFromDecodeErrorKind.from,
+      core.result.Result.Insts.CoreOpsTry.branch,
+      core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual,
+      core.convert.FromSame,̵c̵o̵r̵e̵.c̵o̵n̵v̵e̵r̵t̵.̵F̵r̵o̵m̵S̵a̵m̵e̵.̵from]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipLeaf.lean:41:4: warning: This simp argument is unused:
+  encoding.skip_field.closure.Insts.CoreOpsFunctionFnOnceTupleU64U64
+
+Hint: Omit it from the simp argument list.
+  simp only [̵e̵n̵c̵o̵d̵i̵n̵g̵.̵D̵e̵c̵o̵d̵e̵C̵o̵n̵t̵e̵x̵t̵.̵l̵i̵m̵i̵t̵_̵r̵e̵a̵c̵h̵e̵d̵,̵h̵c̵,̵i̵f̵_̵f̵a̵l̵s̵e̵,̵b̵i̵n̵d̵_̵t̵c̵_̵o̵k̵,̵
+  ̵ ̵ ̵ ̵ ̵c̵o̵r̵e̵.̵r̵e̵s̵u̵l̵t̵.̵R̵e̵s̵u̵l̵t̵.̵I̵n̵s̵t̵s̵.̵C̵o̵r̵e̵O̵p̵s̵T̵r̵y̵.̵b̵r̵a̵n̵c̵h̵,̵h̵d̵e̵c̵o̵d̵e̵,̵u̵n̵c̵u̵r̵r̵y̵_̵a̵p̵p̵l̵y̵_̵p̵a̵i̵r̵,̵[̲e̲n̲c̲o̲d̲i̲n̲g̲.̲D̲e̲c̲o̲d̲e̲C̲o̲n̲t̲e̲x̲t̲.̲l̲i̲m̲i̲t̲_̲r̲e̲a̲c̲h̲e̲d̲,̲ ̲h̲c̲,̲ ̲i̲f̲_̲f̲a̲l̲s̲e̲,̲ ̲b̲i̲n̲d̲_̲t̲c̲_̲o̲k̲,̲
+  ̲ ̲ ̲ ̲ ̲c̲o̲r̲e̲.̲r̲e̲s̲u̲l̲t̲.̲R̲e̲s̲u̲l̲t̲.̲I̲n̲s̲t̲s̲.̲C̲o̲r̲e̲O̲p̲s̲T̲r̲y̲.̲b̲r̲a̲n̲c̲h̲,̲ ̲h̲d̲e̲c̲o̲d̲e̲,̲ ̲u̲n̲c̲u̲r̲r̲y̲_̲a̲p̲p̲l̲y̲_̲p̲a̲i̲r̲,̲ core.result.Result.map,
+      e̵n̵c̵o̵d̵i̵n̵g̵.̵s̵k̵i̵p̵_̵f̵i̵e̵l̵d̵.̵c̵l̵o̵s̵u̵r̵e̵.̵I̵n̵s̵t̵s̵.̵C̵o̵r̵e̵O̵p̵s̵F̵u̵n̵c̵t̵i̵o̵n̵F̵n̵O̵n̵c̵e̵T̵u̵p̵l̵e̵U̵6̵4̵U̵6̵4̵,̵encoding.skip_field.closure.Insts.CoreOpsFunctionFnOnceTupleU64U64.call_once, r̵e̵m̵a̵i̵n̵i̵n̵g̵_̵s̵p̵e̵c̵,̵l̵i̵f̵t̵]̵r̲e̲m̲a̲i̲n̲i̲n̲g̲_̲s̲p̲e̲c̲,̲
+  ̲ ̲ ̲ ̲ ̲l̲i̲f̲t̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Checking SkipTranslatorWork.SkipGroup
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipGroup.lean:77:19: warning: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  simp only [hbody,̵b̵i̵n̵d̵_̵t̵c̵_̵o̵k̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipGroup.lean:84:19: warning: This simp argument is unused:
+  bind_tc_ok
+
+Hint: Omit it from the simp argument list.
+  simp only [hbody,̵b̵i̵n̵d̵_̵t̵c̵_̵o̵k̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Checking SkipTranslatorWork.SkipSemantics

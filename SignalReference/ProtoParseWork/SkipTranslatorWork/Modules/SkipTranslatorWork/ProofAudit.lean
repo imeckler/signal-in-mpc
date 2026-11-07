@@ -1,4 +1,4 @@
-import SkipTranslatorWork.SkipLeaf
+import SkipTranslatorWork.SkipSemantics
 import SkipTranslatorWork.Generated.regressions.Funs
 #print axioms Aeneas.Std.loop_body_order
 #print axioms Aeneas.Std.monotone_loop_body
@@ -18,3 +18,13 @@ import SkipTranslatorWork.Generated.regressions.Funs
 #print axioms LibSignalReference.Candidate.ProstSkip.fixed64_reference
 #print axioms LibSignalReference.Candidate.ProstSkip.length_delimited_after
 #print axioms LibSignalReference.Candidate.ProstSkip.length_delimited_error
+
+#print axioms LibSignalReference.Candidate.ProstSkip.start_group
+#print axioms LibSignalReference.Candidate.ProstSkip.group_key_error
+#print axioms LibSignalReference.Candidate.ProstSkip.group_end_after
+#print axioms LibSignalReference.Candidate.ProstSkip.group_child_after
+#print axioms LibSignalReference.Candidate.ProstSkip.group_loop_done
+#print axioms LibSignalReference.Candidate.ProstSkip.group_loop_cont
+#print axioms LibSignalReference.Candidate.ProstSkip.group_trace_reference
+#print axioms LibSignalReference.Candidate.ProstSkip.enter_recursion_value
+#print axioms LibSignalReference.Candidate.ProstSkip.skip_semantics_reference

@@ -17,7 +17,7 @@ def main():
         if kind=='skip':modules.append((f'SkipTranslatorWork.Generated.{kind}.FunsExternal',HERE/f'Modules/SkipTranslatorWork/Generated/{kind}/FunsExternal.lean',HERE/'Modules'))
         modules.append((f'SkipTranslatorWork.Generated.{kind}.Funs',tree/f'SkipTranslatorWork/Generated/{kind}/Funs.lean',tree))
     modules += [(f'SkipTranslatorWork.Replayed.{name}',HERE/f'Modules/SkipTranslatorWork/Replayed/{name}.lean',HERE/'Modules') for name in ['BufModel','SliceReference','SliceBridge','SliceAdapter','SlowReference','StateBridge','WrapperReference','ArtifactBridge','Consumption']]
-    modules += [(f'SkipTranslatorWork.{name}',HERE/f'Modules/SkipTranslatorWork/{name}.lean',HERE/'Modules') for name in ['SkipLeaf']]
+    modules += [(f'SkipTranslatorWork.{name}',HERE/f'Modules/SkipTranslatorWork/{name}.lean',HERE/'Modules') for name in ['KeyValue','KeyReference','SkipLeaf','SkipGroup','SkipSemantics']]
     for module,source,cwd in modules:
         target=BUILD/(module.replace('.','/')+'.olean');target.parent.mkdir(parents=True,exist_ok=True)
         print('Checking',module,flush=True);subprocess.run(['lean','-o',str(target),str(source)],cwd=cwd,env=e,check=True)
