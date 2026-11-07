@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "kind": "cleartext_differential_correctness_and_static_costs",
+  "backend_version": "MP-SPDZ v0.4.4",
+  "source_sha256": "cf2d18c14ad21b020342fd6e33302ebbafceabcb707c7ce7b13ba01e9926754e",
+  "cases": [
+    {
+      "kernel": "aes128",
+      "batch": 1,
+      "all_outputs_match": true,
+      "oracle": "OpenSSL AES ECB",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 6400,
+        "vm_rounds": 62
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "aes128",
+        "1",
+        "5"
+      ],
+      "bytecode_sha256": "c0b3b5e6324099cc3a3bce8afa66e46aaffa53495e6832ae9733dd1cb05cc2b8"
+    },
+    {
+      "kernel": "aes128",
+      "batch": 16,
+      "all_outputs_match": true,
+      "oracle": "OpenSSL AES ECB",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 102400,
+        "vm_rounds": 62
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "aes128",
+        "16",
+        "5"
+      ],
+      "bytecode_sha256": "90f8086ea5267f4b836de01745fdd4beb3036ad8362287dbf11e61951ba66b4e"
+    },
+    {
+      "kernel": "aes256",
+      "batch": 1,
+      "all_outputs_match": true,
+      "oracle": "OpenSSL AES ECB",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 8832,
+        "vm_rounds": 86
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "aes256",
+        "1",
+        "5"
+      ],
+      "bytecode_sha256": "a31390165a4fc45467662f94d9ce059d26ec1c90d74708a49799e4c886fa2a9a"
+    },
+    {
+      "kernel": "aes256",
+      "batch": 16,
+      "all_outputs_match": true,
+      "oracle": "OpenSSL AES ECB",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 141312,
+        "vm_rounds": 86
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "aes256",
+        "16",
+        "5"
+      ],
+      "bytecode_sha256": "f617d6267522ef1f8bbe4e34f20bebeb6301ee7634853e774b8180ba7b53b4f9"
+    },
+    {
+      "kernel": "hmac_sha256_1",
+      "batch": 1,
+      "all_outputs_match": true,
+      "oracle": "Python hmac/hashlib",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 90292,
+        "vm_rounds": 6430
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "hmac_sha256_1",
+        "1",
+        "5"
+      ],
+      "bytecode_sha256": "f10a802edddbf74e0d4264312f9be8ac796217ab43aca4e89614afc9f7f92b17"
+    },
+    {
+      "kernel": "hmac_sha256_1",
+      "batch": 16,
+      "all_outputs_match": true,
+      "oracle": "Python hmac/hashlib",
+      "public_fixture_fragment_count_per_key": 5,
+      "input_owners_preserved_in_cleartext_model": true,
+      "compiled_costs": {
+        "bit_triples": 1444672,
+        "vm_rounds": 6430
+      },
+      "compile_command": [
+        "python3",
+        "./compile.py",
+        "-M",
+        "-B",
+        "128",
+        "crypto",
+        "hmac_sha256_1",
+        "16",
+        "5"
+      ],
+      "bytecode_sha256": "f5b996da34c6d7ac9cba18927b3354bdb3522ce58f607c15204ce10f7868624a"
+    }
+  ],
+  "limitations": [
+    "Source/circuit interpretation exercises no MPC protocol or networking.",
+    "MP-SPDZ bytecode is compiled for costs but not executed by this check.",
+    "VM rounds are compiler statistics, not measured network round trips.",
+    "No timing or throughput claim is made.",
+    "The cleartext circuit interpreter and benchmark programs are unverified.",
+    "These primitive checks do not test TLS or Signal state machines."
+  ]
+}

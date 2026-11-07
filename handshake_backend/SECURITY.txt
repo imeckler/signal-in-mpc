@@ -1,0 +1,299 @@
+TLS mixed adapter status
+
+The protocol source is Lean. FieldDag.compile uses a proved translation
+validator; X25519.compiled_compute_correct connects accepted arithmetic DAGs
+to the RFC-style ladder spec. Existing Boolean AIG compiler theorems cover
+HKDF, AES-GCM, Finished, and the handshake-only declassification gate.
+JSON serialization, generic evaluators, MP-SPDZ and public OpenSSL certificate
+verification remain unverified boundaries, as requested.
+
+The session.py module composes cryptographic stages using secret registers in
+one mixed VM. It is a compiler-side interface: it does NOT yet bind the Lean
+interactive controller to a persistent native worker. Public requests and
+transcript agreement, durable handle ownership, abort erasure, record-shape
+selection and epoch rollover must be implemented before production use.
+Do not run HandshakeFixture with real secrets: it is explicitly clear testing.
+
+Mixed protocol: pinned MP-SPDZ malicious Shamir over p=2^255-19 with paired
+malicious CCD binary shares, five parties and threshold two. Compile with -X
+and explicit -P. Native binary field/security settings need five-party tests.
+The current compile smoke test uses the compiler default comparison security
+40; it does not establish a 64/128-bit end-to-end statistical security claim.
+
+field_to_wire_bits rejects random integers r>=p before opening c=x-r. Given
+acceptance r is uniform Fp and c is independent of x. Checked daBits must be
+fresh, unbiased, maliciously consistent across domains and never reused.
+Its small-field exhaustive and p25519 boundary tests check functionality,
+not these cryptographic assumptions. No generic signed bit decomposition is
+used on full-width field values. Arbitrary field bits are checked through
+fresh secret-random linear combinations of b*(b-1); false acceptance <=1/p
+requires inputs fixed before independent coefficients. Checkpoints and checked
+openings depend on the pinned runtime's preprocessing and checking semantics.
+
+Permitted releases: ClientHello public key/random, encrypted records,
+authenticated public server handshake/alert metadata, authentication and abort
+decisions, and uniformly masked conversion/check values. Never release traffic
+keys, scalar, ECDH, identifiers or application plaintext. The handshake gate
+zeros authenticated application records BEFORE any controller release.
+
+Static malicious MPC does not imply mobile security. Refresh/erasure must
+cover scalar, traffic keys, expanded AES/HMAC state, preprocessing and all
+copies. A corrupt identity at a transition counts in both neighboring epochs;
+at most two distinct identities per accounted epoch. No operational erasure,
+native five-party execution, or WAN throughput claim has been established.
+
+Persistent session integration progress:
+NativeSession.h now composes the separately exported native functions and
+retains handshake/application keys as native shares. Its private reconstruction
+method is called only for public key, gated metadata, Finished decision and
+client ciphertext. SessionPolicy rejects wrong order, sequence replay and all
+operations after abort. Native build/link and standalone policy checks pass.
+TlsMpc/TlsWorker.lean binds the Lean controller to a public RPC interface with
+Unit handles (one service owns one session). All 19 OpenSSL public fixtures
+pass through this binding, including full authentication-request comparison.
+This is not a live MPC service yet: transport, collective request/program
+agreement, dispatch and operational erasure are still required. Native abort
+currently invalidates operations; it does not meet the RPC erasure contract.
+
+Public dispatch/transport progress:
+NativeDispatch, NativeCollective and PublicProtocol now compile with the pinned
+runtime. Request agreement hashes the canonical opcode/sequence/length/payload
+with a configured manifest hash and session ID; broadcasts are checked before
+private operations. The caller still must hash and pin actual loaded artifacts,
+trust roots and configuration; supplying a nominal manifest string is not enough.
+Public ClientHello random uses party-bound commitments then openings and XOR.
+No network execution of these collectives has occurred. Native retirement and
+abort erasure explicitly fail; there is no successful erasure acknowledgment.
+The Lean TlsWorkerPipe binary framing interoperates with a sanitized C++ public
+echo peer and rejects truncated/oversized/rejected responses. This does not run
+native cryptographic stages. Real service launch and external TCP remain pending.
+
+Executable and file pinning progress:
+worker_main.cpp builds a persistent five-party Machine and dispatches binary
+pipe requests. It reserves the original stdout descriptor for RPC, redirects
+runtime stdout to stderr, and returns generic errors without library exception
+contents. Six invalid startup cases pass before any socket construction.
+PinnedPrograms verifies every manifest entry at startup and validates the exact
+function descriptor, schedule and all referenced bytecode files before each
+native function call. Fourteen native pinning tests cover tampering, omissions,
+duplicates, malformed entries and traversal, including freshly pinned malformed
+descriptors. scripts/pin_tls_worker.py creates dependency-complete manifests.
+Local OS/file integrity during verification/use remains a host assumption;
+the manifest must include deployment trust/configuration material chosen by the
+caller. Earlier executable builds launched CCD40; the current configuration is described below.
+TlsWorkerProcess.lean launches this worker and provides its public Rpc handle.
+No successful native network handshake or erasure implementation is claimed.
+
+Leader transport progress:
+Public opcodes9/10/11 agree connect/write/read requests. Only party0 opens TCP;
+checked collective broadcasts convey transport success/failure and received
+wire bytes, with empty contributions required from nonleaders. TcpRecords
+bounds records, handles partial I/O, and applies a30-second deadline per record
+(connect DNS resolution still follows system resolver behavior). No private
+TLS key or application plaintext enters this transport. Twenty actual stream
+I/O tests pass over unnamed AF_UNIX socketpairs: fragmentation/coalescing,
+EOF/truncation, record bounds and writes. These are NOT TCP/MPC network tests.
+Exported function compilation is being rebuilt with -M after the compiler
+warned that dynamic array memory order might not be preserved. Earlier
+successful compilation alone is not used to dismiss that warning.
+
+Current stronger mixed profile:
+StrongShamirShare rebinds the pinned malicious Shamir protocol aliases to its
+own type, retaining Fp25519 arithmetic and using MaliciousCcdSecret<gf2n_long>
+for binary work. Runtime security_parameter is128; both binary sharing and its
+native opening field initialize to degree128. No upstream/refresh source was
+changed. Collective context v3 binds this specific5/t2/domain/parameter profile
+and the separately agreed public-shape extension mechanism described below.
+Two local compatibility adapters are explicit: DaBitOnly rejects unused edaBit
+sanitization jobs (compile with-X, never-Y), and LongFieldBit supplies the missing
+long-field Bit constructor with a release-build check that the value is0 or1.
+The actual worker builds/links, field configuration tests pass, and127 non-bit
+long-field values are rejected. This is not a native MPC execution or an
+aggregate/composed security proof. Source fingerprints are recorded in
+benchmarks/results/tls-strong-worker-profile-checks.json. Existing Boolean
+kernels have compiler security requirement40; runtime sacrifice settings are128,
+and these kernels use fixed Boolean operations and checked daBits, not compiler
+statistical comparisons. A final protocol/preprocessing composition audit and
+native tests remain required before claiming end-to-end security.
+All10 fixed-shape exported functions were rebuilt with-M; no memory-order
+warning remains. The complete fixed-profile manifest was rewritten afterward.
+General incoming record lengths use additional circuit shapes as described below.
+
+Public-length compiler/cache:
+ShapeCompiler prepares a missing handshake-only receive kernel from its public
+wire length, after agreeing the entire open request and before private work.
+The executable and toolchain configuration are included in the boot manifest.
+The helper checks the Lean emitter, Python compiler/adapters/source inventory,
+and a specific Python executable digest/version. A Python version mismatch was
+observed to change bytecode, so it must not be silently accepted. Host Python
+standard libraries, dynamic libraries, filesystem integrity during use, and the
+unverified compiler remain trusted; fingerprints are not a correctness proof.
+Installation is an offline provisioning step, not an RPC operation or upgrade.
+
+Compiler input is ONLY the public wire length. posix_spawn closes inherited
+player sockets, RPC pipes and other file descriptors, and uses a separate
+process group with a bounded lifetime. Unix IPC tests exercise descriptor
+closure; no MPC socket execution is implied. Compilation uses deterministic
+relative paths, -M, checked daBits (-X), Fp25519, and security_parameter128.
+Each resulting manifest must contain exactly the requested function closure.
+Parties agree a context-bound digest before append-only registration; old
+hashes cannot be replaced. Native call-time verification still checks every
+dependency before run_function. Collective agreement itself remains unexecuted
+in this sandbox. Disagreement, compiler failure or timeout aborts the session.
+Compiler latency and resource bounds remain operational constraints, especially
+for large records. This is not yet a throughput result or full-handshake claim.
+
+Packed execution and parallel TLS inner parser:
+The optional aig_packed adapter groups independent gates by nonlinear and
+local XOR depth into at most 64 lanes. Compilation uses a basic block per
+nonlinear depth. This scheduler/packing remains unverified; the numeric AIG
+specification and Lean compilation theorem are unchanged. Differential public
+evaluation covers 13348 cases, with six authenticated handshake-release cases;
+native field tests also check 2080 local-share pack/XOR/unpack lanes including
+non-bit-valued local shares. These do not execute malicious multiplication.
+The packed 1024-byte receive build succeeded where the scalar build timed out;
+splitting compiler blocks improved the measured build from 317 to 208 seconds.
+Those measurements precede the balanced parser and are not runtime throughput.
+
+TlsInnerParallel implements a balanced public split/merge scan in Lean. Its
+merge/append, refinement, length and numeric compiler proofs are kernel-checked
+with only propext/Quot.sound/Classical.choice (no native proof-checking axiom).
+TlsReceive and the inner-parser exporter now use it. At 1024 plaintext bytes,
+parser AND depth falls from1040 to27, while executed AND count rises from50181
+to74763. All122 exported parser fixtures and19 public OpenSSL initial-handshake
+fixtures pass, including unchanged application-data disclosure rejection.
+Native AES-GCM shape bounds now match TlsReceive.openChecked:22..16406 wire
+bytes; generic public TCP framing retains the broader TLS record envelope.
+The packed+balanced 1024-byte complete handshake-receive export compiled:
+1431533 bit triples,184 VM rounds,229.85seconds. Previous packed+sequential
+counts were1406840 triples,1176 rounds. Neither is a native MPC execution.
+Root deployment helper/config were refreshed and repinned after the update;
+the pre-packed38-byte development cache is preserved under
+.deps/sharing-refresh/tls-shape-before-packed.16 native cache/pinning tests,
+6startup rejections, and independent-location exact-byte reproduction pass.
+
+Application controller and error cleanup (2026-11-07):
+TlsApplicationPolicy has 11 kernel-checked endpoints for reservation, update
+ordering, response obligations, aborted-state guards and receive/half-close
+state. The public policy uses a conservative 2^24 sending-record budget and
+2^48-1 sending-epoch ceiling. It does not impose these sender ceilings on peers.
+TlsApplication serializes private backend calls over opaque handles, reserves
+before cryptographic effects, sends KeyUpdate with old keys before installing
+new keys, and catches both protocol and underlying I/O exceptions. Separate
+reader serialization permits a send while public receive I/O waits. Both closed
+directions invoke backend cleanup. No durable resume/rollback protection or
+formal effectful-controller refinement is claimed.
+
+The native application RPC/method binding now exists but is NOT operational:
+actual handshake-state retirement is a mandatory gate and remains unimplemented.
+Its openRecord must authenticate, validate and assemble post-handshake messages inside MPC;
+only the typed control event may be opened, and application payloads remain
+opaque handles. The mock Event producer in ApplicationFixture is test-only and
+provides no evidence for that private parser. Native retirement and abort
+still explicitly fail because complete VM erasure is not implemented.
+The new cleanupOnError wrapper also fixes initial-handshake cleanup on I/O
+exceptions and explicitly propagates cleanup failure. Tests cover 305 policy
+boundary checks, key-update ordering/crossed requests, 32 concurrent sends,
+duplex scheduling, malformed framing, half-close and terminal error paths;
+19 OpenSSL initial-handshake fixtures still pass. None executes native MPC.
+
+Private post-handshake parser (2026-11-07):
+TlsPostHandshake.lean implements ignored NewSessionTicket streaming framing,
+KeyUpdate with final record alignment, interleaving rejection and alerts.
+Only event/request output bytes0..1 are declassifiable. State11, application
+length2 and padded content remain shared. The two export profiles are
+tls-post-handshake CAPACITY and tls-open-application-record WIRE_SIZE. The
+compiler theorem for the latter composes authenticated TlsReceive.spec with
+private parsing; no intermediate plaintext is opened. Compiler/refinement and
+public event payload-independence lemmas pass the foundational-axiom audit.
+No actual backend release site is wired to these exports yet. Native caller
+must validate shape, agree the stage, keep outputs2.. private and abort on
+rejection. The pure parser does not track connection half-close or sequences;
+TlsApplicationPolicy/controller own those effects. It does not use tickets or
+validate their ignored bodies, and supports no post-handshake client auth.
+
+366 numeric framer fixtures/204 protocol sequences plus7 actual chained-state
+records pass against an independent buffered oracle.18 full numeric AES-GCM
+composition lanes pass including corrupted tags. These are public fixtures,
+not traffic captures or MPC executions. Isolated mixed-VM compilation at128
+statistical security: parser64 uses75722bittriples/3280VMrounds; fullwire27
+uses60635bittriples/418VMrounds. Builds took6.79s and6.23s. General serial framing
+is an expensive control-path baseline: ordinary application records should
+route around it. No WAN throughput or native binding is established.
+
+Server evidence and transport selection:
+SIGNAL_SERVER_REVIEW.txt records pinned Signal-Server sources, default OpenSSL
+and optional JDK provider, TLS1.3/h2 listener and legacy/current client endpoint
+difference. The old relay's h1 profile is not the updated libsignal main route.
+No fixed TLS record shape follows from HTTP/WebSocket frame boundaries.
+Production record trace attempts failed before handshake; no live compatibility
+claim. OpenSSL post-handshake fixture integration is now tested below; JDK
+interoperability remains pending.
+
+Application routing circuit (2026-11-07):
+TlsApplicationRoute provides tls-route-application CAPACITY. The first-stage
+result matches the full parser exactly for every non-handshake type, including
+malformed and rejected records. Authenticated handshake records with an active
+parser return event5; all remaining bytes are zero placeholders. The caller
+MUST discard that result, retain the original shared input and state, and run
+TlsPostHandshake before committing any state. Never commit the zero placeholder
+state. Only event/request2 may be opened; this branch additionally discloses
+authenticated handshake record type, not body or length. Collective agreement
+and native secret-handle ownership for this branch are not implemented yet.
+378 numeric lanes (199 deferred) and six chained artifact-state records pass.
+The capacity64 route compiles to1585bittriples/72VMrounds, excluding AES-GCM
+opening, versus75722/3280 for the complete control parser. This is an isolated
+compiler result, not a network execution or latency measurement.
+
+OpenSSL application interoperability (2026-11-07):
+check_full_handshake.py now passes25cases: the19 initial-handshake cases plus6
+application-controller cases. Real OpenSSL memory BIOs interoperate with the
+clear Lean record crypto, fast routing and full control parser. Each application
+case rotates traffic keys4times in each direction, including requested/crossed
+updates, and checks a1205-byte echo split over3TLSrecords. Both half-close orders
+reach final cleanup; a corrupted tag and replayed record reject and abort.
+Two cases negotiate h2, including Ed25519+HRR+initial CertificateRequest. No
+HTTP/2 frames are implemented by these tests; application bytes are opaque to
+TLS. Only public fixture keys/data exist; cleanup counts test calls, not actual
+VM erasure. No localhost sockets or native MPC execution occur. OpenSSL version
+and source hashes are recorded in lean-full-handshake-checks.json.
+
+Native application interface (2026-11-07):
+Opcodes12..16 bind open/seal/control/rotate operations. Open returns event2 or
+event2+opaqueID8; it never returns private content length or plaintext. The
+native buffer registry stores shared data and length. IDs are monotonically
+allocated, scoped to one worker, never reused, and bounded to4096live entries.
+No buffer drop/reuse or shared Signal/H2 producer is connected yet. The internal
+retain_fixed_payload interface accepts same-worker shared circuit outputs only;
+it is not a public import or opening RPC. Received buffers have private lengths
+and cannot be sealed directly as a fixed-size application payload.
+
+ApplicationPolicy enforces native reservations, exact sequences, record budget,
+crossed/requested update rules, send-before-rotate and half-close. Native send
+matches the reserved ciphertext. The native parser opens only event/request2;
+DEFER reuses the original shared record/state and never commits placeholders.
+Kernel descriptors must already be pinned; dynamic application-shape preparation
+and full-size control kernels are unfinished. These methods compile/link but
+have not run inside MPC. application_ready remains false, retirement throws,
+and rotations explicitly refuse to acknowledge unimplemented old-key erasure.
+
+Opcode17 polls one record without blocking the worker. Partial public ciphertext
+is buffered with the standard16640-byte body bound, leaving other operations
+able to run. Application receive polls with a30-second deadline. Whole pipe
+exchanges are mutex-serialized; framing/I/O/rejection failures make the pipe
+terminal. All-party request scheduling still needs deployment integration;
+local concurrency tests do not establish distributed progress or agreement.
+
+Owned-storage cleanup (2026-11-07):
+OwnedSecrets.h uses sodium_memzero on the fixed-width native field values in
+currently owned binary-share buffers, including copies/temporaries, replacement,
+shrink and destruction. Exception-aware copying retains completed copies under
+the owner. Worker scalar storage is overwritten on abort/destruction; Session
+clears all its owned key/parser/payload buffers on failure and destruction.
+237instrumented zero-before-destruction observations/24injected copy failures
+and4160actual native field-slot overwrites pass. These do NOT establish full
+VM erasure. ERASURE_REVIEW.txt traces unhandled machine/register/protocol/prep
+copies and retained PRNG state. A public fixture reproduces1024earlier random
+bytes from the retained seed after4096further bytes. Runtime randomness and
+consumed preprocessing must be retired as well. Application activation remains
+disabled; no erasure or nativeexecution success is acknowledged.

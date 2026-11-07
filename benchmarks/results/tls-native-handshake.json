@@ -1,0 +1,167 @@
+{
+  "checked_utc": "2026-11-07T20:41:01.418909+00:00",
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "native_mpc_attempted": true,
+  "native_mpc_executed": true,
+  "full_application_session_accepted": false,
+  "full_vm_erasure_implemented": false,
+  "wan_throughput_tested": false,
+  "logs": "benchmarks/results/raw/native-handshake/76d4dfd0d025a232",
+  "manifest_sha256": "0e715c85f0ca6eddc6faa3e84ca31b143ccbd52daba1c55721a5abe8f90eb2f9",
+  "source_and_executable_sha256": {
+    "NativeHandshakeFixture.lean": "468d698280307a991705ef573eb68e042d02cf80b14ed3a3ba9fc280c76cfcc8",
+    "TlsMpc/TlsWorkerProcess.lean": "d6737158713cd350658edc420bddc9e72e17847938f27159e373486476bc16d9",
+    "TlsMpc/TlsWorkerPipe.lean": "2f4a7cff4087a0f35830c1f259591099b22ed915562b876818fb513974f500f6",
+    "TlsMpc/TlsWorker.lean": "629e7c20b2973f24d21d889067ba5a24df8e29cc23689dc2ce04e6ccfd98adb4",
+    "TlsMpc/TlsClient.lean": "d059c3360d4f46c1e38f5f045685db9b7f14130aa3c1f621c9888844d4fbf456",
+    "TlsMpc/TlsWire.lean": "98d33a76915b41deaa605eb5df39c95ad4ed5bc2171404150b0d354548d82701",
+    "handshake_backend/public_auth.cpp": "30d04a2da1cfa841165ce482d893ed28dbc81180e02ab50cef0eb3b646c9357a",
+    "handshake_backend/fixture_server.cpp": "1beb9dcb8c4a1bdee407d665bb2ddb5acc0850adac4aace0d63a1c54364c744f",
+    "scripts/check_native_handshake.py": "15af12767fa06d1f5146531b366f5cbd9e3aef71cd420a6ec6e2faed82d403a8",
+    ".deps/sharing-refresh/tls-worker": "e0f64ce67a84bc9044479ae0cb28594b78e5957ff625b1013da0cb9ff5a0fb4a",
+    ".lake/build/bin/native_handshake_fixture": "1c51d057ec032e6bff5e0ff33512d403021797a3d2418393d1d2596842003e86"
+  },
+  "controllers": [
+    {
+      "application_session_accepted": false,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "native worker rejected the operation; backend erasure failed",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": false,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": false,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "native worker rejected the operation; backend erasure failed",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": false,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": false,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "native worker rejected the operation; backend erasure failed",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": false,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": false,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "native worker rejected the operation; backend erasure failed",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": false,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": false,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "native worker rejected the operation; backend erasure failed",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": false,
+      "server_finished_verified": true
+    }
+  ],
+  "server": {
+    "client_finished_accepted": true,
+    "outgoing_records": [
+      {
+        "type": 22,
+        "wire_bytes": 95
+      },
+      {
+        "type": 20,
+        "wire_bytes": 6
+      },
+      {
+        "type": 23,
+        "wire_bytes": 37
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 316
+      },
+      {
+        "type": 23,
+        "wire_bytes": 94
+      },
+      {
+        "type": 23,
+        "wire_bytes": 58
+      },
+      {
+        "type": 23,
+        "wire_bytes": 48
+      }
+    ]
+  },
+  "elapsed_seconds": 289.78355170902796,
+  "controller_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

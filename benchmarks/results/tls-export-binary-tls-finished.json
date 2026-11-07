@@ -1,0 +1,18 @@
+{
+  "checked_utc": "2026-11-07T17:56:03.649180+00:00",
+  "command": [
+    "python3",
+    "compile.py",
+    "-M",
+    "-X",
+    "-P",
+    "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "tls_export",
+    "binary",
+    "/Users/izzy/repos/tls-mpc/artifacts/lean/handshake/tls-finished.json"
+  ],
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_export.mpc\nCompiled 100000 lines at Sat Nov  7 09:55:19 2026\nCompiled 200000 lines at Sat Nov  7 09:55:19 2026\nCompiled 300000 lines at Sat Nov  7 09:55:20 2026\nCompiled 400000 lines at Sat Nov  7 09:55:20 2026\nCompiled 500000 lines at Sat Nov  7 09:55:21 2026\nCompiled 600000 lines at Sat Nov  7 09:55:21 2026\nCompiled 700000 lines at Sat Nov  7 09:55:22 2026\nCompiled 800000 lines at Sat Nov  7 09:55:22 2026\nCompiled 900000 lines at Sat Nov  7 09:55:23 2026\nCompiled 1000000 lines at Sat Nov  7 09:55:23 2026\nCompiled 1100000 lines at Sat Nov  7 09:55:23 2026\nCompiled 1200000 lines at Sat Nov  7 09:55:24 2026\nCompiled 1300000 lines at Sat Nov  7 09:55:24 2026\nProcessed dependency of 1000000/1385957 instructions at Sat Nov  7 09:55:38 2026\nMerging instructions...\nTopological sort ...\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json-tls_binary_tls_finished-1.bc\nWriting to Programs/Functions/tls_binary_tls_finished-sbv:[512x1]-sbv:[256x1]\nWriting to Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json.sch\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json-0.bc\nHash: 41fc6e4df9249cfbdd9933e30eb6383d97987c2b389748f983610844daa65df1\nProgram requires at most:\n      440159 bit triples\n       19049 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "artifact_sha256": "9c5196a3051461270ae3347df660b562352703333afacef37633762f00c6d196",
+  "exporter_sha256": "efcd2f4e6e59724c7fec0ac5f50fac0e9724f472c3ee376baa96a903eeb50181"
+}

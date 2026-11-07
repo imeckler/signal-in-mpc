@@ -1,0 +1,31 @@
+{
+  "checked_at_utc": "2026-11-07T20:40:21.269991+00:00",
+  "native_mpc_executed": false,
+  "parties_started": 5,
+  "exit_codes": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "failure": "bind/connect EPERM on19400 in child agent execution context; root previously demonstrated network in its own updated context",
+  "attempted_profile": {
+    "parties": 5,
+    "threshold": 2,
+    "binary_field_degree": 128,
+    "statistical_security_parameter": 128
+  },
+  "source_sha256": {
+    "scripts/check_lean_signal_native.py": "58b2f8474961ac467a72c22119bb3bb7ccba621ec62f64b084e0310ec5db41ef",
+    "SignalReference/NativeWork/ccd128.cpp": "bb3f5af94cab3eedd89aa64cb4bf20e00086e695adfef808301c6445c476beb2",
+    "SignalReference/NativeWork/Makefile": "ab11335f38fa5baedfd0d7b158bcdfd4de5d27068eff0139976fa9c48f320f07",
+    ".deps/signal-native/signal-ccd128": "420d7c5b81887224a415d449899cc15b19f2bd0b09f3cdcb150d8826cf1ac4f5",
+    "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-0.log": "500670c5504ccf920fdef21f94874659af748f9ad364b4ff6ed5327d2b98ab45",
+    "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-1.log": "af61565d1d97c5aca651fde33f992fe8ae38b46f99260242eab64df92875ffa0",
+    "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-2.log": "af61565d1d97c5aca651fde33f992fe8ae38b46f99260242eab64df92875ffa0",
+    "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-3.log": "af61565d1d97c5aca651fde33f992fe8ae38b46f99260242eab64df92875ffa0",
+    "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-4.log": "af61565d1d97c5aca651fde33f992fe8ae38b46f99260242eab64df92875ffa0"
+  },
+  "sandbox_bypass_attempted": false
+}

@@ -1,0 +1,83 @@
+{
+  "profiles": [
+    {
+      "plaintext_bytes": 1,
+      "fixtures": 16,
+      "and_depth": 16,
+      "raw_and_gates": 47,
+      "executed_and_gates": 30,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 17,
+      "artifact_sha256": "ed1029c07f572d32ae16040d50a0171277f8794c17ade2cf3d2149a2c79aba6b"
+    },
+    {
+      "plaintext_bytes": 2,
+      "fixtures": 22,
+      "and_depth": 18,
+      "raw_and_gates": 139,
+      "executed_and_gates": 85,
+      "executed_xor_gates": 18,
+      "unreachable_nodes": 36,
+      "artifact_sha256": "939eab3308d4129e69284cb33589c20d0471c21b09c4f1cb38a79430b3a6529c"
+    },
+    {
+      "plaintext_bytes": 16,
+      "fixtures": 28,
+      "and_depth": 21,
+      "raw_and_gates": 2487,
+      "executed_and_gates": 795,
+      "executed_xor_gates": 564,
+      "unreachable_nodes": 1128,
+      "artifact_sha256": "762cfa417ac2d18bd6499db1baa76badb2d95e44d5cba58415e34f44b51c622f"
+    },
+    {
+      "plaintext_bytes": 128,
+      "fixtures": 28,
+      "and_depth": 24,
+      "raw_and_gates": 30805,
+      "executed_and_gates": 7819,
+      "executed_xor_gates": 7662,
+      "unreachable_nodes": 15324,
+      "artifact_sha256": "eb7d3e0f83da246a0e308f4a545fdff2824a932e110a06eed839f5bc402a60b9"
+    },
+    {
+      "plaintext_bytes": 1024,
+      "fixtures": 28,
+      "and_depth": 27,
+      "raw_and_gates": 332739,
+      "executed_and_gates": 74763,
+      "executed_xor_gates": 85992,
+      "unreachable_nodes": 171984,
+      "artifact_sha256": "d8f6cbf5a9d8e82aa780bd24a44e71a0acd16dae2e90bad3516a00e36593d6b3"
+    }
+  ],
+  "previous_sequential_profiles": [
+    {
+      "plaintext_bytes": 16,
+      "and_depth": 32,
+      "raw_and_gates": 1605,
+      "executed_and_gates": 693,
+      "executed_xor_gates": 304,
+      "unreachable_nodes": 608
+    },
+    {
+      "plaintext_bytes": 128,
+      "and_depth": 144,
+      "raw_and_gates": 14677,
+      "executed_and_gates": 5893,
+      "executed_xor_gates": 2928,
+      "unreachable_nodes": 5856
+    },
+    {
+      "plaintext_bytes": 1024,
+      "and_depth": 1040,
+      "raw_and_gates": 130005,
+      "executed_and_gates": 50181,
+      "executed_xor_gates": 26608,
+      "unreachable_nodes": 53216
+    }
+  ],
+  "native_mpc_executed": false,
+  "spec_and_compiler_theorem": "TlsMpc.TlsInnerParallel.compiled_decode_correct",
+  "source_sha256": "2d1628c9b6f7d5e2ce44e68e64bafa36a32179cb6001688d6b5f0a5c8326b9e3"
+}

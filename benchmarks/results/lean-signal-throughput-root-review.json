@@ -1,0 +1,13 @@
+{
+  "accepted": true,
+  "scope": "Independently recomputed four native send baseline rates and bandwidth requirements from all five logs; not an end-to-end or WAN capacity claim.",
+  "report_sha256": "6d8ee86c231b294ff06ef30ed1588208ad7abedc26c82b4756e9cd58a29af2c1",
+  "independent_checks": [
+    "all six native cases completed with correct outputs and five zero exits",
+    "all native source and log hashes checked",
+    "four send wall rates independently recomputed",
+    "four per-node target egress rates independently recomputed",
+    "decimal MB confirmed in pinned Processor/BaseMachine.cpp lines357/409",
+    "expected baseline under target even excluding TLS/H2"
+  ]
+}

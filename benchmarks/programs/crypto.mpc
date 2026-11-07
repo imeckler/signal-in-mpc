@@ -1,0 +1,66 @@
+# Unverified performance baseline, using only synthetic inputs.
+# Results are deliberately revealed for differential checking. This program
+# must never be used with real Signal or TLS key material.
+from circuit import Circuit
+from Compiler.GC.types import sbits, sbitvec
+
+kernel, batch, parties = program.args[1], int(program.args[2]), int(program.args[3])
+assert kernel in ('aes128', 'aes256', 'hmac_sha256_1')
+assert batch > 0 and parties >= 3
+
+key_bits = 128 if kernel == 'aes128' else 256
+word = sbits.get_type(key_bits)
+
+def secret_input(width, party):
+    # Explicit low-word-first encoding shared by the fixtures and MPC runner.
+    chunks = [sbitvec.get_type(min(64, width - start)).get_input_from(party).elements()[0]
+              for start in range(0, width, 64)]
+    return sbits.get_type(width).bit_compose(
+        [bit for chunk in chunks for bit in chunk.bit_decompose()])
+
+keys = [word(0) for _ in range(batch)]
+for party in range(parties):
+    keys = [key ^ secret_input(key_bits, party) for key in keys]
+key_vector = sbitvec(keys)
+
+if kernel.startswith('aes'):
+    block = sbits.get_type(128)
+    blocks = [block(0) for _ in range(batch)]
+    for party in range(parties):
+        blocks = [value ^ secret_input(128, party) for value in blocks]
+    output = Circuit('aes_128' if key_bits == 128 else 'aes_256')(
+        key_vector, sbitvec(blocks))
+else:
+    # sha256's Bristol compression circuit uses little-endian integers.
+    # The message/padding stream here is in network bit order, independently
+    # checked against Python's HMAC/SHA-256 implementation for every lane.
+    lane_word = sbits.get_type(batch)
+    zero = lane_word(0)
+    one = lane_word((1 << batch) - 1)
+    compression = Circuit('sha256')
+
+    def public_bits(value, width):
+        return [one if (value >> i) & 1 else zero
+                for i in range(width - 1, -1, -1)]
+
+    def hash_many(message):
+        length = len(message)
+        padding_zeros = (448 - length - 1) % 512
+        padded = message + [one] + [zero] * padding_zeros + public_bits(length, 64)
+        initial = int('6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19', 16)
+        state = list(reversed(public_bits(initial, 256)))
+        for start in range(0, len(padded), 512):
+            block = list(reversed(padded[start:start + 512]))
+            state = compression(sbitvec.from_vec(block), sbitvec.from_vec(state)).v
+        return state
+
+    key_block = list(reversed(key_vector.v)) + [zero] * 256
+    ipad = public_bits(int.from_bytes(b'\x36' * 64, 'big'), 512)
+    opad = public_bits(int.from_bytes(b'\x5c' * 64, 'big'), 512)
+    inner = hash_many([a ^ b for a, b in zip(key_block, ipad)] + public_bits(1, 8))
+    outer = hash_many([a ^ b for a, b in zip(key_block, opad)] + list(reversed(inner)))
+    output = sbitvec.from_vec(outer)
+
+for value in output.elements():
+    value.reveal().print_reg()
+

@@ -1,0 +1,17 @@
+# Compile smoke check. No production secret is opened by this program.
+from pathlib import Path
+from Compiler.types import sint
+from Compiler.library import runtime_error_if
+from handshake_backend.field_dag import load
+from handshake_backend.mixed import (fresh_scalar_fields, execute_secret,
+    field_to_wire_bits, wire_bits_to_field, wire_bits_to_scalar_fields)
+image = load(program.args[1])
+scalar = fresh_scalar_fields()
+public_key = execute_secret(image, scalar + [sint(9)])[0]
+wire = field_to_wire_bits(public_key)
+recovered = wire_bits_to_field(wire)
+# Only a consistency decision is opened; scalar and public key stay shared.
+runtime_error_if((recovered - public_key).reveal(check=True) != 0, 'conversion mismatch')
+scalar_again = wire_bits_to_scalar_fields(wire)
+# Keep conversion output live without releasing it.
+scalar_again[0].store_in_mem(0)

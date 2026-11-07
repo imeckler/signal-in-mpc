@@ -1,0 +1,12 @@
+{
+  "native_service_build": true,
+  "native_mpc_executed": false,
+  "scope": "compiled persistent worker and Lean launcher; negative startup exercised without sockets",
+  "source_sha256": {
+    "handshake_backend/worker_main.cpp": "f71901e4aadedb13dd06cd9ddc850a2195424eafd9b7e49b9dcf20a9bcb0bbd9",
+    "handshake_backend/NativeWorker.h": "af8a89f676ba935cd37b35c26a958a6448257428a9f0ec684e8080e1ec1006fc",
+    "handshake_backend/NativeSession.h": "570c279b46d386703355e131bcdabd5b5244dec1bd4762ca96262e8b4acb1b81",
+    "handshake_backend/PinnedPrograms.h": "be544e35079360ecb69d9347e7b8b6ac3f2a8464f36f2bdb84c3f2b2ff78ecce",
+    "TlsMpc/TlsWorkerProcess.lean": "d6737158713cd350658edc420bddc9e72e17847938f27159e373486476bc16d9"
+  }
+}

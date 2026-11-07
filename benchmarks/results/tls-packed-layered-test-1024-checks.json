@@ -1,0 +1,10 @@
+{
+  "wire_bytes": 1024,
+  "elapsed_seconds": 208.2092177500017,
+  "exit_code": 0,
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_shape_export.mpc\nChanged statistical security for comparison etc. to 128\nCompiled 100000 lines at Sat Nov  7 10:54:08 2026\nCompiled 200000 lines at Sat Nov  7 10:54:16 2026\nCompiled 300000 lines at Sat Nov  7 10:54:23 2026\nWriting to Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1024.json-tls_binary_tls_open_handshake_record_1024-1.bc\nWriting to Programs/Functions/tls_binary_tls_open_handshake_record_1024-sbv:[8480x1]-sbv:[8056x1]\nWriting to Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1024.json.sch\nWriting to Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1024.json-0.bc\nHash: 1ce504c64dc529599a963107f76b7f7649f50d4ae2c49ccc6209e441b98b9629\nProgram requires at most:\n     1406840 bit triples\n        1176 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "cache": "/Users/izzy/repos/tls-mpc/.deps/sharing-refresh/tls-packed-layered-test",
+  "toolchain_sha256": "50094fc6380e483089e1fc1b39d962bfc90568db5950e446feb6ff2c51162b74",
+  "manifest_sha256": "94494f5450826b9b698cf802206d1cb01843194327af6b14ef711d6b418a3d74"
+}

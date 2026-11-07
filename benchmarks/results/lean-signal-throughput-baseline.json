@@ -1,0 +1,166 @@
+{
+  "target_logical_messages_per_hour": 100000,
+  "target_logical_messages_per_second": 27.77777777777778,
+  "baseline_meets_target": false,
+  "persistent_runtime_throughput_measured": false,
+  "communication_mb_unit": "decimal MB (bytes/1e6)",
+  "protocol": "five-party malicious CCD GF128; scalar boolean adapter; live preprocessing",
+  "cases": [
+    {
+      "name": "signal-chain-send-17-5-5-2-present",
+      "batch": 1,
+      "payload_bytes": 17,
+      "wall_seconds": 37.182508792029694,
+      "runtime_online_seconds": 7.22904,
+      "runtime_preprocessing_seconds": 2.60994,
+      "recipient_encryptions_per_hour_wall": 96.81971757569201,
+      "runtime_reported_seconds_by_party": [
+        9.84103,
+        9.84076,
+        9.84132,
+        9.84114,
+        9.84328
+      ],
+      "runtime_max_reported_seconds": 9.84328,
+      "recipient_encryptions_per_hour_reported_runtime": 365.731747953934,
+      "total_sent_mb_per_party_per_recipient": 488.632,
+      "online_sent_mb_per_party_per_recipient": 177.655,
+      "preprocessing_sent_mb_per_party_per_recipient": 310.977,
+      "online_runtime_communication_counter": 50753,
+      "offline_runtime_communication_counter": 8327,
+      "target_required_outgoing_gbps_per_party_by_fanout": {
+        "1": 108.58488888888888,
+        "2": 217.16977777777777,
+        "4": 434.33955555555553,
+        "10": 1085.8488888888887
+      },
+      "bandwidth_only_max_logical_messages_per_hour_fanout1": {
+        "1Gbps": 920.9384567527301,
+        "10Gbps": 9209.3845675273,
+        "100Gbps": 92093.845675273
+      },
+      "party_log_sha256": "483c311b6b9d9c0d6b7769fc08a00c0e4df497caba53b16442e5b911546b163e"
+    },
+    {
+      "name": "signal-chain-send-17-5-5-2-present",
+      "batch": 16,
+      "payload_bytes": 17,
+      "wall_seconds": 97.17397341609467,
+      "runtime_online_seconds": 18.189,
+      "runtime_preprocessing_seconds": 47.6302,
+      "recipient_encryptions_per_hour_wall": 592.7513095853284,
+      "runtime_reported_seconds_by_party": [
+        65.8236,
+        65.8223,
+        65.8244,
+        65.8223,
+        65.8244
+      ],
+      "runtime_max_reported_seconds": 65.8244,
+      "recipient_encryptions_per_hour_reported_runtime": 875.0554505624054,
+      "total_sent_mb_per_party_per_recipient": 488.589375,
+      "online_sent_mb_per_party_per_recipient": 177.655,
+      "preprocessing_sent_mb_per_party_per_recipient": 310.934375,
+      "online_runtime_communication_counter": 50753,
+      "offline_runtime_communication_counter": 133139,
+      "target_required_outgoing_gbps_per_party_by_fanout": {
+        "1": 108.57541666666667,
+        "2": 217.15083333333334,
+        "4": 434.3016666666667,
+        "10": 1085.7541666666668
+      },
+      "bandwidth_only_max_logical_messages_per_hour_fanout1": {
+        "1Gbps": 921.018800296261,
+        "10Gbps": 9210.18800296261,
+        "100Gbps": 92101.8800296261
+      },
+      "party_log_sha256": "e34cf2754a3386ed611a8afb96bb5007c60c2e9384c579c0da765e8837bf8da7"
+    },
+    {
+      "name": "signal-spqr-send-17-5-2-10-5-3-present-present",
+      "batch": 1,
+      "payload_bytes": 17,
+      "wall_seconds": 52.63729512505233,
+      "runtime_online_seconds": 9.96006,
+      "runtime_preprocessing_seconds": 3.61161,
+      "recipient_encryptions_per_hour_wall": 68.39257206221082,
+      "runtime_reported_seconds_by_party": [
+        13.5737,
+        13.5736,
+        13.574,
+        13.5737,
+        13.5758
+      ],
+      "runtime_max_reported_seconds": 13.5758,
+      "recipient_encryptions_per_hour_reported_runtime": 265.17774274812535,
+      "total_sent_mb_per_party_per_recipient": 667.947,
+      "online_sent_mb_per_party_per_recipient": 242.848,
+      "preprocessing_sent_mb_per_party_per_recipient": 425.099,
+      "online_runtime_communication_counter": 69756,
+      "offline_runtime_communication_counter": 11381,
+      "target_required_outgoing_gbps_per_party_by_fanout": {
+        "1": 148.43266666666665,
+        "2": 296.8653333333333,
+        "4": 593.7306666666666,
+        "10": 1484.3266666666668
+      },
+      "bandwidth_only_max_logical_messages_per_hour_fanout1": {
+        "1Gbps": 673.7061473440258,
+        "10Gbps": 6737.061473440258,
+        "100Gbps": 67370.61473440258
+      },
+      "party_log_sha256": "0b98338595543d08f5bd0b0a22fca693cd80b301cb80eeff40aea0c867cb5565"
+    },
+    {
+      "name": "signal-spqr-send-17-5-2-10-5-3-present-present",
+      "batch": 16,
+      "payload_bytes": 17,
+      "wall_seconds": 133.0805286669638,
+      "runtime_online_seconds": 25.0636,
+      "runtime_preprocessing_seconds": 64.9932,
+      "recipient_encryptions_per_hour_wall": 432.820643087051,
+      "runtime_reported_seconds_by_party": [
+        90.0592,
+        90.0602,
+        90.0596,
+        90.0593,
+        90.0614
+      ],
+      "runtime_max_reported_seconds": 90.0614,
+      "recipient_encryptions_per_hour_reported_runtime": 639.5636754480831,
+      "total_sent_mb_per_party_per_recipient": 667.8875,
+      "online_sent_mb_per_party_per_recipient": 242.848125,
+      "preprocessing_sent_mb_per_party_per_recipient": 425.0425,
+      "online_runtime_communication_counter": 69756,
+      "offline_runtime_communication_counter": 181997,
+      "target_required_outgoing_gbps_per_party_by_fanout": {
+        "1": 148.41944444444448,
+        "2": 296.83888888888896,
+        "4": 593.6777777777779,
+        "10": 1484.1944444444446
+      },
+      "bandwidth_only_max_logical_messages_per_hour_fanout1": {
+        "1Gbps": 673.7661657090453,
+        "10Gbps": 6737.6616570904525,
+        "100Gbps": 67376.61657090452
+      },
+      "party_log_sha256": "f5de724b946406d8b0f14e3b74bef63328230f35bc6eda21ddd266e07d549024"
+    }
+  ],
+  "realistic_payload_cost_report": "benchmarks/results/lean-signal-steady-send-costs.json",
+  "source_sha256": {
+    "scripts/summarize_signal_throughput.py": "1d0b6abe96d6f3a12fffa6138e2c3ebae63ea9a9f9dd681f2b31821392c63320",
+    "benchmarks/results/lean-signal-native-checks.json": "36ba0d9d5a7f807b28d92c2b23b67b515f1167be7a53c71e93602989e163805e",
+    "benchmarks/results/lean-signal-steady-send-costs.json": "235b28863e889fe40cd6bcc075eb705aab5f479a95af7babf4c20e6e33dce515"
+  },
+  "interpretation": [
+    "Batch lanes encrypt independent recipient/session messages. Effective device fanout includes recipient devices and sender sync copies.",
+    "Wall includes process startup and bytecode loading; runtime rate uses maximum of all five reported Time values including runtime overhead. Online/preprocessing phases shown from party0. Persistent runtime throughput is unmeasured; amortizing startup cannot remove per-send traffic.",
+    "Current circuit already reuses prepared HMAC pads within chain derivation and HKDF expansion.",
+    "Bandwidth-only ceilings assume the named outgoing link bandwidth is entirely available for reported sent bytes. They are arithmetic bounds, not WAN measurements; RTT, contention, CPU, TLS/H2, and refresh reduce achievable rate.",
+    "VM rounds and runtime communication counters are not directly measured WAN roundtrips. No latency estimate multiplies those counters by RTT.",
+    "Measured baseline payload is only17B. Realistic256/1024B circuit costs are separate and have no native timing yet.",
+    "TLS session reuse amortizes handshake; TLSAESGCM, private H2 framing, ACK/control handling, new sessions, epoch rollover, refresh and erasure remain additional costs.",
+    "Tinier128 and packed scheduling are comparison candidates, with no measured speedup included."
+  ]
+}

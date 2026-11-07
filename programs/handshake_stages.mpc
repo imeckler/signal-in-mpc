@@ -1,0 +1,16 @@
+# Compile-only composition check. All private outputs remain in this mixed VM.
+from Compiler.GC.types import sbit
+from Compiler.types import sint
+from handshake_backend.session import Kernels
+k = Kernels(program.args[1])
+scalar, public_key = k.begin()
+# Public fixture peer and transcript; scalar is freshly jointly shared.
+zero = sbit(0)
+transcript = [zero] * 256
+keys = k.derive(scalar, sint(9), transcript)
+accepted = k.verify_finished(keys, transcript, [zero] * 288)
+opened = k.open_handshake(keys, [zero] * 64, [zero] * (58*8))
+application, ciphertext = k.finish(keys, transcript, transcript, [], [zero]*64)
+# Store secret handles; no fixture key, plaintext or application key reveal.
+for i, value in enumerate(application[0].key + ciphertext + accepted + opened + public_key):
+    value.store_in_mem(i)

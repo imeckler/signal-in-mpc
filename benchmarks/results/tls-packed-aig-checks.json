@@ -1,0 +1,33 @@
+{
+  "differential_evaluations": 13348,
+  "native_mpc_executed": false,
+  "packed_handshake_gate_cases": [
+    {
+      "type": 21,
+      "bad_tag": false
+    },
+    {
+      "type": 21,
+      "bad_tag": true
+    },
+    {
+      "type": 22,
+      "bad_tag": false
+    },
+    {
+      "type": 22,
+      "bad_tag": true
+    },
+    {
+      "type": 23,
+      "bad_tag": false
+    },
+    {
+      "type": 23,
+      "bad_tag": true
+    }
+  ],
+  "scope": "public integer packing vs original AIG, including all-node outputs and XOR motifs",
+  "tls_58_and_depth": 150,
+  "source_sha256": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+}

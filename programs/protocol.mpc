@@ -1,0 +1,65 @@
+# Synthetic composition/compilation harness, not a networked Signal client.
+# Only the final TLS ciphertext is opened. Inner messages, identifiers, ratchet
+# state, and keys stay shared. State is not yet persisted across executions.
+from tls_mpc.backend import MpcBackend, equal
+from tls_mpc import signal, tls13
+
+mode, batch, parties, message_bytes = program.args[1], int(program.args[2]), int(program.args[3]), int(program.args[4])
+if mode not in ('tls-seal', 'signal-tls-send', 'tls-open-check', 'signal-open-check') or parties < 3 or not 1 <= batch <= 64 or not 0 <= message_bytes <= 4096:
+    raise ValueError('unsupported public harness parameters')
+ctx = MpcBackend(batch)
+key, iv = ctx.shared_input(16, parties), ctx.shared_input(12, parties)
+if mode in ('signal-tls-send', 'signal-open-check'):
+    chain = ctx.shared_input(32, parties)
+    ratchet = ctx.shared_input(33, parties)
+    sender = ctx.shared_input(33, parties)
+    recipient = ctx.shared_input(33, parties)
+    addresses = ctx.shared_input(36, parties)
+    pq_key, pq_message = ctx.shared_input(32, parties), ctx.shared_input(16, parties)
+    plaintext = ctx.shared_input(message_bytes, parties)
+    padded = signal.pad_content(ctx, plaintext)
+    if mode == 'signal-tls-send':
+        prepared = signal.seal_message(
+            ctx, chain, padded, counter=0, previous_counter=0,
+            ratchet_key=ratchet, sender_identity=sender, receiver_identity=recipient,
+            pq=signal.PqStep(pq_key, pq_message), addresses=addresses)
+        payload = prepared.wire
+    else:
+        ciphertext_bytes = (len(padded) // 8 // 16 + 1) * 16
+        # Fixed v4 canonical layout: version, ratchet field, two counters,
+        # ciphertext field, 16-byte PQ field, 36-byte address field, MAC.
+        wire_bytes = 1 + 35 + 4 + 1 + len(signal._varint(ciphertext_bytes)) + ciphertext_bytes + 18 + 38 + 8
+        incoming = ctx.shared_input(wire_bytes, parties)
+        expected_next = ctx.shared_input(32, parties)
+        opened = signal.open_message(
+            ctx, chain, incoming, shape=signal.MessageShape(0, 0, ciphertext_bytes, 16, True),
+            expected_ratchet_key=ratchet, sender_identity=sender, receiver_identity=recipient,
+            pq_key=pq_key, expected_addresses=addresses)
+        expected_content = padded + ctx.public(bytes(ciphertext_bytes - len(padded) // 8))
+        check = opened.valid & equal(ctx, opened.content, expected_content)
+        check = check & equal(ctx, opened.content_length, ctx.public((len(padded) // 8).to_bytes(2, 'big')))
+        check = check & equal(ctx, opened.next_chain, expected_next)
+else:
+    payload = ctx.shared_input(message_bytes, parties)
+    if mode == 'tls-open-check':
+        incoming = ctx.shared_input(message_bytes + 17, parties)
+        header = b'\x17\x03\x03' + (message_bytes + 17).to_bytes(2, 'big')
+        opened = tls13.open_record(ctx, key, iv, 0, header, incoming)
+        check = opened.valid & equal(ctx, opened.content, payload + ctx.public(b'\x00'))
+        check = check & equal(ctx, opened.content_length, ctx.public(message_bytes.to_bytes(2, 'big')))
+        check = check & equal(ctx, opened.content_type, ctx.public(b'\x17'))
+
+# This demonstrates composition; a real Signal send must additionally construct
+# sealed sender and the authenticated HTTP/WebSocket request inside MPC.
+if mode.endswith('check'):
+    # TEST ONLY: open one equality/validity bit per synthetic fixture. No key or
+    # plaintext is opened, but even this bit needs an explicit live disclosure policy.
+    for bit in check.bit_decompose():
+        bit.reveal().print_reg()
+else:
+    record = tls13.seal_record(ctx, key, iv, 0, payload)
+    wire = record.wire(ctx)
+    for offset in range(0, len(wire), 64):
+        chunk = ctx.vec.from_vec(list(reversed(wire[offset:offset + 64])))
+        for value in chunk.elements():
+            value.reveal().print_reg()

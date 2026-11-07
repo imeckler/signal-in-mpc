@@ -1,0 +1,145 @@
+{
+  "kind": "lean_signal_metadata_checks",
+  "cases": [
+    {
+      "arguments": [
+        "signal-service-id"
+      ],
+      "input_bits": 129,
+      "input_widths": [
+        1,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "fixture_lanes": 16,
+      "all_outputs_match": true,
+      "artifact_sha256": "1c52f029426fc5d524ef3ad4ab43668247a06ea94dafe3ff043bb5a7c074b5a4",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 0,
+          "fixture_output_values_checked": 3,
+          "bytecode_sha256": "e71c751dad1f273904a7b6823d56bf7a2f98df700448dad6a0d1b43c0cadcaf0"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 0,
+          "fixture_output_values_checked": 48,
+          "bytecode_sha256": "9e3a69690bb156ea3b519534176cdb072bb208eb323dcdebbb64d4828e264d3e"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-service-id-kind"
+      ],
+      "input_bits": 8,
+      "input_widths": [
+        8
+      ],
+      "output_bits": 16,
+      "adapter_operations": {
+        "raw_and_gates": 15,
+        "executed_and_gates": 15,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "fixture_lanes": 256,
+      "all_outputs_match": true,
+      "artifact_sha256": "b9f7a698f08a4f7a90943ca409b909a16528cdc917fcd4634c01f912d1ba28a6",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 15,
+          "fixture_output_values_checked": 1,
+          "bytecode_sha256": "28b128c591de38a21bf0a1e32af04270fa4b1b365b007968cc0e5b87acee97d9"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 240,
+          "fixture_output_values_checked": 16,
+          "bytecode_sha256": "7e0e961e725e1eb9c35187e482f636663bfe2596b828f14cb1065a6b3177c5c0"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-ciphertext-message-type"
+      ],
+      "input_bits": 8,
+      "input_widths": [
+        8
+      ],
+      "output_bits": 16,
+      "adapter_operations": {
+        "raw_and_gates": 30,
+        "executed_and_gates": 30,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "fixture_lanes": 256,
+      "all_outputs_match": true,
+      "artifact_sha256": "bc1d0f354cf6416c90ba859766a8881df62ad997967d675e99cd573b490143f7",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 30,
+          "fixture_output_values_checked": 1,
+          "bytecode_sha256": "8ee1bc365f7958a6e003cb151ac1a1fb50b213ca383a553b38d658bbcc765a87"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 480,
+          "fixture_output_values_checked": 16,
+          "bytecode_sha256": "c666cefadd304298d85fce2f2b289f9dab0c089d26ca962ac103287ae6682786"
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "TlsMpc/Signal/ServiceId.lean": "74fb9ba1c43d117302db8c2e0b1124dd13ab038970971c1640aec3ed95abf8e8",
+    "TlsMpc/Signal/Tag.lean": "f9d93210e98efd9fdeca29cc8edc881915868cc344ad4a86943c29d1fc080786",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "Main.lean": "24148f46789264729587951477cecbbaad5f1510736e0bd3e677d3074be49f36",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_signal_metadata.py": "80291c017354ca2496605b0e19df5eda7f0280a2fffcb82c14943ec2461fc745"
+  },
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "implementation_refinement_audit": "SignalReference/Extraction/proof-check.json",
+  "limitations": [
+    "Metadata operations only; no complete Signal session transition.",
+    "The actual implementation-equivalence proofs are audited separately.",
+    "Native export, JSON, adapter and MPC execution are unverified."
+  ]
+}

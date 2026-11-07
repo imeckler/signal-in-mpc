@@ -1,0 +1,18 @@
+{
+  "checked_utc": "2026-11-07T17:52:39.858950+00:00",
+  "command": [
+    "python3",
+    "compile.py",
+    "-M",
+    "-X",
+    "-P",
+    "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "tls_export",
+    "begin",
+    "/Users/izzy/repos/tls-mpc/artifacts/lean/handshake/x25519-field.json"
+  ],
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_export.mpc\nWriting to Programs/Bytecode/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-tls_begin-1.bc\nWriting to Programs/Functions/tls_begin-s:[256]-sbv:[256x1]\nWriting to Programs/Schedules/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json.sch\nWriting to Programs/Bytecode/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-0.bc\nHash: 2b41beb62a8d1178906f7c68ad3eeb236d62192f3debe3873b12052a4d09bb46\nProgram requires at most:\n         511 integer dabits\n        5101 integer triples\n        5101 integer simple multiplications\n         256 integer randoms\n           2 integer opens\n        1788 bit triples\n           8 bit opens\n        2048 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "artifact_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "exporter_sha256": "efcd2f4e6e59724c7fec0ac5f50fac0e9724f472c3ee376baa96a903eeb50181"
+}

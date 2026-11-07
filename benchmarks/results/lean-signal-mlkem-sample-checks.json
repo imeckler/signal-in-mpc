@@ -1,0 +1,138 @@
+{
+  "checked_at_utc": "2026-11-07T20:02:39.254947+00:00",
+  "checked_endpoints": 16,
+  "source_sha256": {
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/matrix.rs": "931b2ff88f63a32d9c6bcdb71329ff0718b76daefe568698f424d1b266f53697",
+    "SignalReference/MlKemSampleChecks.lean": "0316e028d4654bae5b417700c44dd9bcd9fd05993dc840fe699e065fd41245a2",
+    "SignalReference/MlKemSampleExport.lean": "0355a60f80dd4722a90a86f3721c64489a41b6417771ae02b2899b757aebf2af",
+    "SignalReference/MlKemSampleWork/Export.lean": "0355a60f80dd4722a90a86f3721c64489a41b6417771ae02b2899b757aebf2af",
+    "SignalReference/MlKemSampleWork/lakefile.toml": "a65eba008d2909f28c07f77de9e3020874d1db43eb4801c20b263ccf75fd93a7",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Keccak.lean": "1d930130f2a46cd737fd4411b0a800610ea1ff8c851fcee9f6bd66f4bada8890",
+    "TlsMpc/Signal/MlKemSample.lean": "432b7a059d19bb0a9a7f8cc286067e608f241c09b8e80fddd4e7a9d248c1e7c8",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/check_lean_signal_mlkem_sample.py": "9b73cdc22d91140b22f5fda42b370ca7f18f70d1a5f032d8d1a541f6a76b8197"
+  },
+  "cases": [
+    {
+      "mode": "sample",
+      "count": 0,
+      "pairs": 0,
+      "fixture_lanes": 1,
+      "accepted_lanes": 1,
+      "aborted_lanes": 0,
+      "artifact_sha256": "c00321104d3f5c991d1853105f16f7c3d23cc5b0095c0b08dbb9c0f3bff6bc77",
+      "fixture_sha256": "146f9d346bfdfb2f0155e9ac20cd9d5176a280424c2694bf4caa894d16c7e7af",
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sample",
+      "count": 1,
+      "pairs": 1,
+      "fixture_lanes": 4101,
+      "accepted_lanes": 3332,
+      "aborted_lanes": 769,
+      "artifact_sha256": "4ecddc7ba4dc09b6ee736ddadbd3c6e66cf773f1ad1bd2c1f2d14b3f78a6c1b4",
+      "fixture_sha256": "87382e3370b4148f33f846b752fd954f23d56badbba9e3fd0db7cf91669159af",
+      "adapter_operations": {
+        "raw_and_gates": 498,
+        "executed_and_gates": 188,
+        "executed_xor_gates": 23,
+        "unreachable_nodes": 287
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sample",
+      "count": 256,
+      "pairs": 168,
+      "fixture_lanes": 16,
+      "accepted_lanes": 12,
+      "aborted_lanes": 4,
+      "artifact_sha256": "8f6694f64a43ae61b260a568952023b9828ff4270fe04e474bf7ba873fd7a679",
+      "fixture_sha256": "e84c64eef29bc7a142cfe5c5937f5c25ce5d23569bbe19d2ed1a331bb446e39c",
+      "adapter_operations": {
+        "raw_and_gates": 5979816,
+        "executed_and_gates": 2872414,
+        "executed_xor_gates": 1028700,
+        "unreachable_nodes": 2078702
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sample",
+      "count": 256,
+      "pairs": 224,
+      "fixture_lanes": 16,
+      "accepted_lanes": 12,
+      "aborted_lanes": 4,
+      "artifact_sha256": "d3374a735f64bd6d728da46b711bde82e36e86b5961b22de2aeb91ea39227294",
+      "fixture_sha256": "70b09f1751da99c0b5e73139fd3866c4fa4835d6472c144fff24b8a35a5e2da2",
+      "adapter_operations": {
+        "raw_and_gates": 8036136,
+        "executed_and_gates": 3866974,
+        "executed_xor_gates": 1380492,
+        "unreachable_nodes": 2788670
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "matrix",
+      "count": 256,
+      "pairs": 168,
+      "fixture_lanes": 18,
+      "accepted_lanes": 17,
+      "aborted_lanes": 1,
+      "artifact_sha256": "b61bf02fc7bcd27e81d34dd39407b9f6b2795992ab87f8b36a18c77c04bb5524",
+      "fixture_sha256": "1a26a74b1ce00392f109abf964fd9bc891526b075fac83a5d376571383de49bd",
+      "adapter_operations": {
+        "raw_and_gates": 7122296,
+        "executed_and_gates": 2987358,
+        "executed_xor_gates": 1371212,
+        "unreachable_nodes": 2763726
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "matrix",
+      "count": 256,
+      "pairs": 224,
+      "fixture_lanes": 17,
+      "accepted_lanes": 17,
+      "aborted_lanes": 0,
+      "artifact_sha256": "9e602e1670a753f1821f3311e1ee7abdf8f379db86e018826843246c37802e5e",
+      "fixture_sha256": "ea4783441c773c098e62f2e6227427eaea2e42484ca0029fb0f427e85298fcc5",
+      "adapter_operations": {
+        "raw_and_gates": 9562616,
+        "executed_and_gates": 4020318,
+        "executed_xor_gates": 1838204,
+        "unreachable_nodes": 3704094
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "fixture_lanes": 4169,
+  "custom_axioms": [],
+  "actual_libcrux_aeneas_refinement": false,
+  "actual_libcrux_differential": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "full_mlkem": false,
+  "bounded_abort": "secret status0 and zero coefficients if prefix has fewer than count candidates below3329; status255 otherwise; no retry or outcome revelation",
+  "matrix_input": "seed32 || two index bytes; transpose/orientation belongs to caller"
+}

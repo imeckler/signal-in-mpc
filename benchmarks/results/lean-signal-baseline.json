@@ -1,0 +1,22 @@
+{
+  "kind": "historical_signal_baseline_before_xor_recovery",
+  "artifact_sha256": "3ae4aa7992bf7bd5bfc07e00df3d6b59c0040d15fe9f174c5267b1be5caa407c",
+  "adapter_source_sha256": {
+    "backend_adapter/aig.py": "6f4c9305493912c032d7fc2d4b28b83c7bfc77949b84061a4d23d48c99a3ef59",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7"
+  },
+  "adapter_hash_provenance": "AIG hash captured from the root crypto report before its later rewrite; Boolean/program hashes unchanged across the coordinated adapter change. The post-change workspace snapshot is separately labeled.",
+  "batch": 1,
+  "parties": 5,
+  "bit_triples": 3144259,
+  "vm_rounds": 52646,
+  "bytecode_bytes": 169306096,
+  "bytecode_sha256": "4f4d9b18f2d0b2f359e05d289d6bf5d1f05c949c640abdd75cca537e7753f483",
+  "compilation_completed": true,
+  "clear_mpc_source_fixture_check_returned": true,
+  "clear_check_evidence": "test driver advanced to the batch16 subprocess; compile_and_check returns only after its fixture assertion passes",
+  "batch16": "interrupted; not claimed complete",
+  "native_mpc_executed": false,
+  "throughput_measured": false
+}

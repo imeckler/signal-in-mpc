@@ -1,0 +1,31 @@
+{
+  "kind": "lean_tls_application_controller_public_fixtures",
+  "checked_at_utc": "2026-11-07T19:28:29.887022+00:00",
+  "policy_boundary_checks": 305,
+  "checks": [
+    "old-key update sealed and sent before new-key installation",
+    "crossed requested updates, response flag and receive counter reset",
+    "automatic sending record budget update; unrestricted receive epoch",
+    "half-close and preserved initial sequence counters",
+    "protocol and I/O exceptions during seal/send/control/rotate/open/receive",
+    "terminal failures; explicit cleanup failure reporting",
+    "actual handshake run cleanup for begin and transport I/O exceptions",
+    "blocked receive permits send; 32 concurrent sends use distinct sequences",
+    "malformed framing rejected before private open; authenticated rejection terminal"
+  ],
+  "source_sha256": {
+    "TlsMpc/TlsApplication.lean": "93df65cb258b157e824e1a755c871f7d85c7f322e9cead3be0245e566608703d",
+    "TlsMpc/TlsApplicationPolicy.lean": "1d8a082cb6d1e46e7359dcdfe7e3efd9aa2fb221581362fabc40967e7509b288",
+    "TlsMpc/TlsClient.lean": "d059c3360d4f46c1e38f5f045685db9b7f14130aa3c1f621c9888844d4fbf456",
+    "TlsMpc/TlsWire.lean": "98d33a76915b41deaa605eb5df39c95ad4ed5bc2171404150b0d354548d82701",
+    "ApplicationFixture.lean": "92364df7cec44e70d5e936eb75b7eedded5de823fccf0ccdf32b7f7432ed3c8d",
+    "scripts/check_tls_application_controller.py": "ce84f7d976c7d20646447e94f85ce41cbc3e172b533b2fe7f66fd28f94e89ddb"
+  },
+  "output": "PASS: 305 policy boundary checks; controller sequencing, key updates, half-close, terminal failures, duplex receive and cleanup",
+  "native_mpc_executed": false,
+  "limitations": [
+    "Mock public Nat handles; no TLS cryptography in this fixture.",
+    "Native application backend, private post-handshake parser and erasure are separate unfinished obligations.",
+    "No controller I/O refinement proof or durable recovery claim."
+  ]
+}

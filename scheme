@@ -1,0 +1,15 @@
+I think it's wrong that it's unsafe if all the shares start off having been secret shared independently
+---
+I restarted the refresh agent. Reusing the exact same zero sharing across conversations is unsafe: subtracting two shares cancels the refresh mask. Three nodes compromised in separate epochs can then reveal differences between conversation secrets. The agent reproduced this attack in all three candidate fields.
+
+It is developing two alternatives:
+
+- Constant-size fresh seed setup, generating distinct masks per conversation. The experimental prototype passes local checks; updating stored shares still takes linear work.
+- Encrypted conversation records with one proactively shared wrapping key. Periodic refresh can then be independent of conversation count, with extra MPC encryption/decryption per access.
+
+The assumptions and tradeoffs are in the refresh design (refresh/PRZS.txt).
+
+Meanwhile, I added TLS record validation, padding/type parsing, Finished verification, and retry-transcript hashing. 2,543 TLS fixtures passed, selected MP-SPDZ compilation checks passed, and the combined Lean audit passed 167 proof endpoints. The Signal agent passed its receive tests and is now implementing sending-side serialization.
+
+Full handshake authentication remains unfinished. Native network tests and Git commits remain blocked by the environment’s permissions.
+

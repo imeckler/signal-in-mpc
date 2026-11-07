@@ -1,0 +1,76 @@
+{
+  "checked_at_utc": "2026-11-07T19:47:57.984825+00:00",
+  "checked_endpoints": 12,
+  "source_sha256": {
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/invert_ntt.rs": "c8a655badc00982f30dd1de82dc80b493ced45d5663b8dd8f8340629fa9458e5",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ntt.rs": "acbced411cd1763dfd21f2993c6a0f91a95482fdbf1281415ac456b52e90f911",
+    "SignalReference/MlKemNttChecks.lean": "92d7073c67815bfb61d5d8a0d6dbf547e13c4ede8646c0eae4b613de460d7d17",
+    "SignalReference/MlKemNttExport.lean": "722ad48581452498a8de1bce77e6f3e22fd7159d28dcf73e48ad15e502013194",
+    "SignalReference/MlKemNttWork/Export.lean": "722ad48581452498a8de1bce77e6f3e22fd7159d28dcf73e48ad15e502013194",
+    "SignalReference/MlKemNttWork/lakefile.toml": "b85c5a2993ddc0c666cba3c676f9fd97ded3d56894c830ecc476450f06c06838",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Keccak.lean": "1d930130f2a46cd737fd4411b0a800610ea1ff8c851fcee9f6bd66f4bada8890",
+    "TlsMpc/Signal/MlKemArithmetic.lean": "c60329f3acc4f77242a3a650513fa167e4d030286645256c381da8788c21ca71",
+    "TlsMpc/Signal/MlKemNtt.lean": "9138102e40fb96c3a1132a797b4838243547915a91de0773f4547252db51ef25",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/check_lean_signal_mlkem_ntt.py": "1d427f7c560884f379bca0feb884dbd80f3bbc6808b58ac91999f3cacf66296d"
+  },
+  "cases": [
+    {
+      "mode": "forward",
+      "fixture_lanes": 16,
+      "artifact_sha256": "489495a26ea829db775aacbea60da0c701fb058aa4935b1db7a8b7845372879a",
+      "fixture_sha256": "d60cc8f3b23f7543a333fdc273bda583add0547161ac471f18c46962073e0ec4",
+      "adapter_operations": {
+        "raw_and_gates": 11481530,
+        "executed_and_gates": 6061984,
+        "executed_xor_gates": 1556662,
+        "unreachable_nodes": 3862885
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "inverse",
+      "fixture_lanes": 16,
+      "artifact_sha256": "b3ade7749e4187bf3eeb4bc43c02043a60cb7198a06b9faed8db4d058a979a2d",
+      "fixture_sha256": "b0efedda6bb6bf023b00d3b389cf0fa8caf37ab9d040bebc104767ac652e340a",
+      "adapter_operations": {
+        "raw_and_gates": 12348992,
+        "executed_and_gates": 6479796,
+        "executed_xor_gates": 1708528,
+        "unreachable_nodes": 4160669
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "multiply",
+      "fixture_lanes": 16,
+      "artifact_sha256": "70a8ffa36fca812bb722d3989e0d66cf2144db20429547b5e24ffa163c0ab49d",
+      "fixture_sha256": "e2185d8b407d18bdc798e6ef20c143df0d544f1a7ce97a9e51f077d901c663f0",
+      "adapter_operations": {
+        "raw_and_gates": 5079517,
+        "executed_and_gates": 2892336,
+        "executed_xor_gates": 693377,
+        "unreachable_nodes": 1493805
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "numeric_negacyclic_convolution_pipeline": true,
+  "custom_axioms": [],
+  "actual_libcrux_aeneas_refinement": false,
+  "actual_libcrux_ntt_differential": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "full_mlkem": false,
+  "input_precondition": "256 canonical coefficients0..3328 per input polynomial",
+  "reference": "independent direct evaluation/interpolation, then full negacyclic schoolbook multiplication"
+}

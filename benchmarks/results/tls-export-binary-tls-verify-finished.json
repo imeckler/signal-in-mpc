@@ -1,0 +1,18 @@
+{
+  "checked_utc": "2026-11-07T17:56:51.080128+00:00",
+  "command": [
+    "python3",
+    "compile.py",
+    "-M",
+    "-X",
+    "-P",
+    "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "tls_export",
+    "binary",
+    "/Users/izzy/repos/tls-mpc/artifacts/lean/handshake/tls-verify-finished.json"
+  ],
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_export.mpc\nCompiled 100000 lines at Sat Nov  7 09:56:06 2026\nCompiled 200000 lines at Sat Nov  7 09:56:06 2026\nCompiled 300000 lines at Sat Nov  7 09:56:06 2026\nCompiled 400000 lines at Sat Nov  7 09:56:07 2026\nCompiled 500000 lines at Sat Nov  7 09:56:07 2026\nCompiled 600000 lines at Sat Nov  7 09:56:08 2026\nCompiled 700000 lines at Sat Nov  7 09:56:08 2026\nCompiled 800000 lines at Sat Nov  7 09:56:09 2026\nCompiled 900000 lines at Sat Nov  7 09:56:09 2026\nCompiled 1000000 lines at Sat Nov  7 09:56:10 2026\nCompiled 1100000 lines at Sat Nov  7 09:56:10 2026\nCompiled 1200000 lines at Sat Nov  7 09:56:11 2026\nCompiled 1300000 lines at Sat Nov  7 09:56:11 2026\nProcessed dependency of 1000000/1386737 instructions at Sat Nov  7 09:56:25 2026\nMerging instructions...\nTopological sort ...\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json-tls_binary_tls_verify_finished-1.bc\nWriting to Programs/Functions/tls_binary_tls_verify_finished-sbv:[800x1]-sbv:[8x1]\nWriting to Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json.sch\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json-0.bc\nHash: 51f47ed3fa65a0a4974d2a6618eb23d0a13dddb132745211c4a925da1a368782\nProgram requires at most:\n      440446 bit triples\n       19071 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "artifact_sha256": "5ea80c4acde4d31cbabfa70634283d43246be6e1f45c53326122e84975858bee",
+  "exporter_sha256": "efcd2f4e6e59724c7fec0ac5f50fac0e9724f472c3ee376baa96a903eeb50181"
+}

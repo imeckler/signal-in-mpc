@@ -1,0 +1,18 @@
+{
+  "checked_utc": "2026-11-07T17:57:17.550821+00:00",
+  "command": [
+    "python3",
+    "compile.py",
+    "-M",
+    "-X",
+    "-P",
+    "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "tls_export",
+    "binary",
+    "/Users/izzy/repos/tls-mpc/artifacts/lean/handshake/tls-seal-record-22-44-0.json"
+  ],
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_export.mpc\nCompiled 100000 lines at Sat Nov  7 09:57:10 2026\nCompiled 200000 lines at Sat Nov  7 09:57:10 2026\nMerging 16384 ands in round 61/64\nMerging 16384 ands in round 62/64\nMerging 16384 ands in round 63/64\nMerging 16384 ands in round 64/64\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-44-0.json-tls_binary_tls_seal_record_22_44_0-1.bc\nWriting to Programs/Functions/tls_binary_tls_seal_record_22_44_0-sbv:[640x1]-sbv:[528x1]\nWriting to Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-44-0.json.sch\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-44-0.json-0.bc\nHash: bfee380b41dd8dddd3a25bd974f84d1e67e6ccef9062f6e13a68018c726dcf99\nProgram requires at most:\n       89490 bit triples\n          64 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "artifact_sha256": "0cf923e1e9b16503dc8e5667234d81177f3e8d3887084b9ef7f162e15d4046ee",
+  "exporter_sha256": "efcd2f4e6e59724c7fec0ac5f50fac0e9724f472c3ee376baa96a903eeb50181"
+}

@@ -1,0 +1,15 @@
+{
+  "independent_location_byte_identical": true,
+  "actual_native_compiler_spawn_passed": true,
+  "cache_corruption_rejected": true,
+  "toolchain_change_rejected": true,
+  "wire_bytes": 38,
+  "manifest_sha256": "c1a5a4259fa60e6cac86f97288806bfda2cbbb1eebdb10f240a993d8ccb029cd",
+  "pinned_python": {
+    "path": "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3.9",
+    "sha256": "271143990bc83af0fb2404a255038f5faafb96df1584ed7f085e5018c0f33ffb",
+    "version": "3.9.6"
+  },
+  "native_mpc_executed": false,
+  "collective_agreement_executed": false
+}

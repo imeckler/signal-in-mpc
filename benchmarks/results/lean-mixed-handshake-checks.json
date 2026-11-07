@@ -1,0 +1,29 @@
+{
+  "checked_utc": "2026-11-07T06:23:09.258170+00:00",
+  "kind": "mixed_handshake_public_fixtures",
+  "conversion_cases": 2143,
+  "random_x25519_differential_cases": 64,
+  "rfc_public_key_case": true,
+  "low_order_zero_cases": 2,
+  "malformed_artifacts_rejected": 5,
+  "field_nodes": 9437,
+  "field_multiplications": 4589,
+  "native_mpc_executed": false,
+  "source_sha256": {
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
+    "TlsMpc/FieldDag.lean": "52988ebf6dbdc27231cd53e9780bc9cb92e51ca4693e413ba20df841ec64037e",
+    "scripts/check_mixed_handshake.py": "7ef30ac2a8396a3fd36a154727d9ada9ea230ee875e0a4704527f70da3011011",
+    "programs/handshake_mixed.mpc": "7400906eaea4044af51310a509a954ac0f33c1a02b48c16428a23888b26eabe7"
+  },
+  "mixed_smoke_compile": {
+    "passed": true,
+    "native_mpc_executed": false,
+    "arithmetic_triples": 5101,
+    "dabits": 1023,
+    "binary_triples": 1788,
+    "vm_rounds": 2051,
+    "scope": "X25519, bit validation and field/binary round-trip; no live handshake"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "implementation_language": "Lean",
+  "compilation_path": [
+    "executable Lean protocol specification",
+    "Lean circuit construction with semantic refinement proofs",
+    "verified Lean compiler and numeric artifact export",
+    "generic unverified artifact adapter",
+    "unverified MPC backend"
+  ],
+  "python_protocol_status": "experimental differential reference only; not the requested implementation",
+  "tls_reference": {
+    "normative": "RFC 9846 (July 2026), TLS 1.3",
+    "url": "https://www.rfc-editor.org/info/rfc9846/",
+    "supersedes": "RFC 8446",
+    "formal_target": "an executable Lean specification with RFC clause traceability",
+    "secondary_reference": "Bertie pure Rust TLS core; extraction feasibility and revision pin remain to be established",
+    "secondary_reference_url": "https://github.com/cryspen/bertie",
+    "proofs_do_not_transfer_automatically": true,
+    "current_verified_scope": [
+      "nonce construction, injectivity, no-wrap reservation and numeric artifact export",
+      "inner plaintext and record header layouts",
+      "SHA-256 and HMAC symbolic refinement through numeric AIG compilation",
+      "HKDF extract/expand and TLS label encoding",
+      "no-PSK handshake/application secret derivation, traffic keys, Finished and traffic updates",
+      "HMAC prefix-state reuse and prepared TLS derivations preserve the direct specification",
+      "constant-folding bit-vector constructors preserve expression semantics",
+      "SHA padding, HMAC key-block and HKDF output lengths",
+      "AES-128/256 encryption, expanded key reuse and length proofs; fixed S-box circuit matches all 256 FIPS table entries",
+      "GHASH symbolic refinement with shared shifted powers of H",
+      "AES-128-GCM sealing and authenticated opening, full tag comparison and zeroed rejection output",
+      "TLS protected-record composition and authenticated opening to shared TLSInnerPlaintext",
+      "TLSInnerPlaintext rightmost-nonzero type/padding parsing, fixed-size secret length/content and zeroed rejection",
+      "complete TLSCiphertext opening: authenticated header validation, GCM tag validation and inner parsing",
+      "Finished verification against complete encoded message, transcript hashing and HelloRetryRequest synthetic message_hash framing"
+    ],
+    "scope_limits": [
+      "prose-to-Lean specification correspondence is a human audit obligation",
+      "X25519 and the initial authenticated handshake controller are implemented; the effectful controller is tested rather than mechanically verified",
+      "only SHA-256 and AES-128 traffic-key lengths are covered by the TLS exporter",
+      "numeric AIG semantics are proved; native export, JSON and MPC execution are trusted",
+      "application record export currently caps content plus padding at 1024 bytes; dynamic handshake-record compilation accepts the TLS protocol limit",
+      "TLS open-inner remains a lower-level API; open-record validates header/type/padding but does not enforce connection state or negotiated limits",
+      "Finished verification does not replace certificate/signature validation or prove transcript assembly/order"
+    ],
+    "native_integration_evidence": {
+      "report": "benchmarks/results/tls-native-handshake.json",
+      "tested": "Five independent Lean controllers/native MPC parties; certificate and hostname/CertificateVerify validation; fragmented encrypted handshake records; dynamic shape compilation/agreement; server Finished verification; OpenSSL acceptance of client Finished",
+      "profile": "TLS1.3 X25519 AES128-GCM SHA256, ALPN h2, local Ed25519 fixture certificate",
+      "application_session_accepted": false,
+      "retirement_behavior": "Must reject until full VM/preprocessing erasure is implemented",
+      "wan_or_signal_account_request_tested": false
+    },
+    "pending": [
+      "review RFC 9846 technical changes and applicable errata",
+      "full native VM retirement, consumed-preprocessing/randomness cleanup and proactive-security composition",
+      "native application activation, full-size kernel provisioning, shared payload producer/consumer and handle retirement",
+      "durable key epochs, usage counters, rollback protection and persistence",
+      "broader native controller interoperability including retry, client-certificate request and negative cases; clear fixtures already cover these",
+      "private HTTP2/Signal application framing and complete request integration",
+      "persistent-session performance measurements including real preprocessing, batching and WAN effects"
+    ]
+  },
+  "signal_reference": {
+    "repository": "https://github.com/signalapp/libsignal",
+    "commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+    "required_extraction": "pinned Rust libsignal -> Charon LLBC -> Aeneas Lean",
+    "required_proof": "Our MPC circuit agrees with the faithfully Aeneas-translated actual pinned Signal implementation, on an explicit supported input/state domain; no independent internal Signal correctness or security proof is required.",
+    "extraction_status": "Actual extraction/refinement covers key accessors, dalek clamp, service IDs, byte-tag errors, PKCS7 pad/unpad, AES S-box/layout/linear leaves and full compact SHA-256 compression. A separate actual AES-256 software schedule proof is complete; full byte-cipher representation composition, RustCrypto wrappers and Signal state transitions remain unfinished.",
+    "toolchain_pinning": "SignalReference/pins.json records Aeneas 5b9dcf33, its Charon pin 4ad295c1, Rust nightly-2026-08-18 and Lean 4.31.0",
+    "lean_implementation": "Symmetric chain/key derivation; AES256-CBC send/open; strict PKCS7; identity-bound HMAC; authenticated bounded serialized-span receive; clamp/service IDs/tags. Compiler and direct receive-spec proofs cover Lean definitions; complete Aeneas libsignal receive and RustCrypto wrapper equality remain pending.",
+    "extraction_blockers": [
+      "RustCrypto dependency generic associated types",
+      "unsupported pointer and standard-library operations after monomorphization",
+      "mutable Zip borrow-write-back model and hybrid-array initialization in actual AES wrappers",
+      "complete byte-loading/digest/HMAC/HKDF wrapper extraction and refinement"
+    ],
+    "first_targets": [
+      "ratchet/keys.rs",
+      "protocol.rs",
+      "triple_ratchet.rs"
+    ],
+    "requirements": [
+      "extract actual pinned implementation; do not substitute a handwritten Rust model",
+      "record every excluded or opaque item and the justification",
+      "record cryptographic and FFI models as explicit proof obligations",
+      "include success results, errors, state changes and randomness in refinement statements",
+      "do not treat vectors, generated axioms or placeholder proofs as completed refinement"
+    ],
+    "reuse_audit": "SignalReference/BAF_REVIEW.md and SignalReference/Extraction/baf-review.json"
+  },
+  "sharing_reference": {
+    "design": "specs/sharing-refresh.json",
+    "required_security": "proactive/mobile corruption of at most two distinct parties per refresh epoch, not a lifetime bound",
+    "verified_scope": "Conditional algebraic value preservation, lossless packing, epoch/context guards, historical per-period exposure accounting, and guarded recovery/retirement metadata",
+    "not_implemented": [
+      "authenticated persistent worker share loading",
+      "durable epoch commit, recovery and erasure",
+      "whole-service proactive security and mixed-domain integration",
+      "five-party live network execution and throughput validation"
+    ],
+    "native_prototype": "refresh/SECURITY.txt: unverified native full-field refresh for Fp25519 and CCD GF(2^40/64), candidate persistence and isolated TLS policy; local checks pass, five-party network execution not run.",
+    "batch_refresh_constraint": "Exact zero-mask reuse across records preserves cross-record differences and is unsafe for mobile corruption. Distinct per-component masks are required; amortized fresh seed setup remains experimental."
+  },
+  "proof_axioms_allowed": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "trusted_reference_boundary": [
+    "pinned Rust sources/toolchain",
+    "Charon extraction",
+    "Aeneas translation and standard-library models"
+  ],
+  "mpc_security_proof": "not mechanized, as requested",
+  "trusted_execution_boundary": [
+    "Lean native execution",
+    "JSON transport",
+    "artifact adapter",
+    "MP-SPDZ compiler/runtime"
+  ]
+}

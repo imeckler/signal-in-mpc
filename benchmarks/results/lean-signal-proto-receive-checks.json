@@ -1,0 +1,76 @@
+{
+  "checked_at_utc": "2026-11-07T18:33:32.413885+00:00",
+  "checked_endpoints": 11,
+  "source_sha256": {
+    "SignalReference/ProtoReceiveChecks.lean": "271e2012c076d09e354ac5fd10246bd545547070817d787b0774c0d0a0dbd7ee",
+    "SignalReference/ProtoReceiveExport.lean": "4ccbe2f92353c3b75cdadd89e1a45e9801b8abfb09ec5cf06bf5b1a1ad461993",
+    "SignalReference/ProtoReceiveWork/Export.lean": "4ccbe2f92353c3b75cdadd89e1a45e9801b8abfb09ec5cf06bf5b1a1ad461993",
+    "SignalReference/ProtoReceiveWork/lakefile.toml": "0624992041bbc2667e0d45fc1038cf8eeb9ef81f804d748c827569bc405f16d6",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/CbcOpen.lean": "a30c198d80ae9a8cd0d57feb59eda25af01a9891830fcbd55fe69e2d0d4e09fb",
+    "TlsMpc/Signal/MessageMac.lean": "a1df406edf05f8cd122b064930dec41b2bead6988c0f7f499a8d7437000a4dca",
+    "TlsMpc/Signal/OffsetSelect.lean": "8c8ccf84600e9eda7e005477fb2fc31e05897a403c4ca3df9a4771928644dfff",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/ProtoParse.lean": "4a266ae4d734e3513592fde2d77a6c64e13b9a89ee92146cc5852d72db59345c",
+    "TlsMpc/Signal/ProtoParseProofs.lean": "9ec97aa362e3a8e18914810c7d849456d5cc7e7580c16263db44d4c26c6d6651",
+    "TlsMpc/Signal/ProtoReceive.lean": "4b8c20829850416f4f197584ae85a1cb22045a9a4d072e4a59d82196a2de2c7f",
+    "TlsMpc/Signal/ReadAt.lean": "5e65494d52885503d2edbab642355f7403a9cb9c6fa8fa280e9208cf18567704",
+    "TlsMpc/Signal/Receive.lean": "a252ff059004964617cdc619094f2c801185019464e75ef5d09fe9c3183e7c26",
+    "TlsMpc/Signal/ReceiveSpec.lean": "ca9fca9c54cd291f49872498f89ec450864665a0c78a4a66c5b2f23732e3ddab",
+    "TlsMpc/Signal/SliceAt.lean": "7d32fb0e4984df8378fc46f55c3a735f70834ae8ca9180d4de00973fd74d6f9d",
+    "TlsMpc/Signal/SpqrDecodeAt.lean": "018428a939a8b67e692a32ce69110d86d02730dda657b0324661e47a5e0274bf",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "TlsMpc/Signal/VarintDecode/Spec.lean": "3a1240d1a448a7c1d719904eee73111db7e7d95f91f56ea4f8841e6933d576d7",
+    "TlsMpc/Signal/VarintDecode/Spqr.lean": "de5cbc8467cf466c8da7d9582406ea04e9191dbc4b14dc1c3bf53ec2424c9865",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "scripts/check_lean_signal_proto_parse.py": "868f111f056c605523371d9e0c4ccb94445e925f8f93998ebf0c34ea6e460fc2",
+    "scripts/check_lean_signal_proto_receive.py": "fb859ecbc0c4028da33a3217c26a90e00660ae82ba2ec319436156e59453c71e",
+    "scripts/check_lean_signal_receive.py": "bc00f5d242f3b3e03983daa91233ebd7e04fbaeece7dc7d630fc19c3d2a4e3dc"
+  },
+  "cases": [
+    {
+      "wire_bytes": 96,
+      "fixture_lanes": 49,
+      "artifact_sha256": "66d15c6e47940deaf00d50486143560bc1b64644379a7b6b8fa021ec0754d850",
+      "fixture_sha256": "80fa8603ed68408ba79b93673583f72c98edb9b6363afffb6dd292761e501415",
+      "adapter_operations": {
+        "raw_and_gates": 7475140,
+        "executed_and_gates": 2733020,
+        "executed_xor_gates": 1639117,
+        "unreachable_nodes": 3103003
+      },
+      "all_outputs_match": true
+    },
+    {
+      "wire_bytes": 160,
+      "fixture_lanes": 58,
+      "artifact_sha256": "f7b7aa674ccf6de2f3d376e16af652ec5611735715023249cdaff106689c9051",
+      "fixture_sha256": "7f0f0bfab67054303c5b52a717f0d799dd4b4a88dde4decc67828239db827360",
+      "adapter_operations": {
+        "raw_and_gates": 14100016,
+        "executed_and_gates": 5169462,
+        "executed_xor_gates": 3040857,
+        "unreachable_nodes": 5889697
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "full_actual_rust_receive_refinement": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "public_parameters": [
+    "wire byte length"
+  ],
+  "session_key_selection_and_commit": false,
+  "custom_axioms": []
+}

@@ -1,0 +1,68 @@
+Signal server transport review, 2026-11-07
+
+Reviewed Signal-Server commit21be84230390a80bbf33a016a12a8ef4ab9863e7 (2026-11-04).
+Pinned copies plus SHA256 hashes: .deps/signal-server-review/21be84230390a80bbf33a016a12a8ef4ab9863e7/inventory.json.
+
+Source findings:
+* SniMapper.buildSslContext explicitly selects TLSv1.3 and ALPN h2. Its supported
+  providers are Netty OPENSSL and JDK. It does not set a cipher-suite list, record
+  size, padding policy, ticket count or key-update cadence in this method.
+* GrpcConfiguration defaults sslProvider to OPENSSL and idleTimeout to 5minutes;
+  production config can override these. h2c can remove TLS from this internal
+  listener, so source alone does not establish deployment termination topology.
+* OmnibusH2Server installs SniHandler and verifies HTTP2 ALPN. It advertises
+  RFC8441 extended CONNECT and routes HTTP2 streams via OmnibusRouter.
+* WhisperServerService maps /v1/websocket/ and /v1/websocket/provisioning/ to the
+  WebSocket backend and routes other H2 paths to the local gRPC server. It also
+  configures separate Jetty/Dropwizard HTTPS and WebSocket endpoints.
+
+Client-version distinction:
+* ../secret-shared-db/Cargo.lock pins imeckler/libsignal
+  c1d9fb55ded1eca7ef6aae35cdedc2452bf6529c. relay-node/src/chat.rs uses PROD main
+  chat config and /v1/websocket/, direct routing with domain fronting disabled.
+  The cached pinned env.rs has chat.signal.org:443, HTTP1.1, Signal private CAs.
+* Our .deps/libsignal-v0.106.1/rust/net/src/env.rs main chat route instead has
+  grpc.chat.signal.org:443, HTTP2, TLS1.3 and Signal private CAs. Its WebSocket
+  path still exists, with a shared H2 connection used by current chat code.
+* Therefore switching library versions is not merely a Signal crypto update.
+  Current transport work needs private H2 stream/HPACK framing (and extended
+  CONNECT WebSockets or native gRPC, according to chosen API). Do not send an
+  HTTP1.1 upgrade to the current h2-only endpoint or treat the default generic
+  TlsWire.Config ALPN/http1.1 as a validated Signal deployment profile.
+
+TLS record consequences (inferences from the stack, not observed production):
+Expect certificate-authenticated TLS1.3 and predominantly protected application
+records carrying an HTTP byte stream. H2 SETTINGS/PING/WINDOW_UPDATE/GOAWAY and
+WebSocket ping/close are application bytes to TLS, not TLS control records.
+No source evidence supports one message per TLS record, fixed record lengths,
+or skipping fragmentation/coalescing. Keep generic TLS record limits and
+streaming framing. The bounded post-handshake parser consumes ignored tickets
+and KeyUpdate across records without revealing lengths or ticket bodies.
+Our no-resumption ClientHello does not advertise psk_key_exchange_modes, so a
+conforming server should not issue tickets for this profile; still ignore
+received NewSessionTicket as required by RFC9846 for non-resuming clients.
+Provider versions/config affect key-update/ticket/record behavior, so measure
+before choosing cached circuit sizes or claiming WAN costs.
+
+Probe results:
+No authenticated account, recipient identifier or production key was used.
+Earlier native probes failed at DNS/connect. Network access now works.
+2026-11-07T20:34:49Z: native OpenSSL s_client connected to grpc.chat.signal.org
+with TLS1.3, TLS_AES_128_GCM_SHA256, X25519 and negotiated ALPN h2. Certificate
+and hostname validation succeeded using the pinned libsignal Signal CA bundle;
+the peer used an Ed25519 signature. No HTTP request was sent. Machine-readable
+result: benchmarks/results/signal-live-tls-profile.json. This is an OpenSSL
+profile probe, not execution of our Lean/MPC client or its exact ClientHello.
+Next evidence needed is a public, certificate-validated trace for both the
+locked legacy endpoint and the selected current endpoint, using the exact
+ClientHello offered by this implementation. Retain only record types/lengths,
+negotiated parameters and timing; record test provenance. Also exercise OpenSSL
+and JDK server engines locally once the appropriate runtime harness is ready.
+
+Sources:
+https://github.com/signalapp/Signal-Server/blob/21be84230390a80bbf33a016a12a8ef4ab9863e7/service/src/main/java/org/whispersystems/textsecuregcm/grpc/net/SniMapper.java
+https://github.com/signalapp/Signal-Server/blob/21be84230390a80bbf33a016a12a8ef4ab9863e7/service/src/main/java/org/whispersystems/textsecuregcm/grpc/net/OmnibusH2Server.java
+https://github.com/signalapp/Signal-Server/blob/21be84230390a80bbf33a016a12a8ef4ab9863e7/service/src/main/java/org/whispersystems/textsecuregcm/configuration/GrpcConfiguration.java
+https://github.com/signalapp/Signal-Server/blob/21be84230390a80bbf33a016a12a8ef4ab9863e7/service/src/main/java/org/whispersystems/textsecuregcm/WhisperServerService.java
+https://github.com/signalapp/libsignal/blob/v0.106.1/rust/net/src/env.rs
+https://www.rfc-editor.org/rfc/rfc9846.txt

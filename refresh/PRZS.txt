@@ -1,0 +1,323 @@
+Amortizing refresh without reusing one mask
+=========================================
+
+Status, 2026-11-06
+------------------
+Reusing the SAME zero polynomial for different records is rejected. A native
+three-epoch attack regression now demonstrates the leakage in Fp25519 and CCD
+GF(2^40)/GF(2^64). MaskReuse.lean also proves the cancellation and reconstruction
+identities symbolically in an integer model, for arbitrary masks; it is not a
+mechanized finite-field security proof.
+
+NativePrzs.h is an EXPERIMENTAL alternative that amortizes seed setup while
+deriving separate pseudorandom zero polynomials per component. It has a compiled
+candidate-only driver and local algebra/format/seed-consistency tests. It has
+not received independent cryptographic review, run a five-party network test,
+or established the whole application's adaptive/mobile security. The original
+interactive NativeRefresh.h path remains separate and unchanged.
+
+Storage decision to make before optimizing the database
+-------------------------------------------------------
+For the user's aim of making periodic refresh independent of thousands of
+conversations, compare these two approaches:
+
+  Existing native per-record shares + PRZS:
+    O(1) seed setup in record count, then O(M) local derivation, writes and
+    retirement for M components. Online sends use already shared state.
+    The current bounded driver repeats setup per <=4096-component invocation;
+    constant setup for a whole database needs a streaming epoch coordinator.
+
+  AEAD-encrypted records + a proactively shared wrapping key:
+    Refresh only a fixed-size key and other live shared state. Stored ciphertext
+    records need no periodic rewriting while the represented key is unchanged.
+    Each accessed record adds MPC authenticated decrypt and encrypt work.
+    Every retained shared key schedule or decrypted session still counts as
+    live state; a cache of W sessions adds O(W) refresh/retirement work.
+
+The second architecture is the stronger candidate when CONSTANT TOTAL periodic
+refresh, including disk writes, is the priority. It reuses the existing verified
+GCM seal/masked-open building blocks, but needs its own storage transaction and
+security argument. No storage migration or preference decision is enacted here.
+Reusing one zero sharing across records is not a third acceptable option.
+
+Why one shared mask leaks
+------------------------
+For records r and s, suppose f_(e+1,r)=f_(e,r)+z_e and
+f_(e+1,s)=f_(e,s)+z_e. Then
+
+    f_(e+1,r)(X)-f_(e+1,s)(X) = f_(e,r)(X)-f_(e,s)(X).
+
+The degree-two DIFFERENCE polynomial never refreshes, regardless of how fresh,
+uniform or verifiably zero z_e is. Expose node A in epoch 0, B in epoch 1, and C
+in epoch 2, with no compromises during the refreshes. The attacker retains the
+two-record share difference at each node. Three distinct evaluations reveal
+s_r-s_s. This schedule has only one compromised node in each accounted epoch.
+
+A known reference value turns the recovered relation into the other secret.
+Without a known reference, leaking these relations already violates joint
+privacy; structured identifiers may also permit guessing. In CCD the relation
+is addition/XOR of the represented bits. The regression uses valid bit secrets
+for CCD, and a known-zero reference. Nothing in the attack requires the zero
+mask itself to be opened or any refresh participant to be corrupt.
+
+Replacing the one mask with a fixed small collection and FIXED public linear mixing
+does not generally fix the problem: rows of mixing coefficients have a public
+left kernel whenever the number of records exceeds the number of base masks.
+The corresponding linear combinations of record polynomials remain unchanged
+and can be accumulated over epochs. Varying that public matrix across epochs
+would require a separate multi-epoch argument; it is not adopted here. A seed used as a secure PRF is different
+from a fixed-dimensional public linear combination of a few masks.
+
+Constant seed setup candidate for the present five-party degree-two scheme
+-------------------------------------------------------------------------
+Let the native nonzero distinct points be x_0,...,x_4. For each b, a fresh key
+k_b is held by exactly the four parties other than b. Define
+
+    B_b(X) = X*(X-x_b)
+    u_b(label) = PRF_to_field(k_b, domain || epoch/context || b || label)
+    z_label(X) = sum_(b=0..4) u_b(label)*B_b(X).
+
+Party i computes z_label(x_i) using its four keys: its missing b=i term is zero.
+No party collects the five coefficients or all five keys. Degree remains two
+and the constant remains zero. The same formula works in the actual prime and
+extension fields; binary points use their native polynomial-basis encodings.
+
+Each component label contains a 32-byte opaque conversation/object handle,
+object version and component index. Domain, protocol version, source/target
+epoch, descriptor, ordered inventory digest and excluded party are bound into
+the PRF input. No label is a plaintext Signal identifier or its deterministic
+hash. Duplicate component labels are rejected. Distinct labels produce
+computationally independent-looking values under the PRF assumption; they are
+not promised collision-free field values.
+
+The implemented expander uses HMAC-SHA-256 with 256-bit fresh keys. Binary
+outputs keep 40 or 64 bits; prime outputs sample native Montgomery residues
+below 2^255-19 by rejection. A 64-attempt bound turns failure into abort; for an
+ideal uniform output, each prime attempt rejects with probability 19/2^255.
+This preserves the native format without reducing arbitrary key byte strings.
+The cryptographic assumption is PRF security, not merely collision resistance.
+
+Malicious setup with abort
+--------------------------
+For subset excluding b, the designated dealer is b+1 modulo five. The dealer
+draws a fresh 32-byte key and privately sends it to its other three holders.
+Each holder then privately echoes the key to the other three holders. Across
+each directed pair of distinct parties, there are three commonly held keys.
+The excluded party never receives that key or a hash of it. Every holder
+checks that all echoes agree, followed by checked all-five success/abort
+agreement before local expansion. The transport is the isolated pinned mutual
+TLS 1.3 context described in SECURITY.txt.
+
+With at most two transition corruptions, each four-party subset contains at
+least two honest holders. If a malicious dealer gives those honest holders
+different keys, their direct echoes disagree and an honest holder aborts. If
+accepted, all honest holders use a common key in each subset. Thus their local
+deltas lie on one degree-two zero polynomial for every label. A corrupted
+party may compute a different local candidate or refuse to continue; neither
+behavior grants guaranteed output delivery or a false public proof.
+
+One dealer per subset does not promise uniformly random keys in subsets
+containing corrupt parties. The privacy case analysis needs entropy only in
+the subset(s) inaccessible to the transition adversary. Those subsets contain
+only honest parties, including their designated dealer. A malicious dealer can
+bias its own known keys or force abort, but cannot choose the inaccessible
+subset's key. This property depends on this particular adjacent-period model;
+the API is not a general t-private PRSS functionality for arbitrary consumers.
+
+Adjacent-period privacy argument and its limits
+----------------------------------------------
+Keep the REQUIRED accounting C_e=P_e union R_(e-1) union R_e, |C_e|<=2.
+Every compromise during key distribution, expansion, persistence overlap or
+pre-retirement processing belongs to R_e and hence both adjacent periods.
+
+Consider an idealized hybrid where every still-unexposed seed yields independent
+uniform field values at all distinct labels. Known keys and their values are
+conditioned on the adversary's view. For each epoch choose a degree-two
+difference polynomial D_e with D_e(0)=d and roots at every point in C_e. Such
+a D_e exists for any fixed secret difference d. Changing f_e to f_e+D_e leaves
+all exposed shares fixed. For a transition the required mask change
+Q=D_(e+1)-D_e has zero constant and vanishes at every point in R_e.
+
+* If R_e is empty, all five keys are hidden. Two distinct B_b span the full
+  two-dimensional space of degree-two zero polynomials, so Q can be absorbed
+  by translating two independent uniform PRF outputs at this component label.
+* If R_e={b}, the adversary knows exactly four keys and lacks k_b. Every
+  permissible Q has the form c*X*(X-x_b), precisely the missing direction.
+  Changing u_b by c changes no key, setup message or delta visible to b.
+* If R_e has two parties, their combined key sets include all five keys.
+  This is intentional: two evaluations already determine a degree-two zero
+  polynomial. Both accounted adjacent sets must equal that same pair, so the
+  chosen D_e and D_(e+1) coincide and Q=0. No hidden mask change is needed.
+
+The third case must be applied over a whole history, not treated as an isolated
+exception. Two successive fully exposed transitions cannot switch directly
+from {A,B} to {B,C}: the intervening period would account for {A,B,C}. A legal
+change of pair must pass through a transition with fewer exposed parties,
+whose missing seed(s) provide the needed hidden direction. The D_e construction
+provides a per-edge algebraic witness for arbitrary finite histories under
+the accounting; it does not assume a lifetime bound of two parties.
+
+The local checks enumerate all 391 possible adjacent triples
+(C_e,C_(e+1),R_e) for five parties satisfying the subset/budget constraints,
+in each actual native field. They verify the D/Q identities and the hidden
+basis directions, including every two-corruption known-all-key case. They
+also check 80 subset/corruption configurations for seed equivocation detection.
+These finite algebra checks support the argument; they do not verify network
+transcripts, a PRF reduction, or secure adaptive execution.
+
+For a fully adaptive adversary, R_e means the union of everyone exposed at any
+time in the ENTIRE transition. A key may initially be hidden and later become
+known; the argument must use the final accounted set. If a second holder is
+compromised before erasure, this is a two-corruption transition. If a new party
+is exposed after cleanup, it must have no route to the old keys or private
+echo buffers. The computational hybrid must handle adaptive key exposure and
+many label queries; the source paper's static-security result does not prove
+that composition automatically. A careful security review is still required
+before promoting this experimental construction.
+
+Seed lifetime is the essential boundary
+---------------------------------------
+ALL five keys must be freshly established for each transition from new honest
+private entropy, then erased from every honest holder before closing it. This
+includes setup messages, echoes, derived field outputs, allocator copies,
+snapshots, wrapping keys and backups. The baseline clean-host recovery,
+credential renewal, preprocessing retirement and rollback contracts remain.
+Native sodium_memzero calls are best-effort cleanup, not proof of this boundary.
+
+Long-lived seeds, or deterministic next-epoch keys derived from an exposed
+seed, are rejected. The regression demonstrates that exposing A and then B in
+different periods gives all five persistent keys. Epoch-separated PRF labels
+then merely give the attacker a way to compute every epoch's masks. A third
+node supplies enough shares, translated into one epoch, to reconstruct.
+Fresh labels do not heal a disclosed master seed. Keeping fresh old seed sets
+in backups similarly allows later compromises to recover old masks.
+
+Lazy refresh that leaves old shares on disk and applies seed-derived deltas
+only when a conversation is accessed does not close an epoch for those old
+shares. Three later captures can accumulate their unchanged baseline. Retaining
+a recipe for old masks instead of overwriting/retiring the old state does not
+solve this. Exposure windows include unresolved candidates and partial batches.
+
+Costs and current implementation boundary
+-----------------------------------------
+For fixed five parties, seed distribution transmits 15*32=480 payload bytes;
+private echo checks transmit 20*3*32=1920 bytes: 2400 secret payload bytes total
+per setup, independent of record count. Checked public agreements, TLS,
+descriptor/inventory digests, commit certificates and recovery add overhead.
+No field-element delta messages or preprocessing triples are needed afterward.
+
+For M native secret components, each party performs four HMAC field expansions
+and four products by public basis weights per component, plus local updates.
+The current helper also recomputes the public basis weights; caching those
+four public weights would remove that repeated public arithmetic.
+It must read/write/retire O(M) native state and hash its O(M) public inventory.
+Constant-size seed setup does not mean constant local work. Batching the
+baseline interactive protocol amortizes rounds but still transmits O(M) field
+elements; precomputing independent masks moves that work, not its total cost.
+
+The executable refresh-przs-party retains the existing 1..4096 component
+candidate-envelope bound. Its extra COMPONENT_IDS file has one row per native
+component: opaque_handle_hex object_version component_index. Setup and local
+expansion compile against all three native domains, and all local checks pass.
+It stages candidates only. It does not implement a streaming whole-database
+transaction, authenticated worker import/export, multi-batch inventory tracking,
+source validity, erasure closure or five-party network execution. Repeating the
+bounded driver runs one setup per batch. A future streaming epoch coordinator
+must hold one setup across the full frozen inventory, reject label reuse across
+chunks, and keep the same exposure window until all chunks are committed and
+retired. No WAN throughput claim follows from the 2400-byte code count.
+
+Wrapping-key storage: concrete contract and costs
+------------------------------------------------
+O(M) rewriting above is specific to keeping M independent native sharings.
+An alternative stores conversation state as AEAD ciphertexts and proactively
+shares only a fixed-size master wrapping key. The master key's native components
+still need distinct masks; records are authenticated/decrypted/updated only
+inside MPC. Periodic refresh can then be independent of conversation count,
+with extra MPC AEAD work on each access instead of rewriting all record shares.
+
+A reviewable first contract is:
+
+1. Keep only native shares of a jointly generated or checked privately imported
+   wrapping key persistently secret-shared. Store an opaque handle, record
+   version, schema/key-generation identifier, nonce, ciphertext and tag for each
+   conversation. The handle must not be a plaintext identifier or its hash.
+   Ciphertext length, handles and access timing remain metadata; pad lengths if
+   the application's leakage contract requires it.
+2. Authenticate a canonical AAD encoding of protocol/storage format, committee
+   or account namespace, opaque handle, object version, schema/session type and
+   key generation. Verify this context against the agreed record manifest
+   before using decrypted state. A valid tag alone does not prevent swapping a
+   valid record, replaying an old version, or restoring the entire old manifest.
+3. Use a crash-safe unique 96-bit nonce allocation under each GCM key. A simple
+   baseline is an agreed monotonic global allocation counter, with ranges
+   durably reserved before use. Burn allocations after uncertain crashes; never
+   reuse a nonce to encrypt different state. A retransmission may reuse the
+   exact already committed ciphertext bytes. Counter wrap requires a new key.
+4. Open records only inside MPC with authenticated masked-open, keep the
+   validity bit/state authorization inside the guarded computation, run the
+   Signal transition, then seal the next state inside MPC. Nodes receive only
+   allowed ciphertext/public results. Never expose session plaintext or a
+   reconstructed master key to a relay, storage process, or individual node.
+5. Serialize record updates, Signal ratchet/message-key consumption and public
+   ciphertext publication through a durable agreed transaction. Bind old/new
+   record versions and reject forks. Anchor the manifest/nonces against
+   rollback; honest recovery cannot simply restore an older signed snapshot.
+   Exactly-once application-send/retry behavior remains a separate requirement.
+6. At each refresh boundary, quiesce the workers. Flush active session state to
+   authenticated ciphertext and retire its shared/native copies, or refresh
+   every retained cache component independently. Do the same for AES expanded
+   key schedules, derived record keys, TLS secrets and preprocessing contexts.
+   The promise is constant refresh only when the retained live secret inventory
+   is bounded independently of total conversation count.
+7. Backups/recovery must never assemble or escrow the clear master key in one
+   node. Old share backups remain dangerous: three later captures of one old
+   polynomial reconstruct K. Retire them or specify a separately trusted
+   recovery/cryptographic-erasure mechanism. A wrapping key recoverable from
+   a retained local master key does not erase the wrapped old share. Recovery
+   of an unavailable or corrupted node needs checked current-share repair or
+   abort, under the same adjacent-period and authenticated-host assumptions.
+8. The master key remains the SAME represented value through a proactive share
+   refresh. Rotating that actual key is a separate operation that ordinarily
+   re-encrypts/rewraps records. Archived ciphertext may preserve historical
+   Signal session/ratchet state under that key; evaluate forward-secrecy and
+   deletion consequences if the master secret is ever reconstructed. A common
+   key also gives a common failure boundary across records. Neither AEAD nor
+   share refresh makes those properties disappear.
+
+Implementation reuse: TlsMpc/Gcm.lean currently supplies verified AES-128-GCM
+seal and authenticated masked-open using 96-bit nonces/128-bit tags. It could
+support a 128-bit master-key baseline; an AES-256 choice requires the matching
+implementation/specification work and should not be claimed from these counts.
+benchmarks/results/lean-gcm-checks.json records, for 5 bytes AAD and 17 bytes of
+content, 73,467 executed AND gates for open and 73,204 for seal: 146,671 combined.
+These are compiled-circuit counts with public-clear fixture checking, not WAN
+timing. Real record AAD is larger and real Signal state can be much larger;
+block processing grows with the data. Prepared key-schedule reuse could reduce
+repeated setup cost, but its retained shares enter the refresh inventory.
+
+Thus the principal experiment is per-message extra MPC AEAD cost versus
+per-epoch rewriting of every native conversation component. It should precede
+final storage selection; this followup does not migrate or provision any keys.
+
+Primary sources and attribution
+-------------------------------
+Cramer, Damgard and Ishai, TCC 2005, section 4, develops PRSS and PRZS from
+replicated subset keys and public polynomial bases. Its displayed PRZS scheme
+uses degree 2t and its MPC result assumes static corruption. The degree-two
+five-subset construction and mobile case analysis above are our adaptation,
+not a claimed theorem of that paper. We read the author-uploaded full text
+after the IACR PDF endpoint returned 403:
+https://www.iacr.org/archive/tcc2005/3378_342/3378_342.pdf
+https://www.researchgate.net/publication/221354063_Share_Conversion_Pseudorandom_Secret-Sharing_and_Applications_to_Secure_Computation
+
+The adjacent-period accounting is from Herzberg et al., section 2.1:
+https://www.cs.cornell.edu/courses/cs754/2001fa/339.PDF
+
+The HMAC-SHA-256 API/key generation is provided by libsodium. We assume its
+HMAC construction is a secure PRF; no primitive security proof is mechanized:
+https://doc.libsodium.org/advanced/hmac-sha2
+
+Run python3 scripts/check_refresh_backend.py for native tests and
+python3 scripts/check_sharing_spec.py for the 30 Lean theorem audit. The native
+report explicitly says network_mpc_executed=false and proactive_security_proved=false.

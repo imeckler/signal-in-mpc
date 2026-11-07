@@ -1,0 +1,299 @@
+{
+  "kind": "lean_tls_receive_checks",
+  "checked_utc": "2026-11-07T05:24:13.947418+00:00",
+  "cases": [
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "1"
+      ],
+      "input_bits": 8,
+      "output_bits": 40,
+      "nodes": 56,
+      "adapter_operations": {
+        "raw_and_gates": 47,
+        "executed_and_gates": 30,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 17
+      },
+      "fixture_lanes": 260,
+      "accepted_lanes": 2,
+      "all_outputs_match": true,
+      "artifact_sha256": "ed1029c07f572d32ae16040d50a0171277f8794c17ade2cf3d2149a2c79aba6b"
+    },
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "2"
+      ],
+      "input_bits": 16,
+      "output_bits": 48,
+      "nodes": 156,
+      "adapter_operations": {
+        "raw_and_gates": 139,
+        "executed_and_gates": 85,
+        "executed_xor_gates": 18,
+        "unreachable_nodes": 36
+      },
+      "fixture_lanes": 263,
+      "accepted_lanes": 7,
+      "all_outputs_match": true,
+      "artifact_sha256": "939eab3308d4129e69284cb33589c20d0471c21b09c4f1cb38a79430b3a6529c"
+    },
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "17"
+      ],
+      "input_bits": 136,
+      "output_bits": 168,
+      "nodes": 1908,
+      "adapter_operations": {
+        "raw_and_gates": 1771,
+        "executed_and_gates": 761,
+        "executed_xor_gates": 337,
+        "unreachable_nodes": 673
+      },
+      "fixture_lanes": 269,
+      "accepted_lanes": 13,
+      "all_outputs_match": true,
+      "artifact_sha256": "674584806b061ed25036c58651002eac227dde9e5ce0356c0681e96b2516ab5b",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 761,
+          "fixture_output_values_checked": 3,
+          "bytecode_sha256": "74ecdbbb4eafc8df3d64e309617ac6b217cbe2fe305369971f0a395a6952a134"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 12176,
+          "fixture_output_values_checked": 48,
+          "bytecode_sha256": "4606ba4e30c8c208942a9f4f45156998fd799cf7871f519fbf07a88e15dd7942"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "256"
+      ],
+      "input_bits": 2048,
+      "output_bits": 2080,
+      "nodes": 32470,
+      "adapter_operations": {
+        "raw_and_gates": 30421,
+        "executed_and_gates": 12037,
+        "executed_xor_gates": 6128,
+        "unreachable_nodes": 12256
+      },
+      "fixture_lanes": 269,
+      "accepted_lanes": 13,
+      "all_outputs_match": true,
+      "artifact_sha256": "31a31918c13593328779778e77f8580e23871ff1025cf365cd5c5fc7bef40425"
+    },
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "257"
+      ],
+      "input_bits": 2056,
+      "output_bits": 2088,
+      "nodes": 33728,
+      "adapter_operations": {
+        "raw_and_gates": 31671,
+        "executed_and_gates": 12469,
+        "executed_xor_gates": 6401,
+        "unreachable_nodes": 12801
+      },
+      "fixture_lanes": 269,
+      "accepted_lanes": 13,
+      "all_outputs_match": true,
+      "artifact_sha256": "14c142ddcbd00a047d8e71cf5c265f2555f8bec66058f306e5a664cd9baee0ed"
+    },
+    {
+      "arguments": [
+        "tls-parse-inner",
+        "1024"
+      ],
+      "input_bits": 8192,
+      "output_bits": 8224,
+      "nodes": 138198,
+      "adapter_operations": {
+        "raw_and_gates": 130005,
+        "executed_and_gates": 50181,
+        "executed_xor_gates": 26608,
+        "unreachable_nodes": 53216
+      },
+      "fixture_lanes": 269,
+      "accepted_lanes": 13,
+      "all_outputs_match": true,
+      "artifact_sha256": "5cd4abc315a9feec81c7492335a8ff17a45c159bbfd36914aa8bc4be358e48db"
+    },
+    {
+      "arguments": [
+        "tls-open-record",
+        "22"
+      ],
+      "input_bits": 464,
+      "output_bits": 40,
+      "nodes": 334812,
+      "adapter_operations": {
+        "raw_and_gates": 334347,
+        "executed_and_gates": 52784,
+        "executed_xor_gates": 94154,
+        "unreachable_nodes": 187409
+      },
+      "fixture_lanes": 60,
+      "accepted_lanes": 6,
+      "all_outputs_match": true,
+      "artifact_sha256": "3ec5427001ead3e501c1af049371512716461c35c53079957347d83e6aa80cf3"
+    },
+    {
+      "arguments": [
+        "tls-open-record",
+        "38"
+      ],
+      "input_bits": 592,
+      "output_bits": 168,
+      "nodes": 456091,
+      "adapter_operations": {
+        "raw_and_gates": 455498,
+        "executed_and_gates": 74410,
+        "executed_xor_gates": 127423,
+        "unreachable_nodes": 253665
+      },
+      "fixture_lanes": 445,
+      "accepted_lanes": 10,
+      "all_outputs_match": true,
+      "artifact_sha256": "6646fdc32caced33a2498f44a90ef2509a5ee61275303ac709a8239536370789",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 74410,
+          "fixture_output_values_checked": 3,
+          "bytecode_sha256": "967191b661826dbf6221f61d5fc6cceac4f4129b1a3568fcca50a302ec61a92f"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 1190560,
+          "fixture_output_values_checked": 48,
+          "bytecode_sha256": "a8bf5b291dbd136f65ea061044558a76e2ccc1e029828a40bb4732bbea4da680"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "tls-open-record",
+        "58"
+      ],
+      "input_bits": 752,
+      "output_bits": 328,
+      "nodes": 584839,
+      "adapter_operations": {
+        "raw_and_gates": 584086,
+        "executed_and_gates": 96803,
+        "executed_xor_gates": 162921,
+        "unreachable_nodes": 324362
+      },
+      "fixture_lanes": 1,
+      "accepted_lanes": 1,
+      "all_outputs_match": true,
+      "artifact_sha256": "a7061bec24720f52010dd173c8d5e11080c125a8ef6b18ca8517f7e7f05aa647"
+    },
+    {
+      "arguments": [
+        "tls-open-record",
+        "72"
+      ],
+      "input_bits": 864,
+      "output_bits": 440,
+      "nodes": 703386,
+      "adapter_operations": {
+        "raw_and_gates": 702521,
+        "executed_and_gates": 118104,
+        "executed_xor_gates": 195383,
+        "unreachable_nodes": 389034
+      },
+      "fixture_lanes": 1,
+      "accepted_lanes": 1,
+      "all_outputs_match": true,
+      "artifact_sha256": "1fa406eab81089af6f2cae95366d6b1197dd5456deb0535d7e153b101f5f9e10"
+    },
+    {
+      "arguments": [
+        "tls-open-record",
+        "278"
+      ],
+      "input_bits": 2512,
+      "output_bits": 2088,
+      "nodes": 2279475,
+      "adapter_operations": {
+        "raw_and_gates": 2276962,
+        "executed_and_gates": 399499,
+        "executed_xor_gates": 627540,
+        "unreachable_nodes": 1249923
+      },
+      "fixture_lanes": 60,
+      "accepted_lanes": 6,
+      "all_outputs_match": true,
+      "artifact_sha256": "aadd594bd0460dbb73bfd76bfbf5e2ec42e7718a36a7055b16589ff42c816189"
+    }
+  ],
+  "rejected_public_shapes": [
+    [
+      "tls-parse-inner",
+      "0"
+    ],
+    [
+      "tls-parse-inner",
+      "1025"
+    ],
+    [
+      "tls-open-record",
+      "21"
+    ],
+    [
+      "tls-open-record",
+      "1046"
+    ]
+  ],
+  "source_sha256": {
+    "TlsMpc/TlsInner.lean": "a11f4b63df88d57ca36d0aed49480a4fb7a9737b6fd8b1d4a300bdce4b2eefca",
+    "TlsMpc/TlsReceive.lean": "89981533fd6d198620b47e33ef58eac20581f32c3c44de841553224ac5faf92c",
+    "TlsMpc/TlsRecord.lean": "010e5b25314f1e9c5cd9e6827b35cb92b40f0a17c27f849a240cb92b2e44e6ca",
+    "TlsMpc/Gcm.lean": "f1e26c7020ce0cce898dd8e6ff8427018c634b903b120cd41ccca3bfdaa7b357",
+    "TlsMpc/GcmOpen.lean": "4bcf95ecdb94e15907436009ac6f5d77899b1effa39965c88dbd522d04fd14e3",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Ghash.lean": "206c8d26171a8e6b014b6b902b0c2e210e47a2569bdf7406e3e8ac20cd8f0811",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "Main.lean": "dbb6d87e043195c923fd4d19ae5418f86eedc58f73a5859a79bff1e139b8a875",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "scripts/check_lean_tls_receive.py": "57be8ccecd2e4eebdfe8cc9d41aa0e33ee344e96a61e23304adb34843c99a7be"
+  },
+  "references": [
+    "https://www.rfc-editor.org/rfc/rfc9846#section-5",
+    "https://www.rfc-editor.org/rfc/rfc8448#section-3"
+  ],
+  "backend_compilation_tested": true,
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "No handshake authentication or connection-state content-type policy.",
+    "No durable sequence reservation, negotiated limits or key-usage policy.",
+    "Native export, JSON, adapter and MPC execution are unverified.",
+    "No native MPC or live TLS execution is exercised."
+  ]
+}

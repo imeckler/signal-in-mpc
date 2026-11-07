@@ -1,0 +1,249 @@
+PAUSED HANDOFF — 2026-11-06
+
+Agent: /root/sharing_refresh
+State: explicitly paused at the user's request. Do not resume until authorized.
+Root continues its own TLS work. No subagents were created for this task.
+
+CURRENT HANDSHAKE ASSIGNMENT
+
+Implement an unverified adapter for the root's verified Lean Fp25519 arithmetic
+DAG and research/implement its private Shamir/CCD conversion boundary. Full
+TLS/Signal algorithms belong in Lean. The adapter must not reconstruct scalar,
+ECDH, traffic keys, or Signal secrets to a node.
+
+Agreed artifact ABI:
+  format: tls-mpc-field-dag-v1
+  modulus: decimal string for 2^255-19
+  input_count: number
+  bit_inputs: unique array of input indexes
+  nodes: {op:input,index}, {op:const,value:decimalString}, or
+         {op:add|sub|mul,left:backwardNodeId,right:backwardNodeId}
+  outputs: node IDs
+  optional name/input_description metadata
+Root's x25519-field export uses 257 inputs: scalar bits 0..255 in global LSB
+order, then the u-coordinate field element at input 256. Clamping is in Lean.
+Wire byte bits use little-endian byte order and MSB-first order within a byte,
+matching the existing Boolean AES/HKDF artifact adapter.
+
+FILES ADDED IN THIS HANDSHAKE SLICE
+
+  handshake_backend/__init__.py
+  handshake_backend/field_dag.py
+  handshake_backend/mixed.py
+  handshake_backend/HANDOFF.txt
+
+No shared Main.lean, Checks.lean, TlsMpc.lean, existing backend_adapter, or
+generic lean_artifact compiler paths were modified by this agent in this slice.
+Root separately created/changed TlsMpc/FieldDag.lean and TlsMpc/X25519.lean and
+their exporter; root owns their proof and test claims.
+
+IMPLEMENTATION WRITTEN, NOT YET TESTED
+
+field_dag.py:
+  - Bounded JSON validation, exact modulus, canonical decimal constants,
+    backward references, input/output bounds, duplicate JSON key rejection.
+  - Generic field-operation executor with no reveal instruction.
+  - ClearField/evaluate_clear test oracle only; no X25519 implementation.
+
+mixed.py:
+  - Single-lane MP-SPDZ composable functions over existing sint/sbit handles.
+  - Arbitrary field-bit input validation by opening only an independently
+    secret-masked sum of b*(b-1), with claimed algebraic false acceptance 1/p
+    under uniform independent coefficient/input commitment assumptions.
+  - Field-to-canonical-wire-bits proposal using 255 malicious daBits. Reject
+    random mask r>=p; accepted r is exactly uniform Fp. Open only c=x-r, then
+    secret Boolean add/conditional-subtract to obtain canonical x bytes.
+  - Exact-byte binary-to-field scalar-bit conversion, optional RFC7748 top-bit
+    masking for u-coordinate field decoding, fresh joint scalar bit handles.
+  - execute_boolean invokes the existing generic Boolean artifact executor in
+    the SAME mixed VM, retaining secret outputs for subsequent stages.
+  - Pure Boolean adder/subtractor/modular-reduction helpers for future tests.
+
+IMPORTANT: This is newly written, unverified code, not a working or tested
+adapter milestone. It has not yet been imported, syntax-checked, compiled into
+MP-SPDZ bytecode, or executed. Do not present it as completed. In particular
+verify Compiler API details, clear-bit conversions, checkpoint semantics,
+range/overflow behavior, and all disclosure sites before use.
+
+BACKEND AUDIT AND BUILD RESULTS ALREADY OBTAINED
+
+Pinned MP-SPDZ v0.4.4 commit:
+  113c4e47dd94bca9ecab029d2f0abe649bea5c52
+Native mixed executable built successfully with:
+  make -j2 malicious-shamir-party.x
+  cwd .deps/sharing-refresh/MP-SPDZ
+Log: /tmp/tls-mpc-handshake-native-build.log
+Former unified-exec session 91253 completed with exit code 0. No compilation,
+test, or other tool process remains running from this agent at pause time.
+
+The isolated tree has the existing reviewed TLS 1.3/peer-leaf-pinning overlay
+from refresh work. The shared .deps/MP-SPDZ tree was not patched. Building this
+binary proves native template/link feasibility only. It is NOT a five-party
+protocol run and does not establish the conversion's correctness or privacy.
+
+Source findings:
+  - Protocols/MaliciousShamirShare.h pairs arithmetic MaliciousShamirShare
+    with GC::MaliciousCcdSecret<gf2n_short>; LivePrep includes malicious bits.
+  - Compiler -X selects daBits; -Y selects edaBits. Known prime -P is required.
+    Local arithmetic/ring splitting (-Z) is not the Shamir/CCD bridge.
+  - Compiler/types.py binary-to-sint uses a daBit and XOR-masked bit opening.
+  - DabitSacrifice.hpp checks cross-domain relation and arithmetic bitness
+    before adding checked daBits to its pool. Complete composition review,
+    batch failure bounds, preprocessing/reuse/erasure remain obligations.
+  - GC/ShareSecret.hpp::reveal_inst calls party.check() before reconstruction.
+    GC/ShareThread.hpp::check flushes protocol and MC checks.
+  - Processor/Processor.hpp checked POpen checks before/after opening.
+  - MaliciousShamirMC reconstruct checks agreement across 3, 4, and 5 shares
+    for n=5,t=2. TinyMC wraps this check for the CCD components.
+  - Machine.hpp selects/checks extension-field degrees against -S. Need verify
+    and test the exact launch combination for CCD64 (-S64, appropriate -lg2)
+    before claiming it; short-field support cannot provide degree >64.
+  - Native arithmetic shares are field payloads, not SPDZ-MAC-tagged values.
+
+Subtle full-field conversion finding:
+  Compiler/floatingpoint.py::BitDecFull uses the Rabbit-gap branch for p25519.
+  It samples 255 bits without rejecting integer masks >=p, a gap of 19/2^255.
+  The alternative branch's float expression 2^255/p can round to 1 and make
+  log(0) fail if one merely forces the Rabbit branch off. Do not patch that
+  predicate and assume exact canonical conversion. The new adapter instead
+  explicitly aborts on an invalid fresh mask before revealing x-r. This
+  accepted-path argument is mathematical, not yet a tested implementation.
+
+Primary documentation consulted:
+  https://mp-spdz.readthedocs.io/en/v0.4.4/non-linear.html
+  https://mp-spdz.readthedocs.io/en/v0.4.4/compilation.html
+Pinned local source, rather than latest documentation, controls the audit.
+
+NEXT WORK AFTER EXPLICIT RESUME
+
+1. Syntax/API checks and bounded exhaustive small-prime tests of the actual
+   Boolean helper code; p25519 edge cases and random masks, wire-order tests,
+   malformed artifact rejection, invalid-bit behavior.
+2. Load root's actual x25519-field artifact; compare generic clear execution
+   against RFC7748 and an independent cryptographic implementation. Do not
+   write a competing Python X25519 implementation.
+3. Add a distinct compile-only mixed program using secret source registers,
+   exact A2B, B2A, and same-VM Boolean chaining. Compile -X -P p25519. Keep
+   fixture-output opening strictly separate and explicitly test-only. Inspect
+   generated open/check instructions and retained secret outputs.
+4. Create a durable source-audit/security contract and machine-readable report.
+   Cover binary field/security parameters, checked preprocessing, conditional
+   accepted-path mask privacy, backend statistical failure composition, fresh
+   scalar and traffic-key lifetimes, and mobile-corruption epoch obligations.
+5. Coordinate one persistent mixed VM program for the actual TLS handshake:
+   reuse scalar handles for client public key and server ECDH; feed canonical
+   secret bytes straight to Lean SHA/HKDF; retain handshake/application keys
+   across bounded public records. Explicitly authorize only public key,
+   ciphertext, public server-authentication metadata, and permitted abort bits.
+6. Design and integrate public-stage agreement/I/O. Returning Python symbolic
+   registers alone is not a complete interactive live-server worker/controller.
+7. Persistent native-share import/export is NOT implemented. A viable bridge
+   may privately input all five source components and validate/interpolate
+   inside MPC, but source snapshot binding and non-leaking consistency tests
+   are required. Raw files do not authenticate the old sharing. Prefer same-VM
+   handles now; never recover scalar/ECDH in the host or command line.
+
+BLOCKERS / LIMITS
+
+Local socket bind is denied (EPERM) by the active policy. No native five-party
+MPC or internet TLS handshake has been executed here. Do not bypass it or
+simulate a successful deployment. .git remains read-only by policy; root owns
+git actions. No transport or persistent-state operational integration has
+been completed by this agent. Security of the MPC backend is not mechanized
+and the user did not request mechanizing it; mobile composition nevertheless
+remains a real integration obligation, not supplied by static MP-SPDZ alone.
+
+PREVIOUS SHARING / REFRESH KNOWLEDGE
+
+Required threat model: five parties, tolerate two colluding malicious parties,
+abort acceptable; mobile attacker can compromise different nodes over its
+lifetime. For each epoch e account C_e=P_e union R_(e-1) union R_e, with at most
+two distinct identities. A transition corruption counts in both neighboring
+periods. Recovery, secure erasure, channels, preprocessing and retained caches
+must follow this accounting. A static security claim does not prove this.
+
+Native refresh prototype (already implemented/tested in prior slice):
+  refresh/NativeRefresh.h, NativeSnapshot.h, refresh_party.cpp,
+  refresh_local-checks.cpp, refresh_tls-checks.cpp, Makefile, SECURITY.txt;
+  scripts/check_refresh_backend.py; specs/sharing-refresh.json.
+  Uses independently generated secret coefficient sharings per component,
+  with only each destination's delta delivered privately. Reject public
+  normalization/opening of the entire zero polynomial: transition exposure
+  can then translate old shares and violate the required mobile model.
+  Supports Fp25519 and actual CCD GF(2^40)/GF(2^64) native representations.
+  Produces bounded candidate snapshots only, not durable distributed commit,
+  authenticated source-worker import, repair, or verified secure erasure.
+
+The isolated TLS overlay disables session tickets/cache, requires TLS1.3 and
+peer certificates, and pins the expected leaf certificate. Pinning closes a
+real role-impersonation issue when fixture certificates are themselves trusted
+CAs. Native memory-BIO regression demonstrated the unpinned forged-role path
+and rejection with pinning. This tests internal transport policy without
+socket execution, and is not a deployed certificate/recovery system.
+
+REUSING ONE ZERO MASK FOR EVERY CONVERSATION IS UNSAFE
+
+If f_r and f_s receive the same zero polynomial, f_r-f_s never changes across
+refreshes. An attacker learns its evaluation at node A in epoch0, B in epoch1,
+C in epoch2 (only one corrupt party in each), reconstructs the degree-2
+difference, and obtains the secret difference. A known reference record then
+reveals another record's secret. CCD uses XOR. Fixed small mask pools leave
+analogous public linear kernel relations when the coefficient matrix is fixed.
+
+Experimental constant-setup PRZS candidate (NOT an established mobile theorem):
+  refresh/NativePrzs.h, refresh_przs-party.cpp, refresh_przs-checks.cpp,
+  refresh/PRZS.txt; TlsMpc/Sharing/MaskReuse.lean.
+  Fresh key k_b shared by all except b; per-object domain-separated PRF term
+  multiplied by X(X-x_b). At party b the missing term vanishes. At most one
+  transition corruption leaves its excluded subset's new key hidden. Cases
+  with two transition corruptions require the adjacent-budget analysis.
+  Holders privately echo shared setup keys and agree on abort, detecting
+  malicious equivocation. Fresh setup/seed erasure required every transition;
+  merely changing epoch labels under retained master seeds is broken.
+  Setup sends 2400 secret bytes cluster-wide, independent of component count;
+  local PRF expansion and writes remain O(number of components). Driver limit
+  is 4096 components and a fresh setup PER invocation. A full-inventory
+  streaming coordinator is not implemented, so this driver is not yet O(1)
+  setup for an arbitrarily large database.
+
+Prominent alternative for constant refresh cost:
+  Store each conversation as an AEAD ciphertext and share a fixed master
+  wrapping key plus bounded live working state. Only that small secret state
+  requires periodic refresh; each access adds MPC authenticated-open/seal work.
+  Bind handle/version/schema/account/key generation in AAD; allocate nonces
+  durably; prevent rollback/forks; enforce atomic/exactly-once Signal state
+  updates. Every retained AES key schedule, cached conversation plaintext,
+  TLS secret, backup/recovery share also belongs to erasure/refresh accounting.
+  Archive/forward-secrecy consequences of one long-lived wrapping key need an
+  explicit policy. Current Lean AES128-GCM can be reused; no migration done.
+  Existing 17-byte/5-AAD circuit counts were 73467 ANDs for open +73204 for seal
+  (146671 combined); these are circuit counts, not WAN performance.
+
+Prior native regression report .deps/sharing-refresh/checks.json passed:
+  - all 1117 pinned source files checked (one recorded transport overlay);
+  - Fp25519, CCD40, CCD64 local native refresh tests;
+  - per-domain mask-reuse and retained-seed attacks, all 391 adjacent-budget
+    cases, and 80 setup-equivocation cases;
+  - TLS memory-BIO positive and negative authentication tests.
+Its native-network-execution and proactive-security-proof flags remain false.
+Those tests completed before this handshake slice; they do not test the new
+handshake_backend Python files.
+
+Lean sharing files:
+  TlsMpc/Sharing/Refresh.lean, Epoch.lean, MaskReuse.lean.
+  scripts/check_sharing_spec.py previously audited 30 functional theorems
+  (only standard proof axioms). They prove algebraic preservation and explicit
+  epoch/erasure contracts, not cryptographic proactive security or native I/O.
+
+Migration facts from ../secret-shared-db (never edited by this agent):
+  Old f(i+1), g(n+i+1) degree-2 shares use different grids; logical value f0-g0
+  cannot be imported by directly subtracting the two local payloads. The old
+  per-contact seed derives an AES key as SHA256(ASCII RELAY_ENCRYPTION_KEY ||
+  canonical32LE Pallas-Fr seed). Preserve exact bytes, rather than silently
+  reducing a key modulo Curve25519 p or its distinct subgroup order.
+  The old leader knows the full zero mask and reuses it across rows; that
+  construction does not satisfy the requested active/mobile guarantee.
+  Public commitments/hashes of shares need scrutiny for low-entropy identifier
+  guessing: two shares plus a guessed secret can determine a third payload.
+
+END OF HANDOFF — agent is idle pending explicit authorization to resume.

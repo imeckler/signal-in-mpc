@@ -1,0 +1,9 @@
+.deps/
+.lake/
+.venv/
+__pycache__/
+*.pyc
+benchmarks/results/raw/
+benchmarks/results/*.log
+artifacts/lean/
+

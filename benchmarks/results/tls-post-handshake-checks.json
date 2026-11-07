@@ -1,0 +1,30 @@
+{
+  "checked_at_utc": "2026-11-07T19:45:03.668336+00:00",
+  "numeric_fixture_lanes": 366,
+  "protocol_sequences": 204,
+  "chained_records": 7,
+  "capacity": 64,
+  "statistics": {
+    "raw_and_gates": 196100,
+    "executed_and_gates": 75644,
+    "executed_xor_gates": 41648,
+    "unreachable_nodes": 78808
+  },
+  "authenticated_numeric_lanes": 18,
+  "authenticated_statistics": {
+    "raw_and_gates": 360282,
+    "executed_and_gates": 60635,
+    "executed_xor_gates": 100344,
+    "unreachable_nodes": 199303
+  },
+  "authenticated_artifact_sha256": "27a7c61ef0065a20c0b07fe59ea6317a4ff410c1e8a845497537963485fff29a",
+  "artifact_sha256": "1da944a35a611404ec059b96cb7c2d8f405b7bf4154c1524dbea73b0df751392",
+  "source_sha256": {
+    "TlsMpc/TlsPostHandshake.lean": "66f1156849f793b7c5f61b804d3a417b7adf9eb593331e1c3388285f7d1a6b77",
+    "Main.lean": "f1ca6a98674b175a47209c775eecb4b484857fee52d29f687bbde012f5ac1491",
+    "scripts/check_tls_post_handshake.py": "381dcfdd7a149fead9d858f93bca124d1f664998dedd1d88ccbacb53365aa168"
+  },
+  "native_mpc_executed": false,
+  "server_trace_used": false,
+  "scope": "Shared post-handshake framing and disclosure layout; no resumption, backend binding or erasure claim."
+}

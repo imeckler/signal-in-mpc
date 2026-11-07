@@ -1,0 +1,18 @@
+{
+  "checked_utc": "2026-11-07T17:55:17.168821+00:00",
+  "command": [
+    "python3",
+    "compile.py",
+    "-M",
+    "-X",
+    "-P",
+    "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "tls_export",
+    "binary",
+    "/Users/izzy/repos/tls-mpc/artifacts/lean/handshake/tls-traffic-keys.json"
+  ],
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_export.mpc\nCompiled 100000 lines at Sat Nov  7 09:54:43 2026\nCompiled 200000 lines at Sat Nov  7 09:54:43 2026\nCompiled 300000 lines at Sat Nov  7 09:54:44 2026\nCompiled 400000 lines at Sat Nov  7 09:54:44 2026\nCompiled 500000 lines at Sat Nov  7 09:54:45 2026\nCompiled 600000 lines at Sat Nov  7 09:54:45 2026\nCompiled 700000 lines at Sat Nov  7 09:54:45 2026\nCompiled 800000 lines at Sat Nov  7 09:54:46 2026\nCompiled 900000 lines at Sat Nov  7 09:54:46 2026\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json-tls_binary_tls_traffic_keys-1.bc\nWriting to Programs/Functions/tls_binary_tls_traffic_keys-sbv:[256x1]-sbv:[224x1]\nWriting to Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json.sch\nWriting to Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json-0.bc\nHash: efe203ef96ae64463629d677ddf954652b991b1889d206d8435952e3d835151f\nProgram requires at most:\n      311050 bit triples\n        9549 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "artifact_sha256": "54417ee4ec6e032cbdd11270531a2c65218be3b8770357d96119038b6f71e4eb",
+  "exporter_sha256": "efcd2f4e6e59724c7fec0ac5f50fac0e9724f472c3ee376baa96a903eeb50181"
+}

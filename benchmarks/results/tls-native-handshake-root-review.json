@@ -1,0 +1,50 @@
+{
+  "accepted": true,
+  "scope": "Actual five-party native TLS handshake exchange through independent Lean controllers and OpenSSL; client application activation correctly rejected. No VM erasure or WAN throughput claim.",
+  "report_sha256": "6ad23c760c7679df89a8c20a9719bd05e82e5cf52f3593832de21156580beee4",
+  "boot_manifest_sha256": "0e715c85f0ca6eddc6faa3e84ca31b143ccbd52daba1c55721a5abe8f90eb2f9",
+  "dynamic_shape_closures": {
+    "37": {
+      "receipt_sha256": "7dce941a440dcdb5f671903599a2e292848d82dd4a7fb0575da0868524d290e1",
+      "manifest_sha256": "c78a8b02147f621bb0c99e66eafd6831bb341173927b48d488d069e38b1ea1d7",
+      "files": {
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-37.json-0.bc": "5863d9af69ca98e1c3169e2ee9cf8bd5ddb1bb4bfe9bcea0d5deefa14bb9ea49",
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-37.json-tls_binary_tls_open_handshake_record_37-1.bc": "92643b6f987d274be988f172c670d1af3d78070f89ea7f013b6763fe4d939118",
+        "Programs/Functions/tls_binary_tls_open_handshake_record_37-sbv:[584x1]-sbv:[160x1]": "bd889e7d176841da7fe6dcc8a772d9a851dab91e69fb0a33ffabb5c4b73e5dc5",
+        "Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-37.json.sch": "7b0185db6f8b379b37c73803e162760eaf1fa498a214b00139089d337cdb3d0e"
+      }
+    },
+    "94": {
+      "receipt_sha256": "c6e5327ae73152ecf43df2b089e26986887b20695737d11c663f779baa0691cc",
+      "manifest_sha256": "e8a3506da4ae11b283b1d04217bab3ef5700c95fd5b87883146ba8ac3f9ae95a",
+      "files": {
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json-0.bc": "6c677e331c66b5f1566dd3f00f09a6e8e8932749e6d30ac16591913890bbd953",
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json-tls_binary_tls_open_handshake_record_94-1.bc": "d8e4c73591090929a14df6b637d1c49bd564ec4c22451d5a89235064be73ecc7",
+        "Programs/Functions/tls_binary_tls_open_handshake_record_94-sbv:[1040x1]-sbv:[616x1]": "cf53edeef703b6ae99cb053e2f76dee8cf26a0522ea7c6df51e9e72c17371365",
+        "Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json.sch": "0facabea240effeeacf9f2f2f1f09caf2eba909efbdc7b3e5cbfb2780d6a7187"
+      }
+    },
+    "316": {
+      "receipt_sha256": "897f826707eb9478a0930655267ce5664427d4f42d1a66f5d208ac9c9717ae87",
+      "manifest_sha256": "d5a57c81056779983c6bc398d97f7736c599c717078d766ed21c8cb95992d24b",
+      "files": {
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-316.json-0.bc": "289b3972a197187515c98072fc0a2f5740bee5c5d03b9ed21ac18e4b7c37122a",
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-316.json-tls_binary_tls_open_handshake_record_316-1.bc": "00590f4247acb34949a632b71c46666d57a008db6d08c571fe4d18f32851e540",
+        "Programs/Functions/tls_binary_tls_open_handshake_record_316-sbv:[2816x1]-sbv:[2392x1]": "7782c78627fa608297bbdf689be03424ab464c8ec5b2ae91e56fef62d8883cd1",
+        "Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-316.json.sch": "bed491542fa93a4e6af4f3907e60dad6b67ef3560531f438f0320d5cab0a50c1"
+      }
+    },
+    "534": {
+      "receipt_sha256": "bcb469ac15670b5de7b95901da8b5e3a8c04754ca9a6b3941e22e06b813f9875",
+      "manifest_sha256": "fafc3b339bc7b0113da0f8a80be7df7c01586c5c5e5773ae9e9dc30d02aa4b49",
+      "files": {
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-534.json-0.bc": "72c8e19eab2391bde55b845bd3572cc671af4ae0362fa7d2638958e3d283056d",
+        "Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-534.json-tls_binary_tls_open_handshake_record_534-1.bc": "4102fa3bc9a56aba57d3099875e2da70ec49ccbdd73cfc37d7225b851b8a0d3c",
+        "Programs/Functions/tls_binary_tls_open_handshake_record_534-sbv:[4560x1]-sbv:[4136x1]": "a38596852e4aaade7e22f4fda1b88a16c2f13bce59c07562b5e0bcd79e1848a7",
+        "Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-534.json.sch": "fc2a0922f8dcfc1413b2dfe02096af8f73de4e95e61c037b693ec5840500c102"
+      }
+    }
+  },
+  "all_source_executable_and_extension_hashes_current": true,
+  "all_five_expected_retirement_errors": true
+}

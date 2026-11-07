@@ -1,0 +1,403 @@
+{
+  "checked_at_utc": "2026-11-07T07:42:13.075515+00:00",
+  "checked_endpoints": 36,
+  "cases": [
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "0"
+      ],
+      "artifact_sha256": "32c88a44c3846dc4f0714562f73910c00ce503b53fbec1bcff0328d830fe89ca",
+      "fixture_sha256": "74be851d11c807bd790f0b8a83b5addcefb5a531a95de6160148146f5b467455",
+      "fixture_lanes": 29,
+      "input_bits": 0,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "0"
+      ],
+      "artifact_sha256": "b63f23e40041f6b16ce91f103545b845db9c190fdbd1971048a7f0459a6249c1",
+      "fixture_sha256": "f32cf2990f5731991ab0875af500a882475e1423f08c035a33caca9d2a563b51",
+      "fixture_lanes": 38,
+      "input_bits": 64,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "1"
+      ],
+      "artifact_sha256": "069e6be083d5eca0c701ba680786debcd011c3884ca77b1f99bbfa789aa854d7",
+      "fixture_sha256": "27090ac09e872a586e5d04dec5d9ad5a9ad2ed973129712ae6bfc6da4dbcd05c",
+      "fixture_lanes": 285,
+      "input_bits": 8,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 7,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "1"
+      ],
+      "artifact_sha256": "bc9412eedb2eed745fe33987c5a1fca86fd3f61d0a2417cf7d8a897aa998bbde",
+      "fixture_sha256": "64652725f6acd3829c137a0f7ed25faa3d019123a249fdf9b57a4e41e2ec8ab9",
+      "fixture_lanes": 302,
+      "input_bits": 72,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 142,
+        "executed_xor_gates": 65,
+        "unreachable_nodes": 130
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "2"
+      ],
+      "artifact_sha256": "eb4e81788959bf86a1871d629dd3077833386a9e304f9a95ebb48fd58366e738",
+      "fixture_sha256": "edfdf2c8d12318098fb971db4a18289a98f03cc26973987ca6f44b77973e5321",
+      "fixture_lanes": 29,
+      "input_bits": 16,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 26,
+        "executed_and_gates": 25,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "2"
+      ],
+      "artifact_sha256": "fe6dc35ed046861e7e201cf491b479ccbd3935c87e1678a4dcfb9fedea481c58",
+      "fixture_sha256": "0221cbca42a56b13a2fd8990e14d0284f48b47f03d97d49eb4c1df564e142b14",
+      "fixture_lanes": 47,
+      "input_bits": 80,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 733,
+        "executed_and_gates": 270,
+        "executed_xor_gates": 154,
+        "unreachable_nodes": 309
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "9"
+      ],
+      "artifact_sha256": "447baedc756bce7e1db0d9b84ad2811c66686f6f3312b3b0aea81ef955625985",
+      "fixture_sha256": "1e8d60697c74a817404f8b942e78f6a1affeb490027a6b1db581c0ce35e49592",
+      "fixture_lanes": 29,
+      "input_bits": 72,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 158,
+        "executed_and_gates": 150,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 8
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "9"
+      ],
+      "artifact_sha256": "fdab3148c1b3ca2151ecac5e6e17934c3b1f88b627808a386305673f6b12c0c5",
+      "fixture_sha256": "562af183e4df3b46b2028017999b4793a3634854772dd0fae516cfff750d36d1",
+      "fixture_lanes": 54,
+      "input_bits": 136,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 6028,
+        "executed_and_gates": 2059,
+        "executed_xor_gates": 1311,
+        "unreachable_nodes": 2658
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "10"
+      ],
+      "artifact_sha256": "459e7c1f06410b45867eef86719306d518b91c058862496b675ebd41a3e1b888",
+      "fixture_sha256": "b4622774ecfa8e089e9aa447124e8d0840819039c43396cc143697a498d523fd",
+      "fixture_lanes": 305,
+      "input_bits": 80,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "10"
+      ],
+      "artifact_sha256": "da6f05eba513a94ae0c4e5cebf2c5acabd76148240ed17817ca5c207c05f3127",
+      "fixture_sha256": "4a50ca80e995b29891dea83e25ae1bb9e5cc23a291cb72a5cb2f9082de786a69",
+      "fixture_lanes": 331,
+      "input_bits": 144,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 7115,
+        "executed_and_gates": 2420,
+        "executed_xor_gates": 1548,
+        "unreachable_nodes": 3148
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "11"
+      ],
+      "artifact_sha256": "07d09cd0b02d6034f49e9fc59659718d173ab1fe30f7fc3532ccc4fe3dac9f68",
+      "fixture_sha256": "8000be51fe2704bf3fa914c856c9367159a26feb1d2693e4b42c6901e997f0e3",
+      "fixture_lanes": 50,
+      "input_bits": 88,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "11"
+      ],
+      "artifact_sha256": "e0f314f52dab1ac391a2b4c5e4c2c1cfab9c1954e37315a02bf4a302dcdcb4e4",
+      "fixture_sha256": "fd03fbe5981299db23a171a2b2e56bf0cbddc76797fa97031a3fe60122840bfb",
+      "fixture_lanes": 77,
+      "input_bits": 152,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 8201,
+        "executed_and_gates": 2780,
+        "executed_xor_gates": 1785,
+        "unreachable_nodes": 3637
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "32"
+      ],
+      "artifact_sha256": "371c9e5479e53ae2c75f2b408f6f53b8f20a57b3b5c6a472e8386ec72dc514c4",
+      "fixture_sha256": "9fc1e8b86ac50bc408c3deb4e9e26fa787894086f7ba1a66b5c83f0f56bcbb67",
+      "fixture_lanes": 50,
+      "input_bits": 256,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "32"
+      ],
+      "artifact_sha256": "f67ad5da03db96127355fb1a96bcfdaa78f84f52592a2e8c9697aae04aaea900",
+      "fixture_sha256": "55c8f56b4c04b2d5f296d803fde42916fa9ae706f03d80cc1c1d5524d1c63399",
+      "fixture_lanes": 98,
+      "input_bits": 320,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 31254,
+        "executed_and_gates": 10344,
+        "executed_xor_gates": 6843,
+        "unreachable_nodes": 14068
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "64"
+      ],
+      "artifact_sha256": "46021e064a471891cdbbd9f43f32251a4382a57680dabc6609082192505087b2",
+      "fixture_sha256": "cb418bae04535efb034593900d407da830e563539369f9f376cb0e2909f02f32",
+      "fixture_lanes": 50,
+      "input_bits": 512,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "64"
+      ],
+      "artifact_sha256": "0ad134e9b302f36518d5f241b66c331307a0f6400edbe640c02942b360b97797",
+      "fixture_sha256": "dfc7cbf1c40eb7a8d3ca459c2fdea2c53f6c47a21b83bb8afaf9c657d6845834",
+      "fixture_lanes": 130,
+      "input_bits": 576,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 66670,
+        "executed_and_gates": 21907,
+        "executed_xor_gates": 14634,
+        "unreachable_nodes": 30130
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "128"
+      ],
+      "artifact_sha256": "076039b0145ac1bc21974f68a7751a09dc196ac40ebe07b1edb4758611fc2188",
+      "fixture_sha256": "383eaaffd0d1c38d101ed1f817981036bd72bf06e2b1a7effd019b7626ce0f73",
+      "fixture_lanes": 50,
+      "input_bits": 1024,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "128"
+      ],
+      "artifact_sha256": "6cf55cd4e804cbdd4e0db4e3ca1a3413aa8fe08ea9bb5842fe648a04097ec4f9",
+      "fixture_sha256": "b74d42a4c823bf775232c80b05085120a395bff89aff24c4b10692c85d534b50",
+      "fixture_lanes": 194,
+      "input_bits": 1088,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 137754,
+        "executed_and_gates": 45024,
+        "executed_xor_gates": 30303,
+        "unreachable_nodes": 62428
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode",
+        "256"
+      ],
+      "artifact_sha256": "d585bb7f693226949971d68f7bf13f94056ac2437c50dd456ddc75b511092b2c",
+      "fixture_sha256": "2f1f1e78b6c1216e6c5368c2fdbc48625b5ca1899592733263681ccc47138ab3",
+      "fixture_lanes": 50,
+      "input_bits": 2048,
+      "output_bits": 80,
+      "adapter_operations": {
+        "raw_and_gates": 171,
+        "executed_and_gates": 156,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 21
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-spqr-decode-at",
+        "256"
+      ],
+      "artifact_sha256": "c7545d9a5aecfebd51482866ccfe4c9a535b017172e5677ba011bd1bcb6e5e5d",
+      "fixture_sha256": "7ac143eb1ccb4de73efdfc30d46793b53d05e82449d9fa677850e74b442887a2",
+      "fixture_lanes": 322,
+      "input_bits": 2112,
+      "output_bits": 136,
+      "adapter_operations": {
+        "raw_and_gates": 280206,
+        "executed_and_gates": 91185,
+        "executed_xor_gates": 61760,
+        "unreachable_nodes": 127262
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "source_sha256": {
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/OffsetSelect.lean": "8c8ccf84600e9eda7e005477fb2fc31e05897a403c4ca3df9a4771928644dfff",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/SpqrDecodeAt.lean": "018428a939a8b67e692a32ce69110d86d02730dda657b0324661e47a5e0274bf",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/VarintDecode/Spec.lean": "3a1240d1a448a7c1d719904eee73111db7e7d95f91f56ea4f8841e6933d576d7",
+    "TlsMpc/Signal/VarintDecode/Spqr.lean": "de5cbc8467cf466c8da7d9582406ea04e9191dbc4b14dc1c3bf53ec2424c9865",
+    "scripts/check_lean_signal_spqr_decode.py": "32df9aa31abb5ceb4ba0e8337c3b3c205a9ccf616bdc2d6635947f1d7ff4592d",
+    "lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee",
+    "SignalReference/SpqrDecodeExport.lean": "d0207c4327752817f7bd9fee0e1e04c061d2c000aa214270e385315cda014b71",
+    "SignalReference/SpqrDecodeChecks.lean": "38279201bf0f1aa7983eb4e9d68117746d42529bb9ecbd85fe9565a87b943c5d",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "test_support/circuit.py": "8de179aa6df97fafe0375d5d9de6a2176b7414b3059eae8c6d066b0bf053ab3d",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    ".deps/libsignal-vendor/spqr/src/lib.rs": "c2e7aa686cad87ba2daf012231ee192445fe7c332b59bf55b48abaa7dfab63a4"
+  },
+  "exporter_command": [
+    "lake",
+    "env",
+    "lean",
+    "--run",
+    "SignalReference/SpqrDecodeExport.lean"
+  ],
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "backend_bytecode_compiled": false,
+  "implementation_rule": "Actual SPQR accepts noncanonical encodings and truncates excess tenth-byte payload bits; this is not Prost overflow policy.",
+  "full_message_parser": false,
+  "actual_reference_report": "SignalReference/VarintDecodeWork/proof-report.json (separate audit)"
+}

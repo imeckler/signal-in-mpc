@@ -1,0 +1,202 @@
+{
+  "checked_at_utc": "2026-11-07T19:33:24.941874+00:00",
+  "checked_endpoints": 18,
+  "source_sha256": {
+    ".deps/libsignal-vendor/libcrux-intrinsics-0.0.8/src/arm64.rs": "d0ff83c9dfa3f553fa38a00e8cf25b720982cb556a13f6321a77ad71962eb249",
+    ".deps/libsignal-vendor/libcrux-intrinsics-0.0.8/src/arm64_extract.rs": "524efdbadd667c8e162bcd301bab567fc69388997dbd31b5a8028b15e01593c8",
+    ".deps/libsignal-vendor/libcrux-intrinsics-0.0.8/src/avx2.rs": "8258df9e709399bde00c98161e18195f7efb0553bb0cdc02cb1c2602ec44499c",
+    ".deps/libsignal-vendor/libcrux-intrinsics-0.0.8/src/avx2_extract.rs": "2042f8904e9e581e8dad16ea43db761e3da609844c038403f03b3bf8c69ef231",
+    ".deps/libsignal-vendor/libcrux-intrinsics-0.0.8/src/lib.rs": "80876055648730866dbba23bc79d1964cde8d85d47ec3a2662e209209f6b9a36",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/avx2.rs": "b96f8c114d7408f1743da5c22d20d1fefa7bf12192cf57c1b230843692de9f4d",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak/constants.rs": "aabac56af8b31218c506e025dea718c7b2b592ae6ebf27c16390dc2adac480fb",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak/portable.rs": "39f15db065413123bcd16c35005ac57ea302088b6c30652624ff8851d9285cd0",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak/simd128.rs": "eb765cb5967cd1d69f496260caa198240be5dfb45dc9cc2a1a80c03e444c1aa7",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak/simd256.rs": "56a7814628c4b3dfd44159f74ee17e36d1057fe65543ef2c743f54d75fea0509",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak/xof.rs": "bfa9cda496676c7d0c031b90cdd57ffb89fe1411ed38603c8df21a524a6e8482",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/generic_keccak.rs": "cceee7faf03925e006798baa4e0d93a4298af5a7cfb05a7a0eea2a3261eb5d71",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/impl_digest_trait.rs": "e1e26cf0c62d52114b1a2580dbe8d6124d22e9c3430e023bf4f8fbf839db3860",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/lib.rs": "7bdcc072c53c64cfd5afee27b000aee2da01031e2321f6334391524e585dcd15",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/neon.rs": "ce9222af5c8c613017b3839b04ce4658791f67784310fe805c7309b729a18b36",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/portable/incremental/cshake.rs": "5828183f1b5d34d4b115a386411438fdc78c21da5d424b4614a672abd325b478",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/portable/incremental.rs": "c40664deda9709e3c4a66c1c50ff25d1d3a2c056bf9a9b94deb0897395112d0b",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/portable.rs": "2c59c417a8db242e3576ec539d5149ef3406af8a4dfa2618a8e42f20f814ca86",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/proof_utils.rs": "299d5bf9f7df80f6a643eaa12774e2300724f5bef223e944cee3fb53fa953e4b",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/simd/arm64.rs": "8191baadfe07ca382e5fabc486abaa00b7c910de1a58cf6228b9de22f2f194c7",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/simd/avx2.rs": "298d61dbc3f99dd764d8fd671dfaacf12e0cef5d637406a19cd56e842064a03e",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/simd/portable.rs": "ff699d359d919f464dc8b80d942b94b3415aa5f48f0a0b8dbc0f9ef47d36fc91",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/simd.rs": "8aa560ec2fa382f3368df10fe0201cf62ee65db41241754fff25d5015c5c5995",
+    ".deps/libsignal-vendor/libcrux-sha3-0.0.10/src/traits.rs": "8e7763044f0086326aea095daad179d8989c699bf5f679301599d6ca61c0b95f",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/arrayref.rs": "aff4639b36f843971c7b4388eb040efa0790c93d71946d2b3f3f821152b0f480",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/consts.rs": "ce7ebb39546fed0cbd78b27139cb5da6c93fe1024d1c7662941b5ef2dbc2933e",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/owned.rs": "fe35ad628c14f546a46693c4c3fd88fec264d400f65aee62aa013e26f972098a",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/slice.rs": "5001b129d6d1d14904f39ecca0f93a54f468796ea67f49c4b875bcbd378b2078",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/tests.rs": "0df02bf61218da7a94c26ad8df601bd368059e949fd11c92725bb2d9a1bffeac",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/typed_owned.rs": "d5e3c808c27ba7e0ae92c3a6878eb671ef2f7d7f3e32796d24304e0d306837fc",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead/typed_refs.rs": "7856db016f4ee49f191b3a905ee605d01074fb2279d20994c86ee19da6e569b0",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/aead.rs": "a68428b1321fed92ecaa90d3f098f0e980c152f992f5749dadb4996651670d67",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/digest/arrayref.rs": "aee34f7aabf04405c84ca2a8be2f3f370772cf7ad2ec4f769bff77b03cbe697c",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/digest/owned.rs": "4b70ef3c13e5915a335d41bd9c210e98f706f3a3206634fa851515e69dd84cde",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/digest/slice.rs": "5a39af4a54589de094ad16ebc73f28f9b595c39a0b282afcdba419f8fb84d3d5",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/digest/tests.rs": "c658ea5f76648203d95a5d9291b9227ab8c76c8a9953cb741ee5ae242b29fabc",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/digest.rs": "98e84f7eafe58bbae4144df6117a44180d35239d12f7831ba2a7d7f4146048bc",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/ecdh/arrayref.rs": "2375782fb057c82940169d827eae9caf5c1e9d367431cb7e0a8c4bc52dd057b5",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/ecdh/owned.rs": "b2bd8bb51576ecc79f003e2a84df88dbb6a0867fd03dcb199a8d9627498adbcf",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/ecdh/slice.rs": "4e824f09cd30809c758786582aa758faf0deb9264a777fa963598bc10c2c76e7",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/ecdh.rs": "eb3407a032d7491142643c569f37017c0fe7d3914352a175e15d916b78d41d79",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/kem/arrayref.rs": "bb0b948d0be91c4685d3dcfcebaa2b54c101b7d32f96cd3e3fbfb725e71c8bfa",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/kem/owned.rs": "e2b048795b0fc7df92bba28f4d5edc82d4c7c243406919fb2970b4a98be981df",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/kem/slice.rs": "be07a00df5ed8de45384dfae2b8d50478feb5b0728ab08410b494e2d4b39b544",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/kem/tests.rs": "99934670ac88a96ed89f9825c8df878b37b119da4237441fc55270f2dec0d477",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/kem.rs": "7ee5382c7697aaeff43a5977164b2abeb86ae3cd8798eb7ba21549b8e8f8a270",
+    ".deps/libsignal-vendor/libcrux-traits-0.0.8/src/lib.rs": "bc17dc3577f5b3ea333f4a66b65ad34af24c372f7f417b12e8ff8553f869102b",
+    ".deps/signal-libcrux-sha3-oracle-target/debug/signal-libcrux-sha3-oracle": "c80d22706ddebe241deefa515b113a241c46365a15528e71111dfab97d11f685",
+    "SignalReference/KeccakChecks.lean": "4c93ccb8a0aecb2104e09ee34290d33b21f443f419d77194fc83ac9dcb137a44",
+    "SignalReference/KeccakExport.lean": "4e6a0271bfd036c5687c44e6e4e165f9767c83cd97a7555c586cf3eaa5255d23",
+    "SignalReference/KeccakWork/Export.lean": "4e6a0271bfd036c5687c44e6e4e165f9767c83cd97a7555c586cf3eaa5255d23",
+    "SignalReference/KeccakWork/Oracle/Cargo.lock": "6298dd2a1cba85585827a6eb5dde9f14d72d62ee048da9c14c3a21c68befb975",
+    "SignalReference/KeccakWork/Oracle/Cargo.toml": "8d68131e47c492d46033dec5dc165bc217928b4a8706f726af757573cc3b98fe",
+    "SignalReference/KeccakWork/Oracle/src/main.rs": "f1bcbbd6ebab2c0f7a2c362739107d5a9b49737ddf570ab8d9252e801c1e5f6a",
+    "SignalReference/KeccakWork/lakefile.toml": "a9580aa4b575757b584db11eb45e0560322efa1ec7fdd03c60ae13b0179040b8",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Keccak.lean": "1d930130f2a46cd737fd4411b0a800610ea1ff8c851fcee9f6bd66f4bada8890",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/check_lean_signal_keccak.py": "bf6ce75ea0c3472f28e2e33f7b5fd3429db3d0ad413620d7ce481e430ea5cc08"
+  },
+  "concrete_and_actual_libcrux_cases": 168,
+  "concrete_fixture_sha256": "13b5bc87c728547c6c8ceda1afcb96aa31212ca372c0329b858f4d3759442edc",
+  "cases": [
+    {
+      "mode": "sha3-256",
+      "input_bytes": 32,
+      "output_bytes": 32,
+      "fixture_lanes": 16,
+      "artifact_sha256": "812453a21cc3c8efb8aca2a3ba2bd48bb90c18a066bc9ab525ff2633d49b97f9",
+      "fixture_sha256": "f5d3845724892ff3f4fc98a79142a7e5ffa07719aadd81de4f899ce5125d3bcc",
+      "adapter_operations": {
+        "raw_and_gates": 366528,
+        "executed_and_gates": 37056,
+        "executed_xor_gates": 109824,
+        "unreachable_nodes": 219649
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sha3-256",
+      "input_bytes": 136,
+      "output_bytes": 32,
+      "fixture_lanes": 16,
+      "artifact_sha256": "bcb857b802d291343f97937294b42b76fdcb3a4e832fb794dc969f30b7fe3633",
+      "fixture_sha256": "bfd07b98c3255cfbdeea28b00340830aaa44c3e42d6b10822700517c2f194862",
+      "adapter_operations": {
+        "raw_and_gates": 755712,
+        "executed_and_gates": 75456,
+        "executed_xor_gates": 226752,
+        "unreachable_nodes": 453505
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sha3-512",
+      "input_bytes": 64,
+      "output_bytes": 64,
+      "fixture_lanes": 16,
+      "artifact_sha256": "0bc2d196316f277803e3dc27619925f02940d3b6d184e1dca13791c7f4ce8779",
+      "fixture_sha256": "7dd5fb030af13eccd9a7ebe342b2dcadcac6c55f13a36d8511387ad6c052b590",
+      "adapter_operations": {
+        "raw_and_gates": 370240,
+        "executed_and_gates": 37312,
+        "executed_xor_gates": 110976,
+        "unreachable_nodes": 221953
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "sha3-512",
+      "input_bytes": 72,
+      "output_bytes": 64,
+      "fixture_lanes": 16,
+      "artifact_sha256": "23168cd88585188aca0b0e36a76511a6eda17f985a098f9d3f760936b683fc4a",
+      "fixture_sha256": "72a2a0fe06089562dd268d3ee171069324e6f015c1a67b80b07f577872a2e742",
+      "adapter_operations": {
+        "raw_and_gates": 754624,
+        "executed_and_gates": 75712,
+        "executed_xor_gates": 226304,
+        "unreachable_nodes": 452609
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "shake128",
+      "input_bytes": 34,
+      "output_bytes": 504,
+      "fixture_lanes": 16,
+      "artifact_sha256": "11e5704736b9444f29c88a847ef2cd619364f728d5410d0ace5d5fdf86986c2c",
+      "fixture_sha256": "a85570b524a7cf1374e9e1f5fe0d67cb42244b37f7045da2ab0a2b9d5f2040d4",
+      "adapter_operations": {
+        "raw_and_gates": 1142480,
+        "executed_and_gates": 114944,
+        "executed_xor_gates": 342512,
+        "unreachable_nodes": 685025
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "shake128",
+      "input_bytes": 168,
+      "output_bytes": 32,
+      "fixture_lanes": 16,
+      "artifact_sha256": "4cae8dd7450c61d206ef3f4dcaae317ba768705d7c5b917ed848f2255ddcdc85",
+      "fixture_sha256": "4a9588653f6dc1bf272ad0f409d917922c8cef3039f867bc751f96a7758f0025",
+      "adapter_operations": {
+        "raw_and_gates": 757248,
+        "executed_and_gates": 75456,
+        "executed_xor_gates": 227264,
+        "unreachable_nodes": 454529
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "shake256",
+      "input_bytes": 33,
+      "output_bytes": 272,
+      "fixture_lanes": 16,
+      "artifact_sha256": "96e1c606b26d9db8dca1338ea71ec0814cbf0e2ef285d7a332a2ecc31b5fbb77",
+      "fixture_sha256": "a67141dae71e182853a8000b0cadbd0300db644f2587e36e35b32f1094e3481b",
+      "adapter_operations": {
+        "raw_and_gates": 756616,
+        "executed_and_gates": 76288,
+        "executed_xor_gates": 226776,
+        "unreachable_nodes": 453553
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "shake256",
+      "input_bytes": 136,
+      "output_bytes": 137,
+      "fixture_lanes": 16,
+      "artifact_sha256": "79682d292f0ed15165ff29c81c5251839be454361fe4c7718c31698781d0b701",
+      "fixture_sha256": "ce07a38c7a5d0c0577baac926d339f25e336cb3486b35319bbd181807bad9bbd",
+      "adapter_operations": {
+        "raw_and_gates": 1138176,
+        "executed_and_gates": 112189,
+        "executed_xor_gates": 337305,
+        "unreachable_nodes": 688683
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "custom_axioms": [],
+  "actual_libcrux_aeneas_refinement": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "full_mlkem": false
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "accepted": {
+    "parties": 5,
+    "malicious_collusion_limit": 2,
+    "corruption_model": "proactive_mobile_per_refresh_epoch",
+    "distinct_corrupted_parties_per_epoch_limit": 2,
+    "lifetime_corrupted_party_limit": null,
+    "periodic_share_rerandomization_required": true,
+    "abort_acceptable": true,
+    "deployment": "internet",
+    "logical_messages_per_hour": 100000,
+    "performance_setting": "persistent_TLS_connections_amortizing_handshakes",
+    "session_mix": "mostly_established_with_some_new",
+    "opaque_recipient_handles_public": true,
+    "repeated_send_linkage_public": true,
+    "signal_recipient_identifiers_secret": true,
+    "existing_key_import_allowed": true,
+    "storage_field_unconstrained": true,
+    "deployed_compatibility_required": false,
+    "mechanized_mpc_security_proof_required": false,
+    "proof_target": "reference_specification_and_compiler"
+  },
+  "proactive_design_obligations": {
+    "refresh_boundary": "Corruption during refresh is accounted in both adjacent periods; limit counts distinct exposed nodes, not simultaneous access only.",
+    "required": [
+      "joint independent refresh randomness per secret object and component",
+      "recovery and secure erasure of obsolete shares, ephemeral secrets and consumed correlated randomness",
+      "renewal of compromised authentication and confidential-channel material",
+      "epoch agreement and rollback-safe durable commits for persistent protocol state",
+      "security argument for the complete stateful MPC integration under mobile corruption"
+    ],
+    "implementation_status": "Not established by current static-backend builds or algebraic Lean refresh proofs."
+  },
+  "benchmark_sweeps_not_user_requirements": {
+    "parties_and_corruption_limits": [[5, 2], [3, 2], [3, 1]],
+    "batch_sizes": [1, 16, 64, 256],
+    "message_body_bytes": [80, 256, 1024, 4096],
+    "devices_per_recipient": [1, 2, 4],
+    "new_session_fractions": [0.0, 0.01, 0.1],
+    "rtt_ms": [20, 50, 100, 200],
+    "link_mbps": [10, 100, 1000]
+  },
+  "measurement_policy": {
+    "network_loopback_is_not_wan": true,
+    "fake_preprocessing_allowed_for_capacity_claims": false,
+    "report_statistical_security_bits": true,
+    "microbenchmark_is_not_end_to_end_throughput": true,
+    "count_device_messages_separately_from_logical_sends": true,
+    "server_delivery_rate_not_established_by_local_mpc_benchmark": true
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "kind": "lean_signal_artifact_checks",
+  "cases": [
+    {
+      "arguments": [
+        "signal-derive-keys"
+      ],
+      "input_bits": 512,
+      "output_bits": 896,
+      "nodes": 3144772,
+      "and_gates": 3144259,
+      "fixture_lanes": 5,
+      "all_outputs_match": true,
+      "native_export_seconds": 4.367272790987045,
+      "artifact_sha256": "3ae4aa7992bf7bd5bfc07e00df3d6b59c0040d15fe9f174c5267b1be5caa407c",
+      "adapter_statistics": {
+        "raw_and_gates": 3144259,
+        "executed_and_gates": 978359,
+        "executed_xor_gates": 905340,
+        "unreachable_nodes": 1260561
+      },
+      "adapter_source_sha256": {
+        "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+        "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+        "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7"
+      },
+      "exporter_binary_sha256": "58aa65a7dd77af4355e784b6689c7ca350a360d1956d685cf38b4c420c83a91b",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 978359,
+          "fixture_output_values_checked": 14,
+          "bytecode_sha256": "c9704b6800d22b6d02ecd53d1e44aeb8a72c00dcf1bd05af86c78ce855b02306"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 15653744,
+          "fixture_output_values_checked": 224,
+          "bytecode_sha256": "77947e0ac83b3c1b4036722c6e0806af1c15bdd12ffaa9fe5a15fcb01ed50ad7"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-clamp"
+      ],
+      "input_bits": 256,
+      "output_bits": 256,
+      "nodes": 257,
+      "and_gates": 0,
+      "fixture_lanes": 9,
+      "all_outputs_match": true,
+      "native_export_seconds": 0.12152591702761129,
+      "artifact_sha256": "6a398ab9631aaf4b8f0109f84b2d1384c2c3ee4549651344450a1dc9834e400f",
+      "adapter_statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 5
+      },
+      "adapter_source_sha256": {
+        "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+        "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+        "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7"
+      },
+      "exporter_binary_sha256": "58aa65a7dd77af4355e784b6689c7ca350a360d1956d685cf38b4c420c83a91b",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 0,
+          "fixture_output_values_checked": 4,
+          "bytecode_sha256": "e8c247b80230a7ac4cbc57985d33d8954e41e53283cf1f7f0ed232501d2750ea"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 0,
+          "fixture_output_values_checked": 64,
+          "bytecode_sha256": "9687231da5579e24b8b47fb2346e40010ea0e94ed8dcfd342aaf5e8c84ffabf4"
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "TlsMpc/Signal/Clamp.lean": "61d6c8f7a737d93debc5c7eff41c69f2ee498af06dfc53792892ef30fb4cb012",
+    "TlsMpc/Signal/KeyMaterial.lean": "1a257c7aaf7f2a0452bba00b7d491de877d06d5488ca387f3060a3e3c672fc38",
+    "TlsMpc/Signal/Symmetric.lean": "cba028d5a50bc624ff4113f731727a9f7090093de159857b7013913890ba4a98",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/AigExport.lean": "4baf2f9aefb073ec3430bb25a957187336812d2e0339bc035679b36e25745afd",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "Main.lean": "d1a1a19560c5aa1badcf4d6186c9c8a02cde6d5717e11128038a3507a50bfa8d",
+    "scripts/check_lean_signal.py": "ea8c8446072851ebe5b4b14905e83ced121c3b09561823c96d285089c1c76c49"
+  },
+  "upstream_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "The complete RustCrypto-to-Lean key derivation refinement remains incomplete.",
+    "The checked Rust reference refinements cover key projections/constructors and dalek clamping.",
+    "Counter progression, authenticated state commit, AES-CBC, SignalMessage, SPQR and full sessions remain work.",
+    "AIG gate counts use unoptimized Boolean lowering and are not WAN throughput measurements.",
+    "Any opened test outputs are public synthetic fixtures; production key outputs must remain shared."
+  ]
+}

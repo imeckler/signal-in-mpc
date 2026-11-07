@@ -1,0 +1,93 @@
+{
+  "kind": "lean_aes_artifact_checks",
+  "cases": [
+    {
+      "arguments": [
+        "aes128-block"
+      ],
+      "input_bits": 256,
+      "output_bits": 128,
+      "nodes": 78809,
+      "adapter_operations": {
+        "raw_and_gates": 78552,
+        "executed_and_gates": 6400,
+        "executed_xor_gates": 24184,
+        "unreachable_nodes": 47969
+      },
+      "fixture_lanes": 6,
+      "all_outputs_match": true,
+      "artifact_sha256": "03174448f9f804a97e978bd6722e855925f803efe85154dff891e6e91467f617",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 6400,
+          "fixture_output_values_checked": 2,
+          "bytecode_sha256": "7c63b09580b6ba7f9ad7ab8f499123aff394f2182e9ca63cf9fc575c1186df4b"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 102400,
+          "fixture_output_values_checked": 32,
+          "bytecode_sha256": "c92989cb6b5ac713b62638c15e949c8dd12b95d4edf9c7058972fbea741440aa"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "aes256-block"
+      ],
+      "input_bits": 384,
+      "output_bits": 128,
+      "nodes": 109357,
+      "adapter_operations": {
+        "raw_and_gates": 108972,
+        "executed_and_gates": 8832,
+        "executed_xor_gates": 33564,
+        "unreachable_nodes": 66577
+      },
+      "fixture_lanes": 6,
+      "all_outputs_match": true,
+      "artifact_sha256": "0ccdaa7f31596a00eacda30cf499015b5c0c2143d7865fcbd9a3ab5cf1474c22",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 8832,
+          "fixture_output_values_checked": 2,
+          "bytecode_sha256": "0f670d8e49616f69ffa763d23f532dda0d7412d42dd946f7f78363b46ac498df"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 141312,
+          "fixture_output_values_checked": 32,
+          "bytecode_sha256": "95440e9b22f7ba1a2905da4861f2a1d81e24ef3b386490320611cb6a915ddfe9"
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "TlsMpc/Aes.lean": "11a6be731852ea5ed2ec3cbf72073123e4cb8929e2428a66ccca21c07946066a",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "4baf2f9aefb073ec3430bb25a957187336812d2e0339bc035679b36e25745afd",
+    "Main.lean": "bff60d43dde9826b5c49094b6b0e8d813252117e53da2617df214f226adee192",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "specs/aes-sbox.json": "ea3722cde16b82d10aabbb310c1388ce295f21d5d8e89589f1a60cf895bcffe5",
+    "scripts/check_lean_aes.py": "e6158677b8a4147c2d11e181d144391c77fd2a82158dce5c38107ef8c22cfae0"
+  },
+  "reference": "https://doi.org/10.6028/NIST.FIPS.197-upd1",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "The standard-to-Lean correspondence is a human review obligation.",
+    "Native export, JSON, adapter optimization and backend execution are unverified.",
+    "Block encryption alone does not implement GCM, CBC or an authenticated TLS connection.",
+    "Only public synthetic fixtures are opened by the test harness."
+  ]
+}

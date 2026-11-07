@@ -1,0 +1,76 @@
+Native secret-state retirement review, 2026-11-07
+
+Status: PARTIAL owned-storage cleanup; no operational erasure receipt.
+Application activation remains disabled. Neither successful process exit nor
+handle invalidation establishes the required mobile-compromise guarantee.
+
+Implemented in this checkout:
+* OwnedSecrets.h replaces NativeWorker's raw Bits alias with OwnedBits. It
+  overwrites the fixed-width GF(2^128) value of every currently owned bit-share
+  register with sodium_memzero before destruction, shrink, clear, and replacement.
+* Copies/range copies/append copies publish empty destinations into the owner
+  before allocating inner storage. Constructor exceptions wipe already copied
+  values; append exceptions leave completed copies owned for scope cleanup.
+  Copy assignment constructs a protected replacement and swaps ownership.
+  Move transfers ownership; explicit FunctionArgument adaptation preserves the
+  existing runtime layout. Worker code must not mutate/delete via Base pointers.
+* Worker owns a fixed-size256-share scalar vector; abort/destruction overwrites
+  every Fp25519 limb and prevents scalar reuse. Worker and Session are noncopyable.
+* NativeSession failure/abort/destruction clears all currently owned traffic
+  secrets/keys/IVs, main secret, parser state and buffered application shares.
+  RPC abort still reports missing FULL VM erasure. Retirement still throws and
+  application_ready remains false. No success flag or gate was relaxed.
+
+Concrete evidence:
+* Instrumented copy/replacement/shrink/destruction test observes237share
+  destructions with zero values, including24 injected copy-failure paths.
+  ASan/UBSan cover this test and the public worker boundary suite.
+* Actual pinned CCD native values at packed widths1..64:4160field slots are
+  checked zero after wiping while independent copies preserve their values.
+* Native worker and adapter compile/link with OwnedBits. Public pipe, policy,
+  handle-response and transport tests pass. Subsequent five-party localhost
+  execution passed the TLS cryptographic stages and refused retirement; see
+  benchmarks/results/tls-native-worker-network.json. That run does not establish
+  erasure of historical VM/preprocessing state.
+
+Remaining copies found in the pinned MP-SPDZ sources:
+1. Processor/Machine.hpp run_function copies scalar and binary arguments into
+   Mp.MS/bit_memories.MS and processor registers, then copies output memory back
+   into function arguments. OwnedBits does not erase these VM copies.
+2. Tools/CheckVector.h StackedVector retains a full backing vector and hidden
+   stack frames beyond the current logical view. Wiping begin..end of the
+   active frame alone misses retired registers. resize can retain older values.
+3. Processor/Processor.h SubProcessor keeps secret registers, protocol/input/
+   preprocessing objects; Processor also has temporary secret/field values.
+   GC/Processor.h keeps its own stacked secret registers. Machine's thread_info
+   processors are private; a dedicated audited hook is needed, not a layout cast.
+4. Protocols/Beaver.h/.hpp retain operands, triples and result/share buffers.
+   init_mul clears vectors without explicit overwriting. ReplicatedPrep consumes
+   triple/bit/input/daBit buffers with pop_back and other paths clear vectors.
+   Currently unowned live/capacity storage and freed historical copies remain.
+5. Tools/random.h defines USE_AES and retains seed, key schedules and cached
+   output. random.cpp hash/next encrypt counter blocks and advance counters
+   without ratcheting the seed. The public native test reproduces1024 earlier
+   bytes from get_seed after generating4096 further bytes. Clearing the final
+   key vectors cannot prevent reconstruction from retained preprocessing
+   randomness and public protocol transcripts. This is a runtime property,
+   not a demonstrated compromise of an executed session.
+6. Dynamic allocation history, thread stacks, CPU/compiler temporaries,
+   network/TLS encryption state, swap/core dumps and external persistence require
+   their own cleanup/threat assumptions. No physical-memory erasure claim exists.
+
+Next implementation requirements:
+* Add reviewed runtime hooks for ALL backing secret storage and consumed
+  preprocessing copies, plus allocation/destruction cleanup before deallocation.
+* Explicitly handle random-generator state at the retirement/epoch boundary;
+  do not reseed correlated generators independently and silently desynchronize
+  the protocol. Confirm which seeds are local versus coordinated and renew the
+  correlated state collectively. Dropping consumed triples alone is insufficient.
+* Ensure checks/communications are quiescent before wiping. Retain only declared
+  active shared state. Trace all application-key and payload copies through that
+  boundary and test injected failures before allowing a retirement acknowledgement.
+* Keep the reference and backend boundaries separate: Lean circuit correctness
+  does not establish C++ memory erasure, proactive MPC security, or OS guarantees.
+
+The sharing_refresh agent remains paused. This review does not adopt or change
+its refresh construction and does not establish mobile-adversary security.

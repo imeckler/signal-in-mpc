@@ -1,0 +1,27 @@
+# TEST ONLY. Read a Lean-generated circuit and apply it to synthetic inputs.
+# Reveals fixture outputs for differential checking; never use with real keys.
+from pathlib import Path
+from Compiler.GC.types import sbits, sbitvec
+from backend_adapter.boolean import execute, load
+
+artifact_name, batch, parties = program.args[1], int(program.args[2]), int(program.args[3])
+if not 1 <= batch <= 64 or parties < 3:
+    raise ValueError('invalid public harness dimensions')
+image = load(Path('Programs/Source/lean-artifacts') / (artifact_name + '.json'))
+word = sbits.get_type(batch)
+zero, one = word(0), word((1 << batch) - 1)
+size = (image['input_bits'] + 7) // 8
+inputs = [zero] * (size * 8)
+for party in range(parties):
+    position = 0
+    for offset in range(0, size, 8):
+        width = min(8, size - offset) * 8
+        bits = list(reversed(sbitvec.get_type(width).get_input_from(party, size=batch).v))
+        for bit in bits:
+            inputs[position] = inputs[position] ^ bit
+            position += 1
+outputs = execute(image, inputs[:image['input_bits']], zero, one)
+for offset in range(0, len(outputs), 64):
+    chunk = sbitvec.from_vec(list(reversed(outputs[offset:offset + 64])))
+    for value in chunk.elements():
+        value.reveal().print_reg()

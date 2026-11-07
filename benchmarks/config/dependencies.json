@@ -1,0 +1,42 @@
+{
+  "lean": {
+    "version": "4.31.0",
+    "third_party_lean_dependencies": []
+  },
+  "signal_reference": {
+    "version": "0.106.1",
+    "commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+    "repository": "https://github.com/signalapp/libsignal",
+    "source_archive_url": "https://api.github.com/repos/signalapp/libsignal/tarball/904c8dc8216073b078a5f2f5090e3da8382e6a92",
+    "source_archive_sha256": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+    "purpose": "wire format and symmetric ratchet reference, not a built or linked runtime"
+  },
+  "mp_spdz": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "mp_spdz_submodules": [
+    {
+      "name": "simde", "destination": "deps/simde",
+      "repository": "simd-everywhere/simde",
+      "commit": "0ba20859e9f557cee161d2cab2728b56dca7ec38",
+      "archive_sha256": "df1f8a73e4d7df0b150d7e47f1ec57704f269f8ccadb81347b5ee6be899e5439"
+    },
+    {
+      "name": "sse2neon", "destination": "deps/sse2neon",
+      "repository": "DLTcollab/sse2neon",
+      "commit": "ddca67108e3e96a288e9aa7e31bfacca2309f624",
+      "archive_sha256": "f3f70048219bc9156323ef26b25fe44b19405ad84700016d1d1e6dec478c916b"
+    },
+    {
+      "name": "circuits", "destination": "Programs/Circuits",
+      "repository": "mkskeller/bristol-fashion",
+      "commit": "1603ed6aa12348c2ef15ed8395b9b96e4c558b7f",
+      "archive_sha256": "fe4bf7a60eef672afdbd7b1a62eef0723eab942ffd804ef38f17d69facf1e860"
+    }
+  ]
+}

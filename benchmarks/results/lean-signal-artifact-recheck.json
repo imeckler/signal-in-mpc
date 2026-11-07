@@ -1,0 +1,49 @@
+{
+  "kind": "signal_artifact_evidence_recheck",
+  "cases": [
+    {
+      "arguments": [
+        "signal-derive-keys"
+      ],
+      "artifact_sha256": "3ae4aa7992bf7bd5bfc07e00df3d6b59c0040d15fe9f174c5267b1be5caa407c",
+      "previous_artifact_sha256": "3ae4aa7992bf7bd5bfc07e00df3d6b59c0040d15fe9f174c5267b1be5caa407c",
+      "native_export_seconds": 4.144489208003506,
+      "identical_artifact": true
+    },
+    {
+      "arguments": [
+        "signal-clamp"
+      ],
+      "artifact_sha256": "6a398ab9631aaf4b8f0109f84b2d1384c2c3ee4549651344450a1dc9834e400f",
+      "previous_artifact_sha256": "6a398ab9631aaf4b8f0109f84b2d1384c2c3ee4549651344450a1dc9834e400f",
+      "native_export_seconds": 0.019411041983403265,
+      "identical_artifact": true
+    }
+  ],
+  "previous_report": "benchmarks/results/lean-signal-checks.json",
+  "previous_report_sha256": "665a53460c5c69223736e1ef56d99c46a3d071fefc03dc469f7d0677f0bde346",
+  "source_sha256": {
+    "TlsMpc/Signal/Clamp.lean": "61d6c8f7a737d93debc5c7eff41c69f2ee498af06dfc53792892ef30fb4cb012",
+    "TlsMpc/Signal/KeyMaterial.lean": "1a257c7aaf7f2a0452bba00b7d491de877d06d5488ca387f3060a3e3c672fc38",
+    "TlsMpc/Signal/Symmetric.lean": "cba028d5a50bc624ff4113f731727a9f7090093de159857b7013913890ba4a98",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "Main.lean": "24148f46789264729587951477cecbbaad5f1510736e0bd3e677d3074be49f36",
+    "scripts/check_lean_signal.py": "ea8c8446072851ebe5b4b14905e83ced121c3b09561823c96d285089c1c76c49",
+    ".lake/build/bin/emit_mpc": "7d0330f640042fd466f46741dacdd18687f8becb5fb6d328e1c8d4d3d82b6039",
+    "scripts/recheck_signal_artifacts.py": "39d21d6e0f2c345c40a429b3cf906e8675ab75ec3681f341527e0f7998078f49"
+  },
+  "adapter_sources_identical": true,
+  "previous_backend_evidence_applicable": true,
+  "backend_reexecuted": false,
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "note": "Byte-identical artifacts and adapter sources reuse the recorded backend compile/public-clear checks; this is not a new backend run."
+}

@@ -1,0 +1,60 @@
+# Export secret-register operations for Machine::run_function. No plaintext
+# keys or application records are released by any exported operation.
+from pathlib import Path
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbitvec
+from handshake_backend.field_dag import load as load_field
+from handshake_backend.mixed import fresh_scalar_fields, execute_secret, field_to_wire_bits, execute_boolean
+from backend_adapter.boolean import load
+
+mode, artifact_path = program.args[1:3]
+BitArray = sbitvec.get_type(1).Array
+
+def read_bits(array):
+    return [array[i].v[0] for i in range(len(array))]
+
+def write_bits(array, bits):
+    if len(array) != len(bits):
+        raise ValueError('exported output dimensions differ')
+    for i, bit in enumerate(bits):
+        array[i] = sbitvec.from_vec([bit])
+
+if mode == 'begin':
+    image = load_field(artifact_path)
+    @export
+    def tls_begin(scalar, output):
+        fresh = fresh_scalar_fields()
+        for i, value in enumerate(fresh):
+            scalar[i] = value
+        value = execute_secret(image, fresh + [sint(9)])[0]
+        write_bits(output, field_to_wire_bits(value))
+    tls_begin(sint.Array(256), BitArray(256))
+elif mode == 'agreement':
+    image = load_field(artifact_path)
+    @export
+    def tls_agreement(scalar, peer, output):
+        from Compiler.library import check_point, runtime_error_if
+        value = execute_secret(image, [scalar[i] for i in range(256)] + [peer])[0]
+        masked = value * sint.get_random()
+        check_point()
+        runtime_error_if(masked.reveal(check=True) == 0, 'zero ECDH or zero random mask')
+        write_bits(output, field_to_wire_bits(value))
+    tls_agreement(sint.Array(256), sint(0), BitArray(256))
+elif mode in ('binary', 'binary-packed'):
+    image = load(artifact_path)
+    stem = Path(artifact_path).stem
+    if not stem.startswith('tls-') or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-' for c in stem):
+        raise ValueError('unsupported TLS export name')
+    def evaluate(inputs, outputs):
+        if mode == 'binary-packed':
+            from backend_adapter.aig_packed import execute_mpc
+            result = execute_mpc(image, read_bits(inputs))
+        else:
+            result = execute_boolean(image, read_bits(inputs))
+        write_bits(outputs, result)
+    evaluate.__name__ = 'tls_binary_' + stem.replace('-', '_')
+    function = export(evaluate)
+    function(BitArray(image['input_bits']), BitArray(len(image['outputs'])))
+else:
+    raise ValueError('expected begin, agreement, binary or binary-packed')

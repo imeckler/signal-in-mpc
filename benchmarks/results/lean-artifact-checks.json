@@ -1,0 +1,120 @@
+{
+  "kind": "lean_export_and_mpc_adapter_differential_checks",
+  "cases": [
+    {
+      "artifact": "tls-nonce",
+      "batch": 1,
+      "input_bits": 160,
+      "output_bits": 96,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 2,
+      "artifact_sha256": "05be5e80b1a56e3bdd7e45f0fe0a4dc01f48f5e42f4b1425eafd3c59dc6f5a35",
+      "bytecode_sha256": "688d1671b7bfe20439f4d74f2c50cecf196829e61db67df15c41e586d0ab2ef3"
+    },
+    {
+      "artifact": "tls-nonce",
+      "batch": 16,
+      "input_bits": 160,
+      "output_bits": 96,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 32,
+      "artifact_sha256": "05be5e80b1a56e3bdd7e45f0fe0a4dc01f48f5e42f4b1425eafd3c59dc6f5a35",
+      "bytecode_sha256": "dfdfb02d6ac20254e5337955248d353a04f27815bd27bfa4f1f4b22f412d1827"
+    },
+    {
+      "artifact": "tls-inner-7-3",
+      "batch": 1,
+      "input_bits": 56,
+      "output_bits": 88,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 2,
+      "artifact_sha256": "329fa146848db7a859714cbb02bb8006926c38ff3faa451e88d0e23c23046703",
+      "bytecode_sha256": "a7686f89f7987f4f6abb75550cd658aa6b0177931863a2a3ea09d7acc00cf638"
+    },
+    {
+      "artifact": "tls-inner-7-3",
+      "batch": 16,
+      "input_bits": 56,
+      "output_bits": 88,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 32,
+      "artifact_sha256": "329fa146848db7a859714cbb02bb8006926c38ff3faa451e88d0e23c23046703",
+      "bytecode_sha256": "5fbecfdf2a26e15308ad2d79872941a62936ea435e2da6172c8bdb4661810ce0"
+    },
+    {
+      "artifact": "tls-header-7-3",
+      "batch": 1,
+      "input_bits": 0,
+      "output_bits": 40,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 1,
+      "artifact_sha256": "e41ba985c15e31faf4d705f414cb70c6bebdfcbe9398cda1b51ec1b44b612de5",
+      "bytecode_sha256": "2676c5ccb1c849954b1d2b3f390ff999bac28d6083e450c2ea21ca9d88704c65"
+    },
+    {
+      "artifact": "tls-header-7-3",
+      "batch": 16,
+      "input_bits": 0,
+      "output_bits": 40,
+      "all_outputs_match": true,
+      "bit_triples": 0,
+      "output_values_checked": 16,
+      "artifact_sha256": "e41ba985c15e31faf4d705f414cb70c6bebdfcbe9398cda1b51ec1b44b612de5",
+      "bytecode_sha256": "401d1ca7dd871b5a0e97c510a211a2ca40c65de91522300d97cbbbeadf294948"
+    },
+    {
+      "artifact": "authenticated-release-8",
+      "batch": 1,
+      "input_bits": 65,
+      "output_bits": 64,
+      "all_outputs_match": true,
+      "bit_triples": 64,
+      "output_values_checked": 1,
+      "artifact_sha256": "e39daffbb41647d6bfa7302836065b2c61f0a7ae299244055095e5e5f1ddeb58",
+      "bytecode_sha256": "26d27d84a1a8d2032b7521bd88b4ababa5c15f118a19dd8a584b94c023be6281"
+    },
+    {
+      "artifact": "authenticated-release-8",
+      "batch": 16,
+      "input_bits": 65,
+      "output_bits": 64,
+      "all_outputs_match": true,
+      "bit_triples": 1024,
+      "output_values_checked": 16,
+      "artifact_sha256": "e39daffbb41647d6bfa7302836065b2c61f0a7ae299244055095e5e5f1ddeb58",
+      "bytecode_sha256": "876b32d308a20565d982ef54ea34f4f016f98298ce126898961b005c3a83b409"
+    }
+  ],
+  "source_sha256": {
+    "Main.lean": "d1a1a19560c5aa1badcf4d6186c9c8a02cde6d5717e11128038a3507a50bfa8d",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_artifacts.py": "f902fe3573938d1c3a429637cca3012bd73568dd66a59c426f6db5549869c2b3",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "test_support/circuit.py": "8de179aa6df97fafe0375d5d9de6a2176b7414b3059eae8c6d066b0bf053ab3d",
+    "TlsMpc/AigExport.lean": "4baf2f9aefb073ec3430bb25a957187336812d2e0339bc035679b36e25745afd",
+    "TlsMpc/Artifact.lean": "cc7d016f65c3b821b1bd53bea075ba237142e5be2a8378ea3ea6d91eca584cba",
+    "TlsMpc/Boolean.lean": "038a572522134a1be13b7051d46b57f0ee7ed0876e3cc623fdaae4885911dc4c",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Protocols.lean": "6607fca31956401c5ea4e8230ed8049ba5a5032c5e95ea61e465283346f74fb8",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/TlsKdf.lean": "fcc69c0446bb946afbb69a8707a417fc79febf0af95882d9ed7b2938393346f3",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "TlsMpc/TlsLayout.lean": "d337ef420333a9f5cd7dcc9713df92f39a1c561f64928dd6346926982781d683"
+  },
+  "verified_boundary": "Lean source expressions through numeric instruction export and ideal evaluation",
+  "limitations": [
+    "JSON transport and execution adapter are unverified.",
+    "MP-SPDZ bytecode is compiled but not executed by this check.",
+    "This suite covers framing, nonce, and conditional release only.",
+    "Separate crypto and Signal reports record their own coverage.",
+    "No native MPC execution or live TLS/Signal interoperability is tested."
+  ]
+}

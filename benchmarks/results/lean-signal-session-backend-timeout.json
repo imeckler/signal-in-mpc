@@ -1,0 +1,12 @@
+{
+  "profile": "signal-session-receive-2-5-2-96",
+  "batch": 1,
+  "parties": 5,
+  "stage": "MP-SPDZ compile.py",
+  "timeout_seconds": 600,
+  "result": "TimeoutExpired; no successful compilation claimed",
+  "artifact_sha256": "f3c3304aae721fb9c08c0be80eb4005f9bbc812d969eccc53a70a7c860f8abbe",
+  "harness_before_extension_sha256": "bcfafe709d913ec9b9a4bb027377259f35c7358def24f5805f1f06a0ae347e96",
+  "failure_log_sha256": "055dea8d1a13c598917dc754dfe983647cdccafeff325318c9a110f8a8c0d646",
+  "native_mpc_executed": false
+}

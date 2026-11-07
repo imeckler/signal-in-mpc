@@ -1,0 +1,17 @@
+{
+  "checked_utc": "2026-11-07T20:34:49.306691+00:00",
+  "host": "grpc.chat.signal.org",
+  "exit_code": 0,
+  "selected_output": [
+    "Peer signature type: ed25519",
+    "Peer Temp Key: X25519, 253 bits",
+    "Verification: OK",
+    "New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256",
+    "ALPN protocol: h2",
+    "Verify return code: 0 (ok)"
+  ],
+  "signal_ca_bundle_sha256": "4f44a2724f89a52270f890aa3dd561ec592a70c845aa2283fb521a1ec51bcf9c",
+  "native_mpc": false,
+  "authenticated_http_request_sent": false,
+  "passed": true
+}

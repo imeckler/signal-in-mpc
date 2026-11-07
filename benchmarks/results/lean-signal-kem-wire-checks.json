@@ -1,0 +1,164 @@
+{
+  "checked_at_utc": "2026-11-07T20:15:00.127472+00:00",
+  "checked_endpoints": 5,
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem.rs": "01cce9761ca2f2f3e86cc98bc1bc4d321dd190460826f4e8fd427081d30ce853",
+    "SignalReference/KemWireChecks.lean": "22a0cb9860b1b275fe90f436d664d2c4ffe422101c240d3f8e65ad320183ceee",
+    "SignalReference/KemWireWork/Export.lean": "178c5613b3a155f8d2c53e079aa8b25a15c8a9c5c3ba3a8875b9e6328805305a",
+    "SignalReference/KemWireWork/lakefile.toml": "08dfbd9c327310addf1affe74bdb329a805067c95394656f78addf41aa67b54e",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Keccak.lean": "1d930130f2a46cd737fd4411b0a800610ea1ff8c851fcee9f6bd66f4bada8890",
+    "TlsMpc/Signal/KemWire.lean": "afbb8cad89128b6482ce56935165567bdc2f363aaa25e86909a12bca8bdc0948",
+    "TlsMpc/Signal/MlKem.lean": "602154a441f71d9412b49dbe6902ebb0b8e834b07cb65d7d2a473c814cf812b2",
+    "TlsMpc/Signal/MlKemArithmetic.lean": "c60329f3acc4f77242a3a650513fa167e4d030286645256c381da8788c21ca71",
+    "TlsMpc/Signal/MlKemEncoding.lean": "0bb10cf19fc8c12694899dcf28d2ac7f53e4de1ac366e885bc9f6c0ba28d7e27",
+    "TlsMpc/Signal/MlKemNtt.lean": "9138102e40fb96c3a1132a797b4838243547915a91de0773f4547252db51ef25",
+    "TlsMpc/Signal/MlKemPke.lean": "e606559f44f350b1d0fbd80603c9668979f3d4d50360731bd2fb1397d20aa33e",
+    "TlsMpc/Signal/MlKemSample.lean": "432b7a059d19bb0a9a7f8cc286067e608f241c09b8e80fddd4e7a9d248c1e7c8",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "scripts/check_lean_signal_kem_wire.py": "ef894b25253e8fe7fb65535f4db42d132c005c030a4a6522155aa2a43e937076"
+  },
+  "cases": [
+    {
+      "mode": "keygen",
+      "variant": "kyber768",
+      "fixture_lanes": 256,
+      "artifact_sha256": "0bebf0659e33a3a00b411e29bad73cb72e540bc68e622ab1c9c368337fe46a4b",
+      "fixture_sha256": "a37d252d2aebce0a7284f876f54a98b0629b2e8b1f266f0f8dca321dda2e6ff0",
+      "adapter_operations": {
+        "raw_and_gates": 28679,
+        "executed_and_gates": 28679,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "encapsulate",
+      "variant": "kyber768",
+      "fixture_lanes": 512,
+      "artifact_sha256": "5587ff7d9fa6f211d4b08293080933fb8bce8897aeb4deb2c90e312b1be5ef92",
+      "fixture_sha256": "aa7e2d1ee6851abb86cc9326805f2358c6e3fcd3088cc45afdad92cd233e4d9c",
+      "adapter_operations": {
+        "raw_and_gates": 8975,
+        "executed_and_gates": 8975,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "decapsulate",
+      "variant": "kyber768",
+      "fixture_lanes": 768,
+      "artifact_sha256": "292fbf7d316874b79ce9d3965bee2dddfb315698b7c41fd7493e60df2dbfab44",
+      "fixture_sha256": "ba13788307996848d8c1afe8e64b8d850a4b98ff6dd32224a44acbf09b0c88cc",
+      "adapter_operations": {
+        "raw_and_gates": 279,
+        "executed_and_gates": 279,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "keygen",
+      "variant": "kyber1024",
+      "fixture_lanes": 256,
+      "artifact_sha256": "49ba26ab863f2c5d227f0913f31f1718c0e7e5772b6f79940421cbd9b981b237",
+      "fixture_sha256": "d1c2c3be7b8a6d502225ad71732adb91c523b30fe81592ced1ee78ea2e9fef18",
+      "adapter_operations": {
+        "raw_and_gates": 37895,
+        "executed_and_gates": 37895,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "encapsulate",
+      "variant": "kyber1024",
+      "fixture_lanes": 512,
+      "artifact_sha256": "116bfc655877dbdd5c76b57957f92588338d645a7e84d51d4062c4876b705ae5",
+      "fixture_sha256": "d2fbb12d5374c21677c179087b826ba30c34c8198d2b0273a9f2c16dc349ca67",
+      "adapter_operations": {
+        "raw_and_gates": 12815,
+        "executed_and_gates": 12815,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "decapsulate",
+      "variant": "kyber1024",
+      "fixture_lanes": 768,
+      "artifact_sha256": "03b9eecc7552b17f14471c6cd8712aeaefb38bb75fd37f6a40ebe7f150001b67",
+      "fixture_sha256": "9e80b3432a1cab3d18cefca3a0a1ea310735d002de3c5298e6ddc018b1adc777",
+      "adapter_operations": {
+        "raw_and_gates": 279,
+        "executed_and_gates": 279,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "keygen",
+      "variant": "mlkem1024",
+      "fixture_lanes": 256,
+      "artifact_sha256": "072fee6edd151a13fb9a234c288400b02d85bbcf6244ae2f5287f8f6f4a52fcd",
+      "fixture_sha256": "75b17a0445598b99c6954354a024552c2583e00a65b50ae934eee52dc2795b07",
+      "adapter_operations": {
+        "raw_and_gates": 37895,
+        "executed_and_gates": 37895,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "encapsulate",
+      "variant": "mlkem1024",
+      "fixture_lanes": 512,
+      "artifact_sha256": "1717703b79bc8f2f254602faf97a6017ce9d473071c0469890076d137226b042",
+      "fixture_sha256": "715084e7b8f2e5920a7073696fad27570e689be9045e8ef54a0ce4498f372d01",
+      "adapter_operations": {
+        "raw_and_gates": 12815,
+        "executed_and_gates": 12815,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "decapsulate",
+      "variant": "mlkem1024",
+      "fixture_lanes": 768,
+      "artifact_sha256": "29950d1ae1d1de5fb5401bf335e877c018d394ca227461e6b15ec00bd7bab664",
+      "fixture_sha256": "a99e1c79ede29f839bfbcf86e71e4247582477954914149ff2a1f0171e2ef6d1",
+      "adapter_operations": {
+        "raw_and_gates": 279,
+        "executed_and_gates": 279,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "fixture_lanes": 4608,
+  "custom_axioms": [],
+  "actual_signal_aeneas_refinement": false,
+  "actual_signal_differential": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "scope": "framing candidate KEM output; whole composed compiler theorem also checked; malformed key arithmetic not covered"
+}

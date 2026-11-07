@@ -1,0 +1,13 @@
+{
+  "checked_utc": "2026-11-07T17:22:00.100722+00:00",
+  "backend_bytecode_compiled": true,
+  "native_mpc_executed": false,
+  "scope": "fixed-shape handshake stages in one mixed VM; live controller binding remains absent",
+  "bytecode_sha256": "961a673c737d9451cd259f5a0c2f2aca259c9b176e346c1c9017973afd7c4f70",
+  "bytecode_bytes": 258025808,
+  "integer_dabits": 766,
+  "integer_triples": 10203,
+  "bit_triples": 3418348,
+  "vm_rounds": 48447,
+  "compiler_log": "/tmp/tls-mpc-handshake-stages.log"
+}

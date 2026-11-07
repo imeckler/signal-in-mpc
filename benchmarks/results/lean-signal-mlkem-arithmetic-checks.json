@@ -1,0 +1,103 @@
+{
+  "checked_at_utc": "2026-11-07T19:42:46.498948+00:00",
+  "checked_endpoints": 27,
+  "source_sha256": {
+    "SignalReference/MlKemArithmeticChecks.lean": "593669817028f28281ebed64fe335f807c38253580824c8fd6bfb1d5e3aad4dd",
+    "SignalReference/MlKemArithmeticExport.lean": "1366e64740d0b5603166afb71f63480d986410553f27e58f44b7cdc1b8dfb486",
+    "SignalReference/MlKemArithmeticWork/Export.lean": "1366e64740d0b5603166afb71f63480d986410553f27e58f44b7cdc1b8dfb486",
+    "SignalReference/MlKemArithmeticWork/lakefile.toml": "a03825edf08ac9577ad8ef782ca0b8b7c796061772021e425eb0c76698afc37f",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Keccak.lean": "1d930130f2a46cd737fd4411b0a800610ea1ff8c851fcee9f6bd66f4bada8890",
+    "TlsMpc/Signal/MlKemArithmetic.lean": "c60329f3acc4f77242a3a650513fa167e4d030286645256c381da8788c21ca71",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/check_lean_signal_mlkem_arithmetic.py": "b3cb063622a4fd2d6fdca2b6d0d744ab9f9fd382ea2fcbc9ba1dadd42d049728"
+  },
+  "cases": [
+    {
+      "mode": "arithmetic",
+      "eta": 2,
+      "fixture_lanes": 1060,
+      "artifact_sha256": "75a15f1f5b7c5424b4e0043a33339da638902e7a6df2731eab9f3c1a74a7ed31",
+      "fixture_sha256": "82c6f8f3f3d5afa52c49610791dc3def6b2cf79eab691cb3b8db71a55e71322b",
+      "adapter_operations": {
+        "raw_and_gates": 11779,
+        "executed_and_gates": 6510,
+        "executed_xor_gates": 1551,
+        "unreachable_nodes": 3719
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "cbd",
+      "eta": 2,
+      "fixture_lanes": 272,
+      "artifact_sha256": "bbed159b8ee26b80dcc40773a7043ae9ebafa6053752a25d05567399eea2ab9b",
+      "fixture_sha256": "9f64ed15ba9b0e00f26ab6327df45c41f20642e0954f40870e414179ed4bafdf",
+      "adapter_operations": {
+        "raw_and_gates": 1037312,
+        "executed_and_gates": 546816,
+        "executed_xor_gates": 123904,
+        "unreachable_nodes": 366593
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "cbd",
+      "eta": 3,
+      "fixture_lanes": 80,
+      "artifact_sha256": "5ec58807643410ad3c034fef170fadc55d3696c29fd3a34ba684d2429842732d",
+      "fixture_sha256": "c6f5c006f86c8e4932b34a0c37597491f178ffea3f8cfbddb729c6ae75f0a60b",
+      "adapter_operations": {
+        "raw_and_gates": 1042944,
+        "executed_and_gates": 548864,
+        "executed_xor_gates": 125696,
+        "unreachable_nodes": 368385
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "noise",
+      "eta": 2,
+      "fixture_lanes": 16,
+      "artifact_sha256": "d392707a750ae25ab54ace7ea1ea0d286575b6e26d8a0d1d69a86e9c6f8fe5ca",
+      "fixture_sha256": "a43ba7deb9907f52338b8638af992a9746384cb11b756d4fea68bb4d2090038b",
+      "adapter_operations": {
+        "raw_and_gates": 1409480,
+        "executed_and_gates": 584640,
+        "executed_xor_gates": 235352,
+        "unreachable_nodes": 589489
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "noise",
+      "eta": 3,
+      "fixture_lanes": 16,
+      "artifact_sha256": "34cc4f0cfe6458b9eca090b31181186fe83001ca891c86dd1dd1f382915ee1dd",
+      "fixture_sha256": "ae1a4cae061cf6f8715dbc95e9b7091c7ebd01e5695715b2af2ce12b47a09be1",
+      "adapter_operations": {
+        "raw_and_gates": 1795080,
+        "executed_and_gates": 624512,
+        "executed_xor_gates": 351192,
+        "unreachable_nodes": 819377
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "custom_axioms": [],
+  "actual_libcrux_aeneas_refinement": false,
+  "actual_libcrux_cbd_differential": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "full_mlkem": false,
+  "arithmetic_precondition": "input coefficients canonical0..3328; kernel-checked modular correctness",
+  "cbd_values_proved": "all input byte lists/counts for eta<=3, missing input bytes interpreted as zero; exporters enforce exact64eta length"
+}

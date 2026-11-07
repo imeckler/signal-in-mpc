@@ -1,0 +1,545 @@
+{
+  "title": "Native MPC storage, field migration, and verifiable refresh",
+  "status": "Three checked Lean functional/algebraic models, a compiled interactive native candidate-refresh adapter, and an experimental PRZS alternative with local attack/consistency regressions; no five-party network execution or completed proactive service integration",
+  "date": "2026-11-06",
+  "decision": {
+    "recommendation": "Replace the two-Pallas-polynomial database format for new deployments with typed shares and a reviewed proactive refresh adapter around the active MPC backend. Keep cryptographic keys and identifiers as exact secret bytes. Bind each refresh to a unanimous durable epoch transaction, and establish recovery, erasure and fresh runtime state before resuming. Retain no public plaintext reconstruction API.",
+    "parties": 5,
+    "malicious_parties": 2,
+    "reconstruction_threshold": 3,
+    "availability": "Abort or block on unavailable or inconsistent participants; no guaranteed output delivery or asynchronous consensus claim",
+    "backend_candidate": "Pinned MP-SPDZ v0.4.4: MaliciousShamirShare for prime arithmetic and MaliciousCcdSecret binary components; bounded refresh prototype uses native full-field Shamir wrappers in fp25519, GF(2^40), and GF(2^64)",
+    "backend_source_pin": "benchmarks/config/dependencies.json: commit 113c4e47dd94bca9ecab029d2f0abe649bea5c52, source archive SHA-256 53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "backend_baseline_only": "MP-SPDZ's ordinary active-MPC security is a component assumption; a static security theorem does not establish the required mobile-adversary composition",
+    "proactive_target": "REQUIRED: active mobile corruption of at most two distinct parties per accounted refresh epoch, with transition corruptions charged to both adjacent periods. Different parties may be compromised over the lifetime without a lifetime limit of two. Three current-epoch shares suffice to reconstruct; protection below that threshold remains a protocol integration obligation.",
+    "deployment_gate": "Do not deploy or label the service proactive until the refresh protocol, exposure model, erasure/recovery operations and actual backend integration have a reviewed security argument. That argument need not be mechanized; the compiler and functional specifications remain verified separately.",
+    "compatibility": "No deployed compatibility constraint. Preserve existing clear key bytes on import; never preserve obsolete reconstruction behavior.",
+    "field_change_required": "Not logically required: Pallas storage could be imported and converted inside MPC. Native storage is recommended to remove that recurring conversion and the custom Pallas proof dependency.",
+    "three_party_alternative": "Malicious replicated 3PC ordinarily changes the supported collusion threshold to one. Do not substitute it for the requested two-colluder target without an explicit threat-model change.",
+    "storage_choice_under_review": "For refresh independent of total conversation count, compare encrypted records under a proactively shared wrapping key against native per-record shares with amortized PRZS. PRZS reduces network setup but still rewrites all native components. Encrypted-record storage can refresh a fixed-size key if all additional live caches are bounded or retired, at the cost of MPC AEAD work per access. Neither choice is enacted by this followup."
+  },
+  "existing_code_findings": [
+    {
+      "finding": "A row consists of f(i+1) and g(n+i+1), where f and g have degree threshold-1 and f(0)-g(0) is the secret. The two evaluations use different grids; subtracting a node's two stored values is not an evaluation of the secret polynomial at one common point.",
+      "sources": [
+        "../secret-shared-db/vss/src/vss.rs:64",
+        "../secret-shared-db/vss/src/vss.rs:163",
+        "../secret-shared-db/server/relay-node/src/share_db_communication.rs:89"
+      ]
+    },
+    {
+      "finding": "The shared value is a per-contact encryption-key seed. storage.rs derives SHA256(ASCII RELAY_ENCRYPTION_KEY || canonical 32-byte little-endian Pallas Fr seed), decrypts AES-GCM contact records, and caches plaintext UUID/session state. Sharing an existing Signal identity key is a separate provisioning operation.",
+      "sources": [
+        "../secret-shared-db/server/relay-node/src/storage.rs:258",
+        "../secret-shared-db/server/relay-node/src/storage.rs:381",
+        "../secret-shared-db/server/relay-node/src/storage.rs:1100"
+      ]
+    },
+    {
+      "finding": "The epoch leader creates two polynomials with equal constants. EncryptedSharesWithProof.verify checks encrypted limb packing, polynomial evaluations, an IPA relation that their difference evaluates to zero at zero, and Booleanity. Polynomial commitments have blinding. This is a source-level characterization of the intended proof relation, not an audit of this custom proof system.",
+      "sources": [
+        "../secret-shared-db/vss/src/vss.rs:87",
+        "../secret-shared-db/vss/src/vss.rs:273",
+        "../secret-shared-db/vss/src/vss.rs:679",
+        "../secret-shared-db/server/src/peer_protocol.rs:557"
+      ]
+    },
+    {
+      "finding": "update_secrets adds the same pair of epoch deltas to every consensus row in one local SQL transaction. Consequently per-node differences between rows are invariant under refresh. Require an independent mask for each secret object/component in the replacement. The single leader also knows the whole refresh polynomials; a zero-value proof does not establish entropy hidden from that leader.",
+      "sources": [
+        "../secret-shared-db/server/src/database.rs:605",
+        "../secret-shared-db/server/src/peer_protocol.rs:557"
+      ]
+    },
+    {
+      "finding": "The signed epoch update includes the previous state hash. The state hash binds the ID set and update history, not all secret payloads. Commit requires threshold + max_malicious_parties signatures: with threshold=3 and max_malicious_parties=2 this is all five. Local SQL atomicity is distinct from distributed commit, rollback protection, and storage erasure.",
+      "sources": [
+        "../secret-shared-db/server/src/peer_protocol.rs:199",
+        "../secret-shared-db/server/src/peer_protocol.rs:710",
+        "../secret-shared-db/server/src/database.rs:605"
+      ]
+    },
+    {
+      "finding": "Legacy recovery interpolates the first threshold available inputs without robust error correction; initial relay inserts do not supply the epoch zero-sharing proof. New import must check all five inputs against one degree-two polynomial for each component before deriving a secret.",
+      "sources": [
+        "../secret-shared-db/server/relay-node/src/share_db_communication.rs:89",
+        "../secret-shared-db/vss/src/vss.rs:118"
+      ]
+    },
+    {
+      "finding": "The sibling description discusses disk capture within a configurable time window and excludes live relay-memory capture. The new active malicious-node objective is different. Neither the old window claim nor its proof obligations carry over automatically.",
+      "sources": [
+        "../secret-shared-db/description"
+      ]
+    }
+  ],
+  "typed_domains": {
+    "canonical_secret_objects": "SecretBytes(n), bounded unsigned counters, explicitly typed field elements, and explicitly typed scalars. An opaque public handle identifies a record. The handle is not a hash, commitment, or deterministic encryption of a recipient identifier.",
+    "binary_storage": "Prefer backend-native binary shares for persistent AES/SHA/HMAC keys, exact Signal state bytes, TLS state, and identifiers. The bounded prototype refreshes actual CCD extension-field components and checks native component serialization; full GC vector-register export/import and authenticated persistence remain to implement. CCD shares are extension-field shares of bits, not ordinary XOR fragments.",
+    "arithmetic_storage": "Use native Shamir shares for arithmetic objects and optional caches. Preserve canonical bytes as the authority for serialization and clamping; bind every cache to the object version and conversion proof/program digest.",
+    "curve_coordinate_prime": "p = 2^255 - 19 = 57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "curve_subgroup_order": "l = 2^252 + 27742317777372353535851937790883648493; l is not p",
+    "x25519_rule": "The wire input is 32 bytes; scalar decoding clamps specified bits. Coordinate decoding masks its high bit and reduces as RFC 7748 requires. Never replace the byte string with a residue before those operations.",
+    "lossless_arithmetic_byte_option": "Store a 256-bit byte string as a 248-bit low limb and an 8-bit high limb, with range checks. Both fit p and preserve every bit. The Lean packing proof establishes injectivity and these bounds; it does not establish secure conversion.",
+    "legacy_pallas_scalar_prime": "q = 28948022309329048855892746252171976963363056481941647379679742748393362948097, from ark-pallas Fr. Legacy decoders reduce their 32-byte input modulo q; canonical output is the resulting integer in 32-byte little-endian form.",
+    "pq_arithmetic": "A protocol-specific polynomial coefficient modulus, such as ML-KEM's 3329, is a distinct domain. It is not interchangeable with p or l. Small-field MPC checks need an explicit soundness analysis and may use extension fields or bounded-limb arithmetic; choose after the Signal version and kernel benchmarks are pinned.",
+    "conversion": "Require maliciously checked conversions with defined ranges, endian order, signedness and modulus. MP-SPDZ daBit/edaBit mechanisms are candidate backend operations. Native mixed execution and persistence are not yet tested here.",
+    "source_ids": [
+      "rfc7748",
+      "mp-spdz-mixed",
+      "backend-share-types"
+    ]
+  },
+  "import_existing_state": {
+    "source_parameters": "The concrete interpolation below assumes the source also has n=5 and reconstruction threshold 3. Read and authenticate the actual legacy committee/threshold before migration; other source parameters require their own checked conversion circuit. No existing deployment is assumed.",
+    "legacy_database_migration": [
+      "Freeze a consistent source epoch and handle/version manifest. Each party inputs only its own two legacy field encodings through the active backend; do not send them to a replacement relay.",
+      "Decode with the legacy Fr semantics. Inside MPC, test that all five first components lie on one degree-two polynomial at 1..5, and all five offsets lie on one degree-two polynomial at 6..10. Compute interpolation from fixed public points and compare every remaining point. Reveal only a joint validity result; abort on inconsistency.",
+      "Three honest inputs uniquely fix each degree-two polynomial, so accepted all-five consistency prevents two malicious inputs from changing the represented value. This assumes those honest inputs are for the agreed source snapshot. It does not authenticate an arbitrary original dealer's intended plaintext, correct two bad shares, or recover an unavailable source quorum.",
+      "Compute f(0)-g(0) modulo the old Fr prime inside MPC. Produce its canonical 32-byte little-endian encoding and derive the existing AES key with the exact RELAY_ENCRYPTION_KEY context.",
+      "Authenticate/decrypt the contact blob inside MPC, validate its schema and version, and reshare its exact secret fields in the new domains. Authenticate the blob's provenance and version as well as its AEAD tag; a valid old ciphertext must not silently roll state back.",
+      "Persist only each party's own new native share payload with a common signed manifest. Remove clear recovery and plaintext UUID/session caches from the integration path. Retain the old data only for the explicitly bounded migration transaction, then retire it under the chosen erasure model."
+    ],
+    "implementation_choice": "Run old-field interpolation in a one-time old-Fr arithmetic job followed by a checked conversion, or use an exact integer/Boolean circuit for Fr arithmetic. Directly casting Fr residues into another prime field changes modular arithmetic and is invalid. This migration circuit is not implemented.",
+    "existing_clear_keys": "An authorized owner who already possesses an existing Signal key may input its exact bytes through a confidential malicious-secure input protocol. No MPC node is authorized to receive the clear key. Bind the input to the owner, key purpose, handle, version, and any existing public key. A consistency proof does not establish the owner's authorization.",
+    "joint_new_keys": "Use fresh jointly contributed backend randomness, validate required byte/scalar encodings, and publish only the intended public key or enrollment result. Persist only native local shares. Do not use public randomness or a node's independently chosen private key as a jointly generated secret."
+  },
+  "backend_contract": {
+    "opaque_types": [
+      "LocalSharePayload<backend, domain, party>",
+      "PublicDescriptor",
+      "PreparedLocalCandidate",
+      "CheckedCommitCertificate"
+    ],
+    "operations": [
+      {
+        "name": "import_checked",
+        "input": "Agreed descriptor and this party's local payload or private legacy inputs",
+        "output": "Opaque backend secret handles, or abort",
+        "obligations": "Check source snapshot, party index, domain, canonical native encoding, degree/integrity and bit/range constraints. A private input protocol authenticates a supplied contribution, not the logical correctness of a stored value."
+      },
+      {
+        "name": "refresh_prepare",
+        "input": "Agreed descriptor and valid native source components; the bounded refresh itself consumes no preprocessing, triples or mixed-conversion correlations",
+        "output": "This party's candidate payload and checked backend completion, or abort; a hiding candidate-manifest binding and commit are still integration work",
+        "obligations": "In a fresh transition runtime, jointly generate secret mask coefficients independently for each object/component and domain. Deliver each projected reconstruction transcript only to its recipient, keeping the outer mask hidden beyond the permitted deltas. Preserve represented values, finish all malicious checks before acknowledging, and bind the result to exactly one descriptor. Do not broadcast or retain the inner private-output polynomials across the boundary.",
+        "implementation_status": "Candidate-only native prototype exists; authenticated worker import/export, source-validation circuit, signed manifest, durable epoch commit, recovery, erasure, and five-party execution are not implemented or validated by this prototype."
+      },
+      {
+        "name": "refresh_commit",
+        "input": "Durable local candidate and verified five-party certificate for the identical descriptor and candidate manifest",
+        "output": "New durable local head and receipt, or a durable pending state",
+        "obligations": "Atomic local payload/head update, replay protection, single-use preprocessing accounting and recovery without mixed epochs. This operation may block after partial delivery."
+      },
+      {
+        "name": "retire_epoch",
+        "input": "Confirmed committed epoch, authenticated successor-key context, and the mandatory recovery/erasure policy",
+        "output": "Local retirement result and a bound cleanup receipt, followed by a fresh application runtime",
+        "obligations": "Cover old share payloads, mask coefficients/deltas and private-output transcripts, memory, swap, WAL/journals, snapshots, backups, all preprocessing/correlation state, and PRNG/transport/authentication key contexts. Resume only after common-head agreement, honest local retirement, fresh initialization and rollback protection. Receipts do not prove that a malicious party erased its retained view."
+      }
+    ],
+    "arithmetic_refresh_candidate": "Implemented as a bounded candidate-only C++ prototype in refresh/NativeRefresh.h. For each component, every party independently samples two degree-two full-field polynomials and privately sends their evaluations. Parties sum the local coefficient shares. For each nonzero native point x_i, compute x_i*[a1]+x_i^2*[a2] and deliver its all-five reconstruction vector only to i through native MaliciousShamirPO. Each honest recipient immediately checks degree consistency and adds only its own delta to its old native share. Checked status agreement precedes return. This is not an epoch commit or a completed proactive application implementation; source validity, entropy, private channels, recovery and erasure are explicit preconditions.",
+    "binary_refresh_candidate": "The same implemented primitive operates in gf2n_short degree 40 or 64 using MaliciousShamirShare<gf2n_short>, whose serialized field component matches GC::MaliciousCcdShare. This avoids the unsupported GC reveal_to API and its bit-valued clear type. Mask coefficients are uniform full-field values; a bit at the sharing constant is preserved by the zero constant mask. Native points are polynomial-basis encodings, not repeated natural-number additions in characteristic two. Full GC worker persistence integration is pending.",
+    "normalization_is_algebra_only": "[r]-public(open(r)) has value zero, as Refresh.lean proves. It is rejected as this backend's proactive refresh primitive: MP-SPDZ MaliciousShamirMC obtains reconstruction shares during a public opening, exposing the random polynomial and therefore the whole zero mask. The ideal public value r does not capture that native transcript leakage. Random-bit XOR public-opening shortcuts need the same rejection unless a separate proof prevents mask-polynomial exposure.",
+    "forbidden_shortcuts": [
+      "[r]-[r] or r XOR r: identical shares cancel to the deterministic zero representation; they do not supply fresh masks.",
+      "Publicly opening a random native Shamir sharing to normalize its constant: reconstruction traffic exposes the whole zero polynomial, even when the random secret value itself is harmless.",
+      "Broadcasting private deltas or retaining full private-output reconstruction transcripts across the boundary.",
+      "One mask shared across records, byte limbs, epochs or domains: this preserves unwanted relations and can invalidate masking privacy.",
+      "Accepting only three unchecked imported contributions when two may be malicious.",
+      "Opening a stored key, identifier, session state, or all local shares to perform resharing.",
+      "Publishing a secret hash or a non-hiding commitment to prove state equality.",
+      "Reusing preprocessing or restoring a runtime's old random-generator state after abort or rollback."
+    ],
+    "native_integrity": "MaliciousShamirShare inherits a field payload. Its MAC_Check typedef selects a polynomial consistency checker; it does not mean the payload has an SPDZ MAC. If a future backend uses MACs, persistent state must include its authenticated share format and key/context binding, and refresh must update tags through that backend. Do not manufacture tags or refresh data without its authentication state.",
+    "raw_persistence": "MP-SPDZ native prime components use Montgomery limbs; CCD components use raw extension-field words, with no SPDZ MAC appended by these share classes. refresh/NativeSnapshot.h supplies a bounded versioned local envelope with party/domain/epoch/manifest/count, canonical decoding and exact length checks. It reads active state and writes exclusive mode-0600 candidate files with file and directory fsync. It does not authenticate the source payload, check the old polynomial/bit constraints, commit an epoch, or implement the binary GC vector import API. It is not the stock Transactions format.",
+    "parameters": "n=5, corruption threshold t=2, reconstruction threshold 3. Prime field p=2^255-19 uses 32 native bytes. Actual short CCD fields supported here are GF(2^40) with X^40+X^20+X^15+X^10+1 and GF(2^64) with X^64+X^4+X^3+X+1, both encoded in 8 bytes. Pinned default statistical security is 40; -S64 selects degree 64, and the short field cannot exceed degree 64. Refresh degree checks are exact, but the application preprocessing/conversion/sacrifice failure budget still needs explicit aggregate analysis. Bind all parameters and native representation to the manifest.",
+    "trusted_boundary": "The unverified backend is responsible for malicious privacy/security, authenticated channels, correct secret inputs, conversions, joint random sharing, PRIVATE outputs, opening/check scheduling, native persistence, and program execution. A separate reviewed argument must establish its composition with refresh and erasures against the required mobile/adaptive exposure schedule, including within-execution exposures; the static theorem is insufficient by itself. The verified compiler preserves the Lean program's functional semantics. Authorization, recovery, epoch agreement and crash/rollback handling remain integration obligations.",
+    "source_ids": [
+      "backend-share-types",
+      "backend-open",
+      "backend-random",
+      "backend-io",
+      "backend-security-fixes",
+      "mp-spdz-mixed",
+      "lindell-nof"
+    ],
+    "private_output_transcript": "A recipient sees a whole inner projected polynomial H_i(X)=x_i*U(X)+x_i^2*V(X), not only its final delta. The refresh-only privacy argument in refresh/SECURITY.txt accounts for those raw reconstruction messages. With one transition-corrupted point b, changing an honest dealer by G1+=k*(X-b), G2-=k*(X-b)/b leaves that full view unchanged while changing the outer mask by k*X*(X-b). Native algebraic checks exercise this witness; they are not a proof of native adaptive application composition."
+  },
+  "epoch_transaction": {
+    "signed_descriptor_fields": [
+      "format/protocol version",
+      "committee and party-index map",
+      "n and corruption threshold",
+      "backend build and security parameters",
+      "domain, evaluation-point map and canonical schema",
+      "compiler artifact/program digest",
+      "object handles and versions or their agreed manifest",
+      "source epoch",
+      "target epoch = source + 1",
+      "previous manifest digest",
+      "new candidate manifest digest",
+      "unique batch identifier",
+      "transition and successor runtime/key-context identifiers",
+      "reserved preprocessing identifiers",
+      "retirement policy and checkpoint identifier"
+    ],
+    "procedure": [
+      "Agree the complete live-secret inventory and source snapshot, finish pending malicious checks, quiesce old application workers and lock/version affected records. Concurrent Signal ratchet or TLS sequence updates must serialize against refresh; a correct refresh of stale state still causes a protocol rollback.",
+      "Establish recovered execution environments, fresh private entropy, renewed authenticated private channels, and a new transition runtime with independent correlation state. Authenticate recovered hosts and fresh epoch keys under the recovery policy. An exposed long-term credential alone cannot establish recovery from its own compromise.",
+      "Run refresh_prepare with secret coefficient generation and private delta outputs. Each honest party durably writes its own candidate and a non-equivocation record before signing PREPARED for the entire descriptor and candidate manifest.",
+      "Require signatures from all five distinct configured parties on identical bytes. This preserves a simple agreement policy with abort. Bind candidate payloads using a hiding commitment or encrypted-payload relation. A public hash of a raw share can check low-entropy guesses given two other shares; do not assume partial-share hashes are hiding. Never hash plaintext identifiers into a public manifest.",
+      "On a verified complete certificate, atomically install the local candidate and new head. Retain a durable journal of the decision so recovery is idempotent. A coordinator disappearing after collecting signatures may leave parties pending; retransmit the decision rather than selecting a different successor.",
+      "At the agreed recovery point, retire old payloads and all old/transition runtime secrets, unused preprocessing, native mask material and private-output reconstruction buffers. Reinitialize the successor application runtime with fresh independent private randomness and key/correlation contexts; do not continue an AES-counter PRNG with the old seed.",
+      "Issue cleanup acknowledgements bound to the committed descriptor. Permit the next data-plane operation only after common-head agreement, local retirement and fresh-state checks, an anchored rollback checkpoint, and all five cleanup receipts. These receipts coordinate progress; honest-machine erasure remains an assumption and a compromised party's view cannot be revoked.",
+      "If a transition aborts or stalls, pause sends and retain durable recovery state. Do not declare a fresh protected epoch or reset the exposure budget merely because a timer fired or a local head changed. Retrying consumes a new batch ID, fresh private randomness and fresh preprocessing."
+    ],
+    "rollback": "Unanimous signatures alone do not prevent restoring every node from stale backups. Maintain an externally durable monotonic checkpoint or a clearly defined non-rollback assumption. An honest recovered node must compare heads with peers and must never authorize a conflicting successor. Isolate restored/offline nodes until checked repair catches them up.",
+    "nonce_safety": "State-transition commits for TLS sequence numbers, Signal ratchet counters and message keys need their own exactly-once/retry semantics. Share refresh preserves values; it cannot make reuse of a TLS nonce or one-time Signal state safe.",
+    "boundary_vs_metadata": "The committed payload epoch and completion of a proactive transition are separate events. PREPARED and COMMITTED states can retain both generations for recovery; the overlap continues until the honest retirement/reinitialization conditions hold. Merely incrementing Head.epoch does not create a new privacy guarantee.",
+    "lean_scope": "Epoch.lean checks metadata guards, all-five acknowledgement, exact increment, stable context and replay rejection. It separately formalizes historical exposure accounting and local resumption prerequisites. Certificate/backend verification and lifecycle flags must be sound external facts. No Byzantine-agreement, signature, storage-erasure or MPC security theorem is claimed."
+  },
+  "proactive_security": {
+    "requirement": "Mandatory, confirmed by the user: at most two distinct compromised nodes per accounted epoch, with any of the five compromised during different epochs and no lifetime limit of two. A bounded native candidate-refresh prototype now exists; the complete proactive service and its security/composition guarantee are not established.",
+    "standard_reference_model": "Use the adjacent-period accounting of Herzberg et al. section 2.1. Define P_e as all parties exposed during application period e and R_e as all parties exposed during the refresh from e to e+1. Charge C_e = P_e union R_(e-1) union R_e, with an empty R_(-1), and require |C_e| <= 2. Exposure is historical, not a count of currently connected attackers. Recovery does not subtract an earlier exposure from C_e.",
+    "threshold_statement": "Three consistent shares of a single epoch suffice to reconstruct its secret. Security below that reconstruction threshold is the required proactive theorem, conditional on the model and backend integration. The numerical threshold alone does not prove that views gathered across epochs are harmless.",
+    "public_open_counterexample": {
+      "schedule": "A is compromised earlier in period e and recovered before refresh. B is compromised during the e-to-e+1 refresh. C is compromised later in e+1. Thus the charged sets can be C_e={A,B} and C_(e+1)={B,C}, each of size two.",
+      "failure": "If B learns the entire zero polynomial z from public-opening reconstruction traffic, the attacker translates its retained old share f_e(x_A) to f_(e+1)(x_A)=f_e(x_A)+z(x_A). Together with B's and C's successor shares, it obtains three shares of epoch e+1 and reconstructs. A single malicious dealer who knows all mask coefficients presents the same structural problem.",
+      "repair_contract": "Joint secret coefficient generation and recipient-private projected reconstruction vectors keep the outer zero mask hidden beyond the permitted evaluations. Native private output leaks its whole inner polynomial to that recipient; refresh/SECURITY.txt explicitly accounts for that larger view. A single corrupted transition party still cannot determine the outer two-coefficient mask. Reviewed application/channel/erasure composition remains required."
+    },
+    "two_transition_corruptions": "Two degree-two zero-mask evaluations do determine that mask polynomial. Both parties then count in both adjacent periods, leaving no third distinct exposure permitted in either. This expected behavior is consistent with the selected standard accounting and is not a break of that model.",
+    "leader_randomness": "Use distinct random or computationally pseudorandom coefficients per object/component/domain/epoch. The interactive baseline jointly contributes independent coefficients. Experimental PRZS uses fresh subset seeds and the explicit zero/one/two transition-corruption case analysis in refresh/PRZS.txt. Reusing an identical mask or a long-lived exposed seed is rejected.",
+    "cadence_and_abort": "A configured timer schedules refresh; it cannot certify completion. An aborted or delayed transition extends the actual exposure window, and halt/abort does not erase information already obtained by the attacker. Claim a wall-clock compromise window only after bounding completion and recovery under the deployment's timing assumptions.",
+    "live_secret_inventory": [
+      "All native storage shares, exact Signal identity/session/ratchet state, recipient identifiers and contact encryption-key shares.",
+      "TLS traffic secrets, resumption PSKs/tickets as applicable, record state, secret counters and every cached alternate-domain representation.",
+      "Secret handles and native payloads copied into worker memory, queues, snapshots, transaction/WAL files, swap/core dumps and backups.",
+      "Preprocessing triples, input masks, daBits/edaBits, sacrifice material, PRSS/shared PRNG seeds, OT correlation state, check/MAC contexts where present, and unused future preprocessing.",
+      "Old and transition channel secrets, epoch authentication private keys, local at-rest wrapping keys and temporary refresh coefficients/deltas/output buffers."
+    ],
+    "runtime_policy": "Use separate old-application, transition, and successor-application contexts. For the first implementation, discard and regenerate all unused preprocessing and correlation state at the boundary instead of attempting to refresh it. Never carry a deterministic seed forward when it permits reconstruction of old masks. Any retained preprocessing or future-epoch state exposed during a compromise must be charged to every period it can affect; avoiding such retention makes the contract simpler.",
+    "authentication_and_transport": "Refresh internal node-to-node encryption and authentication contexts; this does not require changing Signal identity keys or the external TLS session's represented secret value. Use fresh authenticated ephemeral key exchange with retired traffic secrets, bind new keys to committee/party/epoch and the prior agreed head, revoke obsolete credentials, and authenticate recovered hosts using the trusted recovery process. A node remains compromised while stolen credentials or adversarial code still permit impersonation/control. Epoch-key continuity plus non-equivocation and anti-rollback checkpoints must prevent stale-key recovery/fork attacks.",
+    "erasure_and_recovery": "The security model assumes honest recovered machines run clean code with fresh private entropy and actually retire old secret state. For disk snapshots/backups, use a concrete deletion or cryptographic-erasure mechanism whose retired epoch keys cannot be recovered from retained master keys or old wrapping records. A SQL DELETE or success signature is not evidence of that property. A stale restored node is quarantined; it receives checked current-epoch repair or the service remains blocked. Exposed old backups count against the epochs whose views they reveal, regardless of when read.",
+    "additional_requirements": [
+      "Review the concrete refresh-only argument in refresh/SECURITY.txt and its implementation; complete composition with native application MPC, authenticated conversions, transport and erasures against adaptive/mobile exposure schedules.",
+      "The pinned randomness, CCD extension-field, private-output and check-scheduling source review is complete for this prototype. Run actual five-party and adversarial traffic tests when sockets are available; the local native kernels and memory-BIO handshakes do not establish that integration.",
+      "Implement the signed epoch transaction, authenticated source inventories, honest-node recovery/erasure, independent successor contexts and durable monotonic checkpoint.",
+      "Extend the local A/B/C counterexample and full-transcript algebraic witness into a transcript/state-retention integration audit. Such tests support engineering validation; they are not the proactive security theorem.",
+      "Specify retention and repair for offline nodes and crashes. Old copies, incomplete candidates, exposed future preprocessing and backups extend the applicable exposure accounting. Never relabel a timed-out transition as a completed protected epoch."
+    ],
+    "source_ids": [
+      "hjky95",
+      "wake-up"
+    ]
+  },
+  "public_verifiability": {
+    "internal_participants": "The active backend can replace the existing zero-sharing ZKP for participating nodes: accepted execution establishes the functional zero-update condition under the backend's security assumptions. This removes the need to match the storage field to Pallas's group scalar field.",
+    "external_observers": "A five-party certificate is evidence of approval, not a publicly verifiable proof of the secret-sharing relation. The old proof verifier can check its encrypted-sharing relation using public inputs. If nonparticipants require that capability, it is a separate feature to preserve explicitly.",
+    "optional_extension": "Add an independently reviewed hiding PVSS or ZK relation tying encrypted per-party refreshed shares to the committed prior state and zero updates, with all epoch fields bound. A VSS paper with a different ideal functionality is not a drop-in proof for this database.",
+    "field_group_mismatch": "Feldman/Pedersen coefficient commitments require the commitment group's scalar order to match the sharing arithmetic, or an explicit cross-domain proof. Curve25519's coordinate field prime p differs from its subgroup order l; replacing a Pallas generator with an Edwards generator does not solve this.",
+    "identifier_privacy": "A public deterministic g^identifier commitment or hash enables offline guessing. Even hashes of individual native shares can check a low-entropy guess when the attacker already knows two Shamir shares: the guess determines the remaining degree-two polynomial. Use hiding commitments with independent secret blinders or keep the relation within MPC. Zero-update commitments reveal a public zero, but persistent-state and candidate commitments still need hiding.",
+    "source_ids": [
+      "chen-lindell",
+      "rfc7748"
+    ]
+  },
+  "performance_and_next_steps": [
+    "Compare per-record PRZS with encrypted conversation records under a proactively shared wrapping key. The former reduces network setup but still requires O(M) native-state refresh; the latter can refresh fixed-size key state but adds MPC AEAD per accessed record and must retire/refresh every live cache.",
+    "Extend the bounded native candidate adapter into authenticated source/worker persistence and epoch transactions before replacing the DB. Real five-party/adversarial/crash execution remains blocked by current socket permissions. Test wrong domains/epochs/artifacts, source tampering, duplicate signers, stale snapshots, failed checks, crashes and preprocessing replay after integration.",
+    "Measure binary-native persistence versus arithmetic byte limbs with conversions for established-session sends. Reuse workers and reserved preprocessing across batches within one epoch, then retire their secret contexts at its boundary; do not start a new MPC process for each message.",
+    "Batch independent records across WAN rounds and generate independent masks in the same batch. Refresh granularity and cadence need a measured storage/traffic budget; 100,000 messages/hour is about 27.8 messages/second, not a demonstrated rate.",
+    "Complete the required proactive composition and lifecycle contracts before deployment. Outside-party public proofs remain a separate optional feature; participant MPC checks do not imply them.",
+    "Instantiate the Lean linear-sharing laws against a mathematical Shamir model if useful for the compiler boundary. The requested security proof may remain unmechanized; instantiate no unproved law with an axiom."
+  ],
+  "implemented_formal_results": {
+    "files": [
+      "TlsMpc/Sharing/Refresh.lean",
+      "TlsMpc/Sharing/Epoch.lean",
+      "TlsMpc/Sharing/MaskReuse.lean"
+    ],
+    "claims": [
+      "Algebraic value preservation for a valid zero update under explicit linear-sharing laws",
+      "Opening normalization has zero value only; that normalization is rejected as the proactive backend protocol",
+      "Pointwise value preservation for a batch",
+      "Injective 248+8-bit packing for every 256-bit input and limb bounds below 2^255-19",
+      "Metadata-only unanimous acceptance, epoch increment, context preservation and replay/skipped-epoch rejection",
+      "Historical exposure accounting charges refresh compromise to both adjacent periods and rejects three distinct accounted exposures",
+      "The exposure model permits all five parties to be compromised in different periods; it imposes no lifetime-two limit",
+      "Local resumption requires retirement, fresh correlation state, internal rekeying, an anchored checkpoint and cleanup acknowledgements as explicit assumptions",
+      "Integer-model cancellation of arbitrary common epoch masks from record differences",
+      "Integer-model three-point reconstruction and three-epoch recovery of a secret difference; known-zero reference reveals the other value",
+      "Integer-model subset basis X*(X-b) vanishes at zero and the excluded point; no PRF privacy theorem"
+    ],
+    "not_claimed": [
+      "Randomness or independence",
+      "Shamir instantiation",
+      "MPC confidentiality or malicious/proactive security",
+      "Secure conversion or backend extraction",
+      "Cryptographic certificate checks",
+      "Distributed consensus or disk atomicity/erasure",
+      "Five-party native network execution, C++ refinement, or throughput",
+      "Security of the experimental PRZS seed distribution/erasure composition",
+      "Encrypted-record storage integration or a whole-database constant-refresh deployment"
+    ]
+  },
+  "sources": [
+    {
+      "id": "rfc7748",
+      "url": "https://datatracker.ietf.org/doc/html/rfc7748",
+      "scope": "Sections 4.1 and 5: p, subgroup order, byte encodings and clamping"
+    },
+    {
+      "id": "mp-spdz-mixed",
+      "url": "https://mp-spdz.readthedocs.io/en/latest/non-linear.html#mixed-circuit-computation",
+      "scope": "Documented malicious-Shamir binary pair and conversion mechanisms; local source pin remains authoritative for implementation"
+    },
+    {
+      "id": "lindell-nof",
+      "url": "https://eprint.iacr.org/2017/816",
+      "scope": "Malicious honest-majority MPC with abort, not a proactive persistence theorem"
+    },
+    {
+      "id": "hjky95",
+      "url": "https://www.cs.cornell.edu/courses/cs754/2001fa/339.PDF",
+      "scope": "Original PSS paper, section 2.1 printed page 341: update corruption counts in both adjacent periods; sections 2.2 and 6 distinguish VSS and communication-key recovery"
+    },
+    {
+      "id": "wake-up",
+      "url": "https://eprint.iacr.org/2019/1328",
+      "scope": "Offline refresh requires its own security model and restrictions; not adopted as this design's protocol"
+    },
+    {
+      "id": "chen-lindell",
+      "url": "https://eprint.iacr.org/2024/031",
+      "scope": "Separates VSS, public verification and refresh functionalities; candidate literature for a future external-proof requirement"
+    },
+    {
+      "id": "backend-share-types",
+      "paths": [
+        ".deps/MP-SPDZ/Protocols/MaliciousShamirShare.h",
+        ".deps/MP-SPDZ/Protocols/ShamirShare.h",
+        ".deps/MP-SPDZ/GC/MaliciousCcdSecret.h"
+      ],
+      "scope": "Concrete share types and arithmetic/binary pairing"
+    },
+    {
+      "id": "backend-open",
+      "paths": [
+        ".deps/MP-SPDZ/Protocols/MaliciousShamirMC.hpp",
+        ".deps/MP-SPDZ/Protocols/ShamirInput.hpp",
+        ".deps/MP-SPDZ/Protocols/MaliciousShamirPO.hpp",
+        ".deps/MP-SPDZ/Processor/SpecificPrivateOutput.h",
+        ".deps/MP-SPDZ/Processor/Instruction.hpp",
+        ".deps/MP-SPDZ/GC/TinyMC.h",
+        ".deps/MP-SPDZ/GC/TinySecret.h"
+      ],
+      "scope": "Source-reviewed reconstruction, private-output leakage and checks, binary API limitations; native local kernel checks do not establish the full network/mobile integration"
+    },
+    {
+      "id": "backend-random",
+      "paths": [
+        ".deps/MP-SPDZ/Protocols/Shamir.hpp",
+        ".deps/MP-SPDZ/Protocols/ReplicatedPrep.hpp",
+        ".deps/MP-SPDZ/Compiler/types.py",
+        ".deps/MP-SPDZ/Processor/Data_Files.h",
+        ".deps/MP-SPDZ/Processor/instructions.h",
+        ".deps/MP-SPDZ/Protocols/SemiShare.h",
+        ".deps/MP-SPDZ/Tools/random.h"
+      ],
+      "scope": "Audited RANDOMFULLS -> protocol/fallback input-mask path and retained PRNG state; the refresh adapter instead uses direct fresh entropy and explicit unbuffered contribution sharings"
+    },
+    {
+      "id": "backend-io",
+      "paths": [
+        ".deps/MP-SPDZ/doc/IO.rst",
+        ".deps/MP-SPDZ/Compiler/types.py",
+        ".deps/MP-SPDZ/Processor/Instruction.hpp",
+        ".deps/MP-SPDZ/GC/MaliciousCcdShare.h",
+        ".deps/MP-SPDZ/GC/TinySecret.h",
+        ".deps/MP-SPDZ/Math/gf2n.cpp"
+      ],
+      "scope": "Native field/share representation and binary persistence gap, checked by refresh local tests; application storage adapter remains incomplete"
+    },
+    {
+      "id": "backend-security-fixes",
+      "paths": [
+        ".deps/MP-SPDZ/doc/security-fixes.rst"
+      ],
+      "scope": "Check ordering, runtime authentication-state reuse and preprocessing-consumption hazards"
+    },
+    {
+      "id": "backend-transport",
+      "paths": [
+        ".deps/MP-SPDZ/Networking/ssl_sockets.h",
+        ".deps/MP-SPDZ/Networking/CryptoPlayer.cpp",
+        "scripts/check_refresh_backend.py",
+        "refresh/refresh_tls-checks.cpp",
+        ".deps/MP-SPDZ/Scripts/setup-ssl.sh"
+      ],
+      "scope": "Pinned transport/trust-directory configuration and isolated mutual pinned-TLS-1.3 overlay, with missing-certificate and cross-party CA role-substitution regressions through memory BIOs"
+    },
+    {
+      "id": "openssl-verify",
+      "url": "https://docs.openssl.org/master/man3/SSL_CTX_set_verify/",
+      "scope": "verify_peer alone does not require a client certificate on the server; verify_fail_if_no_peer_cert closes that configuration gap"
+    },
+    {
+      "id": "cdi05-prss",
+      "url": "https://www.iacr.org/archive/tcc2005/3378_342/3378_342.pdf",
+      "read_copy": "https://www.researchgate.net/publication/221354063_Share_Conversion_Pseudorandom_Secret-Sharing_and_Applications_to_Secure_Computation",
+      "scope": "Author-uploaded full text read after IACR returned 403. Section 4 develops subset-key PRSS/PRZS; displayed zero-sharing uses degree 2t and its MPC theorem is static. The degree-two mobile candidate here is an adaptation, not a claimed theorem of that paper."
+    },
+    {
+      "id": "libsodium-hmac",
+      "url": "https://doc.libsodium.org/advanced/hmac-sha2",
+      "scope": "HMAC-SHA-256 API and 32-byte key generation; native expander assumes PRF security, which is not mechanized"
+    },
+    {
+      "id": "local-gcm-storage-cost",
+      "paths": [
+        "TlsMpc/Gcm.lean",
+        "benchmarks/results/lean-gcm-checks.json"
+      ],
+      "scope": "Existing verified AES-128-GCM masked-open/seal and compiled 17-byte fixture cost, as a storage architecture comparison; no database implementation or network measurement"
+    }
+  ],
+  "native_refresh_prototype": {
+    "files": [
+      "refresh/NativeRefresh.h",
+      "refresh/NativeSnapshot.h",
+      "refresh/refresh_party.cpp",
+      "refresh/refresh_local-checks.cpp",
+      "refresh/refresh_tls-checks.cpp",
+      "refresh/Makefile",
+      "refresh/SECURITY.txt",
+      "scripts/check_refresh_backend.py",
+      "refresh/NativePrzs.h",
+      "refresh/refresh_przs-party.cpp",
+      "refresh/refresh_przs-checks.cpp",
+      "refresh/PRZS.txt"
+    ],
+    "boundary": "Unverified native backend primitive, separate from the verified Lean program/compiler. Python only builds and checks; it is not the production refresh arithmetic.",
+    "source_review": "refresh/SECURITY.txt records the pinned RANDOMFULLS/input-mask fallback, persistent PRNG state, native private-output check ordering and reconstruction leakage, actual CCD clear/serialization limitations, field parameters and transport configuration.",
+    "randomness": "Six independent full-field libsodium randombytes_buf draws per component per dealer define two fresh degree-two sharings. Prime sampling rejects noncanonical Montgomery residues; binary sampling uses the whole extension field. No buffered random/input-mask pool, shared PRNG stream, multiplication triple or daBit/edaBit is used by this primitive.",
+    "integrity_argument": "At least three honest local coefficient pairs define common degree-two U,V even if malicious dealers supply inconsistent fragments. An accepting honest recipient's all-five native consistency check forces its delta to x_i*U(0)+x_i^2*V(0). This defines a common zero-constant degree-two outer mask for all accepting honest parties.",
+    "privacy_argument": "refresh/SECURITY.txt gives an unmechanized refresh-only transcript-preserving argument under private-channel, fresh-entropy, valid-source, recovery and erasure assumptions. For each epoch choose a degree-two difference polynomial with a fixed secret difference at zero and zero at its at-most-two accounted exposure points. Adjacent difference polynomials induce a zero mask vanishing at transition-corrupted points. The zero/one/two transition-corruption cases admit transcript-preserving honest-randomness changes. This is not a C++ refinement proof or a reviewed mobile-security composition theorem for the application worker.",
+    "transport_overlay": "A deterministic refresh-only copy of the pinned backend requires TLS 1.3, mutual peer certificates, exact expected leaf-certificate pinning plus role-name verification, and no session tickets/cache. Exact pinning prevents a party whose development certificate is a trusted CA from signing a certificate claiming another party role. Shared .deps/MP-SPDZ sources remain unchanged. On macOS the isolated library has an absolute install name. Authenticated pin rotation, old credential revocation and clean recovery remain integration obligations.",
+    "tested": [
+      "Verified all 1117 pinned regular source files against the archived SHA-256; recorded the isolated TLS-header patch hashes",
+      "Compiled the candidate adapter and native checks for fp25519, CCD GF(2^40), and CCD GF(2^64)",
+      "Executed actual native reconstruction under all recipient rotations and rejected altered shares",
+      "Executed actual native private-output finalization on public fixtures and verified full-field value 37 is not truncated to a bit",
+      "Checked random native serialization and exact CCD component compatibility",
+      "Checked malformed/context-mismatched/truncated snapshots, exclusive candidate creation, mode 0600, and rejection of candidates as active state",
+      "Checked full reconstruction-transcript ambiguity for one transition corruption and the rejected public-mask A/B/C attack",
+      "Executed actual TLS 1.3 mutual handshakes through memory BIOs; rejected missing client certificates, wrong roles, and a different party's CA-signed certificate claiming the expected role. The unpinned configuration accepts that last fixture, confirming the role-confusion test is meaningful.",
+      "Reproduced three-epoch common-mask difference leakage in actual prime/binary fields",
+      "Reproduced persistent-seed recovery despite epoch-separated PRF labels",
+      "Checked experimental PRZS local zero sharing, labels, 391 adjacent exposure-set triples and 80 subset-seed-equivocation cases in each native field"
+    ],
+    "reports": [
+      ".deps/sharing-refresh/checks.json",
+      ".deps/sharing-refresh/backend-build.log",
+      ".deps/sharing-refresh/adapter-build.log"
+    ],
+    "network_mpc_executed": false,
+    "socket_observation": "Current localhost bind probe fails with EPERM; memory-BIO and native local tests are not a five-party network execution",
+    "whole_service_proactive_security_established": false,
+    "component_limit": 4096,
+    "field_payload_per_component_cluster_total": {
+      "elements": 60,
+      "fp25519_bytes": 1920,
+      "ccd40_or_ccd64_bytes": 480,
+      "excludes": "TLS framing, checked broadcasts, metadata, persistence; code counts, not measured throughput",
+      "scope": "Interactive NativeRefresh.h baseline; experimental PRZS costs are recorded separately"
+    },
+    "remaining": [
+      "Authenticated valid source loading and worker export/import, including binary GC component flattening and range/bit integrity",
+      "Signed hiding candidate-manifest agreement and atomic epoch commit/recovery",
+      "Rollback checkpoint and exact application-state retry semantics",
+      "Clean-host recovery, current-share repair or abort, compromised credential revocation and fresh contexts",
+      "Whole-transition retirement with concrete RAM/OS/disk/backups erasure assumptions",
+      "Application preprocessing/correlation retirement and fresh successor contexts",
+      "Reviewed adaptive/mobile composition with application MPC, conversions and transport",
+      "Five-party native adversarial/crash execution and WAN benchmarks when sockets are available"
+    ]
+  },
+  "same_mask_reuse_rejected": {
+    "proposal": "Add one identical zero sharing to all conversation records each epoch",
+    "invariant": "For records r,s, the degree-two polynomial f_e,r(X)-f_e,s(X) is unchanged by adding the same z_e to both.",
+    "schedule": "Expose A in epoch 0, B in epoch 1 and C in epoch 2, with no transition exposure. Each accounted epoch contains only one compromised party.",
+    "leakage": "Three retained share-difference evaluations reconstruct s_r-s_s; CCD gives addition/XOR of bit secrets. A known reference value reveals the other secret, and without one the secret relation itself violates joint privacy.",
+    "bounded_linear_mask_pool": "A fixed small number of base masks combined by a fixed public linear mixing matrix leaves public kernel combinations unrefreshed when record count exceeds mask dimension. Varying the matrix across epochs requires a separate multi-epoch argument and is not adopted. Seeded PRF expansion is a different, computational construction.",
+    "regressions": "refresh/refresh_przs-checks.cpp reproduces the common-mask attack in Fp25519 and CCD40/64, with fresh random common masks at each transition. TlsMpc/Sharing/MaskReuse.lean proves cancellation and three-epoch reconstruction symbolically in an integer model for arbitrary masks.",
+    "formal_scope": "The Lean model is not an instantiated finite-field Shamir protocol or a confidentiality proof; the native regression exercises actual backend fields."
+  },
+  "amortized_refresh_options": {
+    "review_note": "refresh/PRZS.txt",
+    "per_record_przs": {
+      "status": "Experimental compiled candidate, independently unreviewed; local checks only",
+      "formula": "Fresh key k_b is replicated to all parties except b. For a unique component label L, u_b(L)=HMAC-SHA256-to-field(k_b, domain/epoch/context/subset/L), and z_L(X)=sum_b u_b(L)*X*(X-x_b). Party i computes its delta using four held keys; the missing i term vanishes.",
+      "setup": "Dealer b+1 modulo 5 supplies subset key k_b to its four holders. Each holder privately echoes it only to other holders. At least two honest holders in every subset detect dealer equivocation; checked all-five status agreement precedes expansion. The subset hidden from a sole transition corruption contains only honest parties, including its dealer.",
+      "label": "Protocol, actual field domain, descriptor/source/target epoch, ordered inventory hash, excluded party, opaque 32-byte handle, object version and component index. Duplicate component labels rejected. Distinct PRF outputs may collide as field values; pseudorandomness does not mean collision-free.",
+      "corruption_cases": "No transition corruption leaves all subset seeds hidden and two basis directions span all zero polynomials. One transition corruption b misses k_b, retaining the X*(X-x_b) hidden direction. Two transition corruptions know all seeds but occupy both adjacent budgets; no third distinct exposure is allowed in either adjacent period.",
+      "historical_and_adaptive_boundary": "The entire setup/expansion/persistence/erasure overlap belongs to R_e. Consecutive known-all-seed transitions cannot switch from {A,B} to {B,C} without violating the shared epoch budget. A change of pair passes through a less-exposed transition. Fully adaptive key-exposure/PRF and application composition remains a review obligation.",
+      "seed_lifetime": "Fresh independent honest entropy per transition; retire seeds, echoes, derived masks, backups and copies before closing the boundary. Epoch labels do not heal a compromised persistent master seed. A native regression reconstructs the secret after sequential A/B/C exposures when seeds are reused.",
+      "costs": {
+        "seed_distribution_payload_bytes": 480,
+        "private_seed_echo_payload_bytes": 1920,
+        "total_secret_setup_payload_bytes": 2400,
+        "per_component_per_party": "Four HMAC field expansions and four products by public basis weights, plus update; the current helper also recomputes the four public weights rather than caching them",
+        "local_work_and_writes": "O(M) for M native components; seed setup is O(1) in M for fixed five parties",
+        "excluded": "Public agreement/TLS/metadata/commit overhead and latency; code counts only, no network benchmark"
+      },
+      "current_driver_limit": "refresh-przs-party accepts at most 4096 components and creates fresh setup per invocation. It is not yet a whole-database O(1)-setup implementation. A streaming coordinator must use one setup over a frozen full inventory, track labels across chunks, and keep the same exposure window until every chunk is committed/retired.",
+      "native_checks": {
+        "domains": [
+          "Fp25519",
+          "CCD GF(2^40)",
+          "CCD GF(2^64)"
+        ],
+        "adjacent_budget_cases_per_domain": 391,
+        "malicious_subset_equivocation_cases_per_domain": 80,
+        "same_mask_attack_reproduced": true,
+        "persistent_seed_attack_reproduced": true,
+        "network_mpc_executed": false,
+        "mobile_security_proved": false
+      },
+      "files": [
+        "refresh/NativePrzs.h",
+        "refresh/refresh_przs-party.cpp",
+        "refresh/refresh_przs-checks.cpp"
+      ]
+    },
+    "encrypted_record_storage": {
+      "recommendation": "Strong candidate when constant total periodic refresh, including writes, is the priority; compare per-access MPC AEAD cost before selecting storage. No migration implemented.",
+      "representation": "Conversation/session/identifier state is stored as AEAD ciphertext. Only a fixed-size wrapping key and a bounded live working set remain natively shared. The master key components still require separate masks.",
+      "authenticated_context": [
+        "Storage/protocol version",
+        "Committee or account namespace",
+        "Opaque handle",
+        "Record version",
+        "Schema/session type",
+        "Actual key generation"
+      ],
+      "nonce_allocation": "Use a crash-safe unique 96-bit GCM nonce allocation per key, for example durable monotonic range reservation. Burn uncertain allocations; never encrypt different state under the same nonce. Retransmit only identical previously committed ciphertext bytes. Counter wrap requires a new key.",
+      "state_transaction": "Bind source/successor record versions and Signal ratchet/message-key consumption to the agreed durable manifest. AEAD authentication alone does not prevent valid old ciphertext replay, manifest rollback or forks. Anchor checkpoints and preserve exactly-once send/retry semantics.",
+      "secret_computation": "Authenticate/decrypt, process Signal state and re-encrypt entirely in MPC. Keep validity/authorization gates inside the computation; no relay or node reconstructs keys, recipient identifiers or session plaintext.",
+      "refresh_inventory": "Retained AES expanded key schedules, derived keys, TLS state, decrypted session caches and preprocessing all count. Flush sessions to ciphertext and erase their shares or independently refresh the retained working set. A cache of W sessions adds O(W) boundary work, so constant cost requires a bounded live inventory.",
+      "backup_and_recovery": "No single-node clear key escrow. Old native key-share backups can be accumulated; retire them or define an additional trusted recovery/cryptographic-erasure mechanism. Checked current-share repair, clean-host authentication, adjacent-period accounting and anti-rollback recovery remain necessary.",
+      "limitations": "The represented master key stays unchanged across share refresh. Rotating its value normally re-encrypts/rewraps records. Archived ciphertext may retain historical Signal ratchet state under that key; review forward secrecy, deletion and the common-key failure boundary. Length/access metadata may require padding under the chosen leakage contract.",
+      "implementation_reuse": {
+        "source": "TlsMpc/Gcm.lean",
+        "current_profile": "Verified AES-128-GCM seal/authenticated masked-open with 96-bit nonces and 128-bit tags; AES-256 requires corresponding implementation/proof work",
+        "report": "benchmarks/results/lean-gcm-checks.json",
+        "fixture_aad_bytes": 5,
+        "fixture_content_bytes": 17,
+        "open_executed_and_gates": 73467,
+        "seal_executed_and_gates": 73204,
+        "combined_executed_and_gates": 146671,
+        "scope": "Compiled circuit counts and public-clear fixture checks, not WAN timing; actual record AAD/data costs grow with block count. Prepared key-schedule reuse is possible but adds persistent shared cache components."
+      }
+    }
+  }
+}

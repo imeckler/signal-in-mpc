@@ -1,0 +1,518 @@
+{
+  "recorded_utc": "2026-11-06T19:52:30.681162+00:00",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "lean_build": "passed",
+  "lean_theorem_axioms": {
+    "TlsMpc.Boolean.compile_correct": [
+      "propext"
+    ],
+    "TlsMpc.Boolean.compile_andCost": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Boolean.trace_result": [
+      "propext"
+    ],
+    "TlsMpc.Boolean.trace_input_independent": [
+      "propext"
+    ],
+    "TlsMpc.Tls13.nonce_injective": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.compiled_nonce_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.reservation_advances": [],
+    "TlsMpc.Tls13.reservation_exhausted": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.reservations_distinct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Authenticated.compiled_release_correct": [
+      "propext"
+    ],
+    "TlsMpc.Authenticated.rejected_release_zero": [
+      "propext"
+    ],
+    "TlsMpc.Authenticated.rejected_commit_preserves": [
+      "propext"
+    ],
+    "TlsMpc.Boolean.Artifact.schedule_correct": [
+      "propext"
+    ],
+    "TlsMpc.Boolean.Artifact.decode_encodeBlock": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Boolean.Artifact.exportExpr_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Boolean.Artifact.exportProgram_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.innerCircuit_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.headerCircuit_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.exported_inner_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.exported_header_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Tls13.exported_nonce_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AigExport.exportNodes_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AigExport.exportRef_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AigExport.compile_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AigExport.xor_pattern_correct": [],
+    "TlsMpc.BvConstruct.eval_bin": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.BvConstruct.eval_un": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.BvConstruct.eval_extract": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.BvConstruct.eval_append": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AesSbox.packed_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AesSbox.value_eq_spec": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AesSbox.expr_refines": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.AesSbox.nonlinear_count": [
+      "propext"
+    ],
+    "TlsMpc.Aes.encrypt_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Aes.expandKey_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Aes.encrypt_result_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Aes.compiled_encryptCore_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Ghash.hashFast_correct": [
+      "propext"
+    ],
+    "TlsMpc.Ghash.pack_refines": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Ghash.compiled_hashFast_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Gcm.sealChecked_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Gcm.compiled_sealCore_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Gcm.sealCore_bytes_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.ByteAuth.equalMask_value": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.ByteAuth.equalMask_map": [
+      "propext"
+    ],
+    "TlsMpc.ByteAuth.release_reject": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.GcmOpen.openChecked_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.GcmOpen.rejected_zero": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.GcmOpen.compiled_openCore_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsRecord.header_concrete": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsRecord.sealCore_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsRecord.sealChecked_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsRecord.compiled_sealCore_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsRecord.compiled_openInner_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sha256.hash_refines": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sha256.hmac_refines": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.ByteCircuit.compile_bytes_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.ByteCircuit.compiled_hash_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.ByteCircuit.compiled_hmac_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.extract_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expand_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expandLabel_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.handshakeSecrets_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.applicationSecrets_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.trafficKeys_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.finished_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.updateTraffic_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.compiled_expandLabel_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sha256.padded_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sha256.packed_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sha256.hmac_block_key_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expandCore_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expand_exhausted": [
+      "propext"
+    ],
+    "TlsMpc.HmacPrepared.run_prepare": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expandFast_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.expandLabelFast_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.handshakeSecretsFast_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.applicationSecretsFast_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.TlsKdf.trafficKeysFast_correct": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Symmetric.compiled_deriveFast_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Symmetric.messageMaterial_lengths": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Symmetric.derive_bytes_length": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Clamp.compiled_clamp_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.ServiceId.compiled_encode_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Tag.compiled_classify_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Cbc.encrypt_map": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Signal.Cbc.compiled_encryptCore_correct": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.LinearSharing.normalized_refresh_preserves_value": [],
+    "TlsMpc.Sharing.LinearSharing.refreshBatch_preserves_values": [
+      "Quot.sound"
+    ],
+    "TlsMpc.Sharing.unpack_packKey": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.packKey_injective": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.keyLimbs_fit_curve25519": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.advance_epoch": [
+      "propext"
+    ],
+    "TlsMpc.Sharing.advance_context": [
+      "propext"
+    ],
+    "TlsMpc.Sharing.accepted_requires_all_five": [
+      "propext"
+    ],
+    "TlsMpc.Sharing.replay_rejected": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.skipped_epoch_rejected": [
+      "propext"
+    ],
+    "TlsMpc.Sharing.Exposure.refresh_charged_source": [],
+    "TlsMpc.Sharing.Exposure.refresh_charged_target": [],
+    "TlsMpc.Sharing.Exposure.three_distinct_exposures_reject": [],
+    "TlsMpc.Sharing.Exposure.refresh_and_next_period_share_budget": [],
+    "TlsMpc.Sharing.Exposure.violation_persists": [],
+    "TlsMpc.Sharing.Exposure.rotating_admissible": [
+      "Quot.sound",
+      "propext"
+    ],
+    "TlsMpc.Sharing.Exposure.rotating_exposes_every_party": [
+      "propext"
+    ],
+    "TlsMpc.Sharing.resume_requires_retirement": [],
+    "TlsMpc.Sharing.resume_requires_fresh_correlations": [],
+    "TlsMpc.Sharing.resume_requires_transport_rekey": [],
+    "TlsMpc.Sharing.resume_requires_all_cleanup_receipts": [],
+    "TlsMpc.Sharing.retained_material_blocks_resume": [
+      "propext"
+    ]
+  },
+  "native_backends_built_sha256": {
+    "malicious-ccd-party.x": "13353602cc7730e4c7d22e5d222f5a40537b970eb28d8c7d6eb8fe942eb31f49",
+    "malicious-rep-bin-party.x": "a002774ee547281d586fda6dc77dd7eb378356476fd7db727648edb2aba9c672",
+    "libSPDZ.so": "f79cf7ce8507e2577f2cf982256c93469b9ac663e2bc265d078ac726de51b3bb"
+  },
+  "source_and_circuit_differential_checks": {
+    "passed_cases": 6,
+    "passed_outputs": 51,
+    "report": "benchmarks/results/kernel-checks.json"
+  },
+  "mpc_execution": {
+    "status": "blocked_by_environment",
+    "observed_error": "socket bind/connect: Operation not permitted (errno 1)",
+    "native_mpc_correctness_checked": false,
+    "throughput_measured": false
+  },
+  "experimental_python_reference": {
+    "status": "experimental_python_reference_only",
+    "signal_reference": "0.106.1",
+    "unit_test_cases_passed": 19,
+    "unit_test_file_sha256": "fb8ccf7b38d193aa954486671640ee476c52490cb47bba49d9fd08a39053d143",
+    "protocol_program_cases_compiled_and_cleartext_checked": 8,
+    "protocol_output_values_checked": 918,
+    "report": "benchmarks/results/protocol-checks.json",
+    "native_mpc_execution_tested": false,
+    "live_tls_or_signal_interoperability_tested": false,
+    "python_crypto_verified_by_lean": false,
+    "remaining": [
+      "distributed authenticated TLS handshake",
+      "Signal DH/SPQR and prekey state machines",
+      "sealed sender and server API",
+      "oblivious general parsing and application processing",
+      "atomic persistent shared state",
+      "full crypto specification and verified lowering"
+    ],
+    "not_the_requested_lean_implementation": true
+  },
+  "lean_proof_report": "benchmarks/results/lean-proof-checks.json",
+  "lean_protocol_components": {
+    "status": "partial_lean_specifications_and_verified_numeric_circuit_compilation",
+    "sha_hmac_hkdf_tls_cases_passed": 23,
+    "sha_hmac_hkdf_tls_fixture_lanes_passed": 76,
+    "reports": [
+      "benchmarks/results/lean-crypto-checks.json",
+      "benchmarks/results/lean-artifact-checks.json",
+      "benchmarks/results/lean-signal-checks.json",
+      "benchmarks/results/lean-aes-checks.json",
+      "benchmarks/results/lean-gcm-checks.json",
+      "benchmarks/results/lean-tls-record-checks.json",
+      "benchmarks/results/lean-signal-metadata-checks.json"
+    ],
+    "actual_rust_reference": "Nine key functions, dalek clamp, actual SHA-256 scalar round, complete service-ID encoding, and service-ID/message-type success/error decoders; 28 reference audit endpoints at the recorded SignalReference audit.",
+    "full_rustcrypto_refinement": false,
+    "native_mpc_executed": false,
+    "live_tls_or_signal_interoperability_tested": false,
+    "remaining": [
+      "incoming TLS inner content-type/padding validation",
+      "authenticated TLS handshake and certificate/hostname checks",
+      "full RustCrypto derivation and AES/CBC refinement",
+      "Signal CBC receive path, message authentication and session transitions",
+      "Signal DH, SPQR, prekey and session state machines",
+      "sealed sender and server API",
+      "typed field IR and conversions",
+      "native-share persistence, refresh and corruption-period recovery",
+      "durable state commit, rollback protection and secure erasure",
+      "WAN throughput measurement"
+    ],
+    "recent_suite_totals": {
+      "aes": {
+        "cases": 2,
+        "fixture_lanes": 12,
+        "mpc_compilations": 4,
+        "all_outputs_match": true
+      },
+      "gcm": {
+        "cases": 12,
+        "fixture_lanes": 628,
+        "mpc_compilations": 4,
+        "all_outputs_match": true
+      },
+      "tls_records": {
+        "cases": 9,
+        "fixture_lanes": 38,
+        "mpc_compilations": 4,
+        "all_outputs_match": true
+      },
+      "signal_metadata": {
+        "cases": 3,
+        "fixture_lanes": 528,
+        "mpc_compilations": 6,
+        "all_outputs_match": true
+      }
+    },
+    "reference_proof_target": "Circuit equivalence to faithfully translated actual implementation, trusting extraction; no independent internal Signal/security proof.",
+    "report_provenance": "Each report records the source revision hashes tested; additive later exporter/proof changes do not silently overwrite historical hashes."
+  },
+  "latest_local_socket_check": {
+    "date": "2026-11-06",
+    "status": "blocked",
+    "errno": 1,
+    "message": "Operation not permitted on loopback bind",
+    "native_mpc_executed": false
+  },
+  "git_status": {
+    "repository_initialized": false,
+    "managed_git_path_permission": "read-only"
+  }
+}

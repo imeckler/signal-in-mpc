@@ -1,0 +1,277 @@
+{
+  "kind": "lean_tls_record_checks",
+  "cases": [
+    {
+      "arguments": [
+        "tls-seal-record",
+        "22",
+        "36",
+        "0"
+      ],
+      "input_bits": 576,
+      "output_bits": 464,
+      "nodes": 563548,
+      "adapter_operations": {
+        "raw_and_gates": 562971,
+        "executed_and_gates": 89234,
+        "executed_xor_gates": 158405,
+        "unreachable_nodes": 315332
+      },
+      "fixture_lanes": 1,
+      "all_outputs_match": true,
+      "artifact_sha256": "04abaa5a916212284c8eb7811a1c2fba6996ca83e542d229ce95ab9da5efd93b"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "50",
+        "0"
+      ],
+      "input_bits": 688,
+      "output_bits": 576,
+      "nodes": 679891,
+      "adapter_operations": {
+        "raw_and_gates": 679202,
+        "executed_and_gates": 109675,
+        "executed_xor_gates": 190419,
+        "unreachable_nodes": 379108
+      },
+      "fixture_lanes": 1,
+      "all_outputs_match": true,
+      "artifact_sha256": "bb8ccbe93b769551f3590dfc9308e436f108be3c303856dc66ab4045c7406bdf"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "0",
+        "0"
+      ],
+      "input_bits": 288,
+      "output_bits": 176,
+      "nodes": 317357,
+      "adapter_operations": {
+        "raw_and_gates": 317068,
+        "executed_and_gates": 47450,
+        "executed_xor_gates": 90178,
+        "unreachable_nodes": 179440
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "f39b904c5df418ac871ceea80575210c481c8aec79fc083db5b6ea12425239d6"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "5",
+        "3"
+      ],
+      "input_bits": 328,
+      "output_bits": 240,
+      "nodes": 326376,
+      "adapter_operations": {
+        "raw_and_gates": 326047,
+        "executed_and_gates": 48090,
+        "executed_xor_gates": 92971,
+        "unreachable_nodes": 184986
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "9ae2e27d23ce1463f4147697dda7d72ad876d2c31b7047a3c11f8ab6c471bd5c",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 48090,
+          "fixture_output_values_checked": 4,
+          "bytecode_sha256": "f059a735b2ee2ef24bf4b66f404d0dfa2222ff4c6b3ded1b37752ac09121804d"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 769440,
+          "fixture_output_values_checked": 64,
+          "bytecode_sha256": "2f38362ba49e2510b0dbc1aedba988942878ce531c2df7fc97640c6d4ee6971b"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "tls-open-inner",
+        "9"
+      ],
+      "input_bits": 488,
+      "output_bits": 80,
+      "nodes": 327215,
+      "adapter_operations": {
+        "raw_and_gates": 326726,
+        "executed_and_gates": 48289,
+        "executed_xor_gates": 93131,
+        "unreachable_nodes": 185307
+      },
+      "fixture_lanes": 18,
+      "all_outputs_match": true,
+      "artifact_sha256": "28ee4cb25c9254bd0bb35bd32568af473122766ca5684ee3bd4baee37544c923",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 48289,
+          "fixture_output_values_checked": 2,
+          "bytecode_sha256": "c2939212db159c7e386fc5fce17e270f63b0d0321651302d5c3ada8e677132e9"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 772624,
+          "fixture_output_values_checked": 32,
+          "bytecode_sha256": "a82858cf93c962fc2c2609f7c0df94dc6f2620b890c4d10905fa5744c00c478b"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "15",
+        "0"
+      ],
+      "input_bits": 408,
+      "output_bits": 296,
+      "nodes": 329063,
+      "adapter_operations": {
+        "raw_and_gates": 328654,
+        "executed_and_gates": 48314,
+        "executed_xor_gates": 93770,
+        "unreachable_nodes": 186570
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "220e6d9a915d45dbc1dfde70ea2b41b5f5d3f3242747a8542f47e16d3f8f5e1f"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "16",
+        "0"
+      ],
+      "input_bits": 416,
+      "output_bits": 304,
+      "nodes": 436651,
+      "adapter_operations": {
+        "raw_and_gates": 436234,
+        "executed_and_gates": 68084,
+        "executed_xor_gates": 123110,
+        "unreachable_nodes": 245040
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "2be01650130105913204c40a08a6fd9c055ebcb3ee7166a394ccd342a6c5f789"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "238",
+        "0"
+      ],
+      "input_bits": 2192,
+      "output_bits": 2080,
+      "nodes": 2001598,
+      "adapter_operations": {
+        "raw_and_gates": 1999405,
+        "executed_and_gates": 337181,
+        "executed_xor_gates": 555634,
+        "unreachable_nodes": 1106590
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "63788cfbdd9e093966305835050abc0826889fdfe6b18f9b04aecef8d4e7bf2e"
+    },
+    {
+      "arguments": [
+        "tls-seal-record",
+        "23",
+        "239",
+        "0"
+      ],
+      "input_bits": 2200,
+      "output_bits": 2088,
+      "nodes": 1999386,
+      "adapter_operations": {
+        "raw_and_gates": 1997185,
+        "executed_and_gates": 337213,
+        "executed_xor_gates": 554884,
+        "unreachable_nodes": 1105088
+      },
+      "fixture_lanes": 3,
+      "all_outputs_match": true,
+      "artifact_sha256": "5c2984cf7a592dc6c15ee95aa9ca313a92f81f1ddb4e2b2c98d877a0223c2454"
+    }
+  ],
+  "rejected_public_shapes": [
+    [
+      "tls-seal-record",
+      "20",
+      "1",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "21",
+      "0",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "22",
+      "0",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "23",
+      "16385",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "23",
+      "0",
+      "16385"
+    ],
+    [
+      "tls-open-inner",
+      "0"
+    ]
+  ],
+  "source_sha256": {
+    "TlsMpc/TlsRecord.lean": "010e5b25314f1e9c5cd9e6827b35cb92b40f0a17c27f849a240cb92b2e44e6ca",
+    "TlsMpc/Gcm.lean": "f1e26c7020ce0cce898dd8e6ff8427018c634b903b120cd41ccca3bfdaa7b357",
+    "TlsMpc/GcmOpen.lean": "4bcf95ecdb94e15907436009ac6f5d77899b1effa39965c88dbd522d04fd14e3",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Ghash.lean": "206c8d26171a8e6b014b6b902b0c2e210e47a2569bdf7406e3e8ac20cd8f0811",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "Main.lean": "c87f55112259b39b7bfb2874d524b7e91e5d53bcde46ed7caa434321335617aa",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_tls_records.py": "6183e577101afd7f6a0861d87751e40fa4be5dd8a62ca7e7c5d1d1ab09ed3458"
+  },
+  "reference_vectors": "https://www.rfc-editor.org/rfc/rfc8448#section-3",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "Opening returns authenticated TLSInnerPlaintext; type/padding parsing remains pending.",
+    "Caller must validate the canonical public header before open-inner.",
+    "No handshake authentication, durable sequence reservation or key-usage policy is exercised.",
+    "Native export, JSON, adapter and MPC execution are unverified."
+  ]
+}

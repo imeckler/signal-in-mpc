@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "case": "bad manifest",
+      "passed": true
+    },
+    {
+      "case": "missing manifest",
+      "passed": true
+    },
+    {
+      "case": "invalid party",
+      "passed": true
+    },
+    {
+      "case": "invalid port",
+      "passed": true
+    },
+    {
+      "case": "invalid session ID",
+      "passed": true
+    },
+    {
+      "case": "usage before startup",
+      "passed": true
+    }
+  ],
+  "native_mpc_executed": false,
+  "sockets_opened": false,
+  "scope": "startup rejection paths preceding networking; stdout framing isolation",
+  "worker_sha256": "a0292b7bdc47c9e8727f7eb547ac4fbb44625fa36c4bf6139c70786140e6bdfa",
+  "source_sha256": "517940eb6d14a08042274ade22ef9e67e33e86f942096b4fe8e94e208e162277"
+}

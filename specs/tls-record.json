@@ -1,0 +1,115 @@
+{
+  "sources": [
+    {
+      "name": "RFC9846",
+      "url": "https://www.rfc-editor.org/rfc/rfc9846.txt",
+      "sha256": "b1bee06a814f92ca4677c85b97519be53869b2bf8edc79ade955fb51c0402b17",
+      "role": "Normative TLS1.3 text, July2026; handwritten Lean correspondence remains an audit obligation"
+    },
+    {
+      "name": "RFC8448",
+      "url": "https://www.rfc-editor.org/rfc/rfc8448.txt",
+      "sha256": "6564d1376d1ec744fc7a9993da15ebc1b9be361908b166091f47ef605c537fba",
+      "role": "Independent complete Finished and application-record test vectors, section3"
+    },
+    {
+      "name": "FIPS197-upd1",
+      "url": "https://doi.org/10.6028/NIST.FIPS.197-upd1",
+      "role": "AES specification; source pin and exhaustive S-box correspondence in aes-sbox.json"
+    },
+    {
+      "name": "SP800-38D",
+      "url": "https://doi.org/10.6028/NIST.SP.800-38D",
+      "role": "GCM field encoding, GHASH and authenticated encryption/decryption, sections6 and7"
+    }
+  ],
+  "profile": {
+    "cipher_suite": "TLS_AES_128_GCM_SHA256",
+    "aes_key_bytes": 16,
+    "nonce_bytes": 12,
+    "tag_bytes": 16,
+    "sequence_bytes": 8,
+    "record_number_encoding": "network byte order",
+    "maximum_tls_inner_plaintext": 16385
+  },
+  "traceability": [
+    {
+      "source": "FIPS197-upd1 sections4.2,5.1,5.2",
+      "modules": [
+        "TlsMpc/AesSbox.lean",
+        "TlsMpc/Aes.lean"
+      ],
+      "proof": "symbolic and numeric compilation refine the concrete AES definition; fixed S-box agrees with every table entry"
+    },
+    {
+      "source": "SP800-38D sections6.3,6.4",
+      "modules": [
+        "TlsMpc/Ghash.lean"
+      ],
+      "proof": "shared-precomputation implementation equals direct GHASH definition; symbolic and numeric refinement"
+    },
+    {
+      "source": "SP800-38D sections7.1,7.2",
+      "modules": [
+        "TlsMpc/Gcm.lean",
+        "TlsMpc/GcmOpen.lean",
+        "TlsMpc/ByteAuth.lean"
+      ],
+      "proof": "encryption/opening refinement; full tag comparison; rejected plaintext buffer is zero"
+    },
+    {
+      "source": "RFC9846 sections5.2,5.3,5.4",
+      "modules": [
+        "TlsMpc/TlsRecord.lean"
+      ],
+      "proof": "compiled protected-record bytes equal concrete framing plus GCM; authenticated open-inner equals GCM success/failure specification"
+    },
+    {
+      "source": "RFC9846 sections5.2,5.4",
+      "modules": [
+        "TlsMpc/TlsInner.lean",
+        "TlsMpc/TlsReceive.lean"
+      ],
+      "proof": "Inner parser equals a direct rightmost-nonzero specification; complete received header is both authenticated as AAD and compared to canonical encoding; rejection zeros status/type/length/data; refinement and numeric compiler proofs."
+    },
+    {
+      "source": "RFC9846 sections4.1,4.5.3",
+      "modules": [
+        "TlsMpc/TlsHandshake.lean"
+      ],
+      "proof": "Complete Finished message comparison equals direct acceptance specification; transcript hashing and HelloRetryRequest message_hash framing refine through numeric compilation. Transcript assembly and peer identity validation are external obligations."
+    },
+    {
+      "source": "RFC9846 section5.3",
+      "modules": [
+        "TlsMpc/Protocols.lean",
+        "TlsMpc/TlsLayout.lean"
+      ],
+      "proof": "BitVec nonce injectivity and sequence no-wrap reservation; these are not a durable storage implementation"
+    }
+  ],
+  "output_policy": "All library results remain shared. Complete TLS opening returns secret acceptance (255/0), type, two-byte content length and fixed-size content buffer; any header/tag/type failure zeros every output. Finished verification returns a secret acceptance mask. No reveal is provided.",
+  "not_yet_covered": [
+    "complete byte-stream framing and connection-state content-type routing",
+    "authenticated handshake, ECDHE, certificates, CertificateVerify, hostnames and trust store",
+    "correct assembly/order of parsed handshake transcript messages",
+    "durable sequence allocation, key updates and usage/epoch limits",
+    "negotiated record-size limits and full production-sized artifact exports",
+    "live interoperability and malicious MPC execution"
+  ],
+  "trusted_execution": [
+    "Lean native runtime including shareCommon identity implementation",
+    "JSON serialization/deserialization",
+    "generic artifact adapter and its XOR recognition",
+    "MPC compiler/runtime"
+  ],
+  "security_proof": "MPC security is not mechanized, as requested; functional compilation proofs do not establish backend security.",
+  "checks": [
+    "benchmarks/results/lean-proof-checks.json",
+    "benchmarks/results/lean-aes-checks.json",
+    "benchmarks/results/lean-gcm-checks.json",
+    "benchmarks/results/lean-tls-record-checks.json",
+    "benchmarks/results/lean-tls-receive-checks.json",
+    "benchmarks/results/lean-tls-handshake-checks.json"
+  ]
+}

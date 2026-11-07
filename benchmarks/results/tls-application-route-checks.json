@@ -1,0 +1,32 @@
+{
+  "checked_at_utc": "2026-11-07T19:54:18.144700+00:00",
+  "numeric_lanes": 378,
+  "deferred_lanes": 199,
+  "chained_records": 6,
+  "native_mpc_executed": false,
+  "artifact_sha256": {
+    "tls-route-application": "82ba440f4bd5a7a21fa21f63db4e4b3617212d31d5e41fe6026b0de8fc46404c",
+    "tls-post-handshake": "1da944a35a611404ec059b96cb7c2d8f405b7bf4154c1524dbea73b0df751392"
+  },
+  "statistics": {
+    "tls-route-application": {
+      "raw_and_gates": 1626,
+      "executed_and_gates": 1351,
+      "executed_xor_gates": 22,
+      "unreachable_nodes": 253
+    },
+    "tls-post-handshake": {
+      "raw_and_gates": 196100,
+      "executed_and_gates": 75644,
+      "executed_xor_gates": 41648,
+      "unreachable_nodes": 78808
+    }
+  },
+  "source_sha256": {
+    "TlsMpc/TlsApplicationRoute.lean": "c603895d41b93556e7ba231b4d74ea91f1d1729e2738ba22b13e7663edd399da",
+    "TlsMpc/TlsPostHandshake.lean": "66f1156849f793b7c5f61b804d3a417b7adf9eb593331e1c3388285f7d1a6b77",
+    "Main.lean": "5f046c9bc8b3dc82bc74053a3d9320273a1284e505bb26afc861f17993ceb1d3",
+    "scripts/check_tls_application_route.py": "416b1a2c448d1625e36fe945bbea3f6d22efcd478241644d070c007461f6e8cd",
+    "scripts/check_tls_post_handshake.py": "381dcfdd7a149fead9d858f93bca124d1f664998dedd1d88ccbacb53365aa168"
+  }
+}

@@ -1,0 +1,949 @@
+{
+  "checked_at_utc": "2026-11-07T05:45:38.328771+00:00",
+  "kind": "lean_signal_send_checks",
+  "cases": [
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "1",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "f9fc9abbdc3a0f543ed156705a4892142dae76572d5aecad59e8680e15ccb1e3",
+      "fixture_sha256": "1ff1ed23674d02f1f5063197e6358137c77ed363f978e4dcf2e05e6ef9d3c935",
+      "fixture_lanes": 277,
+      "input_bits": 328,
+      "output_bits": 344,
+      "export_seconds": 0.7852562910411507,
+      "adapter_operations": {
+        "raw_and_gates": 323,
+        "executed_and_gates": 323,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "1",
+        "2",
+        "none"
+      ],
+      "artifact_sha256": "afb3c7762bbe066e42470736751eb834ea3092e4248b370d685dd050abacd14b",
+      "fixture_sha256": "902c2eb5144702a3ef649af5f26bc508aa0e7eeb3047205680206e9be8c3cf93",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 352,
+      "export_seconds": 0.7877922079642303,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "1",
+        "3",
+        "none"
+      ],
+      "artifact_sha256": "0ec6c91cd754efaa4fb1c593b45b6ab1a5baa24e865c6754851ff73559f70e8a",
+      "fixture_sha256": "1f551723999c7d9d131604c9ae6973aac20507e196a3af3eaa431546f9ac76c7",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 360,
+      "export_seconds": 0.7641920839669183,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "1",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "0f44cc1c3a8ed2ae6a3097a5eed9bf293aa6b98148a0b7bf8186fd6df1830c8d",
+      "fixture_sha256": "f48f6a18b18fcc2e53f9220f0d80b68fe6c0b2f54efa02d119e359b6096ad4c7",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 368,
+      "export_seconds": 0.7694465839886107,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "1",
+        "5",
+        "none"
+      ],
+      "artifact_sha256": "39ee75319f410d638c72b03f2d972cd3e82981703addef2b9a05dd9905c9e981",
+      "fixture_sha256": "c1d42811947fb47046f7f24ef4cd3fbef1b6cb27921de3e09e48141e864cda63",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 376,
+      "export_seconds": 0.7745250840089284,
+      "adapter_operations": {
+        "raw_and_gates": 327,
+        "executed_and_gates": 327,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "2",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "c293ad6a677c90a057cce9a188e385c7f8cf8c4e67a23a6db15cd684e015c3c4",
+      "fixture_sha256": "45f74ebe4ec7fce78b5dc664b0fa4016abc57b5242522483a0fd618b395e8d4f",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 352,
+      "export_seconds": 0.7615174170350656,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "2",
+        "2",
+        "none"
+      ],
+      "artifact_sha256": "6eb663272eb3d89ff50945db5679cfd28e2f2e96f2c31d3f8c92c4b165cfa3b5",
+      "fixture_sha256": "349afd874f0c6c692ba6ab85b94f49c9c7199cdad07deab93030bce1f8ffb92c",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 360,
+      "export_seconds": 0.7797589999972843,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "2",
+        "3",
+        "none"
+      ],
+      "artifact_sha256": "9d70ce6e71b614298b7ad3ef213f9959744977445371f427a39692b38612e25c",
+      "fixture_sha256": "33c544d35084a272efabd223b562779955873af7bd1f948e53ab1f664f42cc36",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 368,
+      "export_seconds": 0.767824791953899,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "2",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "797ab0f11f584e01ef8e8b7c5d13e0395dc93f91522fda99f51d3c9a29ca980a",
+      "fixture_sha256": "dbca0228c4a5e6e80394269cf5c4b3025ca686f1dc4f8e687fb868b685779252",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 376,
+      "export_seconds": 0.8004298750311136,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "2",
+        "5",
+        "none"
+      ],
+      "artifact_sha256": "400ed0e9e76876a53cd4e27bb051af66e1472ab248c82efc4398919c45cbbf9e",
+      "fixture_sha256": "255d586e186543f75d8c8e192581e5bbc77d568e80ff602f328f9d47b9e7829a",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 384,
+      "export_seconds": 0.771480249997694,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "3",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "00f30ad6f80a66ce47c34ddcd54aeadfa05555a5ddbdff361f5220648ab20267",
+      "fixture_sha256": "17c4abe086b7949f63140b6ccde522153186686f3c5da34871a93fa8810bc6da",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 360,
+      "export_seconds": 0.7683667910168879,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "3",
+        "2",
+        "none"
+      ],
+      "artifact_sha256": "0a66659e8b3807e6cd4bcd59bc90114fcb0240ac65eb06c1868d5ad4e8622082",
+      "fixture_sha256": "d5f0cf6681b7fae85f4e6435fffa0d92797baeb1759fc45ab9b9cfa766d32460",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 368,
+      "export_seconds": 0.7679669169592671,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "3",
+        "3",
+        "none"
+      ],
+      "artifact_sha256": "8e5fe3ebd6713cb0a1fa9e473f3fc73ad8d77d85f3582217cfab8b8301595eb5",
+      "fixture_sha256": "097516fdba899a6928216fe81451c4312b783130e9b39912235d1ff68dae315b",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 376,
+      "export_seconds": 0.7766845839796588,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "3",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "1b4b7a8e35690a8a077ed9f0d39595efdf6740534df6991563c5fc604c574303",
+      "fixture_sha256": "eab16c8c6966cf0395c75f345c38c0438da746e12c6e451c12884badc2f8a858",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 384,
+      "export_seconds": 0.7661541249835864,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "3",
+        "5",
+        "none"
+      ],
+      "artifact_sha256": "fbb5060cd4782cf71feaadfdcb3d80140fd19ad5eb6ce8fa819944970c75eb04",
+      "fixture_sha256": "5fce0c83d4841befe0ef61bac12b2474f8f425aeae34b28d3755fc651b5b894e",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 392,
+      "export_seconds": 0.7938068750081584,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "4",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "ce3e17fd83c2cf833f3c9717465df8e402003d8bec1fe8ac3f35d1e53e08bdec",
+      "fixture_sha256": "8b6fa9d36070f3eeeb2b3e766d1ca2dadd5fb303cd6dcadbad10b90525ca630d",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 368,
+      "export_seconds": 0.7987865839968435,
+      "adapter_operations": {
+        "raw_and_gates": 330,
+        "executed_and_gates": 330,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "4",
+        "2",
+        "none"
+      ],
+      "artifact_sha256": "e6f8a3367e86b14efd625632fef4ae0e7f73b1d9e26fd1d09e01bc0058b16360",
+      "fixture_sha256": "dd5556b5cbd88bc6276f8ac8c0ca9ef1101355b69f48890ba76e716df79c7cbe",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 376,
+      "export_seconds": 0.7721342499717139,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "4",
+        "3",
+        "none"
+      ],
+      "artifact_sha256": "cc9b42662287c7e96c8d51fef3359cc010b5c0d124b35c2bae353d2072565b6a",
+      "fixture_sha256": "7a96fe88d76ee4d0e477ffbbbc91cab81f39e00ce8f003c6f04a4e9fec07a26d",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 384,
+      "export_seconds": 0.7650412920047529,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "4",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "99625069878ca857a204ba9b4c1bfec6cb437e95770b6bb7b63ba3c81db264c2",
+      "fixture_sha256": "b75aa43f672a0fa4659388be689e392dc9a1a9af40e07a0d0f177c1d9df55ce5",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 392,
+      "export_seconds": 0.7626671670004725,
+      "adapter_operations": {
+        "raw_and_gates": 337,
+        "executed_and_gates": 337,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "4",
+        "5",
+        "none"
+      ],
+      "artifact_sha256": "53a2e9c55838facf3aa63587c648fcb99e6c442aeb86fe8b2581c9c42aa04878",
+      "fixture_sha256": "e42e3c78013c17d92e5137045a8b6967c8aade28072cf46336fe32e74c2c9699",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 400,
+      "export_seconds": 0.7740251250215806,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "5",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "860836b523196dbb6497e9c2577112e93b206fa162321f0b4ed076eb81a64951",
+      "fixture_sha256": "e1100817efe2bd131c2c0422e86cd58f1f8b7eb38bb5f55618227bdbdadbdeb1",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 376,
+      "export_seconds": 0.7646467920276336,
+      "adapter_operations": {
+        "raw_and_gates": 327,
+        "executed_and_gates": 327,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "5",
+        "2",
+        "none"
+      ],
+      "artifact_sha256": "98e756b9a58b7dcfb18984a04511a2eb05a16e626ac42df999f22ea12aac4384",
+      "fixture_sha256": "2113ad4a5fba8e6b47319e65bf278b4aa8e1a40c4d5d1ced695741e8d51c2def",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 384,
+      "export_seconds": 0.801751916995272,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "5",
+        "3",
+        "none"
+      ],
+      "artifact_sha256": "68880ae4b06b156702a6a123e2b7565ce34284cb2a63f4d676c4bf133491347a",
+      "fixture_sha256": "b445eee0b0d5ac9dd4d40523bb93a4174fa47daa7d892dccc0fa47579065516d",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 392,
+      "export_seconds": 0.7671951670199633,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "5",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "c2dd684cbc92d4d2e435e1b6b71cfc5e6b27d545544a982d5458e755a5654ea0",
+      "fixture_sha256": "00355a4c1bf0d5258b99e9a90db6a54af4e8db4fb194d07164497746409a6c4b",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 400,
+      "export_seconds": 0.7660757499979809,
+      "adapter_operations": {
+        "raw_and_gates": 334,
+        "executed_and_gates": 334,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "0",
+        "5",
+        "5",
+        "none"
+      ],
+      "artifact_sha256": "73562be37d005f94e757ca5c5d99f304d47471d533f92af5049e70b4767a92f4",
+      "fixture_sha256": "1da8227cfee235e60995c17442c8e56215a30525bf28e53a0b21bd5c647c9610",
+      "fixture_lanes": 21,
+      "input_bits": 328,
+      "output_bits": 408,
+      "export_seconds": 0.7685627500177361,
+      "adapter_operations": {
+        "raw_and_gates": 331,
+        "executed_and_gates": 331,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 4
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "127",
+        "0",
+        "1",
+        "5",
+        "present"
+      ],
+      "artifact_sha256": "ec7c9d57b505d31dbc840df258d1ad0966e3fef2be8dec4ee0dc6353349dbcdc",
+      "fixture_sha256": "c9260df2fd2504b17088c6a74f4640dbbe3776d772f80b480871a985a9bab244",
+      "fixture_lanes": 30,
+      "input_bits": 1632,
+      "output_bits": 1696,
+      "export_seconds": 0.7763861250132322,
+      "adapter_operations": {
+        "raw_and_gates": 1685,
+        "executed_and_gates": 1679,
+        "executed_xor_gates": 2,
+        "unreachable_nodes": 8
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "128",
+        "1",
+        "5",
+        "1",
+        "present"
+      ],
+      "artifact_sha256": "4ca91e666b5bad224c47e220439e0fe1dc195ec1a70968d7507477e5a0b79e43",
+      "fixture_sha256": "6dceda3c0820cb7340b2979762973147096e1bd5c5cec209b9de56118216dca5",
+      "fixture_lanes": 30,
+      "input_bits": 1648,
+      "output_bits": 1736,
+      "export_seconds": 0.7716337920282967,
+      "adapter_operations": {
+        "raw_and_gates": 1701,
+        "executed_and_gates": 1695,
+        "executed_xor_gates": 2,
+        "unreachable_nodes": 8
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 1695,
+          "fixture_output_values_checked": 28,
+          "bytecode_sha256": "453c197b5c0e3022d5a1532d07486b66ac2a8a64cf51ab52ea95fb57d5456413"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 27120,
+          "fixture_output_values_checked": 448,
+          "bytecode_sha256": "fc7085ad341bc7b2ca148eb5bda550dbbec6e965e157fbb5db697c6391dff323"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "0",
+        "127",
+        "3",
+        "2",
+        "present"
+      ],
+      "artifact_sha256": "5b6f5936cb3da5833a2ba3801e961385aea386c1396af8b0714c8b694c82f7f7",
+      "fixture_sha256": "a62c756c9114b1470736b8f07ecfabe1886f871dc7d36c2d9a59d7788cfa8ab0",
+      "fixture_lanes": 30,
+      "input_bits": 1632,
+      "output_bits": 1704,
+      "export_seconds": 0.7823126669973135,
+      "adapter_operations": {
+        "raw_and_gates": 1695,
+        "executed_and_gates": 1689,
+        "executed_xor_gates": 2,
+        "unreachable_nodes": 8
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-serialize",
+        "1024",
+        "128",
+        "4",
+        "4",
+        "present"
+      ],
+      "artifact_sha256": "fb996b16f00ff1558eefdd81f544b103f3cabd3d7f29007badf73ed4a0f2276b",
+      "fixture_sha256": "887025bd64877f567f35fdcdd0eaf8405f4af31d549c8dc65d4ae91eaea36b0e",
+      "fixture_lanes": 30,
+      "input_bits": 9832,
+      "output_bits": 9944,
+      "export_seconds": 0.8382124999770895,
+      "adapter_operations": {
+        "raw_and_gates": 9895,
+        "executed_and_gates": 9889,
+        "executed_xor_gates": 2,
+        "unreachable_nodes": 8
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-send",
+        "0",
+        "0",
+        "1",
+        "1",
+        "none"
+      ],
+      "artifact_sha256": "ab5170a4d370c658c8cf5ca98704c7ca4b25b5de6688b911339073a138ce502c",
+      "fixture_sha256": "09d2e662308787b6f25609b18daf7887c3ec2f4f141f96bb131efd2272b36011",
+      "fixture_lanes": 17,
+      "input_bits": 1480,
+      "output_bits": 536,
+      "export_seconds": 3.897178749961313,
+      "adapter_operations": {
+        "raw_and_gates": 1172777,
+        "executed_and_gates": 340215,
+        "executed_xor_gates": 339795,
+        "unreachable_nodes": 492771
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 340215,
+          "fixture_output_values_checked": 9,
+          "bytecode_sha256": "ba45b42bc33911246f0853c5bf8d3648effaf17d643f898e27822cfd26e9a1f6"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 5443440,
+          "fixture_output_values_checked": 144,
+          "bytecode_sha256": "84d4b76672cc54dbd94cc932bc2a72a90da0c49f73a20badf934829852d18bff"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-send",
+        "15",
+        "0",
+        "2",
+        "5",
+        "present"
+      ],
+      "artifact_sha256": "0fc4f74f4d29eaed666e9e64486c68122cc48747615efe90a0dc5fe918319710",
+      "fixture_sha256": "6b15d5cf9366aaedc5f846e0386f24698bdfde15326673e2ea25657e4c9320e3",
+      "fixture_lanes": 23,
+      "input_bits": 1888,
+      "output_bits": 880,
+      "export_seconds": 4.062153332983144,
+      "adapter_operations": {
+        "raw_and_gates": 1225352,
+        "executed_and_gates": 355708,
+        "executed_xor_gates": 355476,
+        "unreachable_nodes": 514172
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-send",
+        "16",
+        "7",
+        "5",
+        "3",
+        "present"
+      ],
+      "artifact_sha256": "1430d3c534a48e1cbaf4fd82ed64b252eb3a719849efdb7d02e7581ffeb27268",
+      "fixture_sha256": "4ea94082c5ff57376f3419f6cc8ad46926554655c1429ffac83d05e80c991ac1",
+      "fixture_lanes": 24,
+      "input_bits": 1952,
+      "output_bits": 1088,
+      "export_seconds": 4.767445208039135,
+      "adapter_operations": {
+        "raw_and_gates": 1493777,
+        "executed_and_gates": 418880,
+        "executed_xor_gates": 434538,
+        "unreachable_nodes": 640363
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 418880,
+          "fixture_output_values_checked": 17,
+          "bytecode_sha256": "95ed926d5e6d85aaf9c3518c571bfcc09a93f0ddac269c95723225e8220c4e7d"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 6702080,
+          "fixture_output_values_checked": 272,
+          "bytecode_sha256": "1d4223f37487f5eda2170e63baad24425522fd8b6d9c60a78375f0962907312d"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-send",
+        "127",
+        "128",
+        "4",
+        "4",
+        "none"
+      ],
+      "artifact_sha256": "225a67c9a47334bd2c6299557f3a9016a67666bf55b5f591e83c44b5e7a302a7",
+      "fixture_sha256": "bfbb55d253c54c5fd2cc95a4df4863effa86ce5807b86a6b2f2467bd9e698a85",
+      "fixture_lanes": 19,
+      "input_bits": 3520,
+      "output_bits": 2536,
+      "export_seconds": 9.020610000006855,
+      "adapter_operations": {
+        "raw_and_gates": 2436659,
+        "executed_and_gates": 587995,
+        "executed_xor_gates": 717128,
+        "unreachable_nodes": 1131540
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "invalid_public_shapes_rejected": [
+    [
+      "signal-send",
+      "0",
+      "0",
+      "0",
+      "1",
+      "none"
+    ],
+    [
+      "signal-send",
+      "0",
+      "0",
+      "1",
+      "6",
+      "none"
+    ],
+    [
+      "signal-send",
+      "1025",
+      "0",
+      "1",
+      "1",
+      "none"
+    ],
+    [
+      "signal-serialize",
+      "0",
+      "1025",
+      "1",
+      "1",
+      "none"
+    ],
+    [
+      "signal-serialize",
+      "0",
+      "0",
+      "1",
+      "1",
+      "unknown"
+    ]
+  ],
+  "source_sha256": {
+    "SignalReference/SendExport.lean": "856e2995d0cc6fa1dca1fe9b80b5321a3051fb835eff8a902f9ec0291f7537a8",
+    "lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Cbc.lean": "f513777fdffbe824fc229eb0140522a025ab15459a64e0825f8a618245491bf9",
+    "TlsMpc/Signal/CbcOpen.lean": "a30c198d80ae9a8cd0d57feb59eda25af01a9891830fcbd55fe69e2d0d4e09fb",
+    "TlsMpc/Signal/MessageMac.lean": "a1df406edf05f8cd122b064930dec41b2bead6988c0f7f499a8d7437000a4dca",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Receive.lean": "a252ff059004964617cdc619094f2c801185019464e75ef5d09fe9c3183e7c26",
+    "TlsMpc/Signal/ReceiveSpec.lean": "ca9fca9c54cd291f49872498f89ec450864665a0c78a4a66c5b2f23732e3ddab",
+    "TlsMpc/Signal/Send.lean": "f50534e2b8b86cfc88c98afb885956951503f804a219412cacd1dcec6f61417d",
+    "TlsMpc/Signal/Serialization.lean": "60d78ba132081f896954f0a8f749907cc7e8c130e30aa73441015a385289d1b0",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "test_support/circuit.py": "8de179aa6df97fafe0375d5d9de6a2176b7414b3059eae8c6d066b0bf053ab3d",
+    "scripts/check_lean_signal_send.py": "445b80b56aa3fe749e34697c21cdd8a431c02c87c0e918554f0f4ca30f7228f9",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/wire.proto": "fc5facac43008a127a60caf792d248983cf32665fccf2de850ac4a852a93aad5",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding.rs": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding/varint.rs": "29f75ff30f6a30e07ec017f3260cff9ffbf52cddbd9e4f26f72d705725cebc10",
+    ".deps/libsignal-vendor/prost-derive-0.14.4/src/lib.rs": "43c577c33deedd35aa0cef967dfd449ee6b4ac91b47c26aaf818ce1209893062",
+    ".deps/MP-SPDZ/compile.py": "1f0d3eb9108e4819b3335feb4e0bab2b2a19b6451bc3bc6a43fceb2d93fe6868",
+    ".deps/MP-SPDZ/Compiler/GC/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".deps/MP-SPDZ/Compiler/GC/instructions.py": "9c72e45dd119d7d4327346e8dd09e92ef8c40336fb85a291a3aada2ade3ae40f",
+    ".deps/MP-SPDZ/Compiler/GC/program.py": "aa531736b6003e5d33f230b0f218d4b011d89eba3fc2857a66d36293af372121",
+    ".deps/MP-SPDZ/Compiler/GC/types.py": "b1c8b6e241158552cf220ece30315de962a81d8e9e6e9a95c57f99fc95d92771",
+    ".deps/MP-SPDZ/Compiler/__init__.py": "1d7bc3026cde6fddd7608e336baec8f0eaa69b8195d4e0ab7aa3caae93c33978",
+    ".deps/MP-SPDZ/Compiler/allocator.py": "2d3c46a016b59df046d88f5f7fe5d6992bae2aaf15193fc2a9295e041b674318",
+    ".deps/MP-SPDZ/Compiler/circuit.py": "b1a6ca00513253ec5a7a82df6943a71272f5f0983dc07882324b9d73dab7db0b",
+    ".deps/MP-SPDZ/Compiler/circuit_oram.py": "e7e096b39c7fbc8409df67d979291410e7276d141fbb573927ce5a1ffe9c42a6",
+    ".deps/MP-SPDZ/Compiler/comparison.py": "7ae17ea0ef7713fa9b69646653192f068bab38c668363afc97d819ae4c1cd1bb",
+    ".deps/MP-SPDZ/Compiler/compilerLib.py": "006bd0f511ed8bfb20dbe6da96377aa3aa692591ec64951e0107ff22c4557a3e",
+    ".deps/MP-SPDZ/Compiler/config.py": "03d5ff9262fbe7ec60322a61a7cca409cfd922ef27308aec8e97b8975054f47a",
+    ".deps/MP-SPDZ/Compiler/cost.py": "22bc14ca49b1a3115a3f679d751a5e3efe70a3214da3cbe1407fe5a94e9bbe13",
+    ".deps/MP-SPDZ/Compiler/decision_tree.py": "faf3d48f2ae13d45ce37f0cb56c0d6a64adf5fd7646bd66927cfe11855fcbe23",
+    ".deps/MP-SPDZ/Compiler/dijkstra.py": "8d7756d4c1f59f536b43d10b0ee7688d982baef8ee624ffc01e11c9a54629ee5",
+    ".deps/MP-SPDZ/Compiler/exceptions.py": "589ccdba5e98fa5e9e456c742d60ccd35243436fa0c12880a6e979c3c3e66eb5",
+    ".deps/MP-SPDZ/Compiler/floatingpoint.py": "287903b999b5a0eafc39092bd2d8954cf108c8b8a74372de7187e15e6af907d8",
+    ".deps/MP-SPDZ/Compiler/graph.py": "338782518c0252ec572b4c9632041cf495724025c0f80870ca1ff907570dcaba",
+    ".deps/MP-SPDZ/Compiler/gs.py": "c9a9a9891c2141ce850181ee769113a22554c854e9576df3a053c7354b79f638",
+    ".deps/MP-SPDZ/Compiler/instructions.py": "3a9383327460798fe1874d030a1c24fed9e1155570e69f4607735636d19fadde",
+    ".deps/MP-SPDZ/Compiler/instructions_base.py": "a5b1c3db2936a1c785f5881c30e127c7598a938a126d85e3dc2bf900a2d650b7",
+    ".deps/MP-SPDZ/Compiler/library.py": "3d373c08befddd725f1c868cf435ce8819863e18778a497567e61387f9f503fe",
+    ".deps/MP-SPDZ/Compiler/ml.py": "6219e643fe281eb8af42a97d9296b5f1d759fef184539a117bcb81af497eb53b",
+    ".deps/MP-SPDZ/Compiler/mpc_math.py": "3d6cabb309da87fd40b18b9c95770174225864b30fedbe45531c5287210f60b4",
+    ".deps/MP-SPDZ/Compiler/non_linear.py": "26c1d4697da156ec7319d05a02e6d56132a3b573113bec11ebeb96627b1a9dba",
+    ".deps/MP-SPDZ/Compiler/oram.py": "ab427ee623d7636b01a4feff118491ad39b9c340974b5f7e15be2b8517ae25ff",
+    ".deps/MP-SPDZ/Compiler/papers.py": "398ca2a2d3b4ed6d89123d71861320bafb5d0828fe41a842803f704eace02d98",
+    ".deps/MP-SPDZ/Compiler/path_oblivious_heap.py": "5c08b7a4f5482ade7db370f2af8cb8a0bff107df04812707e59c01d5ad80493c",
+    ".deps/MP-SPDZ/Compiler/path_oram.py": "b9338cb1f9a63c9380009af21d6ae5b8c39af61f284c3f1451c30d690c93e355",
+    ".deps/MP-SPDZ/Compiler/permutation.py": "9b38cfe20fb0865449a6c76147cb1c1b42b1af9b1623ca966db020bf61c0eb07",
+    ".deps/MP-SPDZ/Compiler/program.py": "1b112e8d96f088017daf23d4f2e253dbc25e1a7fbf24faca348b2655e0551251",
+    ".deps/MP-SPDZ/Compiler/sorting.py": "b28331196135e77e9c30264fbd26518734f629692b47e5b8bf584bec868e47c8",
+    ".deps/MP-SPDZ/Compiler/sparse.py": "01d395b335be085fbb59696505de60c1c6e35305301501751d760b3861fb2305",
+    ".deps/MP-SPDZ/Compiler/sqrt_oram.py": "68bd859520fcf64266b3f952c46477b04fea5549feb20efbcaec125229468d38",
+    ".deps/MP-SPDZ/Compiler/tools.py": "76d4e9a89d559abd28102a7ca84860c470117c84c050674ebf24065f5b5bbd3f",
+    ".deps/MP-SPDZ/Compiler/types.py": "e5d107b1351db6258c81a70cd8295d802fc19babff1c75a8b94f0a51157a481a",
+    ".deps/MP-SPDZ/Compiler/util.py": "30501fc416b43dc9ac3c22eb607b945901524a811b8164c8798bb86b0b7ef97d"
+  },
+  "exporter_command": [
+    "lake",
+    "env",
+    "lean",
+    "--run",
+    "SignalReference/SendExport.lean"
+  ],
+  "native_mpc_executed": false,
+  "backend_bytecode_compiled": true,
+  "throughput_measured": false,
+  "upstream_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "actual_signalmessage_constructor_equivalence": false,
+  "actual_rustcrypto_aes_cbc_hmac_wrapper_equivalence": false,
+  "session_state_transition_or_persistence": false,
+  "limitations": [
+    "All fixture inputs are synthetic public values.",
+    "Plaintext/PQ lengths, address presence and canonical counter widths are public profiles.",
+    "Inputs are derived message keys and typed raw identity/ratchet/address encodings.",
+    "Invalid profiles or typed address encodings zero the secret status and full output.",
+    "Prost leaf refinements are tracked separately; these fixtures are not an end-to-end actual Rust proof.",
+    "JSON/native export, generic adapter and MPC execution backend remain unverified."
+  ]
+}

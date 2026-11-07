@@ -1,0 +1,289 @@
+{
+  "kind": "lean_gcm_artifact_checks",
+  "cases": [
+    {
+      "arguments": [
+        "gcm-seal",
+        "0",
+        "0"
+      ],
+      "input_bits": 224,
+      "output_bits": 128,
+      "nodes": 140892,
+      "adapter_operations": {
+        "raw_and_gates": 140667,
+        "executed_and_gates": 6299,
+        "executed_xor_gates": 23885,
+        "unreachable_nodes": 110484
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "dbe132931a18578e4b11a2aecc3bdb8053ed4fe5fb66c8fc3c160bffe8145f55"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "0",
+        "16"
+      ],
+      "input_bits": 352,
+      "output_bits": 256,
+      "nodes": 325383,
+      "adapter_operations": {
+        "raw_and_gates": 325030,
+        "executed_and_gates": 48314,
+        "executed_xor_gates": 92562,
+        "unreachable_nodes": 184155
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "228d469b0f7a5feaf9363ccd71f20fd06eb709978f68f04e5557ed4d67970565"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "5",
+        "1"
+      ],
+      "input_bits": 272,
+      "output_bits": 136,
+      "nodes": 333813,
+      "adapter_operations": {
+        "raw_and_gates": 333540,
+        "executed_and_gates": 52570,
+        "executed_xor_gates": 93962,
+        "unreachable_nodes": 187009
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "acad9fbd1f143a1b8d7aec30383360ac69d31977b5998606e32c3fd1cc4943c1"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "5",
+        "15"
+      ],
+      "input_bits": 384,
+      "output_bits": 248,
+      "nodes": 345427,
+      "adapter_operations": {
+        "raw_and_gates": 345042,
+        "executed_and_gates": 53402,
+        "executed_xor_gates": 97536,
+        "unreachable_nodes": 194105
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "9bb8851f7a71fa2f13291eb346e4e8ecf218bb405110d27975854ff513789e36"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "5",
+        "16"
+      ],
+      "input_bits": 392,
+      "output_bits": 256,
+      "nodes": 345903,
+      "adapter_operations": {
+        "raw_and_gates": 345510,
+        "executed_and_gates": 53434,
+        "executed_xor_gates": 97682,
+        "unreachable_nodes": 194395
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "5b31c71ae93ad0736f044876e4576bd50f66872b02db19449efebf4e129c4781"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "5",
+        "17"
+      ],
+      "input_bits": 400,
+      "output_bits": 264,
+      "nodes": 453107,
+      "adapter_operations": {
+        "raw_and_gates": 452706,
+        "executed_and_gates": 73204,
+        "executed_xor_gates": 126894,
+        "unreachable_nodes": 252609
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "84e69b5a2e0fa6bdc725aa387d7e6c52b4534a59f5bc29a074002e77d6192f7a",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 73204,
+          "fixture_output_values_checked": 5,
+          "bytecode_sha256": "f1c1e62da1cea481829508e8c3f465fde8f48899034661f3b4cc0c83088335b6"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 1171264,
+          "fixture_output_values_checked": 80,
+          "bytecode_sha256": "6813501df7ab0b687366b0b847fa44afddab78b84f42abcff98c9d370e356c35"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "20",
+        "60"
+      ],
+      "input_bits": 864,
+      "output_bits": 608,
+      "nodes": 812345,
+      "adapter_operations": {
+        "raw_and_gates": 811480,
+        "executed_and_gates": 142859,
+        "executed_xor_gates": 223459,
+        "unreachable_nodes": 445163
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "6f2f4193cb5ac68e54f18c91026c40e0417fdc165ed6013c4ac396f5d53ed3b2"
+    },
+    {
+      "arguments": [
+        "gcm-seal",
+        "17",
+        "31"
+      ],
+      "input_bits": 608,
+      "output_bits": 376,
+      "nodes": 575049,
+      "adapter_operations": {
+        "raw_and_gates": 574440,
+        "executed_and_gates": 101684,
+        "executed_xor_gates": 157996,
+        "unreachable_nodes": 314761
+      },
+      "fixture_lanes": 4,
+      "all_outputs_match": true,
+      "artifact_sha256": "3bda95d38179774b0ffffb53ad2fe52741baf49c9e551540dee2fc2937739773"
+    },
+    {
+      "arguments": [
+        "gcm-open",
+        "0",
+        "0"
+      ],
+      "input_bits": 352,
+      "output_bits": 8,
+      "nodes": 141531,
+      "adapter_operations": {
+        "raw_and_gates": 141178,
+        "executed_and_gates": 6426,
+        "executed_xor_gates": 24013,
+        "unreachable_nodes": 110740
+      },
+      "fixture_lanes": 144,
+      "all_outputs_match": true,
+      "artifact_sha256": "ae510562fe04b6c0b208f605afe510dc9543157bef74910c5505072142cdf887"
+    },
+    {
+      "arguments": [
+        "gcm-open",
+        "0",
+        "16"
+      ],
+      "input_bits": 480,
+      "output_bits": 136,
+      "nodes": 326150,
+      "adapter_operations": {
+        "raw_and_gates": 325669,
+        "executed_and_gates": 48569,
+        "executed_xor_gates": 92690,
+        "unreachable_nodes": 184411
+      },
+      "fixture_lanes": 148,
+      "all_outputs_match": true,
+      "artifact_sha256": "8c4b564947ec202d68d4c085bc73a7394a6f794c490774f6b72b89cb58f35d85"
+    },
+    {
+      "arguments": [
+        "gcm-open",
+        "5",
+        "17"
+      ],
+      "input_bits": 528,
+      "output_bits": 144,
+      "nodes": 453882,
+      "adapter_operations": {
+        "raw_and_gates": 453353,
+        "executed_and_gates": 73467,
+        "executed_xor_gates": 127022,
+        "unreachable_nodes": 252865
+      },
+      "fixture_lanes": 152,
+      "all_outputs_match": true,
+      "artifact_sha256": "237080b53e58f625fe10a37f366dd53477ae43843019c7a40c1ce8b86b4fb561",
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 73467,
+          "fixture_output_values_checked": 3,
+          "bytecode_sha256": "b61eb69ae470baba809f3eeebe12fd2a882ff485ad68068de013a109931ccb92"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 1175472,
+          "fixture_output_values_checked": 48,
+          "bytecode_sha256": "c52f61a1e064853609d6c6d2101f0ceddb7c5b843a89fafcc1e08053ee79dc03"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "gcm-open",
+        "20",
+        "60"
+      ],
+      "input_bits": 992,
+      "output_bits": 488,
+      "nodes": 813464,
+      "adapter_operations": {
+        "raw_and_gates": 812471,
+        "executed_and_gates": 143466,
+        "executed_xor_gates": 223587,
+        "unreachable_nodes": 445419
+      },
+      "fixture_lanes": 152,
+      "all_outputs_match": true,
+      "artifact_sha256": "043f81ee852fbef609a56b12a4fb6910b753c7db561c3a4a5eab8c2ccbd7c435"
+    }
+  ],
+  "source_sha256": {
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Ghash.lean": "206c8d26171a8e6b014b6b902b0c2e210e47a2569bdf7406e3e8ac20cd8f0811",
+    "TlsMpc/Gcm.lean": "f1e26c7020ce0cce898dd8e6ff8427018c634b903b120cd41ccca3bfdaa7b357",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/GcmOpen.lean": "288f6f8e63e211cc0e9a84b9d58ed1b1aa2999f0997fc3cd32f9650e8f4a1b67",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "Main.lean": "1a0d635b97490238295c3cd594704925fabc7f81ceb4015c49844bfac15c18e5",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_gcm.py": "4a405613d16d3270b81751f70275dd9d8877e68476d921a80253ddad1bb163ef"
+  },
+  "oracle_cryptography_version": "50.0.2",
+  "reference": "https://doi.org/10.6028/NIST.SP.800-38D",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "Native export, JSON, adapter and MPC backend remain unverified.",
+    "Nonce uniqueness, durable state and authenticated TLS handshake are not established here."
+  ]
+}

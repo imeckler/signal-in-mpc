@@ -1,0 +1,671 @@
+{
+  "checked_at_utc": "2026-11-07T21:06:46.940295+00:00",
+  "complete": true,
+  "native_mpc_executed": true,
+  "parties": 5,
+  "threshold": 2,
+  "binary_field_degree": 128,
+  "statistical_security_parameter": 128,
+  "executable_sha256": "420d7c5b81887224a415d449899cc15b19f2bd0b09f3cdcb150d8826cf1ac4f5",
+  "source_sha256": {
+    "scripts/check_lean_signal_native.py": "22a384220eda24b51b11a5b96e318cfecbf93656058eeb9fd64141e7058e7fbd",
+    "SignalReference/NativeWork/ccd128.cpp": "bb3f5af94cab3eedd89aa64cb4bf20e00086e695adfef808301c6445c476beb2",
+    "SignalReference/NativeWork/Makefile": "ab11335f38fa5baedfd0d7b158bcdfd4de5d27068eff0139976fa9c48f320f07",
+    "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    ".deps/MP-SPDZ/Machines/malicious-ccd-party.cpp": "1419af80c60c1c1baa619f5d0803a1fc1e40af2292d174e5e8785fad163b3da0"
+  },
+  "cases": [
+    {
+      "category": "receiver-store",
+      "name": "signal-receiver-store-lookup-5-2",
+      "batch": 1,
+      "wall_seconds_including_startup_and_live_preprocessing": 0.7046759999357164,
+      "recipient_encryptions_per_second": 1.41909189484419,
+      "all_outputs_match": true,
+      "output_words_checked": 26,
+      "artifact_sha256": "7d0c5e17194da34745d52f71a0650cd6c5123590b6028b5ca4225e6173e857f6",
+      "fixture_sha256": "e10eac43d1e3b9d821741b213bc6e735523e47efb5dee2c10c70187fa37db231",
+      "bytecode_sha256": "1ca59e0e74587f1b16876d03e392c644618c7bf3e8c5cf58bf8c6c7802628824",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-receiver-store-lookup-5-2-1-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "e1391d146f7ebb52003c5b6590f1c5cce9c0ef13c01d60cd20a39bdd5bd93069",
+          "reported_data_sent_mb": [
+            "3.90301"
+          ],
+          "reported_global_data_sent_mb": [
+            "19.515"
+          ],
+          "reported_rounds": [
+            "47",
+            "65",
+            "21",
+            "65",
+            "27",
+            "113"
+          ]
+        },
+        {
+          "party_log_sha256": "16ca410524d1e42db6afe09a4055c694e4adf237e3ec627228783c7c1796445b",
+          "reported_data_sent_mb": [
+            "3.90301"
+          ],
+          "reported_global_data_sent_mb": [
+            "19.515"
+          ],
+          "reported_rounds": [
+            "47",
+            "65",
+            "21",
+            "65",
+            "27",
+            "113"
+          ]
+        },
+        {
+          "party_log_sha256": "afda95a4658ef47dd086357ae2c441d9716d464298759adeb578d3ae0268d6f1",
+          "reported_data_sent_mb": [
+            "3.90301"
+          ],
+          "reported_global_data_sent_mb": [
+            "19.515"
+          ],
+          "reported_rounds": [
+            "47",
+            "65",
+            "21",
+            "65",
+            "27",
+            "113"
+          ]
+        },
+        {
+          "party_log_sha256": "2a901f1acbeebf41cce65062bb556c1e334d9a5f47f9a4b8d39904a20dfee4ca",
+          "reported_data_sent_mb": [
+            "3.90301"
+          ],
+          "reported_global_data_sent_mb": [
+            "19.515"
+          ],
+          "reported_rounds": [
+            "47",
+            "65",
+            "21",
+            "65",
+            "27",
+            "113"
+          ]
+        },
+        {
+          "party_log_sha256": "d1b33c6a977be94b1338b5cc3923a0359b281f6ad5584db6ffa27879e5544616",
+          "reported_data_sent_mb": [
+            "3.90301"
+          ],
+          "reported_global_data_sent_mb": [
+            "19.515"
+          ],
+          "reported_rounds": [
+            "47",
+            "65",
+            "21",
+            "65",
+            "27",
+            "113"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "category": "keccak",
+      "name": "signal-keccak-sha3-512-64-64",
+      "batch": 1,
+      "wall_seconds_including_startup_and_live_preprocessing": 1.620329292025417,
+      "recipient_encryptions_per_second": 0.6171585028559204,
+      "all_outputs_match": true,
+      "output_words_checked": 8,
+      "artifact_sha256": "0bc2d196316f277803e3dc27619925f02940d3b6d184e1dca13791c7f4ce8779",
+      "fixture_sha256": "7dd5fb030af13eccd9a7ebe342b2dcadcac6c55f13a36d8511387ad6c052b590",
+      "bytecode_sha256": "e0b50ddce12471b7af57687a5690cd1c7855dfdb1dd69239a17e313f3e42a7bb",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-keccak-sha3-512-64-64-1-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "74d9e9fbbf459e925a73e88b2cbed8473829d2454b75d169da2bc269dc2dfaa9",
+          "reported_data_sent_mb": [
+            "13.3454"
+          ],
+          "reported_global_data_sent_mb": [
+            "66.7269"
+          ],
+          "reported_rounds": [
+            "27",
+            "233",
+            "77",
+            "101",
+            "83",
+            "261"
+          ]
+        },
+        {
+          "party_log_sha256": "b0f4446d4bf4cf380ba0c568cfa9ad306fad91d6c66d3cc7b453f5010d5072b6",
+          "reported_data_sent_mb": [
+            "13.3454"
+          ],
+          "reported_global_data_sent_mb": [
+            "66.7269"
+          ],
+          "reported_rounds": [
+            "27",
+            "233",
+            "77",
+            "101",
+            "83",
+            "261"
+          ]
+        },
+        {
+          "party_log_sha256": "8024a969ce6e3705747d45c420e4a87a1e1bca272a159aa9c4af88519359b755",
+          "reported_data_sent_mb": [
+            "13.3454"
+          ],
+          "reported_global_data_sent_mb": [
+            "66.7269"
+          ],
+          "reported_rounds": [
+            "27",
+            "233",
+            "77",
+            "101",
+            "83",
+            "261"
+          ]
+        },
+        {
+          "party_log_sha256": "dc1180ab564ea6583c348744c4c58687cd8d398e2c023fac671616f74cdf946f",
+          "reported_data_sent_mb": [
+            "13.3454"
+          ],
+          "reported_global_data_sent_mb": [
+            "66.7269"
+          ],
+          "reported_rounds": [
+            "27",
+            "233",
+            "77",
+            "101",
+            "83",
+            "261"
+          ]
+        },
+        {
+          "party_log_sha256": "682ca1c2ccfe2177051465aff8c445e094095f018b2a85b30caec6a6b745be06",
+          "reported_data_sent_mb": [
+            "13.3454"
+          ],
+          "reported_global_data_sent_mb": [
+            "66.7269"
+          ],
+          "reported_rounds": [
+            "27",
+            "233",
+            "77",
+            "101",
+            "83",
+            "261"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "category": "chain-send",
+      "name": "signal-chain-send-17-5-5-2-present",
+      "batch": 1,
+      "wall_seconds_including_startup_and_live_preprocessing": 37.182508792029694,
+      "recipient_encryptions_per_second": 0.02689436599324778,
+      "all_outputs_match": true,
+      "output_words_checked": 22,
+      "artifact_sha256": "123b18205b2f563b96298dd2ec206d446bf5f18ddedb5a5d1a79ba2415b42ec3",
+      "fixture_sha256": "aea54ebc228300fd88e18c84029793c8ccba64e91191eb4e45f86c817fec3f88",
+      "bytecode_sha256": "81cdf841de4552517f882866f061c19b0be4f3f8c49235ea9f45791bce68057d",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-chain-send-17-5-5-2-present-1-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "483c311b6b9d9c0d6b7769fc08a00c0e4df497caba53b16442e5b911546b163e",
+          "reported_data_sent_mb": [
+            "488.632"
+          ],
+          "reported_global_data_sent_mb": [
+            "2443.16"
+          ],
+          "reported_rounds": [
+            "50753",
+            "8327",
+            "2775",
+            "53525",
+            "2781",
+            "59081"
+          ]
+        },
+        {
+          "party_log_sha256": "ff57aafab1303401760ce69b6384e1b4a1d24348352ee0cc3a343d5e36eb280c",
+          "reported_data_sent_mb": [
+            "488.632"
+          ],
+          "reported_global_data_sent_mb": [
+            "2443.16"
+          ],
+          "reported_rounds": [
+            "50753",
+            "8327",
+            "2775",
+            "53525",
+            "2781",
+            "59081"
+          ]
+        },
+        {
+          "party_log_sha256": "9a71ab2561e564aa1c79d344f3a620309de0391328f4578e1121574097619d70",
+          "reported_data_sent_mb": [
+            "488.632"
+          ],
+          "reported_global_data_sent_mb": [
+            "2443.16"
+          ],
+          "reported_rounds": [
+            "50753",
+            "8327",
+            "2775",
+            "53525",
+            "2781",
+            "59081"
+          ]
+        },
+        {
+          "party_log_sha256": "3909332ce618d3bdb82f53675ca46319478b25004a478bc3d1507d806796b9f6",
+          "reported_data_sent_mb": [
+            "488.632"
+          ],
+          "reported_global_data_sent_mb": [
+            "2443.16"
+          ],
+          "reported_rounds": [
+            "50753",
+            "8327",
+            "2775",
+            "53525",
+            "2781",
+            "59081"
+          ]
+        },
+        {
+          "party_log_sha256": "c2ba4cce3723af6058ecbcf0d1406b38b6bd6e54905578d15f11779080133c46",
+          "reported_data_sent_mb": [
+            "488.632"
+          ],
+          "reported_global_data_sent_mb": [
+            "2443.16"
+          ],
+          "reported_rounds": [
+            "50753",
+            "8327",
+            "2775",
+            "53525",
+            "2781",
+            "59081"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "category": "chain-send",
+      "name": "signal-chain-send-17-5-5-2-present",
+      "batch": 16,
+      "wall_seconds_including_startup_and_live_preprocessing": 97.17397341609467,
+      "recipient_encryptions_per_second": 0.16465314155148011,
+      "all_outputs_match": true,
+      "output_words_checked": 352,
+      "artifact_sha256": "123b18205b2f563b96298dd2ec206d446bf5f18ddedb5a5d1a79ba2415b42ec3",
+      "fixture_sha256": "aea54ebc228300fd88e18c84029793c8ccba64e91191eb4e45f86c817fec3f88",
+      "bytecode_sha256": "ebdf70983c7ae19f0bea52a38955fc6f89d8bca0b040922107846a786f4d156b",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-chain-send-17-5-5-2-present-16-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "e34cf2754a3386ed611a8afb96bb5007c60c2e9384c579c0da765e8837bf8da7",
+          "reported_data_sent_mb": [
+            "7817.43"
+          ],
+          "reported_global_data_sent_mb": [
+            "39087.2"
+          ],
+          "reported_rounds": [
+            "50753",
+            "133139",
+            "44379",
+            "95129",
+            "44385",
+            "183893"
+          ]
+        },
+        {
+          "party_log_sha256": "b018c698c748353514fa00deb706fc531ca49c4919ac313a73937ba3c0ce1890",
+          "reported_data_sent_mb": [
+            "7817.43"
+          ],
+          "reported_global_data_sent_mb": [
+            "39087.2"
+          ],
+          "reported_rounds": [
+            "50753",
+            "133139",
+            "44379",
+            "95129",
+            "44385",
+            "183893"
+          ]
+        },
+        {
+          "party_log_sha256": "f77fd9da8fcbdc8aa0231f1bd0c26c3457cd851c7657f7b84e7537f66eff0498",
+          "reported_data_sent_mb": [
+            "7817.43"
+          ],
+          "reported_global_data_sent_mb": [
+            "39087.2"
+          ],
+          "reported_rounds": [
+            "50753",
+            "133139",
+            "44379",
+            "95129",
+            "44385",
+            "183893"
+          ]
+        },
+        {
+          "party_log_sha256": "9750c64efeb9fdde9a547b0fe6a0ba5ac6b46fafc933809372f92d993ef40c92",
+          "reported_data_sent_mb": [
+            "7817.43"
+          ],
+          "reported_global_data_sent_mb": [
+            "39087.2"
+          ],
+          "reported_rounds": [
+            "50753",
+            "133139",
+            "44379",
+            "95129",
+            "44385",
+            "183893"
+          ]
+        },
+        {
+          "party_log_sha256": "46e38d5df307ac90812429e65dc27d8cd2c8250490d5a0cd0a5591911a120a87",
+          "reported_data_sent_mb": [
+            "7817.43"
+          ],
+          "reported_global_data_sent_mb": [
+            "39087.2"
+          ],
+          "reported_rounds": [
+            "50753",
+            "133139",
+            "44379",
+            "95129",
+            "44385",
+            "183893"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "category": "spqr-send",
+      "name": "signal-spqr-send-17-5-2-10-5-3-present-present",
+      "batch": 1,
+      "wall_seconds_including_startup_and_live_preprocessing": 52.63729512505233,
+      "recipient_encryptions_per_second": 0.01899793668394745,
+      "all_outputs_match": true,
+      "output_words_checked": 32,
+      "artifact_sha256": "69b3c6f15c553f0542b5928885798183d7c494989788e36cd42fd3bacb1b6dc8",
+      "fixture_sha256": "0d45e2a9ec6c33eb4586cb9515bd6c194e254f78b8820077df7bfef050049a28",
+      "bytecode_sha256": "2c7055e7208f2cf6fdf7598839ba6bc8e69c8a2ff4185102d4f43f8e92867bb7",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-spqr-send-17-5-2-10-5-3-present-present-1-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "0b98338595543d08f5bd0b0a22fca693cd80b301cb80eeff40aea0c867cb5565",
+          "reported_data_sent_mb": [
+            "667.947"
+          ],
+          "reported_global_data_sent_mb": [
+            "3339.73"
+          ],
+          "reported_rounds": [
+            "69756",
+            "11381",
+            "3793",
+            "73546",
+            "3799",
+            "81138"
+          ]
+        },
+        {
+          "party_log_sha256": "1ba2d2d94caeaa435d95fc82211ef8690f2499dacd7a8f3967da5c06d727a8bc",
+          "reported_data_sent_mb": [
+            "667.947"
+          ],
+          "reported_global_data_sent_mb": [
+            "3339.73"
+          ],
+          "reported_rounds": [
+            "69756",
+            "11381",
+            "3793",
+            "73546",
+            "3799",
+            "81138"
+          ]
+        },
+        {
+          "party_log_sha256": "2c0aedd9fa2c4b10fa856775bc95b433c0a1944b457803c8d9b50e38f463de25",
+          "reported_data_sent_mb": [
+            "667.947"
+          ],
+          "reported_global_data_sent_mb": [
+            "3339.73"
+          ],
+          "reported_rounds": [
+            "69756",
+            "11381",
+            "3793",
+            "73546",
+            "3799",
+            "81138"
+          ]
+        },
+        {
+          "party_log_sha256": "66d7d970cd2a1d9a05e2aa000287c70b8ae32cd1022f853224c1f70c0e58a553",
+          "reported_data_sent_mb": [
+            "667.947"
+          ],
+          "reported_global_data_sent_mb": [
+            "3339.73"
+          ],
+          "reported_rounds": [
+            "69756",
+            "11381",
+            "3793",
+            "73546",
+            "3799",
+            "81138"
+          ]
+        },
+        {
+          "party_log_sha256": "d7e16ad88e72620a304211fa6a3e78543367d530dffc6f8f73876a2fdd68a7eb",
+          "reported_data_sent_mb": [
+            "667.947"
+          ],
+          "reported_global_data_sent_mb": [
+            "3339.73"
+          ],
+          "reported_rounds": [
+            "69756",
+            "11381",
+            "3793",
+            "73546",
+            "3799",
+            "81138"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "category": "spqr-send",
+      "name": "signal-spqr-send-17-5-2-10-5-3-present-present",
+      "batch": 16,
+      "wall_seconds_including_startup_and_live_preprocessing": 133.0805286669638,
+      "recipient_encryptions_per_second": 0.12022795641306973,
+      "all_outputs_match": true,
+      "output_words_checked": 512,
+      "artifact_sha256": "69b3c6f15c553f0542b5928885798183d7c494989788e36cd42fd3bacb1b6dc8",
+      "fixture_sha256": "0d45e2a9ec6c33eb4586cb9515bd6c194e254f78b8820077df7bfef050049a28",
+      "bytecode_sha256": "c797d9034e8b014fc2d7b8d003a9d287368b6b9eab3841d4e92a41bc7c1c277d",
+      "logs": "benchmarks/results/raw/signal-native/lean_artifact-signal-spqr-send-17-5-2-10-5-3-present-present-16-5",
+      "runtime_stats": [
+        {
+          "party_log_sha256": "f5de724b946406d8b0f14e3b74bef63328230f35bc6eda21ddd266e07d549024",
+          "reported_data_sent_mb": [
+            "10686.2"
+          ],
+          "reported_global_data_sent_mb": [
+            "53431.2"
+          ],
+          "reported_rounds": [
+            "69756",
+            "181997",
+            "60665",
+            "130418",
+            "60671",
+            "251754"
+          ]
+        },
+        {
+          "party_log_sha256": "65b0fb19b166085b42c75485b2723a5d0692e8773178e3cf49ffcb5849e852b2",
+          "reported_data_sent_mb": [
+            "10686.2"
+          ],
+          "reported_global_data_sent_mb": [
+            "53431.2"
+          ],
+          "reported_rounds": [
+            "69756",
+            "181997",
+            "60665",
+            "130418",
+            "60671",
+            "251754"
+          ]
+        },
+        {
+          "party_log_sha256": "aaa7cef9c90c6abc01700a974115923e78d09a2834c8375248cd29d3348e3019",
+          "reported_data_sent_mb": [
+            "10686.2"
+          ],
+          "reported_global_data_sent_mb": [
+            "53431.2"
+          ],
+          "reported_rounds": [
+            "69756",
+            "181997",
+            "60665",
+            "130418",
+            "60671",
+            "251754"
+          ]
+        },
+        {
+          "party_log_sha256": "b0af492e0f70e7735dbef12a659336ee7de7df91c1d6654357ac7533a71118c0",
+          "reported_data_sent_mb": [
+            "10686.2"
+          ],
+          "reported_global_data_sent_mb": [
+            "53431.2"
+          ],
+          "reported_rounds": [
+            "69756",
+            "181997",
+            "60665",
+            "130418",
+            "60671",
+            "251754"
+          ]
+        },
+        {
+          "party_log_sha256": "ad34dfecaa5a17a51b6455fc9bbf140279f7354693242827eeb75c8eb3c951db",
+          "reported_data_sent_mb": [
+            "10686.2"
+          ],
+          "reported_global_data_sent_mb": [
+            "53431.2"
+          ],
+          "reported_rounds": [
+            "69756",
+            "181997",
+            "60665",
+            "130418",
+            "60671",
+            "251754"
+          ]
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "workload": "public synthetic independent established sessions; batch lanes are distinct recipient encryptions, not sequential messages on one ratchet",
+  "tls_h2_included": false,
+  "persistent_session_runtime_tested": false,
+  "refresh_or_vm_erasure_tested": false,
+  "wan_tested": false,
+  "target_logical_messages_per_hour": 100000,
+  "target_logical_messages_per_second": 27.77777777777778,
+  "device_fanout_multiplier_not_included": true,
+  "vm_rounds_are_not_network_roundtrips": true
+}

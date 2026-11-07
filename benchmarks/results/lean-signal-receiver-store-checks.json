@@ -1,0 +1,275 @@
+{
+  "checked_at_utc": "2026-11-07T19:19:54.468387+00:00",
+  "checked_endpoints": 24,
+  "source_sha256": {
+    "scripts/check_lean_signal_receiver_store.py": "36e842a33ef28f04cfbcc5a29594b2bca02fa1fad30e2a9386f527e306ef7f93",
+    "TlsMpc/Signal/ReceiverStore.lean": "b91f45aa0196f3b88177590a841aa9153e424c9fe0e6e73accee37da5ca5777d",
+    "TlsMpc/Signal/SkippedKeys.lean": "953d4dc12a8831de1e26ee5fa0352918df3db003e924acbd2310a54eb502c07f",
+    "SignalReference/ReceiverStoreChecks.lean": "16b3714308d093c1bc2c4f83f3e31fb07b93712484b0705e04930044d642e06f",
+    "SignalReference/ReceiverStoreExport.lean": "73ab23767695dc463b31c6f2eb8023c2271311dadebfae9c6d8867fb3d200209",
+    "SignalReference/ReceiverStoreWork/Export.lean": "73ab23767695dc463b31c6f2eb8023c2271311dadebfae9c6d8867fb3d200209",
+    "SignalReference/ReceiverStoreWork/lakefile.toml": "6195539fb816c701a1c8eec8b20d495acaaaabda414dc774a88303799aec0958",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/double_ratchet.rs": "b3be5c8ae7a2333178f393b4aa74f6d33880f70f91d075e79459be0859c2eb2f",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "cases": [
+    {
+      "operation": "lookup",
+      "capacity": 0,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "ba8d1847acdf1dbe22793ef93df57d27889d837eae133142e4c31a69d6c1f94d",
+      "fixture_sha256": "42054572b5d35465feceb93f3d0f7f3df659d078e9b4dc0644b0fcda4d4c5f97",
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "replace",
+      "capacity": 0,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "9f381835647e751c613f0888009f70dac10bcdbdbba54d684f31e0d9dbfc0fd8",
+      "fixture_sha256": "88a89d1fc6f6a41f168e5a5d1039c58304713bd2f0e6f869cb031a7ba61eebb9",
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "insert",
+      "capacity": 0,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "495fd636d6ce155e5ecb4dcf9c0eb3a064559ed366421e36f40ff706c83e1a3f",
+      "fixture_sha256": "88a89d1fc6f6a41f168e5a5d1039c58304713bd2f0e6f869cb031a7ba61eebb9",
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "lookup",
+      "capacity": 1,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "b4c0e2f1ce4d5ca234e43ed341c48d56e203c5af26b14df6da4c81a298f2b773",
+      "fixture_sha256": "fc53ded292be24089e77fbcf2a7aff86ce7bb4f47522614d3978bfdbf4ffb973",
+      "adapter_operations": {
+        "raw_and_gates": 1583,
+        "executed_and_gates": 815,
+        "executed_xor_gates": 256,
+        "unreachable_nodes": 513
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "replace",
+      "capacity": 1,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "de0fcb7c5da6c02a752dbf9b722208c83bb2c8b9bfa02528e1810507239efea5",
+      "fixture_sha256": "4d2e6b7296f69955e0219b0888be5a5f5fa133946c0340c71737a8813aea25e2",
+      "adapter_operations": {
+        "raw_and_gates": 4903,
+        "executed_and_gates": 823,
+        "executed_xor_gates": 1360,
+        "unreachable_nodes": 2721
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "insert",
+      "capacity": 1,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "0d40e636677e01cf6c534dcf942d175d602340d87e87954e5a817615fe80b184",
+      "fixture_sha256": "75615babdc17637516ff1aae82238a273aef969000629a56a882d65c3a615d69",
+      "adapter_operations": {
+        "raw_and_gates": 3871,
+        "executed_and_gates": 559,
+        "executed_xor_gates": 1104,
+        "unreachable_nodes": 2209
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "lookup",
+      "capacity": 5,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "691e3b9f5ed8ac1308b46b6ecee061e2b93adaba38b41e54f89385f54ba69403",
+      "fixture_sha256": "289f64b6e9b6cbbc46e71342f0ac249ce0a49c76d4c166914747a9963cc77ce9",
+      "adapter_operations": {
+        "raw_and_gates": 21163,
+        "executed_and_gates": 4075,
+        "executed_xor_gates": 5696,
+        "unreachable_nodes": 11393
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "replace",
+      "capacity": 5,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "7b40aab73f7ce9320707b939a084957bd907250f61ca282921e9fa08d387f96e",
+      "fixture_sha256": "283c99a99ba5b3c03a13c29a9cc226a2cc987178044037c3901ab6974b6bf513",
+      "adapter_operations": {
+        "raw_and_gates": 24491,
+        "executed_and_gates": 4091,
+        "executed_xor_gates": 6800,
+        "unreachable_nodes": 13601
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "insert",
+      "capacity": 5,
+      "skips": 0,
+      "fixture_lanes": 144,
+      "artifact_sha256": "f66deec04274103bf687ff1f44c5fe895d1d41bf9def1eb7e0afb24bf9a34b92",
+      "fixture_sha256": "406c358308b9bca1f44f266d9fad8dd414c86016411a420eee2e4d6901a063e0",
+      "adapter_operations": {
+        "raw_and_gates": 19327,
+        "executed_and_gates": 2767,
+        "executed_xor_gates": 5520,
+        "unreachable_nodes": 11041
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "lookup",
+      "capacity": 5,
+      "skips": 2,
+      "fixture_lanes": 144,
+      "artifact_sha256": "7d0c5e17194da34745d52f71a0650cd6c5123590b6028b5ca4225e6173e857f6",
+      "fixture_sha256": "e10eac43d1e3b9d821741b213bc6e735523e47efb5dee2c10c70187fa37db231",
+      "adapter_operations": {
+        "raw_and_gates": 53179,
+        "executed_and_gates": 9595,
+        "executed_xor_gates": 14528,
+        "unreachable_nodes": 29057
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "replace",
+      "capacity": 5,
+      "skips": 2,
+      "fixture_lanes": 144,
+      "artifact_sha256": "5c209362f76041666435de17d8c53831eb4b75a81d740422f274cf2b51cd44e8",
+      "fixture_sha256": "7d8742d2efd569302fe5033e7eb45c5a87589abf4a2ab9fb50bac8c22f26e45b",
+      "adapter_operations": {
+        "raw_and_gates": 63131,
+        "executed_and_gates": 9611,
+        "executed_xor_gates": 17840,
+        "unreachable_nodes": 35681
+      },
+      "all_outputs_match": true
+    },
+    {
+      "operation": "insert",
+      "capacity": 5,
+      "skips": 2,
+      "fixture_lanes": 144,
+      "artifact_sha256": "00e4ab388c0aa2631b4bbf883dacca6317c413ef1bfe5fac8cfe690859561337",
+      "fixture_sha256": "b9dd88d1761d5573129956905e26129c184072c0f672fe02eeebe899099f6722",
+      "adapter_operations": {
+        "raw_and_gates": 57967,
+        "executed_and_gates": 8287,
+        "executed_xor_gates": 16560,
+        "unreachable_nodes": 33121
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "artifact_transactions": [
+    {
+      "inserted": 0,
+      "retained": [
+        0
+      ]
+    },
+    {
+      "inserted": 1,
+      "retained": [
+        0,
+        1
+      ]
+    },
+    {
+      "inserted": 2,
+      "retained": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "inserted": 3,
+      "retained": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "inserted": 4,
+      "retained": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "inserted": 5,
+      "retained": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "inserted": 6,
+      "retained": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "inserted": 7,
+      "retained": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ],
+  "custom_axioms": [],
+  "full_actual_rust_store_refinement": false,
+  "native_mpc_executed": false,
+  "all_runtime_values_secret": true,
+  "initialization_invariant": "invalid prefix followed by valid oldest-to-newest entries",
+  "pinned_retention_capacity": 5
+}

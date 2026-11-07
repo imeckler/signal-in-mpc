@@ -1,0 +1,37 @@
+{
+  "kind": "handshake_release_circuit_checks",
+  "cases": [
+    {
+      "type": 21,
+      "bad_tag": false,
+      "passed": true
+    },
+    {
+      "type": 21,
+      "bad_tag": true,
+      "passed": true
+    },
+    {
+      "type": 22,
+      "bad_tag": false,
+      "passed": true
+    },
+    {
+      "type": 22,
+      "bad_tag": true,
+      "passed": true
+    },
+    {
+      "type": 23,
+      "bad_tag": false,
+      "passed": true
+    },
+    {
+      "type": 23,
+      "bad_tag": true,
+      "passed": true
+    }
+  ],
+  "native_mpc_executed": false,
+  "artifact_sha256": "ef07883d5bbb97b32007dd22aec1ea753089ca59f9de7ef5a6dc9b7758c1e07e"
+}

@@ -1,0 +1,63 @@
+{
+  "kind": "lean_signal_unpad_checks",
+  "cases": [
+    {
+      "arguments": [
+        "signal-unpad16"
+      ],
+      "input_bits": 128,
+      "output_bits": 144,
+      "fixture_lanes": 440,
+      "accepted_lanes": 17,
+      "rejected_lanes": 423,
+      "all_outputs_match": true,
+      "artifact_sha256": "6c64ad4b63d94406c3bfd8795d738ec1cb736426738d622b9626c0ae97497659",
+      "native_export_seconds": 0.04172741703223437,
+      "adapter_statistics": {
+        "raw_and_gates": 7198,
+        "executed_and_gates": 1978,
+        "executed_xor_gates": 1740,
+        "unreachable_nodes": 3480
+      },
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 1978,
+          "fixture_output_values_checked": 3,
+          "bytecode_sha256": "b2b4c31ab3516dcb437d0dfec9829108a582f6b891e8fb9e8cac4f4f873218b1"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 31648,
+          "fixture_output_values_checked": 48,
+          "bytecode_sha256": "8c2a647acfe0e8a76cab6d83347f13c7857c90cbaa7a90c72fc9a0fa583bb6ea"
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "Main.lean": "d84c96a83a779e8487066669938edd1f29f13cf444940bdd6d6099b34973a6f1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    ".lake/build/bin/emit_mpc": "49b0ff48e7cb7e87ec1cb58ba43cfac086219bbe86a209e52f5460bbd0dc09cb",
+    "scripts/check_lean_signal_unpad.py": "f0cc782699dbdfc3ff7b412556116408eef795f7a453af2e143d80b54da7983f"
+  },
+  "reference": "cryptography50.0.2 PKCS7(128).unpadder",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "limitations": [
+    "Final16-byte block only; no AES decryption or complete Signal receive transition.",
+    "Mask, retained length and bytes are secret outputs in the implementation.",
+    "This test harness opens synthetic public fixtures only.",
+    "The actual Rust-reference proof is audited separately."
+  ]
+}

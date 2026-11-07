@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "mode": "valid",
+      "passed": true
+    },
+    {
+      "mode": "truncated",
+      "passed": true
+    },
+    {
+      "mode": "oversized",
+      "passed": true
+    },
+    {
+      "mode": "rejected",
+      "passed": true
+    }
+  ],
+  "native_mpc_executed": false,
+  "scope": "actual Lean/C++ binary pipe and authentication encoding; public echo fixture only"
+}

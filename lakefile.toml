@@ -1,0 +1,22 @@
+name = "tls-mpc"
+version = "0.1.0"
+defaultTargets = ["TlsMpc"]
+
+[[lean_lib]]
+name = "TlsMpc"
+
+[[lean_exe]]
+name = "emit_mpc"
+root = "Main"
+
+[[lean_exe]]
+name = "handshake_fixture"
+root = "HandshakeFixture"
+
+[[lean_exe]]
+name = "worker_pipe_fixture"
+root = "WorkerPipeFixture"
+
+[[lean_exe]]
+name = "native_handshake_fixture"
+root = "NativeHandshakeFixture"

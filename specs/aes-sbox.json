@@ -1,0 +1,11 @@
+{
+  "reference": "FIPS 197-upd1 table 4",
+  "standard_url": "https://doi.org/10.6028/NIST.FIPS.197-upd1",
+  "circuit_source": "https://www.bearssl.org/gitweb/?p=BearSSL;a=blob_plain;f=src/symcipher/aes_ct.c;hb=refs/tags/v0.6",
+  "circuit_source_sha256": "673c1c82e9a62ba349b806674249b62ed3116482f06f433f6ce71decd9413f0c",
+  "standard_pdf_sha256": "62c86eb567f13edb8f71826e985da870b04ef6381634f303cdb16e84d47becd1",
+  "operations": 119,
+  "nonlinear_gates": 32,
+  "license": "MIT, Thomas Pornin, retained in TlsMpc/AesSbox.lean",
+  "boundary": "Transcription is checked against all FIPS table entries by kernel proof; source-to-table correspondence is reviewed, not extracted from a formal standard."
+}

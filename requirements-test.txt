@@ -1,0 +1,2 @@
+# Independent differential-test oracle; not used by MPC computation.
+cryptography==50.0.2

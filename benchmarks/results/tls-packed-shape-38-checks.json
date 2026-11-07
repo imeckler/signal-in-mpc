@@ -1,0 +1,9 @@
+{
+  "wire_bytes": 38,
+  "elapsed_seconds": 8.241734208073467,
+  "exit_code": 0,
+  "compiler_output": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/tls_shape_export.mpc\nChanged statistical security for comparison etc. to 128\nWriting to Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-38.json-tls_binary_tls_open_handshake_record_38-1.bc\nWriting to Programs/Functions/tls_binary_tls_open_handshake_record_38-sbv:[592x1]-sbv:[168x1]\nWriting to Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-38.json.sch\nWriting to Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-38.json-0.bc\nHash: a720e5dabe19c3d2dff4940bc6b75a36ba650c451b260d1f4c0c7c5d51b38002\nProgram requires at most:\n       75190 bit triples\n         129 virtual machine rounds\n",
+  "native_mpc_executed": false,
+  "toolchain_sha256": "c85fe627dcc10fd3798e068a9eec4f3ad96df7fa3d1ab200f1af5a0fdd361d96",
+  "manifest_sha256": "046444b32e2d75473d2e1d709449930241863703b0aef0b4fa479b5b89932d2d"
+}

@@ -1,0 +1,241 @@
+#pragma once
+#include "NativeWorker.h"
+#include "SessionPolicy.h"
+#include "ApplicationPolicy.h"
+#include "Protocols/Opener.h"
+#include <cstdint>
+#include <initializer_list>
+#include <map>
+
+namespace tls_mpc_worker {
+using Bytes = std::vector<uint8_t>;
+class Session {
+    Machine<Share>& machine;
+    Worker worker;
+    SessionPolicy policy;
+    struct Traffic { Bits secret, key, iv; };
+    Traffic client_hs, server_hs, client_app, server_app;
+    Bits main_secret;
+    ApplicationPolicy application_policy;
+    bool application_ready=false;
+    Bits parser_state;
+    struct Buffer { Bits data, private_length; size_t capacity; bool fixed_length; };
+    std::map<uint64_t,Buffer> buffers;
+    uint64_t next_buffer=1;
+    Bytes pending_wire;
+    bool pending_send=false;
+    static void require(bool ok, const char* reason) { if (!ok) throw std::runtime_error(reason); }
+    static Bits concat(std::initializer_list<Bits> parts) {
+        Bits result;
+        for (const auto& part : parts) result.insert(result.end(), part.begin(), part.end());
+        return result;
+    }
+    static Bits bytes(const Bits& input, size_t offset, size_t length) {
+        require((offset + length) * 8 <= input.size(), "secret slice out of bounds");
+        return Bits(input.begin() + offset * 8, input.begin() + (offset + length) * 8);
+    }
+    Bits public_bits(const Bytes& input) {
+        auto result = worker.allocate(input.size() * 8);
+        for (size_t i = 0; i < input.size(); ++i)
+            for (size_t j = 0; j < 8; ++j)
+                result[8*i+j][0] = Bit::constant((input[i] >> (7-j)) & 1,
+                    machine.get_N().my_num(), machine.get_bit_mac_key());
+        return result;
+    }
+    Bits eval(const std::string& name, Bits input, size_t output_bytes) {
+        return worker.binary(name, std::move(input), output_bytes * 8);
+    }
+    Traffic traffic(Bits secret) {
+        auto output = eval("tls-traffic-keys", secret, 28);
+        return {std::move(secret), bytes(output, 0, 16), bytes(output, 16, 12)};
+    }
+    void require_application() const {
+        require(policy.phase()==SessionPolicy::Phase::application && application_ready,
+            "application unavailable before actual handshake-state retirement");
+    }
+    static Bytes sequence_bytes(uint64_t sequence) {
+        Bytes result(8); for(int i=7;i>=0;--i) {result[i]=sequence&255;sequence>>=8;} return result;
+    }
+    uint64_t retain(Buffer buffer) {
+        require(next_buffer!=0 && buffers.size()<4096,"application handle capacity exhausted");
+        uint64_t id=next_buffer++; buffers.emplace(id,std::move(buffer)); return id;
+    }
+    Bytes pending(Bytes wire) {
+        require(!pending_send,"application ciphertext already pending");
+        pending_wire=wire;pending_send=true;return wire;
+    }
+    // Private opening primitive: call sites release only authenticated public
+    // handshake data, ciphertext, public key/Finished, or application event2.
+    Bytes release(const Bits& input) {
+        require(input.size() % 8 == 0, "unaligned public output");
+        Opener<Bit> opener(machine.get_player(), machine.get_bit_mac_key());
+        opener.init_open();
+        for (const auto& bit : input) { require(bit.size() == 1, "invalid bit register"); opener.prepare_open(bit[0]); }
+        opener.exchange();
+        Bytes result(input.size()/8, 0);
+        for (size_t i = 0; i < input.size(); ++i)
+            result[i/8] |= (opener.finalize_open().get() & 1) << (7-i%8);
+        opener.Check(); // Authenticate/check BEFORE returning public bytes.
+        return result;
+    }
+    template<class F> auto guarded(F&& operation) -> decltype(operation()) {
+        try { return operation(); }
+        catch (...) { abort(); throw; }
+    }
+public:
+    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned) : machine(machine), worker(machine, pinned) {}
+    Session(const Session&)=delete;
+    Session& operator=(const Session&)=delete;
+    ~Session(){abort();}
+    Bytes begin() { return guarded([&] { policy.begin(); return release(worker.begin()); }); }
+    void derive(const Bytes& peer, const Bytes& hello_hash) {
+        guarded([&] {
+            policy.derive();
+            require(peer.size() == 32 && hello_hash.size() == 32, "invalid agreement/hash length");
+            bigint u = 0;
+            for (int i = 31; i >= 0; --i) { u <<= 8; u += i == 31 ? peer[i] & 127 : peer[i]; }
+            Field coordinate(u);
+            auto agreement = worker.agreement(coordinate);
+            auto output = eval("tls-handshake-secrets", concat({agreement, public_bits(hello_hash)}), 128);
+            client_hs = traffic(bytes(output, 32, 32));
+            server_hs = traffic(bytes(output, 64, 32));
+            main_secret = bytes(output, 96, 32);
+        });
+    }
+    Bytes open_handshake(uint64_t sequence, const Bytes& wire) {
+        return guarded([&] {
+            policy.receive(sequence);
+            // AES-128-GCM profile: at most 16385 inner bytes + 16 tag + 5 header,
+            // matching TlsReceive.openChecked. The generic transport limit is larger.
+            require(wire.size() >= 22 && wire.size() <= 16406, "invalid AES-GCM record size");
+            Bytes seq(8); for (int i = 7; i >= 0; --i) { seq[i] = sequence & 255; sequence >>= 8; }
+            auto result = eval("tls-open-handshake-record-" + std::to_string(wire.size()),
+                concat({server_hs.key, server_hs.iv, public_bits(seq), public_bits(wire)}), wire.size()-17);
+            auto output = release(result); // PROVED handshake-only gate is inside this kernel.
+            require(output[0] == 255, "handshake record authentication/type rejected");
+            return output;
+        });
+    }
+    // The service must first agree the EXACT authentication request and all
+    // parties' local validation results. This method does not validate X.509.
+    void certificate_authenticated() { guarded([&] { policy.authenticate(); }); }
+    bool verify_finished(const Bytes& hash, const Bytes& message) {
+        return guarded([&] {
+            policy.verify();
+            require(hash.size() == 32 && message.size() == 36, "invalid Finished dimensions");
+            auto output = release(eval("tls-verify-finished",
+                concat({server_hs.secret, public_bits(hash), public_bits(message)}), 1));
+            require(output[0] == 255, "server Finished rejected");
+            return true;
+        });
+    }
+    Bytes finish(const Bytes& server_hash, const Bytes& client_hash, const Bytes& certificate) {
+        return guarded([&] {
+            policy.finish();
+            require(server_hash.size() == 32 && client_hash.size() == 32, "invalid transcript hash");
+            require(certificate.empty() || certificate == Bytes({11,0,0,4,0,0,0,0}), "invalid empty client certificate");
+            auto applications = eval("tls-application-secrets", concat({main_secret, public_bits(server_hash)}), 64);
+            client_app = traffic(bytes(applications, 0, 32));
+            server_app = traffic(bytes(applications, 32, 32));
+            auto verify_data = eval("tls-finished", concat({client_hs.secret, public_bits(client_hash)}), 32);
+            auto content = concat({public_bits(certificate), public_bits({20,0,0,32}), verify_data});
+            size_t length = certificate.size() + 36;
+            return release(eval("tls-seal-record-22-"+std::to_string(length)+"-0",
+                concat({client_hs.key, client_hs.iv, public_bits(Bytes(8,0)), content}), length+22));
+        });
+    }
+    void retire() {
+        // Do not enable application_ready until *all* scalar/handshake copies
+        // in the VM and preprocessing/processor buffers are actually erased.
+        guarded([&] { require(policy.phase()==SessionPolicy::Phase::application,"invalid retirement phase");
+            throw std::runtime_error("native VM retirement/erasure not implemented"); });
+    }
+    // Internal same-worker producer interface, never a public RPC importing or
+    // opening bytes. Signal/H2 circuits may retain their fixed-shape output here.
+    uint64_t retain_fixed_payload(Bits payload) {
+        return guarded([&] { require_application(); require(payload.size()%8==0 && payload.size()<=16384*8,"invalid fixed payload");
+            size_t size=payload.size()/8;
+            return retain({std::move(payload),{},size,true}); });
+    }
+    Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
+        return guarded([&] { require_application();
+            require(size<=16384 && padding<=16384-size,"invalid application dimensions");
+            auto found=buffers.find(handle);require(found!=buffers.end(),"unknown application handle");
+            const auto& buffer=found->second;
+            // A received buffer has a private actual length: blindly sending
+            // its capacity would change the protocol and expose padding bytes.
+            require(buffer.fixed_length && buffer.capacity==size,"payload requires private stream processing");
+            application_policy.application(sequence);
+            return pending(release(eval("tls-seal-record-23-"+std::to_string(size)+"-"+std::to_string(padding),
+                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}),size+padding+22)));
+        });
+    }
+    Bytes seal_control(uint64_t sequence,unsigned kind,const Bytes& content) {
+        return guarded([&] { require_application();
+            if(kind==22 && (content==Bytes({24,0,0,1,0}) || content==Bytes({24,0,0,1,1})))
+                application_policy.update(sequence,content.back()==1);
+            else {require(kind==21 && content==Bytes({1,0}),"invalid public application control");application_policy.close(sequence);}
+            return pending(release(eval("tls-seal-record-"+std::to_string(kind)+"-"+std::to_string(content.size())+"-0",
+                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),public_bits(content)}),content.size()+22)));
+        });
+    }
+    Bytes open_application(uint64_t sequence,const Bytes& wire) {
+        return guarded([&] { require_application();require(wire.size()>=22 && wire.size()<=16406,"invalid application wire size");
+            application_policy.receive(sequence);
+            const size_t capacity=wire.size()-21;
+            if(parser_state.empty()) parser_state=public_bits(Bytes(11,0));
+            auto opened=eval("tls-open-record-"+std::to_string(wire.size()),
+                concat({server_app.key,server_app.iv,public_bits(sequence_bytes(sequence)),public_bits(wire)}),capacity+4);
+            // Keep both ORIGINAL shared inputs until the DEFER decision.
+            auto input=concat({parser_state,opened});
+            auto result=eval("tls-route-application-"+std::to_string(capacity),input,capacity+15);
+            auto event=release(bytes(result,0,2));
+            if(event==Bytes({5,0})) {
+                result=eval("tls-post-handshake-"+std::to_string(capacity),std::move(input),capacity+15);
+                event=release(bytes(result,0,2));
+            }
+            require(event.size()==2 && event[0]>=1 && event[0]<=4 &&
+                (event[0]==3?event[1]<=1:event[1]==0),"application authentication/control rejected");
+            parser_state=bytes(result,2,11);
+            application_policy.event(event[0],event[1]==1);
+            if(event[0]==1) {
+                auto id=retain({bytes(result,15,capacity),bytes(result,13,2),capacity,false});
+                auto encoded=sequence_bytes(id);event.insert(event.end(),encoded.begin(),encoded.end());
+            }
+            return event; // No plaintext, length, state or ticket is opened.
+        });
+    }
+    void before_send(const Bytes& wire) {
+        guarded([&] { if(policy.phase()==SessionPolicy::Phase::application && application_ready) {
+            require(pending_send && pending_wire==wire,"send does not match reserved ciphertext");
+        }});
+    }
+    void after_send() {
+        guarded([&] { if(policy.phase()==SessionPolicy::Phase::application && application_ready) {
+            application_policy.sent();pending_wire.clear();pending_send=false;
+        }});
+    }
+    void rotate_send() {
+        guarded([&] { require_application();application_policy.rotated_send();
+            auto next=traffic(eval("tls-update-traffic",client_app.secret,32));
+            // This must be replaced by real retirement before enabling apps.
+            (void)next;throw std::runtime_error("native traffic-key erasure not implemented"); });
+    }
+    void rotate_receive() {
+        guarded([&] { require_application();application_policy.rotated_receive();
+            auto next=traffic(eval("tls-update-traffic",server_app.secret,32));
+            (void)next;throw std::runtime_error("native traffic-key erasure not implemented"); });
+    }
+    void abort() noexcept {
+        policy.abort();application_policy.abort();application_ready=false;
+        worker.erase_owned_scalar();
+        for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {
+            traffic->secret.clear();traffic->key.clear();traffic->iv.clear();
+        }
+        main_secret.clear();parser_state.clear();buffers.clear();
+        pending_wire.clear();pending_send=false;
+    }
+    // Abort overwrites current owned shares but NOT runtime/preprocessing copies.
+    // No full erasure success is acknowledged by the RPC dispatcher.
+};
+}

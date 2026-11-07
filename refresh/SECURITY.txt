@@ -1,0 +1,402 @@
+Native refresh prototype: protocol, source review and remaining obligations
+==========================================================================
+
+Status, 2026-11-06
+------------------
+This directory implements an UNVERIFIED backend primitive for a five-party,
+degree-two Shamir sharing. It produces each party's own candidate share vector;
+it does not commit a database epoch, repair a recovered party, or establish the
+whole TLS/Signal service's proactive security. The Lean compiler and functional
+sharing contracts have a separate verification boundary. Python is build/check
+orchestration; the refresh arithmetic and native private output are C++.
+
+Followup: PRZS.txt compares per-record seed expansion with encrypted records
+under a proactively shared wrapping key. NativePrzs.h is a separate experimental
+candidate; this document's protocol/cost argument describes NativeRefresh.h.
+Reusing one identical mask across records is rejected by the new multi-epoch
+regression and MaskReuse.lean. Neither candidate establishes deployment security.
+
+The sources have received the source review recorded below, not an independent
+cryptographic audit. No five-party network execution or WAN benchmark has run:
+the current environment rejects localhost bind with EPERM. The native local
+tests run real MP-SPDZ field, checker, decoder and private-output finalization
+code. Memory-BIO tests run real TLS handshakes without sockets. Neither test is
+a successful network MPC execution or a proof of the security argument below.
+
+Backend pin: MP-SPDZ v0.4.4, commit
+113c4e47dd94bca9ecab029d2f0abe649bea5c52. Archive SHA-256:
+53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78.
+scripts/check_refresh_backend.py verifies all 1117 regular pinned source files
+against that archive. Its isolated copy permits one recorded transport-policy
+patch, described below. It does not modify the shared .deps/MP-SPDZ sources.
+
+Required model and interface
+----------------------------
+There are five fixed parties, threshold t=2, and abort is allowed. Let P_e be
+all parties exposed during application period e and R_e those exposed during
+the transition e -> e+1. Require
+
+    |C_e| <= 2, where C_e = P_e union R_(e-1) union R_e.
+
+R_(-1) is empty. Exposure is historical; recovery does not remove an exposure
+from that period's set. There is no lifetime limit of two distinct parties.
+An abort, partial commit or unretired candidate does not reset the exposure
+budget. This is the adjacent-period accounting in Herzberg et al., section 2.1:
+https://www.cs.cornell.edu/courses/cs754/2001fa/339.PDF
+
+prepare<F>(player, binding, current) requires an agreed, valid source sharing,
+a frozen object/component inventory, five authenticated private-channel peers,
+and fresh honest entropy. An honest source is f(x_i), deg(f)<=2; malformed
+adversarial source state is not repaired by this function. A valid binary
+source additionally has f(0) in {0,1}. It returns only this party's candidate,
+or throws/blocks. It never reconstructs f(0), transmits old shares, or publishes
+coefficients, deltas, or a candidate-share hash. Every call has a public domain,
+exact source/target epoch, count and descriptor digest. Full descriptor
+authorization, uniqueness and payload-to-manifest authentication are external
+preconditions. Public descriptor comparison is not signature verification.
+
+Native fields and encodings
+---------------------------
+fp25519 uses MaliciousShamirShare<gfp_<0,4>>, p=2^255-19, 32 bytes of little-endian
+64-bit Montgomery limbs. The raw residue must be <p. It is not a canonical key
+byte string. Arbitrary 256-bit keys must retain exact bytes or use the proved
+248+8-bit limb encoding; reduction modulo p loses information.
+
+ccd40 and ccd64 use MaliciousShamirShare<gf2n_short> as a full-field wrapper for
+the component inside GC::MaliciousCcdShare<gf2n_short>. Both serialize as eight
+little-endian bytes. The upper 24 bits must be zero for degree 40. Polynomials:
+
+    GF(2^40): X^40 + X^20 + X^15 + X^10 + 1
+    GF(2^64): X^64 + X^4 + X^3 + X + 1
+
+Native points are F(1),...,F(5). In binary fields these are polynomial-basis
+encodings of the integers, not repeated addition of the field unit. The tests
+check byte-for-byte compatibility with the actual CCD component class. They
+do not establish a full GC vector-register export/import adapter. The root
+mixed arithmetic/binary worker is not connected to this prototype.
+
+The prime coordinate field, Curve25519 subgroup order, old Pallas scalar field,
+and any PQ polynomial modulus remain different typed domains. No cast between
+them is an authenticated conversion.
+
+Implemented protocol, independently for every object/component
+--------------------------------------------------------------
+1. Agree the binding by checked all-party broadcast.
+2. Each dealer d draws six independent full-field values and forms independent
+   degree-two polynomials G_(d,1)(X), G_(d,2)(X). It privately sends only their
+   two evaluations at x_j to party j. No party is a privileged mask dealer.
+3. Each j adds its received evaluations, obtaining local coefficient shares
+   u_j and v_j. All parties agree input framing/canonicality success or abort.
+4. For each recipient i, j sends the local projection
+       h_(i,j) = x_i*u_j + x_i^2*v_j
+   only to i, using native MaliciousShamirPO. Recipient i checks that all five
+   h_(i,j) lie on a degree-two polynomial, reconstructs delta_i at zero, and
+   forms current_i + delta_i. No other recipient receives these messages.
+5. Finish the five private-output phases, then checked-broadcast the status.
+   No candidate returns until this party has accepted the all-five status.
+   A party that aborts at the last agreement may leave others with candidates;
+   none of those candidates is an epoch commit.
+
+All honest dealers use libsodium randombytes_buf directly. Prime values use
+rejection sampling of uniform native Montgomery residues below p; binary
+values use uniform full extension-field bits. The adapter does not consume
+buffered RANDOMFULLS values, shared/pairwise PRNG streams, triples, daBits, or
+edaBits. There are no secret multiplications. Public scaling and addition do
+not create pending multiplication checks in this standalone process. An
+application worker must finish its own checks before exporting the source.
+
+The total field payload per component is 40 elements for dealer inputs plus
+20 elements for private outputs, across the whole five-party cluster: 1920
+bytes for fp25519 or 480 bytes for either binary field. This excludes headers,
+agreements, TLS overhead and persistence. The implementation serializes the
+five recipient phases and supports 1..4096 components per call. These are code
+counts and bounds, not latency or throughput measurements.
+
+Functional integrity argument, including malicious contributions
+-----------------------------------------------------------------
+Assume at most two transition parties are malicious and the channels deliver
+authenticated messages privately. At least three parties are honest. Their
+local u_j values uniquely interpolate one degree-two polynomial U; likewise
+their v_j values determine V. This is true even if malicious dealers sent
+inconsistent input evaluations. At an honest recipient i, the three honest
+projections are evaluations of H_i(X)=x_i*U(X)+x_i^2*V(X). The native all-five
+degree check either rejects or forces the reconstructed value to H_i(0).
+Consequently every accepting honest recipient adds
+
+    z(x_i), where z(X)=U(0)*X+V(0)*X^2 and z(0)=0.
+
+Adding z to the source polynomial preserves its value at zero and its degree.
+For CCD this preserves the represented bit without reducing its random mask
+coefficients to bits. A malicious party can retain an arbitrary local value
+or withhold a message; this protocol promises honest-output consistency with
+abort, not honest behavior by corrupted parties or guaranteed delivery.
+
+The native checker interpolates the first three shares and compares its value
+with interpolation through each successive prefix of four and five shares.
+Distinct nonzero points make these equalities equivalent to the degree-two
+condition. This check is exact over the field: it has no random sacrifice
+error. The surrounding application's preprocessing and mixed conversions do
+have their own security parameters and are not covered by this statement.
+
+Private-output leakage and refresh-only privacy argument
+-------------------------------------------------------
+Native PRIVATE output exposes every raw h_(i,j) to its recipient. Thus party i
+learns the full inner polynomial H_i, not just delta_i. Treating this API as an
+ideal value-only private-output oracle without inspecting its transcript
+would be incorrect. It still does not give one party the outer mask z.
+
+For one transition corruption B at point b, change one honest dealer's inner
+polynomials, for any field element k, as follows:
+
+    G_1(X) -> G_1(X) + k*(X-b)
+    G_2(X) -> G_2(X) - k*(X-b)/b.
+
+Both input evaluations delivered to B remain unchanged. At every sender
+point X, the entire projection b*G_1(X)+b^2*G_2(X) delivered privately to B is
+unchanged. B's own state and outgoing projections are also unchanged. The
+outer mask changes by k*X*(X-b). Thus every non-B delta can vary while B's
+full transcript, not just its final scalar output, remains fixed. Uniform
+honest dealer coefficients are invariant under this bijective translation.
+The native tests exercise this witness in all three fields, for every B and
+sender point. It works equally in characteristic two, with field subtraction.
+
+More generally, consider only a sequence of refreshes of a fixed abstract
+secret, under ideal authenticated private channels and erasure/recovery.
+For a chosen secret difference d, choose a degree-at-most-two polynomial D_e
+with D_e(0)=d and D_e(x_i)=0 for each i in C_e. Such a polynomial exists because
+|C_e|<=2. Changing each epoch polynomial f_e to f_e+D_e leaves all exposed
+stored shares fixed. At a transition, the required change to its mask is
+Q=D_(e+1)-D_e. It has zero constant and vanishes at every transition-corrupted
+point, since R_e is contained in both accounted sets.
+
+* With no transition corruption, arbitrary Q can be absorbed into the two
+  constants of an honest dealer's independently uniform inner polynomials.
+* With one transition corruption B, Q=k*X*(X-b). The transformation above
+  absorbs Q while leaving every message or random value exposed to B fixed.
+* With two transition corruptions B,D at b,c, Q has three distinct roots 0,b,c and
+  degree at most two, so Q=0. The mask may be fully known to those two parties;
+  the accounting permits no third distinct exposure in either adjacent epoch.
+
+This gives a transcript-preserving change of honest randomness for the
+refresh-only sequence. Malicious contributions need not be random: fix the
+adversary's coins, and unchanged views give the same behavior. In the
+one-corruption case the changes to each honest recipient's reconstruction
+vector form a degree-two polynomial and vanish at B's sender point. Therefore
+maliciously supplied fixed messages preserve the check's accept/reject result.
+Adaptive choices based on the same exposed transcript follow the same path,
+provided every later exposure sees only the properly retired successor state.
+Public lengths, context identifiers and success/abort remain visible.
+
+This is an unmechanized argument for the bounded refresh protocol under its
+stated channel, entropy, source-validity and erasure assumptions. It does not
+prove the C++ implementation refines the abstract protocol, constant-time
+behavior, the TLS composition, or adaptive security of the live MP-SPDZ
+application/preprocessing worker. A reviewed composition with those components
+is still required. Refresh alone cannot make a static-security MPC theorem
+an adaptive/mobile theorem.
+
+Why public-opening normalization is rejected
+--------------------------------------------
+Opening a random sharing [r] and subtracting public(r) preserves zero value
+algebraically. Native public reconstruction also exposes evaluations of its
+random polynomial, so an observer obtains the entire resulting zero mask.
+Let A be exposed before refresh, B during it, and C afterward. The accounted
+sets {A,B} and {B,C} satisfy the required bound. If B learns the whole z,
+f_e(x_A)+z(x_A), f_(e+1)(x_B), f_(e+1)(x_C) are three successor shares and
+reconstruct the secret. The local tests exercise this rejected construction.
+The same problem arises if one leader knows the whole refresh mask.
+
+[r]-[r] is worse as a randomness source: identical shares cancel to the fixed
+zero representation. Neither construction is used by this adapter. The Lean
+normalization theorem asserts value preservation only.
+
+Pinned backend source review
+----------------------------
+Paths below are relative to .deps/MP-SPDZ, with the pinned commit above.
+
+Randomness:
+  Compiler/types.py: sint.get_random -> RANDOMFULLS.
+  Processor/instructions.h: RANDOMFULLS -> Procp.DataF.get_random().
+  Protocols/ReplicatedPrep.hpp: BufferPrep::get_random first tries the
+    protocol; not_implemented falls back to Preprocessing::get_random_no_count.
+  Processor/Data_Files.h: get_random_no_count adds input masks from all
+    parties. Protocols/ReplicatedPrep.hpp buffer_inputs_as_usual makes batches
+    using SeededPRNG and T::clear, caching own clear inputs and local shares.
+  Protocols/MaliciousShamirShare.h selects MaybeHemi and malicious preprocessing.
+    The alias in Protocols/SemiShare.h chooses Hemi for the prime field;
+    Hemi/Beaver do not supply Shamir's direct random-buffer override here.
+  Protocols/Shamir.hpp get_randoms does hyperinvertible mixing for honest
+    Shamir paths, including preprocessing, but is not by itself a description
+    of MaliciousShamir's RANDOMFULLS fallback.
+  Protocols/ShamirInput.hpp initializes persistent pairwise PRNG streams via
+    private seed exchange. Safe boundary retirement must cover their state.
+
+The prototype therefore draws new entropy directly and uses an explicit
+unbuffered contribution protocol. This avoids claiming that a cached input
+mask or a previously exposed PRNG seed becomes fresh merely by being read in
+a new epoch. It does not remove the need to retire the application's pools.
+
+Private output and binary API:
+  Compiler/types.py emits PRIVATEOUTPUT for constant-recipient sint.reveal_to.
+  Processor/Instruction.hpp runs Procp.check() before native PRIVATEOUTPUT.
+  Processor/SpecificPrivateOutput.h routes messages only to that recipient.
+  Protocols/MaliciousShamirPO.hpp sends the full reconstruction vector to the
+    recipient and calls MaliciousShamirMC::reconstruct immediately.
+  Protocols/MaliciousShamirMC.hpp implements the exact prefix checks above.
+  Compiler/GC/types.py _binary.reveal_to is explicitly unsupported.
+  GC/MaliciousCcdShare.h changes clear to Bit. GC/TinyMC.h and VectorSecret
+    expose bit/vector values; the ordinary output path can discard non-bit
+    coefficient information. Generic input-mask generation based on T::clear
+    is also insufficient for full-field CCD coefficient randomness.
+  GC/TinySecret.h VectorSecret::input(istream&,bool) is not implemented.
+
+The full-field MaliciousShamirShare<gf2n_short> wrapper avoids these binary API
+gaps. It uses the actual native field and private-output/check classes rather
+than pretending a binary reveal or XOR fragment is an extension-field share.
+The tests explicitly reconstruct the full-field value 37 and compare component
+serialization with GC::MaliciousCcdShare, so bit truncation would fail them.
+
+Parameters and erasure:
+  Machines/malicious-ccd-party.cpp initializes gf2n_short from the security
+    parameter. DEFAULT_SECURITY is 40; an explicit 64 selects degree 64.
+    The short-field implementation cannot supply a degree greater than 64.
+  Math/gf2n.cpp supplies the irreducible polynomials above. Math/gfp.h and
+    modp serialization use native Montgomery limbs.
+  Tools/octetStream.cpp destruction releases buffers without secure wiping.
+    Tools/random.h retains PRNG seed/counter/AES state, without a full erasing
+    destructor. Native checker/GMP/compiler temporaries create further copies.
+
+Statistical security of the live application must have an explicit aggregate
+failure budget across preprocessing, checks, conversions and executions. The
+default 40-bit parameter is not a 128-bit lifetime guarantee. Changing the
+refresh field to degree 64 alone does not resolve that application analysis.
+
+Internal transport policy and its limits
+----------------------------------------
+The pinned Networking/ssl_sockets.h selects TLS 1.2 and verify_peer, without
+verify_fail_if_no_peer_cert on server-side streams or an explicit ephemeral-only
+cipher policy. OpenSSL documents that a missing client certificate requires
+the latter flag to make the handshake fail:
+https://docs.openssl.org/master/man3/SSL_CTX_set_verify/
+
+The refresh build makes an isolated copy under .deps/sharing-refresh/MP-SPDZ,
+changes that header to TLS 1.3, requires peer certificates and expected peer
+role names, pins the exact expected leaf certificate, and disables session
+caching/tickets. The pin is necessary here: the development setup creates
+self-signed CA certificates and trusts all party certificates in one directory.
+A corrupted party holding its own CA key can issue another certificate naming
+a different party; ordinary chain validation plus hostname matching accepts
+that role substitution. The local regression fixture demonstrates this with
+P2 signing a certificate claiming P1, then verifies exact pinning rejects it.
+Expected pins must come from the authenticated committee/epoch configuration;
+an attacker-controlled replacement pin is not a recovered identity.
+
+The build rebuilds dependencies;
+on macOS it gives the isolated shared library an absolute install name to
+avoid loading the stock library from another working directory. Compilation
+of NativeRefresh.h requires the patch's policy macro. The check script records
+both header hashes. Shared backend files and root TLS code are untouched.
+
+Memory-BIO tests instantiate the actual patched ssl_ctx and peer verification
+helper. A valid development P0/P1 mutual handshake succeeds with TLS 1.3;
+missing client credentials, a wrong expected role, and a peer-issued certificate
+claiming the correct role fail. The unpinned version accepts the last fixture,
+so that negative test exercises the actual trust-directory weakness. Tickets
+and session cache are disabled. These tests use the existing local development certs;
+they neither deploy credentials nor prove runtime recovery/key rotation.
+
+Production use still requires a fresh authenticated ephemeral context per
+transition, compromised-certificate revocation, recovery authentication, and
+retirement of old traffic/ephemeral secrets. A party remains exposed while
+stolen credentials permit impersonation. TLS 1.3 forward secrecy assumes
+ephemeral-secret erasure; the patch is not an erasure mechanism or a proactive
+credential-management protocol. The stored secret representing an external
+Signal identity key or an external TLS traffic key need not change when its
+native shares and internal transport contexts are refreshed.
+
+Persistence, lifecycle and composition still to implement
+---------------------------------------------------------
+NativeSnapshot.h reads a bounded local envelope: seven newline-terminated
+header fields followed by exactly count raw native components. The fields are
+magic TLSMPC-LOCAL-SHARES-v1, active/candidate marker, domain, party index, epoch,
+manifest/descriptor digest, and component count. Canonical integer spelling,
+field encoding, exact context and exact payload length are checked. It is not
+a native Transactions file and contains no MAC or source-validity proof.
+MaliciousShamirShare's MAC_Check name denotes a polynomial checker, not an
+SPDZ MAC embedded in every stored field element.
+
+The driver reads only active envelopes and writes only candidate envelopes,
+using mode 0600, exclusive creation, file fsync and parent-directory fsync.
+It never overwrites an existing file or makes a candidate active. A partial
+file remains a candidate requiring coordinator recovery. These calls assume
+a trusted directory and the platform's storage durability contract; they do
+not implement a distributed transaction or guarantee all forms of power-loss
+durability. Data in the envelope is a local secret share and is not encrypted
+at rest by this prototype.
+
+Before the service can claim the requested mobile-adversary protection:
+
+1. Implement authenticated source inventories, checked worker export/import,
+   binary component flattening and reconstruction, bit/range validity, and
+   consistency of all alternate-domain caches. Quiesce application work and
+   complete its malicious checks before refresh. The driver currently trusts
+   source-validity and performs no secret-import consistency circuit.
+2. Implement the signed all-five prepared/commit/cleanup transaction in
+   specs/sharing-refresh.json. Resolve partial delivery durably and prevent
+   two successors. Candidate availability does not establish an epoch boundary.
+3. Bind candidate state using hiding commitments or encrypted payloads with
+   properly managed randomness, not public hashes of plaintext identifiers or
+   raw shares. Given two Shamir shares and a guessed low-entropy secret, an
+   attacker can interpolate the whole polynomial; a public hash of a third
+   share then checks that guess. Public partial-share hashes are therefore
+   not automatically hiding. The present prototype publishes no such hashes.
+4. Supply rollback-resistant checkpoints, exactly-once TLS/Signal state
+   updates and correct retry semantics. Never reset TLS sequence numbers,
+   restore used Signal message keys, or reuse an aborted batch's entropy.
+5. Recover hosts to clean execution with fresh private entropy. Authenticate
+   recovered identities and provide checked current-share repair, or block.
+   Five unauthenticated Shamir evaluations with two errors do not support
+   guaranteed error correction. This prototype offers detection/abort, not
+   repair or identification of the bad shares.
+6. Retire old/candidate/transition copies in worker memory, channels, PRNG and
+   preprocessing state, WALs, files, swap, dumps and backups. The adapter makes
+   best-effort sodium_memzero calls for its own buffers, but not every native
+   temporary or allocator copy is covered. Retire the entire transition
+   process; establish the OS/storage erasure assumptions explicitly. A retained
+   master key that decrypts old wrapping records defeats cryptographic erasure.
+7. Start a separate successor application context and regenerate unused
+   triples, daBits/edaBits, input masks, PRSS/OT/correlation seeds and check/MAC
+   contexts where present. Continuing an exposed deterministic PRNG is not
+   fresh entropy. Retention of future-epoch correlations must be accounted for
+   in every period they can expose; the initial policy is to retain none.
+8. Review adaptive/mobile composition of the application MPC, conversions,
+   transport, refresh and recovery. The argument above addresses refresh-only
+   stored-state privacy. MP-SPDZ's ordinary malicious security and a verified
+   functional compiler do not on their own discharge this composition.
+9. Run real five-party positive/adversarial/crash tests when sockets are
+   available, then measure WAN batches and the chosen refresh cadence. No
+   messaging or refresh throughput is claimed from the local tests.
+
+No outside observer obtains a public zero-sharing proof from this adapter.
+Participant checks replace that function internally under the stated model;
+an externally verifiable hiding PVSS/ZK relation would be a separate feature.
+
+Reproducing current checks
+--------------------------
+    python3 scripts/check_sharing_spec.py
+    python3 scripts/check_refresh_backend.py
+
+The first audits the two Lean modules' theorem dependencies. The second builds
+the isolated native adapter and local checks, records source and patch hashes,
+tests the native private-output kernel under every recipient rotation, rejects
+altered shares/noncanonical payloads/context errors, checks local snapshots
+and candidate staging, runs transcript witnesses and TLS memory-BIO cases,
+and reports the socket probe. Its report is .deps/sharing-refresh/checks.json.
+
+The compiled candidate-only driver is invoked as:
+    refresh-party DOMAIN PARTY HOSTS PORT SOURCE_EPOCH SOURCE_MANIFEST_SHA256 DESCRIPTOR_SHA256 INPUT CANDIDATE
+
+DOMAIN is fp25519, ccd40 or ccd64; PARTY is 0..4. Run five participants using
+properly provisioned credentials and matching prevalidated inputs only after
+the source/epoch contracts above are supplied. Merely obtaining five candidate
+files does not close a proactive epoch or authorize resuming application work.

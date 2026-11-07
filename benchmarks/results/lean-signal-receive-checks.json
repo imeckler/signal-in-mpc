@@ -1,0 +1,442 @@
+{
+  "checked_at_utc": "2026-11-07T05:22:31.297958+00:00",
+  "kind": "lean_signal_receive_checks",
+  "cases": [
+    {
+      "arguments": [
+        "signal-cbc-open",
+        "16"
+      ],
+      "artifact_sha256": "7737741d1c5c152483cbdc9007291064973ef48226cca39857b4e3fc90b6b4ed",
+      "fixture_sha256": "5bcab137492713dfb52e8ffff5f985b47a35efb2c00278bf5d8beb120f6df7a2",
+      "fixture_lanes": 20,
+      "input_bits": 512,
+      "output_bits": 200,
+      "native_export_seconds": 0.20479608298046514,
+      "adapter_operations": {
+        "raw_and_gates": 147794,
+        "executed_and_gates": 11018,
+        "executed_xor_gates": 45776,
+        "unreachable_nodes": 91000
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 11018,
+          "fixture_output_values_checked": 4,
+          "bytecode_sha256": "f9561955d22d340598fa677c73035238ef1c5d3c8232b97e5c24b66ef7aa782f"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 176288,
+          "fixture_output_values_checked": 64,
+          "bytecode_sha256": "1143af6489fc8135b32682eae66ce1e6834fd46ca67bcef36e0f2f25e86d63de"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-cbc-open",
+        "32"
+      ],
+      "artifact_sha256": "981558efc030764d197748aa24acdd79617091401ca2f7e9051af396d3af3c38",
+      "fixture_sha256": "503073a4887f369504623949f165b34d56c5c28b18a5cd9e13933217b4fcb6e9",
+      "fixture_lanes": 20,
+      "input_bits": 640,
+      "output_bits": 328,
+      "native_export_seconds": 0.38871537504019216,
+      "adapter_operations": {
+        "raw_and_gates": 268675,
+        "executed_and_gates": 18323,
+        "executed_xor_gates": 83784,
+        "unreachable_nodes": 166568
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-cbc-open",
+        "64"
+      ],
+      "artifact_sha256": "73cd11258fbd8e7550bf790871f962f45fa7ef6e2dba61f58276ee5d79577e88",
+      "fixture_sha256": "919998c24baa85749bbff87b35589ad53ae18b251a22b06e05e74e38f9e8414c",
+      "fixture_lanes": 20,
+      "input_bits": 896,
+      "output_bits": 584,
+      "native_export_seconds": 0.733440582989715,
+      "adapter_operations": {
+        "raw_and_gates": 510371,
+        "executed_and_gates": 32915,
+        "executed_xor_gates": 159784,
+        "unreachable_nodes": 317672
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 32915,
+          "fixture_output_values_checked": 10,
+          "bytecode_sha256": "70fba73a823cb5acaa8eaabd4b682d9365637f3988711c6b48091447a5a7bc85"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 526640,
+          "fixture_output_values_checked": 160,
+          "bytecode_sha256": "2a0b788f515e768a4e71f6313c56301f6d71813cc47da53f0aa47fa901028c3e"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-cbc-open",
+        "80"
+      ],
+      "artifact_sha256": "586e073525eca2e4cd17e3adbd636bf69107b5977094680f6a2a9c5e109cce79",
+      "fixture_sha256": "d8bb4231a92adaf26665ee7d58a5320ca0cc60a4494bbf1e5f5a791dcda12c44",
+      "fixture_lanes": 20,
+      "input_bits": 1024,
+      "output_bits": 712,
+      "native_export_seconds": 0.9361729579977691,
+      "adapter_operations": {
+        "raw_and_gates": 631219,
+        "executed_and_gates": 40211,
+        "executed_xor_gates": 197784,
+        "unreachable_nodes": 393224
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-cbc-open",
+        "272"
+      ],
+      "artifact_sha256": "0472f949919140ad0d612e9300910787e4bd3ca8724b172290341cdc560be5f0",
+      "fixture_sha256": "b671ba0b84aa88c9a81f989bde3b867601731d726f92c051008aa859116ebdb3",
+      "fixture_lanes": 20,
+      "input_bits": 2560,
+      "output_bits": 2248,
+      "native_export_seconds": 3.467213833006099,
+      "adapter_operations": {
+        "raw_and_gates": 2081395,
+        "executed_and_gates": 127763,
+        "executed_xor_gates": 653784,
+        "unreachable_nodes": 1299848
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-message-mac",
+        "0"
+      ],
+      "artifact_sha256": "b49377aec9ccc769ca3cbb89c2d941b7baae043155da7c10a7aede85eea176b9",
+      "fixture_sha256": "8414540c3a49c0cb97ee4e6896b4163f692526365563ef3e91ed229a6454dc98",
+      "fixture_lanes": 4,
+      "input_bits": 768,
+      "output_bits": 64,
+      "native_export_seconds": 1.2216174170025624,
+      "adapter_operations": {
+        "raw_and_gates": 912151,
+        "executed_and_gates": 283043,
+        "executed_xor_gates": 263087,
+        "unreachable_nodes": 366022
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-message-mac",
+        "53"
+      ],
+      "artifact_sha256": "28430833849c5b12fa5f9e161d286ab1604725e51f7c690c97de5ced2f4a56b0",
+      "fixture_sha256": "a99d6788bb918974ab08d6ae51c7eb7cb55fa5c174d979855f609964e38cbbd7",
+      "fixture_lanes": 4,
+      "input_bits": 1192,
+      "output_bits": 64,
+      "native_export_seconds": 1.1942132500116713,
+      "adapter_operations": {
+        "raw_and_gates": 928308,
+        "executed_and_gates": 288069,
+        "executed_xor_gates": 267881,
+        "unreachable_nodes": 372359
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-message-mac",
+        "54"
+      ],
+      "artifact_sha256": "c6ad18b36cf333815c0b7ba73148b21a11415825470cbf2de193bb612891f548",
+      "fixture_sha256": "ef91f087413e0cda75debbe9a359f22472442dad136595286f6ebae6175c500b",
+      "fixture_lanes": 4,
+      "input_bits": 1200,
+      "output_bits": 64,
+      "native_export_seconds": 1.4236733749858104,
+      "adapter_operations": {
+        "raw_and_gates": 1063024,
+        "executed_and_gates": 330766,
+        "executed_xor_gates": 306144,
+        "unreachable_nodes": 426115
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-message-mac",
+        "137"
+      ],
+      "artifact_sha256": "e09ef796b14bb24f3c5504b63d065e791323b7c873536e6dbfd5d4c3d625e9a8",
+      "fixture_sha256": "aa34959064f4866ac97aa8e8103c12aa3e88224d5bc4c91931b2dd6d2c64d5ac",
+      "fixture_lanes": 4,
+      "input_bits": 1864,
+      "output_bits": 64,
+      "native_export_seconds": 1.672247749986127,
+      "adapter_operations": {
+        "raw_and_gates": 1302814,
+        "executed_and_gates": 404143,
+        "executed_xor_gates": 375930,
+        "unreachable_nodes": 522742
+      },
+      "all_outputs_match": true
+    },
+    {
+      "arguments": [
+        "signal-open-span",
+        "66",
+        "42",
+        "16",
+        "none"
+      ],
+      "artifact_sha256": "ee49716466368a18cdc116bc80ea1f6b767f58dc6a7bf9f347d443d047966f0c",
+      "fixture_sha256": "dbd108d196073e7928fcd192632d31b32fffc611902a73a7e43cfb21409d0118",
+      "fixture_lanes": 42,
+      "input_bits": 1680,
+      "output_bits": 200,
+      "native_export_seconds": 1.5847140409750864,
+      "adapter_operations": {
+        "raw_and_gates": 1212490,
+        "executed_and_gates": 342282,
+        "executed_xor_gates": 352408,
+        "unreachable_nodes": 517800
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 342282,
+          "fixture_output_values_checked": 4,
+          "bytecode_sha256": "d14a509bef51303598300c26bd6f2152ea344a2e30f878cc286b274bdc15a66d"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 5476512,
+          "fixture_output_values_checked": 64,
+          "bytecode_sha256": "8640dc59a7ea2348e6215575e004928512178c865182cb06dbb00f3dd94d5fef"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-open-span",
+        "120",
+        "42",
+        "32",
+        "76"
+      ],
+      "artifact_sha256": "588c134de5d62d6553d4c29f1983a7e0a7584d84056ab313a420a5a2b78e5fb6",
+      "fixture_sha256": "b092114d6d695d2374c6cf112142aeeef1ca3b40021ce2024cb6b8cff9073ac9",
+      "fixture_lanes": 53,
+      "input_bits": 2400,
+      "output_bits": 328,
+      "native_export_seconds": 1.9691101250355132,
+      "adapter_operations": {
+        "raw_and_gates": 1389561,
+        "executed_and_gates": 366116,
+        "executed_xor_gates": 407183,
+        "unreachable_nodes": 616262
+      },
+      "all_outputs_match": true,
+      "mpc_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 366116,
+          "fixture_output_values_checked": 6,
+          "bytecode_sha256": "71a763e074c3754a2a7773e4dca9ec9a6d57de985a51fc60d944d2a52da95bd5"
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 5857856,
+          "fixture_output_values_checked": 96,
+          "bytecode_sha256": "8e27c8cd0018f3a6a326fe4166cc10e958c72bf4b714b085bcedbd17f1cd026a"
+        }
+      ]
+    },
+    {
+      "arguments": [
+        "signal-open-span",
+        "161",
+        "42",
+        "64",
+        "117"
+      ],
+      "artifact_sha256": "fb9cf9ade28ed123f4e9855d17d616b05152f6581d55c7e6dfcb89bfa6ac1b2d",
+      "fixture_sha256": "2babb3fe4ce96a28959803666fff288582f6940613eed160338a734cee04a226",
+      "fixture_lanes": 53,
+      "input_bits": 2728,
+      "output_bits": 584,
+      "native_export_seconds": 4.25501299998723,
+      "adapter_operations": {
+        "raw_and_gates": 1818030,
+        "executed_and_gates": 438560,
+        "executed_xor_gates": 537068,
+        "unreachable_nodes": 842402
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "invalid_public_shapes_rejected": [
+    [
+      "signal-cbc-open",
+      "0"
+    ],
+    [
+      "signal-cbc-open",
+      "15"
+    ],
+    [
+      "signal-cbc-open",
+      "1025"
+    ],
+    [
+      "signal-open-span",
+      "24",
+      "0",
+      "16",
+      "none"
+    ],
+    [
+      "signal-open-span",
+      "24",
+      "1",
+      "16",
+      "none"
+    ],
+    [
+      "signal-open-span",
+      "80",
+      "1",
+      "0",
+      "none"
+    ],
+    [
+      "signal-open-span",
+      "80",
+      "1",
+      "15",
+      "none"
+    ],
+    [
+      "signal-open-span",
+      "80",
+      "1",
+      "16",
+      "1"
+    ],
+    [
+      "signal-open-span",
+      "80",
+      "1",
+      "16",
+      "60"
+    ]
+  ],
+  "source_sha256": {
+    ".lake/build/bin/emit_mpc": "a2c6a25821cc06b91fb7b4b39824db10c7321784dbba2d40499f918364a6678a",
+    "Main.lean": "99935cc405d1528aa3f9622d1ec34d1b5306d0d1f3a5f3676bcec5c6a70f5f48",
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "test_support/circuit.py": "8de179aa6df97fafe0375d5d9de6a2176b7414b3059eae8c6d066b0bf053ab3d",
+    "scripts/check_lean_signal_receive.py": "bc00f5d242f3b3e03983daa91233ebd7e04fbaeece7dc7d630fc19c3d2a4e3dc",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/CbcOpen.lean": "a30c198d80ae9a8cd0d57feb59eda25af01a9891830fcbd55fe69e2d0d4e09fb",
+    "TlsMpc/Signal/MessageMac.lean": "a1df406edf05f8cd122b064930dec41b2bead6988c0f7f499a8d7437000a4dca",
+    "TlsMpc/Signal/Receive.lean": "a252ff059004964617cdc619094f2c801185019464e75ef5d09fe9c3183e7c26",
+    ".deps/MP-SPDZ/compile.py": "1f0d3eb9108e4819b3335feb4e0bab2b2a19b6451bc3bc6a43fceb2d93fe6868",
+    ".deps/MP-SPDZ/Compiler/GC/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".deps/MP-SPDZ/Compiler/GC/instructions.py": "9c72e45dd119d7d4327346e8dd09e92ef8c40336fb85a291a3aada2ade3ae40f",
+    ".deps/MP-SPDZ/Compiler/GC/program.py": "aa531736b6003e5d33f230b0f218d4b011d89eba3fc2857a66d36293af372121",
+    ".deps/MP-SPDZ/Compiler/GC/types.py": "b1c8b6e241158552cf220ece30315de962a81d8e9e6e9a95c57f99fc95d92771",
+    ".deps/MP-SPDZ/Compiler/__init__.py": "1d7bc3026cde6fddd7608e336baec8f0eaa69b8195d4e0ab7aa3caae93c33978",
+    ".deps/MP-SPDZ/Compiler/allocator.py": "2d3c46a016b59df046d88f5f7fe5d6992bae2aaf15193fc2a9295e041b674318",
+    ".deps/MP-SPDZ/Compiler/circuit.py": "b1a6ca00513253ec5a7a82df6943a71272f5f0983dc07882324b9d73dab7db0b",
+    ".deps/MP-SPDZ/Compiler/circuit_oram.py": "e7e096b39c7fbc8409df67d979291410e7276d141fbb573927ce5a1ffe9c42a6",
+    ".deps/MP-SPDZ/Compiler/comparison.py": "7ae17ea0ef7713fa9b69646653192f068bab38c668363afc97d819ae4c1cd1bb",
+    ".deps/MP-SPDZ/Compiler/compilerLib.py": "006bd0f511ed8bfb20dbe6da96377aa3aa692591ec64951e0107ff22c4557a3e",
+    ".deps/MP-SPDZ/Compiler/config.py": "03d5ff9262fbe7ec60322a61a7cca409cfd922ef27308aec8e97b8975054f47a",
+    ".deps/MP-SPDZ/Compiler/cost.py": "22bc14ca49b1a3115a3f679d751a5e3efe70a3214da3cbe1407fe5a94e9bbe13",
+    ".deps/MP-SPDZ/Compiler/decision_tree.py": "faf3d48f2ae13d45ce37f0cb56c0d6a64adf5fd7646bd66927cfe11855fcbe23",
+    ".deps/MP-SPDZ/Compiler/dijkstra.py": "8d7756d4c1f59f536b43d10b0ee7688d982baef8ee624ffc01e11c9a54629ee5",
+    ".deps/MP-SPDZ/Compiler/exceptions.py": "589ccdba5e98fa5e9e456c742d60ccd35243436fa0c12880a6e979c3c3e66eb5",
+    ".deps/MP-SPDZ/Compiler/floatingpoint.py": "287903b999b5a0eafc39092bd2d8954cf108c8b8a74372de7187e15e6af907d8",
+    ".deps/MP-SPDZ/Compiler/graph.py": "338782518c0252ec572b4c9632041cf495724025c0f80870ca1ff907570dcaba",
+    ".deps/MP-SPDZ/Compiler/gs.py": "c9a9a9891c2141ce850181ee769113a22554c854e9576df3a053c7354b79f638",
+    ".deps/MP-SPDZ/Compiler/instructions.py": "3a9383327460798fe1874d030a1c24fed9e1155570e69f4607735636d19fadde",
+    ".deps/MP-SPDZ/Compiler/instructions_base.py": "a5b1c3db2936a1c785f5881c30e127c7598a938a126d85e3dc2bf900a2d650b7",
+    ".deps/MP-SPDZ/Compiler/library.py": "3d373c08befddd725f1c868cf435ce8819863e18778a497567e61387f9f503fe",
+    ".deps/MP-SPDZ/Compiler/ml.py": "6219e643fe281eb8af42a97d9296b5f1d759fef184539a117bcb81af497eb53b",
+    ".deps/MP-SPDZ/Compiler/mpc_math.py": "3d6cabb309da87fd40b18b9c95770174225864b30fedbe45531c5287210f60b4",
+    ".deps/MP-SPDZ/Compiler/non_linear.py": "26c1d4697da156ec7319d05a02e6d56132a3b573113bec11ebeb96627b1a9dba",
+    ".deps/MP-SPDZ/Compiler/oram.py": "ab427ee623d7636b01a4feff118491ad39b9c340974b5f7e15be2b8517ae25ff",
+    ".deps/MP-SPDZ/Compiler/papers.py": "398ca2a2d3b4ed6d89123d71861320bafb5d0828fe41a842803f704eace02d98",
+    ".deps/MP-SPDZ/Compiler/path_oblivious_heap.py": "5c08b7a4f5482ade7db370f2af8cb8a0bff107df04812707e59c01d5ad80493c",
+    ".deps/MP-SPDZ/Compiler/path_oram.py": "b9338cb1f9a63c9380009af21d6ae5b8c39af61f284c3f1451c30d690c93e355",
+    ".deps/MP-SPDZ/Compiler/permutation.py": "9b38cfe20fb0865449a6c76147cb1c1b42b1af9b1623ca966db020bf61c0eb07",
+    ".deps/MP-SPDZ/Compiler/program.py": "1b112e8d96f088017daf23d4f2e253dbc25e1a7fbf24faca348b2655e0551251",
+    ".deps/MP-SPDZ/Compiler/sorting.py": "b28331196135e77e9c30264fbd26518734f629692b47e5b8bf584bec868e47c8",
+    ".deps/MP-SPDZ/Compiler/sparse.py": "01d395b335be085fbb59696505de60c1c6e35305301501751d760b3861fb2305",
+    ".deps/MP-SPDZ/Compiler/sqrt_oram.py": "68bd859520fcf64266b3f952c46477b04fea5549feb20efbcaec125229468d38",
+    ".deps/MP-SPDZ/Compiler/tools.py": "76d4e9a89d559abd28102a7ca84860c470117c84c050674ebf24065f5b5bbd3f",
+    ".deps/MP-SPDZ/Compiler/types.py": "e5d107b1351db6258c81a70cd8295d802fc19babff1c75a8b94f0a51157a481a",
+    ".deps/MP-SPDZ/Compiler/util.py": "30501fc416b43dc9ac3c22eb607b945901524a811b8164c8798bb86b0b7ef97d"
+  },
+  "native_mpc_executed": false,
+  "backend_bytecode_compiled": true,
+  "throughput_measured": false,
+  "upstream_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "reference_sources": [
+    "rust/crypto/src/aes_cbc.rs",
+    "rust/protocol/src/protocol.rs",
+    "rust/protocol/src/proto/wire.proto"
+  ],
+  "actual_rustcrypto_aes_cbc_hmac_wrapper_equivalence": false,
+  "full_protobuf_parser_or_session_state_machine": false,
+  "limitations": [
+    "All fixture inputs are synthetic public values.",
+    "Serialized ciphertext/address offsets and address presence are public fixture metadata; an in-MPC parser must establish them for general wire input.",
+    "OpenSSL/HMAC fixture agreement supplements Lean lowering proofs and does not establish actual Rust wrapper equivalence.",
+    "JSON/native export, generic adapter and MPC execution backend remain unverified."
+  ]
+}

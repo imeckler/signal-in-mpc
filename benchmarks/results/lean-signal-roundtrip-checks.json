@@ -1,0 +1,100 @@
+{
+  "checked_at_utc": "2026-11-07T05:51:21.069042+00:00",
+  "cases": [
+    {
+      "send_arguments": [
+        "signal-send",
+        "0",
+        "0",
+        "1",
+        "1",
+        "none"
+      ],
+      "receive_arguments": [
+        "signal-open-span",
+        "66",
+        "42",
+        "16",
+        "none"
+      ],
+      "fixture_lanes": 17,
+      "send_artifact_sha256": "ab5170a4d370c658c8cf5ca98704c7ca4b25b5de6688b911339073a138ce502c",
+      "receive_artifact_sha256": "ee49716466368a18cdc116bc80ea1f6b767f58dc6a7bf9f347d443d047966f0c",
+      "all_outputs_match": true
+    },
+    {
+      "send_arguments": [
+        "signal-send",
+        "15",
+        "0",
+        "2",
+        "5",
+        "present"
+      ],
+      "receive_arguments": [
+        "signal-open-span",
+        "109",
+        "47",
+        "16",
+        "65"
+      ],
+      "fixture_lanes": 23,
+      "send_artifact_sha256": "0fc4f74f4d29eaed666e9e64486c68122cc48747615efe90a0dc5fe918319710",
+      "receive_artifact_sha256": "0ef3480bb3cde66eb41a066a71f0a6012c6c2749915da96f820e943e477634fc",
+      "all_outputs_match": true
+    },
+    {
+      "send_arguments": [
+        "signal-send",
+        "16",
+        "7",
+        "5",
+        "3",
+        "present"
+      ],
+      "receive_arguments": [
+        "signal-open-span",
+        "135",
+        "48",
+        "32",
+        "91"
+      ],
+      "fixture_lanes": 24,
+      "send_artifact_sha256": "1430d3c534a48e1cbaf4fd82ed64b252eb3a719849efdb7d02e7581ffeb27268",
+      "receive_artifact_sha256": "f0ca24e13146122d149d972594e5ff07c4a688892a1c939ce1077fec701a11e8",
+      "all_outputs_match": true
+    },
+    {
+      "send_arguments": [
+        "signal-send",
+        "127",
+        "128",
+        "4",
+        "4",
+        "none"
+      ],
+      "receive_arguments": [
+        "signal-open-span",
+        "316",
+        "49",
+        "128",
+        "none"
+      ],
+      "fixture_lanes": 19,
+      "send_artifact_sha256": "225a67c9a47334bd2c6299557f3a9016a67666bf55b5f591e83c44b5e7a302a7",
+      "receive_artifact_sha256": "b7aa76e4e54ec921e4cfd7ae6f900992f1aa65a15807c266b386c4c70c725803",
+      "all_outputs_match": true
+    }
+  ],
+  "send_fixture_report_sha256": "642604b4dfc30b80606a6031d7a598722e84feae4c8d24e2e43e9015cafc998f",
+  "receive_exporter_sha256": "7a2b3df33c247ecfaac9b9177cf43ee09dd50fe858444dc553e4967459535687",
+  "root_main_sha256": "dbb6d87e043195c923fd4d19ae5418f86eedc58f73a5859a79bff1e139b8a875",
+  "harness_sha256": "57490bb791fdcfc76d98b2ac0d8fb44de56fea965279516566030965936c4630",
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "scope": "The actual numeric send artifact output becomes input to the numeric bounded-span receive artifact; public profiles establish positions in these generated messages.",
+  "limitations": [
+    "This is public differential integration testing, not an encryption-inverse proof.",
+    "General protobuf parsing and complete actual Rust constructor equivalence remain separate obligations."
+  ]
+}

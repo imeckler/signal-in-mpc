@@ -1,0 +1,682 @@
+TLS continuation, 2026-11-06
+
+Functional checks pass: 19 full OpenSSL/Lean public-fixture handshakes;
+2143 conversion cases; 64 random X25519 differential cases plus RFC vector and
+low-order rejection; 6 exported declassification cases; 175 theorem audit
+endpoints. Root imports and exporter now include the public handshake gate.
+Abort cleanup covers partially allocated application keys through Backend.abort.
+
+Mixed smoke compilation completed successfully: 1023 daBits, 5101 arithmetic
+triples, 1788 binary triples, 2051 VM rounds. No native MPC execution.
+Full linked-stage compilation completed and wrote bytecode. Report:
+benchmarks/results/lean-handshake-stages-compile.json. Cost: 766 daBits,
+10203 arithmetic triples, 3418348 bit triples, 48447 VM rounds. No native run.
+The reproducible runner is scripts/compile_handshake_stages.py; this invocation
+was manual with the same program/arguments.
+
+Next: bind persistent worker/controller; consider splitting kernels using function_block/export
+rather than one enormous optimizer graph. MP-SPDZ has the needed persistent
+embedding API: Processor/Machine.hpp::run_function and prepare. prepare reloads
+programs while retaining preprocessing and worker threads. FunctionArgument
+supports binary arrays as vector<vector<bit_type>> and field shares. See
+Utils/export-a2b.cpp and export-b2a.cpp, but NEVER copy their fixture reveals.
+This could bind each Lean controller request to a separately compiled exported
+stage, retaining secret native shares behind opaque handles between calls.
+Validate checked openings, stage agreement, transcript binding, field/security
+parameters, handle lifecycle and erasure before treating that as a live worker.
+No such worker/controller bridge has been implemented yet.
+
+sharing_refresh remains explicitly paused. Signal agent and helper stopped on a usage-limit error.
+Git unavailable: not a repository; protected .git prevented initialization in
+prior attempts. Localhost network MPC remains untested under the socket policy.
+
+2026-11-07 resumed work:
+Signal agent replacement /root/signal_astra_high is explicitly Astra high,
+with an authorized Astra-high helper. Both active; old agents errored.
+Root goal tool now active for remaining TLS/Signal implementation.
+NativeWorker.h compiles/links against Machine<MaliciousShamirShare<gfp_<0,4>>>.
+programs/tls_export.mpc produces separately callable tls_begin, tls_agreement,
+and tls_binary_<artifact_stem> functions. Three function profiles compile;
+report benchmarks/results/tls-native-adapter-build.json. No native execution.
+NativeWorker keeps local shares behind the API and has no reconstruction API;
+no live RPC/transport, public-release policy, or operational erasure yet.
+Next implement guarded native session operations and Lean Backend IO binding,
+with unanimous public request/transcript/program-hash agreement. Leader-only
+external TCP must broadcast public wire records to other controllers.
+Separate function loading avoids monolithic compiler optimization; preserves
+preprocessing across calls. Observe compiled signatures in Programs/Functions.
+Do not silently select CCD64: Machine initializes CCD's no-MAC-key branch with
+part_type::open_type::init_field() (default40); gf2n init asserts on changing
+an already initialized degree. Domain configuration needs explicit review.
+No running root compile sessions at this checkpoint. Generic MPC compiler
+belongs to Signal; root uses .deps/sharing-refresh/MP-SPDZ.
+
+Next goal continuation progress:
+NativeSession.h now compiled/linked, using opaque field/bit shares and restricted
+public releases. SessionPolicy.h tested for order/replay and terminal abort.
+TlsMpc/TlsWorker.lean supplies the public Rpc -> Backend Unit binding. All 19
+OpenSSL fixture cases now run THROUGH this binding (clear public test worker),
+with full authentication-request equality checks and existing cleanup counters.
+Native record output length is wireBytes-17 (4 metadata bytes + ciphertext
+buffer); finish output length is contentBytes+22. No app-key accessor exposed.
+Next build the actual guarded public dispatch and per-party agreement layer,
+then pipe transport for Lean Rpc and leader-only TCP broadcast. NativeSession
+.abort only invalidates state: erasure remains explicitly unimplemented.
+No running root subprocess at checkpoint. Signal Astra high remains active;
+latest secret-offset SPQR parser and actual varint bridge tests are underway.
+
+Latest continuation:
+NativeCollective.h: five-party request/hash agreement, sequence reservations,
+context binding, party-bound commit/reveal public ClientHello random.
+NativeDispatch.h: bounded exact public payload dispatch to NativeSession;
+retire/abort explicitly fail because true erasure is not implemented.
+PublicProtocol.h/PublicPipe.h: canonical op1..8/seq8/len4 request, status1/len4
+response, 2MiB bound. Authentication request matches Lean encoding.
+TlsMpc/TlsWorkerPipe.lean implements bounded IO.FS.Stream RPC. It builds and
+actual Lean/C++ public echo tests (valid/truncated/oversized/rejected) pass.
+512 public native parser/sequence/auth tests pass with ASAN/UBSAN, plus session
+phase tests. scripts/check_worker_boundary.py reproduces build and checks.
+Still no native worker executable/service loop or external TCP transport; no
+actual collective agreement execution. Need pin actual code/trust manifest,
+then wire dispatcher+pipe, cleanup and leader TCP. Library calls compile only.
+All root subprocesses finished at checkpoint. Signal Astra high remains active.
+
+Latest goal continuation:
+PinnedPrograms.h + pin_tls_worker.py implement dependency-complete file pinning.
+NativeWorker now requires PinnedPrograms and verifies function/schedule/tapes
+before run_function. NativeSession ctor now takes pinned config too. 14 pinning
+checks pass (scripts/check_pinned_worker.py), including pinned bad descriptors.
+worker_main.cpp compiled to .deps/sharing-refresh/tls-worker: real persistent
+Machine, NativeCollective/Session/Dispatch, bounded PublicPipe. Dedicated RPC
+stdout duplicate + diagnostic redirection; generic failure status only.
+Six startup rejection checks pass BEFORE networking (check_worker_startup.py).
+TlsMpc/TlsWorkerProcess.lean builds, launches service, wraps Rpc, exposes process
+teardown separately from secure erasure. Still no successful network execution.
+Current runtime opts use Shamir5/t2/Fp25519, CCD40, lg2=128 for unused long field;
+final statistical security must be resolved explicitly before production claims.
+Manifest of currently compiled begin/agreement/open58 functions exists at
+artifacts/lean/handshake/worker-pinned-files.txt, intentionally incomplete for a
+full handshake: remaining KDF/Finished functions/shapes must be exported/pinned.
+Next: application-safe retirement/abort erasure, external leader TCP transport,
+all stage exports+pinning, native five-party interop when socket policy permits.
+Root sessions finished. Signal agent owns Main.lean and TlsMpc.lean temporarily
+for all completed Signal modes; it will add TlsWorkerProcess import. Avoid edits
+there until it releases ownership. Agent runs Astra high, refresh remains paused.
+
+Latest continuation:
+TcpRecords.h implements bounded public record TCP I/O, partial read/write,
+30s per-record deadlines and leader-owned socket. Collective.leader broadcasts
+success/wire/error through checked broadcast; nonleaders must contributeempty.
+Dispatch opcodes9/10/11 connect/send/receive. Lean Operation/Pipe codes updated;
+TlsWorker.connect + TlsWorker.transport now construct the controller transport.
+Nativeworker rebuilt; 19 OpenSSL clear/RPC handshakes still pass.683 public
+framing checks and20 real stream cases over AF_UNIX socketpairs pass, with
+ASAN/UBSAN; no TCP or MPC network execution. Pipe fixture now exercises11 ops.
+Remaining TLS functions initially all exported successfully, but compiler
+reported dynamic memory-order warning. compile_tls_exports.py now uses -M.
+ORDERED REBUILD IS LIVE: exec session69951, log /tmp/tls-export-ordered.log.
+It rebuilds begin/agreement+8Booleanprofiles, including empty-client-cert seal44,
+and rewrites artifacts/lean/handshake/worker-pinned-files.txt only after allpass.
+Poll that handle/log; do not restart based on time alone. Do not claim it has
+completed until it does. No other root subprocess is live.
+Native receive still requires an exact-size precompiled artifact. Need lazy
+public-shape compile/cache with collectively agreed pinned extensions, OR a
+verified streaming callgraph compiler. Fixed open58 manifest is not a general
+live-server implementation. No retirement/erasure or final statistical security.
+Consider local generic MaliciousShamir share class with CCD GF2^128 companion
+rather than patching the existing refresh backend; GFshort default40 cannot
+simply be reinitialized64. Existing service explicitly documentsCCD40baseline.
+Signal completed parser/epoch and root exports; Main/TlsMpc ownership released.
+Followup sent to same Astra-high agent to continue general secret Signal protobuf
+receive parsing/state and delegate independent remaining work. Refresh paused.
+
+Latest goal continuation:
+Ordered export rebuild69951 finished exit0. All10 profiles now compile with-M;
+no memory-order warnings; full fixed-shape manifest rewritten. Report
+benchmarks/results/tls-ordered-exports-checks.json. No active root export job.
+StrongShamirShare.h replaces the worker alias with a local rebind of pinned
+malicious Shamir protocols + CCD gf2n_long; runtime security128. No upstream
+or sharing-refresh sources patched. Two compatibility fixes: DaBitOnly.h
+specializes the unused edaBit sanitize job to throw (use-X only), and
+LongFieldBit.h supplies missing gf2n<int128> -> Bit constructor, checking0/1
+at runtime. Both service and native adapter built/linked. Actual field types
+initialize128;127 non-bit cases reject; scripts/check_strong_worker_profile.py
+passes. Fresh localhost TCP bind probe STILL EPERM. No native MPC execution.
+Collective context is now v2; binds5/t2/Fp25519/CCD128/stat128/daBits explicitly.
+After that one-line context change a final boundary rebuild is pending.
+Report old native_service_build hashes are historical; strong profile report
+pins new types. All10 compiler stage shapes still fixed (open58 etc). Next:
+public-shape lazy compilation/pinning for arbitrary record lengths, then real
+retirement/abort erasure without discarding retained application state. Signal
+Astra-high agent was informed about128bit native domain; it continues parsing
+and session work. Refresh agent remains paused. Goal not complete.
+
+Latest goal continuation (public record-shape compiler/cache):
+Native worker now wires ShapeCompiler to open requests BEFORE private work.
+PinnedPrograms supports exact-closure checking and append-only extensions;
+Collective v3 agrees context+wire-size+extension hash before registration.
+ShapeCompiler uses posix_spawn with private/RPC/player FDs closed, separate
+process group and deadline. Fixed boot kernels still work without compilation.
+prepare_tls_shape.py installs the public-only helper and toolchain fingerprint;
+actual TLS circuit generation stays in Lean. Compiler uses relative paths,
+-M/-X/Fp25519/stat128, per-backend flock, isolated staging, immutable publication.
+Python3.9 vs3.15 produced DIFFERENT bytecode: fixed by pinning executable
+hash/version/path and re-execing it. Independent-location reproduction now
+PASSES byte-for-byte and real native subprocess accepts it, while tampered
+cache/source reject. Report tls-shape-reproducibility-checks.json is current.
+Worker and adapter built; 14 original native pinning checks and full boundary
+checks passed (683 frames,20 AF_UNIX cases,Lean pipe). Native shape extension
+suite passed14 cases BEFORE interpreter pinning; added conflict case after
+that, final15-case rerun queued below. No TCP or native MPC execution.
+Boot manifest repinned to new helper/config; README/SECURITY updated. TLS
+retire/abort erasure and application-state operations remain unfinished.
+
+LIVE ROOT JOBS, confirmed via tool handles; do NOT restart on stale log alone:
+1) exec session23865: exploratory1024-byte shape compilation, log
+/tmp/tls-shape-1024.log. Generated3.7M compiler instructions, still optimizing
+at last poll. Started BEFORE Python-pin config change, same Python3.9 but its
+receipt will contain OLD toolchain digest. Preserve this provenance; don't
+claim it is a fresh pinned-toolchain cache receipt. Helper has900s compile
+subprocess timeout. New helper installation copied identical compiler sources;
+old process already read old config. No actual worker/session was running.
+2) exec session1502: /tmp/tls-shape-final-checks.log. Waits on SAME backend
+flock until23865 finishes, moves38-byte OLD receipt to
+*.before-python-pin.json, recompiles38 with new interpreter-pin config;
+immutable file equality required. Then runs check_tls_shape_cache.py (now15
+cases incl attempted replacement of boot-pinned bytecode) and startup6cases.
+Poll both handles. All other root jobs are terminal, including17945(reproPASS),
+20498(old unpinned reproFAIL; root cause fixed),14617(buildPASS),61901(boundaryPASS).
+No secure-erasure implementation or five-party execution claim.
+User edited ~/.codex/config.toml; fresh localhostbind AFTER edit stillEPERM.
+Asked them to fully quit/reopen app and resume. This session reportsrestricted.
+Git status still says not a git repository; no further attempts made.
+Signal Astra-high remains running, latest ProtoReceive49+58fixturepasses,
+ChainReceive and skipped-key state proofs/fixtures ongoing. Refresh stayspaused.
+
+Latest goal continuation (packed execution + proved parallel TLS parser):
+All previous root handles are TERMINAL.23865 scalar1024compile FAILED with
+MP-SPDZ internal compiler timeout;1502 completed15cachechecks+6startup checks.
+Added optional backend_adapter/aig_packed.py; old aig/boolean executors unchanged.
+Groups by AND-depth and localXOR-depth, batches<=64 lanes, starts compiler basic
+block perAND-depth. programs/tls_export.mpc supports binary-packed. New public
+shape helper selects it; no cryptographic algorithm moved out of Lean.
+13348 differential public evaluations and6TLSgatecases pass. Native actual
+CCD128 local-share BITCOMS/XORS/BITDECS tests pass2080cases including non-bit
+localfieldshares. strong_profile_checks + report updated;127bitchecks retained.
+Raw packed1024 compiled317.41s/1406840triples/1176VMrounds. Layered packed1024
+compiled208.21s with same rounds. Reports tls-packed-shape-1024-checks.json and
+tls-packed-layered-test-1024-checks.json. Both use former sequentialparser.
+
+A circuit depth audit found innerparser alone1040ANDlayers at1024B. Implemented
+TlsMpc/TlsInnerParallel.lean: public balanced split/merge, forall-fuel correctness
+against existing scan/spec, genericHom, length, compiler theorem. Word identities
+use KERNEL bitwise case proofs, not bv_decide nativeaxioms. Proofaudit187endpoints
+passes onlypropext/Quot.sound/Classical.choice. Irreducible decode annotation keeps
+dependent circuit-width elaboration abstract; native computation unaffected.
+TlsReceive now imports/uses balancedparser, proofendpoints retained. Main's
+existing tls-parse-inner branch usesit too; MainSignal branches untouched.
+Checks.lean adds12 endpoints. Parser122fixtures pass, ANDdepth16/128/1024 bytes
+now21/24/27 versus32/144/1040. At1024 parser ANDcount50181->74763 (tradeoff).
+All19OpenSSL clear/RPC initialhandshakefixtures and6declassificationcases pass.
+Fullpacked+balanced1024compile PASSED229.85s,1431533bittriples,184VMrounds;
+report tls-parallel-shape-test-1024-checks.json. This is notnativeMPC execution.
+
+Root runtime now has packed+balanced compiler toolchain installed/bootrepinned.
+Pre-packed38shape files+helper/config/emitter archivedreversibly under
+.deps/sharing-refresh/tls-shape-before-packed. Fixed10bootkernels retain their
+original valid pinnedbytecode (including old58parser); newlygeneratedshapes use
+newemitter. Root38cache rebuilt; actualnativehelper+independentlocationrepro
+passedwith exactsameclosure.16cachetests(+AESlimit16407reject)+6startupchecks
+pass. NativeWorker/adapter/shapeprobe rebuilt. NativeSession/ShapeCompiler and
+Collective nowrejectwire>16406 forAES-GCM, matchingLeanopenChecked; genericTCP
+framing16645capunchanged. Main's genericexport resourcecapstill16645 butruntime
+helperenforces16406. README/SECURITYupdated. No runningROOTjobs atcheckpoint.
+All recent handles terminal:15910,50308,13005,25997,6244,58078,82973,82319,
+91548,54745,81203,9700,31350,30809,64928. Early22467nativepackingtestfailed
+because VectorSecret.size() isstaticserializationwidth; fixedtestget_regs.size;
+30809PASS. Earlier proofchecks bv_decideaxioms replacedbeforefinal187auditPASS.
+
+Signal Astra-high stillworking. Latestagentreport root33profilecomparisons,
+7TLSdispatch+14invalidprofilespassed;RatchetStep72fixtures;NewRatchetReceive
+composesbothDHhalves+boundedreceive withrollbackproof,fixturesnext. Helperhas
+actualProst1..10byte successproofs underexplicitisolatedslice-model candidate;
+genericbridge/tenthbytefailurepending. Referencecandidate notyetaccepted.
+Sharing refresh remainsPAUSED. LocalnetworkstillEPERM afteruserconfigedit;
+askedrestartapp, nofurtherpermissionchangesreported. Gituninitializedprotected.
+
+NEXT: finish real TLS retirement/abort erasure and app-session operations;
+currentnativeDispatch stillthrowsforretire/abort. Consider verified streaming
+kernel-call compilation forrecordcrypto: currentwhole-recordAIG+MPcompilerstill
+minutes at1KB andmax16KBnotvalidated; doNOTclaim cold-cache feasibility orWAN
+throughput. NativeGF128GHASH / precomputedHpower optimizations are ideasONLY,
+notimplemented/proved. Currentbalancedparserprovablyfixeslinearparserdepth.
+Goal remainsACTIVE and farfromcomplete; nofiveparty/networkexecutionclaimed.
+
+
+2026-11-07 ROOT APPLICATION CONTROLLER / PROST REVIEW UPDATE
+Previous goal turn made progress: config retry showed TCP EPERM and identified
+misnested model/notify keys. This turn code/proof/test progress below.
+TlsApplicationPolicy.lean builds: 11 proof endpoints including required-response
+flag (request=true rejected while responseDue or requestOutstanding). New
+TlsApplication.lean now builds, imported by TlsMpc.lean. Backend over opaque S
+has sealApplication/sealControl/openRecord/rotateSend/rotateReceive/abort.
+Private Live stores keys+policy in Mutex; separate receiveGate serializes
+readers without holding state/MPC lock during blocking transport receive.
+Send reserves before effects. Update sends OLD-key record then rotates/commits.
+Receive validates exact canonical public frame before private open; handles
+opaque application values, control, key updates and half-close. Both closed
+directions trigger backend cleanup; cleanup failure explicit. Initial session
+counters are preserved. Native app binding/private parser/erasure remain absent.
+TlsClient.cleanupOnError catches protocol AND underlying IO exceptions, used by
+both handshake run and application guard. Failed actions terminal; no assertion
+that cleanup was successful if backend fails.
+ApplicationFixture.lean and scripts/check_tls_application_controller.py PASS:
+305 policy checks + sequencing/crossed update/old-new ordering, automatic update,
+32 concurrent sends, blocked receive allows send, malformed public record
+rejection, both half-close orders and final cleanup, injected IO+String failures
+through seal/send/control/rotate/open/receive, cleanup failures, actual handshake
+begin/send IO errors. Public Nat mock handles only, NO MPC/crypto execution.
+Report benchmarks/results/tls-application-controller-checks.json.
+19 OpenSSL fixtures PASS after TlsClient change. Root proof audit198 endpoints
+passed again after final app close-cleanup code change (99401 exit0).
+README+SECURITY updated accurately. Git status still no repository; no init.
+
+Prost candidate independently accepted WITH SCOPED MODEL BOUNDARY:
+SignalReference/ProtoParseWork/root-review.json records exact reviewed hashes.
+Reproduced bridge-check.py (32742 exit0):72 endpoints, standard axioms only;
+independently rebuilt ModelCandidate/build.py (14629 exit0):57modules produced
+identical object hashes to bridge audit,282source hashes checked. The only
+Slice model delta maps unsafe get_unchecked to checked index and proves valid
+usize result; no arbitrary SliceIndex or out-of-bounds UB claim. OriginalRust,
+LLBC/generatedLean unchanged; pinned translator reproduced Types/Funs. Actual
+Rust executable assertion is len>10 OR lastbyte<128 (doc comment says>=10 but
+proof follows executable assertion). Allsuccess1..10 +overflowerror covered;
+numeric normalized17-byte prefix output agrees. Outer streaming/generalparser
+still unproved. Candidate manifests/scripts flags unchanged: separate root
+review is acceptance authority. Agent informed and continuingAstrahigh.
+
+Signal agent currently running 40-profile root export comparison; HOLD edits
+to Main.lean,TlsMpc.lean,Signal/Export.lean until it finishes. Latest report:
+RetainedReceive37fixtures+6transactions,4406091ANDs; SessionReceive composes
+retained/newDH choice and session/receiver store commit, numeric checks running.
+Refresh remainsPAUSED. LocalTCP EPERM; no nativeMPC/WAN/erasure claims.
+Next meaningfulTLS work: implement actual private post-handshake control/parser
+and native application handle binding, plus real retirement/erasure of VM state.
+New Leancontroller interface alone is not those implementations.
+
+
+2026-11-07 ROOT PRIVATE POST-HANDSHAKE PARSER + SIGNAL SERVER REVIEW
+Previous turn progress: Lean appcontroller + cleanup + accepted slice bridge.
+This turn added TlsMpc/TlsPostHandshake.lean, imported root and Main modes:
+ tls-post-handshake CAPACITY (1..1024)
+ tls-open-application-record WIRE_SIZE (22..1045)
+Inputparser state11 (phase,kind,remainingBE8,bad), then secret authenticated
+TlsReceive representation status/type/length2/fixedbuffer. Shared state machine
+framing handles NST ignored bodies, KU acrossfragments, rejectsunknownHS/kubadlen
+andflag, forbidsbytes aftercompleteKU withinrecord, rejectsapp/alertinterleaved
+withfragments. Alertdesc0close,90ignored,otherreject; levelignored perRFC.
+Output event0reject/1app/2control/3KU/4close +request0/1: ONLY FIRST TWO bytes
+may be opened. Remainingstate11+applength2+buffer staySHARED. Failuressticky.
+Nohostsecretcomputations. ConcretepolymorphicLeanfunction is executable spec;
+map/numericcompiler proofs pluspayload-independence/unauthenticatedfailed
+public-output rejection proofs. No wholeRFC proof is claimed.
+Rootproofaudit216 endpoints standardfoundationalaxioms PASS andcurrenthashes
+checked afterfinalchanges. Main includesnewhelp modes. Signalroot40auditpassed
+beforetheseadditions;agent releasedfiles and informed.
+
+scripts/check_tls_post_handshake.py PASS/currenthashes:
+366numericframing lanes/204sequences+7actualchainedartifactstaterecords,
+18fullAESGCMnumericcompositionlanes usingindependentcryptography encryption,
+badtagcases. Parsercapacity64 raw196100AND,executed75644AND;fullwire27
+executed60635AND. scripts/compile_tls_post_handshake.py PASS:
+isolatedcache .deps/sharing-refresh/tls-post-handshake-compile;
+parser64 75722bittriples/3280VMrounds/6.79scompile;
+fullwire27 60635bittriples/418VMrounds/6.23scompile; setsecurity128,-M,-X,Fp25519.
+Nooriginalnativeworkerpinschanged,NO nativeMPC executed. Reports
+benchmarks/results/tls-post-handshake-{checks,compilation}.json.
+Allroot handles terminal:39722,25186,52855,85238,19336,20421,24126.
+
+USER STEERING: look at server implementation to target actualTLSrecords.
+Completed read-only review in handshake_backend/SIGNAL_SERVER_REVIEW.txt.
+Pinned 4serverfiles +hashinventory under.deps/signal-server-review/
+21be84230390a80bbf33a016a12a8ef4ab9863e7 (Nov4). SniMapper:TLSv1.3+ALPNh2;
+GrpcConfiguration defaultOPENSSL,alsoJDK,5minidleconfigurable; h2c optionmeans
+sourcedoesnotproveproductionterminationtopology. OmnibusH2Server advertises
+RFC8441extendedCONNECT; service routesWebSocketpaths overH2 toJetty backend.
+NohardcodedTLSrecordsize/ticketcount/keyupdatecadencefoundincontextbuilder.
+RelayCargo.lock imeckler/libsignal c1d9fb55 cached ~/.cargo/git/checkouts:
+chat.signal.org HTTP1.1. Updatedpinnedlibsignalv0.106.1 mainenv.rs route:
+grpc.chat.signal.org HTTP2/TLS1.3. NeedprivateH2/HPACK+selectedWebSocket/gRPC
+framing,notassumeupdatedlibsignal stillH1. Agentinformed.
+DirectOpenSSLpublicprobe failedDNSconnecterrno1beforehandshake (0records).
+SystemcurlTLS1.3profileunsupported(exit4). Directapprovedcurlfetchessources;
+Pythonchildcurlcouldnotresolve. No liveTLStrace orproductioninteropclaimed.
+OfficialRFC9846.txtnowaccessiblehttps://www.rfc-editor.org/rfc/rfc9846.txt;
+noresumptionclientMUSTignoreNST; ourClientHellonoPSKmodes shouldnotelicitNST.
+
+NEXT PERFORMANCE WORK: routeordinaryapprecords aroundserialcontrolscan.
+Currentfullcomposedparser blindlyscansfixedbuffer evenforapp. Can add a small
+verifiedroutingstage with publicevent5='defer control framing' forhandshake;
+fornonhandshake use finish withunchangedstate/zero update flags, prove agrees
+withprocess via scan_disabled and choose_reject. App eventalreadypublic, so
+thisextra internalrouting neednotrevealpayload/length. Fullframeronlyexecutes
+forhandshakecontrolrecords. DoNOTclaim3kroundscontrolbaselinegoodWANthroughput.
+NEXT INTEROP: extend publicOpenSSLmemoryBIOfixture_server with update-request,
+emit,close commands+SSL_read/echo and driveactualTlsApplication withclearPUBLIC
+fixturekeys andTlsPostHandshake parser. ExercisebothdirectionsKUandhalfclose.
+Existing19initialhandshakefixturespassfrompreviousturn; notrerunthisturnbecause
+nohandshakecodechanged. JDKSSLEnginefixturealsoappropriate perreview, notbuilt.
+Nativeappbinding+dynamicshapeextension+secureVMretirementstillunfinished.
+
+SignalagentAstrahigh ongoing: SessionReceive54fixtures+5transactions,7388992ANDs;
+6mixedcompositioncases/18DAGevals+54Prostparserlanes. Root40profilespassed.
+Keccak/SHA3/SHAKEnewcomponent168concrete+128numericlanes,refinementpending.
+HelperfullProstdecode_varint bridge nowworks forallcontiguousslices with exact
+suffix/errorbuffermutation; additional3Bufwrappers+unusedStepmetadata selection
+areSEPARATE candidate pendingrootreview. Askedfrozendiff/provenance/auditpaths.
+Earlierroot-review.json acceptsonlyslicefastpathvalidusizeextension.
+RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
+
+2026-11-07 application routing and server-source follow-up:
+- Rechecked all4 pinned Signal-Server source hashes in SIGNAL_SERVER_REVIEW.txt.
+  Main current libsignal route is TLS1.3/h2; legacy relay HTTP1.1 profile must
+  not silently carry over. No production trace or fixed-record-size evidence.
+- Added TlsMpc/TlsApplicationRoute.lean and tls-route-application CAPACITY export.
+  Authenticated handshake+nonfailed state yields event5; caller MUST discard
+  placeholders and execute full parser on original shared state/input. Keep
+  all bytes except event/request shared. Non-HS output universally equals full
+  parser; compiled core and authenticated opening composition proved.
+- Root audit228 endpoints passes only propext,Quot.sound,Classical.choice.
+  Initial audit caught a native bv_decide axiom; replaced both trivial bitwise
+  proofs with existing kernel-checked lemmas, then reran audit successfully.
+- scripts/check_tls_application_route.py:378numeric lanes,199deferred,6chained
+  actual artifact-state transitions, including fragmented ticket/KU and close.
+  Route64 executed1351AND/22XOR versusfullparser75644AND/41648XOR.
+- scripts/compile_tls_post_handshake.py now includes route64; isolated MP-SPDZ
+  128security/Fp25519/-M/-X compiles1585triples/72VMrounds versusfullparser64
+  75722/3280. ExcludesAES-GCM, no nativeexecution/WANlatency claim. Live worker
+  pins unchanged. README/SECURITY updated. Native routebinding still pending.
+- Signal Astra-high continues: Keccak168+128lanes/18endpoints; arithmetic,CBD,
+  noise1444cases/27endpoints; NTT48lanes plus numeric negacyclic convolution pass.
+  Serialization/matrixsampling ongoing. SessionReceive1800s retry was running
+  at last agent update; original600s timeout preserved. No success inferred.
+- FullReferenceWork frozen Prost wrapper remains awaiting root review; earlier
+  leaf root-review.json acceptance does not cover new Buf model/Step metadata.
+  Refresh stays paused. Native erasure, application binding, OpenSSL/JDK
+  post-handshake interoperability, privateH2 remain unfinished.
+
+2026-11-07 real OpenSSL application interoperability + Prost root acceptance:
+- Previous goal turn classified PROGRESS (verified application route implementation,
+  numeric tests, MP-SPDZ compilation). This turn also changes authoritative state.
+- Extended fixture_server.cpp memory-BIO protocol with update/update-request,
+  emit/emit-corrupt, replay, close; SSL_read processes client controls and echoes
+  application bytes. ALPN optional h2/http1.1. Checks fragment-limit setup.
+- HandshakeFixture.lean now has checkPostHandshake: actual TlsApplication
+  controller using clear PUBLIC fixture keys, Lean AES-GCM/KDF and two-stage
+  TlsApplicationRoute/TlsPostHandshake parser. Original shared inputs preserved
+  on DEFER (only fixture execution is clear); native binding remains absent.
+- scripts/check_full_handshake.py PASS25cases (19initial+6application). Each
+  application case rotates send/receive4times, tests server-requested update,
+  client-requested update, crossed requests, padding3 and1205-byte echo over3
+  TLSrecords. Both half-close orders terminate with1cleanup. Corrupt/replay
+  inputs reject with1cleanup. Two h2 cases include RSA and Ed25519+HRR+CertReq.
+  Report benchmarks/results/lean-full-handshake-checks.json includes OpenSSL
+  version and source hashes. No HTTP2framing, nativeMPC, network or erasure claim.
+  Root processes59607/46211 were terminal failed builds before explicit MonadLift
+  annotations;1529build succeeded;69849firsttest and84564finaltest succeeded.
+- FullReferenceWork root independent review now ACCEPTED with explicit model
+  and translation boundaries. New root-review.json is separate acceptance;
+  candidate manifests/flags remain frozen provenance. Compared Buf models with
+  bytes1.12.0 bodies; inspected7Stepmetadata removals and actual full-function
+  theorem. Ran audit.py, rebuilt37modules,113cleanendpoints,350sources,56upstream
+  files; independently checked every source/object hash after completion.
+  proof-report hash bf739a2c221ab8294cdae3bbef9bb696671428200a24e2d7b31fbdaf1267a6e9.
+  axioms/diff/replay hashes unchanged. Scope every contiguous slice, exactu64/
+  count/suffix/InvalidVarint+error mutation, normalized17byte numericAIGoutput.
+  ArbitraryBuf/wholeparser/Signal/backend/erasure not accepted. Agent notified.
+  Audit process98543 exited0. No root processes remain running.
+- Signal Astrahigh continues: encoding/compression235lanes22profiles14endpoints
+  passed; all3329canonicalcompressioninputs and allencoding scalarwidthdomains.
+  Bounded secret matrix rejection sampler+SHAKE128proofs compile; checksunderway.
+  Helper now actualProst decode_key refinement, no new externals, using scoped
+  root varint acceptance. Refresh remains paused.
+- Next substantive TLS task remains persistent native application RPC/handle
+  integration and actual backend erasure. NativeDispatch.retire still rejects;
+  NativeSession has appkeys but no application methods. Worker binary interface
+  accepts TLS kernels only. Native app dispatch must agree shapes/requests,
+  retain original shared record on DEFER, expose only typed events/opaque handles,
+  keep nonce/key transitions consistent, and never fake erasure success.
+  JDK posthandshake checks and privateHTTP2/Signaltransport remain incomplete.
+
+2026-11-07 native application RPC and duplex pipe progress:
+- Previous turn PROGRESS:25OpenSSL cases + fullProst varint independent acceptance.
+- Added TlsWorker applicationBackend/applicationSession with BufferHandle IDs,
+  no public plaintext/length operation. Opcodes12open,13seal,14control,15/16rotate;
+  17pollRecord. Handshake uses implicit Unit keys, application uses zero key-ID
+  placeholders and positive8byte payload IDs. Strict typed reply validation;
+  event5 DEFER cannot escape nativeworker.26invalidcontractcases pass.
+- NativeSession methods now hold shared parserstate/bufferlength/content, perform
+  TLSReceive+fastRoute+fullparser on DEFER preservingoriginalinput, openonly2event
+  bytes, retainmonotonicopaquehandles (4096livecap), seal fixed-length same-worker
+  producer buffers, rejectdirectsealofprivate-length receivedbuffers. Dispatch
+  collectively agrees allrequests and matchesreservedciphertext before send.
+- Native ApplicationPolicy adds reservation/replay/use-limit, crossed/requested
+  update, send-before-rotate, receiveUINT64max, half-close andterminalabort guards.
+  63rejection checks+boundary/positive transitions pass withASan/UBSan.
+- CRITICAL: application_ready is stillfalse with NO enablingpath. Session.retire
+  explicitlythrows unimplementedVMerasure; trafficrotate derivesbutalso refuses
+  to acknowledgeoldkeyerasure. Newapplicationmethods compile but cannot execute
+  untilrealretirement implemented. No nativeMPC successclaim. Dynamicappshape
+  preparation, full16KBcontrolcircuits, sharedSignal/H2producer/consumer and
+  handle retirement/reuse remain absent. Do not justflipapplication_ready.
+- Found/fixedpipe duplexissue: nativeTcpRecords.poll_receive nonblocking retains
+  partialciphertext andreturnsonecompleterecord or empty. Bounded16640body.
+  Applicationtransport polls30sdeadline,10msbetweenemptyreplies; singleRPCpipe
+  mutexserializeswholeexchanges. Anyframing/IO/rejection makespipe terminal.
+  72unnamedAF_UNIXstreamcases pass incl everycut smallrecords, partialreceive+
+  simultaneoussend,coalescing/EOF/bounds;32concurrentpipeexchangesandduplexpending
+  receive allowing send pass. Not five-party scheduling; collectiveorderneeds
+  integration. TLSnetworkclose/slowpeer/errors abort, no runtimeerasureclaim.
+- check_worker_boundary.py nowbuilds BOTH tls-worker-build andtls-worker, records
+  executablehashes pluscurrentheaders/tests.17opcode1025framingchecks,11suite
+  entries;application_execution_enabled=false/native_mpc_executed=false.
+  Rootnativebuildhandles60009/46324succeeded; Lean16321/56494succeeded; boundary
+  40997(old16ops)success,66839initialfixtureBEqbuildfailfixed,95756/82779success;
+  final24057checkwasrunning atappendtime. Root99615regressionfinished0:
+ 25OpenSSLcasesstillpassand228rootproofendpointsuseonlyfoundationalaxioms.
+- Useraskednetworknow. Freshactualprobe:IPv4+IPv6localhostbindEPERM;
+  directPythonHTTPSDNSerrno8;approvedcurlHEADhttps://example.com succeedsHTTP2/200.
+  ExplainedpartiallyavailablecurlbutnativeMPC/TCPstillblocked. Nochangepermission
+  assumed/noescalation;unnamedsocketpairs+pipeswork. Don'treprobeuntilnewchange.
+- SignalAstrahigh stillrunning: matrix4169cases16endpoints;PKE36differentialcases
+  MLKEM512/768/1024+Kyber1024 matchactualpinnedlibcrux;18proofendpoints. CCA valid/
+  tamperchecks512/768passed;1024stagednumericunderway. GenericSessionReceive
+  backend1800sretrywas~27min atlastagentmessage; agentownsprocess,donotrestart.
+- NEWFROZENKEYCANDIDATEpendingrootreview: SignalReference/ProtoParseWork/
+  KeyReferenceWork/{REVIEW.md,proof-report.json,axioms.txt,replay-report.json}.
+  Actualdecode_key tag/wire/count/suffix/error+25byte numericbridge;147endpoints,
+ 396sources,42objects,no newexternals. proofreport8f8c3ec0270b8127bf2befd739eaf3af4295d7dd9d26cd68af4fcc83b4cc9e70.
+  axioms08c57fb80a82c5d5e82b3a1684ad6838f4592df80d41ec6db4b4508b5e42a17b.
+  keymetadata Artifacts/key-step/changes.json559dac5173babf838c903eaf595f2696b2c9f2b4ef1a3657ec3f91f7d6cd9d11.
+  Helperassessingskip_field translatorpassordering inQUARANTINE,notaccepted:
+  existingremove_useless_joins beforeupdate_loops. Do notclaimskipbodytranslated
+  untilseparatelyreviewed. Sharingrefreshremainspaused.
+- Finalboundary24057exited0; verifiedallreportedsource/executablehashes current.
+  No rootprocessesremainrunning. Agentlatest: SessionReceive batch1generic
+  compilation succeeded7,368,992bittriples/91,872VMrounds/491,596,760byte.bc;
+  combinedfixture/batch16checkscontinue. No nativeexecution/securityprofileclaim.
+
+2026-11-07 owned-share cleanup, runtime erasure trace, key-reference acceptance:
+- Goal work remains PROGRESS; no completion or blocking status claimed.
+- Usertwicereportednetworkchange. FreshPythonprobes BOTHtimesstillIPv4/IPv6
+  localhostEPERM anddirectHTTPSDNSerrno8. Explainedcurrenttoolprocessesstill
+  restricted. Do notuseCUA/alternateexecutiontobypasssandbox. NoTCP/MPCrun.
+- KeyReferenceWork auditcompleted147cleanendpoints,396sources,42rebuiltmodules.
+  Handle24339latermissing; authoritativecompletedauditlog+newmanifestverified,
+  notrerun. IndependentlyreadRustvalidationorder, key/reference/AIG/plan-rejection
+  scopes, selector; validatedallreportedsource/objecthashes. root-review.json now
+  acceptsdecode_keyunderexplicitinheritedBuf+translationboundary;NOskip_field/
+  wholeparser acceptance. Signalagentnotified. proof-reportsha
+  e7f1f7d54f09f29e88dc180e3da55d74acbb93fd74d95d4bc92c3a75d71d8dd0.
+- Newhandshake_backend/OwnedSecrets.h: OwnedBits wraps nativebinarysharevectors;
+  sodium_memzero fixed-widthGF128value storage ondestruction/clear/shrink/copyor
+  movereplacement. Exception-awaredeepcopies publish emptydestinationownership
+  beforeinnerallocation; copiedvalues remainowned onthrow. FunctionArgument
+  adapts explicitly viafunction_argument(). Copyassignmentprotectedreplacement
+  andswap. Existingconcatinitializer-list copies/range slices nowowncleanup.
+  PublicBaseAPI istrustedinteroponly; donotmutate/delete throughBase pointers.
+- NativeWorkerusesOwnedBits; scalar256Fp25519limbs wiped onabort/destruction;
+  WorkerandSessionnoncopyable. Sessionguardcatch callsabort; abortclearsownedHS/
+  apptraffic/main/parser/buffer shares. Destructors wipeagainidempotently.
+  STILLNOTFULLVMERASURE: nativeRPCabort/retire/rotate keepthrowing, application_ready
+  remainsfalse. Nothingenablesnativeapp prematurely. Currentliveworker-owned
+  cleanupisimplemented;VMhistorical/preprocessing/OSstorageisnot.
+- check_worker_boundary.py PASS12suites includes owned_secrets_checks:237observed
+  zerobeforedestruction +24injectedcopyfailurepaths underASan/UBSan. Nativeworker
+  andadapterbuild/linkpass;17opcodeframing1025,policy63,stream72,pipeconcurrent32/
+  duplex/rejectionand26RPCinvalidcasesstillpass. Reporthashescurrentverified.
+- check_strong_worker_profile.py PASS:4160actualCCDGF128fieldslotoverwrites at
+  widths1..64withindependentcopyunchanged; prior127nonbitreject+2080packingcases.
+  AddedpublicPRNGhistorytest:1024earlierbytesreproducedfromget_seedafter4096more.
+  ReportscopeexplicitlynotfullVMerasure/nativeMPC. Allsourcehashescurrentverified.
+- ERASURE_REVIEW.txt recordsconcretesourceauditandnextrequirements. Machine.hpp
+  run_function leavescopiesinMp/MS,bit_memories,processorregisters; StackedVector
+  hidesoldframesbeyondcurrentview; Beaver/ReplicatedPrep clear/popprivatebuffers
+  withoutoverwrite; protocol/privateinput/temps/allocatorhistoryremain. Important:
+  random.hDEFINESUSE_AES; seed/schedulespersist, random.cpphash/nextcounterAES
+  DOESNOTRATCHETseed. Thisisconfirmedruntimepublicfixture,notliveattack. Need
+  retirePRG/correlatedpreprocessingstatecollectively plusconsumedcopies; just
+  overwritinglivekeycontainers or clearingactiveVMregisters isinsufficient.
+  ExplicitreviewedruntimehooksneededforALLbackingstorage,notlayoutcasts; quiesce
+  checks/threadwork andrenewcorrelatedseeds withoutdesynchronizingparties.
+- NoMP-SPDZsourcespatchedinthisturn. Allsourcechangesrootheaders/tests/scripts/
+  docs. README+SECURITYupdatedpartialcleanupboundary. FullTLSLean/OpenSSLcode
+  unchanged; no redundantOpenSSLrerunthisturn.
+- Roothandles44452(firstnativebuild),17118(firstboundary),10078(firststrong),
+ 11352(finalstrong),10644(finalboundary)allterminal0; norootprocessesrunning.
+- SignalagentannouncedaddingKeccak/MLKEMcomponentexportsandKemWireimports to
+  Signal/Export.lean,TlsMpc.lean andONLYSignalMainusage. TLSbranchespreserved;
+  rootartifactcomparisonsrunning. Old40profileauditishistoricaluntilupdated.
+  SignalAsrahigh+helpercontinue, sharing_refresh remainspaused. Do notresumeit.
+
+2026-11-07 network enabled and first native five-party TLS stage execution:
+- Fresh IPv4/IPv6 loopback and direct HTTPS probes passed after permission change.
+- New scripts/check_native_worker_network.py launches five native strong-profile
+  tls-worker processes, pinned exported functions, fresh session binding, encrypted
+  party connections, ports19300..19304. Begin-only passed in0.67s, all exit0.
+- --stages fixture PASSED actual ECDH, TLS handshake derivation, AES-GCM opening
+  of58-byte handshake record, serverFinished acceptance and exact clientFinished
+  ciphertext comparison to independent cryptography/hashlib/HMAC peer. Server
+  private key is public disposable fixture data; worker scalar remains shared.
+  Timings:begin1.01s,derive40.30s,open1.89s,verify13.21s,finish43.04s,total99.54s.
+  Report benchmarks/results/tls-native-worker-network.json; immutable run report
+  benchmarks/results/raw/native-worker-network/8d4a50e5b7350c60/report.json.
+  Executable sha e0f64ce67a84bc9044479ae0cb28594b78e5957ff625b1013da0cb9ff5a0fb4a.
+- Fixture public certificate-decision is STUBBED, not real cert validation.
+  Native retire intentionally rejects; expected final exit1 for all five. No
+  live full TLS MPC connection, application execution, VM-erasure or WAN-rate
+  claim. Current report native_mpc_executed:true supersedes old networkblockers.
+  Production code unchanged; test script only later dedented equivalent block
+  and added expected-exit metadata/errorwording. py_compile passed.
+- Actual OpenSSL grpc.chat.signal.org profile probe PASSED certificate+hostname
+  with pinned Signal CAs;TLS1.3,AES128GCM,X25519,ALPNh2,Ed25519. No HTTP/account
+  request. Report benchmarks/results/signal-live-tls-profile.json. UpdatedREADME
+  and SIGNAL_SERVER_REVIEW. Exact LeanClientHello still needs live integration.
+- git init attempted normally; .git creation still EPERM. No repository/commit.
+- Native test handle74852 finished0. No root processes remain. Root19300..19309
+  port reservation now released. Signal agent remains active Astrahigh, plans
+  nativefixtures on19400..19409 in separate genericbackend. Signal latest:
+  8profiles x batches1/16 complete; SessionReceive batch16 117903872triples.
+  CCA36nativeRust differentialcases,24endpoints; numericKEM5/6profiles complete,
+  finalKyber1024decap stage25. PQXDH12pairedcases/84fieldDAGchecks done. Prior
+  decoder helper notlive, sourcequarantine remains. Refresh remainspaused.
+
+2026-11-07 actual Lean/native TLS handshake and Signal send baseline:
+- Previous goal turn classified PROGRESS; this turn alsoPROGRESS. Goal remains
+  active/incomplete. No readiness, erasure, WAN throughput or delivery claim.
+- Added NativeHandshakeFixture.lean +lake targetnative_handshake_fixture and
+  scripts/check_native_handshake.py. Five independent Leancontrollers eachspawn
+  their nativeworker viaTlsWorkerProcess; actualTlsClient/TlsWorker publicRPC
+  andleaderTCPtransport talktoexisting OpenSSLmemoryBIOserver viaTCPfixturebridge.
+  Eachcontroller independentlyvalidatesX509/hostname/CertificateVerify through
+  public_auth.cpp. Scalar/trafficsecrets staynativeandshared; no clearbackend.
+- POSITIVEintegration PASSED: all5validatedcertificate+serverFinished; actual
+  OpenSSLserver acceptedMPCclientFinished. Ed25519certificate,ALPNh2,fragment512.
+  Decryptedrecordlengths37,534,534,316,94,58. Fournewpubliclengthshapescompiled/
+  agreed/pinned37,534,316,94. Total289.78s includescoldshapecompilation+liveprep.
+  NativeTLSworker retirestillrejects; allcontrollers reporterror
+  'native worker rejected the operation; backend erasure failed', acceptedfalse.
+  Thisiscryptographichandshakeexchange success, NOTapplicationactivation.
+- Report benchmarks/results/tls-native-handshake.json, rawrun
+  benchmarks/results/raw/native-handshake/76d4dfd0d025a232/; independentrootreview
+  tls-native-handshake-root-review.json validatesallsource/executablehashes,
+  all5expectederrors, serveracceptance andall4dynamicbytecode/scheduleclosures.
+  Runtimeworkerunchangedsha e0f64ce67a84bc9044479ae0cb28594b78e5957ff625b1013da0cb9ff5a0fb4a.
+  Roottoolhandle66610 terminal0. NoactiveTLSrootprocesses/ports19300 nowfree.
+- README,ERASURE_REVIEW andbenchmarks/config/verification updatedtoreplaceold
+  socketblockers/integrationTODOs withtestedscope+remainingapp/erasurelimits.
+- Useremphasized100000logicalSignal/hour onpersistentTLS; requirements.json now
+  explicitlyperformance_setting persistent_TLS_connections_amortizing_handshakes.
+  Target27.7778logical/sec; includefanout,privateframing,TLS,prep,refresh/newsession
+  costs. Do notusehandshaketimingassteadysendperformance.
+- Signalchildcontextstilldeniednativebind; rootexplicitnetwork-enabled context
+  ranreviewedfrozen scripts/check_lean_signal_native.py normally(noescalation).
+  Command --timeout900 --port19400 >/tmp/signal-native-root-check.log2>&1.
+  Handle93218finished0. All6nativeCCD128/N5/T2/-S128casespassoutputs/exits0:
+  receiverlookup0.705swall;Keccak1.620s;chain-send17Bbatch1=37.183s,batch16=97.174s;
+  SPQRsend17Bbatch1=52.637s,batch16=133.081s. Allpublicfixtures,alloutputsopenedfor
+  testONLY; notproductionstate/payloadexport. Baseline uses scalarbooleanadapter.
+- Chainbatch16traffic7817.43MB/party;SPQRbatch16traffic10686.2MB/party,~667.89MB/
+  recipientencryption. SPQRwall~433/hour, reportedruntime90.0592sfor16 excludes
+  startup/loading. Targetwouldneed148.42Gbpsoutgoing/party atfanout1 beforeTLS/H2.
+  Honestbaselinefarshortof100k/hour. SameTLSconnectiondoesnotremoveSignalcost.
+  RuntimecommunicationcountersareNOTWANRTTs; do notmultiplythembyRTT.
+- Canonicalanalysis scripts/summarize_signal_throughput.py and
+  benchmarks/results/lean-signal-throughput-baseline.json; root independently
+  recomputedall4sendwallrates/bytebounds andverifiedall5loghashes+native source
+  receipts. Rootacceptance lean-signal-throughput-root-review.json. Redundant
+  rootanalysis script/report were removedafteragreement. Nativebaselineitself
+  benchmarks/results/lean-signal-native-checks.json complete=true(6cases).
+- AgentrealisticSPQRcosts256B:2184573ANDs/79353ANDdepth/375wirebytes;
+  1024B:3251891ANDs/117753ANDdepth/1143wirebytes.2independentfixturelaneseachpass.
+  AlreadyusespreparedHMACwithinchain/HKDF; nofreehugegainfromthatoptimization.
+  LocalLeanStdAdd.lean explicitlyripplecarry; alternativeaddertradeoffpossible.
+- AgentpreparingTinier128candidatebenchmark ONLY: maliciousdishonestmajority
+  preserves2malicious/fiveparties. OfficialmixedpairMASCOT/Tinier; DO NOTassume
+  StrongShamir/Tinierconversion orchangeproductionrefresh. Source tinyMACvalue
+  isBit withGF128MAC, potentiallylessonlinebandwidth; totalcostnotmeasured.
+  Isolatedroot .deps/signal-tinier128,fullconsistentLONG_BIT_MAC_KEY+
+  DEFAULT_SECURITY128rebuild; no INSECURE/KOSshortcut. Sourceprep recipe/review
+  SignalReference/TinierWork. ChildofflinebuildinitialfailedmissingOTdeps;
+  rootfetchedexactpinnedarchives usingnormalHTTPS, hashmanifestdependency-archives.
+- Dependencyprovenance MP-SPDZ0.4.4commit113c4e47dd94bca9ecab029d2f0abe649bea5c52
+  frombenchmarks/config/dependencies; GitHubtrees savedinTinierWork. Acquired:
+  SimplestOT_C7ef7666909e493a18c99efe56f97cc4d13723005;
+  libOTe2fe6b2ff82a976a5332b3a2efe325831588b1324a;
+  cryptoTools f70175e0cbd36b808475c0c1bbf585304e43d3d0;
+  coproto8dce3918b06c80dbcd65baeb899f1a694433f926;
+  libdividev5.2.0commit66190e9daa603cabe95d99f09fb79b5c186d0417;
+  macoroee5fa61a9bc2e4cd4cdddea8d4a6485332e8d58e;
+  function202ca99831de59c7c3a4b834789260253cace0ced.
+  First3inMP-SPDZ/deps hierarchy;last4in.deps/signal-tinier128/dependencies.
+  Archives retained.deps/signal-tinier128/archives,sevenhashesrecorded. Allfetch
+  roottoolhandles89725/59696/37906terminal0. Agentownsremainingofflinebuild.
+  Agentwillfreeze scripts/check_lean_signal_tinier128.py beforeROOTnetworkrun.
+- SignalagentAstrahigh continues:36CCAactualRustcases24endpoints;full6profile/
+  8lane stagedKEMnumericcheckscomplete;rootCLI55componentprofiles+10invalidshapes
+  pass. Old40profilerootaudit beingrerun; avoideditingMain/TlsMpc/SignalExport
+  untilagentreleasesit. Quarantinedskip_fieldcandidatefixprovesloop-body
+  monotonicitywithoutchangingpinnedloop/generatedcode; noacceptedfullskipproofyet.
+- Userreportedgitworks; normalgitinitstillEPERMcreatingroot.git. No gitrepo or
+  commitscreated. Do notbypass. Sharingrefreshremainspaused.
+
+- Finalhandoff: performancecanonicalreportandTLSreportbothstillmatchrootreview
+  hashes; nineTinierdependencyarchivehashesindependentlyverified. AddedcryptoTools
+  gitlinks simde0ba20859e9f557cee161d2cab2728b56dca7ec38 andsse2neon
+  29716df957401e9c357348e9b73c95a38cdcd34f undercryptoTools/thirdparty. Initial
+  dependencybuild30563terminal1 missingthese; do notrestartit. Agentexplicitly
+  resumedofflinebuildwithnewlivehandle62244,/tmp/signal-tinier-dependency-build.log,
+  allFETCHflagsOFF. Old40rootexportaudit33530stillliveagentowned;don'trestart.
+  Rootnoactiveprocesses. TiniernativecomparisonNOTyetbuilt/executed; awaitagent
+  provenance+frozenharness thenrootrun normalnetworkenabledexec. Sharingpaused.
+- Agentfinalupdate: old40rootexportaudit33530 nowSUCCESS40numericmatches,7TLSdispatch,14invalidprofiles; Main/TlsMpc/SignalExport editlockreleased. TinierlibOTebuild62244stillactive,pastSIMD(~67%),allotherdepsinstalled.

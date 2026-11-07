@@ -1,0 +1,29 @@
+{
+  "scope": "public circuit structure, no native MPC execution",
+  "profiles": [
+    {
+      "plaintext_bytes": 16,
+      "and_depth": 32,
+      "raw_and_gates": 1605,
+      "executed_and_gates": 693,
+      "executed_xor_gates": 304,
+      "unreachable_nodes": 608
+    },
+    {
+      "plaintext_bytes": 128,
+      "and_depth": 144,
+      "raw_and_gates": 14677,
+      "executed_and_gates": 5893,
+      "executed_xor_gates": 2928,
+      "unreachable_nodes": 5856
+    },
+    {
+      "plaintext_bytes": 1024,
+      "and_depth": 1040,
+      "raw_and_gates": 130005,
+      "executed_and_gates": 50181,
+      "executed_xor_gates": 26608,
+      "unreachable_nodes": 53216
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "exports": [
+    "tls-export-agreement-x25519-field.json",
+    "tls-export-begin-x25519-field.json",
+    "tls-export-binary-tls-application-secrets.json",
+    "tls-export-binary-tls-finished.json",
+    "tls-export-binary-tls-handshake-secrets.json",
+    "tls-export-binary-tls-open-handshake-record-58.json",
+    "tls-export-binary-tls-seal-record-22-36-0.json",
+    "tls-export-binary-tls-seal-record-22-44-0.json",
+    "tls-export-binary-tls-traffic-keys.json",
+    "tls-export-binary-tls-verify-finished.json"
+  ],
+  "all_memory_order_preserved": true,
+  "manifest_sha256": "debe0d2e6bac7b61f3f0b456376701efadb94e4d244e3d45451b0c74e050685d",
+  "native_mpc_executed": false,
+  "scope": "fixed-shape stage functions; arbitrary incoming record lengths still require additional artifacts"
+}

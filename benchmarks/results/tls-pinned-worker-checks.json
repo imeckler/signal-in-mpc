@@ -1,0 +1,68 @@
+{
+  "cases": [
+    {
+      "case": "valid complete closure",
+      "accepted": true
+    },
+    {
+      "case": "modified Programs/Functions/probe",
+      "accepted": false
+    },
+    {
+      "case": "unlisted Programs/Functions/probe",
+      "accepted": false
+    },
+    {
+      "case": "modified Programs/Schedules/test.sch",
+      "accepted": false
+    },
+    {
+      "case": "unlisted Programs/Schedules/test.sch",
+      "accepted": false
+    },
+    {
+      "case": "modified Programs/Bytecode/test-0.bc",
+      "accepted": false
+    },
+    {
+      "case": "unlisted Programs/Bytecode/test-0.bc",
+      "accepted": false
+    },
+    {
+      "case": "modified Programs/Bytecode/test-1.bc",
+      "accepted": false
+    },
+    {
+      "case": "unlisted Programs/Bytecode/test-1.bc",
+      "accepted": false
+    },
+    {
+      "case": "duplicate file",
+      "accepted": false
+    },
+    {
+      "case": "noncanonical digest",
+      "accepted": false
+    },
+    {
+      "case": "path traversal",
+      "accepted": false
+    },
+    {
+      "case": "unknown format",
+      "accepted": false
+    },
+    {
+      "case": "pinned malformed descriptor",
+      "accepted": false
+    }
+  ],
+  "native_mpc_executed": false,
+  "scope": "actual native pinned-file parser and function dependency validation",
+  "source_sha256": {
+    "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
+    "handshake_backend/pinned_program_probe.cpp": "bfbf96be200ba403103156d9e3f47aa21942bdee1a43d14d0622bddc9b514fcd",
+    "scripts/pin_tls_worker.py": "b2afaafbbf9e468596743ac76eb4c81b5699efd205f51b15e4006677b93ef8d7",
+    "scripts/check_pinned_worker.py": "4a6609b5821ddf93803815473afda7b81445edb0ad53a8daa8931b033c3c4a85"
+  }
+}
