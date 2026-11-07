@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "native_attempt_passed": false,
+  "statistical_security_parameter_requested": 128,
+  "input_authentication_advanced_after_width_fix": true,
+  "failure_stage": "first ANDS preprocessing, instruction53557 in receiver-store-lookup fixture",
+  "failure": "shuffle sacrifice not implemented for more than40-bit security",
+  "all_five_parties_rejected": true,
+  "supported_128_bit_native_tinier_profile_established": false,
+  "throughput_measured": false,
+  "guard_removed": false,
+  "security_lowered": false,
+  "production_backend_changed": false,
+  "source_sha256": {
+    ".deps/signal-tinier128/MP-SPDZ/Protocols/ShuffleSacrifice.hpp": "f9ce89d917d6f34e751cb1fd419505e53269d025f778b57e5bfe6d265814fd35",
+    ".deps/signal-tinier128/MP-SPDZ/Protocols/ShuffleSacrifice.h": "4809e4a709c0876a0f7dbba9183c032ba6ccbfe9f66d45158bf235528a2cb950",
+    ".deps/signal-tinier128/MP-SPDZ/Protocols/MalRepRingPrep.hpp": "6c6359db3bdea2d71a3855b18c69281d649201521dc619f5de6a37454c2d8dd9",
+    ".deps/signal-tinier128/MP-SPDZ/GC/TinyPrep.hpp": "92a8feca8e8ef1d04a4381186862ee1b8ebb3646b9301cfb96d29ad99a2672ef",
+    "SignalReference/TinierWork/build-report.json": "b1a6f968c6b2fe4d258cf956d3e5fb4770f810500b9690966de5ee539836c988",
+    "SignalReference/TinierWork/mac-width-patch.json": "98a66845292e0f007e0747077c1f8931b1dbdf746b86fc4f0f5f10b276efe88d"
+  },
+  "log_sha256": {
+    "benchmarks/results/raw/signal-tinier128-width-fixed/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-0.log": "f3721faa5016aa931e59e368e8a21dcfc60757fc383cd4924142b8681353842b",
+    "benchmarks/results/raw/signal-tinier128-width-fixed/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-1.log": "8d98e894ff4d06be2cbacca78b7b4c8f48353e4f047a4487f6308ab64bc78cf8",
+    "benchmarks/results/raw/signal-tinier128-width-fixed/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-2.log": "4369dac1bf242378ead3e00e73825e19930664bab212e6808fc29a5a8a00f1c9",
+    "benchmarks/results/raw/signal-tinier128-width-fixed/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-3.log": "4bd31f580cff3c460d396f030fcae6b1bb054ecdc7e791d3a948ef0524f68148",
+    "benchmarks/results/raw/signal-tinier128-width-fixed/lean_artifact-signal-receiver-store-lookup-5-2-1-5/party-4.log": "9815689707b130048f745fed48cecd0ea4218031ddf005c097ebf09272b8320d"
+  },
+  "next_boundary": "A parameter extension requires a reviewed bound for BOTH triple integrity/sacrifice and combining/privacy, plus overflow/resource bounds; a MAC-width fix alone does not establish128-bit Tinier. Tiny shares the same shuffle implementation. Existing CCD128 baseline remains the measured supported profile."
+}

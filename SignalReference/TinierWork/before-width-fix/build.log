@@ -1,0 +1,125 @@
+clang++ -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -shared -o libSPDZ.so Processor/BaseMachine.o Processor/DataPositions.o Processor/DishonestMajorityMachine.o Processor/ExternalClients.o Processor/FixInput.o Processor/FloatInput.o Processor/FunctionArgument.o Processor/HonestMajorityMachine.o Processor/Instruction.o Processor/OnlineOptions.o Processor/PrepBase.o Processor/ProcessorBase.o Processor/Program.o Processor/RingOptions.o Processor/ThreadQueue.o Processor/ThreadQueues.o Processor/ThreadStats.o Processor/TruncPrTuple.o Protocols/ShamirOptions.o Protocols/ShareInterface.o Math/bigint.o Math/Bit.o Math/gf2n.o Math/gf2nlong.o Math/gfpvar.o Math/Setup.o Math/Square.o Math/square128.o Math/ValueInterface.o Math/Zp_Data.o Tools/aes-ni.o Tools/aes.o Tools/benchmarking.o Tools/BitVector.o Tools/Buffer.o Tools/CodeLocations.o Tools/Commit.o Tools/Coordinator.o Tools/DiskVector.o Tools/Exceptions.o Tools/ExecutionStats.o Tools/FlexBuffer.o Tools/Hash.o Tools/Lock.o Tools/mkpath.o Tools/NamedStats.o Tools/names.o Tools/NetworkOptions.o Tools/octetStream.o Tools/OfflineMachineBase.o Tools/random.o Tools/Signal.o Tools/Subroutines.o Tools/time-func.o Tools/TimerWithComm.o Tools/Waksman.o Networking/CryptoPlayer.o Networking/Player.o Networking/Receiver.o Networking/Sender.o Networking/Server.o Networking/ServerSocket.o Networking/sockets.o GC/square64.o GC/Instruction.o -lgmpxx -lgmp -lsodium  -L/opt/homebrew/opt/openssl@3.5/lib -L/opt/homebrew/lib -Wl,-rpath -Wl,/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib -L/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib -lssl -lcrypto -lboost_filesystem -lboost_iostreams -Wl,-rpath -Wl,/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ
+clang++ -o Machines/tinier-party.o Machines/tinier-party.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+clang++ -o OT/BaseOT.o OT/BaseOT.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+In file included from Machines/tinier-party.cpp:6:
+In file included from ./GC/TinierSecret.h:9:
+In file included from ./GC/TinySecret.h:9:
+In file included from ./GC/Secret.h:11:
+In file included from ./BMR/common.h:16:
+In file included from ./Tools/CheckVector.h:13:
+In file included from ./Math/Integer.h:14:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+In file included from OT/BaseOT.cpp:1:
+In file included from ./OT/BaseOT.h:13:
+In file included from ./Tools/BitVector.h:15:
+In file included from ./Math/gf2nlong.h:18:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+3 warnings generated.
+clang++ -o OT/BitDiagonal.o OT/BitDiagonal.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+In file included from OT/BitDiagonal.cpp:6:
+In file included from ./OT/BitDiagonal.h:9:
+In file included from ./Math/Square.h:9:
+In file included from ./Tools/BitVector.h:15:
+In file included from ./Math/gf2nlong.h:18:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+3 warnings generated.
+clang++ -o OT/MascotParams.o OT/MascotParams.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+clang++ -o OT/OTExtension.o OT/OTExtension.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+In file included from OT/OTExtension.cpp:1:
+In file included from OT/OTExtension.h:4:
+In file included from ./OT/BaseOT.h:13:
+In file included from ./Tools/BitVector.h:15:
+In file included from ./Math/gf2nlong.h:18:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+3 warnings generated.
+clang++ -o OT/OTExtensionWithMatrix.o OT/OTExtensionWithMatrix.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+In file included from OT/OTExtensionWithMatrix.cpp:6:
+In file included from OT/OTExtensionWithMatrix.h:9:
+In file included from OT/OTExtension.h:4:
+In file included from ./OT/BaseOT.h:13:
+In file included from ./Tools/BitVector.h:15:
+In file included from ./Math/gf2nlong.h:18:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+3 warnings generated.
+clang++ -o OT/OTTripleSetup.o OT/OTTripleSetup.cpp -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC -MMD -MP -c
+3 warnings generated.
+In file included from OT/OTTripleSetup.cpp:1:
+In file included from OT/OTTripleSetup.h:5:
+In file included from ./OT/BaseOT.h:13:
+In file included from ./Tools/BitVector.h:15:
+In file included from ./Math/gf2nlong.h:18:
+In file included from ./Math/bigint.h:8:
+/opt/homebrew/include/gmpxx.h:2163:29: warning: identifier '_mpz' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2163 | inline mpz_class operator"" _mpz(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpz
+/opt/homebrew/include/gmpxx.h:2168:29: warning: identifier '_mpq' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2168 | inline mpq_class operator"" _mpq(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpq
+/opt/homebrew/include/gmpxx.h:2175:29: warning: identifier '_mpf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 2175 | inline mpf_class operator"" _mpf(const char* s)
+      |                  ~~~~~~~~~~~^~~~
+      |                  operator""_mpf
+3 warnings generated.
+clang++ -o tinier-party.x -DNO_AVX_OT -I./local/include  -Wno-error=deprecated-literal-operator -DLONG_BIT_MAC_KEY -DDEFAULT_SECURITY=128  -Wextra -Wall -O3 -I. -I./deps -pthread    -DUSE_GF2N_LONG '-DPREP_DIR="Player-Data/"' '-DSSL_DIR="Player-Data/"'  -std=c++20 -Werror -Wno-overloaded-virtual -I/opt/homebrew/opt/openssl@3.5/include -I/opt/homebrew/include -Wno-error=deprecated-declarations -fPIC Machines/tinier-party.o libSPDZ.so OT/BaseOT.o OT/BitDiagonal.o OT/MascotParams.o OT/OTExtension.o OT/OTExtensionWithMatrix.o OT/OTTripleSetup.o deps/SimplestOT_C/ref10/libSimplestOT.a local/lib/liblibOTe.a local/lib/libmacoro.a local/lib/libcryptoTools.a local/lib/libcoproto.a -lgmpxx -lgmp -lsodium  -L/opt/homebrew/opt/openssl@3.5/lib -L/opt/homebrew/lib -Wl,-rpath -Wl,/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib -L/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib -lssl -lcrypto -lboost_filesystem -lboost_iostreams -Wl,-rpath -Wl,/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ libSPDZ.so

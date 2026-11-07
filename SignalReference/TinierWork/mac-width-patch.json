@@ -1,0 +1,10 @@
+{
+  "candidate_only": true,
+  "original_sha256": "12429b0c5a81c17e02c80b36b5636d763efa679086e5244dabe1838792b25eb4",
+  "patched_sha256": "b0137319ae18d60f9d741bbbddb48569c8d5a47fcd4db473ec7e26b8d135e13c",
+  "diff_sha256": "5d194588e0b2ed64c19758e0070a20d104c9aa66ee67689ad49926c5d8bb46c6",
+  "patched_sites": 3,
+  "purpose": "Use existing field-specific cut on the full128-bit OT block. gf2n_long::cut preserves128bits; gf2n_short::cut retains previous low64bit behavior. No OT checks, MAC checks, sacrifice, or security parameter changes.",
+  "original_failure": "all five parties aborted on first INPUTBVEC with MacCheck Failure; no Signal throughput measured",
+  "script_sha256": "da1be110d97b196be1725f5092ff2185b5bca585f760228c744e40c21737a24b"
+}

@@ -680,3 +680,32 @@ RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
   Rootnoactiveprocesses. TiniernativecomparisonNOTyetbuilt/executed; awaitagent
   provenance+frozenharness thenrootrun normalnetworkenabledexec. Sharingpaused.
 - Agentfinalupdate: old40rootexportaudit33530 nowSUCCESS40numericmatches,7TLSdispatch,14invalidprofiles; Main/TlsMpc/SignalExport editlockreleased. TinierlibOTebuild62244stillactive,pastSIMD(~67%),allotherdepsinstalled.
+
+2026-11-07 update (supersedes the Git/build status above)
+- Git now works. Commits c2a5fe4 (Lean MPC core/native TLS) and b9a82df
+  (Signal reference proofs and extraction evidence) preserve the initial work.
+  Root owns staging/commits; the Signal agent continues editing its proof work.
+- SignalReference/LLBCSnapshots preserves 124 exact LLBC paths as deduplicated,
+  deterministic gzip blobs plus hashes and a bounded restore utility. All
+  round trips passed. Archive inclusion does not imply proof acceptance.
+- Tinier dependency and native builds completed. The initial five-party run
+  aborted on INPUTBVEC MAC checks. Three OT block conversions truncated MACs
+  to 64 bits; the isolated candidate patch uses field-specific cut on full
+  128-bit blocks, preserving the previous short-field behavior.
+- Local algebra checks passed: 4352 COT relations, 278528 high-bit corruption
+  rejections, 2112 old-truncation counterexamples, 2176 short-field cases.
+  These are local checks, not a malicious native security proof.
+- The patched native run passed input authentication but all five parties
+  aborted at ANDS: shuffle sacrifice is not implemented above 40-bit security.
+  See SignalReference/TinierWork/security128-assessment.json and patch receipts.
+  No security guard was removed and no weaker-security run was substituted.
+  No Tinier throughput result or production migration is established.
+- The working Shamir/CCD128 baseline remains canonical. Next performance work
+  can examine circuit addition/depth and backend packing, with measured costs;
+  SHA changes have not yet been made. Persistent TLS alone cannot eliminate
+  the measured Signal MPC communication cost.
+- Native authenticated TLS handshake evidence remains valid, but application
+  activation still fails closed at retirement because full VM/preprocessing/
+  PRNG erasure is unfinished. This is not a completed application client.
+- Signal Astra high remains active on quarantined skip/group refinement.
+  Sharing refresh remains paused. No root native processes are running.

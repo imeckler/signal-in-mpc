@@ -1,0 +1,20 @@
+{
+  "checked_utc": "2026-11-07T21:26:02.193113+00:00",
+  "passed": false,
+  "native_attempted": true,
+  "fixture_completed": false,
+  "parties": 5,
+  "statistical_security_parameter": 128,
+  "failure": "All five parties rejected input preprocessing at INPUTBVEC with MacCheck Failure. No comparison throughput measured.",
+  "diagnosis_pending_confirmation": "Three explicit get_lower conversions in Tinier input/triple MAC generation discard the high half of GF128 MAC material. Width-preserving candidate repair pending native validation.",
+  "original_build_report_sha256": "e867157c9c65083257ced2663fad65d31b91d3807bb6631d6db710b5611231da",
+  "logs": "benchmarks/results/raw/signal-tinier128-original-input-failure",
+  "party_log_sha256": {
+    "party-0.log": "8a02cbf86ac7e6fb812383dd0b9e4b589b178a4aaca39262c774aa5c8dbc5857",
+    "party-1.log": "4515b0f3f653fde63b87f2217801d4e0d290ad2810a782f4dc7905b6547468a3",
+    "party-2.log": "ef46d111308981958ecc3b0200a0cd355a794fdc6bc5f253d55174264d121cd1",
+    "party-3.log": "dfce0f7844207ff28fb1b3190e0e43e5ccb84b30e0de55d146b210333f3bc0dd",
+    "party-4.log": "9dd61795c7a7baf0af24ae9b249aceab9efb54284457cc2db1dd21a13fdafc26"
+  },
+  "security_checks_disabled": false
+}

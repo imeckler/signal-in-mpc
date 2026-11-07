@@ -1,0 +1,9 @@
+{
+  "cot_relations": 4352,
+  "high_bit_corruption_rejections": 278528,
+  "old_truncation_counterexamples": 2112,
+  "short_field_backward_compatibility_cases": 2176,
+  "native_mpc_test": false,
+  "source_sha256": "ee11f0625f52d724570b56adf2b370912cf938951f35af632bc11ce1ae4b679c",
+  "executable_sha256": "eff5c571da4fee269bda0879135c9d88129f49d11823c0a9af7eb1d4addc48d1"
+}

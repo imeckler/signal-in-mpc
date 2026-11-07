@@ -15,14 +15,17 @@ def main():
     baseline_cases={(r['name'],r['batch']):r for r in baseline['cases']}
     preparation=json.loads((ROOT/'SignalReference/TinierWork/preparation.json').read_text())
     assert digest(backend/'CONFIG.mine')==preparation['config_candidate_sha256']
-    for name,sha in preparation['source_sha256'].items():assert digest(backend/name)==sha,name
+    patch=json.loads((ROOT/'SignalReference/TinierWork/mac-width-patch.json').read_text())
+    for name,sha in preparation['source_sha256'].items():
+        expected=patch['patched_sha256'] if name=='OT/OTMultiplier.hpp' else sha
+        assert digest(backend/name)==expected,name
     built=json.loads((ROOT/'SignalReference/TinierWork/build-report.json').read_text())
     assert built['build_complete'] and built['statistical_security_parameter']==128
     for name,sha in built['input_sha256'].items():assert digest(ROOT/name)==sha,name
     for name,sha in built['binary_sha256'].items():assert digest(ROOT/name)==sha,name
     profiles=[] if args.send_only else [('receiver-store','signal-receiver-store-lookup-5-2',1),('keccak','signal-keccak-sha3-512-64-64',1)]
     profiles += [(category,name,batch) for category,name in [('chain-send','signal-chain-send-17-5-5-2-present'),('spqr-send','signal-spqr-send-17-5-2-10-5-3-present-present')] for batch in (1,16)]
-    results=[];output=ROOT/'benchmarks/results/raw/signal-tinier128';output.mkdir(parents=True,exist_ok=True)
+    results=[];output=ROOT/'benchmarks/results/raw/signal-tinier128-width-fixed';output.mkdir(parents=True,exist_ok=True)
     for category,name,batch in profiles:
         artifact=ROOT/f'.deps/signal-{category}-artifacts/{name}.json';fixture=artifact.with_name(name+'-fixtures.json');rows=json.loads(fixture.read_text())
         if category.endswith('send'):rows=[row for row in rows if bytes.fromhex(row['output'])[0]==255]
@@ -65,6 +68,6 @@ def main():
                 try:process.wait(timeout=10)
                 except subprocess.TimeoutExpired:pass
             for log in logs:log.close()
-        report={'checked_at_utc':datetime.now(timezone.utc).isoformat(),'complete':len(results)==len(profiles),'native_mpc_executed':True,'parties':5,'threshold':2,'protocol':'Tinier malicious dishonest-majority','binary_value_bits':1,'mac_field_degree':128,'candidate_backend_only':True,'statistical_security_parameter':128,'executable_sha256':digest(executable),'source_sha256':{str(p.relative_to(ROOT)):digest(p) for p in [Path(__file__),ROOT/'SignalReference/TinierWork/prepare.py',ROOT/'SignalReference/TinierWork/preparation.json',ROOT/'programs/lean_artifact.mpc',backend/'Machines/tinier-party.cpp',backend/'GC/TinierShare.h',backend/'CONFIG.mine']},'cases':results,'workload':'public synthetic independent established sessions; batch lanes are distinct recipient encryptions, not sequential messages on one ratchet','tls_h2_included':False,'persistent_session_runtime_tested':False,'refresh_or_vm_erasure_tested':False,'wan_tested':False,'target_logical_messages_per_hour':100000,'target_logical_messages_per_second':100000/3600,'device_fanout_multiplier_not_included':True,'vm_rounds_are_not_network_roundtrips':True}
-        (ROOT/'benchmarks/results/lean-signal-tinier128-checks.json').write_text(json.dumps(report,indent=2)+'\n')
+        report={'checked_at_utc':datetime.now(timezone.utc).isoformat(),'complete':len(results)==len(profiles),'native_mpc_executed':True,'parties':5,'threshold':2,'protocol':'Tinier malicious dishonest-majority','binary_value_bits':1,'mac_field_degree':128,'candidate_backend_only':True,'local_mac_width_patch':True,'mac_checks_and_statistical_security_unchanged':True,'statistical_security_parameter':128,'executable_sha256':digest(executable),'source_sha256':{str(p.relative_to(ROOT)):digest(p) for p in [Path(__file__),ROOT/'SignalReference/TinierWork/prepare.py',ROOT/'SignalReference/TinierWork/preparation.json',ROOT/'programs/lean_artifact.mpc',backend/'Machines/tinier-party.cpp',backend/'GC/TinierShare.h',backend/'CONFIG.mine',backend/'OT/OTMultiplier.hpp',ROOT/'SignalReference/TinierWork/mac-width-patch.json',ROOT/'SignalReference/TinierWork/build-report.json']},'cases':results,'workload':'public synthetic independent established sessions; batch lanes are distinct recipient encryptions, not sequential messages on one ratchet','tls_h2_included':False,'persistent_session_runtime_tested':False,'refresh_or_vm_erasure_tested':False,'wan_tested':False,'target_logical_messages_per_hour':100000,'target_logical_messages_per_second':100000/3600,'device_fanout_multiplier_not_included':True,'vm_rounds_are_not_network_roundtrips':True}
+        (ROOT/'benchmarks/results/lean-signal-tinier128-width-fixed-checks.json').write_text(json.dumps(report,indent=2)+'\n')
 if __name__=='__main__':main()

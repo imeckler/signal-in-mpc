@@ -1,0 +1,27 @@
+--- pinned/OT/OTMultiplier.hpp
++++ candidate/OT/OTMultiplier.hpp
+@@ -597,9 +597,9 @@
+         this->macs[j].clear();
+         for (size_t i = 0; i < this->generator.valueBits[j].size(); i++)
+             this->macs[j].push_back(
+-                    int128(
++                    T::mac_type::cut(int128(
+                             auth_ot_ext.receiverOutputMatrix[i]
+-                                    ^ auth_ot_ext.senderOutputMatrices[0][i]).get_lower());
++                                    ^ auth_ot_ext.senderOutputMatrices[0][i])));
+     }
+     this->outbox.push(job);
+ }
+@@ -769,10 +769,10 @@
+     input_macs.resize(job.n_inputs);
+     if (mine)
+         for (int j = 0; j < job.n_inputs; j++)
+-            input_macs[j] = int128(auth_ot_ext.receiverOutputMatrix[j]).get_lower();
++            input_macs[j] = U::mac_type::cut(int128(auth_ot_ext.receiverOutputMatrix[j]));
+     else
+         for (int j = 0; j < job.n_inputs; j++)
+-            input_macs[j] = int128(auth_ot_ext.senderOutputMatrices[0][j]).get_lower();
++            input_macs[j] = U::mac_type::cut(int128(auth_ot_ext.senderOutputMatrices[0][j]));
+     this->outbox.push(job);
+ }
+ 
