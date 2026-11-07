@@ -1,0 +1,15 @@
+{
+  "accepted_generic_reference": true,
+  "accepted_concrete_vector_reference": false,
+  "full_signalmessage_encoder_refined": false,
+  "scope": "Exact generic actual Prost bytes::encode for Signal tags1,4,5,6; supplied dictionary failures and divergence retained. Numeric bridge remains conditional on concrete adapter len and append contracts.",
+  "independent_review": "SignalReference/ProstEncodingWork/BytesFieldSelectionReview/review.json",
+  "independent_review_sha256": "452c22b68e461e800da782b56aa94b5ca8f68ed31b4a3d0bee7e908a1e58466d",
+  "proof_report_sha256": "7ff01497bd8fbc83aad06dd75d9c7adb76e7ea8dbd688dd6ea82060f14e044fa",
+  "remaining_contracts": [
+    "Actual concrete length equals Vec.len",
+    "Actual concrete payload append behavior"
+  ],
+  "standard_model_changes": [],
+  "custom_axioms_added": []
+}

@@ -1,0 +1,31 @@
+'LibSignalReference.Candidate.VarintDecode.zero_add' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.sub_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.cast_index' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.payload_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.loop_body_continue' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.loop_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.matches_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.loop_body_suffix' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.loop_suffix' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_at_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_suffix' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.matches_at_bytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.contents_drop' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.decode_at_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.VarintDecode.usize_max_lt_uint64' depends on axioms: [propext]
+'LibSignalReference.Candidate.VarintDecode.decode_at_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,218 @@
+{
+  "checked_at_utc": "2026-11-06T21:19:31.709209+00:00",
+  "accepted_reference": true,
+  "references": {
+    "MixColumns0": {
+      "inventory": "Artifacts/MixColumns0/inventory.json",
+      "llbc_sha256": "2606c43cb1d40b91a6505012e0f90b6c2348f8b29ed2eb43ae85fb33c2fcec3c",
+      "generated_files": {
+        "AesLinearWork/Generated/MixColumns0/Funs.lean": "c163a7dcde81bc9c5114a0f556282dcc35ffee5eda7718d27975c0f76ba2b097",
+        "AesLinearWork/Generated/MixColumns0/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc"
+      },
+      "body_regular_function_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "standard_library_llbc_functions": [
+        "core::num::{impl}::rotate_right"
+      ],
+      "discarded_metadata_types": [],
+      "modeled_types": [],
+      "discarded_metadata_functions": []
+    },
+    "ShiftRows": {
+      "inventory": "Artifacts/ShiftRows/inventory.json",
+      "llbc_sha256": "bf0307bdbe4022ffbd2834aa670ce4165df226cc8f986db3d51b18a9df89737e",
+      "generated_files": {
+        "AesLinearWork/Generated/ShiftRows/Funs.lean": "cfb5285bd0c180834a846a0c3cd861fd818f5d79c53c764a42bbf1fb49efeb7b",
+        "AesLinearWork/Generated/ShiftRows/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc"
+      },
+      "body_regular_function_ids": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "standard_library_llbc_functions": [
+        "core::slice::{impl}::len",
+        "core::slice::{impl}::iter_mut",
+        "core::iter::traits::collect::{impl}::into_iter",
+        "core::slice::iter::{impl}::next",
+        "core::clone::impls::{impl}::clone",
+        "core::num::niche_types::{impl}::clone"
+      ],
+      "discarded_metadata_types": [
+        "core::fmt::Arguments",
+        "core::array::iter::IntoIter",
+        "core::num::nonzero::NonZero",
+        "core::iter::adapters::step_by::StepBy",
+        "core::iter::adapters::chain::Chain",
+        "core::iter::adapters::zip::Zip",
+        "core::iter::adapters::intersperse::Intersperse",
+        "core::iter::adapters::intersperse::IntersperseWith",
+        "core::iter::adapters::map::Map",
+        "core::iter::adapters::filter::Filter",
+        "core::iter::adapters::filter_map::FilterMap",
+        "core::iter::adapters::enumerate::Enumerate",
+        "core::iter::adapters::peekable::Peekable",
+        "core::iter::adapters::skip_while::SkipWhile",
+        "core::iter::adapters::take_while::TakeWhile",
+        "core::iter::adapters::map_while::MapWhile",
+        "core::iter::adapters::skip::Skip",
+        "core::iter::adapters::take::Take",
+        "core::iter::adapters::scan::Scan",
+        "core::iter::adapters::flatten::FlatMap",
+        "core::iter::adapters::flatten::Flatten",
+        "core::iter::adapters::map_windows::MapWindows",
+        "core::iter::adapters::fuse::Fuse",
+        "core::iter::adapters::inspect::Inspect",
+        "core::iter::adapters::rev::Rev",
+        "core::iter::adapters::copied::Copied",
+        "core::iter::adapters::cloned::Cloned",
+        "core::iter::adapters::cycle::Cycle",
+        "core::iter::adapters::array_chunks::ArrayChunks",
+        "core::num::niche_types::NonZeroUsizeInner"
+      ],
+      "modeled_types": [
+        "core::slice::iter::IterMut"
+      ],
+      "discarded_metadata_functions": [
+        "core::clone::impls::{impl}::clone",
+        "core::num::niche_types::{impl}::clone"
+      ]
+    }
+  },
+  "actual_locked_source": "aes 0.9.1 src/soft/fixslice64.rs; libsignal 0.106.1 Cargo.lock",
+  "numeric_circuit_bridge_domain": "All 4 x 16 secret bytes in the canonical ordinary bitplane layout; fixed 8-word state; output eight little-endian u64 bitplanes",
+  "selected_operations": [
+    "mix_columns_0",
+    "shift_rows_1",
+    "shift_rows_2",
+    "shift_rows_3"
+  ],
+  "shape_errors": "All three translated ShiftRows functions reject a slice whose public length differs from 8; numeric circuit domain fixes length 8",
+  "computational_standard_models": [
+    "Array.index_usize/update",
+    "Slice.len",
+    "core.slice.Slice.iter_mut",
+    "core.slice.iter.IteratorIterMut.next with borrow writeback",
+    "IntoIterator blanket identity (inlined)",
+    "UScalar checked shifts/addition, XOR, AND, and rotate_right",
+    "Result, massert, and loop"
+  ],
+  "discarded_metadata_reason": "Generated Types files are empty; no clone/adaptor/panic-formatting computation remains; discarded clone IDs 129/130 are not referenced by selected bodies",
+  "explicit_exclusions": [],
+  "source_patches": [],
+  "custom_cryptographic_models": [],
+  "custom_axioms": [],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "checked_theorems": 38,
+  "proof_sources_sha256": {
+    "AesLinearWork/Generated/MixColumns0/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc",
+    "AesLinearWork/Generated/MixColumns0/Funs.lean": "c163a7dcde81bc9c5114a0f556282dcc35ffee5eda7718d27975c0f76ba2b097",
+    "AesLinearWork/Generated/ShiftRows/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc",
+    "AesLinearWork/Generated/ShiftRows/Funs.lean": "cfb5285bd0c180834a846a0c3cd861fd818f5d79c53c764a42bbf1fb49efeb7b",
+    "AesLinearWork/Mix.lean": "b8ccdb9542d7a2c953c2b00aa20b10fe7efb31f657598676130acf8d0b6faf87",
+    "AesLinearWork/Reference.lean": "54b295d64987f3b513d6509a81247c0418e778fe57a8e9e2120d63479b891b87",
+    "AesLinearWork/Layout.lean": "0508f6ef46c8bb877eb41f1e9a3f4a980b2290f88826e5c7063a449f8c23f7c1",
+    "AesLinearWork/BitBasics.lean": "eb40d18e2bb6161bceb980cbd4fa4a9ce37eea5222c18eb9cf490690ed93c7e6",
+    "AesLinearWork/BitFormula.lean": "7b56e43582932674927f921bd54dc244e7743b1888f5f6594b839d1f52ac531b",
+    "AesLinearWork/Proofs.lean": "f2f7529bb4aeaa3a85e1529d6f8984290012e5eb7bfdf730b177d4da4a995e75",
+    "AesLinearWork/Bridge.lean": "0503e62e8ab0912610b10bc75db868aabcee4b5e1e8127d3e273659708b851d5",
+    "AesLinearWork/Shift.lean": "caf79fb25b76fac6d73415102cde4448b968d2409cd50edb5cf313e4a4be9af4",
+    "AesLinearWork/ShiftReference.lean": "5bb7537775f1c71db1e54e35deb29a279b31521b2c36b99c464063e08e138a84",
+    "AesLinearWork/ShiftBits.lean": "ec5dff63c22f8a37923d2081bfab28c700f9383e1b715fb6defee44254a2e2e5",
+    "AesLinearWork/ShiftBridge.lean": "a1b8806d55222445e17be0257b378a8c28bc3e661eb62e013d53f2cf26a38b68"
+  },
+  "canonical_layout_sources_sha256": {
+    "LibSignalReference/Generated/AesLayout/Types.lean": "652989fc05815fb6242b1831168ec04e02bb3f8ac032db67baa651c4184835cb",
+    "LibSignalReference/Generated/AesLayout/Funs.lean": "19f2a42dc02c9500ffdf2c9e973a1479ffc5e0402e68c6ba2b948cfa7cc887a4",
+    "LibSignalReference/Proofs/AesLayoutReference.lean": "f45bba722fdac9918660b252d63b1c4a44424c935ff09923c8646d3cc4311c75",
+    "LibSignalReference/Proofs/AesLayoutPermutation.lean": "f70116e0ef52f795034b9e46e2c07170d78bbfdd5e0e18d4f2c54eacf2f8f7f8",
+    "LibSignalReference/Proofs/AesLayout.lean": "4640ec690b5934fcc3654c7bda94e6aad61fb841f9e21218d44e80c31d1ac095"
+  },
+  "root_semantics_sha256": {
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Signal/AesLayoutNetwork.lean": "42409163e47aa092cf5ca3ea2cf93fb697d86496b0715b27d71f854a381f6b04",
+    "TlsMpc/Signal/AesLayout.lean": "425924262a77726f69fe182ff9dcc35b7eeb88433f06d467316ae3e657e1a6e5",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Array/Array.lean": "09ef16897a42cf3f80772067ef11f643f840a7f726b2426aabf29fefa602097e",
+    "Aeneas/Std/Array/Core.lean": "dee4c0bd5b800fbe9301ae02716b8b07ea9371f87e298411e2d94aba50359d0d",
+    "Aeneas/Std/Slice.lean": "a2f7fc40f76f37b54b4307f78cd78dfa1cf849252bd4220f40e6b1d52c054223",
+    "Aeneas/Std/SliceDef.lean": "5b4d8e999b94879163ae08f7644439e543547ff22ba1d7a10e35f8ee37d6fd36",
+    "Aeneas/Std/SliceIter.lean": "44d29a5d2cd24a85249c79313fb5a0beaa89a0aec09725c6ac2f75644b2f5e92",
+    "Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+    "Aeneas/Data/List/List.lean": "8c7caab4db89b5d4d4d2427099b5dafb9a90a5f58ac16c58f6f3cccaa82676d7",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Scalar/Rotate.lean": "84ffebeece1158aba9cd5648f2ac56b78aedc108b69a523b0a6063dd2716e7d3",
+    "Aeneas/Std/Scalar/Ops/Add.lean": "8ef617fc0cd36e68a4c691a415ba94e79de99899ab1e93428739b95ebb0b658e",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "unverified_export_source_sha256": "bb604afea2be52fa39a230e6b6d2ff3ca0e064f47dd3b5599018cce3209cd089",
+  "audit_script_sha256": "3fe503f1ac342f314b4045d50cad9cef78a0410291a9399a012b5f67ceba5126",
+  "extraction_script_sha256": "308548341f7a25918fa455ba80e46362f7e225c65e62d10c6a5e80019618c073",
+  "artifacts": {
+    "aes-mix-columns-0": {
+      "artifact_sha256": "a0fb0c3b7690193b8b74dbef4274c48e8b76c734f8592e066e26ae1ffb44d5c8",
+      "nodes": 7041,
+      "raw_and_gates": 6528,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 2176,
+      "unreachable_nodes": 4353,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    "aes-shift-rows-1": {
+      "artifact_sha256": "f8381de2c0b8562a6fdb8f27ddf6d9af10a18da649b1b086ddd67adfcb4d7340",
+      "nodes": 513,
+      "raw_and_gates": 0,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    "aes-shift-rows-2": {
+      "artifact_sha256": "b7789b03466d4a216034f35e259a5d516d7c8bfdc025acd8d968b146b633b31e",
+      "nodes": 513,
+      "raw_and_gates": 0,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    "aes-shift-rows-3": {
+      "artifact_sha256": "c531930c7536ccb6a150ccbd4bf0da50da6436028167a31f1210566b91819b25",
+      "nodes": 513,
+      "raw_and_gates": 0,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    }
+  },
+  "native_mpc_execution_tested": false,
+  "other_mix_columns_phases_complete": false,
+  "whole_aes_rustcrypto_equivalence_established": false
+}

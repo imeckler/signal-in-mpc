@@ -1,0 +1,133 @@
+{
+  "checked_at_utc": "2026-11-07T05:13:25.853690+00:00",
+  "kind": "lean_inverse_aes_circuit_checks",
+  "source_sha256": {
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "SignalReference/AesInverseCircuitWork/Export.lean": "60e9e499ec4d37a4aec6e65863a8893919d8efc53276a73845dde62c0fb133d3",
+    "SignalReference/AesInverseCircuitWork/Checks.lean": "974070e6c39904e8dad39922a2b56d2f290d6c114f2f8c07833e57c4376d5b01",
+    "SignalReference/AesInverseCircuitWork/check.py": "025f1d7333096070767d18e0e4fef84bfbb8d9715d5f5fedab1c4a205c72b22d"
+  },
+  "checked_theorems": 20,
+  "theorems": [
+    "TlsMpc.AesInverse.inverseAffineExpr_refines",
+    "TlsMpc.AesInverse.invSboxExpr_refines",
+    "TlsMpc.AesInverse.invSbox_forward",
+    "TlsMpc.AesInverse.forward_invSbox",
+    "TlsMpc.AesInverse.evaluationHom",
+    "TlsMpc.AesInverse.invSubBytes_map",
+    "TlsMpc.AesInverse.invShiftRows_map",
+    "TlsMpc.AesInverse.invMixColumn_map",
+    "TlsMpc.AesInverse.invMixColumns_map",
+    "TlsMpc.AesInverse.round_map",
+    "TlsMpc.AesInverse.middleRounds_map",
+    "TlsMpc.AesInverse.decryptExpanded_map",
+    "TlsMpc.AesInverse.decryptCore_map",
+    "TlsMpc.AesInverse.decrypt_map",
+    "TlsMpc.AesInverse.invMixColumns_length",
+    "TlsMpc.AesInverse.decryptExpanded_length",
+    "TlsMpc.AesInverse.decryptCore_length",
+    "TlsMpc.AesInverse.decrypt_result_length",
+    "TlsMpc.AesInverse.compiled_decryptExpanded_correct",
+    "TlsMpc.AesInverse.compiled_decryptCore_correct"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "axiom_report_sha256": "589de7889fd4a6f33f0c309e745e3cf81d4c71fa40747ed2f734684ac8412cd7",
+  "cases": [
+    {
+      "mode": "sbox",
+      "artifact_sha256": "d3600fe472484a2cb9143f5a6afb0093deda573377767e3d2969adc23209c1f1",
+      "fixture_lanes": 256,
+      "input_bits": 8,
+      "output_bits": 8,
+      "export_seconds": 2.6894957079784945,
+      "adapter_operations": {
+        "raw_and_gates": 375,
+        "executed_and_gates": 32,
+        "executed_xor_gates": 115,
+        "unreachable_nodes": 229
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "128",
+      "artifact_sha256": "8dcf37d18c2eb49eba54213dab381cc84572a4cbd4d25a45c9433453d9bb4140",
+      "fixture_lanes": 10,
+      "input_bits": 256,
+      "output_bits": 128,
+      "export_seconds": 0.9860515419859439,
+      "adapter_operations": {
+        "raw_and_gates": 100392,
+        "executed_and_gates": 6400,
+        "executed_xor_gates": 31464,
+        "unreachable_nodes": 62529
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "expanded128",
+      "artifact_sha256": "a7d0d878ce5c9591458f34e3d33728aab91df01e9b94ef9df191527de47aab21",
+      "fixture_lanes": 10,
+      "input_bits": 1536,
+      "output_bits": 128,
+      "export_seconds": 0.9706260000239126,
+      "adapter_operations": {
+        "raw_and_gates": 85392,
+        "executed_and_gates": 5120,
+        "executed_xor_gates": 26864,
+        "unreachable_nodes": 53409
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "256",
+      "artifact_sha256": "c7bb96f43c8cce85cb3e4a60c5cc88c105f45edd25be001a550aa5ae80a75997",
+      "fixture_lanes": 10,
+      "input_bits": 384,
+      "output_bits": 128,
+      "export_seconds": 1.1107373329577968,
+      "adapter_operations": {
+        "raw_and_gates": 139836,
+        "executed_and_gates": 8832,
+        "executed_xor_gates": 43852,
+        "unreachable_nodes": 87153
+      },
+      "all_outputs_match": true
+    },
+    {
+      "mode": "expanded256",
+      "artifact_sha256": "75588cd4852e10b1e869aa601a8650852f5e5ec7c8fc92fcdbbfb870a1e831b6",
+      "fixture_lanes": 10,
+      "input_bits": 2048,
+      "output_bits": 128,
+      "export_seconds": 1.0776452079880983,
+      "adapter_operations": {
+        "raw_and_gates": 120336,
+        "executed_and_gates": 7168,
+        "executed_xor_gates": 37872,
+        "unreachable_nodes": 75297
+      },
+      "all_outputs_match": true
+    }
+  ],
+  "native_mpc_executed": false,
+  "backend_compilation_performed_here": false,
+  "rustcrypto_decrypt_wrapper_equivalence": "pending",
+  "reference": "Public FIPS197 block answers and OpenSSL ECB decryption; independent finite-field byte fixture preparation",
+  "limitations": [
+    "Native export and generic adapter execution remain unverified.",
+    "No authentication, CBC composition, or Signal release policy is claimed by this block module."
+  ]
+}

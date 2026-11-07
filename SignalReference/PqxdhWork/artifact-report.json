@@ -1,0 +1,339 @@
+{
+  "checked_at_utc": "2026-11-07T18:27:09.557284+00:00",
+  "source_sha256": {
+    ".deps/MP-SPDZ/Compiler/GC/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".deps/MP-SPDZ/Compiler/GC/instructions.py": "9c72e45dd119d7d4327346e8dd09e92ef8c40336fb85a291a3aada2ade3ae40f",
+    ".deps/MP-SPDZ/Compiler/GC/program.py": "aa531736b6003e5d33f230b0f218d4b011d89eba3fc2857a66d36293af372121",
+    ".deps/MP-SPDZ/Compiler/GC/types.py": "b1c8b6e241158552cf220ece30315de962a81d8e9e6e9a95c57f99fc95d92771",
+    ".deps/MP-SPDZ/Compiler/__init__.py": "1d7bc3026cde6fddd7608e336baec8f0eaa69b8195d4e0ab7aa3caae93c33978",
+    ".deps/MP-SPDZ/Compiler/allocator.py": "2d3c46a016b59df046d88f5f7fe5d6992bae2aaf15193fc2a9295e041b674318",
+    ".deps/MP-SPDZ/Compiler/circuit.py": "b1a6ca00513253ec5a7a82df6943a71272f5f0983dc07882324b9d73dab7db0b",
+    ".deps/MP-SPDZ/Compiler/circuit_oram.py": "e7e096b39c7fbc8409df67d979291410e7276d141fbb573927ce5a1ffe9c42a6",
+    ".deps/MP-SPDZ/Compiler/comparison.py": "7ae17ea0ef7713fa9b69646653192f068bab38c668363afc97d819ae4c1cd1bb",
+    ".deps/MP-SPDZ/Compiler/compilerLib.py": "006bd0f511ed8bfb20dbe6da96377aa3aa692591ec64951e0107ff22c4557a3e",
+    ".deps/MP-SPDZ/Compiler/config.py": "03d5ff9262fbe7ec60322a61a7cca409cfd922ef27308aec8e97b8975054f47a",
+    ".deps/MP-SPDZ/Compiler/cost.py": "22bc14ca49b1a3115a3f679d751a5e3efe70a3214da3cbe1407fe5a94e9bbe13",
+    ".deps/MP-SPDZ/Compiler/decision_tree.py": "faf3d48f2ae13d45ce37f0cb56c0d6a64adf5fd7646bd66927cfe11855fcbe23",
+    ".deps/MP-SPDZ/Compiler/dijkstra.py": "8d7756d4c1f59f536b43d10b0ee7688d982baef8ee624ffc01e11c9a54629ee5",
+    ".deps/MP-SPDZ/Compiler/exceptions.py": "589ccdba5e98fa5e9e456c742d60ccd35243436fa0c12880a6e979c3c3e66eb5",
+    ".deps/MP-SPDZ/Compiler/floatingpoint.py": "287903b999b5a0eafc39092bd2d8954cf108c8b8a74372de7187e15e6af907d8",
+    ".deps/MP-SPDZ/Compiler/graph.py": "338782518c0252ec572b4c9632041cf495724025c0f80870ca1ff907570dcaba",
+    ".deps/MP-SPDZ/Compiler/gs.py": "c9a9a9891c2141ce850181ee769113a22554c854e9576df3a053c7354b79f638",
+    ".deps/MP-SPDZ/Compiler/instructions.py": "3a9383327460798fe1874d030a1c24fed9e1155570e69f4607735636d19fadde",
+    ".deps/MP-SPDZ/Compiler/instructions_base.py": "a5b1c3db2936a1c785f5881c30e127c7598a938a126d85e3dc2bf900a2d650b7",
+    ".deps/MP-SPDZ/Compiler/library.py": "3d373c08befddd725f1c868cf435ce8819863e18778a497567e61387f9f503fe",
+    ".deps/MP-SPDZ/Compiler/ml.py": "6219e643fe281eb8af42a97d9296b5f1d759fef184539a117bcb81af497eb53b",
+    ".deps/MP-SPDZ/Compiler/mpc_math.py": "3d6cabb309da87fd40b18b9c95770174225864b30fedbe45531c5287210f60b4",
+    ".deps/MP-SPDZ/Compiler/non_linear.py": "26c1d4697da156ec7319d05a02e6d56132a3b573113bec11ebeb96627b1a9dba",
+    ".deps/MP-SPDZ/Compiler/oram.py": "ab427ee623d7636b01a4feff118491ad39b9c340974b5f7e15be2b8517ae25ff",
+    ".deps/MP-SPDZ/Compiler/papers.py": "398ca2a2d3b4ed6d89123d71861320bafb5d0828fe41a842803f704eace02d98",
+    ".deps/MP-SPDZ/Compiler/path_oblivious_heap.py": "5c08b7a4f5482ade7db370f2af8cb8a0bff107df04812707e59c01d5ad80493c",
+    ".deps/MP-SPDZ/Compiler/path_oram.py": "b9338cb1f9a63c9380009af21d6ae5b8c39af61f284c3f1451c30d690c93e355",
+    ".deps/MP-SPDZ/Compiler/permutation.py": "9b38cfe20fb0865449a6c76147cb1c1b42b1af9b1623ca966db020bf61c0eb07",
+    ".deps/MP-SPDZ/Compiler/program.py": "1b112e8d96f088017daf23d4f2e253dbc25e1a7fbf24faca348b2655e0551251",
+    ".deps/MP-SPDZ/Compiler/sorting.py": "b28331196135e77e9c30264fbd26518734f629692b47e5b8bf584bec868e47c8",
+    ".deps/MP-SPDZ/Compiler/sparse.py": "01d395b335be085fbb59696505de60c1c6e35305301501751d760b3861fb2305",
+    ".deps/MP-SPDZ/Compiler/sqrt_oram.py": "68bd859520fcf64266b3f952c46477b04fea5549feb20efbcaec125229468d38",
+    ".deps/MP-SPDZ/Compiler/tools.py": "76d4e9a89d559abd28102a7ca84860c470117c84c050674ebf24065f5b5bbd3f",
+    ".deps/MP-SPDZ/Compiler/types.py": "e5d107b1351db6258c81a70cd8295d802fc19babff1c75a8b94f0a51157a481a",
+    ".deps/MP-SPDZ/Compiler/util.py": "30501fc416b43dc9ac3c22eb607b945901524a811b8164c8798bb86b0b7ef97d",
+    ".deps/MP-SPDZ/compile.py": "1f0d3eb9108e4819b3335feb4e0bab2b2a19b6451bc3bc6a43fceb2d93fe6868",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    ".deps/libsignal-v0.106.1/rust/protocol/Cargo.toml": "9f7b7159489b3ab163d2ac18846b48ecb8975f25e70082e608ccc32a3e4bc17d",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem/kyber1024.rs": "da6095ff7950bdb0645eb8f199b13c94a5abaa52a517c9de7f30ddf73cb2025d",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem/mlkem1024.rs": "ec20291e9e68063099a7d00f39cbef2a3a054b7e6a05be50e0953c71338550d2",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem.rs": "01cce9761ca2f2f3e86cc98bc1bc4d321dd190460826f4e8fd427081d30ce853",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/pqxdh.rs": "876dc87bc7503b7c7e7e8643dd7dc4931113e0224dbaf65e9dfbf8b2045ae6a7",
+    ".deps/libsignal-v0.106.1.tar.gz": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/.cargo-checksum.json": "f34d3cbb63ba427ce43a48d751cbee6b54834845a8a9f208c73a95860b3400f6",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/.cargo_vcs_info.json": "089d7484a08df48b6d266dbff1765f49f45fe86212e969b34a4b983466a7e4f7",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/.gitignore": "e0e4ade0c7144c00ae7d53f1731b9d96961027006c11c850894bb99c4426c0db",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/CHANGELOG.md": "a6298d53eb880fb1e96721ab6642de3d79f09236b76d188652ae0f8984e9ba08",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/Cargo.lock": "4df8426db20d9e99e0ebc7bebc3c08d77da346d7367bbc73668a084b7ff69e07",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/Cargo.toml": "00ada5be7e15a2434cb7f07954471158844313b18e76f357014f514fc962448c",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/Cargo.toml.orig": "843effcda4ac82431194fc52b02c0925ccd2bed6ffe43ae65a212a3fdb48b270",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/README.md": "509f6c052458cb22592b2f288ef21e97396c25ec5ef30e55ed41805d45daa534",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/benches/ml-kem.rs": "4e93f321c80126bf89ee2a40765101bce8b45a969f68febba457c10910b1bdda",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/build.rs": "bccd1d2250d529e1d35507851e5b66a61d9f0a9cbfdfeb912cf0586f8fba60cb",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/examples/decapsulate.rs": "b4534e451febc83118175b3cbd42e38a3760fea0ec0fae5a46d9a76f9b7853ea",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/examples/encapsulate.rs": "e6522be9a0bb6be0d5201499f8f497db6f0ce85bcda1979cb3ccef69d20fc91d",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/examples/keygen.rs": "a0c74210469872b8392b89d8a22a503738e0cb630fc249bdfee33c61ae8960fa",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/PERFORMANCE.md": "a1ed37fb8198f5103194155addef358b7450a362afc9b608b210f64eb92ab25c",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/cfg.rs": "d40c21996fed2167afa43019f32d9bed78e52cc7fd6020bd1288c71f9bc14fd0",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/constant_time_ops.rs": "5534cdc47e1be540aa26843f939bbf3c570eb9b8fb6f3a9167d5590ef64a251a",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/constants.rs": "8e60523c929cf4f82e90699d7f9d427fcd2ec3c6014c64bf3eec9539e528b3b3",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/hash_functions.rs": "ba185052e4784a527ddf17a0c15cba948009ae1258857af841b330f983a8a304",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/hax_utils.rs": "714b44733e53254b5a5c62bf49ed5dab1db8e1e2c47b4abadc8c826cb0ff4445",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/helper.rs": "75ed8a53a52c1774ec6fc576fcb264412a4e8b822d4edc8ab964ce71e21e17a8",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental/README.md": "1c6646c5f8cd565a6f961d1056d5546c5362849b9f1b488c912b7271b29a0cd4",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental/multiplexing.rs": "f1e5e2ec3a1193bcf32468033dfb7170dc52e1c6fbb38216b737360cd8fa89a1",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental/types.rs": "53eba1de40e5c2123fb609a7b780eefdcc8fa5ea40abceb23162230daff2ed03",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental.rs": "c1be889f9c807a769047853363eaee900b49eb455e3eb7de025f365c5cf63fd2",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/instantiations/avx2.rs": "0a959f299904183e69cb95ef2e7b58e237e07de8f52cde173ee671ac666aaf6b",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/instantiations.rs": "b9261ec4411012037a2292572d101885154210e47d27f0f320411020edf4f834",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/multiplexing.rs": "8265cce2fdb711657e1dd3bea669775063faf3b0724a87cfa47f18403d8245d6",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca.rs": "e215729feaee6bbfd259c4ce1995c5621e350b6b495205d7d66babaea3606770",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cpa.rs": "2b59a9a769c935c2949efa9e0cf6a689cd9614e794b096eaf42df0274f197c3e",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/invert_ntt.rs": "c8a655badc00982f30dd1de82dc80b493ced45d5663b8dd8f8340629fa9458e5",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/lib.rs": "44b3000966a5dd5272b863b504b4176ee02d1951a4a25dbab2e97c8d53950a2c",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/matrix.rs": "931b2ff88f63a32d9c6bcdb71329ff0718b76daefe568698f424d1b266f53697",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/mlkem.rs": "0899b872a91e19192742bb29966b8e57cfa37430c65ed7e25313ceb9fab651da",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/mlkem1024.rs": "34d910b44fce2457ae3e64adbe2ab920b11733a70754cd75d7fb7d084ef2d7a9",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/mlkem512.rs": "c3c2a1c4930da8ece7cd78ff6593300237fc0be00486b8b620c0ce8239a65d8f",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/mlkem768.rs": "a2529c7c07800ad4310d7b44da6136de422dfdbe094e78790d9e0fdebfd279d7",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ntt.rs": "acbced411cd1763dfd21f2993c6a0f91a95482fdbf1281415ac456b52e90f911",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/polynomial.rs": "cc5f3e12835236f4e6b4bd09b93d225e45df7bb4e9a075dd6a0b9d8941bb2a3a",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/pqcp.rs": "8caefb2ffa7744a7da3d9b16651c42c6e2cc7c51869c65d445c409c4b0de7009",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/sampling.rs": "f4e2828fdc9310f80d89c9ed5ddc368ff238171e3ac3423107f6cd8d9a8cffa3",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/serialize.rs": "3b26745d1f3b9cc0149b36a38ddbd5e6b5125ac912721b73ca62549036ea7a3d",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/types.rs": "98a9d8cf5c5c0e69caa8770f6b24ec4ae5b7d94b2072aaefd214361fc206f862",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/utils.rs": "e6b0776fbe24212033afe00c766cc17d6e1736cecf6a99bd642a25bdb4c732b9",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/variant.rs": "5796a467bf51b5a5152a75e247c837051b6afaef981dc1cf331d582d80ee1511",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2/arithmetic.rs": "13aa500c9aaf29d1281b1ff16bd61270a7a90a0d18c878195cefa3b6c8ec171f",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2/compress.rs": "7bc85ebf7d3f8699600354e37a6a3f0c9ee741d30276ae9c23dd6ce92c40290e",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2/ntt.rs": "2d0660c26ec3acfa5c224da9c8a462714e871d1d36a48868cbace3d4edc7b58e",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2/sampling.rs": "0229be6de32b8cfe111835431d77d3b2c52b9ccbe5b8d7880f85e79314e919aa",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2/serialize.rs": "080765a0b87156604ba0a708dcfa6c1b3dd014d32631b313e970a8d634b40fbe",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/avx2.rs": "5b0ccf8205644b488d142cc35d531c037961eaf450c1a5e91f88deed8e46d4b3",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/arithmetic.rs": "cb46cb760e1cee219abeb56b937536efeaaf16401634f821a849ec5d1c5b12a9",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/compress.rs": "827e02f99dfb44d0ce7eee61a49ccd4c75030c84ba6f94efd301268e5cdb9043",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/ntt.rs": "ae07241d94ed62d6ca5196ebb2e63f3defd29e28d326c330e6b1f6f1e8cd56c9",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/sampling.rs": "c0e5999cf321a1120f971d5bd233a2b06089bc721322d332e56976f2ccf8d13d",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/serialize.rs": "c5e9649d458e6b781770d1f39b16e0577923d0bc070d575aa9c6d72554903cc7",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon/vector_type.rs": "1d3b6dbb8c61ce9360f0bb4b5a0ac9806ae4c373ad59023984f107009f7b2217",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/neon.rs": "b95dfb71be8cf45b9d10a3d6334cd013330425839bdd170a347fff292899de4d",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/arithmetic.rs": "26b82e460427578cc37c7bb990512203f7784f6ab688ce42a8157c710cb8ec12",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/compress.rs": "16a9e4a4220e621bffeb8fc5b867aefdf147279f2f6e0a5aaebe8a15e2672048",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/ntt.rs": "d7be36385932649ec73d54489cd82f05f1acc494fb999a6651dd21a30bd62d51",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/sampling.rs": "cee1f0b7422dc49a09541daf8f3afb1a98eac177fbffc5a8c0f92af174061c7a",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/serialize.rs": "e488ee75b357dc1e80f7578bbd39b1ced178da225a304880b536ce767bffab7e",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable/vector_type.rs": "ede6e6e8020fbbd309810e1bb7025cfca835daaf37181669e18fa598dd0ef240",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/portable.rs": "1a65ae85cb4a2093be9aa8a3485ff5d23cb5c9f6b2f200bf004c4f03486ad608",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/rej_sample_table.rs": "c9ce418c8b8db35fbece8788ac4fafd2d35a5759fd0df12f875eb89bf63ec6da",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector/traits.rs": "2210955f8ae8632ac7d0ff62b190d8896709e64a43d5d0a4e816962a969ff41e",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/vector.rs": "e2576cba4cf02da7dee3603279c5b68f488aeb8c3d32e1c66cec9c9c3ba65592",
+    "SignalReference/PqxdhWork/Artifacts/derive/charon.log": "add7362f81dc43ad6605f5c2e7c188c28a7b410d4b5f92c9b02d180943025168",
+    "SignalReference/PqxdhWork/Artifacts/derive/inventory.json": "1427cf9a02fe0d9bca170debdd8dd459ab0ad7ee40cc74395ea775b3b8bd5f53",
+    "SignalReference/PqxdhWork/Artifacts/derive/pqxdh.llbc": "2269800c07d0d7c401c7c2401c8b222b4e515746fc1c7e19b42c39eb463c14df",
+    "SignalReference/PqxdhWork/Checks.lean": "188c294bc9556c581e734f6f332c383d59b9e42c6c58d1d2d5d277ef464cce3f",
+    "SignalReference/PqxdhWork/Export.lean": "9ed904f8c47ce8309bd93260a524207fc649512b6c2aa1b0621c07f215ca63bb",
+    "SignalReference/PqxdhWork/Fixtures.lean": "b7799f3a9daeff523b4e93c776e6ee4c0be7c40bd401c6cbbccf1ca95cc9ead4",
+    "SignalReference/PqxdhWork/adapter.py": "d2eeba66806a330192b4a67fdf4e98e3080a23f6fd33b7ac3d09e74834afeb60",
+    "SignalReference/PqxdhWork/check.py": "a4e992d380ab28347deacf377890af70603a8db285948bb9f554fc9cdd365236",
+    "SignalReference/PqxdhWork/check_artifacts.py": "77f870b3d7b4f6864a6fa40eb5a2ae2b5da31f743ca11f224df5a00150c77acb",
+    "SignalReference/PqxdhWork/extract.py": "0cec5af48295adf7c153bcd00b073cc8d37e5330d149048d5dd2ccdec85f6421",
+    "SignalReference/PqxdhWork/fixture-results.json": "476eca6e3fe9037e79357576f3db36123d18d862adddea9260c11ef4dc4ee8f5",
+    "SignalReference/PqxdhWork/lake-manifest.json": "eed761ce1e21eec495d1733ba3c53ad31927ab1683db91e83df005820f9572ca",
+    "SignalReference/PqxdhWork/lakefile.toml": "823d9c53c5507e8cb4d74cac3c914abb84c918908c2e064c6d8a233730298124",
+    "SignalReference/PqxdhWork/lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee",
+    "SignalReference/PqxdhWork/program.mpc": "440e95cd579c105e6ef7bb1f78ac8a57dcb921b7445be009f20fabb264c2862c",
+    "SignalReference/PqxdhWork/proof-report.json": "a55b37dd4ccf744720758a96eb12954f0e0b4e2eb91ebb923647c48f1efc86ee",
+    "SignalReference/pins.json": "aaed813ffdd5f57329298e0bcbb5cf300af4cc92538dc4be37bde6655ba1e712",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/FieldDag.lean": "52988ebf6dbdc27231cd53e9780bc9cb92e51ca4693e413ba20df841ec64037e",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/Pqxdh.lean": "dfeb4817951afdaba77444e7496a05e9763eb172d3b3e9537c9c2363e5d22a11",
+    "TlsMpc/TlsKdf.lean": "fcc69c0446bb946afbb69a8707a417fc79febf0af95882d9ed7b2938393346f3",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "benchmarks/config/dependencies.json": "0ac2b14895ca0dec7b803c0e11f84010aa9fbfd95c78a3f6782290777776ca1d",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "programs/lean_artifact.mpc": "bda3de39340ee1cc9d2167550edf1cb3a485169c86a717b65397bfe1122b10c7",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "scripts/clear_circuit.py": "f816c55177639385a4a5d410f12ff4fb217d938e6d4f88f9ac03893087e0ae6b",
+    "test_support/circuit.py": "8de179aa6df97fafe0375d5d9de6a2176b7414b3059eae8c6d066b0bf053ab3d"
+  },
+  "proof_report_sha256": "a55b37dd4ccf744720758a96eb12954f0e0b4e2eb91ebb923647c48f1efc86ee",
+  "native_exporter": "SignalReference/PqxdhWork/.lake/build/bin/emit_pqxdh",
+  "native_exporter_sha256": "98abedaa7fa47a156d9c8cb7469586ff533f42bd62484fb401b8bad4b7c2368a",
+  "artifacts": {
+    "none": {
+      "path": "SignalReference/PqxdhWork/Artifacts/Export/signal-pqxdh-none.json",
+      "sha256": "954b19ff91aca9ed98125737e3306e18c9ef5934e81016b20a0f4c34fea254cc"
+    },
+    "present": {
+      "path": "SignalReference/PqxdhWork/Artifacts/Export/signal-pqxdh-present.json",
+      "sha256": "e60ed0b74535b8f70ed98b812cddb5a8acfcd10f78e929af7482f830c88dea11"
+    },
+    "signal-dh-field": {
+      "path": "SignalReference/PqxdhWork/Artifacts/Export/signal-dh-field.json",
+      "sha256": "8457267f59a124bfdadd377093ead232a346124373b4057db2ae041f190edeed"
+    }
+  },
+  "cases": [
+    {
+      "profile": "none",
+      "artifact_sha256": "954b19ff91aca9ed98125737e3306e18c9ef5934e81016b20a0f4c34fea254cc",
+      "input_bits": 1024,
+      "output_bits": 768,
+      "numeric_fixture_lanes": 6,
+      "adapter_operations": {
+        "raw_and_gates": 2413156,
+        "executed_and_gates": 751854,
+        "executed_xor_gates": 694453,
+        "unreachable_nodes": 966850
+      },
+      "backend_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 751854,
+          "fixture_output_values_checked": 12,
+          "log_sha256": "25cd52376faca8f1bea07171d15ac80452f6ee701dc0352deba7fdef0282bf2d",
+          "bytecode_sha256": {
+            "pqxdh_artifact-signal-pqxdh-none-1-5-0.bc": "3fb97a579d93bc42d19979fe7b2799066867f46ddb551302dda423899ff20f67"
+          }
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 12029664,
+          "fixture_output_values_checked": 192,
+          "log_sha256": "43f9c3c745c893e6b942a3478afc79b6e4116a4d6e29d52c748656cab27e08fd",
+          "bytecode_sha256": {
+            "pqxdh_artifact-signal-pqxdh-none-16-5-0.bc": "f53d47155aab694cbe059c4495df3e1acee2c804bd207c3265bdf7fa31034a08"
+          }
+        }
+      ]
+    },
+    {
+      "profile": "present",
+      "artifact_sha256": "e60ed0b74535b8f70ed98b812cddb5a8acfcd10f78e929af7482f830c88dea11",
+      "input_bits": 1280,
+      "output_bits": 768,
+      "numeric_fixture_lanes": 8,
+      "adapter_operations": {
+        "raw_and_gates": 2556612,
+        "executed_and_gates": 797464,
+        "executed_xor_gates": 735290,
+        "unreachable_nodes": 1023859
+      },
+      "backend_compilations": [
+        {
+          "batch": 1,
+          "parties": 5,
+          "bit_triples": 797464,
+          "fixture_output_values_checked": 12,
+          "log_sha256": "cf5ef57cfb5f5aecedca1c0657ef3ee3dbcccf0c144aab2be0c6c447a5c2b4b4",
+          "bytecode_sha256": {
+            "pqxdh_artifact-signal-pqxdh-present-1-5-0.bc": "fed0dae46626c3fa042eff362657d4e66178951f5a3ca25be0a37d0b1f021ab8"
+          }
+        },
+        {
+          "batch": 16,
+          "parties": 5,
+          "bit_triples": 12759424,
+          "fixture_output_values_checked": 192,
+          "log_sha256": "6c8f3641ea570d2d78faf1608416bc3235739171c11dfa4cbac800e699c993ba",
+          "bytecode_sha256": {
+            "pqxdh_artifact-signal-pqxdh-present-16-5-0.bc": "389b37ce1afee9f582a44a3b8905a758d42582b33776c39824dbed8bfb50fb69"
+          }
+        }
+      ]
+    }
+  ],
+  "backend_pin": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "compiler_sources_match_pinned_archive": true,
+  "numeric_artifact_fixture_evaluation": true,
+  "boolean_batch1_and16_compiled": true,
+  "clear_mpc_source_checked": true,
+  "mixed_adapter_fixture_count": 6,
+  "independent_x25519_oracle": {
+    "library": "cryptography",
+    "version": "50.0.2"
+  },
+  "mixed_fixtures_sha256": "36684e2902830e3d135f5b50fac3deea8c65d36b6639a1c5538d4b8ac4a93935",
+  "mixed_compilations": [
+    {
+      "profile": "none",
+      "log_sha256": "cfbe35c00ba0f427285392b9e801ffcab78356603e6f31ee55e9a922ec0f5c88",
+      "compiler_flags": [
+        "-X",
+        "-P",
+        "57896044618658097711785492504343953926634992332820282019728792003956564819949"
+      ],
+      "bit_triples": 758753,
+      "integer_simple_multiplications": 15303,
+      "compiler_default_security_parameter": 40,
+      "bytecode_sha256": {
+        "Programs/Bytecode/pqxdh_mixed-_Users_izzy_repos_tls-mpc_SignalReference_PqxdhWork_Artifacts_Export_signal-dh-field.json-_Users_izzy_repos_tls-mpc_SignalReference_PqxdhWork_Artifacts_Export_signal-pqxdh-none.json-none-0.bc": "d9026e7494cc9b4cabc6f3cff1702cd96029259cd6e50e95bf2f46e6f00223fb"
+      },
+      "native_execution": false
+    },
+    {
+      "profile": "present",
+      "log_sha256": "3cd13f767994d597b69cf26b30940eb209c624a85db92efc9e7d9768c58761bf",
+      "compiler_flags": [
+        "-X",
+        "-P",
+        "57896044618658097711785492504343953926634992332820282019728792003956564819949"
+      ],
+      "bit_triples": 806407,
+      "integer_simple_multiplications": 20404,
+      "compiler_default_security_parameter": 40,
+      "bytecode_sha256": {
+        "Programs/Bytecode/pqxdh_mixed-_Users_izzy_repos_tls-mpc_SignalReference_PqxdhWork_Artifacts_Export_signal-dh-field.json-_Users_izzy_repos_tls-mpc_SignalReference_PqxdhWork_Artifacts_Export_signal-pqxdh-present.json-present-0.bc": "42658d2f80bedfe6f4771ac57de35760cb0d96e8b35e1ea612a370023cf41831"
+      },
+      "native_execution": false
+    }
+  ],
+  "same_vm_x25519_stages": {
+    "none": 3,
+    "present": 4
+  },
+  "mixed_input_layout": "identityPrivate32||ephemeralPrivate32||theirIdentity32||signedPrekey32||optionalOneTimePrekey0/32||KyberSharedSecret32; five-party XOR shares, MSB-first bits per byte",
+  "mixed_output_layout": "shared status255/0||root32||chain32||PQR32, zeroed on any all-zero DH agreement",
+  "kyber_shared_secret_is_unresolved_input": true,
+  "identity_and_prekey_validation": false,
+  "native_mpc_executed": false,
+  "throughput_measured": false,
+  "actual_rust_wrapper_equivalence": false,
+  "backend_compilation_reused": true,
+  "boolean_harness_is_public_fixture_only": true,
+  "boolean_harness_reveals_synthetic_outputs": true,
+  "mixed_harness_keeps_outputs_in_secret_memory": true,
+  "trust_boundary": "Lean proves numeric KDF artifact correctness; native exporter/JSON/backend and same-VM field conversion/composition remain unverified; fixture checks do not close those proof gaps.",
+  "actual_extraction_blocker": {
+    "route_count": 1,
+    "entry": "crate::pqxdh::*::derive_with_label",
+    "charon_exit_code": 101,
+    "has_errors": true,
+    "inventory_counts": {
+      "type_decls": 59,
+      "fun_decls": 148,
+      "global_decls": 26,
+      "trait_decls": 69,
+      "trait_impls": 104,
+      "ordered_decls": 347
+    },
+    "body_kinds": {
+      "Structured": 4,
+      "Opaque": 144
+    },
+    "aeneas_invoked": false,
+    "closed_translation": false,
+    "diagnostic": "GATs cannot work with --lift-associated-types (implied by --preset=aeneas), hybrid-array-0.4.13/src/traits.rs:22:1",
+    "opaque_crypto_dependency_observed": [
+      "hkdf::Hkdf::new",
+      "hkdf::Hkdf::expand"
+    ],
+    "rust_source_changes": [],
+    "translator_changes": [],
+    "llbc_preprocessing": [],
+    "custom_models": [],
+    "never_candidate_used": false
+  }
+}

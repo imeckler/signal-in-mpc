@@ -1,0 +1,9 @@
+name = "chain-receive-export"
+version = "0.1.0"
+defaultTargets = ["emit_chain_receive"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_chain_receive"
+root = "Export"

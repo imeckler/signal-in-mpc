@@ -1,0 +1,1659 @@
+{
+  "llbc_sha256": "b121b774c86bceae68ac383b39090597f778d48aa35117baa2ca5594e6579ac9",
+  "charon_version": "0.1.245",
+  "has_errors": true,
+  "counts": {
+    "type_decls": 42,
+    "fun_decls": 15,
+    "global_decls": 0,
+    "trait_decls": 38,
+    "trait_impls": 10,
+    "ordered_decls": 19
+  },
+  "body_kinds": {
+    "Structured": 1,
+    "Opaque": 14
+  },
+  "external_functions": [
+    {
+      "id": 6,
+      "name": "core::slice::{impl}::len",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::fmt::{impl}::from_str",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 815,
+            "col": 4
+          },
+          "end": {
+            "line": 815,
+            "col": 59
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::slice::{impl}::fill",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 4185,
+            "col": 4
+          },
+          "end": {
+            "line": 4187,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 520,
+            "col": 4
+          },
+          "end": {
+            "line": 520,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 526,
+            "col": 4
+          },
+          "end": {
+            "line": 526,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 531,
+            "col": 4
+          },
+          "end": {
+            "line": 531,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 537,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 543,
+            "col": 4
+          },
+          "end": {
+            "line": 543,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 556,
+            "col": 4
+          },
+          "end": {
+            "line": 556,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 121,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 122,
+      "name": "core::num::niche_types::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 17,
+            "col": 17
+          },
+          "end": {
+            "line": 17,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 5,
+      "name": "core::fmt::Arguments",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 716,
+            "col": 0
+          },
+          "end": {
+            "line": 716,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::fmt::Formatter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 561,
+            "col": 0
+          },
+          "end": {
+            "line": 561,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::array::iter::IntoIter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 20,
+            "col": 0
+          },
+          "end": {
+            "line": 20,
+            "col": 38
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "core::num::nonzero::NonZero",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 27,
+          "beg": {
+            "line": 112,
+            "col": 0
+          },
+          "end": {
+            "line": 112,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "core::iter::adapters::step_by::StepBy",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 29,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::iter::adapters::chain::Chain",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 31,
+          "beg": {
+            "line": 23,
+            "col": 0
+          },
+          "end": {
+            "line": 23,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "core::iter::adapters::zip::Zip",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 13,
+            "col": 0
+          },
+          "end": {
+            "line": 13,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 27,
+      "name": "core::iter::adapters::intersperse::Intersperse",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 33,
+          "beg": {
+            "line": 9,
+            "col": 0
+          },
+          "end": {
+            "line": 9,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::iter::adapters::intersperse::IntersperseWith",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 33,
+          "beg": {
+            "line": 83,
+            "col": 0
+          },
+          "end": {
+            "line": 83,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 29,
+      "name": "core::iter::adapters::map::Map",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 61,
+            "col": 0
+          },
+          "end": {
+            "line": 61,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "core::iter::adapters::filter::Filter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 21,
+            "col": 0
+          },
+          "end": {
+            "line": 21,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::iter::adapters::filter_map::FilterMap",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 37,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::iter::adapters::enumerate::Enumerate",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 38,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::iter::adapters::peekable::Peekable",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "core::iter::adapters::skip_while::SkipWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 40,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::iter::adapters::take_while::TakeWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 41,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::iter::adapters::map_while::MapWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 42,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::iter::adapters::skip::Skip",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 21,
+            "col": 0
+          },
+          "end": {
+            "line": 21,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::iter::adapters::take::Take",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 44,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "core::iter::adapters::scan::Scan",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 45,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::iter::adapters::flatten::FlatMap",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 46,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 41
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "core::iter::adapters::flatten::Flatten",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 46,
+          "beg": {
+            "line": 184,
+            "col": 0
+          },
+          "end": {
+            "line": 184,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "core::iter::adapters::map_windows::MapWindows",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 47,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 11,
+            "col": 53
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "core::iter::adapters::fuse::Fuse",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 48,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "core::iter::adapters::inspect::Inspect",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 49,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "core::iter::adapters::rev::Rev",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 15,
+            "col": 0
+          },
+          "end": {
+            "line": 15,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 47,
+      "name": "core::iter::adapters::copied::Copied",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 55,
+          "beg": {
+            "line": 19,
+            "col": 0
+          },
+          "end": {
+            "line": 19,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "core::iter::adapters::cloned::Cloned",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 49,
+      "name": "core::iter::adapters::cycle::Cycle",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 57,
+          "beg": {
+            "line": 15,
+            "col": 0
+          },
+          "end": {
+            "line": 15,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "core::iter::adapters::array_chunks::ArrayChunks",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 58,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "core::num::niche_types::NonZeroUsizeInner",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 20,
+            "col": 8
+          },
+          "end": {
+            "line": 20,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "block_padding"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/panic.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/rustc/library/core/src/panicking.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/marker_traits.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/lib.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "/rustc/library/core/src/borrow.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 21,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 22,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 23,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 24,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 25,
+      "name": {
+        "Local": "/rustc/library/core/src/array/iter.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 26,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 27,
+      "name": {
+        "Local": "/rustc/library/core/src/num/nonzero.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 28,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 29,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 30,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 31,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 32,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 33,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 34,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/function.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 35,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 36,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 37,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 38,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 39,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 40,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 41,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 42,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 43,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 44,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 45,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 46,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 47,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 48,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 49,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 50,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/try_trait.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 51,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 52,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 53,
+      "name": {
+        "Local": "/rustc/library/core/src/cmp.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 54,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 55,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 56,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 57,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 58,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 59,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 60,
+      "name": {
+        "Local": "/rustc/library/core/src/num/niche_types.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 61,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/control_flow.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [
+    "crate::Padding::pad",
+    "crate::Padding::unpad",
+    "crate::Padding::pad_detached",
+    "crate::Padding::unpad_blocks",
+    "crate::*::raw_unpad",
+    "crate::*::unpad"
+  ],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{crate::Padding for crate::Pkcs7}::raw_pad"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "block_padding::{impl}::raw_pad",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 186,
+            "col": 4
+          },
+          "end": {
+            "line": 195,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "core::slice::{impl}::len",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::fmt::{impl}::from_str",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 815,
+            "col": 4
+          },
+          "end": {
+            "line": 815,
+            "col": 59
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::slice::{impl}::fill",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 4185,
+            "col": 4
+          },
+          "end": {
+            "line": 4187,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 520,
+            "col": 4
+          },
+          "end": {
+            "line": 520,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 526,
+            "col": 4
+          },
+          "end": {
+            "line": 526,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 531,
+            "col": 4
+          },
+          "end": {
+            "line": 531,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 537,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 543,
+            "col": 4
+          },
+          "end": {
+            "line": 543,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 556,
+            "col": 4
+          },
+          "end": {
+            "line": 556,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 121,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 122,
+      "name": "core::num::niche_types::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 17,
+            "col": 17
+          },
+          "end": {
+            "line": 17,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={crate::Padding for crate::Pkcs7}::raw_pad",
+    "--start-from-if-exists=crate::*::raw_pad",
+    "--exclude=crate::Padding::pad",
+    "--exclude=crate::Padding::unpad",
+    "--exclude=crate::Padding::pad_detached",
+    "--exclude=crate::Padding::unpad_blocks",
+    "--exclude=crate::*::raw_unpad",
+    "--exclude=crate::*::unpad",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_pkcs7_pad_scoped.llbc",
+    "--",
+    "--package",
+    "block-padding@0.4.2",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "rustflags": "",
+  "target": "aarch64-apple-darwin",
+  "charon_exit_code": 101
+}

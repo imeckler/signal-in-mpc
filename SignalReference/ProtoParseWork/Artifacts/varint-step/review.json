@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "871e7ef482d4c77dbf428ca8af6eb1fe4653e8ddedc836ba6e2a32d9d85cf890",
+  "original_fingerprint": "c9cf5b7c1ad8530b765be9661a98e09a0fab0d7e34d0b45f2b57ecc5611298b3",
+  "selected_sha256": "57f876ea91f86e953fe146412173035b70686aac62d17bcb7d2a7f1efc5fad7a",
+  "changes_sha256": "6076640b0baa93aa0c8dc2a0ced68e4793f0bda3d3c36a088aa61010ec0dc9eb",
+  "script_sha256": "cc6d83d9a87ac8cdecf19bda4495c5d6362536c7adc964bc50904372d7fdb65d",
+  "reversible_changes": 7,
+  "removed_functions": [
+    297,
+    301
+  ],
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_references_to_removed_slots": true,
+  "additional_trusted_preprocessing": true,
+  "source_or_translator_changes": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "ProtoParseWork/Generated/varint_step/Funs.lean": "fbd8fec37db7e0d2bacd5a47fd1e89c8d2f523eaa7a97980f6f0a5ca778fa1fd",
+    "ProtoParseWork/Generated/varint_step/FunsExternal_Template.lean": "25ec84a9926dbfd282e24ef3c03d5b0ec70dae0cf398520a406da79852186145",
+    "ProtoParseWork/Generated/varint_step/Types.lean": "8fc1345734e3ad2e41865df0200b5db8b91ace66dae3a6145e4f353978167167"
+  },
+  "external_templates": [
+    "FunsExternal_Template.lean"
+  ],
+  "independent_review": "pending"
+}

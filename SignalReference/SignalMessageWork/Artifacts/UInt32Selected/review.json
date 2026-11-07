@@ -1,0 +1,46 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "independent_review": "pending",
+  "original_sha256": "81547c219ca760c0d2ba2902d1af5b21e6b727184978338ea7287d2cfc49de7e",
+  "selected_sha256": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe",
+  "script_sha256": "88d60cb001ecc6601195c49b2d7f803d2c1d407ac6588f59746032703a21908e",
+  "changes_sha256": "d019d9df42860169517cbd2084e73d7d5fa21aed70154233275f434a6e82cbbe",
+  "reversible_changes": 10,
+  "unchanged_computational_declarations": [
+    0,
+    1,
+    2,
+    7,
+    48,
+    145,
+    256,
+    257,
+    286,
+    287
+  ],
+  "unused_put_slice_and_uninit_declarations_retained": true,
+  "additional_trusted_preprocessing": true,
+  "source_patches": [],
+  "aeneas_exit_code": 0,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/SignalMessageWork/Artifacts/UInt32Selected/selected.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/SignalMessageWork/Generated/UInt32Selected",
+    "-split-files",
+    "-namespace",
+    "ProstUInt32",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {
+    "SignalMessageWork/Generated/UInt32Selected/Funs.lean": "cab779101505cf5ac9bd03245478806a9ddbdb9ca7f2670527346d52de475aa2",
+    "SignalMessageWork/Generated/UInt32Selected/Types.lean": "0da2ce4355098dc06540bf72d334b16a044f8f4d7db4f1abca32d87353632937"
+  },
+  "remaining_external_templates": []
+}

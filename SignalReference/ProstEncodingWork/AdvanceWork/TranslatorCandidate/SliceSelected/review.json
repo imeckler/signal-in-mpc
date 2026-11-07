@@ -1,0 +1,102 @@
+{
+  "accepted_reference": false,
+  "candidate_only": true,
+  "independent_review": "pending",
+  "additional_trusted_selection": true,
+  "source_llbc_sha256": "c13e133c1a838b4ebbfc88e1f6026b41f4df8f21ed2eaa9f573f3d319e3ddd63",
+  "selected_llbc_sha256": "80191557e1046652abcf940360244f50901404b1699db1d2af0ee2f92cdd840b",
+  "script_sha256": "38a941e0e48db53ab5ccaa762d2c8466428855ead20181ff04116f053b7f7dec",
+  "changes_sha256": "fae00e033cb9141221db2e39c10ac65204288facf205a546201e687b8858f9f1",
+  "exact_reversible_changes": 1,
+  "all_declarations_identical": true,
+  "actual_computational_declarations": [
+    2,
+    264
+  ],
+  "removed_codegen_roots_only": [
+    {
+      "Fun": {
+        "NonRec": 0
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 1
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 3
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 4
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 5
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 6
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 7
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 8
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 4
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 5
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 6
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 10
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 11
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 12
+      }
+    },
+    {
+      "TraitDecl": {
+        "NonRec": 0
+      }
+    }
+  ],
+  "actual_direct_call_ids": [
+    262,
+    263,
+    264,
+    290,
+    291
+  ],
+  "source_patches": [],
+  "computational_body_patches": []
+}

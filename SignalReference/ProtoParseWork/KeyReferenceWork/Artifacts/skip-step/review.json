@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "329cf546c014e6f6c81b2660048676ec896aa3a48a1f787121979fc98b44322d",
+  "original_fingerprint": "c6eac4086e925dc1a6b56c8b6e08ad1ff692520083e84a1fd44457b416003570",
+  "selected_sha256": "2a60aea4aa2dcc4defaaa9e88424756c85dfa0bd8ac537d2c6201b5cecce5314",
+  "changes_sha256": "971e077fa22be4d85b5d1d4b853b0d54da6bf3bf5660e5838324bc369b4bc4e6",
+  "script_sha256": "3902f87fb7b5b94b12dc4fe406878f33468f8e19a159093cfcef261590ad16a5",
+  "reversible_changes": 7,
+  "removed_functions": [
+    311,
+    315
+  ],
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_references_to_removed_slots": true,
+  "additional_trusted_preprocessing": true,
+  "source_or_translator_changes": [],
+  "aeneas_exit_code": 1,
+  "generated_files": {
+    "ProtoParseWork/KeyReferenceWork/Generated/skip_step/Funs.lean": "9862b7e373a7af1bf0e4803e9d22c0d079578f1d1cff54c50fbcffd341fb6fd2",
+    "ProtoParseWork/KeyReferenceWork/Generated/skip_step/FunsExternal_Template.lean": "ab274225d0bbc89b47f318faae8a1205dcf6c6b10f6ff2e071df9439e017a0c0",
+    "ProtoParseWork/KeyReferenceWork/Generated/skip_step/Types.lean": "45d306318f66b71110c07a1daee93bcc8b13fe3175c8a20c042e9f8b61cfbb99"
+  },
+  "external_templates": [
+    "FunsExternal_Template.lean"
+  ],
+  "independent_review": "pending"
+}

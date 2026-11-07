@@ -1,0 +1,11 @@
+import SignalMessageWork.BytesFieldWork.Reference
+
+#print axioms LibSignalReference.Candidate.SignalBytesField.varint_eq
+#print axioms LibSignalReference.Candidate.SignalBytesField.key_eq
+#print axioms LibSignalReference.Candidate.SignalBytesField.field_eq
+#print axioms LibSignalReference.Candidate.SignalBytesField.varint_actualVec
+#print axioms LibSignalReference.Candidate.SignalBytesField.key_bytes
+#print axioms LibSignalReference.Candidate.SignalBytesField.publicNatLoop_length
+#print axioms LibSignalReference.Candidate.SignalBytesField.publicNat_length
+#print axioms LibSignalReference.Candidate.SignalBytesField.field_appends_of_payload_contract
+#print axioms LibSignalReference.Candidate.SignalBytesField.field_refines_artifact_of_payload_contract

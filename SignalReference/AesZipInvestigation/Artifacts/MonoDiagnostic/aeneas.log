@@ -1,0 +1,26 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/AesAddRoundKeyWork/Artifacts/MonoZip/add_round_key.llbc
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: llbc/TypesAnalysis.ml, line 229
+
+Uncaught exception:
+  
+  (Failure
+    "Internal error, please file an issue\
+   \nSource: '/rustc/library/core/src/option.rs', lines 598:0-598:18\
+   \nCompiler source: llbc/TypesAnalysis.ml, line 229")
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 120, characters 4-23
+Called from Aeneas__TypesAnalysis.analyze_full_ty.update_ty_info in file "llbc/TypesAnalysis.ml", line 274, characters 27-76
+Called from Aeneas__TypesAnalysis.analyze_full_ty.analyze in file "llbc/TypesAnalysis.ml", line 348, characters 22-61
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__TypesAnalysis.analyze_type_decl in file "llbc/TypesAnalysis.ml", lines 522-526, characters 6-33
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__TypesAnalysis.analyze_type_declaration_group.analyze in file "llbc/TypesAnalysis.ml", lines 565-567, characters 6-23
+Called from Aeneas__Interp.analyze_type_declarations.(fun) in file "interp/Interp.ml", line 31, characters 10-62
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__Interp.compute_contexts in file "interp/Interp.ml", line 149, characters 19-66
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 323, characters 18-40
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

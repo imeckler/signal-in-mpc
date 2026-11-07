@@ -1,0 +1,9 @@
+AesZipInvestigation/ModelSignatureMismatch.lean:8:7: error: Type mismatch
+  core.slice.iter.IteratorIterMut.next
+has type
+  core.slice.iter.IterMut ?m.1 →
+    Result
+      (Option ?m.1 ×
+        core.slice.iter.IterMut ?m.1 × (core.slice.iter.IterMut ?m.1 → Option ?m.1 → core.slice.iter.IterMut ?m.1))
+but is expected to have type
+  core.slice.iter.IterMut U64 → Result (Option U64 × core.slice.iter.IterMut U64)

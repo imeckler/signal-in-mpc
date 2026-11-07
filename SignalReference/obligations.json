@@ -1,0 +1,975 @@
+{
+  "accepted_rust_reference_scope": {
+    "source": "libsignal 904c8dc8216073b078a5f2f5090e3da8382e6a92 and its locked curve25519-dalek 5.0.0, sha2 0.11.0, uuid 1.23.4 dependencies, derive_more 2.1.1, block-padding0.4.2 and aes0.9.1",
+    "functions": [
+      "MessageKeys::cipher_key",
+      "MessageKeys::mac_key",
+      "MessageKeys::iv",
+      "MessageKeys::counter",
+      "ChainKey::new",
+      "ChainKey::key",
+      "ChainKey::index",
+      "RootKey::new",
+      "RootKey::key",
+      "curve25519_dalek::scalar::clamp_integer",
+      "sha2::sha256::wasm32_simd128::sha_round",
+      "libsignal_core::address::ServiceId::service_id_fixed_width_binary",
+      "libsignal_core::address::ServiceIdKind::try_from",
+      "libsignal_protocol::protocol::CiphertextMessageType::try_from",
+      "block_padding::Pkcs7::raw_pad",
+      "aes::soft::fixslice::sub_bytes",
+      "aes::soft::fixslice::sub_bytes_nots",
+      "block_padding::Pkcs7::unpad (16-byte domain)",
+      "block_padding::Pkcs7::raw_unpad (16-byte domain)",
+      "core::slice::iter::Iter::any (actual selected slice override)",
+      "aes::soft::fixslice::bitslice (four16byte inputs)",
+      "aes::soft::fixslice::bitslice::read_reordered",
+      "aes::soft::fixslice::delta_swap_2",
+      "sha2::sha256::soft::compact::compress_u32 (configured portable compact backend)",
+      "sha2::consts::K32 (actual constant initializer)",
+      "aes::soft::fixslice::mix_columns_0",
+      "aes::soft::fixslice::rotate_rows_1",
+      "aes::soft::fixslice::rotate_rows_2",
+      "aes::soft::fixslice::ror",
+      "aes::soft::fixslice::ror_distance",
+      "aes::soft::fixslice::shift_rows_1",
+      "aes::soft::fixslice::shift_rows_2",
+      "aes::soft::fixslice::shift_rows_3",
+      "aes::soft::fixslice::delta_swap_1",
+      "aes::soft::fixslice::mix_columns_1",
+      "aes::soft::fixslice::mix_columns_2",
+      "aes::soft::fixslice::mix_columns_3",
+      "aes::soft::fixslice::rotate_rows_and_columns_1_1",
+      "aes::soft::fixslice::rotate_rows_and_columns_1_2",
+      "aes::soft::fixslice::rotate_rows_and_columns_1_3",
+      "aes::soft::fixslice::rotate_rows_and_columns_2_2",
+      "aes::soft::fixslice::inv_bitslice::write_reordered (12-byte domain)",
+      "aes::soft::fixslice::aes256_key_schedule (configured portable software backend)",
+      "aes::soft::fixslice::memshift32 (aligned in-bounds public offsets)",
+      "aes::soft::fixslice::xor_columns (in-bounds public offsets/distances)",
+      "aes::soft::fixslice::add_round_constant_bit",
+      "aes::soft::fixslice::inv_shift_rows_1",
+      "aes::soft::fixslice::inv_shift_rows_2",
+      "aes::soft::fixslice::inv_shift_rows_3",
+      "core::ops::bit::BitXorAssign<u64>::bitxor_assign (actual value-taking implementation only)"
+    ],
+    "opaque_functions": [],
+    "opaque_types": [],
+    "custom_models": [],
+    "explicit_exclusions": [
+      "crate::Padding::pad",
+      "crate::Padding::unpad",
+      "crate::Padding::pad_detached",
+      "crate::Padding::unpad_blocks",
+      "crate::*::raw_unpad",
+      "crate::*::unpad",
+      "hybrid_array::traits::ArraySize"
+    ],
+    "domain": "All generated fixed-size arrays and integer values for the enumerated operations. Scalar clamp has32 bytes, SHA round has8 u32 words and one u32 round input, ServiceId has an ACI/PNI constructor and16 UUID bytes. PKCS7 raw_pad has total slice/position behavior, with a numeric circuit bridge for16byte final blocks and arbitrary full-block prefix. AES software S-box plus actual NOT restoration covers all eight64-bit words and each lane; other slice lengths give assertion failure. Actual strict PKCS7 unpad and its iterator loop cover every16-byte input, including all errors. The numeric output encodes shared validity mask, shared retained length and zero-padded shared data, with injective result encoding. Actual AES input layout covers all four16byte inputs and any8word initial buffer, with every512bit output proved. Portable compact SHA compression covers every8word u32 state and16word u32 block, all64rounds andfeedforward, including absence of bound/overflow failure. Existing full-list SHA compression is proved equal to the same actual compact operation. AES mix_columns_0 and all three shift_rows variants cover every four-block secret byte input, encoded into actual eight-word bitplane state; the shift variants also preserve incorrect-length failure. All three phase-dependent MixColumns operations have numeric bridges under the proved inverse-ShiftRows conjugation and round representation transition. The actual inverse-layout nested writer covers all64 column bits and96 initial output bits on the exact12-byte slices used by both caller invocations; eight bytes written and four preserved. The complete actual portable AES256 key schedule covers every 32-byte key and all 120 output words, including all checked operations, borrow write-back, expansion/finishing iterations and final exit. Its numeric artifact has 256 secret input bits and 7,680 secret output bits. The separate actual core u64 XOR-assignment leaf covers every pair of words; neither its shared-argument forwarder nor the complete mutable Zip round-key caller is claimed.",
+    "success_and_errors": "Fixed-size array operations succeed for every typed input; both tag decoders return the actual Rust Ok enum for supported tags or Err containing the original rejected byte. Their two-byte circuit representations are proved injective. No bound/panic failure occurs in these selected operations. PKCS7 size>255 or position>=size returns translated assertionFailure; the AES leaf also retains its exact-length assertion failure.",
+    "state_and_randomness": "No mutable persistent state, I/O or randomness in this selected call graph.",
+    "unselected_items": "Only enumerated selected operations are claimed. SHA byte loading/buffering/digest/HMAC/HKDF remain pending; the generic SpecificServiceId wrapper extracted alongside ServiceId has not been given an arbitrary trait-dictionary equivalence theorem.",
+    "standard_library_models": {
+      "sha256_round": [
+        "wrapping u32 addition",
+        "u32 rotate_right"
+      ],
+      "service_id_encode": [
+        "Into/From dispatch",
+        "array indexing and mutation",
+        "slice range indexing and copy_from_slice",
+        "primitive Copy/Clone"
+      ],
+      "aes_layout": [
+        "checked slice length/index/range/update",
+        "u8 to u64 conversion",
+        "checked integer shifts and bitwise operations"
+      ],
+      "sha256_compact": [
+        "Range IntoIterator and IteratorRange.next using existing forward_checked Step model",
+        "checked fixed-array indexing and updates",
+        "checked usize subtraction and remainder",
+        "u32 wrapping addition, rotation, shifts and bitwise operations"
+      ],
+      "aes_linear": [
+        "u64 rotate_right; checked scalar shifts, addition and bitwise operations",
+        "fixed-array indexing and updating",
+        "slice iter_mut, IntoIterator and IteratorIterMut.next with mutable borrow restoration"
+      ],
+      "aes256_key_schedule": [
+        "Unchanged official range/reverse/StepBy iterator and Step models",
+        "Checked fixed-array and slice indexing, range borrowing and write-back",
+        "Checked scalar arithmetic, conversion, shifts and bitwise operations"
+      ]
+    },
+    "exclusion_scope": "Only PKCS7 profile: unused generic trait defaults and ArraySize metadata; none is called by selected raw_pad. Other accepted profiles have no explicit exclusions. The unpadding profile excludes padding/unused default array methods; its separate exact list and discarded Iterator metadata are in Extraction/unpad-review.json. The active slice iterator type and next operation use existing pinned Aeneas standard models. The inverse writer is selected as a closed actual declaration from a profile excluding ArraySize metadata, which the retained writer does not reference; no retained body is altered. AES256 schedule selection additionally removes only unused Iterator.rev/Step dictionary slots and unused overflow declarations, while preserving all 18 computational bodies and the actual called reverse constructor. The exact 12-change reversible ledger and independent semantic-graph review are recorded in AesKeyScheduleWork/review.json. The separately selected XOR-assignment leaf has its own closed-declaration ledger; no mutable Zip body is replaced.",
+    "discarded_metadata": {
+      "types": [
+        "core::fmt::Arguments"
+      ],
+      "functions": [
+        "core::fmt::{impl}::from_str"
+      ],
+      "reason": "Aeneas retains assertion failures while erasing panic formatting; no formatting call remains computational. Unpadding retains its genuine error and closure type aliases; its separate ledger lists discarded iterator metadata. AES linear profiles separately inventory unused iterator and panic dictionary metadata; selected body call IDs and generated definitions are checked exactly."
+    },
+    "unpadding_reference_review": "Extraction/unpad-review.json",
+    "unpadding_full_mir_provenance": "Extraction/unpad-sysroot-provenance.json",
+    "aes_layout_reference": "Extraction/aes_layout.json",
+    "sha_compact_reference": "Extraction/sha256_compact_reviewed.json",
+    "trusted_metadata_preprocessing": "Extraction/sha256-compact-metadata/review.json",
+    "opaque_scope": "No custom or unresolved opaque computational function is accepted. Enumerated existing Aeneas standard-library models remain trusted; unused dictionary metadata is separately inventoried.",
+    "aes_linear_references": [
+      "Extraction/aes_mix_columns_0.json",
+      "Extraction/aes_shift_rows.json",
+      "Extraction/aes_mix_phases.json"
+    ],
+    "aes_inverse_write_reference": "Extraction/aes_inverse_write.json",
+    "aes_inverse_write_selection": "Extraction/aes-inverse-write-selection/review.json",
+    "separate_complete_schedule_audit": "SignalReference/AesKeyScheduleWork/schedule-proof-check.json",
+    "separate_complete_schedule_backend_audit": "SignalReference/AesKeyScheduleWork/schedule-backend-check.json"
+  },
+  "pending_obligations": [
+    {
+      "id": "rustcrypto_refinement",
+      "status": "Actual scalar round and complete portable compact compression are proved through numeric circuits, including equality with the existing root full-list compression; full digest/HMAC/HKDF/libsignal composition pending",
+      "sources": [
+        "rust/protocol/src/crypto.rs::hmac_sha256",
+        "rust/protocol/src/ratchet/keys.rs::MessageKeys::derive_keys"
+      ],
+      "contract": "Prove actual pinned HMAC/SHA256/HKDF and derive_arrays behavior equal to the concrete Lean definitions, including length checks and failure semantics.",
+      "evidence": [
+        "Extraction/symmetric_keys.json",
+        "Extraction/symmetric_keys_mono.json",
+        "Extraction/sha256_compact.json",
+        "Extraction/sha256_compact_mono.json",
+        "Extraction/sha256_compact_scoped.json",
+        "Extraction/sha256_compact_reviewed.json",
+        "Extraction/sha256-compact-metadata/review.json",
+        "ShaCompactWork/proof-check.json"
+      ],
+      "blockers": [
+        "Default Charon Aeneas preset rejects hybrid-array generic associated types; has_errors is true even when process exit is zero.",
+        "Default extraction contains 173 opaque functions and 46 opaque types; none are accepted as cryptographic assumptions.",
+        "Monomorphization produces 597 structured bodies, 48 intrinsics, 9 missing bodies and 4 extern functions; Aeneas fails on pointer/stdlib representations and Z.Overflow.",
+        "Unprocessed compact extraction lacks two newer Step dictionary fields; accepted reviewed profile removes only unused metadata with an explicitly trusted exact-diff filter. Monomorphized alternatives remain blocked.",
+        "Actual byte-loader array::from_fn remains external; extracting its real body fails mutable-borrow copying in try_from_fn_erased. Its isolated unchanged conversion closure has a proof candidate but inherits official opaque Formatter Type through Debug/unwrap, so is not accepted. See ShaWordsWork/README.md."
+      ],
+      "completed_leaf": "Extraction/sha256_round.json and LibSignalReference/Proofs/Sha256Round.lean: all8-word arrays, all u32 inputs; no custom or native checker axioms; complete portable compact compress_u32 for every8word state and16word block, all64rounds, rolling schedule andfeedforward, with numeric-artifact bridge in Proofs/ShaCompact.lean. Proofs/ShaCompactEquivalence.lean establishes equality with existing TlsMpc.Sha256.compress and its numeric artifact for every input state/block.",
+      "remaining_composition": "Actual byte loading, padding/buffering, digest interfaces, HMAC key normalization and inner/outer processing, HKDF wrappers and libsignal key splitting. Compression equivalence and public fixtures do not establish those compositions."
+    },
+    {
+      "id": "chain_state",
+      "status": "Selected-chain send/receive and bounded seed-path advance/skipped transactions have compiled Lean proofs and independent artifacts. Actual MessageKeyGenerator/RustCrypto wrapper equivalence and legacy expanded Keys path remain pending.",
+      "contract": "Prove MessageKeyGenerator::Seed/Keys behavior, including legacy Keys asserting no PQ salt; preserve u32 counter values and prevent overflow in next_chain_key; commit next state only after successful encryption/serialization."
+    },
+    {
+      "id": "signal_message",
+      "status": "General shared-layout protobuf parsing and authenticated receive implemented in Lean;1184 actual Prost/Lean fixtures and64/128-byte numeric/backend profiles pass. Actual all-input Prost/SignalMessage refinement remains pending; explicit local slice-model candidate is unaccepted.",
+      "sources": [
+        "rust/protocol/src/protocol.rs::SignalMessage"
+      ],
+      "contract": "Extract and refine version handling, protobuf serialization and parsing, optional addresses, sender/receiver identity serialization, the exact MAC input and 8-byte tag, malformed inputs and address/MAC rejection. Both identifiers and intermediate encodings remain shared.",
+      "completed_leaf": "Complete fixed-width ServiceId encoder and all17-byte circuit equality; complete ServiceIdKind and CiphertextMessageType tag decoding including every invalid byte and exact error payload. Real UUID and derive_more bodies are extracted.",
+      "pending_decoder_composition": "Generic and monomorphized complete ServiceId parsing fail Aeneas on actual core Result::ok: There should be no bottoms in the value (result.rs714-718). No opaque substitute is accepted.",
+      "evidence": [
+        "Extraction/service_id_encode.json",
+        "Extraction/message_type.json",
+        "Extraction/service_id_decode.json",
+        "Extraction/service_id_decode_mono.json"
+      ],
+      "lean_bounded_send_scope": "SignalReference/send-circuit-proof-check.json; whole actual constructor equivalence remains pending.",
+      "actual_generated_encoder_candidates": "SignalReference/SignalMessageWork/Artifacts/{WireEncode,WireEncodeFields,WireEncodeFieldsFull}; unaccepted diagnostic extractions only."
+    },
+    {
+      "id": "triple_ratchet",
+      "status": "Bounded current-chain advance, retained skipped-seed lookup, replay rejection and authenticated rollback/commit implemented and checked. New DH ratchets, SPQR state, full policy/session selection and atomic persistent state remain pending.",
+      "sources": [
+        "rust/protocol/src/triple_ratchet.rs"
+      ],
+      "contract": "Refine outgoing/incoming state transitions, out-of-order/skipped-key handling, replay rejection, randomness, authentication failures and atomic persistent state updates. Established-session-only or bounded modes require explicit supported-state predicates."
+    },
+    {
+      "id": "spqr",
+      "status": "SPQR chain key material, V1 encoding/secret parsing, established sends and epoch root/direction splitting implemented with compiler proofs. Actual full KEM/chunk/retained-link state machine and send/recv refinement remain pending.",
+      "source": "spqr 1.6.0, git commit 06959b4708f9b7b1e94d0f8cc835f3958c077e94",
+      "contract": "Provide the actual new PQR state, optional message key, PQR wire message and failure outcome, with specified randomness. Select absent-key zero salt versus a secret PQR key inside MPC. Never silently replace spqr::send/recv with an oracle and claim full Signal refinement.",
+      "reuse_candidate": "Beneficial-AI-Foundation/SparsePostQuantumRatchet-verify at1acabbc34dbc5cbd40362a62848b68fdbe80e033 pins the identical upstream source. BAF_REVIEW.md records extraction patches, external crypto assumptions and Lean4.35 requirements; no opaque cryptographic link is accepted."
+    },
+    {
+      "id": "aes_cbc",
+      "status": "AES256-CBC send and receive Lean lowering, strict shared PKCS7 result encoding, inverse AES128/256 circuits, and bounded MAC-gated receive are implemented and proved against executable Lean definitions. Actual padding/unpadding and the enumerated forward AES primitives/key schedule have Rust refinements. Full actual AES/CBC wrapper composition and inverse AES implementation-reference equivalence remain pending.",
+      "implementation": "TlsMpc/Signal/Cbc.lean",
+      "fixture_report": "benchmarks/results/lean-signal-cbc-checks.json",
+      "contract": "Prove the Lean circuit equal to the selected actual RustCrypto AES256-CBC and PKCS7 operations called by rust/crypto/src/aes_cbc.rs. Preserve valid-key/IV lengths, success and failure behavior. Add decryption and actual unpadding behavior, then compose with MAC verification before plaintext or state is released. Public fixtures and correct symbolic lowering do not establish Rust implementation equivalence.",
+      "unpad_implementation": "TlsMpc/Signal/Unpad.lean",
+      "unpad_fixture_report": "benchmarks/results/lean-signal-unpad-checks.json",
+      "phase_proof_report": "SignalReference/AesRemainingLinearWork/proof-check.json",
+      "copy_leaf_refinement": "AesKeyScheduleWork/CopyBridge.lean and ColumnsBridge.lean prove actual aligned/in-bounds memshift32 and xor_columns through numeric semantics for all words, including overlapping column ranges. Separate 26-endpoint audit; these proofs are composed into the complete schedule theorem.",
+      "inverse_wrapper_blocker": "Actual BatchBlocks::default reaches hybrid_array::from_fn::Guard, MaybeUninit, raw mutable slices, pointer helpers and transmute_copy; these are computational dependencies. Unchanged-source optimized-MIR inlining retains Guard; aggressive standard inlining/scalar replacement instead hits Charon unsupported union/ConstEvalVal constants. Neither profile is accepted. Full wrapper needs translator support or an explicitly reviewed transparent library-model boundary; none has been adopted.",
+      "key_schedule_refinement": "Complete actual portable AES256 schedule equals the numeric circuit for every 32-byte key and all 120 output words. FullSchedule.lean preserves checked arithmetic/indexing, borrow write-back, every loop and final exit. Separate 37-endpoint audit uses only standard Lean axioms and unchanged official computational models. The original Iterator.rev extraction mismatch is resolved by independently reviewed trusted dead-metadata filtering that retains all 18 computational bodies and the actual called reverse constructor.",
+      "key_schedule_proof_report": "SignalReference/AesKeyScheduleWork/schedule-proof-check.json",
+      "key_schedule_backend_report": "SignalReference/AesKeyScheduleWork/schedule-backend-check.json",
+      "add_round_key_wrapper_blocker": "The actual core value-taking u64 XOR-assignment leaf has a complete numeric refinement in AesAddRoundKeyWork. The actual add_round_key mutable Zip caller needs borrow write-back unsupported by the pinned generic Iterator.next/Zip model. Monomorphizing the actual iterator reaches unsupported Option<(&mut u64, &u64)> translation. No custom mutable-Zip model, replacement Rust loop or shared-argument forwarder equivalence is claimed.",
+      "add_round_key_leaf_proof_report": "SignalReference/AesAddRoundKeyWork/proof-check.json",
+      "inverse_wrapper_boundary_report": "SignalReference/AesInverseLayoutWork/wrapper-boundary-report.json",
+      "add_round_key_wrapper_diagnostic": "SignalReference/AesZipInvestigation/report.json",
+      "decrypt_implementation": "TlsMpc/Signal/CbcOpen.lean",
+      "authenticated_receive_implementation": "TlsMpc/Signal/Receive.lean",
+      "receive_direct_specification": "TlsMpc/Signal/ReceiveSpec.lean",
+      "receive_fixture_report": "benchmarks/results/lean-signal-receive-checks.json",
+      "receive_proof_report": "SignalReference/receive-circuit-proof-check.json"
+    },
+    {
+      "id": "private_key_import",
+      "status": "clamp proved; deserialization and curve arithmetic pending",
+      "sources": [
+        "rust/core/src/curve.rs::PrivateKey::deserialize",
+        "rust/core/src/curve.rs::PrivateKey::calculate_agreement"
+      ],
+      "contract": "Reject incorrect private-key length, apply actual byte clamping, preserve exact imported byte representation, and prove X25519 including all-zero shared-secret rejection. Public-key decoding behavior, including currently accepted trailing bytes, must not be changed silently."
+    },
+    {
+      "id": "current_storage_import",
+      "status": "required only if importing current secret-shared-db records",
+      "contract": "Current shared values encode a per-contact encryption seed, not directly a Signal private key. If importing that format, reconstruct only inside MPC the seed represented by the difference of the two Pallas polynomial constants and compute SHA256(UTF8(RELAY_ENCRYPTION_KEY) || canonical 32-byte little-endian Fr(seed)); decrypt contact/session/UUID state inside MPC. Changing storage format for a fresh deployment does not require retaining Pallas."
+    },
+    {
+      "id": "transport_and_privacy",
+      "status": "pending composition",
+      "contract": "Compose Signal encoding and parsing with TLS without opening identifiers, plaintext, traffic keys, MAC keys or session state. Opaque handles and repeated-send linkage are allowed. Public size/profile decisions and failure leakage must be explicit. Jointly authenticated conversion and persistence must retain security against two malicious colluding nodes among five, with abort."
+    },
+    {
+      "id": "proactive_session_refresh",
+      "status": "required, not implemented by pure circuits",
+      "contract": "Support a mobile adversary compromising at most two nodes per refresh epoch, potentially different nodes over the system lifetime. Refresh every retained Signal secret and its authentication material: imported identity keys, root and chain keys, pending or skipped message keys, SPQR/PQ state, recipient identifiers and encrypted session-storage keys. Persist epoch-consistent state atomically and erase superseded shares, conversion material, temporary values and recoverable copies. Include TLS state in the composed refresh protocol. Static malicious MPC security, rerandomized public handles, and pure circuit correctness alone do not establish this property."
+    }
+  ],
+  "hybrid_arithmetic_boundaries": [
+    {
+      "boundary": "Signal private/public key bytes to X25519",
+      "arithmetic": "Base field p = 2^255 - 19; little-endian Montgomery u-coordinate encoding; private-key scalar uses specified clamped bytes.",
+      "obligation": "Use lossless byte/bit sharing for arbitrary 32-byte inputs. Clamp/reduce only at the operation that specifies it; prove decoding, canonicalization where required and encoding. Do not reduce arbitrary secret bytes modulo p as a storage representation.",
+      "source": "rust/core/src/curve.rs and rust/core/src/curve/curve25519.rs"
+    },
+    {
+      "boundary": "Edwards/XEdDSA scalar and coordinate arithmetic",
+      "arithmetic": "Curve-coordinate field p = 2^255 - 19 and subgroup scalar modulus l = 2^252 + 27742317777372353535851937790883648493 are distinct.",
+      "obligation": "Follow actual Scalar::from_bytes_mod_order/from_hash and point conversion behavior; prove byte/scalar and coordinate/scalar domain changes separately. Reusing a field backend does not identify these moduli.",
+      "source": "rust/core/src/curve/curve25519.rs"
+    },
+    {
+      "boundary": "Curve shared secret to symmetric ratchet",
+      "arithmetic": "Field result becomes exactly 32 encoded bytes, checked against all zero, then HKDF-SHA256 input.",
+      "obligation": "Authenticated field-to-bit conversion, endianness, all-zero rejection, HKDF WhisperRatchet root/chain split; no reconstruction at any node.",
+      "source": "rust/protocol/src/ratchet/keys.rs::RootKey::create_chain"
+    },
+    {
+      "boundary": "SPQR/ML-KEM polynomial arithmetic to byte algorithms",
+      "arithmetic": "libcrux-ml-kem 0.0.10 uses degree-256 polynomial rings with coefficient modulus 3329; polynomial/NTT arithmetic is a field/ring candidate, SHA3/SHAKE/Keccak and byte parsing remain Boolean candidates.",
+      "obligation": "Prove compression, decompression, modular representatives, rejection sampling, noise sampling, encoding, ciphertext validation and constant-shape selection across conversions. Existing hax annotations do not automatically prove our MPC lowering.",
+      "source": "libcrux-ml-kem src/vector/traits.rs and src/constants.rs, selected by pinned spqr/libsignal"
+    }
+  ],
+  "trusted_reference_boundary": [
+    "Pinned source acquisition and Cargo dependency resolution/build configuration",
+    "Rust compiler MIR, Charon and Aeneas extraction",
+    "Reviewed dead Step dictionary-field filtering for compact SHA extraction; exact7JSONslot diff, all retained bodies unchanged, full semantic reference scan, input pinned up to diagnostic short_names ordering. This preprocessing is trusted, not mechanized.",
+    "Aeneas standard library models for arrays, machine integers and Result",
+    "Reviewed closed-declaration selection for the actual AES inverse-layout nested writer: retained fn1 unchanged, all referenced user declarations absent, exact reversible deletion ledger and pinned semantic fingerprint. Trusted preprocessing, not mechanized.",
+    "Reviewed AES256 key-schedule dead Iterator.rev and Step dictionary-field filtering: all 18 computational bodies and the called reverse constructor retained unchanged; exact 12-change reversible diff and independently reviewed retained semantic graph. This preprocessing remains trusted, not mechanized; the complete schedule-to-numeric-circuit equivalence is proved against the resulting actual translation.",
+    "Reviewed closed-declaration selection for the actual Rust core u64 XOR-assignment leaf: retained fns6/121 and trait/impl declarations unchanged; Aeneas emits only value-taking fn121. Unused preexisting absent vtable metadata is recorded. The mutable Zip caller and shared-argument forwarder are not claimed.",
+    "Lean foundational axioms propext, Classical.choice and Quot.sound"
+  ],
+  "execution_boundary": [
+    "Lean native execution",
+    "JSON transport",
+    "generic artifact adapter",
+    "MPC compiler/runtime",
+    "authenticated mixed-domain conversion protocol"
+  ],
+  "mpc_security_proof": "Not mechanized, as requested; backend and conversions must still provide the specified malicious-party security.",
+  "baf_review": "BAF_REVIEW.md",
+  "verification_target": "Circuit semantics equals selected faithfully Aeneas-translated implementation behavior, including supported failure/state/randomness semantics. Independent standards or cryptographic-security proofs are not required.",
+  "lean_receive_scope": {
+    "implemented": [
+      "Inverse AES128/256 with reusable forward expanded schedule",
+      "AES256-CBC decryption and strict secret PKCS7 decoding",
+      "SignalMessage truncated HMAC domain with serialized identity keys",
+      "Authenticated bounded serialized-span opening with secret version and address/device gates",
+      "Direct acceptance/rejection specification and verified numeric lowering"
+    ],
+    "implementation_files": [
+      "TlsMpc/AesInverse.lean",
+      "TlsMpc/Signal/OpenResult.lean",
+      "TlsMpc/Signal/CbcOpen.lean",
+      "TlsMpc/Signal/MessageMac.lean",
+      "TlsMpc/Signal/Receive.lean",
+      "TlsMpc/Signal/ReceiveSpec.lean"
+    ],
+    "proof_report": "SignalReference/receive-circuit-proof-check.json",
+    "fixture_report": "benchmarks/results/lean-signal-receive-checks.json",
+    "shared_result": "Secret acceptance byte (255 or0), secret uint64 big-endian retained length, fixed-size zero-padded plaintext buffer. Every byte is zero on MAC/version/address/padding rejection.",
+    "public_layout_contract": "Nonzero ciphertext byte count divisible by16 and its offset into the authenticated serialized content; optional address offset/presence. Bounds and disjoint spans are checked publicly. A future in-MPC protobuf parser must establish these are actual fields.",
+    "mac_contract": "Raw32-byte identity keys are each prefixed by type0x05. HMAC input is serialized sender identity || serialized receiver identity || serialized content; final8 wire bytes are compared to the first8 HMAC bytes.",
+    "addresses": "If present, compare the authenticated36 bytes with shared expected ServiceId(17)||device(1), twice; kinds0/1 and devices1..127 are checked. Absent-address profile retains legacy acceptance. General address-string parsing remains pending.",
+    "actual_rustcrypto_aes_cbc_hmac_wrapper_refinement": false,
+    "full_protobuf_parser": false,
+    "session_state_transitions": false,
+    "native_networked_mpc_execution": false,
+    "actual_pkcs7_result_composition": "SignalReference/AesInverseCircuitWork/padding-proof-check.json",
+    "actual_pkcs7_result_theorem": "LibSignalReference.Proofs.OpenResult.finish_refines_artifact",
+    "actual_pkcs7_secret_length_theorem": "LibSignalReference.Proofs.OpenResult.finish_retained_length (candidate length <2^64)"
+  },
+  "lean_send_scope": {
+    "implemented": [
+      "Canonical bounded protobuf construction with secret uint32 counters",
+      "Pinned constructor version-byte encoding and optional PQ/address field presence",
+      "AES256-CBC plus serialization plus same-content truncated HMAC",
+      "Secret canonical-width and typed-address acceptance, full-output zeroing on rejection",
+      "Verified numeric compiler lowering and direct acceptance specification"
+    ],
+    "implementation_files": [
+      "TlsMpc/Signal/Varint.lean",
+      "TlsMpc/Signal/Serialization.lean",
+      "TlsMpc/Signal/Send.lean"
+    ],
+    "proof_report": "SignalReference/send-circuit-proof-check.json",
+    "fixture_report": "benchmarks/results/lean-signal-send-checks.json",
+    "standalone_exporter": "SignalReference/SendExport.lean",
+    "root_main_integration": "complete; TlsMpc.Signal.Export dispatch via root Main; exact numeric artifact comparisons in lean-signal-root-export-checks.json",
+    "shared_result": "Secret acceptance byte || serialized content or complete Signal wire including eight-byte MAC; all bytes zero on rejection.",
+    "public_shape": "Payload lengths up to1024 each, address presence, canonical uint32 counter varint widths1..5.",
+    "input_contract": "Already derived message keys; counter and previous counter as4BE bytes; raw32-byte ratchet/identity keys; optional36-byte typed ServiceId/device address encoding. Address name parsing and fallback are outside this profile.",
+    "version_policy": "Exactly ((input_version &15)<<4)|4, including arbitrary input versions as permitted by the Rust constructor; receive version policy is separate.",
+    "actual_signalmessage_constructor_refinement": false,
+    "actual_rustcrypto_wrapper_refinement": false,
+    "session_state_transitions": false,
+    "native_networked_mpc_execution": false,
+    "actual_varint_refinement": {
+      "report": "SignalReference/ProstEncodingWork/check-report.json",
+      "theorem": "LibSignalReference.Candidate.ProstEncoding.uint32_refines_artifact",
+      "scope": "Every uint32 and canonical width1..5; actual Prost loop, actual Vec put_slice override and default put_u8; official Aeneas Vec model; buffer length+10\u2264Usize.max. Generic loop theorem also preserves supplied buffer errors/divergence.",
+      "trusted_metadata_review": "SignalReference/prost-selection-independent-review.json"
+    },
+    "roundtrip_fixture_report": "benchmarks/results/lean-signal-roundtrip-checks.json",
+    "actual_counter_fields_refinement": {
+      "report": "SignalReference/SignalMessageWork/uint32-proof-check.json",
+      "theorem": "LibSignalReference.Candidate.SignalField.field_refines_artifact",
+      "scope": "Actual Prost uint32::encode for SignalMessage field tags2/3 including tag-range check, wire discriminant, tag/value varints and actual selected Vec append; all uint32 values, canonical widths1..5, buffer.length+11\u2264Usize.max."
+    }
+  },
+  "lean_chain_send_scope": {
+    "implementation": "TlsMpc/Signal/ChainSend.lean",
+    "canonical_equivalence": "Symmetric.derive plus Send.message, secret salt selection and branch-based state/output acceptance",
+    "proof_report": "SignalReference/chain-send-proof-check.json",
+    "fixture_report": "benchmarks/results/lean-signal-chain-send-checks.json",
+    "proof_endpoints": 20,
+    "artifact_profiles": 2,
+    "public_fixture_lanes": 56,
+    "mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "native_mpc_executed": false,
+    "input_order": "version1,counterBE4,previousBE4,ratchetRaw32,chainKey32,PQkeyPresent1,PQkey32,senderIdentityRaw32,receiverIdentityRaw32,plaintext,PQ,address0/36",
+    "shared_output": "status1 || candidate nextChainKey32 || candidate nextCounterBE4 || complete Signal wire",
+    "rejection": "Preserves old chain key and counter, zeros wire; rejects max counter, non-0/1 PQ flag, mismatched canonical counter widths and invalid typed addresses.",
+    "spqr_dependency": "PQ key, secret presence flag and outgoing PQ bytes must be produced by one future SPQR transition; none is opened by this circuit.",
+    "counter_exhaustion_policy": "Explicit bounded profile rejection, not a refinement claim for actual Rust overflow behavior.",
+    "actual_full_chain_send_refinement": false,
+    "missing": [
+      "Full actual RustCrypto HMAC/HKDF/AES wrapper equivalence",
+      "Full actual SignalMessage constructor/protobuf composition",
+      "Full SPQR and ratchet/session state transitions",
+      "Atomic commit and rollback protection",
+      "Proactive refresh and erasure"
+    ],
+    "standalone_exporter": "SignalReference/ChainSendExport.lean",
+    "root_main_integration": "complete; TlsMpc.Signal.Export dispatch via root Main; exact numeric artifact comparisons in lean-signal-root-export-checks.json"
+  },
+  "lean_spqr_chain_scope": {
+    "implementation": "TlsMpc/Signal/SpqrChain.lean",
+    "source_reference": "spqr1.6.0 06959b4708f9b7b1e94d0f8cc835f3958c077e94 src/chain.rs::ChainEpochDirection::next_key_internal",
+    "functionality": "Increment secret counter then HKDF64 using zero salt and counterBE || Signal PQ Ratchet V1 Chain Next. Split next/message keys; counter exhaustion preserves old state and zeros message key.",
+    "proof_report": "SignalReference/spqr-chain-proof-check.json",
+    "proof_endpoints": 12,
+    "fixture_report": "benchmarks/results/lean-signal-spqr-chain-checks.json",
+    "public_fixture_lanes": 56,
+    "optimized_and_gates": 493664,
+    "mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "standalone_exporter": "SignalReference/SpqrChainExport.lean",
+    "actual_full_spqr_refinement": false,
+    "bounded_active_epoch_chain_send_composed": true,
+    "native_mpc_executed": false,
+    "missing": [
+      "Epoch selection and KEM/chunk transitions",
+      "Actual SPQR serializer implementation-reference composition",
+      "Actual HKDF/SPQR implementation-reference composition",
+      "Atomic persistence and proactive refresh"
+    ]
+  },
+  "lean_spqr_message_scope": {
+    "implementation": "TlsMpc/Signal/SpqrMessage.lean",
+    "proof_report": "SignalReference/spqr-message-proof-check.json",
+    "proof_endpoints": 23,
+    "fixture_report": "benchmarks/results/lean-signal-spqr-message-checks.json",
+    "artifact_profiles": 21,
+    "public_fixture_lanes": 1089,
+    "max_width_profile_optimized_and_gates": 416,
+    "largest_tested_optimized_and_gates": 430,
+    "selected_mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "standalone_exporter": "SignalReference/SpqrMessageExport.lean",
+    "actual_full_serializer_refinement": false,
+    "actual_varint_refinement": {
+      "proof_report": "SignalReference/SpqrReference/proof-report.json",
+      "independent_review": "SignalReference/SpqrVarintReview/review.json",
+      "acceptance": "SignalReference/SpqrReference/acceptance.json",
+      "proof_endpoints": 21,
+      "theorem": "LibSignalReference.Candidate.SpqrVarint.uint64_refines_artifact",
+      "domain": "All uint64 values, canonical public widths1..10, initial buffer.length+10<=Usize.max; widened uint32 indices also covered.",
+      "trusted_preprocessing": "Seven independently reviewed unused Step-metadata changes; every computational declaration unchanged."
+    },
+    "native_mpc_executed": false
+  },
+  "lean_spqr_send_scope": {
+    "implementation": "TlsMpc/Signal/SpqrSend.lean",
+    "proof_report": "SignalReference/spqr-send-proof-check.json",
+    "proof_endpoints": 12,
+    "fixture_report": "benchmarks/results/lean-signal-spqr-send-checks.json",
+    "artifact_profiles": 2,
+    "public_fixture_lanes": 108,
+    "optimized_and_gates": [
+      1823986,
+      1895705
+    ],
+    "selected_mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "standalone_exporter": "SignalReference/SpqrSendExport.lean",
+    "binding": "The SPQR next counter is used for both its HKDF info and outgoing message index. Its derived key feeds Signal derivation internally; no independently supplied PQ key or wire bytes.",
+    "shared_output": "status1 || candidate Signal chain32 || Signal counterBE4 || candidate SPQR chain32 || SPQR counterBE4 || complete Signal wire",
+    "rejection": "Either MAX counter, zero epoch, invalid kind, canonical width or address rejects; both old chain states preserved, wire zeroed.",
+    "required_call_precondition": "Already selected active SPQR chain for message epoch minus one, and outgoing state-machine payload.",
+    "actual_full_implementation_refinement": false,
+    "native_mpc_executed": false,
+    "missing": [
+      "Full translated RustCrypto/prost/Signal/SPQR composition",
+      "SPQR active-epoch selection, KEM/chunk state transitions and inactive/no-chain branch",
+      "Atomic storage commit, rollback protection and proactive refresh"
+    ],
+    "root_main_integration": "complete; TlsMpc.Signal.Export dispatch via root Main; exact numeric artifact comparisons in lean-signal-root-export-checks.json"
+  },
+  "lean_dh_root_chain_scope": {
+    "implementation": "TlsMpc/Signal/DhRatchet.lean",
+    "selected_functionality": "RootKey::create_chain: X25519 agreement then HKDF64(oldRoot,agreement,WhisperRatchet), new root/chain and zero chain counter.",
+    "proof_report": "SignalReference/dh-ratchet-proof-check.json",
+    "proof_endpoints": 15,
+    "fixture_report": "benchmarks/results/lean-signal-dh-ratchet-checks.json",
+    "field_fixture_lanes": 46,
+    "boolean_fixture_lanes": 81,
+    "adapter_clear_cases": 4,
+    "field_nodes": 9437,
+    "field_multiplications": 4589,
+    "boolean_optimized_and_gates": 554330,
+    "boolean_mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "mixed_field_boolean_composition_compiled": true,
+    "adapter": "SignalReference/DhRatchetWork/adapter.py",
+    "standalone_exporter": "SignalReference/DhRatchetExport.lean",
+    "shared_output": "status1 || candidate root32 || new chain32 || counterBE4=zero",
+    "rejection": "All-zero agreement preserves old root and zeros the new chain/counter.",
+    "conversion_boundary": "The modular composition theorem assumes exact canonical field-to-byte representation. Existing unverified mixed adapter supplies checked private conversion; scalar bytes are never reduced modulo the field.",
+    "actual_dalek_or_rustcrypto_wrapper_refinement": false,
+    "full_dh_ratchet_state_transition": false,
+    "native_mpc_executed": false,
+    "missing": [
+      "Faithful actual curve/HKDF wrapper equivalence",
+      "Fresh-key generation and complete two-direction DH-ratchet state policy",
+      "Skipped-key handling, atomic state commit and proactive refresh"
+    ]
+  },
+  "sha256_constructor_reference": {
+    "accepted_reference": true,
+    "implementation": "SignalReference/Sha256WrapperWork/Initial.lean",
+    "proof_report": "SignalReference/Sha256WrapperWork/proof-report.json",
+    "proof_endpoints": 8,
+    "independent_review": "SignalReference/Sha256InitialReview/review.json",
+    "acceptance": "SignalReference/Sha256WrapperWork/acceptance.json",
+    "scope": "Actual Sha256VarCore::new result for28/32/invalid output sizes; constructor plus actual compact compression equals numeric artifact on sixteen shared U32 words.",
+    "trusted_preprocessing": "Three unused ArraySize metadata deletions; original ordered roots retained. Selected semantic graph closed; non-emitted diagnostic references explicitly inventoried.",
+    "full_digest_update_finalize_block_buffer_refinement": false
+  },
+  "signal_bytes_field_candidate": {
+    "directory": "SignalReference/SignalMessageWork/BytesFieldWork",
+    "proof_endpoints": 9,
+    "accepted_full_concrete_refinement": false,
+    "unconditional": "Generic actual Prost bytes::encode operation decomposition preserves supplied dictionary failures/divergence",
+    "conditional": "Circuit output equality requires actual adapter length and append contracts",
+    "pending": [
+      "Actual Vec as_slice and reserve boundary",
+      "Actual slice-buffer methods and concrete adapter composition"
+    ],
+    "proof_report": "SignalReference/SignalMessageWork/BytesFieldWork/proof-check.json",
+    "accepted_generic_reference": true,
+    "independent_review": "SignalReference/ProstEncodingWork/BytesFieldSelectionReview/review.json",
+    "acceptance": "SignalReference/SignalMessageWork/BytesFieldWork/acceptance.json"
+  },
+  "never_continuation_candidate": {
+    "accepted_reference": false,
+    "directory": "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate",
+    "independent_review": "SignalReference/TranslatorNeverReview/review.json",
+    "post_proof_review": "SignalReference/TranslatorNeverReview/post-proof-review.json",
+    "proof_report": "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/proof-report.json",
+    "kernel_endpoints_standard_only": 14,
+    "actual_slice_endpoints_with_existing_formatter_type": 6,
+    "additional_type_constant": "Aeneas.Std.core.fmt.Formatter : Type",
+    "new_computational_axioms": [],
+    "accepted_tools_or_models_changed": false,
+    "remaining_scope_decision": "Existing noncomputational formatting type dependency; candidate remains separate from accepted extraction toolchain."
+  },
+  "spqr_decoder_reference": {
+    "accepted_reference": true,
+    "directory": "SignalReference/VarintDecodeWork",
+    "proof_report": "SignalReference/VarintDecodeWork/proof-report.json",
+    "independent_review": "SignalReference/SpqrDecodeReview/review.json",
+    "acceptance": "SignalReference/VarintDecodeWork/acceptance.json",
+    "proof_endpoints": 19,
+    "scope": "Actual pinned SPQR decode_varint, prefix and arbitrary shared offset, exact success/error/absolute cursor, all numeric artifact output bits.",
+    "llbc_preprocessing": [],
+    "custom_standard_models": [],
+    "custom_axioms": [],
+    "full_message_parser_refinement": false
+  },
+  "lean_spqr_parse_scope": {
+    "implementation": [
+      "TlsMpc/Signal/ReadAt.lean",
+      "TlsMpc/Signal/SpqrParse.lean",
+      "TlsMpc/Signal/SpqrParseSpec.lean"
+    ],
+    "proof_report": "SignalReference/spqr-parse-proof-check.json",
+    "fixture_report": "benchmarks/results/lean-signal-spqr-parse-checks.json",
+    "proof_endpoints": 36,
+    "artifact_profiles": 15,
+    "public_fixture_lanes": 2443,
+    "functionality": "SPQR V1 wire parser; secret epoch/index/kind/hasChunk/chunk index/data; shared cursors and no public field offsets. Noncanonical varints and trailing bytes preserved; rejects zero epoch, uint32/uint16 overflow and truncated chunks.",
+    "public_parameters": [
+      "wire byte length, capped at 256"
+    ],
+    "shared_output": "status255/0 || epochBE8 || indexBE4 || kind1 || hasChunk0/1 || chunkIndexBE2 || chunkData32; all49 bytes zero on rejection",
+    "optimized_and_gates_64_bytes": 28777,
+    "optimized_and_gates_256_bytes": 54559,
+    "selected_mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "backend_clear_cases": "Every accepted payload kind plus rejection; batch1 starts with a chunk-bearing message.",
+    "standalone_exporter": "SignalReference/SpqrParseExport.lean",
+    "full_actual_parser_refinement": false,
+    "actual_varint_refinement": true,
+    "native_mpc_executed": false,
+    "throughput_measured": false,
+    "missing": [
+      "V0 negotiation",
+      "Full actual msg_preamble/Message::deserialize composition",
+      "Full Signal protobuf parser",
+      "Epoch/KEM/polynomial chunk and session state transitions",
+      "Atomic persistence and proactive refresh"
+    ]
+  },
+  "lean_spqr_epoch_material_scope": {
+    "implementation": "TlsMpc/Signal/SpqrEpoch.lean",
+    "proof_report": "SignalReference/spqr-epoch-proof-check.json",
+    "fixture_report": "benchmarks/results/lean-signal-spqr-epoch-checks.json",
+    "proof_endpoints": 20,
+    "artifact_profiles": 2,
+    "public_fixture_lanes": 628,
+    "artifact_to_artifact_consecutive_additions": 8,
+    "functionality": "SPQR Chain::new and add_epoch key material for32-byte input secrets, HKDF96, secret direction-based send/receive split, zero chain counters, checked consecutive uint64 epoch addition.",
+    "shared_output": "status || root32 || epochBE8 || sendKey32 || sendCounterBE4 || recvKey32 || recvCounterBE4",
+    "rejection": "Invalid init direction zeros113 bytes. Invalid add direction, exhausted current epoch, or nonconsecutive proposed epoch preserves old root/epoch and zeros72 candidate chain bytes.",
+    "optimized_and_gates": [
+      638783,
+      755520
+    ],
+    "mpc_compile_and_clear_batches": [
+      1,
+      16
+    ],
+    "standalone_exporter": "SignalReference/SpqrEpochExport.lean",
+    "full_actual_rust_refinement": false,
+    "native_mpc_executed": false,
+    "throughput_measured": false,
+    "missing": [
+      "KEM-produced epoch secret",
+      "Retained epoch links insertion/selection/trimming",
+      "Full SPQR state machine",
+      "Actual HKDF/SPQR wrapper refinement",
+      "Atomic persistent commit and proactive refresh"
+    ]
+  },
+  "spqr_preamble_translation_boundary": {
+    "accepted_reference": false,
+    "directory": "SignalReference/SpqrPreambleWork",
+    "report": "SignalReference/SpqrPreambleWork/boundary-report.json",
+    "charon_complete": true,
+    "charon_ordered_declarations": 67,
+    "aeneas_diagnostic": "There should be no bottoms in the value",
+    "source": "spqr::msg_preamble, lib.rs:563-590",
+    "generated_lean_files": [],
+    "source_or_translator_changes": []
+  },
+  "root_signal_export_scope": {
+    "implementation": "TlsMpc/Signal/Export.lean",
+    "entry": "Main.lean",
+    "proofs_and_library_imports": "TlsMpc.lean",
+    "check_script": "scripts/check_lean_signal_root_export.py",
+    "report": "benchmarks/results/lean-signal-root-export-checks.json",
+    "numeric_artifact_comparison_profiles": 40,
+    "tls_dispatch_checks": 7,
+    "invalid_profile_checks": 14,
+    "equivalence": "Every numeric field,node and output reference byte-identical to checked isolated exports; only input_description differs.",
+    "native_exporter_executed": true,
+    "native_mpc_executed": false,
+    "extends_actual_rust_refinement_claims": false,
+    "modes": [
+      "signal-serialize",
+      "signal-send",
+      "signal-chain-send",
+      "signal-spqr-chain",
+      "signal-spqr-message",
+      "signal-spqr-send",
+      "signal-spqr-decode",
+      "signal-spqr-decode-at",
+      "signal-spqr-parse",
+      "signal-spqr-epoch-new",
+      "signal-spqr-epoch-add",
+      "signal-dh-field",
+      "signal-dh-ratchet",
+      "signal-protobuf-parse",
+      "signal-protobuf-receive",
+      "signal-chain-receive",
+      "signal-skipped-receive",
+      "signal-skipped-consume",
+      "signal-skipped-insert",
+      "signal-receive-advance",
+      "signal-receive-committed",
+      "signal-bounded-receive",
+      "signal-pqxdh",
+      "signal-ratchet-step",
+      "signal-new-ratchet-receive",
+      "signal-receiver-store",
+      "signal-retained-receive",
+      "signal-session-receive"
+    ]
+  },
+  "lean_general_receive_scope": {
+    "implementation": [
+      "TlsMpc/Signal/Word64.lean",
+      "TlsMpc/Signal/ProtoParse.lean",
+      "TlsMpc/Signal/ProtoParseProofs.lean",
+      "TlsMpc/Signal/SliceAt.lean",
+      "TlsMpc/Signal/ProtoReceive.lean",
+      "TlsMpc/Signal/ChainReceive.lean",
+      "TlsMpc/Signal/SkippedKeys.lean",
+      "TlsMpc/Signal/SkippedReceive.lean",
+      "TlsMpc/Signal/ReceiveAdvance.lean",
+      "TlsMpc/Signal/BoundedReceive.lean",
+      "TlsMpc/Signal/RatchetStep.lean",
+      "TlsMpc/Signal/NewRatchetReceive.lean",
+      "TlsMpc/Signal/ReceiverStore.lean",
+      "TlsMpc/Signal/RetainedReceive.lean",
+      "TlsMpc/Signal/SessionReceive.lean"
+    ],
+    "parser_report": "benchmarks/results/lean-signal-proto-parse-checks.json",
+    "parser_proof_endpoints": 33,
+    "prost_and_concrete_cases": 1184,
+    "parser_numeric_lanes": 1217,
+    "parser_backend_batches": [
+      1,
+      16
+    ],
+    "receive_fixture_reports": [
+      "benchmarks/results/lean-signal-proto-receive-checks.json",
+      "benchmarks/results/lean-signal-chain-receive-checks.json",
+      "benchmarks/results/lean-signal-skipped-receive-checks.json",
+      "benchmarks/results/lean-signal-bounded-receive-checks.json"
+    ],
+    "receive_fixture_lanes": {
+      "proto_receive": 107,
+      "chain_receive": 25,
+      "skipped_receive": 24,
+      "bounded_receive": 27
+    },
+    "bounded_artifact_transactions": 7,
+    "wire_capacity_max": 512,
+    "secret_values": "All keys, counters, offsets, field lengths/presence, addresses, store slots, status and plaintext remain shared.",
+    "shared_bounded_output": "status1 || nextChain32 || nextCounter4 || nextStore69N || plaintextLength8 || paddedPlaintext",
+    "failure_transaction": "Retains original chain/counter/store and zeros plaintext length/buffer. A replay after consumed skipped seed fails.",
+    "policy_bounds": "Public maxJump/capacity; exports maxJump<=16/capacity<=64. Pinned MAX_FORWARD_JUMPS25000 and MAX_MESSAGE_KEYS2000 are not confused or claimed fully implemented.",
+    "actual_whole_rust_refinement": false,
+    "native_mpc_executed": false,
+    "missing": [
+      "SPQR KEM/chunk/retained links",
+      "Legacy expanded message keys",
+      "Atomic persistent commit",
+      "Mobile refresh and erasure"
+    ],
+    "bounded_classical_session": "Secret retained-versus-new DH routing, five-chain oldest eviction, authentication-gated sender/root/receiver/skipped state transaction; explicit bounded capacity/jump"
+  },
+  "lean_skipped_seed_store_scope": {
+    "proof_report": "SignalReference/SkippedKeysWork/proof-report.json",
+    "backend_report": "SignalReference/SkippedKeysWork/backend-report.json",
+    "proof_endpoints": 31,
+    "numeric_fixtures": 3540,
+    "artifact_composition_steps": 15,
+    "backend_batches": [
+      1,
+      16
+    ],
+    "slot_layout": "valid255,key32,counterBE4,seed32",
+    "actual_rust_wrapper_refinement": false
+  },
+  "lean_receive_advance_scope": {
+    "proof_report": "SignalReference/ReceiveAdvanceWork/proof-report.json",
+    "proof_endpoints": 32,
+    "numeric_fixtures": 1144,
+    "functionality": "Bounded secret target selection, intermediate skipped seeds, HMAC chain stepping, checked target<2^32-1, rollback/commit",
+    "actual_rust_wrapper_refinement": false
+  },
+  "lean_pqxdh_scope": {
+    "implementation": "TlsMpc/Signal/Pqxdh.lean",
+    "report": "SignalReference/PqxdhWork/artifact-report.json",
+    "same_vm_x25519_agreements": [
+      3,
+      4
+    ],
+    "kyber_shared_secret_unresolved_input": true,
+    "identity_signature_prekey_validation": false,
+    "actual_rust_wrapper_refinement": false,
+    "native_mpc_executed": false,
+    "generic_mixed_statistical_security": 40
+  },
+  "prost_parser_model_candidate": {
+    "accepted_reference": false,
+    "directory": "SignalReference/ProtoParseWork",
+    "original_slice_axioms": "SignalReference/ProtoParseWork/slice-boundary-axioms.txt",
+    "candidate_model_diff": "SignalReference/ProtoParseWork/ModelCandidate/slice-model.diff",
+    "candidate_build_report": "SignalReference/ProtoParseWork/ModelCandidate/build-report.json",
+    "new_translation_trust": "Valid Rust unsafe usize slice access agrees with checked indexing; every actual decoder access must be proved in bounds. Out-of-bounds UB is outside claim.",
+    "original_models_or_translator_modified": false,
+    "step_metadata_candidate": "SignalReference/ProtoParseWork/Artifacts/varint-step/review.json",
+    "full_varint_external_buf_wrappers": 3,
+    "full_parser_bridge": "pending"
+  },
+  "lean_new_dh_receive_scope": {
+    "implementation": [
+      "TlsMpc/Signal/RatchetStep.lean",
+      "TlsMpc/Signal/NewRatchetReceive.lean"
+    ],
+    "ratchet_step_report": "benchmarks/results/lean-signal-ratchet-step-checks.json",
+    "ratchet_step_endpoints": 9,
+    "ratchet_step_numeric_lanes": 72,
+    "first_message_report": "benchmarks/results/lean-signal-new-ratchet-receive-checks.json",
+    "first_message_endpoints": 3,
+    "first_message_numeric_lanes": 26,
+    "first_message_executed_and_gates": 5473355,
+    "mixed_adapter": "SignalReference/NewRatchetReceiveWork/adapter.py",
+    "adapter_report": "SignalReference/NewRatchetReceiveWork/adapter-report.json",
+    "public_composition_cases": 5,
+    "field_dag_evaluations": 15,
+    "fresh_entropy": "joint daBit Boolean components; runtime not exercised",
+    "full_actual_rust_ratchet_refinement": false,
+    "native_mpc_executed": false,
+    "remaining": [
+      "SPQR evolution",
+      "persistent commit/refresh/erasure",
+      "actual dalek/RustCrypto wrapper refinement"
+    ]
+  },
+  "lean_receiver_store_scope": {
+    "implementation": "TlsMpc/Signal/ReceiverStore.lean",
+    "report": "benchmarks/results/lean-signal-receiver-store-checks.json",
+    "proof_endpoints": 24,
+    "numeric_fixture_lanes": 1728,
+    "artifact_transactions": 11,
+    "pinned_max_receiver_chains": 5,
+    "layout_invariant": "invalid prefix, then valid oldest-to-newest entries",
+    "semantics": "first matching valid chain; authenticated replacement; append/drop oldest at insertion",
+    "full_actual_rust_store_refinement": false,
+    "native_mpc_executed": false
+  },
+  "accepted_actual_prost_slice_leaf": {
+    "review": "SignalReference/ProtoParseWork/root-review.json",
+    "proof_manifest": "SignalReference/ProtoParseWork/bridge-proof-report.json",
+    "model_delta": "SignalReference/ProtoParseWork/ModelCandidate/slice-model.diff",
+    "proof_endpoints": 72,
+    "preconditions": "nonempty and (length > 10 or final byte < 128), exactly executable assertions",
+    "branches": "all ten success lengths plus exact InvalidVarint",
+    "numeric_bridge": "status,countBE8,valueBE8, zero on error",
+    "explicit_translation_assumption": "Rust unsafe usize slice indexing equals checked indexing when valid; every reached access proved bounded",
+    "root_rebuilt_model_modules": 57,
+    "root_verified_source_hashes": 282,
+    "not_accepted": [
+      "arbitrary SliceIndex",
+      "out-of-bounds UB semantics",
+      "full decode_varint wrapper",
+      "whole Prost or Signal parser"
+    ]
+  },
+  "lean_session_receive_scope": {
+    "implementation": "TlsMpc/Signal/SessionReceive.lean",
+    "report": "benchmarks/results/lean-signal-session-receive-checks.json",
+    "proof_endpoints": 3,
+    "concrete_and_numeric_lanes": 54,
+    "artifact_transactions": 5,
+    "receiver_capacity": 5,
+    "checked_max_jump": 2,
+    "checked_skipped_capacity": 2,
+    "wire_bytes": 96,
+    "executed_and_gates": 7368992,
+    "mixed_adapter": "SignalReference/SessionReceiveWork/adapter.py",
+    "adapter_report": "SignalReference/SessionReceiveWork/adapter-report.json",
+    "public_composition_cases": 6,
+    "field_dag_evaluations": 18,
+    "additional_parser_numeric_and_prost_cases": 54,
+    "actual_whole_rust_refinement": false,
+    "native_mpc_executed": false,
+    "remaining": [
+      "SPQR evolution/message-key production",
+      "PQXDH/identity/prekeys",
+      "legacy expanded keys",
+      "full 25000 jump/2000 skipped-key profiles",
+      "atomic persistence/refresh/erasure"
+    ]
+  },
+  "lean_keccak_scope": {
+    "implementation": "TlsMpc/Signal/Keccak.lean",
+    "report": "benchmarks/results/lean-signal-keccak-checks.json",
+    "proof_endpoints": 18,
+    "functions": [
+      "Keccak-f1600",
+      "SHA3-256",
+      "SHA3-512",
+      "SHAKE128",
+      "SHAKE256"
+    ],
+    "concrete_and_actual_libcrux_cases": 168,
+    "numeric_lanes": 128,
+    "actual_libcrux_aeneas_refinement": false,
+    "full_mlkem": false,
+    "root_cli_imported": false,
+    "native_mpc_executed": false
+  },
+  "accepted_actual_prost_wrappers": {
+    "varint_review": "ProtoParseWork/FullReferenceWork/root-review.json",
+    "key_review": "ProtoParseWork/KeyReferenceWork/root-review.json",
+    "scope": "actual full varint and decode_key, normalized numeric bridges and rejection semantics for concrete contiguous SliceU8 Buf",
+    "explicit_trust": [
+      "scoped valid-usize unsafe-index model",
+      "reviewed Buf wrappers",
+      "reversible unused Step dictionary metadata selection"
+    ],
+    "not_accepted": [
+      "arbitrary Buf",
+      "whole successful parser",
+      "skip_field",
+      "SkipTranslatorWork pass-order candidate"
+    ]
+  },
+  "lean_mlkem_scope": {
+    "modules": [
+      "Keccak",
+      "MlKemArithmetic",
+      "MlKemNtt",
+      "MlKemEncoding",
+      "MlKemSample",
+      "MlKemPke",
+      "MlKem",
+      "MlKemPoly",
+      "KemWire"
+    ],
+    "reports": [
+      "benchmarks/results/lean-signal-mlkem-arithmetic-checks.json",
+      "benchmarks/results/lean-signal-mlkem-ntt-checks.json",
+      "benchmarks/results/lean-signal-mlkem-encoding-checks.json",
+      "benchmarks/results/lean-signal-mlkem-sample-checks.json",
+      "benchmarks/results/lean-signal-mlkem-pke-checks.json",
+      "benchmarks/results/lean-signal-mlkem-checks.json",
+      "benchmarks/results/lean-signal-kem-wire-checks.json"
+    ],
+    "whole_cca_compiler_theorem": true,
+    "actual_pinned_libcrux_public_api_differential": {
+      "variants": [
+        "ML-KEM512",
+        "ML-KEM768",
+        "ML-KEM1024",
+        "Kyber1024"
+      ],
+      "pke_cases": 36,
+      "cca_cases": 36,
+      "tampered_ciphertext_cases": 12
+    },
+    "staged_numeric_circuit_composition": {
+      "report": "SignalReference/MlKemWork/adapter-report.json",
+      "complete": true,
+      "profiles": 6,
+      "fixture_lanes": 8,
+      "variants": [
+        "ML-KEM1024",
+        "Kyber1024"
+      ]
+    },
+    "bounded_matrix_bytes_per_entry": 672,
+    "shared_abort_on_sampling_exhaustion": true,
+    "actual_aeneas_libcrux_refinement": false,
+    "native_mpc_executed": false,
+    "remaining": [
+      "complete malformed-key equivalence or explicit validation policy",
+      "typed-wire actual Signal refinement",
+      "PQXDH identity/prekey signature validation",
+      "full SPQR epoch/KEM/chunk state integration",
+      "native mixed runtime and joint entropy validation",
+      "persistent refresh/erasure"
+    ]
+  },
+  "lean_pqxdh_kem_handoff": {
+    "adapter": "SignalReference/PqxdhKemWork/adapter.py",
+    "report": "SignalReference/PqxdhKemWork/adapter-report.json",
+    "paired_initiator_recipient_cases": 12,
+    "numeric_x25519_evaluations": 84,
+    "actual_numeric_wire_and_kdf": true,
+    "kem_stage_in_handoff_test": "native pinned libcrux fixture output boundary; full numeric KEM stage tested separately",
+    "validation_status": "required shared input, not yet produced by XEdDSA/prekey policy",
+    "native_mpc_executed": false
+  },
+  "kem_root_export_scope": {
+    "report": "benchmarks/results/lean-signal-kem-root-export-checks.json",
+    "numeric_identical_profiles": 55,
+    "invalid_shapes_rejected": 10,
+    "whole_kem_monolithic_export": "isolated staged executor; no root monolithic profile claimed"
+  },
+  "throughput_target": {
+    "logical_messages_per_hour": 100000,
+    "logical_messages_per_second": 27.77777777777778,
+    "retained_tls_session": true,
+    "fanout": "recipient devices and sender-device sync copies multiply encryptions per logical message",
+    "steady_send_cost_report": "benchmarks/results/lean-signal-steady-send-costs.json",
+    "native_signal_report": "benchmarks/results/lean-signal-native-checks.json",
+    "transport_review": "handshake_backend/SIGNAL_SERVER_REVIEW.txt",
+    "transport_requirement": "pinned main chat TLS1.3 AES128GCM/X25519 ALPNh2; H1 legacy relay is a separate transport",
+    "native_signal_scope": "Six public fixture profiles completed in authorized root context: five-party malicious CCD GF128, statistical128, live preprocessing, batches1/16; no private production session or WAN claim.",
+    "measured_baseline_meets_target": false,
+    "analysis_report": "benchmarks/results/lean-signal-throughput-baseline.json",
+    "root_review": "benchmarks/results/lean-signal-throughput-root-review.json",
+    "candidate_comparison": "Tinier128 isolated build pending pinned OT dependency closure; no backend migration"
+  }
+}

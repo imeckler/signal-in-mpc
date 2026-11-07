@@ -1,0 +1,26 @@
+'Aeneas.Std.loop_body_order' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Aeneas.Std.monotone_loop_body' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportSkip.encoding.skip_field' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportSkip.encoding.skip_field_loop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportSkip.encoding.skip_field_loop.body' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportSkip.core.result.Result.map' does not depend on any axioms
+'LibSignalReference.Candidate.ProstSkip.recursion_limit_first' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.unexpected_end_group' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.skip_varint_after' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.skip_varint_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipBuf.decode_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LoopSupportRegressions.tail_loop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportRegressions.branch_loop_return' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LoopSupportRegressions.branch_loop_mut_return' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.fixed32_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.fixed64_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.length_delimited_after' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkip.length_delimited_error' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

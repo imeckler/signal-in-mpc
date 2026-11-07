@@ -1,0 +1,89 @@
+{
+  "checked_at_utc": "2026-11-06T22:09:57.544840+00:00",
+  "accepted_reference": true,
+  "canonical_reference_integrated": false,
+  "reference": {
+    "selection_report_file": "AesAddRoundKeyWork/Artifacts/XorAssign/review.json",
+    "selection_report_sha256": "7e0ae075300537583b9b25ba8d5bd2456ee941de3790208686da57462b4e0ae7",
+    "selected_llbc_sha256": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed",
+    "original_llbc_sha256": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0",
+    "source_fingerprint": "300bd089be43fed9094af3ef359a0fdb92ded0d907c0a09353de40bc240a3c5c",
+    "selection_script_sha256": "78b01c99f83af94e9581c29dea118fcebf1060bd2b2a70a11707206ed094c24b",
+    "selected_declarations_unchanged": true,
+    "selection_reversible_changes": 82,
+    "additional_trusted_declaration_selection": true,
+    "selection_correctness_mechanized": false,
+    "independent_review_file": "AesKeyScheduleWork/xor-assign-selection-review.json",
+    "independent_review_sha256": "203f793a96c88787f9d2c5691758dd2107eea63b1bb3e88498ee0daacb7ad1f0",
+    "independent_review_present": true,
+    "generated_value_function_only": true,
+    "shared_argument_forwarder_refinement_claimed": false
+  },
+  "sysroot": {
+    "provenance_file": "PaddingWork/Unpad/sysroot-provenance.json",
+    "provenance_sha256": "37f5a1d8320ee459a275dba8f1aaec8ca9e8b0e1b0f60ac66dc4b0477dacbd7e",
+    "rust_core_source_sha256": {
+      "core/src/internal_macros.rs": "a4400b86ffb19c885fadb13dd864118cd951cf3c8e55313db278e16e11eb215b",
+      "core/src/ops/bit.rs": "4f0dab1c9c85c900d231e29d3f0c5e55c7b1fe87a762e48c4988d64bd1955d57"
+    },
+    "rust_commit": "8fa1c96cfd489e4c27654c144ae871ce2c4db6c6",
+    "source_patches": []
+  },
+  "verified_operation": "Actual Rust core value-taking u64 BitXorAssign implementation, called transitively by aes0.9.1 add_round_key",
+  "domain": "All two secret64-bit operands; exact successful secret64-bit write-back",
+  "whole_add_round_key_reference_complete": false,
+  "shared_argument_forwarder_refinement_claimed": false,
+  "whole_aes_rustcrypto_equivalence_established": false,
+  "mutable_iterator_blocker": {
+    "reproduced_lean_exit_code": 1,
+    "log": "AesAddRoundKeyWork/Artifacts/IncludeXor/lean-check.log",
+    "log_sha256": "2a95d773a31f2efa8924e0b2f16ff9237210ef5bb81bfd267d352ce426e3aa48",
+    "detail": "IterMut.next has a borrow write-back continuation; pinned generic Iterator.next and Zip helpers lack that component",
+    "custom_mutable_zip_model_introduced": false,
+    "original_rust_loop_replaced": false
+  },
+  "source_patches": [],
+  "custom_cryptographic_models": [],
+  "custom_axioms": [],
+  "computational_standard_models": [
+    "UScalar bitwise XOR",
+    "Result"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "checked_theorems": 4,
+  "proof_sources_sha256": {
+    "AesAddRoundKeyWork/Generated/XorAssign/Types.lean": "4ef1f99ee5134a2d322f4623e46226bc67700f758da597d2eb7b3283b5d54608",
+    "AesAddRoundKeyWork/Generated/XorAssign/Funs.lean": "dc43b069903667ea6620b531f425bbf6a60a720a20d4c3acebb247216e8de3ca",
+    "AesAddRoundKeyWork/Circuit.lean": "644b68ac80908ffed27e30a6aecc487dc6d270de26f4feb8079a8a108e2f859f",
+    "AesAddRoundKeyWork/Proofs.lean": "b32a479e8f9f744457c1b753f8ed1a345e72e6c3148eadb4ac3bf658d1401abb"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "root_semantics_sha256": {
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "export_source_sha256": "78279fbec09ec19f57bafda8203fcd7f03ced304ddda6bd46eb005b3ba2a0832",
+  "audit_script_sha256": "c1f5f7d4e00853f6c290ceb720aad0559b1ef48d4bff90ce3d37546b7f6ba3d2",
+  "extraction_script_sha256": "7698d88d36019c5a30c460dff013760a17d4f6704382b44180652a5a18a8fb65",
+  "artifact": {
+    "artifact_sha256": "599ab155231036954cfd38abc327258af029c13022ea357181d8310323efa10b",
+    "nodes": 321,
+    "raw_and_gates": 192,
+    "executed_and_gates": 0,
+    "executed_xor_gates": 64,
+    "unreachable_nodes": 129,
+    "output_bits": 64,
+    "zero_and_all_128_basis_vectors_checked": true,
+    "raw_and_optimized_adapter_checked": true
+  },
+  "native_mpc_execution_tested": false
+}

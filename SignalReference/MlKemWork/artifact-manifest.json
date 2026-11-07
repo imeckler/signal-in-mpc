@@ -1,0 +1,114 @@
+{
+  "artifacts": {
+    ".deps/signal-keccak-artifacts/signal-keccak-sha3-512-33-64.json": {
+      "sha256": "ec527acb82f3a51fc2b79b5cf92d6b14982e1d164491bfc9e8091a3ad874bbef",
+      "input_bits": 264,
+      "output_bits": 512
+    },
+    ".deps/signal-mlkem-sample-artifacts/signal-mlkem-matrix-256-224.json": {
+      "sha256": "9e602e1670a753f1821f3311e1ee7abdf8f379db86e018826843246c37802e5e",
+      "input_bits": 272,
+      "output_bits": 4104
+    },
+    ".deps/signal-mlkem-arithmetic-artifacts/signal-mlkem-noise-2.json": {
+      "sha256": "d392707a750ae25ab54ace7ea1ea0d286575b6e26d8a0d1d69a86e9c6f8fe5ca",
+      "input_bits": 264,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-ntt-artifacts/signal-mlkem-ntt-forward.json": {
+      "sha256": "489495a26ea829db775aacbea60da0c701fb058aa4935b1db7a8b7845372879a",
+      "input_bits": 4096,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-ntt-artifacts/signal-mlkem-ntt-multiply.json": {
+      "sha256": "70a8ffa36fca812bb722d3989e0d66cf2144db20429547b5e24ffa163c0ab49d",
+      "input_bits": 8192,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-poly-artifacts/signal-mlkem-poly-add.json": {
+      "sha256": "c024a3b6886bf1ca334af5ef745f86679cc82faa64f7e7a7da23067ea4b41d8c",
+      "input_bits": 8192,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-encode-12.json": {
+      "sha256": "0e19bec83339e8a33827844ec9c1798eb0f1c60ca3d239ad828ce552a18ed9d1",
+      "input_bits": 4096,
+      "output_bits": 3072
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-sha3-256-1568-32.json": {
+      "sha256": "6ca3db4c96ec65bc06057cb1864ec56c775c97243b432875849d56e7bcef3f7b",
+      "input_bits": 12544,
+      "output_bits": 256
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-sha3-512-64-64.json": {
+      "sha256": "0bc2d196316f277803e3dc27619925f02940d3b6d184e1dca13791c7f4ce8779",
+      "input_bits": 512,
+      "output_bits": 512
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-decode-12.json": {
+      "sha256": "7d91a3aa52c620f313ca8c4daddfddd46f172b9673d6fd06bcf574182dccc34c",
+      "input_bits": 3072,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-decompress-1.json": {
+      "sha256": "932359c02bcd65b604af7ca5f392e0a3929415abcaf5d54255a1d072aaeee0aa",
+      "input_bits": 256,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-ntt-artifacts/signal-mlkem-ntt-inverse.json": {
+      "sha256": "b3ade7749e4187bf3eeb4bc43c02043a60cb7198a06b9faed8db4d058a979a2d",
+      "input_bits": 4096,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-compress-11.json": {
+      "sha256": "145a070f1145d6d2bdc219131e2cc4ba9dd0a21edd7cee1d3425a30b68b98e7d",
+      "input_bits": 4096,
+      "output_bits": 2816
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-compress-5.json": {
+      "sha256": "171bd79b057d58a87cbb2625ecabf407566140ce0a38880bd6a610a5d0f8af7d",
+      "input_bits": 4096,
+      "output_bits": 1280
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-decompress-11.json": {
+      "sha256": "d2415fa7f01bb3d00fdf301842199d8be563c70836736a7a14bfc2764277c692",
+      "input_bits": 2816,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-decompress-5.json": {
+      "sha256": "778e713362089615f4ac8c20f64a1aa9e681d03f68caeba8ba135edf69340410",
+      "input_bits": 1280,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-poly-artifacts/signal-mlkem-poly-sub.json": {
+      "sha256": "f659db42b2824547b62cf6b09dd7fc93493dba68aa800cd5b544ee08d5ebaadf",
+      "input_bits": 8192,
+      "output_bits": 4096
+    },
+    ".deps/signal-mlkem-encoding-artifacts/signal-mlkem-encoding-compress-1.json": {
+      "sha256": "5c4e61738f61cee936c2373eda25a8006c2b7c0802d12139a6153a0f4bb38e1b",
+      "input_bits": 4096,
+      "output_bits": 256
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-shake256-1600-32.json": {
+      "sha256": "a023f7e4406d69ecea29590c44d9e689179bacf233fd86e2fd7c9670c3aa91a7",
+      "input_bits": 12800,
+      "output_bits": 256
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-sha3-512-32-64.json": {
+      "sha256": "64cbe14560f638c6184e5ae6d22b445ec2e743fb1e69a2cfbd52dea99a9874cc",
+      "input_bits": 256,
+      "output_bits": 512
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-sha3-256-32-32.json": {
+      "sha256": "812453a21cc3c8efb8aca2a3ba2bd48bb90c18a066bc9ab525ff2633d49b97f9",
+      "input_bits": 256,
+      "output_bits": 256
+    },
+    ".deps/signal-keccak-artifacts/signal-keccak-shake256-64-32.json": {
+      "sha256": "8861d50bb1cc5d9464bf751770f53e8c111a4fc9aed6b4339216f9f8113d2f47",
+      "input_bits": 512,
+      "output_bits": 256
+    }
+  }
+}

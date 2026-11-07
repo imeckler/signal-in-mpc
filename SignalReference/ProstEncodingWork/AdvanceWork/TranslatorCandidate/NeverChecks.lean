@@ -1,0 +1,8 @@
+import ProstEncodingWork.AdvanceWork.TranslatorCandidate.NeverContinuation
+
+#print axioms LibSignalReference.Candidate.NeverContinuation.bind_eq_eliminate
+#print axioms LibSignalReference.Candidate.NeverContinuation.unreachable_panic_tail
+#print axioms LibSignalReference.Candidate.NeverContinuation.eliminate_failure
+#print axioms LibSignalReference.Candidate.NeverContinuation.eliminate_divergence
+#print axioms LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_failure
+#print axioms LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_divergence

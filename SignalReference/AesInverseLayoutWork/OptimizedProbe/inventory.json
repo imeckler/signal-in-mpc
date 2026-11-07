@@ -1,0 +1,2545 @@
+{
+  "accepted_reference": false,
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "source_patches": [],
+  "custom_models": [],
+  "rustflags": [
+    "--cfg",
+    "aes_backend=\"soft\"",
+    "-Zmir-enable-passes=+Inline,+GVN,+SimplifyLocals-final",
+    "-Cdebug-assertions=yes",
+    "-Coverflow-checks=yes"
+  ],
+  "preserve_debug_assertions": true,
+  "preserve_overflow_checks": true,
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=miri",
+    "--no-dedup-serialized-ast",
+    "--error-on-warnings",
+    "--monomorphize",
+    "--mir=optimized",
+    "--exclude=hybrid_array::traits::ArraySize",
+    "--include=hybrid_array::*",
+    "--start-from=crate::soft::fixslice::inv_bitslice",
+    "--dest-file=$WORKSPACE/SignalReference/AesInverseLayoutWork/OptimizedProbe/wrapper.llbc",
+    "--",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 0,
+  "sysroot_provenance_file": "PaddingWork/Unpad/sysroot-provenance.json",
+  "sysroot_provenance_sha256": "37f5a1d8320ee459a275dba8f1aaec8ca9e8b0e1b0f60ac66dc4b0477dacbd7e",
+  "llbc_sha256": "0a4151de5cb8a4900c9c186e2702c6b0a2f60a3680c5bf59eca658d3dc788e3d",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 46,
+    "fun_decls": 64,
+    "global_decls": 2,
+    "trait_decls": 14,
+    "trait_impls": 47,
+    "ordered_decls": 60
+  },
+  "body_kinds": {
+    "Structured": 36,
+    "Opaque": 25,
+    "Intrinsic": 3
+  },
+  "external_functions": [
+    {
+      "id": 10,
+      "name": "core::slice::raw::from_raw_parts_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 179,
+            "col": 0
+          },
+          "end": {
+            "line": 179,
+            "col": 86
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::slice::index::{impl}::index_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::slice::raw::from_raw_parts_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 179,
+            "col": 0
+          },
+          "end": {
+            "line": 179,
+            "col": 86
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::slice::index::{impl}::index_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::intrinsics::assert_inhabited::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 529,
+            "col": 0
+          },
+          "end": {
+            "line": 529,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::array::{impl}::as_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 29,
+          "beg": {
+            "line": 217,
+            "col": 4
+          },
+          "end": {
+            "line": 217,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "typenum::uint::{impl}::USIZE::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "typenum::uint::{impl}::USIZE::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::ops::range::Range::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 13,
+          "beg": {
+            "line": 82,
+            "col": 0
+          },
+          "end": {
+            "line": 82,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::mem::transmute_copy::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 1145,
+            "col": 0
+          },
+          "end": {
+            "line": 1145,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::slice::index::{impl}::get_unchecked_mut::precondition_check",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 68,
+            "col": 12
+          },
+          "end": {
+            "line": 68,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::mem::maybe_uninit::{impl}::write::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 574,
+            "col": 4
+          },
+          "end": {
+            "line": 574,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::intrinsics::saturating_add::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 2304,
+            "col": 0
+          },
+          "end": {
+            "line": 2304,
+            "col": 54
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 15,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "core::intrinsics::assert_inhabited::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 529,
+            "col": 0
+          },
+          "end": {
+            "line": 529,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "core::array::{impl}::as_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 29,
+          "beg": {
+            "line": 217,
+            "col": 4
+          },
+          "end": {
+            "line": 217,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 47,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 183,
+            "col": 4
+          },
+          "end": {
+            "line": 183,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 194,
+            "col": 4
+          },
+          "end": {
+            "line": 194,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 52,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 205,
+            "col": 4
+          },
+          "end": {
+            "line": 205,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 53,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 225,
+            "col": 4
+          },
+          "end": {
+            "line": 225,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 54,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 236,
+            "col": 4
+          },
+          "end": {
+            "line": 236,
+            "col": 37
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 55,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 243,
+            "col": 4
+          },
+          "end": {
+            "line": 243,
+            "col": 49
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 59,
+      "name": "core::mem::transmute_copy::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 1145,
+            "col": 0
+          },
+          "end": {
+            "line": 1145,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 61,
+      "name": "core::num::{impl}::unchecked_add::precondition_check",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 68,
+            "col": 12
+          },
+          "end": {
+            "line": 68,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 63,
+      "name": "core::mem::maybe_uninit::{impl}::write::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 574,
+            "col": 4
+          },
+          "end": {
+            "line": 574,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 2,
+      "name": "typenum::uint::UInt::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "typenum::uint::UInt::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "typenum::uint::UInt::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "typenum::uint::UInt::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "typenum::uint::UInt::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::ops::function::FnOnce::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 16,
+          "beg": {
+            "line": 242,
+            "col": 0
+          },
+          "end": {
+            "line": 242,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::ops::function::FnMut::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 16,
+          "beg": {
+            "line": 163,
+            "col": 0
+          },
+          "end": {
+            "line": 163,
+            "col": 48
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "core::mem::maybe_uninit::MaybeUninit::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 355,
+            "col": 0
+          },
+          "end": {
+            "line": 355,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "core::mem::maybe_uninit::MaybeUninit::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 355,
+            "col": 0
+          },
+          "end": {
+            "line": 355,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::ops::index::IndexMut::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 170,
+            "col": 0
+          },
+          "end": {
+            "line": 170,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "core::ops::index::Index::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 59,
+            "col": 0
+          },
+          "end": {
+            "line": 59,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "core::mem::manually_drop::ManuallyDrop::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 31,
+          "beg": {
+            "line": 158,
+            "col": 0
+          },
+          "end": {
+            "line": 158,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::mem::maybe_dangling::MaybeDangling::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 73,
+            "col": 0
+          },
+          "end": {
+            "line": 73,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "typenum::sealed::Sealed::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 155,
+            "col": 4
+          },
+          "end": {
+            "line": 155,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::convert::AsMut::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 18,
+          "beg": {
+            "line": 373,
+            "col": 0
+          },
+          "end": {
+            "line": 373,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::mem::maybe_uninit::MaybeUninit::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 355,
+            "col": 0
+          },
+          "end": {
+            "line": 355,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::mem::maybe_uninit::MaybeUninit::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 355,
+            "col": 0
+          },
+          "end": {
+            "line": 355,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "core::mem::manually_drop::ManuallyDrop::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 31,
+          "beg": {
+            "line": 158,
+            "col": 0
+          },
+          "end": {
+            "line": 158,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "core::mem::maybe_dangling::MaybeDangling::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 73,
+            "col": 0
+          },
+          "end": {
+            "line": 73,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "core::ops::drop::Drop::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 37,
+          "beg": {
+            "line": 209,
+            "col": 0
+          },
+          "end": {
+            "line": 209,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/soft/fixslice64.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/soft.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/uint.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/lib.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/bit.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/rustc/library/core/src/macros/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/core/src/panicking.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/metadata.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/from_fn.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/function.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 21,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mut_ptr.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 22,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 23,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/raw.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 24,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 25,
+      "name": {
+        "Local": "/rustc/library/core/src/mem/maybe_uninit.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 26,
+      "name": {
+        "Local": "/rustc/library/core/src/mem/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 27,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/control_flow.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 28,
+      "name": {
+        "Local": "/rustc/library/core/src/intrinsics/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 29,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 30,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/marker_traits.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 31,
+      "name": {
+        "Local": "/rustc/library/core/src/mem/manually_drop.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 32,
+      "name": {
+        "Local": "/rustc/library/core/src/mem/maybe_dangling.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 33,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/try_trait.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 34,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 35,
+      "name": {
+        "Local": "/rustc/library/core/src/ub_checks.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 36,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 37,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/drop.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 38,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 39,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 40,
+      "name": {
+        "Local": "/rustc/library/core/src/cmp.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 41,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 42,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [
+    "hybrid_array::traits::ArraySize"
+  ],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "miri",
+    "monomorphize": true,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::soft::fixslice::inv_bitslice"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "aes::soft::fixslice::inv_bitslice",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1270,
+            "col": 0
+          },
+          "end": {
+            "line": 1345,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "aes::soft::fixslice::inv_bitslice::write_reordered",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1317,
+            "col": 4
+          },
+          "end": {
+            "line": 1326,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 16,
+            "col": 4
+          },
+          "end": {
+            "line": 16,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "hybrid_array::{impl}::index_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 883,
+            "col": 4
+          },
+          "end": {
+            "line": 883,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "hybrid_array::{impl}::index_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 883,
+            "col": 4
+          },
+          "end": {
+            "line": 883,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "hybrid_array::{impl}::default::{impl}::call_once::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "hybrid_array::{impl}::default::{impl}::call_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "hybrid_array::from_fn::{impl}::try_from_fn::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 27,
+            "col": 4
+          },
+          "end": {
+            "line": 27,
+            "col": 82
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::slice::raw::from_raw_parts_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 179,
+            "col": 0
+          },
+          "end": {
+            "line": 179,
+            "col": 86
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::slice::index::{impl}::index_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::slice::raw::from_raw_parts_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 179,
+            "col": 0
+          },
+          "end": {
+            "line": 179,
+            "col": 86
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::slice::index::{impl}::index_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "hybrid_array::{impl}::default::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 713,
+            "col": 4
+          },
+          "end": {
+            "line": 713,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}::call_once::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 16,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}::call_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::intrinsics::assert_inhabited::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 529,
+            "col": 0
+          },
+          "end": {
+            "line": 529,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::array::{impl}::as_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 29,
+          "beg": {
+            "line": 217,
+            "col": 4
+          },
+          "end": {
+            "line": 217,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "hybrid_array::from_fn::try_from_fn_erased::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 40,
+            "col": 0
+          },
+          "end": {
+            "line": 42,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "hybrid_array::{impl}::assume_init::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 560,
+            "col": 4
+          },
+          "end": {
+            "line": 560,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "hybrid_array::{impl}::default::closure::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "typenum::uint::{impl}::USIZE::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "typenum::uint::{impl}::USIZE::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::ops::range::Range::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 13,
+          "beg": {
+            "line": 82,
+            "col": 0
+          },
+          "end": {
+            "line": 82,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 16,
+            "col": 4
+          },
+          "end": {
+            "line": 16,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 27,
+      "name": "hybrid_array::from_fn::{impl}::push_unchecked::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 80,
+            "col": 4
+          },
+          "end": {
+            "line": 80,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 29,
+      "name": "hybrid_array::Array::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::closure::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::mem::transmute_copy::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 1145,
+            "col": 0
+          },
+          "end": {
+            "line": 1145,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "hybrid_array::{impl}::default::{impl}::call_once::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "hybrid_array::{impl}::default::{impl}::call_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "hybrid_array::from_fn::{impl}::try_from_fn::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 27,
+            "col": 4
+          },
+          "end": {
+            "line": 27,
+            "col": 82
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "hybrid_array::from_fn::Guard::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 64,
+            "col": 0
+          },
+          "end": {
+            "line": 64,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::slice::index::{impl}::get_unchecked_mut::precondition_check",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 68,
+            "col": 12
+          },
+          "end": {
+            "line": 68,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::mem::maybe_uninit::{impl}::write::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 574,
+            "col": 4
+          },
+          "end": {
+            "line": 574,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::intrinsics::saturating_add::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 2304,
+            "col": 0
+          },
+          "end": {
+            "line": 2304,
+            "col": 54
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "hybrid_array::Array::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 15,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}::call_once::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::{impl}::call_mut::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "core::intrinsics::assert_inhabited::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 28,
+          "beg": {
+            "line": 529,
+            "col": 0
+          },
+          "end": {
+            "line": 529,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "core::array::{impl}::as_mut::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 29,
+          "beg": {
+            "line": 217,
+            "col": 4
+          },
+          "end": {
+            "line": 217,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 45,
+      "name": "hybrid_array::from_fn::try_from_fn_erased::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 40,
+            "col": 0
+          },
+          "end": {
+            "line": 42,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "hybrid_array::{impl}::assume_init::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 560,
+            "col": 4
+          },
+          "end": {
+            "line": 560,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 47,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "hybrid_array::{impl}::default::closure::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 714,
+            "col": 22
+          },
+          "end": {
+            "line": 714,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 49,
+      "name": "hybrid_array::from_fn::{impl}::drop::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 94,
+            "col": 4
+          },
+          "end": {
+            "line": 94,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 183,
+            "col": 4
+          },
+          "end": {
+            "line": 183,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 194,
+            "col": 4
+          },
+          "end": {
+            "line": 194,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 52,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 205,
+            "col": 4
+          },
+          "end": {
+            "line": 205,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 53,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 225,
+            "col": 4
+          },
+          "end": {
+            "line": 225,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 54,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 236,
+            "col": 4
+          },
+          "end": {
+            "line": 236,
+            "col": 37
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 55,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 243,
+            "col": 4
+          },
+          "end": {
+            "line": 243,
+            "col": 49
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 56,
+      "name": "hybrid_array::from_fn::{impl}::push_unchecked::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 80,
+            "col": 4
+          },
+          "end": {
+            "line": 80,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 57,
+      "name": "hybrid_array::Array::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 58,
+      "name": "hybrid_array::from_fn::{impl}::from_fn::closure::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 17,
+            "col": 54
+          },
+          "end": {
+            "line": 17,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 59,
+      "name": "core::mem::transmute_copy::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 1145,
+            "col": 0
+          },
+          "end": {
+            "line": 1145,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 60,
+      "name": "core::ptr::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 847,
+            "col": 0
+          },
+          "end": {
+            "line": 849,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 61,
+      "name": "core::num::{impl}::unchecked_add::precondition_check",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 68,
+            "col": 12
+          },
+          "end": {
+            "line": 68,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 62,
+      "name": "hybrid_array::from_fn::Guard::{impl}::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 64,
+            "col": 0
+          },
+          "end": {
+            "line": 64,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 63,
+      "name": "core::mem::maybe_uninit::{impl}::write::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 25,
+          "beg": {
+            "line": 574,
+            "col": 4
+          },
+          "end": {
+            "line": 574,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 64,
+      "name": "hybrid_array::from_fn::{impl}::drop::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 94,
+            "col": 4
+          },
+          "end": {
+            "line": 94,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 65,
+      "name": "core::ptr::drop_glue::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 847,
+            "col": 0
+          },
+          "end": {
+            "line": 849,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/AesInverseLayoutWork/OptimizedProbe/wrapper.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/AesInverseLayoutWork/OptimizedProbe/Generated",
+    "-split-files",
+    "-namespace",
+    "RustCryptoAesInverseOptimizedProbe",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "aeneas_exit_code": 2,
+  "generated_files": {},
+  "probe_script_sha256": "559cb78da5a4735243a3c83ebe6bc8d738fd48fa5f20c1bd6e0175d63aa3a482"
+}

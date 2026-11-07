@@ -1,0 +1,36 @@
+{
+  "charon_registry_archives_verified_against_Cargo_lock": 339,
+  "registry_source_differences": [],
+  "charon_source_archive_sha256": "6201c2f41fee4e20e2d565db6790aeb14d4f356bfe7632ca3ea8f18f2da2532b",
+  "charon_cargo_lock_sha256": "2976d3fc75ea1a3a4d7a90a9b494abd382e8543793553620ae3a8a61cfa73f16",
+  "rust_compiler": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+  "build_metadata_changes": [
+    "Cargo directory-source configuration for offline builds",
+    "Expand serde_state_derive inherited workspace dependency metadata; no Rust source edits"
+  ],
+  "git_dependencies": [
+    [
+      "serde_state",
+      "git+https://github.com/Nadrieril/serde_state?branch=main#78055e2f2be94b27c58027854d151d87a75957cc"
+    ],
+    [
+      "serde_state_derive",
+      "git+https://github.com/Nadrieril/serde_state?branch=main#78055e2f2be94b27c58027854d151d87a75957cc"
+    ],
+    [
+      "tracing-tree",
+      "git+https://github.com/Nadrieril/tracing-tree#841286bfffd3c2200810244506cd127013dbeff9"
+    ]
+  ],
+  "charon_and_libsignal_rust_files_compared_to_archives": 1224,
+  "rust_source_differences": [],
+  "rust_component_archives": {
+    "rustc": "919397ba2d0fafdb54cc3a15d7bd44c2477eee35b078d091e83d700a4aee915b",
+    "cargo": "8c99ee5a575df7406a329d2b003fdcf768a8ae3778b744d9c72a1647dabd4a34",
+    "rust-std": "614a2334957a9a3d7ab9d66944d0a82375d1818714d1133454c38965c933e848",
+    "rustc-dev": "7b5453a0ce58c7eafa86c813454201083591279ecc391795175480ae32882f82",
+    "rust-src": "f8b984f0f9a4f542a73c85be1bc379fe88455c5e96f70bd19052511d0195f5e4",
+    "llvm-tools": "7b903fb46647360ec13200ec2a1a399083111838bf9397dd80110879da8f9d97"
+  },
+  "aeneas_release_archive_sha256": "bc7266804f32647831cfc35f76eead73bd251933f9931ca7ccbee186ef0b67ab"
+}

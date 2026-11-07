@@ -1,0 +1,44 @@
+{
+  "miri_archive_sha256": "912904e20c37ffe461264ac7c005bc56b778d7a58fcbb29deed3445912283d21",
+  "rust_source_archive_sha256": "f8b984f0f9a4f542a73c85be1bc379fe88455c5e96f70bd19052511d0195f5e4",
+  "rust_commit": "8fa1c96cfd489e4c27654c144ae871ce2c4db6c6",
+  "source_patches": [],
+  "target": "aarch64-apple-darwin",
+  "no_std": true,
+  "command": [
+    "$WORKSPACE/SignalReference/PaddingWork/Unpad/Miri/bin/cargo-miri",
+    "miri",
+    "setup",
+    "--target=aarch64-apple-darwin",
+    "--print-sysroot"
+  ],
+  "source_directory": ".deps/rust-nightly-2026-08-18/lib/rustlib/src/rust/library",
+  "sysroot_directory": "SignalReference/PaddingWork/Unpad/Sysroot",
+  "sysroot_source_files_sha256": {
+    "core/src/slice/iter/macros.rs": "8db181ab6087b436dcc4c350efc7283ecc4912e34ca20d8bf7460fca5084c26c",
+    "core/src/iter/traits/iterator.rs": "a6a1e6fb4032fa5b21376322c1b52f290b47d27944abbacb30c4fc3f9f4ada6f",
+    "core/src/slice/iter.rs": "3fc0a0eb69b7a73f1db09e4acb95e0cb48581d5e98c79637c67384cd177c8cc1",
+    "core/Cargo.toml": "abfb9b4577f90c4612adec34447df1af9eba81d14e6c4837590cf118daf63580",
+    "Cargo.lock": "34656569ab979fdf259efffc99d2b68e253e73e0e6fba6762dc51e83df71aa76",
+    "Cargo.toml": "b346ae33bd9648949894510a2bcc1d1f8b78c7301c3110e4a98b68bacd3b4584"
+  },
+  "sysroot_artifact_sha256": {
+    "lib/rustlib/aarch64-apple-darwin/lib/liballoc-5b5e733ec2596f07.rmeta": "db361248f414b8793931adc84af51901d3ce087ef9cabedd105010ead33c328e",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcompiler_builtins-7b44db4364b8602f.rmeta": "f56a808a3a02416c8e6aeb43bb84d60b8817b23ce05dacc78247778f827ac36a",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcore-33452f754c301e90.rmeta": "133afb833288be3678d2d03e4704b45762b05b43f59f3186caec5974d2e44a59",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcustom_local_sysroot-ecd1d4df0ceddd27.rmeta": "e36836734790d4310b641a78c3093b0a21a69faa11749c0ff6c7ef6ecb631caf",
+    "lib/rustlib/aarch64-apple-darwin/lib/liballoc-5b5e733ec2596f07.rlib": "7ccf2823180092b771e74ad846957c85ff3a662b76fa20a49bbd1e0d77eb3c55",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcompiler_builtins-7b44db4364b8602f.rlib": "3dc093c2e9b56db7d0f6a5e255f649291b3907c72dc4f49e0abcd00f339fcfe6",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcore-33452f754c301e90.rlib": "f1514ab4c0c364a58c97e4b6d095976769d9418833a9a9b5907b0cc688890446",
+    "lib/rustlib/aarch64-apple-darwin/lib/libcustom_local_sysroot-ecd1d4df0ceddd27.rlib": "d7eb7f5171514b7e1e169589737a2469beb0b8aafbd04c853766ae018eb6e996"
+  },
+  "charon_usage": {
+    "sysroot_argument": "--sysroot=miri",
+    "environment": {
+      "CHARON_MIRI_SYSROOTS": "$WORKSPACE/SignalReference/PaddingWork/Unpad/Sysroot"
+    }
+  },
+  "note": "Full MIR prevents prebuilt optimized std MIR from inlining next() into raw-pointer operations.",
+  "miri_archive": "SignalReference/PaddingWork/Unpad/miri-nightly-2026-08-18.tar.xz",
+  "rust_source_archive": ".deps/rust-src-nightly-2026-08-18.tar.xz"
+}

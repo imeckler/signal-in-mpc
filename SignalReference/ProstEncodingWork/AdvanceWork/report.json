@@ -1,0 +1,146 @@
+{
+  "accepted_reference": false,
+  "accepted_proof_endpoints": [],
+  "diagnostic_checks_passed": true,
+  "target": "Actual bytes 1.12.0 Buf for &[u8]::advance",
+  "source_package": "bytes@1.12.0 locked by libsignal v0.106.1",
+  "profiles": {
+    "SliceImplsClosed": {
+      "charon_succeeded": true,
+      "aeneas_succeeded": false,
+      "expected_error": "Unexpected result: Cps.Unit",
+      "actual_computational_declarations": [
+        2,
+        264
+      ],
+      "unchanged_actual_source_text": true,
+      "actual_panic_call_retained": true,
+      "rustflags": "",
+      "source_patches": [],
+      "llbc_preprocessing": [],
+      "standard_models_changed": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from={crate::buf::buf_impl::Buf for _}::advance",
+        "--opaque=crate",
+        "--include={crate::buf::buf_impl::Buf for &Slice<_>}::advance",
+        "--include=crate::panic_advance",
+        "--include=crate::TryGetError",
+        "--dest-file=$WORKSPACE/SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/slice_advance.llbc",
+        "--",
+        "--package",
+        "bytes@1.12.0",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/slice_advance.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/Generated/SliceImplsClosed",
+        "-split-files",
+        "-namespace",
+        "BytesSliceAdvance",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ]
+    },
+    "SliceInlinePanic": {
+      "charon_succeeded": true,
+      "aeneas_succeeded": false,
+      "expected_error": "Arrow types are not supported yet",
+      "actual_computational_declarations": [
+        2,
+        262
+      ],
+      "unchanged_actual_source_text": true,
+      "actual_panic_call_retained": true,
+      "rustflags": "-Zmir-enable-passes=+Inline -Zinline-mir-threshold=100000 -Zinline-mir-hint-threshold=100000 -Zinline-mir-preserve-debug=no -Cdebug-assertions=yes -Coverflow-checks=yes",
+      "source_patches": [],
+      "llbc_preprocessing": [],
+      "standard_models_changed": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from={crate::buf::buf_impl::Buf for _}::advance",
+        "--opaque=crate",
+        "--include={crate::buf::buf_impl::Buf for &Slice<_>}::advance",
+        "--include=crate::panic_advance",
+        "--include=crate::TryGetError",
+        "--mir=optimized",
+        "--dest-file=$WORKSPACE/SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/slice_advance.llbc",
+        "--",
+        "--package",
+        "bytes@1.12.0",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/slice_advance.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/Generated/SliceInlinePanic",
+        "-split-files",
+        "-namespace",
+        "BytesSliceAdvance",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ]
+    }
+  },
+  "failure_analysis": {
+    "observed": "The out-of-bounds branch returns Cps.Unit from its Never-returning panic_advance call; finishing the caller rejects Cps.Unit.",
+    "pinned_call_logic": "InterpStatements.ml:1427-1430 creates a symbolic result for every return type; 1578-1582 assumes successful continuation, including Never.",
+    "pinned_rejection": "Interp.ml:583-589 rejects Unit, Break and Continue as function-final results.",
+    "inlining_probe": "The actual cold panic_advance call remains; compiler inlining additionally exposes unsupported formatting Arrow types.",
+    "next_candidate_fix_unproved": "Support the uninhabited successful-return branch at the translator level while retaining the called Result's failure/divergence. Do not replace arbitrary Never calls with panic."
+  },
+  "required_future_equivalence": [
+    "For cnt <= self.length, return the exact suffix and updated shared-slice reference.",
+    "For cnt > self.length, preserve the actual panic helper's Result behavior.",
+    "Compose the concrete Buf dictionary with actual Vec::put and generated length-delimited field encoding."
+  ],
+  "diagnostic_generated_lean_not_accepted": "Artifacts/SliceTrace/SliceAdvance.lean contains failed/opaque declarations and is never imported or audited as a proof.",
+  "tool_source_urls": {
+    "Interp.ml": "https://raw.githubusercontent.com/AeneasVerif/aeneas/5b9dcf33dccdb1560ea7203ac57ea202476b6ed3/src/interp/Interp.ml",
+    "InterpStatements.ml": "https://raw.githubusercontent.com/AeneasVerif/aeneas/5b9dcf33dccdb1560ea7203ac57ea202476b6ed3/src/interp/InterpStatements.ml"
+  },
+  "sha256": {
+    "SignalReference/ProstEncodingWork/AdvanceWork/check.py": "54a5385d3f4735c192a4a78f578ca647ea9dfed026366bb523bbe888b1f6902d",
+    "SignalReference/ProstEncodingWork/AdvanceWork/extract.py": "d68f9aca349bf6a6a4508f7cb82550352bb0ec6381bead1c20caf43f433b51ec",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Interp.ml": "7f20bbf41b34ed7605d0e4c7248015b27711652c4f0bda1fbaa720d5c6d3d44d",
+    "SignalReference/ProstEncodingWork/AdvanceWork/InterpStatements.ml": "0d091ed7e25b63b45bbdff66a0311cb27d913c33d365cb22337df8b7d00097f1",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/slice_advance.llbc": "c13e133c1a838b4ebbfc88e1f6026b41f4df8f21ed2eaa9f573f3d319e3ddd63",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/inventory.json": "b2343748a946501ecfc44a61924ba1ecf691fea3dac79a68ba6551bacf63d50c",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/charon.log": "aab17c910b8cb551412e56a8c19901be343365e6ad849e822af4d74b14371b12",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/aeneas.log": "84529ec2169b0ae960bec8fdaf0171fcf33ca54ef86a189218f23f33943299fa",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/slice_advance.llbc": "3c2a9047c83c027a20417bb410a52b3b74b2a4c7250a2571ef53c57a302fe579",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/inventory.json": "3dcd27e7d7cb8f176936cb0193bc6652a5d9b93ad8f9cb30dc4a60ba867f629f",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/charon.log": "2e19cd6fb0efdb8c28f8b868a3b24abcdc2be53304df0c5f25d81d9ac0e263e4",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/aeneas.log": "99f8cd24e36a1ff33c8e5e6aabd4e6fa8103b948b88a6e41ed968b8daa7c4d26",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/trace.log": "6ccfd22da6c3af814273e24b2780682a73190320df0ce45eb30f5a77e825eb10"
+  }
+}

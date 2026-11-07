@@ -1,0 +1,6 @@
+'LibSignalReference.Candidate.NeverContinuation.bind_eq_eliminate' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_panic_tail' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.eliminate_failure' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.eliminate_divergence' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_failure' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_divergence' does not depend on any axioms

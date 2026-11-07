@@ -1,0 +1,105 @@
+{
+  "libsignal": {
+    "repository": "https://github.com/signalapp/libsignal",
+    "tag": "v0.106.1",
+    "commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+    "source_directory": "../.deps/libsignal-v0.106.1",
+    "archive_sha256": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+    "files": {
+      "rust/protocol/src/ratchet/keys.rs": "427f147ba73edd0f84ccbc8c7437069dee18cc7456fe1031061deb6f6b76e750",
+      "rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547",
+      "rust/protocol/src/triple_ratchet.rs": "5823f5010c18ad21104caffedd32f18ac1f5c4662bc294656631962ef1fe5dfa",
+      "rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430",
+      "rust/core/src/curve.rs": "f2caf4b089de96d517a4e0cd372b79c478e10d075590477cfeb80186f767d314",
+      "Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+      "rust-toolchain": "824ea2c5c1d363058c0ee896fd9d1f61fc4a89f7ea6e8374b2cb30452b74b675",
+      "rust/core/src/curve/curve25519.rs": "2c0fa74767854680aaa598bccd1fbfbe6e9789dc7b7cad029d920d2a596f437d",
+      "rust/core/src/address.rs": "8413cccfd7721e316cda5f9809ba9182eec1d606104923aa767159979d4ae5c9",
+      "rust/crypto/src/aes_cbc.rs": "163d132f27b4d5afdf0e87d56601cc9fba34e645a7cdb24df0492097671938bb"
+    }
+  },
+  "signal_dependencies": {
+    "curve25519-dalek@5.0.0": {
+      "archive_sha256": "b5eed333089e2e1c1ac8c6c0398e5e2497b4c9926ca6d0365ed1e099afa5bc23",
+      "source_directory": "../.deps/libsignal-vendor/curve25519-dalek-5.0.0",
+      "files": {
+        "src/scalar.rs": "38693b0c0554444f80592d7634acf7e291d22c90439dbec240541186f9162a28"
+      }
+    },
+    "sha2@0.11.0": {
+      "archive_sha256": "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4",
+      "source_directory": "../.deps/libsignal-vendor/sha2-0.11.0",
+      "files": {
+        "src/sha256/soft/compact.rs": "0f729259d0318e4c1c8055c0103da16bd360c98c11ca614b5bbe860fcda3ccff",
+        "src/sha256/soft.rs": "60449b6df17909cd34d533ec4d82851841cb8b26e01c0907827b33343917a31c",
+        "src/sha256.rs": "cb03fddc1325b60935409f097f2fab3ae51cfab15bed1254f4e93d13b28b7eff",
+        "src/consts.rs": "f7093130534180198be37aa7f4b3274e73f85ec09cad648df19d782841c1ee46",
+        "src/lib.rs": "5529df80c102cb5d7240e47a5239565c8347a4dd79ee5a085e5f2d749657d49c",
+        "Cargo.toml": "bb187fe9b788b66dc91c717ace2a41b5da5518672a302696ab79bf4619d510a9",
+        "README.md": "21a915a08eb1bf6d439ce9bdf38eec06916fd62ce2710c54757626be20990022",
+        "src/sha256/wasm32_simd128.rs": "006a8667660283d340d44c91b7e2cc1bee866ef0fe13b58f5b65535542942acd"
+      }
+    },
+    "uuid@1.23.4": {
+      "archive_sha256": "bf80a72845275afea99e7f2b434723d3bc7e38470fcd1c7ed39a599c73319a53",
+      "source_directory": "../.deps/libsignal-vendor/uuid-1.23.4",
+      "files": {
+        "src/lib.rs": "1e63eea2bb3423acc4a2cbb21f99140bcbf555e3f1fc0e6000aab854091e647c"
+      }
+    },
+    "derive_more@2.1.1": {
+      "source_directory": "../.deps/libsignal-vendor/derive_more-2.1.1",
+      "archive_sha256": "d751e9e49156b02b44f9c1815bcb94b984cdcc4396ecc32521c739452808b134",
+      "files": {
+        "src/convert.rs": "0164b4a1f858953486b010611b6360f6dc0440a508214837079c167cd5b4266e"
+      }
+    },
+    "block-padding@0.4.2": {
+      "archive_sha256": "710f1dd022ef4e93f8a438b4ba958de7f64308434fa6a87104481645cc30068b",
+      "source_directory": "../.deps/libsignal-vendor/block-padding-0.4.2",
+      "files": {
+        "src/lib.rs": "80efd99de651687389caf00a1d55b79d157ee1db1ddc8344d0d65418adcd36dc"
+      }
+    },
+    "aes@0.9.1": {
+      "archive_sha256": "f1fc76eaeac4c9164506c466d4ffdd8ec9d0c5bf57ee97177c4d8eceb3a0e138",
+      "source_directory": "../.deps/libsignal-vendor/aes-0.9.1",
+      "files": {
+        "src/lib.rs": "ffff7ce65eea153084e707d629677e0495032bf007f368b490e6bd8cfc20f206",
+        "src/soft.rs": "fd83353ad38832a4224f501793d41bec85f1f439dc8872e0ba3dff5c74ab9095",
+        "src/soft/fixslice64.rs": "cfb6f3fb36290bc2925624d206005eca7394beccb6a957dcfaee5e80935319f8"
+      }
+    }
+  },
+  "aeneas": {
+    "repository": "https://github.com/AeneasVerif/aeneas",
+    "commit": "5b9dcf33dccdb1560ea7203ac57ea202476b6ed3",
+    "release": "nightly-2026.08.27-5b9dcf3",
+    "directory": "../.deps/aeneas-2026-08-27",
+    "macos_aarch64_archive_sha256": "bc7266804f32647831cfc35f76eead73bd251933f9931ca7ccbee186ef0b67ab",
+    "lean_toolchain": "leanprover/lean4:v4.31.0",
+    "mathlib_revision": "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f"
+  },
+  "charon": {
+    "repository": "https://github.com/AeneasVerif/charon",
+    "commit": "4ad295c1bf982b5533ce7d85f4ddc889ff3127f8",
+    "version": "0.1.245",
+    "directory": "../.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon",
+    "source_archive_sha256": "6201c2f41fee4e20e2d565db6790aeb14d4f356bfe7632ca3ea8f18f2da2532b",
+    "rust_toolchain": "nightly-2026-08-18",
+    "rustc_version": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+    "local_source_patches": [],
+    "additional_targets": [
+      {
+        "target": "wasm32-unknown-unknown",
+        "rust_std_archive_sha256": "308d3c1cb432052121d5abfe1daa1ab364581533f17b8a0dc3aa4a03e1401ac8",
+        "manifest": "../.deps/rust-nightly-2026-08-18.toml"
+      },
+      {
+        "target": "wasm32-wasip1",
+        "rust_std_archive_sha256": "c03eafc168ac0f9f2fc9c5417510dc19b55fc05ade85689596b9f7f430db08d2",
+        "manifest": "../.deps/rust-nightly-2026-08-18.toml"
+      }
+    ]
+  }
+}

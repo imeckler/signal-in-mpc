@@ -1,0 +1,32 @@
+{
+  "package": "aes@0.9.1",
+  "starts": [
+    "crate::soft::fixslice::mix_columns_1",
+    "crate::soft::fixslice::mix_columns_2",
+    "crate::soft::fixslice::mix_columns_3"
+  ],
+  "extra": [],
+  "subdir": "AesMixPhases",
+  "namespace": "RustCryptoAesRemainingLinear",
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "expected_functions": 11,
+  "expected_generated_functions": 10,
+  "expected_generated_definitions": [
+    "soft.fixslice.ror_distance",
+    "soft.fixslice.ror",
+    "soft.fixslice.rotate_rows_and_columns_2_2",
+    "soft.fixslice.rotate_rows_and_columns_1_1",
+    "soft.fixslice.mix_columns_1",
+    "soft.fixslice.rotate_rows_and_columns_1_2",
+    "soft.fixslice.rotate_rows_2",
+    "soft.fixslice.mix_columns_2",
+    "soft.fixslice.rotate_rows_and_columns_1_3",
+    "soft.fixslice.mix_columns_3"
+  ],
+  "modeled_std_functions": [
+    "core::num::{impl}::rotate_right"
+  ],
+  "discarded_metadata_types": [],
+  "scope_note": "Actual phase-dependent mix_columns_1/2/3 and their rotate helpers; each corresponds to inverse ShiftRows^k composed with MixColumns and ShiftRows^k. Four secret16byte inputs and fixed eight-word bitplane state."
+}

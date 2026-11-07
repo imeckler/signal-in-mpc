@@ -1,0 +1,4 @@
+Build/
+Artifacts/**/*.log
+__pycache__/
+check.log

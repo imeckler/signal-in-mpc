@@ -1,0 +1,23 @@
+# Compilation-only mixed-VM harness. Each input byte is XOR shared by five
+# parties. No root, scalar, agreement, acceptance or output is revealed.
+from Compiler.GC.types import sbit
+from backend_adapter.boolean import load as load_boolean
+from handshake_backend.field_dag import load as load_field
+from SignalReference.DhRatchetWork.adapter import create_chain
+
+field_image = load_field(program.args[1])
+root_image = load_boolean(program.args[2])
+
+def shared_bytes():
+    bits = []
+    for _ in range(256):
+        bit = sbit.get_input_from(0)
+        for party in range(1, 5):
+            bit = bit ^ sbit.get_input_from(party)
+        bits.append(bit)
+    return bits
+
+root, private, peer = shared_bytes(), shared_bytes(), shared_bytes()
+output = create_chain(field_image, root_image, root, private, peer)
+for index, bit in enumerate(output):
+    bit.store_in_mem(index)

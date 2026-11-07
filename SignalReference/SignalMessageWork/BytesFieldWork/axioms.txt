@@ -1,0 +1,19 @@
+'LibSignalReference.Candidate.SignalBytesField.varint_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.key_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.field_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.varint_actualVec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.key_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.publicNatLoop_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.publicNat_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.field_appends_of_payload_contract' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SignalBytesField.field_refines_artifact_of_payload_contract' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

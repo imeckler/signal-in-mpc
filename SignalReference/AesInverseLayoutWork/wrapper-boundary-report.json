@@ -1,0 +1,97 @@
+{
+  "created_at_utc": "2026-11-06T22:55:21.374092+00:00",
+  "scope": "Actual portable aes0.9.1 inv_bitslice wrapper and locked hybrid-array0.4.13 initialization",
+  "accepted_full_wrapper_reference": false,
+  "complete_wrapper_refinement": false,
+  "source_patches": [],
+  "adopted_custom_models": [],
+  "new_axioms": [],
+  "profiles": [
+    {
+      "profile": "WrapperProbe",
+      "accepted_reference": false,
+      "inventory_sha256": "3b16aa1fc0a86e8d8aa07e2386103ca6b83f4e2ef58c0cb156a1f3fc91aa331c",
+      "script_sha256": "b266df20c690c947cb13ed9e5d32aeddd32dc8615bc80bb68b031160a884ebec",
+      "logs_sha256": {
+        "aeneas.log": "065c3bdc30a102c068eb6b099dc88e65e14e50126a8e5b188bf106579b81254c",
+        "charon.log": "e694a8db6510a44b96e8d94db7c080445ecd6bc8e6c5587ad4652e443feef366"
+      },
+      "llbc_sha256": "53e7256918f9f9baec119784e30320be15a2c11234bb26c4f9a28cd4cec0905a",
+      "charon_exit_code": 0,
+      "charon_has_errors": false,
+      "aeneas_exit_code": 2,
+      "body_counts": {
+        "Structured": 42,
+        "Opaque": 46
+      },
+      "diagnostics": [
+        "[Error] Could not translate type decl 'hybrid_array::from_fn::Guard::<'_, hybrid_array::Array::<u8, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>>> because of previous error"
+      ]
+    },
+    {
+      "profile": "OptimizedProbe",
+      "accepted_reference": false,
+      "inventory_sha256": "4228dae6bd854676ac70a287aad90eb242ce1ec9c573462765845b2daa024137",
+      "script_sha256": "559cb78da5a4735243a3c83ebe6bc8d738fd48fa5f20c1bd6e0175d63aa3a482",
+      "logs_sha256": {
+        "aeneas.log": "23b6d23ca6dd45a2946d7b16f53800001e3fcea37c0ee81d324b7755eec44d48",
+        "charon.log": "9bd5740a908b780c5d4cd0cf10881c58b9e52897f0c7588df997c9357be3e9d1"
+      },
+      "llbc_sha256": "0a4151de5cb8a4900c9c186e2702c6b0a2f60a3680c5bf59eca658d3dc788e3d",
+      "charon_exit_code": 0,
+      "charon_has_errors": false,
+      "aeneas_exit_code": 2,
+      "body_counts": {
+        "Structured": 36,
+        "Opaque": 25,
+        "Intrinsic": 3
+      },
+      "diagnostics": [
+        "[Error] Could not translate type decl 'hybrid_array::from_fn::Guard::<'_, hybrid_array::Array::<u8, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>>> because of previous error"
+      ]
+    },
+    {
+      "profile": "ScalarizedProbe",
+      "accepted_reference": false,
+      "inventory_sha256": "0e546b0fc534ede6127d5607065632e41fbb9454b3178905ba0e88f42e99a488",
+      "script_sha256": "c41345e03a07cd53f01eb2ce91230ac16b811f4c95441416f5921e4d14f3b216",
+      "logs_sha256": {
+        "charon.log": "136666a1f13bfdb8682e591b074bdf433f744c700b726e637a7d0ceaca976f95"
+      },
+      "llbc_sha256": "19e13ee720dd16c03d6ac7226968e10ec855a09ae40cc9e4e861f59d66c0b1bc",
+      "charon_exit_code": 101,
+      "charon_has_errors": true,
+      "aeneas_exit_code": null,
+      "body_counts": {
+        "Structured": 18,
+        "Intrinsic": 9,
+        "Opaque": 15
+      },
+      "diagnostics": [
+        "error: Unsupported constant: \"Cannot translate constant of union type\"",
+        "error: Unsupported constant: \"ConstEvalVal\""
+      ]
+    }
+  ],
+  "source_sha256": {
+    ".deps/libsignal-vendor/aes-0.9.1/src/soft/fixslice64.rs": "cfb6f3fb36290bc2925624d206005eca7394beccb6a957dcfaee5e80935319f8",
+    ".deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs": "ded0aca5a6782b27e3b68076c98c259591080c522cef3041aed3ae12fce4b38e",
+    ".deps/libsignal-vendor/hybrid-array-0.4.13/src/from_fn.rs": "cf11be519345075a4ba89867f1baef8721d6bc2af8f05bdb558f62e72f9400dc",
+    ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/src/bin/charon-driver/driver.rs": "8f4f044d0a86243c6e1751c015ad918fe1d809df34d6d4ff892b3d25a791eb45",
+    ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/src/bin/charon-driver/hax/constant_utils/uneval.rs": "4b98b600a02dceb9bd3fd87189b63ffdfac5ab079d201ddb7bc2e8dd3560c295",
+    ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/src/bin/charon-driver/hax/types/mir.rs": "21cea0990f96f67f5eed1000676bc048bb9ff4d6cacd92e034e281f87a27ddad",
+    ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/src/bin/charon-driver/translate/translate_constants.rs": "d3785503f47d13a2f5b16f1bf70396cfa63557c25f547f9a50657fb1eb823a95"
+  },
+  "diagnosis": [
+    "Complete unchanged hybrid-array extraction reaches Guard containing a mutable slice of MaybeUninit. Pinned Aeneas rejects that declaration before whole-wrapper emission.",
+    "Ordinary explicit MIR inlining/GVN reduces the call graph but retains Guard and actual raw-slice, MaybeUninit-write and transmute_copy dependencies.",
+    "Aggressive existing MIR inlining/scalar replacement reaches Charon union-constant and ConstEvalVal unsupported cases. The resulting LLBC has errors and must not be accepted.",
+    "Charon driver.rs:31-44 forces mir_opt_level=0 but allows explicitly enabled passes apart from CheckAlignment and CheckNull. Both probes retain debug assertions and overflow checks; neither changes accepted code-generation settings.",
+    "These dependencies are computational. Dropping Guard/default/index calls as unused metadata or supplying opaque successful-return stubs would not establish actual implementation equivalence."
+  ],
+  "candidate_next_steps": [
+    "Translator support for the real mutable Guard/MaybeUninit/raw-memory graph, followed by a fresh complete extraction and equivalence proof.",
+    "Alternatively, explicitly review and adopt transparent computational models for the precise fixed-size hybrid-array default/index operations. This would add a trusted library-model boundary and is not implemented or accepted here."
+  ],
+  "already_completed_leaf": "Actual nested write_reordered, all 64 input-column bits and 96 initial output bits on each 12-byte caller slice; canonical Proofs/AesInverseWrite.lean."
+}

@@ -1,0 +1,16 @@
+AesZipInvestigation/Generated/Baseline/Funs.lean:45:10: error: Type mismatch
+  core.slice.iter.IteratorIterMut.next
+has type
+  core.slice.iter.IterMut ?m.3 →
+    Result
+      (Option ?m.3 ×
+        core.slice.iter.IterMut ?m.3 × (core.slice.iter.IterMut ?m.3 → Option ?m.3 → core.slice.iter.IterMut ?m.3))
+but is expected to have type
+  core.slice.iter.IterMut T → Result (Option T × core.slice.iter.IterMut T)
+AesZipInvestigation/Generated/Baseline/Funs.lean:66:7: error(lean.unknownIdentifier): Unknown constant `Aeneas.Std.core.slice.iter.IterMut.Insts.CoreIterTraitsIteratorIteratorMutAT`
+AesZipInvestigation/Generated/Baseline/Funs.lean:63:5: error: expected a product type, got
+  core.iter.adapters.zip.Zip (core.slice.iter.IterMut U64) (core.slice.iter.Iter U64)
+AesZipInvestigation/Generated/Baseline/Funs.lean:50:2: warning: declaration uses `sorry`
+AesZipInvestigation/Generated/Baseline/Funs.lean:105:7: error(lean.unknownIdentifier): Unknown constant `Aeneas.Std.core.slice.iter.IterMut.Insts.CoreIterTraitsIteratorIteratorMutAT`
+AesZipInvestigation/Generated/Baseline/Funs.lean:98:5: error: expected a product type, got
+  core.iter.adapters.zip.Zip (core.slice.iter.IterMut U64) (core.slice.iter.Iter U64)

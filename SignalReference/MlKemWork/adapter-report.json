@@ -1,0 +1,67 @@
+{
+  "complete": true,
+  "checked_at_utc": "2026-11-07T20:39:54.576470+00:00",
+  "cases": [
+    {
+      "variant": "mlkem1024",
+      "mode": "keygen",
+      "fixture_lanes": 1,
+      "stage_calls": 78,
+      "fixture_sha256": "a251e1a62e86b12bf413f8c5e0bdf1f36cdbdd10b941a11446e1fea2e604fb75",
+      "all_outputs_match": true
+    },
+    {
+      "variant": "mlkem1024",
+      "mode": "encapsulate",
+      "fixture_lanes": 1,
+      "stage_calls": 92,
+      "fixture_sha256": "6fdf51cedd6a4573df295caca4c4bf8d11a9f1f62cd079a30595d93b77565860",
+      "all_outputs_match": true
+    },
+    {
+      "variant": "mlkem1024",
+      "mode": "decapsulate",
+      "fixture_lanes": 2,
+      "stage_calls": 116,
+      "fixture_sha256": "0bae8fd833e0a01b9d04027a372a5880e1bea633ca8da9e6110efc0ca9c523e5",
+      "all_outputs_match": true
+    },
+    {
+      "variant": "kyber1024",
+      "mode": "keygen",
+      "fixture_lanes": 1,
+      "stage_calls": 78,
+      "fixture_sha256": "1134ffa0a2943c2eb9da54d60d4e77198c8b7505cd111d246bb0ba0354669e8c",
+      "all_outputs_match": true
+    },
+    {
+      "variant": "kyber1024",
+      "mode": "encapsulate",
+      "fixture_lanes": 1,
+      "stage_calls": 95,
+      "fixture_sha256": "dcc5b525389fdd3c91b32abcc518e698fc3c802464ba2580f7b81094b175e750",
+      "all_outputs_match": true
+    },
+    {
+      "variant": "kyber1024",
+      "mode": "decapsulate",
+      "fixture_lanes": 2,
+      "stage_calls": 120,
+      "fixture_sha256": "abd733cb6b9b1157c3475f67fa2cb0980c1c2b43d6f60e1ffb5b5ea6a39bc807",
+      "all_outputs_match": true
+    }
+  ],
+  "artifact_manifest_sha256": "bcd790f60a16196fa4a0e955f940c4c6a068000ed64ed8b33d0fb54331f4ea4d",
+  "native_mpc_executed": false,
+  "mixed_compiler_executed": false,
+  "actual_numeric_circuit_composition": true,
+  "source_sha256": {
+    "scripts/check_lean_signal_mlkem_adapter.py": "e4dab64efcbdfb4aecd7f4958ca04af5b62003b49b61bddb1ce2d6bf14cfbeb2",
+    "SignalReference/MlKemWork/adapter.py": "b014f11aae1c24bee22d6d07ede3875223031f988c91c8fdca3cdaae03faca7e",
+    "SignalReference/MlKemWork/artifacts.py": "0af472ffaaab2fc110f3c4bdf072f1c680f9cf72948a93b146d89742e0ac2ab9",
+    "TlsMpc/Signal/MlKemPoly.lean": "aede01774cb60a7660b5229f482d622f8b6721f0e6500df57132edb098afafc3",
+    "SignalReference/MlKemPolyWork/Export.lean": "1dceca30af8c808dfaf94d93c64b49b5bfc2658a13a208f4a4eb1a1ee45b9290",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431"
+  }
+}

@@ -1,0 +1,12 @@
+'LibSignalReference.Candidate.Sha256Wrapper.new_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.new_sha224' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.new_sha256' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.new_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.initial_state' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.new_sha256_state' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.initial_compression' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.Sha256Wrapper.initial_compression_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

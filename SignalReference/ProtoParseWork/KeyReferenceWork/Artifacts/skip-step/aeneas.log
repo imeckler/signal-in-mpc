@@ -1,0 +1,9 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/KeyReferenceWork/Artifacts/skip-step/selected.llbc
+[[91mError[39m] Early returns inside of loops are not supported yet
+Source: 'src/encoding.rs', lines 166:0-199:1
+[[91mError[39m] Ignoring the body of 'prost::encoding::skip_field' because of previous error
+Source: 'src/encoding.rs', lines 166:0-199:1
+[[92mInfo[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/KeyReferenceWork/Generated/skip_step/Types.lean
+[[92mInfo[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/KeyReferenceWork/Generated/skip_step/FunsExternal_Template.lean
+[[92mInfo[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/KeyReferenceWork/Generated/skip_step/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.717145 seconds

@@ -1,0 +1,26 @@
+{
+  "checked_at_utc": "2026-11-07T17:32:26.826264+00:00",
+  "reviewer": "/root/signal_astra_high",
+  "author": "/root/signal_astra_high/decoder_reference",
+  "accepted": true,
+  "proof_report_sha256": "67e7e0139e5bbc25b4f2ef3e1e189a423d162c972ff5ca9cba53a248ac93175c",
+  "script_sha256": "b723c835a91fa2bc3b8af7c050f2e76cc281ba10d60739d71076334753101002",
+  "original_llbc_sha256": "7449749f2f675c2324b5ffcaa50200dac170c52974636bc662cb3ad8fbda4b76",
+  "reviewed_scope": "Actual decode_varint, unchanged loop/body, success/error and absolute cursor, prefix/shared-offset AIG bridges.",
+  "independent_findings": [
+    "Original LLBC is used directly; there is no metadata/body rewriting or declaration selection.",
+    "All generated references resolve to actual retained operations or the pinned official models; no generated external template remains.",
+    "The theorem domain includes every official Slice and Usize, including starts at and beyond end.",
+    "Noncanonical encodings and truncated excess payload bits in byte ten are retained.",
+    "All19 proof endpoints were rebuilt and audited; only standard foundational axioms occur.",
+    "Corrected a documentation-only cursor endianness typo before acceptance; encodeLength was already big-endian in the proof."
+  ],
+  "trusted_boundary": [
+    "Pinned Rust/Charon/Aeneas extraction",
+    "Official Aeneas scalar/Slice/min/loop models",
+    "Lean kernel and standard foundational axioms"
+  ],
+  "full_message_parser_refinement": false,
+  "state_machine_or_crypto_refinement": false,
+  "native_mpc_execution": false
+}

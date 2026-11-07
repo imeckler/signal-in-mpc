@@ -1,0 +1,9 @@
+name = "mlkem-poly-export"
+version = "0.1.0"
+defaultTargets = ["emit_mlkem_poly"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_mlkem_poly"
+root = "Export"

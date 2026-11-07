@@ -1,0 +1,11 @@
+name = "proto-parse-export"
+version = "0.1.0"
+defaultTargets = ["emit_proto_parse"]
+
+[[require]]
+name = "tls-mpc"
+path = "../.."
+
+[[lean_exe]]
+name = "emit_proto_parse"
+root = "Export"

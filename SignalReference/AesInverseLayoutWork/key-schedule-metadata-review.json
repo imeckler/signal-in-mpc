@@ -1,0 +1,60 @@
+{
+  "reviewed_at_utc": "2026-11-06T22:21:26.814995+00:00",
+  "independent_review": true,
+  "original_llbc_sha256": "f73102d00d537e7659e61c0ad59e374f941cb51187a325a8ffd8ec9608a7b4f5",
+  "selected_llbc_sha256": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2",
+  "reviewed_filter_sha256": "7e50609808de31a8bd22a65a5af16ea4834ce3b5d0889072080c45eac3276280",
+  "exact_reversible_changes": 12,
+  "retained_function_declarations_identical": 59,
+  "retained_structured_bodies_identical": 18,
+  "removed_overflow_function_references_remaining": 0,
+  "removed_dictionary_field_references_remaining": 0,
+  "retained_regular_rev_call_path": [
+    "fun_decls",
+    4,
+    "body",
+    "Structured",
+    "body",
+    "statements",
+    26,
+    "kind",
+    "Call",
+    "call",
+    "func",
+    "Regular",
+    "kind",
+    "Fun"
+  ],
+  "retained_rev_default_provenance_path": [
+    "fun_decls",
+    40,
+    "src",
+    "TraitDefault"
+  ],
+  "official_core_iter_model_sha256": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+  "generated_rev_constructor_and_next_preserved": true,
+  "concerns": [],
+  "conclusion": "Current hardened selector preserves the exact previously reviewed LLBC semantics and generated definitions. All initial review concerns are resolved. This remains an explicit trusted extraction preprocessing step, not a mechanized proof.",
+  "initial_reviewed_at_utc": "2026-11-06T21:39:43.973464+00:00",
+  "initial_reviewed_filter_sha256": "8f57ea6a87aeefd0740c236b7acf7aaafe55ab5e7e2ccf606238493d1a4426da",
+  "input_fingerprint": "cf346ded47a8a8f46d79b330878e47a424e1d4e3e8d877fade35896732c3c457",
+  "fingerprint_ignores_only_diagnostic_short_names_order": true,
+  "full_retained_semantic_json_scanned": true,
+  "exact_trait_impl_method_ids_and_names_checked": true,
+  "sole_removed_slot_provenance_exception": "retained function40.src.TraitDefault for Iterator.rev; actual Regular40 call retained",
+  "current_guard_replayed_and_selected_llbc_unchanged": true,
+  "resolved_concerns": [
+    {
+      "prior_concern": "Candidate select() does not yet pin an input hash/fingerprint.",
+      "resolution": "Current selector pins the exact canonical input fingerprint, sorting only the diagnostic short_names map."
+    },
+    {
+      "prior_concern": "Candidate guard scans function bodies only; canonical guard should scan all retained semantic JSON, allowing only the intentional function40 TraitDefault provenance.",
+      "resolution": "Current selector walks all retained semantic JSON, checks removed function/field references, and allows only the exact retained function40 TraitDefault provenance."
+    },
+    {
+      "prior_concern": "Canonical guard should verify precise Step/Iterator implementation IDs and method names, and source model archive pins.",
+      "resolution": "Current selector checks exact Iterator/Step declarations, implementation method IDs and names; the official Aeneas archive/model pins have been rechecked."
+    }
+  ]
+}

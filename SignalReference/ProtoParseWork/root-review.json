@@ -1,0 +1,42 @@
+{
+  "reviewed_at_utc": "2026-11-07T19:27:29.488498+00:00",
+  "reviewer": "root agent, independent of Signal authoring agents",
+  "decision": "accepted_with_explicit_model_boundary",
+  "scope": "Actual unchanged Prost 0.14.4 decode_varint_slice versus the strict ProtoParse prefix circuit and its normalized 17-byte numeric AIG output, under the actual function assertions.",
+  "commands_reproduced": [
+    "python3 SignalReference/ProtoParseWork/bridge-check.py",
+    "python3 SignalReference/ProtoParseWork/ModelCandidate/build.py"
+  ],
+  "verified_sources": 282,
+  "independently_rebuilt_model_modules": 57,
+  "rebuilt_model_olean_hashes_match_bridge_audit": true,
+  "audited_endpoints": 72,
+  "allowed_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "preconditions": "Nonempty slice and (length > 10 or last byte < 128); this follows the actual executable assertions, which are stricter at length 10 than the Rust doc comment.",
+  "review_findings": [
+    "Only the two documented Slice.lean hunks differ from pinned Aeneas: unsafe read model definition and its usize valid-index proof.",
+    "Original Rust, LLBC and generated Lean were unchanged; pinned Aeneas retranslation reproduced the generated files.",
+    "Every reached unchecked index 0 through 9 is proved in bounds from the actual preconditions and earlier continuation bytes.",
+    "The bridge covers all successful consumed lengths 1 through 10, exact u64 values and InvalidVarint; rejected cursor/value fields are masked in the normalized output.",
+    "All 57 affected model modules rebuilt independently to the exact object hashes used by the bridge audit."
+  ],
+  "trusted_model_boundary": "On valid usize indices, Rust slice get_unchecked returns the same element as checked indexing. This scoped acceptance does not validate arbitrary SliceIndex implementations or out-of-bounds Rust behavior.",
+  "not_established": [
+    "Outer streaming Prost decoder, decode_key, skip_field, whole parser or whole Signal refinement.",
+    "MPC backend security/execution, secret erasure or application interoperability."
+  ],
+  "artifact_sha256": {
+    "bridge-proof-report.json": "4995697b0c6d5ffaf4c0d0868d1394a21eb07eb2ecc8fa02eba223e7dd63169e",
+    "bridge-axioms.txt": "df01dcb078be5c84a67597b33f1173a4cfc90b6b041e1e7bd325372c094c4770",
+    "SliceReference.lean": "3defdcaf00bad4a177e34903b85d56b1427d55336518b1c19bc3d43a4985d499",
+    "SliceBridge.lean": "dcc6f68988aeae1d803cbcb719c3afa3c07434243de31d7b7ca1ee487cf3fda1",
+    "ModelCandidate/build-report.json": "4176a55ac9f6e120d78b278c5340cc3ce57b07ce0d3a3d5a6ae198a197ba747f",
+    "ModelCandidate/slice-model.diff": "e2fcb8831f0b52dbd2d0a300a8eebbe1ad0726fdc2154d1c5e674e13e9b8a534",
+    "bridge-check.py": "841f4e0c5d46d99d6f16e8ac2e96f07f45c79ff5b534258adcccda0ef00c7557",
+    "ModelCandidate/build.py": "40e48d9d45c3127e94deabbd27d7bf0b31d19e34225cb16e0bf130f0cde32067"
+  }
+}

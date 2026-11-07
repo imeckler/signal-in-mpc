@@ -1,0 +1,111 @@
+-- LIBOTE_BUILD_DIR preset to /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe
+-- Building for ARM
+-- cryptoTools options
+=======================================================
+-- Option: CRYPTO_TOOLS_STD_VER  = 20
+
+-- Option: NO_SYSTEM_PATH      = 
+-- Option: FETCH_AUTO          = OFF
+-- Option: VERBOSE_FETCH       = ON
+
+-- Option: FETCH_RELIC         = OFF
+-- Option: FETCH_SODIUM        = OFF
+-- Option: FETCH_BOOST         = OFF
+-- Option: FETCH_COPROTO       = OFF
+-- Option: FETCH_LIBDIVIDE     = OFF
+
+-- Option: CMAKE_BUILD_TYPE    = Release
+	Release
+	Debug
+	RelWithDebInfo
+-- Option: ENABLE_SPAN_LITE    = OFF
+-- Option: ENABLE_GMP          = OFF
+-- Option: ENABLE_RELIC        = OFF
+-- Option: ENABLE_SODIUM       = OFF
+-- Option: ENABLE_BOOST        = OFF
+-- Option: ENABLE_OPENSSL      = OFF
+-- Option: ENABLE_COPROTO      = true
+-- Option: ENABLE_CIRCUITS     = OFF
+-- Option: ENABLE_ARM_AES      = ON
+-- Option: ENABLE_PORTABLE_AES = ON
+-- Option: ENABLE_SSE          = OFF
+-- Option: ENABLE_AVX          = OFF
+-- Option: ENABLE_AVX2         = OFF
+-- Option: ENABLE_AVX512       = OFF
+-- Option: ENABLE_BMI2         = OFF
+-- Option: ENABLE_PIC          = ON
+-- Option: ENABLE_ASAN         = OFF
+
+
+coprotoConfig.cmake: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib/cmake/coproto/coprotoConfig.cmake
+find_package(macoro REQUIRED COMPONENTS cpp_20;pic;no_asan;Release) @ /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib/cmake/coproto/coprotoFindDeps.cmake
+macoroConfig.cmake: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib/cmake/macoro/macoroConfig.cmake
+-- LIBDIVIDE_INCLUDE_DIRS:  /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/include
+-- General Options
+=======================================================
+-- Option: VERBOSE_FETCH         = ON
+-- Option: FETCH_BITPOLYMUL      = OFF
+
+-- Option: ENABLE_ALL_OT         = ON/OFF
+-- Option: ENABLE_BITPOLYMUL     = OFF
+-- Option: LIBOTE_STD_VER        = 20
+-- Base OT protocols
+=======================================================
+-- Option: ENABLE_SIMPLESTOT     = OFF
+-- Option: ENABLE_SIMPLESTOT_ASM = OFF
+-- Option: ENABLE_MRR            = OFF
+-- Option: ENABLE_MRR_TWIST      = OFF
+-- Option: ENABLE_MR             = OFF
+-- Option: ENABLE_MR_KYBER       = OFF
+-- 1-out-of-2 OT Extension protocols
+=======================================================
+-- Option: ENABLE_KOS            = OFF
+-- Option: ENABLE_IKNP           = OFF
+-- Option: ENABLE_SILENTOT       = ON
+-- Option: ENABLE_SOFTSPOKEN_OT  = ON
+
+
+-- 1-out-of-2 Delta-OT Extension protocols
+=======================================================
+-- Option: ENABLE_DELTA_KOS      = OFF
+
+
+-- Vole protocols
+=======================================================
+-- Option: ENABLE_SILENT_VOLE    = OFF
+
+
+-- DPF protocols
+=======================================================
+-- Option: ENABLE_REGULAR_DPF    = OFF
+-- Option: ENABLE_SPARSE_DPF     = OFF
+-- Option: ENABLE_TERNARY_DPF    = OFF
+-- Option: ENABLE_PPRF           = true
+
+
+-- OLE and Triple protocols
+=======================================================
+-- Option: ENABLE_FOLEAGE        = OFF
+
+
+-- 1-out-of-N OT Extension protocols
+=======================================================
+-- Option: ENABLE_OOS            = OFF
+-- Option: ENABLE_KKRT           = OFF
+
+
+-- other 
+=======================================================
+-- Option: NO_KOS_WARNING        = OFF
+-- Option: LIBOTE_SHARED         = 
+
+
+CMake Warning at cmake/buildOptions.cmake:211 (message):
+  NO Base OT enabled.
+Call Stack (most recent call first):
+  CMakeLists.txt:87 (include)
+
+
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe

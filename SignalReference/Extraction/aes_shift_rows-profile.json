@@ -1,0 +1,88 @@
+{
+  "package": "aes@0.9.1",
+  "starts": [
+    "crate::soft::fixslice::shift_rows_1",
+    "crate::soft::fixslice::shift_rows_2",
+    "crate::soft::fixslice::shift_rows_3"
+  ],
+  "extra": [],
+  "subdir": "AesShift",
+  "namespace": "RustCryptoAesLinear",
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "expected_functions": 10,
+  "expected_generated_functions": 10,
+  "expected_generated_definitions": [
+    "soft.fixslice.delta_swap_1",
+    "soft.fixslice.shift_rows_1_loop.body",
+    "soft.fixslice.shift_rows_1_loop",
+    "soft.fixslice.shift_rows_1",
+    "soft.fixslice.shift_rows_2_loop.body",
+    "soft.fixslice.shift_rows_2_loop",
+    "soft.fixslice.shift_rows_2",
+    "soft.fixslice.shift_rows_3_loop.body",
+    "soft.fixslice.shift_rows_3_loop",
+    "soft.fixslice.shift_rows_3"
+  ],
+  "modeled_std_functions": [
+    "core::slice::{impl}::len",
+    "core::slice::{impl}::iter_mut",
+    "core::iter::traits::collect::{impl}::into_iter",
+    "core::slice::iter::{impl}::next",
+    "core::clone::impls::{impl}::clone",
+    "core::num::niche_types::{impl}::clone"
+  ],
+  "modeled_std_types": [
+    "core::slice::iter::IterMut"
+  ],
+  "discarded_metadata_types": [
+    "core::fmt::Arguments",
+    "core::array::iter::IntoIter",
+    "core::num::nonzero::NonZero",
+    "core::iter::adapters::step_by::StepBy",
+    "core::iter::adapters::chain::Chain",
+    "core::iter::adapters::zip::Zip",
+    "core::iter::adapters::intersperse::Intersperse",
+    "core::iter::adapters::intersperse::IntersperseWith",
+    "core::iter::adapters::map::Map",
+    "core::iter::adapters::filter::Filter",
+    "core::iter::adapters::filter_map::FilterMap",
+    "core::iter::adapters::enumerate::Enumerate",
+    "core::iter::adapters::peekable::Peekable",
+    "core::iter::adapters::skip_while::SkipWhile",
+    "core::iter::adapters::take_while::TakeWhile",
+    "core::iter::adapters::map_while::MapWhile",
+    "core::iter::adapters::skip::Skip",
+    "core::iter::adapters::take::Take",
+    "core::iter::adapters::scan::Scan",
+    "core::iter::adapters::flatten::FlatMap",
+    "core::iter::adapters::flatten::Flatten",
+    "core::iter::adapters::map_windows::MapWindows",
+    "core::iter::adapters::fuse::Fuse",
+    "core::iter::adapters::inspect::Inspect",
+    "core::iter::adapters::rev::Rev",
+    "core::iter::adapters::copied::Copied",
+    "core::iter::adapters::cloned::Cloned",
+    "core::iter::adapters::cycle::Cycle",
+    "core::iter::adapters::array_chunks::ArrayChunks",
+    "core::num::niche_types::NonZeroUsizeInner"
+  ],
+  "forbidden_generated_namespaces": [
+    "core.fmt",
+    "core.clone",
+    "core.num.niche",
+    "core.iter.adapters"
+  ],
+  "expected_body_regular_function_ids": [
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "scope_note": "Unchanged portable64-bit AES forward linear operation. Four16byte inputs are encoded into actual8word bitplane state; all512 input bits are secret. ShiftRows additionally has explicit shape-error lemmas.",
+  "discarded_metadata_functions": [
+    "core::clone::impls::{impl}::clone",
+    "core::num::niche_types::{impl}::clone"
+  ]
+}

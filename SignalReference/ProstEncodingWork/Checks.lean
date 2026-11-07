@@ -1,0 +1,37 @@
+import ProstEncodingWork.CircuitBridge
+
+#print axioms LibSignalReference.Candidate.ProstEncoding.range_next
+#print axioms LibSignalReference.Candidate.ProstEncoding.nextIndex_val
+#print axioms LibSignalReference.Candidate.ProstEncoding.range_done
+#print axioms LibSignalReference.Candidate.ProstEncoding.shift_seven
+#print axioms LibSignalReference.Candidate.ProstEncoding.loop_body
+#print axioms LibSignalReference.Candidate.ProstEncoding.loop_eq_run
+#print axioms LibSignalReference.Candidate.ProstEncoding.encode_eq_run
+#print axioms LibSignalReference.Candidate.ProstEncoding.put_u8_default
+#print axioms LibSignalReference.Candidate.ProstEncoding.cast_byte
+#print axioms LibSignalReference.Candidate.ProstEncoding.continuation_byte
+#print axioms LibSignalReference.Candidate.ProstEncoding.shifted_value
+#print axioms LibSignalReference.Candidate.ProstEncoding.run_appends
+#print axioms LibSignalReference.Candidate.ProstEncoding.encode_appends
+#print axioms LibSignalReference.Candidate.ProstEncoding.run_appends_within
+#print axioms LibSignalReference.Candidate.ProstEncoding.encode_appends_within
+#print axioms LibSignalReference.Candidate.ProstEncoding.clone_bytes
+#print axioms LibSignalReference.Candidate.ProstEncoding.put_slice_success
+#print axioms LibSignalReference.Candidate.ProstEncoding.put_slice_overflow
+#print axioms LibSignalReference.Candidate.ProstEncoding.oneByte_val
+#print axioms LibSignalReference.Candidate.ProstEncoding.vec_put_u8_default
+#print axioms LibSignalReference.Candidate.ProstEncoding.appendOne_success
+#print axioms LibSignalReference.Candidate.ProstEncoding.vec_appends_within
+#print axioms LibSignalReference.Candidate.ProstEncoding.vec_encode_appends
+#print axioms LibSignalReference.Candidate.ProstEncoding.group_value
+#print axioms LibSignalReference.Candidate.ProstEncoding.groups_values
+#print axioms LibSignalReference.Candidate.ProstEncoding.groups_naturals
+#print axioms LibSignalReference.Candidate.ProstEncoding.canonical_width_bounds
+#print axioms LibSignalReference.Candidate.ProstEncoding.byte_xor_continuation
+#print axioms LibSignalReference.Candidate.ProstEncoding.encode_fixed
+#print axioms LibSignalReference.Candidate.ProstEncoding.fixedBytes_succ
+#print axioms LibSignalReference.Candidate.ProstEncoding.publicNatLoop_fixed
+#print axioms LibSignalReference.Candidate.ProstEncoding.encode_publicNat
+#print axioms LibSignalReference.Candidate.ProstEncoding.accepts_canonical
+#print axioms LibSignalReference.Candidate.ProstEncoding.vec_encode_uint32
+#print axioms LibSignalReference.Candidate.ProstEncoding.uint32_refines_artifact

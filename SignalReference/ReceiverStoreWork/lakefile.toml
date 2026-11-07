@@ -1,0 +1,9 @@
+name = "receiver-store-export"
+version = "0.1.0"
+defaultTargets = ["emit_receiver_store"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_receiver_store"
+root = "Export"

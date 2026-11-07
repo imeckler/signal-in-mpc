@@ -1,0 +1,13 @@
+{
+  "tag": {
+    "ref": "refs/tags/v5.2.0",
+    "node_id": "MDM6UmVmMjI5NzI2OTpyZWZzL3RhZ3MvdjUuMi4w",
+    "url": "https://api.github.com/repos/ridiculousfish/libdivide/git/refs/tags/v5.2.0",
+    "object": {
+      "sha": "66190e9daa603cabe95d99f09fb79b5c186d0417",
+      "type": "commit",
+      "url": "https://api.github.com/repos/ridiculousfish/libdivide/git/commits/66190e9daa603cabe95d99f09fb79b5c186d0417"
+    }
+  },
+  "commit": "66190e9daa603cabe95d99f09fb79b5c186d0417"
+}

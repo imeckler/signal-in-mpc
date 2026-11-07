@@ -1,0 +1,30 @@
+{
+  "candidate_reference": true,
+  "accepted_reference": false,
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "source_patches": [],
+  "profile": "WriteReordered",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::soft::fixslice::inv_bitslice::write_reordered",
+    "--dest-file=$WORKSPACE/SignalReference/AesLayoutWork/Artifacts/WriteReordered/aes_layout.llbc",
+    "--",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 101,
+  "rustflags": "--cfg aes_backend=\"soft\""
+}

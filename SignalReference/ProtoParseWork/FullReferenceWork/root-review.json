@@ -1,0 +1,49 @@
+{
+  "reviewed_at_utc": "2026-11-07T20:00:01.826501+00:00",
+  "reviewer": "root agent, independent of Signal authoring agents",
+  "decision": "accepted_with_explicit_model_and_translation_boundaries",
+  "scope": "Actual pinned Prost 0.14.4 decode_varint on every contiguous byte slice, exact success and failure suffix behavior, and normalized 17-byte numeric AIG output.",
+  "commands_reproduced": [
+    "python3 SignalReference/ProtoParseWork/FullReferenceWork/audit.py"
+  ],
+  "verified_sources": 350,
+  "verified_upstream_prost_and_bytes_files": 56,
+  "independently_rebuilt_modules": 37,
+  "audited_endpoints": 113,
+  "allowed_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "preconditions": "Contiguous Slice U8 with representable usize length; no nonempty, last-byte or fast-path precondition.",
+  "review_findings": [
+    "Compared all three modeled external functions and the contiguous-slice Buf instance against pinned bytes 1.12.0 source: get_u8 checks remaining, reads chunk[0], then advances1; mutable remaining/chunk forward; slice advance checks bounds and takes suffix.",
+    "Replayed exactly seven reversible LLBC metadata changes. Only unused opaque Step methods forward_overflowing/backward_overflowing and their declarations are removed; retained function bodies and trait slot numbers are unchanged.",
+    "Reproduced generated Lean using the pinned Aeneas binary. The decoder computational bodies are unchanged, including the Range/Step slow loop.",
+    "Inspected the universally quantified full-decoder and bitwise artifact theorems. Success counts derive from the actual resulting slice; failures are exactly InvalidVarint with exact fast/slow buffer mutation.",
+    "Rebuilt 37 root/reference modules; all 113 audited endpoints use only foundational Lean axioms. Verified all reported source and object hashes after completion.",
+    "Accepted leaf proof replay changes only namespace/import names; its computational slice body is identical and the valid-index bounds remain proved."
+  ],
+  "trusted_boundaries": [
+    "Charon/Aeneas translation and the seven reviewed unused-metadata removals are trusted translation boundaries, not a mechanized Rust-to-Lean compiler proof.",
+    "The reviewed bytes Buf models are assumed faithful to Rust for contiguous slices. No segmented or arbitrary custom Buf implementation is accepted.",
+    "The separately accepted valid-usize unsafe-index model is reused; no out-of-bounds UB behavior is modeled."
+  ],
+  "not_established": [
+    "decode_key, skip_field, whole Prost parser or whole Signal refinement.",
+    "MPC backend security/execution, erasure or application interoperability."
+  ],
+  "artifact_sha256": {
+    "proof-report.json": "bf739a2c221ab8294cdae3bbef9bb696671428200a24e2d7b31fbdaf1267a6e9",
+    "axioms.txt": "c667002924238be28d7ee1793e861ec8080ac7506042a18acbfc2875b531a687",
+    "buf-model.diff": "48fc6a0a8184a5d9025eb819dcb0e45e93462d9abf7b37109a779b0894c9aac8",
+    "BufModel.lean": "17c5a4407a426d7a73f8acfb24c2ba41b5ba02a563317ee880f828f9af3c8cc4",
+    "WrapperReference.lean": "34ffda1a271b06209805c1809ad188b9e2f349bb84dff7779c1f516adf6ed335",
+    "ArtifactBridge.lean": "da9d58758223bbfb11b3b2b76845a6b79e0634adc6e0bc848cb29aa1eaed141a",
+    "Consumption.lean": "7ab2dbf0a874a26a6f8d80892c37fb2de231d194e0cfe14a3214cef70f2cabb5",
+    "slice-proof-replay.json": "b7797921984e795212668cb7488c067b0469dc94555c6bc103cf3fa54213f316",
+    "audit.py": "eb436da88394e8df31f5ab92562aeb729ebd9852fba70c445d65460ae307baa1",
+    "../select_step_metadata.py": "cc6d83d9a87ac8cdecf19bda4495c5d6362536c7adc964bc50904372d7fdb65d",
+    "../Artifacts/varint-step/changes.json": "6076640b0baa93aa0c8dc2a0ced68e4793f0bda3d3c36a088aa61010ec0dc9eb"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "checked_at_utc": "2026-11-07T06:30:45.745401+00:00",
+  "independent_review": true,
+  "reviewer": "/root/signal_lean_aeneas",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "checks_passed": true,
+  "review_scope": "Exact one-file Never continuation patch, actual slice root-only selection, unchanged existing extraction regression output, retained fail/div calls.",
+  "source_files_checked_against_exact_pin_archive": 794,
+  "changed_source_files": [
+    "src/interp/InterpStatements.ml"
+  ],
+  "semantic_code_change": "If instantiated return type is TNever, synthesize an unreachable panic continuation after retaining the original symbolic function call; other calls retain Unit.",
+  "source_rust_edits": [],
+  "standard_model_edits": [],
+  "generated_lean_edits": [],
+  "selected_actual_functions": [
+    "bytes::Buf for &[u8]::advance",
+    "bytes::panic_advance"
+  ],
+  "all_slice_declarations_identical": true,
+  "reversible_root_selection_changes": 1,
+  "slice_computational_semantic_nodes_scanned": 6718,
+  "slice_actual_direct_call_ids": [
+    262,
+    263,
+    264,
+    290,
+    291
+  ],
+  "unchanged_regression_targets": [
+    "Prost varint",
+    "Prost uint32 fields"
+  ],
+  "trusted_preprocessing_and_translator_review": true,
+  "mechanized_translator_or_selection_correctness": false,
+  "accepted_toolchain_replaced": false,
+  "full_byte_field_or_signalmessage_refinement": false,
+  "required_before_selected_profile_acceptance": [
+    "Candidate kernel proof audit and complete exact provenance report; parent integration decision"
+  ],
+  "sha256": {
+    "SignalReference/TranslatorNeverReview/check.py": "df7bd4038c05481554193e1744ca459b007c7d63c37e8d030f0303830e34db4a",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/aeneas-5b9dcf33.tar.gz": "ceb3a9a8114488f7deef705599316d1282133b4aea203cbf902117c11175d453",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/aeneas-5b9dcf33dccdb1560ea7203ac57ea202476b6ed3/src/interp/InterpStatements.ml": "4b9a3cd0b71da0ba683a17791aae6a8713158913b2de3566ca58ce7e56d3dba5",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/never-continuation.patch": "e89860b8e890c488ae6fa10643a13ffb8b5282e55fef30139e3812fa2cb339c6",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/candidate-patch.json": "99460b7ae4b192166961f1810047378ca6cd9babf5f4ed4be01b3dc94c6635d7",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/original-source-manifest.json": "695dc30d15f9abc02cfcf56eb282e95c4aa43c680e664d136ceebf28405dc28e",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/candidate-comparison.json": "952ca8b9b2a5986e5d4d1ccaca2a7038bf0ca25ab6b0c45a139f57782f6ab136",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/baseline-comparison.json": "4836a7947eb9f499974c69740e39b95748085d2214f0221abdbc62c601f42c03",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/select_slice.py": "38a941e0e48db53ab5ccaa762d2c8466428855ead20181ff04116f053b7f7dec",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceSelected/review.json": "8792cd2c246b05d2dd2c93d325853add74fd395db1765b220c55ad26603565d8",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceSelected/changes.json": "fae00e033cb9141221db2e39c10ac65204288facf205a546201e687b8858f9f1",
+    "SignalReference/ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/slice_advance.llbc": "c13e133c1a838b4ebbfc88e1f6026b41f4df8f21ed2eaa9f573f3d319e3ddd63",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceSelected/slice.llbc": "80191557e1046652abcf940360244f50901404b1699db1d2af0ee2f92cdd840b",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/NeverContinuation.lean": "d1b596cd2619861ca7742e327d163c068dd5fe54131260f86c35231b69b7fe08",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/RegressionRust/src/lib.rs": "f3004344e75efcf73f14ce11e5738825e56a372892aab13f1346e10cb2dab16c",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Regressions/calls.llbc": "fa6375d33aaf91800e81df604710d250772b6f862575ee9f6280f281504a34ea",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Regressions/Funs.lean": "bc6708bc36e16cd8e42f5c3b4e7bca1918a52dde6a015df90bbdd7ee357bd185",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Regressions/Types.lean": "e0d452d5924c9890594dd268482692d1771572368ecbb3d35c4a942a39c45761",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Slice/Funs.lean": "5831e0d5c3479b9168d03d8088a0b806ac4224bd474bb77c42b18f15567ff3e5",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Slice/Types.lean": "046b2433db9fc5e1608c76a52d921694c35ebe65d0498596c4005ddee8a45f81",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Varint/Funs.lean": "6c3557b1c741ce950ee77dcaa54cd7f2541463778f9f8d5ab7416a7df9242cce",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Varint/Types.lean": "23c900d4c78006cae4f2926abae1383c0d3d92de8cc2fd8e948989577381bbc2",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/UInt32/Funs.lean": "c34184985b5e527c82de77f8911ad02b0e2bb3266276804ed6a3d9883e0e9f3d",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/UInt32/Types.lean": "0da2ce4355098dc06540bf72d334b16a044f8f4d7db4f1abca32d87353632937"
+  }
+}

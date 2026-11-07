@@ -1,0 +1,8 @@
+ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceProofs.lean:19:4: warning: This simp argument is unused:
+  core.slice.index.SliceIndexRangeFromUsizeSlice
+
+Hint: Omit it from the simp argument list.
+  simp [BytesSliceAdvance.Shared0SliceU8.Insts.BytesBufBuf_implBuf.advance, not_beyond,
+  ̲  ̲ ̲ ̲core.slice.index.Slice.index, c̵o̵r̵e̵.̵s̵l̵i̵c̵e̵.̵i̵n̵d̵e̵x̵.̵S̵l̵i̵c̵e̵I̵n̵d̵e̵x̵R̵a̵n̵g̵e̵F̵r̵o̵m̵U̵s̵i̵z̵e̵S̵l̵i̵c̵e̵,̵core.slice.index.SliceIndexRangeFromUsizeSlice.index, h]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

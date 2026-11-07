@@ -1,0 +1,36 @@
+{
+  "reviewer": "/root/signal_lean_aeneas",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "accepted_scope": "Actual generic encode_varint and default put_u8 selected semantics only",
+  "additional_trusted_preprocessing": true,
+  "mechanized_selection_correctness": false,
+  "full_original_bodies_unchanged": [
+    0,
+    7
+  ],
+  "exact_reversible_changes": 11,
+  "retained_called_buffer_fields": [
+    "put_slice",
+    "put_u8"
+  ],
+  "unused_opaque_default_put_slice_metadata_retained": true,
+  "source_patches": [],
+  "custom_crypto_or_buffer_models_added": [],
+  "remaining_obligations": [
+    "Prove the selected generic loop under its supplied BufMut operations.",
+    "Discharge any successful-append contract for the actual concrete Vec implementation before claiming Vec equivalence.",
+    "Compose actual Prost fields/derive-generated message encoding and SignalMessage::new before claiming whole-message reference equivalence."
+  ],
+  "sha256": {
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeBody/prost_encoding.llbc": "3c98f69e873c84399932d74cddc08e347ab35403e16470b14428b208dd2cf4cc",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/selected.llbc": "0a11308d2c265eef9460f62eb41b92ef7bcb52d225ff2ffcd45d8d5e67c235c4",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/changes.json": "f1d4c6ef8196b69b94c0aaf7802e39849fb7183cc1cca4671a5d8cc739a6e247",
+    "SignalReference/ProstEncodingWork/select_buffer.py": "3fd319903b8d055e2840f9831df92e098e29e051af27856f790140b5cdcdef61",
+    "SignalReference/ProstEncodingWork/inspect_metadata.py": "af922b6085dafbef816e0b3a6799b2755c0831651891f5e5c63fa1d6ca647fca",
+    "SignalReference/review_prost_selection.py": "5df0c5a3e9cf8b862a24638993d107755685160b4adfe5747145b85f1ac771de",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding/varint.rs": "29f75ff30f6a30e07ec017f3260cff9ffbf52cddbd9e4f26f72d705725cebc10",
+    ".deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs": "c76d0a846cf6e2c42af7acf0bbedc49a30ce3b9185392835c6a6f8b06a128b9e",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "checks_passed": true
+}

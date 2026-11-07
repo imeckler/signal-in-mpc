@@ -1,0 +1,19 @@
+{
+  "accepted_reference": true,
+  "accepted_scope": "Actual pinned sha2 0.11.0 Sha256VarCore::new, constants and empty Drop path; constructor plus separately accepted compact compression on sixteen shared U32 words.",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "reviewer": "/root/signal_lean_aeneas",
+  "proof_report": "SignalReference/Sha256WrapperWork/proof-report.json",
+  "proof_report_sha256": "eab147ae87a415c12fdb0a76da6cd5c8fbaa4f2bbab5984dcee89bdfa321a14d",
+  "independent_review": "SignalReference/Sha256InitialReview/review.json",
+  "independent_review_sha256": "5965ec79e2b83ccc061dc6f70c0d4888f3c4e7a29b1515de951bb79c9589cd00",
+  "selected_llbc_sha256": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33",
+  "proof_endpoints": 8,
+  "additional_trusted_preprocessing": "Three exact metadata deletions for unused ArraySize impls6/9/80; original ten ordered roots unchanged; selected semantic closure independently checked; eleven remaining diagnostic references in non-emitted declarations explicitly excluded.",
+  "numeric_artifact_theorem": "LibSignalReference.Candidate.Sha256Wrapper.initial_compression_refines_artifact",
+  "custom_crypto_or_standard_models": [],
+  "rust_source_changes": [],
+  "whole_llbc_graph_claimed_closed": false,
+  "full_digest_update_finalize_block_buffer_equivalence": false,
+  "note": "The frozen author's report keeps its pre-review accepted_reference:false; this separate record accepts only the precise constructor/compression scope."
+}

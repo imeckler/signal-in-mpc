@@ -1,0 +1,36 @@
+# Five-party XOR-share input harness. Fresh scalar is joint daBit randomness.
+# Parser key, both candidate branches and all outputs remain in shared memory.
+program.unlimited_compilation()
+from Compiler.GC.types import sbit
+from backend_adapter.boolean import load
+from handshake_backend.field_dag import load as load_field
+from SignalReference.SessionReceiveWork.adapter import receive, fresh_private_bits
+field_image = load_field(program.args[1])
+parser_image = load(program.args[2])
+session_image = load(program.args[3])
+chains, skips, wire_bytes = map(int, program.args[4:7])
+if not 1 <= chains <= 5 or not 0 <= skips <= 64 or not 0 <= wire_bytes <= 512:
+    raise ValueError('public shape out of bounds')
+
+def shared_bytes(length):
+    bits = []
+    for _ in range(8 * length):
+        bit = sbit.get_input_from(0)
+        for party in range(1, 5):
+            bit = bit ^ sbit.get_input_from(party)
+        bits.append(bit)
+    return bits
+
+present = shared_bytes(1)
+old = shared_bytes(136)
+retained = shared_bytes(chains * (69 + 69 * skips))
+pq = shared_bytes(32)
+sender = shared_bytes(32)
+receiver = shared_bytes(32)
+addresses = shared_bytes(36)
+wire = shared_bytes(wire_bytes)
+private = fresh_private_bits()
+output = receive(field_image, parser_image, session_image, present, old, retained,
+                 private, pq, sender, receiver, addresses, wire)
+for index, bit in enumerate(output):
+    bit.store_in_mem(index)

@@ -1,0 +1,620 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "source_patches": [],
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "script_sha256": "0e830c5a4ebf759d6d7cdfb043684d8975fe14d41b1aa24318b38235c9bacda6",
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding.rs": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding/varint.rs": "29f75ff30f6a30e07ec017f3260cff9ffbf52cddbd9e4f26f72d705725cebc10",
+    ".deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs": "c76d0a846cf6e2c42af7acf0bbedc49a30ce3b9185392835c6a6f8b06a128b9e",
+    ".deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs": "f1095872bba7c9d5170207750f4ebe4fa61c4e35a282569491c2ee8ea2dc6714"
+  },
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={crate::buf::buf_mut::BufMut for alloc::vec::Vec}::put",
+    "--opaque=crate::*",
+    "--include=crate::buf::buf_mut::{crate::buf::buf_mut::BufMut<alloc::vec::Vec<u8>>}::put",
+    "--include=crate::buf::buf_impl::Buf::has_remaining",
+    "--dest-file=$WORKSPACE/SignalReference/SignalMessageWork/BytesFieldWork/VecPutClosedArtifacts/vec_put.llbc",
+    "--",
+    "--package",
+    "bytes@1.12.0",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 0,
+  "llbc_sha256": "c1e33e723d0f979af0995f6cc280423e8e535836668c4d1ac1d42ac79c834522",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 12,
+    "fun_decls": 5,
+    "global_decls": 0,
+    "trait_decls": 2,
+    "trait_impls": 1,
+    "ordered_decls": 3
+  },
+  "body_kinds": {
+    "Opaque": 5
+  },
+  "external_functions": [
+    {
+      "id": 0,
+      "name": "bytes::buf::buf_mut::{impl}::put",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1641,
+            "col": 4
+          },
+          "end": {
+            "line": 1654,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "bytes::buf::buf_mut::{impl}::remaining_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1601,
+            "col": 4
+          },
+          "end": {
+            "line": 1604,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "bytes::buf::buf_mut::{impl}::advance_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1607,
+            "col": 4
+          },
+          "end": {
+            "line": 1620,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "bytes::buf::buf_mut::BufMut::put",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 202,
+            "col": 4
+          },
+          "end": {
+            "line": 224,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "bytes::buf::buf_mut::{impl}::chunk_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1623,
+            "col": 4
+          },
+          "end": {
+            "line": 1636,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "alloc::vec::Vec",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "bytes::buf::uninit_slice::UninitSlice",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 22,
+            "col": 0
+          },
+          "end": {
+            "line": 22,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "bytes::buf::limit::Limit",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 9,
+            "col": 0
+          },
+          "end": {
+            "line": 12,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "bytes::buf::writer::Writer",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 13,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "bytes::buf::chain::Chain",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 30,
+            "col": 0
+          },
+          "end": {
+            "line": 33,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "core::io::io_slice::IoSlice",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 11,
+          "beg": {
+            "line": 189,
+            "col": 0
+          },
+          "end": {
+            "line": 189,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "bytes::TryGetError",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 175,
+            "col": 0
+          },
+          "end": {
+            "line": 181,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "bytes::bytes::Bytes",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 15,
+          "beg": {
+            "line": 101,
+            "col": 0
+          },
+          "end": {
+            "line": 107,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "bytes::buf::take::Take",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 16,
+          "beg": {
+            "line": 13,
+            "col": 0
+          },
+          "end": {
+            "line": 16,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "bytes::buf::reader::Reader",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 13,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/buf/buf_mut.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/buf/mod.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/alloc/src/vec/mod.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/alloc/src/lib.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/alloc/src/alloc.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "src/buf/uninit_slice.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "src/buf/buf_impl.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "src/buf/limit.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "src/buf/writer.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "src/buf/chain.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "/rustc/library/core/src/io/io_slice.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/rustc/library/core/src/io/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "src/bytes.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "src/buf/take.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "src/buf/reader.rs"
+      },
+      "crate_name": "bytes"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [
+    "crate::*"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{crate::buf::buf_mut::BufMut for alloc::vec::Vec}::put"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "bytes::buf::buf_mut::{impl}::put",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1641,
+            "col": 4
+          },
+          "end": {
+            "line": 1654,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "bytes::buf::buf_mut::{impl}::remaining_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1601,
+            "col": 4
+          },
+          "end": {
+            "line": 1604,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "bytes::buf::buf_mut::{impl}::advance_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1607,
+            "col": 4
+          },
+          "end": {
+            "line": 1620,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "bytes::buf::buf_mut::BufMut::put",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 202,
+            "col": 4
+          },
+          "end": {
+            "line": 224,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "bytes::buf::buf_mut::{impl}::chunk_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1623,
+            "col": 4
+          },
+          "end": {
+            "line": 1636,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit_code": 0,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/SignalMessageWork/BytesFieldWork/VecPutClosedArtifacts/vec_put.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/SignalMessageWork/BytesFieldWork/VecPutClosedGenerated",
+    "-split-files",
+    "-namespace",
+    "BytesVecPut",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {
+    "SignalMessageWork/BytesFieldWork/VecPutClosedGenerated/Funs.lean": "a144188c0271507125c4098051defddd84744ea473068bd59145b70b0606a308",
+    "SignalMessageWork/BytesFieldWork/VecPutClosedGenerated/FunsExternal_Template.lean": "6fe1f7c2c70ce1ec71b63a55a4c9aa93efc792e4cf2f56c66b091a1a3f2d095e",
+    "SignalMessageWork/BytesFieldWork/VecPutClosedGenerated/Types.lean": "c79daf14f81ee45337f8f189bd74c5b2ca8462ac63974ca894fcf80f6537a14f"
+  },
+  "remaining_external_templates": [
+    "FunsExternal_Template.lean"
+  ]
+}

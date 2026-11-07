@@ -1,0 +1,30 @@
+{
+  "synthetic_translator_regression_only": true,
+  "accepted_signal_reference": false,
+  "profile": "all",
+  "rust_version": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+  "charon_version": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Regressions/regressions.llbc",
+    "--",
+    "--manifest-path=/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/RegressionRust/Cargo.toml",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "source_patches": [],
+  "sha256": {
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/extract_regressions.py": "b2f03e5aa66933ca80462a0d603aca1e358797af382995321f1c612492fc875d",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/RegressionRust/Cargo.toml": "1c738a7e90f26c9cb378b289900b7ecd717a2ae63f4f902e1b02ec1830999626",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/RegressionRust/src/lib.rs": "469ef43c811cc3ce7f259c782cb81631ace87b21428ae094d6f4fbc54eaf904a",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/Regressions/regressions.llbc": "1eb7cdc5d7abebdf5a66da2da6a570ee6530582fe96236f7665bb646e11732c4",
+    ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+  }
+}

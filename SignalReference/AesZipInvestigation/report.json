@@ -1,0 +1,172 @@
+{
+  "checked_at_utc": "2026-11-06T22:57:38.032929+00:00",
+  "accepted_reference": false,
+  "diagnostic_only": true,
+  "whole_round_key_equivalence_established": false,
+  "new_theorems": [],
+  "new_computational_models": [],
+  "source_patches": [],
+  "standard_model_changes": [],
+  "toolchain_changes": [],
+  "native_backend_execution": false,
+  "aeneas_commit": "5b9dcf33dccdb1560ea7203ac57ea202476b6ed3",
+  "charon_commit": "4ad295c1bf982b5533ce7d85f4ddc889ff3127f8",
+  "rust_commit": "8fa1c96cfd489e4c27654c144ae871ce2c4db6c6",
+  "sysroot": {
+    "provenance_file": "PaddingWork/Unpad/sysroot-provenance.json",
+    "provenance_sha256": "37f5a1d8320ee459a275dba8f1aaec8ca9e8b0e1b0f60ac66dc4b0477dacbd7e",
+    "rust_core_source_sha256": {
+      "core/src/internal_macros.rs": "a4400b86ffb19c885fadb13dd864118cd951cf3c8e55313db278e16e11eb215b",
+      "core/src/ops/bit.rs": "4f0dab1c9c85c900d231e29d3f0c5e55c7b1fe87a762e48c4988d64bd1955d57"
+    },
+    "rust_commit": "8fa1c96cfd489e4c27654c144ae871ce2c4db6c6",
+    "source_patches": []
+  },
+  "selected_source": "aes0.9.1 src/soft/fixslice64.rs:1362-1367 add_round_key",
+  "aes_source_sha256": "cfb6f3fb36290bc2925624d206005eca7394beccb6a957dcfaee5e80935319f8",
+  "baseline": {
+    "accepted_reference": false,
+    "diagnostic_only": true,
+    "source_patches": [],
+    "standard_model_changes": [],
+    "new_axioms": [],
+    "source_llbc_sha256": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0",
+    "selected_llbc_sha256": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1",
+    "existing_selector_sha256": "4c2012647ea2091b8029d0b7e74c323c3f29af1db723b7403faa9da508615dda",
+    "retained_computational_declarations_unchanged": true,
+    "unused_zip_dictionary_slots_removed": 4,
+    "selection_changes_sha256": "68f2c8624c6bdc035e94e39e0d73e095f42c1ec5ae616c90286de572f67a3828",
+    "aeneas_command": [
+      "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+      "-backend",
+      "lean",
+      "$WORKSPACE/SignalReference/AesZipInvestigation/Artifacts/Baseline/selected.llbc",
+      "-dest",
+      "$WORKSPACE/SignalReference",
+      "-subdir",
+      "/AesZipInvestigation/Generated/Baseline",
+      "-split-files",
+      "-namespace",
+      "RustCryptoAesZipDiagnostic",
+      "-warnings-as-errors",
+      "-no-progress-bar",
+      "-print-error-emitters"
+    ],
+    "aeneas_exit_code": 0,
+    "lean_exit_code": 1,
+    "minimal_model_mismatch_exit_code": 1,
+    "generated_files_sha256": {
+      "AesZipInvestigation/Generated/Baseline/Funs.lean": "669156312f41ce6b234deaf5339057690a3bb3dff01b651587616aa8837765ab",
+      "AesZipInvestigation/Generated/Baseline/Types.lean": "cc38e8a78be1fb51aee371e1120aaf0c6465fe31e5d7f9b602a103de2f1446a9"
+    },
+    "official_model_sources_sha256": {
+      "Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+      "Aeneas/Std/SliceIter.lean": "44d29a5d2cd24a85249c79313fb5a0beaa89a0aec09725c6ac2f75644b2f5e92"
+    },
+    "proof_package_revisions": {
+      "mathlib": "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f",
+      "plausible": "63045536fe95024e6c18fc7b48e03f506701c5bc",
+      "LeanSearchClient": "c5d5b8fe6e5158def25cd28eb94e4141ad97c843",
+      "importGraph": "5c7542ed018c78194f1e2b903eaf6a792b74c03d",
+      "proofwidgets": "24b0d9dc081c5423f8eec7e866c441e5184f29d9",
+      "aesop": "e3cb2f741431ce31bf73549fb52316a57368b06f",
+      "Qq": "f46324995fca5f0483b742e4eb4daec7f4ee50d2",
+      "batteries": "fa08db58b30eb033edcdab331bba000827f9f785",
+      "Cli": "92564e5770e4d09f2d86dfbf8ada1e9c715b384c"
+    },
+    "sysroot": {
+      "provenance_file": "PaddingWork/Unpad/sysroot-provenance.json",
+      "provenance_sha256": "37f5a1d8320ee459a275dba8f1aaec8ca9e8b0e1b0f60ac66dc4b0477dacbd7e",
+      "rust_core_source_sha256": {
+        "core/src/internal_macros.rs": "a4400b86ffb19c885fadb13dd864118cd951cf3c8e55313db278e16e11eb215b",
+        "core/src/ops/bit.rs": "4f0dab1c9c85c900d231e29d3f0c5e55c7b1fe87a762e48c4988d64bd1955d57"
+      },
+      "rust_commit": "8fa1c96cfd489e4c27654c144ae871ce2c4db6c6",
+      "source_patches": []
+    },
+    "reproduction_script_sha256": "5d1ec096982d580ec7e7fe0c7c680181547ae90ec5743c3decbee1d3acdea8b4",
+    "sysroot_audit_helper_sha256": "c1f5f7d4e00853f6c290ceb720aad0559b1ef48d4bff90ce3d37546b7f6ba3d2"
+  },
+  "variants": {
+    "MutAll": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "inventory_sha256": "207da39451bf1e70338d2f3c686730ac75c93b1e447c181a2578b51c2298b4d9"
+    },
+    "MutAllZip": {
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "aef63cca6421575d1fdfde0aae08b10fabbfaf9578f4750d24da6fb2546c6e37"
+    },
+    "MutExceptZip": {
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "3e1aa9d294077a7fc7442517b32d6ed0bacab77efa5bffcc78f10433efafbcfe"
+    },
+    "MutExceptConstructor": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "inventory_sha256": "7f8168aff8ac56856573db281177584c3f87bb3099e947e92af41199de815336"
+    },
+    "MutExceptNext": {
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "de90f63e04d0872ebd44483e2f8289e26c0b7b1a0e61b94150b5f987df132deb"
+    }
+  },
+  "charon_sources_sha256": {
+    "src/options.rs": "a3f38088049e51c62e0778aaf726975839c7d48e0b027fc3a5f322dd71b34292",
+    "src/transform/normalize/partial_monomorphization.rs": "31893be44630da6d7f52b225a198ce6c63111e3c4f5fc6d53d5969238ac03e8e",
+    "src/ast/type_level/substitute.rs": "a195494960f396bfefb5e1be30146996aba8b4f2ff882171944f3a7be5f9778e"
+  },
+  "rust_sources_sha256": {
+    "core/src/iter/adapters/zip.rs": "0c7f9a5a00af318a1262d3505b440c102db0dce2756f35fbb95f176a6cdc8ce9",
+    "core/src/iter/traits/iterator.rs": "a6a1e6fb4032fa5b21376322c1b52f290b47d27944abbacb30c4fc3f9f4ada6f",
+    "core/src/slice/iter.rs": "3fc0a0eb69b7a73f1db09e4acb95e0cb48581d5e98c79637c67384cd177c8cc1",
+    "core/src/slice/iter/macros.rs": "8db181ab6087b436dcc4c350efc7283ecc4912e34ca20d8bf7460fca5084c26c",
+    "core/src/option.rs": "2dab92cdbec51b006307496b24cc757d7b2bc4056eff156d0fff445f66c1d2f5"
+  },
+  "artifacts_sha256": {
+    "Artifacts/Baseline/aeneas.log": "812f3ebe3d1f9fb326800383e414b6424100f6d0fd1d61c4ef3967fea8932046",
+    "Artifacts/Baseline/lean.log": "83edfa9c96bd13fb4c4c018d64c3e6198cf01c6e0643af4d4b5a81156af0ba94",
+    "Artifacts/Baseline/minimal-lean.log": "9aa269f2b60a5b1fef01cc3989b926321c0f4cfa19786f51b2bdd1b714bdb7c4",
+    "Artifacts/Baseline/report.json": "e463c1cfd3e8b0a558d241213b2f972e30b1ff503e80b7cc0fb9e01df0dcee96",
+    "Artifacts/Baseline/selected.llbc": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1",
+    "Artifacts/Baseline/selection-changes.json": "68f2c8624c6bdc035e94e39e0d73e095f42c1ec5ae616c90286de572f67a3828",
+    "Artifacts/MonoDiagnostic/aeneas.log": "8e42b5996235fb34b2cdc5e557a82cacad136422ad3f187186f9445f03ccb0ac",
+    "Artifacts/MonoDiagnostic/command.json": "a533fca02eda4dc74a0fd613f9cad34323297a53a125aba356079a7216335f16",
+    "Artifacts/MutAll/add_round_key.llbc": "bdaf2cf49c5c30415689c9e886bf451f853efe8953ab88954da2cbef3c1596c1",
+    "Artifacts/MutAll/aeneas.log": "059cc693ffa17b7a96930c241eff32c7fc31af638dc8e80c6e00f5b44a7c1b2c",
+    "Artifacts/MutAll/charon.log": "4a066c21032f077c8a6e74edc805cc8fae8624f16e9d3da1833b52b5af4e4555",
+    "Artifacts/MutAll/inventory.json": "207da39451bf1e70338d2f3c686730ac75c93b1e447c181a2578b51c2298b4d9",
+    "Artifacts/MutAllZip/charon.log": "8beea0ef4d1e3a1cd0e84bbefa81a246ff05ba9dfaf0a8829b9dacb40b3f978e",
+    "Artifacts/MutAllZip/inventory.json": "aef63cca6421575d1fdfde0aae08b10fabbfaf9578f4750d24da6fb2546c6e37",
+    "Artifacts/MutExceptConstructor/add_round_key.llbc": "1956e31832ed2da672ed9ecd5b0e09cdcc960603dfb4ad8e7c08c38fac0ece1b",
+    "Artifacts/MutExceptConstructor/aeneas.log": "f26c99441368289a3078b4f05783fb83e417bd1d44e49044802372305818a373",
+    "Artifacts/MutExceptConstructor/charon.log": "c9c1e9d80ebc1f6b496195ae9120cac4a87f139348f78d80deae9999128ba30e",
+    "Artifacts/MutExceptConstructor/inventory.json": "7f8168aff8ac56856573db281177584c3f87bb3099e947e92af41199de815336",
+    "Artifacts/MutExceptNext/charon.log": "b4df87fdeb3a412f4f85533b0ea8f908d18625b6cf2788e22b35a6b94fb07806",
+    "Artifacts/MutExceptNext/inventory.json": "de90f63e04d0872ebd44483e2f8289e26c0b7b1a0e61b94150b5f987df132deb",
+    "Artifacts/MutExceptZip/charon.log": "b16d1522cf7adb079cb89b173ff73715e47cbc09ea99c1c26a5d3e4c176c493b",
+    "Artifacts/MutExceptZip/inventory.json": "3e1aa9d294077a7fc7442517b32d6ed0bacab77efa5bffcc78f10433efafbcfe",
+    "Generated/Baseline/Funs.lean": "669156312f41ce6b234deaf5339057690a3bb3dff01b651587616aa8837765ab",
+    "Generated/Baseline/Types.lean": "cc38e8a78be1fb51aee371e1120aaf0c6465fe31e5d7f9b602a103de2f1446a9"
+  },
+  "investigation_sources_sha256": {
+    "reproduce.py": "5d1ec096982d580ec7e7fe0c7c680181547ae90ec5743c3decbee1d3acdea8b4",
+    "ModelSignatureMismatch.lean": "64a386e3db87f032338949a3118b32081388fe74caa1cb86180d12819ae69b95",
+    "README.md": "662d43c660122fa6ba0a3392618db451fb2ab6e20c2463994eeb77e43bf08425",
+    "extract.py": "aaa99b31b11e3dba0c3ab11c003f2a97edd593e4c361c7da1b6490a2dc2dccf2",
+    "report.py": "79f1a516884b2cabbbf9b60c491c19e2c5acd37630f192898e76464949cac951"
+  },
+  "pinned_ocaml_source_fetch_available": false,
+  "ocaml_emitter_locations_from_pinned_executable": true,
+  "adjacent_ocaml_explanation": {
+    "commit": "7161abf2b8a830d7534f007f2b82e7931e66b921",
+    "path": "src/llbc/TypesAnalysis.ml",
+    "sha256": "c22c48503c2875dd7813703bb8ba1654543ffee9f171a7382ef3cbccc030d4af",
+    "exact_pinned_source_equivalence_claimed": false
+  },
+  "boundary": "Mutable write-back continuations cannot be discarded; no flag-only accepted translation found among these targeted profiles",
+  "proposed_fixes_implemented": false
+}

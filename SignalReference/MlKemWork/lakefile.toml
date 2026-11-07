@@ -1,0 +1,9 @@
+name = "mlkem-cca-export"
+version = "0.1.0"
+defaultTargets = ["emit_mlkem"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_mlkem"
+root = "Export"

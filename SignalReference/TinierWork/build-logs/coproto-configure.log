@@ -1,0 +1,26 @@
+-- Option: CMAKE_INSTALL_PREFIX    = /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local
+-- Option: CMAKE_BUILD_TYPE        = Release
+	Release
+	Debug
+	RELWITHDEBINFO
+-- Option: COPROTO_NO_SYSTEM_PATH  = 	  ~ do not look in system paths for dependencies
+-- Option: COPROTO_FETCH_AUTO      = OFF	  ~ automatically fetch dependencies
+-- Option: COPROTO_FETCH_SPAN      = OFF	  ~ always fetch span
+-- Option: COPROTO_FETCH_FUNCTION2 = OFF	  ~ always fetch function2
+-- Option: COPROTO_FETCH_MACORO    = OFF	  ~ always fetch macoro
+-- Option: COPROTO_FETCH_BOOST     = OFF	  ~ always fetch boost
+
+-- Option: COPROTO_CPP_VER         = 20
+-- Option: COPROTO_PIC             = ON
+-- Option: COPROTO_ASAN            = OFF
+-- Option: COPROTO_ENABLE_BOOST    = OFF
+-- Option: COPROTO_ENABLE_SPAN     = 
+-- Option: COPROTO_ENABLE_OPENSSL  = OFF
+-- Option: COPROTO_ENABLE_ASSERTS  = ON
+
+-- Option: COPROTO_STAGE = /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/coproto/out/install/osx
+find_package(macoro REQUIRED COMPONENTS cpp_20;pic;no_asan;Release) @ /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/coproto/cmake/coprotoFindDeps.cmake
+macoroConfig.cmake: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local/lib/cmake/macoro/macoroConfig.cmake
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/coproto

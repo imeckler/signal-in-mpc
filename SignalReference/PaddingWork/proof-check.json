@@ -1,0 +1,70 @@
+{
+  "checked_at_utc": "2026-11-06T20:02:41.031640+00:00",
+  "accepted_reference": true,
+  "reference_inventory": "Artifacts/ExcludeArraySize/inventory.json",
+  "actual_locked_source": "block-padding0.4.2 src/lib.rs186-195; libsignal0.106.1 Cargo.lock",
+  "selected_operation": "Pkcs7::raw_pad",
+  "full_domain": "All Slice<U8> and Usize values; exact translated assertion failures and successful byte output",
+  "numeric_circuit_bridge_domain": "AES block length16, all positions0..15, all byte values; arbitrary unchanged full-block prefix",
+  "standard_library_llbc_functions": [
+    "core::slice::{impl}::len",
+    "core::fmt::{impl}::from_str",
+    "core::slice::index::{impl}::index_mut",
+    "core::slice::{impl}::fill",
+    "core::slice::index::{impl}::get",
+    "core::slice::index::{impl}::get_mut",
+    "core::slice::index::{impl}::get_unchecked",
+    "core::slice::index::{impl}::get_unchecked_mut",
+    "core::slice::index::{impl}::index",
+    "core::slice::index::{impl}::index_mut",
+    "core::clone::impls::{impl}::clone",
+    "core::slice::index::{impl}::index"
+  ],
+  "discarded_metadata_functions": [
+    "core::fmt::{impl}::from_str"
+  ],
+  "discarded_metadata_types": [
+    "core::fmt::Arguments"
+  ],
+  "discarded_metadata_reason": "Panic formatting is replaced with massert; generated Types has no definitions and Funs contains no formatting call",
+  "explicit_exclusions": [
+    "crate::Padding::pad",
+    "crate::Padding::unpad",
+    "crate::Padding::pad_detached",
+    "crate::Padding::unpad_blocks",
+    "crate::*::raw_unpad",
+    "crate::*::unpad",
+    "hybrid_array::traits::ArraySize"
+  ],
+  "source_patches": [],
+  "custom_cryptographic_models": [],
+  "custom_axioms": [],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "checked_theorems": 8,
+  "proof_sources_sha256": {
+    "PaddingWork/Generated/ExcludeArraySize/Funs.lean": "cd3b34665a3fde127aee72de24aa4ca6c552c4c09f3bed97aadd8873b3487139",
+    "PaddingWork/Generated/ExcludeArraySize/Types.lean": "b9a14ffe6d32e3ae659252e91ffc349e81dc874d6c87a6428447e4eb5cee7986",
+    "PaddingWork/Proofs.lean": "d5cfc3f9ba7969abb747d232d630808fca5984deaa3854e43f758b377c55da34"
+  },
+  "root_semantics_sha256": {
+    "TlsMpc/Signal/Cbc.lean": "f513777fdffbe824fc229eb0140522a025ab15459a64e0825f8a618245491bf9",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Slice.lean": "a2f7fc40f76f37b54b4307f78cd78dfa1cf849252bd4220f40e6b1d52c054223",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Casts.lean": "fd709a15b1e66431b788bf2838b79ac662d4c2afd38acbcde078b775c8f1e668",
+    "Aeneas/Std/Scalar/CloneCopy.lean": "dd16eef7d36a6f88cc5b958ab490b1e3c6974bdca0c345ded147ef73dda0e38a",
+    "Aeneas/Std/Scalar/Ops/Sub.lean": "bd6716dad017ce0c0e9cf9084f9223eb5407ece920853ae7675cbe2362dd5e37",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "whole_cbc_rustcrypto_equivalence_established": false
+}

@@ -1,0 +1,27 @@
+'LibSignalReference.Candidate.SpqrVarint.range_next' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.nextIndex_val' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.range_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.small_byte' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.continued_byte' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.loop_body' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.loop_eq_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_eq_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.push_appends_within' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_appends' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.group_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.groups_values' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.groups_naturals' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.canonical_width_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_fixed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_publicNat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.accepts_canonical' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_uint64' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.uint64_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.encode_uint32' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SpqrVarint.uint64_guarded_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

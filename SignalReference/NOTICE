@@ -1,0 +1,69 @@
+The generated key-state reference and its LLBC input were mechanically derived
+from Signal Messenger's libsignal revision
+904c8dc8216073b078a5f2f5090e3da8382e6a92, rust/protocol/src/ratchet/keys.rs.
+That source identifies Copyright 2020 Signal Messenger, LLC and
+SPDX-License-Identifier: AGPL-3.0-only.
+
+The generated scalar-clamping reference and its LLBC input were mechanically
+derived from curve25519-dalek 5.0.0, src/scalar.rs, as selected by libsignal's
+Cargo.lock. The BSD-3-Clause notice and license for that component are preserved
+in licenses/curve25519-dalek.txt.
+
+The corresponding libsignal license is preserved in licenses/libsignal.txt.
+The extraction tools are Aeneas and Charon, identified precisely in pins.json.
+These notices do not assert that any unselected source module has been verified.
+
+The generated SHA-256 round reference and LLBC were mechanically derived from
+RustCrypto sha2 0.11.0, src/sha256/wasm32_simd128.rs, as selected by the same
+libsignal Cargo.lock. The crate is dual licensed under MIT or Apache-2.0;
+both notices are preserved in licenses/sha2-mit.txt and sha2-apache.txt.
+
+LibSignalReference/External/BafRFC5869.lean is adapted from
+Beneficial-AI-Foundation/SparsePostQuantumRatchet-verify commit
+1acabbc34dbc5cbd40362a62848b68fdbe80e033, Spqr/Crypto/RFC5869.lean.
+Copyright 2026 The Beneficial AI Foundation; author Oliver Butterley.
+Its Apache-2.0 notice is retained, with the license in licenses/baf-apache-2.0.txt.
+Extraction/baf-rfc5869-port.json records the syntax-only and namespace changes.
+
+The generated service-identifier encoder additionally derives from libsignal's
+rust/core/src/address.rs (Copyright2020-2022 Signal Messenger, LLC,
+AGPL-3.0-only), and uuid1.23.4 src/lib.rs. UUID is dual licensed under MIT or
+Apache-2.0; both licenses are preserved in licenses/uuid-mit.txt and uuid-apache.txt.
+
+The generated tag decoders include derive_more2.1.1's
+src/convert.rs::TryFromReprError::new, selected by the same Cargo.lock. Its MIT
+license is preserved in licenses/derive-more-mit.txt. No error constructor is
+left as an external cryptographic or behavioral assumption.
+
+The generated padding reference derives from RustCrypto block-padding0.4.2,
+src/lib.rs, selected by the same Cargo.lock. Its MIT and Apache-2.0 licenses
+are preserved in licenses/block-padding-0.4.2-mit.txt and
+licenses/block-padding-0.4.2-apache.txt.
+
+The generated AES software S-box reference and the proof's auxiliary numeric
+network derive from RustCrypto aes0.9.1, src/soft/fixslice64.rs. Its MIT and
+Apache-2.0 licenses are preserved in licenses/aes-0.9.1-mit.txt and
+licenses/aes-0.9.1-apache.txt. The selected sub_bytes function omits four NOTs;
+the proved bridge restores them with the actual sub_bytes_nots function.
+
+The generated AES forward-layout reference also derives from the same aes0.9.1
+fixslice64.rs source. Its selected functions are bitslice, read_reordered and
+delta_swap_2; the same preserved MIT/Apache-2.0 notices apply.
+
+The generated unpadding reference also includes the actual slice Iterator::any
+implementation and closure machinery from the matching official Rust source,
+commit 8fa1c96cf (nightly2026-08-18). Its copyright and MIT/Apache-2.0 notices
+are preserved in licenses/rust-copyright.txt, rust-license-mit.txt and
+rust-license-apache.txt. Exact source and official archive hashes appear in
+Extraction/unpad-sysroot-provenance.json.
+
+The generated compact SHA-256 compression reference and constants derive from
+RustCrypto sha2 0.11.0 src/sha256/soft/compact.rs and src/consts.rs under the
+same preserved sha2 MIT/Apache-2.0 notices. The explicitly reviewed preprocessing
+step removes unused standard-library dictionary metadata; it changes no source
+or computational body. Its exact diff is recorded separately.
+
+The generated AES MixColumns and ShiftRows references derive from unchanged
+aes 0.9.1 src/soft/fixslice64.rs under the same RustCrypto MIT/Apache-2.0
+licenses. The forward linear proofs also depend on the existing pinned Aeneas
+standard scalar, array, slice and mutable-iterator models.

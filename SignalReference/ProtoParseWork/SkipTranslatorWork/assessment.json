@@ -1,0 +1,35 @@
+{
+  "candidate_only": true,
+  "accepted_translator": false,
+  "actual_input": "../KeyReferenceWork/Artifacts/skip-step/selected.llbc",
+  "actual_loop_statement_id": 1576,
+  "local_continuation": [],
+  "enclosing_switch_continuation": [
+    "Return at src/encoding.rs:199"
+  ],
+  "failure_site": "src/PrePasses.ml:update_loops/decompose_after ([] case), upstream line587",
+  "minimal_candidate_delta": "Invoke existing remove_useless_joins once immediately before update_loops. Existing later invocation remains. No new transformation algorithm.",
+  "soundness_boundary": "Existing fallthrough-continuation inlining must remain semantics-preserving before loop return normalization: returns/aborts bypass continuation, fallthrough executes it once, loop breaks receive continuation only after loop, mutable state and drop order preserved. This is additional translator trust until independently reviewed; tests/proofs do not establish global translator correctness.",
+  "other_tests_inspected": [
+    "upstream tests/src/loops.rs:decode (update_loops regression with inner while)",
+    "upstream tests/src/iterators.rs:slice_iter_mut_while_early_return and two_bools"
+  ],
+  "synthetic_regressions": [
+    "branch_loop: enclosing match continuation, normal break and early error",
+    "branch_loop_mut: mutation before break/error and continuation mutation exactly once",
+    "tail_loop: existing supported tail-loop regression"
+  ],
+  "source_files_changed": [
+    "src/PrePasses.ml"
+  ],
+  "source_or_llbc_substitution": false,
+  "never_candidate_adopted": false,
+  "accepted_packages_modified": false,
+  "script_and_source_hashes": {
+    "build.py": "ab1a9e730b460c02dd004ab30907125d39c5df3e0da60e1d2c35cb43909f3aa7",
+    "compare.py": "76f397631d9cd82f6df4b2ebc0ccfc21593dff13a480bee1967b692d8b91bc41",
+    "extract_regressions.py": "b2f03e5aa66933ca80462a0d603aca1e358797af382995321f1c612492fc875d",
+    "RegressionRust/src/lib.rs": "469ef43c811cc3ce7f259c782cb81631ace87b21428ae094d6f4fbc54eaf904a",
+    "continuation-pass.diff": "65455bb97868c593cb51b9acbe70a82aa6c36d4f910439119128339c0f26117c"
+  }
+}

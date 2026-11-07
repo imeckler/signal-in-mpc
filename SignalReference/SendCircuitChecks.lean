@@ -1,0 +1,30 @@
+import TlsMpc.Signal.Send
+
+#print axioms TlsMpc.Signal.Varint.pack_map
+#print axioms TlsMpc.Signal.Varint.groups_map
+#print axioms TlsMpc.Signal.Varint.widthMask_map
+#print axioms TlsMpc.Signal.Varint.encodeGroups_map
+#print axioms TlsMpc.Signal.Varint.encode_map
+#print axioms TlsMpc.Signal.Varint.accepts_map
+#print axioms TlsMpc.Signal.Varint.publicNatLoop_map
+#print axioms TlsMpc.Signal.Varint.publicNat_map
+#print axioms TlsMpc.Signal.Varint.encode_length
+#print axioms TlsMpc.Signal.Varint.widthMask_value
+#print axioms TlsMpc.Signal.Varint.compiled_encode_correct
+#print axioms TlsMpc.Signal.Serialization.versionByte_map
+#print axioms TlsMpc.Signal.Serialization.bytesField_map
+#print axioms TlsMpc.Signal.Serialization.addressField_map
+#print axioms TlsMpc.Signal.Serialization.pqField_map
+#print axioms TlsMpc.Signal.Serialization.content_map
+#print axioms TlsMpc.Signal.Serialization.acceptedMask_map
+#print axioms TlsMpc.Signal.Serialization.encodeCore_map
+#print axioms TlsMpc.Signal.Serialization.encodeChecked_map
+#print axioms TlsMpc.Signal.Serialization.versionByte_value
+#print axioms TlsMpc.Signal.Serialization.acceptedMask_value
+#print axioms TlsMpc.Signal.Serialization.encodeCore_concrete_correct
+#print axioms TlsMpc.Signal.Serialization.compiled_encodeCore_correct
+#print axioms TlsMpc.Signal.Send.message_map
+#print axioms TlsMpc.Signal.Send.sealCore_map
+#print axioms TlsMpc.Signal.Send.sealChecked_map
+#print axioms TlsMpc.Signal.Send.sealCore_concrete_correct
+#print axioms TlsMpc.Signal.Send.compiled_sealCore_correct

@@ -1,0 +1,9 @@
+name = "ratchet-step-export"
+version = "0.1.0"
+defaultTargets = ["emit_ratchet_step"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_ratchet_step"
+root = "Export"

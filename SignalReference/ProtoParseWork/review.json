@@ -1,0 +1,66 @@
+{
+  "checked_at_utc": "2026-11-07T19:02:24.258552+00:00",
+  "script_sha256": "c4b0985dced858ab0a61a8a127d11e313796d057d817e873c7e304f1ab33e649",
+  "parser_report_sha256": "14b35f31326eafcf33b5af4368c36f8b4560a5ea20c3431cc6c3d2c97ba69f9c",
+  "schema_sha256": "fc5facac43008a127a60caf792d248983cf32665fccf2de850ac4a852a93aad5",
+  "exact_optional_schema_verified": [
+    [
+      "bytes",
+      "ratchet_key",
+      "1"
+    ],
+    [
+      "uint32",
+      "counter",
+      "2"
+    ],
+    [
+      "uint32",
+      "previous_counter",
+      "3"
+    ],
+    [
+      "bytes",
+      "ciphertext",
+      "4"
+    ],
+    [
+      "bytes",
+      "pq_ratchet",
+      "5"
+    ],
+    [
+      "bytes",
+      "addresses",
+      "6"
+    ]
+  ],
+  "vendored_sources": [
+    {
+      "package": "prost-0.14.4",
+      "checksum_manifest_sha256": "49ab855a38c74696f3a780938e2ae3d9bdb2e44f96c4ce8f3b7e5c565b369901",
+      "verified_files": 16
+    },
+    {
+      "package": "prost-derive-0.14.4",
+      "checksum_manifest_sha256": "afc15a9f6d8d5ea6bd5eec219e8cc204267adef773d867998ea77bb842d260d7",
+      "verified_files": 13
+    },
+    {
+      "package": "bytes-1.12.0",
+      "checksum_manifest_sha256": "9013bbdd41677049dc6963d9de78160ac45a08bfffa9eb7ec6373973a1b53269",
+      "verified_files": 40
+    }
+  ],
+  "native_prost_fixture_rechecks": 1184,
+  "native_oracle_binary_sha256": "19e14c0712776b68d0121fa43e3020abcb620b7d8ddcc2b56a8e6404d58df62c",
+  "parser_compiler_theorems_checked": 33,
+  "actual_whole_rust_parser_refinement_accepted": false,
+  "unmodified_slice_decoder_contains_sorryAx": true,
+  "original_slice_axiom_report_sha256": "644ae6a6059f09ced59bc0108a9155dc971605274c154a6596c22a46c7c5105c",
+  "model_extension_build_report_sha256": "4176a55ac9f6e120d78b278c5340cc3ce57b07ce0d3a3d5a6ae198a197ba747f",
+  "model_extension_accepted": false,
+  "model_translation_precondition": "For valid usize indices, Rust get_unchecked returns the same slice element as checked index. All actual decoder accesses require a separate bounds proof. Outside that precondition this candidate chooses checked-index failure; no claim about Rust UB.",
+  "step_metadata_candidate_accepted": false,
+  "remaining_full_varint_external_wrappers": 3
+}

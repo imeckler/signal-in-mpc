@@ -1,0 +1,9 @@
+name = "retained-receive-export"
+version = "0.1.0"
+defaultTargets = ["emit_retained_receive"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_retained_receive"
+root = "Export"

@@ -1,0 +1,258 @@
+{
+  "llbc_sha256": "65c0e02ff4cc7d0d0e7fba3dfa79c9e98d8730af71d7eee6ebe3abff39d1ba70",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 0,
+    "fun_decls": 6,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 6
+  },
+  "body_kinds": {
+    "Structured": 5,
+    "Opaque": 1
+  },
+  "external_functions": [
+    {
+      "id": 5,
+      "name": "core::num::{impl}::rotate_right",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 503,
+            "col": 8
+          },
+          "end": {
+            "line": 503,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/soft/fixslice64.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/soft.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::soft::fixslice::mix_columns_0"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "aes::soft::fixslice::mix_columns_0",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 993,
+            "col": 8
+          },
+          "end": {
+            "line": 1025,
+            "col": 9
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "aes::soft::fixslice::rotate_rows_1",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1385,
+            "col": 0
+          },
+          "end": {
+            "line": 1387,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "aes::soft::fixslice::rotate_rows_2",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1390,
+            "col": 0
+          },
+          "end": {
+            "line": 1392,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "aes::soft::fixslice::ror_distance",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1380,
+            "col": 0
+          },
+          "end": {
+            "line": 1382,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "aes::soft::fixslice::ror",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1375,
+            "col": 0
+          },
+          "end": {
+            "line": 1377,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "core::num::{impl}::rotate_right",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 503,
+            "col": 8
+          },
+          "end": {
+            "line": 503,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::soft::fixslice::mix_columns_0",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_aes_mix_columns_0.llbc",
+    "--",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "charon_exit_code": 0,
+  "scope_note": "Unchanged portable64-bit AES forward linear operation. Four16byte inputs are encoded into actual8word bitplane state; all512 input bits are secret. ShiftRows additionally has explicit shape-error lemmas.",
+  "modeled_std_functions": [
+    "core::num::{impl}::rotate_right"
+  ],
+  "discarded_metadata_types": [],
+  "discarded_metadata_functions": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/AesMix/Funs.lean": "bd60f7370adb4505d312ddd5232eb215e0c583a03fa623c9322264d126d92e3e",
+    "LibSignalReference/Generated/AesMix/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc"
+  }
+}

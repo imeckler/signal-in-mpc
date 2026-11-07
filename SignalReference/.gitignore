@@ -1,0 +1,12 @@
+.lake/
+Extraction/Incomplete/
+Extraction/libsignal_symmetric_keys*.llbc
+Extraction/libsignal_private_key.llbc
+Extraction/libsignal_sha256_compact*.llbc
+Extraction/libsignal_service_id_decode*.llbc
+Extraction/logs/*.log
+Extraction/Candidates/**/*.llbc
+Extraction/Candidates/**/*.log
+Extraction/Candidates/**/Reference/
+!Extraction/libsignal_sha256_compact.llbc
+!Extraction/libsignal_sha256_compact_reviewed.llbc

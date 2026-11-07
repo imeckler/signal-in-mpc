@@ -1,0 +1,25 @@
+{
+  "accepted_reference": false,
+  "probe_only": true,
+  "source_sha256": "a8e05615a83936385db06ac03dc6805679bcb9c9b94ab54c5953b4bf4cf92d44",
+  "selected_sha256": "940cd4b5d4169f38244d7c27a90f8909b421f1c74264b0e9d132d2c887f23e62",
+  "script_sha256": "481821d15dae2032c20cbbc40e2574bd2d011e7577b2cdf042443b1ae22c0157",
+  "changes_sha256": "b5edac1092b044ecd9ae4ab32a1fb39ac37239952faf2a77538ba645eef4adf8",
+  "reversible_changes": 12,
+  "all_computational_declarations_identical": true,
+  "excluded_computational_roots": [
+    116,
+    120
+  ],
+  "retained_excluded_function_provenance": {
+    "116": "TraitImpl SliceIndex.get_mut(6,1)",
+    "120": "TraitImpl SliceIndex.index_mut(6,5)"
+  },
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "SpqrReference/SharedIndexProbe/Generated/Funs.lean": "e4af884aa588c61672c17f38c0dd8aa162ce15b322f75e89736c8f8bf36ae9aa",
+    "SpqrReference/SharedIndexProbe/Generated/Types.lean": "fc0e3491ce5f3ebf55173d046ce5ce76278f16c262346b176e898953b50bc85b"
+  },
+  "templates": [],
+  "lean_typechecked": false
+}

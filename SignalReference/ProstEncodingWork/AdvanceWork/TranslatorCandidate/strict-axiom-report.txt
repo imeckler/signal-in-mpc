@@ -1,0 +1,46 @@
+'LibSignalReference.Candidate.NeverContinuation.bind_eq_eliminate' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_panic_tail' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.eliminate_failure' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.eliminate_divergence' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_failure' does not depend on any axioms
+'LibSignalReference.Candidate.NeverContinuation.unreachable_tail_preserves_divergence' does not depend on any axioms
+'LibSignalReference.Candidate.NeverRegressionProofs.call_eq' does not depend on any axioms
+'LibSignalReference.Candidate.NeverRegressionProofs.guarded_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.NeverRegressionProofs.call_failure' does not depend on any axioms
+'LibSignalReference.Candidate.NeverRegressionProofs.call_divergence' does not depend on any axioms
+'LibSignalReference.Candidate.NeverRegressionProofs.guarded_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.NeverRegressionProofs.guarded_failure' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.NeverRegressionProofs.guarded_divergence' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.NeverRegressionProofs.actual_panic_call' does not depend on any axioms
+'LibSignalReference.Candidate.SliceAdvance.panic_exact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]
+'LibSignalReference.Candidate.SliceAdvance.advance_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]
+'LibSignalReference.Candidate.SliceAdvance.advance_failure' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]
+'LibSignalReference.Candidate.SliceAdvance.advance_exact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]
+'LibSignalReference.Candidate.SliceAdvance.advance_bytes' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]
+'LibSignalReference.Candidate.SliceAdvance.advance_all' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Aeneas.Std.core.fmt.Formatter]

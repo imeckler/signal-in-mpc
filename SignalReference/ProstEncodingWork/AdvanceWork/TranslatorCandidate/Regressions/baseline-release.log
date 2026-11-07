@@ -1,0 +1,56 @@
+[[92mInfo[39m ] Imported: SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Regressions/regressions.llbc
+[[91mError[39m] evaluate_function_symbolic failed on: aeneas_never_regression::panic_caller
+Unexpected result: Cps.Unit
+Source: 'src/lib.rs', lines 23:0-25:1
+[[91mError[39m] Could not translate the body of function 'aeneas_never_regression::panic_caller because of previous error
+Name pattern: 'aeneas_never_regression::panic_caller'
+Definition span: 'src/lib.rs', lines 23:0-25:1
+Source: 'src/lib.rs', lines 23:0-25:1
+[[91mError[39m] Could not translate the function 'aeneas_never_regression::panic_caller because of previous error.
+Name pattern: 'aeneas_never_regression::panic_caller'
+Definition span: 'src/lib.rs', lines 23:0-25:1
+Source: 'src/lib.rs', lines 23:0-25:1
+[[91mError[39m] evaluate_function_symbolic failed on: aeneas_never_regression::spin_caller
+Unexpected result: Cps.Unit
+Source: 'src/lib.rs', lines 31:0-33:1
+[[91mError[39m] Could not translate the body of function 'aeneas_never_regression::spin_caller because of previous error
+Name pattern: 'aeneas_never_regression::spin_caller'
+Definition span: 'src/lib.rs', lines 31:0-33:1
+Source: 'src/lib.rs', lines 31:0-33:1
+[[91mError[39m] Could not translate the function 'aeneas_never_regression::spin_caller because of previous error.
+Name pattern: 'aeneas_never_regression::spin_caller'
+Definition span: 'src/lib.rs', lines 31:0-33:1
+Source: 'src/lib.rs', lines 31:0-33:1
+[[91mError[39m] evaluate_function_symbolic failed on: aeneas_never_regression::call
+Unexpected result: Cps.Unit
+Source: 'src/lib.rs', lines 7:0-9:1
+[[91mError[39m] Could not translate the body of function 'aeneas_never_regression::call because of previous error
+Name pattern: 'aeneas_never_regression::call'
+Definition span: 'src/lib.rs', lines 7:0-9:1
+Source: 'src/lib.rs', lines 7:0-9:1
+[[91mError[39m] Could not translate the function 'aeneas_never_regression::call because of previous error.
+Name pattern: 'aeneas_never_regression::call'
+Definition span: 'src/lib.rs', lines 7:0-9:1
+Source: 'src/lib.rs', lines 7:0-9:1
+[[91mError[39m] (Infinite) loops which do not contain breaks are not supported yet
+Source: 'src/lib.rs', lines 28:4-28:11
+[[91mError[39m] Could not translate the body of function 'aeneas_never_regression::spin_stop because of previous error
+Name pattern: 'aeneas_never_regression::spin_stop'
+Definition span: 'src/lib.rs', lines 27:0-29:1
+Source: 'src/lib.rs', lines 28:4-28:11
+[[91mError[39m] Could not translate the function 'aeneas_never_regression::spin_stop because of previous error.
+Name pattern: 'aeneas_never_regression::spin_stop'
+Definition span: 'src/lib.rs', lines 27:0-29:1
+Source: 'src/lib.rs', lines 28:4-28:11
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

@@ -1,0 +1,35 @@
+import TlsMpc.Signal.ReceiveSpec
+
+#print axioms TlsMpc.AesInverse.invSbox_forward
+#print axioms TlsMpc.AesInverse.forward_invSbox
+#print axioms TlsMpc.AesInverse.compiled_decryptCore_correct
+#print axioms TlsMpc.Signal.OpenResult.finish_map
+#print axioms TlsMpc.Signal.OpenResult.finish_length
+#print axioms TlsMpc.Signal.OpenResult.finish_reject_auth
+#print axioms TlsMpc.Signal.OpenResult.finish_reject_padding
+#print axioms TlsMpc.Signal.OpenResult.lengthBytes_value
+#print axioms TlsMpc.Signal.OpenResult.compiled_finish_correct
+#print axioms TlsMpc.Signal.CbcOpen.decryptCore_map
+#print axioms TlsMpc.Signal.CbcOpen.openChecked_map
+#print axioms TlsMpc.Signal.CbcOpen.decryptCore_length
+#print axioms TlsMpc.Signal.CbcOpen.openCore_length
+#print axioms TlsMpc.Signal.CbcOpen.compiled_openCore_correct
+#print axioms TlsMpc.Signal.MessageMac.tag_map
+#print axioms TlsMpc.Signal.MessageMac.verifyMask_value
+#print axioms TlsMpc.Signal.MessageMac.tagChecked_map
+#print axioms TlsMpc.Signal.MessageMac.compiled_tag_correct
+#print axioms TlsMpc.Signal.Receive.versionMask_value
+#print axioms TlsMpc.Signal.Receive.serviceKindMask_value
+#print axioms TlsMpc.Signal.Receive.deviceMask_value
+#print axioms TlsMpc.Signal.Receive.openChecked_map
+#print axioms TlsMpc.Signal.Receive.ciphertext_length
+#print axioms TlsMpc.Signal.Receive.openCore_length
+#print axioms TlsMpc.Signal.Receive.reject_bad_mac
+#print axioms TlsMpc.Signal.Receive.reject_bad_version
+#print axioms TlsMpc.Signal.Receive.reject_bad_address
+#print axioms TlsMpc.Signal.Receive.compiled_openCore_correct
+#print axioms TlsMpc.Signal.Receive.expectedAddressMask_value
+#print axioms TlsMpc.Signal.Receive.addressMask_value
+#print axioms TlsMpc.Signal.Receive.authenticatedMask_value
+#print axioms TlsMpc.Signal.Receive.openCore_concrete_correct
+#print axioms TlsMpc.Signal.Receive.compiled_openCore_spec

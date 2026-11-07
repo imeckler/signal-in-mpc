@@ -1,0 +1,104 @@
+{
+  "llbc_sha256": "ec180a2162a7cbacb3931e1288da293d41e6707d417233f883c06a28d859d8ae",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 0,
+    "fun_decls": 1,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 1
+  },
+  "body_kinds": {
+    "Structured": 1
+  },
+  "external_functions": [],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "entry_patterns": [
+    "crate::scalar::clamp_integer"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "curve25519_dalek::scalar::clamp_integer",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 1407,
+            "col": 0
+          },
+          "end": {
+            "line": 1412,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::scalar::clamp_integer",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_clamp.llbc",
+    "--",
+    "--package",
+    "curve25519-dalek@5.0.0",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 0,
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/Clamp/Funs.lean": "265b432ee7968c53a81246a75cb92fbe36141e4630ba696d1b6db7fceed01c2f",
+    "LibSignalReference/Generated/Clamp/Types.lean": "927ff7d8a524352460541681794596d51c9f494f73c9eff468c520fa7564e801"
+  },
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/scalar.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    }
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  }
+}

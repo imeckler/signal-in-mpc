@@ -1,0 +1,24 @@
+--- official/Aeneas/Std/Slice.lean
++++ candidate/Aeneas/Std/Slice.lean
+@@ -360,8 +360,9 @@
+   {T : Type} {I : Type} {Output : Type}
+   (SliceIndexInst : core.slice.index.SliceIndex I (Slice T) Output)
+   (s : Slice T) (i : I) : Result Output :=
+-  -- TODO: we should actually use the `SliceIndexInst.get_unchecked` method
+-  sorry
++  -- Candidate extension: checked indexing agrees with unsafe indexing on
++  -- valid indices. No semantics is claimed for Rust's out-of-bounds UB case.
++  SliceIndexInst.index i s
+ 
+ @[rust_fun "core::slice::{[@T]}::get_mut"]
+ def core.slice.Slice.get_mut
+@@ -567,7 +568,8 @@
+   (h : i.val < s.length) :
+   core.slice.Slice.get_unchecked  (core.slice.index.SliceIndexUsizeSlice T) s i
+   ⦃ x => x = s[i] ⦄ := by
+-  sorry
++  simpa only [core.slice.Slice.get_unchecked, core.slice.index.SliceIndexUsizeSlice,
++    core.slice.index.Usize.index, Slice.getElem_Usize_eq] using (Slice.index_usize_spec s i h)
+ 
+ @[rust_fun "core::slice::{[@T]}::copy_from_slice"]
+ def core.slice.Slice.copy_from_slice {T : Type} (_ : core.marker.Copy T)

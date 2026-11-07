@@ -16,6 +16,10 @@ def main():
     preparation=json.loads((ROOT/'SignalReference/TinierWork/preparation.json').read_text())
     assert digest(backend/'CONFIG.mine')==preparation['config_candidate_sha256']
     for name,sha in preparation['source_sha256'].items():assert digest(backend/name)==sha,name
+    built=json.loads((ROOT/'SignalReference/TinierWork/build-report.json').read_text())
+    assert built['build_complete'] and built['statistical_security_parameter']==128
+    for name,sha in built['input_sha256'].items():assert digest(ROOT/name)==sha,name
+    for name,sha in built['binary_sha256'].items():assert digest(ROOT/name)==sha,name
     profiles=[] if args.send_only else [('receiver-store','signal-receiver-store-lookup-5-2',1),('keccak','signal-keccak-sha3-512-64-64',1)]
     profiles += [(category,name,batch) for category,name in [('chain-send','signal-chain-send-17-5-5-2-present'),('spqr-send','signal-spqr-send-17-5-2-10-5-3-present-present')] for batch in (1,16)]
     results=[];output=ROOT/'benchmarks/results/raw/signal-tinier128';output.mkdir(parents=True,exist_ok=True)

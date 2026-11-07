@@ -1,0 +1,2574 @@
+{
+  "checked_at_utc": "2026-11-06T21:32:30.418184+00:00",
+  "operation_refinement_checked": true,
+  "canonical_reference_integrated": true,
+  "selected_operation": "actual locked sha2 0.11.0 soft::compact::compress_u32",
+  "domain": "every eight-word u32 state and sixteen-word u32 block; success and all output bits",
+  "additional_trusted_extraction_step": "MetadataWork/trim_step_metadata.py, independently reviewed exact dead-dictionary-field filtering",
+  "metadata_review": {
+    "accepted_reference": false,
+    "canonical_reference_output": true,
+    "additional_trusted_step": true,
+    "transformation_correctness_mechanized": false,
+    "original_llbc_sha256": "11e3f1c44261dc5d56f21ea81dc816f65968798d7f92960bd71f9e0a60067a10",
+    "normalized_llbc_sha256": "dce5ac1c04be3ac595c8ab51cc8e8a14f84e2f176fae1da4a89ae64251c3fd1d",
+    "changes": [
+      {
+        "path": [
+          "translated",
+          "trait_decls",
+          1,
+          "methods",
+          2
+        ],
+        "before": {
+          "params": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "skip_binder": {
+            "name": "forward_overflowing",
+            "item_meta": {
+              "name": [
+                {
+                  "Ident": [
+                    "core",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "iter",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "range",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "Step",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "forward_overflowing",
+                    0
+                  ]
+                }
+              ],
+              "span": {
+                "data": {
+                  "file_id": 12,
+                  "beg": {
+                    "line": 92,
+                    "col": 4
+                  },
+                  "end": {
+                    "line": 92,
+                    "col": 70
+                  }
+                },
+                "generated_from_span": null
+              },
+              "source_text": null,
+              "attr_info": {
+                "attributes": [
+                  {
+                    "DocComment": " Returns the value that would be obtained by taking the *successor*"
+                  },
+                  {
+                    "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+                  },
+                  {
+                    "DocComment": " occurred."
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " If this would overflow the range of values supported by `Self`, the"
+                  },
+                  {
+                    "DocComment": " value returned is unspecified and should not be relied on, though"
+                  },
+                  {
+                    "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+                  },
+                  {
+                    "DocComment": " implementation to enable optimizations."
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " # Invariants"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::forward_overflowing(Step::forward_overflowing(a, n).0, m) == Step::forward_overflowing(a, n + m)`"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a` and `n`, where no overflow occurs:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::forward_overflowing(a, n) == (Step::forward_checked(a, n).unwrap(), false)`"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a` and `n`:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::forward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::forward_overflowing(x, 1); (s, y || o) })`"
+                  },
+                  {
+                    "DocComment": "   * Corollary: `Step::forward_overflowing(a, 0) == (a, false)`"
+                  }
+                ],
+                "inline": null,
+                "rename": null,
+                "public": true
+              },
+              "is_local": false,
+              "opacity": "Foreign",
+              "lang_item": null,
+              "diagnostic_item": null
+            },
+            "signature": {
+              "is_unsafe": false,
+              "abi": "Rust",
+              "is_variadic": false,
+              "inputs": [
+                {
+                  "Deduplicated": 6768
+                },
+                {
+                  "Deduplicated": 497
+                }
+              ],
+              "output": {
+                "HashConsedValue": [
+                  6783,
+                  {
+                    "Adt": {
+                      "id": {
+                        "Builtin": "Tuple"
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Deduplicated": 6768
+                          },
+                          {
+                            "Deduplicated": 623
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "default": null
+          },
+          "kind": {
+            "TraitMethod": [
+              1,
+              2
+            ]
+          }
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "trait_impls",
+          2,
+          "methods",
+          2
+        ],
+        "before": {
+          "params": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "skip_binder": {
+            "id": 96,
+            "generics": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "kind": {
+            "TraitMethod": [
+              1,
+              2
+            ]
+          }
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "fun_decls",
+          96
+        ],
+        "before": {
+          "def_id": 96,
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "range",
+                  0
+                ]
+              },
+              {
+                "Impl": {
+                  "Trait": 2
+                }
+              },
+              {
+                "Ident": [
+                  "forward_overflowing",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 12,
+                "beg": {
+                  "line": 348,
+                  "col": 16
+                },
+                "end": {
+                  "line": 348,
+                  "col": 77
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [],
+              "inline": "Hint",
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "generics": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Deduplicated": 497
+              },
+              {
+                "Deduplicated": 497
+              }
+            ],
+            "output": {
+              "HashConsedValue": [
+                626,
+                {
+                  "Adt": {
+                    "id": {
+                      "Builtin": "Tuple"
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Deduplicated": 497
+                        },
+                        {
+                          "Deduplicated": 623
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "src": {
+            "TraitImpl": {
+              "impl_ref": {
+                "id": 2,
+                "generics": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              },
+              "trait_ref": {
+                "id": 1,
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Deduplicated": 497
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              },
+              "item_id": 2,
+              "reuses_default": true
+            }
+          },
+          "body": "Opaque"
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "trait_decls",
+          1,
+          "methods",
+          6
+        ],
+        "before": {
+          "params": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "skip_binder": {
+            "name": "backward_overflowing",
+            "item_meta": {
+              "name": [
+                {
+                  "Ident": [
+                    "core",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "iter",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "range",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "Step",
+                    0
+                  ]
+                },
+                {
+                  "Ident": [
+                    "backward_overflowing",
+                    0
+                  ]
+                }
+              ],
+              "span": {
+                "data": {
+                  "file_id": 12,
+                  "beg": {
+                    "line": 187,
+                    "col": 4
+                  },
+                  "end": {
+                    "line": 187,
+                    "col": 71
+                  }
+                },
+                "generated_from_span": null
+              },
+              "source_text": null,
+              "attr_info": {
+                "attributes": [
+                  {
+                    "DocComment": " Returns the value that would be obtained by taking the *successor*"
+                  },
+                  {
+                    "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+                  },
+                  {
+                    "DocComment": " occurred."
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " If this would overflow the range of values supported by `Self`, the"
+                  },
+                  {
+                    "DocComment": " value returned is unspecified and should not be relied on, though"
+                  },
+                  {
+                    "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+                  },
+                  {
+                    "DocComment": " implementation to enable optimizations."
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " # Invariants"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::backward_overflowing(Step::backward_overflowing(a, n).0, m) == Step::backward_overflowing(a, n + m)`"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a` and `n`, where no overflow occurs:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::backward_overflowing(a, n) == (Step::backward_checked(a, n).unwrap(), false)`"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " For any `a` and `n`:"
+                  },
+                  {
+                    "DocComment": ""
+                  },
+                  {
+                    "DocComment": " * `Step::backward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::backward_overflowing(x, 1); (s, y || o) })`"
+                  },
+                  {
+                    "DocComment": "   * Corollary: `Step::backward_overflowing(a, 0) == (a, false)`"
+                  }
+                ],
+                "inline": null,
+                "rename": null,
+                "public": true
+              },
+              "is_local": false,
+              "opacity": "Foreign",
+              "lang_item": null,
+              "diagnostic_item": null
+            },
+            "signature": {
+              "is_unsafe": false,
+              "abi": "Rust",
+              "is_variadic": false,
+              "inputs": [
+                {
+                  "Deduplicated": 6768
+                },
+                {
+                  "Deduplicated": 497
+                }
+              ],
+              "output": {
+                "Deduplicated": 6783
+              }
+            },
+            "default": null
+          },
+          "kind": {
+            "TraitMethod": [
+              1,
+              6
+            ]
+          }
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "trait_impls",
+          2,
+          "methods",
+          6
+        ],
+        "before": {
+          "params": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "skip_binder": {
+            "id": 100,
+            "generics": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "kind": {
+            "TraitMethod": [
+              1,
+              6
+            ]
+          }
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "fun_decls",
+          100
+        ],
+        "before": {
+          "def_id": 100,
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "range",
+                  0
+                ]
+              },
+              {
+                "Impl": {
+                  "Trait": 2
+                }
+              },
+              {
+                "Ident": [
+                  "backward_overflowing",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 12,
+                "beg": {
+                  "line": 357,
+                  "col": 16
+                },
+                "end": {
+                  "line": 357,
+                  "col": 78
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [],
+              "inline": "Hint",
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "generics": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_clauses": [],
+            "regions_outlive": [],
+            "types_outlive": [],
+            "trait_type_constraints": []
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Deduplicated": 497
+              },
+              {
+                "Deduplicated": 497
+              }
+            ],
+            "output": {
+              "Deduplicated": 626
+            }
+          },
+          "src": {
+            "TraitImpl": {
+              "impl_ref": {
+                "id": 2,
+                "generics": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              },
+              "trait_ref": {
+                "id": 1,
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Deduplicated": 497
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              },
+              "item_id": 6,
+              "reuses_default": true
+            }
+          },
+          "body": "Opaque"
+        },
+        "after": null
+      },
+      {
+        "path": [
+          "translated",
+          "ordered_decls"
+        ],
+        "before": [
+          {
+            "TraitDecl": {
+              "NonRec": 5
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 129
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 4
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 20
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 27
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 1
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 19
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 141
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 8
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 130
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 5
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 100
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 96
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 99
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 95
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 94
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 2
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 0
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 0
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 2
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 4
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 3
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 103
+            }
+          },
+          {
+            "Global": {
+              "NonRec": 0
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 0
+            }
+          }
+        ],
+        "after": [
+          {
+            "TraitDecl": {
+              "NonRec": 5
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 129
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 4
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 20
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 27
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 1
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 19
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 141
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 8
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 130
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 5
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 99
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 95
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 94
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 2
+            }
+          },
+          {
+            "Type": {
+              "NonRec": 0
+            }
+          },
+          {
+            "TraitDecl": {
+              "NonRec": 0
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 2
+            }
+          },
+          {
+            "TraitImpl": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 1
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 4
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 3
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 103
+            }
+          },
+          {
+            "Global": {
+              "NonRec": 0
+            }
+          },
+          {
+            "Fun": {
+              "NonRec": 0
+            }
+          }
+        ]
+      }
+    ],
+    "all_other_json_values_identical": true,
+    "all_structured_bodies_identical": true,
+    "removed_functions_are_opaque_and_unreferenced_in_retained_semantic_graph": true,
+    "reviewed_input_sha256": "5491dec2d5420ab993363eec31c8097d28bf4a61420c2ffd3a371d6de0e128eb",
+    "reviewed_input_fingerprint": "3514ab7abd8a8e37ce5abc87d1a172e6c9f782f29443d797c1708bf14cf11aac",
+    "fingerprint_normalization": "Sort only diagnostic short_names by key before JSON serialization; no input or output LLBC field is reordered by this validation.",
+    "independent_review": "Parent helper inspected exact diff, all retained semantic JSON including globals/function pointers, and official Aeneas range model; no dependency on removed fields found.",
+    "no_dangling_hashcons_references": true,
+    "rust_source_changes": [],
+    "aeneas_exit_code": 0,
+    "command": [
+      "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+      "-backend",
+      "lean",
+      "$WORKSPACE/SignalReference/Extraction/libsignal_sha256_compact_reviewed.llbc",
+      "-dest",
+      "$WORKSPACE/SignalReference",
+      "-subdir",
+      "/LibSignalReference/Generated/Sha256Compact",
+      "-split-files",
+      "-namespace",
+      "RustCryptoSha256Compact",
+      "-warnings-as-errors",
+      "-no-progress-bar"
+    ],
+    "generated_files": {
+      "LibSignalReference/Generated/Sha256Compact/Funs.lean": "fadb959831d787aac68ecec67586d66c2548f2a907964514c2c7bf4714ca9868",
+      "LibSignalReference/Generated/Sha256Compact/Types.lean": "c9a9c5a5ea626d89fc3188ead877fb9ba7741bad51dd941cbb86c1834d041ad3"
+    },
+    "remaining_external_templates": [],
+    "script_sha256": "f1f5d7ba840086326436f711b34b98112266e3c75475d019fe000b10c03991fc"
+  },
+  "normalized_llbc_inventory": {
+    "llbc_sha256": "dce5ac1c04be3ac595c8ab51cc8e8a14f84e2f176fae1da4a89ae64251c3fd1d",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 34,
+      "fun_decls": 13,
+      "global_decls": 1,
+      "trait_decls": 24,
+      "trait_impls": 10,
+      "ordered_decls": 26
+    },
+    "body_kinds": {
+      "Structured": 2,
+      "Opaque": 11
+    },
+    "external_functions": [
+      {
+        "id": 1,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::iter::range::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 1184,
+              "col": 4
+            },
+            "end": {
+              "line": 1184,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "core::num::{impl}::wrapping_add",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 2651,
+              "col": 8
+            },
+            "end": {
+              "line": 2651,
+              "col": 58
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "core::num::{impl}::rotate_right",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 503,
+              "col": 8
+            },
+            "end": {
+              "line": 503,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 94,
+        "name": "core::iter::range::{impl}::steps_between",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 321,
+              "col": 16
+            },
+            "end": {
+              "line": 321,
+              "col": 84
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 95,
+        "name": "core::iter::range::{impl}::forward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 332,
+              "col": 16
+            },
+            "end": {
+              "line": 332,
+              "col": 73
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 99,
+        "name": "core::iter::range::{impl}::backward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 340,
+              "col": 16
+            },
+            "end": {
+              "line": 340,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 129,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 25,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 130,
+        "name": "core::cmp::impls::{impl}::partial_cmp",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 47,
+            "beg": {
+              "line": 2275,
+              "col": 16
+            },
+            "end": {
+              "line": 2275,
+              "col": 71
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 141,
+        "name": "core::cmp::impls::{impl}::eq",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 47,
+            "beg": {
+              "line": 2153,
+              "col": 16
+            },
+            "end": {
+              "line": 2153,
+              "col": 50
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 54,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 4,
+        "name": "core::array::iter::IntoIter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 20,
+              "col": 0
+            },
+            "end": {
+              "line": 20,
+              "col": 38
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "core::num::nonzero::NonZero",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 112,
+              "col": 0
+            },
+            "end": {
+              "line": 112,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "core::iter::adapters::step_by::StepBy",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 21,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "core::iter::adapters::chain::Chain",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 23,
+            "beg": {
+              "line": 23,
+              "col": 0
+            },
+            "end": {
+              "line": 23,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "core::iter::adapters::zip::Zip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 24,
+            "beg": {
+              "line": 13,
+              "col": 0
+            },
+            "end": {
+              "line": 13,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "core::iter::adapters::intersperse::Intersperse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 26,
+            "beg": {
+              "line": 9,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::iter::adapters::intersperse::IntersperseWith",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 26,
+            "beg": {
+              "line": 83,
+              "col": 0
+            },
+            "end": {
+              "line": 83,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::iter::adapters::map::Map",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 61,
+              "col": 0
+            },
+            "end": {
+              "line": 61,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::iter::adapters::filter::Filter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 29,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "core::iter::adapters::filter_map::FilterMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::iter::adapters::enumerate::Enumerate",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 31,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "core::iter::adapters::peekable::Peekable",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 32,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "core::iter::adapters::skip_while::SkipWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::iter::adapters::take_while::TakeWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 34,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::iter::adapters::map_while::MapWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 35,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::iter::adapters::skip::Skip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 36,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::iter::adapters::take::Take",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 37,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::iter::adapters::scan::Scan",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 38,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::iter::adapters::flatten::FlatMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 39,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 41
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::iter::adapters::flatten::Flatten",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 39,
+            "beg": {
+              "line": 184,
+              "col": 0
+            },
+            "end": {
+              "line": 184,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 24,
+        "name": "core::iter::adapters::map_windows::MapWindows",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 40,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "core::iter::adapters::fuse::Fuse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 41,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 26,
+        "name": "core::iter::adapters::inspect::Inspect",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 42,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 28,
+        "name": "core::iter::adapters::rev::Rev",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 48,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 17
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 29,
+        "name": "core::iter::adapters::copied::Copied",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 49,
+            "beg": {
+              "line": 19,
+              "col": 0
+            },
+            "end": {
+              "line": 19,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 30,
+        "name": "core::iter::adapters::cloned::Cloned",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 50,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 31,
+        "name": "core::iter::adapters::cycle::Cycle",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 19
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 32,
+        "name": "core::iter::adapters::array_chunks::ArrayChunks",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 52,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 34,
+        "name": "core::num::niche_types::NonZeroUsizeInner",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 54,
+            "beg": {
+              "line": 20,
+              "col": 8
+            },
+            "end": {
+              "line": 20,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/sha256/soft/compact.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/sha256/soft.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "src/sha256.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/range.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/rustc/library/core/src/option.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/range.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/num/uint_macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/rustc/library/core/src/num/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "src/consts.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/core/src/array/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/core/src/array/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/num/nonzero.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 34,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 35,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 36,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 37,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 38,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 39,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 40,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 41,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 42,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 43,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/try_trait.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 44,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 45,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 46,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 47,
+        "name": {
+          "Local": "/rustc/library/core/src/cmp.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 48,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 49,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 50,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 51,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 52,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 53,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 54,
+        "name": {
+          "Local": "/rustc/library/core/src/num/niche_types.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 55,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/control_flow.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::sha256::soft::compact::compress_u32"
+    ],
+    "selected_functions": [
+      {
+        "id": 0,
+        "name": "sha2::sha256::soft::compact::compress_u32",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 3,
+              "col": 0
+            },
+            "end": {
+              "line": 51,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 1,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::iter::range::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 1184,
+              "col": 4
+            },
+            "end": {
+              "line": 1184,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "core::num::{impl}::wrapping_add",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 2651,
+              "col": 8
+            },
+            "end": {
+              "line": 2651,
+              "col": 58
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "core::num::{impl}::rotate_right",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 503,
+              "col": 8
+            },
+            "end": {
+              "line": 503,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 94,
+        "name": "core::iter::range::{impl}::steps_between",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 321,
+              "col": 16
+            },
+            "end": {
+              "line": 321,
+              "col": 84
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 95,
+        "name": "core::iter::range::{impl}::forward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 332,
+              "col": 16
+            },
+            "end": {
+              "line": 332,
+              "col": 73
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 99,
+        "name": "core::iter::range::{impl}::backward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 340,
+              "col": 16
+            },
+            "end": {
+              "line": 340,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 103,
+        "name": "sha2::consts::K32",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 37,
+              "col": 0
+            },
+            "end": {
+              "line": 46,
+              "col": 2
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 129,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 25,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 130,
+        "name": "core::cmp::impls::{impl}::partial_cmp",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 47,
+            "beg": {
+              "line": 2275,
+              "col": 16
+            },
+            "end": {
+              "line": 2275,
+              "col": 71
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 141,
+        "name": "core::cmp::impls::{impl}::eq",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 47,
+            "beg": {
+              "line": 2153,
+              "col": 16
+            },
+            "end": {
+              "line": 2153,
+              "col": 50
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 54,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "checked_theorems": [
+    "TlsMpc.Signal.ShaCompact.schedule_map",
+    "TlsMpc.Signal.ShaCompact.run_map",
+    "TlsMpc.Signal.ShaCompact.compress_map",
+    "TlsMpc.Signal.ShaCompact.bytes_map",
+    "TlsMpc.Signal.ShaCompact.compiled_bytes_correct",
+    "LibSignalReference.Proofs.ShaCompact.range_next",
+    "LibSignalReference.Proofs.ShaCompact.range_done",
+    "LibSignalReference.Proofs.ShaCompact.k32_value",
+    "LibSignalReference.Proofs.ShaCompact.k32_get",
+    "LibSignalReference.Proofs.ShaCompact.body_spec",
+    "LibSignalReference.Proofs.ShaCompact.loop_spec",
+    "LibSignalReference.Proofs.ShaCompact.compress_spec",
+    "LibSignalReference.Proofs.ShaCompact.compress_all_arrays",
+    "LibSignalReference.Proofs.ShaCompact.compress_refines_artifact",
+    "LibSignalReference.Proofs.ShaCompact.Equivalence.run_eq_rounds",
+    "LibSignalReference.Proofs.ShaCompact.Equivalence.compact_eq_root",
+    "LibSignalReference.Proofs.ShaCompact.compress_root_all_arrays",
+    "LibSignalReference.Proofs.ShaCompact.compress_root_refines_artifact"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_crypto_models": [],
+  "custom_axioms": [],
+  "rust_source_patches": [],
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+    "Aeneas/Std/Core/Cmp.lean": "b64a9392415ecd58fc9d150230489758aeacb70169836c0cd78863652c762032",
+    "Aeneas/Std/Array/Array.lean": "09ef16897a42cf3f80772067ef11f643f840a7f726b2426aabf29fefa602097e",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/CloneCopy.lean": "dd16eef7d36a6f88cc5b958ab490b1e3c6974bdca0c345ded147ef73dda0e38a",
+    "Aeneas/Std/Scalar/EqOrd.lean": "8a1b8107282a7a291e1d0b71f83256b66985fcedbafaf3e53be98007afaf53ed",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Scalar/Ops/Sub.lean": "bd6716dad017ce0c0e9cf9084f9223eb5407ece920853ae7675cbe2362dd5e37",
+    "Aeneas/Std/Scalar/Ops/Rem.lean": "b000ee67e059504dbe839b2cd3f35222d364e078d0b184ab373a67658cd2a580",
+    "Aeneas/Std/Scalar/Rotate.lean": "84ffebeece1158aba9cd5648f2ac56b78aedc108b69a523b0a6063dd2716e7d3",
+    "Aeneas/Std/Scalar/WrappingOps/Add.lean": "6b20fc30c237b8bfac99f9cd1e45f8150edcaabe4c62fdca5b0ceeb3a4a9b1a4",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c",
+    "Aeneas/Std/WP.lean": "7fd5d098f2c0cdae53379d95b63e66c7d98239ec37201c8ea296b6f023cd162f"
+  },
+  "sources_sha256": {
+    "TlsMpc/Signal/ShaCompact.lean": "db4942c208df946c88d6c43ae40fbd73859f0cd2f9f1ccca826a9329b07d5485",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583",
+    "SignalReference/MetadataWork/trim_step_metadata.py": "f1f5d7ba840086326436f711b34b98112266e3c75475d019fe000b10c03991fc",
+    "SignalReference/LibSignalReference/Generated/Sha256Compact/Types.lean": "c9a9c5a5ea626d89fc3188ead877fb9ba7741bad51dd941cbb86c1834d041ad3",
+    "SignalReference/LibSignalReference/Generated/Sha256Compact/Funs.lean": "fadb959831d787aac68ecec67586d66c2548f2a907964514c2c7bf4714ca9868",
+    "SignalReference/LibSignalReference/Proofs/ShaCompactReference.lean": "722a02d848bcc52126d61f793aaf75f9747635d3e0b7f41d3157f90859a9a72f",
+    "SignalReference/LibSignalReference/Proofs/ShaCompactCompression.lean": "f84ef00162cf2abf938dc0087c889057f51d1e826a2ba6fef7a5609af8d81e1a",
+    "SignalReference/LibSignalReference/Proofs/ShaCompact.lean": "dbfb1681bc97556cce96bdcf4a2b6128cf71bff5ac756170c49223d45db62294",
+    "SignalReference/LibSignalReference/Proofs/ShaCompactEquivalence.lean": "ccd0db08aef0ba4474cb8bc29c1b3e0b56d82e9d3e08f50e253f734103155174",
+    "SignalReference/ShaCompactWork/check.py": "8b696acf714651087a2f45a72b81fd3067e700d5ef7580837b0daf032063a93f",
+    "SignalReference/ShaCompactWork/Export.lean": "40179c40cb3d86075b35cc743e782bfd37fb667d01c04198ece3f65f855df3cf"
+  },
+  "artifact_sha256": "524b00e877b5dd2f505117d379639561d9aa95ed631ddc929962b72888a54cbb",
+  "export_seconds": 1.378627583035268,
+  "fixture_lanes": 45,
+  "all_outputs_match": true,
+  "oracle": "OpenSSL 3.6.4 25 Aug 2026 SHA256_Transform; 9 padded cases also checked against hashlib.sha256",
+  "libcrypto_sha256": "bae675614cd791d37ec35416ea9f87edcc85407d020810504cf458119b63522c",
+  "adapter_statistics": {
+    "raw_and_gates": 192416,
+    "executed_and_gates": 59759,
+    "executed_xor_gates": 55549,
+    "unreachable_nodes": 77109
+  },
+  "backend_bytecode_compiled": false,
+  "native_mpc_executed": false,
+  "whole_sha_digest_hmac_hkdf_refinement_established": false,
+  "root_full_list_sha_compression_equivalence_established": true,
+  "root_full_digest_hmac_wrapper_equivalence_established": false
+}

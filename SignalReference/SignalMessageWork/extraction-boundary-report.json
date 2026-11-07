@@ -1,0 +1,44 @@
+{
+  "profiles": [
+    {
+      "profile": "WireEncode",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 0,
+      "remaining_external_templates": [
+        "FunsExternal_Template.lean",
+        "TypesExternal_Template.lean"
+      ],
+      "has_errors": false,
+      "llbc_sha256": "b52f0c21d4e6331c6420d2f1a3b2d378039c29641c04f9fd1a7a968312fed6d7",
+      "inventory_sha256": "5932c9479affd33df14a517de34ef458696def2cd8b114bf21b463be0bb88b28",
+      "accepted_reference": false
+    },
+    {
+      "profile": "WireEncodeFields",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "remaining_external_templates": [],
+      "has_errors": false,
+      "llbc_sha256": "36263f1448dc265ae6054f877a3c9ab9067085057b94367b85be46e469f6efa4",
+      "inventory_sha256": "ab86ab5c2876a3537cfe3783a9a04af5b4a39d7b88f9fa00c9bb0dd869cb8ff2",
+      "accepted_reference": false
+    },
+    {
+      "profile": "WireEncodeFieldsFull",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "remaining_external_templates": [],
+      "has_errors": false,
+      "llbc_sha256": "14eee37b2608edb04ad29c14207c7c4acf8d7e58c21a9d8af9039fe1de5c6631",
+      "inventory_sha256": "705daf4a9c96daf611a46314fc96936e5a7b3a55803d3901e6da7cdf06dc2051",
+      "accepted_reference": false
+    }
+  ],
+  "source_substitution": false,
+  "source_patches": [],
+  "actual_signalmessage_constructor_refinement": false,
+  "script_sha256": "8db43b6948950259499854ee7c49ae72cba143ed24b103e30151169769cd2d05",
+  "blocked_call": "bytes::Buf for &[u8]::advance: Unexpected result: Cps.Unit",
+  "unused_metadata_obligation": "Vec default supertrait reaches unsupported Alignment\u2192NonNull transmute; Step overflow slots mismatch",
+  "next_composition": "Selected actual generic varint and Vec put_slice proofs do not discharge BytesAdapter.append_to via Vec.put."
+}

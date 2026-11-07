@@ -1,0 +1,47 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "independent_review": "pending",
+  "original_sha256": "51a0baeaba1a94c79c6ef533daa82eeb986976ae5a3d8b2b208b973c23efad8b",
+  "selected_sha256": "774e6ccb883a87e8c243474991d5bd8e79c3d0f2ddd998780962b5c18488a2a0",
+  "script_sha256": "d314e125d79367012aa903d6a1baa44a229650f2c34bdacfdb149cd00af37227",
+  "changes_sha256": "40f55d35ca2f6523bcbeb2d291c4b6ea27ab73a6b830689e4f662e0a3274875b",
+  "reversible_changes": 10,
+  "unchanged_computational_declarations": [
+    0,
+    1,
+    2,
+    7,
+    48,
+    50,
+    146,
+    257,
+    258,
+    287,
+    288
+  ],
+  "unused_put_slice_and_uninit_declarations_retained": true,
+  "additional_trusted_preprocessing": true,
+  "source_patches": [],
+  "aeneas_exit_code": 0,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/SignalMessageWork/BytesFieldWork/Selected/selected.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/SignalMessageWork/BytesFieldWork/GeneratedSelected",
+    "-split-files",
+    "-namespace",
+    "ProstBytesField",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {
+    "SignalMessageWork/BytesFieldWork/GeneratedSelected/Funs.lean": "7826fb96a970a32dc76061de5d80f9c7351506903f5621d918a8faecab87b683",
+    "SignalMessageWork/BytesFieldWork/GeneratedSelected/Types.lean": "d5f8754746e0d68870af3cc682cf24066fe2953b520a6ac0ff7d4e6428e9f3de"
+  },
+  "remaining_external_templates": []
+}

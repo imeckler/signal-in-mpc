@@ -1,0 +1,43 @@
+{
+  "checked_at_utc": "2026-11-06T20:25:28.344478+00:00",
+  "accepted_reference": true,
+  "reference_inventory": "Artifacts/RawSliceIteratorFullMir/inventory.json",
+  "review": "review.json",
+  "sysroot_provenance": "sysroot-provenance.json",
+  "checked_theorems": 12,
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "proof_sources_sha256": {
+    "PaddingWork/Unpad/Generated/RawSliceIteratorFullMir/Funs.lean": "a57662bbfd02f0e3c77769f9fe6284866bc58b45c40ad41e9df171c7ad8af1df",
+    "PaddingWork/Unpad/Generated/RawSliceIteratorFullMir/Types.lean": "afbbb76200ccd73d69d681568c18232843e39788c7c0c6a9352e48dec73dc30b",
+    "PaddingWork/Unpad/Circuit.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "PaddingWork/Unpad/Proofs.lean": "83a16712ee59eb8787096ff680c8c3aa74692c8acba5eb6bd2581e072d464032",
+    "PaddingWork/Unpad/Bridge.lean": "5a37b9ebb56d44f2c06d2a6541f9b42bef28c09158047f2202431a6bede8821a"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Slice.lean": "a2f7fc40f76f37b54b4307f78cd78dfa1cf849252bd4220f40e6b1d52c054223",
+    "Aeneas/Std/SliceIter.lean": "44d29a5d2cd24a85249c79313fb5a0beaa89a0aec09725c6ac2f75644b2f5e92",
+    "Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Casts.lean": "fd709a15b1e66431b788bf2838b79ac662d4c2afd38acbcde078b775c8f1e668",
+    "Aeneas/Std/Scalar/Ops/Sub.lean": "bd6716dad017ce0c0e9cf9084f9223eb5407ece920853ae7675cbe2362dd5e37",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c",
+    "Aeneas/Std/WP.lean": "7fd5d098f2c0cdae53379d95b63e66c7d98239ec37201c8ea296b6f023cd162f"
+  },
+  "root_semantics_sha256": {
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434"
+  },
+  "all_input_bytes_proved": true,
+  "input_length_bytes": 16,
+  "output_length_bytes": 18,
+  "all_outputs_secret": true,
+  "output_encoding_injective": true,
+  "whole_cbc_refinement_established": false,
+  "authenticated_release_composition_established": false
+}

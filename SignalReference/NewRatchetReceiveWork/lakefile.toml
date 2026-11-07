@@ -1,0 +1,9 @@
+name = "new-ratchet-receive-export"
+version = "0.1.0"
+defaultTargets = ["emit_new_ratchet_receive"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_new_ratchet_receive"
+root = "Export"

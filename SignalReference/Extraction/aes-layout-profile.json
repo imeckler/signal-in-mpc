@@ -1,0 +1,28 @@
+{
+  "package": "aes@0.9.1",
+  "starts": [
+    "crate::soft::fixslice::bitslice"
+  ],
+  "extra": [],
+  "subdir": "AesLayout",
+  "namespace": "RustCryptoAesLayout",
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "expected_functions": 12,
+  "expected_generated_functions": 3,
+  "modeled_std_functions": [
+    "core::slice::{impl}::len",
+    "core::slice::index::{impl}::index",
+    "core::convert::num::{impl}::from",
+    "core::slice::index::{impl}::get",
+    "core::slice::index::{impl}::get_mut",
+    "core::slice::index::{impl}::get_unchecked",
+    "core::slice::index::{impl}::get_unchecked_mut",
+    "core::slice::index::{impl}::index",
+    "core::slice::index::{impl}::index_mut"
+  ],
+  "discarded_metadata_types": [
+    "core::fmt::Arguments"
+  ],
+  "scope_note": "Unchanged portable64-bit software bitslice, actual read_reordered and delta_swap_2. Circuit domain is four16byte inputs and8word output; all512 secret bits. Other shapes retain generated guards but are outside this circuit theorem."
+}

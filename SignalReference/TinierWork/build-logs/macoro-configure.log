@@ -1,0 +1,21 @@
+
+Options
+---------------------------
+CMAKE_BUILD_TYPE       = Release	  ~ build type
+MACORO_NO_SYSTEM_PATH  = 	  ~ do not look in system paths for dependencies
+MACORO_FETCH_AUTO      = OFF	  ~ automatically fetch dependencies as needed
+MACORO_FETCH_OPTIONAL  = OFF  	  ~ fetch optional-lite
+MACORO_FETCH_VARIANT   = OFF  	  ~ fetch variant-lite
+MACORO_CPP_VER         = 20	  ~ cpp standard version
+MACORO_OPTIONAL_LITE   =OFF	  ~ use optional lite
+MACORO_VARIANT_LITE    =OFF	  ~ use variant lite
+MACORO_PIC             =ON	  ~ compile with -fPIC on unix
+MACORO_ASAN            =OFF	  ~ compile with asan
+MACORO_TESTS           =OFF	  ~ compile the tests and frontend
+---------------------------
+
+-- Option: MACORO_STAGE = /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/macoro/out/install/osx
+adding stop_token impl, OFF
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/macoro

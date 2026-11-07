@@ -1,0 +1,22 @@
+{
+  "accepted_reference": true,
+  "accepted_scope": "Actual pinned spqr1.6.0 encode_varint and MAX_VARINT_BYTES_LEN, through unchanged official Range/StepUsize/Vec.push models; uint64/uint32 circuit bridges on canonical-width and explicit model buffer-size domain.",
+  "spqr_commit": "06959b4708f9b7b1e94d0f8cc835f3958c077e94",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "reviewer": "/root/signal_lean_aeneas",
+  "proof_report": "SignalReference/SpqrReference/proof-report.json",
+  "proof_report_sha256": "36123b2a0361ae3aeb5ba07b6d25d3d150ee64137ca05fb004c7c6469dc81e6b",
+  "independent_review": "SignalReference/SpqrVarintReview/review.json",
+  "independent_review_sha256": "3fb94cc47e10d7bba0d9d5216f9e6e8efa3431b878ac92c99a21676b762c431f",
+  "selected_llbc_sha256": "ccc7721bf9a4bc1395ecfc758b52618471b47adda63ff3991141c0e84439fd4a",
+  "proof_endpoints": 21,
+  "additional_trusted_preprocessing": "Exactly seven reversible unused-Step metadata changes; every retained computational declaration unchanged; selection is reviewed, not mechanized.",
+  "unconditional_result_equivalence": "encode_eq_run preserves all Results of the actual translated Vec.push calls.",
+  "artifact_domain": "All U64 values and canonical public widths1..10, buffer.length+10<=Usize.max; widened U32 indices and widths1..5 also covered.",
+  "custom_axioms": [],
+  "custom_standard_models": [],
+  "rust_source_changes": [],
+  "full_spqr_message_serializer_refinement": false,
+  "full_spqr_crypto_or_state_machine_refinement": false,
+  "note": "The frozen author report retains its pre-review accepted_reference:false field; this separate record accepts only the stated varint scope."
+}

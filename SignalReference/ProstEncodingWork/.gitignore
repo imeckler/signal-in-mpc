@@ -1,0 +1,4 @@
+Build/
+Artifacts/
+*.llbc
+__pycache__/

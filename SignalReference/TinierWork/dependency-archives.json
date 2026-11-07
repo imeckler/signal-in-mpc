@@ -1,0 +1,65 @@
+[
+  {
+    "repository": "mkskeller/SimplestOT_C",
+    "commit": "7ef7666909e493a18c99efe56f97cc4d13723005",
+    "archive_url": "https://api.github.com/repos/mkskeller/SimplestOT_C/tarball/7ef7666909e493a18c99efe56f97cc4d13723005",
+    "archive_sha256": "b07be1d36cc149384310f229a5ac8f3a3f009b434d4cbca609a40a17cbfadd50",
+    "destination": ".deps/signal-tinier128/MP-SPDZ/deps/SimplestOT_C"
+  },
+  {
+    "repository": "mkskeller/libOTe",
+    "commit": "fe6b2ff82a976a5332b3a2efe325831588b1324a",
+    "archive_url": "https://api.github.com/repos/mkskeller/libOTe/tarball/fe6b2ff82a976a5332b3a2efe325831588b1324a",
+    "archive_sha256": "31d9f13129bbc71d2152fc514fcdc121b7b306ba75deb55021d27655f7226263",
+    "destination": ".deps/signal-tinier128/MP-SPDZ/deps/libOTe2"
+  },
+  {
+    "repository": "mkskeller/cryptotools",
+    "commit": "f70175e0cbd36b808475c0c1bbf585304e43d3d0",
+    "archive_url": "https://api.github.com/repos/mkskeller/cryptotools/tarball/f70175e0cbd36b808475c0c1bbf585304e43d3d0",
+    "archive_sha256": "d07e80acde592198a7bf845bd5c23880bb0dee598173cbf40cfc648822e96b3e",
+    "destination": ".deps/signal-tinier128/MP-SPDZ/deps/libOTe2/cryptoTools"
+  },
+  {
+    "repository": "mkskeller/coproto",
+    "commit": "8dce3918b06c80dbcd65baeb899f1a694433f926",
+    "archive_url": "https://api.github.com/repos/mkskeller/coproto/tarball/8dce3918b06c80dbcd65baeb899f1a694433f926",
+    "archive_sha256": "cbc767177bdfb4bf578a37d1081d9aab1f950c84311f08106db2dc6bb38835b1",
+    "destination": ".deps/signal-tinier128/dependencies/coproto"
+  },
+  {
+    "repository": "ridiculousfish/libdivide",
+    "commit": "66190e9daa603cabe95d99f09fb79b5c186d0417",
+    "archive_url": "https://api.github.com/repos/ridiculousfish/libdivide/tarball/66190e9daa603cabe95d99f09fb79b5c186d0417",
+    "archive_sha256": "08a0f77b30f81ff3633698854a555a4252a806928cd17af5fbae1d61ac99de15",
+    "destination": ".deps/signal-tinier128/dependencies/libdivide"
+  },
+  {
+    "repository": "mkskeller/macoro",
+    "commit": "ee5fa61a9bc2e4cd4cdddea8d4a6485332e8d58e",
+    "archive_url": "https://api.github.com/repos/mkskeller/macoro/tarball/ee5fa61a9bc2e4cd4cdddea8d4a6485332e8d58e",
+    "archive_sha256": "f394608318a7cdadf0efe53aa1e58e1ad296a22d3313f28776ab3cf9d91a5802",
+    "destination": ".deps/signal-tinier128/dependencies/macoro"
+  },
+  {
+    "repository": "Naios/function2",
+    "commit": "02ca99831de59c7c3a4b834789260253cace0ced",
+    "archive_url": "https://api.github.com/repos/Naios/function2/tarball/02ca99831de59c7c3a4b834789260253cace0ced",
+    "archive_sha256": "91307b6fa7d59871e1c2534c9ed7919567ffdb66253681ad335943f4a8e122de",
+    "destination": ".deps/signal-tinier128/dependencies/function2"
+  },
+  {
+    "repository": "simd-everywhere/simde",
+    "commit": "0ba20859e9f557cee161d2cab2728b56dca7ec38",
+    "archive_url": "https://api.github.com/repos/simd-everywhere/simde/tarball/0ba20859e9f557cee161d2cab2728b56dca7ec38",
+    "archive_sha256": "df1f8a73e4d7df0b150d7e47f1ec57704f269f8ccadb81347b5ee6be899e5439",
+    "destination": ".deps/signal-tinier128/MP-SPDZ/deps/libOTe2/cryptoTools/thirdparty/simde"
+  },
+  {
+    "repository": "DLTcollab/sse2neon",
+    "commit": "29716df957401e9c357348e9b73c95a38cdcd34f",
+    "archive_url": "https://api.github.com/repos/DLTcollab/sse2neon/tarball/29716df957401e9c357348e9b73c95a38cdcd34f",
+    "archive_sha256": "eb514b9469baec0065596ef7453151dfcc3c2a6c148502d85b41abc949b6b173",
+    "destination": ".deps/signal-tinier128/MP-SPDZ/deps/libOTe2/cryptoTools/thirdparty/sse2neon"
+  }
+]

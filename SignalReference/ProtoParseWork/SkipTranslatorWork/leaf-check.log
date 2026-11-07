@@ -1,0 +1,23 @@
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipLeaf.lean:21:4: warning: This simp argument is unused:
+  core.convert.FromSame
+
+Hint: Omit it from the simp argument list.
+  simp [encoding.DecodeContext.limit_reached, ̲decodeError,
+  ̵  ̵ ̵ ̵core.convert.IntoFrom.into,
+  ̲ ̲ ̲ ̲ ̲error.DecodeError.Insts.CoreConvertFromDecodeErrorKind.from,
+      core.result.Result.Insts.CoreOpsTry.branch,
+      core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual,
+      core.convert.FromSame,̵c̵o̵r̵e̵.c̵o̵n̵v̵e̵r̵t̵.̵F̵r̵o̵m̵S̵a̵m̵e̵.̵from]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/SkipLeaf.lean:41:4: warning: This simp argument is unused:
+  encoding.skip_field.closure.Insts.CoreOpsFunctionFnOnceTupleU64U64
+
+Hint: Omit it from the simp argument list.
+  simp only [̵e̵n̵c̵o̵d̵i̵n̵g̵.̵D̵e̵c̵o̵d̵e̵C̵o̵n̵t̵e̵x̵t̵.̵l̵i̵m̵i̵t̵_̵r̵e̵a̵c̵h̵e̵d̵,̵h̵c̵,̵i̵f̵_̵f̵a̵l̵s̵e̵,̵b̵i̵n̵d̵_̵t̵c̵_̵o̵k̵,̵
+  ̵ ̵ ̵ ̵ ̵c̵o̵r̵e̵.̵r̵e̵s̵u̵l̵t̵.̵R̵e̵s̵u̵l̵t̵.̵I̵n̵s̵t̵s̵.̵C̵o̵r̵e̵O̵p̵s̵T̵r̵y̵.̵b̵r̵a̵n̵c̵h̵,̵h̵d̵e̵c̵o̵d̵e̵,̵u̵n̵c̵u̵r̵r̵y̵_̵a̵p̵p̵l̵y̵_̵p̵a̵i̵r̵,̵[̲e̲n̲c̲o̲d̲i̲n̲g̲.̲D̲e̲c̲o̲d̲e̲C̲o̲n̲t̲e̲x̲t̲.̲l̲i̲m̲i̲t̲_̲r̲e̲a̲c̲h̲e̲d̲,̲ ̲h̲c̲,̲ ̲i̲f̲_̲f̲a̲l̲s̲e̲,̲ ̲b̲i̲n̲d̲_̲t̲c̲_̲o̲k̲,̲
+  ̲ ̲ ̲ ̲ ̲c̲o̲r̲e̲.̲r̲e̲s̲u̲l̲t̲.̲R̲e̲s̲u̲l̲t̲.̲I̲n̲s̲t̲s̲.̲C̲o̲r̲e̲O̲p̲s̲T̲r̲y̲.̲b̲r̲a̲n̲c̲h̲,̲ ̲h̲d̲e̲c̲o̲d̲e̲,̲ ̲u̲n̲c̲u̲r̲r̲y̲_̲a̲p̲p̲l̲y̲_̲p̲a̲i̲r̲,̲ core.result.Result.map,
+      e̵n̵c̵o̵d̵i̵n̵g̵.̵s̵k̵i̵p̵_̵f̵i̵e̵l̵d̵.̵c̵l̵o̵s̵u̵r̵e̵.̵I̵n̵s̵t̵s̵.̵C̵o̵r̵e̵O̵p̵s̵F̵u̵n̵c̵t̵i̵o̵n̵F̵n̵O̵n̵c̵e̵T̵u̵p̵l̵e̵U̵6̵4̵U̵6̵4̵,̵encoding.skip_field.closure.Insts.CoreOpsFunctionFnOnceTupleU64U64.call_once, r̵e̵m̵a̵i̵n̵i̵n̵g̵_̵s̵p̵e̵c̵,̵l̵i̵f̵t̵]̵r̲e̲m̲a̲i̲n̲i̲n̲g̲_̲s̲p̲e̲c̲,̲
+  ̲ ̲ ̲ ̲ ̲l̲i̲f̲t̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

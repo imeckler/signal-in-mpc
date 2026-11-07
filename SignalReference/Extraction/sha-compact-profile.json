@@ -1,0 +1,61 @@
+{
+  "package": "sha2@0.11.0",
+  "starts": [
+    "crate::sha256::soft::compact::compress_u32"
+  ],
+  "extra": [],
+  "subdir": "Sha256Compact",
+  "namespace": "RustCryptoSha256Compact",
+  "expected_functions": 13,
+  "expected_generated_functions": 4,
+  "modeled_std_functions": [
+    "core::iter::traits::collect::{impl}::into_iter",
+    "core::iter::range::{impl}::next",
+    "core::num::{impl}::wrapping_add",
+    "core::num::{impl}::rotate_right",
+    "core::iter::range::{impl}::steps_between",
+    "core::iter::range::{impl}::forward_checked",
+    "core::iter::range::{impl}::backward_checked",
+    "core::clone::impls::{impl}::clone",
+    "core::cmp::impls::{impl}::partial_cmp",
+    "core::cmp::impls::{impl}::eq",
+    "core::num::niche_types::{impl}::clone"
+  ],
+  "discarded_metadata_types": [
+    "core::array::iter::IntoIter",
+    "core::num::nonzero::NonZero",
+    "core::iter::adapters::step_by::StepBy",
+    "core::iter::adapters::chain::Chain",
+    "core::iter::adapters::zip::Zip",
+    "core::iter::adapters::intersperse::Intersperse",
+    "core::iter::adapters::intersperse::IntersperseWith",
+    "core::iter::adapters::map::Map",
+    "core::iter::adapters::filter::Filter",
+    "core::iter::adapters::filter_map::FilterMap",
+    "core::iter::adapters::enumerate::Enumerate",
+    "core::iter::adapters::peekable::Peekable",
+    "core::iter::adapters::skip_while::SkipWhile",
+    "core::iter::adapters::take_while::TakeWhile",
+    "core::iter::adapters::map_while::MapWhile",
+    "core::iter::adapters::skip::Skip",
+    "core::iter::adapters::take::Take",
+    "core::iter::adapters::scan::Scan",
+    "core::iter::adapters::flatten::FlatMap",
+    "core::iter::adapters::flatten::Flatten",
+    "core::iter::adapters::map_windows::MapWindows",
+    "core::iter::adapters::fuse::Fuse",
+    "core::iter::adapters::inspect::Inspect",
+    "core::iter::adapters::rev::Rev",
+    "core::iter::adapters::copied::Copied",
+    "core::iter::adapters::cloned::Cloned",
+    "core::iter::adapters::cycle::Cycle",
+    "core::iter::adapters::array_chunks::ArrayChunks",
+    "core::num::niche_types::NonZeroUsizeInner"
+  ],
+  "discarded_metadata_functions": [
+    "core::num::niche_types::{impl}::clone"
+  ],
+  "trusted_preprocessing": "MetadataWork/trim_step_metadata.py",
+  "source_profile": "sha256_compact",
+  "scope_note": "Actual portable compact compression over8statewords+16blockwords, all64rounds andfeedforward. Reviewed dead Step dictionary filtering is an explicit trusted translation step; no computational body changes. Existing Aeneas range/array/scalar models remain trusted. Digest buffering andHMAC/HKDF composition are separate."
+}

@@ -1,0 +1,44 @@
+Tinier128 comparison candidate (not selected production backend)
+
+Purpose: compare identical compiled established Signal send circuits against
+five-party malicious CCD GF(2^128), including live preprocessing, at statistical
+parameter 128. Preserve two-malicious capability and abort. No protocol swap,
+state conversion, sharing refresh, or erasure implementation is implied.
+
+Official references (read 2026-11-07):
+https://mp-spdz.readthedocs.io/en/latest/readme.html#secret-sharing
+https://mp-spdz.readthedocs.io/en/latest/non-linear.html#protocol-pairs
+The protocol table places Tiny/Tinier in malicious dishonest-majority binary
+sharing. The mixed-protocol table pairs MASCOT with Tinier. These support the
+candidate's security-model suitability, not a production security review.
+
+Pinned local source observations:
+GC/TinierShare.h: value is SemiShare<Bit>, MAC is SemiShare<T>; Beaver protocol.
+Math/Bit.h: pack writes one bit via the bit packing primitive.
+GC/VectorProtocol.hpp: one multiplication/triple per vector lane; grouped exchange.
+GC/TinyMC.h: delegates opening and checks to per-bit MAC checker.
+Machines/tinier-party.cpp: initializes gf2n_mac_key from runtime security parameter.
+GC/TinierShare.h: LONG_BIT_MAC_KEY selects gf2n_long; otherwise gf2n_short.
+Protocols/config.h: DEFAULT_SECURITY defaults to 40.
+Hence bit-domain masked openings can reduce online bandwidth relative to CCD's
+field openings. They do not eliminate OT triple generation, authentication,
+cut-and-choose, or local per-bit storage; total speedup remains unmeasured.
+
+Preparation/build recipe (deferred until baseline timing completes):
+  python3 SignalReference/TinierWork/prepare.py
+  cd .deps/signal-tinier128/MP-SPDZ
+  make -j2 tinier-party.x
+The preparation script refuses an existing target and copies pinned source to
+an isolated tree. It omits MP-SPDZ compiled objects/libraries and runtime data,
+retains external dependency libraries, and applies both LONG_BIT_MAC_KEY and
+DEFAULT_SECURITY=128 consistently to all rebuilt MP-SPDZ translation units.
+Source/config/script hashes are emitted in preparation.json. No original tree
+or frozen CCD baseline files are written. Native runs must explicitly use -S128
+and -N5, copy the frozen bytecode/fixture inputs into isolated runtime storage,
+and validate identical outputs. Save executable/build/log hashes and distinguish
+online, preprocessing, wall time, communication bytes, and communication counters.
+
+MASCOT/Tinier is a supported mixed pair; StrongShamir/Tinier is not assumed.
+A future mixed-domain migration needs separate checked conversions, persistence,
+refresh and erasure treatment. Three-party one-malicious alternatives change the
+requested fault model and are not this candidate.

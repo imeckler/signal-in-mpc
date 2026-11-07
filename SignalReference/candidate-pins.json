@@ -1,0 +1,23 @@
+{
+  "status": "candidate only; accepted extraction pins remain pins.json",
+  "aeneas_directory": "../.deps/aeneas-2026-09-30",
+  "rust_directory": "../.deps/rust-nightly-2026-09-17",
+  "lean_toolchain": "leanprover/lean4:v4.31.0",
+  "aeneas_commit": "0855ce1b8ed3958512b6c19de6bf3035b7acb552",
+  "charon_commit": "e435e5f341863a49a7e85d2fee9988bc0c687c82",
+  "versions": {
+    "aeneas": "aeneas nightly-2026.09.30-0855ce1",
+    "charon": "0.1.274 (e435e5f341863a49a7e85d2fee9988bc0c687c82)",
+    "rustc": "rustc 1.100.0-nightly (923c95cdf 2026-09-16)"
+  },
+  "download_sha256": {
+    "aeneas-2026-09-30-macos.tar.gz": "b5a53f40691cb30871fe100e7d516c98eca9e8f6b52a288bb87242a259810db6",
+    "aeneas-2026-09-30-lean-build.tar.gz": "9d20078d29d1dcc937ac561de5fd1073cf7aa203f8e11ffc1098ccf58f160bf9",
+    "rustc-nightly-2026-09-17.tar.xz": "a25f3366f4dd0b0c810ee1a98a699f6b30734e13165a5c57e6fbecf7c841f315",
+    "cargo-nightly-2026-09-17.tar.xz": "b55de56a2f844a9e705e182a4cc0f2142b5de47bd40c1f07a7c31016408fa5b4",
+    "rust-std-nightly-2026-09-17.tar.xz": "d9fce2d60a1ad93ff4825f09e8227a1250b4e4c1271ed9096560ff62579ba7dd",
+    "rust-src-nightly-2026-09-17.tar.xz": "cd272bc7b901f15464a44cbae891c3c7fd1847d6309eb7546fbf785bcadc8d7c"
+  },
+  "source_patches": [],
+  "upstream_signal_pin_changed": false
+}

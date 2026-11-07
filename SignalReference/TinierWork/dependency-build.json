@@ -1,0 +1,234 @@
+{
+  "candidate_only": true,
+  "network_fetch_enabled": false,
+  "commands": [
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/function2",
+        "-B",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/function2",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_INSTALL_PREFIX=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local",
+        "-DCMAKE_PREFIX_PATH=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local;/opt/homebrew",
+        "-DCMAKE_INSTALL_LIBDIR=lib",
+        "-DBUILD_TESTING=OFF"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/function2-configure.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/function2",
+        "-j2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/function2-build.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--install",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/function2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/function2-install.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/libdivide",
+        "-B",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libdivide",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_INSTALL_PREFIX=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local",
+        "-DCMAKE_PREFIX_PATH=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local;/opt/homebrew",
+        "-DCMAKE_INSTALL_LIBDIR=lib",
+        "-DBUILD_TESTING=OFF",
+        "-DLIBDIVIDE_BUILD_TESTS=OFF"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libdivide-configure.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libdivide",
+        "-j2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libdivide-build.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--install",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libdivide"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libdivide-install.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/macoro",
+        "-B",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/macoro",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_INSTALL_PREFIX=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local",
+        "-DCMAKE_PREFIX_PATH=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local;/opt/homebrew",
+        "-DCMAKE_INSTALL_LIBDIR=lib",
+        "-DBUILD_TESTING=OFF",
+        "-DMACORO_CPP_VER=20",
+        "-DMACORO_PIC=ON",
+        "-DMACORO_TESTS=OFF",
+        "-DMACORO_FETCH_AUTO=OFF",
+        "-DMACORO_FETCH_OPTIONAL=OFF",
+        "-DMACORO_FETCH_VARIANT=OFF"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/macoro-configure.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/macoro",
+        "-j2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/macoro-build.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--install",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/macoro"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/macoro-install.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependencies/coproto",
+        "-B",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/coproto",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_INSTALL_PREFIX=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local",
+        "-DCMAKE_PREFIX_PATH=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local;/opt/homebrew",
+        "-DCMAKE_INSTALL_LIBDIR=lib",
+        "-DBUILD_TESTING=OFF",
+        "-DCOPROTO_CPP_VER=20",
+        "-DCOPROTO_PIC=ON",
+        "-DCOPROTO_ENABLE_BOOST=OFF",
+        "-DCOPROTO_ENABLE_OPENSSL=OFF",
+        "-DCOPROTO_FETCH_AUTO=OFF",
+        "-DCOPROTO_FETCH_MACORO=OFF",
+        "-DCOPROTO_FETCH_FUNCTION2=OFF",
+        "-DCOPROTO_FETCH_SPAN=OFF",
+        "-DCOPROTO_FETCH_BOOST=OFF"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/coproto-configure.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/coproto",
+        "-j2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/coproto-build.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--install",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/coproto"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/coproto-install.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/deps/libOTe2",
+        "-B",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_INSTALL_PREFIX=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local",
+        "-DCMAKE_PREFIX_PATH=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local;/opt/homebrew",
+        "-DCMAKE_INSTALL_LIBDIR=lib",
+        "-DBUILD_TESTING=OFF",
+        "-DBUILD_SHARED_LIBS=OFF",
+        "-DLIBOTE_STD_VER=20",
+        "-DENABLE_SOFTSPOKEN_OT=ON",
+        "-DENABLE_SILENTOT=ON",
+        "-DENABLE_PORTABLE_AES=ON",
+        "-DENABLE_AVX=OFF",
+        "-DENABLE_SSE=OFF",
+        "-DENABLE_PIC=ON",
+        "-DENABLE_BITPOLYMUL=OFF",
+        "-DFETCH_AUTO=OFF",
+        "-DFETCH_COPROTO=OFF",
+        "-DFETCH_BITPOLYMUL=OFF",
+        "-DFETCH_SPAN_LITE=OFF",
+        "-DFETCH_RELIC=OFF",
+        "-DFETCH_SODIUM=OFF",
+        "-DFETCH_BOOST=OFF",
+        "-DFETCH_GMP=OFF",
+        "-DFETCH_LIBDIVIDE=OFF",
+        "-DLIBOTE_BUILD_DIR=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe",
+        "-DOC_THIRDPARTY_HINT=/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/MP-SPDZ/local"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libOTe-configure.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe",
+        "-j2"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libOTe-build.log"
+    },
+    {
+      "command": [
+        "cmake",
+        "--install",
+        "/Users/izzy/repos/tls-mpc/.deps/signal-tinier128/dependency-build/libOTe"
+      ],
+      "log": "SignalReference/TinierWork/build-logs/libOTe-install.log"
+    }
+  ],
+  "script_sha256": "6c518f7544cf8ebe674e8fd82f34a165a7cc73d32418c2b7689039d9416ce2de",
+  "dependency_archive_manifest_sha256": "30f0bb38a3aff995035ede8d7e59f4260dd54606fb3ffc93132593fc1bc9fa3a",
+  "logs_sha256": {
+    "SignalReference/TinierWork/build-logs/libdivide-install.log": "d6b251daffb3210c6ad41acf7293c5dc8a418b7bce5d87dabc49642508cc787a",
+    "SignalReference/TinierWork/build-logs/libdivide-configure.log": "db9ceea1a7969d1c7303c8b2d28112cb7cbf7efb82308372e2734d6678f09a6a",
+    "SignalReference/TinierWork/build-logs/coproto-configure.log": "78ef023416b3f3ebce0053635dce523374b5479828ca64fe49f3004646778401",
+    "SignalReference/TinierWork/build-logs/coproto-build.log": "e2cf97a57f83ae56dd30c06ca13115a46b1ac7b387d8b4a73ee8018f1959cfa6",
+    "SignalReference/TinierWork/build-logs/coproto-install.log": "1b2b0a8d21580a2f68ede57b25225d269cdc54fc323adce53fc7f7ae3464b1e4",
+    "SignalReference/TinierWork/build-logs/libOTe-install.log": "0a26ac2057308927689423c886ec9345e35e6c772ce93b2b039b8a5dfa25fa33",
+    "SignalReference/TinierWork/build-logs/macoro-install.log": "e3c56f2e788add0803c33a645b2524c9702cc6ad4b7c40c6bbac0e61b320742d",
+    "SignalReference/TinierWork/build-logs/function2-install.log": "a68c062ddbd6fc053d53ede45eba642d9ce9b74f5d08a255a513ea8914363017",
+    "SignalReference/TinierWork/build-logs/libOTe-configure.log": "19006a7b1c18f920cfaa3a506cd4cf02c0cc9799430c96aaacb0b36a4561f40f",
+    "SignalReference/TinierWork/build-logs/libOTe-build.log": "003496450bfed2e094d5c8273bf869497eefa36d3f192967faae04b444f8a849",
+    "SignalReference/TinierWork/build-logs/macoro-build.log": "35826e43509f1d0e93443ab9f3d5734d602a18cdee9aff30202215d7c1cef4d1",
+    "SignalReference/TinierWork/build-logs/libdivide-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "SignalReference/TinierWork/build-logs/macoro-configure.log": "db7cc23479400d35806720ff38fcbe387607afdce91393d707a2440823743f34",
+    "SignalReference/TinierWork/build-logs/function2-configure.log": "56f30fca009ddefa005215f670be9cfe9e67a802f0e59f1f698b85fceba0af1d",
+    "SignalReference/TinierWork/build-logs/function2-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "installed_libraries": {
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/libcoproto.a": "0db4b9979035fd75026d56fff7ef891499901578c500a8adf43b8fafec32316b",
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/libcryptoTools.a": "9ae608b92f1a27db836636239fdb42161c813c75d4b754d396f78a7c2863d901",
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/liblibOTe.a": "9bf5009a838a122efd78c92ba7b3ae1bb312ff676981f67b2a4d25e9509b1dae",
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/liblibOTe_Tests.a": "f3dd3c4bedc0b4675ad8f2ef2e90b9e09ead7532923fc5a6b08b95a91eb9c9ed",
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/libmacoro.a": "6534845411ac8368839b1bdb158eb33650f96998b65088e7b6b219bde22abc14",
+    ".deps/signal-tinier128/MP-SPDZ/local/lib/libtests_cryptoTools.a": "f94f43462fe73ef4c80120d439e8522f6da2b02df0be2447485b16d2aff1bad4"
+  }
+}

@@ -1,0 +1,49 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/SpqrReference/Selected/selected.llbc
+[[91mError[39m] Can't copy a mutable borrow
+Source: '/rustc/library/core/src/slice/index.rs', lines 642:8-642:13
+[[91mError[39m] Could not translate the body of function 'core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::index_mut because of previous error
+Name pattern: 'core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index_mut'
+Definition span: '/rustc/library/core/src/slice/index.rs', lines 641:4-641:51
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/spqr/src/v1/chunked/states/serialize.rs', lines 138:34-138:38
+
+Source: '/rustc/library/core/src/slice/index.rs', lines 642:8-642:13
+[[91mError[39m] Could not translate the function 'core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::index_mut because of previous error.
+Name pattern: 'core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::index_mut'
+Definition span: '/rustc/library/core/src/slice/index.rs', lines 641:4-641:51
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/spqr/src/v1/chunked/states/serialize.rs', lines 138:34-138:38
+
+Source: '/rustc/library/core/src/slice/index.rs', lines 642:8-642:13
+[[91mError[39m] Can't copy a mutable borrow
+Source: '/rustc/library/core/src/slice/index.rs', lines 621:8-621:19
+[[91mError[39m] Could not translate the body of function 'core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_mut because of previous error
+Name pattern: 'core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_mut'
+Definition span: '/rustc/library/core/src/slice/index.rs', lines 620:4-620:57
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/spqr/src/v1/chunked/states/serialize.rs', lines 138:34-138:38
+
+Source: '/rustc/library/core/src/slice/index.rs', lines 621:8-621:19
+[[91mError[39m] Could not translate the function 'core::slice::index::{impl core::slice::index::SliceIndex<[T], [T]> for core::ops::range::RangeFull}::get_mut because of previous error.
+Name pattern: 'core::slice::index::{core::slice::index::SliceIndex<core::ops::range::RangeFull, [@T], [@T]>}::get_mut'
+Definition span: '/rustc/library/core/src/slice/index.rs', lines 620:4-620:57
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/spqr/src/v1/chunked/states/serialize.rs', lines 138:34-138:38
+
+Source: '/rustc/library/core/src/slice/index.rs', lines 621:8-621:19
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

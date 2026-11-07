@@ -1,0 +1,70 @@
+{
+  "review_date": "2026-11-06",
+  "assessment": "../BAF_REVIEW.md",
+  "repositories": [
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/libsignal-verify",
+      "commit": "a69cb0119dd48477dd268bc011a5b3347985f71d",
+      "archive_sha256": "37591e53397d8f34f18c9904f8957fac4c99da5a8aad58f5626098f6ba12fd65",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.31.0"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/SparsePostQuantumRatchet-verify",
+      "commit": "1acabbc34dbc5cbd40362a62848b68fdbe80e033",
+      "archive_sha256": "7fc4f9d9d624e92cd96c9b3625f83cfcabce814cc6e3b636f4a5aea95d1397ce",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.35.0-rc4"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/curve25519-dalek-lean-verify",
+      "commit": "52cad87d054943c96c984d99d9ea9e5d043b0d65",
+      "archive_sha256": "26e985c805cbfd3d2037fc5fcabc4d53820be01ecd9295ee5448b62cdeb7eb9f",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.31.0"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/curve25519-dalek-fork",
+      "commit": "95b5831c63ff1c5f6287bd3a77569412a9afdbfb",
+      "archive_sha256": "0016fe95195f846dd6cfdf5a9384a785a3deb35c727b55c6792bf63029987f5f",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.35.0"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/secure-messaging",
+      "commit": "b45e0cb7393a1759e568f7e4e0e4fb8583c2bfca",
+      "archive_sha256": "2d6e9cbfe3c8d606c8d8e2a4d02544444ac5999963be4118545804bd3d06ad26",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.35.0"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/spqr-sm-bridge",
+      "commit": "a7541a9a2d59522eb8021217c448f2272a06d834",
+      "archive_sha256": "a63b0864227462127528e4153be23c41d54a086754ed71cc0fbb328a047ed777",
+      "lean_toolchains": {
+        "lean-toolchain": "leanprover/lean4:v4.35.0"
+      },
+      "full_external_build_reproduced": false
+    },
+    {
+      "repository": "https://github.com/Beneficial-AI-Foundation/libcrux-verify",
+      "commit": "1f9c89853b4217deb41c85fea973e74b652e2186",
+      "review_scope": "repository tree and selected SHA3 Lean files only",
+      "full_external_build_reproduced": false
+    }
+  ],
+  "accepted_reuse": [
+    "baf-rfc5869-port.json"
+  ],
+  "external_opaque_crypto_contracts_accepted": []
+}

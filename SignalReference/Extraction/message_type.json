@@ -1,0 +1,239 @@
+{
+  "llbc_sha256": "1577f9b3ad116404da2a536a10584a42faca25bae153c300c8ad5b68753c89fd",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 3,
+    "fun_decls": 6,
+    "global_decls": 4,
+    "trait_decls": 1,
+    "trait_impls": 1,
+    "ordered_decls": 13
+  },
+  "body_kinds": {
+    "Structured": 6
+  },
+  "external_functions": [],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "rust/protocol/src/protocol.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "rust/protocol/src/lib.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/derive_more-2.1.1/src/convert.rs"
+      },
+      "crate_name": "derive_more"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/derive_more-2.1.1/src/lib.rs"
+      },
+      "crate_name": "derive_more"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{core::convert::TryFrom for crate::protocol::CiphertextMessageType}::try_from"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "libsignal_protocol::protocol::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 44
+          },
+          "end": {
+            "line": 32,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "derive_more::convert::try_from::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 29,
+            "col": 8
+          },
+          "end": {
+            "line": 29,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "libsignal_protocol::protocol::{impl}::try_from::__DISCRIMINANT_Whisper",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 44
+          },
+          "end": {
+            "line": 32,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "libsignal_protocol::protocol::{impl}::try_from::__DISCRIMINANT_PreKey",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 44
+          },
+          "end": {
+            "line": 32,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "libsignal_protocol::protocol::{impl}::try_from::__DISCRIMINANT_SenderKey",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 44
+          },
+          "end": {
+            "line": 32,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "libsignal_protocol::protocol::{impl}::try_from::__DISCRIMINANT_Plaintext",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 44
+          },
+          "end": {
+            "line": 32,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={core::convert::TryFrom for crate::protocol::CiphertextMessageType}::try_from",
+    "--include=derive_more",
+    "--start-from-if-exists=crate::protocol::*::try_from",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_message_type.llbc",
+    "--",
+    "--package",
+    "libsignal-protocol",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "rustflags": "",
+  "target": "aarch64-apple-darwin",
+  "charon_exit_code": 0,
+  "modeled_std_functions": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/MessageType/Funs.lean": "3163e0eadd0e85be6a84220c432aeb1f999973565ae64bbafae69913578ea2c9",
+    "LibSignalReference/Generated/MessageType/Types.lean": "af22309d15b9e7a9684272a1df62886a96f84f1412b5ad061832e2c680a7fc14"
+  }
+}

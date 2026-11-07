@@ -1,0 +1,414 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/AesZipInvestigation/Artifacts/MutAll/add_round_key.llbc
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.adapters.zip.Zip" (the generated code will be incorrect):
+- type name: core::iter::adapters::zip::Zip
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+- type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>:
+The chosen name is already in the names set: core.iter.adapters.zip.Zip
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.adapters.zip.Zip" (the generated code will be incorrect):
+- type name: core::iter::adapters::zip::Zip
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+- type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>:
+The chosen name is already in the names set: core.iter.adapters.zip.Zip
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "Option" (the generated code will be incorrect):
+- type name: core::option::Option
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<(&_ mut _, _)>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<(&_ mut _, _)>:
+The chosen name is already in the names set: Option
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "Option" (the generated code will be incorrect):
+- type name: core::option::Option
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<(&_ mut _, _)>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<(&_ mut _, _)>:
+The chosen name is already in the names set: Option
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "none" (the generated code will be incorrect):
+- type name: core::option::Option, variant name: core::option::Option::None
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::None
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::None:
+The chosen name is already in the names set: none
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "some" (the generated code will be incorrect):
+- type name: core::option::Option, variant name: core::option::Option::Some
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::Some
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::Some:
+The chosen name is already in the names set: some
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "Option" (the generated code will be incorrect):
+- type name: core::option::Option::<(&_ mut _, _)>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<&_ mut _>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<&_ mut _>:
+The chosen name is already in the names set: Option
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "Option" (the generated code will be incorrect):
+- type name: core::option::Option::<(&_ mut _, _)>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<&_ mut _>
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<&_ mut _>:
+The chosen name is already in the names set: Option
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "none" (the generated code will be incorrect):
+- type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::None
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<&_ mut _>, variant name: core::option::Option::<&_ mut _>::None
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<&_ mut _>, variant name: core::option::Option::<&_ mut _>::None:
+The chosen name is already in the names set: none
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "some" (the generated code will be incorrect):
+- type name: core::option::Option::<(&_ mut _, _)>, variant name: core::option::Option::<(&_ mut _, _)>::Some
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+- type name: core::option::Option::<&_ mut _>, variant name: core::option::Option::<&_ mut _>::Some
+  Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::option::Option::<&_ mut _>, variant name: core::option::Option::<&_ mut _>::Some:
+The chosen name is already in the names set: some
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.adapters.zip.Zip" (the generated code will be incorrect):
+- type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+- type name: core::iter::adapters::zip::Zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::iter::adapters::zip::Zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _>:
+The chosen name is already in the names set: core.iter.adapters.zip.Zip
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.adapters.zip.Zip" (the generated code will be incorrect):
+- type name: core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+- type name: core::iter::adapters::zip::Zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _>
+  Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: type name: core::iter::adapters::zip::Zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _>:
+The chosen name is already in the names set: core.iter.adapters.zip.Zip
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.traits.iterator.Iterator.zip.trait_default" (the generated code will be incorrect):
+- core::iter::traits::iterator::Iterator::zip
+  Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+- core::iter::traits::iterator::Iterator::zip::<core::slice::iter::IterMut<_, _>, _, &_ mut _, _, _>
+  Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: core::iter::traits::iterator::Iterator::zip::<core::slice::iter::IterMut<_, _>, _, &_ mut _, _, _>:
+The chosen name is already in the names set: core.iter.traits.iterator.Iterator.zip.trait_default
+Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "core.iter.traits.iterator.Iterator.zip.trait_default" (the generated code will be incorrect):
+- core::iter::traits::iterator::Iterator::zip::<core::slice::iter::IterMut<_, _>, _, &_ mut _, _, _>
+  Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+- core::iter::traits::iterator::Iterator::zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _, (&_ mut _, _), _, _>
+  Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: core::iter::traits::iterator::Iterator::zip::<core::iter::adapters::zip::Zip::<core::slice::iter::IterMut<_, _>, _><_, _, _>, _, (&_ mut _, _), _, _>:
+The chosen name is already in the names set: core.iter.traits.iterator.Iterator.zip.trait_default
+Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 629:4-632:24
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] When retrieving the builtin information for trait decl 'core::iter::traits::iterator::Iterator', could not find the information for item 'zip'. The model defined in the Lean library seems to be missing the corresponding field.
+Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 42:0-42:24
+Compiler source: extract/Extract.ml, line 2866
+[[91mError[39m] Could not generate names for the trait declaration 'core::iter::traits::iterator::Iterator because of previous error
+Name pattern: 'core::iter::traits::iterator::Iterator'
+Definition span: '/rustc/library/core/src/iter/traits/iterator.rs', lines 42:0-42:24
+
+This definition is (transitively) used at the following locations:
+Source: 'src/soft/fixslice64.rs', lines 1364:18-1364:44
+
+Source: '/rustc/library/core/src/iter/traits/iterator.rs', lines 42:0-42:24
+Compiler source: Translate.ml, line 1670
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.extract_translated_crate.(fun) in file "Translate.ml", lines 1670-1676, characters 10-41
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__Translate.extract_translated_crate in file "Translate.ml", lines 1657-1678, characters 4-27
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

@@ -1,0 +1,80 @@
+{
+  "checked_at_utc": "2026-11-07T06:40:40.278616+00:00",
+  "lean_toolchain": "leanprover/lean4:v4.31.0",
+  "source_sha256": {
+    "TlsMpc/Signal/SpqrChain.lean": "660507b232ee84db400dc7aa56a6fcebd611dc3d5d6504dc68b446e38cfa46de",
+    "TlsMpc/Signal/ChainSend.lean": "85ce0bb60301809fe22c45ba4be431c482f1a20ec0f5f73694c3804522c51b88",
+    "TlsMpc/Signal/Send.lean": "f50534e2b8b86cfc88c98afb885956951503f804a219412cacd1dcec6f61417d",
+    "TlsMpc/Signal/Serialization.lean": "60d78ba132081f896954f0a8f749907cc7e8c130e30aa73441015a385289d1b0",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/Signal/ReceiveSpec.lean": "ca9fca9c54cd291f49872498f89ec450864665a0c78a4a66c5b2f23732e3ddab",
+    "TlsMpc/Signal/Receive.lean": "a252ff059004964617cdc619094f2c801185019464e75ef5d09fe9c3183e7c26",
+    "TlsMpc/Signal/CbcOpen.lean": "a30c198d80ae9a8cd0d57feb59eda25af01a9891830fcbd55fe69e2d0d4e09fb",
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Signal/MessageMac.lean": "a1df406edf05f8cd122b064930dec41b2bead6988c0f7f499a8d7437000a4dca",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Signal/Cbc.lean": "f513777fdffbe824fc229eb0140522a025ab15459a64e0825f8a618245491bf9",
+    "TlsMpc/Signal/Symmetric.lean": "cba028d5a50bc624ff4113f731727a9f7090093de159857b7013913890ba4a98",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "TlsMpc/TlsKdf.lean": "fcc69c0446bb946afbb69a8707a417fc79febf0af95882d9ed7b2938393346f3"
+  },
+  "checked_endpoints": 12,
+  "theorems": [
+    "TlsMpc.Signal.SpqrChain.materialFast_correct",
+    "TlsMpc.Signal.SpqrChain.material_length",
+    "TlsMpc.Signal.SpqrChain.info_map",
+    "TlsMpc.Signal.SpqrChain.material_map",
+    "TlsMpc.Signal.SpqrChain.materialFast_map",
+    "TlsMpc.Signal.SpqrChain.stepCore_map",
+    "TlsMpc.Signal.SpqrChain.stepChecked_map",
+    "TlsMpc.Signal.SpqrChain.stepCore_concrete_correct",
+    "TlsMpc.Signal.SpqrChain.stepCore_length",
+    "TlsMpc.Signal.SpqrChain.exhausted_preserves_state",
+    "TlsMpc.Signal.SpqrChain.compiled_stepCore_correct",
+    "TlsMpc.Signal.SpqrChain.compiled_stepCore_spec"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "axiom_report_sha256": "390304481f707870862b40fb1bcdfc5fb77f8ed02994bb7883f77aa2e3ef8953",
+  "checks_source_sha256": "ee1d650a6e40a20ad0b2cfb684ffe12afeee5ebc536b7ff8483b0f1577aaab6c",
+  "harness_source_sha256": "0c54d75acda9bdbf3cf2a31a4f3c08aee58c3bb305b201d369e937e18b27c306",
+  "compiled_operations": [
+    "TlsMpc.Signal.SpqrChain.compiled_stepCore_correct",
+    "TlsMpc.Signal.SpqrChain.compiled_stepCore_spec"
+  ],
+  "direct_acceptance_specification": [
+    "TlsMpc.Signal.SpqrChain.stepCore_concrete_correct",
+    "TlsMpc.Signal.SpqrChain.exhausted_preserves_state"
+  ],
+  "shared_output": "acceptance byte || candidate next SPQR chain key32 || candidate next counterBE4 || SPQR message key32; rejection preserves old state and zeros message key",
+  "source_reference_commit": "06959b4708f9b7b1e94d0f8cc835f3958c077e94",
+  "human_reference_sources_sha256": {
+    ".deps/libsignal-vendor/spqr/src/chain.rs": "49ae6d3c880b0f97b684018161c736760edc4d77290f03b64dd12854d6bcedd2",
+    ".deps/libsignal-vendor/spqr/src/kdf.rs": "7b6d3c5df3db4a8da8bb3273bcac4b8f9404baaeafecd83750e83f8af85f55ba",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "actual_spqr_hkdf_wrapper_equivalence": false,
+  "counter_policy": "Increment before HKDF info; reject max uint32 and preserve old state. This is a bounded-profile policy outside the Rust precondition.",
+  "atomic_state_commit": false,
+  "public_boundary": "Fixed32byte chain key and4byte BE counter; all values, status, message key and next state remain shared.",
+  "pending": [
+    "Actual HKDF/SPQR implementation-reference composition",
+    "Epoch selection and ratchet/KEM/chunk transitions",
+    "SPQR message serialization and full Signal send composition",
+    "Atomic persistence and proactive refresh"
+  ],
+  "native_mpc_executed": false
+}

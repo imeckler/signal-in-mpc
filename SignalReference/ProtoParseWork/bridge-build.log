@@ -1,0 +1,147 @@
+TlsMpc.AigExport
+
+TlsMpc.BvConstruct
+
+TlsMpc.Sha256
+
+TlsMpc.ByteCircuit
+
+TlsMpc.ByteAuth
+
+TlsMpc.Signal.Unpad
+/Users/izzy/repos/tls-mpc/TlsMpc/Signal/Unpad.lean:44:65: warning: This simp argument is unused:
+  ih
+
+Hint: Omit it from the simp argument list.
+  simp [choose, chooseByte_map h,̵ ̵i̵h̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+
+TlsMpc.Signal.OpenResult
+/Users/izzy/repos/tls-mpc/TlsMpc/Signal/OpenResult.lean:146:50: warning: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+
+TlsMpc.Signal.Varint
+
+TlsMpc.Signal.Varint64
+
+TlsMpc.Signal.Word64
+/Users/izzy/repos/tls-mpc/TlsMpc/Signal/Word64.lean:106:26: warning: This simp argument is unused:
+  Nat.zero_mul
+
+Hint: Omit it from the simp argument list.
+  simp only [BitVec.extractLsb'_toNat, BitVec.toNat_sub, BitVec.toNat_append,
+  ̵  ̵ ̵ ̵ ̵ ̵BitVec.toNat_ofNat,
+  ̲ N̵a̵t̵.̵z̵e̵r̵o̵_̵m̵u̵l̵,̵  ̲ ̲ ̲ ̲Nat.zero_add, Nat.shiftRight_eq_div_pow]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/TlsMpc/Signal/Word64.lean:106:40: warning: This simp argument is unused:
+  Nat.zero_add
+
+Hint: Omit it from the simp argument list.
+  simp only [BitVec.extractLsb'_toNat, BitVec.toNat_sub, BitVec.toNat_append,
+  ̵  ̵ ̵ ̵ ̵ ̵BitVec.toNat_ofNat,
+  ̲  ̲ ̲ ̲ ̲ ̲Nat.zero_mul, Nat.z̵e̵r̵o̵_̵a̵d̵d̵,̵ ̵N̵a̵t̵.̵shiftRight_eq_div_pow]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+
+TlsMpc.Signal.OffsetSelect
+
+TlsMpc.Signal.VarintDecode.Spec
+
+TlsMpc.Signal.VarintDecode.Spqr
+
+TlsMpc.Signal.SpqrDecodeAt
+
+TlsMpc.Signal.ReadAt
+
+TlsMpc.AesSbox
+
+TlsMpc.Aes
+
+TlsMpc.AesInverse
+
+TlsMpc.Signal.CbcOpen
+
+TlsMpc.HmacPrepared
+
+TlsMpc.Signal.MessageMac
+
+TlsMpc.Signal.Receive
+
+TlsMpc.Signal.ReceiveSpec
+
+TlsMpc.Signal.ProtoParse
+
+TlsMpc.Signal.ProtoParseProofs
+/Users/izzy/repos/tls-mpc/TlsMpc/Signal/ProtoParseProofs.lean:125:49: warning: This simp argument is unused:
+  List.map_drop
+
+Hint: Omit it from the simp argument list.
+  simp [body, MessageMac.content, List.map_take,̵ ̵L̵i̵s̵t̵.̵m̵a̵p̵_̵d̵r̵o̵p̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+
+ProtoParseWork.Generated.slice.Types
+
+ProtoParseWork.Generated.slice.Funs
+
+ProtoParseWork.SliceReference
+'LibSignalReference.Candidate.ProstSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.access_bound' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.get_unchecked_at' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.initialChecks_ok' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.add_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.sub_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.shift_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.cast8_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_two' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.cast32_number' depends on axioms: [propext, Quot.sound]
+
+ProtoParseWork.SliceBridge
+'LibSignalReference.Candidate.ProstSlice.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.prefix_rejected_tenth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.pack_count' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.mask254_large' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.prefix_accepted' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.spqr_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.payload_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.or_number_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.terminates_of_large' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.payload_zero_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.terminates_of_small' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.decode_first' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.pack_valueBytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSlice.prefix_one' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,0 +1,26 @@
+{
+  "reviewed_at_utc": "2026-11-06T22:08:18.725712+00:00",
+  "independent_review": true,
+  "original_llbc_sha256": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0",
+  "selected_llbc_sha256": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed",
+  "selection_script_sha256": "78b01c99f83af94e9581c29dea118fcebf1060bd2b2a70a11707206ed094c24b",
+  "retained_declarations_identical": true,
+  "exact_reversible_declaration_changes": 82,
+  "closed_computational_dependencies": true,
+  "retained_function_ids": [
+    6,
+    121
+  ],
+  "generated_endpoint_function_id": 121,
+  "shared_wrapper_generated": false,
+  "actual_operation": "One mutable u64 XOR assignment from core/src/ops/bit.rs:898 in the pinned full-MIR Rust sysroot.",
+  "graph_model_boundary": "Core source/sysroot provenance must continue to pass audit_sysroot in the leaf check script; LLBC supplies source locations but no embedded source text for these two core functions.",
+  "retained_unused_metadata": [
+    "Trait21 vtable type45, already absent in original graph",
+    "Impl5 vtable global6, already absent in original graph",
+    "Impl7 vtable global7, already absent in original graph"
+  ],
+  "whole_add_round_key_reference_complete": false,
+  "selection_trusted_not_mechanized": true,
+  "conclusion": "No semantic concern in exact unchanged leaf selection. The endpoint covers actual value-taking XOR assignment only; mutable Zip loop and removed caller remain unproved."
+}

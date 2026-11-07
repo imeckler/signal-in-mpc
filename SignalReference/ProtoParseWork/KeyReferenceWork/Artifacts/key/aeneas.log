@@ -1,0 +1,20 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/KeyReferenceWork/Artifacts/key/prost.llbc
+[[91mError[39m] When retrieving the builtin information for trait decl 'core::iter::range::Step', could not find the information for item 'forward_overflowing'. The model defined in the Lean library seems to be missing the corresponding field.
+Source: '/rustc/library/core/src/iter/range.rs', lines 34:0-34:64
+[[91mError[39m] Could not generate names for the trait declaration 'core::iter::range::Step because of previous error
+Name pattern: 'core::iter::range::Step'
+Definition span: '/rustc/library/core/src/iter/range.rs', lines 34:0-34:64
+
+This definition is (transitively) used at the following locations:
+Source: 'src/encoding/varint.rs', lines 159:17-159:44
+
+Source: '/rustc/library/core/src/iter/range.rs', lines 34:0-34:64
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.extract_translated_crate.(fun) in file "Translate.ml", lines 1670-1676, characters 10-41
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__Translate.extract_translated_crate in file "Translate.ml", lines 1657-1678, characters 4-27
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

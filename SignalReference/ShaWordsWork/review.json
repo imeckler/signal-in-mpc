@@ -1,0 +1,3285 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_llbc": "Extraction/libsignal_sha256_to_words.llbc",
+  "original_sha256": "25caeda6eaa34c4e4080aa322bf1563d87859a1b116d2600d16f27f6993fe65a",
+  "input_fingerprint": "646b95f40c3a827eefe9714014bc6bd41b86cc9917a3e16c1338ed01b4392664",
+  "selected_sha256": "3409d91192629e87b6d97f6c5510df81f8d8cc2866ea7f0951978f86a2b262c5",
+  "changes": [
+    {
+      "path": [
+        "translated",
+        "fun_decls",
+        0
+      ],
+      "before": {
+        "def_id": 0,
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "sha2",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "sha256",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "soft",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "to_u32s",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 0,
+              "beg": {
+                "line": 11,
+                "col": 0
+              },
+              "end": {
+                "line": 16,
+                "col": 1
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": "fn to_u32s(block: &[u8; 64]) -> [u32; 16] {\n    core::array::from_fn(|i| {\n        let chunk = block[4 * i..][..4].try_into().unwrap();\n        u32::from_be_bytes(chunk)\n    })\n}",
+          "attr_info": {
+            "attributes": [],
+            "inline": null,
+            "rename": null,
+            "public": false
+          },
+          "is_local": true,
+          "opacity": "Transparent",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "generics": {
+          "regions": [
+            {
+              "index": 0,
+              "name": null,
+              "variance": "Covariant",
+              "mutability": "Unknown"
+            }
+          ],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "Ref": [
+                  {
+                    "Var": {
+                      "Free": 0
+                    }
+                  },
+                  {
+                    "Untagged": {
+                      "Array": [
+                        {
+                          "Untagged": {
+                            "Literal": {
+                              "UInt": "U8"
+                            }
+                          }
+                        },
+                        {
+                          "Untagged": [
+                            {
+                              "Literal": {
+                                "Scalar": {
+                                  "Unsigned": [
+                                    "Usize",
+                                    "64"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "Literal": {
+                                  "UInt": "Usize"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "Shared"
+                ]
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Array": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U32"
+                    }
+                  }
+                },
+                {
+                  "Untagged": [
+                    {
+                      "Literal": {
+                        "Scalar": {
+                          "Unsigned": [
+                            "Usize",
+                            "16"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "src": "Normal",
+        "body": {
+          "Structured": {
+            "span": {
+              "data": {
+                "file_id": 0,
+                "beg": {
+                  "line": 11,
+                  "col": 0
+                },
+                "end": {
+                  "line": 16,
+                  "col": 1
+                }
+              },
+              "generated_from_span": null
+            },
+            "bound_body_regions": 14,
+            "locals": {
+              "arg_count": 1,
+              "locals": [
+                {
+                  "index": 0,
+                  "name": null,
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 11,
+                        "col": 32
+                      },
+                      "end": {
+                        "line": 11,
+                        "col": 41
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "ty": {
+                    "Untagged": {
+                      "Array": [
+                        {
+                          "Untagged": {
+                            "Literal": {
+                              "UInt": "U32"
+                            }
+                          }
+                        },
+                        {
+                          "Untagged": [
+                            {
+                              "Literal": {
+                                "Scalar": {
+                                  "Unsigned": [
+                                    "Usize",
+                                    "16"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "Literal": {
+                                  "UInt": "Usize"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "index": 1,
+                  "name": "block",
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 11,
+                        "col": 11
+                      },
+                      "end": {
+                        "line": 11,
+                        "col": 16
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "ty": {
+                    "Untagged": {
+                      "Ref": [
+                        {
+                          "Body": 1
+                        },
+                        {
+                          "Untagged": {
+                            "Array": [
+                              {
+                                "Untagged": {
+                                  "Literal": {
+                                    "UInt": "U8"
+                                  }
+                                }
+                              },
+                              {
+                                "Untagged": [
+                                  {
+                                    "Literal": {
+                                      "Scalar": {
+                                        "Unsigned": [
+                                          "Usize",
+                                          "64"
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "Untagged": {
+                                      "Literal": {
+                                        "UInt": "Usize"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "Shared"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "index": 2,
+                  "name": null,
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "ty": {
+                    "Untagged": {
+                      "Adt": {
+                        "id": {
+                          "Adt": 0
+                        },
+                        "generics": {
+                          "regions": [
+                            {
+                              "Body": 3
+                            }
+                          ],
+                          "types": [],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "index": 3,
+                  "name": null,
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "ty": {
+                    "Untagged": {
+                      "Ref": [
+                        {
+                          "Body": 4
+                        },
+                        {
+                          "Untagged": {
+                            "Array": [
+                              {
+                                "Untagged": {
+                                  "Literal": {
+                                    "UInt": "U8"
+                                  }
+                                }
+                              },
+                              {
+                                "Untagged": [
+                                  {
+                                    "Literal": {
+                                      "Scalar": {
+                                        "Unsigned": [
+                                          "Usize",
+                                          "64"
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "Untagged": {
+                                      "Literal": {
+                                        "UInt": "Usize"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        "Shared"
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "body": {
+              "span": {
+                "data": {
+                  "file_id": 0,
+                  "beg": {
+                    "line": 12,
+                    "col": 25
+                  },
+                  "end": {
+                    "line": 16,
+                    "col": 1
+                  }
+                },
+                "generated_from_span": null
+              },
+              "id": 4,
+              "statements": [
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 0,
+                  "kind": {
+                    "StorageLive": 0
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 1,
+                  "kind": {
+                    "StorageLive": 2
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 2,
+                  "kind": {
+                    "StorageLive": 3
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 3,
+                  "kind": {
+                    "Assign": [
+                      {
+                        "kind": {
+                          "Local": 3
+                        },
+                        "ty": {
+                          "Untagged": {
+                            "Ref": [
+                              {
+                                "Body": 4
+                              },
+                              {
+                                "Untagged": {
+                                  "Array": [
+                                    {
+                                      "Untagged": {
+                                        "Literal": {
+                                          "UInt": "U8"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Untagged": [
+                                        {
+                                          "Literal": {
+                                            "Scalar": {
+                                              "Unsigned": [
+                                                "Usize",
+                                                "64"
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "Untagged": {
+                                            "Literal": {
+                                              "UInt": "Usize"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              "Shared"
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Ref": {
+                          "place": {
+                            "kind": {
+                              "Projection": [
+                                {
+                                  "kind": {
+                                    "Local": 1
+                                  },
+                                  "ty": {
+                                    "Untagged": {
+                                      "Ref": [
+                                        {
+                                          "Body": 1
+                                        },
+                                        {
+                                          "Untagged": {
+                                            "Array": [
+                                              {
+                                                "Untagged": {
+                                                  "Literal": {
+                                                    "UInt": "U8"
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "Untagged": [
+                                                  {
+                                                    "Literal": {
+                                                      "Scalar": {
+                                                        "Unsigned": [
+                                                          "Usize",
+                                                          "64"
+                                                        ]
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "Untagged": {
+                                                      "Literal": {
+                                                        "UInt": "Usize"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        "Shared"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "Deref"
+                              ]
+                            },
+                            "ty": {
+                              "Untagged": {
+                                "Array": [
+                                  {
+                                    "Untagged": {
+                                      "Literal": {
+                                        "UInt": "U8"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "Untagged": [
+                                      {
+                                        "Literal": {
+                                          "Scalar": {
+                                            "Unsigned": [
+                                              "Usize",
+                                              "64"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "Literal": {
+                                            "UInt": "Usize"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "kind": "Shared",
+                          "ptr_metadata": {
+                            "Const": {
+                              "Untagged": [
+                                {
+                                  "Adt": [
+                                    null,
+                                    []
+                                  ]
+                                },
+                                {
+                                  "Untagged": {
+                                    "Adt": {
+                                      "id": {
+                                        "Builtin": "Tuple"
+                                      },
+                                      "generics": {
+                                        "regions": [],
+                                        "types": [],
+                                        "const_generics": [],
+                                        "trait_refs": []
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 25
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 5
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 4,
+                  "kind": {
+                    "Assign": [
+                      {
+                        "kind": {
+                          "Local": 2
+                        },
+                        "ty": {
+                          "Untagged": {
+                            "Adt": {
+                              "id": {
+                                "Adt": 0
+                              },
+                              "generics": {
+                                "regions": [
+                                  {
+                                    "Body": 3
+                                  }
+                                ],
+                                "types": [],
+                                "const_generics": [],
+                                "trait_refs": []
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Aggregate": [
+                          {
+                            "Adt": [
+                              {
+                                "id": {
+                                  "Adt": 0
+                                },
+                                "generics": {
+                                  "regions": [
+                                    {
+                                      "Body": 5
+                                    }
+                                  ],
+                                  "types": [],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              },
+                              null,
+                              null
+                            ]
+                          },
+                          [
+                            {
+                              "Move": {
+                                "kind": {
+                                  "Local": 3
+                                },
+                                "ty": {
+                                  "Untagged": {
+                                    "Ref": [
+                                      {
+                                        "Body": 4
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "Array": [
+                                            {
+                                              "Untagged": {
+                                                "Literal": {
+                                                  "UInt": "U8"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "Untagged": [
+                                                {
+                                                  "Literal": {
+                                                    "Scalar": {
+                                                      "Unsigned": [
+                                                        "Usize",
+                                                        "64"
+                                                      ]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "Untagged": {
+                                                    "Literal": {
+                                                      "UInt": "Usize"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "Shared"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        ]
+                      }
+                    ]
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 27
+                      },
+                      "end": {
+                        "line": 12,
+                        "col": 28
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 5,
+                  "kind": {
+                    "StorageDead": 3
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 12,
+                        "col": 4
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 6
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 8,
+                  "kind": {
+                    "Call": {
+                      "call": {
+                        "func": {
+                          "Regular": {
+                            "kind": {
+                              "Fun": {
+                                "Regular": 1
+                              }
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "U32"
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "Adt": {
+                                      "id": {
+                                        "Adt": 0
+                                      },
+                                      "generics": {
+                                        "regions": [
+                                          {
+                                            "Body": 7
+                                          }
+                                        ],
+                                        "types": [],
+                                        "const_generics": [],
+                                        "trait_refs": []
+                                      }
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [
+                                {
+                                  "Untagged": [
+                                    {
+                                      "Literal": {
+                                        "Scalar": {
+                                          "Unsigned": [
+                                            "Usize",
+                                            "16"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Untagged": {
+                                        "Literal": {
+                                          "UInt": "Usize"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ],
+                              "trait_refs": [
+                                {
+                                  "Untagged": {
+                                    "kind": {
+                                      "BuiltinOrAuto": {
+                                        "builtin_data": "NoopDestruct",
+                                        "parent_trait_refs": [],
+                                        "types": [],
+                                        "vtable": null
+                                      }
+                                    },
+                                    "trait_decl_ref": {
+                                      "regions": [],
+                                      "skip_binder": {
+                                        "id": 0,
+                                        "generics": {
+                                          "regions": [],
+                                          "types": [
+                                            {
+                                              "Untagged": {
+                                                "Literal": {
+                                                  "UInt": "U32"
+                                                }
+                                              }
+                                            }
+                                          ],
+                                          "const_generics": [],
+                                          "trait_refs": []
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "kind": {
+                                      "TraitImpl": {
+                                        "id": 1,
+                                        "generics": {
+                                          "regions": [
+                                            {
+                                              "Body": 7
+                                            }
+                                          ],
+                                          "types": [],
+                                          "const_generics": [],
+                                          "trait_refs": []
+                                        }
+                                      }
+                                    },
+                                    "trait_decl_ref": {
+                                      "regions": [],
+                                      "skip_binder": {
+                                        "id": 1,
+                                        "generics": {
+                                          "regions": [],
+                                          "types": [
+                                            {
+                                              "Untagged": {
+                                                "Adt": {
+                                                  "id": {
+                                                    "Adt": 0
+                                                  },
+                                                  "generics": {
+                                                    "regions": [
+                                                      {
+                                                        "Body": 7
+                                                      }
+                                                    ],
+                                                    "types": [],
+                                                    "const_generics": [],
+                                                    "trait_refs": []
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "Untagged": {
+                                                "Adt": {
+                                                  "id": {
+                                                    "Builtin": "Tuple"
+                                                  },
+                                                  "generics": {
+                                                    "regions": [],
+                                                    "types": [
+                                                      {
+                                                        "Untagged": {
+                                                          "Literal": {
+                                                            "UInt": "Usize"
+                                                          }
+                                                        }
+                                                      }
+                                                    ],
+                                                    "const_generics": [],
+                                                    "trait_refs": []
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "Untagged": {
+                                                "Literal": {
+                                                  "UInt": "U32"
+                                                }
+                                              }
+                                            }
+                                          ],
+                                          "const_generics": [],
+                                          "trait_refs": []
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "kind": {
+                                      "TraitImpl": {
+                                        "id": 2,
+                                        "generics": {
+                                          "regions": [
+                                            {
+                                              "Body": 7
+                                            }
+                                          ],
+                                          "types": [],
+                                          "const_generics": [],
+                                          "trait_refs": []
+                                        }
+                                      }
+                                    },
+                                    "trait_decl_ref": {
+                                      "regions": [],
+                                      "skip_binder": {
+                                        "id": 0,
+                                        "generics": {
+                                          "regions": [],
+                                          "types": [
+                                            {
+                                              "Untagged": {
+                                                "Adt": {
+                                                  "id": {
+                                                    "Adt": 0
+                                                  },
+                                                  "generics": {
+                                                    "regions": [
+                                                      {
+                                                        "Body": 7
+                                                      }
+                                                    ],
+                                                    "types": [],
+                                                    "const_generics": [],
+                                                    "trait_refs": []
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ],
+                                          "const_generics": [],
+                                          "trait_refs": []
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "args": [
+                          {
+                            "Move": {
+                              "kind": {
+                                "Local": 2
+                              },
+                              "ty": {
+                                "Untagged": {
+                                  "Adt": {
+                                    "id": {
+                                      "Adt": 0
+                                    },
+                                    "generics": {
+                                      "regions": [
+                                        {
+                                          "Body": 3
+                                        }
+                                      ],
+                                      "types": [],
+                                      "const_generics": [],
+                                      "trait_refs": []
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "dest": {
+                          "kind": {
+                            "Local": 0
+                          },
+                          "ty": {
+                            "Untagged": {
+                              "Array": [
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "U32"
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": [
+                                    {
+                                      "Literal": {
+                                        "Scalar": {
+                                          "Unsigned": [
+                                            "Usize",
+                                            "16"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Untagged": {
+                                        "Literal": {
+                                          "UInt": "Usize"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "on_unwind": {
+                        "span": {
+                          "data": {
+                            "file_id": 0,
+                            "beg": {
+                              "line": 11,
+                              "col": 0
+                            },
+                            "end": {
+                              "line": 16,
+                              "col": 1
+                            }
+                          },
+                          "generated_from_span": null
+                        },
+                        "id": 1,
+                        "statements": [
+                          {
+                            "span": {
+                              "data": {
+                                "file_id": 0,
+                                "beg": {
+                                  "line": 11,
+                                  "col": 0
+                                },
+                                "end": {
+                                  "line": 16,
+                                  "col": 1
+                                }
+                              },
+                              "generated_from_span": null
+                            },
+                            "id": 6,
+                            "kind": {
+                              "StorageDead": 1
+                            },
+                            "comments_before": []
+                          },
+                          {
+                            "span": {
+                              "data": {
+                                "file_id": 0,
+                                "beg": {
+                                  "line": 11,
+                                  "col": 0
+                                },
+                                "end": {
+                                  "line": 16,
+                                  "col": 1
+                                }
+                              },
+                              "generated_from_span": null
+                            },
+                            "id": 7,
+                            "kind": "UnwindResume",
+                            "comments_before": []
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 15,
+                        "col": 5
+                      },
+                      "end": {
+                        "line": 15,
+                        "col": 6
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 9,
+                  "kind": {
+                    "StorageDead": 2
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 16,
+                        "col": 1
+                      },
+                      "end": {
+                        "line": 16,
+                        "col": 1
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 10,
+                  "kind": {
+                    "StorageDead": 1
+                  },
+                  "comments_before": []
+                },
+                {
+                  "span": {
+                    "data": {
+                      "file_id": 0,
+                      "beg": {
+                        "line": 16,
+                        "col": 1
+                      },
+                      "end": {
+                        "line": 16,
+                        "col": 1
+                      }
+                    },
+                    "generated_from_span": null
+                  },
+                  "id": 11,
+                  "kind": "Return",
+                  "comments_before": []
+                }
+              ]
+            },
+            "comments": []
+          }
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "fun_decls",
+        1
+      ],
+      "before": {
+        "def_id": 1,
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "array",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "from_fn",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 3,
+              "beg": {
+                "line": 110,
+                "col": 0
+              },
+              "end": {
+                "line": 112,
+                "col": 52
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": null,
+          "attr_info": {
+            "attributes": [
+              {
+                "DocComment": " Creates an array where each element is produced by calling `f` with"
+              },
+              {
+                "DocComment": " that element's index while walking forward through the array."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " This is essentially the same as writing"
+              },
+              {
+                "DocComment": " ```text"
+              },
+              {
+                "DocComment": " [f(0), f(1), f(2), \u2026, f(N - 2), f(N - 1)]"
+              },
+              {
+                "DocComment": " ```"
+              },
+              {
+                "DocComment": " and is similar to `(0..i).map(f)`, just for arrays not iterators."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " If `N == 0`, this produces an empty array without ever calling `f`."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " # Example"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " ```rust"
+              },
+              {
+                "DocComment": " // type inference is helping us here, the way `from_fn` knows how many"
+              },
+              {
+                "DocComment": " // elements to produce is the length of array down there: only arrays of"
+              },
+              {
+                "DocComment": " // equal lengths can be compared, so the const generic parameter `N` is"
+              },
+              {
+                "DocComment": " // inferred to be 5, thus creating array of 5 elements."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " let array = core::array::from_fn(|i| i);"
+              },
+              {
+                "DocComment": " // indexes are:    0  1  2  3  4"
+              },
+              {
+                "DocComment": " assert_eq!(array, [0, 1, 2, 3, 4]);"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " let array2: [usize; 8] = core::array::from_fn(|i| i * 2);"
+              },
+              {
+                "DocComment": " // indexes are:     0  1  2  3  4  5   6   7"
+              },
+              {
+                "DocComment": " assert_eq!(array2, [0, 2, 4, 6, 8, 10, 12, 14]);"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " let bool_arr = core::array::from_fn::<_, 5, _>(|i| i % 2 == 0);"
+              },
+              {
+                "DocComment": " // indexes are:       0     1      2     3      4"
+              },
+              {
+                "DocComment": " assert_eq!(bool_arr, [true, false, true, false, true]);"
+              },
+              {
+                "DocComment": " ```"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " You can also capture things, for example to create an array full of clones"
+              },
+              {
+                "DocComment": " where you can't just use `[item; N]` because it's not `Copy`:"
+              },
+              {
+                "DocComment": " ```"
+              },
+              {
+                "DocComment": " let my_string: [String; 2] = std::array::from_fn(|i| format!(\"Hello {i}\"));"
+              },
+              {
+                "DocComment": " assert_eq!(my_string, [\"Hello 0\", \"Hello 1\"]);"
+              },
+              {
+                "DocComment": " ```"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " The array is generated in ascending index order, starting from the front"
+              },
+              {
+                "DocComment": " and going towards the back, so you can use closures with mutable state:"
+              },
+              {
+                "DocComment": " ```"
+              },
+              {
+                "DocComment": " let mut state = 1;"
+              },
+              {
+                "DocComment": " let a = std::array::from_fn(|_| { let x = state; state *= 2; x });"
+              },
+              {
+                "DocComment": " assert_eq!(a, [1, 2, 4, 8, 16, 32]);"
+              },
+              {
+                "DocComment": " ```"
+              }
+            ],
+            "inline": "Hint",
+            "rename": null,
+            "public": true
+          },
+          "is_local": false,
+          "opacity": "Foreign",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "generics": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "T",
+              "variance": "Covariant"
+            },
+            {
+              "index": 1,
+              "name": "F",
+              "variance": "Contravariant"
+            }
+          ],
+          "const_generics": [
+            {
+              "index": 0,
+              "name": "N",
+              "ty": {
+                "Untagged": {
+                  "Literal": {
+                    "UInt": "Usize"
+                  }
+                }
+              }
+            }
+          ],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 3,
+                  "beg": {
+                    "line": 110,
+                    "col": 24
+                  },
+                  "end": {
+                    "line": 110,
+                    "col": 40
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 0,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            },
+            {
+              "clause_id": 1,
+              "span": {
+                "data": {
+                  "file_id": 3,
+                  "beg": {
+                    "line": 112,
+                    "col": 7
+                  },
+                  "end": {
+                    "line": 112,
+                    "col": 32
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 1,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 1
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Builtin": "Tuple"
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "Usize"
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            },
+            {
+              "clause_id": 2,
+              "span": {
+                "data": {
+                  "file_id": 3,
+                  "beg": {
+                    "line": 112,
+                    "col": 35
+                  },
+                  "end": {
+                    "line": 112,
+                    "col": 51
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 0,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 1
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "TypeVar": {
+                  "Free": 1
+                }
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Array": [
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Free": 0
+                    }
+                  }
+                },
+                {
+                  "Untagged": [
+                    {
+                      "Var": {
+                        "Free": 0
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "src": "Normal",
+        "body": "Opaque"
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "ordered_decls"
+      ],
+      "before": [
+        {
+          "TraitDecl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 12
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 7
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 23
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 10
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 22
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 25
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 7
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 6
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 21
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 20
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 18
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 17
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 16
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 14
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 13
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 12
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 10
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 4
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 0
+          }
+        }
+      ],
+      "after": [
+        {
+          "TraitDecl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 12
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 7
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 23
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 10
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 22
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 25
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 7
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 6
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 21
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 20
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 18
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 17
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 16
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 14
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 13
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 12
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 10
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 4
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 1
+          }
+        }
+      ]
+    }
+  ],
+  "computational_bodies_modified": [],
+  "source_patches": [],
+  "unproved_deleted_callers": [
+    "sha2::sha256::soft::to_u32s",
+    "core::array::from_fn"
+  ],
+  "selected_actual_operation": "sha2::sha256::soft::to_u32s closure FnMut::call_mut",
+  "selection_is_trusted_not_mechanized": true,
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "ShaWordsWork/Generated/Funs.lean": "75143d0b74ab754b7aefab9f22691faea0df1a6886841e99970962fc3878aac0",
+    "ShaWordsWork/Generated/Types.lean": "778fa2cc4827111c0583c50809a57253e2145ec29dd8f25f64c6d48afcc5da31"
+  },
+  "inventory": {
+    "llbc_sha256": "3409d91192629e87b6d97f6c5510df81f8d8cc2866ea7f0951978f86a2b262c5",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 8,
+      "fun_decls": 23,
+      "global_decls": 0,
+      "trait_decls": 10,
+      "trait_impls": 12,
+      "ordered_decls": 50
+    },
+    "body_kinds": {
+      "Structured": 3,
+      "Opaque": 20
+    },
+    "external_functions": [
+      {
+        "id": 5,
+        "name": "core::array::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 390,
+              "col": 4
+            },
+            "end": {
+              "line": 390,
+              "col": 46
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 18,
+              "col": 4
+            },
+            "end": {
+              "line": 18,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "core::convert::{impl}::try_into",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 821,
+              "col": 4
+            },
+            "end": {
+              "line": 821,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "core::result::{impl}::unwrap",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 1226,
+              "col": 4
+            },
+            "end": {
+              "line": 1228,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "core::num::{impl}::from_be_bytes",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 4086,
+              "col": 8
+            },
+            "end": {
+              "line": 4086,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 520,
+              "col": 4
+            },
+            "end": {
+              "line": 520,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 526,
+              "col": 4
+            },
+            "end": {
+              "line": 526,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 531,
+              "col": 4
+            },
+            "end": {
+              "line": 531,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 537,
+              "col": 4
+            },
+            "end": {
+              "line": 537,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 543,
+              "col": 4
+            },
+            "end": {
+              "line": 543,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 556,
+              "col": 4
+            },
+            "end": {
+              "line": 556,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 479,
+              "col": 4
+            },
+            "end": {
+              "line": 479,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 485,
+              "col": 4
+            },
+            "end": {
+              "line": 485,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 490,
+              "col": 4
+            },
+            "end": {
+              "line": 490,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 496,
+              "col": 4
+            },
+            "end": {
+              "line": 496,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 502,
+              "col": 4
+            },
+            "end": {
+              "line": 502,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 508,
+              "col": 4
+            },
+            "end": {
+              "line": 508,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::array::{impl}::try_from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 259,
+              "col": 4
+            },
+            "end": {
+              "line": 259,
+              "col": 65
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::array::{impl}::fmt",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 182,
+              "col": 9
+            },
+            "end": {
+              "line": 182,
+              "col": 14
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 19,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 4,
+        "name": "core::array::TryFromSliceError",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 183,
+              "col": 0
+            },
+            "end": {
+              "line": 183,
+              "col": 28
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::fmt::Formatter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 14,
+            "beg": {
+              "line": 561,
+              "col": 0
+            },
+            "end": {
+              "line": 561,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/sha256/soft.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/sha256.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "sha2"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/rustc/library/core/src/array/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/range.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/index.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/index.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/rustc/library/core/src/fmt/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/rustc/library/core/src/num/uint_macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/rustc/library/core/src/num/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/core/src/ptr/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/core/src/option.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::sha256::soft::to_u32s"
+    ],
+    "selected_functions": [
+      {
+        "id": 2,
+        "name": "sha2::sha256::soft::to_u32s::{impl}::call_once",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 12,
+              "col": 25
+            },
+            "end": {
+              "line": 15,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "sha2::sha256::soft::to_u32s::{impl}::call_mut",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 12,
+              "col": 25
+            },
+            "end": {
+              "line": 15,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "sha2::sha256::soft::to_u32s::closure::{impl}::drop_glue",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 12,
+              "col": 25
+            },
+            "end": {
+              "line": 15,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "core::array::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 390,
+              "col": 4
+            },
+            "end": {
+              "line": 390,
+              "col": 46
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 18,
+              "col": 4
+            },
+            "end": {
+              "line": 18,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "core::convert::{impl}::try_into",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 821,
+              "col": 4
+            },
+            "end": {
+              "line": 821,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "core::result::{impl}::unwrap",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 1226,
+              "col": 4
+            },
+            "end": {
+              "line": 1228,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "core::num::{impl}::from_be_bytes",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 4086,
+              "col": 8
+            },
+            "end": {
+              "line": 4086,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 520,
+              "col": 4
+            },
+            "end": {
+              "line": 520,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 526,
+              "col": 4
+            },
+            "end": {
+              "line": 526,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 531,
+              "col": 4
+            },
+            "end": {
+              "line": 531,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 537,
+              "col": 4
+            },
+            "end": {
+              "line": 537,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 543,
+              "col": 4
+            },
+            "end": {
+              "line": 543,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 556,
+              "col": 4
+            },
+            "end": {
+              "line": 556,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 479,
+              "col": 4
+            },
+            "end": {
+              "line": 479,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 485,
+              "col": 4
+            },
+            "end": {
+              "line": 485,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 490,
+              "col": 4
+            },
+            "end": {
+              "line": 490,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 496,
+              "col": 4
+            },
+            "end": {
+              "line": 496,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 502,
+              "col": 4
+            },
+            "end": {
+              "line": 502,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 508,
+              "col": 4
+            },
+            "end": {
+              "line": 508,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::array::{impl}::try_from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 259,
+              "col": 4
+            },
+            "end": {
+              "line": 259,
+              "col": 65
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::array::{impl}::fmt",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 182,
+              "col": 9
+            },
+            "end": {
+              "line": 182,
+              "col": 14
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 19,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "script_sha256": "ea6373a17845d31d0f7c52c3ff7e6939cdd553f9150782a33ca2a5d3a1d9437b",
+  "proof_status": "Candidate closure_result proof builds, but remains outside accepted audit due to official opaque Formatter type assumption.",
+  "proof_custom_assumptions": [
+    "Aeneas.Std.core.fmt.Formatter"
+  ],
+  "numeric_circuit_bridge_established": false,
+  "proved_domain": "Every actual64-byte array and index.val <16; returns the same captured array and the big-endian four-byte chunk",
+  "proof_file": "ShaWordsWork/Reference.lean",
+  "proof_file_sha256": "644cff38f36faf16cd3f5ad1759390be0a839a269316decd83176cbb577d44ea"
+}

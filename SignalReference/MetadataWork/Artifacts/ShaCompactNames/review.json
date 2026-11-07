@@ -1,0 +1,182 @@
+{
+  "accepted_reference": false,
+  "additional_trusted_step": true,
+  "transformation_correctness_mechanized": false,
+  "original_llbc_sha256": "809897eb51c93bafc1337dc8e1b13dd4a52bca3b28fc050792d0dcbf99bfcdc9",
+  "normalized_llbc_sha256": "0bfdb35ec4d9b8f0fcfbdca778c0b3acea7c45ea9a70e33bdb5692d399753488",
+  "changes": [
+    {
+      "type_id": 0,
+      "before": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Range",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Deduplicated": 497
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "after": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "RangeMpcInstantiation0",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "type_id": 1,
+      "before": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "option",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Option",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Deduplicated": 497
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "after": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "option",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "OptionMpcInstantiation1",
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "all_other_json_values_identical": true,
+  "rust_source_changes": [],
+  "aeneas_exit_code": 0,
+  "command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/MetadataWork/Artifacts/ShaCompactNames/normalized.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/MetadataWork/Generated/ShaCompactNames",
+    "-split-files",
+    "-namespace",
+    "CandidateShaMetadata",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {
+    "MetadataWork/Generated/ShaCompactNames/Funs.lean": "f359a67e63b519a628a71112eb5796261709b8fbd01a00fdeaea369c4a60dadc",
+    "MetadataWork/Generated/ShaCompactNames/FunsExternal_Template.lean": "e79ebe79d0fac81c3d38511f060fcea2b6530530b325f978d65c9baf45022a1d",
+    "MetadataWork/Generated/ShaCompactNames/Types.lean": "f4edbcf18b27f2d3b3ac2578896aa784eb394ba6ebd72a2938d149a450831c5e"
+  },
+  "remaining_external_templates": [
+    "FunsExternal_Template.lean"
+  ],
+  "script_sha256": "28dcc81d1df94a826ca3ed65651597ffa7df4ac5503eee32b461eea8124d7015"
+}

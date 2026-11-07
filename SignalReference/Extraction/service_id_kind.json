@@ -1,0 +1,201 @@
+{
+  "llbc_sha256": "4511ecf4d1dd789b7e4f2d51f95b1e31c7de837b2d048a220fe18a660739fb15",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 3,
+    "fun_decls": 4,
+    "global_decls": 2,
+    "trait_decls": 1,
+    "trait_impls": 1,
+    "ordered_decls": 9
+  },
+  "body_kinds": {
+    "Structured": 4
+  },
+  "external_functions": [],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "rust/core/src/address.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "rust/core/src/lib.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/derive_more-2.1.1/src/convert.rs"
+      },
+      "crate_name": "derive_more"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/derive_more-2.1.1/src/lib.rs"
+      },
+      "crate_name": "derive_more"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{core::convert::TryFrom for crate::address::ServiceIdKind}::try_from"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "libsignal_core::address::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 43
+          },
+          "end": {
+            "line": 16,
+            "col": 63
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "derive_more::convert::try_from::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 29,
+            "col": 8
+          },
+          "end": {
+            "line": 29,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "libsignal_core::address::{impl}::try_from::__DISCRIMINANT_Aci",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 43
+          },
+          "end": {
+            "line": 16,
+            "col": 63
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "libsignal_core::address::{impl}::try_from::__DISCRIMINANT_Pni",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 43
+          },
+          "end": {
+            "line": 16,
+            "col": 63
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "superseded by the joint service_id_encode profile: Aeneas discriminant instance names collide if both independent exports are imported",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={core::convert::TryFrom for crate::address::ServiceIdKind}::try_from",
+    "--include=derive_more",
+    "--start-from-if-exists=crate::address::*::try_from",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_service_id_kind.llbc",
+    "--",
+    "--package",
+    "libsignal-core",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "rustflags": "",
+  "target": "aarch64-apple-darwin",
+  "charon_exit_code": 0,
+  "modeled_std_functions": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "Extraction/Incomplete/ServiceIdKind/Funs.lean": "d4389904a19dc1da994da28cab0b8a50ddded4852499b6e8dbcab9f9065b2123",
+    "Extraction/Incomplete/ServiceIdKind/Types.lean": "998cecc10c1d0089f2e95d4be1cc101187ed47f5806cacd8081a007b08235200"
+  }
+}

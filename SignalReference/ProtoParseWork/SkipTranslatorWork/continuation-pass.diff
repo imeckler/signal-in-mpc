@@ -1,0 +1,12 @@
+--- upstream/src/PrePasses.ml
++++ candidate/src/PrePasses.ml
+@@ -2303,6 +2303,9 @@
+       ("fix_closure_lifetimes", fix_closure_lifetimes);
+       ("erase_body_regions", erase_body_regions);
+       ("remove_unreachable", remove_unreachable);
++      (* Candidate: expose existing branch continuations before normalizing
++         early returns in loops. Reuse the existing semantics-preserving pass. *)
++      ("expose_loop_continuations", remove_useless_joins);
+       ("update_loop", update_loops);
+       ("remove_useless_joins", remove_useless_joins);
+       ( "remove_shallow_borrows_storage_live_dead",

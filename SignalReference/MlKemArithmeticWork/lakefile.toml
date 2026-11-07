@@ -1,0 +1,9 @@
+name = "mlkem-arithmetic-export"
+version = "0.1.0"
+defaultTargets = ["emit_mlkem_arithmetic"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_mlkem_arithmetic"
+root = "Export"

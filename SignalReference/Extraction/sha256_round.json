@@ -1,0 +1,218 @@
+{
+  "llbc_sha256": "0960d810919337230924dd9cb044824d955781f1114bc5f7b66fa36453381efc",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 0,
+    "fun_decls": 3,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 3
+  },
+  "body_kinds": {
+    "Structured": 1,
+    "Opaque": 2
+  },
+  "external_functions": [
+    {
+      "id": 1,
+      "name": "core::num::{impl}::wrapping_add",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 2651,
+            "col": 8
+          },
+          "end": {
+            "line": 2651,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "core::num::{impl}::rotate_right",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 503,
+            "col": 8
+          },
+          "end": {
+            "line": 503,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/sha256/wasm32_simd128.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/sha256.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::sha256::wasm32_simd128::sha_round"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "sha2::sha256::wasm32_simd128::sha_round",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 84,
+            "col": 0
+          },
+          "end": {
+            "line": 131,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "core::num::{impl}::wrapping_add",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 2651,
+            "col": 8
+          },
+          "end": {
+            "line": 2651,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "core::num::{impl}::rotate_right",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 503,
+            "col": 8
+          },
+          "end": {
+            "line": 503,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::sha256::wasm32_simd128::sha_round",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_sha256_round.llbc",
+    "--",
+    "--package",
+    "sha2@0.11.0",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "wasm32-wasip1"
+  ],
+  "rustflags": "-C target-feature=+simd128",
+  "target": "wasm32-wasip1",
+  "charon_exit_code": 0,
+  "modeled_std_functions": [
+    "core::num::{impl}::wrapping_add",
+    "core::num::{impl}::rotate_right"
+  ],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/Sha256Round/Funs.lean": "68da32c251caf467a7a85d785d14cb82444ebff237511dca4ec29e135f14e4e5",
+    "LibSignalReference/Generated/Sha256Round/Types.lean": "b77176ad99007bbb23a3cec21eff75853fadee1239009c69aa9b0e55fe4a4cf1"
+  }
+}

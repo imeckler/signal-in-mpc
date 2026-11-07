@@ -1,0 +1,59 @@
+LibSignalReference/Proofs/UnpadReference.lean:20:92: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+LibSignalReference/Proofs/UnpadReference.lean:83:14: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  simp_all ̵[̵h̵s̵]̵
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+LibSignalReference/Proofs/UnpadReference.lean:88:14: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  simp_all ̵[̵h̵s̵]̵
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+LibSignalReference/Proofs/UnpadReference.lean:93:14: warning: This simp argument is unused:
+  hs
+
+Hint: Omit it from the simp argument list.
+  simp_all ̵[̵h̵s̵]̵
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+LibSignalReference/Proofs/Unpad.lean:33:40: warning: Variable name `hblock` is not explicitly referenced.
+
+The binding can be removed (if unused) or named `_` (if used implicitly).
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+LibSignalReference/Proofs/Unpad.lean:38:56: warning: This simp argument is unused:
+  List.getElem?_replicate
+
+Hint: Omit it from the simp argument list.
+  simp [List.getD_eq_getElem?_getD, List.getElem?_drop, L̵i̵s̵t̵.̵g̵e̵t̵E̵l̵e̵m̵?̵_̵r̵e̵p̵l̵i̵c̵a̵t̵e̵,̵ ̵hi, show count - 1 < count by omega] at heq
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'LibSignalReference.Proofs.OpenResult.expected16_retained_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_split' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.encodeResult_reject_auth' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_expected' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_reference_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_reject_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Proofs.OpenResult.encodeLength_roundtrip' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.encodeResult_length_prefix' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.encodeResult_retained_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Proofs.OpenResult.actual_retained_length_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Proofs.OpenResult.finish_retained_length' depends on axioms: [propext, Classical.choice, Quot.sound]

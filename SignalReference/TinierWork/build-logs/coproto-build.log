@@ -1,0 +1,5 @@
+[ 26%] Built target coproto
+[ 78%] Built target coproto_tests
+[ 82%] Linking CXX executable frontend
+ld: warning: ignoring duplicate libraries: '../coproto/libcoproto.a'
+[100%] Built target frontend

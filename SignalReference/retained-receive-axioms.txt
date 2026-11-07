@@ -1,0 +1,5 @@
+'TlsMpc.Signal.RetainedReceive.nextEntry_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.RetainedReceive.finish_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.RetainedReceive.openCore_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.RetainedReceive.finish_reject' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.RetainedReceive.compiled_openCore_correct' depends on axioms: [propext, Classical.choice, Quot.sound]

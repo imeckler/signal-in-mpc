@@ -1,0 +1,3358 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "de15ad4e8187a4d76d5438366a173c6d00a28b4dc88b2e2b82493a4f0277f971",
+  "selected_sha256": "94a1724c06f2c5bdab142af300646f72037618f1e9f3901024eac2516f2f120c",
+  "input_fingerprint": "8052c79c2892dea4bbccc61b35fef92cbee86295bad84d8ec587c68b886c5ee2",
+  "changes": [
+    {
+      "path": [
+        "translated",
+        "trait_decls",
+        0,
+        "methods",
+        9
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "U",
+              "variance": "Invariant"
+            },
+            {
+              "index": 1,
+              "name": "Clause0_Item",
+              "variance": "Invariant"
+            },
+            {
+              "index": 2,
+              "name": "Clause0_IntoIter",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 13,
+                  "beg": {
+                    "line": 632,
+                    "col": 11
+                  },
+                  "end": {
+                    "line": 632,
+                    "col": 23
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 1,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              1
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              2
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "name": "zip",
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "traits",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iterator",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "Iterator",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "zip",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 13,
+                "beg": {
+                  "line": 629,
+                  "col": 4
+                },
+                "end": {
+                  "line": 632,
+                  "col": 24
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [
+                {
+                  "DocComment": " 'Zips up' two iterators into a single iterator of pairs."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " `zip()` returns a new iterator that will iterate over two other"
+                },
+                {
+                  "DocComment": " iterators, returning a tuple where the first element comes from the"
+                },
+                {
+                  "DocComment": " first iterator, and the second element comes from the second iterator."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " In other words, it zips two iterators together, into a single one."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " If either iterator returns [`None`], [`next`] from the zipped iterator"
+                },
+                {
+                  "DocComment": " will return [`None`]."
+                },
+                {
+                  "DocComment": " If the zipped iterator has no more elements to return then each further attempt to advance"
+                },
+                {
+                  "DocComment": " it will first try to advance the first iterator at most one time and if it still yielded an item"
+                },
+                {
+                  "DocComment": " try to advance the second iterator at most one time."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " To 'undo' the result of zipping up two iterators, see [`unzip`]."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " [`unzip`]: Iterator::unzip"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " # Examples"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " Basic usage:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " let s1 = \"abc\".chars();"
+                },
+                {
+                  "DocComment": " let s2 = \"def\".chars();"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let mut iter = s1.zip(s2);"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(('a', 'd')));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(('b', 'e')));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(('c', 'f')));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), None);"
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " Since the argument to `zip()` uses [`IntoIterator`], we can pass"
+                },
+                {
+                  "DocComment": " anything that can be converted into an [`Iterator`], not just an"
+                },
+                {
+                  "DocComment": " [`Iterator`] itself. For example, arrays (`[T]`) implement"
+                },
+                {
+                  "DocComment": " [`IntoIterator`], and so can be passed to `zip()` directly:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " let a1 = [1, 2, 3];"
+                },
+                {
+                  "DocComment": " let a2 = [4, 5, 6];"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let mut iter = a1.into_iter().zip(a2);"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some((1, 4)));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some((2, 5)));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some((3, 6)));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), None);"
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " `zip()` is often used to zip an infinite iterator to a finite one."
+                },
+                {
+                  "DocComment": " This works because the finite iterator will eventually return [`None`],"
+                },
+                {
+                  "DocComment": " ending the zipper. Zipping with `(0..)` can look a lot like [`enumerate`]:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " let enumerate: Vec<_> = \"foo\".chars().enumerate().collect();"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let zipper: Vec<_> = (0..).zip(\"foo\".chars()).collect();"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!((0, 'f'), enumerate[0]);"
+                },
+                {
+                  "DocComment": " assert_eq!((0, 'f'), zipper[0]);"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!((1, 'o'), enumerate[1]);"
+                },
+                {
+                  "DocComment": " assert_eq!((1, 'o'), zipper[1]);"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!((2, 'o'), enumerate[2]);"
+                },
+                {
+                  "DocComment": " assert_eq!((2, 'o'), zipper[2]);"
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " If both iterators have roughly equivalent syntax, it may be more readable to use [`zip`]:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " use std::iter::zip;"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let a = [1, 2, 3];"
+                },
+                {
+                  "DocComment": " let b = [2, 3, 4];"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let mut zipped = zip("
+                },
+                {
+                  "DocComment": "     a.into_iter().map(|x| x * 2).skip(1),"
+                },
+                {
+                  "DocComment": "     b.into_iter().map(|x| x * 2).skip(1),"
+                },
+                {
+                  "DocComment": " );"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!(zipped.next(), Some((4, 6)));"
+                },
+                {
+                  "DocComment": " assert_eq!(zipped.next(), Some((6, 8)));"
+                },
+                {
+                  "DocComment": " assert_eq!(zipped.next(), None);"
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " compared to:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " # let a = [1, 2, 3];"
+                },
+                {
+                  "DocComment": " # let b = [2, 3, 4];"
+                },
+                {
+                  "DocComment": " #"
+                },
+                {
+                  "DocComment": " let mut zipped = a"
+                },
+                {
+                  "DocComment": "     .into_iter()"
+                },
+                {
+                  "DocComment": "     .map(|x| x * 2)"
+                },
+                {
+                  "DocComment": "     .skip(1)"
+                },
+                {
+                  "DocComment": "     .zip(b.into_iter().map(|x| x * 2).skip(1));"
+                },
+                {
+                  "DocComment": " #"
+                },
+                {
+                  "DocComment": " # assert_eq!(zipped.next(), Some((4, 6)));"
+                },
+                {
+                  "DocComment": " # assert_eq!(zipped.next(), Some((6, 8)));"
+                },
+                {
+                  "DocComment": " # assert_eq!(zipped.next(), None);"
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " [`enumerate`]: Iterator::enumerate"
+                },
+                {
+                  "DocComment": " [`next`]: Iterator::next"
+                },
+                {
+                  "DocComment": " [`zip`]: crate::iter::zip"
+                }
+              ],
+              "inline": "Hint",
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "output": {
+              "Untagged": {
+                "Adt": {
+                  "id": {
+                    "Adt": 3
+                  },
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              0,
+                              2
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "id": 3,
+            "generics": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Free": 0
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Free": 1
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Bound": [
+                        0,
+                        1
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Bound": [
+                        0,
+                        2
+                      ]
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": [
+                {
+                  "Untagged": {
+                    "kind": "SelfId",
+                    "trait_decl_ref": {
+                      "regions": [],
+                      "skip_binder": {
+                        "id": 0,
+                        "generics": {
+                          "regions": [],
+                          "types": [
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Free": 0
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Free": 1
+                                }
+                              }
+                            }
+                          ],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "kind": {
+                      "Clause": {
+                        "Bound": [
+                          0,
+                          0
+                        ]
+                      }
+                    },
+                    "trait_decl_ref": {
+                      "regions": [],
+                      "skip_binder": {
+                        "id": 1,
+                        "generics": {
+                          "regions": [],
+                          "types": [
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Bound": [
+                                    1,
+                                    0
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Bound": [
+                                    1,
+                                    1
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Bound": [
+                                    1,
+                                    2
+                                  ]
+                                }
+                              }
+                            }
+                          ],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            0,
+            9
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        0,
+        "methods",
+        9
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "U",
+              "variance": "Invariant"
+            },
+            {
+              "index": 1,
+              "name": "Clause0_Item",
+              "variance": "Invariant"
+            },
+            {
+              "index": 2,
+              "name": "Clause0_IntoIter",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 13,
+                  "beg": {
+                    "line": 632,
+                    "col": 11
+                  },
+                  "end": {
+                    "line": 632,
+                    "col": 23
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 1,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              1
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              2
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 3,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 4
+                    },
+                    "generics": {
+                      "regions": [
+                        {
+                          "Var": {
+                            "Free": 0
+                          }
+                        }
+                      ],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Ref": [
+                    {
+                      "Var": {
+                        "Free": 0
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "TypeVar": {
+                          "Free": 0
+                        }
+                      }
+                    },
+                    "Mut"
+                  ]
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      1
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      2
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 0,
+                      "generics": {
+                        "regions": [
+                          {
+                            "Var": {
+                              "Free": 0
+                            }
+                          }
+                        ],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 0,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 4
+                                },
+                                "generics": {
+                                  "regions": [
+                                    {
+                                      "Var": {
+                                        "Free": 0
+                                      }
+                                    }
+                                  ],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "Ref": [
+                                {
+                                  "Var": {
+                                    "Free": 0
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                },
+                                "Mut"
+                              ]
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 1,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  1
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  2
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            0,
+            9
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        3,
+        "methods",
+        9
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "U",
+              "variance": "Invariant"
+            },
+            {
+              "index": 1,
+              "name": "Clause0_Item",
+              "variance": "Invariant"
+            },
+            {
+              "index": 2,
+              "name": "Clause0_IntoIter",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 13,
+                  "beg": {
+                    "line": 632,
+                    "col": 11
+                  },
+                  "end": {
+                    "line": 632,
+                    "col": 23
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 1,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              1
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              2
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 3,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 3
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        },
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 1
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Builtin": "Tuple"
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 2
+                            }
+                          }
+                        },
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 3
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      1
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      2
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 3,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 1
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 2
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 3
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": [
+                          {
+                            "Untagged": {
+                              "kind": {
+                                "Clause": {
+                                  "Free": 0
+                                }
+                              },
+                              "trait_decl_ref": {
+                                "regions": [],
+                                "skip_binder": {
+                                  "id": 0,
+                                  "generics": {
+                                    "regions": [],
+                                    "types": [
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 0
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 2
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "const_generics": [],
+                                    "trait_refs": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "kind": {
+                                "Clause": {
+                                  "Free": 1
+                                }
+                              },
+                              "trait_decl_ref": {
+                                "regions": [],
+                                "skip_binder": {
+                                  "id": 0,
+                                  "generics": {
+                                    "regions": [],
+                                    "types": [
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 1
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 3
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "const_generics": [],
+                                    "trait_refs": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 0,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 3
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 1
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Builtin": "Tuple"
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 2
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 3
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 1,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  1
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  2
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            0,
+            9
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        4,
+        "methods",
+        9
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "U",
+              "variance": "Invariant"
+            },
+            {
+              "index": 1,
+              "name": "Clause0_Item",
+              "variance": "Invariant"
+            },
+            {
+              "index": 2,
+              "name": "Clause0_IntoIter",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 13,
+                  "beg": {
+                    "line": 632,
+                    "col": 11
+                  },
+                  "end": {
+                    "line": 632,
+                    "col": 23
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 1,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              1
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              2
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 3,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 5
+                    },
+                    "generics": {
+                      "regions": [
+                        {
+                          "Var": {
+                            "Free": 0
+                          }
+                        }
+                      ],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Ref": [
+                    {
+                      "Var": {
+                        "Free": 0
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "TypeVar": {
+                          "Free": 0
+                        }
+                      }
+                    },
+                    "Shared"
+                  ]
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      1
+                    ]
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      2
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 4,
+                      "generics": {
+                        "regions": [
+                          {
+                            "Var": {
+                              "Free": 0
+                            }
+                          }
+                        ],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 0,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 5
+                                },
+                                "generics": {
+                                  "regions": [
+                                    {
+                                      "Var": {
+                                        "Free": 0
+                                      }
+                                    }
+                                  ],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "Ref": [
+                                {
+                                  "Var": {
+                                    "Free": 0
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                },
+                                "Shared"
+                              ]
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 1,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  1
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  2
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            0,
+            9
+          ]
+        }
+      },
+      "after": null
+    }
+  ],
+  "computational_bodies_modified": [],
+  "source_patches": [],
+  "zip_function_3_retained_unchanged": true,
+  "trait_default_provenance_retained": true,
+  "all_retained_semantic_references_checked": true,
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "AesAddRoundKeyWork/Generated/Funs.lean": "56ee35faa2d984dd3143c3b95cbba3ce9c9c21e114b1a2ba33ed6bc763a10596",
+    "AesAddRoundKeyWork/Generated/FunsExternal_Template.lean": "2bde5f97a73c73e2219bdc3e8d4223c1b5ca0faac61ca70c2e4b7e4ae32f741d",
+    "AesAddRoundKeyWork/Generated/Types.lean": "68a3081d56f8f7363d7cdeb21dddb8ef9518865e0d8809970e7c3daeb2f0d0d4"
+  },
+  "inventory": {
+    "llbc_sha256": "94a1724c06f2c5bdab142af300646f72037618f1e9f3901024eac2516f2f120c",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 37,
+      "fun_decls": 12,
+      "global_decls": 0,
+      "trait_decls": 24,
+      "trait_impls": 11,
+      "ordered_decls": 21
+    },
+    "body_kinds": {
+      "Structured": 1,
+      "Opaque": 11
+    },
+    "external_functions": [
+      {
+        "id": 1,
+        "name": "core::slice::{impl}::len",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 116,
+              "col": 4
+            },
+            "end": {
+              "line": 116,
+              "col": 36
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::slice::{impl}::iter_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 1059,
+              "col": 4
+            },
+            "end": {
+              "line": 1059,
+              "col": 54
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "core::iter::traits::iterator::Iterator::zip",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 629,
+              "col": 4
+            },
+            "end": {
+              "line": 632,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "core::iter::adapters::zip::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 82,
+              "col": 4
+            },
+            "end": {
+              "line": 82,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "core::ops::bit::{impl}::bitxor_assign",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 64,
+              "col": 12
+            },
+            "end": {
+              "line": 64,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 83,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 99,
+        "name": "core::slice::iter::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 23,
+              "col": 4
+            },
+            "end": {
+              "line": 23,
+              "col": 37
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 104,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 148,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 27,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 149,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 57,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 2,
+        "name": "core::fmt::Arguments",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 7,
+            "beg": {
+              "line": 716,
+              "col": 0
+            },
+            "end": {
+              "line": 716,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "core::iter::adapters::zip::Zip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 13,
+              "col": 0
+            },
+            "end": {
+              "line": 13,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "core::slice::iter::IterMut",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 192,
+              "col": 0
+            },
+            "end": {
+              "line": 192,
+              "col": 29
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "core::slice::iter::Iter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 67,
+              "col": 0
+            },
+            "end": {
+              "line": 67,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "core::array::iter::IntoIter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 20,
+              "col": 0
+            },
+            "end": {
+              "line": 20,
+              "col": 38
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "core::num::nonzero::NonZero",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 23,
+            "beg": {
+              "line": 112,
+              "col": 0
+            },
+            "end": {
+              "line": 112,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::iter::adapters::step_by::StepBy",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 25,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::iter::adapters::chain::Chain",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 26,
+            "beg": {
+              "line": 23,
+              "col": 0
+            },
+            "end": {
+              "line": 23,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::iter::adapters::intersperse::Intersperse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 9,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "core::iter::adapters::intersperse::IntersperseWith",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 83,
+              "col": 0
+            },
+            "end": {
+              "line": 83,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::iter::adapters::map::Map",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 61,
+              "col": 0
+            },
+            "end": {
+              "line": 61,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "core::iter::adapters::filter::Filter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 31,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "core::iter::adapters::filter_map::FilterMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 32,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::iter::adapters::enumerate::Enumerate",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::iter::adapters::peekable::Peekable",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 34,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::iter::adapters::skip_while::SkipWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 35,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::iter::adapters::take_while::TakeWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 36,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::iter::adapters::map_while::MapWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 37,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::iter::adapters::skip::Skip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 38,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::iter::adapters::take::Take",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 39,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 24,
+        "name": "core::iter::adapters::scan::Scan",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 40,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "core::iter::adapters::flatten::FlatMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 41,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 41
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 26,
+        "name": "core::iter::adapters::flatten::Flatten",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 41,
+            "beg": {
+              "line": 184,
+              "col": 0
+            },
+            "end": {
+              "line": 184,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 27,
+        "name": "core::iter::adapters::map_windows::MapWindows",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 42,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 28,
+        "name": "core::iter::adapters::fuse::Fuse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 43,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 29,
+        "name": "core::iter::adapters::inspect::Inspect",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 44,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 31,
+        "name": "core::iter::adapters::rev::Rev",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 50,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 17
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 32,
+        "name": "core::iter::adapters::copied::Copied",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 19,
+              "col": 0
+            },
+            "end": {
+              "line": 19,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 33,
+        "name": "core::iter::adapters::cloned::Cloned",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 52,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 34,
+        "name": "core::iter::adapters::cycle::Cycle",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 53,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 19
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 35,
+        "name": "core::iter::adapters::array_chunks::ArrayChunks",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 54,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 37,
+        "name": "core::num::niche_types::NonZeroUsizeInner",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 57,
+            "beg": {
+              "line": 20,
+              "col": 8
+            },
+            "end": {
+              "line": 20,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/soft/fixslice64.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/soft.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/rustc/library/core/src/macros/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/panicking.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/rustc/library/core/src/option.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/rustc/library/core/src/fmt/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter/macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/core/src/internal_macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/array/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/array/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/rustc/library/core/src/num/nonzero.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/rustc/library/core/src/num/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 34,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 35,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 36,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 37,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 38,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 39,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 40,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 41,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 42,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 43,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 44,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 45,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/try_trait.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 46,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 47,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 48,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 49,
+        "name": {
+          "Local": "/rustc/library/core/src/cmp.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 50,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 51,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 52,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 53,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 54,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 55,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 56,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/bit.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 57,
+        "name": {
+          "Local": "/rustc/library/core/src/num/niche_types.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 58,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/control_flow.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::soft::fixslice::add_round_key"
+    ],
+    "selected_functions": [
+      {
+        "id": 0,
+        "name": "aes::soft::fixslice::add_round_key",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1362,
+              "col": 0
+            },
+            "end": {
+              "line": 1367,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 1,
+        "name": "core::slice::{impl}::len",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 116,
+              "col": 4
+            },
+            "end": {
+              "line": 116,
+              "col": 36
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::slice::{impl}::iter_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 1059,
+              "col": 4
+            },
+            "end": {
+              "line": 1059,
+              "col": 54
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "core::iter::traits::iterator::Iterator::zip",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 629,
+              "col": 4
+            },
+            "end": {
+              "line": 632,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "core::iter::adapters::zip::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 8,
+            "beg": {
+              "line": 82,
+              "col": 4
+            },
+            "end": {
+              "line": 82,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "core::ops::bit::{impl}::bitxor_assign",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 64,
+              "col": 12
+            },
+            "end": {
+              "line": 64,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 83,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 99,
+        "name": "core::slice::iter::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 23,
+              "col": 4
+            },
+            "end": {
+              "line": 23,
+              "col": 37
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 104,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 148,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 27,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 149,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 57,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "script_sha256": "744f2428a9950e20dad7adda04bb83b8082eeb143cd84cd5f6be6bc483d5f5a9"
+}

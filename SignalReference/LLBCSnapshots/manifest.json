@@ -1,0 +1,873 @@
+{
+  "format": "llbc-snapshot-v1",
+  "entries": [
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/add_round_key.llbc",
+      "bytes": 470337,
+      "sha256": "de15ad4e8187a4d76d5438366a173c6d00a28b4dc88b2e2b82493a4f0277f971",
+      "blob": "de15ad4e8187a4d76d5438366a173c6d00a28b4dc88b2e2b82493a4f0277f971.llbc.gz",
+      "compressed_sha256": "43e7637ea5bbc3ad44d7f294ef787d27b64b7afadd762f4b788cb853dd2653a1"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/selected.llbc",
+      "bytes": 456278,
+      "sha256": "94a1724c06f2c5bdab142af300646f72037618f1e9f3901024eac2516f2f120c",
+      "blob": "94a1724c06f2c5bdab142af300646f72037618f1e9f3901024eac2516f2f120c.llbc.gz",
+      "compressed_sha256": "839f37dbc20f607381bcaee7dcac83596d8aa85173d566ec2d78a4ce7a4eb95e"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/IncludeXor/add_round_key.llbc",
+      "bytes": 484425,
+      "sha256": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0",
+      "blob": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0.llbc.gz",
+      "compressed_sha256": "8342de0d1613dfe6d7cf06c06f0eded32eff03f33e56b7996aa48cd711ec8b79"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/IncludeXor/selected.llbc",
+      "bytes": 470366,
+      "sha256": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1",
+      "blob": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1.llbc.gz",
+      "compressed_sha256": "6b4360d5aeb028cfc958c8cc8d733ea48af5d4c0cb6f701f565504bd3e58baa2"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/MonoZip/add_round_key.llbc",
+      "bytes": 342227,
+      "sha256": "8e2aa85e700818b37ab6cfa13d028ba8545a1a3bcccdde8dcfce6e2726a1039e",
+      "blob": "8e2aa85e700818b37ab6cfa13d028ba8545a1a3bcccdde8dcfce6e2726a1039e.llbc.gz",
+      "compressed_sha256": "a48ca93a78096c7de4b227b0ad485de022b8dc03bdfe7228996b544de7c8eb31"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/Mut/add_round_key.llbc",
+      "bytes": 594797,
+      "sha256": "0de1697e0ea82b0f5549797574cd369c436ab2fe3869070f1ec99c65d7baef53",
+      "blob": "0de1697e0ea82b0f5549797574cd369c436ab2fe3869070f1ec99c65d7baef53.llbc.gz",
+      "compressed_sha256": "6fae9f4aaff38606d9b832f8147c9ff417a5496ff3c31409e243322396363920"
+    },
+    {
+      "path": "AesAddRoundKeyWork/Artifacts/XorAssign/selected.llbc",
+      "bytes": 141811,
+      "sha256": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed",
+      "blob": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed.llbc.gz",
+      "compressed_sha256": "78359acff713964425a99999aa62f1f732ae3555344cbb4ffba8e8a79269803f"
+    },
+    {
+      "path": "AesInverseLayoutWork/Artifacts/InvBitslice/aes_inverse_layout.llbc",
+      "bytes": 1906286,
+      "sha256": "2a8a8350f5121af01db4e699599b149ff1441e514549ed6a67de46027867edb2",
+      "blob": "2a8a8350f5121af01db4e699599b149ff1441e514549ed6a67de46027867edb2.llbc.gz",
+      "compressed_sha256": "6bba65b386c938432092380e05853811e4c523fb2fc81387977faf1a6c020183"
+    },
+    {
+      "path": "AesInverseLayoutWork/Artifacts/InvBitsliceScoped/aes_inverse_layout.llbc",
+      "bytes": 1593055,
+      "sha256": "c5de935dea184ada40068ad7ac6ad954a0430ccfcdb9366be15d423338f727df",
+      "blob": "c5de935dea184ada40068ad7ac6ad954a0430ccfcdb9366be15d423338f727df.llbc.gz",
+      "compressed_sha256": "7a8907b7880f831a4ef9c2e323a9e7619288cb2e0b9177daf0b73d6a6ca8aff4"
+    },
+    {
+      "path": "AesInverseLayoutWork/Artifacts/InvBitsliceScopedMono/aes_inverse_layout.llbc",
+      "bytes": 553179,
+      "sha256": "7fefbe2c3a5376af9f95cc0ce9cdb6ca2e75e77cf08c7504279f06eed04e993f",
+      "blob": "7fefbe2c3a5376af9f95cc0ce9cdb6ca2e75e77cf08c7504279f06eed04e993f.llbc.gz",
+      "compressed_sha256": "3f3a9ba9a315db176b6556c0f5ffcf8dde3691f713de42561be2de805d431600"
+    },
+    {
+      "path": "AesInverseLayoutWork/Artifacts/WriteReordered/selected.llbc",
+      "bytes": 206756,
+      "sha256": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb",
+      "blob": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb.llbc.gz",
+      "compressed_sha256": "bda8a1b3f28c1718dbdaf8aaa00dadd7f87c0e3b2b291c4308a6496f40fcfd2c"
+    },
+    {
+      "path": "AesInverseLayoutWork/OptimizedProbe/wrapper.llbc",
+      "bytes": 1931518,
+      "sha256": "0a4151de5cb8a4900c9c186e2702c6b0a2f60a3680c5bf59eca658d3dc788e3d",
+      "blob": "0a4151de5cb8a4900c9c186e2702c6b0a2f60a3680c5bf59eca658d3dc788e3d.llbc.gz",
+      "compressed_sha256": "c965265b15d612df5545649aafbed66d0bc5feed86f5d4d1666602372202270c"
+    },
+    {
+      "path": "AesInverseLayoutWork/ScalarizedProbe/wrapper.llbc",
+      "bytes": 4614313,
+      "sha256": "19e13ee720dd16c03d6ac7226968e10ec855a09ae40cc9e4e861f59d66c0b1bc",
+      "blob": "19e13ee720dd16c03d6ac7226968e10ec855a09ae40cc9e4e861f59d66c0b1bc.llbc.gz",
+      "compressed_sha256": "15bab6589c9cee84cd3475ae0d077eab3e35941dda7858fed8c15d745b253604"
+    },
+    {
+      "path": "AesInverseLayoutWork/WrapperProbe/wrapper.llbc",
+      "bytes": 1756884,
+      "sha256": "53e7256918f9f9baec119784e30320be15a2c11234bb26c4f9a28cd4cec0905a",
+      "blob": "53e7256918f9f9baec119784e30320be15a2c11234bb26c4f9a28cd4cec0905a.llbc.gz",
+      "compressed_sha256": "07dea5a95a957763f6e9ce8a981a29f48bb8c48b614631c0cd7d13ec355e7483"
+    },
+    {
+      "path": "AesKeyScheduleWork/selected.llbc",
+      "bytes": 2669801,
+      "sha256": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2",
+      "blob": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2.llbc.gz",
+      "compressed_sha256": "1cff91da4cd0380c8c1e5f6990eb033001e40923a56b790ad0e34bc427272001"
+    },
+    {
+      "path": "AesLayoutWork/Artifacts/Bitslice/aes_layout.llbc",
+      "bytes": 807446,
+      "sha256": "0fb0442dd1c5f266fad918e31d4ce357305d89f6ed773d6bce0945f48cefd02b",
+      "blob": "0fb0442dd1c5f266fad918e31d4ce357305d89f6ed773d6bce0945f48cefd02b.llbc.gz",
+      "compressed_sha256": "0618ef19be9882c2a7a757f1194cca4dfd622aceb5d856902cc9bb21cdb3df41"
+    },
+    {
+      "path": "AesLayoutWork/Artifacts/InvBitslice/aes_layout.llbc",
+      "bytes": 1086940,
+      "sha256": "37a3bf4a2190a3fcd6e62fb94be8dece5ded85bf1e07e9edf94a193fff55ec27",
+      "blob": "37a3bf4a2190a3fcd6e62fb94be8dece5ded85bf1e07e9edf94a193fff55ec27.llbc.gz",
+      "compressed_sha256": "7e57589e740551cd25414f921d4c25ea20df5e8f65d98dce71c2904ad0fd5a0f"
+    },
+    {
+      "path": "AesLayoutWork/Artifacts/InvBitsliceScoped/aes_layout.llbc",
+      "bytes": 1078784,
+      "sha256": "4a72f217a219d1c4c4bd4b05fe44f956e336f66d3f01763a0024eba668817b23",
+      "blob": "4a72f217a219d1c4c4bd4b05fe44f956e336f66d3f01763a0024eba668817b23.llbc.gz",
+      "compressed_sha256": "4dd651babea3e618e609cd837e4dd5fd59717923294940e9dff7a63e052145ef"
+    },
+    {
+      "path": "AesLinearWork/Artifacts/MixColumns0/aes_linear.llbc",
+      "bytes": 263252,
+      "sha256": "2606c43cb1d40b91a6505012e0f90b6c2348f8b29ed2eb43ae85fb33c2fcec3c",
+      "blob": "2606c43cb1d40b91a6505012e0f90b6c2348f8b29ed2eb43ae85fb33c2fcec3c.llbc.gz",
+      "compressed_sha256": "4767a1065b1773f2c98b55961f6154a7eeeea33436a52d144d131b7fb1e32a28"
+    },
+    {
+      "path": "AesLinearWork/Artifacts/ShiftRows/aes_linear.llbc",
+      "bytes": 495749,
+      "sha256": "bf0307bdbe4022ffbd2834aa670ce4165df226cc8f986db3d51b18a9df89737e",
+      "blob": "bf0307bdbe4022ffbd2834aa670ce4165df226cc8f986db3d51b18a9df89737e.llbc.gz",
+      "compressed_sha256": "cdd541a61db5632a3eb37bc71258f2f295f2173a59a5268fdcbb4cb4acecf78e"
+    },
+    {
+      "path": "AesRemainingLinearWork/Artifacts/Aes256KeySchedule/aes_remaining_linear.llbc",
+      "bytes": 2337828,
+      "sha256": "404eb560cb1bec960830fc5989847b25ecc113b3799874c45e16756dd60dd475",
+      "blob": "404eb560cb1bec960830fc5989847b25ecc113b3799874c45e16756dd60dd475.llbc.gz",
+      "compressed_sha256": "f647490c5c82a51de12d24fc758fa2f25f9f96886ca13660375f44dd85ef2711"
+    },
+    {
+      "path": "AesRemainingLinearWork/Artifacts/MixColumnsPhases/aes_remaining_linear.llbc",
+      "bytes": 651163,
+      "sha256": "97b46869a801966e93b0e7ac688b08ddabcc1f5b6b0a69447b7ce932dae27781",
+      "blob": "97b46869a801966e93b0e7ac688b08ddabcc1f5b6b0a69447b7ce932dae27781.llbc.gz",
+      "compressed_sha256": "130382ce5ea67547f41f8b7313c5e0b35d90ed69c891353393f5e27d39711292"
+    },
+    {
+      "path": "AesZipInvestigation/Artifacts/Baseline/selected.llbc",
+      "bytes": 470366,
+      "sha256": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1",
+      "blob": "a8a7dbe246b77b326285d18484f4999cb72df9aac83927445962e1f8893f18b1.llbc.gz",
+      "compressed_sha256": "6b4360d5aeb028cfc958c8cc8d733ea48af5d4c0cb6f701f565504bd3e58baa2"
+    },
+    {
+      "path": "AesZipInvestigation/Artifacts/MutAll/add_round_key.llbc",
+      "bytes": 600504,
+      "sha256": "bdaf2cf49c5c30415689c9e886bf451f853efe8953ab88954da2cbef3c1596c1",
+      "blob": "bdaf2cf49c5c30415689c9e886bf451f853efe8953ab88954da2cbef3c1596c1.llbc.gz",
+      "compressed_sha256": "9ed72d32673c7ac1cda941aa40fa053ce65e150f4f5741e6fc0dddaa98ec6399"
+    },
+    {
+      "path": "AesZipInvestigation/Artifacts/MutExceptConstructor/add_round_key.llbc",
+      "bytes": 675391,
+      "sha256": "1956e31832ed2da672ed9ecd5b0e09cdcc960603dfb4ad8e7c08c38fac0ece1b",
+      "blob": "1956e31832ed2da672ed9ecd5b0e09cdcc960603dfb4ad8e7c08c38fac0ece1b.llbc.gz",
+      "compressed_sha256": "15437564ce8b669ae016bc2e6ed96d5a1f4470e8357c479f19319ecf92409eb7"
+    },
+    {
+      "path": "Extraction/libsignal_aes256_key_schedule.llbc",
+      "bytes": 2688669,
+      "sha256": "f73102d00d537e7659e61c0ad59e374f941cb51187a325a8ffd8ec9608a7b4f5",
+      "blob": "f73102d00d537e7659e61c0ad59e374f941cb51187a325a8ffd8ec9608a7b4f5.llbc.gz",
+      "compressed_sha256": "0a548a2270d90d43c640d4050a38417b2533fba7745c29ed2ef8531779b398f8"
+    },
+    {
+      "path": "Extraction/libsignal_aes_inverse_write.llbc",
+      "bytes": 206756,
+      "sha256": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb",
+      "blob": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb.llbc.gz",
+      "compressed_sha256": "bda8a1b3f28c1718dbdaf8aaa00dadd7f87c0e3b2b291c4308a6496f40fcfd2c"
+    },
+    {
+      "path": "Extraction/libsignal_aes_layout.llbc",
+      "bytes": 807434,
+      "sha256": "beef7a413b1d5c4e5a877b30930a57ad0c5c5afce2c065bce12021a618a5f106",
+      "blob": "beef7a413b1d5c4e5a877b30930a57ad0c5c5afce2c065bce12021a618a5f106.llbc.gz",
+      "compressed_sha256": "42af24d635a36926bcd3edb95da3d19a167dfa015ce591e10a9df7549ad200c3"
+    },
+    {
+      "path": "Extraction/libsignal_aes_mix_columns_0.llbc",
+      "bytes": 263244,
+      "sha256": "65c0e02ff4cc7d0d0e7fba3dfa79c9e98d8730af71d7eee6ebe3abff39d1ba70",
+      "blob": "65c0e02ff4cc7d0d0e7fba3dfa79c9e98d8730af71d7eee6ebe3abff39d1ba70.llbc.gz",
+      "compressed_sha256": "b26014a6ec4fed9a924a2adb0da79b887c1c1ef4609951ded2cff1c3d3d42947"
+    },
+    {
+      "path": "Extraction/libsignal_aes_mix_phases.llbc",
+      "bytes": 651128,
+      "sha256": "1c82a246754c10ee4290ed388328cc626eab35161080a1e016e938b61949fda5",
+      "blob": "1c82a246754c10ee4290ed388328cc626eab35161080a1e016e938b61949fda5.llbc.gz",
+      "compressed_sha256": "6f1ab347a629a2e479f228e7288b9cfae9d410fabb559625e7bad84cf8029391"
+    },
+    {
+      "path": "Extraction/libsignal_aes_shift_rows.llbc",
+      "bytes": 495740,
+      "sha256": "da6126600b63b9c14a8bc63cacbd63735683712cc4854f1615a66d94ba872d12",
+      "blob": "da6126600b63b9c14a8bc63cacbd63735683712cc4854f1615a66d94ba872d12.llbc.gz",
+      "compressed_sha256": "0a8ef1d4df5328017b74aef147552f3437556c3a775346dc007dcdf4d14592e1"
+    },
+    {
+      "path": "Extraction/libsignal_aes_sub_bytes.llbc",
+      "bytes": 545300,
+      "sha256": "aa8603d372080e1586a4a22cafe4a5ee8a2da9a8aef3a6bdc170bc81a680ce3a",
+      "blob": "aa8603d372080e1586a4a22cafe4a5ee8a2da9a8aef3a6bdc170bc81a680ce3a.llbc.gz",
+      "compressed_sha256": "556f04cdbfbbc2772a5ec9aeb4246c78fff64e8490a2e2a0232375b5210c0af6"
+    },
+    {
+      "path": "Extraction/libsignal_clamp.llbc",
+      "bytes": 108021,
+      "sha256": "ec180a2162a7cbacb3931e1288da293d41e6707d417233f883c06a28d859d8ae",
+      "blob": "ec180a2162a7cbacb3931e1288da293d41e6707d417233f883c06a28d859d8ae.llbc.gz",
+      "compressed_sha256": "41f1f3a1b44a34cb083ea1c0d470d12f5dca6557e3235ff2d93f0575f459445f"
+    },
+    {
+      "path": "Extraction/libsignal_key_accessors.llbc",
+      "bytes": 63900,
+      "sha256": "b40b8451d16e52c3df63e7a40366c0b9bf50e978419837309c0f007aac06b3ac",
+      "blob": "b40b8451d16e52c3df63e7a40366c0b9bf50e978419837309c0f007aac06b3ac.llbc.gz",
+      "compressed_sha256": "a701deb42e4d049a6516ba062d4ce25b8bb1ae376c9c85664ddf781000050429"
+    },
+    {
+      "path": "Extraction/libsignal_message_type.llbc",
+      "bytes": 99341,
+      "sha256": "1577f9b3ad116404da2a536a10584a42faca25bae153c300c8ad5b68753c89fd",
+      "blob": "1577f9b3ad116404da2a536a10584a42faca25bae153c300c8ad5b68753c89fd.llbc.gz",
+      "compressed_sha256": "3858b8fa517fd7b23a61ae5c07703b38a19641fb19dc966fc67917e9236f533a"
+    },
+    {
+      "path": "Extraction/libsignal_pkcs7_pad.llbc",
+      "bytes": 810000,
+      "sha256": "1f7b8a6e96237a678137f94d8885b50acf18d4d4494bba7e1e8f9d6d8a1bf9ec",
+      "blob": "1f7b8a6e96237a678137f94d8885b50acf18d4d4494bba7e1e8f9d6d8a1bf9ec.llbc.gz",
+      "compressed_sha256": "b1fceee9f4d9e053679684a1e4eb7f0d98e183e9000fe975d9ad947932e48ae6"
+    },
+    {
+      "path": "Extraction/libsignal_pkcs7_pad_scoped.llbc",
+      "bytes": 469408,
+      "sha256": "b121b774c86bceae68ac383b39090597f778d48aa35117baa2ca5594e6579ac9",
+      "blob": "b121b774c86bceae68ac383b39090597f778d48aa35117baa2ca5594e6579ac9.llbc.gz",
+      "compressed_sha256": "4369bb6308cb9b569dc249f20af10260cb81fca8797440c3b565194aa1b073b9"
+    },
+    {
+      "path": "Extraction/libsignal_pkcs7_pad_selected.llbc",
+      "bytes": 159969,
+      "sha256": "93f6232a5dffb12614ae250ed0501dfb00e1e3e93b606393e2c7a6adccf02cba",
+      "blob": "93f6232a5dffb12614ae250ed0501dfb00e1e3e93b606393e2c7a6adccf02cba.llbc.gz",
+      "compressed_sha256": "c5e6154361125a34bd17f9c5b99f26839ddef8f701ac3e62102b1ce7e1a82331"
+    },
+    {
+      "path": "Extraction/libsignal_pkcs7_unpad_selected.llbc",
+      "bytes": 499368,
+      "sha256": "74f5cd9d192e5edaeae97bcf8cb500aee473b0769a989b2a27ec276312aeea34",
+      "blob": "74f5cd9d192e5edaeae97bcf8cb500aee473b0769a989b2a27ec276312aeea34.llbc.gz",
+      "compressed_sha256": "b752459e2bba58906a8672dbd711830a4e92836ea86a311b11dcae2ec520b3d2"
+    },
+    {
+      "path": "Extraction/libsignal_private_key.llbc",
+      "bytes": 484379,
+      "sha256": "130ffc60a44fbc803763b46d69976d4ad9c3c9e9d10258d35ebfd281f680abc4",
+      "blob": "130ffc60a44fbc803763b46d69976d4ad9c3c9e9d10258d35ebfd281f680abc4.llbc.gz",
+      "compressed_sha256": "1c615011252e80c31efe79c8eb9afc82b91c389f4fef5c3c1fcd0c7f9c5d9d9d"
+    },
+    {
+      "path": "Extraction/libsignal_service_id_decode.llbc",
+      "bytes": 375107,
+      "sha256": "c071ce8d14571764ec62fa9d7f75b56364ee8e1624a521ed6423463c31f46a04",
+      "blob": "c071ce8d14571764ec62fa9d7f75b56364ee8e1624a521ed6423463c31f46a04.llbc.gz",
+      "compressed_sha256": "b6bc50e2b9b3684d918f4500856e51526ec1235b7abde9f6b071c605e677649c"
+    },
+    {
+      "path": "Extraction/libsignal_service_id_decode_full_mir.llbc",
+      "bytes": 373976,
+      "sha256": "d46a3d1fc3d29b571558389ed6789e48bb1f4f705f79f545db4135c3d5b4c835",
+      "blob": "d46a3d1fc3d29b571558389ed6789e48bb1f4f705f79f545db4135c3d5b4c835.llbc.gz",
+      "compressed_sha256": "6bdf8ab2d8d4d2979cfacca8298e05a70803639b89013d5656f6883773076b5a"
+    },
+    {
+      "path": "Extraction/libsignal_service_id_decode_mono.llbc",
+      "bytes": 312402,
+      "sha256": "236e8f2f65e29aaa74635cc2b25bd06ef074447d3b3f7c944d174378439b1b35",
+      "blob": "236e8f2f65e29aaa74635cc2b25bd06ef074447d3b3f7c944d174378439b1b35.llbc.gz",
+      "compressed_sha256": "5129b6716ebedac7398f52341104dc94dc1d5fe64cb8c73005e15ce484a51263"
+    },
+    {
+      "path": "Extraction/libsignal_service_id_encode.llbc",
+      "bytes": 254378,
+      "sha256": "d1862a80273ac3c45eb3a525cfc6c23b8f80be32006525b70de23b9b913d6283",
+      "blob": "d1862a80273ac3c45eb3a525cfc6c23b8f80be32006525b70de23b9b913d6283.llbc.gz",
+      "compressed_sha256": "adf9ff0aade0d1012c5325fdeaf3f8cba487c1aba22bad6a1e008af1147ef029"
+    },
+    {
+      "path": "Extraction/libsignal_service_id_kind.llbc",
+      "bytes": 69216,
+      "sha256": "4511ecf4d1dd789b7e4f2d51f95b1e31c7de837b2d048a220fe18a660739fb15",
+      "blob": "4511ecf4d1dd789b7e4f2d51f95b1e31c7de837b2d048a220fe18a660739fb15.llbc.gz",
+      "compressed_sha256": "4d5cf9e01950d3f2b0852e252b51a50127b1f9271952107e340eb512fd585aea"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact.llbc",
+      "bytes": 592037,
+      "sha256": "11e3f1c44261dc5d56f21ea81dc816f65968798d7f92960bd71f9e0a60067a10",
+      "blob": "11e3f1c44261dc5d56f21ea81dc816f65968798d7f92960bd71f9e0a60067a10.llbc.gz",
+      "compressed_sha256": "0f6c49858181781b33b2f171224b80a4f0ff72b3060fb6b54d657702c6f22bb7"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact_full_mir_complete.llbc",
+      "bytes": 436858,
+      "sha256": "29dba2eb94d061f364d18f41c61b1b92fa428ea1c416e01beb11d32110f79e2d",
+      "blob": "29dba2eb94d061f364d18f41c61b1b92fa428ea1c416e01beb11d32110f79e2d.llbc.gz",
+      "compressed_sha256": "0c9227b32ef03427cc73d3a2fce9f9e265ed5c591772515adb5d85009921cfd4"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact_full_mir_mono.llbc",
+      "bytes": 396664,
+      "sha256": "809897eb51c93bafc1337dc8e1b13dd4a52bca3b28fc050792d0dcbf99bfcdc9",
+      "blob": "809897eb51c93bafc1337dc8e1b13dd4a52bca3b28fc050792d0dcbf99bfcdc9.llbc.gz",
+      "compressed_sha256": "9d3aff9455273b6a3d15c5db6e2b57cb70a00eb3d4a928f1b1d662d12c435b18"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact_mono.llbc",
+      "bytes": 329293,
+      "sha256": "91ecbe3b07b078824645da3e856d32131a7b0e02cb91a4835ecbe0a0e28bbfa1",
+      "blob": "91ecbe3b07b078824645da3e856d32131a7b0e02cb91a4835ecbe0a0e28bbfa1.llbc.gz",
+      "compressed_sha256": "425bdb842e41cfe8ce416073cc3a255ff87591c84c8b8d874db82ae4414aeae9"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact_reviewed.llbc",
+      "bytes": 584887,
+      "sha256": "dce5ac1c04be3ac595c8ab51cc8e8a14f84e2f176fae1da4a89ae64251c3fd1d",
+      "blob": "dce5ac1c04be3ac595c8ab51cc8e8a14f84e2f176fae1da4a89ae64251c3fd1d.llbc.gz",
+      "compressed_sha256": "28418f0317e15efccde34b575604f89b15cd22ea2a029e2b3f1580ad766a06df"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_compact_scoped.llbc",
+      "bytes": 592142,
+      "sha256": "7e7bdbccba917c076a89552916b19475cacff71186f5b5be6f8ac72e831d27a0",
+      "blob": "7e7bdbccba917c076a89552916b19475cacff71186f5b5be6f8ac72e831d27a0.llbc.gz",
+      "compressed_sha256": "365cd1d060cf23a62ff431423355a9e6c3c9c5c51c8116bc4dc73123a26907d3"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_round.llbc",
+      "bytes": 205011,
+      "sha256": "0960d810919337230924dd9cb044824d955781f1114bc5f7b66fa36453381efc",
+      "blob": "0960d810919337230924dd9cb044824d955781f1114bc5f7b66fa36453381efc.llbc.gz",
+      "compressed_sha256": "0532a8d8c87085d2a54eda2b66d816a59db3b7ca49067034d7fe32dd7f3e3664"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_to_words.llbc",
+      "bytes": 229130,
+      "sha256": "25caeda6eaa34c4e4080aa322bf1563d87859a1b116d2600d16f27f6993fe65a",
+      "blob": "25caeda6eaa34c4e4080aa322bf1563d87859a1b116d2600d16f27f6993fe65a.llbc.gz",
+      "compressed_sha256": "dc97c07a24661c5102b134889e8f9d78c9890557fc53e7955f8102f3583ce623"
+    },
+    {
+      "path": "Extraction/libsignal_sha256_to_words_bodies.llbc",
+      "bytes": 454935,
+      "sha256": "765a9014b53e3127c4cc7b994ed498f797c8d874e9fd987c81a799a5edf9c77e",
+      "blob": "765a9014b53e3127c4cc7b994ed498f797c8d874e9fd987c81a799a5edf9c77e.llbc.gz",
+      "compressed_sha256": "bb3c6f56418b1b6b14b5a1e09b649bd5f9477fc4b2e0e24e9e3222b6fabd9cd4"
+    },
+    {
+      "path": "Extraction/libsignal_symmetric_keys.llbc",
+      "bytes": 1618392,
+      "sha256": "9d1ccb5639c99913632f093d562182f543b5942ae770ea3df4684d67789a3bb4",
+      "blob": "9d1ccb5639c99913632f093d562182f543b5942ae770ea3df4684d67789a3bb4.llbc.gz",
+      "compressed_sha256": "a36bde2de2afe82609bd008dfaa8c0217ca96142cab1c8a3ab3a125e6cdfc13f"
+    },
+    {
+      "path": "Extraction/libsignal_symmetric_keys_mono.llbc",
+      "bytes": 63486777,
+      "sha256": "26f0ab7b8262f223ea4b89be5536be100d0c1b5997e79bc0bb3e55379ed26f8f",
+      "blob": "26f0ab7b8262f223ea4b89be5536be100d0c1b5997e79bc0bb3e55379ed26f8f.llbc.gz",
+      "compressed_sha256": "c9a19f7e6e397ab3ff0c3151baef5f45bac4ac8a89dd9dac674ba14c43808c15"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/service_id_decode/service_id_decode.llbc",
+      "bytes": 395673,
+      "sha256": "bceb348cb0117b111281a28882f6f0eebc1d085e7b269575a50b487ea2bbeb56",
+      "blob": "bceb348cb0117b111281a28882f6f0eebc1d085e7b269575a50b487ea2bbeb56.llbc.gz",
+      "compressed_sha256": "e1f2794ada7923b57c16b0f1ffcb72250bd5e9c5afc20e843249a778fc74704c"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/service_id_decode-resugared/service_id_decode.llbc",
+      "bytes": 395681,
+      "sha256": "842f252f25b8a7375bc98afedb121603aef4ec949de4ece4e99bfb81f52f6ec3",
+      "blob": "842f252f25b8a7375bc98afedb121603aef4ec949de4ece4e99bfb81f52f6ec3.llbc.gz",
+      "compressed_sha256": "a15402c5dc87871db4582ee4a8f0d1ab0d81f44c75ab3256d47b12df07c86dfd"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/sha256_compact-filtered/sha256_compact.llbc",
+      "bytes": 601176,
+      "sha256": "de59b8cec69da0fbabe597a7ee90f5b699ab1243e13ea2f9e3acce0aca165c2a",
+      "blob": "de59b8cec69da0fbabe597a7ee90f5b699ab1243e13ea2f9e3acce0aca165c2a.llbc.gz",
+      "compressed_sha256": "a67dedb249d1c3f193a6149000902cfdbfc570342ad9412c0ebed0581eca8bcb"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/sha256_compact_bodies/sha256_compact_bodies.llbc",
+      "bytes": 390133,
+      "sha256": "db54cb2174bc55c28b0d2b7d63ade99a576a90b71c00de15bb4daf72882ae53d",
+      "blob": "db54cb2174bc55c28b0d2b7d63ade99a576a90b71c00de15bb4daf72882ae53d.llbc.gz",
+      "compressed_sha256": "b36a76a9e96eea5b82b1c810b34321903a5052b258578ba866b56c6a00e36f47"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/sha256_compact_bodies_scoped/sha256_compact_bodies_scoped.llbc",
+      "bytes": 387427,
+      "sha256": "e27917ab76ee38d9f7a8e647fea7c0972cdaabaf5ca0885826aa7356eb410486",
+      "blob": "e27917ab76ee38d9f7a8e647fea7c0972cdaabaf5ca0885826aa7356eb410486.llbc.gz",
+      "compressed_sha256": "7b4dfa71b7b14cbcdd14aaf926d57350f569e5ca9b041dcb0a8dd429129fa51d"
+    },
+    {
+      "path": "Extraction/Candidates/2026-09-30/symmetric_keys/symmetric_keys.llbc",
+      "bytes": 1577267,
+      "sha256": "49099f0822d2c5f41d0ca6ec00fab3aab33f76d06a5d8ddd0f6ecc0ba465bb28",
+      "blob": "49099f0822d2c5f41d0ca6ec00fab3aab33f76d06a5d8ddd0f6ecc0ba465bb28.llbc.gz",
+      "compressed_sha256": "ecf32b02a3a76719d1428ba70726a827efbdbd1b0762113ef1c2f827ad05aace"
+    },
+    {
+      "path": "MetadataWork/Artifacts/ShaCompactNames/normalized.llbc",
+      "bytes": 396166,
+      "sha256": "0bfdb35ec4d9b8f0fcfbdca778c0b3acea7c45ea9a70e33bdb5692d399753488",
+      "blob": "0bfdb35ec4d9b8f0fcfbdca778c0b3acea7c45ea9a70e33bdb5692d399753488.llbc.gz",
+      "compressed_sha256": "ccb718b33b9e155843982c58054ab6d6943109290be78494e087d7320297ed51"
+    },
+    {
+      "path": "MetadataWork/Artifacts/ShaCompactStep/normalized.llbc",
+      "bytes": 584887,
+      "sha256": "1821147822ea2a06088828d90f73c70013afb3b594d92195af15ef0479d872d4",
+      "blob": "1821147822ea2a06088828d90f73c70013afb3b594d92195af15ef0479d872d4.llbc.gz",
+      "compressed_sha256": "d0c79b35abf881e83a630f3dce3662d517a48268d30125c9a641b871a30f8b50"
+    },
+    {
+      "path": "PaddingWork/Artifacts/ExcludeArraySize/pkcs7.llbc",
+      "bytes": 159974,
+      "sha256": "444014da6180f7f0b38eb5fe770a6d47b7a6fd46a6d24ab41a744d27aeef26cd",
+      "blob": "444014da6180f7f0b38eb5fe770a6d47b7a6fd46a6d24ab41a744d27aeef26cd.llbc.gz",
+      "compressed_sha256": "fbfbbb62a4579f93c2cc6c0a24df51f6ec40563ff21af2c1002ba837b743bb3e"
+    },
+    {
+      "path": "PaddingWork/Unpad/Artifacts/Raw/pkcs7_unpad.llbc",
+      "bytes": 480134,
+      "sha256": "c105e5922296d9b391873256eeb9e93aa21cc75c5aced67dc7024090ffb26e45",
+      "blob": "c105e5922296d9b391873256eeb9e93aa21cc75c5aced67dc7024090ffb26e45.llbc.gz",
+      "compressed_sha256": "7b7407c49cccb813b54b8ae18837e660c90489ae15649654a2f4fa96f8d4c8ec"
+    },
+    {
+      "path": "PaddingWork/Unpad/Artifacts/RawSliceIterator/pkcs7_unpad.llbc",
+      "bytes": 567493,
+      "sha256": "2168b5236935e409d65700102013e4b165cd91124f33965a6c12916c7ac5498f",
+      "blob": "2168b5236935e409d65700102013e4b165cd91124f33965a6c12916c7ac5498f.llbc.gz",
+      "compressed_sha256": "9e66bdd13511f45beb87edfd5246cc29bd79a9012173ec3a9b542d868dd4b7fe"
+    },
+    {
+      "path": "PaddingWork/Unpad/Artifacts/RawSliceIteratorFullMir/pkcs7_unpad.llbc",
+      "bytes": 499390,
+      "sha256": "527236b7c14ca32d29e7353e5210836042b087d171c71ceb2b4824ed1e6c52a7",
+      "blob": "527236b7c14ca32d29e7353e5210836042b087d171c71ceb2b4824ed1e6c52a7.llbc.gz",
+      "compressed_sha256": "0869083d4aa7bde9f8312c9752f686de37e2b5c5059fa1784b3cb81c926e307d"
+    },
+    {
+      "path": "PqxdhWork/Artifacts/derive/pqxdh.llbc",
+      "bytes": 116994666,
+      "sha256": "2269800c07d0d7c401c7c2401c8b222b4e515746fc1c7e19b42c39eb463c14df",
+      "blob": "2269800c07d0d7c401c7c2401c8b222b4e515746fc1c7e19b42c39eb463c14df.llbc.gz",
+      "compressed_sha256": "1e09d9c8e741656ff91231b4449f0e5c192f88d4d828356ca2a4230a352c7b86"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsClosed/slice_advance.llbc",
+      "bytes": 645415,
+      "sha256": "c13e133c1a838b4ebbfc88e1f6026b41f4df8f21ed2eaa9f573f3d319e3ddd63",
+      "blob": "c13e133c1a838b4ebbfc88e1f6026b41f4df8f21ed2eaa9f573f3d319e3ddd63.llbc.gz",
+      "compressed_sha256": "916cb7a54dbc08a66cb99f0a17b1640e435a8a10746731be1b4fce5990487caf"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/Artifacts/SliceImplsPanic/slice_advance.llbc",
+      "bytes": 644711,
+      "sha256": "122a52b879b6accd3c8a33ee1e075183b1095235ff03c083e45496226d2ed91f",
+      "blob": "122a52b879b6accd3c8a33ee1e075183b1095235ff03c083e45496226d2ed91f.llbc.gz",
+      "compressed_sha256": "171ce01d725f56cca8965fe7769d1a5dd700b952525e9a0bd575a3e5798aeb63"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/Artifacts/SliceInlinePanic/slice_advance.llbc",
+      "bytes": 667988,
+      "sha256": "3c2a9047c83c027a20417bb410a52b3b74b2a4c7250a2571ef53c57a302fe579",
+      "blob": "3c2a9047c83c027a20417bb410a52b3b74b2a4c7250a2571ef53c57a302fe579.llbc.gz",
+      "compressed_sha256": "da77731acebb7d853874135061fd9931d3d7a7e130d33013fe4881ca1ddbf1fb"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/Artifacts/SliceModulePanic/slice_advance.llbc",
+      "bytes": 10177,
+      "sha256": "87687023367a2917ea0fa542d66e55d6a726321f58bc26a08122ffe3ff2882ec",
+      "blob": "87687023367a2917ea0fa542d66e55d6a726321f58bc26a08122ffe3ff2882ec.llbc.gz",
+      "compressed_sha256": "48801732ba9f771b74794d3c135bbac23acd438dffad5edf91424e81bd92207a"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/TranslatorCandidate/Regressions/calls.llbc",
+      "bytes": 38339,
+      "sha256": "fa6375d33aaf91800e81df604710d250772b6f862575ee9f6280f281504a34ea",
+      "blob": "fa6375d33aaf91800e81df604710d250772b6f862575ee9f6280f281504a34ea.llbc.gz",
+      "compressed_sha256": "413e93dde47d782e75df39f0351a13bdce72f6664946ae1a54187c91b8fccfd3"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/TranslatorCandidate/Regressions/regressions.llbc",
+      "bytes": 43013,
+      "sha256": "e3320d68da2907c32d9dac8f1d8543688f62b2212e60aeef6804822fb6d2a881",
+      "blob": "e3320d68da2907c32d9dac8f1d8543688f62b2212e60aeef6804822fb6d2a881.llbc.gz",
+      "compressed_sha256": "4cd27acd77947feafeeaaada6507b1c89cf42df05e56c52dcac4482fe2bd9bd3"
+    },
+    {
+      "path": "ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceSelected/slice.llbc",
+      "bytes": 646001,
+      "sha256": "80191557e1046652abcf940360244f50901404b1699db1d2af0ee2f92cdd840b",
+      "blob": "80191557e1046652abcf940360244f50901404b1699db1d2af0ee2f92cdd840b.llbc.gz",
+      "compressed_sha256": "a9703cc27c4f537cf2b20f0ecfa680cddb1b353b9711fdb6a1a1a38da6661be9"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/Encode/prost_encoding.llbc",
+      "bytes": 464785,
+      "sha256": "d2ba4e2cd0b44c328d9bef908df2dd4d840c3a2bfad39be392e54cbb33486d21",
+      "blob": "d2ba4e2cd0b44c328d9bef908df2dd4d840c3a2bfad39be392e54cbb33486d21.llbc.gz",
+      "compressed_sha256": "b28d0ba3dcf76cf78bad8a87336d872ebebe05e0bcb7fd1e9938476e7b0f128f"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/EncodeBody/prost_encoding.llbc",
+      "bytes": 482614,
+      "sha256": "3c98f69e873c84399932d74cddc08e347ab35403e16470b14428b208dd2cf4cc",
+      "blob": "3c98f69e873c84399932d74cddc08e347ab35403e16470b14428b208dd2cf4cc.llbc.gz",
+      "compressed_sha256": "61f2a40790710cf7bc842b9e1e382829d1f9ab828027c4f7198b692a98f5e732"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/EncodeBodyStep/selected.llbc",
+      "bytes": 475371,
+      "sha256": "92dd731dce30cf3ee59a855dc78d654e2d5686a23a12e176037ea448c3b6d3a6",
+      "blob": "92dd731dce30cf3ee59a855dc78d654e2d5686a23a12e176037ea448c3b6d3a6.llbc.gz",
+      "compressed_sha256": "2ba24b935601288b3df03beb3c3f62f0d0da7cb582559f57dadb50464ff4e145"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/EncodeSelected/selected.llbc",
+      "bytes": 467076,
+      "sha256": "0a11308d2c265eef9460f62eb41b92ef7bcb52d225ff2ffcd45d8d5e67c235c4",
+      "blob": "0a11308d2c265eef9460f62eb41b92ef7bcb52d225ff2ffcd45d8d5e67c235c4.llbc.gz",
+      "compressed_sha256": "41c24d8d27fcc64a0b28aefff8ba79cc1699310191df53a9031032c9037eaf46"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/Length/prost_encoding.llbc",
+      "bytes": 126475,
+      "sha256": "b64f3b1881fb0cf844b54d23ad01b50d5fc57e8a8d5dbcbcfd992adb06a2264f",
+      "blob": "b64f3b1881fb0cf844b54d23ad01b50d5fc57e8a8d5dbcbcfd992adb06a2264f.llbc.gz",
+      "compressed_sha256": "af8e9103f8caac69aac55e1faaa64a91627a5fd7dc0006e07a9cc14ba9a13d11"
+    },
+    {
+      "path": "ProstEncodingWork/Artifacts/VecPutSlice/prost_encoding.llbc",
+      "bytes": 16315968,
+      "sha256": "330bf700487f390c864f2688d04baa4ebac5c3446f2d75107f5840f020940ac9",
+      "blob": "330bf700487f390c864f2688d04baa4ebac5c3446f2d75107f5840f020940ac9.llbc.gz",
+      "compressed_sha256": "815f8466cc08b05c97759adf7dd23686db7eb9b174cdcb6633164545de89de27"
+    },
+    {
+      "path": "ProtoParseWork/Artifacts/slice/prost.llbc",
+      "bytes": 709625,
+      "sha256": "3f3827ab8889e9723c1bef798c579869e1e17be5d99e55fa696f8cadaa9e354f",
+      "blob": "3f3827ab8889e9723c1bef798c579869e1e17be5d99e55fa696f8cadaa9e354f.llbc.gz",
+      "compressed_sha256": "ba03465b9f752d14c55494150cc4844768d80666c8991192ccc6363e394fd7f7"
+    },
+    {
+      "path": "ProtoParseWork/Artifacts/varint/prost.llbc",
+      "bytes": 1275955,
+      "sha256": "871e7ef482d4c77dbf428ca8af6eb1fe4653e8ddedc836ba6e2a32d9d85cf890",
+      "blob": "871e7ef482d4c77dbf428ca8af6eb1fe4653e8ddedc836ba6e2a32d9d85cf890.llbc.gz",
+      "compressed_sha256": "5d05c12acc0137d5f5c6166e03a737855f917a453cf57f3a13b70d6d9ad3e3bd"
+    },
+    {
+      "path": "ProtoParseWork/Artifacts/varint-step/selected.llbc",
+      "bytes": 1268911,
+      "sha256": "57f876ea91f86e953fe146412173035b70686aac62d17bcb7d2a7f1efc5fad7a",
+      "blob": "57f876ea91f86e953fe146412173035b70686aac62d17bcb7d2a7f1efc5fad7a.llbc.gz",
+      "compressed_sha256": "5e9f8993c6af1966ab2ca073b20a97a33125b34b757b34bb05ad1acfbfe43ff4"
+    },
+    {
+      "path": "ProtoParseWork/KeyReferenceWork/Artifacts/key/prost.llbc",
+      "bytes": 1413180,
+      "sha256": "ed7af1b2aa58bd39ef192a7f39262ce0117e6faf0ff7dcbd0dcc102dde1d6915",
+      "blob": "ed7af1b2aa58bd39ef192a7f39262ce0117e6faf0ff7dcbd0dcc102dde1d6915.llbc.gz",
+      "compressed_sha256": "8a69c62f7c7e517a37562666663e6a120b222854e2dcb6e431345d75df10e4ed"
+    },
+    {
+      "path": "ProtoParseWork/KeyReferenceWork/Artifacts/key-step/selected.llbc",
+      "bytes": 1406136,
+      "sha256": "5e5007bff765d64f31a917b2b3cd780c6fd5563cd304fe367e4bf852150231d7",
+      "blob": "5e5007bff765d64f31a917b2b3cd780c6fd5563cd304fe367e4bf852150231d7.llbc.gz",
+      "compressed_sha256": "c0752f722d9c6d577037116606161cc0b74809546ed7ecfd10d8ed5eda0187c4"
+    },
+    {
+      "path": "ProtoParseWork/KeyReferenceWork/Artifacts/skip/prost.llbc",
+      "bytes": 1792038,
+      "sha256": "329cf546c014e6f6c81b2660048676ec896aa3a48a1f787121979fc98b44322d",
+      "blob": "329cf546c014e6f6c81b2660048676ec896aa3a48a1f787121979fc98b44322d.llbc.gz",
+      "compressed_sha256": "386e02741e4cd710133e6977d62482ad6aea2402e66b368944d2361a399b0fbf"
+    },
+    {
+      "path": "ProtoParseWork/KeyReferenceWork/Artifacts/skip-step/selected.llbc",
+      "bytes": 1784994,
+      "sha256": "2a60aea4aa2dcc4defaaa9e88424756c85dfa0bd8ac537d2c6201b5cecce5314",
+      "blob": "2a60aea4aa2dcc4defaaa9e88424756c85dfa0bd8ac537d2c6201b5cecce5314.llbc.gz",
+      "compressed_sha256": "782db5dd5935ed3bd2104b77b3b4ef4af1bfcb420ef29aeb133e23b606840667"
+    },
+    {
+      "path": "ProtoParseWork/SkipTranslatorWork/Regressions/negative.llbc",
+      "bytes": 49902,
+      "sha256": "148665c8381dc7ea0304cca7bbdc6cd97373b78d9f920a28bf3f5fb707ef64e0",
+      "blob": "148665c8381dc7ea0304cca7bbdc6cd97373b78d9f920a28bf3f5fb707ef64e0.llbc.gz",
+      "compressed_sha256": "4cca89f1b3ca154d186c1a2732dc212f78b9e67ad7a79c7fde9debfd6c1bb231"
+    },
+    {
+      "path": "ProtoParseWork/SkipTranslatorWork/Regressions/regressions.llbc",
+      "bytes": 59468,
+      "sha256": "90c1868b8d57c4847617db10a2027e76feea0cefbe1fadcbbbac7ca5dec6e1d8",
+      "blob": "90c1868b8d57c4847617db10a2027e76feea0cefbe1fadcbbbac7ca5dec6e1d8.llbc.gz",
+      "compressed_sha256": "3858e8c335d0bc9daa3e847791a06ae17044542fb4a2017db6ef761491f22de6"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/CoreNewRemoveExcluded/selected.llbc",
+      "bytes": 2681162,
+      "sha256": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33",
+      "blob": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33.llbc.gz",
+      "compressed_sha256": "0ff6c2e4cdb16d6cdbb3303f15172611358ea59f93fac8aa14e9efb28f518816"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/buffer_finalize/sha_wrapper.llbc",
+      "bytes": 15929748,
+      "sha256": "c0ed50a0403ce397743468eb00f86a0617792bd371284a0699696b149c4fe064",
+      "blob": "c0ed50a0403ce397743468eb00f86a0617792bd371284a0699696b149c4fe064.llbc.gz",
+      "compressed_sha256": "02100bbf5924c1bfd7ef73ae2cfc050928c843d18e19f1d33235cde6d29a666c"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/buffer_update/sha_wrapper.llbc",
+      "bytes": 11096314,
+      "sha256": "501b7283efe2f5a693e0c792892941296eb19310090e324ebac6828a06deda2a",
+      "blob": "501b7283efe2f5a693e0c792892941296eb19310090e324ebac6828a06deda2a.llbc.gz",
+      "compressed_sha256": "2c27bc2c4eca954ed861610924d56c5e0f960b3d9b51032496ef4c21fd5fa45c"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/core_finalize_closed/sha_wrapper.llbc",
+      "bytes": 2831094,
+      "sha256": "671251afc95f06ca2288e79f8b58644b878d97d9c8223c2ab42be4d60e19d46d",
+      "blob": "671251afc95f06ca2288e79f8b58644b878d97d9c8223c2ab42be4d60e19d46d.llbc.gz",
+      "compressed_sha256": "38ab142b17652fa67c57819e248790c009feb48bab917ec314657afff1e659f0"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/core_new/sha_wrapper.llbc",
+      "bytes": 5642836,
+      "sha256": "686901eeed89f8a1b2565ea9d1243a4ed67c94fad2880b2b4e6ecc471d4eea5c",
+      "blob": "686901eeed89f8a1b2565ea9d1243a4ed67c94fad2880b2b4e6ecc471d4eea5c.llbc.gz",
+      "compressed_sha256": "5c0b44a24046a4f53a9e8d192e94e82edae97aca2a6db8aee8491919df2df836"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/core_new_closed/sha_wrapper.llbc",
+      "bytes": 2824829,
+      "sha256": "1cef7a79f3a78e97b72801e84ec0edb26219f0070654ed3b031574bf8033a534",
+      "blob": "1cef7a79f3a78e97b72801e84ec0edb26219f0070654ed3b031574bf8033a534.llbc.gz",
+      "compressed_sha256": "c9070a5a43ff9153a2e25a6d743c892116db8c254da59603af6f3845f48239f1"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/core_new_scoped/sha_wrapper.llbc",
+      "bytes": 2824580,
+      "sha256": "960cef4060e4a278411ab068f622b5c7f17f953c07b754278137a2a176a4ce3b",
+      "blob": "960cef4060e4a278411ab068f622b5c7f17f953c07b754278137a2a176a4ce3b.llbc.gz",
+      "compressed_sha256": "54ed1e27e0053736885cf0e858c8d18bfc8164aceab38c816453366a6b801d15"
+    },
+    {
+      "path": "Sha256WrapperWork/Artifacts/core_update_closed/sha_wrapper.llbc",
+      "bytes": 1460772,
+      "sha256": "b075dff93c6819d32538e259c0726023d95a3531729bc1caed4bf01f0aecfbda",
+      "blob": "b075dff93c6819d32538e259c0726023d95a3531729bc1caed4bf01f0aecfbda.llbc.gz",
+      "compressed_sha256": "fb6d3f568fa5796eb59ce56db04ecabcb327b6470412d7593215590fc2e666d1"
+    },
+    {
+      "path": "Sha256WrapperWork/InitialSelected/selected.llbc",
+      "bytes": 2681162,
+      "sha256": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33",
+      "blob": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33.llbc.gz",
+      "compressed_sha256": "0ff6c2e4cdb16d6cdbb3303f15172611358ea59f93fac8aa14e9efb28f518816"
+    },
+    {
+      "path": "ShaWordsWork/selected.llbc",
+      "bytes": 216061,
+      "sha256": "3409d91192629e87b6d97f6c5510df81f8d8cc2866ea7f0951978f86a2b262c5",
+      "blob": "3409d91192629e87b6d97f6c5510df81f8d8cc2866ea7f0951978f86a2b262c5.llbc.gz",
+      "compressed_sha256": "07ff895685720b9d8d8273c48c560d5a1e1c2ad64f53a44ac971af822e841f6f"
+    },
+    {
+      "path": "SignalMessageWork/Artifacts/UInt32Field/signal_message.llbc",
+      "bytes": 662970,
+      "sha256": "81547c219ca760c0d2ba2902d1af5b21e6b727184978338ea7287d2cfc49de7e",
+      "blob": "81547c219ca760c0d2ba2902d1af5b21e6b727184978338ea7287d2cfc49de7e.llbc.gz",
+      "compressed_sha256": "8394f4d1fc0aaf3945a8c1c89d260983b1720f52d5e6dd5fb9339747bd9bd24b"
+    },
+    {
+      "path": "SignalMessageWork/Artifacts/UInt32Selected/selected.llbc",
+      "bytes": 647432,
+      "sha256": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe",
+      "blob": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe.llbc.gz",
+      "compressed_sha256": "b39adb657ef441353f2a689987001af55dd61ab23e32115364d603f02d86b86e"
+    },
+    {
+      "path": "SignalMessageWork/Artifacts/WireEncode/signal_message.llbc",
+      "bytes": 826593,
+      "sha256": "b52f0c21d4e6331c6420d2f1a3b2d378039c29641c04f9fd1a7a968312fed6d7",
+      "blob": "b52f0c21d4e6331c6420d2f1a3b2d378039c29641c04f9fd1a7a968312fed6d7.llbc.gz",
+      "compressed_sha256": "2b86a61563a16ce66a8ab389de5ea8f1c68591c5be259dd0b9bbc0a454d0ef89"
+    },
+    {
+      "path": "SignalMessageWork/Artifacts/WireEncodeFields/signal_message.llbc",
+      "bytes": 1300251,
+      "sha256": "36263f1448dc265ae6054f877a3c9ab9067085057b94367b85be46e469f6efa4",
+      "blob": "36263f1448dc265ae6054f877a3c9ab9067085057b94367b85be46e469f6efa4.llbc.gz",
+      "compressed_sha256": "7dc544fc9d7e4db669224d4659299fc186ab13448bf1ebfd5dde9edb9c48053c"
+    },
+    {
+      "path": "SignalMessageWork/Artifacts/WireEncodeFieldsFull/signal_message.llbc",
+      "bytes": 1537271,
+      "sha256": "14eee37b2608edb04ad29c14207c7c4acf8d7e58c21a9d8af9039fe1de5c6631",
+      "blob": "14eee37b2608edb04ad29c14207c7c4acf8d7e58c21a9d8af9039fe1de5c6631.llbc.gz",
+      "compressed_sha256": "e558caffb3a74617edf4d0516175537a00f96d2f5c40d9bd65a8278b78cf0456"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/Artifacts/bytes_field.llbc",
+      "bytes": 686148,
+      "sha256": "51a0baeaba1a94c79c6ef533daa82eeb986976ae5a3d8b2b208b973c23efad8b",
+      "blob": "51a0baeaba1a94c79c6ef533daa82eeb986976ae5a3d8b2b208b973c23efad8b.llbc.gz",
+      "compressed_sha256": "56786ee9c7630e80dcdf51d5735652fbf5d1a4429ffd653e3856ad61b6acbb8b"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/Selected/selected.llbc",
+      "bytes": 670610,
+      "sha256": "774e6ccb883a87e8c243474991d5bd8e79c3d0f2ddd998780962b5c18488a2a0",
+      "blob": "774e6ccb883a87e8c243474991d5bd8e79c3d0f2ddd998780962b5c18488a2a0.llbc.gz",
+      "compressed_sha256": "e13ec588ac892420c7cf7bdccbc745ee71f2b88374aa33bfcefec6264f9d9dbf"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/VecAdapterArtifacts/vec_adapter.llbc",
+      "bytes": 249961,
+      "sha256": "255dc854d41971066612d954d415961b2e08da08e25d746ee17991b8939714a1",
+      "blob": "255dc854d41971066612d954d415961b2e08da08e25d746ee17991b8939714a1.llbc.gz",
+      "compressed_sha256": "c970c0c4ff1c14da97c32291d1888a8e9781e0cb51732110cc3eafe351f48d04"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/VecPutArtifacts/vec_put.llbc",
+      "bytes": 16343158,
+      "sha256": "90bb238c8eb848494bbafb9c2177752f25e11e156dc003933a0b4949c7d9a4ac",
+      "blob": "90bb238c8eb848494bbafb9c2177752f25e11e156dc003933a0b4949c7d9a4ac.llbc.gz",
+      "compressed_sha256": "be817ee1cd984739f2b62d609e9bf8f9263e3a8106a093886a073c396105e6ef"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/VecPutBodyArtifacts/vec_put.llbc",
+      "bytes": 790263,
+      "sha256": "027229990e7a8fc9bf686678a890d03dc6fd63cfcc0281baebabf4b02f0dc61e",
+      "blob": "027229990e7a8fc9bf686678a890d03dc6fd63cfcc0281baebabf4b02f0dc61e.llbc.gz",
+      "compressed_sha256": "5935215524defeed9836f4661a421968281ded6261b0d0b92f1bf9c62eff8edd"
+    },
+    {
+      "path": "SignalMessageWork/BytesFieldWork/VecPutClosedArtifacts/vec_put.llbc",
+      "bytes": 441161,
+      "sha256": "c1e33e723d0f979af0995f6cc280423e8e535836668c4d1ac1d42ac79c834522",
+      "blob": "c1e33e723d0f979af0995f6cc280423e8e535836668c4d1ac1d42ac79c834522.llbc.gz",
+      "compressed_sha256": "5d18a8c3773c0e5d84418beab305dfdef970d7b8dbfcb317137fad750dd2084e"
+    },
+    {
+      "path": "SpqrPreambleWork/Artifacts/spqr/spqr.llbc",
+      "bytes": 574661,
+      "sha256": "eca53be5d4d99df5232c21b407cdf5d51ccae0c883b8d7ba445a99a71f1db369",
+      "blob": "eca53be5d4d99df5232c21b407cdf5d51ccae0c883b8d7ba445a99a71f1db369.llbc.gz",
+      "compressed_sha256": "8c92ad3cb596b40495f21d72c9c87d687a302959107978ca82c9d2fe993454da"
+    },
+    {
+      "path": "SpqrReference/Artifacts/serialize/spqr.llbc",
+      "bytes": 688529,
+      "sha256": "cb4729c788b395af8bd249aa95a84a92a841e723392ca7958465bac4b34e0ff2",
+      "blob": "cb4729c788b395af8bd249aa95a84a92a841e723392ca7958465bac4b34e0ff2.llbc.gz",
+      "compressed_sha256": "a034ad41c7314495311f9776c0a41b438175790b64e20cfceb003fe0a5380d27"
+    },
+    {
+      "path": "SpqrReference/Artifacts/serialize_closed/spqr.llbc",
+      "bytes": 705786,
+      "sha256": "a8e05615a83936385db06ac03dc6805679bcb9c9b94ab54c5953b4bf4cf92d44",
+      "blob": "a8e05615a83936385db06ac03dc6805679bcb9c9b94ab54c5953b4bf4cf92d44.llbc.gz",
+      "compressed_sha256": "9f06f0ed2436c53035a4f3e3ac1672a6b1e5269d9a8cc54e580f3437a21f8358"
+    },
+    {
+      "path": "SpqrReference/Artifacts/serialize_inline/spqr.llbc",
+      "bytes": 465598,
+      "sha256": "a2e679a622c8f2058307acfd5bff6d4ed6370e223803cf3cb36ed02cf6202b88",
+      "blob": "a2e679a622c8f2058307acfd5bff6d4ed6370e223803cf3cb36ed02cf6202b88.llbc.gz",
+      "compressed_sha256": "fd5bca3dd311c6b2a86a091146b09f568b0db8434c8a428e818db1e681b64bb1"
+    },
+    {
+      "path": "SpqrReference/Artifacts/serialize_lookup_baseline/spqr.llbc",
+      "bytes": 686953,
+      "sha256": "6f4ce4e8c76971317dc9252b5cce264a8f3bd73550451468e543f14a0ed77a0f",
+      "blob": "6f4ce4e8c76971317dc9252b5cce264a8f3bd73550451468e543f14a0ed77a0f.llbc.gz",
+      "compressed_sha256": "5f2c8df1b3d21b6dc6170ce26c780fb241fa401beade971fa583fbaf7d9b96be"
+    },
+    {
+      "path": "SpqrReference/Artifacts/serialize_mono/spqr.llbc",
+      "bytes": 355012,
+      "sha256": "50468485467fabe64aa97ba0cc76f2cb5891de4f914acea58136cd6fb7573f7a",
+      "blob": "50468485467fabe64aa97ba0cc76f2cb5891de4f914acea58136cd6fb7573f7a.llbc.gz",
+      "compressed_sha256": "ef3b9dd81061a7cb8bcacfc4bf82a89d481e0118440260f8fb12dfbd2db3ac18"
+    },
+    {
+      "path": "SpqrReference/Artifacts/varint/spqr.llbc",
+      "bytes": 409664,
+      "sha256": "4ca6cf0b654e390018974569b0ed956687aa4a52206cf7354fa2ada91f2829ab",
+      "blob": "4ca6cf0b654e390018974569b0ed956687aa4a52206cf7354fa2ada91f2829ab.llbc.gz",
+      "compressed_sha256": "1d44c6568579ecd24a73bf40fbcb85d87ac1974d005a69f887fe55ecad043ecf"
+    },
+    {
+      "path": "SpqrReference/Selected/selected.llbc",
+      "bytes": 698072,
+      "sha256": "75c2ec37a8a0c0d1e25b6c3add250e71ef61f8e1a9e0f3bcc8f1085d47a304ff",
+      "blob": "75c2ec37a8a0c0d1e25b6c3add250e71ef61f8e1a9e0f3bcc8f1085d47a304ff.llbc.gz",
+      "compressed_sha256": "e961303a3292db6b8a79e21d09ab23525b2ab64b2593fe669bbadee46be8e51b"
+    },
+    {
+      "path": "SpqrReference/SelectedBaseline/selected.llbc",
+      "bytes": 680815,
+      "sha256": "335ba5217e0eac2b14c2b60f0b18aaa36a563dd0f5bc1f8d84d3eb4524299209",
+      "blob": "335ba5217e0eac2b14c2b60f0b18aaa36a563dd0f5bc1f8d84d3eb4524299209.llbc.gz",
+      "compressed_sha256": "35c53790ac888fb64fc5e675c42863cf360a38a88800327ea3df2e144681fe14"
+    },
+    {
+      "path": "SpqrReference/SharedIndexProbe/selected.llbc",
+      "bytes": 694744,
+      "sha256": "940cd4b5d4169f38244d7c27a90f8909b421f1c74264b0e9d132d2c887f23e62",
+      "blob": "940cd4b5d4169f38244d7c27a90f8909b421f1c74264b0e9d132d2c887f23e62.llbc.gz",
+      "compressed_sha256": "60928379c89b955d11f7e8787aaada07f2a8e90d962d0ebf2179030b92a2f8b3"
+    },
+    {
+      "path": "SpqrReference/VarintSelected/selected.llbc",
+      "bytes": 401953,
+      "sha256": "ccc7721bf9a4bc1395ecfc758b52618471b47adda63ff3991141c0e84439fd4a",
+      "blob": "ccc7721bf9a4bc1395ecfc758b52618471b47adda63ff3991141c0e84439fd4a.llbc.gz",
+      "compressed_sha256": "954425505fe786650501a852e97c7b427683666da89d665bd2726483c65f10b8"
+    },
+    {
+      "path": "VarintDecodeWork/Artifacts/spqr/spqr.llbc",
+      "bytes": 266454,
+      "sha256": "7449749f2f675c2324b5ffcaa50200dac170c52974636bc662cb3ad8fbda4b76",
+      "blob": "7449749f2f675c2324b5ffcaa50200dac170c52974636bc662cb3ad8fbda4b76.llbc.gz",
+      "compressed_sha256": "f98bdbf42f34c222dc345372df414c5d762ed6406aba1948c1413722b99cf1e6"
+    }
+  ]
+}

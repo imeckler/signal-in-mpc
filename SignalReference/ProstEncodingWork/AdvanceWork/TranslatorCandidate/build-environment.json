@@ -1,0 +1,105 @@
+{
+  "candidate_only": true,
+  "accepted_toolchain_changed": false,
+  "source_commit": "5b9dcf33dccdb1560ea7203ac57ea202476b6ed3",
+  "charon_source_commit": "4ad295c1bf982b5533ce7d85f4ddc889ff3127f8",
+  "versions": {
+    "ocamlc": "5.3.0",
+    "dune": "3.19.1",
+    "opam": "2.4.1",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+    "accepted_aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "baseline": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-isolated-baseline",
+    "candidate": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-never-continuation-candidate"
+  },
+  "tools": {
+    "opam": {
+      "path": "/usr/local/bin/opam",
+      "resolved_path": "/usr/local/bin/opam",
+      "sha256": "c595fec2e34368e263869738de84bfae3b733b27fb2a5045b7a8dd8b466c99f6"
+    },
+    "ocamlc": {
+      "path": "/Users/izzy/.opam/default/bin/ocamlc",
+      "resolved_path": "/Users/izzy/.opam/default/bin/ocamlc.opt",
+      "sha256": "19161923d1ec376b87069a3d6402aece4223b2f66202f14c232b7c362bfb3285"
+    },
+    "ocamlopt": {
+      "path": "/Users/izzy/.opam/default/bin/ocamlopt",
+      "resolved_path": "/Users/izzy/.opam/default/bin/ocamlopt.opt",
+      "sha256": "4ffdfed5b8244d430017216fd412ba4eae1c4dbf3f46586a0127540e84a76e9c"
+    },
+    "dune": {
+      "path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+      "sha256": "1c286471f4cef03981ba8d72ddaa55f7a0311d8c4ca914968db1eca5fcd3a0ec"
+    },
+    "charon": {
+      "path": "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+      "sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+    },
+    "rustc": {
+      "path": "/Users/izzy/repos/tls-mpc/.deps/rust-nightly-2026-08-18/bin/rustc",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/.deps/rust-nightly-2026-08-18/bin/rustc",
+      "sha256": "067254444273fb1a92203b004d33584e064d130ee146090f22dc98de82408da0"
+    },
+    "accepted_aeneas": {
+      "path": "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+      "sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7"
+    },
+    "baseline": {
+      "path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/baseline",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/baseline",
+      "sha256": "e2ca2c3807d61e224ff2bafaaa08ad27a997f8e5ffd8b293e1aee8180278547b"
+    },
+    "candidate": {
+      "path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+      "resolved_path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+      "sha256": "fe77bda30ec7cb382c10442fe70f7405acb2140f081cd3869e3c78f202a27e44"
+    },
+    "candidate_runtime_gmp": {
+      "path": "/opt/homebrew/opt/gmp/lib/libgmp.10.dylib",
+      "resolved_path": "/opt/homebrew/Cellar/gmp/6.3.0/lib/libgmp.10.dylib",
+      "sha256": "bc6145edbeca608b4fecd4440dbbd7b27cacd55cbfd2b552b8bc333febe43b35"
+    }
+  },
+  "build_command": [
+    "opam",
+    "exec",
+    "--root",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam",
+    "--switch",
+    "aeneas-never",
+    "--",
+    "env",
+    "PATH=/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin:/Users/izzy/.opam/default/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "dune",
+    "build",
+    "--profile",
+    "release",
+    "main.exe",
+    "-j",
+    "4"
+  ],
+  "build_cwd": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/aeneas-5b9dcf33dccdb1560ea7203ac57ea202476b6ed3/src",
+  "baseline_environment": {
+    "AENEAS_VERSION": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-isolated-baseline"
+  },
+  "candidate_environment": {
+    "AENEAS_VERSION": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-never-continuation-candidate"
+  },
+  "dependency_source_cache_checksums": [
+    "download-plan.json",
+    "visitors-download-plan.json"
+  ],
+  "dependency_version_inventory_sha256": "e48b51656d9d42f47fbe05dd62c22690206d372c94cd3c9b465dd23c9c637ef5",
+  "build_logs_sha256": {
+    "dependency-build.log": "cb2cd02df317e26751de8cc504864b83489063c31eb709f97da7114bc49fc760",
+    "visitors-upgrade-build.log": "d0ecde24757fa49dd9d1af4bfbdf7bae321d7be92b7cddad2197f521c56f2719",
+    "baseline-build.log": "12309dbef9cbe57e797d31ce0be073b86b908353a5af9bd66202abb0342faf6d",
+    "candidate-build.log": "a650329c8792f6d67323c10f3bdd15e38a433a0e70bd1df5f32d01d2ab6c85e6"
+  },
+  "build_note": "Only workspace-local package/build directories were written. The original OCaml compiler and GMP library were read from existing installations.",
+  "opam_note": "Local repository/cache copies and checksum-verified approved curl downloads supplied dependencies. The managed outer filesystem/network sandbox remained in force; nested opam sandbox-exec is unavailable on this host."
+}

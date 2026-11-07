@@ -1,0 +1,6387 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_llbc": "Extraction/libsignal_aes256_key_schedule.llbc",
+  "original_sha256": "f73102d00d537e7659e61c0ad59e374f941cb51187a325a8ffd8ec9608a7b4f5",
+  "selected_sha256": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2",
+  "changes": [
+    {
+      "path": [
+        "translated",
+        "trait_decls",
+        3,
+        "methods",
+        54
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "Clause0_Clause0_Item",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 14,
+                  "beg": {
+                    "line": 3439,
+                    "col": 22
+                  },
+                  "end": {
+                    "line": 3439,
+                    "col": 41
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 5,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "name": "rev",
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "traits",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iterator",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "Iterator",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "rev",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 14,
+                "beg": {
+                  "line": 3437,
+                  "col": 4
+                },
+                "end": {
+                  "line": 3439,
+                  "col": 42
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [
+                {
+                  "DocComment": " Reverses an iterator's direction."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " Usually, iterators iterate from left to right. After using `rev()`,"
+                },
+                {
+                  "DocComment": " an iterator will instead iterate from right to left."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " This is only possible if the iterator has an end, so `rev()` only"
+                },
+                {
+                  "DocComment": " works on [`DoubleEndedIterator`]s."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " # Examples"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " ```"
+                },
+                {
+                  "DocComment": " let a = [1, 2, 3];"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " let mut iter = a.into_iter().rev();"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(3));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(2));"
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), Some(1));"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " assert_eq!(iter.next(), None);"
+                },
+                {
+                  "DocComment": " ```"
+                }
+              ],
+              "inline": "Hint",
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              }
+            ],
+            "output": {
+              "Untagged": {
+                "Adt": {
+                  "id": {
+                    "Adt": 10
+                  },
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "id": 40,
+            "generics": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Free": 0
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Free": 1
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "TypeVar": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": [
+                {
+                  "Untagged": {
+                    "kind": "SelfId",
+                    "trait_decl_ref": {
+                      "regions": [],
+                      "skip_binder": {
+                        "id": 3,
+                        "generics": {
+                          "regions": [],
+                          "types": [
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Free": 0
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Free": 1
+                                }
+                              }
+                            }
+                          ],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "kind": {
+                      "Clause": {
+                        "Bound": [
+                          0,
+                          0
+                        ]
+                      }
+                    },
+                    "trait_decl_ref": {
+                      "regions": [],
+                      "skip_binder": {
+                        "id": 5,
+                        "generics": {
+                          "regions": [],
+                          "types": [
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Free": 0
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": {
+                                "TypeVar": {
+                                  "Bound": [
+                                    1,
+                                    0
+                                  ]
+                                }
+                              }
+                            }
+                          ],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            3,
+            54
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        7,
+        "methods",
+        54
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "Clause0_Clause0_Item",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 14,
+                  "beg": {
+                    "line": 3439,
+                    "col": 22
+                  },
+                  "end": {
+                    "line": 3439,
+                    "col": 41
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 5,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 1
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 40,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 1
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 7,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": [
+                          {
+                            "Untagged": {
+                              "kind": {
+                                "Clause": {
+                                  "Free": 0
+                                }
+                              },
+                              "trait_decl_ref": {
+                                "regions": [],
+                                "skip_binder": {
+                                  "id": 4,
+                                  "generics": {
+                                    "regions": [],
+                                    "types": [
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 0
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "const_generics": [],
+                                    "trait_refs": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 3,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 1
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 5,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 1
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            3,
+            54
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        10,
+        "methods",
+        54
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "Clause0_Clause0_Item",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 14,
+                  "beg": {
+                    "line": 3439,
+                    "col": 22
+                  },
+                  "end": {
+                    "line": 3439,
+                    "col": 41
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 5,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 3
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 40,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 3
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 1
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 10,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 1
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": [
+                          {
+                            "Untagged": {
+                              "kind": {
+                                "Clause": {
+                                  "Free": 0
+                                }
+                              },
+                              "trait_decl_ref": {
+                                "regions": [],
+                                "skip_binder": {
+                                  "id": 3,
+                                  "generics": {
+                                    "regions": [],
+                                    "types": [
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 0
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 1
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "const_generics": [],
+                                    "trait_refs": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 3,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 3
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 1
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 5,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 3
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            3,
+            54
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        12,
+        "methods",
+        54
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "Clause0_Clause0_Item",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 14,
+                  "beg": {
+                    "line": 3439,
+                    "col": 22
+                  },
+                  "end": {
+                    "line": 3439,
+                    "col": 41
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 5,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 10
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 40,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 10
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 1
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 12,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 1
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": [
+                          {
+                            "Untagged": {
+                              "kind": {
+                                "Clause": {
+                                  "Free": 0
+                                }
+                              },
+                              "trait_decl_ref": {
+                                "regions": [],
+                                "skip_binder": {
+                                  "id": 5,
+                                  "generics": {
+                                    "regions": [],
+                                    "types": [
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 0
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 1
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "const_generics": [],
+                                    "trait_refs": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 3,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 10
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 1
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 5,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 10
+                                },
+                                "generics": {
+                                  "regions": [],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            3,
+            54
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        20,
+        "methods",
+        54
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [
+            {
+              "index": 0,
+              "name": "Clause0_Clause0_Item",
+              "variance": "Invariant"
+            }
+          ],
+          "const_generics": [],
+          "trait_clauses": [
+            {
+              "clause_id": 0,
+              "span": {
+                "data": {
+                  "file_id": 14,
+                  "beg": {
+                    "line": 3439,
+                    "col": 22
+                  },
+                  "end": {
+                    "line": 3439,
+                    "col": 41
+                  }
+                },
+                "generated_from_span": null
+              },
+              "origin": "WhereClauseOnFn",
+              "trait_": {
+                "regions": [],
+                "skip_binder": {
+                  "id": 5,
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 49
+                            },
+                            "generics": {
+                              "regions": [
+                                {
+                                  "Var": {
+                                    "Free": 0
+                                  }
+                                }
+                              ],
+                              "types": [
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                }
+                              ],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Bound": [
+                              1,
+                              0
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          ],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 40,
+          "generics": {
+            "regions": [],
+            "types": [
+              {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 49
+                    },
+                    "generics": {
+                      "regions": [
+                        {
+                          "Var": {
+                            "Free": 0
+                          }
+                        }
+                      ],
+                      "types": [
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        }
+                      ],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Ref": [
+                    {
+                      "Var": {
+                        "Free": 0
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "TypeVar": {
+                          "Free": 0
+                        }
+                      }
+                    },
+                    "Mut"
+                  ]
+                }
+              },
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Bound": [
+                      0,
+                      0
+                    ]
+                  }
+                }
+              }
+            ],
+            "const_generics": [],
+            "trait_refs": [
+              {
+                "Untagged": {
+                  "kind": {
+                    "TraitImpl": {
+                      "id": 20,
+                      "generics": {
+                        "regions": [
+                          {
+                            "Var": {
+                              "Free": 0
+                            }
+                          }
+                        ],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 3,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 49
+                                },
+                                "generics": {
+                                  "regions": [
+                                    {
+                                      "Var": {
+                                        "Free": 0
+                                      }
+                                    }
+                                  ],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "Ref": [
+                                {
+                                  "Var": {
+                                    "Free": 0
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "TypeVar": {
+                                      "Free": 0
+                                    }
+                                  }
+                                },
+                                "Mut"
+                              ]
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "kind": {
+                    "Clause": {
+                      "Bound": [
+                        0,
+                        0
+                      ]
+                    }
+                  },
+                  "trait_decl_ref": {
+                    "regions": [],
+                    "skip_binder": {
+                      "id": 5,
+                      "generics": {
+                        "regions": [],
+                        "types": [
+                          {
+                            "Untagged": {
+                              "Adt": {
+                                "id": {
+                                  "Adt": 49
+                                },
+                                "generics": {
+                                  "regions": [
+                                    {
+                                      "Var": {
+                                        "Free": 0
+                                      }
+                                    }
+                                  ],
+                                  "types": [
+                                    {
+                                      "Untagged": {
+                                        "TypeVar": {
+                                          "Free": 0
+                                        }
+                                      }
+                                    }
+                                  ],
+                                  "const_generics": [],
+                                  "trait_refs": []
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Bound": [
+                                  1,
+                                  0
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            3,
+            54
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_decls",
+        4,
+        "methods",
+        2
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "name": "forward_overflowing",
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "range",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "Step",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "forward_overflowing",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 16,
+                "beg": {
+                  "line": 92,
+                  "col": 4
+                },
+                "end": {
+                  "line": 92,
+                  "col": 70
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [
+                {
+                  "DocComment": " Returns the value that would be obtained by taking the *successor*"
+                },
+                {
+                  "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+                },
+                {
+                  "DocComment": " occurred."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " If this would overflow the range of values supported by `Self`, the"
+                },
+                {
+                  "DocComment": " value returned is unspecified and should not be relied on, though"
+                },
+                {
+                  "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+                },
+                {
+                  "DocComment": " implementation to enable optimizations."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " # Invariants"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::forward_overflowing(Step::forward_overflowing(a, n).0, m) == Step::forward_overflowing(a, n + m)`"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a` and `n`, where no overflow occurs:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::forward_overflowing(a, n) == (Step::forward_checked(a, n).unwrap(), false)`"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a` and `n`:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::forward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::forward_overflowing(x, 1); (s, y || o) })`"
+                },
+                {
+                  "DocComment": "   * Corollary: `Step::forward_overflowing(a, 0) == (a, false)`"
+                }
+              ],
+              "inline": null,
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Literal": {
+                    "UInt": "Usize"
+                  }
+                }
+              }
+            ],
+            "output": {
+              "Untagged": {
+                "Adt": {
+                  "id": {
+                    "Builtin": "Tuple"
+                  },
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "Literal": "Bool"
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          },
+          "default": null
+        },
+        "kind": {
+          "TraitMethod": [
+            4,
+            2
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        8,
+        "methods",
+        2
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 132,
+          "generics": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_refs": []
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            4,
+            2
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "fun_decls",
+        132
+      ],
+      "before": {
+        "def_id": 132,
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "iter",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 8
+              }
+            },
+            {
+              "Ident": [
+                "forward_overflowing",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 16,
+              "beg": {
+                "line": 348,
+                "col": 16
+              },
+              "end": {
+                "line": 348,
+                "col": 77
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": null,
+          "attr_info": {
+            "attributes": [],
+            "inline": "Hint",
+            "rename": null,
+            "public": true
+          },
+          "is_local": false,
+          "opacity": "Foreign",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "generics": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            },
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Adt": {
+                "id": {
+                  "Builtin": "Tuple"
+                },
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": "Bool"
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              }
+            }
+          }
+        },
+        "src": {
+          "TraitImpl": {
+            "impl_ref": {
+              "id": 8,
+              "generics": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            },
+            "trait_ref": {
+              "id": 4,
+              "generics": {
+                "regions": [],
+                "types": [
+                  {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "Usize"
+                      }
+                    }
+                  }
+                ],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            },
+            "item_id": 2,
+            "reuses_default": true
+          }
+        },
+        "body": "Opaque"
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_decls",
+        4,
+        "methods",
+        6
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "name": "backward_overflowing",
+          "item_meta": {
+            "name": [
+              {
+                "Ident": [
+                  "core",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "iter",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "range",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "Step",
+                  0
+                ]
+              },
+              {
+                "Ident": [
+                  "backward_overflowing",
+                  0
+                ]
+              }
+            ],
+            "span": {
+              "data": {
+                "file_id": 16,
+                "beg": {
+                  "line": 187,
+                  "col": 4
+                },
+                "end": {
+                  "line": 187,
+                  "col": 71
+                }
+              },
+              "generated_from_span": null
+            },
+            "source_text": null,
+            "attr_info": {
+              "attributes": [
+                {
+                  "DocComment": " Returns the value that would be obtained by taking the *successor*"
+                },
+                {
+                  "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+                },
+                {
+                  "DocComment": " occurred."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " If this would overflow the range of values supported by `Self`, the"
+                },
+                {
+                  "DocComment": " value returned is unspecified and should not be relied on, though"
+                },
+                {
+                  "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+                },
+                {
+                  "DocComment": " implementation to enable optimizations."
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " # Invariants"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::backward_overflowing(Step::backward_overflowing(a, n).0, m) == Step::backward_overflowing(a, n + m)`"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a` and `n`, where no overflow occurs:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::backward_overflowing(a, n) == (Step::backward_checked(a, n).unwrap(), false)`"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " For any `a` and `n`:"
+                },
+                {
+                  "DocComment": ""
+                },
+                {
+                  "DocComment": " * `Step::backward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::backward_overflowing(x, 1); (s, y || o) })`"
+                },
+                {
+                  "DocComment": "   * Corollary: `Step::backward_overflowing(a, 0) == (a, false)`"
+                }
+              ],
+              "inline": null,
+              "rename": null,
+              "public": true
+            },
+            "is_local": false,
+            "opacity": "Foreign",
+            "lang_item": null,
+            "diagnostic_item": null
+          },
+          "signature": {
+            "is_unsafe": false,
+            "abi": "Rust",
+            "is_variadic": false,
+            "inputs": [
+              {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              },
+              {
+                "Untagged": {
+                  "Literal": {
+                    "UInt": "Usize"
+                  }
+                }
+              }
+            ],
+            "output": {
+              "Untagged": {
+                "Adt": {
+                  "id": {
+                    "Builtin": "Tuple"
+                  },
+                  "generics": {
+                    "regions": [],
+                    "types": [
+                      {
+                        "Untagged": {
+                          "TypeVar": {
+                            "Free": 0
+                          }
+                        }
+                      },
+                      {
+                        "Untagged": {
+                          "Literal": "Bool"
+                        }
+                      }
+                    ],
+                    "const_generics": [],
+                    "trait_refs": []
+                  }
+                }
+              }
+            }
+          },
+          "default": null
+        },
+        "kind": {
+          "TraitMethod": [
+            4,
+            6
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "trait_impls",
+        8,
+        "methods",
+        6
+      ],
+      "before": {
+        "params": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "skip_binder": {
+          "id": 136,
+          "generics": {
+            "regions": [],
+            "types": [],
+            "const_generics": [],
+            "trait_refs": []
+          }
+        },
+        "kind": {
+          "TraitMethod": [
+            4,
+            6
+          ]
+        }
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "fun_decls",
+        136
+      ],
+      "before": {
+        "def_id": 136,
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "iter",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 8
+              }
+            },
+            {
+              "Ident": [
+                "backward_overflowing",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 16,
+              "beg": {
+                "line": 357,
+                "col": 16
+              },
+              "end": {
+                "line": 357,
+                "col": 78
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": null,
+          "attr_info": {
+            "attributes": [],
+            "inline": "Hint",
+            "rename": null,
+            "public": true
+          },
+          "is_local": false,
+          "opacity": "Foreign",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "generics": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_clauses": [],
+          "regions_outlive": [],
+          "types_outlive": [],
+          "trait_type_constraints": []
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            },
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Adt": {
+                "id": {
+                  "Builtin": "Tuple"
+                },
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": "Bool"
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              }
+            }
+          }
+        },
+        "src": {
+          "TraitImpl": {
+            "impl_ref": {
+              "id": 8,
+              "generics": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            },
+            "trait_ref": {
+              "id": 4,
+              "generics": {
+                "regions": [],
+                "types": [
+                  {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "Usize"
+                      }
+                    }
+                  }
+                ],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            },
+            "item_id": 6,
+            "reuses_default": true
+          }
+        },
+        "body": "Opaque"
+      },
+      "after": null
+    },
+    {
+      "path": [
+        "translated",
+        "ordered_decls"
+      ],
+      "before": [
+        {
+          "TraitDecl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 1
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 190
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 14
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 23
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 35
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 4
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 22
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 205
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 191
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 146
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 10
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 3
+          }
+        },
+        {
+          "TraitDecl": {
+            "Rec": [
+              5,
+              3
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 40
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 10
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 41
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              12
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 12
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              10
+            ]
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 136
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 132
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 135
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 131
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 130
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 8
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 14
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              7
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 159
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 170
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 24
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 17
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 33
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 32
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 31
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 30
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 29
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 28
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 23
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 22
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 21
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 20
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 18
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 39
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 38
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 37
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 36
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 35
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 34
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 49
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 201
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              20
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 26
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 200
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 8
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 7
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 25
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 27
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 42
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 202
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 145
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 16
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 144
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 143
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 13
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 0
+          }
+        }
+      ],
+      "after": [
+        {
+          "TraitDecl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 2
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 1
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 190
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 14
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 23
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 35
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 4
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 22
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 205
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 191
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 146
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 10
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 3
+          }
+        },
+        {
+          "TraitDecl": {
+            "Rec": [
+              5,
+              3
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 40
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 10
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 41
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              12
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 12
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              10
+            ]
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 135
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 131
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 130
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 8
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 14
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              7
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 159
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 11
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 170
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 0
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 8
+          }
+        },
+        {
+          "TraitDecl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 24
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 17
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 1
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 33
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 32
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 31
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 30
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 29
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 28
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 23
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 22
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 21
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 20
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 19
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 18
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 2
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 39
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 38
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 37
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 36
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 35
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 34
+          }
+        },
+        {
+          "TraitImpl": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Type": {
+            "NonRec": 49
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 201
+          }
+        },
+        {
+          "TraitImpl": {
+            "Rec": [
+              20
+            ]
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 26
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 200
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 8
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 7
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 4
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 25
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 27
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 3
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 42
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 9
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 202
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 145
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 16
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 144
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 15
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 143
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 13
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 6
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 5
+          }
+        },
+        {
+          "Fun": {
+            "NonRec": 0
+          }
+        }
+      ]
+    }
+  ],
+  "input_fingerprint": "cf346ded47a8a8f46d79b330878e47a424e1d4e3e8d877fade35896732c3c457",
+  "independent_review": "AesInverseLayoutWork/key-schedule-metadata-review.json",
+  "computational_bodies_modified": [],
+  "source_patches": [],
+  "rev_function_40_retained": true,
+  "trait_default_provenance_retained": true,
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "AesKeyScheduleWork/Generated/Funs.lean": "2070237431ea0de6163dd898fe449a678c99f2538cc39e9fa47f159499f2738e",
+    "AesKeyScheduleWork/Generated/Types.lean": "ba14c35fbae8fb552604788c4ff97280a90953c1a4239cfb37b5a3b24d9777a0"
+  },
+  "inventory": {
+    "llbc_sha256": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 39,
+      "fun_decls": 59,
+      "global_decls": 0,
+      "trait_decls": 28,
+      "trait_impls": 22,
+      "ordered_decls": 90
+    },
+    "body_kinds": {
+      "Structured": 18,
+      "Opaque": 41
+    },
+    "external_functions": [
+      {
+        "id": 1,
+        "name": "core::array::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 402,
+              "col": 4
+            },
+            "end": {
+              "line": 402,
+              "col": 58
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::array::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 390,
+              "col": 4
+            },
+            "end": {
+              "line": 390,
+              "col": 46
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::iter::traits::iterator::Iterator::step_by",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 14,
+            "beg": {
+              "line": 439,
+              "col": 4
+            },
+            "end": {
+              "line": 441,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::iter::adapters::step_by::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 6,
+            "beg": {
+              "line": 59,
+              "col": 4
+            },
+            "end": {
+              "line": 59,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::iter::range::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 1184,
+              "col": 4
+            },
+            "end": {
+              "line": 1184,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 31,
+              "col": 4
+            },
+            "end": {
+              "line": 31,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 479,
+              "col": 4
+            },
+            "end": {
+              "line": 479,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 485,
+              "col": 4
+            },
+            "end": {
+              "line": 485,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 490,
+              "col": 4
+            },
+            "end": {
+              "line": 490,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 496,
+              "col": 4
+            },
+            "end": {
+              "line": 496,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 502,
+              "col": 4
+            },
+            "end": {
+              "line": 502,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 508,
+              "col": 4
+            },
+            "end": {
+              "line": 508,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 24,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 18,
+              "col": 4
+            },
+            "end": {
+              "line": 18,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 26,
+        "name": "core::slice::{impl}::len",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 116,
+              "col": 4
+            },
+            "end": {
+              "line": 116,
+              "col": 36
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 28,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 335,
+              "col": 4
+            },
+            "end": {
+              "line": 335,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 29,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 349,
+              "col": 4
+            },
+            "end": {
+              "line": 349,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 30,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 362,
+              "col": 4
+            },
+            "end": {
+              "line": 362,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 31,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 387,
+              "col": 4
+            },
+            "end": {
+              "line": 387,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 32,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 405,
+              "col": 4
+            },
+            "end": {
+              "line": 405,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 33,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 419,
+              "col": 4
+            },
+            "end": {
+              "line": 419,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 34,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 520,
+              "col": 4
+            },
+            "end": {
+              "line": 520,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 35,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 526,
+              "col": 4
+            },
+            "end": {
+              "line": 526,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 36,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 531,
+              "col": 4
+            },
+            "end": {
+              "line": 531,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 37,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 537,
+              "col": 4
+            },
+            "end": {
+              "line": 537,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 38,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 543,
+              "col": 4
+            },
+            "end": {
+              "line": 543,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 39,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 556,
+              "col": 4
+            },
+            "end": {
+              "line": 556,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 40,
+        "name": "core::iter::traits::iterator::Iterator::rev",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 14,
+            "beg": {
+              "line": 3437,
+              "col": 4
+            },
+            "end": {
+              "line": 3439,
+              "col": 42
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 41,
+        "name": "core::iter::adapters::rev::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 21,
+            "beg": {
+              "line": 52,
+              "col": 4
+            },
+            "end": {
+              "line": 52,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 130,
+        "name": "core::iter::range::{impl}::steps_between",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 321,
+              "col": 16
+            },
+            "end": {
+              "line": 321,
+              "col": 84
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 131,
+        "name": "core::iter::range::{impl}::forward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 332,
+              "col": 16
+            },
+            "end": {
+              "line": 332,
+              "col": 73
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 135,
+        "name": "core::iter::range::{impl}::backward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 340,
+              "col": 16
+            },
+            "end": {
+              "line": 340,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 146,
+        "name": "core::convert::num::{impl}::from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 57,
+            "beg": {
+              "line": 69,
+              "col": 12
+            },
+            "end": {
+              "line": 69,
+              "col": 42
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 159,
+        "name": "core::iter::range::{impl}::next_back",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 1315,
+              "col": 4
+            },
+            "end": {
+              "line": 1315,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 170,
+        "name": "core::num::{impl}::rotate_right",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 59,
+            "beg": {
+              "line": 503,
+              "col": 8
+            },
+            "end": {
+              "line": 503,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 190,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 191,
+        "name": "core::cmp::impls::{impl}::partial_cmp",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 2275,
+              "col": 16
+            },
+            "end": {
+              "line": 2275,
+              "col": 71
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 200,
+        "name": "core::slice::{impl}::iter_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 1059,
+              "col": 4
+            },
+            "end": {
+              "line": 1059,
+              "col": 54
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 201,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 63,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 205,
+        "name": "core::cmp::impls::{impl}::eq",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 2153,
+              "col": 16
+            },
+            "end": {
+              "line": 2153,
+              "col": 50
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 225,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 60,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 3,
+        "name": "core::iter::adapters::step_by::StepBy",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 6,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "core::fmt::Arguments",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 716,
+              "col": 0
+            },
+            "end": {
+              "line": 716,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::iter::adapters::rev::Rev",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 21,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 17
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "core::array::iter::IntoIter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 24,
+            "beg": {
+              "line": 20,
+              "col": 0
+            },
+            "end": {
+              "line": 20,
+              "col": 38
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::num::nonzero::NonZero",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 26,
+            "beg": {
+              "line": 112,
+              "col": 0
+            },
+            "end": {
+              "line": 112,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "core::iter::adapters::chain::Chain",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 23,
+              "col": 0
+            },
+            "end": {
+              "line": 23,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "core::iter::adapters::zip::Zip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 29,
+            "beg": {
+              "line": 13,
+              "col": 0
+            },
+            "end": {
+              "line": 13,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::iter::adapters::intersperse::Intersperse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 31,
+            "beg": {
+              "line": 9,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::iter::adapters::intersperse::IntersperseWith",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 31,
+            "beg": {
+              "line": 83,
+              "col": 0
+            },
+            "end": {
+              "line": 83,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::iter::adapters::map::Map",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 61,
+              "col": 0
+            },
+            "end": {
+              "line": 61,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::iter::adapters::filter::Filter",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 34,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::iter::adapters::filter_map::FilterMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 35,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::iter::adapters::enumerate::Enumerate",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 36,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 23
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::iter::adapters::peekable::Peekable",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 37,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 24,
+        "name": "core::iter::adapters::skip_while::SkipWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 38,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "core::iter::adapters::take_while::TakeWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 39,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 26,
+        "name": "core::iter::adapters::map_while::MapWhile",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 40,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 27,
+        "name": "core::iter::adapters::skip::Skip",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 41,
+            "beg": {
+              "line": 21,
+              "col": 0
+            },
+            "end": {
+              "line": 21,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 28,
+        "name": "core::iter::adapters::take::Take",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 42,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 29,
+        "name": "core::iter::adapters::scan::Scan",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 43,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 25
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 30,
+        "name": "core::iter::adapters::flatten::FlatMap",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 44,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 41
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 31,
+        "name": "core::iter::adapters::flatten::Flatten",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 44,
+            "beg": {
+              "line": 184,
+              "col": 0
+            },
+            "end": {
+              "line": 184,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 32,
+        "name": "core::iter::adapters::map_windows::MapWindows",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 45,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 33,
+        "name": "core::iter::adapters::fuse::Fuse",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 46,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 34,
+        "name": "core::iter::adapters::inspect::Inspect",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 47,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 36,
+        "name": "core::iter::adapters::copied::Copied",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 52,
+            "beg": {
+              "line": 19,
+              "col": 0
+            },
+            "end": {
+              "line": 19,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 37,
+        "name": "core::iter::adapters::cloned::Cloned",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 53,
+            "beg": {
+              "line": 18,
+              "col": 0
+            },
+            "end": {
+              "line": 18,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 38,
+        "name": "core::iter::adapters::cycle::Cycle",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 54,
+            "beg": {
+              "line": 15,
+              "col": 0
+            },
+            "end": {
+              "line": 15,
+              "col": 19
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 39,
+        "name": "core::iter::adapters::array_chunks::ArrayChunks",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 55,
+            "beg": {
+              "line": 17,
+              "col": 0
+            },
+            "end": {
+              "line": 17,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 41,
+        "name": "core::num::niche_types::NonZeroUsizeInner",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 60,
+            "beg": {
+              "line": 20,
+              "col": 8
+            },
+            "end": {
+              "line": 20,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 49,
+        "name": "core::slice::iter::IterMut",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 62,
+            "beg": {
+              "line": 192,
+              "col": 0
+            },
+            "end": {
+              "line": 192,
+              "col": 29
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/soft/fixslice64.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/soft.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/range.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/option.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/rustc/library/core/src/array/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/index.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/index.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/range.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/core/src/macros/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/core/src/panicking.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/fmt/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/rustc/library/core/src/array/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/rustc/library/core/src/num/nonzero.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/rustc/library/core/src/num/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 34,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 35,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 36,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 37,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 38,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 39,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 40,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 41,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 42,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 43,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 44,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 45,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 46,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 47,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 48,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/try_trait.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 49,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 50,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 51,
+        "name": {
+          "Local": "/rustc/library/core/src/cmp.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 52,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 53,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 54,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 55,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 56,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 57,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/num.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 58,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 59,
+        "name": {
+          "Local": "/rustc/library/core/src/num/uint_macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 60,
+        "name": {
+          "Local": "/rustc/library/core/src/num/niche_types.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 61,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/control_flow.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 62,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 63,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter/macros.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::soft::fixslice::aes256_key_schedule"
+    ],
+    "selected_functions": [
+      {
+        "id": 0,
+        "name": "aes::soft::fixslice::aes256_key_schedule",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 195,
+              "col": 0
+            },
+            "end": {
+              "line": 263,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 1,
+        "name": "core::array::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 402,
+              "col": 4
+            },
+            "end": {
+              "line": 402,
+              "col": 58
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 2,
+        "name": "core::array::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 390,
+              "col": 4
+            },
+            "end": {
+              "line": 390,
+              "col": 46
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 3,
+        "name": "aes::soft::fixslice::bitslice",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1193,
+              "col": 0
+            },
+            "end": {
+              "line": 1267,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 4,
+        "name": "aes::soft::fixslice::memshift32",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1348,
+              "col": 0
+            },
+            "end": {
+              "line": 1357,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 5,
+        "name": "aes::soft::fixslice::sub_bytes",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 800,
+              "col": 0
+            },
+            "end": {
+              "line": 969,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "aes::soft::fixslice::sub_bytes_nots",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 973,
+              "col": 0
+            },
+            "end": {
+              "line": 979,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "aes::soft::fixslice::add_round_constant_bit",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1370,
+              "col": 0
+            },
+            "end": {
+              "line": 1372,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "aes::soft::fixslice::ror_distance",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1380,
+              "col": 0
+            },
+            "end": {
+              "line": 1382,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 9,
+        "name": "aes::soft::fixslice::xor_columns",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1181,
+              "col": 0
+            },
+            "end": {
+              "line": 1190,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::iter::traits::iterator::Iterator::step_by",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 14,
+            "beg": {
+              "line": 439,
+              "col": 4
+            },
+            "end": {
+              "line": 441,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "core::iter::traits::collect::{impl}::into_iter",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "core::iter::adapters::step_by::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 6,
+            "beg": {
+              "line": 59,
+              "col": 4
+            },
+            "end": {
+              "line": 59,
+              "col": 44
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "aes::soft::fixslice::inv_shift_rows_1",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1158,
+              "col": 0
+            },
+            "end": {
+              "line": 1160,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "core::iter::range::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 1184,
+              "col": 4
+            },
+            "end": {
+              "line": 1184,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "aes::soft::fixslice::inv_shift_rows_2",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1163,
+              "col": 0
+            },
+            "end": {
+              "line": 1165,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 16,
+        "name": "aes::soft::fixslice::inv_shift_rows_3",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1169,
+              "col": 0
+            },
+            "end": {
+              "line": 1171,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 17,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 31,
+              "col": 4
+            },
+            "end": {
+              "line": 31,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 18,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 479,
+              "col": 4
+            },
+            "end": {
+              "line": 479,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 19,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 485,
+              "col": 4
+            },
+            "end": {
+              "line": 485,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 490,
+              "col": 4
+            },
+            "end": {
+              "line": 490,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 496,
+              "col": 4
+            },
+            "end": {
+              "line": 496,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 502,
+              "col": 4
+            },
+            "end": {
+              "line": 502,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 508,
+              "col": 4
+            },
+            "end": {
+              "line": 508,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 24,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 18,
+              "col": 4
+            },
+            "end": {
+              "line": 18,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "aes::soft::fixslice::bitslice::read_reordered",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1209,
+              "col": 4
+            },
+            "end": {
+              "line": 1218,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 26,
+        "name": "core::slice::{impl}::len",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 116,
+              "col": 4
+            },
+            "end": {
+              "line": 116,
+              "col": 36
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 27,
+        "name": "aes::soft::fixslice::delta_swap_2",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1121,
+              "col": 0
+            },
+            "end": {
+              "line": 1125,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 28,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 335,
+              "col": 4
+            },
+            "end": {
+              "line": 335,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 29,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 349,
+              "col": 4
+            },
+            "end": {
+              "line": 349,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 30,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 362,
+              "col": 4
+            },
+            "end": {
+              "line": 362,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 31,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 387,
+              "col": 4
+            },
+            "end": {
+              "line": 387,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 32,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 405,
+              "col": 4
+            },
+            "end": {
+              "line": 405,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 33,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 419,
+              "col": 4
+            },
+            "end": {
+              "line": 419,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 34,
+        "name": "core::slice::index::{impl}::get",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 520,
+              "col": 4
+            },
+            "end": {
+              "line": 520,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 35,
+        "name": "core::slice::index::{impl}::get_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 526,
+              "col": 4
+            },
+            "end": {
+              "line": 526,
+              "col": 57
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 36,
+        "name": "core::slice::index::{impl}::get_unchecked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 531,
+              "col": 4
+            },
+            "end": {
+              "line": 531,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 37,
+        "name": "core::slice::index::{impl}::get_unchecked_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 537,
+              "col": 4
+            },
+            "end": {
+              "line": 537,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 38,
+        "name": "core::slice::index::{impl}::index",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 543,
+              "col": 4
+            },
+            "end": {
+              "line": 543,
+              "col": 39
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 39,
+        "name": "core::slice::index::{impl}::index_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 556,
+              "col": 4
+            },
+            "end": {
+              "line": 556,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 40,
+        "name": "core::iter::traits::iterator::Iterator::rev",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 14,
+            "beg": {
+              "line": 3437,
+              "col": 4
+            },
+            "end": {
+              "line": 3439,
+              "col": 42
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 41,
+        "name": "core::iter::adapters::rev::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 21,
+            "beg": {
+              "line": 52,
+              "col": 4
+            },
+            "end": {
+              "line": 52,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 42,
+        "name": "aes::soft::fixslice::ror",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1375,
+              "col": 0
+            },
+            "end": {
+              "line": 1377,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 130,
+        "name": "core::iter::range::{impl}::steps_between",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 321,
+              "col": 16
+            },
+            "end": {
+              "line": 321,
+              "col": 84
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 131,
+        "name": "core::iter::range::{impl}::forward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 332,
+              "col": 16
+            },
+            "end": {
+              "line": 332,
+              "col": 73
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 135,
+        "name": "core::iter::range::{impl}::backward_checked",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 340,
+              "col": 16
+            },
+            "end": {
+              "line": 340,
+              "col": 74
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "aes::soft::fixslice::shift_rows_3",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1149,
+              "col": 0
+            },
+            "end": {
+              "line": 1155,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 144,
+        "name": "aes::soft::fixslice::shift_rows_2",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1140,
+              "col": 0
+            },
+            "end": {
+              "line": 1145,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 145,
+        "name": "aes::soft::fixslice::shift_rows_1",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1130,
+              "col": 0
+            },
+            "end": {
+              "line": 1136,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 146,
+        "name": "core::convert::num::{impl}::from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 57,
+            "beg": {
+              "line": 69,
+              "col": 12
+            },
+            "end": {
+              "line": 69,
+              "col": 42
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 159,
+        "name": "core::iter::range::{impl}::next_back",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 1315,
+              "col": 4
+            },
+            "end": {
+              "line": 1315,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 170,
+        "name": "core::num::{impl}::rotate_right",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 59,
+            "beg": {
+              "line": 503,
+              "col": 8
+            },
+            "end": {
+              "line": 503,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 190,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 191,
+        "name": "core::cmp::impls::{impl}::partial_cmp",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 2275,
+              "col": 16
+            },
+            "end": {
+              "line": 2275,
+              "col": 71
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 200,
+        "name": "core::slice::{impl}::iter_mut",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 13,
+            "beg": {
+              "line": 1059,
+              "col": 4
+            },
+            "end": {
+              "line": 1059,
+              "col": 54
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 201,
+        "name": "core::slice::iter::{impl}::next",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 63,
+            "beg": {
+              "line": 157,
+              "col": 12
+            },
+            "end": {
+              "line": 157,
+              "col": 47
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 202,
+        "name": "aes::soft::fixslice::delta_swap_1",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1115,
+              "col": 0
+            },
+            "end": {
+              "line": 1118,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 205,
+        "name": "core::cmp::impls::{impl}::eq",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 51,
+            "beg": {
+              "line": 2153,
+              "col": 16
+            },
+            "end": {
+              "line": 2153,
+              "col": 50
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 225,
+        "name": "core::num::niche_types::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 60,
+            "beg": {
+              "line": 17,
+              "col": 17
+            },
+            "end": {
+              "line": 17,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "script_sha256": "7e50609808de31a8bd22a65a5af16ea4834ce3b5d0889072080c45eac3276280"
+}

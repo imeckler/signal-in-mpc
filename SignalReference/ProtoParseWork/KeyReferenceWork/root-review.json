@@ -1,0 +1,48 @@
+{
+  "reviewed_at_utc": "2026-11-07T20:24:00.165084+00:00",
+  "reviewer": "root agent, independent of Signal authoring agents",
+  "decision": "accepted_with_explicit_model_and_translation_boundaries",
+  "scope": "Actual pinned Prost 0.14.4 decode_key for every contiguous byte slice; exact tag/wire type/count/suffix/error precedence; 25-byte numeric circuit and existing parser rejection on every key error.",
+  "commands_reproduced": [
+    "python3 SignalReference/ProtoParseWork/KeyReferenceWork/audit.py"
+  ],
+  "verified_sources": 396,
+  "independently_rebuilt_modules": 42,
+  "audited_endpoints": 147,
+  "allowed_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "preconditions": "Every contiguous Slice U8, including empty/truncated/overflowing/noncanonical input. No caller fast-path promise.",
+  "review_findings": [
+    "Compared the actual pinned Rust decode_key order with the generated continuation and Lean result: strict varint, u32 bound, wire type6/7 rejection, then zero-tag rejection.",
+    "Inspected universal actual-function and numeric-AIG endpoints; success reports the exact tag, kind and count computed from the mutable suffix. Key failures preserve varint consumption and exact error precedence.",
+    "The existing parser-plan theorem is specifically rejection on every actual key error, for arbitrary payload/state. It does not claim full successful parser/payload equivalence.",
+    "Reproduced exactly seven unused Step metadata removals for opaque functions302/306 and trait13/impl21 slots2/6. Retained computational bodies and slot numbers are unchanged.",
+    "Reproduced pinned Aeneas output and replay of already accepted Buf/varint proofs using only namespace/import substitutions. No new external models were introduced.",
+    "Rebuilt42 modules and audited147 endpoints with foundational axioms only; independently verified396 source hashes and all reported object hashes after replay."
+  ],
+  "trusted_boundaries": [
+    "Charon/Aeneas translation and reviewed unused-metadata preprocessing remain trusted, unmechanized boundaries.",
+    "The previously accepted contiguous-slice Buf and valid-usize unsafe-index models are reused within their exact scope."
+  ],
+  "not_established": [
+    "skip_field translation or any quarantined translator modification.",
+    "Arbitrary segmented/custom Buf, payload acceptance or whole Prost/Signal refinement.",
+    "Native MPC execution, security proof or erasure."
+  ],
+  "artifact_sha256": {
+    "proof-report.json": "e7f1f7d54f09f29e88dc180e3da55d74acbb93fd74d95d4bc92c3a75d71d8dd0",
+    "axioms.txt": "08c57fb80a82c5d5e82b3a1684ad6838f4592df80d41ec6db4b4508b5e42a17b",
+    "replay-report.json": "54c9e5f6e94b3c1c8191fc9371208368361596c34c3130aab497d7eb00aa7423",
+    "select_step_metadata.py": "077c30eb3e755704c11f6168a4fe0c1134ea203b4edd56c6c91e7bd2953c8c6a",
+    "Artifacts/key-step/changes.json": "559dac5173babf838c903eaf595f2696b2c9f2b4ef1a3657ec3f91f7d6cd9d11",
+    "KeyValue.lean": "7b64e9b37e493202956615bc8db1fc30c0c7feb027031cf1fde99bfa136ef727",
+    "KeyReference.lean": "274891ccc9b323694365302aa98ed01eb1a5e839316407ad4a8e05398edeb796",
+    "KeyCircuit.lean": "eb6764b826d0ae4e34a017fcdffa85c4b904095e5c8396594d56742c0e5e732c",
+    "PlanBridge.lean": "7996a4b44b3ded447185b8753c1fe2488a4b2c5f03020677b58a085a37958492",
+    "ArtifactBridge.lean": "02df8c717c9db597f53bc45743cab80851bae476ff07eaeea5360d9bb2df4b5c",
+    "audit.py": "69b70d816460d6957db3349ad9adce12fc934172af1bbe99bbf6365131fd8494"
+  }
+}

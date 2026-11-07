@@ -1,0 +1,18 @@
+import ProstEncodingWork.AdvanceWork.TranslatorCandidate.NeverChecks
+import ProstEncodingWork.AdvanceWork.TranslatorCandidate.RegressionProofs
+import ProstEncodingWork.AdvanceWork.TranslatorCandidate.SliceProofs
+
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.call_eq
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.guarded_eq
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.call_failure
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.call_divergence
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.guarded_success
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.guarded_failure
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.guarded_divergence
+#print axioms LibSignalReference.Candidate.NeverRegressionProofs.actual_panic_call
+#print axioms LibSignalReference.Candidate.SliceAdvance.panic_exact
+#print axioms LibSignalReference.Candidate.SliceAdvance.advance_success
+#print axioms LibSignalReference.Candidate.SliceAdvance.advance_failure
+#print axioms LibSignalReference.Candidate.SliceAdvance.advance_exact
+#print axioms LibSignalReference.Candidate.SliceAdvance.advance_bytes
+#print axioms LibSignalReference.Candidate.SliceAdvance.advance_all

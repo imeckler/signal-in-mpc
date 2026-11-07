@@ -1,0 +1,223 @@
+{
+  "accepted_reference": false,
+  "full_sha256_digest_wrapper_refined": false,
+  "profiles": {
+    "core_new": {
+      "accepted_reference": false,
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "counts": {
+        "type_decls": 58,
+        "fun_decls": 168,
+        "global_decls": 29,
+        "trait_decls": 63,
+        "trait_impls": 99,
+        "ordered_decls": 0
+      },
+      "observed_failure": "Charon rejects hybrid-array ArraySize generic associated types with the Aeneas preset's lift-associated-types pass.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_new/charon.log": "b9c65cac2f240d3b2a9485e496257007200613224200dfdebae96ffe8174521d",
+        "Sha256WrapperWork/Artifacts/core_new/sha_wrapper.llbc": "686901eeed89f8a1b2565ea9d1243a4ed67c94fad2880b2b4e6ecc471d4eea5c",
+        "Sha256WrapperWork/Artifacts/core_new/inventory.json": "0fcb49c5ee1b1caffcaa8692ed80d6944d72a4f5411e5ae15716e80f1514a9e7"
+      }
+    },
+    "core_new_scoped": {
+      "accepted_reference": false,
+      "charon_exit_code": 0,
+      "aeneas_exit_code": null,
+      "counts": {
+        "type_decls": 58,
+        "fun_decls": 168,
+        "global_decls": 29,
+        "trait_decls": 62,
+        "trait_impls": 99,
+        "ordered_decls": 0
+      },
+      "observed_failure": "The trait-method resolver selected a declaration but produced zero ordered extraction roots; rejected before Aeneas.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_new_scoped/charon.log": "3a17e385ed946e21571fff12cf70a7d9fd7991ac8c80deea12d5343ba2841e94",
+        "Sha256WrapperWork/Artifacts/core_new_scoped/sha_wrapper.llbc": "960cef4060e4a278411ab068f622b5c7f17f953c07b754278137a2a176a4ce3b",
+        "Sha256WrapperWork/Artifacts/core_new_scoped/inventory.json": "9c978ef55be4af985feedf599473cf59164d15e0a235b7fef2907ff19e39eaf7"
+      }
+    },
+    "core_new_prefixed_baseline": {
+      "accepted_reference": false,
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "counts": null,
+      "observed_failure": "Charon rejects an impl pattern that is not the first path element.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_new_prefixed_baseline/extract-script.py": "a33bbacf065a923fce1f155e4be99c2d547a077b22bb82b56d50ce6f2aa7dae8",
+        "Sha256WrapperWork/Artifacts/core_new_prefixed_baseline/charon.log": "f94977dc531d9ebbb718f450b72938d400c881e6dab7dbbdd3de041fa061b924",
+        "Sha256WrapperWork/Artifacts/core_new_prefixed_baseline/inventory.json": "d3eea9ca13f60d63ee5a4dc7b4bc89c742731654892e022753df78a6015479f7"
+      }
+    },
+    "core_new_closed": {
+      "accepted_reference": false,
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "counts": {
+        "type_decls": 58,
+        "fun_decls": 168,
+        "global_decls": 29,
+        "trait_decls": 62,
+        "trait_impls": 99,
+        "ordered_decls": 10
+      },
+      "observed_failure": "Aeneas update_array_default scans ArraySize implementation metadata whose excluded trait declaration is absent, and raises CFailure at PrePasses.ml181-182.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_new_closed/aeneas.log": "581dd0e2fabe9e0cc577363bf90ea203102e4e33491d0b8bc128d6952c938403",
+        "Sha256WrapperWork/Artifacts/core_new_closed/charon.log": "69c91f5fc4d427690f5b8bd35e07e375246767dab7985f268d7eb02431f18d15",
+        "Sha256WrapperWork/Artifacts/core_new_closed/sha_wrapper.llbc": "1cef7a79f3a78e97b72801e84ec0edb26219f0070654ed3b031574bf8033a534",
+        "Sha256WrapperWork/Artifacts/core_new_closed/inventory.json": "ea606a0a4dd65e5f7cf55421df2b1faee1a636a89b5eba1a5fd1bbce7a5aeb5b"
+      }
+    },
+    "core_update_closed": {
+      "accepted_reference": false,
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "counts": {
+        "type_decls": 47,
+        "fun_decls": 132,
+        "global_decls": 25,
+        "trait_decls": 42,
+        "trait_impls": 64,
+        "ordered_decls": 255
+      },
+      "observed_failure": "Aeneas update_array_default scans ArraySize implementation metadata whose excluded trait declaration is absent, and raises CFailure at PrePasses.ml181-182.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_update_closed/aeneas.log": "6e415f45749ec8f545fb1fa3a293dc8c4b9cb23fef1c75d2ed4cec59b1a20e1e",
+        "Sha256WrapperWork/Artifacts/core_update_closed/charon.log": "6a49449b589d5b95574229bab275dc1a9c188548f2c498691df34643ac175176",
+        "Sha256WrapperWork/Artifacts/core_update_closed/sha_wrapper.llbc": "b075dff93c6819d32538e259c0726023d95a3531729bc1caed4bf01f0aecfbda",
+        "Sha256WrapperWork/Artifacts/core_update_closed/inventory.json": "331a123a7f440f41829923ca2c1c1603b9965984b9b0c9e8a7e05ef7864a5168"
+      }
+    },
+    "core_finalize_closed": {
+      "accepted_reference": false,
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "counts": {
+        "type_decls": 58,
+        "fun_decls": 168,
+        "global_decls": 29,
+        "trait_decls": 62,
+        "trait_impls": 99,
+        "ordered_decls": 328
+      },
+      "observed_failure": "Aeneas update_array_default scans ArraySize implementation metadata whose excluded trait declaration is absent, and raises CFailure at PrePasses.ml181-182.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/core_finalize_closed/aeneas.log": "331021b13772e908cc494c9d5eff7242b5057addee855ce64702f23a050d3652",
+        "Sha256WrapperWork/Artifacts/core_finalize_closed/charon.log": "92dcc46b72ec6d9beb5378c78b5f14ca05a11898c4f610f4825d8f1e9be5a0b5",
+        "Sha256WrapperWork/Artifacts/core_finalize_closed/sha_wrapper.llbc": "671251afc95f06ca2288e79f8b58644b878d97d9c8223c2ab42be4d60e19d46d",
+        "Sha256WrapperWork/Artifacts/core_finalize_closed/inventory.json": "75518f3b27353a574a1f05dacc0225fd659acda4f6c10bee6a5d0dca8ce7632b"
+      }
+    },
+    "buffer_update": {
+      "accepted_reference": false,
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "counts": {
+        "type_decls": 65,
+        "fun_decls": 221,
+        "global_decls": 29,
+        "trait_decls": 66,
+        "trait_impls": 114,
+        "ordered_decls": 415
+      },
+      "observed_failure": "Charon rejects hybrid-array ArraySize generic associated types with the Aeneas preset's lift-associated-types pass.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/buffer_update/charon.log": "b9c65cac2f240d3b2a9485e496257007200613224200dfdebae96ffe8174521d",
+        "Sha256WrapperWork/Artifacts/buffer_update/sha_wrapper.llbc": "501b7283efe2f5a693e0c792892941296eb19310090e324ebac6828a06deda2a",
+        "Sha256WrapperWork/Artifacts/buffer_update/inventory.json": "fbdfd8f55b257e6f94562fe064640274fda76d92e669f5535cfa25dccdb29b56"
+      }
+    },
+    "buffer_finalize": {
+      "accepted_reference": false,
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "counts": {
+        "type_decls": 69,
+        "fun_decls": 260,
+        "global_decls": 29,
+        "trait_decls": 68,
+        "trait_impls": 140,
+        "ordered_decls": 0
+      },
+      "observed_failure": "Charon rejects hybrid-array ArraySize generic associated types with the Aeneas preset's lift-associated-types pass.",
+      "files_sha256": {
+        "Sha256WrapperWork/Artifacts/buffer_finalize/charon.log": "b9c65cac2f240d3b2a9485e496257007200613224200dfdebae96ffe8174521d",
+        "Sha256WrapperWork/Artifacts/buffer_finalize/sha_wrapper.llbc": "c0ed50a0403ce397743468eb00f86a0617792bd371284a0699696b149c4fe064",
+        "Sha256WrapperWork/Artifacts/buffer_finalize/inventory.json": "936b36cf7f9ee293f75da8b0cc22407bbde54837a1f722f25190627e649dc2bc"
+      }
+    }
+  },
+  "source_and_report_sha256": {
+    ".deps/libsignal-vendor/sha2-0.11.0/src/lib.rs": "5529df80c102cb5d7240e47a5239565c8347a4dd79ee5a085e5f2d749657d49c",
+    ".deps/libsignal-vendor/sha2-0.11.0/src/block_api.rs": "7d858102344cc8be2d22b207296c44087b91b2e7309c5598497c48c1182c89cc",
+    ".deps/libsignal-vendor/sha2-0.11.0/src/sha256/soft.rs": "60449b6df17909cd34d533ec4d82851841cb8b26e01c0907827b33343917a31c",
+    ".deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs": "53bc025e5a428d5340fd68e7b581840891fc62fea15cc08e8f6c16466b903160",
+    ".deps/libsignal-vendor/digest-0.11.3/src/block_api/ct_variable.rs": "74b99085e49d87417e38b6bc56f344e789092e501936767c47efd42edd071a09",
+    ".deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs": "1e1f665e68a16b6a18ea547aec36d9855163bd79a27c2b293a7a7708dde68a28",
+    ".deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs": "ded0aca5a6782b27e3b68076c98c259591080c522cef3041aed3ae12fce4b38e",
+    ".deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs": "d976c8e7bf0261f5cafcdcca18e6ecc69fa5c232a0d4178fa1ee8e7b83c96d30",
+    "SignalReference/ShaWordsWork/README.md": "dbff6ba3bd154c96ffd18b1d969735b4cf22dbb6adf16586617410fdca57c936",
+    "SignalReference/Sha256WrapperWork/extract.py": "097943992ad00fe0e66157d0b0189b921d385968b6476bcc122b013af33443f3",
+    "SignalReference/Sha256WrapperWork/record_boundaries.py": "c22a6338101fc95468ffa67fc0bd587a846bad6a7221e0337bf2cb676ac6a510",
+    "SignalReference/Sha256WrapperWork/typed-dependency-closure.json": "c5028ee1fe7b571a79440827325e9c032b15b332c423257432ea767255a58df7",
+    "SignalReference/Sha256WrapperWork/proof-report.json": "eab147ae87a415c12fdb0a76da6cd5c8fbaa4f2bbab5984dcee89bdfa321a14d",
+    "SignalReference/Sha256WrapperWork/InitialSelected/review.json": "0b97cba6c52306b968daab1d8f30b6bc7a363f765be3ab2207cd7ac9e124d45c"
+  },
+  "proved_bounded_progress": "Actual core initialization including errors, plus actual constructor/compress_u32 composition for arbitrary16 shared words and every numeric output bit; eight standard-only kernel endpoints.",
+  "observed_tool_blockers": [
+    "Charon GAT lifting rejects direct actual Sha256::update/finalize_into wrapper graphs.",
+    "Excluding ArraySize gets actual core update/finalize through Charon, but Aeneas prepass rejects their metadata. The initializer-only three-deletion selection is not asserted valid for these larger graphs.",
+    "Existing ShaWordsWork independently records actual to_u32s -> array::from_fn -> try_from_fn_erased mutable-borrow-copy rejection; its conversion-closure proofs also have an unresolved existing Formatter type dependency."
+  ],
+  "source_obligations_not_new_extraction_failures": [
+    {
+      "path": "sha2-0.11.0/src/block_api.rs:38",
+      "operation": "update_blocks",
+      "obligation": "Checked block_len arithmetic, hybrid Array::cast_slice_to_core, then compress256 dispatch and byte-to-word loading."
+    },
+    {
+      "path": "hybrid-array-0.4.13/src/lib.rs:521",
+      "operation": "cast_slice_to_core",
+      "obligation": "Actual repr-transparent raw-pointer cast plus slice::from_raw_parts; no custom representation model adopted."
+    },
+    {
+      "path": "block-buffer-0.12.1/src/lib.rs:160",
+      "operation": "digest_blocks",
+      "obligation": "Actual MaybeUninit buffer, get_pos invariants, copy_nonoverlapping, ResetGuard/Drop behavior on errors, split_blocks and leftover update."
+    },
+    {
+      "path": "block-buffer-0.12.1/src/lib.rs:366",
+      "operation": "digest_pad/len64_padding_be",
+      "obligation": "Actual delimiter/zero writes, checked suffix bounds, MaybeUninit exposure, one/two compression calls and reset on errors."
+    },
+    {
+      "path": "sha2-0.11.0/src/block_api.rs:64",
+      "operation": "finalize_variable_core",
+      "obligation": "Actual checked bit-length arithmetic, buffer padding callback and mutable chunks_exact_mut/Zip digest serialization."
+    },
+    {
+      "path": "digest-0.11.3/src/block_api/ct_variable.rs:103",
+      "operation": "CtOutWrapper::finalize_fixed_core",
+      "obligation": "Actual default hybrid-array output construction, variable finalization, truncation slice and output copy."
+    },
+    {
+      "path": "digest-0.11.3/src/buffer_macros/fixed.rs:202",
+      "operation": "Sha256 Update and FixedOutput macro implementations",
+      "obligation": "Compose the actual complete buffer/core wrappers, including success/error state and supported length domain."
+    }
+  ],
+  "recommended_next_route": [
+    "Retain the proved constructor and compact-word compression endpoints as reusable leaves.",
+    "Resolve ArraySize/GAT metadata and model support for the exact selected wrapper graph through independently reviewed translator/model work, without replacing computational Rust bodies.",
+    "Close actual byte loading and transparent array/slice conversions; keep the existing Formatter decision explicit.",
+    "Translate and prove actual buffer update/padding operations with precise state, length/overflow, and error/reset domains; then compose actual finalize/output-copy wrappers."
+  ],
+  "opaque_crypto_contracts_assumed": [],
+  "source_substitutions": [],
+  "standard_models_changed": false,
+  "accepted_toolchain_changed": false
+}

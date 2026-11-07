@@ -1,0 +1,99 @@
+{
+  "package": "block-padding@0.4.2",
+  "starts": [
+    "{crate::Padding for crate::Pkcs7}::raw_unpad"
+  ],
+  "extra": [
+    "--start-from-if-exists=crate::*::raw_unpad",
+    "--exclude=crate::Padding::pad",
+    "--exclude=crate::Padding::unpad",
+    "--exclude=crate::Padding::pad_detached",
+    "--exclude=crate::Padding::unpad_blocks",
+    "--exclude=crate::*::raw_pad",
+    "--exclude=hybrid_array::traits::ArraySize",
+    "--include=core::slice::iter::*::any"
+  ],
+  "subdir": "Unpadding",
+  "namespace": "RustCryptoUnpadding",
+  "expected_functions": 26,
+  "expected_generated_functions": 9,
+  "modeled_std_functions": [
+    "core::slice::{impl}::len",
+    "core::fmt::{impl}::from_str",
+    "core::slice::index::{impl}::index",
+    "core::slice::{impl}::iter",
+    "core::slice::index::{impl}::get",
+    "core::slice::index::{impl}::get_mut",
+    "core::slice::index::{impl}::get_unchecked",
+    "core::slice::index::{impl}::get_unchecked_mut",
+    "core::slice::index::{impl}::index",
+    "core::slice::index::{impl}::index_mut",
+    "core::slice::index::{impl}::get",
+    "core::slice::index::{impl}::get_mut",
+    "core::slice::index::{impl}::get_unchecked",
+    "core::slice::index::{impl}::get_unchecked_mut",
+    "core::slice::index::{impl}::index",
+    "core::slice::index::{impl}::index_mut",
+    "core::slice::iter::{impl}::next",
+    "core::iter::traits::iterator::Iterator::any",
+    "core::clone::impls::{impl}::clone",
+    "core::num::niche_types::{impl}::clone"
+  ],
+  "modeled_std_types": [
+    "core::slice::iter::Iter"
+  ],
+  "discarded_metadata_types": [
+    "core::fmt::Arguments",
+    "core::array::iter::IntoIter",
+    "core::num::nonzero::NonZero",
+    "core::iter::adapters::step_by::StepBy",
+    "core::iter::adapters::chain::Chain",
+    "core::iter::adapters::zip::Zip",
+    "core::iter::adapters::intersperse::Intersperse",
+    "core::iter::adapters::intersperse::IntersperseWith",
+    "core::iter::adapters::map::Map",
+    "core::iter::adapters::filter::Filter",
+    "core::iter::adapters::filter_map::FilterMap",
+    "core::iter::adapters::enumerate::Enumerate",
+    "core::iter::adapters::peekable::Peekable",
+    "core::iter::adapters::skip_while::SkipWhile",
+    "core::iter::adapters::take_while::TakeWhile",
+    "core::iter::adapters::map_while::MapWhile",
+    "core::iter::adapters::skip::Skip",
+    "core::iter::adapters::take::Take",
+    "core::iter::adapters::scan::Scan",
+    "core::iter::adapters::flatten::FlatMap",
+    "core::iter::adapters::flatten::Flatten",
+    "core::iter::adapters::map_windows::MapWindows",
+    "core::iter::adapters::fuse::Fuse",
+    "core::iter::adapters::inspect::Inspect",
+    "core::iter::adapters::rev::Rev",
+    "core::iter::adapters::copied::Copied",
+    "core::iter::adapters::cloned::Cloned",
+    "core::iter::adapters::cycle::Cycle",
+    "core::iter::adapters::array_chunks::ArrayChunks",
+    "core::num::niche_types::NonZeroUsizeInner"
+  ],
+  "discarded_metadata_functions": [
+    "core::fmt::{impl}::from_str",
+    "core::iter::traits::iterator::Iterator::any",
+    "core::clone::impls::{impl}::clone",
+    "core::num::niche_types::{impl}::clone"
+  ],
+  "expected_generated_types": [
+    "Error",
+    "Pkcs7.unpad.closure"
+  ],
+  "forbidden_generated_namespaces": [
+    "core.fmt",
+    "core.array.iter",
+    "core.num.nonzero",
+    "core.iter.adapters",
+    "core.num.niche_types",
+    "core.iter.traits.iterator.Iterator.any"
+  ],
+  "miri_sysroot": "PaddingWork/Unpad/Sysroot",
+  "full_mir_manifest": "Extraction/unpad-sysroot-provenance.json",
+  "full_mir_manifest_sha256": "d2999eca5b6bce177a0f3002cd7ae631417d7a64b79c68bdf5749519c57b7fa6",
+  "scope_note": "Exactly16 input bytes, strict=true public wrapper; inherent strict=false helper equality also proved. All possible byte values, including every invalid pad count and unequal suffix, are covered. Runtime panic cases outside16-byte domain are not yet claimed by circuit."
+}

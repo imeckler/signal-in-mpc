@@ -1,0 +1,48 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "source_patches": [],
+  "profile": "serialize",
+  "spqr_commit": "06959b4708f9b7b1e94d0f8cc835f3958c077e94",
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "script_sha256": "dc6f9441b4f0439faec5050ae58b30907ba663f2f2076efdb81f35eca36871f2",
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    ".deps/libsignal-vendor/spqr/.cargo-checksum.json": "10fb37b2ec5fc5f0b2a6e86759881f1be172a3b7aefdbb1f2d70bfe4920c336c",
+    ".deps/libsignal-vendor/spqr/Cargo.toml": "c8f62963293b1c2d7037a40b138f8b86527a6116927878d1b97e5c162964a291",
+    ".deps/libsignal-vendor/spqr/build.rs": "4d864cdebb7ee0b46bf046836029753f8a2a241e822bcbc78e262f303012cdcb",
+    ".deps/libsignal-vendor/spqr/src/lib.rs": "c2e7aa686cad87ba2daf012231ee192445fe7c332b59bf55b48abaa7dfab63a4",
+    ".deps/libsignal-vendor/spqr/src/proto.rs": "eb326cd2cc511098708c9f6bdc0daafa54ea3103d0eb4cdc5480d7d484bf4c2c",
+    ".deps/libsignal-vendor/spqr/src/v1/chunked/states.rs": "631451f91dade2f072475a37376c1b26c5f10c027149766d47720a8eb1332a17",
+    ".deps/libsignal-vendor/spqr/src/v1/chunked/states/serialize.rs": "435e9fca01169d2208ba429d13314f67fe84a156baec072633f168521d69ba47",
+    ".deps/libsignal-vendor/spqr/src/encoding.rs": "6a5d11be2dc84f290390df1db756bd19039032c4096ed8b2c93532c208e67d61",
+    ".deps/libsignal-vendor/hax-lib-0.3.7/src/lib.rs": "12b0ace726ce7c44fe46515290f3bdacf54688bdecef7bab148abe274a96b378",
+    ".deps/libsignal-vendor/hax-lib-0.3.7/src/dummy.rs": "09c7f6f2a4e504824f83fdd8463bbcd7b96409ac8232951db1157679b39b1681",
+    ".deps/libsignal-vendor/hax-lib-macros-0.3.7/src/lib.rs": "20e4abda602341ce6a7c2487f613168a9d87f761a7169bd6eafc448c3f751343",
+    ".deps/libsignal-vendor/hax-lib-macros-0.3.7/src/dummy.rs": "6f1d02497342310f83935a8079ae7aa15a5e39e5b8723c320f175e3832bfb5e1"
+  },
+  "all_vendor_source_checksums_verified": 0,
+  "hax_cfg_enabled": false,
+  "hax_assume_semantics": "Actual cfg(not(hax)) dummy macro expands to unit; no proof assumption introduced.",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::v1::chunked::states::serialize::*::serialize",
+    "--dest-file=$WORKSPACE/SignalReference/SpqrReference/Artifacts/serialize/spqr.llbc",
+    "--",
+    "--package",
+    "spqr@1.6.0",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 101
+}

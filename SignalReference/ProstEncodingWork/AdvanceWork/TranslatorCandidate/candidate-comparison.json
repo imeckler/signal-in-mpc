@@ -1,0 +1,116 @@
+{
+  "candidate_only": true,
+  "accepted_translator": false,
+  "version": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-never-continuation-candidate",
+  "binary_sha256": "fe77bda30ec7cb382c10442fe70f7405acb2140f081cd3869e3c78f202a27e44",
+  "source_commit": "5b9dcf33dccdb1560ea7203ac57ea202476b6ed3",
+  "accepted_binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+  "accepted_models_sha256": {
+    "Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "targets": {
+    "Regressions": {
+      "exit_code": 0,
+      "llbc_sha256": "fa6375d33aaf91800e81df604710d250772b6f862575ee9f6280f281504a34ea",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Regressions/calls.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Regressions",
+        "-namespace",
+        "NeverRegression",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "generated_sha256": {
+        "Funs.lean": "bc6708bc36e16cd8e42f5c3b4e7bca1918a52dde6a015df90bbdd7ee357bd185",
+        "Types.lean": "e0d452d5924c9890594dd268482692d1771572368ecbb3d35c4a942a39c45761"
+      },
+      "external_templates": [],
+      "log_sha256": "35cd9c0190f28bd4589f5d2b1ac44e649d36e0e739aa43bc9d8d6e512a2926f3"
+    },
+    "Slice": {
+      "exit_code": 0,
+      "llbc_sha256": "80191557e1046652abcf940360244f50901404b1699db1d2af0ee2f92cdd840b",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/SliceSelected/slice.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Slice",
+        "-namespace",
+        "BytesSliceAdvance",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "generated_sha256": {
+        "Funs.lean": "5831e0d5c3479b9168d03d8088a0b806ac4224bd474bb77c42b18f15567ff3e5",
+        "Types.lean": "046b2433db9fc5e1608c76a52d921694c35ebe65d0498596c4005ddee8a45f81"
+      },
+      "external_templates": [],
+      "log_sha256": "09e9e79bbf23695beef4e5d849fcdfff518d4481cd94d88bbb689e61a7cb997a"
+    },
+    "Varint": {
+      "exit_code": 0,
+      "llbc_sha256": "0a11308d2c265eef9460f62eb41b92ef7bcb52d225ff2ffcd45d8d5e67c235c4",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/selected.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/Varint",
+        "-namespace",
+        "ProstEncoding",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "generated_sha256": {
+        "Funs.lean": "6c3557b1c741ce950ee77dcaa54cd7f2541463778f9f8d5ab7416a7df9242cce",
+        "Types.lean": "23c900d4c78006cae4f2926abae1383c0d3d92de8cc2fd8e948989577381bbc2"
+      },
+      "external_templates": [],
+      "log_sha256": "307548b4e906bfc780e9c8fee27f6a17c6e13c867df1e0f1bda8bd436e54b768",
+      "identical_to_baseline_except_import_destination": true
+    },
+    "UInt32": {
+      "exit_code": 0,
+      "llbc_sha256": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/SignalMessageWork/Artifacts/UInt32Selected/selected.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Generated/Candidate/UInt32",
+        "-namespace",
+        "ProstUInt32",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "generated_sha256": {
+        "Funs.lean": "c34184985b5e527c82de77f8911ad02b0e2bb3266276804ed6a3d9883e0e9f3d",
+        "Types.lean": "0da2ce4355098dc06540bf72d334b16a044f8f4d7db4f1abca32d87353632937"
+      },
+      "external_templates": [],
+      "log_sha256": "1cd4524e00b13b4d2283515f3d03b1d284f7983492ad24e588a3c852b595be29",
+      "identical_to_baseline_except_import_destination": true
+    }
+  },
+  "script_sha256": "0c10963f9164f7b4bae1a9f9ca62dcc4fbcf040709393b7a7e2fa52ba6f19607"
+}

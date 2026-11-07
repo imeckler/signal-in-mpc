@@ -1,0 +1,10 @@
+import Sha256WrapperWork.Initial
+
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.new_eq
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.new_sha224
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.new_sha256
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.new_invalid
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.initial_state
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.new_sha256_state
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.initial_compression
+#print axioms LibSignalReference.Candidate.Sha256Wrapper.initial_compression_refines_artifact

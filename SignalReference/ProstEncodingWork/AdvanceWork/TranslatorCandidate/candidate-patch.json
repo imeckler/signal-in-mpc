@@ -1,0 +1,15 @@
+{
+  "accepted_translator": false,
+  "candidate_only": true,
+  "source_commit": "5b9dcf33dccdb1560ea7203ac57ea202476b6ed3",
+  "changed_files": [
+    "src/interp/InterpStatements.ml"
+  ],
+  "before_sha256": "0d091ed7e25b63b45bbdff66a0311cb27d913c33d365cb22337df8b7d00097f1",
+  "after_sha256": "4b9a3cd0b71da0ba683a17791aae6a8713158913b2de3566ca58ce7e56d3dba5",
+  "patch_sha256": "e89860b8e890c488ae6fa10643a13ffb8b5282e55fef30139e3812fa2cb339c6",
+  "script_sha256": "eb069acdde62088c749f49f0d23bb5160548aada30970c075463d708a51e1b43",
+  "actual_rust_sources_changed": [],
+  "standard_models_changed": [],
+  "accepted_binary_changed": false
+}

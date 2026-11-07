@@ -1,0 +1,10 @@
+import PaddingWork.Proofs
+
+#print axioms SignalReference.PaddingWork.raw_pad_spec
+#print axioms SignalReference.PaddingWork.raw_pad_too_large
+#print axioms SignalReference.PaddingWork.raw_pad_pos_out_of_bounds
+#print axioms SignalReference.PaddingWork.raw_pad_total
+#print axioms SignalReference.PaddingWork.cbc_pad_refines_raw_pad
+#print axioms SignalReference.PaddingWork.cbc_pad_refines_artifact
+#print axioms SignalReference.PaddingWork.cbc_pad_append
+#print axioms SignalReference.PaddingWork.cbc_message_pad_refines_artifact

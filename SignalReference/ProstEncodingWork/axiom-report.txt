@@ -1,0 +1,57 @@
+'LibSignalReference.Candidate.ProstEncoding.range_next' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.nextIndex_val' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.range_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.shift_seven' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.loop_body' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.loop_eq_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.encode_eq_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.put_u8_default' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.cast_byte' does not depend on any axioms
+'LibSignalReference.Candidate.ProstEncoding.continuation_byte' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.shifted_value' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstEncoding.run_appends' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.encode_appends' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.run_appends_within' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.encode_appends_within' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.clone_bytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.put_slice_success' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.put_slice_overflow' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.oneByte_val' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.vec_put_u8_default' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.appendOne_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.vec_appends_within' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.vec_encode_appends' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.group_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.groups_values' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.groups_naturals' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.canonical_width_bounds' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.byte_xor_continuation' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.encode_fixed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.fixedBytes_succ' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.publicNatLoop_fixed' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.encode_publicNat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.accepts_canonical' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.vec_encode_uint32' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstEncoding.uint32_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

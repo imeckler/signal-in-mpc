@@ -1,0 +1,269 @@
+{
+  "llbc_sha256": "b40b8451d16e52c3df63e7a40366c0b9bf50e978419837309c0f007aac06b3ac",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 3,
+    "fun_decls": 9,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 12
+  },
+  "body_kinds": {
+    "Structured": 9
+  },
+  "external_functions": [],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "entry_patterns": [
+    "crate::ratchet::keys::*::new",
+    "crate::ratchet::keys::*::key",
+    "crate::ratchet::keys::*::index",
+    "crate::ratchet::keys::*::cipher_key",
+    "crate::ratchet::keys::*::mac_key",
+    "crate::ratchet::keys::*::iv",
+    "crate::ratchet::keys::*::counter"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 151,
+            "col": 4
+          },
+          "end": {
+            "line": 153,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 191,
+            "col": 4
+          },
+          "end": {
+            "line": 193,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::key",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 156,
+            "col": 4
+          },
+          "end": {
+            "line": 158,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::key",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 195,
+            "col": 4
+          },
+          "end": {
+            "line": 197,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::index",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 161,
+            "col": 4
+          },
+          "end": {
+            "line": 163,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::cipher_key",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 121,
+            "col": 4
+          },
+          "end": {
+            "line": 123,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::mac_key",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 126,
+            "col": 4
+          },
+          "end": {
+            "line": 128,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::iv",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 131,
+            "col": 4
+          },
+          "end": {
+            "line": 133,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "libsignal_protocol::ratchet::keys::{impl}::counter",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 136,
+            "col": 4
+          },
+          "end": {
+            "line": 138,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::ratchet::keys::*::new,crate::ratchet::keys::*::key,crate::ratchet::keys::*::index,crate::ratchet::keys::*::cipher_key,crate::ratchet::keys::*::mac_key,crate::ratchet::keys::*::iv,crate::ratchet::keys::*::counter",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_key_accessors.llbc",
+    "--",
+    "--package",
+    "libsignal-protocol",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 0,
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/KeyAccessors/Funs.lean": "b4ca4a0f7bd1196fbf85a3d9eb3582e85a125d2729d6a5c66e9066accd6bd713",
+    "LibSignalReference/Generated/KeyAccessors/Types.lean": "2056337d63a99b277c65277f85a29765f602fed2ee1daa9f1220d8b03fc6a508"
+  },
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "rust/protocol/src/ratchet/keys.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "rust/protocol/src/ratchet.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "rust/protocol/src/lib.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    }
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "original_llbc_sha256": "1cef7a79f3a78e97b72801e84ec0edb26219f0070654ed3b031574bf8033a534",
+  "selected_llbc_sha256": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33",
+  "all_original_ordered_roots_retained": [
+    {
+      "Type": {
+        "NonRec": 1
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 2
+      }
+    },
+    {
+      "Type": {
+        "NonRec": 0
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 161
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 17
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 16
+      }
+    },
+    {
+      "Global": {
+        "NonRec": 2
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 15
+      }
+    },
+    {
+      "Global": {
+        "NonRec": 1
+      }
+    },
+    {
+      "Fun": {
+        "NonRec": 0
+      }
+    }
+  ],
+  "actual_function_bodies": {
+    "0": {
+      "operation": "Sha256VarCore::new",
+      "signature": "Usize -> core::result::Result<Sha256VarCore, InvalidOutputSize>",
+      "regular_calls": [
+        17
+      ],
+      "global_reads": [
+        1,
+        2
+      ],
+      "user_types": [
+        0,
+        1,
+        2
+      ]
+    },
+    "15": {
+      "operation": "H256_224 constant initializer",
+      "regular_calls": [],
+      "global_reads": [],
+      "user_types": []
+    },
+    "16": {
+      "operation": "H256_256 constant initializer",
+      "regular_calls": [],
+      "global_reads": [],
+      "user_types": []
+    },
+    "17": {
+      "operation": "rustc-generated Sha256VarCore drop_glue",
+      "regular_calls": [
+        161
+      ],
+      "global_reads": [],
+      "user_types": [
+        0
+      ]
+    },
+    "161": {
+      "operation": "actual Sha256VarCore::drop under this configuration",
+      "regular_calls": [],
+      "global_reads": [],
+      "user_types": [
+        0
+      ]
+    }
+  },
+  "types": {
+    "0": "Sha256VarCore: state [u32;8], block_len u64",
+    "1": "core::result::Result<T,E>, official Aeneas standard model",
+    "2": "digest::InvalidOutputSize, zero-field Rust struct represented as Unit"
+  },
+  "globals": {
+    "1": {
+      "name": "H256_224",
+      "type": "[u32;8]",
+      "initializer": 15
+    },
+    "2": {
+      "name": "H256_256",
+      "type": "[u32;8]",
+      "initializer": 16
+    }
+  },
+  "builtin_types": [
+    "usize",
+    "u32",
+    "u64",
+    "fixed arrays",
+    "unit",
+    "mutable borrow threaded by Aeneas"
+  ],
+  "computational_trait_dispatch": [],
+  "all_selected_bodies_signatures_constants_function_pointers_scanned": true,
+  "removed_metadata_impls": [
+    6,
+    9,
+    80
+  ],
+  "already_excluded_trait": 8,
+  "removed_impl_methods": [],
+  "removed_impl_constants": [],
+  "all_naming_and_src_provenance_unchanged": true,
+  "remaining_non_emitted_references": [
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        14,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        45,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        57,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "fun_decls",
+        2,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        17,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        2,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "trait_impls",
+        3,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        1,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        5,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        37,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "trait_impls",
+        52,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        67,
+        "implied_trait_refs",
+        3,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 80
+    },
+    {
+      "path": [
+        "trait_impls",
+        84,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 80
+    }
+  ],
+  "these_non_emitted_declarations_are_not_part_of_reference_claim": true,
+  "configuration": "sha2 default/alloc/oid; zeroize disabled; soft SHA256 compact backend; empty Drop behavior is configuration-specific and proves no erasure guarantee."
+}

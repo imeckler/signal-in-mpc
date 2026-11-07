@@ -1,0 +1,13 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Regressions/negative.llbc
+[[91mError[39m] Early returns inside of loops are not supported yet
+Source: 'src/lib.rs', lines 3:0-18:1
+[[91mError[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop' because of previous error
+Source: 'src/lib.rs', lines 3:0-18:1
+[[91mError[39m] Early returns inside of loops are not supported yet
+Source: 'src/lib.rs', lines 20:0-37:1
+[[91mError[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop_mut' because of previous error
+Source: 'src/lib.rs', lines 20:0-37:1
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Trees/baseline//SkipTranslatorWork/Generated/negative/Types.lean
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Trees/baseline//SkipTranslatorWork/Generated/negative/FunsExternal_Template.lean
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Trees/baseline//SkipTranslatorWork/Generated/negative/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.145409 seconds

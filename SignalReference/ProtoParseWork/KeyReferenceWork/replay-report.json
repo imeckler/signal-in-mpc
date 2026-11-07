@@ -1,0 +1,312 @@
+{
+  "candidate_only": true,
+  "proof_and_external_models_only": true,
+  "generated_files_modified": false,
+  "generated_types_identical_modulo_namespace": true,
+  "all_existing_generated_computational_bodies_identical": true,
+  "common_generated_body_sha256": "4f6ed498478e1fe0e51c63b2c1a5a986f74ad163241141e5fb3c6ccaef6d2e47",
+  "full_wrapper_report_sha256": "bf739a2c221ab8294cdae3bbef9bb696671428200a24e2d7b31fbdaf1267a6e9",
+  "files": {
+    "Replayed/BufModel.lean": {
+      "original_sha256": "17c5a4407a426d7a73f8acfb24c2ba41b5ba02a563317ee880f828f9af3c8cc4",
+      "replayed_sha256": "7cffb36f032dbb02c5790d527a5c74fa364f5b11476e4ad95a22aa39a95a916e",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 0
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 2
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 1
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 0
+        }
+      }
+    },
+    "Replayed/SliceReference.lean": {
+      "original_sha256": "310d151cdc8015388b03f1244a49af98300dc3a6759b6a491f183a4c3eae1b98",
+      "replayed_sha256": "bb53a602ef330ca9549c2adef10c3095ac3a16233cdfc43264ba585d288395f9",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 2
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 0
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 24
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 1
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 0
+        }
+      }
+    },
+    "Replayed/SliceBridge.lean": {
+      "original_sha256": "79ffb6516e2e565053d95e5f10e31b4022726d5938fe957f51f3b9acfcd13fff",
+      "replayed_sha256": "76c3a7d7cb1e7b32b09d52d90addc7099affde16d63e4a5e3546a1201f550b2f",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 2
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 0
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 17
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Replayed/SliceAdapter.lean": {
+      "original_sha256": "a24d659c320f3e486aea5815d22d4cb7d8ce97e43489c35946775061e4f1ec16",
+      "replayed_sha256": "fbab8ced67db3f64081a7736598d741ee21a3ef5921c2420fadce1f3d36b7019",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 0
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 0
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 0
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 2
+        }
+      }
+    },
+    "Replayed/SlowReference.lean": {
+      "original_sha256": "9ca9d4eb1dd3b24ce09430aabfa2bc5dc37257ea306bb5f9c1425a4b27ce84bf",
+      "replayed_sha256": "b61187e163199686d4d19aabeea6984416d9d6ad768bcbe1e7622c06b3e02ccd",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 1
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 13
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Replayed/StateBridge.lean": {
+      "original_sha256": "c6e62d8e0cb2b86432d7e52f447d47b78d2015a07889cd8eb3c855ba8c0113ae",
+      "replayed_sha256": "3f8d05d067f45ad36af195b59ea846293badc53f6d2bf8376de4e630ee364f78",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 1
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 2
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Replayed/WrapperReference.lean": {
+      "original_sha256": "34ffda1a271b06209805c1809ad188b9e2f349bb84dff7779c1f516adf6ed335",
+      "replayed_sha256": "7cc68c1eeb36b9b0bccce2a4a5aeef849346e0bb538fe6967b395ace48a62cbe",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 1
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 6
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Replayed/ArtifactBridge.lean": {
+      "original_sha256": "da9d58758223bbfb11b3b2b76845a6b79e0634adc6e0bc848cb29aa1eaed141a",
+      "replayed_sha256": "f490539968ee08d72b4e366a59fc9da425eb7a2e351fabc2f4fc9fa959276659",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 1
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 4
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Replayed/Consumption.lean": {
+      "original_sha256": "7ab2dbf0a874a26a6f8d80892c37fb2de231d194e0cfe14a3214cef70f2cabb5",
+      "replayed_sha256": "fae49d6826ecb4ff9c27cd3430537a3b562b4fec7fad1704a8ab086bc20648f3",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 1
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 2
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 1
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 5
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 0
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 1
+        }
+      }
+    },
+    "Modules/ProtoParseWork/KeyReferenceWork/Generated/key_step/FunsExternal.lean": {
+      "original_sha256": "221fed6cddaaaaf735d3f9f2472355134e0bfd6fb70319cf0d23f1c486f802e6",
+      "replayed_sha256": "6448b2b67877162e20328928bd19a149b685c8fc9e77aa5d3e258aeec47fef4b",
+      "substitutions": {
+        "LibSignalReference.Candidate.ProstFullSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstKeySlice",
+          "count": 0
+        },
+        "LibSignalReference.Candidate.ProstFull": {
+          "replacement": "LibSignalReference.Candidate.ProstKeyVarint",
+          "count": 0
+        },
+        "ProstFullSlice.": {
+          "replacement": "ProstKeySlice.",
+          "count": 0
+        },
+        "ProstParserFullCandidate": {
+          "replacement": "ProstKeyCandidate",
+          "count": 2
+        },
+        "ProtoParseWork.Generated.varint_step": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Generated.key_step",
+          "count": 1
+        },
+        "ProtoParseWork.FullReferenceWork": {
+          "replacement": "ProtoParseWork.KeyReferenceWork.Replayed",
+          "count": 0
+        }
+      }
+    }
+  },
+  "script_sha256": "0d85c92ae12d4cba3c9ffdbb60d1cbc89fc6ef1b4d31bf0b58c9b3417ddb7fb3"
+}

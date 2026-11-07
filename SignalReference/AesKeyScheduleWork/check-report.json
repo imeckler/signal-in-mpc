@@ -1,0 +1,161 @@
+{
+  "checked_at_utc": "2026-11-06T22:45:34.646672+00:00",
+  "extraction_reviewed": true,
+  "complete_schedule_refinement_checked_here": false,
+  "complete_schedule_proof_audit": "AesKeyScheduleWork/schedule-proof-check.json",
+  "audit_scope": "Actual reverse copy and column recurrence numeric refinements; public schedule representation fixtures.",
+  "canonical_reference_integrated": false,
+  "no_crypto_stubs": true,
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "generated_operation_axiom_reports": [
+    "RustCryptoAesKeySchedule.soft.fixslice.aes256_key_schedule",
+    "RustCryptoAesKeySchedule.soft.fixslice.memshift32",
+    "RustCryptoAesKeySchedule.soft.fixslice.xor_columns"
+  ],
+  "copy_refinement_theorems_checked": [
+    "TlsMpc.Signal.AesKeyCopy.copyBackward_map",
+    "TlsMpc.Signal.AesKeyCopy.encodeExpr_refines",
+    "TlsMpc.Signal.AesKeyCopy.expr_refines",
+    "TlsMpc.Signal.AesKeyCopy.compiled_expr_correct",
+    "LibSignalReference.Candidate.AesKeyCopy.reverse_next",
+    "LibSignalReference.Candidate.AesKeyCopy.reverse_done",
+    "LibSignalReference.Candidate.AesKeyCopy.copy_body",
+    "LibSignalReference.Candidate.AesKeyCopy.copy_loop",
+    "LibSignalReference.Candidate.AesKeyCopy.memshift32_spec",
+    "LibSignalReference.Candidate.AesKeyCopy.copyBackward_val",
+    "LibSignalReference.Candidate.AesKeyCopy.copyBackward_bv",
+    "LibSignalReference.Candidate.AesKeyCopy.memshift32_refines_artifact"
+  ],
+  "memshift32_numeric_refinement_established": true,
+  "memshift32_domain": "All word values, public aligned src with src+16 within public slice length; actual reverse iterator and checked copy preserved.",
+  "copy_proof_sources_sha256": {
+    "CopyReference.lean": "3cd5f85a7c9d1186a88908e11842f1e1dc1e8cb3c3983e52b64914c217a78c96",
+    "CopyBridge.lean": "15e650d107a6e1ec573f88b7d426dfa71f5c9bbe4fdb91171322a50b0ad11ec3"
+  },
+  "copy_circuit_source_sha256": "496e2753d2990a53a2c698580f5b105fb6d408316e9fdf7bc681f5eebafde056",
+  "columns_refinement_theorems_checked": [
+    "TlsMpc.Signal.AesKeyColumns.run_map",
+    "TlsMpc.Signal.AesKeyColumns.column_refines",
+    "TlsMpc.Signal.AesKeyColumns.expr_refines",
+    "TlsMpc.Signal.AesKeyColumns.compiled_expr_correct",
+    "LibSignalReference.Candidate.AesKeyColumns.range_next",
+    "LibSignalReference.Candidate.AesKeyColumns.range_done",
+    "LibSignalReference.Candidate.AesKeyColumns.update_length",
+    "LibSignalReference.Candidate.AesKeyColumns.run_length",
+    "LibSignalReference.Candidate.AesKeyColumns.column_body",
+    "LibSignalReference.Candidate.AesKeyColumns.columns_loop",
+    "LibSignalReference.Candidate.AesKeyColumns.xor_columns_spec",
+    "LibSignalReference.Candidate.AesKeyColumns.update_bv",
+    "LibSignalReference.Candidate.AesKeyColumns.run_bv",
+    "LibSignalReference.Candidate.AesKeyColumns.xor_columns_refines_artifact"
+  ],
+  "xor_columns_numeric_refinement_established": true,
+  "xor_columns_domain": "All word values and u32 rotation distances; public distance <= offset and offset+8 within public slice length, including overlapping ranges. Checked arithmetic and original iteration order are preserved.",
+  "columns_proof_sources_sha256": {
+    "ColumnsReference.lean": "7ba83b2cda55f9056c6575f4c821f9e0a1eb24647d8f4da5df93bc2ba6d49cfe",
+    "ColumnsBridge.lean": "95804e31f21fb432a0e23d701ee76bb39b9404acdda78c142a8d128c85e04618"
+  },
+  "columns_circuit_source_sha256": "b4d34252b366383e0886cd4e17032bb7637f262a922cffc16e09acf715c220c7",
+  "helper_artifacts": [
+    {
+      "name": "aes-key-copy-16-0-0-0",
+      "artifact_sha256": "186d08d851f6c9ef19fe6e06df5b5167bc4f7bb8a4db94ab6bf3c03ac73f6e4d",
+      "input_bits": 1024,
+      "nodes": 513,
+      "raw_and_gates": 0,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "zero_and_all_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    {
+      "name": "aes-key-copy-24-8-0-0",
+      "artifact_sha256": "08a6afb230f50716ad4deffbf616b952294545bcfdc465552399bf7ca745c377",
+      "input_bits": 1536,
+      "nodes": 1025,
+      "raw_and_gates": 0,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "zero_and_all_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    {
+      "name": "aes-key-columns-24-16-16-28",
+      "artifact_sha256": "3b13d20e9ef8cbe2a0ff88944d42c6f96a96db122e40df7918e723d2693e569c",
+      "input_bits": 1536,
+      "nodes": 4225,
+      "raw_and_gates": 2688,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 896,
+      "unreachable_nodes": 2177,
+      "zero_and_all_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    {
+      "name": "aes-key-columns-32-24-16-12",
+      "artifact_sha256": "620ee297a1a0f0bd0b76f340af1104ad6f51257b2aef0f2985fa45f3b66a6859",
+      "input_bits": 2048,
+      "nodes": 4737,
+      "raw_and_gates": 2688,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 896,
+      "unreachable_nodes": 2177,
+      "zero_and_all_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    }
+  ],
+  "export_source_sha256": "f98fa5e49bd0eed27b7440025b549aea1727a1871624585e1f6d50072146cbc8",
+  "compiler_adapter_sources_sha256": {
+    "TlsMpc/Signal/AesKeyCopy.lean": "496e2753d2990a53a2c698580f5b105fb6d408316e9fdf7bc681f5eebafde056",
+    "TlsMpc/Signal/AesKeyColumns.lean": "b4d34252b366383e0886cd4e17032bb7637f262a922cffc16e09acf715c220c7",
+    "TlsMpc/Signal/AesKeySchedule.lean": "3e0e56f24668e2e2dd2d7c434b42d02fdcc91a6f8bdb51ef46efe28032e55360",
+    "TlsMpc/Signal/AesKeyScheduleOps.lean": "583a2bf85d4d3b29d1204f8b79dbdaf9c943db22b6a185a4495a66f2c1241d26",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "public_representation_fixtures": 16,
+  "public_checks_are_not_refinement_proofs": true,
+  "selected_llbc_sha256": "0e64728f8870c64c6b9543807d2c9bb4f7c964dc0edd7e442bd00a54c7e7eac2",
+  "trusted_selection_source_sha256": "7e50609808de31a8bd22a65a5af16ea4834ce3b5d0889072080c45eac3276280",
+  "generated_files": {
+    "AesKeyScheduleWork/Generated/Funs.lean": "2070237431ea0de6163dd898fe449a678c99f2538cc39e9fa47f159499f2738e",
+    "AesKeyScheduleWork/Generated/Types.lean": "ba14c35fbae8fb552604788c4ff97280a90953c1a4239cfb37b5a3b24d9777a0"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Data/List/List.lean": "8c7caab4db89b5d4d4d2427099b5dafb9a90a5f58ac16c58f6f3cccaa82676d7",
+    "Aeneas/Std/Array/Array.lean": "09ef16897a42cf3f80772067ef11f643f840a7f726b2426aabf29fefa602097e",
+    "Aeneas/Std/Array/ArraySlice.lean": "8baf9750f4ac40780e6ab0b7d4da7cb010d05a52aaff5cab8636551562a799c1",
+    "Aeneas/Std/Array/Core.lean": "dee4c0bd5b800fbe9301ae02716b8b07ea9371f87e298411e2d94aba50359d0d",
+    "Aeneas/Std/Core/Cmp.lean": "b64a9392415ecd58fc9d150230489758aeacb70169836c0cd78863652c762032",
+    "Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Scalar/Casts.lean": "fd709a15b1e66431b788bf2838b79ac662d4c2afd38acbcde078b775c8f1e668",
+    "Aeneas/Std/Scalar/CloneCopy.lean": "dd16eef7d36a6f88cc5b958ab490b1e3c6974bdca0c345ded147ef73dda0e38a",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/EqOrd.lean": "8a1b8107282a7a291e1d0b71f83256b66985fcedbafaf3e53be98007afaf53ed",
+    "Aeneas/Std/Scalar/Ops/Add.lean": "8ef617fc0cd36e68a4c691a415ba94e79de99899ab1e93428739b95ebb0b658e",
+    "Aeneas/Std/Scalar/Ops/Mul.lean": "da6635db5fb2721b5dc748e46cc8b5990dd9a8e4478b980ca3b9b941b23860b7",
+    "Aeneas/Std/Scalar/Ops/Rem.lean": "b000ee67e059504dbe839b2cd3f35222d364e078d0b184ab373a67658cd2a580",
+    "Aeneas/Std/Scalar/Ops/Sub.lean": "bd6716dad017ce0c0e9cf9084f9223eb5407ece920853ae7675cbe2362dd5e37",
+    "Aeneas/Std/Scalar/Rotate.lean": "84ffebeece1158aba9cd5648f2ac56b78aedc108b69a523b0a6063dd2716e7d3",
+    "Aeneas/Std/Scalar/WrappingOps/Add.lean": "6b20fc30c237b8bfac99f9cd1e45f8150edcaabe4c62fdca5b0ceeb3a4a9b1a4",
+    "Aeneas/Std/Slice.lean": "a2f7fc40f76f37b54b4307f78cd78dfa1cf849252bd4220f40e6b1d52c054223",
+    "Aeneas/Std/SliceDef.lean": "5b4d8e999b94879163ae08f7644439e543547ff22ba1d7a10e35f8ee37d6fd36",
+    "Aeneas/Std/SliceIter.lean": "44d29a5d2cd24a85249c79313fb5a0beaa89a0aec09725c6ac2f75644b2f5e92",
+    "Aeneas/Std/WP.lean": "7fd5d098f2c0cdae53379d95b63e66c7d98239ec37201c8ea296b6f023cd162f"
+  },
+  "public_check_source_sha256": "1538f2888b94380fc49f30d7340dcbbdb2bf7d881d6461f2caeec3d24a200180",
+  "public_inputs_source_sha256": "3dfbbf8f9ccac50a8cf90ec393336758492d158a6bd1f2837d030da06989abd1",
+  "root_aes_source_sha256": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+  "audit_source_sha256": "d2c1e24fa989985261217aa100aed305336f28ca034e1eba2a7414465530e0b7",
+  "native_mpc_execution_tested": false
+}

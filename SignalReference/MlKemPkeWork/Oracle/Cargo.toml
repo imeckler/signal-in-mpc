@@ -1,0 +1,9 @@
+[package]
+name = "signal-libcrux-mlkem-oracle"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
+libcrux-ml-kem = {version="=0.0.10",features=["kyber"]}
+
+[patch.crates-io]
+libcrux-ml-kem = {path="../../../.deps/signal-mlkem-oracle-source"}

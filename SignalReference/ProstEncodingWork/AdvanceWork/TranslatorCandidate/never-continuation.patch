@@ -1,0 +1,23 @@
+--- a/src/interp/InterpStatements.ml
++++ b/src/interp/InterpStatements.ml
+@@ -1575,11 +1575,15 @@
+        else (ctx, fun e -> e))
+   in
+ 
+-  (* Continue - note that we do as if the function call has been successful,
+-   * by giving {!Unit} to the continuation, because we place us in the case
+-   * where we haven't panicked. Of course, the translation needs to take the
+-   * panic case into account... *)
+-  ([ (ctx, Unit) ], cc_singleton __FILE__ __LINE__ span cc)
++  (* The symbolic call in [cc] must remain: its Result may fail or diverge.
++   * A successful return of type Never is impossible. End that unreachable
++   * continuation instead of falling through with Unit. The existing Panic
++   * continuation is used only AFTER the retained call; for Result Never,
++   * binding any continuation equals elimination of the empty success value.
++   * See the isolated NeverContinuation Lean proof and regression audit.
++   * This is not an assertion that the called function itself panics. *)
++  let result = if inst_sg.output = TNever then Panic else Unit in
++  ([ (ctx, result) ], cc_singleton __FILE__ __LINE__ span cc)
+ 
+ (** Evaluate a statement seen as a function body *)
+ and eval_function_body (config : config) (body : block) : stl_cm_fun =

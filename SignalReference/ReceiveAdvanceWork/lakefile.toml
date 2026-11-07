@@ -1,0 +1,11 @@
+name = "receive-advance-export"
+version = "0.1.0"
+defaultTargets = ["emit_receive_advance"]
+
+[[require]]
+name = "tls-mpc"
+path = "../.."
+
+[[lean_exe]]
+name = "emit_receive_advance"
+root = "Export"

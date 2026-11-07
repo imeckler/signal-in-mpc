@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://gitlab.inria.fr/fpottier/visitors/-/archive/20260520/archive.tar.gz",
+    "path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/download-cache/sha512/a8/a8a008f18ef2c7cf77d9e7978bdfde322d3d62a52ce70af2fa0169c36f979a515b6edacf8af2b718d0f49bb3f0c52155366ff450e41fe6b71b8ccc1439dfc812",
+    "algorithm": "sha512",
+    "checksum": "a8a008f18ef2c7cf77d9e7978bdfde322d3d62a52ce70af2fa0169c36f979a515b6edacf8af2b718d0f49bb3f0c52155366ff450e41fe6b71b8ccc1439dfc812"
+  },
+  {
+    "url": "https://github.com/ocaml-ppx/ppxlib/releases/download/0.37.0/ppxlib-0.37.0.tbz",
+    "path": "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/download-cache/sha256/2e/2e223837e7cecc3bc84a432432c0a72f4e1d5be9165c9c33772f156db85db0b3",
+    "algorithm": "sha256",
+    "checksum": "2e223837e7cecc3bc84a432432c0a72f4e1d5be9165c9c33772f156db85db0b3"
+  }
+]

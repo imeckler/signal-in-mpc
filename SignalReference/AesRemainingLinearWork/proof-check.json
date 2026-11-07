@@ -1,0 +1,142 @@
+{
+  "checked_at_utc": "2026-11-06T21:44:28.643560+00:00",
+  "accepted_reference": true,
+  "canonical_reference_integrated": true,
+  "reference": {
+    "inventory": "Extraction/aes_mix_phases.json",
+    "llbc_sha256": "1c82a246754c10ee4290ed388328cc626eab35161080a1e016e938b61949fda5",
+    "generated_files": {
+      "LibSignalReference/Generated/AesMixPhases/Funs.lean": "687ec8e5f266892489b39f02abffea20dea5825bdb615dc7a1c09205e649cfce",
+      "LibSignalReference/Generated/AesMixPhases/Types.lean": "2d453d285fe752a5ccc3c34b98b9bc8258bd2c4e7a2b495fd5609489068ee176"
+    },
+    "standard_library_llbc_functions": [
+      "core::num::{impl}::rotate_right"
+    ],
+    "discarded_metadata_types": [],
+    "discarded_metadata_functions": []
+  },
+  "actual_locked_source": "aes 0.9.1 src/soft/fixslice64.rs; libsignal 0.106.1 Cargo.lock",
+  "numeric_circuit_bridge_domain": "All 4 x 16 secret bytes in canonical ordinary bitplane layout; fixed 8-word state; public phase 1,2,3; output eight little-endian u64 bitplanes",
+  "phase_equation": "M_k = S^(-k) M_0 S^k, with S the existing root byte ShiftRows",
+  "round_phase_invariant_proved": true,
+  "shift_rows_four_cycle_proved": true,
+  "computational_standard_models": [
+    "Array.index_usize/update",
+    "UScalar checked shifts/addition, XOR, AND, OR, rotate_right",
+    "Result and lift"
+  ],
+  "explicit_exclusions": [],
+  "source_patches": [],
+  "custom_cryptographic_models": [],
+  "custom_axioms": [],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "checked_theorems": 27,
+  "proof_sources_sha256": {
+    "LibSignalReference/Generated/AesMixPhases/Types.lean": "2d453d285fe752a5ccc3c34b98b9bc8258bd2c4e7a2b495fd5609489068ee176",
+    "LibSignalReference/Generated/AesMixPhases/Funs.lean": "687ec8e5f266892489b39f02abffea20dea5825bdb615dc7a1c09205e649cfce",
+    "LibSignalReference/Proofs/AesMixPhaseBits.lean": "726b1f55eb131d821ecb35431c56b17d6064d17d1dd969a86e336c1a056cfae0",
+    "LibSignalReference/Proofs/AesMixPhaseReference.lean": "570f38fea78a5373dab43325bf99d84a3345d1de157d43c07a6bfeef672067e5",
+    "LibSignalReference/Proofs/AesMixPhaseLayout.lean": "bff457743f5a3f5c82641a0a4a97583fcfa6f4b74779df0ca549a1c2fa0428e8",
+    "LibSignalReference/Proofs/AesMixPhases.lean": "df940769afed4824391ed755c856b0af6e1418d9bf0114ae275b60eaa7ecf292"
+  },
+  "canonical_aes_dependency_sources_sha256": {
+    "LibSignalReference/Generated/AesLayout/Funs.lean": "19f2a42dc02c9500ffdf2c9e973a1479ffc5e0402e68c6ba2b948cfa7cc887a4",
+    "LibSignalReference/Generated/AesLayout/Types.lean": "652989fc05815fb6242b1831168ec04e02bb3f8ac032db67baa651c4184835cb",
+    "LibSignalReference/Generated/AesMix/Funs.lean": "bd60f7370adb4505d312ddd5232eb215e0c583a03fa623c9322264d126d92e3e",
+    "LibSignalReference/Generated/AesMix/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc",
+    "LibSignalReference/Generated/AesMixPhases/Funs.lean": "687ec8e5f266892489b39f02abffea20dea5825bdb615dc7a1c09205e649cfce",
+    "LibSignalReference/Generated/AesMixPhases/Types.lean": "2d453d285fe752a5ccc3c34b98b9bc8258bd2c4e7a2b495fd5609489068ee176",
+    "LibSignalReference/Generated/AesShift/Funs.lean": "54d8d9316cd01e47030dabd3b203c525362e77545020d8fa08233c91a9d5f57d",
+    "LibSignalReference/Generated/AesShift/Types.lean": "015a2dda064c2122937cedff5fa57564d8d9c13f7f30e88f6c93c86ac69dbecc",
+    "LibSignalReference/Generated/AesSubBytes/Funs.lean": "a24e3a7b0dc826dcd3c2146981883e279ccc96ec7693f8d584833f53613ca147",
+    "LibSignalReference/Generated/AesSubBytes/Types.lean": "3e2af3a47b0d3d30e05e6678862d534e41df114b282ee31368188bf2bdeaaf54",
+    "LibSignalReference/Proofs/AesLayout.lean": "4640ec690b5934fcc3654c7bda94e6aad61fb841f9e21218d44e80c31d1ac095",
+    "LibSignalReference/Proofs/AesLayoutPermutation.lean": "f70116e0ef52f795034b9e46e2c07170d78bbfdd5e0e18d4f2c54eacf2f8f7f8",
+    "LibSignalReference/Proofs/AesLayoutReference.lean": "f45bba722fdac9918660b252d63b1c4a44424c935ff09923c8646d3cc4311c75",
+    "LibSignalReference/Proofs/AesLinear.lean": "0e798b67196041d8cb1fe9264c8a611ca1dc29dcece6494e6c6f4a020ef0a363",
+    "LibSignalReference/Proofs/AesLinearBits.lean": "f4b9a1f1e632982d69616ccec269126c65c369587f9f5f793f0ed8533d15b84b",
+    "LibSignalReference/Proofs/AesLinearFormula.lean": "08ef76c383768fb69f0393f5a39d748f068d67c377b6d7371e50ffe664a5b6b0",
+    "LibSignalReference/Proofs/AesLinearLayout.lean": "7f84c2147b61a2c8150320fbd44ef698bb2055a070fd8aea02401cad6647fb84",
+    "LibSignalReference/Proofs/AesLinearProofs.lean": "49ddd0daabd0f3dccb34310fb508b2439cddd44fe1a24d9a0267dd9fb3930652",
+    "LibSignalReference/Proofs/AesLinearReference.lean": "43ae1dba1ce278ba826ff030e6e516a6ba26864b1588b94d85b162eff5eb913a",
+    "LibSignalReference/Proofs/AesMixPhaseBits.lean": "726b1f55eb131d821ecb35431c56b17d6064d17d1dd969a86e336c1a056cfae0",
+    "LibSignalReference/Proofs/AesMixPhaseLayout.lean": "bff457743f5a3f5c82641a0a4a97583fcfa6f4b74779df0ca549a1c2fa0428e8",
+    "LibSignalReference/Proofs/AesMixPhaseReference.lean": "570f38fea78a5373dab43325bf99d84a3345d1de157d43c07a6bfeef672067e5",
+    "LibSignalReference/Proofs/AesMixPhases.lean": "df940769afed4824391ed755c856b0af6e1418d9bf0114ae275b60eaa7ecf292",
+    "LibSignalReference/Proofs/AesNetwork.lean": "af0ecc495de18f49b5cec4d46c34b12c6517b00a001a47f3eed96a73401d004e",
+    "LibSignalReference/Proofs/AesShift.lean": "facacea8d955b9f2bc164706b87515e862aef0dceb597183d34290ebb91693c7",
+    "LibSignalReference/Proofs/AesShiftBits.lean": "0d252abc3a6decf80ed9940a5ccbc9e3dd65eb6ad8b1c4de9359c8c21e8d7507",
+    "LibSignalReference/Proofs/AesShiftReference.lean": "4bdb10a1186c0f904ca6fed9d8cb890a6db0f2fcc08ee2f620f67b0be0e9a4dc",
+    "LibSignalReference/Proofs/AesSubBytes.lean": "c25c2e3e736454722689ad1f2b9f62ebcfe022597f31be82bd30173f2eecb58a"
+  },
+  "canonical_dependency_audit_utc": "2026-11-06T21:43:11.663262+00:00",
+  "canonical_dependencies_reused_from_existing_audit": true,
+  "root_semantics_sha256": {
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Signal/AesMix.lean": "b8ccdb9542d7a2c953c2b00aa20b10fe7efb31f657598676130acf8d0b6faf87",
+    "TlsMpc/Signal/AesShift.lean": "8cb771d26fef3317397f95ce50300a5f1899da2a8466d6e0280e0c253e7bb351",
+    "TlsMpc/Signal/AesLayoutNetwork.lean": "42409163e47aa092cf5ca3ea2cf93fb697d86496b0715b27d71f854a381f6b04",
+    "TlsMpc/Signal/AesLayout.lean": "425924262a77726f69fe182ff9dcc35b7eeb88433f06d467316ae3e657e1a6e5",
+    "TlsMpc/Signal/AesMixPhases.lean": "2fe9b69426e0ae626d9293ff123f797ab08e70f194195ec310e857d3ea1932ba",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Array/Array.lean": "09ef16897a42cf3f80772067ef11f643f840a7f726b2426aabf29fefa602097e",
+    "Aeneas/Std/Array/Core.lean": "dee4c0bd5b800fbe9301ae02716b8b07ea9371f87e298411e2d94aba50359d0d",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Scalar/Rotate.lean": "84ffebeece1158aba9cd5648f2ac56b78aedc108b69a523b0a6063dd2716e7d3",
+    "Aeneas/Std/Scalar/Ops/Add.lean": "8ef617fc0cd36e68a4c691a415ba94e79de99899ab1e93428739b95ebb0b658e",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "unverified_export_source_sha256": "821ded595c7a2372b86226d1866f1ad9dc26384011048125e7423d1c1672e060",
+  "audit_script_sha256": "7b9daef670d8e8bf0c602880167fa6867d685f9de860f13a8e02c76a96a1adfb",
+  "extraction_script_sha256": "9f0e4fa864ad14850567d037155b0018696a78e3690de0051c3d3703fe19de5b",
+  "artifacts": {
+    "aes-mix-columns-1": {
+      "artifact_sha256": "bceeda6b273c6ae3f28d7788a8bd19f9dfedea9cf5c4b3d81e59214c919b4e37",
+      "nodes": 7041,
+      "raw_and_gates": 6528,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 2176,
+      "unreachable_nodes": 4353,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    "aes-mix-columns-2": {
+      "artifact_sha256": "b55453df6b7f2d014aafe3196da235e4301e2a3dd865b1faa9cf2b0c3eabad95",
+      "nodes": 7041,
+      "raw_and_gates": 6528,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 2176,
+      "unreachable_nodes": 4353,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    },
+    "aes-mix-columns-3": {
+      "artifact_sha256": "d0f3ea2d2c5b19d7cc78d46deb9ce883b90a7b3a53d4948fb6032138014aeb3a",
+      "nodes": 7041,
+      "raw_and_gates": 6528,
+      "executed_and_gates": 0,
+      "executed_xor_gates": 2176,
+      "unreachable_nodes": 4353,
+      "outputs": 512,
+      "zero_and_all_512_basis_vectors_checked": true,
+      "raw_and_optimized_adapter_checked": true
+    }
+  },
+  "native_mpc_execution_tested": false,
+  "aes256_key_schedule_candidate": "Artifacts/Aes256KeySchedule/inventory.json",
+  "aes256_key_schedule_candidate_accepted": false,
+  "whole_aes_rustcrypto_equivalence_established": false
+}

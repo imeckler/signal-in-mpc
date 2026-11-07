@@ -1,0 +1,61 @@
+{
+  "independent_review": true,
+  "reviewer": "/root/signal_lean_aeneas/pkcs7_reference",
+  "author": "/root/signal_lean_aeneas",
+  "checks_passed": true,
+  "accepted_scope": "Selected actual Prost uint32 field/tag/varint and byte-default semantics under supplied BufMut operations",
+  "original_llbc_sha256": "81547c219ca760c0d2ba2902d1af5b21e6b727184978338ea7287d2cfc49de7e",
+  "selected_llbc_sha256": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe",
+  "selection_script_sha256": "88d60cb001ecc6601195c49b2d7f803d2c1d407ac6588f59746032703a21908e",
+  "exact_reversible_changes": 10,
+  "retained_declarations_identical": true,
+  "unchanged_computational_declarations": [
+    0,
+    1,
+    2,
+    7,
+    48,
+    145,
+    256,
+    257,
+    286,
+    287
+  ],
+  "semantic_declaration_nodes_scanned": 37136,
+  "retained_called_buffer_fields": [
+    "put_slice",
+    "put_u8"
+  ],
+  "unused_opaque_metadata_retained": [
+    "default BufMut.put_slice declaration 5",
+    "UninitSlice type declaration 2"
+  ],
+  "official_standard_models": [
+    "RangeInclusive.new",
+    "Range.next and StepI32.forward_checked",
+    "scalar operations and casts",
+    "Array.to_slice"
+  ],
+  "additional_trusted_preprocessing": true,
+  "mechanized_selection_correctness": false,
+  "source_patches": [],
+  "custom_crypto_or_buffer_models_added": [],
+  "remaining_obligations": [
+    "Instantiate the selected BufMut dictionary with proved concrete buffer semantics, as required by any claimed concrete Vec endpoint.",
+    "Compose length-delimited fields and derive-generated SignalMessage serialization before claiming whole-message reference equivalence."
+  ],
+  "sha256": {
+    "SignalReference/SignalMessageWork/Artifacts/UInt32Field/signal_message.llbc": "81547c219ca760c0d2ba2902d1af5b21e6b727184978338ea7287d2cfc49de7e",
+    "SignalReference/SignalMessageWork/Artifacts/UInt32Selected/selected.llbc": "7576b3b2feaf05e39e838bc5c8ec45898195e59b1ef4c8f1f0d358a1e89626fe",
+    "SignalReference/SignalMessageWork/Artifacts/UInt32Selected/changes.json": "d019d9df42860169517cbd2084e73d7d5fa21aed70154233275f434a6e82cbbe",
+    "SignalReference/SignalMessageWork/select_uint32.py": "88d60cb001ecc6601195c49b2d7f803d2c1d407ac6588f59746032703a21908e",
+    "SignalReference/SignalMessageWork/Artifacts/UInt32Selected/review.json": "ce8b1beb0b700f5dc18b2dfd0e0833f3104a69bbc7a54500c4f42572d47645bd",
+    "SignalReference/SignalMessageWork/Artifacts/UInt32Field/inventory.json": "8136e7969a779d89b0a55fb2172b62e6f9fda8ac9dcbdd31b74f6dcd1941efad",
+    ".deps/aeneas-2026-08-27/backends/lean/Aeneas/Std/Core/Iter.lean": "37e6d1901461e1df84f87a753ca3452eec4885e0779a12046630f5e26ea86985",
+    "SignalReference/ProstEncodingWork/UInt32SelectionReview/check.py": "9b35aed44145abe9b47c821846260a6373a7b4dca70a2bbf69cd3e56dddecd6a"
+  },
+  "generated_files": {
+    "SignalMessageWork/Generated/UInt32Selected/Funs.lean": "cab779101505cf5ac9bd03245478806a9ddbdb9ca7f2670527346d52de475aa2",
+    "SignalMessageWork/Generated/UInt32Selected/Types.lean": "0da2ce4355098dc06540bf72d334b16a044f8f4d7db4f1abca32d87353632937"
+  }
+}

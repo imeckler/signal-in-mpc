@@ -1,0 +1,54 @@
+{
+  "proof_only_replay": true,
+  "generated_computational_definitions_modified": false,
+  "reason": "Generated Types modules emit colliding global discriminant instance names, preventing simultaneous imports.",
+  "slice_computational_body_exactly_identical": true,
+  "slice_computational_body_sha256": "69873d76d74bbfd3aba875d4f9f2a2e08dee22e36ab3e9bbd28653de8eefb50b",
+  "files": {
+    "SliceReference.lean": {
+      "frozen_source_sha256": "3defdcaf00bad4a177e34903b85d56b1427d55336518b1c19bc3d43a4985d499",
+      "replayed_source_sha256": "310d151cdc8015388b03f1244a49af98300dc3a6759b6a491f183a4c3eae1b98",
+      "literal_substitutions": {
+        "LibSignalReference.Candidate.ProstSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstFullSlice",
+          "count": 2
+        },
+        "ProstParserReference": {
+          "replacement": "ProstParserFullCandidate",
+          "count": 24
+        },
+        "import ProtoParseWork.Generated.slice.Funs": {
+          "replacement": "import ProtoParseWork.Generated.varint_step.Funs",
+          "count": 1
+        },
+        "import ProtoParseWork.SliceReference": {
+          "replacement": "import ProtoParseWork.FullReferenceWork.SliceReference",
+          "count": 0
+        }
+      }
+    },
+    "SliceBridge.lean": {
+      "frozen_source_sha256": "dcc6f68988aeae1d803cbcb719c3afa3c07434243de31d7b7ca1ee487cf3fda1",
+      "replayed_source_sha256": "79ffb6516e2e565053d95e5f10e31b4022726d5938fe957f51f3b9acfcd13fff",
+      "literal_substitutions": {
+        "LibSignalReference.Candidate.ProstSlice": {
+          "replacement": "LibSignalReference.Candidate.ProstFullSlice",
+          "count": 2
+        },
+        "ProstParserReference": {
+          "replacement": "ProstParserFullCandidate",
+          "count": 17
+        },
+        "import ProtoParseWork.Generated.slice.Funs": {
+          "replacement": "import ProtoParseWork.Generated.varint_step.Funs",
+          "count": 0
+        },
+        "import ProtoParseWork.SliceReference": {
+          "replacement": "import ProtoParseWork.FullReferenceWork.SliceReference",
+          "count": 1
+        }
+      }
+    }
+  },
+  "script_sha256": "facaee9b3036e2129b4b22c0756edb10c895505235cbe307bdc7a54739ad8eb9"
+}

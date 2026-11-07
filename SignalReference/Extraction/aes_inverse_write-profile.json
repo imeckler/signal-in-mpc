@@ -1,0 +1,22 @@
+{
+  "package": "aes@0.9.1",
+  "starts": [
+    "crate::soft::fixslice::inv_bitslice"
+  ],
+  "extra": [
+    "--exclude=hybrid_array::traits::ArraySize"
+  ],
+  "subdir": "AesInverseWrite",
+  "namespace": "RustCryptoAesInverseWrite",
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "expected_functions": 1,
+  "expected_generated_functions": 1,
+  "expected_generated_definitions": [
+    "soft.fixslice.inv_bitslice.write_reordered"
+  ],
+  "modeled_std_functions": [],
+  "discarded_metadata_types": [],
+  "trusted_declaration_selection": "AesInverseLayoutWork/select_write.py",
+  "scope_note": "Selected unchanged closed nested write_reordered only; public12byte slice domain,64column bits and96initial output bits secret, four untouched bytes preserved. Actual inv_bitslice wrapper remains unproved."
+}

@@ -1,0 +1,34 @@
+# Same-VM compilation harness. Five-party XOR shares; all97 result bytes stay
+# in secret memory. Kyber shared secret is an explicit unresolved input stage.
+program.unlimited_compilation()
+
+from Compiler.GC.types import sbit
+from backend_adapter.boolean import load as load_boolean
+from handshake_backend.field_dag import load as load_field
+from SignalReference.PqxdhWork.adapter import initiate
+
+field_image = load_field(program.args[1])
+kdf_image = load_boolean(program.args[2])
+present = program.args[3] == 'present'
+if program.args[3] not in ('none', 'present'):
+    raise ValueError('invalid public one-time-key profile')
+
+def shared_bytes():
+    bits = []
+    for _ in range(256):
+        bit = sbit.get_input_from(0)
+        for party in range(1, 5):
+            bit = bit ^ sbit.get_input_from(party)
+        bits.append(bit)
+    return bits
+
+identity_private = shared_bytes()
+ephemeral_private = shared_bytes()
+their_identity = shared_bytes()
+signed_prekey = shared_bytes()
+one_time_prekey = shared_bytes() if present else None
+kem_secret = shared_bytes()
+output = initiate(field_image, kdf_image, identity_private, ephemeral_private,
+                  their_identity, signed_prekey, one_time_prekey, kem_secret)
+for index, bit in enumerate(output):
+    bit.store_in_mem(index)

@@ -1,0 +1,242 @@
+{
+  "llbc_sha256": "aa8603d372080e1586a4a22cafe4a5ee8a2da9a8aef3a6bdc170bc81a680ce3a",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 3,
+    "fun_decls": 3,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 6
+  },
+  "body_kinds": {
+    "Structured": 2,
+    "Opaque": 1
+  },
+  "external_functions": [
+    {
+      "id": 2,
+      "name": "core::slice::{impl}::len",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 2,
+      "name": "core::fmt::Arguments",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 716,
+            "col": 0
+          },
+          "end": {
+            "line": 716,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/soft/fixslice64.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/soft.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "aes"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/macros/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/panicking.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::soft::fixslice::sub_bytes",
+    "crate::soft::fixslice::sub_bytes_nots"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "aes::soft::fixslice::sub_bytes",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 800,
+            "col": 0
+          },
+          "end": {
+            "line": 969,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "aes::soft::fixslice::sub_bytes_nots",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 973,
+            "col": 0
+          },
+          "end": {
+            "line": 979,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "core::slice::{impl}::len",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::soft::fixslice::sub_bytes,crate::soft::fixslice::sub_bytes_nots",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/libsignal_aes_sub_bytes.llbc",
+    "--",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "charon_exit_code": 0,
+  "modeled_std_functions": [
+    "core::slice::{impl}::len"
+  ],
+  "discarded_metadata_types": [
+    "core::fmt::Arguments"
+  ],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "LibSignalReference/Generated/AesSubBytes/Funs.lean": "a24e3a7b0dc826dcd3c2146981883e279ccc96ec7693f8d584833f53613ca147",
+    "LibSignalReference/Generated/AesSubBytes/Types.lean": "3e2af3a47b0d3d30e05e6678862d534e41df114b282ee31368188bf2bdeaaf54"
+  },
+  "scope_note": "Actual portable64-bit software S-box with debug assertions from selected Cargo dev build; sub_bytes_nots restores the four NOTs moved into the real key schedule. Full cipher composition is separate."
+}

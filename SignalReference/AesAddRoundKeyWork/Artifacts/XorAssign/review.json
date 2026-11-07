@@ -1,0 +1,542 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "681a36ecff5a3811f0699ea1acb5985a4e318e24d00b1029c3023b5ef0de22f0",
+  "selected_sha256": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed",
+  "input_fingerprint": "300bd089be43fed9094af3ef359a0fdb92ded0d907c0a09353de40bc240a3c5c",
+  "kept_declarations": {
+    "type_decls": [],
+    "fun_decls": [
+      6,
+      121
+    ],
+    "global_decls": [],
+    "trait_decls": [
+      21
+    ],
+    "trait_impls": [
+      5,
+      7
+    ]
+  },
+  "change_count": 82,
+  "changes_file": "AesAddRoundKeyWork/Artifacts/XorAssign/selection-changes.json",
+  "changes_sha256": "da56b8ebcbc95e6226e091cd6093e991eccbdfe99e5fbcba3dc1ca20851f3189",
+  "selected_declarations_identical": true,
+  "computational_bodies_modified": [],
+  "source_patches": [],
+  "additional_trusted_declaration_selection": true,
+  "selection_correctness_mechanized": false,
+  "retained_unused_metadata": [
+    "BitXorAssign trait vtable type45; already absent in original graph; no dyn calls or values",
+    "BitXorAssign impl5 vtable global6 and impl7 vtable global7; both already absent in original graph; no computational references"
+  ],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "AesAddRoundKeyWork/Generated/XorAssign/Funs.lean": "dc43b069903667ea6620b531f425bbf6a60a720a20d4c3acebb247216e8de3ca",
+    "AesAddRoundKeyWork/Generated/XorAssign/Types.lean": "4ef1f99ee5134a2d322f4623e46226bc67700f758da597d2eb7b3283b5d54608"
+  },
+  "inventory": {
+    "llbc_sha256": "9bc4e3939b6e6132cfd6c69c1a8a65b08466ac62fdeadba621eb84d90e1134ed",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 0,
+      "fun_decls": 2,
+      "global_decls": 0,
+      "trait_decls": 1,
+      "trait_impls": 2,
+      "ordered_decls": 2
+    },
+    "body_kinds": {
+      "Structured": 2
+    },
+    "external_functions": [],
+    "external_or_union_types": [],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/soft/fixslice64.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/soft.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "aes"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/rustc/library/core/src/macros/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/panicking.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/rustc/library/core/src/option.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/rustc/library/core/src/fmt/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/rustc/library/core/src/slice/iter/macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/core/src/internal_macros.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/array/iter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/array/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/rustc/library/core/src/num/nonzero.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/rustc/library/core/src/num/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 34,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 35,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 36,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 37,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 38,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 39,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 40,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 41,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 42,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 43,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 44,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 45,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/try_trait.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 46,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 47,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 48,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 49,
+        "name": {
+          "Local": "/rustc/library/core/src/cmp.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 50,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 51,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 52,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 53,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 54,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 55,
+        "name": {
+          "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 56,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/bit.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 57,
+        "name": {
+          "Local": "/rustc/library/core/src/num/niche_types.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 58,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/control_flow.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "miri",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::soft::fixslice::add_round_key"
+    ],
+    "selected_functions": [
+      {
+        "id": 6,
+        "name": "core::ops::bit::{impl}::bitxor_assign",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 64,
+              "col": 12
+            },
+            "end": {
+              "line": 64,
+              "col": 45
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 121,
+        "name": "core::ops::bit::{impl}::bitxor_assign",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 56,
+            "beg": {
+              "line": 898,
+              "col": 12
+            },
+            "end": {
+              "line": 898,
+              "col": 50
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "script_sha256": "78b01c99f83af94e9581c29dea118fcebf1060bd2b2a70a11707206ed094c24b",
+  "whole_add_round_key_reference_complete": false
+}

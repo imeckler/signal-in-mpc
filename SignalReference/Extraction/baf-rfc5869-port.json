@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/Beneficial-AI-Foundation/SparsePostQuantumRatchet-verify",
+  "commit": "1acabbc34dbc5cbd40362a62848b68fdbe80e033",
+  "source": "Spqr/Crypto/RFC5869.lean",
+  "source_sha256": "54dadcfa95c4ff824692397c94c3c02953c6250d597e121544fdcbff41b8a5f6",
+  "local_file": "LibSignalReference/External/BafRFC5869.lean",
+  "local_sha256": "388063af9b9fd0a6cab3da30939149dce85fcc96327aae98894eef777864e0eb",
+  "license": "Apache-2.0",
+  "changes": [
+    "Replace Lean4.35 module/public-section directives with import Std for Lean4.31.",
+    "Qualify namespace HKDF as Baf.HKDF.",
+    "Add provenance comment."
+  ],
+  "mathematical_definitions_and_proofs_changed": false,
+  "rust_reference_claim": false,
+  "cryptographic_interface": "HMAC remains a parameter; our bridge instantiates it with the concrete Lean SHA256/HMAC."
+}

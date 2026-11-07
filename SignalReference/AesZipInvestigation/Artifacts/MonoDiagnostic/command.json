@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/AesAddRoundKeyWork/Artifacts/MonoZip/add_round_key.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference/AesZipInvestigation/Artifacts/MonoDiagnostic",
+    "-split-files",
+    "-namespace",
+    "AesZipInvestigation",
+    "-print-error-emitters",
+    "-abort-on-error",
+    "-no-progress-bar"
+  ],
+  "exit_code": 2,
+  "accepted_reference": false
+}

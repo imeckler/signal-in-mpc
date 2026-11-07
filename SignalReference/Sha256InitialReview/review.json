@@ -1,0 +1,259 @@
+{
+  "independent_review": true,
+  "checks_passed": true,
+  "reviewer": "/root/signal_lean_aeneas",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "scope": "Actual SHA core constructor/constants/empty drop; composition with separately accepted compact compression.",
+  "reversible_metadata_changes": 3,
+  "ordered_roots_unchanged": 10,
+  "selected_computational_declarations_unchanged": [
+    0,
+    15,
+    16,
+    17,
+    161
+  ],
+  "selected_type_declarations_unchanged": [
+    0,
+    1,
+    2
+  ],
+  "selected_globals_unchanged": [
+    1,
+    2
+  ],
+  "selected_semantic_nodes_scanned": 3062,
+  "selected_callgraph_closed": true,
+  "non_emitted_removed_metadata_references": [
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        14,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        45,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "fun_decls",
+        1,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        57,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "fun_decls",
+        2,
+        "body",
+        "Structured",
+        "body",
+        "statements",
+        17,
+        "kind",
+        "Call",
+        "call",
+        "func",
+        "Regular",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        2,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "trait_impls",
+        3,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        1,
+        "Untagged",
+        "kind",
+        "TraitImpl",
+        "generics",
+        "trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        5,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        37,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 6
+    },
+    {
+      "path": [
+        "trait_impls",
+        52,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 9
+    },
+    {
+      "path": [
+        "trait_impls",
+        67,
+        "implied_trait_refs",
+        3,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 80
+    },
+    {
+      "path": [
+        "trait_impls",
+        84,
+        "implied_trait_refs",
+        0,
+        "Untagged",
+        "kind",
+        "TraitImpl"
+      ],
+      "removed_impl": 80
+    }
+  ],
+  "whole_llbc_graph_claimed_closed": false,
+  "registry_archive_files_compared": {
+    "sha2": 49,
+    "digest": 26,
+    "block-buffer": 12,
+    "crypto-common": 11,
+    "hybrid-array": 24
+  },
+  "official_standard_model_files_compared": 87,
+  "fresh_kernel_axiom_endpoints": 8,
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_models_or_crypto_axioms": [],
+  "additional_trusted_preprocessing": true,
+  "selection_correctness_mechanized": false,
+  "full_digest_update_finalize_equivalence": false,
+  "source_sha256": {
+    "SignalReference/Sha256WrapperWork/Artifacts/core_new_closed/sha_wrapper.llbc": "1cef7a79f3a78e97b72801e84ec0edb26219f0070654ed3b031574bf8033a534",
+    "SignalReference/Sha256WrapperWork/InitialSelected/selected.llbc": "d3e64beb5c6287f5f49c5d529471133b47662af08ec62bfbd0651187b442eb33",
+    "SignalReference/Sha256WrapperWork/InitialSelected/changes.json": "e3214701474474d9ebccad5e6e1939a91d5d0ce61546088d54deb300386edc77",
+    "SignalReference/Sha256WrapperWork/select_initial.py": "689d0def9fe4ab43f8a111e2f36ab0ab247e47280981d043c38529e4f012d3f3",
+    "SignalReference/Sha256WrapperWork/proof-report.json": "eab147ae87a415c12fdb0a76da6cd5c8fbaa4f2bbab5984dcee89bdfa321a14d",
+    ".deps/aeneas-2026-08-27/aeneas": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/aeneas-5b9dcf33.tar.gz": "ceb3a9a8114488f7deef705599316d1282133b4aea203cbf902117c11175d453",
+    "SignalReference/Sha256WrapperWork/InitialSelected/review.json": "0b97cba6c52306b968daab1d8f30b6bc7a363f765be3ab2207cd7ac9e124d45c",
+    "SignalReference/Sha256InitialReview/check.py": "b97a816fa7f52d2bf72e6cab785e24aa19b28345d3a12a4f11b3fe96469f6c16"
+  }
+}

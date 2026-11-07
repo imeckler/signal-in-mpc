@@ -1,0 +1,31 @@
+--- pinned/Cargo.toml
++++ oracle-copy/Cargo.toml
+@@ -52,7 +52,7 @@
+     "libcrux-secrets/check-secret-independence",
+     "libcrux-traits/check-secret-independence",
+ ]
+-codec = ["dep:tls_codec"]
++codec = []
+ default = [
+     "default-no-std",
+     "std",
+@@ -81,7 +81,6 @@
+ std = [
+     "alloc",
+     "rand/std",
+-    "tls_codec?/std",
+ ]
+ 
+ [lib]
+@@ -132,11 +131,6 @@
+ optional = true
+ default-features = false
+ 
+-[dependencies.tls_codec]
+-version = "0.5.0"
+-features = ["derive"]
+-optional = true
+-default-features = false
+ 
+ [dev-dependencies.criterion]
+ version = "0.8"

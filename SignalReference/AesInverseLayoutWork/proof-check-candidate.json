@@ -1,0 +1,92 @@
+{
+  "checked_at_utc": "2026-11-06T21:54:36.543482+00:00",
+  "accepted_reference": true,
+  "canonical_reference_integrated": false,
+  "reference": {
+    "review_file": "AesInverseLayoutWork/Artifacts/WriteReordered/review.json",
+    "review_sha256": "de0bc631e7c47e3660618a787b47c453767fbadfb872f999a1382c91e0c1523d",
+    "independent_review_file": "AesKeyScheduleWork/inverse-writer-selection-review.json",
+    "independent_review_sha256": "64ccbb63db5a1faef471409d451a7b08ea97ada59c8f8f9f14ca55d15f4e6fe3",
+    "original_llbc_sha256": "c5de935dea184ada40068ad7ac6ad954a0430ccfcdb9366be15d423338f727df",
+    "selected_llbc_sha256": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb",
+    "retained_actual_function_declaration_identical": true,
+    "retained_signature_and_body_closed_builtin_only": true,
+    "reversible_declaration_changes": 253,
+    "generated_files": {
+      "AesInverseLayoutWork/Generated/WriteReordered/Funs.lean": "3735a52170e5e168e4276d423ce29b09400f05f54e52a642d9e8804fe4b485bf",
+      "AesInverseLayoutWork/Generated/WriteReordered/Types.lean": "47b0714a19173bb943dcdf30a7af6359e9d5164e3f1ac88c5ca4deafd543bb4b"
+    },
+    "selection_correctness_mechanized": false,
+    "additional_trusted_declaration_selection": true,
+    "selection_script_sha256": "a64ec2d632f1eee4b31781062f5427864f1bcabee6243a584adf41b1aa1d2736"
+  },
+  "actual_locked_source": "aes 0.9.1 src/soft/fixslice64.rs:1317-1326; libsignal 0.106.1 Cargo.lock",
+  "numeric_circuit_bridge_domain": "Every secret u64 column and every secret 12-byte initial slice; result is the exact successful 12-byte write-back",
+  "actual_caller_shapes": "Both inv_bitslice calls use length12: block[0..12] and block[4..16]",
+  "computational_standard_models": [
+    "Slice.update",
+    "UScalar.cast",
+    "UScalar checked right shift",
+    "Result and lift"
+  ],
+  "explicit_exclusions": [
+    "hybrid_array::traits::ArraySize: unused by the selected closed writer"
+  ],
+  "source_patches": [],
+  "custom_cryptographic_models": [],
+  "custom_axioms": [],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "checked_theorems": 6,
+  "proof_sources_sha256": {
+    "AesInverseLayoutWork/Generated/WriteReordered/Types.lean": "47b0714a19173bb943dcdf30a7af6359e9d5164e3f1ac88c5ca4deafd543bb4b",
+    "AesInverseLayoutWork/Generated/WriteReordered/Funs.lean": "3735a52170e5e168e4276d423ce29b09400f05f54e52a642d9e8804fe4b485bf",
+    "AesInverseLayoutWork/Circuit.lean": "d08d3f61b6a37e6cf16f8f0d525a672ccf22110f9305de522e28612155237c12",
+    "AesInverseLayoutWork/Proofs.lean": "6793b2443e74fbd87da695e5ad7f090ddc0ea0ae077c756ad8c24a7f8ef56208"
+  },
+  "canonical_dependency_sources_sha256": {
+    "LibSignalReference/Proofs/AesLayoutReference.lean": "f45bba722fdac9918660b252d63b1c4a44424c935ff09923c8646d3cc4311c75",
+    "LibSignalReference/Generated/AesLayout/Funs.lean": "19f2a42dc02c9500ffdf2c9e973a1479ffc5e0402e68c6ba2b948cfa7cc887a4",
+    "LibSignalReference/Generated/AesLayout/Types.lean": "652989fc05815fb6242b1831168ec04e02bb3f8ac032db67baa651c4184835cb"
+  },
+  "canonical_dependency_audit_utc": "2026-11-06T21:43:11.663262+00:00",
+  "root_semantics_sha256": {
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/Signal/AesLayoutNetwork.lean": "42409163e47aa092cf5ca3ea2cf93fb697d86496b0715b27d71f854a381f6b04",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "standard_model_sources_sha256": {
+    "Aeneas/Std/Slice.lean": "a2f7fc40f76f37b54b4307f78cd78dfa1cf849252bd4220f40e6b1d52c054223",
+    "Aeneas/Std/Scalar/Core.lean": "ceba1982545251f02d6e286abf23d01f4d2a691fe6934149f3a42d4a051af81e",
+    "Aeneas/Std/Scalar/Bitwise.lean": "c180c65e243dd576d480833b5d1c71b4228d61d7b5742bac0f092339740a7278",
+    "Aeneas/Std/Scalar/Casts.lean": "fd709a15b1e66431b788bf2838b79ac662d4c2afd38acbcde078b775c8f1e668",
+    "Aeneas/Std/Primitives.lean": "d89be7c23094e0af9c8da1b396d9358ecf882f0029a9505da827a6d607cdbb5c"
+  },
+  "unverified_export_source_sha256": "acdf1b35df8d36eefe77ceab5dbd621579046ff7e868a4ce407d3a2cb2ea3512",
+  "audit_script_sha256": "f05dd5df9ff7dd671aa21f5a2ecc83c40270de6795ad24c5036c621e91148a67",
+  "extraction_script_sha256": "2d06f7a768d711fffa47ab982794183e4a7551b96026a4bd41ac848ff6c44d77",
+  "artifact": {
+    "artifact_sha256": "bff7cb37b15bf00b49e119eaa64a657fb3ccea6b79b81682760e5211a7ba7fab",
+    "nodes": 97,
+    "raw_and_gates": 0,
+    "executed_and_gates": 0,
+    "executed_xor_gates": 0,
+    "unreachable_nodes": 1,
+    "outputs": 96,
+    "zero_and_all_160_basis_vectors_checked": true,
+    "raw_and_optimized_adapter_checked": true
+  },
+  "native_mpc_execution_tested": false,
+  "full_inv_bitslice_refinement_complete": false,
+  "remaining_wrapper_obligations": [
+    "hybrid-array allocation/default/index implementations",
+    "subrange borrow and write-back composition",
+    "inverse transpose and block relabeling composition"
+  ],
+  "whole_aes_rustcrypto_equivalence_established": false
+}

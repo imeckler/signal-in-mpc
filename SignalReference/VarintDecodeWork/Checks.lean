@@ -1,0 +1,21 @@
+import VarintDecodeWork.OffsetBridge
+
+#print axioms LibSignalReference.Candidate.VarintDecode.zero_add
+#print axioms LibSignalReference.Candidate.VarintDecode.sub_zero
+#print axioms LibSignalReference.Candidate.VarintDecode.cast_index
+#print axioms LibSignalReference.Candidate.VarintDecode.payload_step
+#print axioms LibSignalReference.Candidate.VarintDecode.loop_body_continue
+#print axioms LibSignalReference.Candidate.VarintDecode.loop_reference
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_reference
+#print axioms LibSignalReference.Candidate.VarintDecode.matches_bytes
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_bytes_reference
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_refines_artifact
+#print axioms LibSignalReference.Candidate.VarintDecode.loop_body_suffix
+#print axioms LibSignalReference.Candidate.VarintDecode.loop_suffix
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_at_reference
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_suffix
+#print axioms LibSignalReference.Candidate.VarintDecode.matches_at_bytes
+#print axioms LibSignalReference.Candidate.VarintDecode.contents_drop
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_at_bytes_reference
+#print axioms LibSignalReference.Candidate.VarintDecode.usize_max_lt_uint64
+#print axioms LibSignalReference.Candidate.VarintDecode.decode_at_refines_artifact

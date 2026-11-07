@@ -1,0 +1,9 @@
+name = "skipped-receive-export"
+version = "0.1.0"
+defaultTargets = ["emit_skipped_receive"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_skipped_receive"
+root = "Export"

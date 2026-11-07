@@ -1,0 +1,50 @@
+{
+  "independent_review": true,
+  "reviewer": "/root/signal_lean_aeneas",
+  "author": "/root/signal_lean_aeneas/pkcs7_reference",
+  "checks_passed": true,
+  "accepted_scope": "Actual SPQR encode_varint through official Range/StepUsize/Vec.push models and its uint64/uint32 circuit bridges.",
+  "exact_reversible_changes": 7,
+  "unchanged_computational_declarations": [
+    0,
+    4
+  ],
+  "direct_computational_calls": [
+    1,
+    2,
+    3
+  ],
+  "semantic_nodes_scanned": 19793,
+  "all_upstream_spqr_files_compared": 99,
+  "all_standard_model_files_compared": 87,
+  "fresh_kernel_axiom_endpoints": 21,
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "unconditional_errors_retained": "encode_eq_run preserves every Vec.push Result; concrete append/artifact endpoints state buffer.length+10<=Usize.max.",
+  "additional_trusted_preprocessing": true,
+  "mechanized_selection_correctness": false,
+  "custom_crypto_buffer_or_standard_models": [],
+  "rust_source_changes": [],
+  "full_spqr_serializer_or_state_equivalence": false,
+  "source_sha256": {
+    "SignalReference/SpqrReference/Artifacts/varint/spqr.llbc": "4ca6cf0b654e390018974569b0ed956687aa4a52206cf7354fa2ada91f2829ab",
+    "SignalReference/SpqrReference/VarintSelected/selected.llbc": "ccc7721bf9a4bc1395ecfc758b52618471b47adda63ff3991141c0e84439fd4a",
+    "SignalReference/SpqrReference/VarintSelected/changes.json": "0d5b8257a6b8f03558429c5f35993638a4c25e5e1753eec91ef04ec5bc9a08b7",
+    "SignalReference/SpqrReference/select_varint.py": "b7c561eeb0de0bd273762f40e7e1f87572632eced1c0ae0ae8ce47202a7f6bd8",
+    "SignalReference/SpqrReference/proof-report.json": "36123b2a0361ae3aeb5ba07b6d25d3d150ee64137ca05fb004c7c6469dc81e6b",
+    ".deps/aeneas-2026-08-27/aeneas": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+    ".deps/spqr-06959b4.tar.gz": "f8fd4b1356a678fa49bbf4c51801c38d3b53ea800178579bef9ff47321b2058f",
+    "SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/aeneas-5b9dcf33.tar.gz": "ceb3a9a8114488f7deef705599316d1282133b4aea203cbf902117c11175d453",
+    "SignalReference/SpqrReference/VarintSelected/review.json": "5d9ab86642774ec9d8b6437303ff3f99d710de6963f807934c176a188c82e75d",
+    "SignalReference/SpqrReference/Artifacts/varint/inventory.json": "ee7dcbfdca59a25931158c9e08683d2a5c90868cee930b595fe7ee910155a4eb",
+    "SignalReference/SpqrReference/Checks.lean": "309e920ad017ac579d5971e9752c4b5d0e81cd90eb6e27b84d564195b1eca508",
+    "SignalReference/SpqrVarintReview/check.py": "e161f2d85bdd04c4ec259c401e320572bcfae23ac423747bcfb9422c97144022"
+  },
+  "generated_files": {
+    "SpqrReference/VarintGenerated/Funs.lean": "37e2d10315c70315d74adc4d46e9bddea60e076af9ea002063a5c3dd91eb3d51",
+    "SpqrReference/VarintGenerated/Types.lean": "00b7591d9756b902b1d5f0f2367f5b26ec7afc3156666c539c867eced4322eff"
+  }
+}

@@ -1,0 +1,646 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "versions": {
+    "aeneas": "aeneas nightly-2026.09.30-0855ce1",
+    "charon": "0.1.274 (e435e5f341863a49a7e85d2fee9988bc0c687c82)",
+    "rustc": "rustc 1.100.0-nightly (923c95cdf 2026-09-16)"
+  },
+  "tool_pins": "candidate-pins.json",
+  "profile": "sha256_compact_bodies_scoped",
+  "charon_command": [
+    "$WORKSPACE/.deps/aeneas-2026-09-30/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::sha256::soft::compact::compress_u32",
+    "--monomorphize",
+    "--extract-opaque-bodies",
+    "--exclude=core::array",
+    "--dest-file=$WORKSPACE/SignalReference/Extraction/Candidates/2026-09-30/sha256_compact_bodies_scoped/sha256_compact_bodies_scoped.llbc",
+    "--",
+    "--package",
+    "sha2@0.11.0",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 0,
+  "rustflags": "--cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+  "target": "aarch64-apple-darwin",
+  "trait_method_filter_requested": false,
+  "llbc_sha256": "e27917ab76ee38d9f7a8e647fea7c0972cdaabaf5ca0885826aa7356eb410486",
+  "charon_version": "0.1.274",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 16,
+    "fun_decls": 13,
+    "global_decls": 1,
+    "trait_decls": 8,
+    "trait_impls": 11,
+    "ordered_decls": 31
+  },
+  "body_kinds": {
+    "Structured": 12,
+    "Intrinsic": 1
+  },
+  "external_functions": [
+    {
+      "id": 17,
+      "name": "core::intrinsics::rotate_right::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 2136,
+              "col": 0
+            },
+            "end": {
+              "line": 2136,
+              "col": 82
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "{impl}",
+      "kind": "Opaque",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 1,
+              "col": 0
+            },
+            "end": {
+              "line": 1,
+              "col": 0
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "src/sha256/soft/compact.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "src/sha256.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "src/sha256/soft.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "src/consts.rs"
+      },
+      "crate_name": "sha2"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "/rustc/library/core/src/intrinsics/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 21,
+      "name": {
+        "Local": "/rustc/library/core/src/cmp.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 22,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 23,
+      "name": {
+        "Local": "/rustc/library/core/src/ub_checks.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 24,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 25,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/non_null.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 26,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 27,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/rt.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 28,
+      "name": {
+        "Local": "/rustc/library/core/src/str/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 29,
+      "name": {
+        "Local": "/rustc/library/core/src/panicking.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 30,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 31,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [
+    "core::array"
+  ],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": true,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": true,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::sha256::soft::compact::compress_u32"
+  ],
+  "selected_functions": [
+    {
+      "id": 11,
+      "name": "sha2::sha256::soft::compact::compress_u32",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 5,
+            "beg": {
+              "line": 3,
+              "col": 0
+            },
+            "end": {
+              "line": 51,
+              "col": 1
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::iter::traits::collect::{impl}::into_iter::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 12,
+            "beg": {
+              "line": 322,
+              "col": 4
+            },
+            "end": {
+              "line": 322,
+              "col": 27
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::iter::range::{impl}::next::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 1188,
+              "col": 4
+            },
+            "end": {
+              "line": 1188,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::num::{impl}::wrapping_add",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 2681,
+              "col": 8
+            },
+            "end": {
+              "line": 2681,
+              "col": 58
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::num::{impl}::rotate_right",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 503,
+              "col": 8
+            },
+            "end": {
+              "line": 503,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 16,
+      "name": "core::iter::range::{impl}::spec_next::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 1102,
+              "col": 4
+            },
+            "end": {
+              "line": 1102,
+              "col": 40
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::intrinsics::rotate_right::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 2136,
+              "col": 0
+            },
+            "end": {
+              "line": 2136,
+              "col": 82
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 18,
+      "name": "sha2::consts::K32",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 18,
+            "beg": {
+              "line": 37,
+              "col": 0
+            },
+            "end": {
+              "line": 46,
+              "col": 2
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 19,
+      "name": "core::cmp::impls::{impl}::lt",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 21,
+            "beg": {
+              "line": 2224,
+              "col": 12
+            },
+            "end": {
+              "line": 2224,
+              "col": 46
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 20,
+      "name": "core::iter::range::{impl}::forward_unchecked",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 15,
+            "beg": {
+              "line": 264,
+              "col": 8
+            },
+            "end": {
+              "line": 264,
+              "col": 66
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::num::{impl}::unchecked_add::precondition_check",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 23,
+            "beg": {
+              "line": 68,
+              "col": 12
+            },
+            "end": {
+              "line": 68,
+              "col": 55
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::panicking::panic_nounwind_fmt",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 29,
+            "beg": {
+              "line": 95,
+              "col": 0
+            },
+            "end": {
+              "line": 95,
+              "col": 87
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    },
+    {
+      "id": 23,
+      "name": "core::panicking::panic_nounwind_fmt::compiletime",
+      "body_kind": "Structured",
+      "span": {
+        "Untagged": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 2532,
+              "col": 8
+            },
+            "end": {
+              "line": 2532,
+              "col": 73
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit_code": 2,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-09-30/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/Extraction/Candidates/2026-09-30/sha256_compact_bodies_scoped/sha256_compact_bodies_scoped.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference/Extraction/Candidates/2026-09-30/sha256_compact_bodies_scoped",
+    "-subdir",
+    "/Reference",
+    "-split-files",
+    "-namespace",
+    "CandidateSignal",
+    "-use-lean-modules",
+    "false",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {}
+}

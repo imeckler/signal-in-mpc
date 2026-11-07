@@ -1,0 +1,191 @@
+'Aeneas.Std.core.slice.Slice.get_unchecked' depends on axioms: [propext]
+'Aeneas.Std.core.slice.Slice.get_unchecked_SliceIndexUsizeSlice_spec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'ProstKeyCandidate.bytes.buf.buf_impl.Buf.get_u8.default' depends on axioms: [propext, Classical.choice, Quot.sound]
+'ProstKeyCandidate.Mut0T.Insts.BytesBufBuf_implBuf.remaining' depends on axioms: [propext]
+'ProstKeyCandidate.Mut0T.Insts.BytesBufBuf_implBuf.chunk' depends on axioms: [propext]
+'ProstKeyCandidate.encoding.varint.decode_varint_slice' depends on axioms: [propext, Classical.choice, Quot.sound]
+'ProstKeyCandidate.encoding.varint.decode_varint_slow_loop.body' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'ProstKeyCandidate.encoding.varint.decode_varint_slow_loop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'ProstKeyCandidate.encoding.varint.decode_varint_slow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'ProstKeyCandidate.encoding.varint.decode_varint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.access_bound' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.get_unchecked_at' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.initialChecks_ok' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.number_val' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstKeySlice.add_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.sub_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.shift_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.cast8_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.cast32_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.byte_at' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.byte_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.prefix_access' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.get_unchecked_byte' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_two' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.payload_zero_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.terminates_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.run_done' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_first' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.pack_valueBytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.bor_full' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.prefix_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.payload_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.or_number_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.terminates_of_large' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.contents_get' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.spqr_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.pack_count' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.mask254_small' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.mask254_large' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.prefix_accepted' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.prefix_rejected_tenth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.case_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decodedBytes_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.prefixBytes_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.matches_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeySlice.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.default_getByte' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.remaining_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.chunk_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.advance_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.drop_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.drop_add' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.getByte_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.getByte_empty' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.stateResult_done' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.invalid_conversion' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstKeyVarint.getByte_drop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slow_payload' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.body_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.body_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slow_loop_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slow_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_index_bounds' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.prefix_decode_failed' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.prefix_overflow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.prefix_stop_done' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slice_count_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.stateResult_post' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slow_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.fast_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.first_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.post_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.run_not_done' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.slow_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.fast_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_error_post' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKeyVarint.decode_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'ProstKeyCandidate.encoding.wire_type.WireType.Insts.CoreConvertTryFromU64DecodeError.try_from' depends on axioms: [propext]
+'ProstKeyCandidate.encoding.decode_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.wire_reference' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstKey.wire_ok' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstKey.wire_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.tag_shift' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.kind_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.tag_value' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_after_varint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_after_varint_error' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKey.wire_exists' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_success_fields' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_from_varint' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.decode_key_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.decode_key_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.word_eq_value' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.shift_zero' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.kind_nat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.key_mask' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.keyFields_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.plan_key_fields' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.plan_invalid_kind' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.plan_invalid_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.plan_key_rejects' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.tag_wide' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.kind_word' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.fields_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.post_error_mask' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.post_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.keyBytes_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstKey.decode_key_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstKey.decode_key_error_rejected' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

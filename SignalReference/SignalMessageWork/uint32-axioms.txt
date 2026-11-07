@@ -1,0 +1,10 @@
+'LibSignalReference.Candidate.SignalField.varint_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.key_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.field_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.varint_actualVec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.field_key_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.key_appends' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.field_appends' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SignalField.field_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

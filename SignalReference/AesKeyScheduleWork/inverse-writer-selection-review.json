@@ -1,0 +1,18 @@
+{
+  "reviewed_at_utc": "2026-11-06T21:46:48.285133+00:00",
+  "independent_review": true,
+  "original_llbc_sha256": "c5de935dea184ada40068ad7ac6ad954a0430ccfcdb9366be15d423338f727df",
+  "selected_llbc_sha256": "9506b2bf33f50ddbe7f7bc76113295b474f3b1a5d7d7904a88c3640b752a0bcb",
+  "selection_script_sha256": "1adf13b0740faf2396c944012bd055f6accac6ff0c262edeeebfa7a7102b67aa",
+  "retained_actual_declaration_identical": true,
+  "retained_source_text_equals_pinned_rust": true,
+  "closed_builtin_only_declaration": true,
+  "exact_reversible_declaration_changes": 253,
+  "retained_functions": 1,
+  "retained_user_types_traits_globals": 0,
+  "builtin_slice_updates": 8,
+  "explicit_source_profile_exclusion": "hybrid_array::traits::ArraySize; unused by the retained closed writer",
+  "full_inv_bitslice_wrapper_proved": false,
+  "selection_trusted_not_mechanized": true,
+  "conclusion": "No semantic concern in this exact closed-declaration selection; wrapper remains unproved."
+}

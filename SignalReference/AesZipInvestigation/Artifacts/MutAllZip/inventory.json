@@ -1,0 +1,38 @@
+{
+  "accepted_reference": false,
+  "diagnostic_only": true,
+  "variant": "MutAllZip",
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "source_patches": [],
+  "standard_model_changes": [],
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=miri",
+    "--no-dedup-serialized-ast",
+    "--error-on-warnings",
+    "--include=core::ops::bit::*::bitxor_assign",
+    "--monomorphize-mut=all",
+    "--include=core::iter::traits::iterator::Iterator::zip",
+    "--include=core::iter::adapters::zip::*",
+    "--include=core::iter::traits::collect::*::into_iter",
+    "--start-from=crate::soft::fixslice::add_round_key",
+    "--dest-file=$WORKSPACE/SignalReference/AesZipInvestigation/Artifacts/MutAllZip/add_round_key.llbc",
+    "--",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 101,
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "sysroot_directory": "PaddingWork/Unpad/Sysroot"
+}

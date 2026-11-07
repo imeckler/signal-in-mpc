@@ -1,0 +1,67 @@
+{
+  "candidate_only": true,
+  "label": "baseline",
+  "binary_sha256": "4a3ecae91b4e5e23b58924f10806baf624ddef2dbc957f3ecf88199ec35fac41",
+  "version": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-loop-baseline",
+  "source_or_llbc_replacement": false,
+  "profiles": {
+    "key": {
+      "input_sha256": "5e5007bff765d64f31a917b2b3cd780c6fd5563cd304fe367e4bf852150231d7",
+      "exit_code": 0,
+      "generated_files": {
+        "SkipTranslatorWork/Generated/key/Funs.lean": "96387068d6ac0097737c27c8d50dc3a04dc370be5fa29ca44fad0a3978f2d22a",
+        "SkipTranslatorWork/Generated/key/FunsExternal_Template.lean": "01b8a52c28623fccb7a8aef48cd20c90ea62e2e43c454489dec99b4318cdb278",
+        "SkipTranslatorWork/Generated/key/Types.lean": "a94c2aa64eaf3c9b764974e9a30859c0d1febec003bf625960e701f8376a799d"
+      },
+      "log_sha256": "f6f8600d2f2395648c31cc82ce3cdfc120218884d255a73be6e95d653ffa41c3",
+      "diagnostics": []
+    },
+    "skip": {
+      "input_sha256": "2a60aea4aa2dcc4defaaa9e88424756c85dfa0bd8ac537d2c6201b5cecce5314",
+      "exit_code": 1,
+      "generated_files": {
+        "SkipTranslatorWork/Generated/skip/Funs.lean": "37636eddb828a0ef11f6503e28487e152e1461dffab52b9fa55f81361fd4d27a",
+        "SkipTranslatorWork/Generated/skip/FunsExternal_Template.lean": "f40efe73eb08b4677a97d30deaa34b81dc4b6d404c259b63497b507741c2196b",
+        "SkipTranslatorWork/Generated/skip/Types.lean": "3bf1326e167fab93f5875558170fbde75ce1d6a140f2ba37a5ae140c3c74268e"
+      },
+      "log_sha256": "abf9a46c0ce2ec03b89d9251ea72357f0fe4ae7b55f41f459555c31514c3c5f3",
+      "diagnostics": [
+        "[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet",
+        "[\u001b[91mError\u001b[39m] Ignoring the body of 'prost::encoding::skip_field' because of previous error"
+      ]
+    },
+    "regressions": {
+      "input_sha256": "90c1868b8d57c4847617db10a2027e76feea0cefbe1fadcbbbac7ca5dec6e1d8",
+      "exit_code": 1,
+      "generated_files": {
+        "SkipTranslatorWork/Generated/regressions/Funs.lean": "68232eafcee54ec3c212eb676646265c305a834fe0fc869ebfd5f4ded2c632c2",
+        "SkipTranslatorWork/Generated/regressions/FunsExternal_Template.lean": "88596bff681f422f025693a83aa5fe82110d4525df02860609b021dad5205090",
+        "SkipTranslatorWork/Generated/regressions/Types.lean": "7530b25c6602fd7acb06a81e843f2faae199055135c72dee5efff83c67550e8f"
+      },
+      "log_sha256": "1e424e379a93a97d61e5e3ddcd49767f1f1b7bf25b7841e619377dd0dcb51e51",
+      "diagnostics": [
+        "[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet",
+        "[\u001b[91mError\u001b[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop_return' because of previous error",
+        "[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet",
+        "[\u001b[91mError\u001b[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop_mut_return' because of previous error"
+      ]
+    },
+    "negative": {
+      "input_sha256": "148665c8381dc7ea0304cca7bbdc6cd97373b78d9f920a28bf3f5fb707ef64e0",
+      "exit_code": 1,
+      "generated_files": {
+        "SkipTranslatorWork/Generated/negative/Funs.lean": "77731cd6f7862139aac2170a4530e6fa2d5e292d766a9c7a5a0907b9f2636c87",
+        "SkipTranslatorWork/Generated/negative/FunsExternal_Template.lean": "01cbb5df36c1469341f64b1195d25c1b5267bca04efdfbde93560b4729703902",
+        "SkipTranslatorWork/Generated/negative/Types.lean": "2c3ded04b2ee9fdc7391fee172a0f3a3f8abd12959a34dd5b683bb193fb019cf"
+      },
+      "log_sha256": "f893942bd1098c1ecc3fcd28f7b774eb8994106ba3ee58d72323dc4272cce867",
+      "diagnostics": [
+        "[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet",
+        "[\u001b[91mError\u001b[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop' because of previous error",
+        "[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet",
+        "[\u001b[91mError\u001b[39m] Ignoring the body of 'aeneas_loop_continuation_regression::branch_loop_mut' because of previous error"
+      ]
+    }
+  },
+  "script_sha256": "8fe86f4f840380206052be23b15cdac4369df96a1a2f62eda2757433aff5556b"
+}

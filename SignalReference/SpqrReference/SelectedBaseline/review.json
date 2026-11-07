@@ -1,0 +1,45 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "independent_review": "pending",
+  "original_sha256": "cb4729c788b395af8bd249aa95a84a92a841e723392ca7958465bac4b34e0ff2",
+  "selected_sha256": "335ba5217e0eac2b14c2b60f0b18aaa36a563dd0f5bc1f8d84d3eb4524299209",
+  "script_sha256": "6441ae728eca39cc1040d3f08621ae43afd143fa1b1c17ff9a6291f90fb8b979",
+  "changes_sha256": "59d8230798952b00c0a08b3b9279f0e7058158c031f436363aa2a916c375fda8",
+  "reversible_changes": 7,
+  "unchanged_computational_declarations": [
+    0,
+    4,
+    5,
+    6,
+    7,
+    12,
+    15
+  ],
+  "additional_trusted_preprocessing": true,
+  "source_patches": [],
+  "aeneas_exit_code": 0,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/SpqrReference/Selected/selected.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/SpqrReference/GeneratedSelected",
+    "-split-files",
+    "-namespace",
+    "SpqrReference",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {
+    "SpqrReference/GeneratedSelected/Funs.lean": "0eb3825d97e34a7d5b47663c8e1faed87b5834e92c1b2cb3be4e16669b9fa714",
+    "SpqrReference/GeneratedSelected/FunsExternal_Template.lean": "a348704efb1b3edc5a4ce87f94b3bf16c926ac1d1afd23348d29c712ee5151f3",
+    "SpqrReference/GeneratedSelected/Types.lean": "536cd4270092d35c7332da44c9e87494762c9d8b08e576f37f961d1a65f03b2f"
+  },
+  "remaining_external_templates": [
+    "FunsExternal_Template.lean"
+  ]
+}

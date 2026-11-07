@@ -1,0 +1,276 @@
+{
+  "checked_at_utc": "2026-11-07T18:35:25.630418+00:00",
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/rust/protocol/src/consts.rs": "29616bfbbecc1bc9ff17ae9f2787843d20fc4c7409d13572ec251c9080384f29",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/double_ratchet.rs": "b3be5c8ae7a2333178f393b4aa74f6d33880f70f91d075e79459be0859c2eb2f",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/ratchet/keys.rs": "427f147ba73edd0f84ccbc8c7437069dee18cc7456fe1031061deb6f6b76e750",
+    ".deps/libsignal-v0.106.1.tar.gz": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+    "SignalReference/SkippedKeysWork/Checks.lean": "bfa50cf5abb78d721559e30cd7ac3e3db7c02d783c231b96b0f7df4e17fdad42",
+    "SignalReference/SkippedKeysWork/Export.lean": "babe590cb57f09bb067774bed5fd95597074e8eba3be5cb8c59d3680315b873e",
+    "SignalReference/SkippedKeysWork/check.py": "ff25f49793e1d81ea976b97b102511f7df977908f4ca4073cabdca4a6381dbad",
+    "SignalReference/SkippedKeysWork/lake-manifest.json": "2cf60188ad554dd978530b68c49fd9c377595517d24ff06800b1ece2bbf79960",
+    "SignalReference/SkippedKeysWork/lakefile.toml": "947e94fa463e8f272d9b58a6b78216a919b9cf2ddfb97528b1d108f4f4f11390",
+    "SignalReference/SkippedKeysWork/lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee",
+    "SignalReference/pins.json": "aaed813ffdd5f57329298e0bcbb5cf300af4cc92538dc4be37bde6655ba1e712",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/SkippedKeys.lean": "953d4dc12a8831de1e26ee5fa0352918df3db003e924acbd2310a54eb502c07f",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "checked_endpoints": 31,
+  "theorems": [
+    "TlsMpc.Signal.SkippedKeys.chooseSlot_accept",
+    "TlsMpc.Signal.SkippedKeys.chooseSlot_reject",
+    "TlsMpc.Signal.SkippedKeys.chooseSlots_accept",
+    "TlsMpc.Signal.SkippedKeys.chooseSlots_reject",
+    "TlsMpc.Signal.SkippedKeys.lookup_length",
+    "TlsMpc.Signal.SkippedKeys.insert_length",
+    "TlsMpc.Signal.SkippedKeys.matchMask_value",
+    "TlsMpc.Signal.SkippedKeys.lookup_spec",
+    "TlsMpc.Signal.SkippedKeys.failed_auth_preserves",
+    "TlsMpc.Signal.SkippedKeys.commit_hit",
+    "TlsMpc.Signal.SkippedKeys.first_match_wins",
+    "TlsMpc.Signal.SkippedKeys.failed_lookup_preserves",
+    "TlsMpc.Signal.SkippedKeys.consume_length",
+    "TlsMpc.Signal.SkippedKeys.slotBytes_length",
+    "TlsMpc.Signal.SkippedKeys.storeBytes_length",
+    "TlsMpc.Signal.SkippedKeys.consumeBytes_length",
+    "TlsMpc.Signal.SkippedKeys.empty_map",
+    "TlsMpc.Signal.SkippedKeys.chooseBytes_map",
+    "TlsMpc.Signal.SkippedKeys.chooseSlot_map",
+    "TlsMpc.Signal.SkippedKeys.chooseSlots_map",
+    "TlsMpc.Signal.SkippedKeys.matchMask_map",
+    "TlsMpc.Signal.SkippedKeys.lookup_map",
+    "TlsMpc.Signal.SkippedKeys.commit_map",
+    "TlsMpc.Signal.SkippedKeys.consume_map",
+    "TlsMpc.Signal.SkippedKeys.insert_map",
+    "TlsMpc.Signal.SkippedKeys.slotBytes_map",
+    "TlsMpc.Signal.SkippedKeys.storeBytes_map",
+    "TlsMpc.Signal.SkippedKeys.candidateBytes_map",
+    "TlsMpc.Signal.SkippedKeys.compiled_consume_correct",
+    "TlsMpc.Signal.SkippedKeys.compiled_lookup_correct",
+    "TlsMpc.Signal.SkippedKeys.compiled_insert_correct"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "axiom_report_sha256": "f0dea669120172c21868663974756bc4756f415cc3a94bc28a7f02282be5791d",
+  "native_exporter": "SignalReference/SkippedKeysWork/.lake/build/bin/emit_skipped_keys",
+  "native_exporter_sha256": "2a6c0c0d76756dd1c84110ba0d85b9e7fde9d8eeed630edcb5f762085cb1ef17",
+  "artifacts": [
+    {
+      "mode": "lookup",
+      "capacity": 0,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-lookup-0.json",
+      "artifact_sha256": "f2f02134f01e57322588a37c5ad5e220d64558a5981f0e60933082ebd185a340",
+      "input_bits": 288,
+      "output_bits": 264,
+      "fixture_lanes": 22,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "mode": "consume",
+      "capacity": 0,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-consume-0.json",
+      "artifact_sha256": "099f25713ba5fe12093a0449ebf50cc7793daf84dcf31bfda93deeca563bf292",
+      "input_bits": 296,
+      "output_bits": 264,
+      "fixture_lanes": 22,
+      "adapter_operations": {
+        "raw_and_gates": 7,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 15
+      }
+    },
+    {
+      "mode": "insert",
+      "capacity": 0,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-insert-0.json",
+      "artifact_sha256": "cb18835777fd2eedc3dc3730059595cdbe4579279b46fd2c7338fc1905ae7871",
+      "input_bits": 544,
+      "output_bits": 0,
+      "fixture_lanes": 22,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      }
+    },
+    {
+      "mode": "lookup",
+      "capacity": 1,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-lookup-1.json",
+      "artifact_sha256": "a1fe52b8d6faf4f50b1af511d614c131bf81d42de6f21fa9c378d7cf756627db",
+      "input_bits": 840,
+      "output_bits": 816,
+      "fixture_lanes": 282,
+      "adapter_operations": {
+        "raw_and_gates": 3367,
+        "executed_and_gates": 847,
+        "executed_xor_gates": 840,
+        "unreachable_nodes": 1681
+      }
+    },
+    {
+      "mode": "consume",
+      "capacity": 1,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-consume-1.json",
+      "artifact_sha256": "f0c6d8790c2b107ccf29cf90fae8d23bb01b60b711f586bf7caf021f6e17b5b5",
+      "input_bits": 848,
+      "output_bits": 816,
+      "fixture_lanes": 538,
+      "adapter_operations": {
+        "raw_and_gates": 7495,
+        "executed_and_gates": 1663,
+        "executed_xor_gates": 1944,
+        "unreachable_nodes": 3889
+      }
+    },
+    {
+      "mode": "insert",
+      "capacity": 1,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-insert-1.json",
+      "artifact_sha256": "764980e6900282e56d3b76ac3040a86a5e5c2af7eb69e1793fa407f4b07f21d9",
+      "input_bits": 1096,
+      "output_bits": 552,
+      "fixture_lanes": 282,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "mode": "lookup",
+      "capacity": 4,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-lookup-4.json",
+      "artifact_sha256": "41f8418dd894d80a6f09df0f75797abcb9112b29306e3ca4354574fae927bdd8",
+      "input_bits": 2496,
+      "output_bits": 2472,
+      "fixture_lanes": 292,
+      "adapter_operations": {
+        "raw_and_gates": 42040,
+        "executed_and_gates": 7471,
+        "executed_xor_gates": 11523,
+        "unreachable_nodes": 23047
+      }
+    },
+    {
+      "mode": "consume",
+      "capacity": 4,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-consume-4.json",
+      "artifact_sha256": "ac5ec5522e39ea600ec321f617ebeb6bb73f5004ff6a2ceadb1d73faeb77599d",
+      "input_bits": 2504,
+      "output_bits": 2472,
+      "fixture_lanes": 548,
+      "adapter_operations": {
+        "raw_and_gates": 57760,
+        "executed_and_gates": 9943,
+        "executed_xor_gates": 15939,
+        "unreachable_nodes": 31879
+      }
+    },
+    {
+      "mode": "insert",
+      "capacity": 4,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-insert-4.json",
+      "artifact_sha256": "a3909005edbd48f45463124b038522efc8c9f015c652ecfd4d392bb8133cf539",
+      "input_bits": 2752,
+      "output_bits": 2208,
+      "fixture_lanes": 292,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "mode": "lookup",
+      "capacity": 16,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-lookup-16.json",
+      "artifact_sha256": "1e18bb71410a32f907aa6e16a35425ca3e0622a431110cb1ed1234909782d389",
+      "input_bits": 9120,
+      "output_bits": 9096,
+      "fixture_lanes": 328,
+      "adapter_operations": {
+        "raw_and_gates": 544492,
+        "executed_and_gates": 83647,
+        "executed_xor_gates": 153615,
+        "unreachable_nodes": 307231
+      }
+    },
+    {
+      "mode": "consume",
+      "capacity": 16,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-consume-16.json",
+      "artifact_sha256": "010e00d0f9d7b7951e403f1941772978990f77896ef44a26ed80e845b43ea46e",
+      "input_bits": 9128,
+      "output_bits": 9096,
+      "fixture_lanes": 584,
+      "adapter_operations": {
+        "raw_and_gates": 606580,
+        "executed_and_gates": 92743,
+        "executed_xor_gates": 171279,
+        "unreachable_nodes": 342559
+      }
+    },
+    {
+      "mode": "insert",
+      "capacity": 16,
+      "artifact": "SignalReference/SkippedKeysWork/Artifacts/signal-skipped-insert-16.json",
+      "artifact_sha256": "2561b56135d20e630a635b28d992daae926c5f33ac46c1e8ea5453e60cb6056e",
+      "input_bits": 9376,
+      "output_bits": 8832,
+      "fixture_lanes": 328,
+      "adapter_operations": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    }
+  ],
+  "fixture_report_sha256": "62b3a31d53d1028796aee2036bb5d19b9026e901972a4df42931c77436598718",
+  "numeric_artifact_fixture_count": 3540,
+  "artifact_composition_steps": 15,
+  "slot_layout": "valid255/0 byte || ratchetPublicKey32 || counterBE4 || seed32; newest first; capacity public",
+  "lookup_output": "found255/0 || secret seed32 (zero on miss) || candidate compacted store",
+  "consume_output": "committed255/0 || seed32 (zero on failure) || next store; only authentication255 and a hit commit",
+  "insert_semantics": "Prepend new valid255 entry, take original public slot capacity; duplicate entries retained; oldest physical slot dropped.",
+  "public_boundary": "Capacity and operation only. All validity masks, identifiers, counters, seeds, authentication and outputs remain shared.",
+  "rust_reference_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "rust_correspondence_review": {
+    "take_skipped_key": "Find first receiver chain by public key; first matching counter position; remove before from_pb.",
+    "store_skipped_key": "insert(0,key.into_pb()); pop oldest if length exceeds MAX_MESSAGE_KEYS=2000.",
+    "seed_path": "ChainKey.message_keys produces a32-byte HMAC seed; Seed stores seed and counter and later derives keys with optional PQR key.",
+    "differences": [
+      "This flat fixed-capacity component is not the Rust per-receiver-chain2000-key policy or receiver-chain selection.",
+      "Stable compaction pads empty slots; packed valid-prefix states model a bounded list, arbitrary holes remain physical slots.",
+      "Authentication-gated commit is an explicit transaction policy; take_skipped_key itself removes immediately, before deserialization.",
+      "Only seed32 storage is represented; legacy expanded message keys and corrupt/protobuf records are excluded."
+    ]
+  },
+  "actual_rust_wrapper_equivalence": false,
+  "complete_session_or_persistence": false,
+  "backend_compiled": false,
+  "native_mpc_executed": false,
+  "trust_boundary": "Lean compiler/evaluation proofs and transaction theorems; native exporter/JSON/adapter are unverified and checked by public fixtures."
+}

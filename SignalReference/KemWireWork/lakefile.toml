@@ -1,0 +1,9 @@
+name = "kem-wire-export"
+version = "0.1.0"
+defaultTargets = ["emit_kem_wire"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_kem_wire"
+root = "Export"

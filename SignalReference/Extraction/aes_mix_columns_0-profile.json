@@ -1,0 +1,39 @@
+{
+  "package": "aes@0.9.1",
+  "starts": [
+    "crate::soft::fixslice::mix_columns_0"
+  ],
+  "extra": [],
+  "subdir": "AesMix",
+  "namespace": "RustCryptoAesLinear",
+  "rustflags": "--cfg aes_backend=\"soft\"",
+  "target": "aarch64-apple-darwin",
+  "expected_functions": 6,
+  "expected_generated_functions": 5,
+  "expected_generated_definitions": [
+    "soft.fixslice.ror_distance",
+    "soft.fixslice.ror",
+    "soft.fixslice.rotate_rows_2",
+    "soft.fixslice.rotate_rows_1",
+    "soft.fixslice.mix_columns_0"
+  ],
+  "modeled_std_functions": [
+    "core::num::{impl}::rotate_right"
+  ],
+  "modeled_std_types": [],
+  "discarded_metadata_types": [],
+  "forbidden_generated_namespaces": [
+    "core.fmt",
+    "core.clone",
+    "core.num.niche",
+    "core.iter.adapters"
+  ],
+  "expected_body_regular_function_ids": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "scope_note": "Unchanged portable64-bit AES forward linear operation. Four16byte inputs are encoded into actual8word bitplane state; all512 input bits are secret. ShiftRows additionally has explicit shape-error lemmas."
+}

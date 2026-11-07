@@ -1,0 +1,357 @@
+[
+  {
+    "path": [
+      "translated",
+      "ordered_decls"
+    ],
+    "before": [
+      {
+        "TraitDecl": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 21
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 20
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 15
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 16
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 291
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 2
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 292
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 11
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 290
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 10
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 9
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 14
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 263
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 289
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 288
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 287
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 286
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 285
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 284
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 10
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 262
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 8
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 11
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 3
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 264
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 3
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 6
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 5
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 5
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 6
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 7
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 12
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 8
+        }
+      }
+    ],
+    "after": [
+      {
+        "TraitDecl": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 21
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 20
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 15
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 16
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 291
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 2
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 292
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 11
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 290
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 9
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 14
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 263
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 289
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 288
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 287
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 286
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 285
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 284
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 10
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 262
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 8
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 3
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 264
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 2
+        }
+      }
+    ]
+  }
+]

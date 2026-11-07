@@ -1,0 +1,83 @@
+{
+  "cases": [
+    {
+      "one_time": false,
+      "case": "valid",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": false,
+      "case": "wrong-tag",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": false,
+      "case": "kem-abort",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": false,
+      "case": "validation0",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": false,
+      "case": "validation1",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": false,
+      "case": "null-dh",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "valid",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "wrong-tag",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "kem-abort",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "validation0",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "validation1",
+      "initiator_recipient_match": true
+    },
+    {
+      "one_time": true,
+      "case": "null-dh",
+      "initiator_recipient_match": true
+    }
+  ],
+  "numeric_dh_evaluations": 84,
+  "source_sha256": {
+    "SignalReference/PqxdhKemWork/check_adapter.py": "bb94238d77641c27567fbf65dd3d12aa26999f73c86a747c163285a56486f3a5",
+    "SignalReference/PqxdhKemWork/adapter.py": "501ce5abefcad1fde82034c4a2de9ca0060ddf0e8f59d67a0565e058ce57807b",
+    "SignalReference/MlKemWork/adapter.py": "b014f11aae1c24bee22d6d07ede3875223031f988c91c8fdca3cdaae03faca7e",
+    "SignalReference/PqxdhWork/check.py": "a4e992d380ab28347deacf377890af70603a8db285948bb9f554fc9cdd365236",
+    "SignalReference/PqxdhWork/Artifacts/Export/signal-dh-field.json": "8457267f59a124bfdadd377093ead232a346124373b4057db2ae041f190edeed",
+    ".deps/signal-kem-wire-artifacts/signal-kem-wire-encapsulate-kyber1024.json": "116bfc655877dbdd5c76b57957f92588338d645a7e84d51d4062c4876b705ae5",
+    ".deps/signal-kem-wire-artifacts/signal-kem-wire-decapsulate-kyber1024.json": "03b9eecc7552b17f14471c6cd8712aeaefb38bb75fd37f6a40ebe7f150001b67",
+    "SignalReference/PqxdhWork/Artifacts/Export/signal-pqxdh-none.json": "954b19ff91aca9ed98125737e3306e18c9ef5934e81016b20a0f4c34fea254cc",
+    "SignalReference/PqxdhWork/Artifacts/Export/signal-pqxdh-present.json": "e60ed0b74535b8f70ed98b812cddb5a8acfcd10f78e929af7482f830c88dea11",
+    "SignalReference/MlKemPkeWork/Oracle/src/main.rs": "88b374853eb649d2262e2b021094fde87fcfa52c7954fd89f5c4dc9165d45722"
+  },
+  "all_outputs_match": true,
+  "kem_stage": "native pinned Rust fixture boundary; full numeric stage independently checked in MlKemWork/adapter-report.json",
+  "numeric_wire_and_kdf_executed": true,
+  "native_mpc_executed": false,
+  "identity_prekey_validation_implemented": false,
+  "signature_validation_status_is_explicit_shared_input": true
+}

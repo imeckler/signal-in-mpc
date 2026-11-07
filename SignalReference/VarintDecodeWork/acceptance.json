@@ -1,0 +1,23 @@
+{
+  "accepted_reference": true,
+  "accepted_scope": "Actual decode_varint, unchanged loop/body, success/error and absolute cursor, prefix/shared-offset AIG bridges.",
+  "spqr_commit": "06959b4708f9b7b1e94d0f8cc835f3958c077e94",
+  "author": "/root/signal_astra_high/decoder_reference",
+  "reviewer": "/root/signal_astra_high",
+  "proof_report": "SignalReference/VarintDecodeWork/proof-report.json",
+  "proof_report_sha256": "67e7e0139e5bbc25b4f2ef3e1e189a423d162c972ff5ca9cba53a248ac93175c",
+  "independent_review": "SignalReference/SpqrDecodeReview/review.json",
+  "independent_review_sha256": "a4c5655c315edacf8dd858db26588665808e220265162a0364c16c80563b7b3c",
+  "checked_endpoints": 19,
+  "actual_operation_domain": "Every official Slice U8 and every Usize start, including starts at or past end; no success or canonicality assumption.",
+  "artifact_domain": "Shared bytes evaluate to the Slice; shared offset evaluates to eight-byte big-endian Usize. Every exported AIG output bit equals actual result encoding.",
+  "prefix_theorem": "LibSignalReference.Candidate.VarintDecode.decode_refines_artifact",
+  "offset_theorem": "LibSignalReference.Candidate.VarintDecode.decode_at_refines_artifact",
+  "llbc_preprocessing": [],
+  "custom_standard_models": [],
+  "custom_axioms": [],
+  "rust_source_changes": [],
+  "full_message_parser_refinement": false,
+  "full_spqr_state_machine_refinement": false,
+  "note": "Author report intentionally retains accepted_reference:false; this separate independent record accepts only stated decoder scope."
+}

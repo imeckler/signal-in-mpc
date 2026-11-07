@@ -1,0 +1,122 @@
+[  1%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Circuit/BetaCircuit.cpp.o
+[  1%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Circuit/BetaLibrary.cpp.o
+[  3%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Circuit/MxCircuit.cpp.o
+[  3%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Circuit/MxBit.cpp.o
+[  5%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/BitVector.cpp.o
+[  5%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Circuit/MxCircuitLibrary.cpp.o
+[  6%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/CLP.cpp.o
+[  6%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/CuckooIndex.cpp.o
+[  7%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/Defines.cpp.o
+[  8%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/Log.cpp.o
+[  9%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/TestCollection.cpp.o
+[ 10%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/Timer.cpp.o
+[ 11%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Common/block.cpp.o
+[ 12%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/AES.cpp.o
+[ 13%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/Blake2.cpp.o
+[ 13%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/PRNG.cpp.o
+[ 14%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/RCurve.cpp.o
+[ 15%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/Rijndael256.cpp.o
+[ 16%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/SodiumCurve.cpp.o
+[ 17%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2b-ref.cpp.o
+[ 18%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2bp-ref.cpp.o
+[ 19%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2s-ref.cpp.o
+[ 20%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2sp-ref.cpp.o
+[ 20%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2xb-ref.cpp.o
+[ 21%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/c/blake2xs-ref.cpp.o
+[ 22%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/sse/blake2b.cpp.o
+[ 23%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/sse/blake2bp.cpp.o
+[ 25%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Crypto/blake2/sse/blake2xb.cpp.o
+[ 25%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/Channel.cpp.o
+[ 25%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/IoBuffer.cpp.o
+[ 26%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/IOService.cpp.o
+[ 28%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/Session.cpp.o
+[ 28%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/SocketAdapter.cpp.o
+[ 29%] Building CXX object cryptoTools/cryptoTools/CMakeFiles/cryptoTools.dir/Network/TLS.cpp.o
+[ 30%] Linking CXX static library libcryptoTools.a
+[ 30%] Built target cryptoTools
+[ 31%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/AES_Tests.cpp.o
+[ 31%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Base/MasnyRindal.cpp.o
+[ 32%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Base/MasnyRindalKyber.cpp.o
+[ 33%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Base/SimplestOT.cpp.o
+[ 34%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/BtChannel_Tests.cpp.o
+[ 35%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Circuit_Tests.cpp.o
+[ 36%] Building CXX object libOTe/CMakeFiles/libOTe.dir/NChooseOne/Kkrt/KkrtNcoOtReceiver.cpp.o
+[ 37%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Circuit_aes_Tests.cpp.o
+[ 38%] Building CXX object libOTe/CMakeFiles/libOTe.dir/NChooseOne/Kkrt/KkrtNcoOtSender.cpp.o
+[ 39%] Building CXX object libOTe/CMakeFiles/libOTe.dir/NChooseOne/NcoOtExt.cpp.o
+[ 40%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Common.cpp.o
+[ 40%] Building CXX object libOTe/CMakeFiles/libOTe.dir/NChooseOne/Oos/OosNcoOtReceiver.cpp.o
+[ 41%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Cuckoo_Tests.cpp.o
+[ 42%] Building CXX object libOTe/CMakeFiles/libOTe.dir/NChooseOne/Oos/OosNcoOtSender.cpp.o
+[ 43%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/EACode/EAChecker.cpp.o
+[ 44%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Misc_Tests.cpp.o
+[ 45%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/MxCircuit_Tests.cpp.o
+[ 46%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/ExConvCode/ExConvChecker.cpp.o
+[ 46%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/REcc_Tests.cpp.o
+[ 47%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/Rijndael256_Tests.cpp.o
+[ 48%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/SimpleCuckoo.cpp.o
+[ 49%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/UnitTests.cpp.o
+[ 50%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/ExConvCode/ExConvCode.cpp.o
+[ 51%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/WolfSSL_Tests.cpp.o
+[ 52%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/ExConvCodeOld/ExConvCodeInstantiations.cpp.o
+[ 53%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/block_Tests.cpp.o
+[ 54%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/ExConvCodeOld/ExConvCodeOld.cpp.o
+[ 55%] Building CXX object cryptoTools/tests_cryptoTools/CMakeFiles/tests_cryptoTools.dir/cmakeTests/main.cpp.o
+[ 56%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/LDPC/Mtx.cpp.o
+[ 57%] Linking CXX static library libtests_cryptoTools.a
+[ 57%] Built target tests_cryptoTools
+[ 57%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/LDPC/Util.cpp.o
+[ 58%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/LinearCode.cpp.o
+[ 59%] Building CXX object cryptoTools/frontend_cryptoTools/CMakeFiles/frontend_cryptoTools.dir/Tutorials/Network.cpp.o
+[ 60%] Building CXX object cryptoTools/frontend_cryptoTools/CMakeFiles/frontend_cryptoTools.dir/main.cpp.o
+[ 61%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/Pprf/RegularPprf.cpp.o
+[ 62%] Building CXX object cryptoTools/frontend_cryptoTools/CMakeFiles/frontend_cryptoTools.dir/signalHandle.cpp.o
+[ 62%] Linking CXX executable frontend_cryptoTools
+ld: warning: ignoring duplicate libraries: '../cryptoTools/libcryptoTools.a'
+[ 62%] Built target frontend_cryptoTools
+[ 63%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/Tools.cpp.o
+[ 64%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/TungstenCode/TungstenData.cpp.o
+[ 65%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Tools/bitpolymul.cpp.o
+[ 66%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Triple/Foleage/FoleageTriple.cpp.o
+[ 67%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Triple/SilentOtTriple/SilentOtTriple.cpp.o
+[ 67%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/ConfigureCode.cpp.o
+[ 68%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/Kos/KosOtExtReceiver.cpp.o
+[ 69%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/Kos/KosOtExtSender.cpp.o
+[ 70%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/KosDot/KosDotExtReceiver.cpp.o
+[ 71%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/KosDot/KosDotExtSender.cpp.o
+[ 72%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/OTExtInterface.cpp.o
+[ 73%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/Silent/SilentOtExtReceiver.cpp.o
+[ 73%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/Silent/SilentOtExtSender.cpp.o
+[ 74%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/SoftSpokenOT/SoftSpokenMalOtExt.cpp.o
+[ 75%] Building CXX object libOTe/CMakeFiles/libOTe.dir/TwoChooseOne/SoftSpokenOT/SoftSpokenShOtExt.cpp.o
+[ 76%] Building CXX object libOTe/CMakeFiles/libOTe.dir/Vole/SoftSpokenOT/SmallFieldVole.cpp.o
+[ 77%] Linking CXX static library liblibOTe.a
+[ 77%] Built target libOTe
+[ 79%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/BaseOT_Tests.cpp.o
+[ 79%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/bitpolymul_Tests.cpp.o
+[ 80%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Common.cpp.o
+[ 80%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/EACode_Tests.cpp.o
+[ 81%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/ExConvCode_Tests.cpp.o
+[ 82%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/NcoOT_Tests.cpp.o
+[ 83%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/OT_Tests.cpp.o
+[ 84%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Pprf_Tests.cpp.o
+[ 85%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Dpf_Tests.cpp.o
+[ 86%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/SilentOT_Tests.cpp.o
+[ 87%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/SoftSpoken_Tests.cpp.o
+[ 87%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/TungstenCode_Tests.cpp.o
+[ 88%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/UnitTests.cpp.o
+[ 89%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Vole_Tests.cpp.o
+[ 90%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Foleage_Tests.cpp.o
+[ 91%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/Permutation_Tests.cpp.o
+[ 92%] Building CXX object libOTe_Tests/CMakeFiles/libOTe_Tests.dir/BlkAccCode_Tests.cpp.o
+[ 93%] Linking CXX static library liblibOTe_Tests.a
+[ 93%] Built target libOTe_Tests
+[ 95%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/ExampleBase.cpp.o
+[ 95%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/ExampleNChooseOne.cpp.o
+[ 96%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/ExampleSilent.cpp.o
+[ 97%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/ExampleTwoChooseOne.cpp.o
+[ 98%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/ExampleVole.cpp.o
+[ 99%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/main.cpp.o
+[100%] Building CXX object frontend/CMakeFiles/frontend_libOTe.dir/util.cpp.o
+[100%] Linking CXX executable frontend_libOTe
+[100%] Built target frontend_libOTe

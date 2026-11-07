@@ -1,0 +1,19 @@
+import TlsMpc.Signal.Keccak
+#print axioms TlsMpc.Signal.Keccak.evaluationHom
+#print axioms TlsMpc.Signal.Keccak.stateBytes_length
+#print axioms TlsMpc.Signal.Keccak.squeeze_length
+#print axioms TlsMpc.Signal.Keccak.hash_length
+#print axioms TlsMpc.Signal.Keccak.getD_map
+#print axioms TlsMpc.Signal.Keccak.get_map
+#print axioms TlsMpc.Signal.Keccak.column_map
+#print axioms TlsMpc.Signal.Keccak.round_map
+#print axioms TlsMpc.Signal.Keccak.rounds_map
+#print axioms TlsMpc.Signal.Keccak.permute_map
+#print axioms TlsMpc.Signal.Keccak.lane_map
+#print axioms TlsMpc.Signal.Keccak.absorbBlock_map
+#print axioms TlsMpc.Signal.Keccak.absorb_map
+#print axioms TlsMpc.Signal.Keccak.stateBytes_map
+#print axioms TlsMpc.Signal.Keccak.squeeze_map
+#print axioms TlsMpc.Signal.Keccak.padded_map
+#print axioms TlsMpc.Signal.Keccak.hash_map
+#print axioms TlsMpc.Signal.Keccak.compiled_hash_correct

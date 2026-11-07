@@ -1,0 +1,11 @@
+{
+  "strict_audit_passed": false,
+  "observed_first_rejected_endpoint": "LibSignalReference.Candidate.SliceAdvance.panic_exact",
+  "additional_type_axiom": "Aeneas.Std.core.fmt.Formatter",
+  "type_axiom_source": ".deps/aeneas-2026-08-27/backends/lean/Aeneas/Std/Core/Fmt.lean:13",
+  "source_or_models_modified_to_hide_dependency": false,
+  "sha256": {
+    "strict-check.py": "9473236de45f7d1c3bdefeef5ae2eba94fe4dd5d415ae159b3b4032439aa8c7a",
+    "strict-axiom-report.txt": "876dc49c42eb5846915a6b4585267f85fb9223c1cda3feceb46a20ff4531fdc6"
+  }
+}

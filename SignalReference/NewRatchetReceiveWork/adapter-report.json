@@ -1,0 +1,30 @@
+{
+  "public_composition_cases": [
+    "counter-0",
+    "counter-2",
+    "bad-mac-0",
+    "presence-1",
+    "unclamped-entropy"
+  ],
+  "field_dag_evaluations": 15,
+  "source_sha256": {
+    "SignalReference/NewRatchetReceiveWork/check_adapter.py": "c682da8fe0e4b553424a804f65a24e6e666dc2e19b47921776339be9e40f364a",
+    "SignalReference/NewRatchetReceiveWork/adapter.py": "7bae191b743fade6043e246a2f2d91949ba1665a04fe453c34bdb9b7599306fb",
+    "SignalReference/NewRatchetReceiveWork/program.mpc": "d335bc8903ad464a424ff91fbc1480bbed23e69f55910d65d3655044dbed7a48",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "scripts/check_lean_signal_new_ratchet_receive.py": "37973d8480000b22477428dad88cb1850b3c1f0aa21fa660aa08c58113e9eb46",
+    ".deps/signal-dh-ratchet-artifacts/signal-dh-field.json": "8af462514d40d4cf18e8a89834822df1cae2d677d6263238c29cee285557b17f",
+    ".deps/signal-new-ratchet-receive-artifacts/signal-new-ratchet-receive-2-2-96.json": "d2849dc9bb239817d9e33f51b719d29e61bafafdde7b3c38d2deeb2ff2c0e7ca"
+  },
+  "all_outputs_match": true,
+  "native_mpc_executed": false,
+  "mixed_compiler_executed": false,
+  "joint_randomness_runtime_tested": false,
+  "remaining": [
+    "retained-chain selection",
+    "persistent atomic commit",
+    "SPQR evolution",
+    "native security/runtime audit"
+  ]
+}

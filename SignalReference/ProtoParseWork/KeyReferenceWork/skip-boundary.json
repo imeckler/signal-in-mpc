@@ -1,0 +1,22 @@
+{
+  "original_sha256": "329cf546c014e6f6c81b2660048676ec896aa3a48a1f787121979fc98b44322d",
+  "selected_sha256": "2a60aea4aa2dcc4defaaa9e88424756c85dfa0bd8ac537d2c6201b5cecce5314",
+  "changes_sha256": "971e077fa22be4d85b5d1d4b853b0d54da6bf3bf5660e5838324bc369b4bc4e6",
+  "script_sha256": "3902f87fb7b5b94b12dc4fe406878f33468f8e19a159093cfcef261590ad16a5",
+  "reversible_changes": 7,
+  "trait_id": 13,
+  "impl_id": 26,
+  "removed_opaque_functions": [
+    311,
+    315
+  ],
+  "retained_computational_bodies_identical": 15,
+  "no_retained_semantic_references_to_removed_slots": true,
+  "retranslation_matched": true,
+  "aeneas_exit_code": 1,
+  "proof_reference": false,
+  "compiled_or_imported": false,
+  "blocker": "Early returns inside of loops are not supported yet",
+  "source": "prost0.14.4/src/encoding.rs:166-199",
+  "consequence": "Aeneas ignores the entire skip_field body, including scalar branches. Partial generated files are provenance artifacts only. No actual scalar/group skip proof claimed."
+}

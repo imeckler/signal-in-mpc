@@ -1,0 +1,12 @@
+{
+  "independent_post_proof_review": true,
+  "reviewer": "/root/signal_lean_aeneas",
+  "checks_passed": true,
+  "kernel_proof_report_sha256": "188b09f85d7718ba7e7efd9831fe7e540c38dc4a9c28e637622eb4b89006f9b2",
+  "source_closure_hashes_verified": 51,
+  "standard_only_endpoints": 14,
+  "endpoints_with_existing_formatter_type_constant": 6,
+  "accepted_reference": false,
+  "remaining_scope_decision": "Existing noncomputational Formatter : Type dependence; no computational opaque function or custom axiom added.",
+  "independent_patch_review_unchanged": "5eaf053aafe8030f98eb99fc0579629bd28770b57fbec7398f057a80a47d0777"
+}

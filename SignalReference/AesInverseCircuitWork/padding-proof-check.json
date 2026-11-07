@@ -1,0 +1,75 @@
+{
+  "checked_at_utc": "2026-11-07T05:23:45.206395+00:00",
+  "kind": "actual_rust_unpadding_receive_result_composition",
+  "source_sha256": {
+    "SignalReference/AesInverseCircuitWork/PaddingBridge.lean": "9fa5d5e2c8f41edb13d298fbbb94664facd6edfec764cc6d950f50f916b6d54c",
+    "SignalReference/AesInverseCircuitWork/LengthEncoding.lean": "f28ffab1e602dac8340f4d27bc0ddd621747b615f85cbde1aab3ce7e5d95fc41",
+    "SignalReference/AesInverseCircuitWork/PaddingChecks.lean": "69b6530c79eb98a22a49e1eea3e32b1a29a7242f506215d9f440701907364638",
+    "SignalReference/AesInverseCircuitWork/check_padding.py": "54f8ce929fdf339c4419090cede971d762a7bdcc232e6605bbde6cb19fedd2aa",
+    ".deps/run-signal-lean.py": "268f49806e45b9007def21757d3c1d47db3db163830db47667771eac0e8b737e",
+    "SignalReference/Extraction/pkcs7_unpad_selected.json": "a339cb5bbf5320c4f7ef6fd1f80a537f4dc9c16545124963dd604c0c7cf29065",
+    "SignalReference/Extraction/libsignal_pkcs7_unpad_selected.llbc": "74f5cd9d192e5edaeae97bcf8cb500aee473b0769a989b2a27ec276312aeea34",
+    "SignalReference/pins.json": "aaed813ffdd5f57329298e0bcbb5cf300af4cc92538dc4be37bde6655ba1e712",
+    "SignalReference/Extraction/unpad-review.json": "fbf6efa8e2409a1cd4250ccbe21cfa103e99029a8d06bac6b25ad96f6aef932c",
+    "SignalReference/Extraction/unpad-sysroot-provenance.json": "d2999eca5b6bce177a0f3002cd7ae631417d7a64b79c68bdf5749519c57b7fa6",
+    "SignalReference/LibSignalReference/Proofs/UnpadReference.lean": "52fc3aac03f670ebf83b03fa3d4d8087e5ffef56d420f70d586f44efdb1c27c4",
+    "SignalReference/LibSignalReference/Proofs/Unpad.lean": "279ae1dc31898a9d62a31126b0332b05d9acfca94f77b95e1f0db66fabc24228",
+    "SignalReference/LibSignalReference/Generated/Unpadding/Funs.lean": "140b638a8eb8a192cb9cffd495d946318f15acce6a912a9035a4c95747f49ade",
+    "SignalReference/LibSignalReference/Generated/Unpadding/Types.lean": "afbbb76200ccd73d69d681568c18232843e39788c7c0c6a9352e48dec73dc30b",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94"
+  },
+  "reference_profile": "SignalReference/Extraction/pkcs7_unpad_selected.json",
+  "checked_theorems": 13,
+  "theorems": [
+    "LibSignalReference.Proofs.OpenResult.expected16_retained_length",
+    "LibSignalReference.Proofs.OpenResult.finish_split",
+    "LibSignalReference.Proofs.OpenResult.encodeResult_reject_auth",
+    "LibSignalReference.Proofs.OpenResult.finish_expected",
+    "LibSignalReference.Proofs.OpenResult.finish_reference",
+    "LibSignalReference.Proofs.OpenResult.finish_reference_length",
+    "LibSignalReference.Proofs.OpenResult.finish_reject_reference",
+    "LibSignalReference.Proofs.OpenResult.finish_refines_artifact",
+    "LibSignalReference.Proofs.OpenResult.encodeLength_roundtrip",
+    "LibSignalReference.Proofs.OpenResult.encodeResult_length_prefix",
+    "LibSignalReference.Proofs.OpenResult.encodeResult_retained_length",
+    "LibSignalReference.Proofs.OpenResult.actual_retained_length_bound",
+    "LibSignalReference.Proofs.OpenResult.finish_retained_length"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "axiom_report_sha256": "eaf160f6ad0325f08802f2dbdcdb509d9a955f7ccbaaf3c648d570bfdbae7102",
+  "domain": {
+    "leading_bytes": "Arbitrary list; includes any public number of full CBC blocks",
+    "final_block_bytes": 16,
+    "authentication_masks": [
+      0,
+      255
+    ],
+    "strict_padding": true,
+    "output_bytes": "9 + leading.length + 16",
+    "accepted_length_encoding": "Eight secret big-endian bytes",
+    "length_lossless_bound": "leading.length + 16 < 2^64",
+    "rejection": "Status, length and all candidate bytes are zero"
+  },
+  "numeric_compilation_refinement": true,
+  "actual_reference_result_and_errors_preserved": true,
+  "trust_boundary": [
+    "Pinned Rust/Charon/Aeneas extraction and accepted official standard models",
+    "Native serialization, generic backend adapter and MPC backend remain unverified"
+  ],
+  "not_claimed": [
+    "Actual RustCrypto CBC or inverse-AES wrapper equivalence",
+    "Authentication computation correctness from a supplied mask",
+    "Native MPC execution or network performance"
+  ],
+  "native_mpc_executed": false
+}

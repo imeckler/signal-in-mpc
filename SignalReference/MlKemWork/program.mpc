@@ -1,0 +1,36 @@
+# Staged same-VM KEM harness: five-party XOR-shared keys/ciphertexts and
+# fresh joint daBit entropy. Every result bit remains in secret memory.
+# Compile with -M and the reviewed mixed backend configuration; no runtime claim.
+program.unlimited_compilation()
+import json
+from pathlib import Path
+from Compiler.GC.types import sbit
+from SignalReference.MlKemWork.adapter import MlKem
+from SignalReference.MlKemWork.artifacts import Registry
+from handshake_backend import mixed
+variant,mode,manifest_path=program.args[1:4]
+rank={'mlkem512':2,'mlkem768':3,'mlkem1024':4,'kyber1024':4}[variant]
+du,dv=(11,5) if rank==4 else (10,4)
+
+def shared_bytes(length):
+    bits=[]
+    for _ in range(8*length):
+        bit=sbit.get_input_from(0)
+        for party in range(1,5):bit=bit^sbit.get_input_from(party)
+        bits.append(bit)
+    return bits
+
+def joint_bytes(length):
+    sint,_,check_point,_=mixed._runtime()
+    bits=[sint.get_dabit()[1] for _ in range(8*length)]
+    check_point()
+    return bits
+
+if mode=='keygen':raw=joint_bytes(64)
+elif mode=='encapsulate':raw=shared_bytes(384*rank+32)+joint_bytes(32)
+elif mode=='decapsulate':raw=shared_bytes(768*rank+96+32*(du*rank+dv))
+else:raise ValueError('operation')
+zero=raw[0]^raw[0];one=zero^1
+registry=Registry(json.loads(Path(manifest_path).read_text()),zero,one)
+output=getattr(MlKem(variant,registry,zero,one),mode)(raw)
+for index,bit in enumerate(output):bit.store_in_mem(index)

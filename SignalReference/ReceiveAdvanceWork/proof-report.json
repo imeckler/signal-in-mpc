@@ -1,0 +1,198 @@
+{
+  "checked_at_utc": "2026-11-07T18:48:24.343012+00:00",
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/rust/protocol/src/consts.rs": "29616bfbbecc1bc9ff17ae9f2787843d20fc4c7409d13572ec251c9080384f29",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/double_ratchet.rs": "b3be5c8ae7a2333178f393b4aa74f6d33880f70f91d075e79459be0859c2eb2f",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/ratchet/keys.rs": "427f147ba73edd0f84ccbc8c7437069dee18cc7456fe1031061deb6f6b76e750",
+    ".deps/libsignal-v0.106.1.tar.gz": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+    "SignalReference/ReceiveAdvanceWork/Checks.lean": "89017d3e604940a07a0f42f668b4274be60f67e9a4b8b31b1d5962f9640d3a04",
+    "SignalReference/ReceiveAdvanceWork/Export.lean": "50bec9fc97d912be02a7c6b7d3f66f1cbb5177579bc64c136db290d2063c2e41",
+    "SignalReference/ReceiveAdvanceWork/check.py": "a6c91d261554c44988addd05a78416a4f7aedd9835ad974048a1470e862ef1f1",
+    "SignalReference/ReceiveAdvanceWork/lake-manifest.json": "a23e97f879afa58794c1b4280f7ae693d43d6378e6129b04a7d2ea81e12cd4a4",
+    "SignalReference/ReceiveAdvanceWork/lakefile.toml": "df44710f5f52d7af94ec0cbd08a90df0a94db3d4240afa12f391427760ee53f1",
+    "SignalReference/ReceiveAdvanceWork/lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee",
+    "SignalReference/pins.json": "aaed813ffdd5f57329298e0bcbb5cf300af4cc92538dc4be37bde6655ba1e712",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/ReceiveAdvance.lean": "bb96c27f8eeae90eedac82c88e89e714a2c4e3ab93e17134ad1bac2a1dfb8d98",
+    "TlsMpc/Signal/SkippedKeys.lean": "953d4dc12a8831de1e26ee5fa0352918df3db003e924acbd2310a54eb502c07f",
+    "TlsMpc/Signal/Symmetric.lean": "cba028d5a50bc624ff4113f731727a9f7090093de159857b7013913890ba4a98",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/TlsKdf.lean": "fcc69c0446bb946afbb69a8707a417fc79febf0af95882d9ed7b2938393346f3",
+    "TlsMpc/TlsKdfPrepared.lean": "c0510ddb171dd77491c6917fee9c01d976bbad0d613e3d6fd15996927c378182",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "checked_endpoints": 32,
+  "theorems": [
+    "TlsMpc.Signal.ReceiveAdvance.chainStep_correct",
+    "TlsMpc.Signal.ReceiveAdvance.choose_accept",
+    "TlsMpc.Signal.ReceiveAdvance.choose_reject",
+    "TlsMpc.Signal.ReceiveAdvance.scan_length",
+    "TlsMpc.Signal.ReceiveAdvance.advance_length",
+    "TlsMpc.Signal.ReceiveAdvance.failed_auth_preserves",
+    "TlsMpc.Signal.ReceiveAdvance.committed_length",
+    "TlsMpc.Signal.ReceiveAdvance.bytes_length",
+    "TlsMpc.Signal.ReceiveAdvance.failed_candidate_preserves",
+    "TlsMpc.Signal.ReceiveAdvance.authenticated_hit_commits",
+    "TlsMpc.Signal.ReceiveAdvance.wordBytes_eq",
+    "TlsMpc.Signal.ReceiveAdvance.wordEqual_value",
+    "TlsMpc.Signal.ReceiveAdvance.counterMask_value",
+    "TlsMpc.Signal.ReceiveAdvance.scan_inactive",
+    "TlsMpc.Signal.ReceiveAdvance.scan_spec",
+    "TlsMpc.Signal.ReceiveAdvance.advance_spec",
+    "TlsMpc.Signal.ReceiveAdvance.counter_lt_max",
+    "TlsMpc.Signal.ReceiveAdvance.increment_toNat",
+    "TlsMpc.Signal.ReceiveAdvance.scanSpec_found_iff",
+    "TlsMpc.Signal.ReceiveAdvance.advance_found_iff",
+    "TlsMpc.Signal.ReceiveAdvance.wordBytes_map",
+    "TlsMpc.Signal.ReceiveAdvance.listBytes_map",
+    "TlsMpc.Signal.ReceiveAdvance.choose_map",
+    "TlsMpc.Signal.ReceiveAdvance.rejected_map",
+    "TlsMpc.Signal.ReceiveAdvance.chainStep_map",
+    "TlsMpc.Signal.ReceiveAdvance.scan_map",
+    "TlsMpc.Signal.ReceiveAdvance.advance_map",
+    "TlsMpc.Signal.ReceiveAdvance.commit_map",
+    "TlsMpc.Signal.ReceiveAdvance.committed_map",
+    "TlsMpc.Signal.ReceiveAdvance.bytes_map",
+    "TlsMpc.Signal.ReceiveAdvance.compiled_advance_correct",
+    "TlsMpc.Signal.ReceiveAdvance.compiled_committed_correct"
+  ],
+  "allowed_foundational_axioms": [
+    "Classical.choice",
+    "Quot.sound",
+    "propext"
+  ],
+  "custom_axioms": [],
+  "axiom_report_sha256": "8302a2d22450395a5787c36e99f58496ef64b224d4ed939396f0665ebdafbddd",
+  "native_exporter": "SignalReference/ReceiveAdvanceWork/.lake/build/bin/emit_receive_advance",
+  "native_exporter_sha256": "fd4346b658cdcb898f060c238fac28e53e9dfdf8d73da3db478c8e23714647d4",
+  "artifacts": [
+    {
+      "mode": "advance",
+      "max_jump": 0,
+      "capacity": 0,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-advance-0-0.json",
+      "artifact_sha256": "a380ff081011616698d513d7df4a7ef92f641ac35ff1ff768f2df77a719d7071",
+      "input_bits": 576,
+      "output_bits": 552,
+      "fixture_lanes": 55,
+      "adapter_operations": {
+        "raw_and_gates": 1000096,
+        "executed_and_gates": 311996,
+        "executed_xor_gates": 287285,
+        "unreachable_nodes": 400816
+      }
+    },
+    {
+      "mode": "committed",
+      "max_jump": 0,
+      "capacity": 0,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-committed-0-0.json",
+      "artifact_sha256": "6710658c0048ec5f62f88465393d05fe1ed601696a3e883dbd018e975ec117b6",
+      "input_bits": 584,
+      "output_bits": 552,
+      "fixture_lanes": 311,
+      "adapter_operations": {
+        "raw_and_gates": 1002376,
+        "executed_and_gates": 312548,
+        "executed_xor_gates": 287861,
+        "unreachable_nodes": 401968
+      }
+    },
+    {
+      "mode": "advance",
+      "max_jump": 0,
+      "capacity": 2,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-advance-0-2.json",
+      "artifact_sha256": "1fde9a0d8b5e7c15a947e5a222d6a8f1ab4c718869b8dc382f1220dbb7cf1bb3",
+      "input_bits": 1680,
+      "output_bits": 1656,
+      "fixture_lanes": 55,
+      "adapter_operations": {
+        "raw_and_gates": 1000096,
+        "executed_and_gates": 311996,
+        "executed_xor_gates": 287285,
+        "unreachable_nodes": 400816
+      }
+    },
+    {
+      "mode": "committed",
+      "max_jump": 0,
+      "capacity": 2,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-committed-0-2.json",
+      "artifact_sha256": "afc2625e4285b16429ecb0374d4ce0e2535e025ff453919f319b77fab38422f0",
+      "input_bits": 1688,
+      "output_bits": 1656,
+      "fixture_lanes": 311,
+      "adapter_operations": {
+        "raw_and_gates": 1002376,
+        "executed_and_gates": 312548,
+        "executed_xor_gates": 287861,
+        "unreachable_nodes": 401968
+      }
+    },
+    {
+      "mode": "advance",
+      "max_jump": 2,
+      "capacity": 2,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-advance-2-2.json",
+      "artifact_sha256": "820c6e9e25e9e3ee319c97501555d59de635ceb3e9e80ec5831c0f4b2f513fc4",
+      "input_bits": 1680,
+      "output_bits": 1656,
+      "fixture_lanes": 78,
+      "adapter_operations": {
+        "raw_and_gates": 3026487,
+        "executed_and_gates": 939306,
+        "executed_xor_gates": 869482,
+        "unreachable_nodes": 1217700
+      }
+    },
+    {
+      "mode": "committed",
+      "max_jump": 2,
+      "capacity": 2,
+      "artifact": "SignalReference/ReceiveAdvanceWork/Artifacts/signal-receive-committed-2-2.json",
+      "artifact_sha256": "2511fa6f2934e298f024a98ea54ab570ddeee6031d72b4053cd6b49f2556349e",
+      "input_bits": 1688,
+      "output_bits": 1656,
+      "fixture_lanes": 334,
+      "adapter_operations": {
+        "raw_and_gates": 3036495,
+        "executed_and_gates": 940962,
+        "executed_xor_gates": 872266,
+        "unreachable_nodes": 1223268
+      }
+    }
+  ],
+  "fixture_report_sha256": "c9ded79069b67c234fe3b6ea3f041a34bb45cb8dde422b4c97d9e82ba886b6ca",
+  "numeric_artifact_fixture_count": 1144,
+  "input_layout": "[auth1 for committed] || ratchetPublicKey32 || chainKey32 || currentCounterBE4 || targetCounterBE4 || slots69N",
+  "output_layout": "found255/0 || seed32 || nextChain32 || nextCounterBE4 || slots69N",
+  "slot_layout": "valid255/0 byte || ratchetPublicKey32 || counterBE4 || seed32; newest first; capacity public",
+  "public_boundary": "Mode, maxJump and capacity only; counters, keys, masks, slots, authentication and outputs remain shared.",
+  "eligibility": "current<=target<=current+maxJump and target<2^32-1. Never accepts wrapped counters. Next counter must fit u32.",
+  "transaction": "Only authentication255 and found255 commit; failure zeroes seed and preserves exact original chain, counter and slots.",
+  "rust_reference_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "rust_correspondence_review": {
+    "consume_message_key": "Forward path caches each intermediate message_keys(), advances chain, stores next chain past target, returns target message_keys().",
+    "chain_derivation": "keys.rs ChainKey: HMAC-SHA256(chain,01) message seed; HMAC-SHA256(chain,02) next key; index+1.",
+    "differences": [
+      "Public bounded maxJump, not full MAX_FORWARD_JUMPS=25000 or unrestricted self-session policy.",
+      "Fixed flat seed-only store, not full protobuf receiver chains or MAX_MESSAGE_KEYS=2000 storage.",
+      "Target=uint32.max is rejected explicitly; Rust next_chain_key uses index+1.",
+      "Authentication-gated commit is an added transaction boundary; no full decrypt or session persistence here.",
+      "Backward counters reject here; caller can route them to SkippedKeys lookup."
+    ]
+  },
+  "actual_rust_wrapper_equivalence": false,
+  "complete_session_or_persistence": false,
+  "backend_compiled": false,
+  "native_mpc_executed": false,
+  "trust_boundary": "Lean compiler/evaluation, HMAC specification and transaction theorems; native exporter/JSON/adapter unverified and checked by independent public fixtures."
+}

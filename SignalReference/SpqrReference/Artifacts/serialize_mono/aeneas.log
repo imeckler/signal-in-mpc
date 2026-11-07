@@ -1,0 +1,28 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/SpqrReference/Artifacts/serialize_mono/spqr.llbc
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//SpqrReference/Generated/serialize_mono/TypesExternal_Template.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//SpqrReference/Generated/serialize_mono/Types.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//SpqrReference/Generated/serialize_mono/FunsExternal_Template.lean
+Uncaught exception:
+  
+  (Failure Unexpected)
+
+Raised at Charon__TypesUtils.as_ident in file "charon-ml/src/TypesUtils.ml", line 36, characters 9-37
+Called from Aeneas__ExtractBase.ctx_compute_var_basename in file "extract/ExtractBase.ml", line 2050, characters 35-59
+Called from Aeneas__Extract.extract_tpat in file "extract/Extract.ml", line 361, characters 20-69
+Called from Charon__Collections.List.fold_left_link.fold in file "charon-ml/src/Collections.ml", line 104, characters 20-27
+Called from Aeneas__Extract.extract_adt_g_value.extract_as_tuple in file "extract/Extract.ml", lines 138-143, characters 8-26
+Called from Aeneas__Extract.extract_tpat in file "extract/Extract.ml", lines 372-373, characters 8-38
+Called from Aeneas__Extract.extract_lets.extract_let in file "extract/Extract.ml", line 1363, characters 22-77
+Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+Called from Aeneas__Extract.extract_lets in file "extract/Extract.ml", lines 1433-1435, characters 4-14
+Called from Aeneas__Extract.extract_fun_decl_gen in file "extract/Extract.ml", lines 2286-2287, characters 8-52
+Called from Aeneas__Translate.export_functions_group_scc.(fun) in file "Translate.ml", line 892, characters 14-71
+Called from Stdlib__List.iter in file "list.ml", line 112, characters 12-15
+Called from Aeneas__Translate.export_functions_group_scc in file "Translate.ml", line 906, characters 4-42
+Called from Stdlib__List.iter in file "list.ml", line 112, characters 12-15
+Called from Aeneas__Translate.export_functions_group in file "Translate.ml", line 990, characters 4-45
+Called from Aeneas__Translate.extract_definitions.(fun) in file "Translate.ml", line 1274, characters 10-29
+Called from Stdlib__List.iter in file "list.ml", line 112, characters 12-15
+Called from Aeneas__Translate.extract_file in file "Translate.ml", line 1428, characters 2-36
+Called from Aeneas__Translate.extract_translated_crate in file "Translate.ml", line 2094, characters 5-42
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37
