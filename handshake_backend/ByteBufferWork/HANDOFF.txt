@@ -1,0 +1,43 @@
+Worker 1 checkpoint completed, 2026-11-08 UTC
+
+Changed (new files only):
+- scripts/prepare_tls_byte_buffer_runtime.py
+- scripts/check_tls_byte_buffers.py
+- handshake_backend/ByteBufferWork/{Makefile,buffer_checks.cpp,README.txt,
+  serialized-buffer.patch,patch-provenance.json,HANDOFF.txt}
+- benchmarks/results/tls-byte-buffer-checks.json
+Raw logs are retained under benchmarks/results/raw/tls-byte-buffer/.
+
+Implemented isolated octetStream/FlexBuffer owned-capacity wiping, transactional
+allocation/replacement, safe shrink cursors, bit/copy preservation, and Exchanger
+send-pointer refresh after in-place growth. UBSan also required replacing fresh
+stream append pointer arithmetic with an integer capacity comparison.
+
+Validation:
+  python3 scripts/prepare_tls_byte_buffer_runtime.py
+  python3 scripts/check_tls_byte_buffers.py --build
+Final result: passed=true, native_mpc_executed=true.
+Final raw run: benchmarks/results/raw/tls-byte-buffer/f6f661f5c033ff18
+- ASan/UBSan harness: 12 observed zeroed releases, allocation-failure injection,
+  copy/bit/cursor/ownership transfer preservation, Hash::final shrink regression,
+  forced partial-send socket-pair exchange with larger incoming allocation.
+- Candidate field lifetimes: 975 slots, zero nonzero, 90 releases, 40 failures.
+- Hidden stack: 18,720 fields across widths 1..64.
+- Five parties all exit zero at capacities 6, 1029, 16385; router/output-share
+  reuse and authentication rejection pass; capacity 6 includes retained-scalar
+  X25519 reuse. Every candidate object/library was built in a fresh source tree.
+- Frozen checkpoints/preparation/check scripts have no git changes. Canonical
+  source hashes match before-patch provenance; canonical library is only read.
+
+Sanitizer boundary: buffer test plus exact candidate Tools/octetStream.cpp are
+sanitized in the test executable so macOS two-level dylib binding cannot bypass
+its allocation observers. Remaining candidate library is optimized normally.
+Initial failed logs 2366cf9a9cc20a1f exposed null arithmetic and observer binding;
+9c43beb7b713420a exposed the socket-pair test's need for explicit O_NONBLOCK on
+macOS. Its old driver was interrupted after the corrected final run completed.
+
+No live byte-buffer processes or exec handles remain (process inventory checked).
+No staging or commits performed. No application/retirement gates changed;
+sharing refresh stays paused. Not full erasure: live protocol/preprocessing,
+raw/bigint copies, PRNG/correlated state, failures/epochs and OS assumptions remain.
+Stop here for review; no automatic continuation.

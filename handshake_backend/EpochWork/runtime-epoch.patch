@@ -1,0 +1,226 @@
+--- a/Tools/random.h
++++ b/Tools/random.h
+@@ -45,6 +45,14 @@
+  */
+ class PRNG
+ {
++   class EraseOnExit
++   {
++     void* ptr; size_t size;
++   public:
++     EraseOnExit(void* ptr, size_t size) : ptr(ptr), size(size) {}
++     EraseOnExit(const EraseOnExit&) = delete;
++     ~EraseOnExit() { sodium_memzero(ptr, size); }
++   };
+    static const int N_CACHE = 10;
+    static const int RAND_SIZE = N_CACHE * CALL_SIZE;
+ 
+@@ -81,6 +89,26 @@
+ 
+    /// Construction without initialization. Usage without initialization will fail.
+    PRNG();
++   PRNG(const PRNG&) = default;
++   PRNG& operator=(const PRNG&) = default;
++   ~PRNG() { erase_state(); }
++
++   // Invalidation only. Correlated streams must be rebuilt collectively;
++   // never erase a live shared stream and then continue using it.
++   void erase_state() noexcept
++   {
++     sodium_memzero(seed, sizeof(seed));
++     sodium_memzero(state, sizeof(state));
++     sodium_memzero(random, sizeof(random));
++#ifdef USE_AES
++     sodium_memzero(KeyScheduleC, sizeof(KeyScheduleC));
++     sodium_memzero(KeySchedule, sizeof(KeySchedule));
++#endif
++     cnt = RAND_SIZE;
++     n_cached_bits = 0;
++     cached_bits = 0;
++     initialized = false;
++   }
+    /// Initialize with ``SEED_SIZE`` bytes from buffer.
+    PRNG(octetStream& seed);
+    /// Initialize with ``SEED_SIZE`` bytes from buffer.
+--- a/Tools/random.cpp
++++ b/Tools/random.cpp
+@@ -50,6 +50,7 @@
+ void PRNG::SeedGlobally(const PlayerBase& P, const vector<bool>& parties)
+ {
+   octet seed[SEED_SIZE];
++  EraseOnExit cleanup(seed, sizeof(seed));
+   Create_Random_Seed(seed, P, SEED_SIZE, parties);
+   SetSeed(seed);
+ }
+@@ -85,6 +86,7 @@
+ void PRNG::SetSeed(PRNG& G)
+ {
+   octet tmp[SEED_SIZE];
++  EraseOnExit cleanup(tmp, sizeof(tmp));
+   G.get_octets(tmp, sizeof(tmp));
+   SetSeed(tmp);
+ }
+@@ -101,6 +103,15 @@
+         throw runtime_error("seed is all zero");
+     }
+ 
++  // Reseeding must not return cached bits/random bytes from the old epoch.
++  sodium_memzero(random, sizeof(random));
++  sodium_memzero(state, sizeof(state));
++#ifdef USE_AES
++  sodium_memzero(KeyScheduleC, sizeof(KeyScheduleC));
++  sodium_memzero(KeySchedule, sizeof(KeySchedule));
++#endif
++  n_cached_bits = 0;
++  cached_bits = 0;
+   initialized = true;
+   #ifdef USE_AES
+      if (useC)
+@@ -147,9 +158,11 @@
+ void PRNG::hash()
+ {
+   int start = SMALL ? N_CACHE - 1 : 0;
+-  assert(initialized);
++  if (not initialized)
++    throw runtime_error("uninitialized PRNG");
+   #ifndef USE_AES
+     unsigned char tmp[RAND_SIZE + SEED_SIZE];
++    EraseOnExit cleanup(tmp, sizeof(tmp));
+     randombytes_buf_deterministic(tmp, sizeof tmp, seed);
+     memcpy(random, tmp, RAND_SIZE);
+     memcpy(seed, tmp + RAND_SIZE, SEED_SIZE);
+@@ -286,6 +299,7 @@
+   mpz_import(res.get_mpz_t(), n_words, -1, sizeof(word), -1, 0, bytes);
+   if (not positive and (get_bit()))
+     mpz_neg(res.get_mpz_t(), res.get_mpz_t());
++  sodium_memzero(words, n_words * sizeof(word));
+   delete[] words;
+ }
+ 
+--- a/Tools/Hash.cpp
++++ b/Tools/Hash.cpp
+@@ -21,11 +21,13 @@
+ 
+ Hash::~Hash()
+ {
++    sodium_memzero(state, sizeof(*state));
+     free(state);
+ }
+ 
+ void Hash::reset()
+ {
++    sodium_memzero(state, sizeof(*state));
+     crypto_generichash_init(state, 0, 0, crypto_generichash_BYTES);
+     size = 0;
+ }
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -75,6 +75,7 @@
+ 
+   bool use_encryption;
+   bool live_prep;
++  size_t worker_epoch = 0;
+ 
+   OnlineOptions opts;
+ 
+@@ -111,6 +112,11 @@
+   void run_step(const string& progname);
+   pair<DataPositions, NamedCommStats> stop_threads();
+ 
++  // Host-exclusive barrier. Destroy per-thread protocol/randomness/prep owners;
++  // the next checked run_function collectively creates fresh ones. Does not
++  // promise complete erasure of machine-global or externally retained storage.
++  void retire_worker_epoch();
++
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+ 
+--- a/Processor/Online-Thread.hpp
++++ b/Processor/Online-Thread.hpp
+@@ -55,7 +55,7 @@
+   fprintf(stderr, "\tI am in thread %d\n",num);
+ #endif
+   Player* player;
+-  string id = "thread" + to_string(num);
++  string id = "thread" + to_string(num) + "epoch" + to_string(machine.worker_epoch);
+   if (machine.use_encryption)
+     {
+ #ifdef VERBOSE_OPTIONS
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -548,6 +548,34 @@
+ }
+ 
+ template<class sint, class sgf2n>
++void Machine<sint, sgf2n>::retire_worker_epoch()
++{
++  // Validate before mutation. In particular, never consume someone else's job.
++  if (ThreadQueue::thread_queue or threads.empty() or
++      threads.size() != tinfo.size() or queues.size() != threads.size() or
++      not active_threads.empty())
++    throw runtime_error("epoch retirement requires initialized quiescent host");
++  for (size_t i = 0; i < threads.size(); ++i)
++    if (not queues[i] or not queues[i]->available() or not tinfo[i].processor)
++      throw runtime_error("epoch retirement requires joined jobs");
++  if (not live_prep or not opts.disk_memory.empty())
++    throw runtime_error("epoch renewal requires live prep and ordinary memory");
++  if (worker_epoch == size_t(-1))
++    throw runtime_error("worker epoch exhausted");
++  // stop_threads executes protocol checks before destroying each thread's
++  // complete Processor, preprocessing, MC, and Player ownership subtrees.
++  stop_threads();
++  ++worker_epoch;
++  tinfo.clear();
++  M2.resize_s(0); M2.resize_c(0);
++  Mp.resize_s(0); Mp.resize_c(0);
++  Mi.resize_s(0); Mi.resize_c(0);
++  bit_memories.MS.clear(); bit_memories.MC.clear();
++  // Host-owned FunctionArgument/output shares deliberately survive. Memory
++  // sizes and all protocol owners are rebuilt by prepare on the next call.
++}
++
++template<class sint, class sgf2n>
+ pair<DataPositions, NamedCommStats> Machine<sint, sgf2n>::stop_threads()
+ {
+   // only stop actually running threads
+--- a/Tools/octetStream.h
++++ b/Tools/octetStream.h
+@@ -75,8 +75,8 @@
+       }
+   }
+ 
+-  void set_length(size_t len) { end = data + len; }
+-  void set_max_length(size_t mxlen) { data_end = data + mxlen; }
++  void set_length(size_t len) { end = data ? data + len : nullptr; }
++  void set_max_length(size_t mxlen) { data_end = data ? data + mxlen : nullptr; }
+ 
+   public:
+ 
+--- a/Tools/FlexBuffer.h
++++ b/Tools/FlexBuffer.h
+@@ -125,7 +125,7 @@
+ {
+ 	del();
+ 	buf = (char*)os.get_data();
+-	ptr = (char*)os.get_data() + os.get_ptr();
++	ptr = os.get_data() ? (char*)os.get_data() + os.get_ptr() : nullptr;
+ 	len = os.get_length();
+ 	max_len = os.get_max_length();
+ 	os.reset();
+--- a/Networking/Exchanger.h
++++ b/Networking/Exchanger.h
+@@ -64,7 +64,13 @@
+       << 1e-3 * new_len << " KB, " << send_timer.elapsed() << " seconds and " << n_send
+       << " iterations to send " << 1e-3 * len << " KB" << endl;
+ #endif
+-        receive_stream.set_length(new_len);
++        // Allocation/read failures must not publish an out-of-range or
++        // partial message from a destructor during exception unwinding.
++        if (length_received and received == new_len and
++            (not send_socket or sent == len))
++          receive_stream.set_length(new_len);
++        else
++          receive_stream.reset_write_head();
+         receive_stream.reset_read_head();
+     }
+ 

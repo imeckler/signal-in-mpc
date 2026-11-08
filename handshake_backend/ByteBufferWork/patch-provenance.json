@@ -1,0 +1,37 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "layers": {
+    "handshake_backend/ScratchWork/vm-scratch.patch": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+    "handshake_backend/LifetimeWork/fixed-field-lifetime.patch": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19"
+  },
+  "patch_sha256": "d5d374a30698e82d897db7ae6c413150ca2f9e85dad0f5857d203c034b2b7600",
+  "script_sha256": "65fbbb49d5dcd4f8376f46bfb0dad5b5ad03c83cb67854e1e16f65480f50e8b2",
+  "files": {
+    "Tools/octetStream.h": {
+      "before": "6baba448a8e7ebfdf640d2ceffd77ba1b772ef833cef1d482207fc0d55835397",
+      "after": "3786431e412ad0ce7b0680618d361b6265821197d05fa04e53a8abdc000bac98"
+    },
+    "Tools/octetStream.cpp": {
+      "before": "8478b4cf271a0487ef7d5a7e014cba9528c6852c68ec9d8812e35d8151f51160",
+      "after": "eacea2c5957f78a1aaab3d9bed19ed71e9d48efcb50c408676b1385cb71de2e8"
+    },
+    "Tools/FlexBuffer.h": {
+      "before": "1ce3ecd762abebb921365dd9ce26d1fb5a5134a5d96fee9ec254f270217be3db",
+      "after": "25e0150340ac93951de25a918cbf5e24702e0a0b63f90301b1aa55cba4c04bb0"
+    },
+    "Networking/Exchanger.h": {
+      "before": "03db9ef90c156d3028f48cecd0fb563e1d5b0326ba4ff46ce5eee5b6465e3239",
+      "after": "f0bdfad6f3096fe3328e422a602e0d18e48fd39d9fc8eb86455126a87a6559f4"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false
+}

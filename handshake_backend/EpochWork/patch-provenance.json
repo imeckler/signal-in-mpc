@@ -1,0 +1,58 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "layers": {
+    "handshake_backend/ScratchWork/vm-scratch.patch": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+    "handshake_backend/LifetimeWork/fixed-field-lifetime.patch": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19",
+    "handshake_backend/ByteBufferWork/serialized-buffer.patch": "d5d374a30698e82d897db7ae6c413150ca2f9e85dad0f5857d203c034b2b7600"
+  },
+  "patch_sha256": "10707c8af974b176348eb79f4a4efafa984096831daacfc5d3a41bf708345547",
+  "script_sha256": "dfdcbd13d0963c8148e62672d349bc2cde4c1a02bea4ad6ebd9548b025ec3fbe",
+  "files": {
+    "Tools/random.h": {
+      "before": "6c49878e56256484f543166bb88419119688140188f1a08467329e6321d16989",
+      "after": "c88020eeb7a02c40b068163b4b55796cbc9de1d6fd169a5de47afd92f32c1fbc"
+    },
+    "Tools/random.cpp": {
+      "before": "2ae51e81e57dc4f1a005d597485b9fbc8e93fa8fa799615d555402cfe5a5ced9",
+      "after": "cb2eb54c1d2b1a643a2b95a64f4c6c20aeefbde8d1e0b935fe62baadbb386409"
+    },
+    "Tools/Hash.cpp": {
+      "before": "1d3c46b22ca3e3e90928ed4d8a2732241e2efa62e8bb7159abe5554d0833d571",
+      "after": "9527d11f47c009d44c125ee99b4822dc890047e9139ce781b5b4e231ac91bfb4"
+    },
+    "Processor/Machine.h": {
+      "before": "76ec13f9e338513af5ee02d832cba3d620e5932f332107357d89cf9723321085",
+      "after": "27fbddb2c3ee478fc786dddf5523b5a0410b96e2b0b335dda20e115adb3adfe9"
+    },
+    "Processor/Online-Thread.hpp": {
+      "before": "7aa214968c01e3396706fca1925b7f39e7adeb34d8960b840bc35fdc31504741",
+      "after": "5eeae6eddcfa7fe0552f33af695e31f7456120d494df4cd10c7a441c564c48d1"
+    },
+    "Processor/Machine.hpp": {
+      "before": "312558f2c8f540b9ead114ad1b66b31f987ec73edeb7b98700cd63e3a2a9ebf7",
+      "after": "e183705bff7203731698efde613ea6bee17d0df0cf86c76dd34f2274365053c4"
+    },
+    "Tools/octetStream.h": {
+      "before": "3786431e412ad0ce7b0680618d361b6265821197d05fa04e53a8abdc000bac98",
+      "after": "d9360033184587ac6adaa86a467a2d183678490bfc17deb95d9c6ae59fdb2156"
+    },
+    "Tools/FlexBuffer.h": {
+      "before": "25e0150340ac93951de25a918cbf5e24702e0a0b63f90301b1aa55cba4c04bb0",
+      "after": "c33fe50a1099a0d90e2821860340248fb61a945be62edb7ac19b72ba06d3ecdb"
+    },
+    "Networking/Exchanger.h": {
+      "before": "f0bdfad6f3096fe3328e422a602e0d18e48fd39d9fc8eb86455126a87a6559f4",
+      "after": "3a0a71c7ac2761185f3cc7c5eaeca399df704684fa353a9841195dddab451637"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false
+}
