@@ -1,0 +1,31 @@
+# Shared-register Signal producer. No inputs or outputs are opened here.
+program.set_security(128)
+# The full crypto function exceeds the compiler's internal five-minute timer.
+# The isolated preparation helper still enforces an external 900-second bound.
+program.unlimited_compilation()
+from pathlib import Path
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from handshake_backend import binary_io
+from signal_backend.shape import SendShape
+
+artifact_path = program.args[1]
+# The mode itself contains two hyphens; preserve it when parsing the filename.
+parts = Path(artifact_path).stem.split('-')
+if parts[:3] != ['signal', 'spqr', 'send']:
+    raise ValueError('invalid Signal producer artifact name')
+shape = SendShape(['signal-spqr-send', *parts[3:]])
+image = load(artifact_path)
+if image['name'] != 'signal-spqr-send' or image['input_bits'] != shape.input_bytes * 8 or len(image['outputs']) != shape.output_bytes * 8:
+    raise ValueError('Signal producer artifact dimensions differ')
+
+def evaluate(inputs, outputs):
+    result = execute_mpc(image, binary_io.read_bits(inputs))
+    binary_io.write_bits(outputs, result)
+
+evaluate.__name__ = shape.function_name
+function = export(evaluate)
+BitArray = sbitvec.get_type(1).Array
+function(BitArray(image['input_bits']), BitArray(len(image['outputs'])))

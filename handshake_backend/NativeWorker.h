@@ -13,6 +13,7 @@
 #include "DaBitOnly.h"
 #include "LongFieldBit.h"
 #include "OwnedSecrets.h"
+#include "../signal_backend/SendShape.h"
 
 namespace tls_mpc_worker {
 using Field = gfp_<0, 4>;
@@ -84,6 +85,18 @@ public:
         auto output = allocate(output_bits);
         std::vector<FunctionArgument> args = {{1, inputs.function_argument()}, {1, output.function_argument()}};
         run(name,args);
+        return output;
+    }
+    // Same-worker established Signal producer. Only a checked public shape can
+    // select a function; run() verifies the exact pinned descriptor/closure.
+    // No value is opened and no untyped kernel-name entry point is exposed.
+    Bits signal(const signal_mpc::SendShape& shape, Bits inputs) {
+        if(inputs.size()!=shape.input_bytes()*8)
+            throw std::runtime_error("invalid Signal kernel input dimensions");
+        auto output=allocate(shape.output_bytes()*8);
+        std::vector<FunctionArgument> args={{1,inputs.function_argument()},
+            {1,output.function_argument()}};
+        run(shape.function_name(),args);
         return output;
     }
 };

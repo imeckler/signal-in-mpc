@@ -1,0 +1,28 @@
+{
+  "public_fixture_cases": 8,
+  "actual_h2_decoder": "h2 0.4.16 server handshake and request/DATA parsing",
+  "all_metadata_and_body_match": true,
+  "public_shape_rejections_tested": [
+    "stream0",
+    "even stream",
+    "unaligned bits",
+    "body over12000 bytes"
+  ],
+  "secret_values_use_hpack_never_indexed_literals": true,
+  "request_values_stay_shared_in_producer": true,
+  "public_lengths_and_stream_id": true,
+  "actual_signal_request_protobuf_implemented": false,
+  "tls_handle_handoff_executed": false,
+  "http2_connection_flow_control_and_responses_implemented": false,
+  "production_ready": false,
+  "oracle_binary_sha256": "dcff612aefe54510617c6f52f3ced9397a917b4063a9facc943faff6b290d529",
+  "source_sha256": {
+    "signal_backend/request_check.py": "5dc529ab9a840dc28d38314bbc763ad92bafa110d194baea05660f468b76b719",
+    "signal_backend/PrivateGrpcRequest.h": "cac0bf4e50f93708ada5a95db10192b64470429aabbc784c8a50caeb89115945",
+    "signal_backend/request_fixture.cpp": "6f5f56bff100f10a4f430289f04b1e5b44b02959a284315a16abbf3c76cca27c",
+    "signal_backend/Oracle/src/main.rs": "850ac9d15a53d7e6f8088e85198ec6a5d8b7f5846e93425805dc3453fd9e68ee",
+    "signal_backend/Oracle/Cargo.toml": "575266e72c516516c976836484b576eb756c529c37eda9bb8524e0c85b231a4d",
+    "signal_backend/Oracle/Cargo.lock": "07582c94d4624bdc122e7f6d849c4535a40ee0856ab738c016d2330e4b9d1205",
+    ".deps/libsignal-vendor/h2-0.4.16/src/hpack/decoder.rs": "1013f226a9d115eb6cff16a0fd5f60eb4ba95b944a23bbc37f4ee959fd5f3115"
+  }
+}

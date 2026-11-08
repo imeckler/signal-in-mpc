@@ -1,0 +1,87 @@
+{
+  "cases": [
+    {
+      "arguments": [
+        "signal-spqr-send",
+        "0",
+        "1",
+        "1",
+        "1",
+        "1",
+        "0",
+        "none",
+        "none"
+      ],
+      "circuit_cases": 52,
+      "store_transitions": 54,
+      "artifact_sha256": "c5ffdeed09ea1282607aea8eb28358fbc6b08fb6b9964de1009085befe7cec91",
+      "input_bytes": 182,
+      "output_bytes": 145,
+      "descriptor": "signal_binary_signal_spqr_send_0_1_1_1_1_0_none_none-sbv:[1456x1]-sbv:[1160x1]",
+      "cpp_store_checks": "54 store transitions; pending/stale/failure checks passed"
+    },
+    {
+      "arguments": [
+        "signal-spqr-send",
+        "17",
+        "5",
+        "2",
+        "10",
+        "5",
+        "3",
+        "present",
+        "present"
+      ],
+      "circuit_cases": 56,
+      "store_transitions": 58,
+      "artifact_sha256": "69b3c6f15c553f0542b5928885798183d7c494989788e36cd42fd3bacb1b6dc8",
+      "input_bytes": 269,
+      "output_bytes": 252,
+      "descriptor": "signal_binary_signal_spqr_send_17_5_2_10_5_3_present_present-sbv:[2152x1]-sbv:[2016x1]",
+      "cpp_store_checks": "58 store transitions; pending/stale/failure checks passed"
+    }
+  ],
+  "source_sha256": {
+    "signal_backend/SendShape.h": "3453e19ee5557f041cf267c2e6322255835959eb1164824d0ed55a0a9454b2c2",
+    "signal_backend/EstablishedSendStore.h": "9d2704f0c17e9d4dd41b87f8730a7eff29f5c625ab08f8823b5766f309442a1a",
+    "signal_backend/store_checks.cpp": "5cea88c443699f989c9e3ae2b438c0383da584459a09954ad57d5932cce695af",
+    "signal_backend/shape.py": "4970cb1779fc0fc11e38d3a1fde07acf66f181696601b7532a1f3fd8c3c79e3c",
+    "signal_backend/check.py": "cdbfacd909fbf9ab1fe6f4bca8d8d19288924c035b70c7f260aff7570026fe24",
+    "programs/signal_export.mpc": "216fac8b658729b01f665cd5e060fa85e3059e6ad12b0637470c28dc2ea029a1",
+    "signal_backend/Oracle/Cargo.toml": "575266e72c516516c976836484b576eb756c529c37eda9bb8524e0c85b231a4d",
+    "signal_backend/Oracle/Cargo.lock": "07582c94d4624bdc122e7f6d849c4535a40ee0856ab738c016d2330e4b9d1205",
+    "signal_backend/Oracle/src/main.rs": "850ac9d15a53d7e6f8088e85198ec6a5d8b7f5846e93425805dc3453fd9e68ee",
+    "TlsMpc/Signal/SpqrSend.lean": "dab582252d07f23ee60f4db0f074ce6ad4e5599fed9c124a19316a5299108092",
+    "TlsMpc/Signal/Export.lean": "a2107ffb50ccf435d07902d880625d22b4ad6f5233212d9a9dbae02150e9da2b",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/aes_cbc.rs": "163d132f27b4d5afdf0e87d56601cc9fba34e645a7cdb24df0492097671938bb",
+    "signal_backend/PrivateGrpcRequest.h": "cac0bf4e50f93708ada5a95db10192b64470429aabbc784c8a50caeb89115945"
+  },
+  "native_oracle_sha256": "dcff612aefe54510617c6f52f3ced9397a917b4063a9facc943faff6b290d529",
+  "actual_libsignal_constructor_and_aes_cases": 50,
+  "actual_libsignal_parser_successes": 48,
+  "actual_libsignal_parser_errors": [
+    "UnrecognizedCiphertextVersion(13)",
+    "UnrecognizedCiphertextVersion(9)"
+  ],
+  "native_mpc_executed": false,
+  "native_backend_compiled": false,
+  "status_and_all_state_stay_shared": true,
+  "host_transaction_atomic_before_wire_return": true,
+  "durable_store": false,
+  "full_libsignal_session_or_spqr_transition_refinement": false,
+  "production_ready": false,
+  "throughput_measured": false,
+  "boundaries": [
+    "Already selected active epoch and chunk payload; no DH/KEM state machine.",
+    "KDF test keys derived by independent Python HMAC; native oracle covers actual AES wrapper and SignalMessage constructor, not private ChainKey methods.",
+    "Circuit and C++ tests use public fixtures; native private runtime evaluation and TLS/H2 composition remain separate.",
+    "No filesystem durability or crash recovery; single worker serializes store access.",
+    "Secret rejection preserves selected chain state and yields zero wire; status is never opened by this store."
+  ],
+  "additional_store_checks": [
+    "Malformed runtime output poisons store",
+    "Payload dimension mismatch never invokes runtime",
+    "Opaque handoff returns handle; retention failure poisons store"
+  ]
+}

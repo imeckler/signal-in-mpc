@@ -1,0 +1,4 @@
+Build/
+Generated/
+__pycache__/
+Artifacts/**/*.llbc

@@ -1,0 +1,24 @@
+{
+  "actual_entry_selected": true,
+  "charon_function_declarations": 62,
+  "aeneas_translation_succeeded": false,
+  "actual_to_edwards_agreement_proved": false,
+  "blocker": "Pinned Step builtin lacks forward_overflowing (transitive field.rs:60).",
+  "baf_commit": "95b5831c63ff1c5f6287bd3a77569412a9afdbfb",
+  "baf_archive_sha256": "0016fe95195f846dd6cfdf5a9384a785a3deb35c727b55c6792bf63029987f5f",
+  "selected_entry_body_identical": true,
+  "selected_entry_body_sha256": "f0f818bbbac4a7c94bbb9254647a7b95a30803e2d3699fd94dc32c1d41a80768",
+  "baf_files_verified_against_archive": {
+    "curve25519-dalek/src/montgomery.rs": "cb8a878d1af5e46d99210e15577aad8aa3f551284e376a46a7f08a126df1d9b2",
+    "curve25519-dalek/lean/Proofs/Montgomery/ToEdwards.lean": "1d5ed17236e3a1ec8eb9ffb8ec86538732820915a5b6d31c86a3cad06ab0a9d4"
+  },
+  "baf_proof_imported": false,
+  "custom_models_or_translator_edits": [],
+  "scope": "Diagnostic only. Full Subtle/arithmetic/decompression and exact rejection/sign/circuit agreements remain.",
+  "local_sha256": {
+    "extract.py": "fe503aaa40180654362b2c643049b54f7c3179c6a42aa9b3e34001fa25b28bce",
+    "inspect.py": "ea8d83bbadcab29dd698815c52e8dc80836579228a07dc7e96356bfc439fed70",
+    "Artifacts/ToEdwards/inventory.json": "90554e64b590ff4035a61cdce6d6bdb129d06295bb014ee9377840db5b63f51e",
+    "Artifacts/ToEdwards/aeneas.log": "30140b2a1e17bab4494083ab747c6b2a83376677a757f9a0fda24489df378a6d"
+  }
+}
