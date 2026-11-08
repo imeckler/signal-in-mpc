@@ -22,7 +22,7 @@ def main():
   rel=p.relative_to(ROOT);target=snapshot/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,target)
  hashes={str(p.relative_to(ROOT)):sha(p) for p in tracked};report=dict(passed=False,candidate_only=True,logs=str(out.relative_to(ROOT)),cases=[],source_product_sha256=hashes,scope='one VM worker, five authenticated parties, CCD128, host-owned inputs cleared; no crash/OS erasure claim')
  try:
-  for index,mode in enumerate(['positive','tamper','protocol','teardown']):
+  for index,mode in enumerate(['positive','tamper','protocol','teardown','partial']):
    processes=[];logs=[];cleanup=[];started=time.monotonic();case=dict(mode=mode,passed=False)
    try:
     for party in range(5):
@@ -33,7 +33,7 @@ def main():
      assert p.returncode==0,(mode,party,p.returncode)
      rows=[json.loads(x[16:]) for x in stdout.splitlines() if x.startswith('FAILURE_FIXTURE ')]
      assert len(rows)==1 and rows[0]['passed'] and rows[0]['mode']==mode,(mode,party,'missing receipt')
-    case['passed']=True
+    case['passed']=True;case['thread_receipts']=[json.loads((out/f'{mode}-{party}.stdout').read_text().split('FAILURE_FIXTURE ')[1].splitlines()[0]) for party in range(5)]
    except Exception as error:case['error']=repr(error)
    finally:
     for p in processes:
@@ -50,7 +50,7 @@ def main():
     case.update(exit_codes=[p.returncode for p in processes],elapsed_python_awake_seconds=time.monotonic()-started,cleanup_errors=cleanup)
     case['passed']=case['passed'] and not cleanup;report['cases'].append(case);print(json.dumps(case),flush=True)
    if not case['passed']:break
-  report['passed']=len(report['cases'])==4 and all(c['passed'] for c in report['cases'])
+  report['passed']=len(report['cases'])==5 and all(c['passed'] for c in report['cases'])
  finally:
   report['integrity_verified']=all(sha(ROOT/name)==value for name,value in hashes.items());report['passed'] &= report['integrity_verified']
   (out/'report.json').write_text(json.dumps(report,indent=2)+'\n');(WORK/'native-report.json').write_text(json.dumps(report,indent=2)+'\n')

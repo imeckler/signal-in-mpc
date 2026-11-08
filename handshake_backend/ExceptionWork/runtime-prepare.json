@@ -885,8 +885,8 @@
     "handshake_backend/SessionWork/worker_main.cpp": "5f7d4ccdcfb2ac7e2b71320c4f53472888aa893db22a52eb1ac0eb62f8850355",
     "handshake_backend/SessionWork/ErasedHostCall.h": "798f7bc4eec5b8f6eec31d1e6d8a36bbea027cac0ba4e78294ed0a637f1bbd01"
   },
-  "overlay_sha256": "6b4288134522320016bcc38415fe548a3fd0241ba10c112105a26a6906310d95",
+  "overlay_sha256": "b91f6f47010a628140b427a0ae6d49f8335a9eb16f35dd765d6cb3c8dc23cab3",
   "destination": ".deps/tls-caught-failure-runtime/MP-SPDZ",
-  "native_checkpoint": "four controlled post-bootstrap CCD cases passed; not promoted",
-  "native_report_sha256": "801c32d976698bd7b325039aa196fa30aae5302290df7c69fdf39c5bd0e13f9a"
+  "native_checkpoint": "five controlled CCD cases passed including partial Processor-body initialization; all tracked thread joins reconciled; not promoted",
+  "native_report_sha256": "56eb6ec2e168abf8690c6d5bc6ff2bce913eb0418b30ee3cbc9f17a075664482"
 }

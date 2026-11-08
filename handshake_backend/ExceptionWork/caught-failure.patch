@@ -246,7 +246,29 @@
  public:
 --- a/Networking/Receiver.cpp
 +++ b/Networking/Receiver.cpp
-@@ -54,21 +54,12 @@
+@@ -3,6 +3,7 @@
+  *
+  */
+ 
++#include "Tools/FailureScope.h"
+ #include "Receiver.h"
+ #include "ssl_sockets.h"
+ #include "Processor/OnlineOptions.h"
+@@ -43,32 +44,25 @@
+ {
+     if (owned_stack.start(&thread, run_thread, this))
+         throw runtime_error("cannot start owned communication thread");
++    ++tls_caught_failure::runtime_threads_started;
+ }
+ 
+ template<class T>
+ void Receiver<T>::stop()
+ {
+     in.stop();
+-    pthread_join(thread, 0);
++    if(pthread_join(thread,0)==0) ++tls_caught_failure::runtime_threads_joined;
++    else tls_caught_failure::runtime_join_error=true;
+ }
  
  void CommunicationThread::run()
  {
@@ -369,6 +391,15 @@
    /* Set up the threads */
    tinfo.resize(nthreads);
    queues.resize(nthreads);
+@@ -226,7 +231,7 @@
+       pthread_attr_destroy(&attributes);
+ 
+       if (res == 0)
+-        threads.push_back(thread);
++        { threads.push_back(thread); ++tls_caught_failure::runtime_threads_started; }
+       else
+         throw runtime_error("cannot start thread");
+ 
 @@ -240,7 +245,7 @@
  template<class sint, class sgf2n>
  Machine<sint, sgf2n>::~Machine()
@@ -402,7 +433,7 @@
    // stop_threads executes protocol checks before destroying each thread's
    // complete Processor, preprocessing, MC, and Player ownership subtrees.
    stop_threads();
-+  if(has_caught_failure()) throw runtime_error("MPC failed epoch cannot retire");
++  if(has_caught_failure() or tls_caught_failure::runtime_join_error) throw runtime_error("MPC failed epoch cannot retire");
 +  // Collective completion is after local protocol checks, joins and stack wipe.
 +  vector<octetStream> completion(N.num_players());
 +  octetStream expected; expected.store(worker_epoch);
@@ -413,7 +444,15 @@
    ++worker_epoch;
    tinfo.clear();
    M2.resize_s(0); M2.resize_c(0);
-@@ -619,8 +638,39 @@
+@@ -612,6 +631,7 @@
+   auto previous_player = P;
+   P = nullptr;
+   delete previous_player;
++  if(tls_caught_failure::runtime_join_error) throw runtime_error("MPC transport join failed");
+   if (renew_transport)
+     P = new CryptoPlayer(N, "machineepoch" + to_string(worker_epoch));
+   // Host-owned FunctionArgument/output shares deliberately survive. Memory
+@@ -619,8 +639,42 @@
  }
  
  template<class sint, class sgf2n>
@@ -427,7 +466,10 @@
 +  if(caught_cleanup_complete) return;
 +  report_caught_failure();
 +  bool joined=true;
-+  for(auto thread:threads) if(pthread_join(thread,nullptr)!=0) joined=false;
++  for(auto thread:threads) {
++    if(pthread_join(thread,nullptr)==0) ++tls_caught_failure::runtime_threads_joined;
++    else { joined=false; tls_caught_failure::runtime_join_error=true; }
++  }
 +  if(not joined) {
 +    // Quarantine mappings rather than wiping a potentially live stack.
 +    for(auto& stack:worker_stacks) stack.release();
@@ -440,7 +482,7 @@
 +  M2.resize_s(0); M2.resize_c(0); Mp.resize_s(0); Mp.resize_c(0);
 +  Mi.resize_s(0); Mi.resize_c(0); bit_memories.MS.clear(); bit_memories.MC.clear();
 +  auto* previous=P;P=nullptr;delete previous;
-+  caught_cleanup_complete=true;
++  caught_cleanup_complete=not tls_caught_failure::runtime_join_error.load();
 +}
 +
 +template<class sint, class sgf2n>
@@ -453,6 +495,16 @@
    // only stop actually running threads
    nthreads = threads.size();
  
+@@ -644,7 +698,8 @@
+     {
+       queues[i]->schedule({});
+       pos.increase(queues[i]->result().pos);
+-      pthread_join(threads[i],NULL);
++      if(pthread_join(threads[i],NULL)==0) ++tls_caught_failure::runtime_threads_joined;
++      else { tls_caught_failure::runtime_join_error=true; throw runtime_error("MPC worker join failed"); }
+     }
+ 
+   auto stats = total_stats();
 --- a/Processor/Online-Thread.hpp
 +++ b/Processor/Online-Thread.hpp
 @@ -1,6 +1,7 @@
@@ -572,7 +624,48 @@
  
 --- a/Processor/Processor.hpp
 +++ b/Processor/Processor.hpp
-@@ -124,7 +124,10 @@
+@@ -29,6 +29,7 @@
+     Proc(Proc), MC(MC), P(P), DataF(DataF), protocol(P), input(*this, MC),
+     bit_prep(bit_usage), shuffler(*this)
+ {
++  tls_caught_failure::OnUnwind cancel_on_error([]() noexcept { tls_caught_failure::runtime_sockets.cancel(); });
+   DataF.set_proc(this);
+   protocol.init(DataF, MC);
+   DataF.set_protocol(protocol);
+@@ -36,18 +37,14 @@
+   bit_usage.set_num_players(P.num_players());
+   personal_bit_preps.resize(P.num_players());
+   for (int i = 0; i < P.num_players(); i++)
+-    personal_bit_preps[i] = new typename BT::LivePrep(bit_usage, i);
++    personal_bit_preps[i].reset(new typename BT::LivePrep(bit_usage, i));
+ }
+ 
+ template<class T>
+ SubProcessor<T>::~SubProcessor()
+ {
+   DataF.set_proc(0);
+-  for (size_t i = 0; i < personal_bit_preps.size(); i++)
+-    {
+-      auto& x = personal_bit_preps[i];
+-      delete x;
+-    }
++  personal_bit_preps.clear();
+ #ifdef VERBOSE
+   if (not bit_usage.empty())
+     {
+@@ -91,6 +88,11 @@
+   external_clients(machine.external_clients),
+   client_timer(client_stats.timer)
+ {
++  tls_caught_failure::OnUnwind cancel_on_error([&]() noexcept { machine.report_caught_failure(); });
++#ifdef TLS_CAUGHT_FAILURE_TEST_HOOKS
++  if(tls_caught_failure::fixture_fault_stage==3)
++    throw runtime_error("fixture partial Processor initialization failure");
++#endif
+   reset(program,0);
+ 
+   public_input_filename = get_filename("Programs/Public-Input/",false);
+@@ -124,7 +126,10 @@
  template<class sint, class sgf2n>
  Processor<sint, sgf2n>::~Processor()
  {
@@ -595,3 +688,161 @@
              throw Offline_Check_Error("CheckFor");
          }
      Check(P);
+--- a/Processor/Data_Files.h
++++ b/Processor/Data_Files.h
+@@ -5,6 +5,7 @@
+  * so the streams are easy to pass around and access
+  */
+ 
++#include "Tools/FailureScope.h"
+ #include "Tools/PublicProtocolMetrics.h"
+ #include "Math/field_types.h"
+ #include "Tools/Buffer.h"
+@@ -324,6 +325,9 @@
+   friend class Processor<sint, sgf2n>;
+ 
+   DataPositions usage, skipped;
++  std::unique_ptr<Preprocessing<sint>> field_owner;
++  std::unique_ptr<Preprocessing<sgf2n>> field2_owner;
++  std::unique_ptr<Preprocessing<typename sint::bit_type>> bit_owner;
+ 
+   public:
+ 
+--- a/Processor/Data_Files.hpp
++++ b/Processor/Data_Files.hpp
+@@ -181,20 +181,20 @@
+ Data_Files<sint, sgf2n>::Data_Files(Machine<sint, sgf2n>& machine, SubProcessor<sint>* procp,
+     SubProcessor<sgf2n>* proc2) :
+     usage(machine.get_N().num_players()),
+-    DataFp(*Preprocessing<sint>::get_new(machine, usage, procp)),
+-    DataF2(*Preprocessing<sgf2n>::get_new(machine, usage, proc2)),
+-    DataFb(
+-        *Preprocessing<typename sint::bit_type>::get_new(machine.live_prep,
+-            machine.get_N(), usage))
++    field_owner(Preprocessing<sint>::get_new(machine, usage, procp)),
++    field2_owner(Preprocessing<sgf2n>::get_new(machine, usage, proc2)),
++    bit_owner(Preprocessing<typename sint::bit_type>::get_new(machine.live_prep,machine.get_N(),usage)),
++    DataFp(*field_owner), DataF2(*field2_owner), DataFb(*bit_owner)
+ {
+ }
+ 
+ template<class sint, class sgf2n>
+ Data_Files<sint, sgf2n>::Data_Files(const Names& N, int thread_num) :
+     usage(N.num_players()),
+-    DataFp(*new Sub_Data_Files<sint>(N, usage, thread_num)),
+-    DataF2(*new Sub_Data_Files<sgf2n>(N, usage, thread_num)),
+-    DataFb(*new Sub_Data_Files<typename sint::bit_type>(N, usage, thread_num))
++    field_owner(new Sub_Data_Files<sint>(N,usage,thread_num)),
++    field2_owner(new Sub_Data_Files<sgf2n>(N,usage,thread_num)),
++    bit_owner(new Sub_Data_Files<typename sint::bit_type>(N,usage,thread_num)),
++    DataFp(*field_owner), DataF2(*field2_owner), DataFb(*bit_owner)
+ {
+ }
+ 
+@@ -202,9 +202,7 @@
+ template<class sint, class sgf2n>
+ Data_Files<sint, sgf2n>::~Data_Files()
+ {
+-  delete &DataFp;
+-  delete &DataF2;
+-  delete &DataFb;
++  field_owner.reset(); field2_owner.reset(); bit_owner.reset();
+ }
+ 
+ template<class T>
+--- a/Processor/Processor.h
++++ b/Processor/Processor.h
+@@ -5,6 +5,7 @@
+ /* This is a representation of a processing element
+  */
+ 
++#include "Tools/FailureScope.h"
+ #include "Math/Integer.h"
+ #include "Tools/Exceptions.h"
+ #include "Networking/Player.h"
+@@ -68,7 +69,7 @@
+   typename T::Input input;
+ 
+   typename BT::LivePrep bit_prep;
+-  vector<typename BT::LivePrep*> personal_bit_preps;
++  vector<std::unique_ptr<typename BT::LivePrep>> personal_bit_preps;
+ 
+   typename T::Protocol::Shuffler shuffler;
+ 
+--- a/GC/ShareThread.h
++++ b/GC/ShareThread.h
+@@ -6,6 +6,7 @@
+ #ifndef GC_SHARETHREAD_H_
+ #define GC_SHARETHREAD_H_
+ 
++#include "Tools/FailureScope.h"
+ #include "Thread.h"
+ #include "Processor/Data_Files.h"
+ 
+@@ -18,6 +19,8 @@
+ class ShareThread
+ {
+     static thread_local ShareThread<T>* singleton;
++    std::unique_ptr<typename T::MC> mc_owner;
++    std::unique_ptr<typename T::Protocol> protocol_owner;
+ 
+ public:
+     static ShareThread& s();
+--- a/GC/ShareThread.hpp
++++ b/GC/ShareThread.hpp
+@@ -49,21 +49,22 @@
+ ShareThread<T>::~ShareThread()
+ {
+     singleton = 0;
+-    if (MC)
+-        delete MC;
+-    if (protocol)
+-        delete protocol;
++    mc_owner.reset(); protocol_owner.reset();
+ }
+ 
+ template<class T>
+ void ShareThread<T>::pre_run(Player& P, typename T::mac_key_type mac_key)
+ {
++    tls_caught_failure::OnUnwind cancel_on_error([&]() noexcept {
++        tls_caught_failure::runtime_sockets.cancel();
++        if(singleton==this) singleton=nullptr;
++    });
+     this->P = &P;
+     if (singleton)
+         throw runtime_error("there can only be one");
+     singleton = this;
+-    protocol = new typename T::Protocol(*this->P);
+-    MC = this->new_mc(mac_key);
++    protocol_owner.reset(new typename T::Protocol(*this->P)); protocol=protocol_owner.get();
++    mc_owner.reset(this->new_mc(mac_key)); MC=mc_owner.get();
+     DataF.set_protocol(*this->protocol);
+     this->protocol->init(DataF, *MC);
+ }
+--- a/Networking/Sender.cpp
++++ b/Networking/Sender.cpp
+@@ -3,6 +3,7 @@
+  *
+  */
+ 
++#include "Tools/FailureScope.h"
+ #include "Sender.h"
+ #include "ssl_sockets.h"
+ 
+@@ -34,13 +35,15 @@
+ {
+     if (owned_stack.start(&thread, run_thread, this))
+         throw runtime_error("cannot start owned communication thread");
++    ++tls_caught_failure::runtime_threads_started;
+ }
+ 
+ template<class T>
+ void Sender<T>::stop()
+ {
+     in.stop();
+-    pthread_join(thread, 0);
++    if(pthread_join(thread,0)==0) ++tls_caught_failure::runtime_threads_joined;
++    else tls_caught_failure::runtime_join_error=true;
+ }
+ 
+ template<class T>

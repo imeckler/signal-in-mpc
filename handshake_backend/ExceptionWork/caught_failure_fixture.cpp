@@ -33,7 +33,12 @@ int main(int argc,char**argv){
    Opener<tls_mpc_worker::Bit> opener(state->machine->get_player(),state->machine->get_bit_mac_key());opener.init_open();for(auto& bit:status)opener.prepare_open(bit[0]);opener.exchange();for(unsigned i=0;i<8;++i)public_require((opener.finalize_open().get()&1)==1,"comparison failed");opener.Check();
   };
   // Warm initialization is completed before the adversarial boundary.
-  public_require(ErasedHostCall::run(run),"fixture warmup failed");
+  bool warm_caught=false;
+  public_require(ErasedHostCall::run([&]{
+   if(mode=="partial"&&party==0)tls_caught_failure::fixture_fault_stage=3;
+   try{run();}catch(...){warm_caught=true;}
+  }),"fixture warmup host failed");
+  public_require(mode=="partial"?warm_caught:!warm_caught,"unexpected warmup result");
   if(mode=="positive") {
    for(unsigned i=0;i<2;++i)public_require(ErasedHostCall::run([&]{state->lifecycle->renew_epoch();run();}),"positive epoch failed");
    public_require(ErasedHostCall::run([&]{state->input.clear();public_require(state->lifecycle->abort_epoch(),"positive abort failed");}),"positive cleanup failed");
@@ -44,7 +49,7 @@ int main(int argc,char**argv){
     if(mode=="tamper"&&party==0)state->input[0][0].get_regs()[0]+=gf2n_long(1);
     if(mode=="protocol"&&party==0)tls_caught_failure::fixture_fault_stage=1;
     if(mode=="teardown"&&party==0)tls_caught_failure::fixture_fault_stage=2;
-    try {if(mode=="teardown")state->machine->retire_worker_epoch();else run();}
+    try {if(mode=="partial")caught=warm_caught;else if(mode=="teardown")state->machine->retire_worker_epoch();else run();}
     catch(...) {caught=true;}
     public_require(caught&&state->machine->has_caught_failure(),"fault was not caught");
     state->machine->cleanup_caught_failure();
@@ -53,11 +58,13 @@ int main(int argc,char**argv){
     public_require(!state->lifecycle->abort_epoch(),"failed epoch returned retirement success");
     bool rejected=false;try{FunctionArgument ignored;std::vector<FunctionArgument> empty;state->machine->run_function("tls_diagnostic_mix",ignored,empty);}catch(...){rejected=true;}public_require(rejected,"failed runtime accepted replay");
     public_require(tls_caught_failure::runtime_sockets.active()==0,"owned transport survived cleanup");
+    public_require(!tls_caught_failure::runtime_join_error&&tls_caught_failure::runtime_threads_started==tls_caught_failure::runtime_threads_joined,"owned thread join accounting mismatch");
     public_require(ErasingThreadStack::wiped_stacks.load()>=wiped+17,"owned stacks were not wiped");
    }),"failure fixture erased host failed");
    success=true;
   }
  }catch(...){std::cerr<<"fixture failure category=assertion\n";}
  bool cleaned=ErasedHostCall::run([&]{state->input.clear();delete state;state=nullptr;});
- if(success&&cleaned){std::cout<<"FAILURE_FIXTURE {\"passed\":true,\"retirement_on_failure\":false,\"mode\":\""<<mode<<"\"}\n";return 0;}return 1;
+ success=success&&tls_caught_failure::runtime_sockets.active()==0&&!tls_caught_failure::runtime_join_error&&tls_caught_failure::runtime_threads_started==tls_caught_failure::runtime_threads_joined;
+ if(success&&cleaned){std::cout<<"FAILURE_FIXTURE {\"passed\":true,\"retirement_on_failure\":false,\"mode\":\""<<mode<<"\",\"owned_threads_started\":"<<tls_caught_failure::runtime_threads_started<<",\"owned_threads_joined\":"<<tls_caught_failure::runtime_threads_joined<<",\"stack_wipes\":"<<ErasingThreadStack::wiped_stacks.load()-wiped<<"}\n";return 0;}return 1;
 }

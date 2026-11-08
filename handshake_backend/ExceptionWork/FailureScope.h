@@ -2,7 +2,11 @@
 #include <exception>
 #include <atomic>
 #include <utility>
+#include <memory>
+#include "SocketCancellation.h"
 namespace tls_caught_failure {
+inline std::atomic<size_t> runtime_threads_started{0}, runtime_threads_joined{0};
+inline std::atomic<bool> runtime_join_error{false};
 #ifdef TLS_CAUGHT_FAILURE_TEST_HOOKS
 inline std::atomic<unsigned> fixture_fault_stage{0};
 #endif

@@ -1,11 +1,53 @@
 {
   "passed": true,
   "candidate_only": true,
-  "logs": "benchmarks/results/raw/caught-failure/d09d2bf5b4149925",
+  "logs": "benchmarks/results/raw/caught-failure/448c6ffe03231892",
   "cases": [
     {
       "mode": "positive",
       "passed": true,
+      "thread_receipts": [
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "positive",
+          "owned_threads_started": 51,
+          "owned_threads_joined": 51,
+          "stack_wipes": 57
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "positive",
+          "owned_threads_started": 51,
+          "owned_threads_joined": 51,
+          "stack_wipes": 57
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "positive",
+          "owned_threads_started": 51,
+          "owned_threads_joined": 51,
+          "stack_wipes": 57
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "positive",
+          "owned_threads_started": 51,
+          "owned_threads_joined": 51,
+          "stack_wipes": 57
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "positive",
+          "owned_threads_started": 51,
+          "owned_threads_joined": 51,
+          "stack_wipes": 57
+        }
+      ],
       "exit_codes": [
         0,
         0,
@@ -13,12 +55,54 @@
         0,
         0
       ],
-      "elapsed_python_awake_seconds": 1.3300364169990644,
+      "elapsed_python_awake_seconds": 1.345452707959339,
       "cleanup_errors": []
     },
     {
       "mode": "tamper",
       "passed": true,
+      "thread_receipts": [
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "tamper",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "tamper",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "tamper",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "tamper",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "tamper",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        }
+      ],
       "exit_codes": [
         0,
         0,
@@ -26,12 +110,54 @@
         0,
         0
       ],
-      "elapsed_python_awake_seconds": 0.6598494580248371,
+      "elapsed_python_awake_seconds": 0.6489194999448955,
       "cleanup_errors": []
     },
     {
       "mode": "protocol",
       "passed": true,
+      "thread_receipts": [
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "protocol",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "protocol",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "protocol",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "protocol",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "protocol",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        }
+      ],
       "exit_codes": [
         0,
         0,
@@ -39,12 +165,54 @@
         0,
         0
       ],
-      "elapsed_python_awake_seconds": 0.5611910419538617,
+      "elapsed_python_awake_seconds": 0.5693301249993965,
       "cleanup_errors": []
     },
     {
       "mode": "teardown",
       "passed": true,
+      "thread_receipts": [
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "teardown",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "teardown",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "teardown",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "teardown",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "teardown",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        }
+      ],
       "exit_codes": [
         0,
         0,
@@ -52,17 +220,72 @@
         0,
         0
       ],
-      "elapsed_python_awake_seconds": 0.4597997920354828,
+      "elapsed_python_awake_seconds": 0.5052287919679657,
+      "cleanup_errors": []
+    },
+    {
+      "mode": "partial",
+      "passed": true,
+      "thread_receipts": [
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "partial",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "partial",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "partial",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "partial",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        },
+        {
+          "passed": true,
+          "retirement_on_failure": false,
+          "mode": "partial",
+          "owned_threads_started": 17,
+          "owned_threads_joined": 17,
+          "stack_wipes": 21
+        }
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "elapsed_python_awake_seconds": 0.15648416709154844,
       "cleanup_errors": []
     }
   ],
   "source_product_sha256": {
-    "handshake_backend/ExceptionWork/caught_failure_fixture.cpp": "ae8b0deb00d577f9fd3eff7eb1e8b0950060619d5415d7e7e54db62c9b546504",
-    "handshake_backend/ExceptionWork/caught-failure.patch": "6b4288134522320016bcc38415fe548a3fd0241ba10c112105a26a6906310d95",
-    "handshake_backend/ExceptionWork/FailureScope.h": "09779d79aba14189b79d071c533c4be450a4736a7675ca2e5ef539ca4bca1a31",
+    "handshake_backend/ExceptionWork/caught_failure_fixture.cpp": "f5d7502afcbdcb239b6d28fa089cccfb7e19c40b6679f5c7432b3fba176c66b7",
+    "handshake_backend/ExceptionWork/caught-failure.patch": "b91f6f47010a628140b427a0ae6d49f8335a9eb16f35dd765d6cb3c8dc23cab3",
+    "handshake_backend/ExceptionWork/FailureScope.h": "360211ad68cfbc7ac1d73bafd1fa6a03e9751ae47b35b7f087f536d1f4244146",
     "handshake_backend/ExceptionWork/SocketCancellation.h": "5b55dcecaec71a8b0dd7cd43d6602f3fb9f7915224a5b246cb0e1109d7bc2672",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "c7fc928b24023a9aa6d24ddc686b78ff0be6ec3bd2d0d1974634da83f7444ba1",
-    ".deps/tls-caught-failure-runtime/tls-caught-failure-fixture": "4c00fc25f68836f4f0bae0214522c588a7d439ccc8e094c577e70b0e473ced38",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+    ".deps/tls-caught-failure-runtime/tls-caught-failure-fixture": "4b0ba2aad44a4ab7370f44e23bc12da277e4a662ce36d7a4d33494db57fe5664",
     ".deps/tls-caught-failure-programs/programs.manifest": "01adad59341a274fd99a6d53f7dd707c4e0658c39cf8a055b42fe1f9da24445c",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/CONFIG": "810021ec7e2cf5ce98393357cf414198ec87b1cf42975fea829c173ec591497a",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Makefile": "72994e5606079c197e5a6cdab4019a54f42d7e0a5895a7c82941aa2b3eda8ea9",
@@ -311,7 +534,7 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/FHEOffline/Multiplier.h": "fa71d42ce5cea81cb0eb8f089a5a2d0e225b67134f0f0cb171c5a93eed78b047",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/FHEOffline/DistKeyGen.h": "e912281565f778ce1ef842be0ce0b1d06d44d6732861acd2e09106877591a8dd",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/FHEOffline/SimpleMachine.h": "c22c64f6a7bdacfb33f7efadc23461869c81e0739aea250c5f87edd6468f63ee",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/Sender.cpp": "b70d7c1cc633dad533a776df4d66b32bba01c003b3947e03cd8ad21806e6e12a",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/Sender.cpp": "b760d664f869ed941ef528a73d42c55e19635a442fab477fa05be063a84dd2f3",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/PlayerCoSocket.h": "6f98768a35006cf86ec1b73a972ba1b93ab2d1bd41ede464cefd27c580dd282a",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/Player.cpp": "daf11d452ddd48c358a275a46727ccc2d20d7773dc4ed09e40edc44d825090de",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/CryptoPlayer.h": "a3d6b1935d55411b962d9559779f442c778c36c63a2933c61d7e9a20f1ed76ec",
@@ -323,7 +546,7 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/PlayerCtSocket.h": "6257069a7f149201b71fba903dfcad88a19df1ec036098da6668a09300d57e87",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/ssl_sockets.h": "1d67af5c0f619935d153cc71d89197cc147d26cd1cc77f2d114b4471e92f13a9",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/sockets.cpp": "0607d472de1d69ea1365c173683b94f863600d079f45e9059ac854c6d0417fd2",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/Receiver.cpp": "043c507b96a1e5682c18b5d26d823036b36da4144b4f5a2e5eed00ef59d63baf",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/Receiver.cpp": "b072f9d80de24c4844c0dd1966eaff145ff796aad6aec4251912b98c4cb7ae20",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/sockets.h": "afb4c971c34eed4ad3dc3480ab2694c692100ce5e7b78db79bb5473b618546e7",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/PlayerBuffer.h": "0ee667028dc3d179a898f8da686b3f36d074650a98cde158070549cb5273d6a5",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Networking/ServerSocket.h": "b5e89233f42545e6e195b9d469e1350ddca5bf5fe31a8320013770717ca0c626",
@@ -335,7 +558,7 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/PrepBase.h": "ec89c31da0c84951a8ee28ba79d22db6d678709f1aebf54f877efa9f4092f23d",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/OnlineOptions.hpp": "7ccb01f77ea59febb8165ab0657c3de0112775dad4d894de7c5f76a1b538c791",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/FieldMachine.hpp": "cb16cf24589a59fba6461106450d3885399707b9a0643c344af9358ea3721623",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Machine.hpp": "642d5072490227f6b23b5d671a6780059d1c481d7df1caed6b32032dcafcdcca",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Machine.hpp": "6f051b2509d5bfee1e29881ba1026c161a1ea50f455131eb4f4fe03ba39fb837",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Instruction.hpp": "f33cc237d97828f42450ed431362d04f7e1a3c380adf57dfa4f635eb592a4fa9",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/RingOptions.cpp": "f33abd5d6b7fe0087311dcb16909ace18d1dab0a10ef87c19bd16dbe32e323d4",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Program.cpp": "66099f5b0c913b53d590f233de39b89e13ab0ec05348b9acf821fae70e028e8e",
@@ -347,7 +570,7 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/OfflineMachine.hpp": "bfc233914153557cce531173e7817badc0614367b96ddeede2b1257bb14aa8c3",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/FunctionArgument.cpp": "2054310a03d5529ecda199333d7a6186ad97e095e62a3fc3eccdec0e42d8d6c3",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/ThreadQueues.h": "880f15960557471cda7e8400715156673e088475a9865c6ef9886ac8d73843fc",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Processor.h": "0dbb18435f4b7d7e9af1f351df169a3dff08ca051ae383f2f7959ea9c2899325",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Processor.h": "ff07ef70581784951538994b039bc4eaaa18d5f861a09870ac342645bf2fa582",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/config.h": "63f919104e20f21ed3d64c6f898ded177e86e51640d7a5dd510989ee57ebe810",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Machine.h": "817efb94126c90a5d55c45df77044288b2bd612ab60fff785d6b0a81bd3b87b2",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/IntInput.h": "2e798d10352afa88589b136fc7bc4a75975cdd88b5ff8bf5551fcffc1a9c6ca0",
@@ -371,12 +594,12 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/ThreadStats.h": "61a7e23fc166f33bc8369e15219271f1b59705087c09290662eede5ae0d993d4",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/DishonestMajorityMachine.cpp": "499ebce42b1abf37514b2fb76947ad8db7f635b89d620f17e6420cceecdcee3e",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/SpecificPrivateOutput.h": "941df285e7aaa89ec2c188e128e596d9548c4aeae318a2bc3c061f3424c2851a",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Processor.hpp": "d3cb8de5168be31d4bd990069f6cdd8e2b0710efd961a9f970727151f83c8280",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Processor.hpp": "1bbc8c6b3eadf5847b02587ca62b1d873c657564f4fdbfb2a70c28308a44a873",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/RingMachine.h": "bd195dd88f722f7c09b2edc73f1aff1d40fdf8342a0613e144d96eff67d86249",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/instructions.h": "0587a2f1c3cf6b7c3590fbbac0d11c32392d0b615bb36ac6b478882df487d244",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/DataPositions.cpp": "e2068050de025fccd8d7753d4db5a99c221dbb88c94dd531fdd6708d05eaf6b6",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/ThreadQueue.cpp": "c1afc23780d7ecd18ff5e61516a3e10de0bcbaa5dad881bb9349382d08d94943",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Data_Files.hpp": "96d77bb121c3ab73693612968bf66f9b7a14305b80a990ff76807892ab8194ed",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Data_Files.hpp": "6e02b0cac047ee6c2dab3678268a869b895932094bc7d36cbc67a7bd86518479",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/PrivateOutput.hpp": "bef3aebe8c72f38017cb981d6c95995aa6537ec15806b20d0ebc30b95d85852e",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/OnlineOptions.h": "bacffbfc07e7adcc30bed933ab7c689b5e48da6584d65a774c6e70f9bcd06c9d",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/OnlineMachine.hpp": "31785b7d17a4db9385cd066874244fd591c1b08cebf73ee48a0c23a7d444cc5e",
@@ -397,7 +620,7 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/FixInput.cpp": "3bf6f944d9bb34f647d4ca5fa25e94bd0fb2a145a9893623902c93220d3039fa",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/ProcessorBase.h": "8fca1e50b79613b21ebcbe1f472541d450d6c03b1389b7b8ae7c8f67db49cb00",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/HonestMajorityMachine.h": "8c1596fb860f8256399c44942ff8bad347541f4038deaa127625d918bb8581e1",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Data_Files.h": "021210511066beaeddf22e5506b311ab3bc5a3043ca45126d1c4e7b74edc8ab7",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Data_Files.h": "e2a243f9337068578999e1e683a83a2b8309d633911892422e588a0098ec0b90",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Instruction.h": "c28c57f215d675675695b7336e75b2b761ce938d186602194e1c5b7625d39493",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/RingOptions.h": "509b271bedc058cbeb4450fad8daf504e5a7b29380e3c05d83510ed2f5c51c12",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/Processor/Input.hpp": "1ec72252d1fd02afcf17eb0d1bdfd94b5c20253de051bf963ffbf924a2a93d9d",
@@ -639,12 +862,12 @@
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/F3Code.cpp": "f284dbd1ed11c93504da2eb59b64bfc3a77d4ca8210936b539473a5216010266",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/SemiPrep.cpp": "dc242e2a07577ff873a4668304d0ce19514f5dce3571f02e53d4513369378f08",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/VectorInput.h": "9c02c54987b21969a7e1570e443afcd4e094a97f002c8722ca1e41c2ba828506",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/ShareThread.hpp": "1b8bfca2efba672ec733684d991a0943c3b61f7e2c7c0277e3d66bb568a1ee24",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/ShareThread.hpp": "56e6abd7068a83830bce3fa6e8942d4cb61003dce76b13101bcf08d1d07a671c",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/BitAdder.hpp": "28374ec20572df4ce1706d076497eef5f2607d0f187051f360d83a54f4fe456c",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/AtlasShare.h": "b0e4495cf066113cb4be756829d6813859cd892502117feda48c64c0cbfdd1ff",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/ShareSecret.hpp": "576abdb5996530cca5ae2d57e3c657e303a2b94126674848ca9b01c1be758e5e",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/Memory.h": "f3881ee767d50244a392d7a1b564b3ac9a25ff74509393bcd06fd738a2e23141",
-    ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/ShareThread.h": "55b4174ec3c6f574e103b8188f67d575336550cf4ca7dd5922c5478ccf002269",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/ShareThread.h": "b0d6d0cef7129a122d3dd68ef89974dfe029b3e1eb323f4798376cf2675bdec2",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/AtlasSecret.cpp": "e8f559ffae60f2900dca9eb5e198dae0e1ee9e689b4210c410c349cb6f6f2e2b",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/VectorProtocol.h": "91526a95855532244ad67bf6440d4926abf3de72beab1ef597633b2ece405da6",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/PostSacriBin.cpp": "d08c5363d8899ac7e275f3a4afde4eb34e15599e9f7a0008b3f422b9c4f52abb",

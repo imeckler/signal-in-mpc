@@ -38,7 +38,7 @@ It never changes the frozen functional runtime. Build `libSPDZ.so`, then use
 `fixture.mk` for the small executable. `check_native.py` runs the bounded local
 five-party series and preserves source/product snapshots and original failures.
 
-The current checkpoint passes all five parties for repeated positive execution,
+The first checkpoint c27ded7 passes all five parties for repeated positive execution,
 a deliberately inconsistent private polynomial evaluation (actual `mac_fail`),
 a one-party worker exception, and a one-party teardown exception. Only positive
 synthetic comparison flags open. On failure the test checks terminal execution
@@ -66,9 +66,29 @@ Supported test scope is exactly one VM worker, five encrypted parties, live CCD1
 preprocessing, post-bootstrap controlled protocol failures, and quiescent host
 ownership. No application capability/default is enabled. Bootstrap/server-thread
 failures, partial Processor-constructor ownership, OS-level join failures,
-SIGKILL/crash/suspend and OS copies are not certified. Communication helper
-joins still require explicit return-code accounting before promotion; the
-checkpoint's controlled cases use successful valid pthread joins. OT/Tinier
+SIGKILL/crash/suspend and OS copies are not certified. The first checkpoint assumed valid helper joins; the follow-up below adds explicit return-code accounting. OT/Tinier
 owners and their destructor checks are outside this CCD candidate. Caller-owned
 private inputs/handles must be closed/wiped by the embedding session on failure;
 Machine does not own those buffers and cannot erase independent copies.
+
+
+## Constructor and join-accounting follow-up
+
+The follow-up passes the original four cases plus a one-party exception inside
+Processor initialization before its constructor completes. Data_Files reference
+APIs now have unique_ptr backing owners; personal prep arrays and ShareThread's
+protocol/MC owners also unwind safely during construction. Local unwind guards
+cancel transport before partial constructor members are destroyed and clear a
+failed ShareThread singleton. This is scoped to the inspected CCD owners and
+controlled Processor-body initialization failure, not arbitrary Names/server or
+OS resource failure.
+
+All twenty-five party/case executions exit zero, integrity checks pass, and
+controller cleanup has no errors. Positive execution records 51 started/51 joined
+runtime threads and 57 stack wipes per party. Each controlled failure records
+17 started/17 joined runtime threads, 21 stack wipes, zero registered sockets,
+terminal replay rejection and false retirement acknowledgment. Extra wiped
+stacks include erased host calls. Helper join return codes are now recorded;
+a failed helper join prevents cleanup/retirement success. No forced OS-level
+pthread_join failure or crash recovery is claimed, and the quarantine path for
+an unjoinable VM worker remains unpromoted. No runtime/application gate changed.
