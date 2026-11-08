@@ -10,7 +10,7 @@
   "source_sha256": {
     "signal_backend/VariableServiceWork/check_store.py": "1e0fff72bebeb718a2bc864e4fe525cec272612b005e11c629cec7c344b6e43d",
     "signal_backend/VariableServiceWork/store_checks.cpp": "45d6fe4814b362c0267597f66118c6285ae1942b9e47ca2014f1d6e280d055c8",
-    "signal_backend/VariableServiceWork/VariableSendStore.h": "35a0a0a76009241144bcd52cbd424c1ce84d880c5565c4a309fe78715c089e3f",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "0bcbf4103ec49468469639405ad97c4cd96cf5bedf6838cc7aeae27a2504dc32",
     "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
     "signal_backend/VariableServiceWork/shape.py": "5adcbb0bc40627a8f30af3d981e29074c59b8b4fb17540d33e38c66006876c9d",
     "signal_backend/PersistentSendFence.h": "17f717fc5c40a0910a67a4e245d52e467059a1c6890931b26e46edcce14850f9"

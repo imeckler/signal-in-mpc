@@ -11,6 +11,7 @@ def main():
   assert result.stdout=='39 failclosed provider transitions; two-send lifecycle passed\n' and not result.stderr,result.stderr
  files=[Path(__file__),HERE/'PrivateProvider.h',HERE/'provider_checks.cpp',HERE/'VariableSendStore.h',HERE/'VariableShape.h',ROOT/'signal_backend/PersistentSendFence.h']
  report={'host_mock_lifecycle_test_passed':True,'sanitizers':['ASAN','UBSAN'],'rejection_transition_checks':39,'successful_two_send_lifecycle':True,
+  'connection_allocator_override_tested':True,'override_used_in_eval_and_returned_id':True,'ordinary_send_uses_committed_next_id':True,
   'covered':['upgrade must precede authenticated upgrade_complete','credentials consumed once','send blocked before HTTPaccept and while response pending','matching response ticket required','callback/dimension failures poison state','reentrant completion/close cannot resurrect provider','stable slot restart refusal'],
   'no_open_or_plaintext_import_api':True,'native_MPC_evaluation_tested_here':False,'authenticated_bootstrap_implemented':False,'recoverable_persistence_implemented':False,
   'upstream_computed_validity_propagation':'Owning TLS registry retains credential/state/per-input validity and gates outputs; this wrapper supplies no correctness flags.',

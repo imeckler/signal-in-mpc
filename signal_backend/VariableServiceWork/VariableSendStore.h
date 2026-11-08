@@ -29,8 +29,16 @@ public:
  // Recipient/UAK/device/keys/request-ID remain retained, rather than supplied
  // afresh. Initial payload slots are unused storage; each call overlays them.
  template<class Evaluate>Produced produce(SharedBits payload,SharedBits timestamp,Evaluate&& evaluate){
+  return produce_with_request_id(std::move(payload),std::move(timestamp),
+    bytes(input_,shape_.metadata_offset()+40,8),std::forward<Evaluate>(evaluate));
+ }
+ // Embedding-only connection allocator ID. Reserve/commit it globally before
+ // invoking this call; failures must never return that ID to the allocator.
+ // No opening, RPC import, or equality test on these same-worker shares.
+ template<class Evaluate>Produced produce_with_request_id(SharedBits payload,SharedBits timestamp,
+     SharedBits request_id,Evaluate&& evaluate){
   live();require(!pending_,"private conversation response pending");require(ticket_!=UINT64_MAX,"private conversation ticket exhausted");
-  require(payload.size()==8*(1+shape_.chunk_bytes()+shape_.plaintext_bytes())&&timestamp.size()==64,
+  require(payload.size()==8*(1+shape_.chunk_bytes()+shape_.plaintext_bytes())&&timestamp.size()==64&&request_id.size()==64,
     "private conversation payload dimensions");
   pending_=true;++ticket_;
   try{
@@ -39,9 +47,10 @@ public:
    std::copy(payload.begin(),payload.begin()+8*(1+shape_.chunk_bytes()),call_input.begin()+8*(base+117));
    std::copy(payload.begin()+8*(1+shape_.chunk_bytes()),payload.end(),call_input.begin()+8*(base+182+shape_.chunk_bytes()));
    std::copy(timestamp.begin(),timestamp.end(),call_input.begin()+8*(meta+32));
+   std::copy(request_id.begin(),request_id.end(),call_input.begin()+8*(meta+40));
    auto output=evaluate(shape_,std::move(call_input));
    require(output.size()==8*shape_.output_bytes(),"private conversation result dimensions");
-   auto current_id=bytes(input_,meta+40,8);
+   auto current_id=std::move(request_id);
    auto next=bytes(input_,0,base+1);append(next,bytes(output,33,4));append(next,bytes(input_,base+5,36));
    append(next,bytes(output,1,32));append(next,bytes(output,37,32));append(next,bytes(output,69,4));
    append(next,bytes(input_,base+109,meta+40-(base+109)));append(next,bytes(output,73,8));append(next,bytes(input_,meta+48,9));

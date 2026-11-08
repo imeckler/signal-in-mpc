@@ -6,6 +6,9 @@
   ],
   "rejection_transition_checks": 39,
   "successful_two_send_lifecycle": true,
+  "connection_allocator_override_tested": true,
+  "override_used_in_eval_and_returned_id": true,
+  "ordinary_send_uses_committed_next_id": true,
   "covered": [
     "upgrade must precede authenticated upgrade_complete",
     "credentials consumed once",
@@ -21,10 +24,10 @@
   "recoverable_persistence_implemented": false,
   "upstream_computed_validity_propagation": "Owning TLS registry retains credential/state/per-input validity and gates outputs; this wrapper supplies no correctness flags.",
   "source_sha256": {
-    "signal_backend/VariableServiceWork/check_provider.py": "c881c0b5edec1c5260e705afe69f689f6ac35194fed003f79b5695e7eb4d6796",
-    "signal_backend/VariableServiceWork/PrivateProvider.h": "4798913f37809c355bc6ce9b5dfe248db4ab666db5abe6b93cf1b025d5cb93b7",
-    "signal_backend/VariableServiceWork/provider_checks.cpp": "8ad0cbbd87536381575c79c9f7143634d7af0b513c74dbf58a38177a0bd36d51",
-    "signal_backend/VariableServiceWork/VariableSendStore.h": "35a0a0a76009241144bcd52cbd424c1ce84d880c5565c4a309fe78715c089e3f",
+    "signal_backend/VariableServiceWork/check_provider.py": "c26dbdd73c5d6499ad8203c6b7196da6379fff11fd2cab905bf31a7255dd5edc",
+    "signal_backend/VariableServiceWork/PrivateProvider.h": "0f47a310c8c8bf722cc3c3aa6954bd0314ced18c3e13380586f251c7f8bc20ec",
+    "signal_backend/VariableServiceWork/provider_checks.cpp": "4ff04c75f389886cb1bbcf8c61cd5a0515e9836f07328069f13db04d1072158c",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "0bcbf4103ec49468469639405ad97c4cd96cf5bedf6838cc7aeae27a2504dc32",
     "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
     "signal_backend/PersistentSendFence.h": "17f717fc5c40a0910a67a4e245d52e467059a1c6890931b26e46edcce14850f9"
   }

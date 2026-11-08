@@ -37,5 +37,19 @@ int main(int argc,char**argv){assert(argc==2);signal_mpc::VariableShape shape(1,
  {auto p=make();rejected([&]{p->upgrade(Bits(128,9),[&](const auto&,Bits){p->close();return Bits(136);});});rejected([&]{p->upgrade_complete();});}
  {auto p=make();activate(*p);rejected([&]{p->produce(Bits(8),Bits(64),[&](const auto&s,Bits){rejected([&]{p->response_complete(1);});return Bits(8*s.output_bytes());});});rejected([&]{send(*p);});}
  {auto p=make();activate(*p);rejected([&]{p->produce(Bits(8),Bits(64),[&](const auto&s,Bits){p->close();return Bits(8*s.output_bytes());});});rejected([&]{send(*p);});}
- assert(rejected_count==39&&calls==15);std::cout<<"39 failclosed provider transitions; two-send lifecycle passed\n";
+ {auto p=make();activate(*p);Bits id(64,5);
+  auto output=p->produce_with_request_id(Bits(8),Bits(64),id,[&](const auto&s,Bits input){
+   const auto offset=8*(s.metadata_offset()+40);
+   assert(Bits(input.begin()+offset,input.begin()+offset+64)==id);
+   return Bits(8*s.output_bytes(),0);
+  });
+  assert(output.request_id==id);p->response_complete(output.ticket);
+  // Ordinary produce must use the committed selected next ID, not old/override.
+  auto next=p->produce(Bits(8),Bits(64),[&](const auto&s,Bits input){
+   const auto offset=8*(s.metadata_offset()+40);
+   assert(Bits(input.begin()+offset,input.begin()+offset+64)==Bits(64,0));
+   return Bits(8*s.output_bytes(),0);
+  });assert(next.request_id==Bits(64,0));p->response_complete(next.ticket);
+ }
+ assert(rejected_count==39&&calls==16);std::cout<<"39 failclosed provider transitions; two-send lifecycle passed\n";
 }

@@ -63,6 +63,20 @@ public:
    return output;
   }catch(...){close();throw;}
  }
+ // Embedding-only globally allocated ID; upstream registry owns uniqueness and
+ // burns reservations on every failure. Same lifecycle as ordinary produce.
+ template<class Evaluate>typename VariableSendStore<SharedBits>::Produced produce_with_request_id(
+     SharedBits payload,SharedBits timestamp,SharedBits request_id,Evaluate&& evaluate){
+  try{
+   require(phase_==Phase::active,"private provider send phase");
+   phase_=Phase::producing;
+   auto output=store_.produce_with_request_id(std::move(payload),std::move(timestamp),
+     std::move(request_id),std::forward<Evaluate>(evaluate));
+   require(phase_==Phase::producing,"private provider send interrupted");
+   phase_=Phase::response_pending;
+   return output;
+  }catch(...){close();throw;}
+ }
  // Trusted registry only: authenticated complete response, expected privateID,
  // actual2xx status. Non2xx/uncertain send/rejection/timeout must call close().
  void response_complete(uint64_t ticket){
