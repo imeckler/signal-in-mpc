@@ -74,6 +74,16 @@ theorem writeFields_map (enabled : B) (tag : W) (decoded : Decoded B W) (fields 
     Word64.eq_map ho ha, ho.const, ha.const, Decoded.map, Prod.map_fst, Prod.map_snd, id_eq]
 
 include ho ha in
+theorem initializeFields_map (enabled : B) (tag : W) (fields : List (Field B W)) :
+    (initializeFields o a enabled tag fields).map (Field.map f fw) =
+      initializeFields o' a' (f enabled) (fw tag) (fields.map (Field.map f fw)) := by
+  simp only [initializeFields, List.zipIdx_map, List.map_map, Function.comp_def]
+  congr 1
+  funext x
+  simp only [selectField, Field.map, Unpad.chooseByte_map ha, ho.select, ha.and,
+    Word64.eq_map ho ha, ho.const, ha.const, Prod.map_fst, Prod.map_snd, id_eq]
+
+include ho ha in
 theorem plan_map (capacity : Nat) (key payload : Decoded B W) (state : State B W) :
     (plan o a capacity key payload state).map f fw = plan o' a' capacity (key.map f fw) (payload.map f fw) (state.map f fw) := by
   simp only [plan, Plan.map, Decoded.map, State.map, ho.shift, ho.band, ho.const, ho.ule,
@@ -81,10 +91,21 @@ theorem plan_map (capacity : Nat) (key payload : Decoded B W) (state : State B W
     Unpad.chooseByte_map ha, lookupWord_map ho ha]
 
 include ho ha in
+theorem planWithCursor_map (capacity position : Nat) (lastClear : B)
+    (key payload : Decoded B W) (state : State B W) :
+    (planWithCursor o a capacity position lastClear key payload state).map f fw =
+      planWithCursor o' a' capacity position (f lastClear) (key.map f fw) (payload.map f fw) (state.map f fw) := by
+  unfold planWithCursor
+  rw [← plan_map ho ha]
+  by_cases h : capacity > position + 10 <;> simp only [h,if_true,if_false,Plan.map,Decoded.map,State.map,ho.ule,ho.const,
+    ho.add,ho.select,Word64.eq_map ho ha,Word64.bor_map ha,ha.and,ha.not,ha.const,
+    Unpad.chooseByte_map ha]
+
+include ho ha in
 theorem applyPlan_map (position : Nat) (p : Plan B W) (state : State B W) :
     (applyPlan o a position p state).map f fw = applyPlan o' a' position (p.map f fw) (state.map f fw) := by
   simp only [applyPlan, State.map, Plan.map, ha.and, ha.not, Word64.eq_map ho ha, ho.const,
-    ho.select, ho.add, ho.sub, writeStack_map ho ha, writeFields_map ho ha]
+    ho.select, ho.add, ho.sub, writeStack_map ho ha, writeFields_map ho ha, initializeFields_map ho ha]
 
 include ho ha in
 theorem step_map (capacity : Nat) (decoders : List (Decoded B W)) (state : State B W) (position : Nat) :
@@ -96,7 +117,13 @@ theorem step_map (capacity : Nat) (decoders : List (Decoded B W)) (state : State
     cases decoders[position]? <;> simp [Decoded.map, ha.const, ho.const]
   have hs := congrArg Decoded.stop hg
   simp only [Decoded.map] at hs
-  simp only [step, applyPlan_map ho ha, plan_map ho ha, lookupDecoded_map ho ha, List.map_take, List.map_drop, hg, hs]
+  have hl : (decoders[capacity-1]?.getD ⟨a.const 0,o.const (capacity-1),o.const 0⟩).map f fw =
+      (decoders.map (Decoded.map f fw))[capacity-1]?.getD ⟨a'.const 0,o'.const (capacity-1),o'.const 0⟩ := by
+    simp only [List.getElem?_map]
+    cases decoders[capacity-1]? <;> simp [Decoded.map,ha.const,ho.const]
+  have hlo := congrArg Decoded.ok hl
+  simp only [Decoded.map] at hlo
+  simp only [step, applyPlan_map ho ha, planWithCursor_map ho ha, lookupDecoded_map ho ha, List.map_take, List.map_drop, hg, hs, hlo]
 
 include hd ho ha in
 theorem parseBody_map (wire : List B) :

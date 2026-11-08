@@ -90,6 +90,14 @@ def writeFields (o : Word64.Ops B W) (a : ByteAuth.Ops B) (enabled : B) (tag : W
     (a.and enabled (Word64.eq o a tag (o.const (i + 1))))
     ⟨a.const 255, decoded.stop, decoded.value, decoded.value⟩ old)
 
+/-- Prost obtains a mutable Option field before attempting its decoder. Missing
+fields therefore become present with their type's zero/empty default on errors. -/
+def initializeFields (o : Word64.Ops B W) (a : ByteAuth.Ops B) (enabled : B)
+    (tag : W) (fields : List (Field B W)) : List (Field B W) :=
+  fields.zipIdx.map (fun (old, i) => selectField o a
+    (a.and enabled (Word64.eq o a tag (o.const (i + 1))))
+    (selectField o a old.present old ⟨a.const 255,o.const 0,o.const 0,o.const 0⟩) old)
+
 structure Plan (B W : Type) where
   ok : B
   stop : W
@@ -128,25 +136,52 @@ def plan (o : Word64.Ops B W) (a : ByteAuth.Ops B) (capacity : Nat)
         (o.select (isKind 5) (o.add key.stop (o.const 4)) key.stop)))
   ⟨good, stop, tag, kind, payload⟩
 
+/-- Preserve the accepted prefix/table representation and separately calculate
+actual failure consumption. The final table row reports whether the last byte
+has its continuation bit clear, exactly the shared contiguous fast-path guard. -/
+def planWithCursor (o : Word64.Ops B W) (a : ByteAuth.Ops B) (capacity position : Nat)
+    (lastClear : B) (key payload : Decoded B W) (state : State B W) : Plan B W :=
+  let p := plan o a capacity key payload state
+  let keyGood := a.and key.ok (a.and (o.ule key.value (o.const 4294967295))
+    (a.and (a.not (Word64.eq o a p.tag (o.const 0))) (o.ule p.kind (o.const 5))))
+  let known := a.and (Word64.eq o a state.depth (o.const 0)) (o.ule p.tag (o.const 6))
+  let scalar := bor a (Word64.eq o a p.tag (o.const 2)) (Word64.eq o a p.tag (o.const 3))
+  let expected := Unpad.chooseByte a scalar (Word64.eq o a p.kind (o.const 0)) (Word64.eq o a p.kind (o.const 2))
+  let validKnown := bor a (a.not known) expected
+  let attemptsPayload := a.and keyGood (a.and validKnown (a.and (o.ule state.depth (o.const 99))
+    (bor a (Word64.eq o a p.kind (o.const 0)) (Word64.eq o a p.kind (o.const 2)))))
+  let keyFast := if capacity > position + 10 then a.const 255 else lastClear
+  let payloadFast := bor a (o.ule (o.add key.stop (o.const 11)) (o.const capacity)) lastClear
+  let slowKeyStop := o.const (position + min 10 (capacity-position))
+  let slowPayloadStop := o.select (o.ule (o.add key.stop (o.const 10)) (o.const capacity))
+    (o.add key.stop (o.const 10)) (o.const capacity)
+  let keyFailure := o.select key.ok key.stop (o.select keyFast (o.const position) slowKeyStop)
+  let payloadFailure := o.select payload.ok payload.stop (o.select payloadFast key.stop slowPayloadStop)
+  let failureStop := o.select attemptsPayload payloadFailure keyFailure
+  { p with stop := o.select p.ok p.stop failureStop, tag := o.select keyGood p.tag (o.const 0) }
+
 def applyPlan (o : Word64.Ops B W) (a : ByteAuth.Ops B) (position : Nat)
     (p : Plan B W) (state : State B W) : State B W :=
   let here := Word64.eq o a state.next (o.const position)
-  let enabled := a.and state.ok (a.and here p.ok)
+  let active := a.and state.ok here
+  let enabled := a.and active p.ok
   let start := Word64.eq o a p.kind (o.const 3)
   let stop := Word64.eq o a p.kind (o.const 4)
   let top := Word64.eq o a state.depth (o.const 0)
   ⟨a.and state.ok (a.not (a.and here (a.not p.ok))),
-    o.select enabled p.stop state.next,
+    o.select active p.stop state.next,
     o.select enabled (o.select start (o.add state.depth (o.const 1))
       (o.select stop (o.sub state.depth (o.const 1)) state.depth)) state.depth,
     writeStack o a (a.and enabled start) state.depth p.tag state.stack,
-    writeFields o a (a.and enabled top) p.tag p.payload state.fields⟩
+    writeFields o a (a.and enabled top) p.tag p.payload
+      (initializeFields o a (a.and active top) p.tag state.fields)⟩
 
 def step (o : Word64.Ops B W) (a : ByteAuth.Ops B) (capacity : Nat) (decoders : List (Decoded B W))
     (state : State B W) (position : Nat) : State B W :=
   let key := decoders[position]?.getD ⟨a.const 0, o.const position, o.const 0⟩
   let payload := lookupDecoded o a key.stop (position + 1) ((decoders.drop (position + 1)).take 10)
-  applyPlan o a position (plan o a capacity key payload state) state
+  let lastClear := (decoders[capacity - 1]?.getD ⟨a.const 0,o.const (capacity - 1),o.const 0⟩).ok
+  applyPlan o a position (planWithCursor o a capacity position lastClear key payload state) state
 
 def parseBody (d : VarintDecode.Spqr.Ops B W) (o : Word64.Ops B W) (a : ByteAuth.Ops B)
     (body : List B) : State B W :=

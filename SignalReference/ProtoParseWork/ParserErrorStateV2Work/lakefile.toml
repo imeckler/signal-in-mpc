@@ -1,0 +1,13 @@
+name = "parser-error-state-v2"
+version = "0.1.0"
+defaultTargets = ["numeric_parser"]
+[[require]]
+name = "tls-mpc"
+path = "../../.."
+[[lean_exe]]
+name = "numeric_parser"
+root = "NumericRunner"
+
+[[lean_exe]]
+name = "emit_parser_v2"
+root = "Export"

@@ -1,0 +1,7 @@
+{
+  "capacity": 64,
+  "fixture_lanes": 4,
+  "artifact_sha256": "2b52f57827896b117637bdc9f419960a092b11f9276490b4955157e75fcc3591",
+  "compiled_outputs_match": true,
+  "native_mpc_executed": false
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "FieldDispatch",
+    "original_sha256": "0a881fc9abe7b14daf7f1901a1ad3e951e83cc3fdf2b048022797b92d001d704",
+    "replayed_sha256": "0a881fc9abe7b14daf7f1901a1ad3e951e83cc3fdf2b048022797b92d001d704",
+    "changes": "Import paths only; recompiled against v2 core definitions."
+  },
+  {
+    "name": "ContiguousReference",
+    "original_sha256": "c9168379e62ea62673e8bd1bf09a282b7830b450676b2aad2575a9f23eb5ab7a",
+    "replayed_sha256": "18c7b29ab3f90a0f54dfb28c00cf52a4558eeb91c0aa39470703106f1a9e9321",
+    "changes": "Import paths only; recompiled against v2 core definitions."
+  },
+  {
+    "name": "NumericBridge",
+    "original_sha256": "b3850ec16c6c170ccc5c6f27391c93524ee8cb6877ccf9b76d856ba0b529dc93",
+    "replayed_sha256": "fcea153adc219b4d57682e2e487f7ad3f04a15c21cb452658193fa33c87526d5",
+    "changes": "Import paths only; recompiled against v2 core definitions."
+  }
+]

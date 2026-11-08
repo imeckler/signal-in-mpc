@@ -1,0 +1,21 @@
+{
+  "previous_core_sha256": "4a266ae4d734e3513592fde2d77a6c64e13b9a89ee92146cc5852d72db59345c",
+  "preserved_functions": [
+    "plan",
+    "applyPlan",
+    "step",
+    "parseBody"
+  ],
+  "affected_historical_receipts": [
+    "DispatcherIntegrationWork/proof-report.json: rejection counterexamples use old plan/applyPlan/parseBody",
+    "TopFieldWork/proof-report.json: old scan/plan assumptions must be revalidated against v2",
+    "SkipPlanWork/proof-report.json: plan/applyPlan correspondence premises and cursor behavior must be revalidated",
+    "FullReferenceWork, KeyReferenceWork, FieldReferenceWork, BytesReferenceWork and SkipTranslatorWork transitive whole-source freeze guards include ProtoParse.lean and therefore require versioned source-closure revalidation even where their primitive computational dependencies are textually unchanged."
+  ],
+  "primitive_receipts": "Historical receipts remain unchanged records of their old source closure. Retained primitive decoder/table/plan declarations are checked identical below; no blanket root acceptance is inherited for the changed source closure.",
+  "retained_declarations": {
+    "decodePrefix": "f41a5e97e3c6855ab95a4f8d41e584928968e60c8f21123202f5ccd151d19ff2",
+    "table": "3c7bc09d80d8ea47ee5b25378fb6b4dc5d3e032679aaa0c9a31047a1de9ab014",
+    "plan": "a86f3f3dac676e3fa9bd8f6cec0b964dae7f9017cb4595581c9f412916f4f66a"
+  }
+}

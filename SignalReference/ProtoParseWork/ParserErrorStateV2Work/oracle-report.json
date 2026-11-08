@@ -1,0 +1,8 @@
+{
+  "fixture_count": 1722,
+  "matching_count": 1722,
+  "mismatches": [],
+  "comparison": "status, exact consumed cursor/suffix, all six Option field contents on both success and rejection",
+  "fixture_sha256": "9435c2d84d8438419bc344d8e2af79cc220a93540f9a472b01dfcb26c3a25497",
+  "full_refinement_proved": false
+}
