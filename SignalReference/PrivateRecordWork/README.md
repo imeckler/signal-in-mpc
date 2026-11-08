@@ -29,3 +29,15 @@ actual source semantic refinement, private record parse/reprojection after reloa
 full SPQR/KEM/skipped/prekey transitions and coherent send-record update. No
 provider admission, native MPC serializer, atomic state/outbox restart or runtime
 retirement is established by these tests. Keep the normal recovery gate closed.
+
+## Private snapshot/reprojection checkpoint
+
+`PrivateRecordSnapshotV1` stores the private tree itself in a fixed public schema:
+all private presence bytes, buffer status/BE16 length/capacity bytes, scalar bytes
+and nested fields. Restore reads those shares under the same authenticated schema;
+there is no host protobuf parsing. Private re-projection yields the selected525
+bytes. The four cases now flatten→restore before both projection and actual full
+protobuf byte comparison. The rejected case checks the prior selected state.
+Only canonical bounded fixtures are checked; malformed-schema/buffer rejection,
+general roundtrip/projection proofs, native archive/import and runtime admission
+are not established. Do not restore from stale serialized baseline plus overlay.

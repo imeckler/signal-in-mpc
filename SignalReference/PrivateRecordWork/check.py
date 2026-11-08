@@ -50,9 +50,9 @@ def main():
  for row in fixture['rows'][:2]+local_new['rows'][:1]:
   before=bytes.fromhex(row['record_before']);after=bytes.fromhex(row['record_after'])
   nodes=make(before,record)
-  requests.append(dict(nodes=nodes,result=list(bytes.fromhex(row['expected'])),capacity=1024));expected.append(after)
+  requests.append(dict(nodes=nodes,result=list(bytes.fromhex(row['expected'])),projection=list(bytes.fromhex(row['expected'])[1:526]),capacity=1024));expected.append(after)
  row=fixture['rows'][0];bad=bytearray.fromhex(row['expected']);bad[0]=0
- requests.append(dict(nodes=make(bytes.fromhex(row['record_before']),record),result=list(bad),capacity=1024));expected.append(bytes.fromhex(row['record_before']))
+ requests.append(dict(nodes=make(bytes.fromhex(row['record_before']),record),result=list(bad),projection=list(bytes.fromhex(row['input'])[:525]),capacity=1024));expected.append(bytes.fromhex(row['record_before']))
  started=time.monotonic();p=subprocess.run(['lake','env','lean','--run',str(HERE/'Evaluate.lean')],cwd=ROOT,input=''.join(json.dumps(r)+'\n'for r in requests),text=True,capture_output=True,timeout=240)
  assert p.returncode==0,p.stderr
  for want,line in zip(expected,p.stdout.splitlines(),strict=True):
@@ -61,8 +61,8 @@ def main():
  sha=lambda p:hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
  audit=subprocess.check_output(['lake','env','lean',str(HERE/'Checks.lean')],cwd=ROOT,text=True)
  assert audit.count('depends on axioms:')==5 and all(x not in audit for x in ['sorryAx','_native','Lean.ofReduceBool'])
- sources=[HERE/x for x in ['check.py','Evaluate.lean','Checks.lean','README.md']]+[ROOT/'TlsMpc/Signal'/x for x in ['PrivateRecordEncodingV1.lean','PrivateRecordEncodingV1Proofs.lean','PrivateRecordUpdateV1.lean']]+[ROOT/'signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs',ROOT/'signal_backend/Oracle/src/session_projection.rs']
- report=dict(passed=True,whole_record_byte_cases=4,first_new_DH=True,repeated_known=True,LocalNew_prekey_acknowledgement=True,rejected_result_exact_preservation=True,encoder_Hom_and_compiler_endpoints=5,axiom_audit=audit,update_Hom_proof=False,actual_source_refinement=False,full_schema_private_validation=False,provider_admission=False,atomic_outbox_restart=False,native_MPC_run=False,seconds=time.monotonic()-started,source_sha256={str(p.relative_to(ROOT)):sha(p)for p in sources},oracle_binary_sha256=sha(binary))
+ sources=[HERE/x for x in ['check.py','Evaluate.lean','Checks.lean','README.md']]+[ROOT/'TlsMpc/Signal'/x for x in ['PrivateRecordEncodingV1.lean','PrivateRecordEncodingV1Proofs.lean','PrivateRecordUpdateV1.lean','PrivateRecordSnapshotV1.lean']]+[ROOT/'signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs',ROOT/'signal_backend/Oracle/src/session_projection.rs']
+ report=dict(passed=True,whole_record_byte_cases=4,private_snapshot_roundtrip_projection_checked=True,first_new_DH=True,repeated_known=True,LocalNew_prekey_acknowledgement=True,rejected_result_exact_preservation=True,encoder_Hom_and_compiler_endpoints=5,axiom_audit=audit,update_Hom_proof=False,actual_source_refinement=False,full_schema_private_validation=False,provider_admission=False,atomic_outbox_restart=False,native_MPC_run=False,seconds=time.monotonic()-started,source_sha256={str(p.relative_to(ROOT)):sha(p)for p in sources},oracle_binary_sha256=sha(binary))
  (HERE/'report.json').write_text(json.dumps(report,indent=2)+'\n')
  print('4 private canonical full-record encodings match actual libsignal',round(report['seconds'],3),'seconds')
 if __name__=='__main__':main()
