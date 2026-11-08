@@ -37,6 +37,17 @@ public:
  // No opening, RPC import, or equality test on these same-worker shares.
  template<class Evaluate>Produced produce_with_request_id(SharedBits payload,SharedBits timestamp,
      SharedBits request_id,Evaluate&& evaluate){
+  return produce_with_checkpoint(std::move(payload),std::move(timestamp),std::move(request_id),
+    std::forward<Evaluate>(evaluate),[](uint64_t,const SharedBits&){},
+    [](uint64_t,const SharedBits&,const SharedBits&,const SharedBits&){});
+ }
+ // Internal embedding-only transaction boundary. A real recovery adapter must
+ // durably reserve the complete account/intent before eval, then commit the
+ // coherent canonical account + immutable outbox before any result escapes.
+ // Existing produce paths deliberately remain tombstone-only, not durable.
+ template<class Evaluate,class Reserve,class Commit>Produced produce_with_checkpoint(
+     SharedBits payload,SharedBits timestamp,SharedBits request_id,Evaluate&& evaluate,
+     Reserve&& reserve,Commit&& commit){
   live();require(!pending_,"private conversation response pending");require(ticket_!=UINT64_MAX,"private conversation ticket exhausted");
   require(payload.size()==8*(1+shape_.chunk_bytes()+shape_.plaintext_bytes())&&timestamp.size()==64&&request_id.size()==64,
     "private conversation payload dimensions");
@@ -48,6 +59,7 @@ public:
    std::copy(payload.begin()+8*(1+shape_.chunk_bytes()),payload.end(),call_input.begin()+8*(base+182+shape_.chunk_bytes()));
    std::copy(timestamp.begin(),timestamp.end(),call_input.begin()+8*(meta+32));
    std::copy(request_id.begin(),request_id.end(),call_input.begin()+8*(meta+40));
+   reserve(ticket_,call_input); // Actual private overlaid input, not a validity flag.
    auto output=evaluate(shape_,std::move(call_input));
    require(output.size()==8*shape_.output_bytes(),"private conversation result dimensions");
    auto current_id=std::move(request_id);
@@ -56,6 +68,7 @@ public:
    append(next,bytes(input_,base+109,meta+40-(base+109)));append(next,bytes(output,73,8));append(next,bytes(input_,meta+48,9));
    auto payload=bytes(output,0,1);append(payload,bytes(output,81,2+shape_.frame_capacity()));
    require(next.size()==input_.size(),"private conversation next-state dimensions");
+   commit(ticket_,next,payload,current_id); // Failure closes store; no output release.
    input_=std::move(next); // Commit selected state BEFORE payload becomes eligible for TLS.
    return{ticket_,std::move(payload),std::move(current_id)};
   }catch(...){close();throw;}
