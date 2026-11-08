@@ -8,7 +8,7 @@
     "signal_backend/SessionTransitionWork/NativeActiveSpqrReceive.h": "daa85cac4dc3ac9ab608b5ab9fd884c421f00c259a4006a938074fd6f2961974",
     "signal_backend/SessionTransitionWork/NativeComputedDh.h": "082b203eed3ffe29d79b0f7f6558e3d6047ca88ebc23de718cd814461a1eded1",
     "signal_backend/SessionTransitionWork/NativePrivateMessageMac.h": "ca53907a95f002ef3deef90835526746c84be5c3665eea4bac0e7ee557da1b9a",
-    "signal_backend/SessionTransitionWork/NativeNewDhReceive.h": "db0e02df0950d31a702cccda3b4305104de89aa0fc14e30ac30c5bfe85324edc",
+    "signal_backend/SessionTransitionWork/NativeNewDhReceive.h": "8a36aa9574f6f974a2dcbda0c43240c30509519a550fa726d6f4645b9b68963f",
     "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3"
   }
 }

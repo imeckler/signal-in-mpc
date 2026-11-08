@@ -143,3 +143,12 @@ must use the same actual parser result for both DHs and the crypto summary. This
 preserves one parser and one crypto computation while bounding compiler closures.
 The public model peer preflight and C++ fixture build results remain valid; they
 are not evidence that the failed monolithic native build executed.
+
+The current `NativeNewDhReceive` adapter now performs that staged binding:
+`signal_private_new_dh_summary_256_5` receives only the original encoded wire;
+its remote bytes1..32 feed `NativeComputedDh` together with retained own private
+bytes32..63; all128 computed bytes and the SAME75B summary feed
+`signal_private_new_dh_crypto_256_5`. No caller can supply those intermediate
+values through this adapter. C++ type/compile/link checks pass. Independent stage
+compilation is still pending until its receipt exists; do not use the failed
+monolithic manifest/descriptor with this staged adapter.

@@ -1,0 +1,19 @@
+# Internal numeric stages only. The owning adapter binds all intermediate shares.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+mode=program.args[1];image=load(program.args[2])
+profiles={'summary':('signal-private-new-dh-summary-256',259,75),
+          'crypto':('signal-private-new-dh-crypto-256-5',1051,608)}
+if mode not in profiles:raise ValueError('unsupported receive stage')
+name,n,m=profiles[mode]
+if image['name']!=name or image['input_bits']!=n*8 or len(image['outputs'])!=m*8:raise ValueError('receive stage artifact dimensions')
+def evaluate(inputs,outputs):
+ binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+evaluate.__name__='signal_private_new_dh_'+mode+'_256_5'
+function=export(evaluate);Array=sbitvec.get_type(1).Array
+function(Array(n*8),Array(m*8))

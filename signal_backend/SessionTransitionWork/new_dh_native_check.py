@@ -8,12 +8,12 @@ from SignalReference.PrivateNewDhReceiveWork.check_model import BIN,TEXT,invoke
 HERE=Path(__file__).resolve().parent
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
- stage=ROOT/'.deps/private-new-dh-receive-native';runtime=ROOT/'.deps/sharing-refresh/MP-SPDZ'
- descriptor='signal_private_new_dh_receive_256_5-sbv:[6784x1]-sbv:[4864x1]'
+ stage=ROOT/'.deps/private-new-dh-staged-native';runtime=ROOT/'.deps/sharing-refresh/MP-SPDZ'
+ descriptors=['signal_private_new_dh_summary_256_5-sbv:[2072x1]-sbv:[600x1]', 'signal_private_dh_receive_candidate-sbv:[512x1]-sbv:[1024x1]', 'signal_private_new_dh_crypto_256_5-sbv:[8408x1]-sbv:[4864x1]']
  check='signal_new_dh_fixture_equal_4864-sbv:[9728x1]-sbv:[8x1]'
  shutil.copy2(ROOT/'programs/signal_new_dh_fixture_check.mpc',stage/'Programs/Source/signal_new_dh_fixture_check.mpc')
  subprocess.run([sys.executable,'-B','compile.py','-M','-X','-P',str(2**255-19),'signal_new_dh_fixture_check'],cwd=stage,env=dict(os.environ,PYTHONHASHSEED='0',PYTHONDONTWRITEBYTECODE='1'),check=True,timeout=120)
- manifest=stage/'fixture.manifest';manifest.write_text(build(stage,[descriptor,check]))
+ manifest=stage/'fixture.manifest';manifest.write_text(build(stage,descriptors+[check]))
  binary=ROOT/'.deps/private-new-dh-transition-fixture'
  sources=[Path(__file__),HERE/'new_dh_native_fixture.cpp',HERE/'NativeNewDhReceive.h',HERE/'Makefile',ROOT/'programs/signal_private_new_dh_receive.mpc',ROOT/'programs/signal_new_dh_fixture_check.mpc',ROOT/'handshake_backend/NativeWorker.h',ROOT/'TlsMpc/Signal/PrivateNewDhReceiveSplit.lean']
  before={str(p.relative_to(ROOT)):sha(p)for p in sources}
