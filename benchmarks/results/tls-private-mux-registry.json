@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "scope": "ASAN/UBSAN host mock ownership and lifecycle; not native MPC",
+  "profiles": 9,
+  "source_sha256": {
+    "handshake_backend/WebSocketWork/PrivateMuxRegistry.h": "33c6b5a337fbd72bf05e294ba54ad07ab33de4d65cc8088d33a9e8544ea6c4d9",
+    "handshake_backend/WebSocketWork/mux_registry_checks.cpp": "6a985cf339d208876da865715221a3eb3004343316c7ed8b3946fed7c9d4a692"
+  },
+  "checks": [
+    "two conversations and reordered replies with slot reuse",
+    "cross-owner input rejection before ID allocation",
+    "one pending per conversation",
+    "consumed input rejection",
+    "failed computed-validity admission burns ID without retention/checkpoint",
+    "four-conversation capacity",
+    "send before authenticated activation",
+    "unsolicited completion",
+    "four outstanding slots and replay rejection"
+  ]
+}

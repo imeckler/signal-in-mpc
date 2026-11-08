@@ -10,6 +10,7 @@
 #include "../signal_backend/VariableServiceWork/NativeVariableService.h"
 #include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
 #include "WebSocketWork/NativeWebSocket.h"
+#include "WebSocketWork/NativeWebSocketMux.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
 #include "ShapeCompiler.h"
@@ -40,6 +41,7 @@ class Session {
     struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; Origin origin=Origin::producer; };
     std::map<uint64_t,Buffer> buffers;
     std::unique_ptr<NativeWebSocket> websocket;
+    std::unique_ptr<NativeWebSocketMux> websocket_mux;
     bool websocket_closing=false;
     uint64_t next_buffer=1;
     Bytes pending_wire;
@@ -296,7 +298,7 @@ public:
             return result;});
     }
     void start_websocket(const Bytes& expected_accept) {
-        guarded([&] {require_application();require(!websocket,"WebSocket already initialized");
+        guarded([&] {require_application();require(!websocket&&!websocket_mux,"WebSocket already initialized");
             websocket.reset(new NativeWebSocket(worker,pinned_programs,expected_accept,
                 [&](const Bytes& value){return public_bits(value);}));});
     }
@@ -322,6 +324,31 @@ public:
             websocket_closing=websocket_closing||closing;
             // Partial selected protocol state survives; discarded TLS plaintext,
             // parser history and control buffers precede the erasure barrier.
+            lifecycle->renew_epoch();return receipt;});
+    }
+    void start_websocket_mux(const Bytes& expected_accept) {
+        guarded([&]{require_application();require(!websocket&&!websocket_mux,"WebSocket already initialized");
+            websocket_mux.reset(new NativeWebSocketMux(worker,pinned_programs,expected_accept,
+                [&](const Bytes& value){return public_bits(value);}));});
+    }
+    void expect_websocket_mux_response(size_t slot,Bits assigned_id,Bits computed_validity) {
+        guarded([&]{require_application();require(bool(websocket_mux)&&!websocket_closing,"WebSocket mux unavailable");
+            websocket_mux->expect(slot,std::move(assigned_id),std::move(computed_validity),
+                [&](const Bytes& value){return public_bits(value);},[&](const Bits& value){return release(value);});});
+    }
+    struct WebSocketMuxReceipt {bool upgraded;Bytes completed_slots;std::vector<std::pair<unsigned,uint64_t>> controls;};
+    WebSocketMuxReceipt process_websocket_mux(uint64_t handle) {
+        return guarded([&]{require_application();require(bool(websocket_mux)&&!pending_send,"WebSocket mux unavailable/pending send");
+            auto found=buffers.find(handle);require(found!=buffers.end()&&found->second.origin==Origin::authenticated_receive,
+                "WebSocket mux requires authenticated receive handle");
+            auto result=measured("receive.response",[&]{return websocket_mux->feed(take_private_payload(handle),
+                [&](const Bits& value){return release(value);},[&](const Bytes& value){return public_bits(value);});});
+            WebSocketMuxReceipt receipt{result.upgraded,std::move(result.completed_slots),{}};
+            for(auto& control:result.controls){
+                auto id=retain_private_result(std::move(control.payload),131);
+                if(control.kind==8){buffers.at(id).origin=Origin::websocket_close;websocket_closing=true;}
+                receipt.controls.push_back({control.kind,id});
+            }
             lifecycle->renew_epoch();return receipt;});
     }
     Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
@@ -415,6 +442,7 @@ public:
     }
     bool abort() noexcept {
         if(websocket){websocket->close();websocket.reset();}
+        if(websocket_mux){websocket_mux->close();websocket_mux.reset();}
         policy.abort();application_policy.abort();application_ready=false;
         worker.erase_owned_scalar();
         for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {

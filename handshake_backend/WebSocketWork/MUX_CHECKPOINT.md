@@ -32,3 +32,18 @@ runtime has no actual-usage getter, so availability is explicitly false. Epoch
 snapshots exclude retirement-tail traffic; epoch wall times include cleanup.
 No cache or runtime loader behavior has changed. The next necessary nonempty
 text/mux integration run must establish native correctness and measured costs.
+
+Follow-on bounded-registry candidate
+
+PrivateMuxRegistry owns up to four admitted conversations and 64 one-use inputs
+bound to their owning conversation. It reserves a global ID before production,
+allows one pending request per conversation, and authenticates combined
+credential/state/input/producer validity through mux admission before retaining
+application output. Completions use internal authenticated slot events and
+release the corresponding conversation only after the coordinator barrier.
+Nine ASAN/UBSAN host-mock profiles pass (tls-private-mux-registry.json), including
+four outstanding slots, reordered responses, reuse, misuse and failure burning.
+NativeWebSocketMux and Session's separate mux methods compile/link with actual
+OwnedBits; partial parser/correlation/control state is discarded on peer close,
+leaving only the already encoded close reply. These methods are not exposed by
+the existing launch profile or RPC dispatcher yet. No new native run is claimed.
