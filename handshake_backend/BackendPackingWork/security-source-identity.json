@@ -12,11 +12,30 @@
     "GC/TinyPrep.hpp": "92a8feca8e8ef1d04a4381186862ee1b8ebb3646b9301cfb96d29ad99a2672ef",
     "GC/TinierShare.h": "5a0e71c2017149f1c834615ea32673483f5ca6fdb6c317bcacd27640cce5101e",
     "GC/TinierSharePrep.hpp": "eb6e3d2af16b7f1b21c35d3328a2266d2c32ecebc5e0cab8b89c1876c8751fc6",
+    "GC/TinierSharePrep.h": "5a0db07496b8ffea80ed08a367ea82dbf1e1b15ae7b7b39c6763107ba3096168",
+    "GC/TinyMC.h": "c16b5bced3b3c8bdfa0a7edb6f0f679674fbc29e7e85e19ec969b704c5627f5d",
     "OT/OTMultiplier.hpp": "12429b0c5a81c17e02c80b36b5636d763efa679086e5244dabe1838792b25eb4",
+    "OT/OTMultiplier.h": "b9784a784781b305f75626494ad2907fca49bdfbfcc1f8d27c035851a629891b",
     "OT/MascotMacKey.hpp": "155a8848fb253ce2bead8e9f03df703337ce6a94e97db18a9593c1383e5d2a0c",
+    "OT/MascotMacKey.h": "4485bc99b8ec3727c1dfb95baf7d2fcfe7b85e3112631cc885162eb3c4054a55",
     "OT/OTExtension.cpp": "5bc6b957a5d5b8e0abb9d2c88d8d4a0cb9d15ac8a33ff61f84168a2b0c40e14a",
     "OT/OTExtensionWithMatrix.cpp": "229e22315d8e002e9ce2fb216e8318e9e447fd5908ce32d7d51986a71979ce44",
+    "OT/OTExtensionWithMatrix.h": "da9e03b4fa4e31e2e29602eb7170d2ef742640c582a23a4424d8fb003fd25dbc",
+    "OT/OTCorrelator.hpp": "b148d8493b62936475b69965d7c7f0d67ea1563a2337fb5c472ce667f7325e29",
+    "OT/OTTripleSetup.cpp": "05d1988b32947701965a4e6fa891c285637c40678d2267828f7bf0ca355a61aa",
+    "OT/OTTripleSetup.h": "93e71b45a31f1f5f17abde80d069ea559789bbf7d28555a2f4a44252c25f7c1b",
+    "OT/NPartyTripleGenerator.hpp": "a2bd22f3a6df91f04d2ff4c8cd54628731665068000916a46a8013775e4101a6",
+    "OT/NPartyTripleGenerator.h": "294a0d5f132efe7d3b5bcc1856c511ba64dbce9921cae46e4534add184fff1c3",
+    "OT/MascotParams.cpp": "60a19a941e1131a825e87e9836b724b017aba5f4ae52f4badef54bb766946a70",
+    "OT/BitMatrix.hpp": "0eba646c126ed2c03d787284434e1c88e6d806633d7485b4921fd44c25cdbe44",
     "Protocols/ShuffleSacrifice.hpp": "f9ce89d917d6f34e751cb1fd419505e53269d025f778b57e5bfe6d265814fd35",
-    "Protocols/ShuffleSacrifice.h": "4809e4a709c0876a0f7dbba9183c032ba6ccbfe9f66d45158bf235528a2cb950"
+    "Protocols/ShuffleSacrifice.h": "4809e4a709c0876a0f7dbba9183c032ba6ccbfe9f66d45158bf235528a2cb950",
+    "CONFIG": "810021ec7e2cf5ce98393357cf414198ec87b1cf42975fea829c173ec591497a"
+  },
+  "revision_identity_source": "authoritative manifest and archive; never parent git rev-parse",
+  "allowed_additive_epoch_patch": {
+    "file": "OT/OTTripleSetup.h",
+    "text": "bool empty() const { return setups.empty(); }",
+    "inspected_sha256": "e617ba03b3d5fca9da2a002952b2913da5c0c112c79b9aeaadd7c8172de1b502"
   }
 }

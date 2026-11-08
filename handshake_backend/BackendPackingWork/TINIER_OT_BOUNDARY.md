@@ -3,7 +3,7 @@
 This is source/representation feasibility evidence, not a Tinier protocol run.
 The authoritative MP-SPDZ v0.4.4 pin is **113c4e47dd94bca9ecab029d2f0abe649bea5c52**,
 archive SHA256 `53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78`.
-Security-source bytes were checked against that cached archive. Earlier audit
+Twenty-two security-source files were checked against that cached archive; the sole normalized difference is the explicitly recorded additive OTTripleSetup::empty() query from the existing epoch overlay. No security body differs in that check. Earlier audit
 prose incorrectly used `73aa234...` as an upstream revision; this metadata-only
 correction changes no measured source/product bytes. An extracted tree has no
 independent Git identity: check `git rev-parse --show-toplevel` before consulting

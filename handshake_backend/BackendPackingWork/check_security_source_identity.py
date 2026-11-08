@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify inspected, unmodified security sources against authoritative archive."""
+"""Verify security sources against archive with one explicit additive epoch query."""
 from pathlib import Path
 import json,hashlib,tarfile
 ROOT=Path(__file__).resolve().parents[2];WORK=Path(__file__).parent
@@ -12,7 +12,13 @@ with tarfile.open(archive) as source:
  prefix=source.getmembers()[0].name.split('/')[0]
  for name in names:
   data=source.extractfile(prefix+'/'+name).read()
-  assert data==(ROOT/'.deps/tls-session-runtime/MP-SPDZ'/name).read_bytes(),name
+  inspected=(ROOT/'.deps/tls-session-runtime/MP-SPDZ'/name).read_bytes()
+  if name=='OT/OTTripleSetup.h':
+   addition=b'    bool empty() const { return setups.empty(); }\n'
+   assert inspected.count(addition)==1
+   report['allowed_additive_epoch_patch']={'file':name,'text':addition.decode().strip(),'inspected_sha256':hashlib.sha256(inspected).hexdigest()}
+   inspected=inspected.replace(addition,b'')
+  assert data==inspected,name
   report['files'][name]=hashlib.sha256(data).hexdigest()
 (WORK/'security-source-identity.json').write_text(json.dumps(report,indent=2)+'\n')
 print('verified',len(names),'security source files against pinned archive')
