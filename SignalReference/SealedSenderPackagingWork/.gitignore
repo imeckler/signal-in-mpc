@@ -1,0 +1,6 @@
+__pycache__/
+Generated/ContentConstructor/
+Generated/WireFieldsFull/
+LoopCandidate/Generated/
+Artifacts/ContentConstructor/*.llbc
+Artifacts/WireFieldsFull/*.llbc

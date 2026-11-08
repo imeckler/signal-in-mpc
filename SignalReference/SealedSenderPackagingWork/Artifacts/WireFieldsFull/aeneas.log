@@ -1,0 +1,146 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPackagingWork/Artifacts/WireFieldsFull/ss_content.llbc
+[[91mError[39m] Invalid input for unop: transmute<core::mem::alignment::Alignment, core::ptr::non_null::NonNull<u8>> on core::mem::alignment::Alignment
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 461:4-463:5; this code is generated from a macro invocation at: '/rustc/library/core/src/ptr/non_null.rs', lines 105:17-105:32
+[[91mError[39m] Could not translate the body of function 'alloc::vec::{impl core::default::Default for alloc::vec::Vec<T>}::default because of previous error
+Name pattern: 'alloc::vec::{core::default::Default<alloc::vec::Vec<@T>>}::default'
+Definition span: '/rustc/library/alloc/src/vec/mod.rs', lines 4373:4-4373:26
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 461:4-463:5; this code is generated from a macro invocation at: '/rustc/library/core/src/ptr/non_null.rs', lines 105:17-105:32
+[[91mError[39m] Could not translate the function 'alloc::vec::{impl core::default::Default for alloc::vec::Vec<T>}::default because of previous error.
+Name pattern: 'alloc::vec::{core::default::Default<alloc::vec::Vec<@T>>}::default'
+Definition span: '/rustc/library/alloc/src/vec/mod.rs', lines 4373:4-4373:26
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 461:4-463:5; this code is generated from a macro invocation at: '/rustc/library/core/src/ptr/non_null.rs', lines 105:17-105:32
+[[91mError[39m] evaluate_function_symbolic failed on: bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::advance
+Unexpected result: Cps.Unit
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
+[[91mError[39m] Could not translate the body of function 'bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::advance because of previous error
+Name pattern: 'bytes::buf::buf_impl::{bytes::buf::buf_impl::Buf<&'0 [u8]>}::advance'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
+[[91mError[39m] Could not translate the function 'bytes::buf::buf_impl::{impl bytes::buf::buf_impl::Buf for &'_0 [u8]}::advance because of previous error.
+Name pattern: 'bytes::buf::buf_impl::{bytes::buf::buf_impl::Buf<&'0 [u8]>}::advance'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs', lines 2906:4-2906:37
+[[91mError[39m] Unexpected error
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 1966:4-1970:5; this code is generated from a macro invocation at: '/rustc/library/alloc/src/raw_vec/mod.rs', lines 611:8-611:16
+[[91mError[39m] Could not translate the body of function 'alloc::vec::{alloc::vec::Vec<T>}::as_slice because of previous error
+Name pattern: 'alloc::vec::{alloc::vec::Vec<@T>}::as_slice'
+Definition span: '/rustc/library/alloc/src/vec/mod.rs', lines 1848:4-1848:40
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 1966:4-1970:5; this code is generated from a macro invocation at: '/rustc/library/alloc/src/raw_vec/mod.rs', lines 611:8-611:16
+[[91mError[39m] Could not translate the function 'alloc::vec::{alloc::vec::Vec<T>}::as_slice because of previous error.
+Name pattern: 'alloc::vec::{alloc::vec::Vec<@T>}::as_slice'
+Definition span: '/rustc/library/alloc/src/vec/mod.rs', lines 1848:4-1848:40
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+
+Source: '/rustc/library/alloc/src/vec/mod.rs', lines 1966:4-1970:5; this code is generated from a macro invocation at: '/rustc/library/alloc/src/raw_vec/mod.rs', lines 611:8-611:16
+[[91mError[39m] evaluate_function_symbolic failed on: bytes::buf::buf_mut::BufMut::put
+Unexpected result: Cps.Unit
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 202:4-204:20
+[[91mError[39m] Could not translate the body of function 'bytes::buf::buf_mut::BufMut::put because of previous error
+Name pattern: 'bytes::buf::buf_mut::BufMut::put'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 202:4-204:20
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs', lines 22:40-22:46
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 202:4-204:20
+[[91mError[39m] Could not translate the function 'bytes::buf::buf_mut::BufMut::put because of previous error.
+Name pattern: 'bytes::buf::buf_mut::BufMut::put'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 202:4-204:20
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs', lines 22:40-22:46
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 202:4-204:20
+[[91mError[39m] evaluate_function_symbolic failed on: bytes::buf::buf_mut::BufMut::put_slice
+Unexpected result: Cps.Unit
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 246:4-246:43
+[[91mError[39m] Could not translate the body of function 'bytes::buf::buf_mut::BufMut::put_slice because of previous error
+Name pattern: 'bytes::buf::buf_mut::BufMut::put_slice'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 246:4-246:43
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs', lines 22:40-22:46
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 246:4-246:43
+[[91mError[39m] Could not translate the function 'bytes::buf::buf_mut::BufMut::put_slice because of previous error.
+Name pattern: 'bytes::buf::buf_mut::BufMut::put_slice'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 246:4-246:43
+
+This definition is (transitively) used at the following locations:
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs', lines 22:40-22:46
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+Source: '/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/5c797eda68db9178/out/signal.proto.sealed_sender.rs', lines 72:41-72:57
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs', lines 246:4-246:43
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

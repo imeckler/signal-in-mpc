@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "0ff64449ef45410483bc28c90b4df302386d4c53728e90241b27b0f4e7be5b0a",
+  "original_fingerprint": "9dfca1042f3023366ae5ebce97536a9330428a7171e49e33674c5bdb84c846f3",
+  "selected_sha256": "0b06231b37f1e5fa8e2bb0f9133d2175dad5bb7c7d04ce14f19468dc53813af9",
+  "changes_sha256": "d9aa9ac5f82ea744212535ef1585950fe2b5002d0b7ff7caf57609d91e407e09",
+  "script_sha256": "10e4ccb3ee08a0c9fa34c06e99314bd602b1ed59517c4051a7db609e10dc8b53",
+  "reversible_changes": 7,
+  "removed_functions": [
+    296,
+    300
+  ],
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_references_to_removed_slots": true,
+  "additional_trusted_preprocessing": true,
+  "source_or_translator_changes": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "SealedSenderPackagingWork/Generated/WireFieldsSelected/Funs.lean": "05436f1e0e382710500654d57a84540dd43a40229052c71120f6358585678f8a",
+    "SealedSenderPackagingWork/Generated/WireFieldsSelected/FunsExternal_Template.lean": "f4cbaf23bf8c161f1df5f3485cb612f33f55455078f0a55d75306ce93e4656ef",
+    "SealedSenderPackagingWork/Generated/WireFieldsSelected/Types.lean": "7721bc4d1aac930f41f1a1fb1104597bed7d348fb25f44eae2fd1892595da6e8",
+    "SealedSenderPackagingWork/Generated/WireFieldsSelected/TypesExternal_Template.lean": "89c919be938a18556428a31153c5dc1b6edae6aac451eeb332517396b991cf91"
+  },
+  "external_templates": [
+    "FunsExternal_Template.lean",
+    "TypesExternal_Template.lean"
+  ],
+  "independent_review": "pending"
+}

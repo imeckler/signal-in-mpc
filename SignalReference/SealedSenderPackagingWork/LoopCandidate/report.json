@@ -1,0 +1,29 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "binary_sha256": "5ea6276549fac0be5c55ac6608ae8b4efa1dd1b147c15a988543871d8094bbec",
+  "input_llbc_sha256": "bc5d681ef5fd26bf2bf3605490e0cfa43eaa6503f0591051bf0c39fcba9c1ee8",
+  "manual_generated_body_edits": false,
+  "llbc_edits": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPackagingWork/Artifacts/ContentConstructor/ss_content.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPackagingWork/LoopCandidate",
+    "-subdir",
+    "/Generated",
+    "-split-files",
+    "-namespace",
+    "SealedSenderPackaging",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "exit_code": 2,
+  "script_sha256": "35d4c7a2149f4ae4bb66a86e1b39739012e5b01c7fd11635cf118dea05d2a054",
+  "generated_sha256": {
+    "SignalReference/SealedSenderPackagingWork/LoopCandidate/Generated/Funs.lean": "02b40413bd4e3501b52c17adc8e094d25b1159d3496f5c13d480ad49d9b7455e",
+    "SignalReference/SealedSenderPackagingWork/LoopCandidate/Generated/Types.lean": "ad4b4ba692e7ecb59d67b7edf2cf1c4b945d53f9f78b3de1ef558cace5ea1d34"
+  }
+}

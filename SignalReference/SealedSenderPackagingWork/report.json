@@ -1,0 +1,62 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "actual_SS_packaging_refinement_established": false,
+  "step_metadata_changes": 7,
+  "all_retained_computational_bodies_unchanged": [
+    0,
+    1,
+    2,
+    11,
+    12,
+    13,
+    18,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    159,
+    160,
+    161,
+    162,
+    163,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    181,
+    183
+  ],
+  "source_patches": [],
+  "manual_generated_body_edits": false,
+  "real_derive_encoder_roots_present": true,
+  "unresolved_external_templates": [
+    "FunsExternal_Template.lean",
+    "TypesExternal_Template.lean"
+  ],
+  "remaining": [
+    "Actual full constructor pulls mixed recursive bytes vtables through prost Message trait.",
+    "Actual derive encoder still needs closed concrete BytesAdapter/BufMut payload append bridge. Std Vec access/default calls and unused unsafe metadata are not silently interpreted as proved implementations.",
+    "Generated primitive field references are candidates only; exact seven Step deletions require separate review."
+  ],
+  "source_sha256": {
+    "SignalReference/SealedSenderPackagingWork/check.py": "2172a46f8fe78576057ae54cc5adf35308b13d0a9a67d2654b020bf9a5b6979b",
+    "SignalReference/SealedSenderPackagingWork/extract.py": "e52402a0c9e618da1d61ffc31bb326433116eac9cba154a0764f60a69c7d0780",
+    "SignalReference/SealedSenderPackagingWork/select_step_metadata.py": "10e4ccb3ee08a0c9fa34c06e99314bd602b1ed59517c4051a7db609e10dc8b53",
+    "SignalReference/SealedSenderPackagingWork/translate_loop_candidate.py": "35d4c7a2149f4ae4bb66a86e1b39739012e5b01c7fd11635cf118dea05d2a054",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireFields/ss_content.llbc": "0ff64449ef45410483bc28c90b4df302386d4c53728e90241b27b0f4e7be5b0a",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireFieldsSelected/selected.llbc": "0b06231b37f1e5fa8e2bb0f9133d2175dad5bb7c7d04ce14f19468dc53813af9",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireFieldsSelected/changes.json": "d9aa9ac5f82ea744212535ef1585950fe2b5002d0b7ff7caf57609d91e407e09",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireFieldsSelected/review.json": "b0ba8317a7bba267f878183fb2554bfa9e965938aaabaf3671708fb570a7698a"
+  }
+}
