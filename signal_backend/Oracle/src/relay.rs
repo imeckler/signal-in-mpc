@@ -46,3 +46,27 @@ pub fn check101(v:&Value)->Value{
  match result { Ok((_socket,response))=>json!({"accepted":true,"status":response.status().as_u16()}),
  Err(e)=>json!({"accepted":false,"error":format!("{e}")}) }
 }
+
+// Public-fixture-only synchronous frame reader, no sockets or account effects.
+pub fn check_ws_frames(v:&Value)->Value{
+ struct Fixture { input:std::io::Cursor<Vec<u8>> }
+ impl std::io::Read for Fixture {fn read(&mut self,b:&mut [u8])->std::io::Result<usize>{std::io::Read::read(&mut self.input,b)}}
+ impl std::io::Write for Fixture {
+  fn write(&mut self,b:&[u8])->std::io::Result<usize>{Ok(b.len())}
+  fn flush(&mut self)->std::io::Result<()>{Ok(())}
+ }
+ let mut socket=tungstenite::WebSocket::from_raw_socket(Fixture{input:std::io::Cursor::new(raw(v,"wire"))},tungstenite::protocol::Role::Client,None);
+ let mut messages=vec![];
+ for _ in 0..1024 {
+  match socket.read(){
+   Ok(tungstenite::Message::Binary(b))=>messages.push(json!({"type":"binary","data":hex(&b)})),
+   Ok(tungstenite::Message::Text(b))=>messages.push(json!({"type":"text","data":hex(b.as_bytes())})),
+   Ok(tungstenite::Message::Ping(b))=>messages.push(json!({"type":"ping","data":hex(&b)})),
+   Ok(tungstenite::Message::Pong(b))=>messages.push(json!({"type":"pong","data":hex(&b)})),
+   Ok(tungstenite::Message::Close(c))=>{messages.push(match c{Some(c)=>json!({"type":"close","code":u16::from(c.code),"reason":c.reason.as_str()}),None=>json!({"type":"close","code":null,"reason":""})});return json!({"messages":messages,"closed":true});},
+   Ok(_)=>{},
+   Err(e)=>return json!({"messages":messages,"closed":false,"error":format!("{e}")}),
+  }
+ }
+ json!({"messages":messages,"closed":false,"error":"Fixture message budget exceeded"})
+}

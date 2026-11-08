@@ -1,0 +1,54 @@
+{
+  "cases": [
+    {
+      "closed": true,
+      "messages": [
+        {
+          "data": "616263",
+          "type": "binary"
+        },
+        {
+          "code": 1000,
+          "reason": "",
+          "type": "close"
+        }
+      ]
+    },
+    {
+      "closed": true,
+      "messages": [
+        {
+          "data": "78",
+          "type": "ping"
+        },
+        {
+          "data": "6162",
+          "type": "binary"
+        },
+        {
+          "code": 1000,
+          "reason": "",
+          "type": "close"
+        }
+      ]
+    },
+    {
+      "closed": false,
+      "error": "WebSocket protocol error: Received a masked frame from server",
+      "messages": []
+    },
+    {
+      "closed": false,
+      "error": "UTF-8 encoding error: invalid utf-8 sequence of 1 bytes from index 0",
+      "messages": []
+    }
+  ],
+  "actual_tungstenite_client": true,
+  "network_side_effects": false,
+  "source_sha256": {
+    "SignalReference/RelayServiceWork/check_ws_frames.py": "43e8e98928e73b9e5831c86d0c35a84851c068ac690c900a752317beda903fc5",
+    "signal_backend/Oracle/src/main.rs": "9b8e1b173852269f2dfbbf1edb5db5fdd0fd76b5f9721b4fae22a2ac85d17b8c",
+    "signal_backend/Oracle/src/relay.rs": "f98554dbfd0ce95dd96a4ec25039e5a029d7b967a92f67c9535d53666b52ba6a"
+  },
+  "oracle_sha256": "300664bf044730e690f03f1264e45fb07010376f1ae20ae6538c924d68992d07"
+}

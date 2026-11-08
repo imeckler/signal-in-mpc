@@ -32,6 +32,7 @@ async fn decode_h2(wire:Vec<u8>)->Value{
 fn main(){for line in io::stdin().lock().lines(){
  let v:Value=serde_json::from_str(&line.unwrap()).unwrap();
  if v["mode"]=="varint"{let mut b=vec![];prost::encoding::encode_varint(v["value"].as_u64().unwrap(),&mut b);println!("{}",json!({"wire":hex(&b)}));continue;}
+ if v["mode"]=="check_ws_frames"{println!("{}",relay::check_ws_frames(&v));continue;}
  if v["mode"]=="check101"{println!("{}",relay::check101(&v));continue;}
  if v["mode"]=="upgrade"{println!("{}",relay::upgrade(&v));continue;}
  if v["mode"]=="sealed_decrypt"{
