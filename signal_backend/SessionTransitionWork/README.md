@@ -152,3 +152,16 @@ bytes32..63; all128 computed bytes and the SAME75B summary feed
 values through this adapter. C++ type/compile/link checks pass. Independent stage
 compilation is still pending until its receipt exists; do not use the failed
 monolithic manifest/descriptor with this staged adapter.
+
+`peer_native_check.py`/`peer_native_fixture.cpp` now prepare the stronger test:
+retain525 selected state bytes as OwnedBits, send via the existing service80
+kernel, commit selected sending chain/PQ before releasing only the disposable
+sealed WebSocket ciphertext, let an actual retained libsignal peer decrypt and
+ratchet, then receive its second new-DH message and reply again. The fixture also
+checks bad MAC, low-order point0 and retained-PQ counter profile overflow against
+all old525 state bytes. It opens only equality bits and final synthetic sealed
+frames. It does not open fresh roots/private keys, inner plaintext or chain state.
+The C++ binary builds and the actual peer initializes/emits its first message;
+**native execution remains pending** in `peer-native-build-report.json` until the
+separate runtime result exists. Full SPQR/KEM, identity/bootstrap and recoverable
+persistence are still outside this selected established-state fixture.

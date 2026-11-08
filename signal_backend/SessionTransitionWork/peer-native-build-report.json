@@ -1,0 +1,17 @@
+{
+  "fixture_binary_compile_link_passed": true,
+  "actual_peer_initialization_and_first_message_passed": true,
+  "peer_retains_its_own_session": true,
+  "native_MPC_executed": false,
+  "native_receive_reply_pending": true,
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/peer_native_fixture.cpp": "a06064d6f70fd9a705bae340bbaf723ada58f898dc004bdf76bbd7c58f43ea6d",
+    "signal_backend/SessionTransitionWork/peer_native_check.py": "e46581a98183fd6e42c51eed2778bdaff3ccdda20c52cf84dc3ae86534a23bb7",
+    "signal_backend/SessionTransitionWork/Makefile": "444c74a68bb60da89575cfc0fb4b5b9cc0d505ec645e1c0ff4a78aac91c3069b",
+    "signal_backend/Oracle/src/bin/signal-new-dh-native-peer-oracle.rs": "c93fafe87ceb94c86bbf8467e5e322cbac7b0530eb88b1dfd3d496a3794ffdc3"
+  },
+  "binary_sha256": {
+    "signal-new-dh-native-peer-oracle": "f309f03a729aeb60e47e55f4d531c9e74672b45b31a1a931963acd1a24f4810e",
+    "private-new-dh-peer-fixture": "cf3094984d927f3787077cbc99cec03b592b1c801c505507a8c2ddb738f93194"
+  }
+}
