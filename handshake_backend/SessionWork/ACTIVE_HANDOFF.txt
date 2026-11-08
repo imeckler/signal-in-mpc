@@ -1,11 +1,18 @@
 Worker1 checkpoint (private-length native run completed):
+- New persistent TLS report d93f145f26eb059b all5 exit0,380.034s,46 current source/
+  product hashes, cleanup_errors[]. Outgoing plaintext consumed on reservation;
+  explicit epoch policy chooses candidate every_record, measured15.34–20.56ms
+  loopback renewal per record/party. Retained traffic keys cover earlier records;
+  no per-record forward secrecy/WAN rate claim. Canonical runtime unchanged.
 - HTTP101 checkpoint also complete:tls-websocket-upgrade-checks.json598 cases,
   five pinned tungstenite probes, six foundation-only map/compiler endpoints.
-- NativeHTTP101 all5 exit0 in25.440s, report tls-native-websocket-upgrade.json,
-  raw a7615a6032cc45d1. No live native handles. It tests shared parser state and
-  coalesced activity, not actual TLS private-chunk/WS integration yet.
-- New TlsWebSocketFrame.lean is an uncommitted draft:Lean map theorem and byte
-  decrement lemma check; fragmentation/control/close fixtures/native still pending.
+- NativeHTTP101 now all5 exit0 in66.852s, raw5b2bc9521a3da1ba, private-length
+  chunk activity+padding+retained state. Prior byte-only runa7615a6032cc45d1 kept.
+  Activity proof+183 oracle cases pass. No actual TLS→HTTP integration yet.
+- TlsWebSocketFrame algorithm passes67 public fixtures/seven pinned probes;
+  byte/16-bit decrement and map/compiler proofs check. Native/control integration
+  and actual response proto/correlation remain. No live TLS worker handles.
+- NativeWorker.h held unchanged for crypto's variable producer fixture; do not edit.
 - Private-length TLS proof+compiler checkpoint passes138 AESGCM oracle cases,
   nine standard-foundational-axiom endpoints and46/26 public shape checks.
 - tls-native-private-payload.json:two five-party runs all0; actual cap16 MPC

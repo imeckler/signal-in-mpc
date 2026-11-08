@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "cases": 183,
+  "capacities": [
+    {
+      "capacity": 0,
+      "cases": 27,
+      "artifact_sha256": "6e705aa44a6a8694998f53feab431e419349ca66e79aeb6668e6bc140e0436d2"
+    },
+    {
+      "capacity": 1,
+      "cases": 30,
+      "artifact_sha256": "8d98a85e28b36813fdfbdc8d2e24f8e020b0b9300c40b72ab24e19dec95113de"
+    },
+    {
+      "capacity": 16,
+      "cases": 30,
+      "artifact_sha256": "23ee7f957214f6bbfc1fb1f8de391001b49e0d6f64b30cd887fa5ef24c42519b"
+    },
+    {
+      "capacity": 128,
+      "cases": 30,
+      "artifact_sha256": "cf1558a0bc23f75caea2e32a0338849a03ae8d00cbd55965a039b91a3235d191"
+    },
+    {
+      "capacity": 900,
+      "cases": 33,
+      "artifact_sha256": "bee6f6275c812b700026d2906d98cd9e8546ba6a2f062f5885b45d625e98d7c1"
+    },
+    {
+      "capacity": 16385,
+      "cases": 33,
+      "artifact_sha256": "1efa02561dd32c1171892b63e8df8147ead385fdf30f8c1d4ee2724fedc24ec8"
+    }
+  ],
+  "proof_endpoints": [
+    "activity_valid",
+    "activity_masks",
+    "run_map",
+    "run_correct",
+    "compiled_run_correct"
+  ],
+  "native_mpc_executed": false,
+  "scope": "exact private bounds/source validity and active-byte predicates; no length opening",
+  "sha256": {
+    "TlsMpc/TlsWebSocketActivity.lean": "dff54da777bd32962d27bfa2d51dd30871cf7bc5a71f3e3b400fd4477559d97d",
+    "handshake_backend/WebSocketWork/EmitActivity.lean": "52075e9d88507a43fe17b58ea9516e8b07693878fae4a0e5e40fccececce81da",
+    "scripts/check_websocket_activity.py": "998f411d4aa1e8b61d3985e44bb69d8f89b4e5e7fdfecc505dab7ecddf6f3973",
+    ".lake/build/bin/websocket_activity_emitter": "fc9b9fd9b89c47b128922217354954b8ebde7910828b86ac4a81ecc801dd26fa"
+  }
+}

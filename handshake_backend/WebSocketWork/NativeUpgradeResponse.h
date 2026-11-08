@@ -1,5 +1,6 @@
 #pragma once
 #include "NativeWorker.h"
+#include "PayloadWork/PrivatePayload.h"
 #include <fstream>
 #include <functional>
 namespace tls_mpc_worker {
@@ -45,6 +46,27 @@ public:
             public_require(result.size()==2&&result[0]==255&&(result[1]==0||result[1]==255),"WebSocket upgrade rejected");
             public_require(!completed||result[1]==255,"WebSocket upgrade completion regressed");
             completed=result[1]==255;return completed;
+        } catch(...) {close();throw;}
+    }
+    template<class Release,class Consume> bool feed(PrivatePayload chunk,Release&& release,Consume&& consume) {
+        try {
+            public_require(!closed,"terminal upgrade parser");
+            chunk.validate_shape();
+            Bits input;input.insert(input.end(),chunk.validity.begin(),chunk.validity.end());
+            input.insert(input.end(),chunk.private_length.begin(),chunk.private_length.end());
+            auto masks=worker.binary("tls-websocket-activity-"+std::to_string(chunk.capacity),
+                std::move(input),8*(chunk.capacity+1));
+            Bits accepted(masks.begin(),masks.begin()+8);
+            public_require(release(accepted)==PublicBytes{255},"invalid private receive chunk");
+            for(size_t i=0;i<chunk.capacity;++i) {
+                Bits active(masks.begin()+8*(i+1),masks.begin()+8*(i+2));
+                Bits byte(chunk.data.begin()+8*i,chunk.data.begin()+8*(i+1));
+                auto forwarded=step(std::move(active),Bits(byte));
+                consume(std::move(byte),std::move(forwarded));
+            }
+            // A valid empty chunk need not call step; its source/bounds have
+            // still been authenticated. Completion remains the prior state.
+            return chunk.capacity ? finish_chunk(release) : completed;
         } catch(...) {close();throw;}
     }
     void close() noexcept {closed=true;state.clear();expected.clear();status.clear();}

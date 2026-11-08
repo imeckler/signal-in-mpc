@@ -9,11 +9,18 @@ def main():
     working=output/'working';working.mkdir()
     stage=ROOT/'.deps/tls-websocket-upgrade-native';runtime=ROOT/'.deps/tls-session-runtime'
     report={'passed':False,'native_mpc_executed':False,'application_gate_changed':False,
-      'scope':'public disposable five-party private HTTP101 byte machine and retained state; no live TLS/WebSocket service',
+      'scope':'public disposable five-party private-length chunk activity through HTTP101 byte machine and retained state; no live TLS/WebSocket service',
       'cleanup_errors':[],'logs':str(output.relative_to(ROOT))}
     started=time.monotonic();processes=[];logs=[]
     try:
-        manifest=output/'upgrade.manifest';manifest.write_bytes((stage/'upgrade.manifest').read_bytes())
+        manifest=output/'upgrade.manifest'
+        selected={}
+        for source in (stage/'upgrade.manifest',stage/'activity-128.manifest'):
+            for line in source.read_text().splitlines()[1:]:
+                digest,name=line.split(' ',1)
+                assert name not in selected or selected[name]==digest
+                selected[name]=digest
+        manifest.write_text('tls-mpc-pinned-files-v1\n'+''.join(selected[name]+' '+name+'\n' for name in sorted(selected)))
         for line in manifest.read_text().splitlines()[1:]:
             digest,name=line.split(' ',1);path=working/name;path.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(stage/name,path);assert sha(path)==digest
@@ -41,7 +48,9 @@ def main():
           'handshake_backend/WebSocketWork/prepare.py','scripts/check_native_websocket_upgrade.py',
           'handshake_backend/NativeWorker.h','handshake_backend/SessionWork/Makefile',
           '.deps/tls-session-runtime/tls-websocket-upgrade-fixture','.deps/tls-session-runtime/MP-SPDZ/libSPDZ.so',
-          '.lake/build/bin/websocket_upgrade_emitter','.deps/tls-websocket-upgrade-native/upgrade.manifest']
+          '.lake/build/bin/websocket_upgrade_emitter','.deps/tls-websocket-upgrade-native/upgrade.manifest','.deps/tls-websocket-upgrade-native/activity-128.manifest',
+          'TlsMpc/TlsWebSocketActivity.lean','handshake_backend/PayloadWork/PrivatePayload.h',
+          'handshake_backend/SessionLifecycle.h','handshake_backend/SessionWork/NativeLifecycle.h']
         report['sha256']={name:sha(ROOT/name) for name in names}
         report['log_sha256']={str(p.relative_to(ROOT)):sha(p) for p in output.glob('*.log')}
         report['elapsed_seconds']=time.monotonic()-started

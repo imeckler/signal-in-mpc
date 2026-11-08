@@ -40,23 +40,26 @@ int main(int argc,char** argv) {
                 std::string response="HTTP/1.1 101 Switching Protocols\r\nSEC-websocket-accept: "+
                   (invalid?std::string(28,'x'):accept)+"\r\nX-Extra: bounded\r\nConnection:\t Upgrade \t\r\nupgrade: WebSocket\r\n\r\n";
                 const auto header=response.size();response.append("\x82\x04test",6);
-                tls_mpc_worker::Bits masks;
-                for(size_t i=0;i<response.size();++i) {
-                    if(i%17==0) {
-                        auto ignored=parser.step(share({0}),share({173}));
-                        if(!invalid)public_require(release(ignored)==PublicBytes{0},"inactive upgrade slot forwarded data");
-                    }
-                    auto mask=parser.step(share({255}),share({uint8_t(response[i])}));
-                    masks.insert(masks.end(),mask.begin(),mask.end());
-                    if(!invalid&&(i==49||i==90))public_require(!parser.finish_chunk(release),"premature upgrade completion");
+                tls_mpc_worker::Bits masks;PublicBytes expectedMasks;bool rejected=false,complete=false;
+                size_t offset=0;
+                for(size_t count:{size_t(50),size_t(41),response.size()-91}) {
+                    PublicBytes padded(128,173);
+                    for(size_t i=0;i<count;++i)padded[i]=uint8_t(response[offset+i]);
+                    for(size_t i=0;i<128;++i)expectedMasks.push_back(i<count&&offset+i>=header?255:0);
+                    try {
+                        complete=parser.feed(PrivatePayload(share(padded),share({uint8_t(count>>8),uint8_t(count)}),share({255}),128),
+                          release,[&](tls_mpc_worker::Bits byte,tls_mpc_worker::Bits forwarded) {
+                            public_require(byte.size()==8,"private callback byte mismatch");
+                            masks.insert(masks.end(),forwarded.begin(),forwarded.end());
+                          });
+                    } catch(const std::runtime_error&) {rejected=true;break;}
+                    offset+=count;
+                    if(!invalid&&offset<response.size())public_require(!complete,"premature upgrade completion");
                 }
-                bool rejected=false;
-                try {public_require(parser.finish_chunk(release),"upgrade never completed");}
-                catch(const std::runtime_error&) {rejected=true;}
                 public_require(rejected==invalid,"upgrade acceptance mismatch");
                 if(!invalid) {
-                    auto forwarded=release(masks);
-                    for(size_t i=0;i<forwarded.size();++i)public_require(forwarded[i]==(i<header?0:255),"coalesced WebSocket activity lost");
+                    public_require(complete,"upgrade never completed");
+                    public_require(release(masks)==expectedMasks,"private coalesced WebSocket activity lost");
                 }
                 masks.clear();parser.close();
                 if(invalid)public_require(lifecycle->abort_epoch()&&lifecycle->abort_epoch(),"upgrade reject abort failed");
@@ -64,6 +67,6 @@ int main(int argc,char** argv) {
             }),"native upgrade parser/retirement failed");
         }
         public_require(ErasedHostCall::run(destroy),"upgrade fixture teardown failed");
-        std::cout<<"native upgrade fixture passed: private retained state; partial chunks; inactive slots; reordered headers; coalesced WS activity; wrong accept rejects; terminal abort\n";return 0;
+        std::cout<<"native upgrade fixture passed: private retained state; private-length chunks; inactive padding; reordered headers; coalesced WS activity; wrong accept rejects; terminal abort\n";return 0;
     } catch(...) {ErasedHostCall::run(destroy);std::cerr<<"native upgrade fixture failed\n";return 1;}
 }

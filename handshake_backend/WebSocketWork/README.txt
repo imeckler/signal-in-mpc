@@ -14,10 +14,12 @@ byte function. Input activity is a computed0/255 mask from the authenticated
 chunk's private length, not a host length opening. Before completion it permits
 65536 public byte-work slots (including inactive padding); caller must also bound
 receive time. It authenticates only validity/completion at chunk boundaries.
-NativeSession's take_private_payload and shared-length comparison must supply
-the active-byte mask before actual TLS integration. This connection is still
-unfinished. The standalone native fixture uses disposable public synthetic
-activity masks; it is not evidence for the full private chunk/TLS integration.
+NativeSession's take_private_payload supplies chunks; TlsWebSocketActivity now
+proves exact bounds/source validity and each0/255 activity predicate. The native
+feed method authenticates that status before invoking the byte consumer. Its
+five-party fixture passes private-length chunks50/41/remainder padded to128,
+including inactive bytes and coalesced frame data. Actual Session receive/TLS
+connection remains unfinished; no received body is opened by the API.
 
 Evidence:
 - check_websocket_upgrade.py:598 streaming cases, every header split and byte
@@ -28,10 +30,19 @@ Evidence:
 - Five actual pinned tungstenite::client probes. Connection token lists are an
   intentional RFC6455 acceptance superset to its exact-value verifier. Duplicate
   critical headers/extensions are deliberately rejected by this implementation.
-- check_native_websocket_upgrade.py:five parties all0,25.440s; real pinned MPC
-  state across partial chunks, inactive slots and coalesced frame activity; wrong
-  accept rejection and idempotent terminal runtime abort. No actual service run.
+- check_native_websocket_upgrade.py:five parties all0,66.852s; real pinned MPC
+  private-length activity and state across padded chunks and coalesced frame
+  activity; wrong accept and terminal abort. Prior byte-only run25.440s retained.
 - Reports tls-websocket-upgrade-checks.json and tls-native-websocket-upgrade.json.
+- check_websocket_activity.py:183 independent mask cases, capacities0/1/16/128/
+  900/16385, five foundational-only bounds/map/compiler endpoints. The compiled
+  native cap128 artifact matches a fresh proved-emitter export byte for byte.
+- Frame algorithm now passes67 public cases and seven pinned tungstenite probes;
+  map/compiler theorems plus8-bit and positive16-bit decrement proofs check.
+  The binary profile supports bounded canonical16-bit frames, continuation and
+  interleaved control, valid close codes/UTF8, and terminal close. Invalid close
+  codes reject directly; pinned tungstenite converts them to close1002. Native
+  frame/control integration and a full grammar refinement theorem are pending.
 
 Build with lake build websocket_upgrade_emitter websocket_upgrade_checks;
 WebSocketWork/prepare.py compiles a separate .deps/tls-websocket-upgrade-native

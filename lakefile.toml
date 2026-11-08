@@ -32,3 +32,11 @@ root = "handshake_backend.WebSocketWork.UpgradeFixture"
 [[lean_exe]]
 name = "websocket_upgrade_emitter"
 root = "handshake_backend.WebSocketWork.EmitUpgrade"
+
+[[lean_exe]]
+name = "websocket_frame_checks"
+root = "handshake_backend.WebSocketWork.FrameFixture"
+
+[[lean_exe]]
+name = "websocket_activity_emitter"
+root = "handshake_backend.WebSocketWork.EmitActivity"

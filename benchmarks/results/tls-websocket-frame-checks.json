@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "cases": 67,
+  "pinned_tungstenite_cases": 7,
+  "native_mpc_executed": false,
+  "scope": "private frame algorithm tests and map/kernel byte-decrement proofs; no full frame refinement theorem, native or TLS integration yet",
+  "intentional_divergence": "invalid close code rejected directly; pinned tungstenite converts it to protocol-violation close1002",
+  "elapsed_seconds": 54.893989250063896,
+  "sha256": {
+    "TlsMpc/TlsWebSocketFrame.lean": "3f0f388edb0c77b4f632dbba2a1f493c7c63802f303e05f777d4cba5142eb157",
+    "handshake_backend/WebSocketWork/FrameFixture.lean": "78143d32be8211baa1a6588305251a836b493cf8c807b4b25cff1e5edc6624e2",
+    "scripts/check_websocket_frame.py": "5ed4884f3562e83f45928613d3e1639b5ad3716b1071f43670082566bdee556c",
+    "lakefile.toml": "bfe5287c3c13d6d27e770d5e303e76e44d47ec6f2abd27410fd4953681ab1fbc",
+    ".lake/build/bin/websocket_frame_checks": "fe4cec608f456a88841f9cd392492200db997fc0bca84c37949798e56ccb2ce3"
+  }
+}
