@@ -36,3 +36,11 @@ not actualSignal account data, and do not claim full Byzantine-MPC security or
 mobile-adversary/proactive-refresh guarantees. The sharing_refresh task stays
 paused. Successful import must use a fresh runtime/sharing context; TLS always
 starts a fresh connection.
+
+The tiny native probe now passes all4cases on all5members: separately persisted
+and authenticated archives re-admit into usable owned CCD shares; one changed
+local evaluation, two changed local contributions, and a consistent nonbit
+polynomial are rejected. Positive use opens only one aggregate equality bit.
+The public synthetic coefficients include highGF128 bits, so low-bit truncation
+would not pass these checks. These are correctness probes, not a Byzantine
+execution/security proof, complete provider admission or performance result.

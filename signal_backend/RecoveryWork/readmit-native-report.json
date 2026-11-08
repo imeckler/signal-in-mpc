@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "batch_original_secret_bits": 16,
+  "actual_encrypted_archive_prepare_process_exited_before_MPC": true,
+  "full128bit_evaluations_privately_Shared_as_raw_GF128": true,
+  "no_bit_only_input_mask_or_AIG_guard": true,
+  "raw_field_bitness_multiply": true,
+  "secret_RLC_masks_sampled_after_input_exchange": true,
+  "raw_evaluation_or_constant_term_or_bitness_product_opened": false,
+  "opened": "One secret-randomly masked aggregate per batch, andone aggregate equality bit on valid case; no restored data bit/key.",
+  "valid_fresh_owned_CCD_use": true,
+  "rejections": [
+    "one changedlocal evaluation",
+    "two changedlocal contributions",
+    "consistentdegree2 polynomial with nonbit constant2"
+  ],
+  "statistical_check_false_accept_bound": "2^-128 per batch under fresh uniform secret coefficient and correct underlying maliciousMPC/input/opening primitives; not a full MPC security proof.",
+  "disposable_public_polynomial_fixtures": true,
+  "full_Signal_schema_or_phase_coordinator": false,
+  "secure_Signal_provider_restore": false,
+  "constructor_failure_and_runtime_retirement_review_complete": false,
+  "normal_provider_admitted": false,
+  "elapsed_seconds_per_case": [
+    0.10577887494582683,
+    0.10634562489576638,
+    0.107329958002083,
+    0.11068583303131163
+  ],
+  "timing_scope": "Tinycorrectness probe, startup included; no throughput claim.",
+  "cleanup": [],
+  "logs": ".deps/signal-raw-field-import-native/probe-oiyxbq6l",
+  "manifest_sha256": "b37912ed26bb62b001174b8912bc0013475d45f2652fd9ecdbe9418c1b9577c4",
+  "binary_sha256": "cd8ae58aa951dadaf81adfa3940fe4a99ea0fb085f3424c28d6cececaf338c1a",
+  "runtime_library_sha256": "09bf8ff25774096ae2c3a9110d661582c9750f7722d152c46b5a0531714a49fe",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/readmit_native_check.py": "90ab3ef7b829f1468a12eb9660d69a1f28f2d14437abec964ced1da8f66461e1",
+    "signal_backend/RecoveryWork/RawFieldReadmit.h": "4ed99744d620f005232124a8c6390fe336d59b6d3b4abc6e97fc4543f459ae9d",
+    "signal_backend/RecoveryWork/readmit_fixture.cpp": "14be0e472802e8f5121496e74f32c2697a4c77990c1d85d93c0099c3dd49f5c7",
+    "signal_backend/RecoveryWork/Makefile": "ae838c6a4b3c39750daeb41e7507e89ce3b5320e7e732c7d3f8bc6ef0b6b27dc",
+    "signal_backend/RecoveryWork/OwnShareBox.h": "5b5f468a195aaa0ad00c63af80ae4ca4457675f575bc6dd1ebdc88ff617d0ffd",
+    "signal_backend/RecoveryWork/CiphertextStore.h": "b200ab9ecbf2de9d7f7de8ca9f6e2f817355100354b76fb149515e36f5381e75",
+    "signal_backend/RecoveryWork/NativeOwnShareArchive.h": "4b1f7b83c8e8a52bba2819fb76c12cb010b9887851fbbc60846456943b69d9bd",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
+    "programs/signal_recovery_fixture_equal.mpc": "d0268934368f7c8c38dadde4b7aab6da7b0c61f90cabfa52ed110b0b3e289a96"
+  },
+  "pinned_input_guard_source_sha256": {
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/ShamirInput.hpp": "e3068320f0df4a48ddec79ba6329a3bcebfa012fda4d6473faa8a1606f04b97a",
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/SemiInput.h": "ffb6d7536a96f7d6661a13e3fea41482b5781983c286d7cc0abb085c6307a4de",
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/SemiInput.hpp": "41ad7243ef0950eadfb0166331efd5e7fc34790f96a0dbe725779ea818b78c75",
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/MaliciousRepPrep.hpp": "2e1a4bbc3b9bb1fb1a6f4a6ac04863e3d85ae4f0d21179f6b948892b47ce04a0",
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/MaliciousShamirMC.hpp": "8b90d318591fe40425fcb4eb55a81110b5ac5a7f485fef4f5ae06baadc044fa0",
+    ".deps/sharing-refresh/MP-SPDZ/Math/gf2n.cpp": "e21b37a06c860f1720047f419b4b1d03de04f34537ac0e2e666937e45be172fe",
+    ".deps/sharing-refresh/MP-SPDZ/Tools/random.cpp": "2ae51e81e57dc4f1a005d597485b9fbc8e93fa8fa799615d555402cfe5a5ced9"
+  }
+}

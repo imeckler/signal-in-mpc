@@ -20,7 +20,7 @@ def main():
  sha=lambda p:hashlib.file_digest(p.open('rb'),'sha256').hexdigest()
  files=[Path(__file__),HERE/'RawFieldReadmit.h',HERE/'readmit_fixture.cpp',HERE/'Makefile',HERE/'OwnShareBox.h',HERE/'CiphertextStore.h',HERE/'NativeOwnShareArchive.h',ROOT/'handshake_backend/NativeWorker.h',ROOT/'handshake_backend/StrongShamirShare.h',ROOT/'programs/signal_recovery_fixture_equal.mpc']
  before={str(p.relative_to(ROOT)):sha(p)for p in files};binary_hash=sha(binary);library_hash=sha(runtime/'libSPDZ.so')
- logs=Path(tempfile.mkdtemp(prefix='probe-',dir=stage));archives=logs/'archives';subprocess.run([str(binary),'prepare',str(manifest),str(archives)],check=True)
+ logs=Path(tempfile.mkdtemp(prefix='probe-',dir=stage));archives=logs/'archives';subprocess.run([str(binary),'prepare',str(manifest),str(archives)],cwd=stage,check=True)
  hosts=logs/'hosts';hosts.write_text('127.0.0.1\n'*5);data=stage/'Player-Data';data.mkdir(exist_ok=True)
  for pattern in ['*.pem','*.key','*.0']:
   for p in(runtime/'Player-Data').glob(pattern):shutil.copy2(p,data/p.name)
