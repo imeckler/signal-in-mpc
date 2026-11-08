@@ -35,3 +35,18 @@ receipt; scan runtime9.58s and peak679.7MiB. The initial time(1) wrapper could n
 query kern.clockrate under the sandbox; a fresh subprocess/resource run then
 completed with exit0 and recorded authoritative counters. No application/MPC
 run was repeated. See service-aig-resources.json and aig-resource-scan-checks.json.
+
+
+Critical-path follow-up: the chosen maximal path has114,049 ANDs and20,197 local
+XORs. Its AND nodes occur in public topological-index deciles2 through7, ending
+at node19,230,769; later serialized tails are not on this selected path. Most
+critical AND inputs differ in depth by8..63 (86,097 nodes) or64..1023 (24,777).
+These are graph diagnostics, not semantic module names. Std's word addition
+bitblaster is ripple-carry; independent MAC/HMAC component counts support
+investigating SHA multioperand-add chains next, with exact semantic proof.
+
+The base64 sequential-count depth hypothesis is explicitly retracted by the
+isolated comparison: existing count depth28 becomes23, not a large part of the
+114k path. Its42% local gate saving is only about0.03% of this entire graph.
+A future carry-save SHA candidate must measure the final carry-propagate adder
+as well as the compression tree; no global depth/throughput saving is assumed.

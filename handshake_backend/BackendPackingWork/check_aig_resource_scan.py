@@ -20,5 +20,11 @@ with tempfile.TemporaryDirectory(prefix='tls-aig-scan-check-') as folder:
   _,groups=plan(image)
   expected.update(nodes=len(nodes),and_depth=max((k[0] for k,g in groups),default=0),maximum_local_xor_depth=max((k[1] for k,g in groups),default=0),and_groups=sum(k[2]==1 for k,g in groups),xor_groups=sum(k[2]==2 for k,g in groups),packed_and_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==1),packed_xor_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==2))
   assert expected==actual,(case,expected,actual)
-report=dict(passed=True,public_dags=cases,scope='resource counts/packing groups versus existing adapter; no execution or proof extension',source_sha256={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [WORK/'aig_resource_scan.cpp',Path(__file__),ROOT/'backend_adapter/aig.py',ROOT/'backend_adapter/aig_packed.py']},binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest())
+  traced=json.loads(subprocess.check_output([str(binary),str(p),'--critical']))
+  for key,value in expected.items():assert traced[key]==value,(case,key)
+  assert traced['critical_path_ands']==traced['and_depth']
+  assert sum(traced['critical_path_and_node_deciles'])==traced['and_depth']
+  assert sum(traced['critical_and_input_depth_gap_bins'])==traced['and_depth']
+  assert sum(traced['executed_and_node_deciles'])==traced['executed_and_gates']
+report=dict(passed=True,public_dags=cases,critical_trace_consistency_cases=cases,scope='resource counts/packing groups versus existing adapter; no execution or proof extension',source_sha256={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [WORK/'aig_resource_scan.cpp',Path(__file__),ROOT/'backend_adapter/aig.py',ROOT/'backend_adapter/aig_packed.py']},binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest())
 (WORK/'aig-resource-scan-checks.json').write_text(json.dumps(report,indent=2)+'\n');print('public AIG scanner differential checks passed:',cases)

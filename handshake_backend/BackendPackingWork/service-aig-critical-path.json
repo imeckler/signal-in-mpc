@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "scope": "public flattened DAG critical-path diagnostics, no cryptographic-module attribution or WAN claim",
+  "artifact": ".deps/private-variable-conversation-native/260-80-0-0/Worker-Public/service.json",
+  "artifact_sha256": "fc49fae8f2d50d70ae33ca59841540878a51e52dc5c39f9bbf1f9cfab4610dbe",
+  "scanner_source_sha256": "371aa7db0ddc0439914b4cc812c750da06ee0f351258f94922549acd34775623",
+  "scanner_binary_sha256": "2141cbec093654eec3fb1563c485729bb042172ff67f8e97d9a6825930c5530a",
+  "elapsed_python_awake_seconds": 9.16428479203023,
+  "maximum_child_resident_bytes": 711426048,
+  "metrics": {
+    "nodes": 25315873,
+    "raw_and_gates": 25310216,
+    "executed_and_gates": 6738497,
+    "executed_xor_gates": 6578452,
+    "unreachable_nodes": 11993272,
+    "and_depth": 114049,
+    "maximum_local_xor_depth": 191,
+    "and_groups": 114049,
+    "xor_groups": 991058,
+    "packed_and_batches64": 173314,
+    "packed_xor_batches64": 1027737,
+    "critical_goal_node": 19230769,
+    "critical_path_ands": 114049,
+    "critical_path_xors": 20197,
+    "critical_path_and_node_deciles": [
+      0,
+      0,
+      2752,
+      30800,
+      35216,
+      23050,
+      15350,
+      6881,
+      0,
+      0
+    ],
+    "executed_and_node_deciles": [
+      899389,
+      787383,
+      648282,
+      727293,
+      786269,
+      588882,
+      447593,
+      641329,
+      603830,
+      608247
+    ],
+    "maximum_and_depth_node_deciles": [
+      23102,
+      53852,
+      73392,
+      34397,
+      68768,
+      91818,
+      107168,
+      114049,
+      114049,
+      114049
+    ],
+    "critical_and_input_depth_gap_bins": [
+      2292,
+      131,
+      566,
+      86097,
+      24777,
+      186
+    ]
+  },
+  "node_deciles": "public topological node-index bins; not semantic module boundaries",
+  "input_depth_gap_bins": [
+    "0",
+    "1",
+    "2..7",
+    "8..63",
+    "64..1023",
+    "1024+"
+  ]
+}
