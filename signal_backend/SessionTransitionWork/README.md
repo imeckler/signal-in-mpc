@@ -176,3 +176,22 @@ public phase CPU/wall time and high-water RSS and periodic compiler-source stack
 traces. Its wrappers call the original compiler methods exactly once with
 unchanged arguments/results; source circuit semantics are unchanged. No private
 worker or runtime share is passed through this public build diagnostic.
+
+### Native retained-fresh-key milestone
+
+The staged five-party fixture now passes both actual receive→sealed reply→next
+peer-ratchet cycles. The actual pinned peer validates SS/certificate, decrypts the
+inner Signal message and recovers the expected80-byte plaintext twice. Fresh
+local private keys/root states remain OwnedBits across the second actual peer DH
+transition; they are never opened. Bad MAC, low-order point0 and receiving-PQ
+counter profile overflow each preserve all old525 bytes. Five equality bits and
+only the two final disposable sealed WebSocket frames are opened.
+
+All five parties exited0; cleanup[]; source and binary hashes stayed unchanged.
+The974.277s fixture interval includes startup,5receives,5comparisons and2sealed
+replies plus public model-check contention. It is **not** a throughput estimate.
+`peer-native-report.json` and `peer-native-run-context.json` bind the exact scope
+and source/manifest/binary/log provenance. The independent known-ratchet module
+is still a model candidate and is not covered by this native receipt. Runtime
+per-message epoch retirement, full session/SPQR KEM/fresh bootstrap/source proofs
+and authenticated recoverable persistence remain required.

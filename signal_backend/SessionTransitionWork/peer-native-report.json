@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "actual_peer_receive_reply_ratchet_cycles": 2,
+  "actual_sealed_sender_certificate_and_session_decrypt": true,
+  "PQ_both_directions_127_to_128": true,
+  "computed_DH_bound_to_same_actual_private_parser_point": true,
+  "fresh_root_private_and_all_chain_states_unopened": true,
+  "selected_state_committed_before_reply": true,
+  "rejections": [
+    "badMAC",
+    "loworderpoint0",
+    "retainedPQcounterexceedsprofile"
+  ],
+  "rejection_all_old525bytes_preserved": true,
+  "opened": "5 secure equality bits and2 final disposable sealed WebSocket ciphertext frames with validity/length; no state/key/private plaintext values.",
+  "public_fixture_initialization": true,
+  "selected_established_PQR_phase_override": true,
+  "full_fresh_session_or_SPQR_KEM": false,
+  "recoverable_persistence": false,
+  "full_actual_source_refinement": false,
+  "runtime_epoch_retirement_not_exercised": true,
+  "elapsed_seconds": 974.27745112509,
+  "timing_scope": "Startup,5 receive candidates,5 comparisons,2 sealed replies,actual local peer; not service throughput.",
+  "cleanup": [],
+  "logs": ".deps/private-new-dh-staged-native/peer-fixture-btiosgvy",
+  "manifest_sha256": "674a645d47c3d242bb67068f512cd80c26103ea19f8d7677bebfed9689388e6f",
+  "binary_sha256": {
+    "signal-new-dh-native-peer-oracle": "f309f03a729aeb60e47e55f4d531c9e74672b45b31a1a931963acd1a24f4810e",
+    "signal-text-recipient-oracle": "a98139d7d6b43049a87df37958976a5655509d68ac504b7948471d50a4799bc3",
+    "private-new-dh-peer-fixture": "cf3094984d927f3787077cbc99cec03b592b1c801c505507a8c2ddb738f93194"
+  },
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/peer_native_check.py": "d45da5a465212f6c7e914e7c45145fb909a23343ab6a6dd37d92942b685b0085",
+    "signal_backend/SessionTransitionWork/peer_native_fixture.cpp": "a06064d6f70fd9a705bae340bbaf723ada58f898dc004bdf76bbd7c58f43ea6d",
+    "signal_backend/SessionTransitionWork/NativeNewDhReceive.h": "8a36aa9574f6f974a2dcbda0c43240c30509519a550fa726d6f4645b9b68963f",
+    "signal_backend/SessionTransitionWork/NativeComputedDh.h": "082b203eed3ffe29d79b0f7f6558e3d6047ca88ebc23de718cd814461a1eded1",
+    "signal_backend/SessionTransitionWork/Makefile": "444c74a68bb60da89575cfc0fb4b5b9cc0d505ec645e1c0ff4a78aac91c3069b",
+    "signal_backend/VariableServiceWork/NativeVariableService.h": "9ea4840eac96ebfec54df445a20af2537d889f20d79c3897d51a1d668986def6",
+    "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
+    "programs/signal_new_dh_stage.mpc": "0b5cc79b035e5a0c2e1a72bcff2d973e61b064c81ff3baa16baec99b46088e41",
+    "programs/signal_dh_receive_candidate.mpc": "37a590b58f812bd55879db1757713499797719aab2fd5dffff444dc903e26461",
+    "programs/signal_new_dh_fixture_check.mpc": "8d2ae80df48b4f1665ff507baa3e7591d12516857d5332197f2dd1513cac92d4",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "signal_backend/Oracle/src/bin/signal-new-dh-native-peer-oracle.rs": "c93fafe87ceb94c86bbf8467e5e322cbac7b0530eb88b1dfd3d496a3794ffdc3",
+    "signal_backend/Oracle/src/relay.rs": "f98554dbfd0ce95dd96a4ec25039e5a029d7b967a92f67c9535d53666b52ba6a"
+  }
+}

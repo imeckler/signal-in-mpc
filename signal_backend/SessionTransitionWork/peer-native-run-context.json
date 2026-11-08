@@ -1,0 +1,8 @@
+{
+  "runtime_report_sha256": "f5220a64b472997134edfcf33ed83aa40bfdec5fb94b212eb6a9cc3d3a6732c3",
+  "all5_party_exit_codes": 0,
+  "process_inventory_after_run": "No receive fixture/controller/peer processes remain.",
+  "source_hold_released": true,
+  "timing_contention": "Public known-ratchet Lean model/kernel/point checks and small independent Rust oracle builds ran during this interval; no other5party group or memory-heavy circuit compilation overlapped. This walltime is not a throughput estimate.",
+  "scope": "Bounded established active-PQ new-DH receiving, same private parsed point and computed agreements, roots/private retained across2actualpeer cycles. Full known/skipped/KEM/bootstrap/durable store/runtime-epoch retirement remain separate."
+}
