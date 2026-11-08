@@ -1,0 +1,38 @@
+{
+  "reviewed_at_utc": "2026-11-08T11:25:12.803923+00:00",
+  "commit": "d76db87",
+  "decision": "accept bounded all-outcomes parser/circuit composition within stated existing translation and content-model boundary",
+  "proof_report_sha256": "0d657db97750c85b7b297cb9f290b35903e3027ba6c8c9af50e01d95ee1bbc77",
+  "verified_hash_groups": {
+    "source_sha256": {
+      "count": 145,
+      "mismatches": []
+    },
+    "core_source_sha256": {
+      "count": 13,
+      "mismatches": []
+    },
+    "core_object_sha256": {
+      "count": 13,
+      "mismatches": []
+    }
+  },
+  "independent_check": "FULL_PARSER_LEAN_TIMEOUT=180 python3 SignalReference/ProtoParseWork/FullParserV3Work/check.py --only FullParserRefinement CompiledParserRefinement",
+  "exit_code": 0,
+  "focused_module_count": 2,
+  "printed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "domain": "contiguous valid U8 slices; body <=512, explicit six-None initial Rust record, actual default recursion budget100; modeled successful bounded allocation and accepted safe-index preconditions; diagnostic stack text quotient only (constructors/parameters injectively preserved)",
+  "constructor_boundary": "Actual extracted Message::merge.default with actual generated merge_field and an explicit six-None record; separate Message::decode/Default wrapper is not assumed",
+  "production_policy": "Existing ProtoParse.acceptedMask and metadata projection: wire length/version, complete parse, required ratchet/counter/ciphertext presence, ratchet length/prefix checks; diagnostic instrumentation is erased and absent from production circuits",
+  "scope": "Read final theorem statements; independently kernel-checked final composition endpoints against existing dependency objects and checked their recorded source/object hashes. Did not repeat all390 endpoint audits or translator extraction.",
+  "remaining": [
+    "Separate Message::decode/Default wrapper agreement",
+    "ChatConnection response schema refinement",
+    "Whole Signal/session/crypto and runtime completion"
+  ],
+  "full_system_complete": false
+}
