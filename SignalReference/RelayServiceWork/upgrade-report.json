@@ -1,0 +1,16 @@
+{
+  "local_upgrade_syntax_cases": 4,
+  "native_tungstenite_response_created": true,
+  "credentials_match": true,
+  "real_account_authentication_tested": false,
+  "server_http101_validation_in_mpc": false,
+  "network_side_effects": false,
+  "source_sha256": {
+    "SignalReference/RelayServiceWork/check_upgrade.py": "f638a68146b8ed1c7096b04d93f894dc5005fa478d2caf843be5711723665746",
+    "SignalReference/RelayServiceWork/UpgradeExport.lean": "74a3120d6792b28aa46abd8639e2fcb4b1ff99626f3b893d2c2d0ac8ff256121",
+    "TlsMpc/Signal/RelayUpgrade.lean": "cae274c961828afea26cc885ebc3ad738a1530576cdcdd49138c3cd7c552f34f",
+    "signal_backend/Oracle/src/relay.rs": "3716f5c1c62b9d03aaee351ff3638763ace210bc23198e323acecfc5c8cb0a26"
+  },
+  "oracle_sha256": "201344729ea00e8b9aae8ea3e1887fa138f9cf108a07c4b25e01fe070efebf04",
+  "artifact_sha256": "946e72d993f2f83acfe236e35be6495036f7c31fc37c56be1c5d2af4db86e641"
+}

@@ -1,0 +1,18 @@
+# Tiny proved fixed-wire -> private-payload adapter; no input/output opening.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from handshake_backend import binary_io
+path,cap,*mode=program.args[1:];cap=int(cap)
+after=(mode==["after"])
+if mode not in ([],["after"]):raise ValueError("invalid public payload adapter mode")
+if not 0<=cap<=16384:raise ValueError('invalid public payload capacity')
+image=load(path)
+if image['input_bits']!=(cap+1+int(after))*8 or len(image['outputs'])!=(cap+3)*8:
+    raise ValueError('invalid fixed payload artifact dimensions')
+def adapt(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+adapt.__name__='signal_service_payload_'+('after_' if after else '')+str(cap)
+function=export(adapt);Array=sbitvec.get_type(1).Array
+function(Array((cap+1+int(after))*8),Array((cap+3)*8))

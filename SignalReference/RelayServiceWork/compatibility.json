@@ -1,0 +1,46 @@
+{
+  "chosen_target": {
+    "repository": "signalapp/libsignal",
+    "commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+    "version": "0.106.1",
+    "spqr": "1.6.0",
+    "inner_version": 4
+  },
+  "relay_behavioral_reference": {
+    "repository": "imeckler/libsignal",
+    "commit": "c1d9fb55ded1eca7ef6aae35cdedc2452bf6529c",
+    "spqr": "1.4.0",
+    "inner_version": 4
+  },
+  "websocket_schema": {
+    "byte_identical_between_versions": true,
+    "sha256": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5"
+  },
+  "relay_transport": "Authenticated HTTP1.1 WebSocket to chat.signal.org/v1/websocket/; PUT JSON encoded inside WebSocketRequestMessage.",
+  "service_request": "PUT /v1/messages/{canonical UUID}?story=false; content-type application/json; unidentified-access-key standard base64; per-device type6 sealed ciphertext.",
+  "sealed_sender": {
+    "target_format": "v1 0x11, ephemeral_public/encrypted_static/encrypted_message tags1/2/3; established USMC MESSAGE type2",
+    "actual_target_native_encrypt_decrypt_tamper_tests": true,
+    "historical_cross_version_decrypt_tested": false
+  },
+  "inner_session": {
+    "same_version_number_is_not_equivalence": true,
+    "historical_spqr_compatibility_verified": false,
+    "actual_async_session_transition_refinement": false
+  },
+  "source_sha256": {
+    "/Users/izzy/repos/secret-shared-db/server/relay-node/src/main.rs": "304bf59e782adca21e535b9c5a1805fa4c2fc4876e12e8eff9cca2ce143b838c",
+    "/Users/izzy/repos/secret-shared-db/server/relay-node/src/notify.rs": "6c09df8275af89108ae3c6579a27b1d99d4cd3d7d716a2374841b60badfeb25f",
+    "/Users/izzy/repos/secret-shared-db/server/relay-node/src/signal_requests.rs": "3058e511e40e7e2b792cc5ff5a5c6878ee3d6502e96a922d6781bafe7e3648ad",
+    "/Users/izzy/repos/secret-shared-db/server/relay-node/src/chat.rs": "5ada39f0168f31ed2e0d5467d381fa97d7f40c72c5e3f9a2c656fbf835928ff9",
+    "/Users/izzy/repos/secret-shared-db/Cargo.lock": "8ccef3f01a205365aaa37f8ef78cd3d5ff45489e31e9c6ac3a0f687dc3527a84",
+    "/Users/izzy/.cargo/git/checkouts/libsignal-ea2c7d1aae53596c/c1d9fb5/rust/net/src/proto/chat_websocket.proto": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5",
+    "/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/net/src/proto/chat_websocket.proto": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5",
+    "/Users/izzy/.cargo/git/checkouts/libsignal-ea2c7d1aae53596c/c1d9fb5/rust/protocol/src/sealed_sender.rs": "5975f9419ddd4143783ce79f08e75b5ac5f2ff437caf1078ae11aa1dd48827bd",
+    "/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/protocol/src/sealed_sender.rs": "aa6f5dd7865bb38d3ef9dc9ae849d58157e21dbd796e4c5bca241d0fa39f6916",
+    "/Users/izzy/.cargo/git/checkouts/libsignal-ea2c7d1aae53596c/c1d9fb5/rust/protocol/src/crypto.rs": "cca773b39bc395fbe60482a495637f91f10b4a116b08efc1be3d61e71d91e1da",
+    "/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430",
+    "/Users/izzy/.cargo/git/checkouts/libsignal-ea2c7d1aae53596c/c1d9fb5/rust/net/src/env.rs": "2bd04c034b0c8f444441d7f53a1de36c1dea2a3c76eae652afe987c351a1645f"
+  },
+  "deployed_service_compatibility_or_live_account_tested": false
+}

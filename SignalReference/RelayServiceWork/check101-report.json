@@ -1,0 +1,35 @@
+{
+  "actual_tungstenite_client": true,
+  "network_side_effects": false,
+  "cases": [
+    {
+      "accepted": true,
+      "status": 101
+    },
+    {
+      "accepted": false,
+      "error": "WebSocket protocol error: Key mismatch in \"Sec-WebSocket-Accept\" header"
+    },
+    {
+      "accepted": false,
+      "error": "HTTP error: 200 OK"
+    },
+    {
+      "accepted": false,
+      "error": "WebSocket protocol error: No \"Connection: upgrade\" header"
+    },
+    {
+      "accepted": true,
+      "status": 101
+    }
+  ],
+  "connection_token_lists": "Pinned client rejects; RFC token-list acceptance is a separate deliberate implementation choice.",
+  "private_validator_proved": false,
+  "oracle_sha256": "201344729ea00e8b9aae8ea3e1887fa138f9cf108a07c4b25e01fe070efebf04",
+  "source_sha256": {
+    "SignalReference/RelayServiceWork/check101.py": "8fd26497ca01f02fdcc81a6cbef34b3ca054765b165bf5b6da3de6600bb8d325",
+    "signal_backend/Oracle/src/relay.rs": "3716f5c1c62b9d03aaee351ff3638763ace210bc23198e323acecfc5c8cb0a26",
+    "signal_backend/Oracle/src/main.rs": "fc42bbf60a88a23716be72bc9c1f25d2a687aa1ed13f04d6d411f30eb053de54",
+    "signal_backend/Oracle/Cargo.lock": "2e367186a789a078e9efcb5f78a642dc2610926511954940e681d04eddc51dfc"
+  }
+}

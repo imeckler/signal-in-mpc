@@ -1,0 +1,13 @@
+{
+  "status_pair_cases": 16,
+  "fixed_cases": 4,
+  "capacity": 900,
+  "output_bytes": 903,
+  "canonical_rejection": true,
+  "native_mpc_executed": false,
+  "source_sha256": {
+    "SignalReference/RelayServiceWork/check_payload.py": "48bb22ae5e8dbb672fec335aa744955aefc7c321a363add349588758ba51d709",
+    "SignalReference/RelayServiceWork/GateExport.lean": "5127b89a372019df562e7275931eb5e635f0802ab9b708a6d4b0fcd8d1e4ab29",
+    "TlsMpc/Signal/ServicePayload.lean": "834f1df2db6c5558bae8312164a83e92d6a175ff53d99f7653dd842d413311ed"
+  }
+}

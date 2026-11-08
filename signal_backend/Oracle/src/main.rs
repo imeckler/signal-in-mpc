@@ -1,3 +1,5 @@
+mod sealed;
+mod relay;
 // Differential harness only: unchanged pinned libsignal APIs, public fixtures.
 use std::io::{self,BufRead};
 use libsignal_protocol::{SignalMessage,PublicKey,IdentityKey};
@@ -29,6 +31,17 @@ async fn decode_h2(wire:Vec<u8>)->Value{
 }
 fn main(){for line in io::stdin().lock().lines(){
  let v:Value=serde_json::from_str(&line.unwrap()).unwrap();
+ if v["mode"]=="varint"{let mut b=vec![];prost::encoding::encode_varint(v["value"].as_u64().unwrap(),&mut b);println!("{}",json!({"wire":hex(&b)}));continue;}
+ if v["mode"]=="check101"{println!("{}",relay::check101(&v));continue;}
+ if v["mode"]=="upgrade"{println!("{}",relay::upgrade(&v));continue;}
+ if v["mode"]=="sealed_decrypt"{
+ let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();
+ println!("{}",rt.block_on(sealed::decrypt(&v)));continue;}
+ if v["mode"]=="relay"{println!("{}",relay::decode(&v));continue;}
+ if v["mode"]=="sealed"{
+  let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();
+  println!("{}",rt.block_on(sealed::fixture(&v)));continue;
+ }
  if v["mode"]=="h2"{
   let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();
   println!("{}",rt.block_on(decode_h2(raw(&v,"wire"))));continue;

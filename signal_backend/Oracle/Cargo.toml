@@ -7,7 +7,14 @@ publish = false
 libsignal-protocol = {path="../../.deps/libsignal-v0.106.1/rust/protocol"}
 libsignal-core = {path="../../.deps/libsignal-v0.106.1/rust/core"}
 signal-crypto = {path="../../.deps/libsignal-v0.106.1/rust/crypto"}
+rand = "=0.9.4"
 serde_json = "=1.0.150"
 h2 = "=0.4.16"
 tokio = {version="=1.54.1",features=["rt","io-util"]}
+prost = "=0.14.4"
+base64 = "=0.22.1"
+httparse = "=1.10.1"
+tungstenite = "=0.29.0"
+[build-dependencies]
+prost-build = "=0.14.4"
 [workspace]

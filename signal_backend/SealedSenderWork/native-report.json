@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "public_fixtures_only": true,
+  "parties": 5,
+  "threshold": 2,
+  "native_computed_dh_executed": true,
+  "native_fresh_ephemeral_generation_executed": true,
+  "raw_dh_or_ephemeral_scalar_inputs": false,
+  "actual_target_decrypt_and_tamper_verified": true,
+  "low_order_and_sender_identity_binding_rejected": true,
+  "service_request_schema_and_json_verified": true,
+  "elapsed_seconds": 262.95651695795823,
+  "timing_scope": "Local startup plus three component invocations, not persistent delivery throughput.",
+  "manifest_sha256": "a2d8c7167472f34822cacd8174d6e10cce81981f0ae75fea127f5baf8f59e87d",
+  "fixture_binary_sha256": "38051fc8c3452f877452d11ecedfdc9811f83b7e5b216311eb9dda66273ef7be",
+  "source_sha256": {
+    "signal_backend/SealedSenderWork/native_fixture.cpp": "24d1758973c928bc9ac31f7925749640d3c17644f50797a936254e16b98a4942",
+    "signal_backend/SealedSenderWork/NativeService.h": "3df9489b596c8fa7896611c2b1d04f5bed1fef5dd8cea88931398dcff2491cb8",
+    "signal_backend/SealedSenderWork/ServiceShape.h": "c28fd2ea72d565b419a9a445c16621461d766bda2f4733114c52388367081562",
+    "signal_backend/SealedSenderWork/Shape.h": "db15d67360104bc59267fc5fbb81e6a44607347c41b5b9189cbb1fa2ab5e3c31",
+    "signal_backend/SealedSenderWork/native_check.py": "80a916f2740e93dfcee015c6cd0828c347be6dbd9a4ae777bb8ad7b80fe817ed",
+    "programs/signal_sealed_export.mpc": "1ebc22b4ce88e34b259a3cf5998173cc710a0418c3731a85a04586d1d7f6e10e",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76"
+  },
+  "logs": ".deps/private-sealed-relay-native/260-72-1-5-13-1/fixture-logs",
+  "opened_outputs": "Synthetic final frame/status only; no computed DH or ephemeral secret opened.",
+  "backend_conversion_trust_boundary": "Existing unverified checked daBit conversions and mixed runtime; cryptographic/service algorithms use proved Lean artifacts.",
+  "full_actual_rust_aeneas_refinement": false,
+  "tls_integrated": false,
+  "http101_response_parser": false,
+  "private_counter_width_policy": false,
+  "recoverable_shared_store": false,
+  "production_ready": false,
+  "oracle_revalidation_sha256": "201344729ea00e8b9aae8ea3e1887fa138f9cf108a07c4b25e01fe070efebf04",
+  "oracle_source_sha256": {
+    "signal_backend/Oracle/src/sealed.rs": "3b10895b9e9cda0b73cfab3840b4edf03e613fa15e77c88406fea99765a8bb05",
+    "signal_backend/Oracle/src/relay.rs": "3716f5c1c62b9d03aaee351ff3638763ace210bc23198e323acecfc5c8cb0a26",
+    "signal_backend/Oracle/src/main.rs": "fc42bbf60a88a23716be72bc9c1f25d2a687aa1ed13f04d6d411f30eb053de54",
+    "signal_backend/Oracle/Cargo.lock": "2e367186a789a078e9efcb5f78a642dc2610926511954940e681d04eddc51dfc"
+  },
+  "closure_files_sha256": {
+    "Programs/Bytecode/signal_private_sealed-Worker-Public_x25519-field.json-Worker-Public_service.json-260-72-1-5-13-1-0.bc": "f6401cdeae9bafa7279b28919aa73e65986d1322acc07ff6d90a8a9486079a51",
+    "Programs/Bytecode/signal_private_sealed-Worker-Public_x25519-field.json-Worker-Public_service.json-260-72-1-5-13-1-signal_private_sealed_relay_260_72_1_5_13_1-1.bc": "b3c94dab013f231879fd708333b6bf4b4b53f727680d2599e2d25ac59061b039",
+    "Programs/Functions/signal_private_sealed_relay_260_72_1_5_13_1-sbv:[3880x1]-sbv:[7208x1]": "f6c9bfbf7d259e42db3a00eafae243216550dd02d582f822491c8fc1a8a39115",
+    "Programs/Schedules/signal_private_sealed-Worker-Public_x25519-field.json-Worker-Public_service.json-260-72-1-5-13-1.sch": "f1e00089edc43a2c0252359825a2709da9cbbb632fe7dd9f4ecf7d168dd1cfc6"
+  },
+  "compiler_counts": {
+    "bit_triples": 2791443,
+    "vm_rounds": 115716,
+    "integer_simple_multiplications": 20404,
+    "integer_randoms": 1024,
+    "integer_masked_opens": 8
+  }
+}

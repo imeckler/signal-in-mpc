@@ -1,0 +1,25 @@
+{
+  "temporary_fail_closed_boundary": true,
+  "recoverable_shared_state": false,
+  "byzantine_durability": false,
+  "cases": [
+    "child crash after fsynced reserve",
+    "concurrent same-slot create",
+    "normal restart",
+    "runtime failure then retry"
+  ],
+  "all_reuse_refused": true,
+  "asan_ubsan_passed": true,
+  "no_secret_or_share_serialization": true,
+  "assumptions": [
+    "Stable opaque session-slot mapping is authoritative; an old state cannot be relabeled to a fresh slot.",
+    "Local filesystem honors fsync and tombstones are not deleted/rolled back."
+  ],
+  "source_sha256": {
+    "signal_backend/check_fence.py": "190da975a3330d5ba56664965c478ab8e9a880bb5c65e5ebe4a9567584147842",
+    "signal_backend/PersistentSendFence.h": "17f717fc5c40a0910a67a4e245d52e467059a1c6890931b26e46edcce14850f9",
+    "signal_backend/fence_checks.cpp": "2e1d52bdbe1463ee3afe861961f556d8db6231826e923f8c904abab6ebdc16e7",
+    "signal_backend/EstablishedSendStore.h": "9d2704f0c17e9d4dd41b87f8730a7eff29f5c625ab08f8823b5766f309442a1a"
+  },
+  "output": "crash/restart, concurrent slot, normal restart and failed-runtime rollback refused"
+}

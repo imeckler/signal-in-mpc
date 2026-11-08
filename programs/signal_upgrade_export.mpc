@@ -1,0 +1,16 @@
+# Proved private Basic-auth WebSocket request encoder; no opening.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from handshake_backend import binary_io
+path,password=program.args[1:];password=int(password)
+if not 0<=password<=256:raise ValueError('invalid public credential dimensions')
+image=load(path);size=265+4*((37+password+2)//3)
+if image['input_bits']!=(32+password)*8 or len(image['outputs'])!=size*8:
+    raise ValueError('invalid upgrade artifact dimensions')
+def encode(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+encode.__name__='signal_relay_upgrade_'+str(password)
+function=export(encode);Array=sbitvec.get_type(1).Array
+function(Array((32+password)*8),Array(size*8))
