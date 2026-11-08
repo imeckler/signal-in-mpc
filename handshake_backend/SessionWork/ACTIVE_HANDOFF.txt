@@ -41,3 +41,55 @@ Worker1 checkpoint (private-length native run completed):
   real service sends; host OwnedBits commit alone is not a retirement receipt.
 - Persistent fixed outgoing handles currently stay in Session map after send;
   lifecycle retirement/consume policy remains future work.
+
+2026-11-08 current continuation (supersedes stale bullets above):
+- Outgoing handles are consumed after ciphertext reservation (6916443); explicit
+  epoch policy and every-record measurement candidate pass380.034s, rawd93f145f26eb059b.
+- 79bd1dd private-length TLS sealing/gate native pass;80da362 HTTP101 parser;
+  054a9b4 private receive activity;84f429b native HTTP/frame pass139.847s.
+- 42db80f adds actual Prost-tested private response correlation (220 cases,
+  155 AIG vectors), native all5 pass65.624s raw96cbf159c0bcf0de (exec77923 terminal).
+  Control queue/encoder152+13 public vectors; v2 dead frame scratch reset/idle policy.
+- Uncommitted integrated candidate: NativeWebSocket, NativeSession authenticated
+  receive origins/RPC18, isolated WebSocketWork worker/controller/driver. Builds
+  and boundary1082 public cases pass. Actual native coupling NOT YET certified.
+- Live integration exec73919, raw343c3f05d24ae9e7, public cache provisioning then
+  five parties. Do NOT restart blindly. Poll /tmp/ws-service-run.log. Sources in
+  driver freeze once parties start. Never stage other agents' Signal/Main files.
+- Known reporting-only issue to correct after this run: endpoint report uses
+  requests_validated/interleaved_pongs_validated, while current driver final
+  assertion mistakenly asks requests/pongs. Preserve original run provenance;
+  if all parties pass, verify actual endpoint keys independently without repeat.
+- Current profile <=128 public incoming backing bytes, frame/message cap4096,
+  max4 controls/chunk, one pending correlated response; not final multiplexed
+  throughput architecture. Explicit validity/completion/control metadata only;
+  IDs/body/header/length stay shared. Network lengths/timing public metadata.
+- Canonical gate closed, refresh paused. No full runtime/OS-erasure or whole
+  Rust parser refinement claim. Graceful peer-close must additionally forbid
+  sealing already-retained service handles (allow only close response).
+
+2026-11-08 final actual service checkpoint:
+- Integration94864 TERMINAL PASS all5exit0,547.300948s,cleanup[],54 source/product
+  hashes unchanged, canonical runtime unchanged. Raw7c7d8288524507fb contains
+  immutable source-snapshot/,worker-snapshot,endpoint/controller/log evidence.
+- Actual TLS1.3/AES128/http1.1 privateBasic upgrade, splitHTTP101/coalescedping,
+  two variable sealed-sender requests using retained selectedstate127->128,
+  actual targetlibsignal decrypt/certificate/inner validation at local endpoint,
+  private correlated2xx responses,3fresh-maskedpongs,clientKeyUpdate,terminalabort.
+- No liveTLS/native handles. Crypto header/serverhold released. Canonical gate
+  closed,refreshpaused,no liveaccount/messages; no traffic-padding claim.
+- Failed raws preserved:343c3f05d24ae9e7 missing publicstate pins;
+  8295f25dadf0406d and3a3b22b3b569dd0f wrongcopiedALPN;
+  276f5198246d2499 colocatedfencecollision. All reaped. Current driver fixes
+  manifest extras/preflight,H1,party-scoped stablefixturefences,collective local
+  reservation readiness beforeVM,unconditional failedproducer terminalcleanup.
+- Peer-close sendguard implemented in tested candidate; dedicated peer-close
+  and local-reservation-failure negative integration coverage remains pending.
+- Firstprofile incoming backingcap128,frame/message4096,max4controls/chunk,one
+  pendingresponse. Actual incoming response sizes vary publicly onnetwork.
+- Remaining system gaps:bounded multiplexed opaque conversations/correlation
+  slots and realrecord-size support,formal whole-target response/refinement,
+  recoverable durable ratchet/outbox binding,sharingrefresh/security assumptions,
+  throughput/WAN optimization. Positive test is loopback functional evidence,
+  NOT100k/hour throughput or fullsystem completion. Earlier TLSsuite covers
+  bothKU,replay/authentication/abort separately; new test covers clientKU only.

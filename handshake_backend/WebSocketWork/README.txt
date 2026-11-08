@@ -57,3 +57,29 @@ upgrade+sealed-sender requests through persistent HTTP1.1 TLS against a local
 protocol-faithful server. NativeSession wrappers for the crypto-owned upgrade,
 service and typed901-to903 result adapters are compiled, not a service milestone.
 Variable-length service producer/counter transitions remain crypto-owned.
+
+Actual persistent service candidate (2026-11-08):
+NativeWebSocket.h composes authenticated private HTTP101/frame/control/response
+machines. NativeSession accepts only authenticated incoming handles for RPC18;
+validity/completion/control kinds are explicit public decisions. Body,headers,
+request IDs and true application lengths stay shared. Selected partial state
+survives declared epoch checkpoints; discarded inputs/runtime history precede
+the host-stack barrier. Producer slots unlock only after correlated2xx, not send.
+Local preparation failures join a public collective gate before producerVM work.
+
+check_native_websocket_service.py passed allfive parties547.301s,raw
+7c7d8288524507fb: privateBasic upgrade,two actual variableSSv1 relay requests,
+actual targetlibsignal server decrypt/cert/inner checks,fragmentedresponses,
+interleaved3pongs,private requestcorrelation,clientKeyUpdate,terminalabort.
+Sources+worker snapshots and hashes are inraw; canonical runtime unchanged.
+This uses disposable publicfixture initialstate/recipient and local endpoint,
+never a live account. Canonical application gate remainsclosed; refreshpaused.
+
+Bounds are firstintegration profiles: incomingpublicbacking1..128, frame/message
+4096, max4controlresponses/chunk, onependingresponse. Later production requires
+bounded multiplexed conversations/correlation and broaderrecord profiles.
+ASCII-bounded responseheader validation is an explicit narrower profile; actual
+fixture service headers are ASCII. No wholeRustresponse refinement, recoverable
+ratchet persistence, fullmobilecompromise/OS-erasure,or throughput claim follows.
+Peerclose guard permits only its tagged close response; dedicated negative
+close/reservationfailure integrated tests remain pending.

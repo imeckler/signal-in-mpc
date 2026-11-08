@@ -6,6 +6,8 @@
 #include "../signal_backend/SealedSenderWork/NativeService.h"
 #include "../signal_backend/SealedSenderWork/NativeUpgrade.h"
 #include "../signal_backend/SealedSenderWork/NativePayload.h"
+#include "../signal_backend/VariableServiceWork/NativeVariableService.h"
+#include "WebSocketWork/NativeWebSocket.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
 #include "ShapeCompiler.h"
@@ -29,8 +31,11 @@ class Session {
     ApplicationPolicy application_policy;
     bool application_ready=false;
     Bits parser_state;
-    struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; };
+    enum class Origin {producer,authenticated_receive,websocket_close};
+    struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; Origin origin=Origin::producer; };
     std::map<uint64_t,Buffer> buffers;
+    std::unique_ptr<NativeWebSocket> websocket;
+    bool websocket_closing=false;
     uint64_t next_buffer=1;
     Bytes pending_wire;
     bool pending_send=false;
@@ -180,6 +185,7 @@ public:
     // opening bytes. Trusted producers may retain their fixed-shape output here.
     uint64_t retain_fixed_payload(Bits payload) {
         return guarded([&] { require_application(); require(payload.size()%8==0 && payload.size()<=16384*8,"invalid fixed payload");
+            require(!websocket_closing,"WebSocket closing; producer payload forbidden");
             size_t size=payload.size()/8;
             return retain({std::move(payload),{},{},size,true}); });
     }
@@ -187,6 +193,7 @@ public:
     // Capacity is an agreed public workload profile, never an opened length.
     uint64_t retain_private_payload(PrivatePayload payload) {
         return guarded([&] { require_application();
+            require(!websocket_closing,"WebSocket closing; producer payload forbidden");
             payload.validate_shape();
             require(payload.capacity<=16384,"private outgoing capacity exceeds record limit");
             return retain({std::move(payload.data),std::move(payload.private_length),
@@ -233,11 +240,46 @@ public:
             signal_mpc::NativeUpgrade upgrade(machine,worker,pinned_programs);
             return upgrade.evaluate(shape,std::move(input));});
     }
+    Bits evaluate_variable(const signal_mpc::VariableShape& shape,Bits input) {
+        return guarded([&] {require_application();
+            signal_mpc::NativeVariableService service(machine,worker,pinned_programs);
+            return service.evaluate(shape,std::move(input));});
+    }
+    void start_websocket(const Bytes& expected_accept) {
+        guarded([&] {require_application();require(!websocket,"WebSocket already initialized");
+            websocket.reset(new NativeWebSocket(worker,pinned_programs,expected_accept,
+                [&](const Bytes& value){return public_bits(value);}));});
+    }
+    void expect_websocket_response(Bits request_id) {
+        guarded([&] {require_application();require(bool(websocket),"WebSocket unavailable");
+            websocket->expect(std::move(request_id),[&](const Bytes& value){return public_bits(value);});});
+    }
+    struct WebSocketReceipt {bool upgraded,response_complete;std::vector<std::pair<unsigned,uint64_t>> controls;};
+    WebSocketReceipt process_websocket(uint64_t handle) {
+        return guarded([&] {require_application();require(bool(websocket)&&!pending_send,"WebSocket unavailable/pending send");
+            auto found=buffers.find(handle);
+            require(found!=buffers.end()&&found->second.origin==Origin::authenticated_receive,
+                "WebSocket requires authenticated receive handle");
+            auto result=websocket->feed(take_private_payload(handle),
+                [&](const Bits& value){return release(value);},[&](const Bytes& value){return public_bits(value);});
+            WebSocketReceipt receipt{result.upgraded,result.response_complete,{}};
+            bool closing=false;
+            for(auto& control:result.controls) {
+                auto id=retain_private_result(std::move(control.payload),131);
+                if(control.kind==8)buffers.at(id).origin=Origin::websocket_close;
+                receipt.controls.push_back({control.kind,id});closing=closing||control.kind==8;
+            }
+            websocket_closing=websocket_closing||closing;
+            // Partial selected protocol state survives; discarded TLS plaintext,
+            // parser history and control buffers precede the erasure barrier.
+            lifecycle->renew_epoch();return receipt;});
+    }
     Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
         return guarded([&] { require_application();
             require(size<=16384 && padding<=16384-size,"invalid application dimensions");
             auto found=buffers.find(handle);require(found!=buffers.end(),"unknown application handle");
             const auto& buffer=found->second;
+            require(!websocket_closing||buffer.origin==Origin::websocket_close,"WebSocket closing; service send forbidden");
             require(buffer.capacity==size,"private payload capacity mismatch");
             require(buffer.fixed_length || padding==0,"private capacity already includes TLS padding");
             application_policy.application(sequence);
@@ -293,7 +335,7 @@ public:
             parser_state=bytes(result,2,11);
             application_policy.event(event[0],event[1]==1);
             if(event[0]==1) {
-                auto id=retain({bytes(result,15,capacity),bytes(result,13,2),public_bits({255}),capacity,false});
+                auto id=retain({bytes(result,15,capacity),bytes(result,13,2),public_bits({255}),capacity,false,Origin::authenticated_receive});
                 auto encoded=sequence_bytes(id);event.insert(event.end(),encoded.begin(),encoded.end());
             }
             return event; // No plaintext, length, state or ticket is opened.
@@ -322,6 +364,7 @@ public:
             server_app=std::move(next);lifecycle->renew_epoch(); });
     }
     bool abort() noexcept {
+        if(websocket){websocket->close();websocket.reset();}
         policy.abort();application_policy.abort();application_ready=false;
         worker.erase_owned_scalar();
         for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {

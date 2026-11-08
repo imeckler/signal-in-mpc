@@ -57,6 +57,13 @@ public:
         bound.insert(bound.end(),shape.begin(),shape.end());
         bound.insert(bound.end(),manifest.begin(),manifest.end());identical(digest(bound));
     }
+    // Public local readiness (for example durable reservation), before entering
+    // a private producer. Every party must join even after a local failure.
+    void require_local_success(bool ready) {
+        auto all=broadcast(PublicBytes{0x53,uint8_t(ready?255:0)});
+        for(const auto& item:all)public_require(item.get_length()==2&&
+            item.get_data()[0]==0x53&&item.get_data()[1]==255,"collective producer preparation failed");
+    }
     template<class Action> PublicBytes leader(Action&& action) {
         auto& player=current_player();
         PublicBytes packet;

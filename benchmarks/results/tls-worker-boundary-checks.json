@@ -1,5 +1,5 @@
 {
-  "checked_utc": "2026-11-08T07:01:42.314457+00:00",
+  "checked_utc": "2026-11-08T11:15:26.390556+00:00",
   "native_adapter_build": true,
   "native_executable_build": true,
   "checks": [
@@ -13,7 +13,7 @@
     },
     {
       "test": "public_protocol_checks",
-      "output": "1025 public framing, bounds, replay and authentication encoding checks passed"
+      "output": "1082 public framing, bounds, replay and authentication encoding checks passed"
     },
     {
       "test": "transport_checks",
@@ -74,39 +74,39 @@
   "scope": "compile/link native dispatch/executable; public parsing/state checks; actual Lean/C++ concurrent and duplex pipe interop",
   "application_execution_enabled": false,
   "products_sha256": {
-    ".deps/sharing-refresh/tls-worker-build": "12da2e6b733179ed7176126a0b8f8e9285d8b9ad3bb09a2bf8a6b27b18fafc74",
-    ".deps/sharing-refresh/tls-worker": "425555c895d1e8862f9bda3d0297e3eb48c756c96b67dab09af94f4724defbdd"
+    ".deps/sharing-refresh/tls-worker-build": "a44d222690c8540a261eef1f971c504f0b37d1cbbf4d96f36baae9fccc646ef3",
+    ".deps/sharing-refresh/tls-worker": "7e03b532b39a957dc68e98a2efd9c82627d2fa766396178932619df022128e6e"
   },
   "source_sha256": {
     "handshake_backend/ApplicationPolicy.h": "d3ff6b78143714f528af625f5e38e951816fcf2db85dee53072504f92cb0f442",
     "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
-    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/KernelShape.h": "16132786dba04f0ea908d5c18476d9217e5aebc249b4fad3bd08488508c38b0b",
     "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
-    "handshake_backend/NativeCollective.h": "f83b108ac2e5dfcac28b528501c103be8254726bc854ba93790ee9a8a98676f4",
-    "handshake_backend/NativeDispatch.h": "10edae9cc15414f006696ca1b1103071937bd500ed6de1e7052f04105c60eba7",
-    "handshake_backend/NativeSession.h": "59a21cba530458df9aaa5cfe93cb1a238e6016bc7c528e2dc8835bf423dc43de",
+    "handshake_backend/NativeCollective.h": "c8905153b20eee59e257081bc310ebac6d59bdbc643f8ab1dd5823bd8b67535a",
+    "handshake_backend/NativeDispatch.h": "b076c8d4f1ecebd27db6602c97f125b6b4ed416f0997ef52034a56af5bf7a134",
+    "handshake_backend/NativeSession.h": "5a9e9c838ad6f3412820c8000c0b6438cb42e0f8153ccd12485f3b6d73a2a4e1",
     "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
     "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
     "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
     "handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
-    "handshake_backend/PublicProtocol.h": "1dfd11d3b066332bb27f5aa9579baea5233148b014a450e6fdda9757e0ac9389",
-    "handshake_backend/SessionLifecycle.h": "eb251c3f46fe768f1dcf1a5117490f3f2096ce34a5c5d204771315a7e0259bb8",
+    "handshake_backend/PublicProtocol.h": "d65478f46d30afdbeb41314505eec61adfc7b75571274f74891e798416ef6217",
+    "handshake_backend/SessionLifecycle.h": "9b304d48d3f9070556461cbd8d7c25138041961aa19b207c2202bcabe4024d24",
     "handshake_backend/SessionPolicy.h": "03e3e8335d6edcb848a29b6240f8f120a6c3d895976b010210efa8329e23cf3e",
     "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
     "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
     "handshake_backend/TcpRecords.h": "e2a8d55f6f047102c87e6248b8da14eed0f6766fa9d0bf48632584bf8c58ec73",
-    "TlsMpc/TlsWorker.lean": "629e7c20b2973f24d21d889067ba5a24df8e29cc23689dc2ce04e6ccfd98adb4",
-    "TlsMpc/TlsWorkerPipe.lean": "24d3c452498ad438c6b46b1a902fdc084d849afcf5e1694142470ecd645206fa",
-    "WorkerPipeFixture.lean": "68869ab811f555a48f68650131d04ea0b6f39e4d5bc0dbac751dcdceda948127",
+    "TlsMpc/TlsWorker.lean": "996ed751bc260958fc659a109551e3573de11e7bd2d4e9030d6293e5005c0390",
+    "TlsMpc/TlsWorkerPipe.lean": "fcb22a04d76def2c27f3acfbaf04a6ca2b2997caa8f1637b35640a7782ba222f",
+    "WorkerPipeFixture.lean": "d77b33ccb3648e0f3191e4ca7f61409948733c35be48ee4c721434aded599914",
     "WorkerApplicationFixture.lean": "0bf33ea7486adf8c4e81974f9d7e337887ac8c5054aca475253979163b44f34a",
     "handshake_backend/application_policy_checks.cpp": "5440a5bcef6aa58a636c7e7d983f94f06cd5dc53cf21c9bf723e189271e4dc4e",
     "handshake_backend/owned_secrets_checks.cpp": "0ea3ed80ea1992eed27092595da613486576003415a447c8ddb3326effd98600",
     "handshake_backend/worker_build.cpp": "c641cbbaed269efeab8ee3e34a76512bf648ab798c21c68977fce04ae6bb40cf",
     "handshake_backend/session_policy_checks.cpp": "738704a7980443563d6eaa20eb18ef12999286a27abc3b56531281dcbc107fc9",
     "handshake_backend/worker_main.cpp": "c8ef2a74998ad31a7fde3b9d9f7d5af0409cd8831a55afd45163cb1d90062009",
-    "handshake_backend/Makefile": "d256508aed86a23e4a132f609d05432ef8b859c951beff56a9762968fb145a58",
-    "handshake_backend/public_protocol_checks.cpp": "9047b2cd075a2a3bfa337323056e28066272bce802b44a94800154ee829496cf",
-    "handshake_backend/pipe_fixture.cpp": "a427ca06f0fd6f25f776a90c3fa96c5ff6bf1d8c1fb7d1561a27e8875d760ccc",
+    "handshake_backend/Makefile": "c5a70cfb5f131f5eccc1fdf74807407e07746223588fb36dd3f3775f2d62a051",
+    "handshake_backend/public_protocol_checks.cpp": "8c2bcd265addddc22ac943664b1a38d85f952444bb5758f16c26ace6a312134c",
+    "handshake_backend/pipe_fixture.cpp": "daf1ada82808c01cd8b2b3eacb170f37406034e0a8cabb614d71b3cb599df478",
     "handshake_backend/transport_checks.cpp": "3b40a35d28d3fbdcfc004039cd83bbc7415a583010849aaeed63f5f0083b2e6f",
     "scripts/check_worker_boundary.py": "2a067b500c8be5d9fad5aed9646b7d9751c667aba29bf06520a211139ad3e3a0"
   }

@@ -79,6 +79,14 @@ public:
             }
             case Opcode::rotate_send: in.done();session.rotate_send();return {};
             case Opcode::rotate_receive: in.done();session.rotate_receive();return {};
+            case Opcode::process_websocket: {
+                auto handle=in.number(8);in.done();auto receipt=session.process_websocket(handle);
+                Bytes out{uint8_t(receipt.upgraded),uint8_t(receipt.response_complete),uint8_t(receipt.controls.size())};
+                for(const auto& control:receipt.controls) {
+                    out.push_back(control.first);put_number(out,control.second,8);put_number(out,131,2);
+                }
+                return out;
+            }
             case Opcode::abort:
                 in.done(); {bool erased=session.abort();failed=true;transport.close();
                     public_require(erased,"native VM erasure capability failed or unavailable");return {};}

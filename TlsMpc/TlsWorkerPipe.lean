@@ -15,6 +15,7 @@ def code : Operation → Nat
   | .openApplication => 12 | .sealApplication => 13 | .sealControl => 14
   | .rotateSend => 15 | .rotateReceive => 16
   | .pollRecord => 17
+  | .processWebSocket => 18
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

@@ -14,7 +14,7 @@ inductive Operation where
   | begin | derive | openHandshake | authenticate | verifyFinished | finish | retire | abort
   | connect | sendRecord | receiveRecord
   | openApplication | sealApplication | sealControl | rotateSend | rotateReceive
-  | pollRecord
+  | pollRecord | processWebSocket
   deriving Repr, BEq
 
 structure Rpc where
