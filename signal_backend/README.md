@@ -57,3 +57,13 @@ responses, durable storage and runtime retirement before usable delivery. The
 TLS application gate is unchanged. No production, refresh or throughput claim is
 made. Full actual `to_edwards` translation remains blocked as recorded in
 `SignalReference/XEdDsaToEdwardsWork/`.
+
+`PublicSyntheticProducer<Bits>` is a candidate-test helper only. It owns the
+same disposable initialized state as the native fixture, permits three sends,
+and returns unopened fixed228-byte framed requests. Call `produce(eval,
+public_bits)`, retain/send that payload, then `transport_complete()`; call
+`close()` after any external handoff failure. Its fixture protobuf merely wraps
+Signal wire in field1 and is not the production service request. The helper
+adds no RPC. `synthetic-helper-report.json` records three state/frame checks and
+native OwnedBits compile/link validation; the helper itself has not yet been
+executed in the TLS application fixture.

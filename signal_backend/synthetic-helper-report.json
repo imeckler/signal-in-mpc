@@ -1,0 +1,30 @@
+{
+  "public_synthetic_fixture_only": true,
+  "fixed_payload_bytes": 228,
+  "maximum_sends": 3,
+  "public_state_frame_cases": 3,
+  "failure_poisoning_and_send_limit_checked": true,
+  "native_owned_bits_compile_link_passed": true,
+  "native_mpc_executed_for_helper": false,
+  "opens_in_helper": false,
+  "production_rpc_added": false,
+  "shape": [
+    "signal-spqr-send",
+    "0",
+    "1",
+    "1",
+    "1",
+    "1",
+    "0",
+    "none",
+    "none"
+  ],
+  "manifest": ".deps/signal-established-native/signal-spqr-send-0-1-1-1-1-0-none-none/signal-send.manifest",
+  "manifest_sha256": "749c0ef85236cfb1e12fda4d8c7842e8f172029467ac177c7d17a16e864ec139",
+  "service_protobuf": "Fixture-only field1 bytes wraps actual Signal wire; not a production request.",
+  "source_sha256": {
+    "signal_backend/PublicSyntheticProducer.h": "9f4ce70e7244791d83a305881609e6730120d335db1d4d29bcfd0512840e1c73",
+    "signal_backend/synthetic_producer_checks.cpp": "80b51838900b491da493e9e00ac198dc9c0cd293b32d4937a27203e6a3ec7dcf",
+    "signal_backend/synthetic_native_probe.cpp": "6d017f4138c3f52f4a744eb77d7d96ea759dcadb4d371490f7fcaa7ec481dbbf"
+  }
+}
