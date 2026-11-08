@@ -1,0 +1,43 @@
+{
+  "scope": "source/serialization audit only, not protocol switch or new native MPC",
+  "pinned_upstream": "73aa234e20e61425ad5d5276239a600fb2d6e3e8",
+  "serializer_probe": {
+    "logical_bits": 128,
+    "Bit_serializer_bytes": 16,
+    "gf2n_long_serializer_bytes": 2048,
+    "protocol_execution": false,
+    "roundtrip_checks": 128,
+    "payload_ratio": 128
+  },
+  "bytes_by_protocol_domain_available": false,
+  "loader_only_time_available": false,
+  "actual_preprocessing_usage_available": false,
+  "tested_backend_changed": false,
+  "new_native_parties_launched": false,
+  "source_sha256": {
+    "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
+    "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
+    "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
+    "handshake_backend/BackendPackingWork/serialize_fixture.cpp": "2abfbece12af2058f929b3b282d0e06f7a8cc4eaf7afc12d2bea7aebac12b984",
+    "handshake_backend/BackendPackingWork/Makefile": "3166aee555cc462484e13a9acbc09c6023191c64e7bcb0db7888e4cea56920db",
+    "handshake_backend/BackendPackingWork/AUDIT.md": "454f91c8a03680d1aba3823f5197758390210764e910baa54ae5d17a52065bf8",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/MaliciousCcdSecret.h": "a566ef84ef3c87f67fb4a234013b5d2453b629a1e5fa91660d88bb1493949522",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/MaliciousCcdShare.h": "e4950d56c8dd4ebce02773a9ae7a017715db9bcc40d64355ef89a11cd4a11cd9",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/TinySecret.h": "eed25a8bc5b7bf65f09d401388baf98b724dba28824b4a10967a73d52079c904",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/TinierSecret.h": "bc2533be5b61850b91b3f4bcf438434038ac55644a2df7e0e8104a9ed8923b93",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/TinyShare.h": "c5dcdea640750132e0db7379c206dd60b1a1a364c5f745d1452d4a99b9958ecc",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/TinierShare.h": "5a0e71c2017149f1c834615ea32673483f5ca6fdb6c317bcacd27640cce5101e",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/TinyMC.h": "c16b5bced3b3c8bdfa0a7edb6f0f679674fbc29e7e85e19ec969b704c5627f5d",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/VectorProtocol.hpp": "3e3b6d19b7a4597908090280277e07de75cf72cd6dc9931a42fe35fa30197a2e",
+    ".deps/tls-session-runtime/MP-SPDZ/Math/gf2n.h": "a7a350d6e678a8c22e474d13efda7c7fc7c7247368bfb013c199717499ef77fb",
+    ".deps/tls-session-runtime/MP-SPDZ/Math/Bit.h": "60e36918e94869a36e855ae40d06e2a892dccb272d2b31d6f439ef107089024c",
+    ".deps/tls-session-runtime/MP-SPDZ/Math/BitVec.h": "69554b77eb7a2e5b1efe62ba3501c42be4b72fb87c8cd42551ba148056a7025b",
+    ".deps/tls-session-runtime/MP-SPDZ/Protocols/ShamirMC.hpp": "f8de17b084cd077c44f30385ef9721d20af005fa1275cff367919d7f8c1dea1e",
+    ".deps/tls-session-runtime/MP-SPDZ/Protocols/Spdz2kShare.h": "d2574464413b9cbb7cdcc41b015fe7a5323e13d4562194c432b47348f932fbd3",
+    ".deps/tls-session-runtime/MP-SPDZ/Processor/Machine.hpp": "16fcc9afe466973688a8de3046dd8b17060556d7c45a64ed6eec0a8da909bd42",
+    ".deps/tls-session-runtime/MP-SPDZ/GC/ShareThread.hpp": "1b8bfca2efba672ec733684d991a0943c3b61f7e2c7c0277e3d66bb568a1ee24"
+  },
+  "products_sha256": {
+    ".deps/tls-session-runtime/tls-backend-serialize-fixture": "b7b9e2229f1dae5100087aac95af34e2c1fde35499be6b4d43da83c7ecc9fcff"
+  }
+}
