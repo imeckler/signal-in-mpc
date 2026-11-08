@@ -123,6 +123,9 @@ structure Parsed (B W : Type) where
   valid : B
   metadata : List B
 
+def Parsed.map (f : B → B') (fw : W → W') (parsed : Parsed B W) : Parsed B' W' :=
+  ⟨parsed.state.map f fw,fw parsed.wireLength,fw parsed.bodyLength,f parsed.valid,parsed.metadata.map f⟩
+
 /-- Entire capacity wire is version||protobuf body||MAC8. Offsets in state and
 metadata are relative to the body (wire offset = body offset +1). The upstream
 mask is checked canonically and never omitted. MAC authentication is external. -/

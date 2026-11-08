@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "scope": "symbolic-to-numeric and actual compiler bytes; functional take-n/native parser theorem still open",
+  "exit_code": 0,
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateProtoParseV1.lean": "9f2423efebfa61f007a3045dbd8d8f05d26bf3151e65d696760cb6f57a25da72",
+    "TlsMpc/Signal/PrivateProtoParseV1Proofs.lean": "0c413dafc5bba485702dfe8f69a94abb72ba0ff701238b0548df97ec7f01a78c"
+  },
+  "objects_sha256": {
+    "TlsMpc/Signal/PrivateProtoParseV1.lean": "0e0defd050f4a204cf413f559f574431f02fe7636a65788ced80f41a2ed192cb",
+    "TlsMpc/Signal/PrivateProtoParseV1Proofs.lean": "458839f2e2ea0fd64ac78651b09201a9aadc3535cc5756ef0cf87654fff205a8"
+  },
+  "log_sha256": "eab1810cac99e7872fc109cce5095881f3b7461461ff5ccd89fcb47c78af50dc",
+  "endpoints": [
+    "TlsMpc.Signal.PrivateProtoParseV1.parse_map",
+    "TlsMpc.Signal.PrivateProtoParseV1.parseCore_map",
+    "TlsMpc.Signal.PrivateProtoParseV1.compiled_parseCore_correct"
+  ],
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "functional_refinement": false
+}
