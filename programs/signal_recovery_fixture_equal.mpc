@@ -1,0 +1,12 @@
+# PUBLIC-FIXTURE-ONLY aggregate equality; no restored bit/key value is opened.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+def equal(inputs,outputs):
+ raw=binary_io.read_bits(inputs);result=sbit(1)
+ for i in range(16):result=result&~(raw[i]^raw[16+i])
+ binary_io.write_bits(outputs,[result]*8)
+equal.__name__='signal_recovery_fixture_equal_16'
+function=export(equal);Array=sbitvec.get_type(1).Array
+function(Array(32),Array(8))
