@@ -29,7 +29,7 @@ fn check(v:&Value)->Result<Value,String>{
  let correlated=expected.map(|expected|expected==id);
  Ok(json!({"accepted":true,"id":id,"status":status.as_u16(),"is_success":status.is_success(),
   "correlated":correlated,"body_present":response.body.is_some(),"body":hex(response.body.as_deref().unwrap_or_default()),
-  "message_present":response.message.is_some(),"header_count":headers.len(),
+  "message_present":response.message.is_some(),"message_hex":hex(response.message.as_deref().unwrap_or_default().as_bytes()),"header_count":headers.len(),
   "boundary":"actual generated prost; copied inspected private validation"}))
 }
 fn main(){for line in io::stdin().lock().lines(){
