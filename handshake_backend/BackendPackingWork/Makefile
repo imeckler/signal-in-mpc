@@ -7,3 +7,8 @@ $(TLS_BUILD)/tls-ccd-diagnostic-fixture: $(TLS_ROOT)/BackendPackingWork/ccd_micr
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
 $(TLS_BUILD)/tls-sacrifice-security-guard: $(TLS_ROOT)/BackendPackingWork/sacrifice_security_guard.cpp $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+$(TLS_BUILD)/tls-ccd128-component: $(TLS_ROOT)/BackendPackingWork/ccd128_component_main.cpp $(TLS_ROOT)/BackendPackingWork/emit_backend_totals.h libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/BackendPackingWork $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+BMR_DIAGNOSTIC_OBJECTS := $(patsubst %.cpp,%.o,$(wildcard BMR/*.cpp BMR/network/*.cpp))
+$(TLS_BUILD)/tls-bmr128-component: $(TLS_ROOT)/BackendPackingWork/bmr128_component_main.cpp $(TLS_ROOT)/BackendPackingWork/emit_backend_totals.h $(BMR_DIAGNOSTIC_OBJECTS) libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT)/BackendPackingWork $< $(BMR_DIAGNOSTIC_OBJECTS) $(CURDIR)/libSPDZ.so $(LDLIBS) -lboost_thread -Wl,-rpath,$(CURDIR) -o $@

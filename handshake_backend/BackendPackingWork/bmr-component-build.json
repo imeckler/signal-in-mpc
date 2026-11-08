@@ -1,0 +1,20 @@
+{
+  "scope": "compile/link only; BMR purebinary native retry pending; no mixedFp/lifecycle/application claim",
+  "source_sha256": {
+    "handshake_backend/BackendPackingWork/bmr128_component_main.cpp": "8b48bba81afd23e9d88f151377852ed67e2e1ee1010c493eee1ee9ffaaee3ba0",
+    "handshake_backend/BackendPackingWork/ccd128_component_main.cpp": "e7e4ff3ca85cc7f76fc9ea3ce85345f99aa462f80689e2b5a41d412964cd8025",
+    "handshake_backend/BackendPackingWork/emit_backend_totals.h": "cda0144044fac374c73117f697ee24cca201c6011209b79a1d223c1c457a867b",
+    "handshake_backend/BackendPackingWork/pure_and.mpc": "dd59b6916b1ac0d02c1a9824eb92c76c7980e7f1468801b1f1ae80d4fd382621",
+    "handshake_backend/BackendPackingWork/Makefile": "5b6533bae572056a72d878a50c824dea74167f822d08ccfe2d635edebe920a38",
+    ".deps/tls-bmr128-candidate/MP-SPDZ/BMR/config.h": "0f9cbd7c442fa186debe54bf7358ff2d47b9f8ae696a2be1b61244c30669336f"
+  },
+  "products_sha256": {
+    ".deps/tls-bmr128-candidate/MP-SPDZ/libSPDZ.so": "e97e16bd71125e7f0f274d1b956a32986112a14581e0aec1c23a7ece47fc7bd4",
+    ".deps/tls-bmr128-candidate/MP-SPDZ/mal-shamir-bmr-party.x": "934c4a7948d3412b1bdb39ec8d07b25d4af3c6f4ff6bc8bb93c74d9b92207fb7",
+    ".deps/tls-bmr128-candidate/tls-ccd128-component": "b8f6c0b279c0f765dc50a192816d7fbe963437dfb78d19496960a72a580c2701",
+    ".deps/tls-bmr128-candidate/tls-bmr128-component": "8e20ab43cd1f7c42ad16f2c0a19aacffb3ebe3c82f77faaf32e5a40b18ecb99d"
+  },
+  "configuration": "5party/t2 explicit-S128; MAX_N_PARTIES5; MaliciousShamirShare<gf2n_long>; source CommonParty initializesGF128",
+  "upstream_secondary_parser_adapter": "preserve/check ShamirOptions globaln5/t2, omit duplicate-T from fresh RealProgramParty parser",
+  "native_bmr_executed_successfully": false
+}

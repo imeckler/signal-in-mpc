@@ -1,0 +1,13 @@
+# Synthetic public-fixture inputs; only three equality bits are opened.
+program.set_security(128)
+from Compiler.GC.types import sbits
+from Compiler.library import print_ln
+Bit64=sbits.get_type(64)
+x=Bit64.get_input_from(0);y=Bit64.get_input_from(1)
+expected_x=0x255AA55AA55AA55A;expected_y=0x0FF00FF00FF00FF0
+for step in range(3):
+    z=x&y
+    expected=expected_x&expected_y
+    print_ln('DIAGNOSTIC_COMPARE %s',z.equal(Bit64(expected)).reveal())
+    x=z^x;y=z^y
+    expected_x=expected^expected_x;expected_y=expected^expected_y

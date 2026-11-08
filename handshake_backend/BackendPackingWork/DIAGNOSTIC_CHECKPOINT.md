@@ -71,3 +71,22 @@ exactly: all domain/phase buckets = original recorded bytes + reset receipt
 awake seconds, cleanup empty, immutable products stable. Timing may overlap
 other public compiler work and is not an uncontended speed comparison. No
 application runtime or default backend has changed.
+
+Supported BMR experiment preparation (not native-certified)
+
+The pinned malicious Shamir BMR entrypoint usesGF(2^128), with live malicious
+Shamir preprocessing and encrypted honest-majority channels. A fresh source-bound
+candidate raises MAX_N_PARTIES3→5 and builds the standard binary plus small
+component entrypoints. Explicit-S128 and globaln5/t2 are checked. Upstream
+RealProgramParty creates a new parser without-T: the wrapper keeps the already
+validated ShamirOptions threshold2 and omits only that duplicate CLI option from
+the second parser; it checks the threshold again on return. No security guard
+is removed. This is a purebinary381AND three-state comparison experiment, not
+the mixed-Fp conversion benchmark, a retirement capability, or a default switch.
+
+The tiny CCD group executed successfully, but the first harness incorrectly
+expected party0's comparison printouts on every party (raw68ecfd894db33e90,
+all5exit0). Fixed print handling then reached BMR's pre-network secondary parser
+failure (raw2f2c9ba094713443). All children were reaped in both cases. The BMR
+wrapper fix compiles/links; its native retry is held for another agent's active
+receive test. A successful BMR protocol or performance comparison is pending.
