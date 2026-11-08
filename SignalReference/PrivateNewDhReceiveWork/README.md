@@ -40,3 +40,21 @@ share snapshots are not modeled by this608-byte transaction.
 This checkpoint neither exports a normal receiving RPC nor admits the candidate
 into a provider. Compiler/runtime/conversion and existing RustCrypto/source-proof
 boundaries remain explicit; no internal cryptographic security proof is claimed.
+
+## Parse-once emitted circuit checkpoint
+
+`SummaryExport.lean` emits a 259B→75B private parser summary, and
+`CryptoExport.lean` emits a1051B→608B transaction using that summary. The fifteen
+split/codec/compiler endpoints prove that decoding the actual parser summary and
+running the transaction equals the original whole model. `check_staged.py` checks
+both emitted AIGs against the same three actual transition fixtures and eighteen
+rejections, all608 output bytes, including the uint64→uint32 counter case. Those
+public differential rows still supply the oracle's DH values; they do not test
+native fresh-key binding. Artifacts are untracked build products with exact hashes
+in `staged-report.json`. The parser is evaluated once, not repeated for each DH.
+
+The internal `signal_private_new_dh_receive.mpc` entry binds its actual summary's
+remote point to both computed agreements, generating and retaining the same fresh
+clamped private scalar used for its computed public key. Its input848B omits the
+model's128B keypair/agreement region entirely. Compilation and native execution
+have separate receipts; a source entry alone does not establish native interop.

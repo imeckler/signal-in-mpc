@@ -1,0 +1,24 @@
+{
+  "actual_transition_matches": 3,
+  "uint64_to_uint32_counter_fixture": true,
+  "rejections_preserve_all_old_state": 18,
+  "output_bytes": 608,
+  "summary_bytes": 75,
+  "summary_nodes": 27188174,
+  "crypto_nodes": 12637317,
+  "parse_once": true,
+  "oracle_DH_supplied_in_public_differential": true,
+  "native_computed_DH_binding_executed": false,
+  "full_actual_source_refinement": false,
+  "artifact_sha256": {
+    "private-new-dh-summary-256.json": "cb5c72a159f34f450bed9abb1317c1f3a6b2f4f87ec31c2d2cc44ba0f6a5c9b2",
+    "private-new-dh-crypto-256-5.json": "d8d1505c13d2b2b3ee5af6a0bce442f2a52b93261bf1954f774b7b59c121de46"
+  },
+  "source_sha256": {
+    "SignalReference/PrivateNewDhReceiveWork/check_staged.py": "e51ddec6922615ae3ab63ba9cbe091b0c81991cc54f66154b1da09b811849191",
+    "SignalReference/PrivateNewDhReceiveWork/SummaryExport.lean": "9c42d02559c49c761809bcc647de7aaed98edc0d0eb7ba74f15055542cdc15a8",
+    "SignalReference/PrivateNewDhReceiveWork/CryptoExport.lean": "0c87020f5a42f6432ccff51d34584f3a5adc11f874866caa31ce5e5ada8f695f",
+    "TlsMpc/Signal/PrivateNewDhReceiveSplit.lean": "facb78b3eff4b3779be073ca4649a30b281485670dde10f5537cada9cf790449",
+    "TlsMpc/Signal/PrivateNewDhReceiveSplitProofs.lean": "7ffc172841a66475acd0c2857130fcffc218bfd09ceb968647f46a21954675dc"
+  }
+}
