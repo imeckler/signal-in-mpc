@@ -1,0 +1,162 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.46
+   Compiling unicode-ident v1.0.24
+   Compiling libc v0.2.186
+   Compiling rand_core v0.10.1
+   Compiling cfg-if v1.0.4
+   Compiling typenum v1.20.1
+   Compiling getrandom v0.4.3
+   Compiling cmov v0.5.4
+   Compiling anyhow v1.0.103
+   Compiling equivalent v1.0.2
+   Compiling hax-lib v0.3.7
+   Compiling hashbrown v0.17.1
+   Compiling either v1.16.0
+   Compiling const-oid v0.10.2
+   Compiling ctutils v0.4.5
+   Compiling itertools v0.14.0
+   Compiling rand v0.10.2
+   Compiling rustix v1.1.4
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling foldhash v0.1.5
+   Compiling indexmap v2.14.0
+   Compiling zerocopy v0.8.53
+   Compiling bitflags v2.13.0
+   Compiling bytes v1.12.0
+   Compiling getrandom v0.3.4
+   Compiling cpufeatures v0.3.0
+   Compiling syn v2.0.118
+   Compiling hashbrown v0.15.5
+   Compiling errno v0.3.14
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.4.1
+   Compiling libcrux-intrinsics v0.0.8
+   Compiling fixedbitset v0.5.7
+   Compiling semver v1.0.28
+   Compiling libcrux-sha3 v0.0.10
+   Compiling winnow v1.0.3
+   Compiling subtle v2.6.1
+   Compiling multimap v0.10.1
+   Compiling heck v0.5.0
+   Compiling rustc_version v0.4.1
+   Compiling petgraph v0.8.3
+   Compiling log v0.4.33
+   Compiling crossbeam-utils v0.8.22
+   Compiling rand_core v0.9.5
+   Compiling libcrux-platform v0.0.3
+   Compiling crossbeam-epoch v0.9.20
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling cpubits v0.1.1
+   Compiling thiserror v2.0.18
+   Compiling crossbeam-deque v0.8.7
+   Compiling curve25519-dalek v5.0.0
+   Compiling rustversion v1.0.23
+   Compiling regex-automata v0.4.14
+   Compiling tempfile v3.27.0
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling libcrux-ml-kem v0.0.10
+   Compiling serde_core v1.0.228
+   Compiling rayon-core v1.13.0
+   Compiling libsignal-debug v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/debug)
+   Compiling serde v1.0.228
+   Compiling toml_edit v0.25.12+spec-1.1.0
+   Compiling data-encoding v2.11.0
+   Compiling uuid v1.23.4
+   Compiling sorted-vec v0.8.10
+   Compiling proc-macro-crate v3.5.0
+   Compiling regex v1.12.4
+   Compiling itertools v0.15.0
+   Compiling hex v0.4.3
+   Compiling rayon v1.12.0
+   Compiling assert_matches v1.5.0
+   Compiling const-str v1.1.0
+   Compiling zeroize_derive v1.5.0
+   Compiling hax-lib-macros v0.3.7
+   Compiling prost-derive v0.14.4
+   Compiling zerocopy-derive v0.8.53
+   Compiling libcrux-macros v0.0.3
+   Compiling thiserror-impl v2.0.18
+   Compiling derive_more-impl v2.1.1
+   Compiling num_enum_derive v0.7.6
+   Compiling displaydoc v0.2.6
+   Compiling data-encoding-macro-internal v0.1.18
+   Compiling serde_derive v1.0.228
+   Compiling derive-where v1.6.1
+   Compiling libcrux-hacl-rs v0.0.5
+   Compiling data-encoding-macro v0.1.20
+   Compiling async-trait v0.1.89
+   Compiling zeroize v1.9.0
+   Compiling hybrid-array v0.4.13
+   Compiling libcrux-secrets v0.0.6
+   Compiling hpke-rs-crypto v0.7.0
+   Compiling libcrux-traits v0.0.8
+   Compiling num_enum v0.7.6
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling block-padding v0.4.2
+   Compiling inout v0.2.2
+   Compiling hpke-rs v0.7.0
+   Compiling digest v0.11.3
+   Compiling cipher v0.5.2
+   Compiling universal-hash v0.6.1
+   Compiling polyval v0.7.3
+   Compiling hmac v0.13.0
+   Compiling sha2 v0.11.0
+   Compiling prost v0.14.4
+   Compiling ctr v0.10.1
+   Compiling hkdf v0.13.0
+   Compiling aes v0.9.1
+   Compiling cbc v0.2.1
+   Compiling ghash v0.6.0
+   Compiling sha1 v0.11.0
+   Compiling aead v0.6.1
+   Compiling prost-types v0.14.4
+   Compiling aes-gcm-siv v0.12.0
+   Compiling x25519-dalek v3.0.0
+   Compiling derive_more v2.1.1
+   Compiling prost-build v0.14.4
+   Compiling libcrux-sha2 v0.0.8
+   Compiling spqr v1.6.0 (https://github.com/signalapp/SparsePostQuantumRatchet.git?tag=v1.6.0#06959b47)
+   Compiling libsignal-protocol v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/protocol)
+   Compiling libcrux-hmac v0.0.8
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.9.0
+   Compiling rand v0.9.4
+   Compiling libsignal-core v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/core)
+   Compiling signal-crypto v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/crypto)
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+error: GATs cannot work with the `--lift-associated-types` option (implied by `--preset=aeneas`). Either stop using this option or `--exclude` this trait.
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs:22:1
+
+ERROR Charon failed to translate this code (10 errors)
+error: could not compile `libsignal-protocol` (lib)
+
+Caused by:
+  process didn't exit successfully: `/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon-driver charon-dont-cache-this-88077-1794133012186648000 rustc --crate-name libsignal_protocol --edition=2024 rust/protocol/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C embed-bitcode=no -C debuginfo=2 -C split-debuginfo=unpacked --warn=unexpected_cfgs '--warn=clippy::cast_possible_truncation' --check-cfg 'cfg(fuzzing)' --check-cfg 'cfg(tokio_unstable)' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("kyber768", "mlkem1024"))' -C metadata=25643561128aadbc -C extra-filename=-c7e342c29c043151 --out-dir /Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/c7e342c29c043151/out --target aarch64-apple-darwin -C incremental=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/incremental -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/aead/a3cdb4ba3d05522a/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/aes/cb7ef60b0ad87123/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/aes-gcm-siv/ece1ec2804d71340/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/assert_matches/3528f85ce07ab14a/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/bitflags/0aea07fea2db0a78/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/block-buffer/3519fc088df0f772/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/block-padding/251e547db97e0c76/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/bytes/5e8c5e7f107c13ea/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cbc/e84812bcd6e0233b/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cfg-if/1696bf0e0b8f9f90/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cipher/1cb118f5eaa9f71d/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cmov/9e6f878fbd638ea3/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/const-oid/6832f7b0ff54a0d6/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/const-str/1ad2b2108ca38ddf/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cpubits/37269f03436f2354/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/cpufeatures/2dc46677742a2b2c/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/crossbeam-deque/81bf8dec8a9e7520/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/crossbeam-epoch/5525c66895dfb73c/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/crossbeam-utils/75ba4d03bc620c12/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/crypto-common/c3519b2b9dc3cb44/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/ctr/ea21649c7979c456/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/ctutils/62bc9322ec00f574/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/curve25519-dalek/49a53e74a6d18acd/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/data-encoding/b159a80f0f3ea6b0/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/data-encoding-macro/5ad6644777d7fb4e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/derive_more/dd89825db4eba64d/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/digest/440439b2a8aa6c86/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/either/dba7a992a9cc3d64/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/equivalent/c0e397c365ac8fc3/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/getrandom/c5bfee052ebae13e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/getrandom/cecd2a571d8244c7/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/ghash/4aec45a39709bc58/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hashbrown/c2b4ecf1b9730452/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hax-lib/71c037be46c00cd3/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hex/ee940ae11fe9ca2e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hkdf/71074593a6ed5a78/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hmac/2a751f85a4248d05/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hpke-rs/033afd7090b0a4da/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hpke-rs-crypto/62da4d7afcc1649a/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hybrid-array/39b410222ebf66d8/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/indexmap/c1e7c3fb2d27f7aa/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/inout/4e63b9fafb07931e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/itertools/870a018fb9a14abd/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libc/bb80108f83b9ffe2/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-hacl-rs/71372b6e042c71bc/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-hmac/59b33d2d0e7d0746/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-intrinsics/ee3a9c628a283c6b/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-ml-kem/e9b36cbf9f2f514b/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-platform/e5660d2e71da91ec/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-secrets/9072a54ecc44eec1/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-sha2/5c97edf9652a84db/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-sha3/9cf175c22e197d84/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-traits/85b89f871935fe29/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libsignal-core/0488013065f889dc/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libsignal-debug/ab5294cae5c3d2f0/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/log/b541486e98e1cad9/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/num_enum/107cddd71036b0cf/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/polyval/24871e1b8cffbdbd/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/ppv-lite86/ffff1d81f56e86e5/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/prost/9756317b520fcf1b/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand/1145f75e0a063382/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand/a03b9c5f90c9d3b8/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand_chacha/74ce098acc026664/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand_core/239affa1332199f0/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand_core/2c2c5e09815477e8/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rayon/310216437bf5dd47/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rayon-core/1d6e12e9f66c7cce/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/serde/4e8ed42a4ddded4f/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/serde_core/c7cb4312b55554e3/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/sha1/621739b444141ec0/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/sha2/e345f3d8cd44e338/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/signal-crypto/00f503a57596d66d/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/sorted-vec/7994043a7f5e2de1/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/spqr/3531614196bf9aeb/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/subtle/986779a80993f748/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/thiserror/96d7a5e9df919134/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/typenum/c17d365556d1d006/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/universal-hash/88e2c3e277b6cd8d/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/uuid/b99bc092ae92d227/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/x25519-dalek/008e5f54d4800088/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/zerocopy/3c1ef1895f32ca1c/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/zeroize/a6f30956452b8963/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/async-trait/27252fe86e73b832/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/data-encoding-macro-internal/a822f35a2c763a5f/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/derive-where/16da7bed6d7e0542/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/derive_more-impl/e843fa317f65d6ca/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/displaydoc/4e758819e9b33f81/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/hax-lib-macros/80aef29d013c415e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/libcrux-macros/b5178a2e35d1fee0/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/num_enum_derive/01b4fc7ec8e8feda/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/prost-derive/3d1b075328209ef2/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/rustversion/488d298fd0f30452/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/serde_derive/f81d63dca115fae4/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/thiserror-impl/22c00827154c8314/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/zerocopy-derive/aa15552f4f5f2b78/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/zeroize_derive/b33e03e6bed11998/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/libsignal-protocol/c7e342c29c043151/out --extern aes=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/aes/cb7ef60b0ad87123/out/libaes-cb7ef60b0ad87123.rmeta --extern aes_gcm_siv=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/aes-gcm-siv/ece1ec2804d71340/out/libaes_gcm_siv-ece1ec2804d71340.rmeta --extern assert_matches=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/assert_matches/3528f85ce07ab14a/out/libassert_matches-3528f85ce07ab14a.rmeta --extern async_trait=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/async-trait/27252fe86e73b832/out/libasync_trait-27252fe86e73b832.dylib --extern bitflags=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/bitflags/0aea07fea2db0a78/out/libbitflags-0aea07fea2db0a78.rmeta --extern const_str=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/const-str/1ad2b2108ca38ddf/out/libconst_str-1ad2b2108ca38ddf.rmeta --extern ctr=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/ctr/ea21649c7979c456/out/libctr-ea21649c7979c456.rmeta --extern data_encoding_macro=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/data-encoding-macro/5ad6644777d7fb4e/out/libdata_encoding_macro-5ad6644777d7fb4e.rmeta --extern derive_where=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/derive-where/16da7bed6d7e0542/out/libderive_where-16da7bed6d7e0542.dylib --extern derive_more=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/derive_more/dd89825db4eba64d/out/libderive_more-dd89825db4eba64d.rmeta --extern displaydoc=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/debug/build/displaydoc/4e758819e9b33f81/out/libdisplaydoc-4e758819e9b33f81.dylib --extern hex=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hex/ee940ae11fe9ca2e/out/libhex-ee940ae11fe9ca2e.rmeta --extern hkdf=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hkdf/71074593a6ed5a78/out/libhkdf-71074593a6ed5a78.rmeta --extern hmac=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/hmac/2a751f85a4248d05/out/libhmac-2a751f85a4248d05.rmeta --extern indexmap=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/indexmap/c1e7c3fb2d27f7aa/out/libindexmap-c1e7c3fb2d27f7aa.rmeta --extern itertools=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/itertools/870a018fb9a14abd/out/libitertools-870a018fb9a14abd.rmeta --extern libcrux_ml_kem=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libcrux-ml-kem/e9b36cbf9f2f514b/out/liblibcrux_ml_kem-e9b36cbf9f2f514b.rmeta --extern libsignal_core=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libsignal-core/0488013065f889dc/out/liblibsignal_core-0488013065f889dc.rmeta --extern libsignal_debug=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/libsignal-debug/ab5294cae5c3d2f0/out/liblibsignal_debug-ab5294cae5c3d2f0.rmeta --extern log=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/log/b541486e98e1cad9/out/liblog-b541486e98e1cad9.rmeta --extern prost=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/prost/9756317b520fcf1b/out/libprost-9756317b520fcf1b.rmeta --extern rand=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rand/a03b9c5f90c9d3b8/out/librand-a03b9c5f90c9d3b8.rmeta --extern rayon=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/rayon/310216437bf5dd47/out/librayon-310216437bf5dd47.rmeta --extern serde=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/serde/4e8ed42a4ddded4f/out/libserde-4e8ed42a4ddded4f.rmeta --extern sha2=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/sha2/e345f3d8cd44e338/out/libsha2-e345f3d8cd44e338.rmeta --extern signal_crypto=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/signal-crypto/00f503a57596d66d/out/libsignal_crypto-00f503a57596d66d.rmeta --extern spqr=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/spqr/3531614196bf9aeb/out/libspqr-3531614196bf9aeb.rmeta --extern subtle=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/subtle/986779a80993f748/out/libsubtle-986779a80993f748.rmeta --extern thiserror=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/thiserror/96d7a5e9df919134/out/libthiserror-96d7a5e9df919134.rmeta --extern uuid=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/uuid/b99bc092ae92d227/out/libuuid-b99bc092ae92d227.rmeta --extern zerocopy=/Users/izzy/repos/tls-mpc/.deps/ss-primitive-charon-target/aarch64-apple-darwin/debug/build/zerocopy/3c1ef1895f32ca1c/out/libzerocopy-3c1ef1895f32ca1c.rmeta --cfg 'aes_backend="soft"' --cfg 'sha2_256_backend="soft"' --cfg 'sha2_backend_soft="compact"'` (exit status: 1)

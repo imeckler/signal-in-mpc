@@ -1,0 +1,282 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_mono_barrier/ss_wrapper.llbc
+[[91mError[39m] unions are not supported
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_uninit::MaybeUninit::<u32> (Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24)
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TLiteral (Generated_Values.TUInt Generated_Values.U8)),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<u8> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TAdt
+         { Generated_Types.id =
+           (Generated_Types.TBuiltin Generated_Types.TTuple);
+           generics =
+           { Generated_Types.regions = []; types = []; const_generics = [];
+             trait_refs = [] }
+           }),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<()> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/fmt/mod.rs', lines 561:0-561:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::fmt::Formatter::<'_> (Source: '/rustc/library/core/src/fmt/mod.rs', lines 561:0-561:24)
+Source: '/rustc/library/core/src/fmt/mod.rs', lines 561:0-561:24
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/fmt/rt.rs', lines 14:0-14:21
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::fmt::rt::ArgumentType::<'_> (Source: '/rustc/library/core/src/fmt/rt.rs', lines 14:0-14:21)
+Source: '/rustc/library/core/src/fmt/rt.rs', lines 14:0-14:21
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/fmt/rt.rs', lines 38:0-38:23
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::fmt::rt::Argument::<'_> (Source: '/rustc/library/core/src/fmt/rt.rs', lines 38:0-38:23)
+Source: '/rustc/library/core/src/fmt/rt.rs', lines 38:0-38:23
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TAdt
+         { Generated_Types.id = (Generated_Types.TAdtId 60);
+           generics =
+           { Generated_Types.regions = []; types = []; const_generics = [];
+             trait_refs = [] }
+           }),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<core::fmt::rt::Argument::<'_>> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/fmt/mod.rs', lines 716:0-716:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::fmt::Arguments::<'_> (Source: '/rustc/library/core/src/fmt/mod.rs', lines 716:0-716:24)
+Source: '/rustc/library/core/src/fmt/mod.rs', lines 716:0-716:24
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/array/mod.rs', lines 952:0-952:19
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::array::Guard::<'_, u32> (Source: '/rustc/library/core/src/array/mod.rs', lines 952:0-952:19)
+Source: '/rustc/library/core/src/array/mod.rs', lines 952:0-952:19
+[[91mError[39m] unions are not supported
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_uninit::MaybeUninit::<u8> (Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24)
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] unions are not supported
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_uninit::MaybeUninit::<hybrid_array::Array::<u8, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>>> (Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24)
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+hybrid_array::Array::<core::mem::maybe_uninit::MaybeUninit::<u8>, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+hybrid_array::Array::<core::mem::maybe_uninit::MaybeUninit::<u8>, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/slice/iter.rs', lines 2011:0-2011:36
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::slice::iter::ChunksExactMut::<'_, u8> (Source: '/rustc/library/core/src/slice/iter.rs', lines 2011:0-2011:36)
+Source: '/rustc/library/core/src/slice/iter.rs', lines 2011:0-2011:36
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TLiteral (Generated_Values.TUInt Generated_Values.U32)),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<u32> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::slice::iter::Iter::<'_, u32> (Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26)
+Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::iter::adapters::zip::Zip::<core::slice::iter::ChunksExactMut::<'_, u8>, core::slice::iter::Iter::<'_, u32>> (Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20)
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::option::Option::<(&'_ mut [u8], &'_ u32)> (Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18)
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TArray (
+         (Generated_Types.TLiteral
+            (Generated_Values.TUInt Generated_Values.U8)),
+         { Generated_Types.kind =
+           (Generated_Types.CLiteral
+              (Generated_Values.VScalar
+                 (Generated_Values.UnsignedScalar (Generated_Values.Usize, 64
+                    ))));
+           ty =
+           (Generated_Types.TLiteral
+              (Generated_Values.TUInt Generated_Values.Usize))
+           }
+         )),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<[u8; 64usize]> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::slice::iter::Iter::<'_, [u8; 64usize]> (Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26)
+Source: '/rustc/library/core/src/slice/iter.rs', lines 67:0-67:26
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_dangling::MaybeDangling::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 32usize]> (Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35)
+Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::manually_drop::ManuallyDrop::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 32usize]> (Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34)
+Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_dangling::MaybeDangling::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 64usize]> (Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35)
+Source: '/rustc/library/core/src/mem/maybe_dangling.rs', lines 73:0-73:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::manually_drop::ManuallyDrop::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 64usize]> (Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34)
+Source: '/rustc/library/core/src/mem/manually_drop.rs', lines 158:0-158:34
+[[91mError[39m] unions are not supported
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_uninit::MaybeUninit::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 32usize]> (Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24)
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] unions are not supported
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::mem::maybe_uninit::MaybeUninit::<[core::mem::maybe_uninit::MaybeUninit::<u8>; 64usize]> (Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24)
+Source: '/rustc/library/core/src/mem/maybe_uninit.rs', lines 355:0-355:24
+[[91mError[39m] Internal error, please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/from_fn.rs', lines 64:0-64:19
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+hybrid_array::from_fn::Guard::<'_, u8> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/from_fn.rs', lines 64:0-64:19)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/from_fn.rs', lines 64:0-64:19
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::option::Option::<&'_ mut u8> (Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18)
+Source: '/rustc/library/core/src/option.rs', lines 598:0-598:18
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TSlice
+         (Generated_Types.TLiteral
+            (Generated_Values.TUInt Generated_Values.U8))),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<[u8]> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TSlice
+         (Generated_Types.TLiteral
+            (Generated_Values.TUInt Generated_Values.U32))),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<[u32]> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] unsupported type: (Generated_Types.TPattern (
+   (Generated_Types.TRawPtr (
+      (Generated_Types.TSlice
+         (Generated_Types.TArray (
+            (Generated_Types.TLiteral
+               (Generated_Values.TUInt Generated_Values.U8)),
+            { Generated_Types.kind =
+              (Generated_Types.CLiteral
+                 (Generated_Values.VScalar
+                    (Generated_Values.UnsignedScalar (Generated_Values.Usize,
+                       64))));
+              ty =
+              (Generated_Types.TLiteral
+                 (Generated_Values.TUInt Generated_Values.Usize))
+              }
+            ))),
+      Generated_Types.RShared)),
+   Generated_Types.NotNull))
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::ptr::non_null::NonNull::<[[u8; 64usize]]> (Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35)
+Source: '/rustc/library/core/src/ptr/non_null.rs', lines 79:0-79:35
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 94:0-94:53
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+block_buffer::BlockBuffer::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, block_buffer::Eager> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 94:0-94:53)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 94:0-94:53
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+hmac::Hmac::<sha2::Sha256> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/result.rs', lines 558:0-558:21
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::result::Result::<hmac::Hmac::<sha2::Sha256>, crypto_common::InvalidLength> (Source: '/rustc/library/core/src/result.rs', lines 558:0-558:21)
+Source: '/rustc/library/core/src/result.rs', lines 558:0-558:21
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/slice/iter.rs', lines 192:0-192:29
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::slice::iter::IterMut::<'_, u8> (Source: '/rustc/library/core/src/slice/iter.rs', lines 192:0-192:29)
+Source: '/rustc/library/core/src/slice/iter.rs', lines 192:0-192:29
+[[91mError[39m] Internal error, please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 445:0-445:52
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+block_buffer::ResetGuard::<'_, typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UInt::<typenum::uint::UTerm, typenum::bit::B1>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, typenum::bit::B0>, block_buffer::Eager> (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 445:0-445:52)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/block-buffer-0.12.1/src/lib.rs', lines 445:0-445:52
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+sha2::Sha256 (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+[[91mError[39m] Could not translate type decl 'hmac::Hmac::<sha2::Sha256> because of previous error
+Name pattern: 'hmac::Hmac<sha2::Sha256>'
+
+This definition is (transitively) used at the following locations:
+Source: 'rust/protocol/src/crypto.rs', lines 48:0-54:1
+Source: 'rust/protocol/src/crypto.rs', lines 51:8-51:43
+Source: 'rust/protocol/src/crypto.rs', lines 51:8-51:92
+Source: 'rust/protocol/src/crypto.rs', lines 51:91-51:92
+Source: 'rust/protocol/src/crypto.rs', lines 52:4-52:8
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/digest-0.11.3/src/buffer_macros/fixed.rs', lines 12:8-15:9
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__SymbolicToPure.translate_type_decls.(fun) in file "symbolic/SymbolicToPure.ml", lines 146-149, characters 8-76
+Called from Stdlib__List.filter_map in file "list.ml", line 280, characters 12-15
+Called from Stdlib__List.filter_map in file "list.ml", line 282, characters 23-37
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 326, characters 19-64
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

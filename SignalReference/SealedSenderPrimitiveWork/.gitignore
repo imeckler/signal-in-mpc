@@ -1,0 +1,6 @@
+__pycache__/
+TranslatorCandidate/Source/
+TranslatorCandidate/candidate-*
+Generated/
+Artifacts/*/inventory.json
+TranslatorCandidate/*/Generated/

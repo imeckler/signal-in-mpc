@@ -1,0 +1,5 @@
+   Compiling libsignal-debug v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/debug)
+   Compiling libsignal-protocol v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/protocol)
+   Compiling libsignal-core v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/core)
+   Compiling signal-crypto v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/rust/crypto)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.72s

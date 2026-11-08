@@ -1,0 +1,21 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_scoped/ss_wrapper.llbc
+[[91mError[39m] Internal error: please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/sizes.rs', lines 26:12-26:41
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Errors.silent_unwrap_opt_span in file "Errors.ml" (inlined), line 224, characters 6-75
+Called from Aeneas__PrePasses.update_array_default.matches_default_array in file "PrePasses.ml", lines 181-182, characters 6-71
+Called from Aeneas__PrePasses.update_array_default.(fun) in file "PrePasses.ml", line 209, characters 12-38
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 20-25
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Stdlib__Map.Make.iter in file "map.ml", line 305, characters 10-18
+Called from Aeneas__PrePasses.update_array_default in file "PrePasses.ml", lines 207-223, characters 2-21
+Called from Aeneas__PrePasses.apply_passes in file "PrePasses.ml", line 2299, characters 14-40
+Called from Dune__exe__Main in file "Main.ml", line 745, characters 14-45

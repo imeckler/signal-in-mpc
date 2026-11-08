@@ -1,0 +1,580 @@
+{
+  "candidate_only": true,
+  "actual_AES_CTR_HMAC_implementation_agreement_established": false,
+  "pinned_libsignal": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "profiles": {
+    "ctr": {
+      "charon_exit_code": 101,
+      "has_errors": true,
+      "llbc_sha256": "d012cb7fad755997f9e76b7238457280580a23985211d036a458680897ad3833",
+      "dependencies": {
+        "ctr": {
+          "version": "0.10.1",
+          "package_sha256": "baaca1c4b237092596f64d571e9db6ce4109c4ef9742e27590f1709594461f21",
+          "files_checked": 23
+        },
+        "cipher": {
+          "version": "0.5.2",
+          "package_sha256": "e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c",
+          "files_checked": 26
+        },
+        "aes": {
+          "version": "0.9.1",
+          "package_sha256": "f1fc76eaeac4c9164506c466d4ffdd8ec9d0c5bf57ee97177c4d8eceb3a0e138",
+          "files_checked": 41
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "inout": {
+          "version": "0.2.2",
+          "package_sha256": "4250ce6452e92010fdf7268ccc5d14faa80bb12fc741938534c58f16804e03c7",
+          "files_checked": 14
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::aes_256_ctr_encrypt",
+        "--include=ctr",
+        "--include=cipher",
+        "--include=aes",
+        "--include=hybrid_array",
+        "--include=inout",
+        "--include=crypto_common",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/ctr/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "charon.log": "5c28e42b15c815795f5b61f848c3b4540e515017be7cf46fd8be65140a3932da"
+      }
+    },
+    "ctr_mono": {
+      "charon_exit_code": 101,
+      "has_errors": true,
+      "llbc_sha256": "4396fdbbf9349b5001bbdb5e7f72d4a07e713966712381a63e746fbda34a57aa",
+      "dependencies": {
+        "ctr": {
+          "version": "0.10.1",
+          "package_sha256": "baaca1c4b237092596f64d571e9db6ce4109c4ef9742e27590f1709594461f21",
+          "files_checked": 23
+        },
+        "cipher": {
+          "version": "0.5.2",
+          "package_sha256": "e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c",
+          "files_checked": 26
+        },
+        "aes": {
+          "version": "0.9.1",
+          "package_sha256": "f1fc76eaeac4c9164506c466d4ffdd8ec9d0c5bf57ee97177c4d8eceb3a0e138",
+          "files_checked": 41
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "inout": {
+          "version": "0.2.2",
+          "package_sha256": "4250ce6452e92010fdf7268ccc5d14faa80bb12fc741938534c58f16804e03c7",
+          "files_checked": 14
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::aes_256_ctr_encrypt",
+        "--include=ctr",
+        "--include=cipher",
+        "--include=aes",
+        "--include=hybrid_array",
+        "--include=inout",
+        "--include=crypto_common",
+        "--monomorphize",
+        "--extract-opaque-bodies",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/ctr_mono/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "charon.log": "6e839189251bb96d1e933f0f69a8fbcb50c3043153bf3ef5301272914e72ddae"
+      }
+    },
+    "ctr_scoped": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "has_errors": false,
+      "llbc_sha256": "bec5c27864678e204a7d82c6ed13a81603db5cdc3db4b77526db7811ac476d7d",
+      "dependencies": {
+        "ctr": {
+          "version": "0.10.1",
+          "package_sha256": "baaca1c4b237092596f64d571e9db6ce4109c4ef9742e27590f1709594461f21",
+          "files_checked": 23
+        },
+        "cipher": {
+          "version": "0.5.2",
+          "package_sha256": "e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c",
+          "files_checked": 26
+        },
+        "aes": {
+          "version": "0.9.1",
+          "package_sha256": "f1fc76eaeac4c9164506c466d4ffdd8ec9d0c5bf57ee97177c4d8eceb3a0e138",
+          "files_checked": 41
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "inout": {
+          "version": "0.2.2",
+          "package_sha256": "4250ce6452e92010fdf7268ccc5d14faa80bb12fc741938534c58f16804e03c7",
+          "files_checked": 14
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::aes_256_ctr_encrypt",
+        "--include=ctr",
+        "--include=cipher",
+        "--include=aes",
+        "--include=hybrid_array",
+        "--include=inout",
+        "--include=crypto_common",
+        "--exclude=hybrid_array::traits::ArraySize",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/ctr_scoped/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/ctr_scoped/ss_wrapper.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/SealedSenderPrimitiveWork/Generated/ctr_scoped",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "aeneas.log": "8de87c775ed718c3dc804b114973e167ebb65e4dfb981a01f7ac567fcc2b2217",
+        "charon.log": "f0ddb8c0f22b8e91487ccf8ad4082601b06bf332a4833bfd6edd338a933456e3"
+      }
+    },
+    "hmac_mono": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "has_errors": false,
+      "llbc_sha256": "29f9cd5d4dc1822915c191f33ac9bddaf3c65cb577b3ccb28b2fcc66442a32b0",
+      "dependencies": {
+        "hmac": {
+          "version": "0.13.0",
+          "package_sha256": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+          "files_checked": 25
+        },
+        "digest": {
+          "version": "0.11.3",
+          "package_sha256": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+          "files_checked": 26
+        },
+        "sha2": {
+          "version": "0.11.0",
+          "package_sha256": "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4",
+          "files_checked": 49
+        },
+        "block-buffer": {
+          "version": "0.12.1",
+          "package_sha256": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+          "files_checked": 12
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::hmac_sha256",
+        "--include=hmac",
+        "--include=digest",
+        "--include=sha2",
+        "--include=block_buffer",
+        "--include=hybrid_array",
+        "--include=crypto_common",
+        "--monomorphize",
+        "--extract-opaque-bodies",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_mono/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_mono/ss_wrapper.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/SealedSenderPrimitiveWork/Generated/hmac_mono",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "aeneas.log": "6101f82dfe8aa02f257087961a3f17976ff4617564ee3c1ac96b8608281fdb02",
+        "charon.log": "e08e52fd3d232a4415f5047809b361a611e602b54288b88ec1b5c29d6d296055"
+      }
+    },
+    "hmac_mono_barrier": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "has_errors": false,
+      "llbc_sha256": "2da360d526b9033b01db885aec97cf0639e409bd51d0b061756b8e26a28255a9",
+      "dependencies": {
+        "hmac": {
+          "version": "0.13.0",
+          "package_sha256": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+          "files_checked": 25
+        },
+        "digest": {
+          "version": "0.11.3",
+          "package_sha256": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+          "files_checked": 26
+        },
+        "sha2": {
+          "version": "0.11.0",
+          "package_sha256": "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4",
+          "files_checked": 49
+        },
+        "block-buffer": {
+          "version": "0.12.1",
+          "package_sha256": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+          "files_checked": 12
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [
+        "zeroize::barrier::optimization_barrier (read-only inline-assembly compiler barrier; NOT a crypto primitive agreement)"
+      ],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::hmac_sha256",
+        "--include=hmac",
+        "--include=digest",
+        "--include=sha2",
+        "--include=block_buffer",
+        "--include=hybrid_array",
+        "--include=crypto_common",
+        "--monomorphize",
+        "--extract-opaque-bodies",
+        "--opaque=zeroize::barrier::optimization_barrier",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_mono_barrier/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_mono_barrier/ss_wrapper.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/SealedSenderPrimitiveWork/Generated/hmac_mono_barrier",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "aeneas.log": "c84818666b555f5bb3908c60fcb04f3c50cb7ef1b3061c0dbc2ed7c3edeadf80",
+        "charon.log": "2bccb51417b79b9ee65302c05099239482c1e2465225e8225bd1657267beb495"
+      }
+    },
+    "hmac_scoped": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "has_errors": false,
+      "llbc_sha256": "6365c06fdefc9b958f2988d95f8a27091054a0c99cfb4117a2a53d517d32b429",
+      "dependencies": {
+        "hmac": {
+          "version": "0.13.0",
+          "package_sha256": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+          "files_checked": 25
+        },
+        "digest": {
+          "version": "0.11.3",
+          "package_sha256": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+          "files_checked": 26
+        },
+        "sha2": {
+          "version": "0.11.0",
+          "package_sha256": "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4",
+          "files_checked": 49
+        },
+        "block-buffer": {
+          "version": "0.12.1",
+          "package_sha256": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+          "files_checked": 12
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::hmac_sha256",
+        "--include=hmac",
+        "--include=digest",
+        "--include=sha2",
+        "--include=block_buffer",
+        "--include=hybrid_array",
+        "--include=crypto_common",
+        "--exclude=hybrid_array::traits::ArraySize",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_scoped/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_scoped/ss_wrapper.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/SealedSenderPrimitiveWork/Generated/hmac_scoped",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "aeneas.log": "e9f3df848ba35f8b053ad85c46b2d6f0ff49b6bfce476e451db18a9ef49648d9",
+        "charon.log": "d10d669179337f0f9f38b61e3d672746039038a7b0fd246d836ca5b2bae1c5f5"
+      }
+    },
+    "hmac_specialized": {
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "has_errors": false,
+      "llbc_sha256": "245e96d7140d10db9b4f46c7781dcb26b2c46ac156776d35fc67b5614db05120",
+      "dependencies": {
+        "hmac": {
+          "version": "0.13.0",
+          "package_sha256": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+          "files_checked": 25
+        },
+        "digest": {
+          "version": "0.11.3",
+          "package_sha256": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+          "files_checked": 26
+        },
+        "sha2": {
+          "version": "0.11.0",
+          "package_sha256": "446ba717509524cb3f22f17ecc096f10f4822d76ab5c0b9822c5f9c284e825f4",
+          "files_checked": 49
+        },
+        "block-buffer": {
+          "version": "0.12.1",
+          "package_sha256": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+          "files_checked": 12
+        },
+        "hybrid-array": {
+          "version": "0.4.13",
+          "package_sha256": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+          "files_checked": 24
+        },
+        "crypto-common": {
+          "version": "0.2.2",
+          "package_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+          "files_checked": 11
+        }
+      },
+      "opaque_primitives": [],
+      "charon_command": [
+        "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+        "cargo",
+        "--preset=aeneas",
+        "--no-dedup-serialized-ast",
+        "--sysroot=default",
+        "--error-on-warnings",
+        "--start-from=crate::crypto::hmac_sha256",
+        "--include=hmac",
+        "--include=digest",
+        "--include=sha2",
+        "--include=block_buffer",
+        "--include=hybrid_array",
+        "--include=crypto_common",
+        "--monomorphize",
+        "--dest-file=$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_specialized/ss_wrapper.llbc",
+        "--",
+        "--package",
+        "libsignal-protocol",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "aarch64-apple-darwin"
+      ],
+      "aeneas_command": [
+        "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "$WORKSPACE/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_specialized/ss_wrapper.llbc",
+        "-dest",
+        "$WORKSPACE/SignalReference",
+        "-subdir",
+        "/SealedSenderPrimitiveWork/Generated/hmac_specialized",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ],
+      "rustflags": "--cfg aes_backend=\"soft\" --cfg sha2_256_backend=\"soft\" --cfg sha2_backend_soft=\"compact\"",
+      "log_sha256": {
+        "aeneas.log": "ea73968fbf828aaf748798338cbe7f2c1b06ddce76935feb935d678af5a97a35",
+        "charon.log": "49a567d3b6d5cf73d4a7d055eef83d85f6cd7d6c686058e7657b6f2542e35910"
+      }
+    }
+  },
+  "blockers": [
+    "CTR original: unsupported ArraySize GAT; scoped guard advances to associated-array/lifetime analysis. Monomorphization: actual mutable Zip substitution type errors.",
+    "HMAC generic: associated-array/lifetime analysis. Specialized actual HMAC: Option<(&mut[u8],&u32)>, hybrid_array::from_fn::Guard and block_buffer::ResetGuard borrow/type analysis.",
+    "Extracting opaque standard-library bodies introduces actual zeroize readonly compiler barrier asm and MaybeUninit/NonNull unions; opacity of that barrier alone does not close the remaining memory model."
+  ],
+  "translator_candidate": "Only missing-declaration Default-array recognizer guard. No crypto/body/LLBC edits; exact successful generated wrapper baseline preserved. Not independently accepted.",
+  "next_required_implementation_work": "Actual wrapper translation needs supported associated-array and nested mutable-borrow guard handling before existing AES/SHA leaves can compose. Do not fill these gaps with assumed primitive correctness.",
+  "source_sha256": {
+    "SignalReference/SealedSenderPrimitiveWork/extract.py": "7458f436a19e8970b566bf2d608c1681a10c50b165d5e654151ecfc4352057e5",
+    "SignalReference/SealedSenderPrimitiveWork/summarize.py": "6bab508cf4760cb2dadd513c9c8010f2f64890b685926ce133563f93dc256127",
+    "SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/build.py": "3722cd2dc4687b17601e12114450860fae87883fda33501bd86d0dcb2086368b",
+    "SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/check.py": "6b2ba9f012216a8dab5ff5ac8c1d558eee96f544c48c68c277443dc1725f7792",
+    "SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/patch.diff": "a04ea4e8ec74ad443c6c7d282a81928a9351a83334441909f4d2a93902590470"
+  }
+}

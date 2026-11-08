@@ -1,0 +1,56 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "baseline_generated_exact_hash_matches": {
+    "SealedSenderReferenceWork/Generated/EncryptWrapper/Funs.lean": true,
+    "SealedSenderReferenceWork/Generated/EncryptWrapper/FunsExternal_Template.lean": true,
+    "SealedSenderReferenceWork/Generated/EncryptWrapper/Types.lean": true
+  },
+  "binary_sha256": "ebf7315e13aaa34f637278c50a7128c0ccc5e9e1b0283f641b50a9b43c034dac",
+  "trials": {
+    "ctr_scoped": {
+      "unchanged_llbc_sha256": "bec5c27864678e204a7d82c6ed13a81603db5cdc3db4b77526db7811ac476d7d",
+      "exit_code": 2,
+      "log_sha256": "a9669d9d850c3b0c8cec2bde33fad532bb35ec28468cab5c327ffc2551cb25d2",
+      "original_missing_declaration_failure_removed": true,
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/candidate-ebf7315e13aaa34f",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/Artifacts/ctr_scoped/ss_wrapper.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/ctr_scoped",
+        "-subdir",
+        "/Generated",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ]
+    },
+    "hmac_scoped": {
+      "unchanged_llbc_sha256": "6365c06fdefc9b958f2988d95f8a27091054a0c99cfb4117a2a53d517d32b429",
+      "exit_code": 2,
+      "log_sha256": "9f8944868f61caff52f44ea652a625b08f276dbff5e12ba9353803205f42d04f",
+      "original_missing_declaration_failure_removed": true,
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/candidate-ebf7315e13aaa34f",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/Artifacts/hmac_scoped/ss_wrapper.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference/SealedSenderPrimitiveWork/TranslatorCandidate/hmac_scoped",
+        "-subdir",
+        "/Generated",
+        "-split-files",
+        "-namespace",
+        "SealedSenderPrimitive",
+        "-warnings-as-errors",
+        "-no-progress-bar"
+      ]
+    }
+  },
+  "patch_sha256": "a04ea4e8ec74ad443c6c7d282a81928a9351a83334441909f4d2a93902590470",
+  "script_sha256": "6b2ba9f012216a8dab5ff5ac8c1d558eee96f544c48c68c277443dc1725f7792"
+}
