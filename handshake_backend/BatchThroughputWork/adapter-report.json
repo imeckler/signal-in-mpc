@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "public_cases": 1344,
+  "native_MPC_executed": false,
+  "independent_outputs_and_exact_AND_lane_consumption": true,
+  "sequential_VM_caller_required": true,
+  "producer_transaction_integrated": false,
+  "source_sha256": {
+    "backend_adapter/aig_batched.py": "005243e6d0ae9d019baee96fb4e23ddf1893daec678be40380360f0efdaa9d35",
+    "handshake_backend/BatchThroughputWork/check_adapter.py": "21ecd5bbd7e79bb5f957ffd485ad643f47bd0fb3aa16e3198d66e28a472dac88"
+  }
+}
