@@ -1,0 +1,36 @@
+{
+  "reviewed_at_utc": "2026-11-08T06:40:26.334874+00:00",
+  "scope": "Bounded established-chain host store and previously recorded native fixture; not complete session/service acceptance",
+  "source_sha256": {
+    "signal_backend/EstablishedSendStore.h": "9d2704f0c17e9d4dd41b87f8730a7eff29f5c625ab08f8823b5766f309442a1a",
+    "signal_backend/SendShape.h": "3453e19ee5557f041cf267c2e6322255835959eb1164824d0ed55a0a9454b2c2",
+    "signal_backend/store_checks.cpp": "5cea88c443699f989c9e3ae2b438c0383da584459a09954ad57d5932cce695af",
+    "signal_backend/native_store_fixture.cpp": "4bec91a487298b2d24f1fc4d953733fcf20e0a1db6b237dab452eeff243847f5",
+    "signal_backend/native-report.json": "8c1618331c857da9b377a7efded57457044a67784d381529ef4213b68877cc8f"
+  },
+  "native_report_all_eight_source_hashes_match": true,
+  "native_fixture_log_inspected": ".deps/signal-established-native/signal-spqr-send-0-1-1-1-1-0-none-none/fixture-logs/party-0.log",
+  "native_execution_repeated_by_root": false,
+  "independent_host_check": {
+    "build": "c++ -std=c++17 -Wall -Wextra -Werror -O2 signal_backend/store_checks.cpp -o /tmp/tls-mpc-reviewed-store-checks",
+    "fixtures": "scripts.check_lean_signal_spqr_send.cases expected outputs; includes rejected then accepted reuse",
+    "profile_transitions": [
+      54,
+      58
+    ],
+    "exit_codes": [
+      0,
+      0
+    ],
+    "coverage": "Input assembly, circuit-selected next-state layout, pending/stale tickets, malformed output, execution and handoff failures",
+    "limitation": "Evaluator is mocked with fixture outputs; this rerun is not MPC or circuit refinement testing"
+  },
+  "followup_sent_to_crypto": "Persistent producer must handle canonical varint width transitions and counter exhaustion without opening secret counter values; fixed width-one two-send fixture does not establish this",
+  "remaining": [
+    "Actual sealed-sender and WebSocket service integration",
+    "Durable state/recovery semantics",
+    "Complete DH/SPQR/fresh-session transitions and implementation refinement",
+    "Persistent workload throughput"
+  ],
+  "production_ready": false
+}
