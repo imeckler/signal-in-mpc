@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "ASAN_UBSAN_box_checks": 58,
+  "cryptography_AESSIV_exact_tag_ciphertext_AD_oracle_cases": 3,
+  "native_GF128_basis_checks": 16384,
+  "native_codec_compile_link_passed": true,
+  "format": "Local own GF128 evaluations, LEpolynomial basis; MaliciousCCD128,n5,t2,x1..5; original state bit ordering retained.",
+  "runtime_member_threshold_degree_and_cellshape_guards_implemented": true,
+  "runtime_guard_negative_cases_tested": false,
+  "AES_256_SIV_storage_key_bytes": 64,
+  "crash_sensitive_nonce_counter": false,
+  "authenticated_domain": [
+    "party",
+    "epoch",
+    "slot",
+    "bitcount",
+    "context",
+    "membership",
+    "manifest",
+    "schema",
+    "sharing_epoch"
+  ],
+  "secret_temporary_owner_cleared": true,
+  "full_Signal_schema": false,
+  "private_MPC_readmission": false,
+  "secure_Signal_restore": false,
+  "restored_Bits_factory": false,
+  "normal_provider_admitted": false,
+  "aggregate_key_or_bit_reconstruction": false,
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_box.py": "c668004ac6db37e36c4dd8a8d709c456889d105b6040865819994998f1b70c82",
+    "signal_backend/RecoveryWork/OwnShareBox.h": "5b5f468a195aaa0ad00c63af80ae4ca4457675f575bc6dd1ebdc88ff617d0ffd",
+    "signal_backend/RecoveryWork/NativeOwnShareArchive.h": "4b1f7b83c8e8a52bba2819fb76c12cb010b9887851fbbc60846456943b69d9bd",
+    "signal_backend/RecoveryWork/box_check.cpp": "3744c1c3c679457892b311170576e6d7d702de57fad5091636fde85ca06e211a",
+    "signal_backend/RecoveryWork/native_codec_check.cpp": "2f42f8b2f3c8ee3df6ce8c233208d6c81577786606d87cb633b19ad473395851",
+    "signal_backend/RecoveryWork/Makefile": "4f34bddae2d5b47c701d295fc5cfe29253f574a992483651980df0e403268d83",
+    "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09",
+    "signal_backend/RecoveryWork/OWN_SHARE_BOX.md": "5447f5c0c4863b47066d36130ed4cbab0b719b7e16337107a5e2836c4f94b138",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
+    ".deps/sharing-refresh/MP-SPDZ/Math/gf2n.cpp": "e21b37a06c860f1720047f419b4b1d03de04f34537ac0e2e666937e45be172fe",
+    ".deps/sharing-refresh/MP-SPDZ/Protocols/ShamirInput.hpp": "e3068320f0df4a48ddec79ba6329a3bcebfa012fda4d6473faa8a1606f04b97a"
+  },
+  "binary_sha256": {
+    "signal-own-share-box-check": "328755bf18d3ac236de0566f1033e40927fb2324fa5d82efe49b1e5582c37b8f",
+    "signal-native-own-share-codec-check": "c970f452776473b4fdea85e9fc806172332d3df4e20db80cde241b0c45be0e52"
+  },
+  "runtime_library_sha256": "09bf8ff25774096ae2c3a9110d661582c9750f7722d152c46b5a0531714a49fe"
+}
