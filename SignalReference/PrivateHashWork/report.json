@@ -1,0 +1,86 @@
+{
+  "profiles": [
+    {
+      "mode": "hash",
+      "capacity": 0,
+      "cases": 6,
+      "nodes": 177935,
+      "sha256": "2ec3008011de036735ef77e8720efe653fed2fef581117a3c32edfcc0560ab04"
+    },
+    {
+      "mode": "hmac",
+      "capacity": 0,
+      "cases": 6,
+      "nodes": 732256,
+      "sha256": "c8ded7b014e88811b88bba669c8f67680b8dde48612f0214991e43197f18b6cb"
+    },
+    {
+      "mode": "hash",
+      "capacity": 56,
+      "cases": 10,
+      "nodes": 380124,
+      "sha256": "f0d7140bf1f18b059c94dc75f62ae33b579ea543991eda3454aac49e12f10857"
+    },
+    {
+      "mode": "hmac",
+      "capacity": 56,
+      "cases": 10,
+      "nodes": 932840,
+      "sha256": "899cd46a6a4c277073257415ef8e4fc2081a1e4e83080c6d51368e5803335eb0"
+    },
+    {
+      "mode": "hash",
+      "capacity": 128,
+      "cases": 18,
+      "nodes": 584768,
+      "sha256": "cf68b01bb91d683261215589f2aae190ce92f462a87ba831d1d8efef66512b4e"
+    },
+    {
+      "mode": "hmac",
+      "capacity": 128,
+      "cases": 18,
+      "nodes": 1137460,
+      "sha256": "0470284ba4732eb716074063d4080b1530a728f9bbe74dfd52ba22e74989634c"
+    },
+    {
+      "mode": "hash",
+      "capacity": 145,
+      "cases": 21,
+      "nodes": 589109,
+      "sha256": "2150e7eddec42f93b388acf49e6fd2fdf4c55cb4b5017535e2cc30068ad5464b"
+    },
+    {
+      "mode": "hmac",
+      "capacity": 145,
+      "cases": 21,
+      "nodes": 1141786,
+      "sha256": "83a9b67bb29ec482065b01e82d204fa15ec2ef961e7908e0221a963cfd946c58"
+    },
+    {
+      "mode": "hash",
+      "capacity": 512,
+      "cases": 21,
+      "nodes": 1792548,
+      "sha256": "28e7c2eda10c718fe7b21564bc89f20bceeee0cce2790f1738f59ab5b507d8bd"
+    },
+    {
+      "mode": "hmac",
+      "capacity": 512,
+      "cases": 21,
+      "nodes": 2345264,
+      "sha256": "69c3ca04ecf2c83294ce25cb08f3cd30a428373d5eb5c2e0c8fd4361287c66b4"
+    }
+  ],
+  "standard_axioms_only": true,
+  "public_work": "One compression per maximum padded block, no length-dependent execution or opening.",
+  "semantic_integer_sha_refinement_proved": false,
+  "backend_native_mpc_executed": false,
+  "service_integrated": false,
+  "source_sha256": {
+    "SignalReference/PrivateHashWork/check.py": "c48099266d6c2d5c16de273dd0d98fb48a7156be1f4cc1e72aa1d134cbf739e8",
+    "SignalReference/PrivateHashWork/Export.lean": "e20f19c05e08303fd5e66347b8c57b19096ef03e0c8aedd29551b75f92bcb216",
+    "SignalReference/PrivateHashWork/Checks.lean": "2f2947269c6693c5de51b1c1d70048bf6859593d3cf34fc4ea8f84f0315b6f2e",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e"
+  }
+}

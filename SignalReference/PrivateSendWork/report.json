@@ -1,0 +1,53 @@
+{
+  "actual_libsignal_cases": 13,
+  "counter_values": [
+    0,
+    1,
+    126,
+    127,
+    128,
+    129,
+    16383,
+    16384,
+    2097151,
+    2097152,
+    268435455,
+    268435456,
+    4294967295
+  ],
+  "previous_values": [
+    4294967295,
+    268435456,
+    268435455,
+    2097152,
+    2097151,
+    16384,
+    16383,
+    129,
+    128,
+    127,
+    126,
+    1,
+    0
+  ],
+  "same_artifact_all_widths": true,
+  "capacity": 74,
+  "single_cbc_and_private_hmac": true,
+  "ratchet_state_transition_executed": false,
+  "native_mpc_executed": false,
+  "service_integrated": false,
+  "message_compiler_theorem_established": true,
+  "standard_axioms_only": true,
+  "buffer_integer_semantics_proved": false,
+  "source_sha256": {
+    "SignalReference/PrivateSendWork/check.py": "ace308214e81aafcdf3441794be77f368b89b463b6eec3816f5f054d3ae88e6e",
+    "SignalReference/PrivateSendWork/Export.lean": "2f6926b143752155fbd4cca9afda1d738446dd99d7fb0c076f5696ec1e7d7f04",
+    "SignalReference/PrivateSendWork/Checks.lean": "8c6e86a638d7cd6f227d9303a3163ac2fae8fa5a1dda26b878141f3a478c0097",
+    "TlsMpc/Signal/PrivateSend.lean": "1d35668c4f67b0ac91e85b40d2a94b1f4d6acdd965a56563f14b721218322b51",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e",
+    "TlsMpc/Signal/PrivateVarint.lean": "f289a49c8a7f2990a51eea9a6c9633a149c36aa7d7b941c81a1cb987761927c8"
+  },
+  "artifact_sha256": "3c48bc3f7e1a17bfc17e5ab82fe490d43fa615bebc413274a4113a99e0f8aaf9",
+  "oracle_sha256": "201344729ea00e8b9aae8ea3e1887fa138f9cf108a07c4b25e01fe070efebf04"
+}

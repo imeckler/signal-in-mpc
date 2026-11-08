@@ -1,0 +1,3 @@
+'TlsMpc.Signal.PrivateHash.hash_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateHash.hmac_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateHash.compiled_hmac_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
