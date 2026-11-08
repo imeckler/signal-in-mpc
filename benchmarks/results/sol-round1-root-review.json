@@ -1,0 +1,42 @@
+{
+  "reviewed_at_utc": "2026-11-08T04:27:25.718503+00:00",
+  "reviewer": "root",
+  "scope": "Independent focused source review and validation; not full-system acceptance",
+  "tls": {
+    "decision": "accept isolated discarded owned-buffer checkpoint only",
+    "report_sha256": "0dc8e53b07bb25a8033e80e5fa4f3bbd0cd1f007634580d1094c4b874d89b6b7",
+    "independent_test": ".deps/tls-byte-buffer-runtime/tls-byte-buffer-checks",
+    "exit_code": 0,
+    "observed_wiped_releases": 12,
+    "verified_recorded_hash_counts": {
+      "sources": 35,
+      "products": 7,
+      "logs": 23
+    },
+    "five_party_runs": "Recorded logs and hashes inspected, not rerun by root; all five parties exit zero for capacities 6/1029/16385",
+    "remaining": "Live protocol, preprocessing, PRNG, raw/bigint state, lifecycle integration and application retirement"
+  },
+  "parser": {
+    "decision": "conditional scaffold only; not accepted implementation refinement",
+    "checkpoint_sha256": "f44c269ccaf8101d8700ad61283633e71edaada84979a065b8743c7241604b5f",
+    "independent_test": "sh SignalReference/ProtoParseWork/MessageReferenceWork/check-dispatcher.sh",
+    "exit_code": 0,
+    "remaining_external_axioms": 7,
+    "remaining": "Manual generated-code correction; actual dependency refinement; Rust context/buffer/error model agreement; numeric parser composition",
+    "skip_boundary": "Conditional skip-plan correspondence is not full actual skip_field refinement; exact primitive receipts control acceptance"
+  },
+  "decoder": {
+    "decision": "accept narrow actual decoder/normalization and circuit input alias bridge",
+    "receipt_sha256": "c2324d5e217696559f4dcbbff8c96775e800a5d3bfebc7302f219ec78ebe90e1",
+    "independent_test": "python3 SignalReference/XEdDsaReferenceWork/check.py",
+    "exit_code": 0,
+    "proof_endpoints": 17,
+    "generated_decoder_cases": 838,
+    "native_normalization_pairs": 1676,
+    "post_rerun_receipt_hashes_verified": 24,
+    "remaining": "Full to_edwards/XEdDSA/prekey refinement, private conversion/backend binding and session integration"
+  },
+  "application_readiness_approved": false,
+  "sharing_refresh": "paused",
+  "historical_candidate_receipts_unchanged": true
+}

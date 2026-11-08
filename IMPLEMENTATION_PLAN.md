@@ -9,8 +9,10 @@ Sharing refresh remains paused.
 ## Operating rules
 
 - Use Sol for implementation; do not spawn more workers or use Astra.
-- Work in bounded checkpoints: implement one meaningful change, run its relevant
-  checks once, report evidence and remaining limitations, then stop for review.
+- Work in bounded, tested checkpoints, then continue toward the assigned
+  functional milestone. The latest user instruction authorizes further Sol
+  implementation; do not stop merely because a small checkpoint is complete.
+  Stop at the milestone or a concrete blocker requiring external input.
 - Read this file and relevant current files. Avoid replaying the entire history,
   repeated full audits, giant logs, or unrelated refactors.
 - Preserve frozen proof checkpoints. Add new work in separate directories.
@@ -132,3 +134,94 @@ Completion still requires functioning persistent TLS + Signal sessions with
 secret identifiers/keys, intended compiler/refinement proofs, runtime lifecycle
 integration, interoperability evidence and an honest performance estimate.
 No worker may redefine completion around its own component tests.
+
+## Round 2: root review and active assignments
+
+The user requested review and redistribution of work toward system completion.
+All three existing Sol workers have been restarted. Sharing refresh remains
+paused. The earlier Worker 1–3 sections describe the historical first round;
+the assignments below now take precedence. Review evidence is recorded in
+`benchmarks/results/sol-round1-root-review.json`.
+
+### Reviewed results
+
+- **ByteBufferWork:** reviewed patch/checker; independently reran the sanitized
+  buffer harness successfully (12 observed wiped releases). Verified all 35
+  source, 7 product and 23 log hashes in the recorded report, including successful
+  five-party results at capacities 6, 1029 and 16385. Those five-party runs were
+  inspected, not repeated by root. Accept only the isolated discarded-owned-buffer
+  cleanup checkpoint; it does not implement complete session retirement.
+- **MessageReferenceWork:** independently reran its five-module Lean check.
+  The observation definitions and conditional unknown-tag result check, but the
+  dispatcher theorem depends on seven external axioms. A manual generated-code
+  correction and unproved Rust/model correspondence remain. Retain as a candidate
+  scaffold, not accepted parser refinement. Conditional skip-plan agreement must
+  not be confused with an accepted actual `skip_field` implementation reference;
+  exact primitive review receipts control the usable dependency boundary.
+- **XEdDsaReferenceWork:** reviewed actual decoder proof/input bridge and reran
+  `check.py`: 17 kernel endpoints, 838 decoder cases, 1,676 native normalization
+  comparisons. All 24 receipt files still match after the independent rerun.
+  Accept only actual byte-decoder/normalization refinement and the stated circuit
+  input/alias bridge. Full point recovery/verifier and private execution are open.
+
+Acceptance here is a scoped review decision. Preserve historical candidate
+receipts rather than rewriting their acceptance flags or claiming readiness.
+
+### tls_sol: persistent native TLS lifecycle
+
+Own handshake_backend, TLS scripts and new isolated runtime candidates. Implement
+safe quiescent lifecycle cleanup and correlated-randomness renewal for remaining
+protocol/preprocessing/opening/PRNG/bigint state; connect real retirement,
+rotation and abort capabilities to NativeSession. Preserve live application
+shares and protocol consistency. Audit failure and zero-size ownership paths.
+Do not enable readiness until the required conditions actually hold.
+
+Milestone: five parties complete an authenticated handshake and repeated private
+application records with a local TLS peer, including KeyUpdate, authentication
+failure, abort and sequence/lifecycle checks. Coordinate a private producer handle
+interface with signal_crypto_sol. Never reconstruct application keys or identifiers.
+
+### signal_parser_sol: actual dispatcher and circuit agreement
+
+Own ProtoParseWork and new parser composition modules. Fix the isolated translator
+and reproduce generated output without a manual patch. Replace dependencies using
+actual justified references, preserving rejection, fields, suffix and recursion
+budget; prove the error projection within the supported contiguous-buffer domain.
+Compose scan/group/field metadata and numeric parser agreement. If actual skip
+extraction remains blocked, state its exact remaining obligations and progress
+send-critical work independently. No new assumed-correctness axioms.
+
+Milestone: usable parser implementation refinement for the supported message
+domain, with malformed/duplicate/unknown/group cases and remaining boundaries
+explicit. Prioritize send-path needs and separate receive-only obligations.
+
+### signal_crypto_sol: verifier and private send integration
+
+Own new Signal crypto/reference/session integration modules and Signal backend
+files. Extend actual decoder agreement to point recovery and XEdDSA/prekey
+verification; reuse matching pinned BAF artifacts where justified. Prove circuit
+agreement with implementation behavior, including rejection, rather than internal
+cryptographic security. Preserve frozen earlier checkpoints.
+
+Audit established-session send circuits, implement missing state/store transitions
+and private mixed-domain binding, then feed shared ciphertext and recipient/request
+data into the TLS producer interface. Coordinate ownership with tls_sol before
+editing interface files. If verifier proof blocks fresh sessions, make independent
+progress on established sends without misrepresenting the fresh-session scope.
+
+Milestone: actual libsignal differential/interoperability evidence and a private
+established-session send path through TLS; document remaining fresh-session proofs.
+Use scoped git commits for reproducible source/proofs, excluding vendor/build trees.
+
+### Integration and measurement exit criteria
+
+After these milestones, integrate persistent TLS transport with Signal request
+framing, response handling and durable shared conversation state. Test repeated
+sends, fresh and established sessions, rejection/abort, nonce/state persistence,
+and absence of secret reconstruction in the output path. Share refresh is a
+separately paused dependency: do not claim mobile-adversary protection complete.
+Benchmark actual persistent-session workloads, reporting payload sizes, party
+count, preprocessing cost, bandwidth and RTT; distinguish local measurements
+from WAN estimates. 100,000/hour means about 27.8 delivered messages/second,
+not circuit evaluations per second. No throughput or system-completion claim
+until the corresponding evidence exists.
