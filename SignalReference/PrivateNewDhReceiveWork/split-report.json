@@ -1,0 +1,18 @@
+{
+  "kernel_endpoints": 15,
+  "foundation_axioms_only": true,
+  "native_reflection": false,
+  "summary_bytes": 75,
+  "proved": "Parse-once summary extraction, exact encode/decode inverse including all64-bit fields, and decoded-summary transaction equals original whole receiving model; both parser-summary and crypto-stage compiler endpoints. Raw counter64 is preserved and explicituint32 truncation remains in the caller.",
+  "purpose": "Avoid duplicate fullparser computation in the native point/DH/crypto composition; no repeated cryptographic computation across width profiles.",
+  "pending": "Actual native same-parsed-point DH binding, emitted staged artifact differential and complete private receive/reply interoperability; full RustCrypto/session source and recoverable persistence remain open.",
+  "actual_native_pipeline_tested": false,
+  "full_RustCrypto_source_refinement": false,
+  "source_sha256": {
+    "SignalReference/PrivateNewDhReceiveWork/check_split.py": "1eba4450dde662c3ed70d03d35251c29591733497db98ba3260679d8e20d8a7d",
+    "SignalReference/PrivateNewDhReceiveWork/SplitChecks.lean": "33f483a4d706e35b259537f7ab229b812781400f141320d08f7f3286747114e0",
+    "TlsMpc/Signal/PrivateNewDhReceiveSplit.lean": "facb78b3eff4b3779be073ca4649a30b281485670dde10f5537cada9cf790449",
+    "TlsMpc/Signal/PrivateNewDhReceiveSplitProofs.lean": "7ffc172841a66475acd0c2857130fcffc218bfd09ceb968647f46a21954675dc",
+    "TlsMpc/Signal/PrivateNewDhReceive.lean": "1c2c96c53ab5a9b5bae1765575fb3f2d0553e4ba34663f2babd30abea7cef62d"
+  }
+}
