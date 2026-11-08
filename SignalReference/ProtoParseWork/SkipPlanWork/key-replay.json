@@ -1,0 +1,20 @@
+{
+  "source": "SignalReference/ProtoParseWork/KeyReferenceWork/KeyCircuit.lean",
+  "source_sha256": "eb6764b826d0ae4e34a017fcdffa85c4b904095e5c8396594d56742c0e5e732c",
+  "target_sha256": "710042b1290c21b94e2429b3ff47ea3b35af25c67d406ae5b61dc9be8d8c7d5d",
+  "substitutions": [
+    [
+      "import ProtoParseWork.KeyReferenceWork.KeyReference",
+      "import SkipTranslatorWork.KeyReference"
+    ],
+    [
+      "LibSignalReference.Candidate.ProstKeySlice",
+      "LibSignalReference.Candidate.ProstSkipSlice"
+    ],
+    [
+      "LibSignalReference.Candidate.ProstKey",
+      "LibSignalReference.Candidate.ProstSkipKey"
+    ]
+  ],
+  "reason": "Avoid generated global discriminant instance collision between key and skip namespaces; same accepted proof bodies."
+}

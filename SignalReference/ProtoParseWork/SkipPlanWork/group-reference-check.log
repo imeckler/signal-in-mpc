@@ -1,0 +1,5 @@
+'LibSignalReference.Candidate.ProstSkipPlan.depth_predecessor' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.lookup_current_group' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.actual_end_plan' depends on axioms: [propext, Classical.choice, Quot.sound]

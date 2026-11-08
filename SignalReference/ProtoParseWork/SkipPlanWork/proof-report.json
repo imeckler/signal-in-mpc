@@ -1,0 +1,41 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "checked_endpoints": 36,
+  "allowed_foundational_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "source_sha256": {
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Fixed.lean": "57aee8eb0645b0a9288d7feab1262179620dd5e4a26c34aabeaa10cb10bd4256",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean": "9e656d7da9139b4832dd7b808137ef4adace250346ac9b56de53573c3dd643bd",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/GroupReference.lean": "c96ee410ff62a1c9ae98f89fcecf8631988b3e09a75fad3346745d785a691bb3",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/KeyCircuit.lean": "710042b1290c21b94e2429b3ff47ea3b35af25c67d406ae5b61dc9be8d8c7d5d",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Reference.lean": "541168416a2eb355f45b2f237a503bfff73818bb1c3fb86310e4d635c7174d61",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Stack.lean": "3bf6bbc04da50daaf409c922f1ffda0335488b0ca7bf6a76f18e0267a33f6225",
+    "SignalReference/ProtoParseWork/SkipPlanWork/check.py": "b45a88b4c09998f4043842d181b1d1c336507430be8acaf131960c7c9548930b",
+    "SignalReference/ProtoParseWork/SkipPlanWork/audit.py": "c8d57d6c71ee873d01eafd7337bffcd048479e6e4c6e498ace296c7061f6c27a",
+    "SignalReference/ProtoParseWork/SkipPlanWork/key-replay.json": "576cd45461e7d0a0e5cf97ed8c5a5cfd7b5d22712f9f7346c89b6712e6ba3cfa",
+    "TlsMpc/Signal/ProtoParse.lean": "4a266ae4d734e3513592fde2d77a6c64e13b9a89ee92146cc5852d72db59345c",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/freeze-manifest.json": "1ab987f7bd4cfb8ec504de3f3edafb204b69ebc2a499d1e5f7cc4603c3e48415",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/root-review.json": "be711a73bead1f874d3bbcfd321aa43fce904618cac4f22c4ad4b6ddb2ed6f52",
+    "SignalReference/ProtoParseWork/KeyReferenceWork/root-review.json": "477c5363d81ca4c62116bf9b61006a9e792e524a300be8a7f5245be44a8e10d0"
+  },
+  "rebuilt_olean_sha256": {
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/Fixed.olean": "7393d9b8f4747136df12ac44e14a8c421dc42c8333f2df98261b0f4e1acc7e23",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/Group.olean": "14181ecb3a8b48aa4ad93dc42967658ab51d75177d2805e7619f0a70e0075bec",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/GroupReference.olean": "e4955c0d1ddc6488db372b1beff2e77f8157cb4a1b39c5a0fe0e2060fed11680",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/KeyCircuit.olean": "0a1dce63d28e6495027ae7582ea01b64b543accd86f92c26d71b670ff2ff3a43",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/Reference.olean": "b867b3b11923a99665f1c552778026b0faf5f3e06c7ec284e2621d4162936737",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Build/SkipPlanWork/Stack.olean": "6e01bbcb47b143c6afc97bdcf56aaf09115841ade0436f3dd2b6053705b7e48c"
+  },
+  "check_log_sha256": "bbf7050d822eea712bddb1da1b924d91ef4a8a47ed2656a71ebd4b33fa19e92c",
+  "scope": "Numeric existing ProtoParse.plan fixed32/fixed64/varint/length masks and cursors inside groups, bounded arithmetic, recursion-limit rejection; group start/end masks, exact stack lookup/write, depth and cursor updates, nested fields unchanged, actual matching/mismatching end-tag outcomes; exact accepted actual skip outcomes under explicit decoded-key/payload correspondence and buffer-length premises. No extra models or translator edits.",
+  "not_established": [
+    "Decoder table/lookup establishes all correspondence premises for an arbitrary body.",
+    "Top-level unknown-field cases and whole scan/table/cursor/stack preservation invariant.",
+    "Whole Signal parser or numeric AIG artifact refinement."
+  ]
+}

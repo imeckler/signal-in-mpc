@@ -1,0 +1,27 @@
+{
+  "reviewed_at_utc": "2026-11-08T02:15:28.212389+00:00",
+  "accepted_scope": "Conditional numeric ProtoParse.plan/applyPlan and actual translated skip agreement for group contents, stack operations and matching/mismatching group closure.",
+  "accepted_for_reference_composition": true,
+  "proof_report_sha256": "0185153f8d4c4cb9a112d3ef391cfc39e7c259a7ee1891645452b636d7aff2b8",
+  "independent_root_axiom_audit_endpoints": 36,
+  "independent_root_axiom_audit_sha256": "7394455f9484913a29070832b91fed2c8410b54038eaaa0a2b36ca1168f0619c",
+  "source_and_object_hashes_verified": true,
+  "premises_preserved": [
+    "Decoded key/payload correspondence to actual varint/key decoders.",
+    "Slice lengths correspond to public capacity minus numeric cursor, with fixed/length arithmetic capacity at most512.",
+    "State validity, group-depth bounds, stack length/no-alias bound and current group-tag content."
+  ],
+  "review_notes": [
+    "Actual fixed32/64 and length outcomes compare numeric success masks to Rust success/underflow with exact slices.",
+    "Varint success/error and depth100 refusal remain conditional on the stated actual decoder outcome.",
+    "Oblivious stack indexing uses a proved no-alias bound; actual closing-tag agreement uses ordinary stack content, not a premise asserting equality of the compared decisions.",
+    "Nested fields remain unchanged; group masks, depth/cursor updates and selected stack writes have separate kernel proofs."
+  ],
+  "inherited_trust_boundary": "See SkipTranslatorWork/root-review.json for pinned extraction, translator pass and scoped external models; no additional model/translator changes here.",
+  "not_established": [
+    "Decoder table/lookup establishes all correspondence premises for an arbitrary body.",
+    "Top-level unknown-field cases and whole scan/table/cursor/stack preservation invariant.",
+    "Whole Signal parser or numeric AIG artifact refinement.",
+    "Complete artifact-level parser agreement, totality, native execution or MPC security."
+  ]
+}

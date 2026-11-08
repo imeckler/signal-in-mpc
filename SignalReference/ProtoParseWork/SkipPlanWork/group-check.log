@@ -1,0 +1,69 @@
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:17:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:17:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:31:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:31:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:70:4: warning: This simp argument is unused:
+  show (255#8) = BitVec.allOnes 8 by rfl
+
+Hint: Omit it from the simp argument list.
+  simp [̵P̵r̵o̵t̵o̵P̵a̵r̵s̵e̵.̵s̵e̵l̵e̵c̵t̵F̵i̵e̵l̵d̵,̵W̵o̵r̵d̵6̵4̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵U̵n̵p̵a̵d̵.̵c̵h̵o̵o̵s̵e̵B̵y̵t̵e̵,̵B̵y̵t̵e̵A̵u̵t̵h̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵[̲P̲r̲o̲t̲o̲P̲a̲r̲s̲e̲.̲s̲e̲l̲e̲c̲t̲F̲i̲e̲l̲d̲,̲ ̲W̲o̲r̲d̲6̲4̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲ ̲U̲n̲p̲a̲d̲.̲c̲h̲o̲o̲s̲e̲B̲y̲t̲e̲,̲ ̲B̲y̲t̲e̲A̲u̲t̲h̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲
+      show (̵2̵5̵5̵#̵8̵)̵ ̵=̵ ̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵ ̵8̵ ̵b̵y̵ ̵r̵f̵l̵,̵
+  ̵ ̵ ̵ ̵ ̵s̵h̵o̵w̵ ̵(18446744073709551615#64) = BitVec.allOnes 64 by r̵f̵l̵,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵]̵r̲f̲l̲,̲ ̲B̲i̲t̲V̲e̲c̲.̲a̲l̲l̲O̲n̲e̲s̲_̲a̲n̲d̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean:71:62: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp [ProtoParse.selectField, ̲Word64.concrete, ̲Unpad.chooseByte, ̲ByteAuth.concrete,
+      show (255#8) = BitVec.allOnes 8 by rfl,
+      show (18446744073709551615#64) = BitVec.allOnes 64 by rfl,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'LibSignalReference.Candidate.ProstSkipPlan.start_in_group' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.end_in_group' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.group_stop' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.apply_start_depth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.apply_end_depth' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.select_field_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.write_fields_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.nested_fields_unchanged' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.apply_next' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.write_stack_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstSkipPlan.write_stack_get' depends on axioms: [propext, Classical.choice, Quot.sound]
