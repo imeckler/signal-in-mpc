@@ -1,0 +1,16 @@
+{
+  "points": 208,
+  "actual_pinned_PublicKey_equality_cases": 624,
+  "high_bit_and_modp_aliases_remain_distinct": true,
+  "all19_top_range_encodings": true,
+  "oracle_sha256": "430d06b37f6071d210c38d859d6bc9919c8f04a3898f6ce2ccc57dfa5a51df15",
+  "full_point_equality_source_refinement_proved": false,
+  "whole_session_refinement": false,
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "SignalReference/PrivateSessionReceiveV1Work/check_points.py": "a4e571983f51e2256b088bebfd49c81687bd9af81ff875375c7d541a955c7b4e",
+    "SignalReference/PrivateSessionReceiveV1Work/PointEvaluate.lean": "db0bd8ceca9c94ddcd2971d894885f1b8a0f195880b97e6ed489a6199d03172c",
+    "TlsMpc/Signal/PrivateSessionReceiveV1.lean": "65485c6f83bc0b922c4bc86a6ce50b157a2e76c8590cb45c56feae211a1b4dfe",
+    "signal_backend/Oracle/src/bin/signal-point-equality-oracle.rs": "91420702bad4ea477b44bdf887071ffca741ee1cd43f9a6dbeab0589b3fb337a"
+  }
+}

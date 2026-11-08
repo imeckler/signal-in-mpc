@@ -1,0 +1,24 @@
+{
+  "model_only": true,
+  "actual_new_DH_transitions": 1,
+  "actual_known_ratchet_inorder_transitions": 3,
+  "known_branch_root_private_all_sender136bytes_preserved": true,
+  "known_branch_supplied_pair_and_DH_all_zero_unused": true,
+  "whole_projected_output_bytes": 608,
+  "computed_rejections": 18,
+  "actual_Rust_MAC_and_replay_failures_preserved_store": true,
+  "valid_future_outoforder_rejected_by_declared_inorder_profile": true,
+  "skipped_key_policy": "No skipped keys retained; replay/future message fails closed. Full libsignal outoforder behavior not implemented.",
+  "PQQ_counter_exhaustion_rejected": true,
+  "full_fresh_session_or_SPQR_KEM": false,
+  "recoverable_persistence": false,
+  "full_actual_source_refinement": false,
+  "native_MPC_executed": false,
+  "oracle_sha256": "36f0c2a99f9cb6fdbf9ee52c1f6e753ec465ea0b86d7432fd006ade2f05fe205",
+  "source_sha256": {
+    "SignalReference/PrivateSessionReceiveV1Work/check_model.py": "42df47232836e44c01fc29863efe286b808a397f80c533d5d8118a4c10cdeafb",
+    "SignalReference/PrivateSessionReceiveV1Work/Evaluate.lean": "d02944c19f8681c4b98f2c7681d39b27212549b9ada41afa212cf08923676176",
+    "TlsMpc/Signal/PrivateSessionReceiveV1.lean": "65485c6f83bc0b922c4bc86a6ce50b157a2e76c8590cb45c56feae211a1b4dfe",
+    "signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs": "4e1b174b1a114ef96d348696d5d6b9973cc0e9c4a6936ae86e23a97c7acc2296"
+  }
+}

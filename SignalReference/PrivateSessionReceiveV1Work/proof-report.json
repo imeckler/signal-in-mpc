@@ -1,0 +1,13 @@
+{
+  "kernel_endpoints": 2,
+  "foundation_axioms_only": true,
+  "scope": "Atomic finish rejection preserves old sender/receiver/PQ state and zero plaintext; known-path sender/root selection preserves all sender bytes under equal fixed lengths.",
+  "whole_Hom_compiler_endpoint": false,
+  "full_actual_source_refinement": false,
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "SignalReference/PrivateSessionReceiveV1Work/Checks.lean": "db9e2b471c357631e485febd01f0f46255df11da0bb3df7411f83804aa2fdfbd",
+    "TlsMpc/Signal/PrivateSessionReceiveV1.lean": "65485c6f83bc0b922c4bc86a6ce50b157a2e76c8590cb45c56feae211a1b4dfe",
+    "TlsMpc/Signal/PrivateSessionReceiveV1Proofs.lean": "0acbbc122fa931b21a64f5277cc4eab89fa7675e9703c09a8cf3514f6d23afb0"
+  }
+}
