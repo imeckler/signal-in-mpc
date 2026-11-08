@@ -84,3 +84,15 @@ the exact helper declaration replay; and compares actual generic versus typed
 Rust forget for 513 vectors, also checking actual guard cleanup clears them.
 Only the helper fragment is kernel-checked here. Full generated String merge
 and precise error cleanup composition remain open, as does the std UTF8 bridge.
+
+## HTTP completion policy bridge
+
+`check_finish.py` rechecks only the inherited actual HTTP status components and
+the new completion proofs. `Finish.Ready` states structural completion and exact
+private request-ID equality; it does not assert a source/schema scan theorem.
+For every such state, Core.valid is exactly HTTP range 100..999, while
+Core.successful is exactly 200..299. `HttpStatusBridge.core_native_status`
+connects both flags to the actual extracted checked u32-to-u16/status conversion.
+This includes rejection outcomes and proves HTTP 400 is valid but unsuccessful.
+Mux's stricter abort policy and native pending-request consumption semantics are
+separate. No full ChatConnection scheduler or streaming decoder claim follows.
