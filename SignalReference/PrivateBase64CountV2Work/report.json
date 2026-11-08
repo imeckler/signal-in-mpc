@@ -1,0 +1,344 @@
+{
+  "passed": true,
+  "native_MPC_executed": false,
+  "public_numeric_cases": 133840,
+  "exhaustive_16bit_length_profile": "192-fixed, both kernels",
+  "proof_scope": "arbitrary canonical length bits, arbitrary public index lists, arbitrary16bit initial total; exact modulo65536 including overflow and wrapped public comparisons",
+  "producer_integrated": false,
+  "normalized_buffer_composition_proof": false,
+  "profiles": {
+    "0-fixed": {
+      "legacy": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "sha256": "640184be67fb1454a37d0bdf7e22262446ec23726e14b6d54ea4ca88de5dd7e3"
+      },
+      "balanced": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "sha256": "22b066206680fc0877bd7ff1dd4d785eca58cbfa4d668f04c68a9f133a754a8b"
+      }
+    },
+    "0-state": {
+      "legacy": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "sha256": "0c9e8ce01dffada7eb1e14b85c0814e755d00ea6b211f0e6012a518436fba7e8"
+      },
+      "balanced": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "sha256": "b20e449368b91066c390eb260c76ad67cc436f0fae5df966e6377d4508f0b79d"
+      }
+    },
+    "1-fixed": {
+      "legacy": {
+        "raw_and_gates": 60,
+        "executed_and_gates": 15,
+        "executed_xor_gates": 15,
+        "unreachable_nodes": 30,
+        "and_depth": 15,
+        "local_xor_depth": 1,
+        "sha256": "d63cf12763efbea6586aa5f79c28377e359357e489477196daa39a45e2d37637"
+      },
+      "balanced": {
+        "raw_and_gates": 60,
+        "executed_and_gates": 15,
+        "executed_xor_gates": 15,
+        "unreachable_nodes": 30,
+        "and_depth": 15,
+        "local_xor_depth": 1,
+        "sha256": "e3feecf118ff6dab7d24782c74eacefa4f0ceeb9825079ce99dc563f68f8bb38"
+      }
+    },
+    "1-state": {
+      "legacy": {
+        "raw_and_gates": 102,
+        "executed_and_gates": 28,
+        "executed_xor_gates": 29,
+        "unreachable_nodes": 46,
+        "and_depth": 28,
+        "local_xor_depth": 2,
+        "sha256": "c9739d55bb4b1e359d89c06ed61e8f7b088938680d3cda001c645cfe8dc7f1cc"
+      },
+      "balanced": {
+        "raw_and_gates": 102,
+        "executed_and_gates": 28,
+        "executed_xor_gates": 29,
+        "unreachable_nodes": 46,
+        "and_depth": 28,
+        "local_xor_depth": 2,
+        "sha256": "2eda012a55b53a5444aa229601bec4921a3cc276b32e325816fa330c27fc8411"
+      }
+    },
+    "2-fixed": {
+      "legacy": {
+        "raw_and_gates": 115,
+        "executed_and_gates": 29,
+        "executed_xor_gates": 29,
+        "unreachable_nodes": 57,
+        "and_depth": 16,
+        "local_xor_depth": 2,
+        "sha256": "14384f04f7b0db664ccb8813ce937a04b111666da6046ad62e288540643b872c"
+      },
+      "balanced": {
+        "raw_and_gates": 115,
+        "executed_and_gates": 29,
+        "executed_xor_gates": 29,
+        "unreachable_nodes": 57,
+        "and_depth": 16,
+        "local_xor_depth": 2,
+        "sha256": "17a80cc46dc60227678852f6f8e1dc24b9fe4d86fd1bf7db3d68b1b0925d7822"
+      }
+    },
+    "2-state": {
+      "legacy": {
+        "raw_and_gates": 196,
+        "executed_and_gates": 54,
+        "executed_xor_gates": 56,
+        "unreachable_nodes": 87,
+        "and_depth": 28,
+        "local_xor_depth": 3,
+        "sha256": "8cfd09331c03b29324591a7748d4eff541becd3baaccb942c9cb734ce8318cc7"
+      },
+      "balanced": {
+        "raw_and_gates": 196,
+        "executed_and_gates": 54,
+        "executed_xor_gates": 56,
+        "unreachable_nodes": 87,
+        "and_depth": 28,
+        "local_xor_depth": 3,
+        "sha256": "8a99ebeca7b73921a4dc899782e419989b4fd288d4acf3a8fd7946cb3abada4f"
+      }
+    },
+    "3-fixed": {
+      "legacy": {
+        "raw_and_gates": 175,
+        "executed_and_gates": 46,
+        "executed_xor_gates": 44,
+        "unreachable_nodes": 85,
+        "and_depth": 17,
+        "local_xor_depth": 3,
+        "sha256": "42ebc9b96bbae186f0c3c61792e6cbc2678e2c694b499e36dec655d05f16d8f6"
+      },
+      "balanced": {
+        "raw_and_gates": 175,
+        "executed_and_gates": 46,
+        "executed_xor_gates": 44,
+        "unreachable_nodes": 85,
+        "and_depth": 17,
+        "local_xor_depth": 3,
+        "sha256": "555cc02e494e207ef7e7aa8d9b14b044d2f152ddcc6b01f3257e53901eb4256f"
+      }
+    },
+    "3-state": {
+      "legacy": {
+        "raw_and_gates": 292,
+        "executed_and_gates": 82,
+        "executed_xor_gates": 83,
+        "unreachable_nodes": 128,
+        "and_depth": 28,
+        "local_xor_depth": 4,
+        "sha256": "d8c92d17dd6dfd46df5f758ada4d0231f489873ee26dac9cb4f6e19577b63aa5"
+      },
+      "balanced": {
+        "raw_and_gates": 259,
+        "executed_and_gates": 71,
+        "executed_xor_gates": 72,
+        "unreachable_nodes": 117,
+        "and_depth": 28,
+        "local_xor_depth": 3,
+        "sha256": "7d09fda648c89ebece955ca4d7735c8f2a39978c0184ce51a8a4b5a6d73f1fa4"
+      }
+    },
+    "64-fixed": {
+      "legacy": {
+        "raw_and_gates": 5088,
+        "executed_and_gates": 1494,
+        "executed_xor_gates": 1445,
+        "unreachable_nodes": 2149,
+        "and_depth": 28,
+        "local_xor_depth": 64,
+        "sha256": "3e86ed64c7740bc7c1c179d3225c14d4886b374c383b30a8204ab70c0078a044"
+      },
+      "balanced": {
+        "raw_and_gates": 3429,
+        "executed_and_gates": 935,
+        "executed_xor_gates": 892,
+        "unreachable_nodes": 1602,
+        "and_depth": 22,
+        "local_xor_depth": 11,
+        "sha256": "8e1ba2d42c9519aad8129f27e2de825f46415199af673690cca9b13d15c394c3"
+      }
+    },
+    "64-state": {
+      "legacy": {
+        "raw_and_gates": 5403,
+        "executed_and_gates": 1585,
+        "executed_xor_gates": 1550,
+        "unreachable_nodes": 2269,
+        "and_depth": 28,
+        "local_xor_depth": 65,
+        "sha256": "982e0895de196429141f625fc2a9fe7141faa43f2dfd4cf5532b66798f385b7a"
+      },
+      "balanced": {
+        "raw_and_gates": 3648,
+        "executed_and_gates": 1000,
+        "executed_xor_gates": 965,
+        "unreachable_nodes": 1684,
+        "and_depth": 28,
+        "local_xor_depth": 12,
+        "sha256": "96488ef6d3654447f47b105e8c61b70a000727346b8044db0b6a7c641e140824"
+      }
+    },
+    "192-fixed": {
+      "legacy": {
+        "raw_and_gates": 14680,
+        "executed_and_gates": 4371,
+        "executed_xor_gates": 4238,
+        "unreachable_nodes": 6071,
+        "and_depth": 28,
+        "local_xor_depth": 192,
+        "sha256": "b65259169dd7d282cf383cc905bbb896ea4960f41054a43c808b057f8dae1365"
+      },
+      "balanced": {
+        "raw_and_gates": 9172,
+        "executed_and_gates": 2530,
+        "executed_xor_gates": 2402,
+        "unreachable_nodes": 4240,
+        "and_depth": 23,
+        "local_xor_depth": 14,
+        "sha256": "84a5fad14698e1fecb9fd1a8bee8001cd50194d0979bf0425641fad24236ec7c"
+      }
+    },
+    "192-state": {
+      "legacy": {
+        "raw_and_gates": 14995,
+        "executed_and_gates": 4462,
+        "executed_xor_gates": 4343,
+        "unreachable_nodes": 6191,
+        "and_depth": 28,
+        "local_xor_depth": 193,
+        "sha256": "ec22caeb372a994ee0fa4ad9ab52d5a7ad026f12e3104ca9b6da261968f93099"
+      },
+      "balanced": {
+        "raw_and_gates": 9409,
+        "executed_and_gates": 2600,
+        "executed_xor_gates": 2481,
+        "unreachable_nodes": 4329,
+        "and_depth": 28,
+        "local_xor_depth": 15,
+        "sha256": "abea92925ff4035ee1ce8e9f050e669c54b61568d3774512b878e373f76d35ac"
+      }
+    },
+    "256-fixed": {
+      "legacy": {
+        "raw_and_gates": 19350,
+        "executed_and_gates": 5778,
+        "executed_xor_gates": 5603,
+        "unreachable_nodes": 7969,
+        "and_depth": 28,
+        "local_xor_depth": 256,
+        "sha256": "a35a217ff74a580264d16e6e84b83a12c7cb12d819c1a46a73bdf62db72598d0"
+      },
+      "balanced": {
+        "raw_and_gates": 11919,
+        "executed_and_gates": 3297,
+        "executed_xor_gates": 3126,
+        "unreachable_nodes": 5496,
+        "and_depth": 24,
+        "local_xor_depth": 15,
+        "sha256": "b7ea70b7e86adec06c09722267cbf70643c41f39555fdf8427bad3a823fdffbf"
+      }
+    },
+    "256-state": {
+      "legacy": {
+        "raw_and_gates": 19665,
+        "executed_and_gates": 5869,
+        "executed_xor_gates": 5708,
+        "unreachable_nodes": 8089,
+        "and_depth": 28,
+        "local_xor_depth": 257,
+        "sha256": "7a74abaf3c85306346c0db75a09836a4da7935195d27cd69636c4434a4103b57"
+      },
+      "balanced": {
+        "raw_and_gates": 12171,
+        "executed_and_gates": 3371,
+        "executed_xor_gates": 3210,
+        "unreachable_nodes": 5591,
+        "and_depth": 28,
+        "local_xor_depth": 16,
+        "sha256": "7a173c3c7b5838045d08e787f5acbefefe5b5bf710386319176e5dcc0f0bcd75"
+      }
+    },
+    "1024-fixed": {
+      "legacy": {
+        "raw_and_gates": 70284,
+        "executed_and_gates": 21390,
+        "executed_xor_gates": 20705,
+        "unreachable_nodes": 28189,
+        "and_depth": 28,
+        "local_xor_depth": 1024,
+        "sha256": "4a86795aa144fc5bcc2fe1047a2c7664528a8476e5718c9b596d3e16ac80a980"
+      },
+      "balanced": {
+        "raw_and_gates": 39801,
+        "executed_and_gates": 11227,
+        "executed_xor_gates": 10544,
+        "unreachable_nodes": 18030,
+        "and_depth": 26,
+        "local_xor_depth": 19,
+        "sha256": "7bd791ab65cc78b76a0ea94ef810ff91ce7587ade76fa7059f38ca27d6ee3526"
+      }
+    },
+    "1024-state": {
+      "legacy": {
+        "raw_and_gates": 70599,
+        "executed_and_gates": 21481,
+        "executed_xor_gates": 20810,
+        "unreachable_nodes": 28309,
+        "and_depth": 28,
+        "local_xor_depth": 1025,
+        "sha256": "44acbdd16e320e6f0afcfea8802879135ef7c6e2f716e68d1acbcfce41d5b87c"
+      },
+      "balanced": {
+        "raw_and_gates": 40074,
+        "executed_and_gates": 11306,
+        "executed_xor_gates": 10635,
+        "unreachable_nodes": 18134,
+        "and_depth": 28,
+        "local_xor_depth": 20,
+        "sha256": "ee0bea0151221503fae47f0334c9c860ba1610becc409559616b0d018030eb3f"
+      }
+    }
+  },
+  "axioms": [
+    "'TlsMpc.Signal.PrivateBase64CountV2.Reduce.balanced_fold' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.plus_value' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.plus_assoc' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.count_equiv' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.count_map' depends on axioms: [propext, Quot.sound]"
+  ],
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateBase64CountV2.lean": "9cf55072218f5e1a862646cbe05aad3aa8b27cdf286c7e49615e689bc4b172ca",
+    "SignalReference/PrivateBase64CountV2Work/Export.lean": "5cdae701631c55ffcd982094c8726b03f9f6a26ba30a3284087df049933fcdea",
+    "SignalReference/PrivateBase64CountV2Work/Checks.lean": "f8d2eb67258af9ebaea5d914099d64c58fa1384c84f71a825cd1319bc234da97",
+    "SignalReference/PrivateBase64CountV2Work/check.py": "0d10567b3c8d710cf02deb8fe773194420f1c9ff0629f119ef682a362078e150"
+  }
+}
