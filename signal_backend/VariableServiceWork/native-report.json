@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "public_synthetic_fixture_only": true,
+  "steps": [
+    {
+      "signal_counter": 127,
+      "pq_counter_before": 126,
+      "request_id": 127,
+      "inner_bytes": 72,
+      "websocket_bytes": 900
+    },
+    {
+      "signal_counter": 128,
+      "pq_counter_before": 127,
+      "request_id": 128,
+      "inner_bytes": 74,
+      "websocket_bytes": 901
+    }
+  ],
+  "native_computed_dh_and_fresh_ephemeral": true,
+  "fresh_independent_websocket_mask": true,
+  "raw_dh_scalar_inputs": false,
+  "unopened_state_and_request_id_reused_in_native_store": true,
+  "actual_pinned_decrypt_certificate_tamper_and_relay_schema_verified": true,
+  "sender_binding_rejected": true,
+  "temporary_fsynced_attempt_fence_used": true,
+  "recoverable_shared_store": false,
+  "opened_outputs": "Synthetic final payload/status only; no state, DH, scalar or request-ID share opening.",
+  "synthetic_response_acknowledgement_only": true,
+  "actual_response_parser_or_tls_executed": false,
+  "elapsed_seconds": 380.93029199994635,
+  "timing_scope": "Startup plus three component invocations; not persistent delivery throughput.",
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/native_check.py": "4c6f6429d33e2be8ddced5221766147ca6920197fbe358a370e001fcbe770395",
+    "signal_backend/VariableServiceWork/native_fixture.cpp": "b5bde02663de79a7cca8b7a2fca146e61927afa46df6303d8d897ce494dff728",
+    "signal_backend/VariableServiceWork/NativeVariableService.h": "9ea4840eac96ebfec54df445a20af2537d889f20d79c3897d51a1d668986def6",
+    "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "35a0a0a76009241144bcd52cbd424c1ce84d880c5565c4a309fe78715c089e3f",
+    "signal_backend/VariableServiceWork/shape.py": "5adcbb0bc40627a8f30af3d981e29074c59b8b4fb17540d33e38c66006876c9d",
+    "signal_backend/VariableServiceWork/prepare.py": "bf9d969ebd3ca1f33267855fdbfd45e89e6939512e4d92200fa436550fef3bc2",
+    "signal_backend/PersistentSendFence.h": "17f717fc5c40a0910a67a4e245d52e467059a1c6890931b26e46edcce14850f9",
+    "programs/signal_variable_service.mpc": "2d70fd86d1851d322a807fd7e032d4572fd5d9e055b78f86ba1b241ff7c12ef7",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850"
+  },
+  "fixture_binary_sha256": "f7cede64eb6f74deea4c8591e776d3ce595e7f61855e07acf31a75265b91c677",
+  "manifest_sha256": "34a9742d8f06f3f26be53e0eecfd67ff1401a8ce92ba61b279587434b8c19cbf",
+  "oracle_sha256": "300664bf044730e690f03f1264e45fb07010376f1ae20ae6538c924d68992d07",
+  "logs": ".deps/private-variable-conversation-native/260-0-0-0/fixture-oojyhit1",
+  "integer_semantic_refinements_proved": false,
+  "full_rust_aeneas_refinement": false,
+  "production_ready": false
+}

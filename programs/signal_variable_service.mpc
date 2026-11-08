@@ -1,0 +1,33 @@
+# Native selected-chain private service. Raw DH/scalars are not input APIs.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from handshake_backend.field_dag import load as load_field
+from handshake_backend.mixed import (fresh_scalar_fields,execute_secret,field_to_wire_bits,
+    wire_bits_to_field,wire_bits_to_scalar_fields)
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from signal_backend.VariableServiceWork.shape import VariableShape
+field_path,image_path,*dimensions=program.args[1:]
+shape=VariableShape(*map(int,dimensions));field=load_field(field_path);image=load(image_path)
+if(field['input_count']!=257 or image['name']!='signal-private-variable-conversation' or
+ image['input_bits']!=shape.boolean_input_bytes*8 or len(image['outputs'])!=shape.output_bytes*8):raise ValueError('variable conversation artifact mismatch')
+def evaluate(inputs,outputs):
+ raw=binary_io.read_bits(inputs);sender=wire_bits_to_scalar_fields(raw[:256])
+ recipient=(shape.spqr_offset+150+34*shape.chunk)*8
+ point=wire_bits_to_field(raw[recipient:recipient+256],mask_high_bit=True)
+ ephemeral=fresh_scalar_fields()
+ epk=field_to_wire_bits(execute_secret(field,ephemeral+[sint(9)])[0])
+ spk=field_to_wire_bits(execute_secret(field,sender+[sint(9)])[0])
+ edh=field_to_wire_bits(execute_secret(field,ephemeral+[point])[0])
+ sdh=field_to_wire_bits(execute_secret(field,sender+[point])[0])
+ # Independent joint random WebSocket mask. Never reuse ephemeral scalar bits.
+ mask=[sbit.get_random_bit() for _ in range(32)]
+ bound=epk+spk+edh+sdh+raw[256:-32]+mask
+ binary_io.write_bits(outputs,execute_mpc(image,bound))
+evaluate.__name__=shape.name
+function=export(evaluate);BitArray=sbitvec.get_type(1).Array
+function(BitArray(shape.input_bytes*8),BitArray(shape.output_bytes*8))

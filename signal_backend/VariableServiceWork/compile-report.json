@@ -1,0 +1,31 @@
+{
+  "shape": [
+    260,
+    0,
+    0,
+    0
+  ],
+  "input_bytes": 531,
+  "output_bytes": 1269,
+  "boolean_artifact_sha256": "73941e2e25ad03b5abdb0c8ffa0632fba017c21b460929a5cfd127606821ff1f",
+  "field_artifact_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "manifest_sha256": "34a9742d8f06f3f26be53e0eecfd67ff1401a8ce92ba61b279587434b8c19cbf",
+  "native_mpc_executed": false,
+  "no_dh_or_ephemeral_scalar_inputs": true,
+  "trust_boundary": "Unverified mixed-domain conversion/runtime; cryptographic and service assembly use Lean artifacts.",
+  "compiler_counts_at_most": {
+    "bit_triples": 6378373,
+    "vm_rounds": 119043,
+    "independent_websocket_random_bits": 32,
+    "integer_simple_multiplications": 20404,
+    "integer_randoms": 1024,
+    "integer_masked_integrity_opens": 8
+  },
+  "closure_files_sha256": {
+    "Programs/Bytecode/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-0-0-0-0.bc": "553a43a027a24b3d17fa0fc5051d9489900e5aa1bf57c2bb29ad69caa8916bb5",
+    "Programs/Bytecode/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-0-0-0-signal_private_variable_conversation_260_0_0_0-1.bc": "ac1ba576f8a992b901df57dc3a62ce0602b8342e1f90a1a8b3fe24f4623e6bfc",
+    "Programs/Functions/signal_private_variable_conversation_260_0_0_0-sbv:[4248x1]-sbv:[10152x1]": "c08542a18604c23bff48ae81594d46ca464a66da45843813602a1c3ca67b71b1",
+    "Programs/Schedules/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-0-0-0.sch": "b13e5c7f9572ef3a7f7491f80c2ccf29d0ac4f9f9ec4007b566d3a37fa77a71b"
+  },
+  "compiler_log_sha256": "36091c300cbb4be7313d309c0bcf1f13537388065ee54988605b6c34943305fc"
+}
