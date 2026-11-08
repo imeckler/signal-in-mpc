@@ -61,3 +61,13 @@ at the implemented40-bit setting. A128-bit MAC field does not change the triple
 sacrifice boundary. No guard removal, lower-security run, ad hoc repetition or
 Tinier128 native pass is claimed. Supported primary-source alternatives must be
 examined before any new sacrifice design or backend switch.
+
+V3 exact reconciliation
+
+The fresh v3 library records Player.total_comm().sent immediately before the
+runtime's explicit initialization reset. All15native observations reconcile
+exactly: all domain/phase buckets = original recorded bytes + reset receipt
+(576B party0,512B others). Three state/epoch calls and abort pass allfive/1.452
+awake seconds, cleanup empty, immutable products stable. Timing may overlap
+other public compiler work and is not an uncontended speed comparison. No
+application runtime or default backend has changed.

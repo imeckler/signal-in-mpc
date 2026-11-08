@@ -11,6 +11,7 @@ struct State {
  std::unique_ptr<Machine<tls_mpc_worker::Share>> machine;std::unique_ptr<Collective> collective;
  std::unique_ptr<NativeLifecycle> lifecycle;std::unique_ptr<Worker> worker;tls_mpc_worker::Bits retained;
 };
+template<class S> uint64_t initial_bytes(const S& s){if constexpr(requires{s.initialization_reset_bytes;})return s.initialization_reset_bytes;else return 0;}
 int main(int argc,char** argv){
  SecureGmp::install_before_threads();if(argc!=5)return 2;State* state=new State;
  unsigned party=std::stoul(argv[1]);unsigned port=std::stoul(argv[3]);
@@ -35,7 +36,10 @@ int main(int argc,char** argv){
    auto before=tls_public_diagnostics::snapshot();FunctionArgument ignored;
    state->machine->run_function("tls_diagnostic_mix",ignored,args);
    auto usage=state->machine->public_function_usage();auto after=tls_public_diagnostics::snapshot();
+   auto initial_delta=initial_bytes(after)-initial_bytes(before);
+   uint64_t attributed_bytes=0;for(size_t i=0;i<9;++i)attributed_bytes+=after.bytes[i]-before.bytes[i];
    auto original_after=state->machine->total_stats().comm_stats.sent+state->machine->get_player().total_comm().sent;
+   if(initial_delta)public_require(attributed_bytes==original_after-original_before+initial_delta,"diagnostic byte reconciliation failed");
    std::vector<unsigned char> expected(320);unsigned value=0;
    for(size_t i=0;i<64;++i){expected[i]=expected_input[i]&expected_input[64+i];if(i<8)value|=unsigned(expected[i])<<i;}
    value=value*value+17;
@@ -47,7 +51,7 @@ int main(int argc,char** argv){
    { Opener<tls_mpc_worker::Bit> opener(state->machine->get_player(),state->machine->get_bit_mac_key());opener.init_open();for(auto& bit:status)opener.prepare_open(bit[0]);opener.exchange();
    for(size_t i=0;i<8;++i)public_require((opener.finalize_open().get()&1)==1,"private synthetic comparison failed");opener.Check(); }
    state->retained=tls_mpc_worker::Bits(output.begin(),output.begin()+128);expected_input.assign(expected.begin(),expected.begin()+128);
-   std::cout<<"DIAGNOSTIC {\"party\":"<<party<<",\"step\":"<<step<<",\"prepare_ns\":"<<after.prepare_ns-before.prepare_ns<<",\"load_ns\":"<<after.load_ns-before.load_ns<<",\"original_payload_byte_delta\":"<<original_after-original_before<<",\"bytes\":[";
+   std::cout<<"DIAGNOSTIC {\"party\":"<<party<<",\"step\":"<<step<<",\"prepare_ns\":"<<after.prepare_ns-before.prepare_ns<<",\"load_ns\":"<<after.load_ns-before.load_ns<<",\"original_payload_byte_delta\":"<<original_after-original_before<<",\"initialization_reset_bytes\":"<<initial_delta<<",\"bytes\":[";
    for(size_t i=0;i<9;++i){if(i)std::cout<<',';std::cout<<after.bytes[i]-before.bytes[i];}std::cout<<"],\"scope_calls\":[";
    for(size_t i=0;i<9;++i){if(i)std::cout<<',';std::cout<<after.calls[i]-before.calls[i];}std::cout<<"],\"consumed\":[";bool first=true;
    for(size_t f=0;f<N_DATA_FIELD_TYPE;++f)for(size_t k=0;k<N_DTYPE;++k)if(usage.files[f][k]){if(!first)std::cout<<',';first=false;std::cout<<'['<<f<<','<<k<<','<<usage.files[f][k]<<']';}std::cout<<"]}\n";

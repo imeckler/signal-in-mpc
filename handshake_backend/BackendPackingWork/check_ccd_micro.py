@@ -6,9 +6,9 @@ RUNTIME=ROOT/'.deps/tls-backend-diagnostic-runtime/MP-SPDZ';STAGE=ROOT/'.deps/tl
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
  global RUNTIME,STAGE
- parser=argparse.ArgumentParser();parser.add_argument("--version",type=int,choices=[1,2],default=1);args=parser.parse_args();version=args.version
- if version==2:
-  RUNTIME=ROOT/'.deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ';STAGE=ROOT/'.deps/tls-backend-diagnostic-programs-v2'
+ parser=argparse.ArgumentParser();parser.add_argument("--version",type=int,choices=[1,2,3],default=1);args=parser.parse_args();version=args.version
+ if version>=2:
+  RUNTIME=ROOT/f'.deps/tls-backend-diagnostic-runtime-v{version}/MP-SPDZ';STAGE=ROOT/f'.deps/tls-backend-diagnostic-programs-v{version}'
   if not STAGE.exists():
    STAGE.mkdir();shutil.copytree(ROOT/'.deps/tls-backend-diagnostic-programs/Programs',STAGE/'Programs');shutil.copy2(ROOT/'.deps/tls-backend-diagnostic-programs/programs.manifest',STAGE/'programs.manifest')
  library=STAGE/'libSPDZ.so'
@@ -17,7 +17,7 @@ def main():
  out=ROOT/'benchmarks/results/raw/ccd-diagnostic-micro'/secrets.token_hex(8);out.mkdir(parents=True);print(out,flush=True)
  with (out/'ssl.log').open('w') as log:subprocess.run(['bash',str(ROOT/'.deps/sharing-refresh/MP-SPDZ/Scripts/setup-ssl.sh'),'5'],cwd=STAGE,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=60)
  hosts=out/'hosts';hosts.write_text('127.0.0.1\n'*5)
- tracked=[WORK/'ccd_micro_fixture.cpp',WORK/'PublicProtocolMetrics.h',WORK/('diagnostics.patch' if version==1 else 'diagnostics-v2.patch'),RUNTIME/'libSPDZ.so',RUNTIME.parent/'tls-ccd-diagnostic-fixture',STAGE/'programs.manifest']
+ tracked=[WORK/'ccd_micro_fixture.cpp',WORK/'PublicProtocolMetrics.h',WORK/('diagnostics.patch' if version==1 else f'diagnostics-v{version}.patch'),RUNTIME/'libSPDZ.so',RUNTIME.parent/'tls-ccd-diagnostic-fixture',STAGE/'programs.manifest']
  hashes={str(p.relative_to(ROOT)):sha(p) for p in tracked};processes=[];logs=[];errors=[];started=time.monotonic()
  report={'passed':False,'scope':'CCD128 diagnostic microfixture, synthetic comparison flags only; no backend switch','source_product_sha256':hashes,'logs':str(out.relative_to(ROOT))}
  try:
@@ -43,6 +43,6 @@ def main():
    except Exception as error:errors.append(repr(error))
   for log in logs:log.close()
   report.update(elapsed_python_awake_seconds=time.monotonic()-started,exit_codes=[p.returncode for p in processes],cleanup_errors=errors,integrity_verified=all(sha(p)==hashes[str(p.relative_to(ROOT))] for p in tracked))
-  report['passed']=report['passed']and not errors and report['integrity_verified'];(out/'report.json').write_text(json.dumps(report,indent=2)+'\n');(WORK/('ccd-native-report.json' if version==1 else 'ccd-v2-native-report.json')).write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({k:report[k] for k in ['passed','exit_codes','elapsed_python_awake_seconds','cleanup_errors']},indent=2),flush=True)
+  report['passed']=report['passed']and not errors and report['integrity_verified'];(out/'report.json').write_text(json.dumps(report,indent=2)+'\n');(WORK/('ccd-native-report.json' if version==1 else f'ccd-v{version}-native-report.json')).write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({k:report[k] for k in ['passed','exit_codes','elapsed_python_awake_seconds','cleanup_errors']},indent=2),flush=True)
  if not report['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

@@ -12,11 +12,12 @@ enum class Phase:unsigned {unattributed,online,preprocessing};
 struct Context {Domain domain=Domain::unattributed;Phase phase=Phase::unattributed;};
 inline thread_local Context context;
 inline std::array<std::atomic<uint64_t>,9> bytes{},nanoseconds{},calls{};
-inline std::atomic<uint64_t> prepare_ns{},load_ns{},prepare_calls{},load_calls{};
-struct Snapshot {std::array<uint64_t,9> bytes{},nanoseconds{},calls{};uint64_t prepare_ns=0,load_ns=0,prepare_calls=0,load_calls=0;};
+inline std::atomic<uint64_t> prepare_ns{},load_ns{},prepare_calls{},load_calls{},initialization_reset_bytes{};
+inline void record_initialization_reset(uint64_t count){initialization_reset_bytes.fetch_add(count,std::memory_order_relaxed);}
+struct Snapshot {std::array<uint64_t,9> bytes{},nanoseconds{},calls{};uint64_t prepare_ns=0,load_ns=0,prepare_calls=0,load_calls=0,initialization_reset_bytes=0;};
 inline unsigned index(Context value){return unsigned(value.domain)*3+unsigned(value.phase);}
 inline Snapshot snapshot(){Snapshot result;for(unsigned i=0;i<9;++i){result.bytes[i]=bytes[i].load();result.nanoseconds[i]=nanoseconds[i].load();result.calls[i]=calls[i].load();}
- result.prepare_ns=prepare_ns.load();result.load_ns=load_ns.load();result.prepare_calls=prepare_calls.load();result.load_calls=load_calls.load();return result;}
+ result.initialization_reset_bytes=initialization_reset_bytes.load();result.prepare_ns=prepare_ns.load();result.load_ns=load_ns.load();result.prepare_calls=prepare_calls.load();result.load_calls=load_calls.load();return result;}
 inline void sent_bytes(uint64_t count){bytes[index(context)].fetch_add(count,std::memory_order_relaxed);}
 class Scope {
  Context previous;unsigned category;std::chrono::steady_clock::time_point started;

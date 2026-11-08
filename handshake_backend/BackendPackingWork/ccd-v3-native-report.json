@@ -1,0 +1,743 @@
+{
+  "passed": true,
+  "scope": "CCD128 diagnostic microfixture, synthetic comparison flags only; no backend switch",
+  "source_product_sha256": {
+    "handshake_backend/BackendPackingWork/ccd_micro_fixture.cpp": "90a667df71cda3fc62a6fd202002a666a8f0fadcc9e859b3373f352953641401",
+    "handshake_backend/BackendPackingWork/PublicProtocolMetrics.h": "31b148365ae25baadddf57ba8695912f867dc1f2a4935eda76a2f64308e0523d",
+    "handshake_backend/BackendPackingWork/diagnostics-v3.patch": "6a1863845cd447ce21621f14c87ce8ec875f29785af99f8440c90590c552fe92",
+    ".deps/tls-backend-diagnostic-runtime-v3/MP-SPDZ/libSPDZ.so": "938bd25b08add9898a241fcc8c3acf561dc3ade2f0047862c87eb6aab789f11b",
+    ".deps/tls-backend-diagnostic-runtime-v3/tls-ccd-diagnostic-fixture": "cb460abe6cb4005d415a97d0112f2afb1ebe03bc98226813fd06a669803f93ac",
+    ".deps/tls-backend-diagnostic-programs-v3/programs.manifest": "01adad59341a274fd99a6d53f7dd707c4e0658c39cf8a055b42fe1f9da24445c"
+  },
+  "logs": "benchmarks/results/raw/ccd-diagnostic-micro/bfe04bfc6413ee77",
+  "parties": [
+    [
+      {
+        "party": 0,
+        "step": 0,
+        "prepare_ns": 135412416,
+        "load_ns": 97597708,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 576,
+        "bytes": [
+          960,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "step": 1,
+        "prepare_ns": 140879958,
+        "load_ns": 124053208,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 576,
+        "bytes": [
+          960,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "step": 2,
+        "prepare_ns": 136409250,
+        "load_ns": 119049791,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 576,
+        "bytes": [
+          960,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 1,
+        "step": 0,
+        "prepare_ns": 135329292,
+        "load_ns": 117225458,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "step": 1,
+        "prepare_ns": 141072208,
+        "load_ns": 124295750,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "step": 2,
+        "prepare_ns": 136333541,
+        "load_ns": 118950750,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 2,
+        "step": 0,
+        "prepare_ns": 135326292,
+        "load_ns": 117199167,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "step": 1,
+        "prepare_ns": 139635500,
+        "load_ns": 122659458,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "step": 2,
+        "prepare_ns": 136365583,
+        "load_ns": 118845292,
+        "original_payload_byte_delta": 10840160,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          10343520,
+          0,
+          237632,
+          258240
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 3,
+        "step": 0,
+        "prepare_ns": 135319458,
+        "load_ns": 117374083,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "step": 1,
+        "prepare_ns": 140632042,
+        "load_ns": 122965000,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "step": 2,
+        "prepare_ns": 136521000,
+        "load_ns": 111816250,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 4,
+        "step": 0,
+        "prepare_ns": 135388500,
+        "load_ns": 117276334,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "step": 1,
+        "prepare_ns": 144835917,
+        "load_ns": 89194791,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "step": 2,
+        "prepare_ns": 139154000,
+        "load_ns": 88983250,
+        "original_payload_byte_delta": 9680320,
+        "initialization_reset_bytes": 512,
+        "bytes": [
+          896,
+          0,
+          0,
+          0,
+          384,
+          9196192,
+          0,
+          237632,
+          245728
+        ],
+        "scope_calls": [
+          1,
+          0,
+          0,
+          0,
+          3,
+          1345,
+          0,
+          1026,
+          1858
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            4,
+            263
+          ],
+          [
+            2,
+            0,
+            1852
+          ]
+        ]
+      }
+    ]
+  ],
+  "elapsed_python_awake_seconds": 1.4522539579775184,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cleanup_errors": [],
+  "integrity_verified": true,
+  "byte_reconciliation_passed": true,
+  "reconciled_observations": 15,
+  "timing_contention": "other agent compiler optimizer/public BMR builds may overlap; correctness/byte attribution only, no uncontended speed comparison"
+}

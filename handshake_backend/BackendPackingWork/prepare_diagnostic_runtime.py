@@ -6,7 +6,7 @@ BASE=ROOT/'.deps/tls-session-runtime/MP-SPDZ';DEST=ROOT/'.deps/tls-backend-diagn
 def sha(data):return hashlib.sha256(data).hexdigest()
 def prepare(version=1):
  global DEST
- if version==2:DEST=ROOT/'.deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ'
+ if version>=2:DEST=ROOT/f'.deps/tls-backend-diagnostic-runtime-v{version}/MP-SPDZ'
  if DEST.exists():raise SystemExit('preserve existing diagnostic candidate; destination exists')
  identities={}
  for source in BASE.rglob('*'):
@@ -53,7 +53,7 @@ DataPositions Machine<sint, sgf2n>::public_function_usage()
 
 '''
  edit('Processor/Machine.hpp',marker,getter+marker)
- if version==2:
+ if version>=2:
   for name in ['Protocols/ReplicatedPrep.hpp','Protocols/ShamirMC.hpp','Protocols/ShamirInput.hpp','Protocols/MAC_Check.hpp','Processor/ThreadJob.h']:
    text=(DEST/name).read_text();first=text.index('#include ');line=text[first:text.index('\n',first)];edit(name,line,'#include "Tools/PublicProtocolMetrics.h"\n'+line)
   edit('Protocols/ReplicatedPrep.hpp','void Preprocessing<T>::get_dabit(T& a, typename T::bit_type& b)\n{','void Preprocessing<T>::get_dabit(T& a, typename T::bit_type& b)\n{\n  '+tag+'preprocessing);')
@@ -69,12 +69,14 @@ DataPositions Machine<sint, sgf2n>::public_function_usage()
   edit('Processor/Online-Thread.hpp','      ThreadJob job = queues->next();','      ThreadJob job = queues->next();\n      tls_public_diagnostics::Scope public_job_scope(job.public_diagnostic_context.domain,job.public_diagnostic_context.phase);')
   edit('Processor/Machine.hpp','  if (ThreadQueue::thread_queue or threads.empty() or threads.size()!=tinfo.size() or','  if (ThreadQueue::thread_queue or threads.size()!=1 or threads.size()!=tinfo.size() or')
 
+ if version>=3:
+  edit('Processor/Online-Thread.hpp','  P.reset_stats();','  tls_public_diagnostics::record_initialization_reset(P.total_comm().sent);\n  P.reset_stats();')
  patch=''
  for name,(before,after) in changes.items():
   (DEST/name).write_text(after);patch+=''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile='a/'+name,tofile='b/'+name))
- (WORK/('diagnostics.patch' if version==1 else 'diagnostics-v2.patch')).write_text(patch);shutil.copy2(WORK/'PublicProtocolMetrics.h',DEST/'Tools/PublicProtocolMetrics.h')
+ (WORK/('diagnostics.patch' if version==1 else f'diagnostics-v{version}.patch')).write_text(patch);shutil.copy2(WORK/'PublicProtocolMetrics.h',DEST/'Tools/PublicProtocolMetrics.h')
  identity=sha(''.join(n+'\0'+h+'\n' for n,h in sorted(identities.items())).encode())
  report={'scope':'isolated additive diagnostic candidate; no protocol/config switch','base_source_identity':identity,'base_source_sha256':identities,'overlay_sha256':sha(patch.encode()),'header_sha256':sha((WORK/'PublicProtocolMetrics.h').read_bytes()),'destination':str(DEST.relative_to(ROOT)),'coverage':'Player sent-counter increments; Beaver online exchange and triple-fetch preprocessing scopes; other paths explicitly unattributed; nested times overlap; bytes do not','runtime_build_passed':False}
- (WORK/('diagnostic-prepare.json' if version==1 else 'diagnostic-prepare-v2.json')).write_text(json.dumps(report,indent=2)+'\n');print(DEST)
+ (WORK/('diagnostic-prepare.json' if version==1 else f'diagnostic-prepare-v{version}.json')).write_text(json.dumps(report,indent=2)+'\n');print(DEST)
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--version',type=int,choices=[1,2],default=1);args=parser.parse_args();prepare(args.version)
+ parser=argparse.ArgumentParser();parser.add_argument('--version',type=int,choices=[1,2,3],default=1);args=parser.parse_args();prepare(args.version)
