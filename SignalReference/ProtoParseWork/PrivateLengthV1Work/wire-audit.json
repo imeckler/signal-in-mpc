@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "scope": "full private BE16 wire framing/state/released output against accepted parser on take n",
+  "source_sha256": {
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Framing.lean": "5a16784a7cda3ad9977b0ab99d6d9af1f175b63fb3e456dd5d5c1de651cb55a6",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Metadata.lean": "badbc5a581bd6b01d388b642e4a65809b766b35ff6dea46467191494b96d8efa",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Wire.lean": "6928d3dd31a42ecd84188c617252e45e8018183a8e9f463d4a29211a7974e4b2"
+  },
+  "object_sha256": {
+    "Framing": "ace33e9c86a9b2d174bdf44743caf62d58decc3ca5a24ff7ac25f92e851e870e",
+    "Metadata": "60bf429b5cbd72d393c657508d688670f83f9f0075aafa1425c0d402dfaacae6",
+    "Wire": "3c0d1f77ebf00e740f0349b63800e96242830f64bf2a98e62149ba5c82681ee4"
+  },
+  "core_sha256": "9f3338971f0e0327c9b56d8ed93873834abe6b7cf028404ccbec0c371ed10c20",
+  "endpoints": [
+    "PrivateLengthV1.Wire.state_take",
+    "PrivateLengthV1.Wire.valid_take",
+    "PrivateLengthV1.Wire.metadata_output_take",
+    "PrivateLengthV1.Wire.parseCore_take"
+  ],
+  "domain": "every length<=wire.length<=512; shared BE16 encoded length; upstream255 for plain output equality, arbitrary upstream handled by exact eqMask projection",
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "compiled_native_composition_pending": true,
+  "active_handles": []
+}
