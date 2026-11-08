@@ -1,0 +1,27 @@
+'TlsMpc.Signal.PrivateVarint.active_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.active_canonical' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.increment_small' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.countLoop_value' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.filtered_range_length' does not depend on any axioms
+'TlsMpc.Signal.PrivateVarint.canonical_length_bits' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.canonical_raw_data' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.canonical_data_prefix' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.fromGroups_canonical' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.canonical_data_bytes' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.fromGroups_wire' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.uint32_wire' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.uint64_wire' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.actual_uint32_private_wire' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint32_private_wire' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.canonical_uint32_exists' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.actual_uint32_private_wire_total' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'TlsMpc.Signal.PrivateVarint.compiled_uint32_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateVarint.compiled_uint64_correct' depends on axioms: [propext, Classical.choice, Quot.sound]

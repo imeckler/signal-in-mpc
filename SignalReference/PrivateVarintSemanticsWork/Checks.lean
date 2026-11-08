@@ -1,0 +1,20 @@
+import PrivateVarintSemanticsWork.Reference
+#print axioms TlsMpc.Signal.PrivateVarint.active_value
+#print axioms TlsMpc.Signal.PrivateVarint.active_canonical
+#print axioms TlsMpc.Signal.PrivateVarint.increment_small
+#print axioms TlsMpc.Signal.PrivateVarint.countLoop_value
+#print axioms TlsMpc.Signal.PrivateVarint.filtered_range_length
+#print axioms TlsMpc.Signal.PrivateVarint.canonical_length_bits
+#print axioms TlsMpc.Signal.PrivateVarint.canonical_raw_data
+#print axioms TlsMpc.Signal.PrivateVarint.canonical_data_prefix
+#print axioms TlsMpc.Signal.PrivateVarint.fromGroups_canonical
+#print axioms TlsMpc.Signal.PrivateVarint.canonical_data_bytes
+#print axioms TlsMpc.Signal.PrivateVarint.fromGroups_wire
+#print axioms TlsMpc.Signal.PrivateVarint.uint32_wire
+#print axioms TlsMpc.Signal.PrivateVarint.uint64_wire
+#print axioms LibSignalReference.Candidate.PrivateVarint.actual_uint32_private_wire
+#print axioms LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint32_private_wire
+#print axioms LibSignalReference.Candidate.PrivateVarint.canonical_uint32_exists
+#print axioms LibSignalReference.Candidate.PrivateVarint.actual_uint32_private_wire_total
+#print axioms TlsMpc.Signal.PrivateVarint.compiled_uint32_correct
+#print axioms TlsMpc.Signal.PrivateVarint.compiled_uint64_correct

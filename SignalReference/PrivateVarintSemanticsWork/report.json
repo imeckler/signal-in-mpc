@@ -1,0 +1,37 @@
+{
+  "kernel_endpoints": 19,
+  "foundation_axioms_only": true,
+  "native_reflection_used": false,
+  "private_packing_domain": "All canonical groups of lengths1..10; all uint32 values have canonical width witness; uint64 wire theorem under mathematical canonical-width condition.",
+  "proved": "Actual active suffix masks, private16-bit counting, validity255, exact BE16 width, continuation bytes and zero capacity tail. Total private uint32 wire equals actual selected prost encoder appended bytes for every uint32, without width/validity circuit inputs. Numeric uint32 artifact endpoint composes with actual selected prost reference.",
+  "actual_reference_boundary": "Existing reviewed eleven reversible metadata changes for prost loop and actual selected Vec methods; unchanged retained computational bodies, official pinned Aeneas standard models and translator trust boundary.",
+  "remaining": [
+    "Total uint64 actual prost bridge still to close.",
+    "Canonical base64/decimal arithmetic semantics remain separate.",
+    "Actual AES-CTR/HMAC/whole sealed-sender/session refinement remains blocked and unproved."
+  ],
+  "source_sha256": {
+    "SignalReference/PrivateVarintSemanticsWork/check.py": "075141cef1ccef95e520c2f958a5caa33a18813368403efa718d2e8b1ac759bd",
+    "SignalReference/PrivateVarintSemanticsWork/Reference.lean": "5c1692fc26446f4955d8411d36718bba1595d85f5d12849494541dfb10aabd35",
+    "SignalReference/PrivateVarintSemanticsWork/Checks.lean": "22f857004136603364fe9f17d52c3e315a0433c54513396331130811aeabd837",
+    "TlsMpc/Signal/PrivateVarintSemantics.lean": "e226f017992cd9ae25050cf3580e2b13630014270593965f3d09b3066884f807",
+    "TlsMpc/Signal/PrivateVarint.lean": "f289a49c8a7f2990a51eea9a6c9633a149c36aa7d7b941c81a1cb987761927c8",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "SignalReference/prost-selection-independent-review.json": "2b55684c378a9b225eba3bf1f287f22eca071acbb16f2317bc793ae74b71407b",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeBody/prost_encoding.llbc": "3c98f69e873c84399932d74cddc08e347ab35403e16470b14428b208dd2cf4cc",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/selected.llbc": "0a11308d2c265eef9460f62eb41b92ef7bcb52d225ff2ffcd45d8d5e67c235c4",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/changes.json": "f1d4c6ef8196b69b94c0aaf7802e39849fb7183cc1cca4671a5d8cc739a6e247",
+    "SignalReference/ProstEncodingWork/Artifacts/EncodeSelected/review.json": "93140558658dd107aac7f3103f6d638ccfc35e416349555f76fc697d3397fc4c",
+    "SignalReference/ProstEncodingWork/Artifacts/VecPutSlice/inventory.json": "19a4af4ddd6bb2e126e51f691df86b1f4d51e3bfc3b752cf09e4a8ede58f17f4",
+    "SignalReference/ProstEncodingWork/Artifacts/VecPutSlice/prost_encoding.llbc": "330bf700487f390c864f2688d04baa4ebac5c3446f2d75107f5840f020940ac9",
+    "SignalReference/ProstEncodingWork/Reference.lean": "9c6cca038a9c33f3b154cb07173ea7a9bdf0799c4af52ab855466f4aba959ff0",
+    "SignalReference/ProstEncodingWork/NatBridge.lean": "eec32973b2d72251001d79c3cfe0ef50b88f4b7840c77cda7a5aaeaec58f925c",
+    "SignalReference/ProstEncodingWork/VecBridge.lean": "059d9f37c6f9f7b201b993901be1a5a7fc1deb2a04e735bd6dff18a2257dd18b",
+    "SignalReference/ProstEncodingWork/CircuitBridge.lean": "3b39bb56d92fe152fe34912dce87ab5483427ec18e36be64456e517f0498635a",
+    "SignalReference/ProstEncodingWork/Generated/EncodeSelected/Types.lean": "23c900d4c78006cae4f2926abae1383c0d3d92de8cc2fd8e948989577381bbc2",
+    "SignalReference/ProstEncodingWork/Generated/EncodeSelected/Funs.lean": "8c1ab8cea362584c00ed8864ccf539490d26f2cf4f3ab9f82b621031d75fa9c5",
+    "SignalReference/ProstEncodingWork/Generated/VecPutSlice/Types.lean": "ca886aa91142da947c2d7566cb97981948275cb9be00d084f38e66b8d4834d07",
+    "SignalReference/ProstEncodingWork/Generated/VecPutSlice/Funs.lean": "87dc0729ef6f099ccad57dbdc7d0883e8ca87f71d95f37da47abc9711212d411"
+  }
+}
