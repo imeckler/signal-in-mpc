@@ -87,3 +87,19 @@ This is explicitly a success subtheorem, not the missing all-error refinement,
 constructor/parameter classification for every failed payload/group, or the final
 actual-implementation compiled-output endpoint. The initial record is explicit;
 a separate Prost Message::decode/default wrapper is not silently assumed proved.
+
+CompiledSuccess.compiled_actual_success now connects the private complete
+175-byte observation AIG to actual extracted merge on successful bounded bodies.
+The witness's six field records project to the exact actual Rust Options; raw
+metadata is explicitly represented, not equated to a nonexistent Rust offset
+record. ObservedSuccess proves no hidden diagnostic on actual success.
+KeyRejectionStep covers every actual key failure through all remaining scan
+positions. PayloadRejectionStep covers actual varint payload failures (including
+EOF/fast/slow paths), with exact suffix, recursion state, field initialization
+and constructor/parameter, once the actual branch's known-wire/budget decisions
+are discharged. RejectionState preserves the complete failed record; finish does
+not overwrite diagnostics after an active failure. DecoderErrorTransport retains
+error mutation across independently extracted primitive closures. Underflow,
+wrong-wire, recursion/group/EOF and whole-error induction remain to compose.
+EOF within an unclosed group needs completeMask=0 with raw state.ok possibly255;
+that distinct observation must not be rewritten as an active failed plan.
