@@ -1,0 +1,16 @@
+{
+  "kernel_endpoints": 4,
+  "standard_axioms_only": true,
+  "native_reflection_used": false,
+  "actual_shiftLoop_decoded_BE16_integer_shift_proved": true,
+  "all_lengths_all_capacities": true,
+  "full_append_normalization_prefix_concat_theorem": false,
+  "private_hash_padding_semantic_refinement": false,
+  "source_sha256": {
+    "SignalReference/PrivateBufferPackingWork/check.py": "21f4102124fe71be3c51db49beb227d0efd6cbc0630185af7f78e05bddc03bb9",
+    "SignalReference/PrivateBufferPackingWork/Checks.lean": "cefe5ef6717aed456abdd8e4da43253cdfcae910e49e7ce2b01fc7740abdd4cc",
+    "TlsMpc/Signal/PrivateBufferPacking.lean": "601cccf966d6bdfff901f7bf22f7c2a31a52ac11490903bb7ff9b7b6ef91fb51",
+    "TlsMpc/Signal/PrivateBufferSemantics.lean": "74d553805be7d7f67f35da7d1b4c7c41ccb56e2df82a1d87be1fb9782424aa84",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e"
+  }
+}

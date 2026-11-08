@@ -1,0 +1,4 @@
+'TlsMpc.Signal.PrivateBuffer.shifted_shifted' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.choose_mask' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.shiftLoop_masks' depends on axioms: [propext, Classical.choice, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.shiftLoop_decoded' depends on axioms: [propext, Classical.choice, Quot.sound]
