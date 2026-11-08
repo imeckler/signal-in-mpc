@@ -1,0 +1,13 @@
+{
+  "candidate_only": true,
+  "actual_Signal_authentication_and_commit": false,
+  "native_MPC_executed": false,
+  "artifact_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "manifest_sha256": "933b1584124b109ec9ce1146afdb475c74d7f63b03dffd0b40be6f859a515180",
+  "trust_boundary": "Existing mixed-domain conversion/runtime and joint randomness. Actual parsed-point binding and cryptographic receive/commit composition pending.",
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/prepare_dh.py": "8e242ec28f8defcfe05550baa8daaa540a326c8afa8019f35a82912f9f60c8a4",
+    "programs/signal_dh_receive_candidate.mpc": "37a590b58f812bd55879db1757713499797719aab2fd5dffff444dc903e26461",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6"
+  }
+}

@@ -2,10 +2,11 @@
   "compile_link_passed": true,
   "native_MPC_executed": false,
   "source_sha256": {
-    "signal_backend/SessionTransitionWork/check_adapter.py": "b2d59a7d5f7288fdc50828bc91eeb5b916f2e1c6fc1f9287fe16dbe2b3399e05",
-    "signal_backend/SessionTransitionWork/adapters_probe.cpp": "5ea0f42ff60e4b97bf07c3d996643cf7e3eb48ab6edfd4cdd551896145c81151",
-    "signal_backend/SessionTransitionWork/Makefile": "101ac60a5bf917453f834f93b8ffe6bbe5d7cd411b1aeb4be3317958a366751a",
+    "signal_backend/SessionTransitionWork/check_adapter.py": "83aa08e79196525c84a3a65a279769e89b55a05cc369ad356e472847ee82c0ba",
+    "signal_backend/SessionTransitionWork/adapters_probe.cpp": "8f84611a6443c60ab954a7b447459a62305b95b2c681eb3a219e0d222fe35a99",
+    "signal_backend/SessionTransitionWork/Makefile": "d9f758fa60ecf218e013b371cc16ac731391d49b0d8d0b448850dff4dd354c38",
     "signal_backend/SessionTransitionWork/NativeActiveSpqrReceive.h": "daa85cac4dc3ac9ab608b5ab9fd884c421f00c259a4006a938074fd6f2961974",
+    "signal_backend/SessionTransitionWork/NativeComputedDh.h": "082b203eed3ffe29d79b0f7f6558e3d6047ca88ebc23de718cd814461a1eded1",
     "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76"
   }
 }

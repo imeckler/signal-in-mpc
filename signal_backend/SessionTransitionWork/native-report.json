@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "public_disposable_receiving_fixture_only": true,
+  "actual_locked_spqr_receive_oracle": true,
+  "receiving_chain_counter_key_unopened": true,
+  "output_state_reused_as_next_input": true,
+  "successful_receives": 2,
+  "counter_boundary": "126\u2192127\u2192128",
+  "truncated_private_wire_rejection": true,
+  "opened": "Only secure equality against independently computed PUBLIC oracle constants; never receiving state or message-key shares.",
+  "full_Signal_MAC_or_DH_transition": false,
+  "full_SPQR_state_or_KEM_transition": false,
+  "elapsed_seconds": 58.30721170792822,
+  "timing_scope": "Startup plus3 candidate operations and3 comparison checks; not service throughput.",
+  "logs": ".deps/private-active-spqr-receive-native/fixture-u1n2jt_c",
+  "manifest_sha256": "e157279ad2e7b68e0bb41e74ac255f7eeb334684588be1a1bbe9530ccfe2bd0c",
+  "binary_sha256": "5dde6d74c685ee11091973feeee066df40e6ef8c4c8f0395f8f8ce0ad944bbcd",
+  "oracle_sha256": "5afeaa78464485a5c0d530797516ebe96ea90d1420ebec93dba5837cadd348a5",
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/native_check.py": "485cea2736818c33049a82fce31646dc3b27a48476e45c7b70b3e2b90365e6cd",
+    "signal_backend/SessionTransitionWork/native_fixture.cpp": "93bad1d3905f84a523a6041ae5ec1f4adaee4e7d960b971729b3cada883f2de2",
+    "signal_backend/SessionTransitionWork/NativeActiveSpqrReceive.h": "daa85cac4dc3ac9ab608b5ab9fd884c421f00c259a4006a938074fd6f2961974",
+    "signal_backend/SessionTransitionWork/Makefile": "d9f758fa60ecf218e013b371cc16ac731391d49b0d8d0b448850dff4dd354c38",
+    "programs/signal_active_spqr_receive.mpc": "f07f9dace6e32c9e8107853d509a79c7bac0fb271e12af1296579f761b1e27bd",
+    "programs/signal_transition_fixture_check.mpc": "ec08268c022906f1937531a3a134623607c062e6864330e82f1046c2495d6613",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "TlsMpc/Signal/ActiveSpqrReceive.lean": "fd8f5cb505e356815f6c946f40ffe0e862c05d1f5860d5d3cae68f6f88bcd1d9"
+  }
+}

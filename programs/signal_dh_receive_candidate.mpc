@@ -1,0 +1,29 @@
+# Internal shared candidate only. Parsed remote point provenance and actual
+# Signal MAC/decrypt must gate all retained state. No input/output openings.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from handshake_backend.field_dag import load
+from handshake_backend.mixed import execute_secret,field_to_wire_bits,wire_bits_to_field,wire_bits_to_scalar_fields
+field=load(program.args[1])
+if field['input_count']!=257:raise ValueError('X25519 field artifact dimensions')
+def prepare(inputs,outputs):
+    raw=binary_io.read_bits(inputs)
+    old=wire_bits_to_scalar_fields(raw[:256])
+    remote=wire_bits_to_field(raw[256:512],mask_high_bit=True)
+    # Joint binary randomness remains shared; retain exactly the clamped private
+    # scalar used for the computed public key and sending agreement.
+    fresh=[sbit.get_random_bit() for _ in range(256)]
+    for index in (5,6,7,248):fresh[index]=sbit(0)
+    fresh[249]=sbit(1)
+    scalar=wire_bits_to_scalar_fields(fresh)
+    public=field_to_wire_bits(execute_secret(field,scalar+[sint(9)])[0])
+    receiving=field_to_wire_bits(execute_secret(field,old+[remote])[0])
+    sending=field_to_wire_bits(execute_secret(field,scalar+[remote])[0])
+    binary_io.write_bits(outputs,fresh+public+receiving+sending)
+prepare.__name__='signal_private_dh_receive_candidate'
+function=export(prepare);Array=sbitvec.get_type(1).Array
+function(Array(512),Array(1024))

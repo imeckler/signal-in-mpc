@@ -1,0 +1,13 @@
+# PUBLIC-DISPOSABLE-FIXTURE ONLY; open only a comparison bit in the C++ harness.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+def equal(inputs,outputs):
+    bits=binary_io.read_bits(inputs)
+    layer=[~(bits[i]^bits[616+i]) for i in range(616)]
+    while len(layer)>1:layer=[layer[i]&layer[i+1] if i+1<len(layer) else layer[i] for i in range(0,len(layer),2)]
+    binary_io.write_bits(outputs,layer*8)
+equal.__name__='signal_transition_fixture_equal_616'
+function=export(equal);Array=sbitvec.get_type(1).Array
+function(Array(1232),Array(8))

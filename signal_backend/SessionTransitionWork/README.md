@@ -43,13 +43,34 @@ then invokes actual locked `spqr::recv`; no final message key is supplied.
 epochs, noncanonical varints and ignored trailing bytes.20 rejection cases cover
 private status, truncation, length overflow, kind/epoch/index mismatch and counter
 profile exhaustion. Six foundation-only endpoints prove Hom/numeric compiler
-agreement. Actual Rust/Aeneas full source refinement remains open.
+agreement. The five-party threshold2 native fixture passes two receives across
+126→127→128 and a truncated-wire rejection, feeding returned receiving shares
+into the next call. It opens only secure comparison bits against independent
+public oracle constants, never key/state shares.58.307s includes startup, three
+candidate operations and three comparisons; it is not service throughput. Actual Rust/Aeneas full source refinement remains open.
 
 This is candidate derivation, **not authenticated message acceptance**. Native
 adapter has no commit/open/import/RPC API. The next composition must derive this
 key from the actual SignalMessage PQ field, compute fresh joint DH keypair and
 both agreements, authenticate/decrypt the original Signal bytes, and only then
 commit root/private/receiver/PQ state together. Rejection preserves all old state.
+
+The native `NativeComputedDh` internal stage takes old own-DH private32 and the
+actual parsed remote point32. It generates a joint shared fresh scalar, retains
+its clamped32-byte representation, and computes the matching public key and both
+receive/send agreements with the existing X25519 field artifact. Its512→1024-bit
+manifest is `.deps/private-dh-receive-native/dh.manifest`. It does not accept
+supplied agreements or open any field/key; it has no RPC or commit API. Mixed
+field/byte conversion and runtime/randomness remain existing unverified backend
+boundaries; this is not a new actual-source cryptographic refinement claim.
+
+The new private-length parser dependency is owned by the parser worker:
+`PrivateProtoParseV1` cap256, shared BE16 true entire Signal wire length and
+upstream computed validity. It must prevent suffix decoders from borrowing
+capacity bytes, validate dynamic field ends and keep body-relative PQ offsets.
+Its take-n semantic/circuit theorem is pending. The composed receive transaction
+must authenticate the original private prefix/MAC and bind this exact parsed
+point/PQ field into both native candidate stages before atomic state selection.
 
 ## Recoverable share-state design coordination
 
