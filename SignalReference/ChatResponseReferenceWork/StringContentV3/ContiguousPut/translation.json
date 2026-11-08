@@ -1,0 +1,28 @@
+{
+  "scope": "Byte-identical generated declarations, declaration-name repair only; handwritten external models separate",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Artifacts/one-step/named.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Build/replay",
+    "-subdir",
+    "/ChatResponseReferenceWork/StringContentV3/ContiguousPut/GeneratedOneStep",
+    "-namespace",
+    "ContiguousPutOneStep",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "translator_sha256": "5ea6276549fac0be5c55ac6608ae8b4efa1dd1b147c15a988543871d8094bbec",
+  "llbc_sha256": "9954f28e4e11d1a116cdda984b1ac55c83693cee5842b81666ddb68eb2b0c56a",
+  "named_llbc_sha256": "40de44160fcf0fe90eafe98b260e85bcd57a307c0d5a6de80dcc23ac889a8277",
+  "script_sha256": "9016ec6db935f83341f45b0c39f1336bc4b6c0bb0973853d780b63f8b0fb2a4a",
+  "generated_sha256": {
+    "Types.lean": "40dc4f269775e3f7ae3050ae73177f210a8afc8038d9b351831baf51919fbdb2",
+    "Funs.lean": "277e91ad511910b4082ccdf82c8734c153cf9749ad77e876fff300c01f6dcaab",
+    "FunsExternal_Template.lean": "2036021a8b2af6a2ad206e8581354bc51fab7ae39cb52015b1a7a0683297bb42"
+  }
+}

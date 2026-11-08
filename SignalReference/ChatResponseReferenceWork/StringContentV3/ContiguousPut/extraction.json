@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--monomorphize-mut=all",
+    "--start-from=crate::put_contiguous_one_step",
+    "--include=bytes::buf::take::Take",
+    "--include=bytes::buf::buf_impl::Buf::take",
+    "--include=bytes::buf::take::new",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Artifacts/one-step/put.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "988c8233720e7ad9f94dc7df046d96a20260d24b7e003882502992de25117d99",
+  "llbc_sha256": "9954f28e4e11d1a116cdda984b1ac55c83693cee5842b81666ddb68eb2b0c56a",
+  "charon_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+}
