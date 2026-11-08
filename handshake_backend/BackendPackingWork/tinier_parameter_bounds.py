@@ -3,16 +3,17 @@
 import json, math
 from pathlib import Path
 
-def bound(outputs, bucket):
+def bound(outputs, bucket, combine=None):
+    combine = bucket if combine is None else combine
     checks = bucket
-    buckets = bucket * outputs
+    buckets = combine * outputs
     raw = bucket * buckets + checks
     denominator = math.comb(raw, bucket)
     # Exact rational comparison: no floating rounding in the security decision.
     correctness_128 = buckets * (1 << 128) <= denominator
     # FKOS Lemma 10 is strict: B > (s-1)/log2(L)+1.
-    leakage_128 = pow(outputs, bucket - 1) > (1 << 127)
-    return dict(outputs=outputs, correctness_bucket=bucket, leakage_bucket=bucket,
+    leakage_128 = pow(outputs, combine - 1) > (1 << 127)
+    return dict(outputs=outputs, correctness_bucket=bucket, leakage_bucket=combine,
                 opened_checks=checks, sacrifice_outputs=buckets, exact_raw=raw,
                 raw_per_output=raw / outputs,
                 correctness_numerator=buckets, correctness_denominator=str(denominator),
@@ -39,7 +40,14 @@ rows=[]
 for outputs in [64,256,1024,4096,16384,65536,262144,1048576]:
     bucket=next(b for b in range(2,130) if bound(outputs,b)['correctness_at_most_2_minus_128'] and bound(outputs,b)['leakage_lemma_128_strict'])
     rows.append(bound(outputs,bucket))
-report=dict(candidate_only=True,runtime_changed=False,statistical_target=128,
+separate=[]
+for outputs in [64,256,1024,4096,16384,65536,262144,1048576]:
+    combine=next(b for b in range(2,130) if pow(outputs,b-1) > (1 << 127))
+    bucket=next(b for b in range(2,130) if bound(outputs,b,combine)['correctness_at_most_2_minus_128'])
+    separate.append(bound(outputs,bucket,combine))
+report=dict(separate_bucket_curves=separate,
+    separate_buckets_implemented=False,
+    candidate_only=True,runtime_changed=False,statistical_target=128,
     exact_small_distribution_checks=tests(),curves=rows,
     primary_sources=['https://eprint.iacr.org/2016/944.pdf','https://eprint.iacr.org/2015/901.pdf'],
     assumptions=['FLNW Theorem 5.3: uniform permutation, fixed bad set, C>=B, exact divisible batch; maximum bad count B.',
