@@ -84,6 +84,24 @@ theorem completeMask_map (ending : W) (state : State B W) :
     f (completeMask o a ending state) = completeMask o' a' (fw ending) (state.map f fw) := by
   simp [completeMask,State.map,ha.and,Word64.eq_map ho ha,ho.const]
 
+include ho ha in
+theorem ratchetRead_map (ending : W) (bytes : List B) (state : State B W) :
+    (ratchetRead o a ending bytes state).map f = ratchetRead o' a' (fw ending) (bytes.map f) (state.map f fw) := by
+  have offset := congrArg Field.offset (ProtoParse.getField_map ho ha state 0)
+  simp only [Field.map] at offset
+  simp only [ratchetRead,PrivateReadAtV1.read_map ho ha,offset]
+
+include ho ha in
+theorem metadata_map (ending : W) (wire : List B) (state : State B W) :
+    (metadata o a ending wire state).map f = metadata o' a' (fw ending) (wire.map f) (state.map f fw) := by
+  have present (i) := congrArg Field.present (ProtoParse.getField_map ho ha state i)
+  have length (i) := congrArg Field.length (ProtoParse.getField_map ho ha state i)
+  have offset (i) := congrArg Field.offset (ProtoParse.getField_map ho ha state i)
+  have scalar (i) := congrArg Field.scalar (ProtoParse.getField_map ho ha state i)
+  simp only [Field.map] at present length offset scalar
+  simp only [metadata,List.map_append,List.map_drop,List.map_cons,List.map_nil,
+    ratchetRead_map ho ha,ProtoParse.body_map,Word64.bytes_map ho,present,length,offset,scalar,ha.and,ha.const]
+
 include hd ho ha in
 theorem parse_map (wire : List B) (lengthHigh lengthLow upstreamValid : B) :
     (parse d o a wire lengthHigh lengthLow upstreamValid).map f fw =
@@ -92,10 +110,10 @@ theorem parse_map (wire : List B) (lengthHigh lengthLow upstreamValid : B) :
   have length (state : State B W) (index) := congrArg Field.length (ProtoParse.getField_map ho ha state index)
   simp only [Field.map] at present length
   simp only [parse,Parsed.map,parseBody_map hd ho ha,ProtoParse.body_map,List.length_map,
-    ProtoParse.metadata_map ho ha,ByteAuth.release_map ha,ha.and,ha.const,
+    metadata_map ho ha,ByteAuth.release_map ha,ha.and,ha.const,
     Receive.versionMask_map ha,completeMask_map ho ha,ByteAuth.eqMask_map ha,ho.ule,ho.const,
     ho.pack,ho.select,ho.sub,List.map_append,List.map_replicate,List.map_cons,List.map_nil,
-    present,length,ProtoParse.ratchetRead_map ho ha,OpenResult.get_map ha]
+    present,length,ratchetRead_map ho ha,OpenResult.get_map ha]
 
 include hd ho ha in
 theorem parseCore_map (wire : List B) (lengthHigh lengthLow upstreamValid : B) :
@@ -108,10 +126,14 @@ theorem parseCore_map (wire : List B) (lengthHigh lengthLow upstreamValid : B) :
   simp only [parseCore,List.map_cons,valid,metadata]
 end Refinement
 
+theorem metadata_length (o : Word64.Ops B W) (a : ByteAuth.Ops B) (ending : W)
+    (wire : List B) (state : State B W) : (metadata o a ending wire state).length = 89 := by
+  simp [metadata,ratchetRead,PrivateReadAtV1.read_length,Word64.bytes_length]
+
 theorem parseCore_length (d : VarintDecode.Spqr.Ops B W) (o : Word64.Ops B W) (a : ByteAuth.Ops B)
     (wire : List B) (lengthHigh lengthLow upstreamValid : B) :
     (parseCore d o a wire lengthHigh lengthLow upstreamValid).length = 90 := by
-  simp [parseCore,parse,ByteAuth.release,ProtoParse.metadata_length]
+  simp [parseCore,parse,ByteAuth.release,metadata_length]
 
 /-- Factor the compiler's dependent vector type once over an arbitrary byte
 list, avoiding elaboration-time expansion of the whole parser expression. -/

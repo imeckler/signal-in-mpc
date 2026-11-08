@@ -1,4 +1,5 @@
 import TlsMpc.Signal.ProtoParseProofs
+import TlsMpc.Signal.PrivateReadAtV1
 
 /-! Versioned private-length SignalMessage parser. All list lengths and scans
 are public capacities; the actual wire/body end is a shared word. Bytes beyond
@@ -116,6 +117,21 @@ def completeMask (o : Word64.Ops B W) (a : ByteAuth.Ops B) (ending : W)
     (state : State B W) : B :=
   a.and state.ok (a.and (Word64.eq o a state.next ending) (Word64.eq o a state.depth (o.const 0)))
 
+/-- Ratchet metadata reads obey the same private body boundary as decoding. -/
+def ratchetRead (o : Word64.Ops B W) (a : ByteAuth.Ops B) (ending : W)
+    (bytes : List B) (state : State B W) : List B :=
+  PrivateReadAtV1.read o a ending 33 bytes (getField o a state 0).offset
+
+def metadata (o : Word64.Ops B W) (a : ByteAuth.Ops B) (ending : W) (wire : List B) (state : State B W) : List B :=
+  (ratchetRead o a ending (body wire) state).drop 10 ++
+    (Word64.bytes o (getField o a state 1).scalar).drop 4 ++
+    (Word64.bytes o (getField o a state 2).scalar).drop 4 ++
+    Word64.bytes o (getField o a state 3).offset ++ Word64.bytes o (getField o a state 3).length ++
+    Word64.bytes o (getField o a state 4).offset ++ Word64.bytes o (getField o a state 4).length ++
+    [a.and (getField o a state 5).present (a.const 1)] ++
+    Word64.bytes o (getField o a state 5).offset ++ Word64.bytes o (getField o a state 5).length
+
+
 structure Parsed (B W : Type) where
   state : State B W
   wireLength : W
@@ -143,8 +159,8 @@ def parse (d : VarintDecode.Spqr.Ops B W) (o : Word64.Ops B W) (a : ByteAuth.Ops
         (a.and ratchet.present (a.and (getField o a state 1).present
           (a.and (getField o a state 3).present
             (a.and (o.ule (o.const 33) ratchet.length)
-              (ByteAuth.eqMask a (OpenResult.get a (ratchetRead o a bytes state) 9) (a.const 5)))))))))
-  ⟨state,wireLength,bodyLength,accepted,ByteAuth.release a accepted (ProtoParse.metadata o a wire state)⟩
+              (ByteAuth.eqMask a (OpenResult.get a (ratchetRead o a bodyLength bytes state) 9) (a.const 5)))))))))
+  ⟨state,wireLength,bodyLength,accepted,ByteAuth.release a accepted (metadata o a bodyLength wire state)⟩
 
 def parseCore (d : VarintDecode.Spqr.Ops B W) (o : Word64.Ops B W) (a : ByteAuth.Ops B)
     (wire : List B) (lengthHigh lengthLow upstreamValid : B) : List B :=

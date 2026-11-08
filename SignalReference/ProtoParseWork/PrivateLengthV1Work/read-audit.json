@@ -1,0 +1,21 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "scope": "private-end metadata read, exact prefix-read theorem and preserved parser Hom/compiler endpoints",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateReadAtV1.lean": "d9e0c64e8e7b8a39703c22b82de481be9613dc764b6eb6a887a71cf84125c490",
+    "TlsMpc/Signal/PrivateProtoParseV1.lean": "9f3338971f0e0327c9b56d8ed93873834abe6b7cf028404ccbec0c371ed10c20",
+    "TlsMpc/Signal/PrivateProtoParseV1Proofs.lean": "e60f5b18bf403103586307b5545cdc0fd8adca403fe9cf2ee6680ee69b0ae7e0",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Read.lean": "9e945ca704bdc40c42a56066dfaf6086acd853598a3c42efcb3857d10ebcc691"
+  },
+  "endpoint": "PrivateLengthV1.Read.read_take",
+  "domain": "ending<=bytes.length<=512, width<=512, arbitrary 64-bit offset",
+  "observation": "exact status, cursor and data; no field validity/success premise; wrapping additions cannot authorize reads",
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "full_wire_refinement": false,
+  "active_handles": []
+}
