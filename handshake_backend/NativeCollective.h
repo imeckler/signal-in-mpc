@@ -5,10 +5,11 @@
 #include <sodium.h>
 #include <array>
 #include <string>
+#include <functional>
 
 namespace tls_mpc_worker {
 class Collective {
-    Player& player;
+    std::function<Player&()> current_player;
     PublicBytes context;
     RequestSequence requests;
     static PublicBytes digest(const PublicBytes& input) {
@@ -19,6 +20,7 @@ class Collective {
         return octetStream(std::string(value.begin(),value.end()));
     }
     std::vector<octetStream> broadcast(const PublicBytes& value) {
+        auto& player=current_player();
         std::vector<octetStream> all(player.num_players());
         all.at(player.my_num())=stream(value);
         player.Broadcast_Receive(all); player.Check_Broadcast(); return all;
@@ -29,8 +31,13 @@ class Collective {
     }
 public:
     // Context must bind pinned program/config/trust manifest and fresh session ID.
-    Collective(Player& player, const PublicBytes& manifest, const PublicBytes& session_id) : player(player) {
-        public_require(player.num_players()==5,"TLS worker requires five parties");
+    Collective(Player& player, const PublicBytes& manifest, const PublicBytes& session_id)
+        : Collective([&player]() -> Player& {return player;},manifest,session_id) {}
+    // Reacquire the host player on every operation across secure epoch renewal.
+    Collective(std::function<Player&()> player, const PublicBytes& manifest, const PublicBytes& session_id)
+        : current_player(std::move(player)) {
+        auto& current=current_player();
+        public_require(current.num_players()==5,"TLS worker requires five parties");
         public_require(manifest.size()==32&&session_id.size()==32,"invalid worker context");
         public_require(sodium_init()>=0,"random initialization failed");
         const std::string label="tls-mpc-worker-public-v4;shamir5t2;fp25519;ccd128;security128;dabit;typed-shape-extensions";
@@ -51,6 +58,7 @@ public:
         bound.insert(bound.end(),manifest.begin(),manifest.end());identical(digest(bound));
     }
     template<class Action> PublicBytes leader(Action&& action) {
+        auto& player=current_player();
         PublicBytes packet;
         if(player.my_num()==0) {
             try {packet=action();public_require(packet.size()<=16645,"leader response too large");packet.insert(packet.begin(),0);}
@@ -63,6 +71,7 @@ public:
         return PublicBytes(result.get_data()+1,result.get_data()+result.get_length());
     }
     PublicBytes public_random() {
+        auto& player=current_player();
         PublicBytes random(32); randombytes_buf(random.data(),random.size());
         auto bound=context; bound.push_back(0x52); put_number(bound,player.my_num(),4); bound.insert(bound.end(),random.begin(),random.end());
         auto commits=broadcast(digest(bound)); auto openings=broadcast(random);

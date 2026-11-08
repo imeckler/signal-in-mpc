@@ -1,0 +1,80 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "layers": {
+    "handshake_backend/ScratchWork/vm-scratch.patch": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+    "handshake_backend/LifetimeWork/fixed-field-lifetime.patch": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19",
+    "handshake_backend/ByteBufferWork/serialized-buffer.patch": "d5d374a30698e82d897db7ae6c413150ca2f9e85dad0f5857d203c034b2b7600",
+    "handshake_backend/EpochWork/runtime-epoch.patch": "10707c8af974b176348eb79f4a4efafa984096831daacfc5d3a41bf708345547",
+    "handshake_backend/LifecycleWork/owned-storage.patch": "f588c13324274164665a803c77279341c06a3397986d58977280222f591ecd6f"
+  },
+  "patch_sha256": "76f1a737ee0dbdaea9a9d5d7b91096333244b1c4cf872b13eeafe9bd1db0bda0",
+  "script_sha256": "74ae1b517bddb29bade8c55a19e8c65abf83b8c9ef62f21ecfead02cd84f648e",
+  "files": {
+    "Tools/ErasingThreadStack.h": {
+      "before": "17d58914b099a9a0b5aa949fd9e611116b85da1b1956afa863416f8364526e20",
+      "after": "d7ca33d3e17db352fdd6515c6c23a54aa178cd1dd906b1afc53c659f147b9621"
+    },
+    "Networking/Receiver.h": {
+      "before": "8f103bffb0c3b102b4cc49a3e4d0372cd8c8231bea835c1a71e03f320afb8090",
+      "after": "771738097a3fdb60340af52055ddb90a54efc740d553e441e73423205bc707af"
+    },
+    "Networking/Receiver.cpp": {
+      "before": "b8320c2f2716264b9ec32dbfd5b0e5e7e7d7aa6e75e46b85b0e03809a46a1cdf",
+      "after": "c2a6dda58b7bd85cc278fb6ef7611cf969782144f13317b62178294c593b0e38"
+    },
+    "Networking/Sender.h": {
+      "before": "8bde9a72ae5f129de263d345c2de5cc9211362a538a3d05316a2b364aaddd3e7",
+      "after": "bc4eed69f6f5d587245bb9f9a990f95f06a5aa2038a0773396f621b11ee959a0"
+    },
+    "Networking/Sender.cpp": {
+      "before": "2bb1d6aa9c53d9004c3348e5b2e69966f2e2062ceca600c9247afd30a44b24aa",
+      "after": "b70d7c1cc633dad533a776df4d66b32bba01c003b3947e03cd8ad21806e6e12a"
+    },
+    "Tools/Worker.h": {
+      "before": "46e96973d1fce3b91282ac8ea6e6608f5a1a36f40f8d248e7ebfd519f2515296",
+      "after": "4a4eb9ebd5c56d3334f56d017365c1dbe66356db49a62d1fa0e22942af19a529"
+    },
+    "Networking/ssl_sockets.h": {
+      "before": "640a71dd4cf012c8864010bf9690b2a6a8cd758807c90650aa03cd0599054832",
+      "after": "6cd424e34822cf9ca8ef05e884264afc35e654a9c1e6253c1b56b7fc287490d4"
+    },
+    "Protocols/SecureShuffle.h": {
+      "before": "a13b847b1ae23a3f21241d151b5dce5d2904d1a27f8a929bef543f64d7833e74",
+      "after": "ead1b3a28cf958bb81207301f2266c8e5d4f1d8510ec7ba31423ac6f49683d03"
+    },
+    "Processor/ExternalClients.h": {
+      "before": "0cc00a4c6cccf72da66a2beca64f0d1bfb1dc5a7c09ad37c90a09f90790f106e",
+      "after": "7bffd7631aff43b31e4bc635da64848dbf45bf1e56d40b2f691929e5a5fcb176"
+    },
+    "OT/OTTripleSetup.h": {
+      "before": "93e71b45a31f1f5f17abde80d069ea559789bbf7d28555a2f4a44252c25f7c1b",
+      "after": "e617ba03b3d5fca9da2a002952b2913da5c0c112c79b9aeaadd7c8172de1b502"
+    },
+    "Networking/Player.h": {
+      "before": "b4a01131b3e619d71c4b2f0e2ea954f709cc4d0756ef3838d2c332e047790a51",
+      "after": "624a6236d0b0489d4a90bcbc7a170ec753527dba0e65cd1baa8e1914586e91cf"
+    },
+    "Processor/Machine.h": {
+      "before": "af84e76148df3db0369338a1cc3164b8def4b39fb0e2cecd07afb22c5a70e43e",
+      "after": "a2ba5320a0bb3afe3164c77aca81923b9134078993f9b8811d0874607efa6c11"
+    },
+    "Processor/Machine.hpp": {
+      "before": "4b372f11204a7beafbf01f6782d3e832dbc39da942bb2da2b46e571c68c74ca5",
+      "after": "9679b23328ba1a2bb15faeea8544f66b179fbd4575caf03c09d48d6736481fa8"
+    },
+    "Processor/Online-Thread.hpp": {
+      "before": "5eeae6eddcfa7fe0552f33af695e31f7456120d494df4cd10c7a441c564c48d1",
+      "after": "06670ad70942aa829a19efb4d8ac5456c15640ec65892cacb14b6e2cda29d2ef"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false
+}
