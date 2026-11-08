@@ -1,0 +1,11 @@
+# Actual SSv1 symmetric wrapper candidate
+
+`extract.py` extracts the unchanged pinned libsignal `crypto::aes256_ctr_hmacsha256_encrypt` (crypto.rs56–65) through pinned Charon/Aeneas. Source bytes are checked against the pinned release archive. No Rust patches, generated-body edits, metadata deletion or supplied validity flags are used. The extraction inventory records commands, versions, actual source hashes and generated hashes.
+
+The actual AES-CTR and HMAC bodies are deliberately opaque extraction slots. The authored `FunsExternal.lean` binds those slots to the executable definitions in `PrimitiveModels.lean`; **their agreement with the actual excluded Rust primitive bodies is unproved**. The generated template is retained as extraction evidence but is not imported. This is not full sealed-sender or cryptographic-security refinement.
+
+`WrapperReference.lean` proves actual generated `Result`/`Try` error propagation, official checked array prefix indexing, cloned byte append, and exact output equality to `SealedSenderV1.encrypt` under that explicit primitive interpretation. Bad cipher-key length produces the actual `BadKeyOrIv` error. Successful append requires `msg.length+10≤Usize.max`; the intended source-agreement profile is message≤8192, cipher/MAC keys32. Allocation resource behavior and correctness of the translator/official models remain trust boundaries.
+
+Run `python3 SignalReference/SealedSenderReferenceWork/check.py` from the repository. It uses the pinned Aeneas library and local Lean dependency cache (without invoking SignalReference Lake dependency resolution), compiles unchanged generated modules, checks source/generated hashes, and audits seven kernel endpoints against the foundational axiom whitelist. Build products stay ignored. To regenerate actual extraction, run `extract.py` with the pinned local toolchains available.
+
+Whole SS KDF/key derivation/certificate/protobuf wrapping, AES/HMAC Rust primitive agreement, session/DH/SPQR implementation linkage, recoverable persistent state and fresh-session XEdDSA agreement remain separate gaps. Existing native actual libsignal differential tests are evidence on bounded fixtures, not these missing general proofs.

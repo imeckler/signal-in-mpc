@@ -1,0 +1,8 @@
+import SealedSenderReferenceWork.WrapperReference
+#print axioms SealedSenderReference.ctrLoop_length
+#print axioms SealedSenderReference.ctr_length
+#print axioms SealedSenderReference.clone_bytes
+#print axioms SealedSenderReference.extend_bytes
+#print axioms SealedSenderReference.wrong_cipher_key
+#print axioms SealedSenderReference.wrapper_composition
+#print axioms SealedSenderReference.wrapper_matches_symmetric_model

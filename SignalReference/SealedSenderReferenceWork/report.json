@@ -1,0 +1,27 @@
+{
+  "candidate_only": true,
+  "kernel_endpoints": 7,
+  "foundation_axioms_only": true,
+  "unchanged_actual_generated_wrapper": true,
+  "source_patches": [],
+  "actual_implementation": "signalapp/libsignal904c8dc crypto.rs56..65 aes256_ctr_hmacsha256_encrypt",
+  "proved": "Actual generated Result/Try/checked MAC slice/Vec clone+append, wrong cipher-key error, exact symmetric-envelope bytes under executable primitive interpretation.",
+  "explicit_trust_boundary": [
+    "Actual AES-CTR and HMAC bodies are opaque extraction slots interpreted by executable circuit primitive models. Their implementation agreements remain UNPROVED.",
+    "Official pinned Aeneas Slice/Vec/Array and translator correctness boundary.",
+    "Whole sealed_sender KDF/certificate/envelope and session implementation refinement remain UNPROVED."
+  ],
+  "source_refinement_domain": "Intended SS profile plaintext<=8192,key32,MACkey32; model-relative wrapper theorem uses allocation bound msg.length+10<=Usize.max.",
+  "source_sha256": {
+    "SignalReference/SealedSenderReferenceWork/Checks.lean": "836c37008c3a071853e2fb617b6a2d8c97d9ec5c3747dce3b1e8511ac8d98ed3",
+    "SignalReference/SealedSenderReferenceWork/check.py": "4227ac7abbb113e5ada723afc5c3c7a16567aead3cd46940f30e38d49ebffe91",
+    "SignalReference/SealedSenderReferenceWork/PrimitiveModels.lean": "16c4299455d44d041cde271a4c725a1e43f67131f868d7482a90eaaf4f580bcf",
+    "SignalReference/SealedSenderReferenceWork/WrapperReference.lean": "85b81021d989b0db69fe88deff453a343ecf88b21e8dc1aae87881de9bfcc398",
+    "SignalReference/SealedSenderReferenceWork/extract.py": "ad8da917465d445c5b2ec6b39aefdf6fa1afc83d3bf1dfc9c4023ba020166a14",
+    "SignalReference/SealedSenderReferenceWork/Artifacts/EncryptWrapper/ss_wrapper.llbc": "b714322728d676b729b1f5148a5e1522b423f912b98c4db60dc71ce54ff5f2a0",
+    "SignalReference/SealedSenderReferenceWork/Generated/EncryptWrapper/Funs.lean": "68527503bc8f3b2b314f8076b5c10fb704f39fef4ce1293cdc6728c2b7cf1ed6",
+    "SignalReference/SealedSenderReferenceWork/Generated/EncryptWrapper/FunsExternal_Template.lean": "4aaa808d1a0c1d32c03baca37ba761e64a7d0532c0f196c7b1fa6ae7dcceb6b4",
+    "SignalReference/SealedSenderReferenceWork/Generated/EncryptWrapper/FunsExternal.lean": "d5c442c40156302d230bda38f884d7d36a0198a1c9585b6537fe5df63221b9cb",
+    "SignalReference/SealedSenderReferenceWork/Generated/EncryptWrapper/Types.lean": "9ebf49c1333f779a4080f9dd525f8845eef07bf667adc3260cf68617b5a31781"
+  }
+}

@@ -1,0 +1,7 @@
+'SealedSenderReference.ctrLoop_length' depends on axioms: [propext, Quot.sound]
+'SealedSenderReference.ctr_length' depends on axioms: [propext, Quot.sound]
+'SealedSenderReference.clone_bytes' depends on axioms: [propext, Quot.sound]
+'SealedSenderReference.extend_bytes' depends on axioms: [propext, Quot.sound]
+'SealedSenderReference.wrong_cipher_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SealedSenderReference.wrapper_composition' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SealedSenderReference.wrapper_matches_symmetric_model' depends on axioms: [propext, Classical.choice, Quot.sound]
