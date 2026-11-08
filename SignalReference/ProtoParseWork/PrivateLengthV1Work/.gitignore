@@ -1,0 +1,4 @@
+Build/
+Revisions/
+*.log
+__pycache__/

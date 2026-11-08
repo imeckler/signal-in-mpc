@@ -1,0 +1,48 @@
+{
+  "candidate_only": true,
+  "scope": "bounded decoder/table/plan and zero-extended stack components, not full private parser refinement",
+  "exit_code": 0,
+  "output_directory": "Revisions/base",
+  "modules": [
+    "TlsMpc.Signal.PrivateProtoParseV1",
+    "ProtoParseWork.PrivateLengthV1Work.Padding",
+    "ProtoParseWork.PrivateLengthV1Work.Plan",
+    "ProtoParseWork.PrivateLengthV1Work.BoundedBytes",
+    "ProtoParseWork.PrivateLengthV1Work.DecoderPadding",
+    "ProtoParseWork.PrivateLengthV1Work.Table",
+    "ProtoParseWork.PrivateLengthV1Work.Select",
+    "ProtoParseWork.PrivateLengthV1Work.Stack"
+  ],
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateProtoParseV1.lean": "39e74d11eb4c93ede3768b39584ec5c8ea1c4e9d5146df589676c6b36a0e1915",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Padding.lean": "1a0d53e51d7a9e10edfbe2f8acac30e07c0cd5990f178a650310d8ff87d83b7e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Plan.lean": "6d483da946f6a959021e013cbf58be66ee4eb33bfd665e8e143f915107d62f78",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/BoundedBytes.lean": "faa9ae6a092d7507148fbf0cefba0b0172873acf4ead9f19ee7e1813d4477d6e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/DecoderPadding.lean": "5f3e199642a400a7fa28aa204a4f83de96ab62ec774bfe8fdb5a76ebdc6db46e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Table.lean": "1c594dfa0bf05c67d3396b25efac3432c01aa0273eabd06f8333571be7719eaf",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Select.lean": "f1997ce23ec7cdb2bcebbe073ae89fe16baf74b8eb140ade7ecc9e6b7debf7ca",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Stack.lean": "fa9e6a712927a6557c93fad7017e3b932f27272b304b18aeeedc809ff27c5d58",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/check.py": "4529ca7f00a3069a164b793840297e53b8d720412fc0e729c78ce57bce3c7280",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/README.md": "2c745690da15dd63370932e45e94f81a94801aa20fa2e01e2e99abd0dcb23ecf"
+  },
+  "object_sha256": {
+    "TlsMpc.Signal.PrivateProtoParseV1": "e56c088eb6ffe344035dc7d8246f1ea529013c00443e5004ebff761c00194764",
+    "ProtoParseWork.PrivateLengthV1Work.Padding": "b43966435334c2c1c69594e0412928d06e107f87b5ad4650af71199223e0dce6",
+    "ProtoParseWork.PrivateLengthV1Work.Plan": "ae5070ba63afdf205dde446a2a99fe9e753a794abccac37402f86e328492e003",
+    "ProtoParseWork.PrivateLengthV1Work.BoundedBytes": "eddef7be0cc466ee4f2143068c7acd781df636857ed0fea35b682389607a3403",
+    "ProtoParseWork.PrivateLengthV1Work.DecoderPadding": "f20edf2688d115721bac6db2efae99bf80c065d6c2808184771fba1186d2a829",
+    "ProtoParseWork.PrivateLengthV1Work.Table": "89a3c87af99683bc2a2f8a09310b10308ee45b752325caf63b3d1b1476bfed89",
+    "ProtoParseWork.PrivateLengthV1Work.Select": "bd5f4ab6a25fd342f27956c8ab8cbc062f7f517672694df4b3ba6bd0bfe8fb7d",
+    "ProtoParseWork.PrivateLengthV1Work.Stack": "579355c707aece5659675c3532417b800b858e121430f9f051afbe729699c0ab"
+  },
+  "log_sha256": "8072b435c780ea096a23bace2d2a6d9674debeaf5344a29883d98fc5a02a7063",
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "full_private_take_refinement": false,
+  "compiler_endpoint": false,
+  "capacity256_native_check": false,
+  "active_handles": []
+}
