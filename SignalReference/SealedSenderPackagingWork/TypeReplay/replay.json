@@ -1,0 +1,36 @@
+{
+  "candidate_only": true,
+  "independent_review": "pending",
+  "canonical_Aeneas_library_changed": false,
+  "generated_computational_Funs_modified": false,
+  "scope": "Only deterministic enum type-family export alpha-renaming plus definitional type/constructor aliases; actual Rust metadata and variant order unchanged. No computation/body rewrite.",
+  "script_sha256": "729520fc92d783eb2d35260981da0b683398db13d678483c36fe6ea7272edb44",
+  "rows": [
+    {
+      "original_type_file": "SignalReference/SignalMessageWork/BytesFieldWork/GeneratedSelected/Types.lean",
+      "original_type_sha256": "d5f8754746e0d68870af3cc682cf24066fe2953b520a6ac0ff7d4e6428e9f3de",
+      "replayed_type_file": "SignalReference/SealedSenderPackagingWork/TypeReplay/Modules/SignalMessageWork/BytesFieldWork/GeneratedSelected/Types.lean",
+      "replayed_type_sha256": "fa99b31290122607b6335d97ed932681d45358094c49db6302928dc6a9c86948",
+      "full_qualified_type": "ProstBytesField.encoding.wire_type.WireType",
+      "fresh_export": "ProstBytesField.encoding.wire_type.WireType_n_50726f737442797465734669656c642e656e636f64696e672e776972655f747970652e5769726554797065",
+      "compatibility_aliases_definitional": true,
+      "original_Funs_sha256": "7826fb96a970a32dc76061de5d80f9c7351506903f5621d918a8faecab87b683",
+      "Funs_file": "SignalReference/SignalMessageWork/BytesFieldWork/GeneratedSelected/Funs.lean",
+      "Funs_modified": false,
+      "exact_inverse_replay_checked": true
+    },
+    {
+      "original_type_file": "SignalReference/SealedSenderPackagingWork/Generated/WireContent/Types.lean",
+      "original_type_sha256": "2712b4cf1afbf81a06b3a7a55b5bea91880fd84ad00ed9e4ccea4a7b600fe087",
+      "replayed_type_file": "SignalReference/SealedSenderPackagingWork/TypeReplay/Modules/SealedSenderPackagingWork/Generated/WireContent/Types.lean",
+      "replayed_type_sha256": "d59a603bc0796bb75dec3a546db37101cdeb7762c4cf428927ae677541bd3472",
+      "full_qualified_type": "SealedSenderPackaging.prost.encoding.wire_type.WireType",
+      "fresh_export": "SealedSenderPackaging.prost.encoding.wire_type.WireType_n_5365616c656453656e6465725061636b6167696e672e70726f73742e656e636f64696e672e776972655f747970652e5769726554797065",
+      "compatibility_aliases_definitional": true,
+      "original_Funs_sha256": "d976562e45532d3810b94ec9ab42593a6031f8da968b604a46ed1c6b182f7c54",
+      "Funs_file": "SignalReference/SealedSenderPackagingWork/Generated/WireContent/Funs.lean",
+      "Funs_modified": false,
+      "exact_inverse_replay_checked": true
+    }
+  ]
+}

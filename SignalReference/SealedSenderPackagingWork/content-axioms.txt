@@ -1,0 +1,43 @@
+'LibSignalReference.Candidate.SealedSenderContentWire.varint_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.actual_varint_dictionary' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.actual_append' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.key_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.publicNatLoop_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.publicNat_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.key_bytes' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.bytes_field_appends' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.type_key_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.type_field_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.type_field_appends' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.actual_usmc_appends' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.actual_usmc_serialized' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderContentWire.compiled_actual_usmc' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.SealedSenderTypeReplay.source_enum_discriminants_preserved' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

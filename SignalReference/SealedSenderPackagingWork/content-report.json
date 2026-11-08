@@ -1,0 +1,50 @@
+{
+  "kernel_endpoints": 15,
+  "foundation_axioms_only": true,
+  "native_reflection_used": false,
+  "actual_derive_USMC_encoder_agreement": true,
+  "numeric_circuit_to_actual_encoder_endpoint": true,
+  "payload_contract_assumption": false,
+  "domain": "MESSAGE2/defaultcontenthint/absentgroupID; arbitrary certificate/inner byte vectors and arbitrary existing output prefix with lengths+34<=official model Usize.max.",
+  "proved": "Actual retained int32/key/varint/bytes/Vec-copy operations assemble exact SealedSenderV1.usmc bytes. Empty-output serialization and compiled numeric USMC bit agreement included.",
+  "trust_boundary": [
+    "Pinned Aeneas translator/official scalar+container models; valid buffers and successful allocations below actual isize::MAX; heap/capacity/Drop/erasure excluded.",
+    "Exact13 reversible unused metadata changes for current actual encoder (plus reused prior helper selection), all retained computational bodies unchanged; independent scope review pending.",
+    "Deterministic type-export naming replay with definitional constructor aliases; original generated Funs bytes unchanged; all18 discriminants checked across3 co-imported real WireType namespaces."
+  ],
+  "not_established": [
+    "Whole UnidentifiedSenderMessageContent::new/encode_to_vec wrapper.",
+    "Certificate signature/validation, whole AES-CTR/HMAC/KDF/SS implementation refinement.",
+    "PrivateBuffer variable-length USMC packing semantics and full service composition."
+  ],
+  "source_sha256": {
+    "SignalReference/SealedSenderPackagingWork/check_content.py": "f38e725b391acaa24ba841c04715cae699a94ca2368f7b335115641c63820d17",
+    "SignalReference/SealedSenderPackagingWork/payload-report.json": "cbe8b832f820c22c32384aa3ddc959220faaeee832f8c22f170be4d0ae3f90ae",
+    "SignalReference/SealedSenderPackagingWork/prepare_type_replay.py": "729520fc92d783eb2d35260981da0b683398db13d678483c36fe6ea7272edb44",
+    "SignalReference/SealedSenderPackagingWork/select_wire_content_metadata.py": "d63271af5b27d56b9bae41ddd249c7c6d965db9eef14aec7d1a20bb2593d8245",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireFields/ss_content.llbc": "0ff64449ef45410483bc28c90b4df302386d4c53728e90241b27b0f4e7be5b0a",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireContent/selected.llbc": "458de8541eb9c436d3653521223ca1ccf43bd745eaad09189620f7f1361b7046",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireContent/changes.json": "6a77bfaba5fb034b500447f4b048616bffc6417cfa27abd540c530c8fb83edf0",
+    "SignalReference/SealedSenderPackagingWork/Artifacts/WireContent/review.json": "43a09a5a12dfed52bf2df9a7ac9e2b0a2c4800a073668570d51dc5107abd2d82",
+    "SignalReference/SignalMessageWork/BytesFieldWork/Selected/review.json": "17a07ff30fec78e18187252b0af959b3156e02672612f34261ad42c0fbc059a9",
+    "SignalReference/SignalMessageWork/BytesFieldWork/Selected/changes.json": "40f55d35ca2f6523bcbeb2d291c4b6ea27ab73a6b830689e4f662e0a3274875b",
+    "SignalReference/SignalMessageWork/BytesFieldWork/Selected/selected.llbc": "774e6ccb883a87e8c243474991d5bd8e79c3d0f2ddd998780962b5c18488a2a0",
+    "SignalReference/SignalMessageWork/BytesFieldWork/Artifacts/bytes_field.llbc": "51a0baeaba1a94c79c6ef533daa82eeb986976ae5a3d8b2b208b973c23efad8b",
+    "SignalReference/SealedSenderPackagingWork/TypeReplay/replay.json": "e956164587045fb3426f4a980ef5a7c625eb0d2dec32e3af80c4dbe10f7ae79b",
+    "SignalReference/SealedSenderPackagingWork/TypeReplay/Modules/SignalMessageWork/BytesFieldWork/GeneratedSelected/Types.lean": "fa99b31290122607b6335d97ed932681d45358094c49db6302928dc6a9c86948",
+    "SignalReference/SignalMessageWork/BytesFieldWork/GeneratedSelected/Funs.lean": "7826fb96a970a32dc76061de5d80f9c7351506903f5621d918a8faecab87b683",
+    "SignalReference/SealedSenderPackagingWork/TypeReplay/Modules/SealedSenderPackagingWork/Generated/WireContent/Types.lean": "d59a603bc0796bb75dec3a546db37101cdeb7762c4cf428927ae677541bd3472",
+    "SignalReference/SealedSenderPackagingWork/Generated/WireContent/FunsExternal.lean": "0b7fa42ac10d5d5f211740ff46a4d1feb61c7e4c45e483394527efbc196e85fb",
+    "SignalReference/SealedSenderPackagingWork/Generated/WireContent/Funs.lean": "d976562e45532d3810b94ec9ab42593a6031f8da968b604a46ed1c6b182f7c54",
+    "SignalReference/SealedSenderPackagingWork/ContentWireReference.lean": "09c942f0222960b1a051f6323a465fa59b86944d9057a082c1d494ed8275d24d",
+    "SignalReference/SealedSenderPackagingWork/TypeReplay/Checks.lean": "1e694dbf9dcafc0167caa600a6d15fa4c6bdacc2a03b06da9cd9d7713e2d2c22",
+    "SignalReference/SealedSenderPackagingWork/ContentChecks.lean": "6ccd0a371f15fc3202ad9783d6b2a78fe8c9d1ffb71e7e3f62d9db53bfa04cb9",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/sealed_sender.rs": "aa6f5dd7865bb38d3ef9dc9ae849d58157e21dbd796e4c5bca241d0fa39f6916",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/sealed_sender.proto": "c87628041cac289d413e92433b9adae4538a7fd44632b309929302b309919609",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    "TlsMpc/Signal/SealedSenderV1.lean": "1ac000f61f224868cc597014707f3707f86fa148f6c5b17a46d19870eae94084",
+    "TlsMpc/Signal/Serialization.lean": "60d78ba132081f896954f0a8f749907cc7e8c130e30aa73441015a385289d1b0",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8"
+  }
+}
