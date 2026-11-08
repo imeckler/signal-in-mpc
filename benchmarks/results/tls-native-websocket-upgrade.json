@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "native_mpc_executed": true,
+  "application_gate_changed": false,
+  "scope": "public disposable five-party private HTTP101 byte machine and retained state; no live TLS/WebSocket service",
+  "cleanup_errors": [],
+  "logs": "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1",
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "sha256": {
+    "TlsMpc/TlsWebSocketUpgrade.lean": "d95759c26e3eabb0abf36c19e56c4dc3719e0347459515fb77978de19ff56c2d",
+    "handshake_backend/WebSocketWork/EmitUpgrade.lean": "ecace3360aa0b07244fcecdb233caebb0f52baba569d775c2714b15574d61efd",
+    "handshake_backend/WebSocketWork/NativeUpgradeResponse.h": "b7c7f1f455637717aa0375f5b19788f8148c2655c3ce11cdc2fc69ce4d3e4e87",
+    "handshake_backend/WebSocketWork/native_fixture.cpp": "7be1cf3ee0a7ab850c8a027deed5a517495d59fa06b44a6795cb4d856e35fc5e",
+    "handshake_backend/WebSocketWork/prepare.py": "48c4e1bf39c31f1f8e77ec3d1f324d3677f0f9896cffc699fcbdb4aa572c3a21",
+    "scripts/check_native_websocket_upgrade.py": "ab05b944a7c7185c189b1c16455712d424b07f92eba3622990f665444e3abcc6",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "handshake_backend/SessionWork/Makefile": "3c68ebfe771f91d488fe4c8e2c65ca60d89a94779ec3fbfd26a76d4bb6f3b9d5",
+    ".deps/tls-session-runtime/tls-websocket-upgrade-fixture": "724b5888821c5be4af8077118e923df29daf86af79253b78cde6c4cb3aa25eff",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
+    ".lake/build/bin/websocket_upgrade_emitter": "7b11b8d665e6c3e972ac6b1be4abaeca8374f8c56e6031b21225242f1718a24b",
+    ".deps/tls-websocket-upgrade-native/upgrade.manifest": "7717cfa9d207b2382fbd806bf98852ed91c6090c07a07fb6a591b46f1435e3e7"
+  },
+  "log_sha256": {
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/party-4.log": "4cf21b789128c9bdc4247a0b383150138b3ff42acad49a51e36de44980493def",
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/party-2.log": "4cf21b789128c9bdc4247a0b383150138b3ff42acad49a51e36de44980493def",
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/party-3.log": "4cf21b789128c9bdc4247a0b383150138b3ff42acad49a51e36de44980493def",
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/party-1.log": "4cf21b789128c9bdc4247a0b383150138b3ff42acad49a51e36de44980493def",
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/party-0.log": "4cf21b789128c9bdc4247a0b383150138b3ff42acad49a51e36de44980493def",
+    "benchmarks/results/raw/native-websocket-upgrade/a7615a6032cc45d1/ssl.log": "d34495823c8ffac78644c885f4cfae9c4a08e72f82779ac14411518f4b0b397b"
+  },
+  "elapsed_seconds": 25.44004604103975
+}

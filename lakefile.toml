@@ -24,3 +24,11 @@ root = "NativeHandshakeFixture"
 [[lean_exe]]
 name = "private_tls_emitter"
 root = "handshake_backend.PayloadWork.EmitPrivateTls"
+
+[[lean_exe]]
+name = "websocket_upgrade_checks"
+root = "handshake_backend.WebSocketWork.UpgradeFixture"
+
+[[lean_exe]]
+name = "websocket_upgrade_emitter"
+root = "handshake_backend.WebSocketWork.EmitUpgrade"

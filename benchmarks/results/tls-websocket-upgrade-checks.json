@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "streaming_cases": 598,
+  "pinned_tungstenite_checks": 5,
+  "intentional_divergence": "RFC Connection token lists accepted by this parser; pinned client exact-value verifier rejects list",
+  "proof_endpoints": [
+    "step_map",
+    "feed_map",
+    "run_map",
+    "runByte_map",
+    "compiled_run_correct",
+    "compiled_runByte_correct"
+  ],
+  "scope": "bounded algorithm/compilation mapping and public stream fixtures; no full HTTP grammar refinement theorem or native/live TLS evidence",
+  "native_mpc_executed": false,
+  "private_bodies_opened": false,
+  "elapsed_seconds": 183.4499943330884,
+  "sha256": {
+    "TlsMpc/TlsWebSocketUpgrade.lean": "d95759c26e3eabb0abf36c19e56c4dc3719e0347459515fb77978de19ff56c2d",
+    "handshake_backend/WebSocketWork/UpgradeFixture.lean": "c9cf15b32b9877cfa140504b39bee5a80bfd77faa821b7bbc522e39e558f8844",
+    "scripts/check_websocket_upgrade.py": "e821675e41a7b0e3c8ec6df21d7ff7d7ba9e2652edccfa812a7634c76907bd6a",
+    "lakefile.toml": "305bd11c25a63bdaa7e9ab7905edccc8d299e3c13481ce1efa5a8f669274f008",
+    ".lake/build/bin/websocket_upgrade_checks": "a597b5f2535d94a33d3ad6148385546fca150a7110cb7266889c64312a0a20a2"
+  },
+  "log_sha256": {
+    "benchmarks/results/raw/websocket-upgrade/checks.log": "c89a90f2aa08cb0eb6842c16a4dc0803aa6fde92b4e28457b953535f92e0337f",
+    "benchmarks/results/raw/websocket-upgrade/proof.log": "db67e97982485d6f1122d8f1094187838cfd752edf91a73c864ca7971cd04637"
+  }
+}

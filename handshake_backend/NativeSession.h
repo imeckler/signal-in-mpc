@@ -4,6 +4,8 @@
 #include "PayloadWork/PrivatePayload.h"
 #include "PayloadWork/StatusGate.h"
 #include "../signal_backend/SealedSenderWork/NativeService.h"
+#include "../signal_backend/SealedSenderWork/NativeUpgrade.h"
+#include "../signal_backend/SealedSenderWork/NativePayload.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
 #include "ShapeCompiler.h"
@@ -220,6 +222,16 @@ public:
         return guarded([&] {require_application();
             signal_mpc::NativeService service(machine,worker,pinned_programs);
             return service.evaluate(shape,std::move(input));});
+    }
+    uint64_t retain_service_result(const signal_mpc::ServiceShape& shape,Bits result) {
+        return guarded([&] {require_application();
+            signal_mpc::NativePayload adapter(machine,worker,pinned_programs);
+            return retain_private_result(adapter.wrap(shape,std::move(result)),shape.output_bytes()-1);});
+    }
+    Bits evaluate_upgrade(const signal_mpc::UpgradeShape& shape,Bits input) {
+        return guarded([&] {require_application();
+            signal_mpc::NativeUpgrade upgrade(machine,worker,pinned_programs);
+            return upgrade.evaluate(shape,std::move(input));});
     }
     Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
         return guarded([&] { require_application();
