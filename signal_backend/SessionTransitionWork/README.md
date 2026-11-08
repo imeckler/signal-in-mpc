@@ -165,3 +165,14 @@ The C++ binary builds and the actual peer initializes/emits its first message;
 **native execution remains pending** in `peer-native-build-report.json` until the
 separate runtime result exists. Full SPQR/KEM, identity/bootstrap and recoverable
 persistence are still outside this selected established-state fixture.
+
+The isolated parser-summary stage **compiled successfully** and was pinned before
+the driver interruption:11,421,550 bit triples and62,004 VM rounds are compiler
+requirements, not measured throughput. Its exact source/artifact/manifest/log
+hashes are retained in `summary-compile-report.json`; resume verifies those hashes
+and regenerates the same manifest before reusing it. The completed parser is not
+recompiled. Crypto compilation now uses `compile_diagnostic.py`, which reports
+public phase CPU/wall time and high-water RSS and periodic compiler-source stack
+traces. Its wrappers call the original compiler methods exactly once with
+unchanged arguments/results; source circuit semantics are unchanged. No private
+worker or runtime share is passed through this public build diagnostic.

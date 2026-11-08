@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "source_sha256": "0b5cc79b035e5a0c2e1a72bcff2d973e61b064c81ff3baa16baec99b46088e41",
+  "artifact_sha256": "cb5c72a159f34f450bed9abb1317c1f3a6b2f4f87ec31c2d2cc44ba0f6a5c9b2",
+  "manifest_sha256": "a390fc29d0baf69282a969cff8be9cb746dd2afe4b5a545deb165015b68a6458",
+  "log_sha256": "f4022da1daf97f2a50671894ea8137a2d37550748ba65aebfff1687439193d9f",
+  "bit_triples": 11421550,
+  "VM_rounds": 62004,
+  "stage": "parser-summary",
+  "native_MPC_executed": false,
+  "scope": "259B encoded private wire to75B actual-parser summary; artifact matches staged differential cb5c72a1; no DH/MAC/session validity assumption.",
+  "completed_before_crypto_diagnostic_restart": true,
+  "manifest": ".deps/private-new-dh-staged-native/summary.manifest"
+}
