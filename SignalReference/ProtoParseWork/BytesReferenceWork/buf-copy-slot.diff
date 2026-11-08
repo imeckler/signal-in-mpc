@@ -1,0 +1,14 @@
+--- namespace-replay/BufModel.lean
++++ candidate/BufModel.lean
+@@ -22,9 +22,9 @@
+     let next ← advance bytes 1#usize
+     .ok (value,next)
+ 
+-/-- Exact four-slot byte-slice Buf instance; get_u8 is the pinned default body. -/
++/-- Contiguous-slice Buf extended by the explicit bounded content-copy model. -/
+ def sliceBuf : bytes.buf.buf_impl.Buf (Slice U8) :=
+-  ⟨remaining,chunk,advance,getByte⟩
++  ⟨remaining,chunk,advance,getByte,ContentModel.copySlice⟩
+ 
+ theorem default_getByte (bytes : Slice U8) :
+     ProstBytesCandidate.bytes.buf.buf_impl.Buf.get_u8.default sliceBuf bytes = getByte bytes := rfl

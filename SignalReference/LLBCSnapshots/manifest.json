@@ -910,6 +910,13 @@
       "sha256": "7449749f2f675c2324b5ffcaa50200dac170c52974636bc662cb3ad8fbda4b76",
       "blob": "7449749f2f675c2324b5ffcaa50200dac170c52974636bc662cb3ad8fbda4b76.llbc.gz",
       "compressed_sha256": "f98bdbf42f34c222dc345372df414c5d762ed6406aba1948c1413722b99cf1e6"
+    },
+    {
+      "path": "ProtoParseWork/BytesReferenceWork/Artifacts/vec_replace_put_body/prost.llbc",
+      "bytes": 587154,
+      "sha256": "8dba2f71b1e45f108104b73ab32456dcf1b8163debf8e038aa495819a704ba2d",
+      "blob": "8dba2f71b1e45f108104b73ab32456dcf1b8163debf8e038aa495819a704ba2d.llbc.gz",
+      "compressed_sha256": "3f696def4c33b47778af8a349949760caabeaf1f562561658bb687738b15a95d"
     }
   ]
 }

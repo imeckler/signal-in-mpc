@@ -1,0 +1,46 @@
+'LibSignalReference.Candidate.ProstBytesBuf.copy_slice_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_slice_overflow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_contents_partition' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_contents_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.default_contiguous_copy' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.bytes_copy_spec' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.check_wire_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_wire_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_decode_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_underflow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_after_replace' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.clone_u8' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.extend_empty' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.reserve_empty' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_loop_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_loop_one_chunk' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_empty_buffer' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_one_chunk' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.replace_one_chunk' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.replace_empty_buffer' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_from_decode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_last_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.adaptBuf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.actual_replace_snapshot' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_after_actual_vec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

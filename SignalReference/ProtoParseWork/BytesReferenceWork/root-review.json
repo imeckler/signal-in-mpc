@@ -1,0 +1,42 @@
+{
+  "reviewed_at_utc": "2026-11-08T03:00:15.678457+00:00",
+  "accepted_for_bounded_content_reference_composition": true,
+  "accepted_scope": "Actual pinned Prost bytes::merge and Vec<u8>::replace_with/put on valid contiguous byte buffers, under successful bounded allocation below isize::MAX; content/error/suffix/duplicate semantics only.",
+  "proof_report_sha256": "9bd73be43882c6f5f268d931c62c0a56ec95ba85f4e16723ca94854fac6754ad",
+  "model_provenance_sha256": "217bba4278d839e04516d5a2845c0364aeb1c94cb6c72dbad303fd27d52cbbdf",
+  "model_diff_sha256": "62c4c198f9e7a963ca9a1d1904dec950e88aad2367b2a19ce2902b0b728979bf",
+  "independent_rebuilt_modules": 20,
+  "independent_rebuilt_endpoint_audits": 92,
+  "independent_new_endpoint_axiom_audits": 26,
+  "independent_root_axiom_audit_sha256": "437d5fa3e5b3278746102d6a1bbcb8cf3bcd632382cbae319e3d021e9c8c8099",
+  "independent_root_rebuild_log_sha256": "deff2d594ceb44113b1ccf8f3b434c8c36f80b2a73ae9544c726115eac2e5b94",
+  "independent_root_audit_source_sha256": "1ae5a2e0a427bfc6d18640166067512b0c261ca79c760eb02ee0868d27ef29a9",
+  "frozen_sources_verified": 474,
+  "frozen_rebuilt_objects_unchanged": true,
+  "seven_metadata_edits_reversed_to_exact_original": true,
+  "actual_vec_extraction_has_no_llbc_rewrite": true,
+  "native_oracle_replayed_cases": 5638,
+  "review_notes": [
+    "Pinned Rust bytes::merge checks the wire type first, decodes a uint64 length, rejects underflow before copying, then calls replace_with on the consumed prefix. Proofs retain exact errors and remaining suffixes.",
+    "Actual extracted Vec<u8> replacement clears, reserves, then calls the actual extracted Vec::put loop. The proof handles empty input and a complete contiguous chunk; it does not replace this function with a trusted success Boolean or an assumed replacement equality.",
+    "Bytes content views match pinned remaining/chunk/advance/split_to on valid buffers; prefix/suffix equality ignores reference counts, pointer identity, capacity and allocation behavior.",
+    "Generic external model definitions are accepted only for their reviewed U8/contiguous instantiations. The reserve model checks usize rather than Rust isize capacity; its use is justified only with the external successful bounded allocation precondition. No theorem about all Rust Vec values or arbitrary Drop is accepted.",
+    "Trait projection preserves remaining/chunk/advance, uses the actual default has_remaining behavior, and leaves unobserved BytesAdapter methods universally quantified. No unused dummy method is used to infer replacement correctness.",
+    "Previously accepted total varint proofs replay against exactly identical computational bodies. The bytes_full_reference theorem has no caller-supplied decoder/replacement equality premise. Later successful duplicate fields overwrite, including empty replacement.",
+    "All 20 rebuilt object hashes match the frozen report. Fresh audits of 92 endpoints plus a separate 26-endpoint audit use only propext, Classical.choice and Quot.sound."
+  ],
+  "new_trusted_model_boundary": [
+    "Content-only representation of immutable Bytes and valid contiguous buffers",
+    "copy_to_bytes prefix/suffix semantics for the reviewed contiguous instances",
+    "Vec<u8> clear/reserve and inherited extend/clone content models under successful bounded allocation below isize::MAX",
+    "Extraction-local trait dictionary representation/projection"
+  ],
+  "inherited_trust_boundary": "Pinned Charon/Aeneas extraction, seven reversible unused Step metadata removals, accepted contiguous Buf and safe-access wrappers; no new translator patch.",
+  "not_established": [
+    "Numeric parser lookup/scan/group/state agreement or whole SignalMessage parser",
+    "Circuit or compiled MPC artifact agreement with the full parser",
+    "Arbitrary segmented/effectful/overriding Buf behavior",
+    "Rust allocator failures, isize capacity panic equivalence, pointer/reference-count/Drop behavior",
+    "Memory erasure, native MPC execution or MPC security"
+  ]
+}

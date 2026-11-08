@@ -1,0 +1,54 @@
+{
+  "candidate_only": true,
+  "actual_common_varint_bodies_identical": true,
+  "generated_files_modified": false,
+  "substitutions": {
+    "LibSignalReference.Candidate.ProstFieldSlice": "LibSignalReference.Candidate.ProstBytesSlice",
+    "LibSignalReference.Candidate.ProstFieldBuf": "LibSignalReference.Candidate.ProstBytesBuf",
+    "ProstFieldSlice.": "ProstBytesSlice.",
+    "ProstFieldCandidate": "ProstBytesCandidate",
+    "ProtoParseWork.FieldReferenceWork.Generated.uint32_step": "ProtoParseWork.FieldReferenceWork.Generated.bytes_step",
+    "FieldReferenceWork.Replayed": "BytesReferenceWork.Replayed",
+    "ProstFieldBuf.": "ProstBytesBuf."
+  },
+  "additional_model_delta": "buf-copy-slot.diff",
+  "files": {
+    "BufModel": {
+      "source_sha256": "c9ad9dcb299ab2ed91690928cbdd5ddf117b0c1b20ffdbcf90e1bbfb5fbab5f0",
+      "destination_sha256": "d538e2ace4b4084dfef8c858bb96afca3da7c30bb7ea0f35f5ac9632d1de1d2b"
+    },
+    "SliceReference": {
+      "source_sha256": "7aa52dcf0128faf8383ce50f52fb0007bf7545d4f0dcbff8278a80a789d13f35",
+      "destination_sha256": "632e57c926ce4745fd5477b0b544678e33ac08cdece73430cde4819722023ac1"
+    },
+    "SliceBridge": {
+      "source_sha256": "732154b5aef0311d72b5b65bfd8f7adf8bd47ef385e7ad5c29251b33e50d08a2",
+      "destination_sha256": "0a11fbfde2d10374258771e4d27348f36870efaa7bc58d586a66113c34cf6d39"
+    },
+    "SliceAdapter": {
+      "source_sha256": "4ea5c91e7620eea8c09df1280356f630fc49f16cec8025ac6930013d936e4c33",
+      "destination_sha256": "82ef4a9c3a8b6704b0d85c64b8f3e42e5a1d804bc01b569a78cf03ccedefe506"
+    },
+    "SlowReference": {
+      "source_sha256": "fd74dd6a355b010550a83bde6b5cc19004514dcb29fab277dc020bc7d199d178",
+      "destination_sha256": "36a89305b1b8a262b89764dd05bd34ad0f3afbb0827f856bc6c57168661a234d"
+    },
+    "StateBridge": {
+      "source_sha256": "d3c85af2e11b119e0ab27a130de5624a0aaf08c1da6fee249fcd2bfe16b20269",
+      "destination_sha256": "af7b23cb85585fe8312fb6af47f749a482ffd30896a7f51a659cf8b1b44ecb92"
+    },
+    "WrapperReference": {
+      "source_sha256": "f40e285149fe2c1e1f6af90f7c7f2f138e79bd90bf1829d8b8ad6d6ff3a835fc",
+      "destination_sha256": "5123c16604d3c555c9e0a5e32351b844998600065502ff8b9c099a5111768e5c"
+    },
+    "ArtifactBridge": {
+      "source_sha256": "e48d24e51a086d6ffc2bf59aec234163615d9e78ce0d95d5f3191e696e8247d2",
+      "destination_sha256": "4f9a648a189c27655856c229dd2edf646fb5a562aba958115e936589e624d460"
+    },
+    "Consumption": {
+      "source_sha256": "88baeddfaaac1b7cc51ccabf70213591909b60f262f8d0b4d12dcddb6af21855",
+      "destination_sha256": "e7c1d1104035fb2079abb64be6334a850304d17dfb0b92d38718b1a142da7c54"
+    }
+  },
+  "script_sha256": "dfd99e27a740c6671efe1db1f59aec72ec1582073f552118f4098dd8f3156cc8"
+}

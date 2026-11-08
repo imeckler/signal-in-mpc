@@ -1,0 +1,27 @@
+import BytesReferenceWork.VecBridge
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.copy_slice_spec
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.copy_slice_overflow
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.copy_contents_partition
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.copy_contents_length
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.default_contiguous_copy
+#print axioms LibSignalReference.Candidate.ProstBytesBuf.bytes_copy_spec
+#print axioms LibSignalReference.Candidate.ProstBytes.check_wire_reference
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_wire_error
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_decode_error
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_underflow
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_after_replace
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.clone_u8
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.extend_empty
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.reserve_empty
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.put_loop_done
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.put_loop_one_chunk
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.put_empty_buffer
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.put_one_chunk
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.replace_one_chunk
+#print axioms LibSignalReference.Candidate.ProstVecAdapter.replace_empty_buffer
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_from_decode
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_full_reference
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_last_value
+#print axioms LibSignalReference.Candidate.ProstBytes.adaptBuf
+#print axioms LibSignalReference.Candidate.ProstBytes.actual_replace_snapshot
+#print axioms LibSignalReference.Candidate.ProstBytes.bytes_after_actual_vec

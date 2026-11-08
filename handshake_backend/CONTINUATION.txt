@@ -805,3 +805,41 @@ RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
   Main agent continues TopFieldWork whole-parser lookup/table bridge; Astra-high
   helper continues prekey policy/composition. Sharing refresh remains paused.
   Root owns Git staging. No root processes remain running at this checkpoint.
+
+2026-11-08 Signal bytes content-reference acceptance
+- Previous goal turn made progress: a5d512b preserved the isolated VM scratch
+  cleanup candidate and native lifetime checks. Full erasure remains unfinished.
+- Root read the frozen BytesReferenceWork models and all26new theorem statements
+  against pinned Rust bytes1.12.0/Prost0.14.4, including actual Vec::replace_with
+  and Vec::put extraction. Scoped acceptance is now recorded in root-review.json.
+  Valid contiguous U8 buffers and successful bounded allocation below isize::MAX
+  remain explicit external assumptions. Generic model signatures do not justify
+  arbitrary Buf, allocation panic/OOM, pointer identity, refcounts or Drop claims.
+- Independent root checks verified474sourcehashes/20objecthashes, reversed all7
+  unused Step metadata edits to the exact original, replayed5638actualnativecases,
+  rebuilt20modules with92endpointaudits (9313 terminal0), and independently audited
+  the26new endpoints (20976 terminal0). Only foundational axioms occurred; rebuilt
+  object hashes were unchanged. Logs and RootProofAudit.lean are retained.
+- Actual replacement, exact error/suffix behavior, total modeled bytes field
+  behavior and last-successful-duplicate overwrite are accepted for reference
+  composition. Whole numeric parser/table/scan/group and MPC artifact agreement
+  remain incomplete. Candidate freeze files/flags were not rewritten.
+- Added only the frozen new Vec-extraction LLBC to the existing exact snapshot
+  manifest (131paths total, all verified). Active agent extraction paths were
+  not scanned. Cargo target trees are now ignored, while oracle source/lockfiles
+  and executable/source hashes are preserved in the review closure.
+- Signal agent continues separate MessageReferenceWork for actual generated
+  SignalMessage merge_field/merge-loop extraction; its last reported live handle
+  35475 is agent-owned and must be polled by the agent before restarting.
+  TopFieldWork is frozen/root-review pending:38endpoints/5modules, report hash
+  e7d07f16c821945a6f8849c63cb9ce86997b17175ad8590d5eda6fe981be888f.
+- PreKeyWork is frozen/root-review pending: completion hash
+  91bf953ee2b7267aae8f06772f4c0c1a693f673d4e2c44979389e7f37798a23b;
+  agent reports28endpoints/9480numericlanes/36actualprocess-prefixcases/18numeric
+  signature compositions. External trust-result/typed-input assumptions remain;
+  no store writes, native MPC or Aeneas acceptance. Astra-high helper continues
+  separate PreKeyReferenceWork pure-constructor extraction/refinement.
+  Frozen XEdDSA and root CLI integration remain pending root review as well.
+- User requested status and was told handshake stages pass, application erasure
+  and full Signal integration are incomplete, and measured performance remains
+  far below100,000/hour. Sharing refresh remains paused. Root handles terminal.

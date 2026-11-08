@@ -1,0 +1,5 @@
+     Locking 2 packages to highest compatible versions
+   Compiling bytes v1.12.0 (/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0)
+   Compiling prost v0.14.4 (/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4)
+   Compiling prost-bounded-bytes-oracle v0.1.0 (/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Oracle)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.56s

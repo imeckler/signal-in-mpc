@@ -1,0 +1,35 @@
+{
+  "candidate_only": true,
+  "accepted_model": false,
+  "rust_changes": [],
+  "source_sha256": {
+    ".deps/libsignal-vendor/bytes-1.12.0/src/bytes.rs": "a7912bba39aa74ce6ef1e422ed83d0e0e5c3302d53c249b7d0ff14ec53cbca7c",
+    ".deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs": "f1095872bba7c9d5170207750f4ebe4fa61c4e35a282569491c2ee8ea2dc6714",
+    ".deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs": "c76d0a846cf6e2c42af7acf0bbedc49a30ce3b9185392835c6a6f8b06a128b9e",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding.rs": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4",
+    ".deps/rust-nightly-2026-08-18/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs": "161d97d3549abee6416787475f3da48780f70a34065b333478e2b1f629fff2e9"
+  },
+  "model_and_template_sha256": {
+    "SignalReference/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/TypesExternal_Template.lean": "b398a23c35c113b3aaf75daee9c463d5e401cbc3e2d9aa9aab0306a80bda7b2b",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/TypesExternal.lean": "9316e46610732a7974b3ea3880d87e18ca1d731d7b8efc4eda0333e7ad5b3658",
+    "SignalReference/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal_Template.lean": "01955b1517fad8d3898364a4daa10422524e9358e20ca7172536c8c8a0d1ce75",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal.lean": "1e53f8df1bc0a03c098af1559b9bd1daf5b23025b9e6c1ee3f77ece49d5619bc",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Generated/vec_replace_put_body/FunsExternal_Template.lean": "b08030349a8432eb26366eb09b8513e66fc7e31e4d2316f2be3632cffdc6bddf",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/BytesReferenceWork/Generated/vec_replace_put_body/FunsExternal.lean": "6b8453aec5b34eae032d6aae82e1fba7f624945547863fb3aafd490114dc45cd"
+  },
+  "delta_sha256": "62c4c198f9e7a963ca9a1d1904dec950e88aad2367b2a19ce2902b0b728979bf",
+  "scope_document_sha256": "afb659e3278566816490bb2fa5f5bbcd0174e81a561106bda1c86ff15aa4c09d",
+  "new_trusted_assumptions": [
+    "Content representation of immutable Bytes",
+    "Contiguous-only Buf.copy_to_bytes content model",
+    "Vec<u8> clear/reserve content model under valid-buffer and successful allocation below isize::MAX assumptions",
+    "Extraction-local trait dictionary projection preserves remaining/chunk/advance/default has_remaining methods"
+  ],
+  "not_claimed": [
+    "Arbitrary Buf",
+    "Allocator/capacity/isize panic or OOM equivalence",
+    "Generic Drop or uninitialized memory",
+    "Memory erasure",
+    "Whole numeric parser agreement"
+  ]
+}

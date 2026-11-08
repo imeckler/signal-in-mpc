@@ -1,0 +1,192 @@
+Checking ProtoParseWork.FieldReferenceWork.Generated.bytes_step.TypesExternal
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/TypesExternal.lean:8:10: warning: The namespace 'bytes' is duplicated in the declaration 'bytes.bytes.Bytes'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/TypesExternal.lean:8:10: warning: The namespace 'bytes' is duplicated in the declaration 'bytes.bytes.Bytes.mk'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/TypesExternal.lean:9:2: warning: The namespace 'bytes' is duplicated in the declaration 'bytes.bytes.Bytes.contents'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+Checking ProtoParseWork.FieldReferenceWork.Generated.bytes_step.Types
+Checking ProtoParseWork.FieldReferenceWork.Generated.bytes_step.FunsExternal
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal.lean:52:4: warning: The namespace 'bytes' is duplicated in the declaration 'ProstBytesCandidate.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.remaining'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal.lean:56:4: warning: The namespace 'bytes' is duplicated in the declaration 'ProstBytesCandidate.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.chunk'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal.lean:60:4: warning: The namespace 'bytes' is duplicated in the declaration 'ProstBytesCandidate.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.advance'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/bytes_step/FunsExternal.lean:65:4: warning: The namespace 'bytes' is duplicated in the declaration 'ProstBytesCandidate.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.copy_to_bytes'
+
+Note: This linter can be disabled with `set_option linter.dupNamespace false`
+Checking ProtoParseWork.FieldReferenceWork.Generated.bytes_step.Funs
+Checking BytesReferenceWork.Replayed.BufModel
+Checking BytesReferenceWork.Replayed.SliceReference
+'LibSignalReference.Candidate.ProstBytesSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.access_bound' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.get_unchecked_at' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.initialChecks_ok' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.add_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.sub_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.shift_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.cast8_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_two' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.cast32_number' depends on axioms: [propext, Quot.sound]
+Checking BytesReferenceWork.Replayed.SliceBridge
+'LibSignalReference.Candidate.ProstBytesSlice.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.prefix_rejected_tenth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.pack_count' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.mask254_large' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.prefix_accepted' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.spqr_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.payload_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.or_number_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.terminates_of_large' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.payload_zero_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.terminates_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.decode_first' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.pack_valueBytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesSlice.prefix_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking BytesReferenceWork.Replayed.SliceAdapter
+Checking BytesReferenceWork.Replayed.SlowReference
+'LibSignalReference.Candidate.ProstBytesBuf.slow_loop_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.slow_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.body_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.body_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking BytesReferenceWork.Replayed.StateBridge
+'LibSignalReference.Candidate.ProstBytesBuf.slice_count_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.stateResult_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.slow_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking BytesReferenceWork.Replayed.WrapperReference
+'LibSignalReference.Candidate.ProstBytesBuf.finishSlice' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.fast_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.first_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking BytesReferenceWork.Replayed.ArtifactBridge
+'LibSignalReference.Candidate.ProstBytesBuf.post_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking BytesReferenceWork.Replayed.Consumption
+'LibSignalReference.Candidate.ProstBytesBuf.run_not_done' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.slow_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.fast_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.decode_error_post' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.decode_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking ProtoParseWork.BytesReferenceWork.Generated.vec_replace_put_body.Types
+Checking ProtoParseWork.BytesReferenceWork.Generated.vec_replace_put_body.FunsExternal
+Checking ProtoParseWork.BytesReferenceWork.Generated.vec_replace_put_body.Funs
+Checking BytesReferenceWork.CopyModel
+'LibSignalReference.Candidate.ProstBytesBuf.copy_slice_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_slice_overflow' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_contents_partition' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.copy_contents_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.default_contiguous_copy' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytesBuf.bytes_copy_spec' depends on axioms: [propext, Quot.sound]
+Checking BytesReferenceWork.BytesReference
+'LibSignalReference.Candidate.ProstBytes.check_wire_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_wire_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_decode_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_underflow' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_after_replace' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking BytesReferenceWork.VecReference
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/BytesReferenceWork/Modules/BytesReferenceWork/VecReference.lean:56:13: warning: This simp argument is unused:
+  uncurry_apply_pair
+
+Hint: Omit it from the simp argument list.
+  simp only [̵u̵n̵c̵u̵r̵r̵y̵_̵a̵p̵p̵l̵y̵_̵p̵a̵i̵r̵,̵a̵l̵l̵o̵c̵.̵v̵e̵c̵.̵V̵e̵c̵U̵8̵.̵I̵n̵s̵t̵s̵.̵B̵y̵t̵e̵s̵B̵u̵f̵B̵u̵f̵_̵m̵u̵t̵B̵u̵f̵M̵u̵t̵.̵p̵u̵t̵_̵l̵o̵o̵p̵.̵b̵o̵d̵y̵,̵
+  ̵ ̵ ̵ ̵ ̵h̵h̵,̵b̵i̵n̵d̵_̵t̵c̵_̵o̵k̵,̵i̵f̵_̵t̵r̵u̵e̵,̵h̵c̵,̵e̵x̵t̵e̵n̵d̵_̵e̵m̵p̵t̵y̵,̵h̵a̵]̵[̲a̲l̲l̲o̲c̲.̲v̲e̲c̲.̲V̲e̲c̲U̲8̲.̲I̲n̲s̲t̲s̲.̲B̲y̲t̲e̲s̲B̲u̲f̲B̲u̲f̲_̲m̲u̲t̲B̲u̲f̲M̲u̲t̲.̲p̲u̲t̲_̲l̲o̲o̲p̲.̲b̲o̲d̲y̲,̲ ̲h̲h̲,̲ ̲b̲i̲n̲d̲_̲t̲c̲_̲o̲k̲,̲ ̲i̲f̲_̲t̲r̲u̲e̲,̲ ̲h̲c̲,̲
+  ̲ ̲ ̲ ̲ ̲e̲x̲t̲e̲n̲d̲_̲e̲m̲p̲t̲y̲,̲ ̲h̲a̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'LibSignalReference.Candidate.ProstVecAdapter.clone_u8' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.extend_empty' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.reserve_empty' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_loop_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_loop_one_chunk' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_empty_buffer' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.put_one_chunk' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.replace_one_chunk' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstVecAdapter.replace_empty_buffer' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking BytesReferenceWork.VecBridge
+'LibSignalReference.Candidate.ProstBytes.bytes_from_decode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_last_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.adaptBuf' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.actual_replace_snapshot' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstBytes.bytes_after_actual_vec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
