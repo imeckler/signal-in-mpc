@@ -1537,6 +1537,7 @@ dependencies = [
  "rand 0.9.4",
  "serde_json",
  "signal-crypto",
+ "spqr",
  "tokio",
  "tungstenite",
 ]

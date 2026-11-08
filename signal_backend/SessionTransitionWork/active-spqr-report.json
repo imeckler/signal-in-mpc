@@ -1,0 +1,24 @@
+{
+  "actual_pinned_spqr_receive_matches": 39,
+  "failclosed_rejections": 20,
+  "kernel_endpoints": 6,
+  "foundation_axioms_only": true,
+  "actual_source": "SparsePostQuantumRatchetv1.6.0 commit06959b4708f9b7b1e94d0f8cc835f3958c077e94, same locked git dependency aslibsignal904c8dc",
+  "domain": "Selected established V1 KeysUnsampled active epoch; kind0, retained counter<2^31-1, exact next receiving index, capacity32, private actual length. Candidate only: outer Signal authentication required before commit.",
+  "repeated_state_roundtrip_tested": false,
+  "full_KEM_epoch_transition": false,
+  "full_DH_transition": false,
+  "native_MPC_executed": false,
+  "actual_source_refinement_proved": false,
+  "numeric_nodes": 1623911,
+  "artifact_sha256": "77da8cae29bc64124e7f009cdea40242d29a4bca02806071f3ebbf86fa06c1b0",
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/check_active_spqr.py": "ba622ac56876839bba188764f9f36931509d82ba5effac6025a77c1a2fa6f2ce",
+    "SignalReference/ActiveSpqrReceiveWork/Checks.lean": "e924279f1d5ab4da93a41ed7875e4d49380da9026d18f437c683467ffbc2733c",
+    "SignalReference/ActiveSpqrReceiveWork/Export.lean": "50a8965dae3da661a079ce21bdabf5f03e928d95f8c7bbb1376c7d9386f608e0",
+    "TlsMpc/Signal/ActiveSpqrReceive.lean": "fd8f5cb505e356815f6c946f40ffe0e862c05d1f5860d5d3cae68f6f88bcd1d9",
+    "signal_backend/Oracle/src/bin/signal-active-spqr-receive-oracle.rs": "662e5c99f72972bbfd887e5eba937bf7ee3f2956cfcde529635ea929a1da0bb0",
+    "signal_backend/Oracle/Cargo.toml": "3e71c08548a621a01257c46e1bb37fc63e2747baad30f8ae6a04964519f3be56",
+    "signal_backend/Oracle/Cargo.lock": "c9804860aa6cf73a78ba995a5f172c6751f5aedd129d4bebac8eae4f9661842a"
+  }
+}

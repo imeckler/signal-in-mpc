@@ -1,0 +1,11 @@
+{
+  "artifact_sha256": "77da8cae29bc64124e7f009cdea40242d29a4bca02806071f3ebbf86fa06c1b0",
+  "manifest_sha256": "71952e256eb4a12d66bc9d7d66a248a644e0e6316232d27bad48c6f511b5fc00",
+  "native_executed": false,
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/prepare_active_spqr.py": "1efe6c7c1b0c9f03be19f2d36dd9606283cb0ee928b3543050d6575b90873a33",
+    "programs/signal_active_spqr_receive.mpc": "f07f9dace6e32c9e8107853d509a79c7bac0fb271e12af1296579f761b1e27bd",
+    "SignalReference/ActiveSpqrReceiveWork/Export.lean": "50a8965dae3da661a079ce21bdabf5f03e928d95f8c7bbb1376c7d9386f608e0",
+    "TlsMpc/Signal/ActiveSpqrReceive.lean": "fd8f5cb505e356815f6c946f40ffe0e862c05d1f5860d5d3cae68f6f88bcd1d9"
+  }
+}

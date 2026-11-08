@@ -1,0 +1,14 @@
+# Private candidate only: outer authenticated Signal receive must gate commit.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from handshake_backend import binary_io
+image=load(program.args[1])
+if image['name']!='signal-active-spqr-receive-next' or image['input_bits']!=632 or len(image['outputs'])!=616:
+    raise ValueError('active SPQR receive artifact mismatch')
+def prepare(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+prepare.__name__='signal_active_spqr_receive_next_32'
+function=export(prepare);Array=sbitvec.get_type(1).Array
+function(Array(632),Array(616))
