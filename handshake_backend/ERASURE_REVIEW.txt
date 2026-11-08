@@ -4,6 +4,18 @@ Status: PARTIAL owned-storage cleanup; no operational erasure receipt.
 Application activation remains disabled. Neither successful process exit nor
 handle invalidation establishes the required mobile-compromise guarantee.
 
+2026-11-08 candidate update: ScratchWork now contains an isolated, archive-pinned
+runtime patch with full backing-register visitation and a quiescent host hook.
+An optional Worker callback wipes constructed primary arithmetic/binary VM
+memory/register objects and temp.Sansp after checked execution and output copy-out.
+Five-party tests pass with automatic cleanup, retained X25519 scalar reuse,
+maximum-capacity router output reuse, and pre-initialization/outstanding-job
+rejection. Hidden-frame tests cover18,720realfieldcells under ASan/UBSan in the
+test translation unit. See ScratchWork/README.txt and tls-vm-scratch-checks.json.
+The canonical runtime and production Session do not install this callback yet.
+This partially addresses items1-3below; it does not address freed allocation
+history, preprocessing, PRNG state, or provide an erasure receipt.
+
 Implemented in this checkout:
 * OwnedSecrets.h replaces NativeWorker's raw Bits alias with OwnedBits. It
   overwrites the fixed-width GF(2^128) value of every currently owned bit-share

@@ -1,0 +1,29 @@
+{
+  "mp_spdz": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "patch_sha256": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+  "files": {
+    "Tools/CheckVector.h": {
+      "before": "df2d0934fb9995c4f5feaada1a8a1afe47a5725e4727b95b5e2316f5149a1bfd",
+      "after": "8aba938876c34bedc7b52fe5291ffa3438dbfa0b1ec422d6bc1e078664717e9e"
+    },
+    "Processor/Machine.h": {
+      "before": "760d0be003307a08d74b536cd23d51c6a427a0f1823c18afc755f1d17341f694",
+      "after": "76ec13f9e338513af5ee02d832cba3d620e5932f332107357d89cf9723321085"
+    },
+    "Processor/Machine.hpp": {
+      "before": "b41354b184788c599824fedd9244ac9c8bff465783efded0e30e5f5428fad8a5",
+      "after": "312558f2c8f540b9ead114ad1b66b31f987ec73edeb7b98700cd63e3a2a9ebf7"
+    }
+  },
+  "configuration_sha256": "9ffb32dfa47471c32e9d3316599171b88047a6866231d0340906a96ce9dfd1a3",
+  "script_sha256": "94ba93a24cd4bf870d476c58acc6b399d5de8a9deb787c1cd8d4396fab56f121",
+  "full_vm_erasure_implemented": false,
+  "application_execution_enabled": false
+}

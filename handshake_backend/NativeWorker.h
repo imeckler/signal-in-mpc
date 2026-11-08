@@ -6,6 +6,7 @@
 #include "Machines/MalRep.hpp"
 #include "Machines/Shamir.hpp"
 #include "Processor/FunctionArgument.h"
+#include <functional>
 #include <stdexcept>
 #include "PinnedPrograms.h"
 #include "StrongShamirShare.h"
@@ -22,11 +23,24 @@ using Bits = OwnedBits<Bit>;
 class Worker {
     Machine<Share>& machine;
     const PinnedPrograms& pinned;
+    // Optional partial scratch cleanup for a separately patched runtime. This
+    // is not a retirement capability: preprocessing/PRNG/history remain live.
+    // The callback runs only after checked execution and output copy-out.
+    std::function<void()> cleanup_function_scratch;
     std::vector<Share> scalar;
     bool begun = false;
     bool derived = false;
+    void run(const std::string& name,std::vector<FunctionArgument>& args) {
+        FunctionArgument result;
+        pinned.verify_function(name,args);
+        machine.run_function(name,result,args);
+        if(cleanup_function_scratch)cleanup_function_scratch();
+    }
 public:
-    explicit Worker(Machine<Share>& machine, const PinnedPrograms& pinned) : machine(machine), pinned(pinned), scalar(256, Share::constant(0, machine.get_N().my_num(), machine.get_sint_mac_key())) {}
+    explicit Worker(Machine<Share>& machine, const PinnedPrograms& pinned,
+                    std::function<void()> cleanup_function_scratch={})
+        : machine(machine), pinned(pinned),cleanup_function_scratch(std::move(cleanup_function_scratch)),
+          scalar(256, Share::constant(0, machine.get_N().my_num(), machine.get_sint_mac_key())) {}
     Worker(const Worker&)=delete;
     Worker& operator=(const Worker&)=delete;
     ~Worker(){erase_owned_scalar();}
@@ -45,9 +59,7 @@ public:
         begun = true;
         auto output = allocate(256);
         std::vector<FunctionArgument> args = {{scalar, true}, {1, output.function_argument()}};
-        FunctionArgument result;
-        pinned.verify_function("tls_begin", args);
-        machine.run_function("tls_begin", result, args);
+        run("tls_begin",args);
         return output; // PUBLIC KEY, still shared until explicitly released.
     }
     Bits agreement(const Field& public_peer) {
@@ -57,9 +69,7 @@ public:
             machine.get_N().my_num(), machine.get_sint_mac_key())};
         auto output = allocate(256);
         std::vector<FunctionArgument> args = {{scalar, true}, {peer}, {1, output.function_argument()}};
-        FunctionArgument result;
-        pinned.verify_function("tls_agreement", args);
-        machine.run_function("tls_agreement", result, args);
+        run("tls_agreement",args);
         return output; // SECRET ECDH bytes. Never eligible for public release.
     }
     Bits binary(const std::string& stem, Bits inputs, size_t output_bits) {
@@ -73,9 +83,7 @@ public:
         }
         auto output = allocate(output_bits);
         std::vector<FunctionArgument> args = {{1, inputs.function_argument()}, {1, output.function_argument()}};
-        FunctionArgument result;
-        pinned.verify_function(name, args);
-        machine.run_function(name, result, args);
+        run(name,args);
         return output;
     }
 };

@@ -755,3 +755,53 @@ RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
   Its Astra-high helper continues separate PreKeyWork. TopFieldWork and
   BytesReferenceWork are in progress; new bytes models are not accepted yet.
   Sharing refresh remains paused. Root test/build handles are all terminal.
+
+2026-11-08 partial VM scratch cleanup checkpoint
+- Previous goal turn made progress: TLS shape/bulk-I/O checkpoint committed as
+  10c4928. This turn adds actual constructed VM scratch cleanup in an isolated
+  runtime; it does not enable the Session retirement/application gate.
+- scripts/prepare_tls_scratch_runtime.py verifies the retained pinned MP-SPDZ
+  archive and builds a separate source-only .deps/tls-scratch-runtime/MP-SPDZ.
+  ScratchWork/vm-scratch.patch adds full StackedVector backing visitation and a
+  Machine hook for primary arithmetic/binary memory/registers and temp.Sansp.
+  The hook requires exclusive host ownership and rejects uninitialized or
+  outstanding-job states before touching storage. Canonical source unchanged.
+- The isolated libSPDZ.so was rebuilt from source (43126 terminal0); macOS
+  library ID changed to @rpath/libSPDZ.so before fixture linking. Initial local
+  test failed loader resolution before that correction; corrected tests passed.
+  No old baseline object files were copied into the candidate build.
+- NativeWorker now accepts an optional cleanup callback, invoked after checked
+  execution and output copy-out. Only ScratchWork fixture supplies it. Current
+  production Worker/Session supplies no callback and gains no erasure receipt.
+- Final check_tls_vm_scratch.py --build run86069 terminal0. All five parties
+  passed capacities6/1029/16385, three router calls each, with automatic cleanup,
+  direct zero checks, preserved/reused output shares and auth rejection. Capacity6
+  also executes tls_begin and base-point tls_agreement across cleanup, preserving
+  the external scalar. Two guards reject before visitation. Local hidden-stack
+  test checks18,720actualCCDfieldcells at widths1..64 with ASan/UBSan test TU.
+  Times1.222/0.388/5.031seconds are component checks, not message throughput.
+  Report tls-vm-scratch-checks.json: all source/product/log/manifest hashes and
+  patched-versus-original source hashes independently checked. Full erasure false.
+- Baseline regression after NativeWorker callback refactor: boundary run71011
+  terminal0,12checks; actual five-party TLS synthetic stages99863 terminal0,
+  103.153seconds, all five expected exit1 at unimplemented retirement. Current
+  worker hash7067607e7b795698316e8836cb1a13f7af4a7c1ba3f9d8e494c0309c035e6c41.
+  Synthetic certificate decision remains stubbed; no new full-auth handshake
+  claim. Other root build/test handles79690/78057/39601/33571 terminal0 too.
+- Next runtime work must cover old/freed inner allocations, consumed Beaver/
+  input/opening/preprocessing/daBit copies, retained local/correlated PRNG seeds,
+  clear/masked/bigint temporaries, nested processors and failure/epoch boundaries.
+  ScratchWork/README.txt gives exact tested/untested scope. Do not flip readiness.
+- Signal agent completed root CLI XEdDSA integration (33 byte-identical profiles
+  and TLS nonce dispatch, lake emitter build passed); its files remain unstaged
+  pending root review. Frozen XEdDsaWork checkpoint is still unreviewed.
+- BytesReferenceWork frozen for scoped root review: proof-report SHA256
+  9bd73be43882c6f5f268d931c62c0a56ec95ba85f4e16723ca94854fac6754ad;
+  model-provenance217bba4278d839e04516d5a2845c0364aeb1c94cb6c72dbad303fd27d52cbbdf;
+  model-diff62c4c198f9e7a963ca9a1d1904dec950e88aad2367b2a19ce2902b0b728979bf.
+  Agent reports92endpoints/20modules/474hashes/5638nativefixtures. New Bytes
+  content/allocation/Buf models require explicit review; no acceptance yet.
+  Contiguous valid buffers and successful bounded allocation are assumptions.
+  Main agent continues TopFieldWork whole-parser lookup/table bridge; Astra-high
+  helper continues prekey policy/composition. Sharing refresh remains paused.
+  Root owns Git staging. No root processes remain running at this checkpoint.

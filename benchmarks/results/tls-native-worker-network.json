@@ -1,5 +1,5 @@
 {
-  "checked_utc": "2026-11-07T21:44:24.453761+00:00",
+  "checked_utc": "2026-11-08T02:52:13.084831+00:00",
   "parties": 5,
   "threshold": 2,
   "binary_field_degree": 128,
@@ -11,16 +11,16 @@
   "expected_exit_code": 1,
   "full_vm_erasure_implemented": false,
   "wan_throughput_tested": false,
-  "executable_sha256": "4707438eb8d05c717d16fc047d48b721d0f9563f301e0173db801f3e91e87376",
+  "executable_sha256": "7067607e7b795698316e8836cb1a13f7af4a7c1ba3f9d8e494c0309c035e6c41",
   "manifest_sha256": "a442f1425ef47163cb09ab14b284bc59d6c909c55f53c21900b5dd72f05ea3b5",
-  "logs": "benchmarks/results/raw/native-worker-network/ec11f4db60141587",
+  "logs": "benchmarks/results/raw/native-worker-network/f028b6b7d4ea505d",
   "joint_public_key_agreement": true,
-  "begin_seconds": 1.1670338340336457,
-  "derive_seconds": 41.01908304099925,
-  "open_seconds": 2.0545638339826837,
+  "begin_seconds": 1.226878207991831,
+  "derive_seconds": 40.55156245804392,
+  "open_seconds": 2.0434666249202564,
   "ecdh_kdf_aes_record_match": true,
-  "verify_seconds": 13.359155167010613,
-  "finish_seconds": 43.759530416922644,
+  "verify_seconds": 14.443499749992043,
+  "finish_seconds": 44.81105520797428,
   "finished_ciphertext_match": true,
   "unimplemented_retirement_rejected": true,
   "passed": true,
@@ -31,5 +31,5 @@
     1,
     1
   ],
-  "elapsed_seconds": 101.43846299999859
+  "elapsed_seconds": 103.15296033304185
 }

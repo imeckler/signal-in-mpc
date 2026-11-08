@@ -420,6 +420,13 @@ authentication rejection; it opens only its deliberately public synthetic data.
 See `tls-application-io-native-checks.json`. These component checks do not bypass
 the application retirement gate or establish VM erasure.
 
+An isolated runtime patch in `handshake_backend/ScratchWork` adds cleanup of
+constructed secret VM memory and the full register backing storage, including
+hidden stack frames. Five-party tests preserve retained X25519 state and router
+output shares across automatic cleanup. Production retirement remains disabled:
+freed allocations, preprocessing copies and retained PRNG seeds still need
+cleanup. See `benchmarks/results/tls-vm-scratch-checks.json` for the tested scope.
+
 TLS record opening now uses a balanced Lean padding/type parser, proved equal
 to the original specification for every input. Its 1024-byte parser has 27 AND
 layers, down from 1040, at the cost of more gates. The compiler theorem and

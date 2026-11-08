@@ -1,0 +1,72 @@
+--- a/Tools/CheckVector.h
++++ b/Tools/CheckVector.h
+@@ -51,6 +51,16 @@
+     StackedVector(size_t size, const T& def) :
+             CheckVector<T>(size, def), full(*this), start(0), finish(size)
+     {
++    }
++
++    // Caller must own this vector exclusively. Visit constructed backing
++    // objects, including hidden frames and values beyond the logical end.
++    // This does not reach deallocated storage or old inner allocations.
++    template<class Visitor>
++    void visit_full_storage(Visitor&& visitor)
++    {
++        for (auto& value : full)
++            visitor(value);
+     }
+ 
+     size_t size() const { return finish - start; }
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -114,6 +114,13 @@
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+ 
++  // Exclusive host-owner API, between completed exported function calls.
++  // Visitors must not allocate MPC work, reveal values, or call back into us.
++  // Partial cleanup only: no preprocessing, PRNG, allocator-history receipt.
++  template<class ArithmeticVisitor, class BinaryVisitor>
++  void visit_secret_scratch(ArithmeticVisitor&& arithmetic,
++      BinaryVisitor&& binary);
++
+   string memory_filename();
+ 
+   template<class T>
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -520,6 +520,34 @@
+ }
+ 
+ template<class sint, class sgf2n>
++template<class ArithmeticVisitor, class BinaryVisitor>
++void Machine<sint, sgf2n>::visit_secret_scratch(ArithmeticVisitor&& arithmetic,
++        BinaryVisitor&& binary)
++{
++  // The embedding application serializes all host calls. Reject worker-thread
++  // calls and outstanding jobs before visiting or changing any storage.
++  if (ThreadQueue::thread_queue or threads.empty() or
++      threads.size() != tinfo.size() or queues.size() != threads.size() or
++      not active_threads.empty())
++    throw runtime_error("secret scratch requires initialized quiescent host");
++  for (size_t i = 0; i < threads.size(); ++i)
++    if (not queues[i] or not queues[i]->available() or not tinfo[i].processor)
++      throw runtime_error("secret scratch requires joined jobs");
++
++  for (size_t i = 0; i < Mp.MS.size(); ++i)
++    arithmetic(Mp.MS[i]);
++  for (auto& value : bit_memories.MS)
++    binary(value);
++  for (auto& info : tinfo)
++    {
++      auto& proc = *info.processor;
++      proc.Procp.get_S().visit_full_storage(arithmetic);
++      proc.Procb.S.visit_full_storage(binary);
++      arithmetic(proc.temp.Sansp);
++    }
++}
++
++template<class sint, class sgf2n>
+ pair<DataPositions, NamedCommStats> Machine<sint, sgf2n>::stop_threads()
+ {
+   // only stop actually running threads

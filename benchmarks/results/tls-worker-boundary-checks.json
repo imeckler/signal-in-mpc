@@ -1,5 +1,5 @@
 {
-  "checked_utc": "2026-11-08T02:30:32.480737+00:00",
+  "checked_utc": "2026-11-08T02:51:45.307956+00:00",
   "native_adapter_build": true,
   "native_executable_build": true,
   "checks": [
@@ -62,8 +62,8 @@
   "scope": "compile/link native dispatch/executable; public parsing/state checks; actual Lean/C++ concurrent and duplex pipe interop",
   "application_execution_enabled": false,
   "products_sha256": {
-    ".deps/sharing-refresh/tls-worker-build": "23a0aa8020cf78da5758a47645192fdfe39c37911b16022aec802199d27e3806",
-    ".deps/sharing-refresh/tls-worker": "4707438eb8d05c717d16fc047d48b721d0f9563f301e0173db801f3e91e87376"
+    ".deps/sharing-refresh/tls-worker-build": "5f95ed2fb72f5a7293d9dabc1a0ee686fea07c4870a6e965e9c23c8601d43249",
+    ".deps/sharing-refresh/tls-worker": "7067607e7b795698316e8836cb1a13f7af4a7c1ba3f9d8e494c0309c035e6c41"
   },
   "source_sha256": {
     "handshake_backend/ApplicationPolicy.h": "d3ff6b78143714f528af625f5e38e951816fcf2db85dee53072504f92cb0f442",
@@ -73,7 +73,7 @@
     "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
     "handshake_backend/NativeDispatch.h": "ce7e6c480a109762551affa4799a05f5dfae43e52e302f057ec1a6f3f07822d8",
     "handshake_backend/NativeSession.h": "c9b2dcf0a172e51eed3bf791fcdc44c9b89176d199d5694a029764f56e05cce4",
-    "handshake_backend/NativeWorker.h": "8502029ad211e4e13cc906c6a00ca8ede3b56170882d45c18c05f62819fd58d3",
+    "handshake_backend/NativeWorker.h": "a505a8db0cc47d08265ad4f421217649b38eacf5184e2ffb0e2a2a2f49a5b91f",
     "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
     "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
     "handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
