@@ -28,3 +28,47 @@ stop, 32 joined blocked consumers, and empty-queue signals. These changes do not
 connect ThreadQueue/Machine failure propagation yet. Existing runtime sources
 are unchanged. Run the preparation script then compile the test with
 `-I.deps/tls-caught-failure-queue` and the same sanitizer flags above.
+
+## Isolated runtime checkpoint
+
+`prepare_runtime.py` creates `.deps/tls-caught-failure-runtime/MP-SPDZ` from
+immutable diagnostic-v4 source/config identity. `--verify` regenerates the
+source overlay in temporary storage and checks exact equality with the candidate.
+It never changes the frozen functional runtime. Build `libSPDZ.so`, then use
+`fixture.mk` for the small executable. `check_native.py` runs the bounded local
+five-party series and preserves source/product snapshots and original failures.
+
+The current checkpoint passes all five parties for repeated positive execution,
+a deliberately inconsistent private polynomial evaluation (actual `mac_fail`),
+a one-party worker exception, and a one-party teardown exception. Only positive
+synthetic comparison flags open. On failure the test checks terminal execution
+rejection, false lifecycle retirement acknowledgment, cleared owned inputs,
+zero remaining registered TLS sockets, and at least seventeen wiped owned
+stacks. The queued result is not delivered after cancellation. The caught path
+returns through C++ owners rather than `exit`, including instruction wrappers.
+
+The candidate owns per-worker Player/MC/Processor via RAII; failure cancels
+registered TLS I/O before owners unwind. TLS stream construction owns the fd
+before registration; a partial CryptoPlayer construction closes transferred
+and remaining raw fds and destroys helper owners. Sender/receiver owners are
+destroyed before their TLS streams. Processor destruction suppresses fresh
+protocol checks during terminal unwind. The host joins VM workers, wipes stacks
+and VM memory, deletes its transport, and refuses retirement. Normal retirement
+adds a collective completion exchange AFTER local checks/joins/wipes, so a peer
+teardown failure cannot be mistaken for completion.
+
+macOS SO_NOSIGPIPE is required by this candidate; unsupported platforms reject
+explicitly rather than changing the embedding process's signal policy. The
+first two raw runs exposed instruction-level `exit(1)` and peer SIGPIPE,
+respectively. Their failed evidence remains alongside the successful run.
+
+Supported test scope is exactly one VM worker, five encrypted parties, live CCD128
+preprocessing, post-bootstrap controlled protocol failures, and quiescent host
+ownership. No application capability/default is enabled. Bootstrap/server-thread
+failures, partial Processor-constructor ownership, OS-level join failures,
+SIGKILL/crash/suspend and OS copies are not certified. Communication helper
+joins still require explicit return-code accounting before promotion; the
+checkpoint's controlled cases use successful valid pthread joins. OT/Tinier
+owners and their destructor checks are outside this CCD candidate. Caller-owned
+private inputs/handles must be closed/wiped by the embedding session on failure;
+Machine does not own those buffers and cannot erase independent copies.

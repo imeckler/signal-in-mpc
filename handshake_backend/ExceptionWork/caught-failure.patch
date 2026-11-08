@@ -1,0 +1,597 @@
+--- a/Tools/WaitQueue.h
++++ b/Tools/WaitQueue.h
+@@ -58,23 +58,27 @@
+     void push(const T& value)
+     {
+         lock();
+-        queue.push_back(value);
+-        signal();
++        if (running)
++        {
++            queue.push_back(value);
++            signal();
++        }
+         unlock();
+     }
+ 
+     bool pop(T& value)
+     {
+         lock();
+-        if (running and queue.size() == 0)
++        while (running and queue.size() == 0)
+             wait();
+         if (running)
+         {
+             value = queue.front();
+             queue.pop_front();
+         }
++        const bool result = running;
+         unlock();
+-        return running;
++        return result;
+     }
+ 
+     T pop()
+@@ -87,7 +91,7 @@
+     bool pop_dont_stop(T& value)
+     {
+         lock();
+-        if (running and queue.size() == 0)
++        while (running and queue.size() == 0)
+             wait();
+         bool something_for_you = queue.size() > 0;
+         if (something_for_you)
+@@ -103,7 +107,7 @@
+     {
+         lock();
+         running = false;
+-        signal();
++        pthread_cond_broadcast(&cond);
+         unlock();
+     }
+ 
+--- a/Processor/ThreadQueue.h
++++ b/Processor/ThreadQueue.h
+@@ -6,6 +6,7 @@
+ #ifndef PROCESSOR_THREADQUEUE_H_
+ #define PROCESSOR_THREADQUEUE_H_
+ 
++#include "Tools/SocketCancellation.h"
+ #include "ThreadJob.h"
+ #include "ThreadStats.h"
+ #include "Tools/NamedStats.h"
+@@ -37,6 +38,7 @@
+         return left == 0;
+     }
+ 
++    void cancel_failure() noexcept { in.stop(); out.stop(); }
+     void schedule(const ThreadJob& job);
+     ThreadJob next();
+     void finished(const ThreadJob& job);
+--- a/Processor/ThreadQueue.cpp
++++ b/Processor/ThreadQueue.cpp
+@@ -37,7 +37,8 @@
+                 timer.elapsed());
+ 
+     TimeScope scope(inside_wait_timer);
+-    auto res = in.pop();
++    ThreadJob res;
++    if (not in.pop(res)) throw runtime_error("MPC worker cancelled");
+ 
+     if (debug)
+         fprintf(stderr, "done waiting in thread %lx at %f (wait time %f)\n",
+@@ -71,7 +72,8 @@
+ {
+     if (thread_queue)
+         thread_queue->wait_timer.start();
+-    auto res = out.pop();
++    ThreadJob res;
++    if (not out.pop(res)) throw runtime_error("MPC worker cancelled");
+     if (thread_queue)
+         thread_queue->wait_timer.stop();
+     lock.lock();
+--- a/Networking/ssl_sockets.h
++++ b/Networking/ssl_sockets.h
+@@ -6,6 +6,7 @@
+ #ifndef CRYPTO_SSL_SOCKETS_H_
+ #define CRYPTO_SSL_SOCKETS_H_
+ 
++#include "Tools/SocketCancellation.h"
+ #include "Tools/int.h"
+ #include "Tools/time-func.h"
+ #include "sockets.h"
+@@ -50,6 +51,7 @@
+ class ssl_socket : public boost::asio::ssl::stream<boost::asio::ip::tcp::socket>
+ {
+     typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> parent;
++    tls_caught_failure::SocketToken cancellation_token;
+ 
+ public:
+     ssl_socket(ssl_service& io_service,
+@@ -61,7 +63,16 @@
+         cerr << me << " setting up SSL to " << other << " as " <<
+                 (client ? "client" : "server") << endl;
+ #endif
+-        lowest_layer().assign(boost::asio::ip::tcp::v4(), plaintext_socket);
++        try { lowest_layer().assign(boost::asio::ip::tcp::v4(), plaintext_socket); }
++        catch (...) { ::close(plaintext_socket); throw; }
++        cancellation_token.arm(plaintext_socket);
++#ifdef SO_NOSIGPIPE
++        int no_sigpipe=1;
++        if(::setsockopt(plaintext_socket,SOL_SOCKET,SO_NOSIGPIPE,&no_sigpipe,sizeof(no_sigpipe)))
++            throw runtime_error("MPC no-SIGPIPE socket setup failed");
++#else
++        throw runtime_error("caught-failure candidate requires per-socket no-SIGPIPE support");
++#endif
+         set_verify_mode(boost::asio::ssl::verify_peer);
+         set_verify_callback(boost::asio::ssl::host_name_verification(other));
+         if (client)
+--- a/Networking/CryptoPlayer.cpp
++++ b/Networking/CryptoPlayer.cpp
+@@ -3,6 +3,7 @@
+  *
+  */
+ 
++#include "Tools/FailureScope.h"
+ #include "Tools/PublicProtocolMetrics.h"
+ #include "CryptoPlayer.h"
+ #include "Math/Setup.h"
+@@ -18,39 +19,8 @@
+ 
+ void ssl_error(string side, string other, string me, exception& e)
+ {
+-    cerr << side << "-side handshake with " << other
+-            << " failed. Make sure both sides "
+-            << " have the necessary certificate (" << SSL_DIR << me
+-            << ".pem in the default configuration on their side and "
+-            << SSL_DIR << other << ".pem on ours),"
+-            << " and run `c_rehash <directory>` on its location." << endl
+-            << "The certificates should be the same on every host. "
+-            << "Also make sure that it's still valid. Certificates generated "
+-            << "with `Scripts/setup-ssl.sh` expire after a month." << endl;
+-    cerr << "See also "
+-            "https://mp-spdz.readthedocs.io/en/latest/troubleshooting.html"
+-            "#handshake-failures" << endl;
+-
+-    string ids[2];
+-    ids[side == "Client"] = other;
+-    ids[side != "Client"] = me;
+-    cerr << "Signature (should match the other side): ";
+-    for (int i = 0; i < 2; i++)
+-    {
+-        auto filename = SSL_DIR + ids[i] + ".pem";
+-        ifstream cert(filename);
+-        stringstream buffer;
+-        buffer << cert.rdbuf();
+-        if (buffer.str().empty())
+-            cerr << "<'" << filename << "' not found>";
+-        else
+-            cerr << octetStream(buffer.str()).hash();
+-        if (i == 0)
+-            cerr << "/";
+-    }
+-    cerr << endl;
+-    cerr << "SSL error: " << e.what() << endl;
+-    exit(1);
++    (void)side; (void)other; (void)me; (void)e;
++    throw runtime_error("MPC TLS handshake failed");
+ }
+ 
+ CryptoPlayer::CryptoPlayer(const Names& Nms, const string& id_base) :
+@@ -63,12 +33,19 @@
+     receivers.resize(num_players());
+ 
+     vector<int> plaintext_sockets[2];
++    tls_caught_failure::OnUnwind construction_failure([&]() noexcept {
++        tls_caught_failure::runtime_sockets.cancel();
++        clear_owned_connections();
++        for(auto& group:plaintext_sockets) for(int fd:group)
++            if(fd>=0) ::close(fd);
++    });
+ 
+     for (int i = 0; i < 2; i++)
+     {
+         PlainPlayer player(Nms, id_base + (i ? "recv" : ""));
+         plaintext_sockets[i] = player.sockets;
+         close_client_socket(player.socket(my_num()));
++        plaintext_sockets[i][my_num()]=-1;
+         player.sockets.clear();
+     }
+ 
+@@ -95,9 +72,11 @@
+ 
+ void CryptoPlayer::connect(int i, vector<int>* plaintext_sockets)
+ {
+-    sockets[i] = new ssl_socket(io_service, ctx, plaintext_sockets[0][i],
++    int first=plaintext_sockets[0][i]; plaintext_sockets[0][i]=-1;
++    sockets[i] = new ssl_socket(io_service, ctx, first,
+             "P" + to_string(i), "P" + to_string(my_num()), i < my_num());
+-    other_sockets[i] = new ssl_socket(io_service, ctx, plaintext_sockets[1][i],
++    int second=plaintext_sockets[1][i]; plaintext_sockets[1][i]=-1;
++    other_sockets[i] = new ssl_socket(io_service, ctx, second,
+             "P" + to_string(i), "P" + to_string(my_num()), i < my_num());
+ 
+ }
+@@ -107,14 +86,16 @@
+ {
+ }
+ 
+-CryptoPlayer::~CryptoPlayer()
++CryptoPlayer::~CryptoPlayer() { clear_owned_connections(); }
++
++void CryptoPlayer::clear_owned_connections() noexcept
+ {
+     for (int i = 0; i < num_players(); i++)
+     {
+-        delete sockets[i];
+-        delete other_sockets[i];
+-        delete senders[i];
+-        delete receivers[i];
++        delete senders[i]; senders[i]=nullptr;
++        delete receivers[i]; receivers[i]=nullptr;
++        delete sockets[i]; sockets[i]=nullptr;
++        delete other_sockets[i]; other_sockets[i]=nullptr;
+     }
+ }
+ 
+--- a/Networking/CryptoPlayer.h
++++ b/Networking/CryptoPlayer.h
+@@ -28,6 +28,7 @@
+     vector<Sender<ssl_socket*>*> senders;
+     vector<Receiver<ssl_socket*>*> receivers;
+ 
++    void clear_owned_connections() noexcept;
+     void connect(int other, vector<int>* plaintext_sockets);
+ 
+ public:
+--- a/Networking/Receiver.cpp
++++ b/Networking/Receiver.cpp
+@@ -54,21 +54,12 @@
+ 
+ void CommunicationThread::run()
+ {
+-    if (OnlineOptions::singleton.has_option("throw_exceptions"))
+-        run_with_error();
+-    else
+-    {
+-        try
+-        {
+-            run_with_error();
+-        }
+-        catch (exception& e)
+-        {
+-            fprintf(stderr, "Fatal error in communication: %s. ", e.what());
+-            fprintf(stderr, "This is probably because party %d"
+-                    " encountered a problem.\n", other);
+-            fail();
+-        }
++    (void)other;
++    try { run_with_error(); }
++    catch (...) {
++        tls_caught_failure::runtime_sockets.cancel();
++        fprintf(stderr, "MPC failure category=communication\n");
++        fail();
+     }
+ }
+ 
+--- a/Processor/Instruction.hpp
++++ b/Processor/Instruction.hpp
+@@ -1539,10 +1539,8 @@
+       }
+       catch (exception& e)
+       {
+-          auto inst =  p[Proc.last_PC].get_name();
+-          fprintf(stderr, "Fatal error at %s:%d (%s): %s\n", name.c_str(),
+-                  Proc.last_PC, inst.c_str(), e.what());
+-          exit(1);
++          fprintf(stderr,"MPC failure category=instruction\n");
++          throw;
+       }
+     }
+ }
+--- a/GC/Program.hpp
++++ b/GC/Program.hpp
+@@ -101,10 +101,8 @@
+         }
+         catch (exception& e)
+         {
+-            auto inst = p[Proc.last_PC].get_name();
+-            fprintf(stderr, "Fatal error at %d (%s): %s\n", Proc.last_PC,
+-                    inst.c_str(), e.what());
+-            exit(1);
++          fprintf(stderr,"MPC failure category=instruction\n");
++          throw;
+         }
+     }
+ }
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -6,6 +6,7 @@
+ #ifndef MACHINE_H_
+ #define MACHINE_H_
+ 
++#include "Tools/SocketCancellation.h"
+ #include "Processor/BaseMachine.h"
+ #include "Processor/Memory.h"
+ #include "Processor/Program.h"
+@@ -43,6 +44,8 @@
+ 
+   vector<thread_info<sint, sgf2n>> tinfo;
+   vector<pthread_t> threads;
++  atomic<bool> caught_failure{false};
++  bool caught_cleanup_complete=false;
+   vector<unique_ptr<ErasingThreadStack>> worker_stacks;
+ 
+   int my_number;
+@@ -120,6 +123,10 @@
+   // promise complete erasure of machine-global or externally retained storage.
+   void retire_worker_epoch(bool renew_transport = true);
+   DataPositions public_function_usage();
++  void report_caught_failure() noexcept;
++  void cleanup_caught_failure() noexcept;
++  bool has_caught_failure() const noexcept { return caught_failure.load(); }
++  bool failed_cleanup_complete() const noexcept { return caught_cleanup_complete; }
+ 
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PROCESSOR_MACHINE_HPP_
+ #define PROCESSOR_MACHINE_HPP_
+ 
++#include "Tools/FailureScope.h"
+ #include "Tools/PublicProtocolMetrics.h"
+ #include "Machine.h"
+ 
+@@ -162,6 +163,7 @@
+ template<class sint, class sgf2n>
+ void Machine<sint, sgf2n>::prepare(const string& progname_str)
+ {
++  if(has_caught_failure()) throw runtime_error("MPC runtime terminal failure");
+   tls_public_diagnostics::LoadTimer public_prepare(false);
+   int old_n_threads = nthreads;
+   progs.clear();
+@@ -171,6 +173,8 @@
+     suggest_optimizations();
+ 
+   check_program();
++
++  if(nthreads!=1) throw runtime_error("caught-failure candidate requires one VM worker");
+ 
+   // keep preprocessing
+   nthreads = max(old_n_threads, nthreads);
+@@ -191,6 +195,7 @@
+   progs[0].print_offline_cost();
+ #endif
+ 
++  threads.reserve(nthreads); worker_stacks.reserve(nthreads);
+   /* Set up the threads */
+   tinfo.resize(nthreads);
+   queues.resize(nthreads);
+@@ -240,7 +245,7 @@
+ template<class sint, class sgf2n>
+ Machine<sint, sgf2n>::~Machine()
+ {
+-  stop_threads();
++  try { stop_threads(); } catch (...) { report_caught_failure(); cleanup_caught_failure(); }
+ 
+   sint::LivePrep::teardown();
+   sgf2n::LivePrep::teardown();
+@@ -457,6 +462,10 @@
+ void Machine<sint, sgf2n>::run_function(const string& name,
+         FunctionArgument& result, vector<FunctionArgument>& arguments)
+ {
++  if(has_caught_failure()) throw runtime_error("MPC runtime terminal failure");
++  tls_caught_failure::OnUnwind host_failure([this]() noexcept {
++    report_caught_failure(); cleanup_caught_failure();
++  });
+   ifstream file;
+   FunctionArgument::open(file, name, arguments);
+ 
+@@ -581,6 +590,8 @@
+ template<class sint, class sgf2n>
+ void Machine<sint, sgf2n>::retire_worker_epoch(bool renew_transport)
+ {
++  if(has_caught_failure()) throw runtime_error("MPC failed epoch cannot retire");
++  tls_caught_failure::OnUnwind retire_failure([this]() noexcept { report_caught_failure(); cleanup_caught_failure(); });
+   // Validate before mutation. In particular, never consume someone else's job.
+   if (ThreadQueue::thread_queue or (threads.empty() and renew_transport) or
+       threads.size() != tinfo.size() or queues.size() != threads.size() or
+@@ -601,6 +612,14 @@
+   // stop_threads executes protocol checks before destroying each thread's
+   // complete Processor, preprocessing, MC, and Player ownership subtrees.
+   stop_threads();
++  if(has_caught_failure()) throw runtime_error("MPC failed epoch cannot retire");
++  // Collective completion is after local protocol checks, joins and stack wipe.
++  vector<octetStream> completion(N.num_players());
++  octetStream expected; expected.store(worker_epoch);
++  completion[my_number]=expected;
++  P->Broadcast_Receive(completion); P->Check_Broadcast();
++  for(const auto& item:completion)
++    if(not item.equals(expected)) throw runtime_error("MPC epoch completion mismatch");
+   ++worker_epoch;
+   tinfo.clear();
+   M2.resize_s(0); M2.resize_c(0);
+@@ -619,8 +638,39 @@
+ }
+ 
+ template<class sint, class sgf2n>
++void Machine<sint, sgf2n>::report_caught_failure() noexcept {
++  caught_failure.store(true);
++  tls_caught_failure::runtime_sockets.cancel();
++  for(auto* queue:queues) if(queue) queue->cancel_failure();
++}
++template<class sint, class sgf2n>
++void Machine<sint, sgf2n>::cleanup_caught_failure() noexcept {
++  if(caught_cleanup_complete) return;
++  report_caught_failure();
++  bool joined=true;
++  for(auto thread:threads) if(pthread_join(thread,nullptr)!=0) joined=false;
++  if(not joined) {
++    // Quarantine mappings rather than wiping a potentially live stack.
++    for(auto& stack:worker_stacks) stack.release();
++    fprintf(stderr,"MPC failure category=join\n");
++    return;
++  }
++  for(auto* queue:queues) delete queue;
++  queues.clear(); threads.clear(); worker_stacks.clear(); tinfo.clear();
++  active_threads.clear(); nthreads=0;
++  M2.resize_s(0); M2.resize_c(0); Mp.resize_s(0); Mp.resize_c(0);
++  Mi.resize_s(0); Mi.resize_c(0); bit_memories.MS.clear(); bit_memories.MC.clear();
++  auto* previous=P;P=nullptr;delete previous;
++  caught_cleanup_complete=true;
++}
++
++template<class sint, class sgf2n>
+ pair<DataPositions, NamedCommStats> Machine<sint, sgf2n>::stop_threads()
+ {
++  if(has_caught_failure()) {
++    cleanup_caught_failure();
++    return {DataPositions(N.num_players()), NamedCommStats{}};
++  }
+   // only stop actually running threads
+   nthreads = threads.size();
+ 
+--- a/Processor/Online-Thread.hpp
++++ b/Processor/Online-Thread.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PROCESSOR_ONLINETHREAD_HPP_
+ #define PROCESSOR_ONLINETHREAD_HPP_
+ 
++#include "Tools/FailureScope.h"
+ #include "Processor/Program.h"
+ #include "Processor/Online-Thread.h"
+ #include "Tools/time-func.h"
+@@ -54,6 +55,11 @@
+ #ifdef DEBUG_THREADS
+   fprintf(stderr, "\tI am in thread %d\n",num);
+ #endif
++  std::unique_ptr<Player> player_owner;
++  std::unique_ptr<typename sgf2n::MAC_Check> mc2_owner;
++  std::unique_ptr<typename sint::MAC_Check> mcp_owner;
++  std::unique_ptr<Processor<sint,sgf2n>> processor_owner;
++  tls_caught_failure::OnUnwind worker_failure([&]() noexcept { machine.report_caught_failure(); });
+   Player* player;
+   string id = "thread" + to_string(num) + "epoch" + to_string(machine.worker_epoch);
+   if (machine.use_encryption)
+@@ -77,6 +83,7 @@
+ #endif
+       player = new ThreadPlayer(*(tinfo->Nms), id);
+     }
++  player_owner.reset(player);
+   Player& P = *player;
+ #ifdef DEBUG_THREADS
+   fprintf(stderr, "\tSet up player in thread %d\n",num);
+@@ -90,20 +97,21 @@
+ #ifdef VERBOSE_OPTIONS
+       cerr << "Using direct communication." << endl;
+ #endif
+-      MC2 = new typename sgf2n::Direct_MC(*(tinfo->alpha2i));
+-      MCp = new typename sint::Direct_MC(*(tinfo->alphapi));
++      MC2 = new typename sgf2n::Direct_MC(*(tinfo->alpha2i)); mc2_owner.reset(MC2);
++      MCp = new typename sint::Direct_MC(*(tinfo->alphapi)); mcp_owner.reset(MCp);
+     }
+   else
+     {
+ #ifdef VERBOSE_OPTIONS
+       cerr << "Using indirect communication." << endl;
+ #endif
+-      MC2 = new typename sgf2n::MAC_Check(*(tinfo->alpha2i), opts.opening_sum, opts.max_broadcast);
+-      MCp = new typename sint::MAC_Check(*(tinfo->alphapi), opts.opening_sum, opts.max_broadcast);
++      MC2 = new typename sgf2n::MAC_Check(*(tinfo->alpha2i), opts.opening_sum, opts.max_broadcast); mc2_owner.reset(MC2);
++      MCp = new typename sint::MAC_Check(*(tinfo->alphapi), opts.opening_sum, opts.max_broadcast); mcp_owner.reset(MCp);
+     }
+ 
+   // Allocate memory for first program before starting the clock
+   processor = new Processor<sint, sgf2n>(tinfo->thread_num,P,*MC2,*MCp,machine,progs.at(thread_num > 0));
++  processor_owner.reset(processor);
+   auto& Proc = *processor;
+ 
+   // don't count communication for initialization
+@@ -132,6 +140,10 @@
+       ThreadJob job = queues->next();
+       tls_public_diagnostics::Scope public_job_scope(job.public_diagnostic_context.domain,job.public_diagnostic_context.phase);
+       program = job.prognum;
++#ifdef TLS_CAUGHT_FAILURE_TEST_HOOKS
++      if(program>=0 && tls_caught_failure::fixture_fault_stage==1)
++        throw runtime_error("fixture protocol failure");
++#endif
+ #ifdef DEBUG_THREADS
+       printf("\tRunning program %d/job %d in thread %d\n", program, job.type,
+           num);
+@@ -417,16 +429,19 @@
+ 
+   // prevent faulty usage message
+   Proc.DataF.set_usage(actual_usage);
++#ifdef TLS_CAUGHT_FAILURE_TEST_HOOKS
++  if(tls_caught_failure::fixture_fault_stage==2)
++    throw runtime_error("fixture teardown failure");
++#endif
+   auto exe_stats = Proc.stats;
+   if (not BaseMachine::ot_setup.empty())
+     throw runtime_error("OT state is outside this epoch cleanup profile");
+-  delete processor;
++  processor_owner.reset(); processor=nullptr;
++  if(machine.has_caught_failure()) throw runtime_error("MPC teardown failed");
+ 
+   queues->finished(actual_usage, {P.total_comm(), exe_stats}, stats);
+ 
+-  delete MC2;
+-  delete MCp;
+-  delete player;
++  mc2_owner.reset(); mcp_owner.reset(); player_owner.reset();
+ 
+ #if OPENSSL_VERSION_NUMBER >= 0x10100000L
+   OPENSSL_thread_stop();
+@@ -438,20 +453,11 @@
+ void* thread_info<sint, sgf2n>::Main_Func(void* ptr)
+ {
+   auto& ti = *(thread_info<sint, sgf2n>*)(ptr);
+-  if (OnlineOptions::singleton.has_option("throw_exceptions"))
+-    ti.Main_Func_With_Purge();
+-  else
+-    {
+-      try
+-      {
+-          ti.Main_Func_With_Purge();
+-      }
+-      catch (exception& e)
+-      {
+-          cerr << "Fatal error: " << e.what() << endl;
+-          exit(1);
+-      }
+-    }
++  try { ti.Main_Func_With_Purge(); }
++  catch (...) {
++    ti.machine->report_caught_failure();
++    fprintf(stderr,"MPC failure category=worker\n");
++  }
+   return 0;
+ }
+ 
+--- a/Processor/Processor.hpp
++++ b/Processor/Processor.hpp
+@@ -124,7 +124,10 @@
+ template<class sint, class sgf2n>
+ Processor<sint, sgf2n>::~Processor()
+ {
+-  share_thread.post_run();
++  if(not machine.has_caught_failure()) {
++    try { share_thread.post_run(); }
++    catch (...) { machine.report_caught_failure(); }
++  }
+ #ifdef VERBOSE
+   if (sent)
+     cerr << "Opened " << sent << " elements in " << rounds << " rounds" << endl;
+--- a/Protocols/MAC_Check_Base.hpp
++++ b/Protocols/MAC_Check_Base.hpp
+@@ -86,7 +86,7 @@
+     for (auto& check : opened)
+         if (typename T::clear(value) != typename T::clear(check))
+         {
+-            cout << check << " != " << value << endl;
++            cerr << "MPC failure category=check\n";
+             throw Offline_Check_Error("CheckFor");
+         }
+     Check(P);
