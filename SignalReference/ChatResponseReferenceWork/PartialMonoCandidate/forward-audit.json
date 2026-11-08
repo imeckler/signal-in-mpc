@@ -1,0 +1,375 @@
+{
+  "candidate_only": true,
+  "scope": "Actual native mutable Buf forwarding and exact observed receiver projection; all outcomes relative to delegated trait operation. No assumed adapter behavior or full String claim.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/check_forward.py": "d896f0a3a937b1330f7dfa9ade987d5a79826587d2bb3bd43f075c91f306d4a2",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/canonicalize_forward_reborrow.py": "b5a98f022d89bc6123c225dbbdbdc6e1f5ea68d437ae6b757acdab67571cd790",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ActualForwardReference.lean": "b3ce4cf05e1950524ea1d7a70a259155c0d5696067137c7fce7c32e28eb08ba7",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ForwardActual/Cargo.toml": "f63d7ee2520a79ae3bfa7ced14a62f60d0ea02253f64225423161e90247187d3",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ForwardActual/Cargo.lock": "b5b880b03ecbfd69baa3ce9e7b9815beb06e2355201149c256848f1d22319466",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ForwardActual/.cargo/config.toml": "03c9029ae601d154dec80207b6c1f3e8453887786f00df6097c073b569c51c4d",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ForwardActual/src/lib.rs": "b5b36e2249d2dcf5bd90bf6e4eb80269c1f238bd66ad01378deab6a41b9cbfab",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/ForwardActual/src/bin/check.rs": "f9c17a694f519ccddbcdb16c223d759fcc5f481a079ba27f5d0561482cefea7f",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Funs.lean": "aed9dc513ed623c3025d1ab0e2f73ae70ff53c4eb59eeca212711b03d6a1cff5",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Types.lean": "eceff1c95fc3ea97537883323137ad467ada48cf6b06fa1623e9fc716ee807bc"
+  },
+  "charon_binary_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7",
+  "aeneas_binary_sha256": "95025db3e6186263ee7c6dceb518dd19f3d35662709d5a1020c063f270a95d38",
+  "extraction_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--monomorphize-mut=all",
+    "--start-from=crate::forward_actual",
+    "--include=bytes::buf::buf_impl::*::advance",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Artifacts/forward-actual.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--locked"
+  ],
+  "translation_command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Artifacts/forward-actual-reborrow-named.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual",
+    "-namespace",
+    "ActualBufForward",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "rewrite": {
+    "candidate_only": true,
+    "input_sha256": "7595190d70ef5e99dd1df91dbbda467ec476f50f242b6741455e4a3e8bb0e847",
+    "output_sha256": "aecf7c2fe9d5d1350fe6054f964cd8791aa7f7dec4f264baf23f4ed9233ad990",
+    "script_sha256": "b5a98f022d89bc6123c225dbbdbdc6e1f5ea68d437ae6b757acdab67571cd790",
+    "all_region_declarations_preserved": true,
+    "scope": "Only actual mutable Buf::advance receiver temporary, with exactly one safe reborrow use and no other value use",
+    "rewrites": [
+      {
+        "function_id": 1,
+        "before_sha256": "efb3b196067d469504e53fdff201cd0dd03f64ccbdb1b88dd4185bf9798d9f52",
+        "rewrite": {
+          "temp": 5,
+          "copy": {
+            "span": {
+              "data": {
+                "file_id": 1,
+                "beg": {
+                  "line": 2481,
+                  "col": 12
+                },
+                "end": {
+                  "line": 2481,
+                  "col": 20
+                }
+              },
+              "generated_from_span": null
+            },
+            "id": 22,
+            "kind": {
+              "Assign": [
+                {
+                  "kind": {
+                    "Local": 5
+                  },
+                  "ty": {
+                    "Untagged": {
+                      "Ref": [
+                        {
+                          "Body": 6
+                        },
+                        {
+                          "Untagged": {
+                            "TypeVar": {
+                              "Free": 0
+                            }
+                          }
+                        },
+                        "Mut"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Use": [
+                    {
+                      "Copy": {
+                        "kind": {
+                          "Projection": [
+                            {
+                              "kind": {
+                                "Local": 1
+                              },
+                              "ty": {
+                                "Untagged": {
+                                  "Ref": [
+                                    {
+                                      "Body": 3
+                                    },
+                                    {
+                                      "Untagged": {
+                                        "Ref": [
+                                          {
+                                            "Body": 4
+                                          },
+                                          {
+                                            "Untagged": {
+                                              "TypeVar": {
+                                                "Free": 0
+                                              }
+                                            }
+                                          },
+                                          "Mut"
+                                        ]
+                                      }
+                                    },
+                                    "Mut"
+                                  ]
+                                }
+                              }
+                            },
+                            "Deref"
+                          ]
+                        },
+                        "ty": {
+                          "Untagged": {
+                            "Ref": [
+                              {
+                                "Body": 7
+                              },
+                              {
+                                "Untagged": {
+                                  "TypeVar": {
+                                    "Free": 0
+                                  }
+                                }
+                              },
+                              "Mut"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "No"
+                  ]
+                }
+              ]
+            },
+            "comments_before": []
+          },
+          "old_reborrow": {
+            "place": {
+              "kind": {
+                "Projection": [
+                  {
+                    "kind": {
+                      "Local": 5
+                    },
+                    "ty": {
+                      "Untagged": {
+                        "Ref": [
+                          {
+                            "Body": 6
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          },
+                          "Mut"
+                        ]
+                      }
+                    }
+                  },
+                  "Deref"
+                ]
+              },
+              "ty": {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              }
+            },
+            "kind": "TwoPhaseMut",
+            "ptr_metadata": {
+              "Const": {
+                "Untagged": [
+                  {
+                    "Adt": [
+                      null,
+                      []
+                    ]
+                  },
+                  {
+                    "Untagged": {
+                      "Adt": {
+                        "id": {
+                          "Builtin": "Tuple"
+                        },
+                        "generics": {
+                          "regions": [],
+                          "types": [],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "new_reborrow": {
+            "place": {
+              "kind": {
+                "Projection": [
+                  {
+                    "kind": {
+                      "Projection": [
+                        {
+                          "kind": {
+                            "Local": 1
+                          },
+                          "ty": {
+                            "Untagged": {
+                              "Ref": [
+                                {
+                                  "Body": 3
+                                },
+                                {
+                                  "Untagged": {
+                                    "Ref": [
+                                      {
+                                        "Body": 4
+                                      },
+                                      {
+                                        "Untagged": {
+                                          "TypeVar": {
+                                            "Free": 0
+                                          }
+                                        }
+                                      },
+                                      "Mut"
+                                    ]
+                                  }
+                                },
+                                "Mut"
+                              ]
+                            }
+                          }
+                        },
+                        "Deref"
+                      ]
+                    },
+                    "ty": {
+                      "Untagged": {
+                        "Ref": [
+                          {
+                            "Body": 7
+                          },
+                          {
+                            "Untagged": {
+                              "TypeVar": {
+                                "Free": 0
+                              }
+                            }
+                          },
+                          "Mut"
+                        ]
+                      }
+                    }
+                  },
+                  "Deref"
+                ]
+              },
+              "ty": {
+                "Untagged": {
+                  "TypeVar": {
+                    "Free": 0
+                  }
+                }
+              }
+            },
+            "kind": "TwoPhaseMut",
+            "ptr_metadata": {
+              "Const": {
+                "Untagged": [
+                  {
+                    "Adt": [
+                      null,
+                      []
+                    ]
+                  },
+                  {
+                    "Untagged": {
+                      "Adt": {
+                        "id": {
+                          "Builtin": "Tuple"
+                        },
+                        "generics": {
+                          "regions": [],
+                          "types": [],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "name_receipt_sha256": "1109ea74736622bf5bf792a6173c0e932795889842f4a008491ed240b0e838da",
+  "negative_cases": [
+    "other_value_use",
+    "raw_pointer",
+    "shared_reborrow"
+  ],
+  "unmodified_translation": {
+    "exit_code": 2,
+    "command": [
+      "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+      "-backend",
+      "lean",
+      "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Artifacts/forward-actual-unfixed-named.llbc",
+      "-dest",
+      "/Users/izzy/repos/tls-mpc/SignalReference",
+      "-subdir",
+      "/ChatResponseReferenceWork/PartialMonoCandidate/Build/Unfixed",
+      "-namespace",
+      "UnfixedBufForward",
+      "-split-files",
+      "-warnings-as-errors",
+      "-no-progress-bar",
+      "-sequential"
+    ],
+    "log_sha256": "f55e750d8ef9340ff917231659ad02b238929a126113bac410308ddde1324ffe"
+  },
+  "native_log": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running `/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/forward-native/debug/check`\nCompared 1188 actual/direct forwarding outcomes and exact suffixes, including 66 exact panic payloads\n",
+  "kernel_log": "Checking PartialMonoCandidate.GeneratedForwardActual.Types\nChecking PartialMonoCandidate.GeneratedForwardActual.Funs\nChecking PartialMonoCandidate.ActualForwardReference\n'ActualBufForward.forward_all_outcomes' does not depend on any axioms\n'ActualBufForward.raw_forward_success' does not depend on any axioms\n",
+  "verified_bytes_files": 40,
+  "native_applicability": "Safe Sized contiguous &[u8]/Bytes buffers; selected actual source helper. Raw-pointer/unsized memory behavior is not claimed.",
+  "object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/forward-final-lean/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Types.olean": "4d84fed8b0e94c9856e79a042db3c3605d1a325cf7d5cdad42b71fd21069985e",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/forward-final-lean/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Funs.olean": "cdb8037b7e1d49380b6b0132fa3baa21818ca3b1ac0278079d069af87ef19210",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/forward-final-lean/ChatResponseReferenceWork/PartialMonoCandidate/ActualForwardReference.olean": "7b5cac214686cc5350a9d59882fc77ad59cc75aa7fb310de642eb8adf8e315ce"
+  }
+}
