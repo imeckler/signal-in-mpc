@@ -58,3 +58,13 @@ remote point to both computed agreements, generating and retaining the same fres
 clamped private scalar used for its computed public key. Its input848B omits the
 model's128B keypair/agreement region entirely. Compilation and native execution
 have separate receipts; a source entry alone does not establish native interop.
+
+`check_peer.py` adds a **public model preflight**, retaining the pinned actual
+peer SessionRecord across two receive/reply DH cycles. Replies use the existing
+private-width active send model. The actual peer decrypts both replies and then
+emits its next unknown-ratchet message, exercising retained local root/private,
+DR chain and both PQ direction counters127→128. This catches state composition
+errors before native execution. Here the test driver deliberately knows the
+fresh disposable key and computes X25519 outside MPC; this does not replace the
+pending native unopened-key receive/reply test. The peer fixture's initial Bob
+identity secret is public disposable fixture material, not an import protocol.

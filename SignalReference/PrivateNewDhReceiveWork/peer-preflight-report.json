@@ -1,0 +1,19 @@
+{
+  "actual_peer_DH_cycles": 2,
+  "actual_peer_decrypted_replies": 2,
+  "PQ_both_directions_127_to_128": true,
+  "private_plaintext_bytes": 80,
+  "all_public_disposable_fixtures": true,
+  "native_MPC_executed": false,
+  "DH_computed_by_public_fixture_X25519": true,
+  "fresh_session_prekey_authentication": false,
+  "selected_established_PQR_phase_override": true,
+  "full_actual_source_refinement": false,
+  "oracle_sha256": "ab4c3a50e15a6b435a901b1335de4b1e9c2a623da1a091ffde30e0fbfdab0a31",
+  "source_sha256": {
+    "SignalReference/PrivateNewDhReceiveWork/check_peer.py": "6a32e131d44814ef8179a8461f9a71c3f67627460fdc332dd13edc6776f6bf4e",
+    "SignalReference/PrivateNewDhReceiveWork/EvaluateReply.lean": "8d7741d6aed96a5f121c36be22e1e747f3efa23978e9f1d473e3e0cddaff0956",
+    "SignalReference/PrivateNewDhReceiveWork/Evaluate.lean": "bde18509db74fc78587439efa6cbce07203fb906f7027399e8792fbb23625997",
+    "signal_backend/Oracle/src/bin/signal-new-dh-peer-oracle.rs": "538dd8ad5bdfd0231f10b6cc399557cca87734ae7262b9b78f231ef0da5cebe5"
+  }
+}
