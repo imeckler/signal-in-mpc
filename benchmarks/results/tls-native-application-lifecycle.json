@@ -1,5 +1,5 @@
 {
-  "checked_at_utc": "2026-11-08T07:03:19.575075+00:00",
+  "checked_at_utc": "2026-11-08T08:35:44.116988+00:00",
   "passed": true,
   "parties": 5,
   "threshold": 2,
@@ -7,40 +7,41 @@
   "candidate_application_gate_activated": true,
   "production_signal_service_protocol_tested": false,
   "synthetic_frame_bytes": 228,
+  "record_epoch_policy": "every_record candidate measurement; TLS semantics permit declared explicit epoch boundaries",
   "full_vm_erasure_implemented": false,
   "full_system_complete": false,
   "scope": "owned-storage lifecycle plus synthetic shared Signal/HTTP2-gRPC producer through real TLS; OpenSSL/compiler/OS assumptions remain",
   "source_and_product_sha256": {
-    "scripts/check_native_application_lifecycle.py": "f4490ef79030fc074d584f6798c658a6b556ec62d72a486618c97ca7abe63cbd",
+    "scripts/check_native_application_lifecycle.py": "4a706febb13655e1bfa328ff02a860e9327765050a813374d72c2a96b70775f5",
     "handshake_backend/ApplicationPolicy.h": "d3ff6b78143714f528af625f5e38e951816fcf2db85dee53072504f92cb0f442",
     "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
-    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/KernelShape.h": "16132786dba04f0ea908d5c18476d9217e5aebc249b4fad3bd08488508c38b0b",
     "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
     "handshake_backend/NativeCollective.h": "f83b108ac2e5dfcac28b528501c103be8254726bc854ba93790ee9a8a98676f4",
     "handshake_backend/NativeDispatch.h": "10edae9cc15414f006696ca1b1103071937bd500ed6de1e7052f04105c60eba7",
-    "handshake_backend/NativeSession.h": "59a21cba530458df9aaa5cfe93cb1a238e6016bc7c528e2dc8835bf423dc43de",
+    "handshake_backend/NativeSession.h": "686937b6f46bd674b23dd82cfff2beb16d29596340c16f1ca59d18d321232301",
     "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
     "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
     "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
     "handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
     "handshake_backend/PublicProtocol.h": "1dfd11d3b066332bb27f5aa9579baea5233148b014a450e6fdda9757e0ac9389",
-    "handshake_backend/SessionLifecycle.h": "eb251c3f46fe768f1dcf1a5117490f3f2096ce34a5c5d204771315a7e0259bb8",
+    "handshake_backend/SessionLifecycle.h": "9b304d48d3f9070556461cbd8d7c25138041961aa19b207c2202bcabe4024d24",
     "handshake_backend/SessionPolicy.h": "03e3e8335d6edcb848a29b6240f8f120a6c3d895976b010210efa8329e23cf3e",
     "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
     "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
     "handshake_backend/TcpRecords.h": "e2a8d55f6f047102c87e6248b8da14eed0f6766fa9d0bf48632584bf8c58ec73",
     "handshake_backend/SessionWork/ErasedHostCall.h": "798f7bc4eec5b8f6eec31d1e6d8a36bbea027cac0ba4e78294ed0a637f1bbd01",
-    "handshake_backend/SessionWork/NativeLifecycle.h": "dc184dda31426122059a93e321803f9c54945abdb3dd2628644aa3febb14da6b",
-    "handshake_backend/SessionWork/worker_main.cpp": "5f7d4ccdcfb2ac7e2b71320c4f53472888aa893db22a52eb1ac0eb62f8850355",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "9ce89ec5437eec310f8c0e941661c66f926cf406666b0646a5b5be45e9d647ec",
+    "handshake_backend/SessionWork/worker_main.cpp": "13fa12d942343fcf0e202eabadbbfd1d4f5929189c5757a897eec5c0de6ec767",
     "handshake_backend/SessionWork/NativeApplicationFixture.lean": "53e54da47e7b4361b3090031145901c2383c1b05288335b5a3cbb1bb55a3f074",
-    "handshake_backend/SessionWork/Makefile": "2fd3909be47cdbef9fd54eef8e5521da8642c090b452d8386c32aac6a324156f",
+    "handshake_backend/SessionWork/Makefile": "3c68ebfe771f91d488fe4c8e2c65ca60d89a94779ec3fbfd26a76d4bb6f3b9d5",
     "signal_backend/SendShape.h": "3453e19ee5557f041cf267c2e6322255835959eb1164824d0ed55a0a9454b2c2",
     "signal_backend/EstablishedSendStore.h": "9d2704f0c17e9d4dd41b87f8730a7eff29f5c625ab08f8823b5766f309442a1a",
     "signal_backend/PrivateGrpcRequest.h": "cac0bf4e50f93708ada5a95db10192b64470429aabbc784c8a50caeb89115945",
     "signal_backend/PublicSyntheticProducer.h": "9f4ce70e7244791d83a305881609e6730120d335db1d4d29bcfd0512840e1c73",
     ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
-    ".deps/tls-session-runtime/tls-private-application-worker": "192c1a7befe209d7c7a93705339960383ecfb3d301c33d01e9ea7321e015aa4a",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/programs.manifest": "1f42588208f5a47ed81d9801048b80b52402a50a587e086247dcc6f620449583",
+    ".deps/tls-session-runtime/tls-private-application-worker": "baa65c09748bff04ffbabee061ae5e810d301ae748889edc8a61226997c4252b",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/programs.manifest": "c482c245f0d496b0a13dc7c283c9022763011dfd3d64ba2de76d3017e01579f9",
     "handshake_backend/fixture_server.cpp": "1beb9dcb8c4a1bdee407d665bb2ddb5acc0850adac4aace0d63a1c54364c744f",
     "TlsMpc/TlsWorkerProcess.lean": "d6737158713cd350658edc420bddc9e72e17847938f27159e373486476bc16d9",
     "TlsMpc/TlsWorkerPipe.lean": "24d3c452498ad438c6b46b1a902fdc084d849afcf5e1694142470ecd645206fa",
@@ -49,9 +50,16 @@
     "TlsMpc/TlsApplication.lean": "93df65cb258b157e824e1a755c871f7d85c7f322e9cead3be0245e566608703d",
     "TlsMpc/TlsApplicationPolicy.lean": "1d8a082cb6d1e46e7359dcdfe7e3efd9aa2fb221581362fabc40967e7509b288",
     "TlsMpc/TlsWire.lean": "98d33a76915b41deaa605eb5df39c95ad4ed5bc2171404150b0d354548d82701",
-    ".lake/build/lib/lean/TlsMpc/TlsWorkerPipe.olean": "a468b0b2d2f077d39f84eca783bda4892ee55f4702c20732a379f2ddb737e766"
+    ".lake/build/lib/lean/TlsMpc/TlsWorkerPipe.olean": "a468b0b2d2f077d39f84eca783bda4892ee55f4702c20732a379f2ddb737e766",
+    "handshake_backend/PayloadWork/PrivatePayload.h": "34cc3bb8174ab0bda5ae4aba285220829662906e26cdcd9ccdbb705c6a1311e7",
+    "handshake_backend/PayloadWork/StatusGate.h": "6de6ca8063c14fc99542628fb3ceb3ebc7b526fd4bcd758514444afdfcdddd49",
+    "signal_backend/SealedSenderWork/NativeService.h": "3df9489b596c8fa7896611c2b1d04f5bed1fef5dd8cea88931398dcff2491cb8",
+    "signal_backend/SealedSenderWork/ServiceShape.h": "c28fd2ea72d565b419a9a445c16621461d766bda2f4733114c52388367081562",
+    "signal_backend/SealedSenderWork/Shape.h": "db15d67360104bc59267fc5fbb81e6a44607347c41b5b9189cbb1fa2ab5e3c31",
+    "signal_backend/SealedSenderWork/NativeUpgrade.h": "4fef7d3c3d848a26d53067bb050876d1182b66a013bd18f2d178f6635b7cd03a",
+    "signal_backend/SealedSenderWork/NativePayload.h": "e0aa3359e186522a923b1750219122f7e8c86ddc372fde4b649db540446f75c3"
   },
-  "logs": "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004",
+  "logs": "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b",
   "controllers": [
     {
       "certificate_verified": true,
@@ -100,6 +108,93 @@
     }
   ],
   "cleanup_errors": [],
+  "record_epoch_measurements": [
+    {
+      "party": 0,
+      "records": [
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 19824958
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 18401125
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 17640833
+        }
+      ]
+    },
+    {
+      "party": 1,
+      "records": [
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 20557083
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 18487292
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 17585791
+        }
+      ]
+    },
+    {
+      "party": 2,
+      "records": [
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 19470666
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 18313292
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 17512500
+        }
+      ]
+    },
+    {
+      "party": 3,
+      "records": [
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 20478000
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 18270375
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 17513250
+        }
+      ]
+    },
+    {
+      "party": 4,
+      "records": [
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 17688250
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 15954458
+        },
+        {
+          "renewals": 1,
+          "renewal_nanoseconds": 15338083
+        }
+      ]
+    }
+  ],
   "server": {
     "client_finished_accepted": true,
     "private_application_records": 3,
@@ -114,18 +209,18 @@
     0,
     0
   ],
-  "elapsed_seconds": 381.041403500014,
+  "elapsed_seconds": 380.03394054202363,
   "log_sha256": {
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/party-4.log": "0313635caedbadb8d67ff394e8d00b61cd3f96fff5cf8af71549c099a7a3f43c",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/party-2.log": "0313635caedbadb8d67ff394e8d00b61cd3f96fff5cf8af71549c099a7a3f43c",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/party-3.log": "0313635caedbadb8d67ff394e8d00b61cd3f96fff5cf8af71549c099a7a3f43c",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/party-1.log": "0313635caedbadb8d67ff394e8d00b61cd3f96fff5cf8af71549c099a7a3f43c",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/party-0.log": "0313635caedbadb8d67ff394e8d00b61cd3f96fff5cf8af71549c099a7a3f43c",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/host-checks.log": "3a2e973b9a2389a45e4fafd0b91bb2fb36a9d34eb3b2124d01cd96f5f865b3e0",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/peer-certificates.log": "25cc5fc53d8384597ef209d97ed8434173e25e595877673083b11d607515c28e",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/controller-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/public_auth-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "benchmarks/results/raw/native-application-lifecycle/f6ff406ae42c4004/fixture_server-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/party-4.log": "dd900d7f9f3f3cb36e6d5966dd3c0bc0e72852e713d637c86b2678e246c09741",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/party-2.log": "150ad6ca263dd5f6ff79735e4491c75512b1c647858d79db97f582c5c6959fd9",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/party-3.log": "5c6a7efa75bb81435c1a4ecb29bd05ba2bba8e02b003c65f4c5242c24c01231a",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/party-1.log": "9748cf84f5f1dc902bd5ce7609d0a7a96deca7c9caaec44440809c2b02b5286d",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/party-0.log": "aebe99c1b4875cedc9923a1a3f194da51845d00590145c35a760b764b4be07ab",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/host-checks.log": "3a2e973b9a2389a45e4fafd0b91bb2fb36a9d34eb3b2124d01cd96f5f865b3e0",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/peer-certificates.log": "a1b55f495b8a42778cadf5d222dc396a610eb82031909fe285285d2daa794dff",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/controller-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/public_auth-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmarks/results/raw/native-application-lifecycle/d93f145f26eb059b/fixture_server-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
 }

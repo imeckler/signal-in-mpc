@@ -40,9 +40,19 @@ toolchain invalidates previous cache receipts. Frozen runtimes/caches are not
 updated in place. SessionWork/Makefile builds the new fixture against the tested
 isolated runtime; canonical worker has no lifecycle capability and stays closed.
 
+Outgoing plaintext handles now consume once ciphertext is reserved. An explicit
+ApplicationEpochPolicy selects every_record or explicit_boundaries; TLS itself
+does not require network teardown for each record. The candidate worker selects
+every_record and renews runtime before ciphertext's erased-host receipt returns.
+The explicit policy retains VM work until its declared checkpoint/KeyUpdate/
+abort and cannot acknowledge earlier cleanup. Retained TLS traffic keys still
+cover earlier same-key records; runtime renewal alone is not forward secrecy.
+The real persistent TLS regression passes all5,380.034s, three records+bothKU
+directions+replay rejection+abort. Loopback renewal costs15.34–20.56ms per record
+per party in this run; this is not a WAN/100k-hour throughput measurement.
+
 Remaining:actual HTTP1.1 WebSocket upgrade/stream processing and service framing,
 typed adaptation of the fixed901-byte service output (status+900 data) into the
 903-byte private-buffer format, per-message producer checkpoint integration,
-durable producer state/ack policy, consuming outgoing handles after confirmed
-send, and a real persistent service test. Synthetic H2/gRPC evidence is not a
+durable producer state/ack policy and a real persistent service test. Synthetic H2/gRPC evidence is not a
 substitute for these requirements. NativeService belongs to the crypto worker.

@@ -100,13 +100,21 @@ int main(int argc,char** argv) {
             state->machine=std::make_unique<Machine<tls_mpc_worker::Share>>(*state->names,true,options);
             state->collective=std::make_unique<Collective>([pointer=state]() -> Player& {return pointer->machine->get_player();},state->pinned->digest(),session_id);
             state->shapes=std::make_unique<ShapeCompiler>(*state->pinned,[pointer=state](const std::string& shape,const PublicBytes& digest){pointer->collective->agree_program(shape,digest);});
-            state->lifecycle=std::make_unique<NativeLifecycle>(*state->machine);
+            // Candidate measurement policy, not a semantic TLS requirement.
+            // Explicit-boundary embeddings retain VM work until their declared
+            // checkpoint/KeyUpdate/abort and cannot acknowledge early retirement.
+            state->lifecycle=std::make_unique<NativeLifecycle>(*state->machine,ApplicationEpochPolicy::every_record);
             state->session=std::make_unique<Session>(*state->machine,*state->pinned,state->shapes.get(),state->lifecycle.get());
             state->dispatcher=std::make_unique<Dispatch>(*state->session,*state->collective,state->shapes.get());
         }),"native worker bootstrap failed");
         while(auto request=read_request(std::cin)) {
             PublicBytes result;
+            const auto old_epochs=state->lifecycle->renewal_count();
+            const auto old_time=state->lifecycle->renewal_nanoseconds();
             bool succeeded=ErasedHostCall::run([&] {result=state->dispatcher->call(*request);});
+            if(request->operation==Opcode::seal_application)
+                std::cerr<<"record epoch policy every-record renewals "<<state->lifecycle->renewal_count()-old_epochs
+                    <<" nanoseconds "<<state->lifecycle->renewal_nanoseconds()-old_time<<"\n";
 #ifdef TLS_PRIVATE_PRODUCER_FIXTURE
             // Internal fixture-only producer handoff; no plaintext import RPC.
             // Retirement's first host barrier must complete before private work.

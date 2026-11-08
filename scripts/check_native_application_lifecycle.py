@@ -6,7 +6,7 @@ is deliberately NOT claimed to be the real Signal service protocol.
 """
 import argparse
 from datetime import datetime,timezone
-import hashlib,json,os,secrets,signal,socket,subprocess,threading,time,shutil
+import hashlib,json,os,secrets,signal,socket,subprocess,threading,time,shutil,re
 from pathlib import Path
 from check_full_handshake import certificates,OPENSSL
 from pin_tls_worker import build
@@ -115,17 +115,18 @@ def bridge(listener,server,result):
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--build',action='store_true')
     ap.add_argument('--timeout',type=int,default=1800);ap.add_argument('--port',type=int,default=19800)
-    args=ap.parse_args();backend=ROOT/'.deps/tls-session-runtime/MP-SPDZ'
+    args=ap.parse_args();runtime=ROOT/'.deps/tls-session-runtime/MP-SPDZ'
     output=ROOT/'benchmarks/results/raw/native-application-lifecycle'/secrets.token_hex(8);output.mkdir(parents=True)
+    backend=output/'working';backend.mkdir()
     def logged(command,name,cwd=ROOT):
         with (output/name).open('wb') as log:
             subprocess.run(command,cwd=cwd,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=args.timeout)
     if args.build:
-        logged(['make','-j2','libSPDZ.so'],'library-build.log',backend)
-        logged(['install_name_tool','-id','@rpath/libSPDZ.so','libSPDZ.so'],'install-name.log',backend)
+        logged(['make','-j2','libSPDZ.so'],'library-build.log',runtime)
+        logged(['install_name_tool','-id','@rpath/libSPDZ.so','libSPDZ.so'],'install-name.log',runtime)
         logged(['make','-f',str(ROOT/'handshake_backend/SessionWork/Makefile'),
-                'TLS_ROOT='+str(ROOT/'handshake_backend'),'../tls-private-application-worker','../tls-session-host-checks'],'worker-build.log',backend)
-    logged([str(backend.parent/'tls-session-host-checks')],'host-checks.log')
+                'TLS_ROOT='+str(ROOT/'handshake_backend'),'../tls-private-application-worker','../tls-session-host-checks'],'worker-build.log',runtime)
+    logged([str(runtime.parent/'tls-session-host-checks')],'host-checks.log')
     logged(['lake','env','lean',str(ROOT/'handshake_backend/SessionWork/NativeApplicationFixture.lean')],'controller-check.log')
     manifest=output/'programs.manifest';manifest.write_text(provision(backend))
     baseline=ROOT/'.deps/sharing-refresh/MP-SPDZ'
@@ -146,17 +147,20 @@ def main():
            *sorted((ROOT/'handshake_backend/SessionWork').glob('*.h')),
            ROOT/'handshake_backend/SessionWork/worker_main.cpp',ROOT/'handshake_backend/SessionWork/NativeApplicationFixture.lean',
            ROOT/'handshake_backend/SessionWork/Makefile',*[ROOT/'signal_backend'/name for name in ['SendShape.h','EstablishedSendStore.h','PrivateGrpcRequest.h','PublicSyntheticProducer.h']],
-           backend/'libSPDZ.so',backend.parent/'tls-private-application-worker',manifest,ROOT/'handshake_backend/fixture_server.cpp']
+           runtime/'libSPDZ.so',runtime.parent/'tls-private-application-worker',manifest,ROOT/'handshake_backend/fixture_server.cpp']
     names += [ROOT/name for name in ['TlsMpc/TlsWorkerProcess.lean','TlsMpc/TlsWorkerPipe.lean',
               'TlsMpc/TlsWorker.lean','TlsMpc/TlsClient.lean','TlsMpc/TlsApplication.lean',
               'TlsMpc/TlsApplicationPolicy.lean','TlsMpc/TlsWire.lean',
               '.lake/build/lib/lean/TlsMpc/TlsWorkerPipe.olean']]
+    names += sorted((ROOT/'handshake_backend/PayloadWork').glob('*.h'))
+    names += [ROOT/'signal_backend/SealedSenderWork'/n for n in ['NativeService.h','ServiceShape.h','Shape.h','NativeUpgrade.h','NativePayload.h']]
     hashes={str(p.relative_to(ROOT)):digest(p) for p in names}
     canonical=digest(baseline/'libSPDZ.so')
     processes=[];logs=[];cleanup_errors=[];started=time.monotonic()
     report={'checked_at_utc':datetime.now(timezone.utc).isoformat(),'passed':False,'parties':5,'threshold':2,
             'native_mpc_executed':False,'candidate_application_gate_activated':False,
             'production_signal_service_protocol_tested':False,'synthetic_frame_bytes':228,
+            'record_epoch_policy':'every_record candidate measurement; TLS semantics permit declared explicit epoch boundaries',
             'full_vm_erasure_implemented':False,'full_system_complete':False,
             'scope':'owned-storage lifecycle plus synthetic shared Signal/HTTP2-gRPC producer through real TLS; OpenSSL/compiler/OS assumptions remain',
             'source_and_product_sha256':hashes,'logs':str(output.relative_to(ROOT))}
@@ -164,7 +168,7 @@ def main():
         for party in range(5):
             log=(output/f'party-{party}.log').open('w');logs.append(log)
             command=['lake','env','lean','--run',str(ROOT/'handshake_backend/SessionWork/NativeApplicationFixture.lean'),
-                     str(backend.parent/'tls-private-application-worker'),str(backend),str(party),str(hosts),str(args.port),str(manifest),session,
+                     str(runtime.parent/'tls-private-application-worker'),str(backend),str(party),str(hosts),str(args.port),str(manifest),session,
                      '127.0.0.1',str(port),'server.example',str(output/'public_auth'),str(trust),'228']
             processes.append(subprocess.Popen(command,cwd=ROOT,stdout=subprocess.PIPE,stderr=log,text=True,start_new_session=True))
         cases=[]
@@ -179,6 +183,10 @@ def main():
         assert server_result['server_requested_update'] and server_result['replay_sent'] and server_result['closed_after_replay']
         assert all(digest(p)==hashes[str(p.relative_to(ROOT))] for p in names),'source/product changed during run'
         assert digest(baseline/'libSPDZ.so')==canonical,'canonical library changed'
+        for party in range(5):
+            measured=re.findall(r'record epoch policy every-record renewals (\d+) nanoseconds (\d+)',
+              (output/f'party-{party}.log').read_text())
+            assert len(measured)==3 and all(int(n)==1 for n,_ in measured),('missing record retirement',party)
         report.update(passed=True,native_mpc_executed=True,candidate_application_gate_activated=True,controllers=cases)
     except Exception as error:report['error']=repr(error)
     finally:
@@ -204,6 +212,10 @@ def main():
         server_log.close()
         for log in logs:log.close()
         report['cleanup_errors']=cleanup_errors
+        report['record_epoch_measurements']=[{'party':party,'records':[
+          {'renewals':int(n),'renewal_nanoseconds':int(ns)} for n,ns in re.findall(
+            r'record epoch policy every-record renewals (\d+) nanoseconds (\d+)',
+            (output/f'party-{party}.log').read_text())]} for party in range(5)]
         report.update(server=server_result,controller_exit_codes=[p.returncode for p in processes],elapsed_seconds=time.monotonic()-started)
         report['log_sha256']={str(p.relative_to(ROOT)):digest(p) for p in output.glob('*.log')}
         text=json.dumps(report,indent=2)+'\n';(output/'report.json').write_text(text)

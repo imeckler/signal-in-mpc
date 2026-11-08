@@ -241,15 +241,27 @@ public:
             require(buffer.capacity==size,"private payload capacity mismatch");
             require(buffer.fixed_length || padding==0,"private capacity already includes TLS padding");
             application_policy.application(sequence);
-            if(buffer.fixed_length)
-                return pending(release(eval_shape(KernelShape::seal(23,size,padding),
-                    concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}))));
-            auto sealed=eval_shape(KernelShape::seal_private(size),
-                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),
-                    buffer.validity,buffer.private_length,buffer.data}));
-            // Authenticate status before disclosing any ciphertext. A rejected
-            // producer/bounds result is terminal, never a normal empty request.
-            return pending(release_private_seal(sealed,size,[&](const Bits& value) {return release(value);}));
+            Bytes wire;
+            if(buffer.fixed_length) {
+                wire=release(eval_shape(KernelShape::seal(23,size,padding),
+                    concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data})));
+            } else {
+                auto sealed=eval_shape(KernelShape::seal_private(size),
+                    concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),
+                        buffer.validity,buffer.private_length,buffer.data}));
+                // Authenticate status before disclosing any ciphertext. A rejected
+                // producer/bounds result is terminal, never a normal empty request.
+                wire=release_private_seal(sealed,size,[&](const Bits& value) {return release(value);});
+            }
+            // The reserved public ciphertext is sufficient for the one pending
+            // send. Consume plaintext once and erase runtime history before the
+            // host-call barrier makes the ciphertext receipt eligible for send.
+            // A failed send remains terminal; it cannot roll back producer state.
+            buffers.erase(found);
+            auto result=pending(std::move(wire));
+            if(lifecycle->application_epoch_policy()==ApplicationEpochPolicy::every_record)
+                lifecycle->renew_epoch();
+            return result;
         });
     }
     Bytes seal_control(uint64_t sequence,unsigned kind,const Bytes& content) {
