@@ -118,3 +118,15 @@ response parsers/TLS/offline generation/epochs. Scheduling cannot close the
 100k/hour communication gap. After executable mixed/store batching, prioritize
 fewer circuit gates or an evidenced malicious n5/t2 backend with lower per-bit
 wire cost, preserving security128. Do not infer a new protocol from packed IO.
+
+## Representative mixed-domain checkpoint
+
+`mixed-native-report.json` allfivepass,9.577s cleanup[], exact output comparisons
+on retained private instance inputs. The mixed fixture adds per-instance checked
+binary→Fp conversion, scalar square+17, and canonical Fp→binary conversion; the
+field stage remains serial. It is NOT four X25519 operations or a service test.
+B8 consumes17856 bittriples,2104 daBits,8 fieldmults in BOTH modes; measured
+20344480B/call in BOTH. Mixed compiler rounds2439→2355, party0 pairedmeans
+1.225s→1.151s (~1.064x); B4 batch was slightly slower .666s vs .658s.
+This explicitly limits the Boolean-only scheduling result. Offline batch/setup
+and field/conversion costs must remain in a real throughput comparison.

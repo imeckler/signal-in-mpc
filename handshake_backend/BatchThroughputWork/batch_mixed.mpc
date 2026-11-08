@@ -1,0 +1,32 @@
+# Isolated public-graph packing fixture, not a service/provider integration.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.aig_packed import execute_mpc
+from backend_adapter.aig_batched import execute_mpc_batch
+from handshake_backend.mixed import field_to_wire_bits
+from Compiler.types import sint
+mode,count=program.args[1:];count=int(count)
+if mode not in ('sequential','batch') or count not in (1,2,4,8):raise ValueError('unsupported tiny batch profile')
+nodes=[[0]]+[[1,i,1,0]for i in range(8)]
+previous=list(range(1,9))
+for depth in range(12):
+ current=[]
+ for i in range(37):
+  nodes.append([2,previous[i%len(previous)],i%2,previous[(i+3)%len(previous)],(i//3)%2]);current.append(len(nodes)-1)
+ previous=current
+image={'format':'tls-mpc-aig-v1','input_bits':8,'input_widths':[1]*8,'nodes':nodes,'outputs':[[i,i%2]for i in previous]}
+def evaluate(inputs,outputs):
+ raw=binary_io.read_bits(inputs);batches=[]
+ for instance in range(count):
+  source=raw[instance*8:(instance+1)*8]
+  # Same scalar field/conversion work in both modes; only DAG execution batches.
+  value=sum((sint(bit)*(1<<(7-i))for i,bit in enumerate(source)),sint(0))
+  converted=field_to_wire_bits(value*value+17)
+  batches.append(converted[:8])
+ result=execute_mpc_batch(image,batches)if mode=='batch' else [execute_mpc(image,values)for values in batches]
+ binary_io.write_bits(outputs,[value for values in result for value in values])
+evaluate.__name__='tls_batch_mixed_'+mode+'_'+str(count)
+function=export(evaluate);BitArray=sbitvec.get_type(1).Array
+function(BitArray(8*count),BitArray(37*count))

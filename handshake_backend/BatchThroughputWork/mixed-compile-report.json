@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "native_MPC_executed": false,
+  "profiles": {
+    "sequential-2": {
+      "bit triples": 4464,
+      "virtual machine rounds": 801,
+      "integer dabits": 526,
+      "integer triples": 2
+    },
+    "batch-2": {
+      "bit triples": 4464,
+      "virtual machine rounds": 789,
+      "integer dabits": 526,
+      "integer triples": 2
+    },
+    "sequential-4": {
+      "bit triples": 8928,
+      "virtual machine rounds": 1347,
+      "integer dabits": 1052,
+      "integer triples": 4
+    },
+    "batch-4": {
+      "bit triples": 8928,
+      "virtual machine rounds": 1311,
+      "integer dabits": 1052,
+      "integer triples": 4
+    },
+    "sequential-8": {
+      "bit triples": 17856,
+      "virtual machine rounds": 2439,
+      "integer dabits": 2104,
+      "integer triples": 8
+    },
+    "batch-8": {
+      "bit triples": 17856,
+      "virtual machine rounds": 2355,
+      "integer dabits": 2104,
+      "integer triples": 8
+    }
+  },
+  "scope": "same checked scalar Fp square+17/conversion per instance then Boolean sequential/batch; fieldstage still serial; NOT full X25519/service cost",
+  "source_sha256": {
+    "handshake_backend/BatchThroughputWork/compile_mixed.py": "32adfa19997e61419e886f4c228c9ef2619de768c5270e5f4079d94ebfc671a5",
+    "handshake_backend/BatchThroughputWork/batch_mixed.mpc": "de8dc18a482f9e30ff718aa4a35e775c873f8a30d77d35b8871292002d7bf721",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6"
+  }
+}

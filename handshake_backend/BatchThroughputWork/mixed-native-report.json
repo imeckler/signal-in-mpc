@@ -1,0 +1,2327 @@
+{
+  "passed": true,
+  "mixed_field_included": true,
+  "scope": "Checked scalar field/conversion plus Boolean DAG, field remains serial; NOT full X25519. No store/TLS throughput claim; repeated two orders within epoch then renewal per pair; only aggregate equality/rejection flags opened",
+  "timing_clock": "CLOCK_MONOTONIC_RAW",
+  "source_product_sha256": {
+    "handshake_backend/BatchThroughputWork/native_batch_fixture.cpp": "3b203527e8b3762779c7ce3ccf24ebb811f1cec9966a48622eb4136f8dd474c8",
+    "handshake_backend/BatchThroughputWork/check_native.py": "997324e5af662add8449bb49818cb891f24b7e999015efd3826af3babc7e128d",
+    "backend_adapter/aig_batched.py": "005243e6d0ae9d019baee96fb4e23ddf1893daec678be40380360f0efdaa9d35",
+    ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ/libSPDZ.so": "cc6ba46cf7ab170d64b747ca46a82d8d1b0f4db2ce1a905966a6b8b9d76c097b",
+    ".deps/tls-backend-diagnostic-runtime-v4/tls-native-batch-mixed-fixture": "364a2c15458d350e7e950233e3426d7e7b856955c6341365136a4d6118ce256c",
+    ".deps/throughput-batch-tiny-v1/mixed.manifest": "069c5487a3d0df3d3fa12071acd54bd555e7c110ad78e8e2b218f76758d89615",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b"
+  },
+  "logs": "benchmarks/results/raw/private-native-mixed-batch/a13ecb798cfff19d",
+  "parties": [
+    [
+      {
+        "party": 0,
+        "count": 2,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 381541208,
+        "prepare_ns": 144085334,
+        "load_ns": 143869834,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 2,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 374641042,
+        "prepare_ns": 156036750,
+        "load_ns": 155711334,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9667616,
+          0,
+          572544,
+          1009392
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 2,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 382876875,
+        "prepare_ns": 155385500,
+        "load_ns": 155232709,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 2,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 380660083,
+        "prepare_ns": 159369584,
+        "load_ns": 159121625,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9667616,
+          0,
+          572544,
+          1009392
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 4,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 663918625,
+        "prepare_ns": 320136958,
+        "load_ns": 315211583,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 4,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 648548250,
+        "prepare_ns": 311295541,
+        "load_ns": 288488958,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10906848,
+          0,
+          1145088,
+          2009936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 4,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 684097042,
+        "prepare_ns": 344262667,
+        "load_ns": 344034916,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 4,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 651784333,
+        "prepare_ns": 315003541,
+        "load_ns": 308980625,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10906848,
+          0,
+          1145088,
+          2009936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 8,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 1293594000,
+        "prepare_ns": 732585417,
+        "load_ns": 709963417,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 8,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 1155917542,
+        "prepare_ns": 616383167,
+        "load_ns": 615752625,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325216,
+          0,
+          2290176,
+          4043936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 8,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 1145743292,
+        "prepare_ns": 621072375,
+        "load_ns": 620796958,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 0,
+        "count": 8,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 1156499750,
+        "prepare_ns": 628290875,
+        "load_ns": 626771542,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325216,
+          0,
+          2290176,
+          4043936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 1,
+        "count": 2,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 381558958,
+        "prepare_ns": 144204208,
+        "load_ns": 143978583,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 2,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 374625791,
+        "prepare_ns": 156213250,
+        "load_ns": 153085208,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 2,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 382869750,
+        "prepare_ns": 155597000,
+        "load_ns": 142705166,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 2,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 380661542,
+        "prepare_ns": 159336792,
+        "load_ns": 156355292,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 4,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 663874333,
+        "prepare_ns": 320079167,
+        "load_ns": 318892292,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 4,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 648565084,
+        "prepare_ns": 311369625,
+        "load_ns": 311009000,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 4,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 684101208,
+        "prepare_ns": 344292708,
+        "load_ns": 335223292,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 4,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 651784834,
+        "prepare_ns": 315117416,
+        "load_ns": 314819417,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 8,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 1293608333,
+        "prepare_ns": 732452917,
+        "load_ns": 732362917,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 8,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 1155939833,
+        "prepare_ns": 616214208,
+        "load_ns": 615711333,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 8,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 1145712666,
+        "prepare_ns": 621065791,
+        "load_ns": 592555166,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 1,
+        "count": 8,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 1156498791,
+        "prepare_ns": 628136042,
+        "load_ns": 610865750,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 2,
+        "count": 2,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 381535875,
+        "prepare_ns": 144018209,
+        "load_ns": 143865958,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 2,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 374649125,
+        "prepare_ns": 156044791,
+        "load_ns": 155861875,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 2,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 382874500,
+        "prepare_ns": 155467625,
+        "load_ns": 154822000,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10840352,
+          0,
+          572544,
+          1030384
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 2,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 380657416,
+        "prepare_ns": 159281541,
+        "load_ns": 149729542,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 4,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 663899791,
+        "prepare_ns": 320137417,
+        "load_ns": 319962917,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 4,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 648551667,
+        "prepare_ns": 311421959,
+        "load_ns": 310925625,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 4,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 684106291,
+        "prepare_ns": 344173667,
+        "load_ns": 344015083,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121440,
+          0,
+          1145088,
+          2047760
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 4,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 651770583,
+        "prepare_ns": 314895750,
+        "load_ns": 314178417,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 8,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 1293594208,
+        "prepare_ns": 732300375,
+        "load_ns": 716917458,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 8,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 1155916959,
+        "prepare_ns": 616201875,
+        "load_ns": 589860166,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 8,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 1145720667,
+        "prepare_ns": 621133125,
+        "load_ns": 556367875,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14615328,
+          0,
+          2290176,
+          4115424
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 2,
+        "count": 8,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 1156483875,
+        "prepare_ns": 628260292,
+        "load_ns": 627752000,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 3,
+        "count": 2,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 381586667,
+        "prepare_ns": 144233416,
+        "load_ns": 131886959,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9668000,
+          0,
+          572544,
+          1009456
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 2,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 374629917,
+        "prepare_ns": 156059792,
+        "load_ns": 145752333,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 2,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 382859084,
+        "prepare_ns": 155444917,
+        "load_ns": 155305250,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9668000,
+          0,
+          572544,
+          1009456
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 2,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 380673458,
+        "prepare_ns": 159410000,
+        "load_ns": 159207041,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          10839968,
+          0,
+          572544,
+          1030320
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 4,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 663917625,
+        "prepare_ns": 320186375,
+        "load_ns": 298164333,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10907232,
+          0,
+          1145088,
+          2010000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 4,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 648570583,
+        "prepare_ns": 311372750,
+        "load_ns": 307451125,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 4,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 684119292,
+        "prepare_ns": 344202833,
+        "load_ns": 344062208,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10907232,
+          0,
+          1145088,
+          2010000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 4,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 651767000,
+        "prepare_ns": 314991250,
+        "load_ns": 314718208,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          12121056,
+          0,
+          1145088,
+          2047696
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 8,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 1293628958,
+        "prepare_ns": 732402417,
+        "load_ns": 726187750,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325600,
+          0,
+          2290176,
+          4044000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 8,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 1155919333,
+        "prepare_ns": 616323666,
+        "load_ns": 611436958,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 8,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 1145733083,
+        "prepare_ns": 621165083,
+        "load_ns": 621106167,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325600,
+          0,
+          2290176,
+          4044000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 3,
+        "count": 8,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 1156498708,
+        "prepare_ns": 628226375,
+        "load_ns": 578023084,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          14614944,
+          0,
+          2290176,
+          4115360
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      }
+    ],
+    [
+      {
+        "party": 4,
+        "count": 2,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 381566084,
+        "prepare_ns": 144220250,
+        "load_ns": 141727000,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9668000,
+          0,
+          572544,
+          1009456
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 2,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 374635125,
+        "prepare_ns": 156027000,
+        "load_ns": 155825417,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9667616,
+          0,
+          572544,
+          1009392
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 2,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 382852208,
+        "prepare_ns": 155361791,
+        "load_ns": 155298042,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9668000,
+          0,
+          572544,
+          1009456
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 2,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 380658667,
+        "prepare_ns": 159314792,
+        "load_ns": 159064667,
+        "bytes": [
+          512,
+          0,
+          0,
+          0,
+          768,
+          9667616,
+          0,
+          572544,
+          1009392
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            4,
+            526
+          ],
+          [
+            2,
+            0,
+            4464
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 4,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 663870417,
+        "prepare_ns": 320027791,
+        "load_ns": 319920333,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10907232,
+          0,
+          1145088,
+          2010000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 4,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 648564833,
+        "prepare_ns": 311286750,
+        "load_ns": 311015417,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10906848,
+          0,
+          1145088,
+          2009936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 4,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 684111875,
+        "prepare_ns": 344287125,
+        "load_ns": 300702208,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10907232,
+          0,
+          1145088,
+          2010000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 4,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 651785417,
+        "prepare_ns": 315123042,
+        "load_ns": 285151083,
+        "bytes": [
+          768,
+          0,
+          0,
+          0,
+          1536,
+          10906848,
+          0,
+          1145088,
+          2009936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            4
+          ],
+          [
+            0,
+            4,
+            1052
+          ],
+          [
+            2,
+            0,
+            8928
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 8,
+        "iteration": 0,
+        "order": 0,
+        "mode": "sequential",
+        "elapsed_ns": 1293602542,
+        "prepare_ns": 732452250,
+        "load_ns": 731290125,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325600,
+          0,
+          2290176,
+          4044000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 8,
+        "iteration": 0,
+        "order": 1,
+        "mode": "batch",
+        "elapsed_ns": 1155952375,
+        "prepare_ns": 616488000,
+        "load_ns": 555454500,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325216,
+          0,
+          2290176,
+          4043936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 8,
+        "iteration": 1,
+        "order": 0,
+        "mode": "batch",
+        "elapsed_ns": 1145726875,
+        "prepare_ns": 621123833,
+        "load_ns": 620826333,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325600,
+          0,
+          2290176,
+          4044000
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      },
+      {
+        "party": 4,
+        "count": 8,
+        "iteration": 1,
+        "order": 1,
+        "mode": "sequential",
+        "elapsed_ns": 1156479250,
+        "prepare_ns": 628145042,
+        "load_ns": 627601500,
+        "bytes": [
+          1280,
+          0,
+          0,
+          0,
+          3072,
+          13325216,
+          0,
+          2290176,
+          4043936
+        ],
+        "consumed": [
+          [
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            4,
+            2104
+          ],
+          [
+            2,
+            0,
+            17856
+          ]
+        ]
+      }
+    ]
+  ],
+  "native_MPC_executed": true,
+  "elapsed_seconds": 9.57714791689068,
+  "controller_pids": [
+    45979,
+    45980,
+    45981,
+    45982,
+    45983
+  ],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cleanup_errors": [],
+  "integrity_verified": true
+}
