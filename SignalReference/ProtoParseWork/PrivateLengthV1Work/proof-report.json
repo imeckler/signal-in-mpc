@@ -1,0 +1,485 @@
+{
+  "candidate_only": true,
+  "functional_private_parser_refinement": true,
+  "independent_root_review_pending": true,
+  "exit_code": 0,
+  "modules": [
+    "TlsMpc.Signal.PrivateReadAtV1",
+    "TlsMpc.Signal.PrivateProtoParseV1",
+    "TlsMpc.Signal.PrivateProtoParseV1Proofs",
+    "Padding",
+    "Plan",
+    "BoundedBytes",
+    "DecoderPadding",
+    "Table",
+    "Select",
+    "Stack",
+    "Lookup",
+    "Step",
+    "Scan",
+    "ActualBody",
+    "Read",
+    "Framing",
+    "Metadata",
+    "Wire",
+    "CompiledActual"
+  ],
+  "endpoints": {
+    "TlsMpc.Signal.PrivateProtoParseV1.parse_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "TlsMpc.Signal.PrivateProtoParseV1.parseCore_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "TlsMpc.Signal.PrivateProtoParseV1.compiled_parseCore_correct": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Padding.sentinel_step": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Padding.decodeCore_sentinel": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Plan.plan_const": [
+      "propext"
+    ],
+    "PrivateLengthV1.Plan.cursor_const": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.BoundedBytes.bounded_eq": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.DecoderPadding.count_bound": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.DecoderPadding.prefix_zero": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.DecoderPadding.prefix_all": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.DecoderPadding.prefix_past": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Table.table_eq": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Select.state_accept": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Select.state_reject": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.lookup_append_zeros": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.plan_pad": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.cursor_pad": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.write_stack_pad": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.apply_pad": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Stack.initial_pad": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Lookup.cut": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Lookup.payload_lookup": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Lookup.key_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Lookup.last_ok": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Step.past": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Step.inside": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Scan.fold_inside": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Scan.fold_past": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Scan.parseBody_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Scan.padding_noninterference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.ActualBody.actual_private_body": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Read.word_bytes": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Read.bounded_mask": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Read.read_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Framing.be16": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Framing.body_length_word": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Framing.body_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Metadata.ratchet_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Metadata.metadata_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Wire.state_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Wire.valid_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Wire.metadata_output_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Wire.parseCore_take": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.Wire.padding_noninterference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.CompiledActual.upstream_rejection": [
+      "propext",
+      "Quot.sound"
+    ],
+    "PrivateLengthV1.CompiledActual.compiled_actual_private_parser": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateReadAtV1.lean": "d9e0c64e8e7b8a39703c22b82de481be9613dc764b6eb6a887a71cf84125c490",
+    "TlsMpc/Signal/PrivateProtoParseV1.lean": "9f3338971f0e0327c9b56d8ed93873834abe6b7cf028404ccbec0c371ed10c20",
+    "TlsMpc/Signal/PrivateProtoParseV1Proofs.lean": "e60f5b18bf403103586307b5545cdc0fd8adca403fe9cf2ee6680ee69b0ae7e0",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Padding.lean": "1a0d53e51d7a9e10edfbe2f8acac30e07c0cd5990f178a650310d8ff87d83b7e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Plan.lean": "6d483da946f6a959021e013cbf58be66ee4eb33bfd665e8e143f915107d62f78",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/BoundedBytes.lean": "faa9ae6a092d7507148fbf0cefba0b0172873acf4ead9f19ee7e1813d4477d6e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/DecoderPadding.lean": "5f3e199642a400a7fa28aa204a4f83de96ab62ec774bfe8fdb5a76ebdc6db46e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Table.lean": "1c594dfa0bf05c67d3396b25efac3432c01aa0273eabd06f8333571be7719eaf",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Select.lean": "f1997ce23ec7cdb2bcebbe073ae89fe16baf74b8eb140ade7ecc9e6b7debf7ca",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Stack.lean": "fa9e6a712927a6557c93fad7017e3b932f27272b304b18aeeedc809ff27c5d58",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Lookup.lean": "ea5060651cd3b3600e670c45db53d8d81ce21dd53967434171c56e0d29ad3952",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Step.lean": "af9e434ce8ed051c81a910335cbff58bc2baac5042be4f8e2b3f30141f607fa3",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Scan.lean": "78bc5109c85119562274f83616db4a6481ab7a70318e90141411b85b5898cc2b",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/ActualBody.lean": "f6f870747df42747dda1de478032c05775effea55f6f10c269e32528fa802a21",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Read.lean": "9e945ca704bdc40c42a56066dfaf6086acd853598a3c42efcb3857d10ebcc691",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Framing.lean": "5a16784a7cda3ad9977b0ab99d6d9af1f175b63fb3e456dd5d5c1de651cb55a6",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Metadata.lean": "badbc5a581bd6b01d388b642e4a65809b766b35ff6dea46467191494b96d8efa",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Wire.lean": "12816632c6c9223323f1785fc5396bd3f3d0608fcbd41574961e9b849aad7492",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/CompiledActual.lean": "c7d6144229303757cdef3760facc0fa5c6b42cc5014e2fd5fab2d45760af6362",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/check.py": "4529ca7f00a3069a164b793840297e53b8d720412fc0e729c78ce57bce3c7280",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/audit.py": "d2561af879fa618dab482d7c3b44d56b6c1ba2dbf9cdcbbe2bd8fbd512a7a5ef",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/README.md": "2e901372e0a6d6b7a2cec223632b91a17d7458725f7dab99b8d88d7bd465db44"
+  },
+  "object_sha256": {
+    "TlsMpc.Signal.PrivateReadAtV1": "400ac03be270ab874713a1b531e6f526e971921912b075d148c010ae93415110",
+    "TlsMpc.Signal.PrivateProtoParseV1": "4d7f57ea96b34383ac958740dfb0155f11ff9b84a59ae9189fb8fbcb3fe78785",
+    "TlsMpc.Signal.PrivateProtoParseV1Proofs": "72afdc11c9ad5f04f577a570351ce37f1b0bc53c2c2eeb7a0262b38367369962",
+    "ProtoParseWork.PrivateLengthV1Work.Padding": "b43966435334c2c1c69594e0412928d06e107f87b5ad4650af71199223e0dce6",
+    "ProtoParseWork.PrivateLengthV1Work.Plan": "ae5070ba63afdf205dde446a2a99fe9e753a794abccac37402f86e328492e003",
+    "ProtoParseWork.PrivateLengthV1Work.BoundedBytes": "eddef7be0cc466ee4f2143068c7acd781df636857ed0fea35b682389607a3403",
+    "ProtoParseWork.PrivateLengthV1Work.DecoderPadding": "f20edf2688d115721bac6db2efae99bf80c065d6c2808184771fba1186d2a829",
+    "ProtoParseWork.PrivateLengthV1Work.Table": "89a3c87af99683bc2a2f8a09310b10308ee45b752325caf63b3d1b1476bfed89",
+    "ProtoParseWork.PrivateLengthV1Work.Select": "bd5f4ab6a25fd342f27956c8ab8cbc062f7f517672694df4b3ba6bd0bfe8fb7d",
+    "ProtoParseWork.PrivateLengthV1Work.Stack": "579355c707aece5659675c3532417b800b858e121430f9f051afbe729699c0ab",
+    "ProtoParseWork.PrivateLengthV1Work.Lookup": "983427a0e178300b7a5a4464182dbbc05b09bbada80199d0bef34ae25b22f756",
+    "ProtoParseWork.PrivateLengthV1Work.Step": "e4941f9243b51ca82da7783c6e63e2061d38c4f9f012bfa01019fd8968e0ac35",
+    "ProtoParseWork.PrivateLengthV1Work.Scan": "32132c95a7ab078acf173c167a8b71b795d0d22bc5aa0715c7dda0b126d275bd",
+    "ProtoParseWork.PrivateLengthV1Work.ActualBody": "5ad308aa75290b471f12d447378c19a5fb3cfc37c67c27a61cdbb49cd22f12d6",
+    "ProtoParseWork.PrivateLengthV1Work.Read": "5b239192b3ad9a150fc985f8927ded96670cc0ef96b7edbebab04ff647d29060",
+    "ProtoParseWork.PrivateLengthV1Work.Framing": "ace33e9c86a9b2d174bdf44743caf62d58decc3ca5a24ff7ac25f92e851e870e",
+    "ProtoParseWork.PrivateLengthV1Work.Metadata": "60bf429b5cbd72d393c657508d688670f83f9f0075aafa1425c0d402dfaacae6",
+    "ProtoParseWork.PrivateLengthV1Work.Wire": "a5680bd740bf2232bd9a1d72628bfc138dcfd99299b081889a95cffd25aabc61",
+    "ProtoParseWork.PrivateLengthV1Work.CompiledActual": "e65deaca6854f2609502a9dd6ecaa2675f244656231a889f79245a7c8a8d359e"
+  },
+  "inherited_accepted_receipt_sha256": "0d657db97750c85b7b297cb9f290b35903e3027ba6c8c9af50e01d95ee1bbc77",
+  "inherited_root_review_sha256": "891ea10371608dd15dca5e1dc48cb3c4b70f5a73411db01c53bdf0a8d102480a",
+  "verified_inherited_sha256": {
+    "SignalReference/ProtoParseWork/FullParserV3Work/Masks.lean": "78583d279d9d6be73a756f4b3ed3a61ae183732e2a2636e6ef6fb0f0297bbdee",
+    "SignalReference/ProtoParseWork/FullParserV3Work/BytesPayloadError.lean": "92b755688b621aea02c302ca46572a74798f94c6fcdc1ea471291c993bd63793",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FixedRejectionStep.lean": "c69140af5fb9dc8bdb85f0e0a96bd98c62fdb969c4634b628539f70584eac352",
+    "SignalReference/ProtoParseWork/FullParserV3Work/NumericLeaf.lean": "a65a89cd93904ce269166045a1156c8509fdc8b1600ca41ccdd55312d15b1bcd",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DecoderTransport.lean": "cda260204af5e131d7289e791d89fa5e9fdc23ac93e5ad9c44ce130fe6e2eb37",
+    "SignalReference/ProtoParseWork/FullParserV3Work/CursorGuard.lean": "68d2178c516bb53dd2047035b36dafdf23648d5ccaeb93e45a2c0608bd4cc0ba",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SuccessfulMessageScan.lean": "0c230df7fb1d01d5d78db1948537f945170585118acc0422ed1dd3435dd142f6",
+    "SignalReference/ProtoParseWork/FullParserV3Work/EOFRejectedScan.lean": "782a919fe69d4bf91dad205ce76061631438c25fde3b5d76f5acccc30c64a26f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/LengthRejectionStep.lean": "4c7ca47296a9a97b56fbc97d32a1c4059cc4e7b02becdaf3411c998a315762d9",
+    "SignalReference/ProtoParseWork/FullParserV3Work/NestedLengthScan.lean": "286d6649c0f1d606942543b5e1c817f376fb9187642ae549bfa02ed359bcb674",
+    "SignalReference/ProtoParseWork/FullParserV3Work/extract_driver.py": "40f7f961d75c0c139b499406a9182183306ed0a2ee4cfedfd86789e21562e190",
+    "SignalReference/ProtoParseWork/FullParserV3Work/WrongWireFacts.lean": "fddb4ce57e9d03a4b0b4d6eff29bb0fc7c665e1b7dce0dabcbc12a3f5d241d55",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ScanMasks.lean": "42648d6cd40c51c963a53ab9afc10dc239e332f38857c640fc40199322a72d87",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Frames.lean": "273e46879e33792bee7ed4feb93361a1fab2af76568dbefebb6d3c693b8ef5f0",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipTotality.lean": "ff2c9727d3a7c8476aa72e112dfeb63ec0f94f3778f9867d60c19028d73eff5f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyRejectionCursor.lean": "099dfa7bb2c53ad0857989f1cf320429fb75ffd38dfb17bbfee85668069cd799",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownErrorDomain.lean": "8c08890a66b28e6e94e27cf174d7529e191ed1f9da0140b9433deec40eef9e05",
+    "SignalReference/ProtoParseWork/FullParserV3Work/MessageTotality.lean": "39e7f484b34828abe142ea65caa31f33a0c952c6a0a79d66c11e0e08a6f515a2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownTotality.lean": "f8988aa16128403a6be228a744dd5e212bc3d1058540acdc0dff3cf00630d4c4",
+    "SignalReference/ProtoParseWork/FullParserV3Work/BytesWrongRejection.lean": "853d669947106f9a50ffc9102b01caca9424ddd9c1147e4d779c7c26520252f2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/TopLeafState.lean": "0e00878730179daa4babfc97c51fe7d9c864e47540038c8c50199e0ec72713b4",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipFailureHeaders.lean": "fd50e136e777f1770306aac57759236da64d16ff8110eec4a4056954f855f2d9",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FullParserRefinement.lean": "aae504db71cfa88cbbb1dbfe77981113138575dbb21b366f03e8da0d3b841add",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Table.lean": "c4d9192286db049e96173269001de4937199da0b83da0694c2b19557e008adff",
+    "SignalReference/ProtoParseWork/FullParserV3Work/MessageErrorDomain.lean": "5c8e155e447cbe1859187babfb3d94596ceb8ee35d93ad28606e85a1b5ac25b9",
+    "SignalReference/ProtoParseWork/FullParserV3Work/audit.py": "6425a037b4f6571b75f3e425304f31babc9b80f0085147e492d88634f12db438",
+    "SignalReference/ProtoParseWork/FullParserV3Work/check.py": "479845688c79fdafd0f417bd726f653974f7708785499f54e9829a0ef7bd860d",
+    "SignalReference/ProtoParseWork/FullParserV3Work/WrongWirePlan.lean": "708ab217812351397a643298c3b54d81cbb5a45808f52edc13eee7708d8eb88c",
+    "SignalReference/ProtoParseWork/FullParserV3Work/WrongWirePrimitive.lean": "ef93cb98eab12ccdaf2ce238119530ba3138cd1a50e6279b61c12fe86f7d2d58",
+    "SignalReference/ProtoParseWork/FullParserV3Work/translate_driver.py": "3d33302c4ece23c20dd84ef1613fb82f2c824ca710a48ace7a10d6c00538c7ce",
+    "SignalReference/ProtoParseWork/FullParserV3Work/UnknownShadow.lean": "f72fe1541f2298cb70e81821e2905b827df99dad13db7a526f67c25c1f43a3c6",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadPlan.lean": "564541ff4e6d364f6df92ea82dc18a2a1ac23298b65a9bd1cf30cc65ab837c93",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DriverTotality.lean": "feea402b0cc19fbac8cc5f8913b75a15c5d7d6455f14d42164cc83df41d845bf",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadGuard.lean": "8fa98ccb314db6cbd4cb3b9659a509354fd220382028bc84fdeaae83946e7fcc",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SuccessfulSkipScan.lean": "c2630c0f7893a880796f165511ec26f4eb87c3e1a1937b8a04fd57234cc93f96",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DecoderTable.lean": "d26b4de83237655978e45f3c7bfbb508cd35b1b99ffd1eaa973931303396b48f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/EOFRejection.lean": "0dd7f2ade76662535be82a3a10de5301070d802a6d596bec0db6b950c7067a7a",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyErrors.lean": "3ad56b514261d53cd5e7c6332d925bc03864990de63ad963a3d663bfca557899",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyFailureCursor.lean": "a81a01e71d3decba0d3f275334bf1791c59debc72461d055f2742c22a701fcb7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SuccessScan.lean": "ac05106247abe33b3974ea2838eabf184f744aa5f572025bdaa380b25fb9620d",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadErrorProjection.lean": "da8adff76ad848fba30a9a33b21ddb31d2bdd2c0c3de86a486d43db1a78c487b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownMask.lean": "1e82322052e6c5828c697d87f3af480ce7e23242d4fe125f8dc425d0b8c8d3b7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FieldProjection.lean": "e21bfcaffe96491c22c853d7d85fcd217f7ac98b5215a3b37597833605be059b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ObservedProofs.lean": "902f0f850a487a0a2dc6565f9c6a862284dcf5bf047d230ebcfa9bb057c71ef8",
+    "SignalReference/ProtoParseWork/FullParserV3Work/LengthFailurePlan.lean": "e6763cdf4535f9e088a5b94c6ceb9cdce4c1d97943c37e7a8d348168a90f7636",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownErrorCases.lean": "7bbd12745bc742607320baecc320a3b5e5a6a29637629e7d63316a103523eb44",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DispatcherMutation.lean": "4b418ded33da05b72823e994ace0ebdbcdd13dfd6eb515e116ca7bb01b5b904b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DriverErrorDomain.lean": "9388fb20d405519fd05c8379775a35423cf84279ddbb61c5c0cafd1e52fcc0d8",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipScanLeaves.lean": "d089327afdd948778a818c50caaa12c96b855a16a5f8b17ab260f2fe8e4753fd",
+    "SignalReference/ProtoParseWork/FullParserV3Work/MessageReplacement.lean": "fd5a809cf5bd65c533549be01d72f50d10776b7009c3e50e948b4e9a5477baea",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ActualSkipScan.lean": "7fc1c6bba95762b6bc6ced92485a194765e0adff5cdf17147d1ec6acaba768f8",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipScanHeaders.lean": "338d0a51375e38bc7d25d14081e2728c6e061eed14cb68fc8e96e12763183254",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownMessageRejection.lean": "73149d2a07cfebf054aed42ca15f2f2f998dca0053a37290ae4ba1fe857b0d48",
+    "SignalReference/ProtoParseWork/FullParserV3Work/StateMasks.lean": "ab9003efeec10ddccc6adec547661753d17ef44ea7aacaf0116b2bfccf0fd48e",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ActualFailedSkipScan.lean": "4ca890c3357cea8478bd6c4fa1a7bb9748451dedb0fb769ad904f146916f4eec",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadRejectionStep.lean": "6462d312af625efe9c93520f7536c42ddf4b6537f56aec28942fb55aa952bb68",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipFailureLeaves.lean": "8783e9277ba5a3bf5de5719947c18d7757c7f501944ea14a8d519c3fb1f2b265",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Observed.lean": "5165fa2d25a2e7c4e73cf6ea69b574f506ab289ea39b74cab64fd7ca39274b14",
+    "SignalReference/ProtoParseWork/FullParserV3Work/TopScalarScan.lean": "4ba248bcb96535f6daeb14973d55b4b728a5b3b67b2c83710ad7301e164cabf7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PlanFailure.lean": "7a575b9ac066a3caeb65358f53f814fd2c368c921cdea9ef070d1fc5398757b2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FrozenRejection.lean": "a155fbfc63410b0207a54c07a19a5c8421b69f1a4b1bdab70325a5df4c3b373a",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadErrorMask.lean": "cded083c6a927a80cfe5857c0c4efaeadd10045f79addf42d2833703f24749c3",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ObservedCircuit.lean": "438ce6c6e62d73aa5ed66575256489ab4b1b56a5f11f3672e2a10c2d07d39936",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownSuccess.lean": "cecd00d54de25a578c62a5fa05be0908a956d56882ea2576173d307748a158a5",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyErrorTable.lean": "25d2ad2cc5cb95d7b521725928fd0c021ec8aad536f4c6a127acca715a96b227",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkippedMask.lean": "49e8c1f53b3cb044ddcf72b12c376345b15b79931acfa210b3d7dab7a3de2a5e",
+    "SignalReference/ProtoParseWork/FullParserV3Work/UnknownMessageRejection.lean": "607eda8ba22842ad17ddb4e82632aefff6d2a8ab56ffefc94ce274c4e53ff629",
+    "SignalReference/ProtoParseWork/FullParserV3Work/NestedFixedScan.lean": "81d9807b1c01681f76ed247a8b7706c9c2cbfcd07a548fccb13371732bb233ee",
+    "SignalReference/ProtoParseWork/FullParserV3Work/NonPayloadPlan.lean": "f3b215eeff5971ad97aee6c78087c570d5720074eceffefa366da5b210c8c790",
+    "SignalReference/ProtoParseWork/FullParserV3Work/CompiledSuccess.lean": "43a60ae16efebc983126035cb54067a11287d0d7a884e12fa46d255e651ed074",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ErrorProjection.lean": "909e65fe785e51a426c44160d02f0106f7a8f3049d814576e49c179db95105a9",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ErrorMutation.lean": "2f6a8a92b0b34e0c6e2622172403b3d87c75ca1e4561da674de7f1865206a5ee",
+    "SignalReference/ProtoParseWork/FullParserV3Work/UnknownFields.lean": "0a0c0ac2b760c1ea693d39fcea341440818fcffd4bb0fd83094e166615676d6f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DriverTrace.lean": "b863363618d40e50c2db3c12ef5d9c31a3f38cf17931365f5e2eec82a1d48faa",
+    "SignalReference/ProtoParseWork/FullParserV3Work/TraceUniqueness.lean": "98c38051d3ef91c2083e699a964770d78dc226ef7ae7a59aa6f067e25697b9b2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/MessageSuffix.lean": "a754e6c0c2efea2b1280afe7e8741650e4b65a7325bf5c16d1d34bd2cc206e42",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyValidationPlan.lean": "96f5bf3b99305bf143092ca92622e554a2386436e93b9a34d2a1c8c621d02062",
+    "SignalReference/ProtoParseWork/FullParserV3Work/RejectionState.lean": "6d583b01fd89896218ab8ff409c541cc8d55b71a0a12165adc5205eefb8665a9",
+    "SignalReference/ProtoParseWork/FullParserV3Work/UnknownTopScan.lean": "917c41b894f3edfdf9d16429cdfa211fdd3cabee461cb84ccb3e075157888d91",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownRejectionStep.lean": "5c99982f7b8c1d81e2b74ec157c28c0f07f903dbca6a156ac3a5777a106b6288",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DispatcherTotality.lean": "c0fd7a5228247d5f535af39fb906900cd26d4fce5c33d6c3ede7e8e43bbebb1a",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ObservedSuccess.lean": "63506befb926fc8724173d5f9b1ce4b0a4d564798590df1b3a661f18330ac2e4",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FailedMessageScan.lean": "7c2f341c3a2c307458103f4826c266392e7a26037406b8f76a4daa029db72487",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GroupHeaderScan.lean": "bc56d02e792a7e856a63e741a606600b6489226f749c6842b4d2264f65a1707f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownDispatchSuccess.lean": "6a03abcd18965984477fb7300ebe5012cdfc7b305144fa468fe9f50151945cc7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/DecoderErrorTransport.lean": "ff39aa13fc7322f81d4abf4fd3e809bce1d0e2ee80a0de9aed09e73bb9824cb2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Suffix.lean": "4985a9e5b72a63d3f657c7d3d3c3f73dc4190e440deb3c19a84ddef814733c11",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ObservedIntervals.lean": "93a2d23fb9cbdb768c8d1fcb604e018ed9906aad48c2fe636cf8ded69c724546",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FieldSuffix.lean": "917993d4fb70883d96dacefe43b028c54b02094f7a10fb19eb116ba8301e9b30",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ScanState.lean": "5c1395e6fedb254a7644b9cfa8706ced4df0761d7a24bba8aaec3bbfe467f577",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FailedSkipScan.lean": "01d9eb5671543a3a93c863edc3f781e29740eabf12d37701ab84224dd38d2f90",
+    "SignalReference/ProtoParseWork/FullParserV3Work/WrongWireRejectionStep.lean": "20fb57aeec63aae05d1f6dfe78facb3ea67424891dad975f5e9a11ff646364ba",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadActive.lean": "a0c30e983a68b0bf7cc98ead8b14b4182f1b25fb572df641ba840ecce58303bc",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownDispatchError.lean": "ddf4da0b2c5e59d7f8c696104d3856a929b569921c6180498169f25e41ec8505",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GroupNumeric.lean": "c43aab5c11e0b38936d362032d9239383bc1f98b1d029d4b6b365ff6ad26a585",
+    "SignalReference/ProtoParseWork/FullParserV3Work/InitialScan.lean": "25d1a38d8f5818aa0ea463f5dfbbac7e8dce2514f10f865be364e047bfcdb72b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyRow.lean": "10fea894cc43451c37a26c66ede241bf4b364194b08a49fb147da01269887904",
+    "SignalReference/ProtoParseWork/FullParserV3Work/WrongWireDispatch.lean": "3405af98ee8d7afbc2008ae19c8d1bfc2eab216d527ae3d4c9e90914cdaace49",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyCircuit.lean": "7364b8347064a819e6bdd1d5b6849999b880aadcf52b69b98d76e0a948ce02cb",
+    "SignalReference/ProtoParseWork/FullParserV3Work/NestedVarintScan.lean": "0ca9c3e25b1387622b7e47a151043453bb50dd9f748933037f44f8a1e787e6eb",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KnownMessageScan.lean": "857d08ff0764be28ec5ade4d06ded9766ec861c4867c219048eb4b734027b6e7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/EndGroupRejectionStep.lean": "fb9952138545bdc526aa7bfd9575d1d77e9c4f53e6ab10d5457ae1aaf2b2d915",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipErrorDomain.lean": "493432df5f1b3f16bdc61b49d4072b3e48105dc12da784026905fa7208d05cb5",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ScalarWrongRejection.lean": "2bc7fc260c25c16938f1a3a9097eb4c4cbb409ded08f32888b9b3b73ce93a9b1",
+    "SignalReference/ProtoParseWork/FullParserV3Work/RejectedScan.lean": "a1fecc1545b0330b516ca202862c688792d50dd73b915971de5ca0c61497714f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ScalarPayloadError.lean": "0b3cb0df9051b5f91a6e073d2f91196e364bb8e107b65550dcd4d42430707411",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyRejectionStep.lean": "fae1b4591e14d3a187b4086e48b683a457c14279680944457c3a8026c7302935",
+    "SignalReference/ProtoParseWork/FullParserV3Work/CompiledParserRefinement.lean": "76f0fcb5e426b3c0beccdded5b888de3ba9444bf53004e5751400f6babbc3549",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FieldErrorProjection.lean": "0e3f71934ac7eb901f44629d59b424f9f6d636160c94366f946b065cad33ce7b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/TopBytesScan.lean": "81826a119a34d139521e707318a43250e76247e98829b2f63626fce1c99d4afb",
+    "SignalReference/ProtoParseWork/FullParserV3Work/RecursionRejectionStep.lean": "7b911d30833ae58d773577dbf67600e1deb666db11fcd077e41361bd7e9c103c",
+    "SignalReference/ProtoParseWork/FullParserV3Work/UnknownMessageScan.lean": "e2c7aa5145bfc268cdccd651c5c61aef158c22e0cda5bf19b8a5d4537419f96b",
+    "SignalReference/ProtoParseWork/FullParserV3Work/SkipStrict.lean": "d01884000dd0229ae0f1e4fe4c4be21bea099f98004d968ab6086d0be2dbeddb",
+    "SignalReference/ProtoParseWork/FullParserV3Work/prepare.py": "034abf325558d820a6ded00a6165379f2c9b4ed512e08bd7f04c2be3bb780dca",
+    "SignalReference/ProtoParseWork/FullParserV3Work/PayloadFailureCursor.lean": "efe0ec7c4d3bd4a1cddc7d2621c8639acaa723886bf7ef2f18280dfe0787c110",
+    "SignalReference/ProtoParseWork/FullParserV3Work/TopRejection.lean": "fc84d0b430a0eadeb3b29a3709ad0c1b6b42df125704546dd5835cbd459205b5",
+    "SignalReference/ProtoParseWork/FullParserV3Work/ObservedScan.lean": "bd0bb02acbd14ee258335372c44de4e882bf7fc584b17fad6439191ad1bb81d2",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Intervals.lean": "fb0fe97be71d999d5e9d8cde66abab0c238bafc953cb4b02caabcadacc1de7c6",
+    "SignalReference/ProtoParseWork/FullParserV3Work/MessageRejected.lean": "8acb6e3608c56a17c14fd87e71f42bd4da0e5dcbcb5733c80fe25ef745e8bd15",
+    "SignalReference/ProtoParseWork/FullParserV3Work/FieldTransition.lean": "25b9bd9891f02ef8f19c4298b1275cbe30954009d6dfd1594d308b51ed4ece7f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/SkipLeaf.lean": "d77f426beca3deca2b14bef9464ace87e7b9772b1e19eca48cb6c36375712e44",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/KeyValue.lean": "d3f94918d5b3413f709ac3661b125b11b2cee222cbc8f5e8227ffde09a91d276",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/SkipSemantics.lean": "2678562b9e4e127370b48aa6eac77412352c15e8a36bf7689a53594a4c7389da",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/KeyReference.lean": "4bac3d110a1354b4db2b27799601ae43322960f88a18e21a6ebcae7a8524714d",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/SkipGroup.lean": "29a5e7eef45323344f65d19ae7053fb9e706149ed617fb9e1502ed036c919f5c",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/Reference.lean": "bcbe472f086ebd4feddb78009e0a8f785a72dea02f846a09a79bc4e605e1d27a",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/Group.lean": "0f557880f699950e7621ea8cbf2cfaef27101e8b45984d35be927af1cc3c50d8",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/GroupReference.lean": "55fa442a52d499472e7c2e5806e6e63cab0bb33090f73d5818ae22396b5088b6",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/TopPlan.lean": "2896bad6100d4f220fa6c18a685a8c7bf3a5f99b3f54f3ba42a07d62adbab743",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/Stack.lean": "6b780141d457297740308afff99a44a7cb7ee37bce452a6f12b30a9c222ab361",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/Fixed.lean": "bd129ec692214cf538e834ee3eac71668373cfb37b22c3c05d91a46c1a16bf47",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Numeric/Fields.lean": "725553aeb0271edd0f3cdca9b8ba1f1eb6931f97e64d8e0f6e876aa137cbcec7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GeneratedDriver/Funs.lean": "4a2b92dfb8efe44152be6b5bfba816c7e6c4900f1e5e48a651834e4617f60b6c",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GeneratedDriver/TypesExternal.lean": "2719d09ba0ff51553b6d8e092ff941702a8e6b89db849f6f73b4537043fbdb52",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GeneratedDriver/FunsExternal.lean": "7f29c5ab2dbf386d3af01969544ba645e1f3410a1eaded5325225ded5c790408",
+    "SignalReference/ProtoParseWork/FullParserV3Work/GeneratedDriver/Types.lean": "66a8bb8e0af35255472e1c8997aceb8dbb787e3f318275c17361f946facc8d72",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/SliceBridge.lean": "37c87dcd196e31f1e7a9802a39470768a01ee98387c545210ed9f9043954802d",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/Consumption.lean": "d341257e1e311f9a960840d338df4ff567aface125c8173b7d1e4ecc7c371daf",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/BufModel.lean": "3da4fa508287d5648da097125178f09c513bf58e76211b2e6b2943d4861e34e4",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/WrapperReference.lean": "a522dbd8f2cd69c353407186e4ffbc520ca8a16b655b01f4c07692ea36b69a26",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/SliceReference.lean": "bda70dd6579a59bada7655ee3466b8e3e323402266e0222e08a98d2780cf04ef",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/StateBridge.lean": "d0c8046869a564376d82efa9144f35ade531902032ed16222614c1736cc2c9f3",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/ArtifactBridge.lean": "0ad18fb54a8ce07107f89890d634231b87b7aaade2960548576301e3b2afd30f",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/SlowReference.lean": "f61265c856f7241a4286c4f1c8a1498f2bef53cd07d9f47fbe39ab47a52433b7",
+    "SignalReference/ProtoParseWork/FullParserV3Work/Skip/Replayed/SliceAdapter.lean": "c8288d39209d89c66b188b45a026af1f31a1b6287373e73aa488dd0c4d165de2",
+    "TlsMpc/Signal/ProtoParse.lean": "c2e5832c7e6b1ff1fcf555a44cf7478269ddb904d26229cafaae73d269b10a8f",
+    "TlsMpc/Signal/ProtoParseProofs.lean": "3103e97c75f7c14260bf62040def0628251ee9272768e1f5856f67dc95ab3de9",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "TlsMpc/Signal/SpqrDecodeAt.lean": "018428a939a8b67e692a32ce69110d86d02730dda657b0324661e47a5e0274bf",
+    "TlsMpc/Signal/ReadAt.lean": "5e65494d52885503d2edbab642355f7403a9cb9c6fa8fa280e9208cf18567704",
+    "TlsMpc/Signal/ReceiveSpec.lean": "ca9fca9c54cd291f49872498f89ec450864665a0c78a4a66c5b2f23732e3ddab",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/Signal/VarintDecode/Spqr.lean": "de5cbc8467cf466c8da7d9582406ea04e9191dbc4b14dc1c3bf53ec2424c9865",
+    "TlsMpc/Signal/VarintDecode/Spec.lean": "3a1240d1a448a7c1d719904eee73111db7e7d95f91f56ea4f8841e6933d576d7",
+    ".lake/build/lib/lean/TlsMpc/Signal/ProtoParse.olean": "5fb52de6e1c10d70d3b3c520eeb13dba75e1d49e25097bba972638c14d1a60dd",
+    ".lake/build/lib/lean/TlsMpc/Signal/ProtoParseProofs.olean": "25abb5d95012bbbcd20ba0c8137078b7e8a1cfeb8e276edb7b5dc85451e13b19",
+    ".lake/build/lib/lean/TlsMpc/Signal/Word64.olean": "a4969cc845ab7b17d99d0be343fb89c116e0b05839168bcf27986d48af324335",
+    ".lake/build/lib/lean/TlsMpc/Signal/Varint64.olean": "fb1910ee2f37725076833ae7891238c22766f3ab77f38782ffe8f7817bfff1f3",
+    ".lake/build/lib/lean/TlsMpc/Signal/SpqrDecodeAt.olean": "0cc7d704fd56b3e9a647e664b6ab13fa3e1bb0bd8046791a3e74d2693c97a4d8",
+    ".lake/build/lib/lean/TlsMpc/Signal/ReadAt.olean": "46094b829f02ac6e7b23d7bbab86d50faa677d5be687a49b12f15134b1332f5e",
+    ".lake/build/lib/lean/TlsMpc/Signal/ReceiveSpec.olean": "26cc260a6b2349db390a7772f405fb0258edf6272d175816d8e557f813ef71fe",
+    ".lake/build/lib/lean/TlsMpc/Signal/Unpad.olean": "b5c5411302e8d47946a8eb857f1fe66f289f37820127ca59ff424924bf3547f3",
+    ".lake/build/lib/lean/TlsMpc/ByteAuth.olean": "c7f4bc1ab25dcfee238ebce5397dab8b6eeaf951042a70160db24852621fcc6b",
+    ".lake/build/lib/lean/TlsMpc/ByteCircuit.olean": "a1e76bb53c7464dccb8614d6edb85e09f8fd264eda70a2d295a1aace7efd94a7",
+    ".lake/build/lib/lean/TlsMpc/AigExport.olean": "60b8bafd624dae818a20458dae93d244f6395330bb6392e4de18d637b1f517a0",
+    ".lake/build/lib/lean/TlsMpc/Signal/VarintDecode/Spqr.olean": "21ad512b6daa5d56fcc38126d408a20926a6f6c8fd91d402482334bb68c33c24",
+    ".lake/build/lib/lean/TlsMpc/Signal/VarintDecode/Spec.olean": "8fe03159f1620534dc81b01648ff3ce12743297519a8c7610823f712d3f02db5",
+    "SignalReference/ProtoParseWork/ModelCandidate/build-report.json": "4176a55ac9f6e120d78b278c5340cc3ce57b07ce0d3a3d5a6ae198a197ba747f",
+    "SignalReference/ProtoParseWork/ModelCandidate/Aeneas/Std/Slice.lean": "bd913db575ff491b41d70d6c1c09730659d2ba608fef9295cbf971481acf95a7",
+    "SignalReference/ProtoParseWork/ModelCandidate/Build/Aeneas/Std/Slice.olean": "671400eeebb4d46235eb68e4a9aca3db6fd8d8558031fe8e0da7bbf424bd667f"
+  },
+  "log_sha256": "b79ebe97be1a440f795c88f607b234cec7438245c63df22cb1b878f835b3e99d",
+  "output_directory": "SignalReference/ProtoParseWork/PrivateLengthV1Work/Revisions/final",
+  "domain": "Every n<=public wire capacity<=512; BE16 length representation; arbitrary upstream validity with canonical eqMask acceptance; target capacity256",
+  "observation": "Exact native default-merge trace, suffix, error ctor/params and mutated Options; private state equality modulo zero stack extension; compiled production acceptance/released metadata; diagnostic text quotient inherited only",
+  "constructor_boundary": "Explicit six-None record and default recursion100; actual generated dispatcher and default merge; Message::decode/Default wrapper not assumed",
+  "model_boundary": "Inherited accepted contiguous safe-index slice and successful bounded allocation/content models; no new correctness/termination axiom",
+  "remaining": [
+    "Independent root review",
+    "Native capacity256 receive integration validation (crypto owner)",
+    "Separate typed decode/default wrapper and whole-session/security obligations",
+    "Chat response schema refinement remains queued"
+  ],
+  "active_handles": []
+}

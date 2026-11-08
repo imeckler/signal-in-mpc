@@ -123,8 +123,21 @@ theorem parseCore_take (wire : List (BitVec 8)) (length : Nat)
     exact BitVec.allOnes_and
   simp only [mask,ProtoParse.parseCore]
 
+
+theorem padding_noninterference (left right : List (BitVec 8)) (length : Nat) (upstream : BitVec 8)
+    (withinLeft : length ≤ left.length) (withinRight : length ≤ right.length)
+    (capacityLeft : left.length ≤ 512) (capacityRight : right.length ≤ 512)
+    (same : left.take length = right.take length) :
+    PrivateProtoParseV1.parseCore VarintDecode.Spqr.concrete Word64.concrete ByteAuth.concrete left
+      (BitVec.ofNat 8 (length/256)) (BitVec.ofNat 8 length) upstream =
+    PrivateProtoParseV1.parseCore VarintDecode.Spqr.concrete Word64.concrete ByteAuth.concrete right
+      (BitVec.ofNat 8 (length/256)) (BitVec.ofNat 8 length) upstream := by
+  rw [core_projection left length upstream withinLeft capacityLeft,
+    core_projection right length upstream withinRight capacityRight,same]
+
 #print axioms state_take
 #print axioms valid_take
 #print axioms metadata_output_take
 #print axioms parseCore_take
+#print axioms padding_noninterference
 end PrivateLengthV1.Wire
