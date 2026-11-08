@@ -72,3 +72,18 @@ for field mode and count+outerFrameCount=100 for a group whose current tag is
 already pushed. Matching EndGroup at depth100 is covered. Complete-message
 successful field composition and all-error scan correspondence remain open;
 these success subtheorems do not replace the full rejection observation.
+
+InitialScan.actual_successful_parse now proves complete successful actual
+Message::merge agreement for every valid contiguous body <=512, starting from
+the explicit six-None SignalMessage constructor. Actual driver totality supplies
+the finite trace. The numeric parser ends at the exact body end with empty live
+frames and all six Options equal to actual generated dispatcher output. Arbitrary
+duplicate/unknown/group combinations are included; scalar truncation and bytes
+replacement/empty-content semantics are preserved. DecoderTransport connects the
+independent scalar/bytes/skip extraction closures through their proved common
+strict-prefix observation. A proof-only depth shadow for unknown ordinary leaves
+is justified by exact numeric plan equality; it changes no Rust or circuit code.
+This is explicitly a success subtheorem, not the missing all-error refinement,
+constructor/parameter classification for every failed payload/group, or the final
+actual-implementation compiled-output endpoint. The initial record is explicit;
+a separate Prost Message::decode/default wrapper is not silently assumed proved.
