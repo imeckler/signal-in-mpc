@@ -1,0 +1,15 @@
+{
+  "scope": "Unique wire discriminant instance (same mapping), remove unused error/Cow discriminant attributes; namespace/import replay and removal of unused erroneous Drop dictionary only. Standalone actual clear body retained. No generated computational body/type correction. String byte-content interpretation provided separately by external model; owned-error observation required.",
+  "files": {
+    "Types.lean": {
+      "original_sha256": "4db70efa840ffb50e27d02a4320c7e3c89d1b2497199ac408f75bf9839e61459",
+      "replayed_sha256": "cc3b27ffdb9b67e8f9ab39989e5434841b96bfc628900a2636e58c849920d5ec"
+    },
+    "Funs.lean": {
+      "original_sha256": "dc60f1cce73cfb7b65eed36e1aac5ce02b51d7433e72be87f252af2e4e6aabcc",
+      "replayed_sha256": "4b7976fbd99b803b77b2ea9717727499c3fac74b8ebae6d3541634d3747cd68c"
+    }
+  },
+  "mixed_copier_checkpoint_commit": "aacda3d",
+  "script_sha256": "0d87db7c4beee7a0670c96b241c1db66e03ec82fddb55f2fbb01bd6144379145"
+}
