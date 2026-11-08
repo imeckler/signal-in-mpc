@@ -2,8 +2,8 @@
 
 User direction, 2026-11-07: reduce token consumption and delegate actual
 implementation to Sol. This supersedes the earlier Astra-high preference.
-The automatic root goal was paused; the subsequent user instruction explicitly
-authorizes delegated implementation. Astra workers have been interrupted.
+The user has resumed the root goal and explicitly authorizes delegated
+implementation. Astra workers have been interrupted.
 Sharing refresh remains paused.
 
 ## Operating rules
@@ -225,3 +225,53 @@ count, preprocessing cost, bandwidth and RTT; distinguish local measurements
 from WAN estimates. 100,000/hour means about 27.8 delivered messages/second,
 not circuit evaluations per second. No throughput or system-completion claim
 until the corresponding evidence exists.
+
+## Resumed goal: actual relay service path
+
+Root inspected `../secret-shared-db/server/relay-node/src/notify.rs`,
+`signal_requests.rs`, and the workspace Cargo.lock after the crypto worker
+identified a transport mismatch. The relay locks imeckler/libsignal commit
+`c1d9fb55ded1eca7ef6aae35cdedc2452bf6529c` and uses ChatConnection's
+WebSocket chat path. Sending requires Content/DataMessage encoding and padding,
+private UUID/access-key handling, recipient device lookup, per-device
+`sealed_sender_encrypt`, and type-6 JSON messages submitted via
+`PUT /v1/messages/{UUID}?story=false`.
+
+The generic HTTP/2/gRPC helper and its synthetic protobuf are transport fixtures.
+Their successful tests do not establish compatibility with this relay or the
+Signal service. No further H2-specific implementation is on the critical path
+unless actual inspected service requirements justify it. Compatibility with a
+current deployed service is a separate verification obligation from matching
+the pinned relay; no real account/message side effects are authorized by tests.
+
+Active dependency sequence and ownership:
+
+1. **tls_sol:** finish the running repeated-private-record/KeyUpdate/rejection
+   test, then expose the transport-independent opaque payload and receive handles
+   needed for a persistent WebSocket connection. Preserve real lifecycle checks.
+2. **signal_parser_sol:** fix the core numeric parser's error-time initialization
+   mismatch and corresponding compiler/refinement proofs. Root explicitly grants
+   ownership of `TlsMpc/Signal/ProtoParse.lean` and dependent parser proofs; no
+   further coordination permission is needed for this fix. Preserve historical
+   receipts and document which previous source-bound claims must be rechecked.
+3. **signal_crypto_sol:** implement actual private request encoding, sealed-sender
+   envelopes, certificate/UAK/device semantics and state persistence. Coordinate
+   WebSocket upgrade, framing and response correlation with TLS. Bare SignalMessage
+   wire is not a sealed-sender envelope. Continue fresh-session/verifier reference
+   closure in the same queue, without claiming established sends cover it.
+4. **Next available Sol worker:** complete service response parsing and device
+   refresh/retry policy without exposing identifiers or reusing uncertain send
+   state. Reuse parser work once its current correctness issue is closed.
+
+Reported intermediate evidence (not a fresh root acceptance): five-party
+shared-state Signal fixture completed two sends; candidate TLS handshake and
+retirement succeeded. Persistent application test is still running. Full
+to_edwards extraction is blocked on the pinned Step.forward_overflowing model.
+The dispatcher candidate now has concrete dependencies, but a kernel example
+shows numeric/Prost rejection-state disagreement. These facts change the next
+implementation actions; none establishes end-to-end delivery or throughput.
+
+Completion still requires both established and fresh session functionality,
+durable secret-shared state, implementation/compiler proof coverage, actual
+service-compatible private request/response integration, and persistent-session
+performance evidence. Sharing refresh remains paused by user instruction.
