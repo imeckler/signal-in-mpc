@@ -1,0 +1,14 @@
+{
+  "kernel_endpoints": 3,
+  "foundation_axioms_only": true,
+  "native_reflection": false,
+  "proved": "Actual16-bit carry/length arithmetic removesMAC8 for every9..256B wire; actual contentBuffer selects exactly originalwire.take(length-8) and canonical zero tail for arbitrary wire bytes.",
+  "boundary": "Canonical upstream wire record; complete private-tag extraction/HMAC/source composition remains separate.",
+  "source_sha256": {
+    "SignalReference/PrivateMessageMacWork/check_semantics.py": "622f75ee6759222cc056eeccc15ee50001e1bf76e7ef6136d3cd71fec65c59c0",
+    "SignalReference/PrivateMessageMacWork/SemanticsChecks.lean": "0b6445648485173b2a07ad563e31afe932d15b1b06838bfd3a61ecd2238f9b9c",
+    "TlsMpc/Signal/PrivateMessageMacSemantics.lean": "78493d96f2aedebeabea06846bd835c365b68be4876ae483a0d355a027f5a1f6",
+    "TlsMpc/Signal/PrivateMessageMac.lean": "22a6e2ed9272493a35015a17e5a7f16388607459533a9663f429b63fb1bc7575",
+    "TlsMpc/Signal/PrivateBufferRecordSemantics.lean": "383ed6d20493d0e1e858582a46feabfb6974882f1748d642b2a31f87bd5cd094"
+  }
+}
