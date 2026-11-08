@@ -1,0 +1,22 @@
+{
+  "numeric_cases": 298,
+  "actual_pinned_SignalMessage_parse_verify_MAC_cases": 192,
+  "kernel_endpoints": 4,
+  "foundation_axioms_only": true,
+  "domain": "Publiccapacity256, sharedvalidity/BE16actualwirelength; actualSignalMessagev4 noaddresses; identities/MACkey32B. Original contentprefix andlast8tag selected privately, capacitytail ignored.",
+  "full_protobuf_validation": false,
+  "full_DH_or_session_transition": false,
+  "actual_RustCrypto_source_refinement_proved": false,
+  "native_MPC_executed": false,
+  "pending": "Use actual privateparser.valid and original-wireMAC result jointly withCBC/PQ/DH computed acceptance before committing fullsession state.",
+  "numeric_nodes": 1947890,
+  "artifact_sha256": "a25be00b0072b1cbe8b1c7a5bee4c8603aaa75a205fb7288be9f19de554dde9e",
+  "oracle_sha256": "c07ea55a1a979870a663e396f5e9b002c4b2577d71c054880d53745fb3707066",
+  "source_sha256": {
+    "SignalReference/PrivateMessageMacWork/check.py": "f442552e7bb1d2cfa4918e926e0e398c72851bb5b22404d36c04e753bf4f2509",
+    "SignalReference/PrivateMessageMacWork/Export.lean": "c4566b7a4b62d32f46f25a8bb5f1544259e94da1b457259e64a46eeb4ab72b35",
+    "SignalReference/PrivateMessageMacWork/Checks.lean": "e73b1db35487908dc6b41c066601ed214266de3e313f7419a9817d6aa4e9e09a",
+    "TlsMpc/Signal/PrivateMessageMac.lean": "22a6e2ed9272493a35015a17e5a7f16388607459533a9663f429b63fb1bc7575",
+    "signal_backend/Oracle/src/bin/signal-private-message-mac-oracle.rs": "9d03452d44fb97e332459b21926fd18a93e0fb04fdf3babb99b439673c1dc84a"
+  }
+}

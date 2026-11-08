@@ -1,0 +1,11 @@
+{
+  "artifact_sha256": "a25be00b0072b1cbe8b1c7a5bee4c8603aaa75a205fb7288be9f19de554dde9e",
+  "manifest_sha256": "c88803699718dea1e808763d1ef8d70d4d22bf2357cbe80bf92785d1400ab1da",
+  "native_executed": false,
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/prepare_mac.py": "88d0bbc9327ad9709beb2b0305dedd209d92d4a673ad8c5eced752af72d4d345",
+    "programs/signal_private_message_mac.mpc": "51d0f2b52d21f43a8008c47760934773572310848cf4b91ba92229d57b919071",
+    "SignalReference/PrivateMessageMacWork/Export.lean": "c4566b7a4b62d32f46f25a8bb5f1544259e94da1b457259e64a46eeb4ab72b35",
+    "TlsMpc/Signal/PrivateMessageMac.lean": "22a6e2ed9272493a35015a17e5a7f16388607459533a9663f429b63fb1bc7575"
+  }
+}

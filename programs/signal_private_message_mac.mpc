@@ -1,0 +1,14 @@
+# Internal private-prefix MAC stage. Not full protobuf/message acceptance.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+from handshake_backend import binary_io
+image=load(program.args[1])
+if image['name']!='signal-private-message-mac-256' or image['input_bits']!=2840 or len(image['outputs'])!=8:
+    raise ValueError('private Signal MAC artifact dimensions')
+def verify(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+verify.__name__='signal_private_message_mac_256'
+function=export(verify);Array=sbitvec.get_type(1).Array
+function(Array(2840),Array(8))
