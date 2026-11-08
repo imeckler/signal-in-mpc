@@ -14,3 +14,8 @@ $(TLS_BUILD)/tls-lifecycle-websocket-fixture-worker: $(TLS_ROOT)/WebSocketWork/l
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_ROOT)/WebSocketWork/FixtureProviderFactory.cpp $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
 $(TLS_BUILD)/tls-readiness-negative-fixture: $(TLS_ROOT)/WebSocketWork/readiness_native_fixture.cpp $(PAYLOAD_HEADERS) $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+TLS_MUX_FACTORY ?= $(TLS_ROOT)/WebSocketWork/NoMuxProvider.cpp
+$(TLS_BUILD)/tls-mux-worker: $(TLS_ROOT)/WebSocketWork/mux_worker_main.cpp $(TLS_MUX_FACTORY) $(PAYLOAD_HEADERS) $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_MUX_FACTORY) $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+$(TLS_BUILD)/tls-text-mux-fixture-worker: $(TLS_ROOT)/WebSocketWork/mux_worker_main.cpp $(TLS_ROOT)/WebSocketWork/TextMuxFixtureFactory.cpp $(PAYLOAD_HEADERS) $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_ROOT)/WebSocketWork/TextMuxFixtureFactory.cpp $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@

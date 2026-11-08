@@ -18,6 +18,7 @@ public:
     ~NativeConversation(){close();}
     NativeConversation(const NativeConversation&)=delete;
     NativeConversation& operator=(const NativeConversation&)=delete;
+    std::string public_profile()const{return shape.descriptor();}
     void authenticated_connection_ready(){
         try{public_require(phase==Phase::admitted,"conversation activation rejected");phase=Phase::active;}
         catch(...){close();throw;}

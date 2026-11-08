@@ -94,6 +94,10 @@ public:
             case Opcode::provider_catalogue:
             case Opcode::provider_upgrade:
             case Opcode::provider_produce:
+            case Opcode::mux_catalogue:
+            case Opcode::mux_upgrade:
+            case Opcode::mux_produce:
+            case Opcode::mux_process:
                 throw std::runtime_error("private provider launch profile unavailable");
             case Opcode::abort:
                 in.done(); {bool erased=session.abort();failed=true;transport.close();

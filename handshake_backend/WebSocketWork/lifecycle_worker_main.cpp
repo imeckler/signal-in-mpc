@@ -93,6 +93,7 @@ int main(int argc,char** argv) {
                 if(request->operation==Opcode::abort)state->providers->close();
                 if(static_cast<unsigned>(request->operation)>=19) {
                     result=state->dispatcher->private_extension(*request,[&] {
+                        public_require(static_cast<unsigned>(request->operation)<=21,"mux launch profile unavailable");
                         Cursor input{request->payload};
                         if(request->operation==Opcode::provider_catalogue){input.done();return state->providers->catalogue();}
                         auto provider=input.number(8);

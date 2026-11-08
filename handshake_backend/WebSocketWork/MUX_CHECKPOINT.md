@@ -47,3 +47,26 @@ NativeWebSocketMux and Session's separate mux methods compile/link with actual
 OwnedBits; partial parser/correlation/control state is discarded on peer close,
 leaving only the already encoded close reply. These methods are not exposed by
 the existing launch profile or RPC dispatcher yet. No new native run is claimed.
+
+Normal explicit mux launch profile (candidate, native execution pending)
+
+New opcodes22–25 are catalogue/upgrade/produce/process. The dedicated default
+worker links NoMuxProvider and admits nothing. A separate fixture binary links
+two distinct TextMuxFixtureFactory states and four deferred nonempty inputs.
+Legacy lifecycle_worker_main rejects all mux opcodes; NativeDispatch also rejects
+them unless a launch profile deliberately implements the private extension.
+The connection has one credential upgrade, a public nonce, and a collective
+agreement on the public provider/input profile inventory before private VM work.
+Request-ID reservations are generated inside the VM and remain shared.
+
+MuxProviderController pipelines separate conversations, supports authenticated
+out-of-order completions, sends controls, performs KeyUpdate and aborts after all
+inputs complete. Receipt owners are opaque conversation handles, mapped only in
+a new erased host call after the receive cleanup barrier. No correlation ID,
+private length, response body or header is opened. The driver records external
+TLS wire bytes at the bridge, separate from runtime protocol payload counters.
+
+Validation: both default and text-fixture workers compile/link; Lean controller
+checks;1481 ASAN/UBSAN framing/bounds/replay checks;25-op Lean/C++ pipe,32-exchange
+concurrent pipe and duplex pipe checks;26 application-contract rejections pass.
+No five-party mux/text/lifecycle or throughput pass is asserted by these checks.

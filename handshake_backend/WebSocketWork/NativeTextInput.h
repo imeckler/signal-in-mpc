@@ -11,6 +11,7 @@ public:
     void validate_public_shape() const override {
         public_require(input.size()==472&&upstream.size()==8,"invalid private text input dimensions");
     }
+    std::string public_profile() const override{return "signal-private-text-48-80:472:720";}
     ProviderInput evaluate(Session& session) override {
         validate_public_shape();auto built=signal_mpc::split_text_notification(session.evaluate_text_notification(std::move(input)));
         auto valid=session.combine_private_validity(std::move(built.validity),std::move(upstream));

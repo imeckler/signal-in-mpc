@@ -8,6 +8,7 @@ class PrivateInputBuilder {
 public:
     virtual ~PrivateInputBuilder()=default;
     virtual void validate_public_shape() const=0;
+    virtual std::string public_profile() const{return {};}
     virtual ProviderInput evaluate(Session& session)=0;
 };
 struct ProviderAdmission {

@@ -4,6 +4,7 @@
 #include "NativeConversation.h"
 #include "PrivateMuxRegistry.h"
 #include "NativeWebSocketMux.h"
+#include "MuxProviderCoordinator.h"
 #include <type_traits>
 static_assert(std::is_base_of_v<tls_mpc_worker::ProviderRegistry::Provider,tls_mpc_worker::NativeProvider>);
 static_assert(std::is_base_of_v<tls_mpc_worker::PrivateInputBuilder,tls_mpc_worker::NativeTextInput>);
