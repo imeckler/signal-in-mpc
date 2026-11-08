@@ -11,8 +11,8 @@ caller-supplied success flag or an independently supplied timestamp.
 
 `NativeTextNotification.h` evaluates the pinned472→720-bit artifact. Its manifest
 is `.deps/private-text-notification-native/text.manifest`. The downstream private
-service profile is260-80-0-0, with611 input bytes,1294-byte public WS capacity and
-1377 output bytes. The complete native output preserves validity, private BE16
+service profile is260-80-0-0, with611 input bytes,1290-byte public WS capacity and
+1373 output bytes. The complete native output preserves validity, private BE16
 length and fixed-capacity wire; TLS must retain and gate it as usual.
 
 `check_recipient.py` evaluates the actual numeric text and complete service

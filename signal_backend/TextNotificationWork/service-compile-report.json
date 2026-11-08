@@ -1,0 +1,30 @@
+{
+  "shape": [
+    260,
+    80,
+    0,
+    0
+  ],
+  "input_bytes": 611,
+  "output_bytes": 1373,
+  "boolean_artifact_sha256": "fc49fae8f2d50d70ae33ca59841540878a51e52dc5c39f9bbf1f9cfab4610dbe",
+  "field_artifact_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "manifest_sha256": "ab52e3130437b13d9389754c3ea1a1abd9f63c04cda8f7811306b980abb1cd23",
+  "native_mpc_executed": false,
+  "no_dh_or_ephemeral_scalar_inputs": true,
+  "trust_boundary": "Unverified mixed-domain conversion/runtime; cryptographic and service assembly use Lean artifacts.",
+  "compiler_counts_at_most": {
+    "bit_triples": 6769205,
+    "vm_rounds": 122243,
+    "independent_websocket_random_bits": 32,
+    "integer_simple_multiplications": 20404,
+    "integer_dabits": 1787
+  },
+  "public_frame_capacity": 1290,
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/prepare.py": "bf9d969ebd3ca1f33267855fdbfd45e89e6939512e4d92200fa436550fef3bc2",
+    "signal_backend/VariableServiceWork/shape.py": "5adcbb0bc40627a8f30af3d981e29074c59b8b4fb17540d33e38c66006876c9d",
+    "programs/signal_variable_service.mpc": "2d70fd86d1851d322a807fd7e032d4572fd5d9e055b78f86ba1b241ff7c12ef7",
+    "SignalReference/PrivateConversationWork/Export.lean": "6263506df8a57e58c1265114003efd1b3386bd58b1e4905930c60cc19729dac3"
+  }
+}
