@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "compile_passed": false,
+  "failed_stage": "MP-SPDZ compilation/finalization",
+  "failure": "subprocess.TimeoutExpired after900seconds",
+  "timeout_seconds": 900,
+  "last_reported_compiler_lines": 9200000,
+  "native_MPC_executed": false,
+  "bytecode_produced": false,
+  "manifest_produced": false,
+  "process_cleanup_verified": true,
+  "live_receive_processes": [],
+  "log": ".deps/private-new-dh-receive-compile.log",
+  "log_sha256": "2d48363196995296de5932963befbedf9c3c617c7b8944dde9b58b971522ee48",
+  "next": "Split into internal pinned parser-summary, computed-DH, and crypto-summary calls with move-owned unopened intermediates and the same parsed point; no supplied acceptance/DH API and no repeated crypto. Then run receive/MAC-reject fixture and retained-fresh-key two-way actual peer test.",
+  "actual_whole_source_refinement": false,
+  "recoverable_session_persistence": false,
+  "artifact_sha256": {
+    "x25519-field.json": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+    "private-new-dh-summary-256.json": "cb5c72a159f34f450bed9abb1317c1f3a6b2f4f87ec31c2d2cc44ba0f6a5c9b2",
+    "private-new-dh-crypto-256-5.json": "d8d1505c13d2b2b3ee5af6a0bce442f2a52b93261bf1954f774b7b59c121de46"
+  },
+  "source_sha256": {
+    "programs/signal_private_new_dh_receive.mpc": "99913a7246eacc8f1dd72f054abcc0ccff86682d968a81bd8dff7d014bf5d671",
+    "signal_backend/SessionTransitionWork/prepare_receive.py": "36cc27cb13105762eb132e4278e875a3e8c12875bc7484fb947ab5220c9984c1",
+    "signal_backend/SessionTransitionWork/NativeNewDhReceive.h": "db0e02df0950d31a702cccda3b4305104de89aa0fc14e30ac30c5bfe85324edc",
+    "handshake_backend/mixed.py": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+    "backend_adapter/aig_packed.py": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+  }
+}

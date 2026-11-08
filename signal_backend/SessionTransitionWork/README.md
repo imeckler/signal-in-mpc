@@ -127,3 +127,19 @@ fresh136B sender/root region entirely. The planned bad-MAC comparison checks all
 608B against unchanged old state plus zero plaintext. Only two equality bits would
 be opened. This narrower first test will not establish retained fresh-private
 correctness across a reply; the stateful peer preflight prepares that next test.
+
+### Current native build blocker
+
+The monolithic entry's compiler timed out after900seconds, with its last progress
+line at9,200,000 compiler lines. It produced no bytecode or manifest. The compiler
+was killed/reaped and a process inventory found no remaining receive compiler or
+fixture processes. `receive-compile-report.json` records this **failed** attempt,
+source/artifact/log hashes and cleanup; no native receive test was launched.
+
+The next build should split the proven parser-summary and crypto-summary into
+separate pinned VM entries around the existing computed-DH entry. All intermediate
+summaries/scalars/agreements must remain move-owned shared Bits, and the C++ binding
+must use the same actual parser result for both DHs and the crypto summary. This
+preserves one parser and one crypto computation while bounding compiler closures.
+The public model peer preflight and C++ fixture build results remain valid; they
+are not evidence that the failed monolithic native build executed.
