@@ -1,0 +1,19 @@
+{
+  "requested_statistical_security": 128,
+  "supported": false,
+  "scope": "actual pinned ShuffleSacrifice constructor regression; no alternative protocol executed",
+  "guard_output": {
+    "requested_statistical_security": 128,
+    "shuffle_sacrifice_supported": false,
+    "guard_preserved": true,
+    "native_parties": false
+  },
+  "source_sha256": {
+    ".deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ/Protocols/ShuffleSacrifice.h": "4809e4a709c0876a0f7dbba9183c032ba6ccbfe9f66d45158bf235528a2cb950",
+    ".deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ/Protocols/ShuffleSacrifice.hpp": "f9ce89d917d6f34e751cb1fd419505e53269d025f778b57e5bfe6d265814fd35",
+    ".deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ/GC/TinyPrep.hpp": "92a8feca8e8ef1d04a4381186862ee1b8ebb3646b9301cfb96d29ad99a2672ef",
+    "handshake_backend/BackendPackingWork/sacrifice_security_guard.cpp": "932e2c60dd4bddf24cf5d62dbe12c1f2e8cf00662446a4c3e434d62caf2e19ae"
+  },
+  "guard_removed": false,
+  "lower_security_used": false
+}

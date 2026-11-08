@@ -37,3 +37,27 @@ Failed pre-MPC raw5d12c6ddbf273105 was a dyld library search issue; all children
 were reaped. The stage now explicitly binds the diagnostic library. Positive
 raw3a16e36c17661dc0 and ccd-native-report.json preserve exact hashes. No live
 handles remain after the baseline (42051 terminal0).
+
+V2 attribution and Tinier boundary
+
+Fresh v2 library plus3-step native fixture pass all five parties/1.414awake
+seconds, clean epochs/abort and unchanged hashes. The worker schedule must have
+exactly one worker for the usage getter; parallel/stale per-worker usage sums
+are rejected. Scope context now follows worker jobs; per-domain input/open/check
+and checked-daBit fetch tags attribute most prior unknown traffic. Party0 percall:
+field-preprocessing10,343,520B; binary-preprocessing258,240B; binary-online237,632B;
+field-online384B; unattributed960B. Counters include initialization while original
+Player/queue statistics deliberately reset after Processor construction. Their
+difference is576B forparty0/512B forothers; an explicit initialization reset
+receipt is the next reconciliation step. Generated/discarded preprocessing
+batches are NOT measured by the consumed DataF getter. All3calls renew the epoch:
+this measures that policy, not a mandatory per-record protocol property.
+
+Tinier statistical128 is unsupported in the pinned implementation. The real
+ShuffleSacrifice constructor rejects security_parameter>40; TinyPrep's secret
+triple generation uses this class. Compiled guard regression confirms rejection
+at128 with no parties. Its minimum batch tables support onlybucket sizes3/4/5
+at the implemented40-bit setting. A128-bit MAC field does not change the triple
+sacrifice boundary. No guard removal, lower-security run, ad hoc repetition or
+Tinier128 native pass is claimed. Supported primary-source alternatives must be
+examined before any new sacrifice design or backend switch.

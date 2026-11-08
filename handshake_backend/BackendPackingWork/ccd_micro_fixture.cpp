@@ -31,9 +31,11 @@ int main(int argc,char** argv){
    if(step==0)state->retained=share(expected_input);
    auto output=state->worker->allocate(320);std::vector<FunctionArgument> args={{1,state->retained.function_argument()},{1,output.function_argument()}};
    state->pinned->verify_function("tls_diagnostic_mix",args);
+   auto original_before=state->machine->total_stats().comm_stats.sent+state->machine->get_player().total_comm().sent;
    auto before=tls_public_diagnostics::snapshot();FunctionArgument ignored;
    state->machine->run_function("tls_diagnostic_mix",ignored,args);
    auto usage=state->machine->public_function_usage();auto after=tls_public_diagnostics::snapshot();
+   auto original_after=state->machine->total_stats().comm_stats.sent+state->machine->get_player().total_comm().sent;
    std::vector<unsigned char> expected(320);unsigned value=0;
    for(size_t i=0;i<64;++i){expected[i]=expected_input[i]&expected_input[64+i];if(i<8)value|=unsigned(expected[i])<<i;}
    value=value*value+17;
@@ -45,7 +47,7 @@ int main(int argc,char** argv){
    { Opener<tls_mpc_worker::Bit> opener(state->machine->get_player(),state->machine->get_bit_mac_key());opener.init_open();for(auto& bit:status)opener.prepare_open(bit[0]);opener.exchange();
    for(size_t i=0;i<8;++i)public_require((opener.finalize_open().get()&1)==1,"private synthetic comparison failed");opener.Check(); }
    state->retained=tls_mpc_worker::Bits(output.begin(),output.begin()+128);expected_input.assign(expected.begin(),expected.begin()+128);
-   std::cout<<"DIAGNOSTIC {\"party\":"<<party<<",\"step\":"<<step<<",\"prepare_ns\":"<<after.prepare_ns-before.prepare_ns<<",\"load_ns\":"<<after.load_ns-before.load_ns<<",\"bytes\":[";
+   std::cout<<"DIAGNOSTIC {\"party\":"<<party<<",\"step\":"<<step<<",\"prepare_ns\":"<<after.prepare_ns-before.prepare_ns<<",\"load_ns\":"<<after.load_ns-before.load_ns<<",\"original_payload_byte_delta\":"<<original_after-original_before<<",\"bytes\":[";
    for(size_t i=0;i<9;++i){if(i)std::cout<<',';std::cout<<after.bytes[i]-before.bytes[i];}std::cout<<"],\"scope_calls\":[";
    for(size_t i=0;i<9;++i){if(i)std::cout<<',';std::cout<<after.calls[i]-before.calls[i];}std::cout<<"],\"consumed\":[";bool first=true;
    for(size_t f=0;f<N_DATA_FIELD_TYPE;++f)for(size_t k=0;k<N_DTYPE;++k)if(usage.files[f][k]){if(!first)std::cout<<',';first=false;std::cout<<'['<<f<<','<<k<<','<<usage.files[f][k]<<']';}std::cout<<"]}\n";

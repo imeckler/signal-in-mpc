@@ -1,10 +1,12 @@
 """Fresh additive diagnostics overlay; never edits the tested runtime."""
 from pathlib import Path
-import difflib,hashlib,json,re,shutil,subprocess
+import argparse,difflib,hashlib,json,re,shutil,subprocess
 ROOT=Path(__file__).resolve().parents[2];WORK=Path(__file__).resolve().parent
 BASE=ROOT/'.deps/tls-session-runtime/MP-SPDZ';DEST=ROOT/'.deps/tls-backend-diagnostic-runtime/MP-SPDZ'
 def sha(data):return hashlib.sha256(data).hexdigest()
-def prepare():
+def prepare(version=1):
+ global DEST
+ if version==2:DEST=ROOT/'.deps/tls-backend-diagnostic-runtime-v2/MP-SPDZ'
  if DEST.exists():raise SystemExit('preserve existing diagnostic candidate; destination exists')
  identities={}
  for source in BASE.rglob('*'):
@@ -51,11 +53,28 @@ DataPositions Machine<sint, sgf2n>::public_function_usage()
 
 '''
  edit('Processor/Machine.hpp',marker,getter+marker)
+ if version==2:
+  for name in ['Protocols/ReplicatedPrep.hpp','Protocols/ShamirMC.hpp','Protocols/ShamirInput.hpp','Protocols/MAC_Check.hpp','Processor/ThreadJob.h']:
+   text=(DEST/name).read_text();first=text.index('#include ');line=text[first:text.index('\n',first)];edit(name,line,'#include "Tools/PublicProtocolMetrics.h"\n'+line)
+  edit('Protocols/ReplicatedPrep.hpp','void Preprocessing<T>::get_dabit(T& a, typename T::bit_type& b)\n{','void Preprocessing<T>::get_dabit(T& a, typename T::bit_type& b)\n{\n  '+tag+'preprocessing);')
+  for signature in ['void ShamirMC<T>::exchange(const Player& P)','void ShamirMC<T>::start_exchange(const Player& P)','void ShamirMC<T>::POpen_Begin(vector<typename T::open_type>& values,\n        const vector<T>& S, const Player& P)']:
+   edit('Protocols/ShamirMC.hpp',signature+'\n{',signature+'\n{\n  '+tag+'online);')
+  for method in ['exchange','start_exchange']:
+   signature='void IndividualInput<T>::'+method+'()'
+   edit('Protocols/ShamirInput.hpp',signature+'\n{',signature+'\n{\n  '+tag+'online);')
+  for signature in ['void Tree_MAC_Check<U>::exchange(const Player& P)','void MAC_Check_<U>::Check(const Player& P)']:
+   edit('Protocols/MAC_Check.hpp',signature+'\n{',signature+'\n{\n  '+tag.replace('T::clear','U::clear')+'online);')
+  edit('Processor/ThreadJob.h','    ThreadJobType type;','    ThreadJobType type;\n    tls_public_diagnostics::Context public_diagnostic_context;')
+  edit('Processor/ThreadQueue.cpp','    in.push(job);','    auto tagged_job=job;tagged_job.public_diagnostic_context=tls_public_diagnostics::context;\n    in.push(tagged_job);')
+  edit('Processor/Online-Thread.hpp','      ThreadJob job = queues->next();','      ThreadJob job = queues->next();\n      tls_public_diagnostics::Scope public_job_scope(job.public_diagnostic_context.domain,job.public_diagnostic_context.phase);')
+  edit('Processor/Machine.hpp','  if (ThreadQueue::thread_queue or threads.empty() or threads.size()!=tinfo.size() or','  if (ThreadQueue::thread_queue or threads.size()!=1 or threads.size()!=tinfo.size() or')
+
  patch=''
  for name,(before,after) in changes.items():
   (DEST/name).write_text(after);patch+=''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile='a/'+name,tofile='b/'+name))
- (WORK/'diagnostics.patch').write_text(patch);shutil.copy2(WORK/'PublicProtocolMetrics.h',DEST/'Tools/PublicProtocolMetrics.h')
+ (WORK/('diagnostics.patch' if version==1 else 'diagnostics-v2.patch')).write_text(patch);shutil.copy2(WORK/'PublicProtocolMetrics.h',DEST/'Tools/PublicProtocolMetrics.h')
  identity=sha(''.join(n+'\0'+h+'\n' for n,h in sorted(identities.items())).encode())
  report={'scope':'isolated additive diagnostic candidate; no protocol/config switch','base_source_identity':identity,'base_source_sha256':identities,'overlay_sha256':sha(patch.encode()),'header_sha256':sha((WORK/'PublicProtocolMetrics.h').read_bytes()),'destination':str(DEST.relative_to(ROOT)),'coverage':'Player sent-counter increments; Beaver online exchange and triple-fetch preprocessing scopes; other paths explicitly unattributed; nested times overlap; bytes do not','runtime_build_passed':False}
- (WORK/'diagnostic-prepare.json').write_text(json.dumps(report,indent=2)+'\n');print(DEST)
-if __name__=='__main__':prepare()
+ (WORK/('diagnostic-prepare.json' if version==1 else 'diagnostic-prepare-v2.json')).write_text(json.dumps(report,indent=2)+'\n');print(DEST)
+if __name__=='__main__':
+ parser=argparse.ArgumentParser();parser.add_argument('--version',type=int,choices=[1,2],default=1);args=parser.parse_args();prepare(args.version)
