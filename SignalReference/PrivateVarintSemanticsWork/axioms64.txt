@@ -1,0 +1,27 @@
+'LibSignalReference.Candidate.PrivateVarint.group_value64' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.groups_values64' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.groups_naturals64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.canonical_width_bounds64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.encode_fixed64' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.encode_publicNat64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.canonical_uint64_exists' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.actual_uint64_private_wire' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.actual_uint64_private_wire_total' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint64_private_wire_total' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint32_private_wire_total' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

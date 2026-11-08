@@ -1,0 +1,12 @@
+import PrivateVarintSemanticsWork.Reference64
+#print axioms LibSignalReference.Candidate.PrivateVarint.group_value64
+#print axioms LibSignalReference.Candidate.PrivateVarint.groups_values64
+#print axioms LibSignalReference.Candidate.PrivateVarint.groups_naturals64
+#print axioms LibSignalReference.Candidate.PrivateVarint.canonical_width_bounds64
+#print axioms LibSignalReference.Candidate.PrivateVarint.encode_fixed64
+#print axioms LibSignalReference.Candidate.PrivateVarint.encode_publicNat64
+#print axioms LibSignalReference.Candidate.PrivateVarint.canonical_uint64_exists
+#print axioms LibSignalReference.Candidate.PrivateVarint.actual_uint64_private_wire
+#print axioms LibSignalReference.Candidate.PrivateVarint.actual_uint64_private_wire_total
+#print axioms LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint64_private_wire_total
+#print axioms LibSignalReference.Candidate.PrivateVarint.compiled_actual_uint32_private_wire_total

@@ -1,0 +1,15 @@
+{
+  "kernel_endpoints": 11,
+  "foundation_axioms_only": true,
+  "native_reflection_used": false,
+  "domain": "Every uint32 and uint64 value; no acceptance/public-width preconditions on total wire or total numeric artifact endpoints.",
+  "proved": "Full private uint64 varint wire equals actual selected prost encoder bytes, exact private BE16 length,255validity and zero capacity padding. Total numeric uint32+uint64 artifacts refine actual encoder bytes, not just the executable varint model.",
+  "trust_boundary": "Existing exact reviewed prost metadata selection, unchanged actual retained Rust bodies, official pinned Aeneas standard models and translator correctness. This does not close whole SS/HMAC/AES/session refinement.",
+  "prior_packing_receipt_sha256": "8f2ba9d329db2aeb9feddc2f616dae1d1a4f947c728ffa3e054ad196036bc7e4",
+  "source_sha256": {
+    "SignalReference/PrivateVarintSemanticsWork/check64.py": "6d2d5ddd37b969c65f72a051fa9676593a01b17d54b6ec739037939c49bf32c3",
+    "SignalReference/PrivateVarintSemanticsWork/Reference64.lean": "0a89de7085d95da377fac7275523aafb46555b52f8486e718853b6f7fde2559e",
+    "SignalReference/PrivateVarintSemanticsWork/Checks64.lean": "b1abd25d8206d67c91a599fdac2efd93b56c0fef00267206839801a97634df27",
+    "SignalReference/PrivateVarintSemanticsWork/report.json": "8f2ba9d329db2aeb9feddc2f616dae1d1a4f947c728ffa3e054ad196036bc7e4"
+  }
+}
