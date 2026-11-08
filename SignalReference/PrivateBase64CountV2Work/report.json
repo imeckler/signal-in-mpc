@@ -3,9 +3,9 @@
   "native_MPC_executed": false,
   "public_numeric_cases": 133840,
   "exhaustive_16bit_length_profile": "192-fixed, both kernels",
-  "proof_scope": "arbitrary canonical length bits, arbitrary public index lists, arbitrary16bit initial total; exact modulo65536 including overflow and wrapped public comparisons",
+  "proof_scope": "Complete concrete encode equivalence for arbitrary malformed/internal Buffer values after normalization; arbitrary canonical length bits, arbitrary public index lists, arbitrary16bit initial total; exact modulo65536 including overflow and wrapped public comparisons",
   "producer_integrated": false,
-  "normalized_buffer_composition_proof": false,
+  "normalized_buffer_composition_proof": true,
   "profiles": {
     "0-fixed": {
       "legacy": {
@@ -333,12 +333,21 @@
     "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.plus_value' depends on axioms: [propext, Quot.sound]",
     "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.plus_assoc' depends on axioms: [propext, Quot.sound]",
     "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.count_equiv' depends on axioms: [propext, Classical.choice, Quot.sound]",
-    "'TlsMpc.Signal.PrivateBase64CountV2.count_map' depends on axioms: [propext, Quot.sound]"
+    "'TlsMpc.Signal.PrivateBase64CountV2.count_map' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.make_canonical' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.resize_canonical' depends on axioms: [propext,",
+    " Classical.choice,",
+    " Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.Concrete.normalized_count_equiv' depends on axioms: [propext,",
+    " Classical.choice,",
+    " Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.encode_correct' depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "'TlsMpc.Signal.PrivateBase64CountV2.encode_map' depends on axioms: [propext, Quot.sound]"
   ],
   "source_sha256": {
-    "TlsMpc/Signal/PrivateBase64CountV2.lean": "9cf55072218f5e1a862646cbe05aad3aa8b27cdf286c7e49615e689bc4b172ca",
+    "TlsMpc/Signal/PrivateBase64CountV2.lean": "4439035bfc9cda79ec852abe6e3c1ed508224c994e3d29b40752717e3c783e16",
     "SignalReference/PrivateBase64CountV2Work/Export.lean": "5cdae701631c55ffcd982094c8726b03f9f6a26ba30a3284087df049933fcdea",
-    "SignalReference/PrivateBase64CountV2Work/Checks.lean": "f8d2eb67258af9ebaea5d914099d64c58fa1384c84f71a825cd1319bc234da97",
-    "SignalReference/PrivateBase64CountV2Work/check.py": "0d10567b3c8d710cf02deb8fe773194420f1c9ff0629f119ef682a362078e150"
+    "SignalReference/PrivateBase64CountV2Work/Checks.lean": "0ac62867d7514e3689f38c9054fb4b07621efc1ba01afd6c2b1b3f4fea548045",
+    "SignalReference/PrivateBase64CountV2Work/check.py": "592791a840cd818af02b1c34e3be174e52a96db914b19c0de9a56708310c6c58"
   }
 }

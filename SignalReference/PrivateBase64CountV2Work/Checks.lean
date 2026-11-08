@@ -4,3 +4,8 @@ import TlsMpc.Signal.PrivateBase64CountV2
 #print axioms TlsMpc.Signal.PrivateBase64CountV2.Concrete.plus_assoc
 #print axioms TlsMpc.Signal.PrivateBase64CountV2.Concrete.count_equiv
 #print axioms TlsMpc.Signal.PrivateBase64CountV2.count_map
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.Concrete.make_canonical
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.Concrete.resize_canonical
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.Concrete.normalized_count_equiv
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.encode_correct
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.encode_map

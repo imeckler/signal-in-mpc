@@ -188,5 +188,165 @@ theorem count_equiv (bits : List Bool) (indices : List Nat) (total : Word) :
   simp only [List.map_map,Function.comp_def,increment_bytes]
   rw [List.foldl_map]
 
+theorem mask_and_mask (a b : Bool) : (mask a &&& mask b)=mask (a && b) := by
+  cases a <;> cases b <;> decide
+
+def canonical (bits : List (BitVec 8)) : Bool := bits.all (fun x => x==0 || x==255)
+
+theorem canonical_mask (bits : List (BitVec 8)) :
+    canonicalBits ByteAuth.concrete bits=mask (canonical bits) := by
+  have check (x : BitVec 8) :
+      ByteAuth.concrete.xor (ByteAuth.eqMask ByteAuth.concrete x 0) (ByteAuth.eqMask ByteAuth.concrete x 255)=
+        mask (x==0 || x==255) := by
+    rw [ByteAuth.eqMask_value,ByteAuth.eqMask_value]
+    by_cases h0 : x=0
+    · subst x;decide
+    · by_cases h1 : x=255
+      · subst x;decide
+      · change x≠(0#8) at h0
+        change x≠(255#8) at h1
+        simp only [ByteAuth.concrete,mask]
+        simp_all
+  have fold (bits : List (BitVec 8)) (acc : Bool) :
+      bits.foldl (fun total x => ByteAuth.concrete.and total
+        (ByteAuth.concrete.xor (ByteAuth.eqMask ByteAuth.concrete x 0) (ByteAuth.eqMask ByteAuth.concrete x 255)))
+        (mask acc)=mask (acc && canonical bits) := by
+    induction bits generalizing acc with
+    | nil => cases acc <;> rfl
+    | cons x rest ih =>
+      rw [List.foldl_cons,check]
+      change rest.foldl _ (mask acc &&& mask (x==0 || x==255))=_
+      rw [mask_and_mask,ih]
+      simp only [canonical,List.all_cons,Bool.and_assoc]
+  exact fold bits true
+
+theorem canonical_representation (bits : List (BitVec 8)) (h : canonical bits=true) :
+    bits=(bits.map unmask).map mask := by
+  symm
+  rw [List.map_map]
+  calc
+    _=bits.map id := by
+      apply List.map_congr_left
+      intro x hx
+      have p : x==0 || x==255 := List.all_eq_true.mp h x hx
+      have choices : x=0 ∨ x=255 := by simpa using p
+      rcases choices with h0|h1 <;> subst x <;> decide
+    _=bits := List.map_id' bits
+
+
+theorem canonical_zeroes (n : Nat) : canonical (List.replicate n (0 : BitVec 8))=true := by
+  simp [canonical]
+
+theorem make_canonical (capacity : Nat) (bits raw : List (BitVec 8)) :
+    canonical (make ByteAuth.concrete capacity bits raw).lengthBits=true := by
+  unfold make
+  split
+  · unfold finish
+    rw [canonical_mask]
+    by_cases hc : canonical bits=true
+    · rw [hc]
+      have rep:=canonical_representation bits hc
+      have order:=less_integer (publicWord capacity).val (bits.map unmask)
+      change less ByteAuth.concrete (bytes (publicWord capacity)) ((bits.map unmask).map mask)=_ at order
+      rw [public_bytes] at order
+      rw [←rep] at order
+      rw [order]
+      split
+      · change canonical (ByteAuth.release ByteAuth.concrete 0 bits)=true
+        rw [ByteAuth.release_reject];exact canonical_zeroes bits.length
+      · change canonical (ByteAuth.release ByteAuth.concrete 255 bits)=true
+        rw [ByteAuth.release_accept];exact hc
+    · have no : canonical bits=false := Bool.eq_false_iff.mpr hc
+      rw [no]
+      have zeroAnd (x : BitVec 8) : ByteAuth.concrete.and (mask false) x=0 := BitVec.zero_and
+      simp only [zeroAnd]
+      change canonical (ByteAuth.release ByteAuth.concrete 0 bits)=true
+      rw [ByteAuth.release_reject];exact canonical_zeroes bits.length
+  · change canonical (publicLength ByteAuth.concrete 0)=true
+    decide
+
+
+theorem make_valid (capacity : Nat) (bits raw : List (BitVec 8)) :
+    (make ByteAuth.concrete capacity bits raw).valid=0 ∨
+    (make ByteAuth.concrete capacity bits raw).valid=255 := by
+  unfold make
+  split
+  · unfold finish
+    rw [canonical_mask]
+    by_cases hc : canonical bits=true
+    · rw [hc]
+      have rep:=canonical_representation bits hc
+      have order:=less_integer (publicWord capacity).val (bits.map unmask)
+      change less ByteAuth.concrete (bytes (publicWord capacity)) ((bits.map unmask).map mask)=_ at order
+      rw [public_bytes,←rep] at order
+      rw [order]
+      split
+      · left;rfl
+      · right;rfl
+    · have no : canonical bits=false := Bool.eq_false_iff.mpr hc
+      rw [no]
+      left
+      exact BitVec.zero_and
+  · exact Or.inl rfl
+
+theorem release_canonical (valid : BitVec 8) (bits : List (BitVec 8))
+    (hv : valid=0 ∨ valid=255) (hc : canonical bits=true) :
+    canonical (ByteAuth.release ByteAuth.concrete valid bits)=true := by
+  rcases hv with h0|h1
+  · rw [h0,ByteAuth.release_reject];exact canonical_zeroes bits.length
+  · rw [h1,ByteAuth.release_accept];exact hc
+
+theorem resize_canonical (capacity : Nat) (input : Buffer (BitVec 8)) :
+    canonical (resize ByteAuth.concrete capacity input).lengthBits=true := by
+  let raw:=(List.range capacity).map (OpenResult.get ByteAuth.concrete input.data)
+  have hc:=make_canonical capacity input.lengthBits raw
+  have hv:=make_valid capacity input.lengthBits raw
+  unfold resize finish
+  apply release_canonical
+  · rw [ByteAuth.eqMask_value]
+    split
+    · have and255 (x : BitVec 8) : ByteAuth.concrete.and x 255=x := BitVec.and_allOnes
+      simp only [and255]
+      exact hv
+    · left;exact BitVec.and_zero
+  · exact hc
+
+theorem normalized_count_equiv (capacity : Nat) (input : Buffer (BitVec 8)) (indices : List Nat) :
+    count ByteAuth.concrete (resize ByteAuth.concrete capacity input).lengthBits indices
+      (publicLength ByteAuth.concrete 0)=
+    PrivateBase64.count ByteAuth.concrete (resize ByteAuth.concrete capacity input).lengthBits indices
+      (publicLength ByteAuth.concrete 0) := by
+  have rep:=canonical_representation _ (resize_canonical capacity input)
+  rw [rep,←zero_bytes]
+  exact count_equiv _ indices zero
+
 end Concrete
+
+def encode (a : ByteAuth.Ops B) (input : PrivateBuffer.Buffer B) : PrivateBuffer.Buffer B :=
+  let b := PrivateBuffer.resize a input.data.length input
+  let groups := (input.data.length+2)/3
+  let bits := count a b.lengthBits (List.range groups) (PrivateBuffer.publicLength a 0)
+  let raw := (List.range groups).flatMap (PrivateBase64.group a b)
+  PrivateProtobuf.gate a b.valid (PrivateBuffer.make a (4*groups) bits raw)
+
+theorem encode_correct (input : PrivateBuffer.Buffer (BitVec 8)) :
+    encode ByteAuth.concrete input=PrivateBase64.encode ByteAuth.concrete input := by
+  unfold encode PrivateBase64.encode
+  dsimp only
+  rw [Concrete.normalized_count_equiv]
+
+theorem encode_map {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'}
+    (ha : ByteAuth.Hom a a' f) (input : PrivateBuffer.Buffer B) :
+    (encode a input).map f=encode a' (input.map f) := by
+  have normalized := PrivateBuffer.resize_map ha input.data.length input
+  have bits := congrArg PrivateBuffer.Buffer.lengthBits normalized
+  have valid := congrArg PrivateBuffer.Buffer.valid normalized
+  change List.map f _ = _ at bits
+  change f _ = _ at valid
+  unfold encode
+  rw [PrivateProtobuf.gate_map ha,PrivateBuffer.make_map ha,count_map ha]
+  simp only [PrivateBuffer.publicLength_map ha,List.map_flatMap,PrivateBase64.group_map ha,normalized]
+  rw [bits,valid]
+  simp only [PrivateBuffer.Buffer.map,List.length_map]
+
 end TlsMpc.Signal.PrivateBase64CountV2

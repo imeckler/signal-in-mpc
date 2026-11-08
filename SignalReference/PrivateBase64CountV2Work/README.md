@@ -10,7 +10,7 @@ Kernel-checked `Concrete.count_equiv` covers arbitrary canonical mask-bit lists,
 arbitrary public index lists and every sixteen-bit initial total. Its proof uses
 exact modulo65536 addition, so overflow, duplicate/reordered indices, remainder
 comparisons and publicLength's sixteen-bit wrapping are preserved. `count_map`
-provides the symbolic/concrete Hom boundary. Five audited endpoints use only
+provides the symbolic/concrete Hom boundary. Ten audited endpoints use only
 propext/Classical.choice/Quot.sound, with no new axioms/native reflection.
 
 Public numeric checks pass133,840 cases across eight group counts and fixed/
@@ -31,11 +31,13 @@ AND reduction is about0.03% of the whole service's6,738,497 logical ANDs, with
 only five levels saved here. No end-to-end speed/throughput claim or expensive
 full-service rebuild is justified by these numbers alone.
 
-Production composition remains pending: prove normalized-buffer canonicality
-for the complete encode API, then coordinate the import/default change and
-dependent evidence with crypto. The count equivalence alone does not certify
-arbitrary malformed internal Buffer constructors or claim production integration.
-Next performance priority is actual service critical-path attribution.
+Kernel composition is now complete: `make_canonical`/`resize_canonical` prove
+normalization produces canonical masks even for malformed Buffer inputs.
+`normalized_count_equiv` and `encode_correct` prove the entire versioned encoder
+equals the original for arbitrary concrete Buffers; `encode_map` preserves the
+compiler/Hom boundary. Production imports remain unchanged pending coordinated
+integration and dependent receipts. This proof does not claim a meaningful
+end-to-end performance improvement.
 
 Reproduce with `lake build TlsMpc.Signal.PrivateBase64CountV2`, kernel Checks.lean,
 `python3 .../check.py`, then `python3 .../compile.py` in a fresh compile stage.
