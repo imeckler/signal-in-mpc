@@ -59,3 +59,11 @@ full schema/streaming composition and the actual std UTF8 raw-pointer body are
 still open. Scoped String/Vec content and DecodeContext models retain the
 successful bounded-allocation boundary. No full mutable merge-state claim is
 made by an owned-error observation theorem.
+
+The subsequent `owned_driver` profile includes the actual generic Prost
+`Message::merge` body and uses the same scoped loop translator as the accepted
+Signal parser. `OwnedDriverReference.key_total` connects its contiguous key
+operation to the proved decoder with exact error and suffix, plus strict input
+progress on success. `decode_actual_merge` installs that extracted default loop
+under the owned wrapper. This does not supply a chat-schema dispatcher totality
+premise or prove streaming agreement. The independent audit records this scope.

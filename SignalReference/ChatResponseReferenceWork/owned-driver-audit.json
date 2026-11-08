@@ -1,0 +1,1085 @@
+{
+  "candidate_only": true,
+  "scope": "Actual default Prost merge body and actual contiguous key totality; owned control composition. No assumed key correctness. Full chat dispatch/scan termination/refinement remains open.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/check_owned_driver.py": "fd863aab8d26e426b67df053cec87a1465e96502b11c03b7ae2a95532d206edd",
+    "SignalReference/ChatResponseReferenceWork/extract.py": "a5838ac9aed45e9d21e85dcff4c03b8123ce2c5c99a6db5d052b0d0d427ed175",
+    "SignalReference/ChatResponseReferenceWork/translate.py": "c55d0687d6355430986b137ef5fd412fa992f56eff971c23df7f93933799dd9f",
+    "SignalReference/ChatResponseReferenceWork/OwnedDriverReference.lean": "ea579911950b269f43c410ac44d11422c5cfc7917d281857d8474934fe338c28",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/Funs.lean": "8e0c9135b16dc9e32d4b5239f40480bc36b73774cfdca9179a160412ba36e518",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/FunsExternal.lean": "caed1c5868d914272c96da743d86207b4573e59ea81d180f4474b681675ab34a",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/FunsExternal_Template.lean": "71b3f1fcc36c686428bb274d50f904e918c0bcaa452fde41d27f567d49b06d9c",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/Types.lean": "b77e3b21ba11bccfff9946265bf394b06d7239b557ceb6439ce70c36297b196c",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/TypesExternal.lean": "f859274e35fa363f922f6c2df4f495fae2d470ec8c84f1df8461110c723fd1ed",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedDriver/TypesExternal_Template.lean": "3231afc3acbce933de2a3b326c69199dabec7abc4d7fb7109e291467a33e4919"
+  },
+  "object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-driver-audit/ChatResponseReferenceWork/GeneratedOwnedDriver/TypesExternal.olean": "97e7500fcc1716a3f30113f088a7d7e908ed31bcc093069fddc848b4c72d68d4",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-driver-audit/ChatResponseReferenceWork/GeneratedOwnedDriver/Types.olean": "60e8a72267bb5a2779d1dc2b4e2e33e3bde1477dd544db4dc8d0ccb7eee57d3d",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-driver-audit/ChatResponseReferenceWork/GeneratedOwnedDriver/FunsExternal.olean": "1c81c6d7ead2f5ff8f386106d640a9a2fca4f855d76b1ad901ac73d225dd221e",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-driver-audit/ChatResponseReferenceWork/GeneratedOwnedDriver/Funs.olean": "5cb1f66d40ea2e3be91f867b3b6e4cd4b97490d95a1ba95f4b4e04dfef220793",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-driver-audit/ChatResponseReferenceWork/OwnedDriverReference.olean": "df9280288e84e9549da9b366730a04b4f6253448cbb22c231c3936408298f910"
+  },
+  "extraction": {
+    "tool_versions": {
+      "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+      "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+    },
+    "verified_vendor_files": 91,
+    "generated_rust_sha256": {
+      ".deps/chat-response-charon-target/owned_driver/aarch64-apple-darwin/debug/build/chat-response-reference/625357c60a433fa0/out/signal.proto.chat_websocket.rs": "728cbb2e5765ea2fc05ef5dc2c6d628261d0e598c50667839e1f2106022d63d6"
+    },
+    "candidate_only": true,
+    "profile": "owned_driver",
+    "charon_exit_code": 0,
+    "source_patches": [],
+    "llbc_preprocessing": false,
+    "actual_net_bytes_generator_options": true,
+    "private_validator_api_called": false,
+    "command": [
+      "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+      "cargo",
+      "--preset=aeneas",
+      "--no-dedup-serialized-ast",
+      "--sysroot=default",
+      "--error-on-warnings",
+      "--start-from=crate::owned_slice_replay::decode_buffer",
+      "--include=prost::message::Message::merge",
+      "--include=prost::RECURSION_LIMIT",
+      "--include=prost::encoding::DecodeContext",
+      "--include=prost::encoding::*::clone",
+      "--include=prost::encoding::*::default",
+      "--opaque=prost::encoding::decode_key",
+      "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/owned_driver/chat.llbc",
+      "--",
+      "--lib",
+      "--locked",
+      "--offline"
+    ],
+    "source_sha256": {
+      "SignalReference/ChatResponseReferenceWork/extract.py": "a5838ac9aed45e9d21e85dcff4c03b8123ce2c5c99a6db5d052b0d0d427ed175",
+      "SignalReference/ChatResponseReferenceWork/Rust/Cargo.toml": "c8cfab726eea5dcf019b4fb7c94aaebc32720ae5f112f1efb8165f875c1f98f7",
+      "SignalReference/ChatResponseReferenceWork/Rust/Cargo.lock": "5a1345de877a703d8b65bbb7b36250eb4baf825e9ee691123da9da226cc977ea",
+      "SignalReference/ChatResponseReferenceWork/Rust/build.rs": "fbba70b1f7a627367ea9354173bcf0a0f0330af95d00cfb67b3ffee4304c9477",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/lib.rs": "41da69c031bfea123c9d66314856062352f639f25f3fdf8eb1fd684dec7a8977",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/validation_replay.rs": "131eeef2c0b5887bdd6b8f4a889e5b46c757a876a50f6268084291c681535494",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/owned_slice_replay.rs": "eda1d9d8531c6d6dc86cdf9ba2a5d63cad213ff17bb489cbc06911014a3daca1",
+      "SignalReference/ChatResponseReferenceWork/replay_validation.py": "77a70d527846ee4e827d2f1614847805bf9bfb5aeaf3dee5bec87696df173bd8",
+      "SignalReference/ChatResponseReferenceWork/replay_owned_slice.py": "5fa43614051fb0b92134bda32053cbaee2c1a4c1ee1b806e0afcf8d2e1aa04ab",
+      ".deps/libsignal-v0.106.1/rust/net/build.rs": "a49f4afc72cea93db2c7cb86720a15c147918dc0404bbe291133581cf427ebe0",
+      ".deps/libsignal-v0.106.1/rust/net/src/proto/chat_websocket.proto": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5",
+      ".deps/libsignal-v0.106.1/rust/net/src/chat.rs": "37b6a7005dc560717ca23b5508a1c4119b6042ff830c14cf594ce76ab6998fb9",
+      ".deps/libsignal-v0.106.1/rust/net/src/chat/ws.rs": "cc62453bcc782f8ffe0b400ce81abc367c8b32433898d3ac6013781b4a82414e"
+    },
+    "llbc_sha256": "4caaa493fcde916372c97d7617e286d8b52c2a657565501b2820bfddda5959e5",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 19,
+      "fun_decls": 16,
+      "global_decls": 1,
+      "trait_decls": 13,
+      "trait_impls": 10,
+      "ordered_decls": 36
+    },
+    "body_kinds": {
+      "Structured": 7,
+      "Opaque": 9
+    },
+    "external_functions": [
+      {
+        "id": 1,
+        "name": "core::result::{impl}::map",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 832,
+              "col": 4
+            },
+            "end": {
+              "line": 834,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "bytes::buf::buf_impl::Buf::has_remaining",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 6,
+            "beg": {
+              "line": 274,
+              "col": 4
+            },
+            "end": {
+              "line": 274,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 96,
+        "name": "core::result::Result::{impl}::drop_glue",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 558,
+              "col": 0
+            },
+            "end": {
+              "line": 558,
+              "col": 21
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "prost::encoding::decode_key",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 115,
+              "col": 0
+            },
+            "end": {
+              "line": 115,
+              "col": 77
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 144,
+        "name": "core::result::{impl}::branch",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2176,
+              "col": 4
+            },
+            "end": {
+              "line": 2176,
+              "col": 64
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 146,
+        "name": "core::result::{impl}::from_residual",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2191,
+              "col": 4
+            },
+            "end": {
+              "line": 2191,
+              "col": 70
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 147,
+        "name": "core::result::{impl}::from_output",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2171,
+              "col": 4
+            },
+            "end": {
+              "line": 2171,
+              "col": 48
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 149,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 150,
+        "name": "core::convert::{impl}::from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 791,
+              "col": 4
+            },
+            "end": {
+              "line": 791,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 1,
+        "name": "prost::error::DecodeError",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 19,
+              "col": 0
+            },
+            "end": {
+              "line": 19,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "prost::error::EncodeError",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 185,
+              "col": 0
+            },
+            "end": {
+              "line": 185,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "alloc::vec::Vec",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 436,
+              "col": 0
+            },
+            "end": {
+              "line": 436,
+              "col": 96
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::io::io_slice::IoSlice",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 189,
+              "col": 0
+            },
+            "end": {
+              "line": 189,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "bytes::bytes::Bytes",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 22,
+            "beg": {
+              "line": 101,
+              "col": 0
+            },
+            "end": {
+              "line": 101,
+              "col": 16
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "bytes::buf::take::Take",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 23,
+            "beg": {
+              "line": 13,
+              "col": 0
+            },
+            "end": {
+              "line": 13,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "bytes::buf::chain::Chain",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 24,
+            "beg": {
+              "line": 30,
+              "col": 0
+            },
+            "end": {
+              "line": 30,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "bytes::buf::reader::Reader",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 25,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 20,
+        "name": "bytes::buf::uninit_slice::UninitSlice",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 26,
+            "beg": {
+              "line": 22,
+              "col": 0
+            },
+            "end": {
+              "line": 22,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "bytes::buf::limit::Limit",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 27,
+            "beg": {
+              "line": 9,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 19
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "bytes::buf::writer::Writer",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/owned_slice_replay.rs"
+        },
+        "crate_name": "chat_response_reference"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "chat_response_reference"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/lib.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/mod.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/lib.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/error.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding/wire_type.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/alloc/src/vec/mod.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/alloc/src/lib.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/alloc/src/alloc.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/io/io_slice.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/io/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/bytes.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/take.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/chain.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/reader.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/uninit_slice.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/limit.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/writer.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/control_flow.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/convert/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/core/src/ptr/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/try_trait.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/core/src/clone.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [
+      "prost::encoding::decode_key"
+    ],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::owned_slice_replay::decode_buffer"
+    ],
+    "selected_functions": [
+      {
+        "id": 0,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 6,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 1,
+        "name": "core::result::{impl}::map",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 832,
+              "col": 4
+            },
+            "end": {
+              "line": 834,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "prost::message::Message::merge",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 2,
+            "beg": {
+              "line": 126,
+              "col": 4
+            },
+            "end": {
+              "line": 128,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 11,
+        "name": "bytes::buf::buf_impl::Buf::has_remaining",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 6,
+            "beg": {
+              "line": 274,
+              "col": 4
+            },
+            "end": {
+              "line": 274,
+              "col": 35
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 94,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer::{impl}::call_once",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 8,
+              "col": 40
+            },
+            "end": {
+              "line": 8,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 95,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer::closure::{impl}::drop_glue",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 8,
+              "col": 40
+            },
+            "end": {
+              "line": 8,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 96,
+        "name": "core::result::Result::{impl}::drop_glue",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 558,
+              "col": 0
+            },
+            "end": {
+              "line": 558,
+              "col": 21
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 142,
+        "name": "prost::encoding::{impl}::default",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 51,
+              "col": 4
+            },
+            "end": {
+              "line": 51,
+              "col": 33
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "prost::encoding::decode_key",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 115,
+              "col": 0
+            },
+            "end": {
+              "line": 115,
+              "col": 77
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 144,
+        "name": "core::result::{impl}::branch",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2176,
+              "col": 4
+            },
+            "end": {
+              "line": 2176,
+              "col": 64
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 145,
+        "name": "prost::encoding::{impl}::clone",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 35,
+              "col": 9
+            },
+            "end": {
+              "line": 35,
+              "col": 14
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 146,
+        "name": "core::result::{impl}::from_residual",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2191,
+              "col": 4
+            },
+            "end": {
+              "line": 2191,
+              "col": 70
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 147,
+        "name": "core::result::{impl}::from_output",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 2171,
+              "col": 4
+            },
+            "end": {
+              "line": 2171,
+              "col": 48
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 149,
+        "name": "core::clone::impls::{impl}::clone",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 715,
+              "col": 20
+            },
+            "end": {
+              "line": 715,
+              "col": 43
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 150,
+        "name": "core::convert::{impl}::from",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 30,
+            "beg": {
+              "line": 791,
+              "col": 4
+            },
+            "end": {
+              "line": 791,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 151,
+        "name": "prost::RECURSION_LIMIT",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 3,
+            "beg": {
+              "line": 30,
+              "col": 0
+            },
+            "end": {
+              "line": 30,
+              "col": 26
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "translation": {
+    "candidate_only": true,
+    "profile": "owned_driver",
+    "exit_code": 0,
+    "binary_sha256": "5ea6276549fac0be5c55ac6608ae8b4efa1dd1b147c15a988543871d8094bbec",
+    "llbc_sha256": "4caaa493fcde916372c97d7617e286d8b52c2a657565501b2820bfddda5959e5",
+    "manual_generated_body_edits": false,
+    "slice_metadata_lowering": false,
+    "translator_candidate_unaccepted": true,
+    "translator_receipt_sha256": "c322076f81493f8b8938886a6b1a269b986ad83bbc2e7a388c50622d82badfad",
+    "command": [
+      "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Bin/candidate",
+      "-backend",
+      "lean",
+      "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/owned_driver/chat.llbc",
+      "-dest",
+      "/Users/izzy/repos/tls-mpc/SignalReference",
+      "-subdir",
+      "/ChatResponseReferenceWork/GeneratedOwnedDriver",
+      "-namespace",
+      "ActualChatResponseOwned_driver",
+      "-split-files",
+      "-warnings-as-errors",
+      "-no-progress-bar",
+      "-sequential"
+    ],
+    "generated_sha256": {
+      "Funs.lean": "8e0c9135b16dc9e32d4b5239f40480bc36b73774cfdca9179a160412ba36e518",
+      "FunsExternal_Template.lean": "71b3f1fcc36c686428bb274d50f904e918c0bcaa452fde41d27f567d49b06d9c",
+      "Types.lean": "b77e3b21ba11bccfff9946265bf394b06d7239b557ceb6439ce70c36297b196c",
+      "TypesExternal_Template.lean": "3231afc3acbce933de2a3b326c69199dabec7abc4d7fb7109e291467a33e4919"
+    }
+  },
+  "lean_log": "Checking GeneratedOwnedDriver.TypesExternal\nChecking GeneratedOwnedDriver.Types\nChecking GeneratedOwnedDriver.FunsExternal\nChecking GeneratedOwnedDriver.Funs\nChecking OwnedDriverReference\n'ChatResponseOwnedDriver.key_total' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseOwnedDriver.decode_actual_merge' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "models": "Same accepted contiguous safe-index decoder and exact error/suffix adapters; successful bounded allocation content. No SignalMessage schema equivalence is reused for Chat schema."
+}

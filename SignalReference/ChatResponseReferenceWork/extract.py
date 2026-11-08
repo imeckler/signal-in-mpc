@@ -8,7 +8,7 @@ sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 source=canonical.check_sources();pins=canonical.PINS;rust=ROOT/'.deps/rust-nightly-2026-08-18'
 charon=(REF/pins['charon']['directory']/'target/release/charon').resolve()
 profile=sys.argv[1] if len(sys.argv)>1 else 'dispatch'
-profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation','owned_decode','owned_slice','owned_transferred']
+profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation','owned_decode','owned_slice','owned_transferred','owned_driver','string_forget']
 assert profile in profiles
 versions={'charon':subprocess.check_output([str(charon),'version'],text=True).strip(),'rustc':subprocess.check_output([str(rust/'bin/rustc'),'--version'],text=True).strip()}
 assert pins['charon']['commit'] in versions['charon'] and pins['charon']['rustc_version']==versions['rustc']
@@ -16,10 +16,12 @@ verified=0
 for package in ['prost-0.14.4','bytes-1.12.0','http-1.4.2']:
  vendor=ROOT/'.deps/libsignal-vendor'/package
  for name,digest in json.loads((vendor/'.cargo-checksum.json').read_text())['files'].items():assert sha(vendor/name)==digest;verified+=1
-primitive=profile in ('uint64','string','string_precise','string_drop','owned_decode')
+primitive=profile in ('uint64','string','string_precise','string_drop','owned_decode','string_forget')
 env=os.environ.copy();env.update(PATH=str(rust/'bin')+os.pathsep+env.get('PATH',''),CHARON_TOOLCHAIN_IS_IN_PATH='1',DYLD_LIBRARY_PATH=str(rust/'lib'),LD_LIBRARY_PATH=str(rust/'lib'),CARGO_HOME=str(ROOT/'.deps/libsignal-cargo-home'),CARGO_TARGET_DIR=str(ROOT/'.deps/chat-response-charon-target'/profile),RUSTFLAGS='')
 dest=H/'Artifacts'/profile;dest.mkdir(parents=True,exist_ok=True);llbc=dest/'chat.llbc';(dest/'inventory.json').unlink(missing_ok=True)
-if profile=='owned_transferred':
+if profile=='owned_driver':
+ selected=['--start-from=crate::owned_slice_replay::decode_buffer','--include=prost::message::Message::merge','--include=prost::RECURSION_LIMIT','--include=prost::encoding::DecodeContext','--include=prost::encoding::*::clone','--include=prost::encoding::*::default','--opaque=prost::encoding::decode_key']
+elif profile=='owned_transferred':
  selected=['--start-from=crate::owned_slice_replay::decode_buffer','--opaque=prost::message::Message::merge','--include=prost::error::DecodeError','--include=prost::error::Inner','--opaque=crate::chat_websocket::*::merge_field::*::call_once']
 elif profile=='owned_slice':
  selected=['--start-from=crate::decode_envelope','--include=prost::message::Message::decode','--monomorphize','--opaque=prost::message::Message::merge','--opaque=prost::encoding::merge_loop','--opaque=prost::encoding::varint::decode_varint','--opaque=prost::encoding::varint::encode_varint']
@@ -42,6 +44,7 @@ elif profile.startswith('metadata_'):
 else:
  target='uint64' if profile=='uint64' else 'string'
  selected=['--start-from=crate::encoding::'+target+'::merge','--opaque=crate::encoding::varint::decode_varint']
+if profile=='string_forget':selected+=['--include=core::mem::forget','--include=core::mem::manually_drop::*::new','--opaque=core::str::converts::from_utf8']
 if profile in ('utf8','metadata_positive','metadata_negative'):
  selected+=['--start-from=crate::reference_length_seed','--opaque=crate::slice_metadata_len']
 if profile=='status_mono':selected+=['--monomorphize']
