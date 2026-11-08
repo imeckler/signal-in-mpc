@@ -2,6 +2,7 @@
 //! SPQR alone is replaced by a selected established no-chunk phase to isolate
 //! the supported active-epoch new-DH receive transition. Not a bootstrap proof.
 use std::io::{self,BufRead};
+#[path="../session_projection.rs"]mod session_projection;
 use libsignal_protocol::*;
 use prost::Message;
 use rand::{SeedableRng,rngs::StdRng};
@@ -72,7 +73,21 @@ async fn fixture(v:&Value)->Value{
  let encoded_wire=[vec![255],(wire.len()as u16).to_be_bytes().to_vec(),wire.to_vec(),vec![0;256-wire.len()]].concat();
  let input=[old_sender,old_receivers,old_pq,alice_id.public_key().serialize()[1..].to_vec(),bob_id.public_key().serialize()[1..].to_vec(),computed,encoded_wire].concat();
  let expected=[vec![255],sender(post),receivers(post),receiving_pq(post),vec![0,80],plaintext.clone()].concat();
- rows.push(json!({"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
+ let updated=session_projection::apply_result(&before_pb,&expected).unwrap();
+ let mut rejected=expected.clone();rejected[0]=0;
+ assert_eq!(session_projection::apply_result(&before_pb,&rejected).unwrap(),before_pb);
+ rejected[0]=1;assert!(session_projection::apply_result(&before_pb,&rejected).is_err());
+ assert!(session_projection::apply_receive(&before_pb,&expected[1..525]).is_err());
+ let mut retained=before_pb.clone();retained.previous_sessions.push(before_pb.current_session.as_ref().unwrap().encode_to_vec());
+ assert_eq!(session_projection::apply_result(&retained,&expected).unwrap().previous_sessions,retained.previous_sessions);
+ let unrelated=before_pb.encode_to_vec();let mut conversations=std::collections::BTreeMap::from([(0,before_pb.clone()),(1,before_pb.clone())]);
+ conversations.insert(0,updated.clone());assert_eq!(conversations[&1].encode_to_vec(),unrelated);
+ assert_eq!(updated,after,"canonical full-record update mismatch");
+ let reloaded=SessionRecord::deserialize(&updated.encode_to_vec()).unwrap();
+ assert_eq!(reloaded.serialize().unwrap(),SessionRecord::deserialize(&after.encode_to_vec()).unwrap().serialize().unwrap());
+ let restored=record(&reloaded);let restored=restored.current_session.as_ref().unwrap();
+ assert_eq!([sender(restored),receivers(restored),receiving_pq(restored)].concat(),expected[1..526]);
+ rows.push(json!({"canonical_record_projection_reload":true,"unrelated_record_retained":true,"rejected_result_preserved_record":true,"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
  let after_bytes=bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap();
  assert!(message_decrypt_signal(&message,&alice_address,&bob_address,&mut bob_sessions,&mut bob_identities,&mut receive_rng).await.is_err());
  assert_eq!(bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap(),after_bytes);

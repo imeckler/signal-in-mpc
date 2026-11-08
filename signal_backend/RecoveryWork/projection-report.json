@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "actual_pinned_SessionRecord": true,
+  "new_receives": 3,
+  "repeated_receives": 9,
+  "full_record_equals_actual_receive": true,
+  "serialized_reload_projection_equal": true,
+  "unrelated_record_and_archived_sessions_retained": true,
+  "rejected_result_preserves_record": true,
+  "actual_MAC_and_replay_failures_preserve_record": true,
+  "private_runtime_serializer": false,
+  "outbox_atomic_restart": false,
+  "full_SPQR_epochs": false,
+  "production_recovery_admission": false,
+  "scope": "Public bounded no-skipped-key active-session canonical record update fixture; native actual transition supplies expected selected state, not a private runtime implementation",
+  "rows": [
+    {
+      "seed": 19,
+      "counter": 0
+    },
+    {
+      "seed": 19,
+      "counter": 1
+    },
+    {
+      "seed": 19,
+      "counter": 2
+    },
+    {
+      "seed": 19,
+      "counter": 3
+    },
+    {
+      "seed": 23,
+      "counter": 0
+    },
+    {
+      "seed": 23,
+      "counter": 1
+    },
+    {
+      "seed": 23,
+      "counter": 2
+    },
+    {
+      "seed": 23,
+      "counter": 3
+    },
+    {
+      "seed": 101,
+      "counter": 0
+    },
+    {
+      "seed": 101,
+      "counter": 1
+    },
+    {
+      "seed": 101,
+      "counter": 2
+    },
+    {
+      "seed": 101,
+      "counter": 3
+    }
+  ],
+  "binary_sha256": "66a8379e18293814949418018e5bd9bdc688dbf8693cc600ef336b18ac58fc5a",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_projection.py": "61fbbadf24b953b39359bf136a08b199530bcba2cb790d0c1468f17a79a6ec60",
+    "signal_backend/RecoveryWork/PROJECTION.md": "ad5efecf24319cb04d241d77455c7d5993ba09705904cdab8586f409f2bd56d9",
+    "signal_backend/Oracle/src/session_projection.rs": "a270af55031971308530de19734d84f5e3939d7776427fa10242488f4c96d0fe",
+    "signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs": "094e640a4475b2273225d6f9754ce7cfdaf49b3e24a7d3a2efd90bdcc0638a8b",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/storage.proto": "674d1fece2b1703e2b91b6dd2ee1b3a82846e67e73d144c763e17428f7868e61",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/tahini.rs": "a6c4e3fea22a7184a6c1aa6896878d679146714680c2528152fb4b5463e580a0"
+  }
+}
