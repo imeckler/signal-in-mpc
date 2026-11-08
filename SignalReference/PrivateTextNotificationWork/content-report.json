@@ -12,7 +12,7 @@
     "SignalReference/PrivateTextNotificationWork/check_content.py": "69766bcfdc476fd2643c4d2e404fcbc1facb327536a70a2d2ccea6bd5c00f20a",
     "SignalReference/PrivateTextNotificationWork/ContentChecks.lean": "d13275f26e2965e22cf1fd737d89b429713e074a044c5da94569e9196f0e3c8a",
     "SignalReference/PrivateTextNotificationWork/Reference.lean": "453be1365a49300b9acec4010aa54997028cdf1623061ad7d8066319a7f90a42",
-    "TlsMpc/Signal/PrivateTextNotificationContentSemantics.lean": "0900e15c6bb49aec780f1049011731180e10cfbde9fa59e6d2ccc4ce591b2afc",
+    "TlsMpc/Signal/PrivateTextNotificationContentSemantics.lean": "46228227fc6e447e0c58c1f682983f8f598cda51643b3bbdfb1587c21a9ac514",
     "TlsMpc/Signal/PrivateProtobufShortSemantics.lean": "c7f73266684a4a0b226306b9d6a99d204fb2f3b2bcfba2c27dc15d704bf7159e",
     "TlsMpc/Signal/PrivateTextNotificationSemantics.lean": "a04c143bf100ee7e73b97f722bdbef4c6c3f9fe74de2b847cdccf56f7d70edef",
     "SignalReference/PrivateVarintSemanticsWork/report64.json": "64a336e89bb8fed7dc32fdcdf9bf8e9363d39ceec63033603a17eb87c4eb487f"

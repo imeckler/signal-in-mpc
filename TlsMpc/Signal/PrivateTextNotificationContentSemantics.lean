@@ -81,4 +81,3 @@ theorem padded_content_contents (body : List (BitVec 8)) (fits : body.length≤4
   rw [content_contents body fits word width hw hl canonical]
   exact iso7816_contents 67 _ (by simp [dataMessageBytes,Varint64.encode_length];omega)
 end TlsMpc.Signal.PrivateTextNotification
-
