@@ -1,0 +1,31 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--monomorphize-mut=all",
+    "--start-from=crate::merge_bytes",
+    "--include=prost::encoding::bytes::merge",
+    "--include=prost::encoding::*::replace_with",
+    "--include=prost::encoding::wire_type::check_wire_type",
+    "--include=prost::encoding::wire_type::*::eq",
+    "--include=prost::error::DecodeError",
+    "--include=prost::error::Inner",
+    "--include=prost::error::*::from",
+    "--include=prost::encoding::DecodeContext",
+    "--opaque=prost::encoding::varint::decode_varint",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Artifacts/bytes.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "62f61078d72afc413b6ba5b0a42bf434852ae1a88874fe73b59b64df1ecccbd3",
+  "llbc_sha256": "8ad0657186bd0d5cd31d65ad1157ac58ffb3749f238dac7f02b1b4afdc0cafca",
+  "charon_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+}

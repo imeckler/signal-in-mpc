@@ -1,0 +1,66 @@
+{
+  "candidate_only": true,
+  "scope": "Actual pinned Prost bytes::Bytes replacement body and full field merger, exact wrong-wire/varint/underflow/old-field/success/suffix behavior on contiguous bounded input. No adapter/decoder correctness or termination premise. Not full response schema/streaming refinement.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/extract.py": "62f61078d72afc413b6ba5b0a42bf434852ae1a88874fe73b59b64df1ecccbd3",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/extraction.json": "b41b8a2068cef8d55e37edce43e20060e62eb54b8b46bd089e34f6fb643a80dd",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/replay.py": "6eaf50b931fd99bbd2bb25c379925550d6f5fbeb87f369992af6d5c248590f04",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/replay.json": "17f2c0a5b3a706752971f7fbda4cbf79c2b607dfa29edd8ed613f28fe81bc552",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/check.py": "acb0b5ff66ac94c91d39550854f45df1f0edcfefe1edac68914b27e93fe4babb",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Reference.lean": "33c6627c4e4039a58e8e54290e6896bcd4352e215052a189836f06597f00a02c",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/FullReference.lean": "da4715594ed6d0e2b36ca68b8d640763b6a6f19fcba62631102c794f30a32eab",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/README.md": "5ca36a6170bc7683534fa05778d055d79708d4fe68ce88efdc61a34488874e8e",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Rust/Cargo.toml": "dbfa620233aea7dcf33ef291f466ae10d75020872e2f3c06f7e571bee251a863",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Rust/Cargo.lock": "dc1c99fcf81a388b9c005597e8f567ea227e4467c1a2e593ad19f5698d59ed83",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Rust/.cargo/config.toml": "03c9029ae601d154dec80207b6c1f3e8453887786f00df6097c073b569c51c4d",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Rust/src/lib.rs": "8fbbe546f3f80c63b1550ca547c670f7a4673d331ee99f8b3b493906192fb59e",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Generated/Funs.lean": "861686155b9db10c009820ddcdc277b4295099399da08dc18abe9cedb4332092",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Generated/FunsExternal_Template.lean": "9e28aa3ba4a0b96962eb9570177e7f66734c8423493b8be0fa5de821e6b55e84",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Generated/Types.lean": "ffebf3343f2f241beca2bdd4a986ea5a975da3872907293a503b1308c9af4533",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Generated/TypesExternal_Template.lean": "9e1e97b182c204746f312f9e61739765ddfafaba01079caf83833b5c032d36e6",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/Funs.lean": "d96fb1abb042bdc519e81c97679defe6465968d33c0052909d06f8fa2189f59e",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/TypesExternal.lean": "911f1cd6a31aaec019fd7d94c06f4acb94bf3c8983a4466c19d738711e8167dc",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean": "35a3827b48e0db5b0b23a1ca70a031e5985018534810a1157ab1b1854370798d",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/Types.lean": "d794ee959dbc151e17718178e2895922c4e0b0949862ff09847405f41fdb82f8"
+  },
+  "pinned_vendor_sha256": {
+    "prost-0.14.4/src/encoding.rs": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4",
+    "prost-0.14.4/src/encoding/wire_type.rs": "2fc76491b4d4a1226a2a8aee0c4bfdfa846723fa864b982bb91cfee9e9f861bb",
+    "prost-0.14.4/src/error.rs": "3c24128fca68c3cca7f48e7d185f9696c949dc9de7d22bbac1871f393f36b992",
+    "bytes-1.12.0/src/buf/buf_impl.rs": "f1095872bba7c9d5170207750f4ebe4fa61c4e35a282569491c2ee8ea2dc6714",
+    "bytes-1.12.0/src/bytes.rs": "a7912bba39aa74ce6ef1e422ed83d0e0e5c3302d53c249b7d0ff14ec53cbca7c"
+  },
+  "llbc_sha256": "8ad0657186bd0d5cd31d65ad1157ac58ffb3749f238dac7f02b1b4afdc0cafca",
+  "named_llbc_sha256": "9041980458c636a37fda9068ddf092fec7bd0c11c73b0a7404d6504080b176bc",
+  "translator_sha256": "5ea6276549fac0be5c55ac6608ae8b4efa1dd1b147c15a988543871d8094bbec",
+  "translation_command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Artifacts/named.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/translation",
+    "-subdir",
+    "/ChatResponseReferenceWork/BytesContentV1/Generated",
+    "-namespace",
+    "ActualResponseBytesV1",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "kernel_log": "Checking BytesContentV1.Replayed.TypesExternal\nChecking BytesContentV1.Replayed.Types\nChecking BytesContentV1.Replayed.FunsExternal\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:50:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.remaining'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:54:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.chunk'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:58:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.advance'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:63:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.BytesBufBuf_implBuf.copy_to_bytes'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:76:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.CoreDefaultDefault.default'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:77:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.ProstEncodingSealedBytesAdapter.len'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.lean:79:4: warning: The namespace 'bytes' is duplicated in the declaration 'ActualResponseBytesV1.bytes.bytes.Bytes.Insts.ProstEncodingSealedBytesAdapter.append_to'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\nChecking BytesContentV1.Replayed.Funs\nChecking BytesContentV1.Reference\n'ChatResponseReference.BytesContentV1.slice_copy' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.BytesContentV1.replace_bytes' depends on axioms: [propext, Quot.sound]\nChecking BytesContentV1.FullReference\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/FullReference.lean:53:24: warning: This simp argument is unused:\n  core.result.Result.Insts.CoreOpsTry.branch\n\nHint: Omit it from the simp argument list.\n  simp only [bind_tc_ok,\u0335c\u0335o\u0335r\u0335e\u0335.\u0335r\u0335e\u0335s\u0335u\u0335l\u0335t\u0335.\u0335R\u0335e\u0335s\u0335u\u0335l\u0335t\u0335.\u0335I\u0335n\u0335s\u0335t\u0335s\u0335.\u0335C\u0335o\u0335r\u0335e\u0335O\u0335p\u0335s\u0335T\u0335r\u0335y\u0335.\u0335b\u0335r\u0335a\u0335n\u0335c\u0335h\u0335]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/FullReference.lean:74:24: warning: This simp argument is unused:\n  core.result.Result.Insts.CoreOpsTry.branch\n\nHint: Omit it from the simp argument list.\n  simp only [bind_tc_ok,\u0335c\u0335o\u0335r\u0335e\u0335.\u0335r\u0335e\u0335s\u0335u\u0335l\u0335t\u0335.\u0335R\u0335e\u0335s\u0335u\u0335l\u0335t\u0335.\u0335I\u0335n\u0335s\u0335t\u0335s\u0335.\u0335C\u0335o\u0335r\u0335e\u0335O\u0335p\u0335s\u0335T\u0335r\u0335y\u0335.\u0335b\u0335r\u0335a\u0335n\u0335c\u0335h\u0335]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.BytesContentV1.bytes_wire_error' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.BytesContentV1.bytes_decode_error' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.BytesContentV1.bytes_underflow' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.BytesContentV1.bytes_success' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.BytesContentV1.payload_length' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.BytesContentV1.bytes_full_reference' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/Replayed/TypesExternal.olean": "cddec4c8ed1fccb5da17718b68f2206e30fc6c2363ae1cb78aa671857d3dec1b",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/Replayed/Types.olean": "bcda6fca6dc237e3b2a3241b12fd939cc15dd390b5b0d9fba8e4a473fa526fc0",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/Replayed/FunsExternal.olean": "cfeebd2e12e174e30d12962f0ca1cf8c70d1b58b7302b510d108df231e9885d3",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/Replayed/Funs.olean": "dcd5463143b17efcba8d42da9d1ad653fe708db6d87ad1415d05b3bf9ffb27b6",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/Reference.olean": "9efb3386c2609ed8b881740972ce4d3b133a1dab216fbbe71a447640297c9f65",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/BytesContentV1/Build/final/ChatResponseReferenceWork/BytesContentV1/FullReference.olean": "4ddb2f59560024b7af5bee61ed203f0ffac8cf7a62b99f3a4da5b1b30b4f0587"
+  },
+  "boundaries": [
+    "Reuse accepted immutable Bytes/safe contiguous buffer allocation/content model; backing allocation, reference counts, unsafe memory unobserved.",
+    "Unused encode-only append_to fails closed; no decode theorem invokes it.",
+    "Actual response schema/default/submessage/repeated headers, HTTP validation and private-end streaming/compiler composition remain open."
+  ]
+}

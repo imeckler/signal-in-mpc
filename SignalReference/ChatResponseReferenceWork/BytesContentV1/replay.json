@@ -1,0 +1,14 @@
+{
+  "scope": "Import paths; remove unused Cow/error discriminant attrs and unique identical wire instance. No computational-body edits.",
+  "files": {
+    "Types.lean": {
+      "source_sha256": "ffebf3343f2f241beca2bdd4a986ea5a975da3872907293a503b1308c9af4533",
+      "replayed_sha256": "d794ee959dbc151e17718178e2895922c4e0b0949862ff09847405f41fdb82f8"
+    },
+    "Funs.lean": {
+      "source_sha256": "861686155b9db10c009820ddcdc277b4295099399da08dc18abe9cedb4332092",
+      "replayed_sha256": "d96fb1abb042bdc519e81c97679defe6465968d33c0052909d06f8fa2189f59e"
+    }
+  },
+  "script_sha256": "6eaf50b931fd99bbd2bb25c379925550d6f5fbeb87f369992af6d5c248590f04"
+}
