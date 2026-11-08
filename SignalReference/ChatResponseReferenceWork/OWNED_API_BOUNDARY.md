@@ -67,3 +67,20 @@ operation to the proved decoder with exact error and suffix, plus strict input
 progress on success. `decode_actual_merge` installs that extracted default loop
 under the owned wrapper. This does not supply a chat-schema dispatcher totality
 premise or prove streaming agreement. The independent audit records this scope.
+
+## Concrete borrowed forget specialization
+
+`specialize_forget_guard.py` specializes only the actual extracted generic
+`mem::forget` call whose type argument is Prost's `DropGuard<'a>`. The callee's
+actual no-op body is byte-for-byte unchanged; its generic input becomes the
+concrete guard with one explicit lifetime, and the unique call supplies that
+same lifetime. This lets Aeneas retain the mutable-loan return content: the
+translated specialized forget returns the vector unchanged rather than Unit.
+No actual destructor or error branch is deleted by this pass.
+
+`check_forget_specialization.py` rejects wrong guard, changed body shape, and
+multiple-call inputs; retranslates without generated-body edits; kernel-checks
+the exact helper declaration replay; and compares actual generic versus typed
+Rust forget for 513 vectors, also checking actual guard cleanup clears them.
+Only the helper fragment is kernel-checked here. Full generated String merge
+and precise error cleanup composition remain open, as does the std UTF8 bridge.

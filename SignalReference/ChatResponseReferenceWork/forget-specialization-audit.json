@@ -1,0 +1,49 @@
+{
+  "candidate_only": true,
+  "body_unchanged": true,
+  "generated_body_hand_edits": false,
+  "strict_negative_tests": [
+    "wrong_guard",
+    "wrong_callee_body",
+    "multiple_calls"
+  ],
+  "specialization": {
+    "candidate_only": true,
+    "input_sha256": "03e8680c989c0e6b076d854a517fb3498d40b99af946a2b52d3f494223efb36e",
+    "output_sha256": "062e8eae24adbdccd263b122955093cd30c417364fe434544018c5640b926610",
+    "script_sha256": "90f9e35220330bb099f4769c05cefc9af5f2488e0a56ae87b625d1286d87fa22",
+    "function_id": 8,
+    "call_count": 1,
+    "original_function_sha256": "2aaac37092a8156d23a496e303a2121f20d0aad71468c815f3773fbe87989fc1",
+    "actual_body_unchanged": true,
+    "scope": "Only actual mem::forget instantiated with Prost string DropGuard; expose existing mutable-borrow lifetime in function signature. No general destructor erasure."
+  },
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/specialize_forget_guard.py": "90f9e35220330bb099f4769c05cefc9af5f2488e0a56ae87b625d1286d87fa22",
+    "SignalReference/ChatResponseReferenceWork/check_forget_specialization.py": "ddea2d656506539d9f48dfd3f603ff85ea9d814587876e28534e82ec1654247b",
+    "SignalReference/ChatResponseReferenceWork/ForgetSpecializationReference.lean": "acb79c35d7acbbf2064d4028f8b747e91f6c914f3db081f260dbe32645a2ca82",
+    "SignalReference/ChatResponseReferenceWork/GeneratedStringForgetSpecialized/Funs.lean": "e56db2f06436058afa51616c6a28b0e0460b924119d506a1d4acdef1d4e03195",
+    "SignalReference/ChatResponseReferenceWork/Rust/src/bin/forget-guard-check.rs": "79af9414bc2294cdc9bda9f7e4deb3704090469d3c08bc152e5bd65820b619d6",
+    ".deps/rust-nightly-2026-08-18/lib/rustlib/src/rust/library/core/src/mem/mod.rs": "d9c9f1f68c947aa1412df34b4a51d86d719cc07680110108eec15e6aba58fe02"
+  },
+  "translator_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/string_forget/specialized.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/GeneratedStringForgetSpecialized",
+    "-namespace",
+    "ActualChatResponseStringForgetSpecialized",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "lean_log": "Checking ForgetSpecializationReference\n'ActualChatResponseStringForgetSpecialized.forget_preserves_borrow' depends on axioms: [propext]\n",
+  "native_log": "warning: enum `ChatProtoDataError` is never used\n --> src/validation_replay.rs:5:17\n  |\n5 | pub(super) enum ChatProtoDataError {\n  |                 ^^^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: enum `ChatMessageProto` is never used\n  --> src/validation_replay.rs:20:17\n   |\n20 | pub(super) enum ChatMessageProto {\n   |                 ^^^^^^^^^^^^^^^^\n\nwarning: function `validate_decoded` is never used\n  --> src/validation_replay.rs:25:15\n   |\n25 | pub(super) fn validate_decoded(msg: MessageProto) -> Result<ChatMessageProto, ChatProtoDataError> {\n   |               ^^^^^^^^^^^^^^^^\n\nwarning: `chat-response-reference` (lib) generated 3 warnings\n   Compiling chat-response-reference v0.1.0 (/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Rust)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s\n     Running `/Users/izzy/repos/tls-mpc/.deps/chat-response-owned-diff-target/debug/forget-guard-check`\nCompared 513 actual generic/specialized forget outcomes and actual cleanup effects\n",
+  "scope": "Exact specialized forget declaration, not full generated string merge kernel check. Precise error cleanup/full String content composition remain separately open."
+}
