@@ -20,3 +20,7 @@ root = "WorkerPipeFixture"
 [[lean_exe]]
 name = "native_handshake_fixture"
 root = "NativeHandshakeFixture"
+
+[[lean_exe]]
+name = "private_tls_emitter"
+root = "handshake_backend.PayloadWork.EmitPrivateTls"

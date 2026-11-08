@@ -37,6 +37,10 @@ public:
         public_require(kind==23||size>0,"empty TLS control record");
         return {"tls-seal-record",{kind,size,padding},36+size,size+padding+22};
     }
+    static KernelShape seal_private(size_t size) {
+        public_require(size<=16384,"invalid private TLS capacity");
+        return {"tls-seal-private-record",{size},39+size,23+size};
+    }
     std::string stem() const {
         auto result=mode_;for(auto dimension:dimensions_)result+="-"+std::to_string(dimension);return result;
     }

@@ -1,20 +1,27 @@
-Worker1 checkpoint (live run completed):
+Worker1 checkpoint (private-length native run completed):
+- Private-length TLS proof+compiler checkpoint passes138 AESGCM oracle cases,
+  nine standard-foundational-axiom endpoints and46/26 public shape checks.
+- tls-native-private-payload.json:two five-party runs all0; actual cap16 MPC
+  ciphertext matches AESGCM for lengths0/1/15/16; bounds17 and producer status0
+  reject after one authenticated status release and zero wire releases. Each
+  valid computation renews runtime; terminal abort succeeds twice on rejection.
+- NativeSession now has tested-compiled private retention/seal status gate,
+  take_private_payload, checkpoint_private_computation and NativeService wrapper.
+  Full live Session/service private-length integration is not yet exercised.
 - Full native private TLS lifecycle passed, report tls-native-application-lifecycle.json.
 - Raw final f6ff406ae42c4004; all5 exit0,381.041s,39 source/product+11 log hashes,
   three actual shared Signal producer advances, real OpenSSL3 echoes,both KU
   directions, replay GCM rejection,idempotent abort receipts,terminal send block.
-- No Worker1 live handles/processes. Do not kill crypto's separate73974 service test.
+- No Worker1 live handles/processes. Crypto73974 completed successfully.
 - Commit own files only; source list is explicit in git status/filter.
 - Canonical library unchanged, no actual service protocol claim (synthetic228B
   HTTP2/gRPC fixture only); actual relay is HTTP1.1 WebSocket.
-- Next: NativeSession take_private_payload(handle)->move-owned data/privateLength16/
-  public capacity and checkpoint_private_computation() tied to host-wipe barrier.
-  Draft move-only header is handshake_backend/PayloadWork/PrivatePayload.h, not
-  included in this tested checkpoint. Preserve prior frozen runtime layers.
+- Next:actual HTTP1.1 WebSocket upgrade/stream integration; typed fixed-service
+  result adapter must preserve status and attach shared900 as BE16. Raw901-byte
+  service output is NOT the903-byte private buffer. Preserve frozen runtime layers.
 - Crypto owns signal_backend/SealedSenderWork/NativeService.h and actual SSv1/JSON/
   WS encoder. It computes fresh ephemeral/two DHs inside VM; Session wrapper can
-  bind machine/worker/pinned under require_application. Do not edit NativeWorker.h
-  during crypto's73974 source-integrity test (NativeSession remains Worker1-owned).
+  bind machine/worker/pinned under require_application. NativeWorker hold released.
 - Runtime old Signal chain traces need explicit per-computation checkpoint before
   real service sends; host OwnedBits commit alone is not a retirement receipt.
 - Persistent fixed outgoing handles currently stay in Session map after send;

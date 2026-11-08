@@ -40,6 +40,11 @@ class Shape:
             if not 22 <= size <= 16406:
                 raise ValueError('AES-GCM wire size must be 22..16406')
             self.input_bytes, self.output_bytes = 36 + size, size - 17
+        elif self.mode == 'tls-seal-private-record' and len(numbers) == 1:
+            size = numbers[0]
+            if not 0 <= size <= 16384:
+                raise ValueError('private TLS capacity must be 0..16384')
+            self.input_bytes, self.output_bytes = 39 + size, 23 + size
         elif self.mode in ('tls-route-application', 'tls-post-handshake') and len(numbers) == 1:
             size = numbers[0]
             if not 1 <= size <= 16385:
@@ -79,6 +84,9 @@ def sources(base):
     result.extend(base / name for name in (
         'compile.py', 'Programs/Source/tls_shape_export.mpc',
         'Worker-Public/tls-shape-emitter', 'Worker-Public/tls_shape_pinning.py'))
+    for name in ('tls-private-shape-emitter','tls-standard-shape-emitter'):
+        if (base/PUBLIC/name).is_file():
+            result.append(base/PUBLIC/name)
     return {str(p.relative_to(base)): digest(p) for p in result}
 
 
@@ -95,7 +103,7 @@ def atomic_write(path, data):
     os.replace(temporary, path)
 
 
-def install(backend, emitter):
+def install(backend, emitter, private_emitter=None):
     root = Path(__file__).resolve().parents[1]
     backend = backend.resolve()
     public = backend / PUBLIC
@@ -106,7 +114,27 @@ def install(backend, emitter):
     source = (root / 'programs/tls_export.mpc').read_text()
     (backend / 'Programs/Source/tls_shape_export.mpc').write_text(
         'program.set_security(128)\n' + source)
-    shutil.copy2(emitter, public / 'tls-shape-emitter')
+    # Compose an optional independently built TLS-private emitter. Preserve an
+    # installed private emitter when reprovisioning the standard public helper.
+    private_target = public/'tls-private-shape-emitter'
+    if private_emitter is None and private_target.is_file():
+        private_emitter = private_target
+    if private_emitter is not None:
+        if Path(private_emitter).resolve() != private_target.resolve():
+            shutil.copy2(private_emitter,private_target)
+        shutil.copy2(emitter,public/'tls-standard-shape-emitter')
+        (public/'tls-shape-emitter').write_text('#!'+str(Path(sys.executable).resolve())+'\n'+'''
+import os
+from pathlib import Path
+import sys
+folder=Path(__file__).resolve().parent
+name='tls-private-shape-emitter' if sys.argv[1:2]==['tls-seal-private-record'] else 'tls-standard-shape-emitter'
+path=folder/name
+os.execv(str(path),[str(path),*sys.argv[1:]])
+''')
+        (public/'tls-shape-emitter').chmod(0o755)
+    else:
+        shutil.copy2(emitter, public / 'tls-shape-emitter')
     shutil.copy2(root / 'scripts/pin_tls_worker.py', public / 'tls_shape_pinning.py')
     shutil.copy2(__file__, public / 'tls-shape-compiler')
     (public / 'tls-shape-compiler').chmod(0o755)
@@ -216,12 +244,13 @@ def main():
     parser.add_argument('shape', nargs='*', help='wire size, or TLS operation followed by public dimensions')
     parser.add_argument('--install', type=Path)
     parser.add_argument('--emitter', type=Path)
+    parser.add_argument('--private-emitter', type=Path)
     args = parser.parse_args()
     if args.install is not None:
         if args.emitter is None or args.shape:
             parser.error('--install requires --emitter and no wire size')
-        install(args.install, args.emitter)
-    elif not args.shape or args.emitter is not None:
+        install(args.install, args.emitter, args.private_emitter)
+    elif not args.shape or args.emitter is not None or args.private_emitter is not None:
         parser.error('expected TLS kernel shape')
     else:
         prepare(Shape(args.shape))

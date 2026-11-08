@@ -1,0 +1,74 @@
+{
+  "passed": true,
+  "native_mpc_executed": true,
+  "scope": "public disposable native private-length seal and authenticated status gate; no live service",
+  "application_gate_changed": false,
+  "cases": [
+    {
+      "rejection": "bounds",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "valid_lengths": [
+        0,
+        1,
+        15,
+        16
+      ],
+      "rejected_wire_release_calls": 0
+    },
+    {
+      "rejection": "producer_status",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "valid_lengths": [
+        0,
+        1,
+        15,
+        16
+      ],
+      "rejected_wire_release_calls": 0
+    }
+  ],
+  "cleanup_errors": [],
+  "logs": "benchmarks/results/raw/native-private-payload/d87b227907c36168",
+  "sha256": {
+    "scripts/check_native_private_payload.py": "3c7e5c401e0724c876c5304ae6227eb34dfc05fa5df06ded34b60d95780950f6",
+    "handshake_backend/PayloadWork/native_fixture.cpp": "758b200cf8a562e73fa2f77e3a8329e66af9621d2bda4cad321e2e75bddb9b20",
+    "handshake_backend/PayloadWork/StatusGate.h": "6de6ca8063c14fc99542628fb3ceb3ebc7b526fd4bcd758514444afdfcdddd49",
+    "handshake_backend/PayloadWork/PrivatePayload.h": "34cc3bb8174ab0bda5ae4aba285220829662906e26cdcd9ccdbb705c6a1311e7",
+    "handshake_backend/NativeSession.h": "be0f71b3c3046adc5c74658bbe9952bee785222cfdefbf0794a5655b1d0e5b5b",
+    "TlsMpc/TlsPrivateSeal.lean": "0a94cc08594024e1da3fe39259f5bd35d14fceccc6ed884aab05bcc4218ce526",
+    "handshake_backend/PayloadWork/EmitPrivateTls.lean": "2ff9f13c448c4c0d038b797a9819b66aff9a98224b81341596e9be809d0cb907",
+    "scripts/prepare_tls_shape.py": "771dea0dd8cc6e997a4a6463286a3183009540f1a8fae6425157945d900f0350",
+    "handshake_backend/SessionWork/Makefile": "22044949c9258fde3d7cf2b03ce447fc513a0ef65b9064bca78ce5bcc4cea8b5",
+    ".deps/tls-session-runtime/tls-private-payload-fixture": "58e29eeb9fdd9694256cd21ae62e6e8f5ddb7c338a84598cda9455438e087229",
+    ".deps/tls-session-runtime/tls-worker": "288c9a43ac1d5cf8e083a68e7c82767048c1f561e9efb6973923dcf6d2cd5ba9",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
+    ".lake/build/bin/private_tls_emitter": "65816885efd931f9bf7c0563be3e44306b912b84678f1663c11bbffb222c4f81"
+  },
+  "log_sha256": {
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-1-party-4.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/ssl.log": "9874dfeb55529205972e9058554f2835fc9a928b913c414fbf4a5ec4d678e420",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-1-party-1.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-1-party-0.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-1-party-2.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-1-party-3.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/compile.log": "6832e142a706da2d637525700b7c6481132dc0007f2a98ee0946ea0281909a85",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-0-party-3.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-0-party-2.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-0-party-0.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-0-party-1.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69",
+    "benchmarks/results/raw/native-private-payload/d87b227907c36168/run-0-party-4.log": "8684abf02e377cd460c0432fed0129582badec2bf8c578e4f290d1e986e12e69"
+  },
+  "elapsed_seconds": 9.970276708016172
+}

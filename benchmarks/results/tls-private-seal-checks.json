@@ -1,0 +1,86 @@
+{
+  "checked_at_utc": "2026-11-08T07:52:30.711680+00:00",
+  "passed": true,
+  "kernel_endpoints": [
+    "eqLength_value",
+    "build_map",
+    "build_length",
+    "build_correct",
+    "build_valid",
+    "seal_map",
+    "seal_status",
+    "seal_valid_record",
+    "compiled_seal_correct"
+  ],
+  "cases": [
+    {
+      "capacity": 0,
+      "cases": 24,
+      "statistics": {
+        "raw_and_gates": 317103,
+        "executed_and_gates": 47473,
+        "executed_xor_gates": 90182,
+        "unreachable_nodes": 179448
+      },
+      "artifact_sha256": "d08763040d07c1a4c0271eee99fef9001fe8007a7305908fe8a395fb62944c01"
+    },
+    {
+      "capacity": 1,
+      "cases": 27,
+      "statistics": {
+        "raw_and_gates": 319250,
+        "executed_and_gates": 47650,
+        "executed_xor_gates": 90842,
+        "unreachable_nodes": 180758
+      },
+      "artifact_sha256": "9d3540e9e8fcbf9f1c1e068c250a295bb56d56cc6781f738aea002fdce848efe"
+    },
+    {
+      "capacity": 16,
+      "cases": 24,
+      "statistics": {
+        "raw_and_gates": 436902,
+        "executed_and_gates": 68356,
+        "executed_xor_gates": 123242,
+        "unreachable_nodes": 245304
+      },
+      "artifact_sha256": "783af7b618dff390d0962eca57f3dcf323383f25817ac11faeff6ab731f514de"
+    },
+    {
+      "capacity": 257,
+      "cases": 30,
+      "statistics": {
+        "raw_and_gates": 2235725,
+        "executed_and_gates": 380882,
+        "executed_xor_gates": 620003,
+        "unreachable_nodes": 1234840
+      },
+      "artifact_sha256": "22a1fdcbc55f99e812020a9b4bcbdab6d2354131b238661d0c142bfb49ac6819"
+    },
+    {
+      "capacity": 900,
+      "cases": 33,
+      "statistics": {
+        "raw_and_gates": 7030223,
+        "executed_and_gates": 1213078,
+        "executed_xor_gates": 1944311,
+        "unreachable_nodes": 3872834
+      },
+      "artifact_sha256": "2772381530366a952863f752ff1d94660e494e2d38177c40210755eb8b72f515"
+    }
+  ],
+  "total_oracle_cases": 138,
+  "cpp_python_shapes": "46 valid shapes; 26 invalid shapes rejected",
+  "source_sha256": {
+    "TlsMpc/TlsPrivateSeal.lean": "0a94cc08594024e1da3fe39259f5bd35d14fceccc6ed884aab05bcc4218ce526",
+    "handshake_backend/PayloadWork/EmitPrivateTls.lean": "2ff9f13c448c4c0d038b797a9819b66aff9a98224b81341596e9be809d0cb907",
+    "handshake_backend/KernelShape.h": "16132786dba04f0ea908d5c18476d9217e5aebc249b4fad3bd08488508c38b0b",
+    "scripts/prepare_tls_shape.py": "771dea0dd8cc6e997a4a6463286a3183009540f1a8fae6425157945d900f0350",
+    "scripts/check_tls_private_seal.py": "2c67a3094604b3cc6ee0fa896e132e3424435216f56c2e2094a0f5c758153045",
+    "lakefile.toml": "fdfd2593abb4ad2b846055bc45ba2f304e83a636fd25c13b0ad82d36bf0ac9f5"
+  },
+  "emitter_sha256": "65816885efd931f9bf7c0563be3e44306b912b84678f1663c11bbffb222c4f81",
+  "native_mpc_executed": false,
+  "private_length_opened": false,
+  "scope": "compiled numeric private-length TLS seal matches independent AESGCM and proved concrete placement; native status-release boundary tested separately"
+}

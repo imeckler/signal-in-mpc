@@ -1,6 +1,9 @@
 #pragma once
 #include "NativeWorker.h"
 #include "SessionLifecycle.h"
+#include "PayloadWork/PrivatePayload.h"
+#include "PayloadWork/StatusGate.h"
+#include "../signal_backend/SealedSenderWork/NativeService.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
 #include "ShapeCompiler.h"
@@ -16,6 +19,7 @@ class Session {
     Worker worker;
     ShapeCompiler* shapes;
     SessionLifecycle* lifecycle;
+    const PinnedPrograms& pinned_programs;
     SessionPolicy policy;
     struct Traffic { Bits secret, key, iv; };
     Traffic client_hs, server_hs, client_app, server_app;
@@ -23,7 +27,7 @@ class Session {
     ApplicationPolicy application_policy;
     bool application_ready=false;
     Bits parser_state;
-    struct Buffer { Bits data, private_length; size_t capacity; bool fixed_length; };
+    struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; };
     std::map<uint64_t,Buffer> buffers;
     uint64_t next_buffer=1;
     Bytes pending_wire;
@@ -93,7 +97,7 @@ class Session {
     }
 public:
     explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr,SessionLifecycle* lifecycle=nullptr)
-        : machine(machine), worker(machine, pinned),shapes(shapes),lifecycle(lifecycle) {}
+        : machine(machine), worker(machine, pinned),shapes(shapes),lifecycle(lifecycle),pinned_programs(pinned) {}
     Session(const Session&)=delete;
     Session& operator=(const Session&)=delete;
     ~Session(){abort();}
@@ -171,26 +175,69 @@ public:
         });
     }
     // Internal same-worker producer interface, never a public RPC importing or
-    // opening bytes. Signal/H2 circuits may retain their fixed-shape output here.
+    // opening bytes. Trusted producers may retain their fixed-shape output here.
     uint64_t retain_fixed_payload(Bits payload) {
         return guarded([&] { require_application(); require(payload.size()%8==0 && payload.size()<=16384*8,"invalid fixed payload");
             size_t size=payload.size()/8;
-            return retain({std::move(payload),{},size,true}); });
+            return retain({std::move(payload),{},{},size,true}); });
+    }
+    // Actual producer validity must remain attached through transport sealing.
+    // Capacity is an agreed public workload profile, never an opened length.
+    uint64_t retain_private_payload(PrivatePayload payload) {
+        return guarded([&] { require_application();
+            payload.validate_shape();
+            require(payload.capacity<=16384,"private outgoing capacity exceeds record limit");
+            return retain({std::move(payload.data),std::move(payload.private_length),
+                std::move(payload.validity),payload.capacity,false}); });
+    }
+    uint64_t retain_private_result(Bits encoded,size_t capacity) {
+        return guarded([&] {require_application();
+            return retain_private_payload(PrivatePayload::from_result(std::move(encoded),capacity));});
+    }
+    // Consume exactly once into an internal HTTP/WebSocket/Signal processor.
+    // No plaintext bytes or actual length are returned over RPC.
+    PrivatePayload take_private_payload(uint64_t handle) {
+        return guarded([&] { require_application();
+            auto found=buffers.find(handle);require(found!=buffers.end(),"unknown private payload handle");
+            auto& source=found->second;
+            auto length=source.fixed_length ? public_bits({uint8_t(source.capacity>>8),uint8_t(source.capacity)}) : std::move(source.private_length);
+            auto valid=source.fixed_length ? public_bits({255}) : std::move(source.validity);
+            PrivatePayload result(std::move(source.data),std::move(length),std::move(valid),source.capacity);
+            buffers.erase(found);return result;
+        });
+    }
+    // Caller must first commit selected producer state and discard old owned
+    // inputs. New TLS/app/producer shares and retained outputs deliberately live.
+    // Further application work waits for this host call's complete wipe barrier.
+    void checkpoint_private_computation() {
+        guarded([&] {require_application();require(!pending_send,"private checkpoint with pending ciphertext");
+            lifecycle->renew_epoch();});
     }
     Bits evaluate_signal(const signal_mpc::SendShape& shape,Bits input) {
         return guarded([&] { require_application();return worker.signal(shape,std::move(input)); });
+    }
+    Bits evaluate_service(const signal_mpc::ServiceShape& shape,Bits input) {
+        return guarded([&] {require_application();
+            signal_mpc::NativeService service(machine,worker,pinned_programs);
+            return service.evaluate(shape,std::move(input));});
     }
     Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
         return guarded([&] { require_application();
             require(size<=16384 && padding<=16384-size,"invalid application dimensions");
             auto found=buffers.find(handle);require(found!=buffers.end(),"unknown application handle");
             const auto& buffer=found->second;
-            // A received buffer has a private actual length: blindly sending
-            // its capacity would change the protocol and expose padding bytes.
-            require(buffer.fixed_length && buffer.capacity==size,"payload requires private stream processing");
+            require(buffer.capacity==size,"private payload capacity mismatch");
+            require(buffer.fixed_length || padding==0,"private capacity already includes TLS padding");
             application_policy.application(sequence);
-            return pending(release(eval_shape(KernelShape::seal(23,size,padding),
-                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}))));
+            if(buffer.fixed_length)
+                return pending(release(eval_shape(KernelShape::seal(23,size,padding),
+                    concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}))));
+            auto sealed=eval_shape(KernelShape::seal_private(size),
+                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),
+                    buffer.validity,buffer.private_length,buffer.data}));
+            // Authenticate status before disclosing any ciphertext. A rejected
+            // producer/bounds result is terminal, never a normal empty request.
+            return pending(release_private_seal(sealed,size,[&](const Bits& value) {return release(value);}));
         });
     }
     Bytes seal_control(uint64_t sequence,unsigned kind,const Bytes& content) {
@@ -222,7 +269,7 @@ public:
             parser_state=bytes(result,2,11);
             application_policy.event(event[0],event[1]==1);
             if(event[0]==1) {
-                auto id=retain({bytes(result,15,capacity),bytes(result,13,2),capacity,false});
+                auto id=retain({bytes(result,15,capacity),bytes(result,13,2),public_bits({255}),capacity,false});
                 auto encoded=sequence_bytes(id);event.insert(event.end(),encoded.begin(),encoded.end());
             }
             return event; // No plaintext, length, state or ticket is opened.
@@ -230,11 +277,13 @@ public:
     }
     void before_send(const Bytes& wire) {
         guarded([&] { if(policy.phase()==SessionPolicy::Phase::application && application_ready) {
+            require_application();
             require(pending_send && pending_wire==wire,"send does not match reserved ciphertext");
         }});
     }
     void after_send() {
         guarded([&] { if(policy.phase()==SessionPolicy::Phase::application && application_ready) {
+            require_application();
             application_policy.sent();pending_wire.clear();pending_send=false;
         }});
     }

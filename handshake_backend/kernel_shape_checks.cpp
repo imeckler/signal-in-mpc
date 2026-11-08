@@ -30,12 +30,15 @@ int main() {
     for(size_t size:{size_t(0),size_t(16386),std::numeric_limits<size_t>::max()}) {
         reject([&]{KernelShape::route(size);});reject([&]{KernelShape::post_handshake(size);});
     }
+    for(size_t size:{0,1,16,255,900,16384})inspect(KernelShape::seal_private(size));
+    reject([&]{KernelShape::seal_private(16385);});
+    reject([&]{KernelShape::seal_private(std::numeric_limits<size_t>::max());});
     for(size_t kind:{0,20,24,255})reject([&]{KernelShape::seal(kind,1,0);});
     for(size_t kind:{21,22})reject([&]{KernelShape::seal(kind,0,0);});
     reject([&]{KernelShape::seal(23,16385,0);});
     reject([&]{KernelShape::seal(23,1,16384);});
     reject([&]{KernelShape::seal(23,std::numeric_limits<size_t>::max(),1);});
     reject([&]{KernelShape::seal(23,1,std::numeric_limits<size_t>::max());});
-    assert(valid==40&&rejected==24);
+    assert(valid==46&&rejected==26);
     std::cerr<<valid<<" valid shapes; "<<rejected<<" invalid shapes rejected\n";
 }
