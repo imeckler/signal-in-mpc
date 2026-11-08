@@ -49,9 +49,9 @@ struct Dag {
    if(depth[i]>max_depth){max_depth=depth[i];goal=i;}max_local=std::max(max_local,local[i]);
    ++groups[(uint64_t(depth[i])<<32)|(uint64_t(local[i])<<2)|kinds[i]];
   }
-  uint64_t and_batches=0,xor_batches=0,and_groups=0,xor_groups=0;
-  for(auto [key,n]:groups)if((key&3)==1){and_batches+=(n+63)/64;++and_groups;}else{xor_batches+=(n+63)/64;++xor_groups;}
-  std::cout<<"{\"nodes\":"<<flags.size()<<",\"raw_and_gates\":"<<raw_and<<",\"executed_and_gates\":"<<and_count<<",\"executed_xor_gates\":"<<xor_count<<",\"unreachable_nodes\":"<<unreachable<<",\"and_depth\":"<<max_depth<<",\"maximum_local_xor_depth\":"<<max_local<<",\"and_groups\":"<<and_groups<<",\"xor_groups\":"<<xor_groups<<",\"packed_and_batches64\":"<<and_batches<<",\"packed_xor_batches64\":"<<xor_batches;
+  uint64_t and_batches=0,xor_batches=0,and_groups=0,xor_groups=0,and_singletons=0;
+  for(auto [key,n]:groups)if((key&3)==1){and_batches+=(n+63)/64;++and_groups;if(n%64==1)++and_singletons;}else{xor_batches+=(n+63)/64;++xor_groups;}
+  std::cout<<"{\"nodes\":"<<flags.size()<<",\"raw_and_gates\":"<<raw_and<<",\"executed_and_gates\":"<<and_count<<",\"executed_xor_gates\":"<<xor_count<<",\"unreachable_nodes\":"<<unreachable<<",\"and_depth\":"<<max_depth<<",\"maximum_local_xor_depth\":"<<max_local<<",\"and_groups\":"<<and_groups<<",\"xor_groups\":"<<xor_groups<<",\"packed_and_batches64\":"<<and_batches<<",\"singleton_and_batches64\":"<<and_singletons<<",\"packed_xor_batches64\":"<<xor_batches;
   if(trace){
    std::array<uint64_t,10> path_bins{},and_bins{},bin_depth{};std::array<uint64_t,6> gaps{};uint64_t path_ands=0,path_xors=0;
    for(size_t i=0;i<flags.size();++i)if(kinds[i]&&(flags[i]&3)==2){auto bin=std::min<size_t>(9,i*10/flags.size());if(kinds[i]==1)++and_bins[bin];bin_depth[bin]=std::max<uint64_t>(bin_depth[bin],depth[i]);}

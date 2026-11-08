@@ -4,10 +4,10 @@
   "critical_trace_consistency_cases": 100,
   "scope": "resource counts/packing groups versus existing adapter; no execution or proof extension",
   "source_sha256": {
-    "handshake_backend/BackendPackingWork/aig_resource_scan.cpp": "371aa7db0ddc0439914b4cc812c750da06ee0f351258f94922549acd34775623",
-    "handshake_backend/BackendPackingWork/check_aig_resource_scan.py": "a4f050f97056b51abfd25b02063903ad4ccf36ad779b50ca1d53709821d43fb6",
+    "handshake_backend/BackendPackingWork/aig_resource_scan.cpp": "9716b86a5683428b960dc36b003c6bc193d5c7af5e411c18f8473fe507a0ed1f",
+    "handshake_backend/BackendPackingWork/check_aig_resource_scan.py": "fc98d9373cc84bf34ea94a09cde230ca9228c61fe1006452850c9dcc5a882f56",
     "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
-    "backend_adapter/aig_packed.py": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630"
   },
-  "binary_sha256": "2141cbec093654eec3fb1563c485729bb042172ff67f8e97d9a6825930c5530a"
+  "binary_sha256": "709905a81fe24ab9437e828ed841e08066ca86f86d89247a422f73887e68279a"
 }

@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix='tls-aig-scan-check-') as folder:
   p=Path(folder)/'dag.json';p.write_text(json.dumps(image));actual=json.loads(subprocess.check_output([str(binary),str(p)]));expected=statistics(image)
   for k,v in expected.items():assert actual[k]==v,(case,k,actual[k],v)
   _,groups=plan(image)
-  expected.update(nodes=len(nodes),and_depth=max((k[0] for k,g in groups),default=0),maximum_local_xor_depth=max((k[1] for k,g in groups),default=0),and_groups=sum(k[2]==1 for k,g in groups),xor_groups=sum(k[2]==2 for k,g in groups),packed_and_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==1),packed_xor_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==2))
+  expected.update(singleton_and_batches64=sum(len(g)%64==1 for k,g in groups if k[2]==1),nodes=len(nodes),and_depth=max((k[0] for k,g in groups),default=0),maximum_local_xor_depth=max((k[1] for k,g in groups),default=0),and_groups=sum(k[2]==1 for k,g in groups),xor_groups=sum(k[2]==2 for k,g in groups),packed_and_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==1),packed_xor_batches64=sum((len(g)+63)//64 for k,g in groups if k[2]==2))
   assert expected==actual,(case,expected,actual)
   traced=json.loads(subprocess.check_output([str(binary),str(p),'--critical']))
   for key,value in expected.items():assert traced[key]==value,(case,key)

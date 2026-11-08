@@ -1,0 +1,23 @@
+{
+  "scope": "Static same historical Boolean graph, current packing plan; not native execution or SHA-profile comparison",
+  "artifact_sha256": "fc49fae8f2d50d70ae33ca59841540878a51e52dc5c39f9bbf1f9cfab4610dbe",
+  "resources": {
+    "nodes": 25315873,
+    "raw_and_gates": 25310216,
+    "executed_and_gates": 6738497,
+    "executed_xor_gates": 6578452,
+    "unreachable_nodes": 11993272,
+    "and_depth": 114049,
+    "maximum_local_xor_depth": 191,
+    "and_groups": 114049,
+    "xor_groups": 991058,
+    "packed_and_batches64": 173314,
+    "singleton_and_batches64": 604,
+    "packed_xor_batches64": 1027737
+  },
+  "avoidable_legacy_singleton_AND_triples": 23556,
+  "source_sha256": {
+    "handshake_backend/BackendPackingWork/aig_resource_scan.cpp": "9716b86a5683428b960dc36b003c6bc193d5c7af5e411c18f8473fe507a0ed1f",
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630"
+  }
+}
