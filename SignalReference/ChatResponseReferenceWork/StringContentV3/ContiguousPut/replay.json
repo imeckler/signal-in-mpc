@@ -1,0 +1,9 @@
+{
+  "candidate_only": true,
+  "source_sha256": "c76d0a846cf6e2c42af7acf0bbedc49a30ce3b9185392835c6a6f8b06a128b9e",
+  "original_body_sha256": "250e51d207a3a4e5eac1d15fe3d4326e4bc275e697502f41fb90892aa77da36f",
+  "output_sha256": "59e905fd6442a02781e572a78b8f8d32fb29db8aeaa4868408350bb73cb21f27",
+  "script_sha256": "e119b8a49c177e95dbf34660dcfbdfc1d3d332b6083e1abef526a04dde3f8b79",
+  "changes": "Rename self to value; concrete buffer Take<&mut &[u8]> introduced before unchanged body. Loop, operations, arguments and ordering unchanged.",
+  "domain": "Safe Sized contiguous immutable shared-slice buffer, modeled successful bounded Vec allocation; no general Buf claim."
+}

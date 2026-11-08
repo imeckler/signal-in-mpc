@@ -1,0 +1,33 @@
+{
+  "candidate_only": true,
+  "scope": "Actual accepted generic Vec.put loop equals guarded single-body control on explicit canonical contiguous Take content. Includes errors/divergence and exact successful body suffix. No full String/raw-trait source composition claim.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/check_loop.py": "ab5eed3a765379608429a5121ad8ce7fd5ece74d71fd2cf750fd8f3e4073c378",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/replay.py": "e119b8a49c177e95dbf34660dcfbdfc1d3d332b6083e1abef526a04dde3f8b79",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/replay.json": "8ac7e3dcde2104db83f2a854f57864e0d7836b73f400ddb786f697c06b01c8ec",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/LoopLowering.lean": "b8c2947e0439be417bdf355497041a0766a67943871360784db745709e96cd60",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/CanonicalTake.lean": "580bb3a19c4be55583855ab0642c01790349ad997401500a8d8d20ba15801b76",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust/Cargo.toml": "dbd8445fe885938783983b4b70826fca992b0e3227fed00a5bea4f8ae17291d1",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust/Cargo.lock": "74548d7e5ee2b7bf955d1a0794e9b03b9b3447bbde4599b3549b71801f5b9a0b",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust/.cargo/config.toml": "03c9029ae601d154dec80207b6c1f3e8453887786f00df6097c073b569c51c4d",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust/src/lib.rs": "59e905fd6442a02781e572a78b8f8d32fb29db8aeaa4868408350bb73cb21f27",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust/src/bin/check.rs": "f6bd1ceee0419be646575af2f8061cd5e68d9017f3c21687907b257be8153af1"
+  },
+  "actual_loop_dependencies_sha256": {
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Generated/vec_replace_put_body/Funs.lean": "069d578d42dd7452602e970c6432bcd3756d272c13cdffe6172b74e11150e372",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Generated/vec_replace_put_body/Types.lean": "75d72471b99850e8f1655680d67a059390a17f6444051e7b6d204b469b6fd9b0",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Modules/ProtoParseWork/BytesReferenceWork/Generated/vec_replace_put_body/FunsExternal.lean": "6b8453aec5b34eae032d6aae82e1fba7f624945547863fb3aafd490114dc45cd",
+    "SignalReference/ProtoParseWork/BytesReferenceWork/Modules/BytesReferenceWork/VecReference.lean": "03f795c21ad6f1ed5535b51a4447291239673de3616775558d76fb04d7f40ad9"
+  },
+  "pinned_bytes_source_sha256": "c76d0a846cf6e2c42af7acf0bbedc49a30ce3b9185392835c6a6f8b06a128b9e",
+  "native_log": "   Compiling bytes v1.12.0\n   Compiling contiguous-put-reference v0.1.0 (/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Rust)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running `/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Build/native/debug/check`\nCompared 7020 actual/original-replay/guarded-single-body Vec results and exact suffixes\n",
+  "kernel_log": "Checking StringContentV3.ContiguousPut.LoopLowering\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/LoopLowering.lean:26:13: warning: This simp argument is unused:\n  uncurry_apply_pair\n\nHint: Omit it from the simp argument list.\n  simp only \u0335[\u0335u\u0335n\u0335c\u0335u\u0335r\u0335r\u0335y\u0335_\u0335a\u0335p\u0335p\u0335l\u0335y\u0335_\u0335p\u0335a\u0335i\u0335r\u0335]\u0335\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/LoopLowering.lean:28:15: warning: This simp argument is unused:\n  first\n\nHint: Omit it from the simp argument list.\n  simp only [f\u0335i\u0335r\u0335s\u0335t\u0335,\u0335bind_tc_ok, \u0332bind_tc_fail, \u0332bind_tc_div]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.ContiguousPut.loop_lowering' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.ContiguousPut.body_suffix' depends on axioms: [propext, Quot.sound]\nChecking StringContentV3.ContiguousPut.CanonicalTake\n'ChatResponseReference.ContiguousPut.take_advance_view' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ContiguousPut.canonical_stop' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ContiguousPut.canonical_lowering' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Build/loop-final/ChatResponseReferenceWork/StringContentV3/ContiguousPut/LoopLowering.olean": "ce15d7c0c420bdf1b2ddda5c4c9f3592a04dccf822617fa80b0aeade0bebab2e",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StringContentV3/ContiguousPut/Build/loop-final/ChatResponseReferenceWork/StringContentV3/ContiguousPut/CanonicalTake.olean": "1b527a3b7a44f50c3c500e07874b530dedfdf381e09ce2e9c1f84854248e92a1"
+  },
+  "remaining": [
+    "Raw/trait ABI and actual Std Take content bridge of the specialized generated copier.",
+    "Kernel-check generated copier and compose actual String/owned-error result."
+  ]
+}
