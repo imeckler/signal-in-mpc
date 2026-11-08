@@ -70,3 +70,30 @@ Validation: both default and text-fixture workers compile/link; Lean controller
 checks;1481 ASAN/UBSAN framing/bounds/replay checks;25-op Lean/C++ pipe,32-exchange
 concurrent pipe and duplex pipe checks;26 application-contract rejections pass.
 No five-party mux/text/lifecycle or throughput pass is asserted by these checks.
+
+Native four-text milestone (raw a30680461a80ab54)
+
+All five parties exited0; four nonempty UTF8 texts from two genuinely distinct
+Signal/PQ states were recovered by the actual pinned recipient session. Reversed
+response pairs, five pongs, client KeyUpdate, private correlation and terminal
+abort passed; cleanup errors were empty. Source/product hashes, nine supplemental
+endpoint/oracle dependencies and canonical runtime hashes stayed unchanged.
+This is a local disposable recipient/service fixture, not a live account or
+complete source-refinement/security/refresh claim.
+
+Performance baseline is explicitly limited. The driver reports959.434 awake
+seconds using Python3.9 mach_absolute_time; sequential C++ RPC measurements sum
+1201.916 seconds using CLOCK_MONOTONIC_RAW, including suspend. These clocks differ
+on this Mac; a386s first crypto interval cannot establish cold-start/loader cost.
+No active steady-state throughput is inferred. The four-send persistent RPC
+window used20,821,778,000 party0 worker protocol payload bytes (~5.205GB/message),
+excluding transport overhead/retirement-tail traffic. Linear scaling to27.8/s
+would require~144.6GB/s per party with the same work. Bytes by field/binary domain
+and loader-only time were not isolated. Adapter descriptor prefix lookup failed
+in the preprocessing receipt (complete=false); those zero-call/actual_available
+rows do not establish actual consumption. The future instrumentation fix was
+compile-checked after the snapshot; the expensive run was not repeated for logs.
+
+The optional analyzer deduplicates cumulative snapshots repeated by idempotent
+abort and does not add nested stage times. Compiler/preprocessing demand, actual
+usage and wall-time clock semantics remain distinct in the baseline report.

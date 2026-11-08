@@ -1,0 +1,207 @@
+{
+  "functional_pass": true,
+  "raw_directory": "benchmarks/results/raw/native-text-mux-profile/a30680461a80ab54",
+  "controllers": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cleanup_errors": [],
+  "source_integrity_verified": true,
+  "endpoint_dependencies": {
+    "unchanged": true,
+    "changed": [],
+    "source_and_product_sha256": {
+      "signal_backend/VariableServiceWork/fixture_server.py": "dd1f3d39edb4815cf1d066620fbdb4004038d68bbc882ce79f3e8f16e23bbf12",
+      "signal_backend/Oracle/src/bin/signal-text-recipient-oracle.rs": "0cce4f496bfc8a9c0553b1de75f5104b66a0d2e6e0869d6ca97c933606a9125f",
+      "signal_backend/Oracle/src/bin/signal-chat-response-oracle.rs": "3070941013ddabc7fd8432c92c5e2252b2428605f4dbe123c923d9244bfead69",
+      "signal_backend/Oracle/src/main.rs": "9b8e1b173852269f2dfbbf1edb5db5fdd0fd76b5f9721b4fae22a2ac85d17b8c",
+      "signal_backend/Oracle/Cargo.toml": "3e71c08548a621a01257c46e1bb37fc63e2747baad30f8ae6a04964519f3be56",
+      "signal_backend/Oracle/Cargo.lock": "c9804860aa6cf73a78ba995a5f172c6751f5aedd129d4bebac8eae4f9661842a",
+      ".deps/signal-established-send-oracle-target/debug/signal-text-recipient-oracle": "a98139d7d6b43049a87df37958976a5655509d68ac504b7948471d50a4799bc3",
+      ".deps/signal-established-send-oracle-target/debug/signal-established-send-oracle": "300664bf044730e690f03f1264e45fb07010376f1ae20ae6538c924d68992d07",
+      ".deps/signal-established-send-oracle-target/debug/signal-chat-response-oracle": "2da7c1312db00405f218d2e369e02051b42dd0c738c6834db58145014e9c8aaf"
+    }
+  },
+  "endpoint": {
+    "tls13_h1": true,
+    "upgrade_authenticated": true,
+    "actual_session_texts_recovered": 4,
+    "independent_conversations": 2,
+    "actual_sealed_certificate_verified": true,
+    "same_body_request_timestamp_verified": true,
+    "private_client_plaintext_opened": false,
+    "receiver_only_disposable_state": true,
+    "responses_reordered": true,
+    "response_ids_copied": true,
+    "interleaved_pongs_validated": 5,
+    "live_account_side_effects": false
+  },
+  "external_tls_bytes": {
+    "external_tls_received_bytes": 6646,
+    "external_tls_sent_bytes": 2253,
+    "client_finished_accepted": true,
+    "clean_endpoint_completion": true
+  },
+  "driver_awake_elapsed_seconds": 959.434412417002,
+  "clock_limits": "driver Python3.9 mach_absolute_time excludes macOS suspend; C++ steady_clock uses CLOCK_MONOTONIC_RAW and includes it; do not compare or infer cold-start cost from mismatched totals",
+  "performance_is_not_steady_state": true,
+  "target_messages_per_second": 27.77777777777778,
+  "party0_persistent_window": {
+    "successful_productions": 4,
+    "sum_rpc_seconds": 1045.4706925,
+    "messages_per_cpp_rpc_clock_second": 0.003826027863521387,
+    "worker_payload_bytes": 20821778000,
+    "scope": "first produce to last response; C++ steady_clock includes system suspend on this macOS runtime; excludes controller inter-call time; not active steady-state throughput; stage/epoch subtotals overlap"
+  },
+  "party0_stage_totals": {
+    "rpc.9": {
+      "calls": 1,
+      "elapsed_seconds": 0.001434125,
+      "failed": 0
+    },
+    "rpc.1": {
+      "calls": 1,
+      "elapsed_seconds": 0.612500958,
+      "failed": 0
+    },
+    "rpc.10": {
+      "calls": 13,
+      "elapsed_seconds": 0.01841479,
+      "failed": 0
+    },
+    "rpc.11": {
+      "calls": 6,
+      "elapsed_seconds": 0.007346,
+      "failed": 0
+    },
+    "rpc.2": {
+      "calls": 1,
+      "elapsed_seconds": 41.51168625,
+      "failed": 0
+    },
+    "rpc.3": {
+      "calls": 4,
+      "elapsed_seconds": 14.104257623999999,
+      "failed": 0
+    },
+    "rpc.4": {
+      "calls": 1,
+      "elapsed_seconds": 0.004239791,
+      "failed": 0
+    },
+    "rpc.5": {
+      "calls": 1,
+      "elapsed_seconds": 13.974901709,
+      "failed": 0
+    },
+    "rpc.6": {
+      "calls": 1,
+      "elapsed_seconds": 41.9354365,
+      "failed": 0
+    },
+    "epoch.renew": {
+      "calls": 28,
+      "elapsed_seconds": 0.5722103730000001,
+      "failed": 0
+    },
+    "content.builder": {
+      "calls": 4,
+      "elapsed_seconds": 1.968056417,
+      "failed": 0
+    },
+    "rpc.7": {
+      "calls": 1,
+      "elapsed_seconds": 2.066315792,
+      "failed": 0
+    },
+    "rpc.22": {
+      "calls": 1,
+      "elapsed_seconds": 0.000886958,
+      "failed": 0
+    },
+    "upgrade.builder": {
+      "calls": 1,
+      "elapsed_seconds": 0.108542667,
+      "failed": 0
+    },
+    "rpc.23": {
+      "calls": 1,
+      "elapsed_seconds": 0.147586541,
+      "failed": 0
+    },
+    "rpc.13": {
+      "calls": 10,
+      "elapsed_seconds": 47.945383209,
+      "failed": 0
+    },
+    "rpc.17": {
+      "calls": 14,
+      "elapsed_seconds": 0.023744874000000003,
+      "failed": 0
+    },
+    "rpc.12": {
+      "calls": 10,
+      "elapsed_seconds": 16.144940377,
+      "failed": 0
+    },
+    "receive.response": {
+      "calls": 10,
+      "elapsed_seconds": 220.565027709,
+      "failed": 0
+    },
+    "rpc.25": {
+      "calls": 10,
+      "elapsed_seconds": 220.770258749,
+      "failed": 0
+    },
+    "request.id": {
+      "calls": 4,
+      "elapsed_seconds": 0.299429501,
+      "failed": 0
+    },
+    "provider.crypto": {
+      "calls": 4,
+      "elapsed_seconds": 785.472958292,
+      "failed": 0
+    },
+    "rpc.24": {
+      "calls": 4,
+      "elapsed_seconds": 786.490990916,
+      "failed": 0
+    },
+    "rpc.14": {
+      "calls": 1,
+      "elapsed_seconds": 0.35611025,
+      "failed": 0
+    },
+    "rpc.15": {
+      "calls": 1,
+      "elapsed_seconds": 15.78880275,
+      "failed": 0
+    },
+    "epoch.abort": {
+      "calls": 1,
+      "elapsed_seconds": 0.000521,
+      "failed": 0
+    },
+    "rpc.8": {
+      "calls": 2,
+      "elapsed_seconds": 0.011033999999999999,
+      "failed": 0
+    }
+  },
+  "party0_pinned_verification_seconds": 3.134697065,
+  "party0_observed_binary_machine_run_seconds": 397.022011104,
+  "observed_worker_payload_bytes_per_message": 5205444500.0,
+  "linear_scaling_required_payload_bytes_per_second_per_party_at_target": 144595680555.55557,
+  "runtime_preprocessing_actual_usage_available": false,
+  "compiler_demand_receipt_complete": false,
+  "resource_receipt_limit": "native adapter descriptor names lacked Programs/Functions prefix; complete=false; zero-call rows/actual_available=true on those failed rows are invalid usage evidence. Future instrumentation fixed without rerun.",
+  "domain_byte_split_available": false,
+  "machine_prepare_time_isolated": false,
+  "raw_report_sha256": "dc1e171454c25d0e3e06969c6ca2f1c68985fe4f8081c703f3bf96a3ca0b45b6",
+  "public_metrics_sha256": "2e1b4782c700ce01cc5e6e467ddf44ebbbbb953cc7a13461566615a51827e241"
+}

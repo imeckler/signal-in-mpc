@@ -22,7 +22,7 @@ private:
     Machine<tls_mpc_worker::Share>& machine;unsigned party;
     Counts sealed,external;bool terminal=false;
     struct FunctionTotals {
-        size_t calls=0,timed_calls=0;uint64_t verification_ns=0,machine_run_ns=0;bool initialized=false,declared_known=false,actual_available=true;
+        size_t calls=0,timed_calls=0;uint64_t verification_ns=0,machine_run_ns=0;bool initialized=false,declared_known=false,actual_available=false;
         DataPositions per_call,declared_total,actual_total;
     };
     std::map<std::string,FunctionTotals> functions;
@@ -80,16 +80,18 @@ public:
     }
     void function_resources(const std::string& descriptor,uint64_t verify_ns=0,uint64_t run_ns=0,bool timed=false) noexcept {
         try {
-            auto& total=functions[descriptor];
+            const auto path=descriptor.rfind("Programs/Functions/",0)==0?descriptor:"Programs/Functions/"+descriptor;
+            auto& total=functions[path];
+            ++total.calls;
+            if(timed){++total.timed_calls;total.verification_ns+=verify_ns;total.machine_run_ns+=run_ns;}
             if(!total.initialized){
-                std::ifstream file(descriptor);std::string program;size_t tape;file>>program>>tape;
+                std::ifstream file(path);std::string program;size_t tape;file>>program>>tape;
                 if(!file||tape>=machine.progs.size()){resources_complete=false;return;}
                 auto& selected=machine.progs[tape];total.per_call=selected.get_offline_data_used();
                 total.declared_known=!selected.usage_unknown();total.initialized=true;
             }
-            ++total.calls;total.declared_total.increase(total.per_call);
-            if(timed){++total.timed_calls;total.verification_ns+=verify_ns;total.machine_run_ns+=run_ns;}
-            if(auto actual=actual_usage(machine))total.actual_total.increase(*actual);
+            total.declared_total.increase(total.per_call);
+            if(auto actual=actual_usage(machine)){total.actual_total.increase(*actual);total.actual_available=true;}
             else total.actual_available=false;
         }catch(...){resources_complete=false;}
     }
