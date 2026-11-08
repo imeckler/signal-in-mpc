@@ -33,7 +33,7 @@ public:
         public_require(player.num_players()==5,"TLS worker requires five parties");
         public_require(manifest.size()==32&&session_id.size()==32,"invalid worker context");
         public_require(sodium_init()>=0,"random initialization failed");
-        const std::string label="tls-mpc-worker-public-v3;shamir5t2;fp25519;ccd128;security128;dabit;shape-extensions";
+        const std::string label="tls-mpc-worker-public-v4;shamir5t2;fp25519;ccd128;security128;dabit;typed-shape-extensions";
         context.assign(label.begin(),label.end());
         context.insert(context.end(),manifest.begin(),manifest.end());
         context.insert(context.end(),session_id.begin(),session_id.end());
@@ -44,9 +44,10 @@ public:
         auto frame=encode_request(request); auto bound=context;
         bound.insert(bound.end(),frame.begin(),frame.end()); identical(digest(bound));
     }
-    void agree_program(size_t wire_bytes,const PublicBytes& manifest) {
-        public_require(wire_bytes>=22&&wire_bytes<=16406&&manifest.size()==32,"invalid program extension context");
-        auto bound=context;bound.push_back(0x50);put_number(bound,wire_bytes,4);
+    void agree_program(const std::string& shape,const PublicBytes& manifest) {
+        public_require(!shape.empty()&&shape.size()<=128&&manifest.size()==32,"invalid program extension context");
+        auto bound=context;bound.push_back(0x50);put_number(bound,shape.size(),4);
+        bound.insert(bound.end(),shape.begin(),shape.end());
         bound.insert(bound.end(),manifest.begin(),manifest.end());identical(digest(bound));
     }
     template<class Action> PublicBytes leader(Action&& action) {

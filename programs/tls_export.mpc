@@ -49,10 +49,12 @@ elif mode in ('binary', 'binary-packed'):
     def evaluate(inputs, outputs):
         if mode == 'binary-packed':
             from backend_adapter.aig_packed import execute_mpc
-            result = execute_mpc(image, read_bits(inputs))
+            from handshake_backend import binary_io
+            result = execute_mpc(image, binary_io.read_bits(inputs))
+            binary_io.write_bits(outputs, result)
         else:
             result = execute_boolean(image, read_bits(inputs))
-        write_bits(outputs, result)
+            write_bits(outputs, result)
     evaluate.__name__ = 'tls_binary_' + stem.replace('-', '_')
     function = export(evaluate)
     function(BitArray(image['input_bits']), BitArray(len(image['outputs'])))

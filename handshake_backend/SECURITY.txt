@@ -272,10 +272,29 @@ ApplicationPolicy enforces native reservations, exact sequences, record budget,
 crossed/requested update rules, send-before-rotate and half-close. Native send
 matches the reserved ciphertext. The native parser opens only event/request2;
 DEFER reuses the original shared record/state and never commits placeholders.
-Kernel descriptors must already be pinned; dynamic application-shape preparation
-and full-size control kernels are unfinished. These methods compile/link but
+Missing kernel descriptors are prepared through the boot-pinned public compiler.
+Checked shape identifiers bind operation, dimensions, and manifest hash to the
+v4 collective context before registration. Open/route/post-handshake capacity
+and seal content/padding bounds match the AES-GCM record profile; the full parser
+is compiled only after its public DEFER event, using the original shared input.
+The former 1024-byte exporter cap is removed. This is provisioning support, not
+evidence that every maximum-size kernel has compiled or executed. These methods compile/link but
 have not run inside MPC. application_ready remains false, retirement throws,
 and rotations explicitly refuse to acknowledge unimplemented old-key erasure.
+
+Application-shape component checks (2026-11-08):
+KernelShape and the public compiler bind operation, dimensions and exact program
+closure. Ten actual Lean/compiler/numeric fixtures cover application sealing,
+opening, routing and post-handshake handling, including a 1025-byte payload and
+the 16385-byte router capacity. Maximum-size AES opening/sealing and maximum-size
+full post-handshake parsing have not been executed by these checks.
+The packed adapter now uses bulk single-bit-array memory I/O in chunks of at most
+64, preserving native sbv:[Nx1] argument layouts and exact partial-tail lengths.
+The dedicated application_shape_fixture is a public synthetic component harness:
+it opens all its outputs on purpose, tests protocol-produced share reuse and
+authentication rejection, and never activates Session or supplies live keys.
+Neither numeric/compiler checks nor this harness establish proactive security,
+complete application integration, erasure or the Signal throughput target.
 
 Opcode17 polls one record without blocking the worker. Partial public ciphertext
 is buffered with the standard16640-byte body bound, leaving other operations

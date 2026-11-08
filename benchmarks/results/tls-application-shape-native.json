@@ -1,0 +1,49 @@
+{
+  "checked_at_utc": "2026-11-08T02:42:09.357468+00:00",
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "statistical_security_parameter": 128,
+  "binary_field_degree": 128,
+  "capacity": 16385,
+  "fixture": "public synthetic full-length application router input; actual output shares reused as inputs; bad-authentication rejection",
+  "source_sha256": {
+    "handshake_backend/application_shape_fixture.cpp": "4037ddb8d7ff27bdc2a2221332fb0f157c76d75b53263fa097d28aa5357c849f",
+    "handshake_backend/NativeWorker.h": "8502029ad211e4e13cc906c6a00ca8ede3b56170882d45c18c05f62819fd58d3",
+    "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
+    "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
+    "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
+    "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
+    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/binary_io.py": "3d5df8fa5ba534d9a2e708f76be9615255c501baa1e4ae485b65e2de2b7525c7",
+    "scripts/check_tls_application_shape_native.py": "d2bea92f3fab4f98a142c7cbd747db028906eb34a0a572aca156ca7baadfee26"
+  },
+  "executable_sha256": "1975b84c5550afe5c094c97ffaefe46e06e88842556777d2e43bd951985e9e87",
+  "manifest_sha256": "68fb6fdd7dcbda541b79e9c2369ba2b0de40ab27eb061b6fd919a1a0b978f8d4",
+  "backend": ".deps/sharing-refresh/tls-application-shapes-v2",
+  "program_extension_sha256": "b09f8f4e54c8b12fbe5d1ea3da1050b17504d52d281081d499de20df96face85",
+  "logs": "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988",
+  "native_mpc_executed": true,
+  "tls_application_session_executed": false,
+  "full_vm_erasure_implemented": false,
+  "wan_throughput_measured": false,
+  "checked_calls_per_party": 3,
+  "protocol_produced_shares_reused": true,
+  "collective_program_agreement_executed": true,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "elapsed_seconds": 5.317127457936294,
+  "log_sha256": {
+    "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988/party-0.log": "3830e7e9f1e007c9baa488c86d20b7c20555d32a656f5f78f04196e985f93c0a",
+    "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988/party-1.log": "3830e7e9f1e007c9baa488c86d20b7c20555d32a656f5f78f04196e985f93c0a",
+    "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988/party-2.log": "3830e7e9f1e007c9baa488c86d20b7c20555d32a656f5f78f04196e985f93c0a",
+    "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988/party-3.log": "3830e7e9f1e007c9baa488c86d20b7c20555d32a656f5f78f04196e985f93c0a",
+    "benchmarks/results/raw/tls-application-shape-native/5353d6fa7b99c988/party-4.log": "3830e7e9f1e007c9baa488c86d20b7c20555d32a656f5f78f04196e985f93c0a"
+  }
+}

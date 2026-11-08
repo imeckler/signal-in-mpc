@@ -1,0 +1,255 @@
+{
+  "checked_at_utc": "2026-11-08T02:07:48.410079+00:00",
+  "complete": false,
+  "native_mpc_executed": false,
+  "collective_network_agreement_executed": false,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false,
+  "source_sha256": {
+    "Main.lean": "249d86a160042df5a8c1b9bdeb00e9eb331e852dccd61d12e86347558a269a30",
+    "scripts/prepare_tls_shape.py": "ce418b5d58043438e7b7c2f6521bd292268212fa2c78d21758c1557c4f2f2674",
+    "scripts/check_tls_application_shapes.py": "cd54eff6b9bdb927ddb118834e4832efc8308bbc1fcac4f43f1428d13ec7dd84",
+    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
+    "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
+    "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
+    "handshake_backend/NativeSession.h": "c9b2dcf0a172e51eed3bf791fcdc44c9b89176d199d5694a029764f56e05cce4",
+    "handshake_backend/worker_main.cpp": "c8ef2a74998ad31a7fde3b9d9f7d5af0409cd8831a55afd45163cb1d90062009",
+    "handshake_backend/shape_compiler_probe.cpp": "8bc6f7f29bf1bc742846550499fcd95b4a07368b6d369f391adc6eefc6c531b1",
+    "handshake_backend/kernel_shape_checks.cpp": "8d65f9e72213e41bbe997c201913b2e791f836831bc328eb0c740bab950b21bf",
+    "programs/tls_export.mpc": "a77254b225922f41741ede00ea4cb5999ee5fe82409a1721c487f0fc77f3fb62",
+    "backend_adapter/aig_packed.py": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+  },
+  "cases": [
+    {
+      "shape": [
+        "tls-open-handshake-record",
+        "38"
+      ],
+      "compiler_spawn_seconds": 0.27729466708842665,
+      "cache_preexisting": true,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "cc31a11f6c883cab268431f9fd68ecbb31f7cd21d6edd1b3c24e176455da6ca6",
+      "manifest_sha256": "c1a5a4259fa60e6cac86f97288806bfda2cbbb1eebdb10f240a993d8ccb029cd",
+      "statistics": {
+        "raw_and_gates": 456500,
+        "executed_and_gates": 74653,
+        "executed_xor_gates": 127676,
+        "unreachable_nodes": 254171
+      }
+    },
+    {
+      "shape": [
+        "tls-seal-record",
+        "23",
+        "1025",
+        "3"
+      ],
+      "compiler_spawn_seconds": 0.7057445829268545,
+      "cache_preexisting": true,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "3c94f18793272cbe3a0d2d3a9d63ad3a0c6ed5f66b69d81f810c6bfdb0ff4231",
+      "manifest_sha256": "d0abe36aaac75ea917591758d3186f24583ab745524e4575a053d8691870ec76",
+      "statistics": {
+        "raw_and_gates": 7951540,
+        "executed_and_gates": 1368606,
+        "executed_xor_gates": 2200280,
+        "unreachable_nodes": 4382654
+      }
+    },
+    {
+      "shape": [
+        "tls-open-record",
+        "1050"
+      ],
+      "compiler_spawn_seconds": 0.7220152079826221,
+      "cache_preexisting": true,
+      "numeric_fixture_lanes": 4,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "feadf3dd5aed2a8e43194d8fbc824f4b810ac686fc5ebfc0865996986230b09a",
+      "manifest_sha256": "9b1c09e08d0fbcdf8fe66ebced5d358e06a52ba61465ae5d477ce036a225762f",
+      "statistics": {
+        "raw_and_gates": 8322225,
+        "executed_and_gates": 1466361,
+        "executed_xor_gates": 2291348,
+        "unreachable_nodes": 4564516
+      }
+    },
+    {
+      "shape": [
+        "tls-route-application",
+        "1029"
+      ],
+      "compiler_spawn_seconds": 53.22551537491381,
+      "cache_preexisting": false,
+      "numeric_fixture_lanes": 5,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "075a6a21912113e250dfaa6d55ab6b4362dade707a2f6d4fa429576c726a1ecb",
+      "manifest_sha256": "11a120711b3f96817c22c337944e13472d7739e742fc9be7defb91957e2875cb",
+      "statistics": {
+        "raw_and_gates": 17086,
+        "executed_and_gates": 16799,
+        "executed_xor_gates": 27,
+        "unreachable_nodes": 260
+      }
+    },
+    {
+      "shape": [
+        "tls-post-handshake",
+        "5"
+      ],
+      "compiler_spawn_seconds": 0.9012023749528453,
+      "cache_preexisting": false,
+      "numeric_fixture_lanes": 4,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "d8a0597e5bb7130a3d571240614c2fbb1f214edcb899014aab689cf6db806507",
+      "manifest_sha256": "c0ab5463761fd44060c52ab67a875f7bd30f05dca96d535ce9574c314aeffecd",
+      "statistics": {
+        "raw_and_gates": 15738,
+        "executed_and_gates": 6138,
+        "executed_xor_gates": 3244,
+        "unreachable_nodes": 6356
+      }
+    },
+    {
+      "shape": [
+        "tls-seal-record",
+        "22",
+        "5",
+        "0"
+      ],
+      "compiler_spawn_seconds": 5.984205749933608,
+      "cache_preexisting": false,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "636a2e457dd241fc6d520c063f9a72a1210ca2d223870fcae4bc8acf1a4425d8",
+      "manifest_sha256": "f2200957f02822a1cebf0fda33b47024b74e7f896c6866c121e8edd9d6174704",
+      "statistics": {
+        "raw_and_gates": 324688,
+        "executed_and_gates": 47994,
+        "executed_xor_gates": 92548,
+        "unreachable_nodes": 184146
+      }
+    },
+    {
+      "shape": [
+        "tls-seal-record",
+        "21",
+        "2",
+        "0"
+      ],
+      "compiler_spawn_seconds": 5.831806000089273,
+      "cache_preexisting": false,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "69713b0f6cf54753e5451065f411027731d5eaa6012149b3ee92f8a2a8e822b0",
+      "manifest_sha256": "caf78f083dee85a9d2989ba196bdb1477830a8fee9d715ce48b858cc20c7379e",
+      "statistics": {
+        "raw_and_gates": 321664,
+        "executed_and_gates": 47770,
+        "executed_xor_gates": 91610,
+        "unreachable_nodes": 182284
+      }
+    },
+    {
+      "shape": [
+        "tls-seal-record",
+        "23",
+        "0",
+        "0"
+      ],
+      "compiler_spawn_seconds": 5.672857458004728,
+      "cache_preexisting": false,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "f39b904c5df418ac871ceea80575210c481c8aec79fc083db5b6ea12425239d6",
+      "manifest_sha256": "b76541e24f2431c7393352cb23b3332b2346b49cffb2460237310efa11dfd55d",
+      "statistics": {
+        "raw_and_gates": 317068,
+        "executed_and_gates": 47450,
+        "executed_xor_gates": 90178,
+        "unreachable_nodes": 179440
+      }
+    }
+  ],
+  "cpp_python_shape_checks": "40 valid shapes; 24 invalid shapes rejected",
+  "invalid_python_shapes": [
+    [
+      "tls-open-record",
+      "16407"
+    ],
+    [
+      "tls-route-application",
+      "16386"
+    ],
+    [
+      "tls-post-handshake",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "23",
+      "16384",
+      "1"
+    ],
+    [
+      "tls-seal-record",
+      "22",
+      "0",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "20",
+      "1",
+      "0"
+    ],
+    [
+      "tls-open-record",
+      "-1"
+    ],
+    [
+      "tls-open-record",
+      "38junk"
+    ],
+    [
+      "tls-open-record",
+      "\u0663\u0668"
+    ],
+    [
+      "../program",
+      "38"
+    ]
+  ],
+  "failed_shape": [
+    "tls-route-application",
+    "16385"
+  ],
+  "failure": "Command failed (1): [PosixPath('/Users/izzy/repos/tls-mpc/.deps/sharing-refresh/tls-shape-probe'), PosixPath('/Users/izzy/repos/tls-mpc/.deps/sharing-refresh/tls-application-shapes-v1/boot.manifest'), 'tls-route-application', '16385', 'accept']\n\nshape compilation failed\n"
+}

@@ -709,3 +709,49 @@ RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
   PRNG erasure is unfinished. This is not a completed application client.
 - Signal Astra high remains active on quarantined skip/group refinement.
   Sharing refresh remains paused. No root native processes are running.
+
+2026-11-08 update (TLS application shapes and Signal refinement checkpoints)
+- Git commits dc52faa, 48e8269, and 82a4448 preserve root-reviewed recursive
+  Prost skip semantics, conditional numeric skip-plan agreement, and actual
+  uint32 merge refinement respectively. Scope remains explicitly conditional;
+  no whole-parser/artifact theorem or new bytes-model acceptance is claimed.
+  Exact LLBC snapshots now cover 130 paths, all round trips verified.
+- TLS shape provisioning now covers application seal/open/router/post-handshake
+  kernels with checked public operation/dimensions and typed all-party manifest
+  agreement (collective context v4). Lean export limits cover record bounds.
+  NativeSession prepares the full post-handshake parser only on public DEFER,
+  using the original shared input. Application retirement gates are unchanged.
+- Packed exports now use bulk single-bit-array memory I/O in chunks <=64,
+  preserving sbv:[Nx1], bit order, and exact partial tails. No values are opened
+  by this adapter. It and the native compiler/runtime remain unverified.
+- Ten compiler/numeric shape cases passed in immutable cache
+  .deps/sharing-refresh/tls-application-shapes-v2, including a 1025-byte seal,
+  1050-byte opener, control records, and capacity-16385 router. Maximum router
+  compilation took 21.113 seconds. Historical scalar-I/O partial/failure
+  reports are retained separately; do not mistake them for final results.
+  Cross-language shape checks covered 40 valid/24 invalid C++ shapes, 10 invalid
+  Python shapes, and seven invalid Lean exports. Full maximum AES and full
+  maximum post-handshake-parser compilation/execution remain untested.
+- Final public synthetic five-party native router fixture passed capacities
+  6, 1029, 16385 in 0.344, 0.640, 5.317 seconds respectively (three calls each).
+  Each run performs actual Collective.agree_program before registration,
+  reuses protocol-produced shares, exercises partial tails and auth rejection.
+  All outputs deliberately open because fixture data is public. Sources,
+  executable, manifests, and all 15 logs independently hash-checked.
+  See tls-application-io-native-checks.json. This is not application activation,
+  WAN throughput, maximum AES timing, or a production security/erasure proof.
+- Lean emitter build, native worker/probe build, 12 boundary checks including
+  sanitizers, and 16 shape-cache checks passed. Synthetic native TLS stages
+  passed through finish with all five parties then refusing retirement as
+  intended; tls-native-worker-network.json is current. Its certificate decision
+  is stubbed. Historical authenticated OpenSSL handshake evidence remains in
+  tls-native-handshake.json and must not be confused with this fixture.
+- Full VM/register/backing allocation/preprocessing/PRNG erasure remains the
+  application blocker: retire/rotate still fail closed and application_ready
+  remains false. Durable opaque handles, private Signal/H2 integration,
+  proactive epochs, complete Signal refinements and throughput remain open.
+- Signal Astra high remains active. XEdDsaWork/completion.json is frozen and
+  root-review pending (62 endpoints, 34 owned files, SHA256 prefix 352b0015).
+  Its Astra-high helper continues separate PreKeyWork. TopFieldWork and
+  BytesReferenceWork are in progress; new bytes models are not accepted yet.
+  Sharing refresh remains paused. Root test/build handles are all terminal.

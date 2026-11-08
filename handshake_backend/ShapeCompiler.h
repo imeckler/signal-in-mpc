@@ -1,5 +1,6 @@
 #pragma once
 #include "PinnedPrograms.h"
+#include "KernelShape.h"
 #include <spawn.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -12,12 +13,13 @@
 
 extern char **environ;
 namespace tls_mpc_worker {
-// This process receives ONLY a public record length. posix_spawn avoids
+// This process receives ONLY a public operation and dimensions. posix_spawn avoids
 // running a compiler in a forked copy of the MPC process's private heap.
 // The pinned local compiler and host interpreter/libraries remain trusted.
-inline void run_shape_compiler(size_t size) {
-    std::string command="Worker-Public/tls-shape-compiler",argument=std::to_string(size);
-    char* argv[]={command.data(),argument.data(),nullptr};
+inline void run_shape_compiler(const KernelShape& shape) {
+    std::string command="Worker-Public/tls-shape-compiler";
+    auto arguments=shape.arguments();std::vector<char*> argv{command.data()};
+    for(auto& argument:arguments)argv.push_back(argument.data());argv.push_back(nullptr);
     posix_spawn_file_actions_t actions;
     posix_spawnattr_t attr;
     public_require(posix_spawn_file_actions_init(&actions)==0,"spawn actions failed");
@@ -38,7 +40,7 @@ inline void run_shape_compiler(size_t size) {
 #endif
     check(posix_spawnattr_setpgroup(&attr,0));
     pid_t child=-1;
-    if(error==0)error=posix_spawn(&child,command.c_str(),&actions,&attr,argv,environ);
+    if(error==0)error=posix_spawn(&child,command.c_str(),&actions,&attr,argv.data(),environ);
     posix_spawnattr_destroy(&attr);posix_spawn_file_actions_destroy(&actions);
     public_require(error==0,"shape compiler spawn failed");
     auto deadline=std::chrono::steady_clock::now()+std::chrono::minutes(31);
@@ -59,24 +61,25 @@ inline void run_shape_compiler(size_t size) {
 
 class ShapeCompiler {
     PinnedPrograms& pinned;
-    std::function<void(size_t,const PublicBytes&)> agree;
+    std::function<void(const std::string&,const PublicBytes&)> agree;
 public:
     static std::string descriptor(size_t size) {
-        public_require(size>=22&&size<=16406,"invalid AES-GCM handshake record shape");
-        return "Programs/Functions/tls_binary_tls_open_handshake_record_"+std::to_string(size)+
-            "-sbv:["+std::to_string((36+size)*8)+"x1]-sbv:["+std::to_string((size-17)*8)+"x1]";
+        return KernelShape::handshake(size).descriptor();
     }
-    ShapeCompiler(PinnedPrograms& pinned,std::function<void(size_t,const PublicBytes&)> agree)
+    ShapeCompiler(PinnedPrograms& pinned,std::function<void(const std::string&,const PublicBytes&)> agree)
         :pinned(pinned),agree(std::move(agree)){}
     void prepare(size_t size) {
-        auto path=descriptor(size);
+        prepare(KernelShape::handshake(size));
+    }
+    void prepare(const KernelShape& shape) {
+        auto path=shape.descriptor();
         if(pinned.contains(path)) {pinned.verify_descriptor(path);return;}
         pinned.verify_public("Worker-Public/tls-shape-compiler");
         pinned.verify_public("Worker-Public/tls-shape-toolchain.json");
-        run_shape_compiler(size);
-        PinnedPrograms extension("Worker-Public/tls-shape-"+std::to_string(size)+".manifest");
+        run_shape_compiler(shape);
+        PinnedPrograms extension("Worker-Public/tls-shape-"+shape.key()+".manifest");
         extension.verify_exact_closure(path);
-        agree(size,extension.digest()); // Before registration or private work.
+        agree(shape.key(),extension.digest()); // Before registration or private work.
         pinned.append(extension);
     }
 };

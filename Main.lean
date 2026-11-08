@@ -98,16 +98,16 @@ def main (args : List String) : IO Unit := do
                       outputs := #[artifact.output] } : FieldImage)
   | ["tls-route-application", size] =>
       let size ← number size
-      if size == 0 || size > 1024 then
-        throw (IO.userError "TLS application route accepts buffer capacity 1..1024")
+      if size == 0 || size > 16385 then
+        throw (IO.userError "TLS application route accepts buffer capacity 1..16385")
       emitJson (dagImageOf "tls-route-application" (15+size)
         "11-byte shared parser state then authenticated TLSReceive result; open ONLY event/request2; event5 means rerun full post-handshake parser on ORIGINAL shared input, discard all route output; otherwise state11 and length2/buffer stay shared"
         (TlsApplicationRoute.core Signal.Word64.symbolic ByteAuth.symbolic
           (ByteCircuit.inputBytes 0 11) (ByteCircuit.inputBytes 11 (4+size))))
   | ["tls-open-application-record", size] =>
       let size ← number size
-      if size < 22 || size > 1045 then
-        throw (IO.userError "TLS application record export accepts 22..1045 wire bytes")
+      if size < 22 || size > 16406 then
+        throw (IO.userError "TLS application record export accepts 22..16406 wire bytes")
       emitJson (dagImageOf "tls-open-application-record" (47+size)
         "11-byte secret parser state, key16,IV12,sequence8,wire; only output event/request2 may be opened; next state11 and application length2/buffer stay shared"
         (TlsPostHandshake.openCore Gcm.symbolic Signal.Word64.symbolic ByteAuth.symbolic
@@ -115,23 +115,23 @@ def main (args : List String) : IO Unit := do
           (ByteCircuit.inputBytes 27 12) (ByteCircuit.inputBytes 39 8) (ByteCircuit.inputBytes 47 size)))
   | ["tls-post-handshake", size] =>
       let size ← number size
-      if size == 0 || size > 1024 then
-        throw (IO.userError "TLS post-handshake export accepts buffer capacity 1..1024")
+      if size == 0 || size > 16385 then
+        throw (IO.userError "TLS post-handshake export accepts buffer capacity 1..16385")
       emitJson (dagImageOf "tls-post-handshake" (15+size)
         "11-byte secret parser state then authenticated TLSReceive result (status,type,length2,buffer); output event/request2 may be opened, next state11 and application length2/buffer MUST stay shared"
         (TlsPostHandshake.core Signal.Word64.symbolic ByteAuth.symbolic
           (ByteCircuit.inputBytes 0 11) (ByteCircuit.inputBytes 11 (4+size))))
   | ["tls-parse-inner", size] =>
       let size ← number size
-      if size == 0 || size > 1024 then
-        throw (IO.userError "TLS inner-parser export accepts 1..1024 secret bytes")
+      if size == 0 || size > 16385 then
+        throw (IO.userError "TLS inner-parser export accepts 1..16385 secret bytes")
       emitJson (dagImageOf "tls-parse-inner" size
         "TLSInnerPlaintext; output secret acceptance (255/0), type, two-byte content length, fixed-size content buffer; rejection zeros all outputs; authentication is separate"
         (TlsInnerParallel.decode ByteAuth.symbolic (ByteCircuit.inputBytes 0 size)))
   | ["tls-open-record", size] =>
       let size ← number size
-      if size < 22 || size > 1045 then
-        throw (IO.userError "TLS full-record export accepts 22..1045 wire bytes (1..1024 ciphertext bytes)")
+      if size < 22 || size > 16406 then
+        throw (IO.userError "TLS full-record export accepts 22..16406 wire bytes (1..16385 ciphertext bytes)")
       emitJson (dagImageOf "tls-open-record" (36 + size)
         "16-byte AES key, 12-byte IV, 8-byte reserved sequence, complete TLSCiphertext record including header and tag; output secret acceptance, type, two-byte content length, fixed-size content buffer; header/tag/type failure zeros all outputs; connection state policy remains caller's responsibility"
         (TlsReceive.openCore Gcm.symbolic ByteAuth.symbolic (ByteCircuit.inputBytes 0 16)
@@ -153,8 +153,6 @@ def main (args : List String) : IO Unit := do
         throw (IO.userError "protected TLS content type must be alert (21), handshake (22), or application_data (23)")
       if kind != 23 && contentSize == 0 then
         throw (IO.userError "empty handshake/alert records are forbidden")
-      if contentSize + padding > 1024 then
-        throw (IO.userError "TLS record export resource limit is 1024 content plus padding bytes")
       emitJson (dagImageOf "tls-seal-record" (36 + contentSize)
         "16-byte AES key, 12-byte IV, 8-byte reserved sequence in network order, content; output complete TLSCiphertext record"
         (TlsRecord.sealCore Gcm.symbolic (ByteCircuit.inputBytes 0 16)
@@ -162,8 +160,8 @@ def main (args : List String) : IO Unit := do
           (ByteCircuit.inputBytes 36 contentSize) kind padding))
   | ["tls-open-inner", contentSize] =>
       let contentSize ← number contentSize
-      if contentSize == 0 || contentSize > 1024 then
-        throw (IO.userError "TLS inner-opening export accepts 1..1024 ciphertext bytes plus a separate 16-byte tag")
+      if contentSize == 0 || contentSize > 16385 then
+        throw (IO.userError "TLS inner-opening export accepts 1..16385 ciphertext bytes plus a separate 16-byte tag")
       emitJson (dagImageOf "tls-open-inner" (52 + contentSize)
         "16-byte AES key, 12-byte IV, 8-byte sequence, ciphertext, 16-byte tag; caller checks canonical public header; output secret acceptance byte then TLSInnerPlaintext, zeroed on rejection; inner type/padding still require validation"
         (TlsRecord.openInner Gcm.symbolic ByteAuth.symbolic (ByteCircuit.inputBytes 0 16)

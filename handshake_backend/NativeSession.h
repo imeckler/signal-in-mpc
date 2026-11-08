@@ -2,6 +2,7 @@
 #include "NativeWorker.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
+#include "ShapeCompiler.h"
 #include "Protocols/Opener.h"
 #include <cstdint>
 #include <initializer_list>
@@ -12,6 +13,7 @@ using Bytes = std::vector<uint8_t>;
 class Session {
     Machine<Share>& machine;
     Worker worker;
+    ShapeCompiler* shapes;
     SessionPolicy policy;
     struct Traffic { Bits secret, key, iv; };
     Traffic client_hs, server_hs, client_app, server_app;
@@ -44,6 +46,10 @@ class Session {
     }
     Bits eval(const std::string& name, Bits input, size_t output_bytes) {
         return worker.binary(name, std::move(input), output_bytes * 8);
+    }
+    Bits eval_shape(const KernelShape& shape, Bits input) {
+        if(shapes)shapes->prepare(shape);
+        return eval(shape.stem(),std::move(input),shape.output_bytes());
     }
     Traffic traffic(Bits secret) {
         auto output = eval("tls-traffic-keys", secret, 28);
@@ -83,7 +89,8 @@ class Session {
         catch (...) { abort(); throw; }
     }
 public:
-    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned) : machine(machine), worker(machine, pinned) {}
+    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr)
+        : machine(machine), worker(machine, pinned),shapes(shapes) {}
     Session(const Session&)=delete;
     Session& operator=(const Session&)=delete;
     ~Session(){abort();}
@@ -166,8 +173,8 @@ public:
             // its capacity would change the protocol and expose padding bytes.
             require(buffer.fixed_length && buffer.capacity==size,"payload requires private stream processing");
             application_policy.application(sequence);
-            return pending(release(eval("tls-seal-record-23-"+std::to_string(size)+"-"+std::to_string(padding),
-                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}),size+padding+22)));
+            return pending(release(eval_shape(KernelShape::seal(23,size,padding),
+                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),buffer.data}))));
         });
     }
     Bytes seal_control(uint64_t sequence,unsigned kind,const Bytes& content) {
@@ -175,8 +182,8 @@ public:
             if(kind==22 && (content==Bytes({24,0,0,1,0}) || content==Bytes({24,0,0,1,1})))
                 application_policy.update(sequence,content.back()==1);
             else {require(kind==21 && content==Bytes({1,0}),"invalid public application control");application_policy.close(sequence);}
-            return pending(release(eval("tls-seal-record-"+std::to_string(kind)+"-"+std::to_string(content.size())+"-0",
-                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),public_bits(content)}),content.size()+22)));
+            return pending(release(eval_shape(KernelShape::seal(kind,content.size(),0),
+                concat({client_app.key,client_app.iv,public_bits(sequence_bytes(sequence)),public_bits(content)}))));
         });
     }
     Bytes open_application(uint64_t sequence,const Bytes& wire) {
@@ -184,14 +191,14 @@ public:
             application_policy.receive(sequence);
             const size_t capacity=wire.size()-21;
             if(parser_state.empty()) parser_state=public_bits(Bytes(11,0));
-            auto opened=eval("tls-open-record-"+std::to_string(wire.size()),
-                concat({server_app.key,server_app.iv,public_bits(sequence_bytes(sequence)),public_bits(wire)}),capacity+4);
+            auto opened=eval_shape(KernelShape::open(wire.size()),
+                concat({server_app.key,server_app.iv,public_bits(sequence_bytes(sequence)),public_bits(wire)}));
             // Keep both ORIGINAL shared inputs until the DEFER decision.
             auto input=concat({parser_state,opened});
-            auto result=eval("tls-route-application-"+std::to_string(capacity),input,capacity+15);
+            auto result=eval_shape(KernelShape::route(capacity),input);
             auto event=release(bytes(result,0,2));
             if(event==Bytes({5,0})) {
-                result=eval("tls-post-handshake-"+std::to_string(capacity),std::move(input),capacity+15);
+                result=eval_shape(KernelShape::post_handshake(capacity),std::move(input));
                 event=release(bytes(result,0,2));
             }
             require(event.size()==2 && event[0]>=1 && event[0]<=4 &&

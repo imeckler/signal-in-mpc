@@ -156,8 +156,8 @@ def main():
                     [expected[i] for i in selected], batch) for batch in (1, 16)]
                 print(json.dumps({'arguments': command, 'mpc_compilations': result['mpc_compilations']}), flush=True)
             records.append(result)
-    rejected = [('tls-parse-inner', '0'), ('tls-parse-inner', '1025'),
-                ('tls-open-record', '21'), ('tls-open-record', '1046')]
+    rejected = [('tls-parse-inner', '0'), ('tls-parse-inner', '16386'),
+                ('tls-open-record', '21'), ('tls-open-record', '16407')]
     for command in rejected:
         result = subprocess.run([str(ROOT / '.lake/build/bin/emit_mpc'), *command], capture_output=True, timeout=5)
         if not result.returncode or result.stdout:

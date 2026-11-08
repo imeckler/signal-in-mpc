@@ -1,0 +1,116 @@
+{
+  "checked_at_utc": "2026-11-07T21:41:54.234727+00:00",
+  "complete": false,
+  "native_mpc_executed": false,
+  "collective_network_agreement_executed": false,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false,
+  "source_sha256": {
+    "Main.lean": "249d86a160042df5a8c1b9bdeb00e9eb331e852dccd61d12e86347558a269a30",
+    "scripts/prepare_tls_shape.py": "ce418b5d58043438e7b7c2f6521bd292268212fa2c78d21758c1557c4f2f2674",
+    "scripts/check_tls_application_shapes.py": "1b705ae36f7c5af73953fc8b1268e5e7475a714fa71866423a64758f5f21cfb6",
+    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
+    "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
+    "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
+    "handshake_backend/NativeSession.h": "c9b2dcf0a172e51eed3bf791fcdc44c9b89176d199d5694a029764f56e05cce4",
+    "handshake_backend/worker_main.cpp": "c8ef2a74998ad31a7fde3b9d9f7d5af0409cd8831a55afd45163cb1d90062009",
+    "handshake_backend/shape_compiler_probe.cpp": "8bc6f7f29bf1bc742846550499fcd95b4a07368b6d369f391adc6eefc6c531b1",
+    "handshake_backend/kernel_shape_checks.cpp": "8d65f9e72213e41bbe997c201913b2e791f836831bc328eb0c740bab950b21bf",
+    "programs/tls_export.mpc": "a77254b225922f41741ede00ea4cb5999ee5fe82409a1721c487f0fc77f3fb62",
+    "backend_adapter/aig_packed.py": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+  },
+  "cases": [
+    {
+      "shape": [
+        "tls-open-handshake-record",
+        "38"
+      ],
+      "compiler_spawn_seconds": 8.689882542006671,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "cc31a11f6c883cab268431f9fd68ecbb31f7cd21d6edd1b3c24e176455da6ca6",
+      "manifest_sha256": "c1a5a4259fa60e6cac86f97288806bfda2cbbb1eebdb10f240a993d8ccb029cd",
+      "statistics": {
+        "raw_and_gates": 456500,
+        "executed_and_gates": 74653,
+        "executed_xor_gates": 127676,
+        "unreachable_nodes": 254171
+      }
+    },
+    {
+      "shape": [
+        "tls-seal-record",
+        "23",
+        "1025",
+        "3"
+      ],
+      "compiler_spawn_seconds": 206.4264596250141,
+      "numeric_fixture_lanes": 1,
+      "all_outputs_match": true,
+      "registration_after_agreement_checked": true,
+      "disagreement_rejected": true,
+      "cache_receipt_unchanged": true,
+      "artifact_sha256": "3c94f18793272cbe3a0d2d3a9d63ad3a0c6ed5f66b69d81f810c6bfdb0ff4231",
+      "manifest_sha256": "d0abe36aaac75ea917591758d3186f24583ab745524e4575a053d8691870ec76",
+      "statistics": {
+        "raw_and_gates": 7951540,
+        "executed_and_gates": 1368606,
+        "executed_xor_gates": 2200280,
+        "unreachable_nodes": 4382654
+      }
+    }
+  ],
+  "cpp_python_shape_checks": "40 valid shapes; 24 invalid shapes rejected",
+  "invalid_python_shapes": [
+    [
+      "tls-open-record",
+      "16407"
+    ],
+    [
+      "tls-route-application",
+      "16386"
+    ],
+    [
+      "tls-post-handshake",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "23",
+      "16384",
+      "1"
+    ],
+    [
+      "tls-seal-record",
+      "22",
+      "0",
+      "0"
+    ],
+    [
+      "tls-seal-record",
+      "20",
+      "1",
+      "0"
+    ],
+    [
+      "tls-open-record",
+      "-1"
+    ],
+    [
+      "tls-open-record",
+      "38junk"
+    ],
+    [
+      "tls-open-record",
+      "\u0663\u0668"
+    ],
+    [
+      "../program",
+      "38"
+    ]
+  ]
+}

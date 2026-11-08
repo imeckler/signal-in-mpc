@@ -54,8 +54,8 @@ int main(int argc,char** argv) {
         public_require(names.num_players()==5,"worker host inventory must have five parties");
         Machine<tls_mpc_worker::Share> machine(names,true,options);
         Collective collective(machine.get_player(),pinned.digest(),session_id);
-        ShapeCompiler shapes(pinned,[&](size_t size,const PublicBytes& digest){collective.agree_program(size,digest);});
-        Session session(machine,pinned);Dispatch dispatcher(session,collective,&shapes);
+        ShapeCompiler shapes(pinned,[&](const std::string& shape,const PublicBytes& digest){collective.agree_program(shape,digest);});
+        Session session(machine,pinned,&shapes);Dispatch dispatcher(session,collective,&shapes);
         while(auto request=read_request(std::cin)) {
             auto result=dispatcher.call(*request);write_reply(response,true,result);
         }

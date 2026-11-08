@@ -70,13 +70,13 @@
   "actual_public_shape_compiled": 38,
   "compiler_manifest_sha256": "c1a5a4259fa60e6cac86f97288806bfda2cbbb1eebdb10f240a993d8ccb029cd",
   "source_sha256": {
-    "scripts/prepare_tls_shape.py": "6aba63a3d56159dbfdf6e9d5e0b772ef02510da92d8b0bb032cbdc0fd33efd7f",
+    "scripts/prepare_tls_shape.py": "ce418b5d58043438e7b7c2f6521bd292268212fa2c78d21758c1557c4f2f2674",
     "scripts/check_tls_shape_cache.py": "4fbdead78b80dcfd5ba5a674fb7fb8d606f2b94891dae1445a69e59ef9951a49",
-    "handshake_backend/ShapeCompiler.h": "990084ea474467d14c9395b1e41b5b416cb2cbaf2336d321dea39b80402d99b5",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
     "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
-    "handshake_backend/shape_compiler_probe.cpp": "f4be9341b1905aa1c58bf930e7c9e9f80b78471757dad97e0d7c0052e3ca5f37",
-    "handshake_backend/NativeCollective.h": "39e34767648bdb02824bb0c4ec0b0998542b84c613630c70a77aa3bf24693995",
-    "handshake_backend/NativeDispatch.h": "d41a87396c2bc1137e6a81fcb36f85ebd4ad85b9e64e8f6856cebc41d5f9a937",
-    "handshake_backend/worker_main.cpp": "517940eb6d14a08042274ade22ef9e67e33e86f942096b4fe8e94e208e162277"
+    "handshake_backend/shape_compiler_probe.cpp": "8bc6f7f29bf1bc742846550499fcd95b4a07368b6d369f391adc6eefc6c531b1",
+    "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
+    "handshake_backend/NativeDispatch.h": "ce7e6c480a109762551affa4799a05f5dfae43e52e302f057ec1a6f3f07822d8",
+    "handshake_backend/worker_main.cpp": "c8ef2a74998ad31a7fde3b9d9f7d5af0409cd8831a55afd45163cb1d90062009"
   }
 }

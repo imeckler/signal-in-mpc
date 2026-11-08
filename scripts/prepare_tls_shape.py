@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Trusted local, public-length-only compiler for TLS handshake receive kernels.
+"""Trusted local compiler for TLS kernels with public operation/dimensions.
 
 Install offline, then pin Worker-Public/tls-shape-{compiler,toolchain.json} in
-the worker's boot manifest. Runtime invocation accepts only a wire byte count.
+the worker's boot manifest. Runtime invocation accepts only checked shapes.
 The compiler and interpreter remain unverified; this is not a circuit proof.
 Host filesystem integrity during verification/use is an explicit assumption.
 """
@@ -23,6 +23,45 @@ P = str(2**255 - 19)
 PUBLIC = Path('Worker-Public')
 CONFIG = PUBLIC / 'tls-shape-toolchain.json'
 SOURCE_DIRS = ('Compiler', 'backend_adapter', 'handshake_backend')
+
+
+class Shape:
+    """Mirror KernelShape.h; no paths, programs or private inputs from callers."""
+    def __init__(self, arguments):
+        arguments = list(map(str, arguments))
+        if len(arguments) == 1:
+            arguments.insert(0, 'tls-open-handshake-record')
+        if not arguments or any(not x.isascii() or not x.isdecimal() for x in arguments[1:]):
+            raise ValueError('expected public TLS shape dimensions')
+        self.mode, *numbers = arguments
+        numbers = list(map(int, numbers))
+        if self.mode in ('tls-open-handshake-record', 'tls-open-record') and len(numbers) == 1:
+            size = numbers[0]
+            if not 22 <= size <= 16406:
+                raise ValueError('AES-GCM wire size must be 22..16406')
+            self.input_bytes, self.output_bytes = 36 + size, size - 17
+        elif self.mode in ('tls-route-application', 'tls-post-handshake') and len(numbers) == 1:
+            size = numbers[0]
+            if not 1 <= size <= 16385:
+                raise ValueError('TLS parser capacity must be 1..16385')
+            self.input_bytes = self.output_bytes = 15 + size
+        elif self.mode == 'tls-seal-record' and len(numbers) == 3:
+            kind, size, padding = numbers
+            if kind not in (21, 22, 23) or size + padding > 16384 or (kind != 23 and size == 0):
+                raise ValueError('invalid TLS seal dimensions or content type')
+            self.input_bytes, self.output_bytes = 36 + size, size + padding + 22
+        else:
+            raise ValueError('unsupported TLS kernel shape')
+        self.arguments = [self.mode, *map(str, numbers)]
+        self.stem = '-'.join(self.arguments)
+        self.key = str(numbers[0]) if self.mode == 'tls-open-handshake-record' else self.stem
+        self.descriptor = (f'tls_binary_{self.stem.replace("-", "_")}'
+                           f'-sbv:[{self.input_bytes*8}x1]-sbv:[{self.output_bytes*8}x1]')
+
+    def receipt(self, identity, manifest):
+        # Preserve the original handshake receipt format.
+        dimensions = {'wire_bytes': int(self.arguments[1])} if self.mode == 'tls-open-handshake-record' else {'shape': self.arguments}
+        return {'toolchain': identity, **dimensions, 'manifest': manifest}
 
 
 def digest(path):
@@ -98,9 +137,9 @@ def validate_manifest(base, text):
         raise ValueError('empty shape cache')
 
 
-def prepare(size):
-    if not 22 <= size <= 16406:
-        raise ValueError('AES-GCM wire size must be 22..16406')
+def prepare(shape):
+    if isinstance(shape, int):
+        shape = Shape([shape])
     base = Path.cwd()
     config_bytes = CONFIG.read_bytes()
     config = json.loads(config_bytes)
@@ -111,25 +150,24 @@ def prepare(size):
     if Path(sys.executable).resolve() != executable:
         # The boot-pinned configuration selects the interpreter. No shell, no
         # caller-supplied executable, and no private inputs are involved.
-        os.execv(str(executable), [str(executable), str(Path(__file__).resolve()), str(size)])
+        os.execv(str(executable), [str(executable), str(Path(__file__).resolve()), *shape.arguments])
     if platform.python_version() != interpreter['version']:
         raise ValueError('TLS compiler Python version changed')
     if config.get('format') != 'tls-mpc-shape-toolchain-v1' or config.get('files') != sources(base):
         raise ValueError('TLS shape toolchain changed')
     identity = hashlib.sha256(config_bytes).hexdigest()
-    manifest = PUBLIC / f'tls-shape-{size}.manifest'
-    receipt = PUBLIC / f'tls-shape-{size}.receipt.json'
+    manifest = PUBLIC / f'tls-shape-{shape.key}.manifest'
+    receipt = PUBLIC / f'tls-shape-{shape.key}.receipt.json'
     # Serialize writers, including separate worker processes sharing one cache.
     with (PUBLIC / 'tls-shape.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         if receipt.exists():
             record = json.loads(receipt.read_text())
-            if record != {'toolchain': identity, 'wire_bytes': size, 'manifest': digest(manifest)}:
+            if record != shape.receipt(identity, digest(manifest)):
                 raise ValueError('TLS shape receipt mismatch; provision a fresh cache')
             validate_manifest(base, manifest.read_text())
             return manifest
-        stem = f'tls-open-handshake-record-{size}'
-        descriptor = f'tls_binary_{stem.replace("-", "_")}-sbv:[{(36+size)*8}x1]-sbv:[{(size-17)*8}x1]'
+        stem, descriptor = shape.stem, shape.descriptor
         with tempfile.TemporaryDirectory(prefix='.tls-shape-build-', dir=base) as directory:
             stage = Path(directory)
             for folder in SOURCE_DIRS:
@@ -140,11 +178,11 @@ def prepare(size):
             (stage / PUBLIC).mkdir()
             artifact = PUBLIC / (stem + '.json')
             with (stage / artifact).open('wb') as output:
-                subprocess.run([str(base / PUBLIC / 'tls-shape-emitter'), 'tls-open-handshake-record', str(size)],
+                subprocess.run([str(base / PUBLIC / 'tls-shape-emitter'), *shape.arguments],
                                stdout=output, check=True, timeout=900)
             image = json.loads((stage / artifact).read_bytes())
-            if (image['format'] != 'tls-mpc-aig-v1' or image['name'] != 'tls-open-handshake-record' or
-                    image['input_bits'] != (36+size)*8 or len(image['outputs']) != (size-17)*8):
+            if (image['format'] != 'tls-mpc-aig-v1' or image['name'] != shape.mode or
+                    image['input_bits'] != shape.input_bytes*8 or len(image['outputs']) != shape.output_bytes*8):
                 raise ValueError('Lean artifact shape mismatch')
             environment = dict(os.environ, PYTHONHASHSEED='0', PYTHONDONTWRITEBYTECODE='1')
             for key in ('PYTHONPATH', 'PYTHONHOME'):
@@ -168,25 +206,25 @@ def prepare(size):
                     atomic_write(destination, (stage / path).read_bytes())
             validate_manifest(base, text)
             atomic_write(manifest, text.encode())
-            record = {'toolchain': identity, 'wire_bytes': size, 'manifest': digest(manifest)}
+            record = shape.receipt(identity, digest(manifest))
             atomic_write(receipt, (json.dumps(record, sort_keys=True) + '\n').encode())
         return manifest
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('wire_bytes', nargs='?', type=int)
+    parser.add_argument('shape', nargs='*', help='wire size, or TLS operation followed by public dimensions')
     parser.add_argument('--install', type=Path)
     parser.add_argument('--emitter', type=Path)
     args = parser.parse_args()
     if args.install is not None:
-        if args.emitter is None or args.wire_bytes is not None:
+        if args.emitter is None or args.shape:
             parser.error('--install requires --emitter and no wire size')
         install(args.install, args.emitter)
-    elif args.wire_bytes is None or args.emitter is not None:
-        parser.error('expected wire byte count')
+    elif not args.shape or args.emitter is not None:
+        parser.error('expected TLS kernel shape')
     else:
-        prepare(args.wire_bytes)
+        prepare(Shape(args.shape))
 
 
 if __name__ == '__main__':

@@ -368,14 +368,18 @@ python3 scripts/check_lean_proofs.py
 
 Reports under `benchmarks/results/lean-*-handshake-checks.json` and
 `lean-handshake-release-checks.json` distinguish clear fixtures from native MPC.
-No WAN throughput or live five-party execution is claimed.
+Five-party localhost execution is recorded separately in
+`tls-native-worker-network.json` and `tls-native-handshake.json`; neither is a
+WAN throughput measurement or a working application session.
 
-The native worker uses `ShapeCompiler.h` to prepare missing handshake receive
-circuits for public AES-GCM wire lengths 22..16406. `scripts/prepare_tls_shape.py` only
+The native worker uses `ShapeCompiler.h` to prepare missing handshake and
+application record kernels. Checked shapes cover AES-GCM wire lengths
+22..16406, private parser capacities 1..16385, and seal payload plus padding
+up to 16384 bytes. `scripts/prepare_tls_shape.py` only
 orchestrates the Lean exporter and MP-SPDZ compiler; protocol computations remain
-in Lean. The compiler process receives a length, with player sockets and RPC
+in Lean. The compiler process receives the public operation and dimensions, with player sockets and RPC
 descriptors closed. Every party verifies its boot-pinned local toolchain and
-agrees the generated descriptor/schedule/bytecode manifest before registration.
+agrees the shape identifier and generated descriptor/schedule/bytecode manifest before registration.
 Existing program hashes cannot be replaced. Cache paths and compiler inputs are
 independent of checkout location; the Python interpreter is pinned because
 different Python versions can produce different bytecode.
@@ -395,7 +399,26 @@ runtime remain unverified. Public shape checks are separate from MPC execution:
 ```sh
 python3 scripts/check_tls_shape_cache.py
 python3 scripts/check_tls_shape_reproducibility.py
+python3 scripts/check_tls_application_shapes.py
 ```
+
+Application record opening first prepares the authenticated opener and fast
+private router. The full post-handshake parser is prepared only when the public
+DEFER event requests it, using the original shared input. Shape provisioning
+does not activate application sessions: native retirement and traffic-key
+erasure remain mandatory, unfinished gates. The application shape check uses
+public synthetic data and a local agreement callback; it is not an MPC session
+or a maximum-size AES throughput test.
+
+Packed exports use `handshake_backend/binary_io.py` to load and store secret
+bits in public chunks of at most 64, retaining the native `sbv:[Nx1]` interface.
+This avoids the per-bit memory operations that prevented the maximum-capacity
+router from compiling in the original check. The same maximum-router Lean
+artifact compiles with bulk I/O. The separate native fixture checks the actual
+five-party program agreement, protocol-produced share reuse, partial chunks and
+authentication rejection; it opens only its deliberately public synthetic data.
+See `tls-application-io-native-checks.json`. These component checks do not bypass
+the application retirement gate or establish VM erasure.
 
 TLS record opening now uses a balanced Lean padding/type parser, proved equal
 to the original specification for every input. Its 1024-byte parser has 27 AND
@@ -408,8 +431,9 @@ measurements, not MPC throughput measurements.
 independent gates into at most 64 lanes, grouped by nonlinear depth. The public
 shape compiler uses it; existing boot kernels retain their pinned bytecode.
 It is checked against the original numeric AIG evaluator and native local-share
-packing primitives. Real multiplication/preprocessing over the network is
-still untested. The baseline 1024-byte receive compilation timed out; packed
+packing primitives. Packed handshake receive kernels have also run in the
+five-party localhost handshake fixture. Application execution remains gated on
+retirement. The baseline 1024-byte receive compilation timed out; packed
 compilation succeeded, and splitting at nonlinear-depth boundaries reduced
 that measured compile from 317 seconds to 208 seconds. Those measurements used
 the former sequential parser. The balanced 1024-byte full receive build also

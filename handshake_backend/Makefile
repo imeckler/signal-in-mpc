@@ -10,5 +10,7 @@ $(TLS_BUILD)/tls-worker: $(TLS_ROOT)/worker_main.cpp $(wildcard $(TLS_ROOT)/*.h)
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
 $(TLS_BUILD)/tls-strong-profile-checks: $(TLS_ROOT)/strong_profile_checks.cpp $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
-$(TLS_BUILD)/tls-shape-probe: $(TLS_ROOT)/shape_compiler_probe.cpp $(TLS_ROOT)/ShapeCompiler.h $(TLS_ROOT)/PinnedPrograms.h libSPDZ.so
+$(TLS_BUILD)/tls-shape-probe: $(TLS_ROOT)/shape_compiler_probe.cpp $(TLS_ROOT)/ShapeCompiler.h $(TLS_ROOT)/KernelShape.h $(TLS_ROOT)/PinnedPrograms.h libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+$(TLS_BUILD)/tls-application-shape-fixture: $(TLS_ROOT)/application_shape_fixture.cpp $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@

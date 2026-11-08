@@ -1,5 +1,5 @@
 {
-  "checked_utc": "2026-11-07T20:25:45.561446+00:00",
+  "checked_utc": "2026-11-08T02:30:32.480737+00:00",
   "native_adapter_build": true,
   "native_executable_build": true,
   "checks": [
@@ -62,23 +62,24 @@
   "scope": "compile/link native dispatch/executable; public parsing/state checks; actual Lean/C++ concurrent and duplex pipe interop",
   "application_execution_enabled": false,
   "products_sha256": {
-    ".deps/sharing-refresh/tls-worker-build": "95e117007bee54992430d878506bb19875859160a9638126c72555f945dbfb01",
-    ".deps/sharing-refresh/tls-worker": "e0f64ce67a84bc9044479ae0cb28594b78e5957ff625b1013da0cb9ff5a0fb4a"
+    ".deps/sharing-refresh/tls-worker-build": "23a0aa8020cf78da5758a47645192fdfe39c37911b16022aec802199d27e3806",
+    ".deps/sharing-refresh/tls-worker": "4707438eb8d05c717d16fc047d48b721d0f9563f301e0173db801f3e91e87376"
   },
   "source_sha256": {
     "handshake_backend/ApplicationPolicy.h": "d3ff6b78143714f528af625f5e38e951816fcf2db85dee53072504f92cb0f442",
     "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
+    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
     "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
-    "handshake_backend/NativeCollective.h": "39e34767648bdb02824bb0c4ec0b0998542b84c613630c70a77aa3bf24693995",
+    "handshake_backend/NativeCollective.h": "79bb9dfc988329534ba6c48ff4fc5770ae87c11e333b556be6bd33e24847bf8d",
     "handshake_backend/NativeDispatch.h": "ce7e6c480a109762551affa4799a05f5dfae43e52e302f057ec1a6f3f07822d8",
-    "handshake_backend/NativeSession.h": "0df973a7e060d652b9f8ffb7dae63f888b717da59666649ef5cd088e125761be",
+    "handshake_backend/NativeSession.h": "c9b2dcf0a172e51eed3bf791fcdc44c9b89176d199d5694a029764f56e05cce4",
     "handshake_backend/NativeWorker.h": "8502029ad211e4e13cc906c6a00ca8ede3b56170882d45c18c05f62819fd58d3",
     "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
     "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
     "handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
     "handshake_backend/PublicProtocol.h": "1dfd11d3b066332bb27f5aa9579baea5233148b014a450e6fdda9757e0ac9389",
     "handshake_backend/SessionPolicy.h": "03e3e8335d6edcb848a29b6240f8f120a6c3d895976b010210efa8329e23cf3e",
-    "handshake_backend/ShapeCompiler.h": "990084ea474467d14c9395b1e41b5b416cb2cbaf2336d321dea39b80402d99b5",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
     "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
     "handshake_backend/TcpRecords.h": "e2a8d55f6f047102c87e6248b8da14eed0f6766fa9d0bf48632584bf8c58ec73",
     "TlsMpc/TlsWorker.lean": "629e7c20b2973f24d21d889067ba5a24df8e29cc23689dc2ce04e6ccfd98adb4",
@@ -89,8 +90,8 @@
     "handshake_backend/owned_secrets_checks.cpp": "0ea3ed80ea1992eed27092595da613486576003415a447c8ddb3326effd98600",
     "handshake_backend/worker_build.cpp": "c641cbbaed269efeab8ee3e34a76512bf648ab798c21c68977fce04ae6bb40cf",
     "handshake_backend/session_policy_checks.cpp": "738704a7980443563d6eaa20eb18ef12999286a27abc3b56531281dcbc107fc9",
-    "handshake_backend/worker_main.cpp": "517940eb6d14a08042274ade22ef9e67e33e86f942096b4fe8e94e208e162277",
-    "handshake_backend/Makefile": "32e71f6f2996e7d1aba7448109299315f2325f4f917beb2b68a22b68b609744a",
+    "handshake_backend/worker_main.cpp": "c8ef2a74998ad31a7fde3b9d9f7d5af0409cd8831a55afd45163cb1d90062009",
+    "handshake_backend/Makefile": "d256508aed86a23e4a132f609d05432ef8b859c951beff56a9762968fb145a58",
     "handshake_backend/public_protocol_checks.cpp": "9047b2cd075a2a3bfa337323056e28066272bce802b44a94800154ee829496cf",
     "handshake_backend/pipe_fixture.cpp": "526292c3f51b362fc402df6f73d44d3d800ba143dd3ada51400bf3e06e6f983d",
     "handshake_backend/transport_checks.cpp": "3b40a35d28d3fbdcfc004039cd83bbc7415a583010849aaeed63f5f0083b2e6f",

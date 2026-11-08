@@ -1,5 +1,5 @@
 {
-  "checked_utc": "2026-11-07T20:33:55.882757+00:00",
+  "checked_utc": "2026-11-07T21:44:24.453761+00:00",
   "parties": 5,
   "threshold": 2,
   "binary_field_degree": 128,
@@ -8,18 +8,19 @@
   "full_handshake_tested": false,
   "synthetic_peer_stages_requested": true,
   "certificate_validation_tested": false,
+  "expected_exit_code": 1,
   "full_vm_erasure_implemented": false,
   "wan_throughput_tested": false,
-  "executable_sha256": "e0f64ce67a84bc9044479ae0cb28594b78e5957ff625b1013da0cb9ff5a0fb4a",
-  "manifest_sha256": "ab5ae35660b45bc1ee71c2ac13ce054a4c1b5332b32e412053890f668811edae",
-  "logs": "benchmarks/results/raw/native-worker-network/8d4a50e5b7350c60",
+  "executable_sha256": "4707438eb8d05c717d16fc047d48b721d0f9563f301e0173db801f3e91e87376",
+  "manifest_sha256": "a442f1425ef47163cb09ab14b284bc59d6c909c55f53c21900b5dd72f05ea3b5",
+  "logs": "benchmarks/results/raw/native-worker-network/ec11f4db60141587",
   "joint_public_key_agreement": true,
-  "begin_seconds": 1.0124032919993624,
-  "derive_seconds": 40.30050329095684,
-  "open_seconds": 1.8949612500146031,
+  "begin_seconds": 1.1670338340336457,
+  "derive_seconds": 41.01908304099925,
+  "open_seconds": 2.0545638339826837,
   "ecdh_kdf_aes_record_match": true,
-  "verify_seconds": 13.205344415968284,
-  "finish_seconds": 43.04197020805441,
+  "verify_seconds": 13.359155167010613,
+  "finish_seconds": 43.759530416922644,
   "finished_ciphertext_match": true,
   "unimplemented_retirement_rejected": true,
   "passed": true,
@@ -30,5 +31,5 @@
     1,
     1
   ],
-  "elapsed_seconds": 99.53577870794106
+  "elapsed_seconds": 101.43846299999859
 }
