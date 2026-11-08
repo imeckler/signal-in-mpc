@@ -88,7 +88,20 @@
     "PayloadFailureCursor",
     "PayloadErrorProjection",
     "PayloadRejectionStep",
-    "NonPayloadPlan"
+    "NonPayloadPlan",
+    "FieldErrorProjection",
+    "EOFRejection",
+    "FrozenRejection",
+    "FixedRejectionStep",
+    "RecursionRejectionStep",
+    "LengthFailurePlan",
+    "LengthRejectionStep",
+    "WrongWirePlan",
+    "WrongWirePrimitive",
+    "WrongWireDispatch",
+    "ObservedIntervals",
+    "ScalarPayloadError",
+    "BytesPayloadError"
   ],
   "endpoints": {
     "LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff": [
@@ -1610,14 +1623,158 @@
       "propext",
       "Classical.choice",
       "Quot.sound"
+    ],
+    "FullParserV3.Observed.classify_valid_header": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.field_classify_wrong_wire": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.field_classify_known_wire": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skip_code_recursion": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skip_code_end": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skip_code_fixed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skip_code_length_underflow": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.finish_unclosed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_eof_group_rejection": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.key_empty_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.freeze_active_reject": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_fixed_rejection_step": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_recursion_rejection_step": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.payload_attempt_mask": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.payload_decoded_failure_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.plan_length_invalid": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_length_rejection_step": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.scalar_wrong_parameter": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.bytes_wrong_parameter": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.valid_known_scalar_wrong": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.valid_known_bytes_wrong": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.scalar_wrong_wire_actual": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_wrong_wire_actual": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scalar_wrong_dispatch": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_wrong_dispatch": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.scan_split": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.lift_successful_interval": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scalar_payload_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_payload_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
     ]
   },
   "source_sha256": {
     "Masks.lean": "78583d279d9d6be73a756f4b3ed3a61ae183732e2a2636e6ef6fb0f0297bbdee",
+    "BytesPayloadError.lean": "92b755688b621aea02c302ca46572a74798f94c6fcdc1ea471291c993bd63793",
+    "FixedRejectionStep.lean": "c69140af5fb9dc8bdb85f0e0a96bd98c62fdb969c4634b628539f70584eac352",
     "NumericLeaf.lean": "a65a89cd93904ce269166045a1156c8509fdc8b1600ca41ccdd55312d15b1bcd",
     "DecoderTransport.lean": "cda260204af5e131d7289e791d89fa5e9fdc23ac93e5ad9c44ce130fe6e2eb37",
     "CursorGuard.lean": "68d2178c516bb53dd2047035b36dafdf23648d5ccaeb93e45a2c0608bd4cc0ba",
     "SuccessfulMessageScan.lean": "0c230df7fb1d01d5d78db1948537f945170585118acc0422ed1dd3435dd142f6",
+    "LengthRejectionStep.lean": "4c7ca47296a9a97b56fbc97d32a1c4059cc4e7b02becdaf3411c998a315762d9",
     "NestedLengthScan.lean": "286d6649c0f1d606942543b5e1c817f376fb9187642ae549bfa02ed359bcb674",
     "extract_driver.py": "40f7f961d75c0c139b499406a9182183306ed0a2ee4cfedfd86789e21562e190",
     "ScanMasks.lean": "42648d6cd40c51c963a53ab9afc10dc239e332f38857c640fc40199322a72d87",
@@ -1630,8 +1787,10 @@
     "TopLeafState.lean": "0e00878730179daa4babfc97c51fe7d9c864e47540038c8c50199e0ec72713b4",
     "Table.lean": "c4d9192286db049e96173269001de4937199da0b83da0694c2b19557e008adff",
     "MessageErrorDomain.lean": "5c8e155e447cbe1859187babfb3d94596ceb8ee35d93ad28606e85a1b5ac25b9",
-    "audit.py": "0087e6f166d2314e656c28fe97a3f6fda269519980bcc714d1e3b1a71bf7157f",
-    "check.py": "f64ddc4a46005a995d739c1744fed2698b5f45ed6446a47017cbb268c2698386",
+    "audit.py": "e9f5f54e6eb508e8410d89657a287dc87a6dee73670b369a908b8991c28cdde3",
+    "check.py": "479845688c79fdafd0f417bd726f653974f7708785499f54e9829a0ef7bd860d",
+    "WrongWirePlan.lean": "708ab217812351397a643298c3b54d81cbb5a45808f52edc13eee7708d8eb88c",
+    "WrongWirePrimitive.lean": "ef93cb98eab12ccdaf2ce238119530ba3138cd1a50e6279b61c12fe86f7d2d58",
     "translate_driver.py": "3d33302c4ece23c20dd84ef1613fb82f2c824ca710a48ace7a10d6c00538c7ce",
     "UnknownShadow.lean": "f72fe1541f2298cb70e81821e2905b827df99dad13db7a526f67c25c1f43a3c6",
     "PayloadPlan.lean": "564541ff4e6d364f6df92ea82dc18a2a1ac23298b65a9bd1cf30cc65ab837c93",
@@ -1639,12 +1798,14 @@
     "PayloadGuard.lean": "8fa98ccb314db6cbd4cb3b9659a509354fd220382028bc84fdeaae83946e7fcc",
     "SuccessfulSkipScan.lean": "c2630c0f7893a880796f165511ec26f4eb87c3e1a1937b8a04fd57234cc93f96",
     "DecoderTable.lean": "d26b4de83237655978e45f3c7bfbb508cd35b1b99ffd1eaa973931303396b48f",
+    "EOFRejection.lean": "0dd7f2ade76662535be82a3a10de5301070d802a6d596bec0db6b950c7067a7a",
     "KeyErrors.lean": "3ad56b514261d53cd5e7c6332d925bc03864990de63ad963a3d663bfca557899",
     "KeyFailureCursor.lean": "a81a01e71d3decba0d3f275334bf1791c59debc72461d055f2742c22a701fcb7",
     "SuccessScan.lean": "ac05106247abe33b3974ea2838eabf184f744aa5f572025bdaa380b25fb9620d",
     "PayloadErrorProjection.lean": "da8adff76ad848fba30a9a33b21ddb31d2bdd2c0c3de86a486d43db1a78c487b",
     "FieldProjection.lean": "e21bfcaffe96491c22c853d7d85fcd217f7ac98b5215a3b37597833605be059b",
     "ObservedProofs.lean": "902f0f850a487a0a2dc6565f9c6a862284dcf5bf047d230ebcfa9bb057c71ef8",
+    "LengthFailurePlan.lean": "e6763cdf4535f9e088a5b94c6ceb9cdce4c1d97943c37e7a8d348168a90f7636",
     "DispatcherMutation.lean": "4b418ded33da05b72823e994ace0ebdbcdd13dfd6eb515e116ca7bb01b5b904b",
     "DriverErrorDomain.lean": "9388fb20d405519fd05c8379775a35423cf84279ddbb61c5c0cafd1e52fcc0d8",
     "SkipScanLeaves.lean": "d089327afdd948778a818c50caaa12c96b855a16a5f8b17ab260f2fe8e4753fd",
@@ -1656,6 +1817,7 @@
     "Observed.lean": "5165fa2d25a2e7c4e73cf6ea69b574f506ab289ea39b74cab64fd7ca39274b14",
     "TopScalarScan.lean": "4ba248bcb96535f6daeb14973d55b4b728a5b3b67b2c83710ad7301e164cabf7",
     "PlanFailure.lean": "7a575b9ac066a3caeb65358f53f814fd2c368c921cdea9ef070d1fc5398757b2",
+    "FrozenRejection.lean": "a155fbfc63410b0207a54c07a19a5c8421b69f1a4b1bdab70325a5df4c3b373a",
     "PayloadErrorMask.lean": "cded083c6a927a80cfe5857c0c4efaeadd10045f79addf42d2833703f24749c3",
     "ObservedCircuit.lean": "438ce6c6e62d73aa5ed66575256489ab4b1b56a5f11f3672e2a10c2d07d39936",
     "KnownSuccess.lean": "cecd00d54de25a578c62a5fa05be0908a956d56882ea2576173d307748a158a5",
@@ -1678,17 +1840,22 @@
     "KnownDispatchSuccess.lean": "6a03abcd18965984477fb7300ebe5012cdfc7b305144fa468fe9f50151945cc7",
     "DecoderErrorTransport.lean": "ff39aa13fc7322f81d4abf4fd3e809bce1d0e2ee80a0de9aed09e73bb9824cb2",
     "Suffix.lean": "4985a9e5b72a63d3f657c7d3d3c3f73dc4190e440deb3c19a84ddef814733c11",
+    "ObservedIntervals.lean": "93a2d23fb9cbdb768c8d1fcb604e018ed9906aad48c2fe636cf8ded69c724546",
     "FieldSuffix.lean": "917993d4fb70883d96dacefe43b028c54b02094f7a10fb19eb116ba8301e9b30",
     "ScanState.lean": "5c1395e6fedb254a7644b9cfa8706ced4df0761d7a24bba8aaec3bbfe467f577",
     "GroupNumeric.lean": "c43aab5c11e0b38936d362032d9239383bc1f98b1d029d4b6b365ff6ad26a585",
     "InitialScan.lean": "25d1a38d8f5818aa0ea463f5dfbbac7e8dce2514f10f865be364e047bfcdb72b",
     "KeyRow.lean": "10fea894cc43451c37a26c66ede241bf4b364194b08a49fb147da01269887904",
+    "WrongWireDispatch.lean": "3405af98ee8d7afbc2008ae19c8d1bfc2eab216d527ae3d4c9e90914cdaace49",
     "KeyCircuit.lean": "7364b8347064a819e6bdd1d5b6849999b880aadcf52b69b98d76e0a948ce02cb",
     "NestedVarintScan.lean": "0ca9c3e25b1387622b7e47a151043453bb50dd9f748933037f44f8a1e787e6eb",
     "KnownMessageScan.lean": "857d08ff0764be28ec5ade4d06ded9766ec861c4867c219048eb4b734027b6e7",
     "SkipErrorDomain.lean": "493432df5f1b3f16bdc61b49d4072b3e48105dc12da784026905fa7208d05cb5",
+    "ScalarPayloadError.lean": "0b3cb0df9051b5f91a6e073d2f91196e364bb8e107b65550dcd4d42430707411",
     "KeyRejectionStep.lean": "fae1b4591e14d3a187b4086e48b683a457c14279680944457c3a8026c7302935",
+    "FieldErrorProjection.lean": "0e3f71934ac7eb901f44629d59b424f9f6d636160c94366f946b065cad33ce7b",
     "TopBytesScan.lean": "81826a119a34d139521e707318a43250e76247e98829b2f63626fce1c99d4afb",
+    "RecursionRejectionStep.lean": "7b911d30833ae58d773577dbf67600e1deb666db11fcd077e41361bd7e9c103c",
     "UnknownMessageScan.lean": "e2c7aa5145bfc268cdccd651c5c61aef158c22e0cda5bf19b8a5d4537419f96b",
     "SkipStrict.lean": "d01884000dd0229ae0f1e4fe4c4be21bea099f98004d968ab6086d0be2dbeddb",
     "prepare.py": "034abf325558d820a6ded00a6165379f2c9b4ed512e08bd7f04c2be3bb780dca",
@@ -1723,7 +1890,7 @@
     "Skip/Replayed/SliceAdapter.lean": "c8288d39209d89c66b188b45a026af1f31a1b6287373e73aa488dd0c4d165de2"
   },
   "log_sha256": "ec6c64f604a0db5123daf1869c0e84624af29065d2551ab1317377af587bd443",
-  "extension_log_sha256": "0fcb619b1c9c401b75fe6ea3d096aafb1d29f861c240578deaed00cc3db3600f",
+  "extension_log_sha256": "6d5cb33f914473ae5e1a52fbbb63c3117b2545636987eaf10b2e2f3bb537a70f",
   "core_source_sha256": {
     "TlsMpc/Signal/ProtoParse.lean": "c2e5832c7e6b1ff1fcf555a44cf7478269ddb904d26229cafaae73d269b10a8f",
     "TlsMpc/Signal/ProtoParseProofs.lean": "3103e97c75f7c14260bf62040def0628251ee9272768e1f5856f67dc95ab3de9",
