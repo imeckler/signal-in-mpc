@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "public_numeric_cases": 526,
+  "actual_hashlib_vectors": 3,
+  "profiles": {
+    "add2": {
+      "legacy": {
+        "raw_and_gates": 220,
+        "executed_and_gates": 91,
+        "executed_xor_gates": 63,
+        "unreachable_nodes": 67,
+        "and_depth": 61,
+        "local_xor_depth": 1,
+        "artifact_sha256": "90aa07eb0753aa6150ad2e439a35fbe7b7c97f1eb65c9f1f2d8e5d4c00303f0d"
+      },
+      "prefix": {
+        "raw_and_gates": 529,
+        "executed_and_gates": 151,
+        "executed_xor_gates": 138,
+        "unreachable_nodes": 241,
+        "and_depth": 6,
+        "local_xor_depth": 2,
+        "artifact_sha256": "ada6fcbabeb155ada1fb5dc2cfe92ff022ff69ff365f21fa1dbbda86a80a5adb"
+      }
+    },
+    "block-state": {
+      "legacy": {
+        "raw_and_gates": 192416,
+        "executed_and_gates": 59759,
+        "executed_xor_gates": 55549,
+        "unreachable_nodes": 77109,
+        "and_depth": 3212,
+        "local_xor_depth": 20,
+        "artifact_sha256": "fdcefa93ec2a64f52c1cab5a8d2279f3280bf34e8362a676018af94a0ba43792"
+      },
+      "prefix": {
+        "raw_and_gates": 304318,
+        "executed_and_gates": 70777,
+        "executed_xor_gates": 86483,
+        "unreachable_nodes": 147059,
+        "and_depth": 838,
+        "local_xor_depth": 9,
+        "artifact_sha256": "419ab2d6e8d8e7241d9f68aa72b4675c7dbe47b3c229566d72c3b8595812a598"
+      }
+    }
+  },
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "TlsMpc/Sha256ParallelPrefix.lean": "614faef243b3d692092529837523ff6ef9af0173389966fa366bb32156cd1789",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "SignalReference/ParallelPrefixShaWork/Export.lean": "2e20f12d3f9e78635d290031d2e80b3161b77464d0bc7397248c3a0bec12da65",
+    "SignalReference/ParallelPrefixShaWork/check.py": "2aadd99bb900b8adc3753db1f3cfee7320ab1331cc5aad54980d0443d8da6acd"
+  },
+  "scope": "parallel-prefix arbitraryword final adder and arbitrary-state block versus old kernel; no production integration or WAN claim"
+}

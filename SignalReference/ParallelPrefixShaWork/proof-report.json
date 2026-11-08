@@ -3,7 +3,7 @@
   "foundation_only": true,
   "proof_endpoints": 7,
   "native_MPC_executed": false,
-  "cost_checks_complete": false,
+  "cost_checks_complete": true,
   "producer_integrated": false,
   "scope": "generic prefix scan, arbitrary32bit addition, Hom, compression/compiler equivalence; costs pending",
   "axioms": [
@@ -18,5 +18,7 @@
   "source_sha256": {
     "TlsMpc/Sha256ParallelPrefix.lean": "614faef243b3d692092529837523ff6ef9af0173389966fa366bb32156cd1789",
     "SignalReference/ParallelPrefixShaWork/Checks.lean": "0c4c9d27693afad58a0b9fe99bcd812850df64d286895f23a9ac4d3b1fb4c6f5"
-  }
+  },
+  "numeric_report": "report.json",
+  "compiler_report": "compile-report.json"
 }
