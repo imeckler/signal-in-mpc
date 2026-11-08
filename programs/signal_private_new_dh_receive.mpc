@@ -1,0 +1,35 @@
+# Internal bounded receive transaction. No supplied DH/key/acceptance flags.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from handshake_backend.field_dag import load as load_field
+from handshake_backend.mixed import execute_secret,field_to_wire_bits,wire_bits_to_field,wire_bits_to_scalar_fields
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+field=load_field(program.args[1]);summary=load(program.args[2]);crypto=load(program.args[3])
+if(field['input_count']!=257 or summary['name']!='signal-private-new-dh-summary-256' or
+ summary['input_bits']!=259*8 or len(summary['outputs'])!=75*8 or
+ crypto['name']!='signal-private-new-dh-crypto-256-5' or crypto['input_bits']!=1051*8 or
+ len(crypto['outputs'])!=608*8):raise ValueError('new-DH receive artifact mismatch')
+def receive(inputs,outputs):
+ raw=binary_io.read_bits(inputs)
+ # old state525 || remote identity32 || local identity32 || encoded wire259.
+ wire=raw[589*8:848*8]
+ parsed=execute_mpc(summary,wire)
+ remote=wire_bits_to_field(parsed[8:33*8],mask_high_bit=True)
+ old=wire_bits_to_scalar_fields(raw[32*8:64*8])
+ fresh=[sbit.get_random_bit() for _ in range(256)]
+ for index in (5,6,7,248):fresh[index]=sbit(0)
+ fresh[249]=sbit(1)
+ scalar=wire_bits_to_scalar_fields(fresh)
+ public=field_to_wire_bits(execute_secret(field,scalar+[sint(9)])[0])
+ receiving=field_to_wire_bits(execute_secret(field,old+[remote])[0])
+ sending=field_to_wire_bits(execute_secret(field,scalar+[remote])[0])
+ bound=raw[:589*8]+fresh+public+receiving+sending+wire+parsed
+ binary_io.write_bits(outputs,execute_mpc(crypto,bound))
+receive.__name__='signal_private_new_dh_receive_256_5'
+function=export(receive);Array=sbitvec.get_type(1).Array
+function(Array(848*8),Array(608*8))

@@ -98,3 +98,23 @@ certificate quorum, anti-rollback witness and recovery key lifecycle must be
 specified explicitly. Current no-MAC runtime and embedding authentication are
 separate trust boundaries. Until that protocol is implemented and tested, restart
 refusal stays a temporary fail-closed boundary, not recoverable database support.
+
+## Parse-once new-DH candidate composition
+
+`NativeNewDhReceive::evaluate` is an internal848B→608B bounded transaction,
+using `programs/signal_private_new_dh_receive.mpc`. The old525B state and identity
+public keys remain shares. A single actual private parser summary supplies the
+remote point, field offsets and acceptance mask. The program jointly generates a
+clamped own-DH private scalar, derives its public key, and computes both agreement
+values using that same parsed remote point. It feeds those values directly into
+the split receive transaction; no supplied-DH input or raw-DH RPC is admitted.
+
+The C++ adapter compile/link probe passes. The emitted summary/crypto stages have
+separate all-output public differentials and exact inverse/composition theorems.
+A native compile receipt is distinct from execution: no actual native two-way
+receive/reply interoperability result exists yet. The next test must keep the
+fresh own private key/root as shares across a reply and second actual peer DH
+transition, so simply opening a predicted fresh key is not sufficient evidence.
+Actual full RustCrypto/session-source refinement, fresh authenticated bootstrap,
+full SPQR KEM phases, retained/skipped receiving paths and durable recovery remain
+open. The production provider does not admit this candidate.
