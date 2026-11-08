@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "public_numeric_cases": 102,
+  "profiles": {
+    "reference/block": {
+      "raw_and_gates": 192416,
+      "executed_and_gates": 59759,
+      "executed_xor_gates": 55549,
+      "unreachable_nodes": 77109,
+      "and_depth": 3212,
+      "artifact_sha256": "d6b3e242c595f37ec5d12779ee923878b8dfd77d1fc8bacefa806581026864f6"
+    },
+    "gate-efficient/block": {
+      "raw_and_gates": 208134,
+      "executed_and_gates": 51945,
+      "executed_xor_gates": 63195,
+      "unreachable_nodes": 92995,
+      "and_depth": 3212,
+      "artifact_sha256": "07f1dd232432dc7e92347c47a9e42638ad9a16588cfec3974d75ff98332ef17c"
+    },
+    "latency/block": {
+      "raw_and_gates": 304318,
+      "executed_and_gates": 70777,
+      "executed_xor_gates": 86483,
+      "unreachable_nodes": 147059,
+      "and_depth": 838,
+      "artifact_sha256": "0761845df06068399642263394d394ae7c15d5101ddf0f3fdf01adfd8fc77b43"
+    },
+    "reference/hmac": {
+      "raw_and_gates": 728254,
+      "executed_and_gates": 225844,
+      "executed_xor_gates": 210068,
+      "unreachable_nodes": 292343,
+      "and_depth": 9549,
+      "artifact_sha256": "08ec63d34a2553bcca55bf60f461044a5566b8f1c7b78947b9310e515489353b"
+    },
+    "gate-efficient/hmac": {
+      "raw_and_gates": 789055,
+      "executed_and_gates": 199817,
+      "executed_xor_gates": 238867,
+      "unreachable_nodes": 350372,
+      "and_depth": 9549,
+      "artifact_sha256": "53417c1cfb5a11ec6bbe91d8077c3bede8a3e156cd44ff21b1f320ae5d4d7d9d"
+    },
+    "latency/hmac": {
+      "raw_and_gates": 1169922,
+      "executed_and_gates": 274925,
+      "executed_xor_gates": 330798,
+      "unreachable_nodes": 564200,
+      "and_depth": 2505,
+      "artifact_sha256": "e1fc3c07c81c590e7aaa4a0356212950ff0027af9d2171ad77300eb891f82360"
+    },
+    "reference/hkdf": {
+      "raw_and_gates": 728379,
+      "executed_and_gates": 225891,
+      "executed_xor_gates": 210106,
+      "unreachable_nodes": 292383,
+      "and_depth": 9549,
+      "artifact_sha256": "0ac7a1b212b31c17681c0615dec0dbbecdc3dde5451728abe43eade67ba0cd29"
+    },
+    "gate-efficient/hkdf": {
+      "raw_and_gates": 789144,
+      "executed_and_gates": 199838,
+      "executed_xor_gates": 238897,
+      "unreachable_nodes": 350410,
+      "and_depth": 9549,
+      "artifact_sha256": "dbe68ff93d1a60359255e3252cd5fba208b70563a36651be8e5ce16b8eb633fe"
+    },
+    "latency/hkdf": {
+      "raw_and_gates": 1170046,
+      "executed_and_gates": 274961,
+      "executed_xor_gates": 330836,
+      "unreachable_nodes": 564250,
+      "and_depth": 2505,
+      "artifact_sha256": "415c82b844af3ff1afd79ae64530ec4f507246fd1c5bcafc1afad9239f07ce67"
+    },
+    "reference/private-hmac": {
+      "raw_and_gates": 736468,
+      "executed_and_gates": 229680,
+      "executed_xor_gates": 211959,
+      "unreachable_nodes": 294829,
+      "and_depth": 9552,
+      "artifact_sha256": "cdb4a2db8081093aef73e465a695a6cf107cacc16e3eb6c26f73b2b9ad8c6a9d"
+    },
+    "gate-efficient/private-hmac": {
+      "raw_and_gates": 795505,
+      "executed_and_gates": 202665,
+      "executed_xor_gates": 240232,
+      "unreachable_nodes": 352608,
+      "and_depth": 9552,
+      "artifact_sha256": "b26f49251383d790324b33a504d8bd2e37ca698c3cee6563a0ccd5490e8a087d"
+    },
+    "latency/private-hmac": {
+      "raw_and_gates": 1176983,
+      "executed_and_gates": 277937,
+      "executed_xor_gates": 332324,
+      "unreachable_nodes": 566722,
+      "and_depth": 2508,
+      "artifact_sha256": "f48ce822a47a56d916631cb739e9479ef0c443ed96f3fac4dbdcc0b754a9d2b2"
+    }
+  },
+  "native_MPC_executed": false,
+  "full_service_rebuilt": false,
+  "source_sha256": {
+    "TlsMpc/Sha256.lean": "778acff9c62af4599c51ca492bd44370635e9b8f5c967ffb2f0325fb9fe96ea9",
+    "TlsMpc/Sha256Backend.lean": "b27f6aed283cea96276108f1b572c1caf8a4f2bf68b41f02b9724da3497a31d1",
+    "TlsMpc/Signal/ShaCompact.lean": "cbe197589f9754ae108b1a328faf28054804990e189f67325211e32ab7dcd04e",
+    "TlsMpc/Signal/PrivateConversationBackend.lean": "4a5d53c8c4e4b2977ce3cbedf4e8d396e18962ea7794e8f68ea45373efc23698",
+    "SignalReference/PrivateConversationWork/Export.lean": "0c2a50958df19cc272c6bdf62b2c79593333d639c874ea5f7df9c643e29e3eb5",
+    "programs/signal_variable_service.mpc": "5d702b2ca1be00fcde811ec0fe737739cc3d3420bdfce570e5999a0bc6e21148",
+    "signal_backend/VariableServiceWork/prepare.py": "226b2f29df0f840619d1ee04bc623ace70e918eb787e8b37a4f40981d330d704",
+    "SignalReference/ShaBackendProfileWork/Export.lean": "73d72a8f9660c40bab5b85e3fe92f4058041cb0d910876eb772016738d8dfe71",
+    "SignalReference/ShaBackendProfileWork/check.py": "f40ab247565d57c7474385b4ce61abb09b4091346325060733e6b1278b708875"
+  }
+}

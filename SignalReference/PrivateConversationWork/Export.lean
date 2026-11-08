@@ -1,19 +1,21 @@
 import Lean
-import TlsMpc.Signal.PrivateConversationService
+import TlsMpc.Signal.PrivateConversationBackend
 open TlsMpc Std.Tactic.BVDecide
 structure BufferImage where
   format : String := "tls-mpc-aig-v1"
   name : String
+  sha_profile : String
   input_bits : Nat
   input_widths : Array Nat
   nodes : Array (List Nat)
   outputs : Array (Nat × Nat)
   deriving Lean.ToJson
 
-def emit (name : String) (count : Nat) (bytes : List (BVExpr 8)) : IO Unit := do
+def emit (profile : Sha256Backend.Profile) (name : String) (count : Nat) (bytes : List (BVExpr 8)) : IO Unit := do
   let circuit := AigExport.compile (ByteCircuit.joinExpr bytes)
   let image : BufferImage := {
     name := name
+    sha_profile := profile.tag
     input_bits := 8*count
     input_widths := Array.replicate count 8
     nodes := AigExport.exportNodes circuit.aig
@@ -22,7 +24,13 @@ def emit (name : String) (count : Nat) (bytes : List (BVExpr 8)) : IO Unit := do
   (← IO.getStdout).putStrLn (Lean.toJson image).compress
 
 def main (args : List String) : IO Unit := do
-  match args with
+  let (profile,dimensions) ← match args with
+    | [cert,size,chunk,addresses] => pure (Sha256Backend.Profile.reference,[cert,size,chunk,addresses])
+    | [cert,size,chunk,addresses,tag] =>
+      let some profile := Sha256Backend.Profile.parse tag | throw (IO.userError "unsupported SHA profile")
+      pure (profile,[cert,size,chunk,addresses])
+    | _ => throw (IO.userError "expected CERT_BYTES PLAINTEXT_BYTES none|present none|present [reference|gate-efficient|latency]")
+  match dimensions with
   | [certText,sizeText,chunkText,addressText] =>
     let some cert := certText.toNat? | throw (IO.userError "expected certificate size")
     let some size := sizeText.toNat? | throw (IO.userError "expected plaintext size")
@@ -42,9 +50,9 @@ def main (args : List String) : IO Unit := do
       addresses := field (182+chunkSize+size) addressSize }
     let spqrSize := 182+chunkSize+size+addressSize
     let p := Signal.PrivateConversationService.prepare Aes.symbolic Signal.Varint64.symbolic Signal.RelayEncoding.decimalSymbolic
-      Sha256.symbolic ByteAuth.symbolic hasChunk withAddresses
+      (Sha256Backend.select profile Sha256.symbolic) ByteAuth.symbolic hasChunk withAddresses
       (ByteCircuit.inputBytes 0 32) (ByteCircuit.inputBytes 32 32) (ByteCircuit.inputBytes 64 32)
       (ByteCircuit.inputBytes 96 32) (ByteCircuit.inputBytes 128 cert)
       (ByteCircuit.inputBytes (base+spqrSize) 57) i
-    emit "signal-private-variable-conversation" (base+spqrSize+57) (Signal.PrivateConversationService.output ByteAuth.symbolic i (ByteCircuit.inputBytes (base+spqrSize) 57) p)
+    emit profile "signal-private-variable-conversation" (base+spqrSize+57) (Signal.PrivateConversationService.output ByteAuth.symbolic i (ByteCircuit.inputBytes (base+spqrSize) 57) p)
   | _ => throw (IO.userError "expected CERT_BYTES PLAINTEXT_BYTES none|present none|present")

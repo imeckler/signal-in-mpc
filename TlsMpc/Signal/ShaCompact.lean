@@ -13,8 +13,8 @@ def schedule (o : Ops B W) (i : Nat) (block : List W) : List W × W :=
   let lookup :=  fun index => block[index]?.getD (o.wordConst 0)
   if i < 16 then (block, lookup i)
   else
-    let w := o.add (o.add (o.add (lookup ((i - 16) % 16))
-      (small0 o (lookup ((i - 15) % 16)))) (lookup ((i - 7) % 16)))
+    let w := o.sum4 (lookup ((i - 16) % 16))
+      (small0 o (lookup ((i - 15) % 16))) (lookup ((i - 7) % 16))
       (small1 o (lookup ((i - 2) % 16)))
     (block.set (i % 16) w, w)
 
@@ -44,7 +44,7 @@ theorem schedule_map (i : Nat) (block : List W) :
     simp only [List.getElem?_map]
     cases block[index]? <;> simp [h.wordConst]
   simp only [schedule]
-  split <;> simp [get, List.map_set, h.add, small0, small1, xor3, h.xor, h.rotr, h.shr]
+  split <;> simp [get, List.map_set, h.sum4, small0, small1, xor3, h.xor, h.rotr, h.shr]
 
 theorem run_map (count i : Nat) (block : List W) (state : State W) :
     (run a count i block state).map fw = run b count i (block.map fw) (state.map fw) := by

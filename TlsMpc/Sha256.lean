@@ -28,6 +28,10 @@ structure Ops (B W : Type) where
   shr : W → Nat → W
   pack : B → B → B → B → W
   unpack : W → Nat → B
+  -- Default fields preserve the original expression tree exactly. Explicit
+  -- backend profiles may replace them with proved equivalent nary circuits.
+  sum4 : W → W → W → W → W := fun a b c d => add (add (add a b) c) d
+  sum5 : W → W → W → W → W → W := fun a b c d e => add (add (add (add a b) c) d) e
 
 def concrete : Ops (BitVec 8) (BitVec 32) where
   byteConst := BitVec.ofNat 8
@@ -67,6 +71,8 @@ structure Hom (a : Ops B W) (b : Ops B' W') (fb : B → B') (fw : W → W') : Pr
   shr : ∀ x n, fw (a.shr x n) = b.shr (fw x) n
   pack : ∀ x y z t, fw (a.pack x y z t) = b.pack (fb x) (fb y) (fb z) (fb t)
   unpack : ∀ x n, fb (a.unpack x n) = b.unpack (fw x) n
+  sum4 : ∀ x y z t, fw (a.sum4 x y z t)=b.sum4 (fw x) (fw y) (fw z) (fw t)
+  sum5 : ∀ x y z t u, fw (a.sum5 x y z t u)=b.sum5 (fw x) (fw y) (fw z) (fw t) (fw u)
 
 def evaluationHom (assign : BVExpr.Assignment) :
     Hom symbolic concrete (BVExpr.eval assign) (BVExpr.eval assign) := by
@@ -116,15 +122,14 @@ def majority (o : Ops B W) (x y z : W) : W := xor3 o (o.and x y) (o.and x z) (o.
 
 def scheduleStep (o : Ops B W) (ws : List W) : List W :=
   let backWord := fun back => ws[ws.length - back]?.getD (o.wordConst 0)
-  ws ++ [o.add (o.add (o.add (small1 o (backWord 2)) (backWord 7)) (small0 o (backWord 15))) (backWord 16)]
+  ws ++ [o.sum4 (small1 o (backWord 2)) (backWord 7) (small0 o (backWord 15)) (backWord 16)]
 
 def extendSchedule (o : Ops B W) : Nat → List W → List W
   | 0, ws => ws
   | n + 1, ws => extendSchedule o n (scheduleStep o ws)
 
 def round (o : Ops B W) (k : Nat) (w : W) (s : State W) : State W :=
-  let t1 := o.add (o.add (o.add (o.add s.h (big1 o s.e))
-    (choose o s.e s.f s.g)) (o.wordConst k)) w
+  let t1 := o.sum5 s.h (big1 o s.e) (choose o s.e s.f s.g) (o.wordConst k) w
   let t2 := o.add (big0 o s.a) (majority o s.a s.b s.c)
   ⟨o.add t1 t2, s.a, s.b, s.c, o.add s.d t1, s.e, s.f, s.g⟩
 
@@ -218,7 +223,7 @@ theorem scheduleStep_map (ws : List W) :
     simp only [List.getElem?_map]
     cases ws[i]? <;> simp [h.wordConst]
   simp only [scheduleStep, List.map_append, List.map_cons, List.map_nil,
-    List.length_map, h.add, small0, small1, xor3, h.xor, h.rotr, h.shr, get]
+    List.length_map, h.sum4, small0, small1, xor3, h.xor, h.rotr, h.shr, get]
 
 theorem extendSchedule_map (n : Nat) (ws : List W) :
     (extendSchedule a n ws).map fw = extendSchedule b n (ws.map fw) := by
@@ -229,7 +234,7 @@ theorem extendSchedule_map (n : Nat) (ws : List W) :
 theorem round_map (k : Nat) (w : W) (s : State W) :
     (round a k w s).map fw = round b k (fw w) (s.map fw) := by
   simp [round, State.map, big0, big1, choose, majority, xor3,
-    h.add, h.xor, h.and, h.not, h.rotr, h.wordConst]
+    h.add, h.sum5, h.xor, h.and, h.not, h.rotr, h.wordConst]
 
 theorem rounds_map (ks : List Nat) (ws : List W) (s : State W) :
     (rounds a ks ws s).map fw = rounds b ks (ws.map fw) (s.map fw) := by

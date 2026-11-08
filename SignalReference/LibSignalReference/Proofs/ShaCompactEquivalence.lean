@@ -10,8 +10,8 @@ def read (o : Ops B W) (words : List W) (i : Nat) : W :=
   words[i]?.getD (o.wordConst 0)
 
 def word (o : Ops B W) (words : List W) (i : Nat) : W :=
-  o.add (o.add (o.add (small1 o (read o words (i - 2))) (read o words (i - 7)))
-    (small0 o (read o words (i - 15)))) (read o words (i - 16))
+  o.sum4 (small1 o (read o words (i - 2))) (read o words (i - 7))
+    (small0 o (read o words (i - 15))) (read o words (i - 16))
 
 def valid (o : Ops B W) (words : List W) : Prop :=
   ∀ i, 16 ≤ i → i < words.length → read o words i = word o words i

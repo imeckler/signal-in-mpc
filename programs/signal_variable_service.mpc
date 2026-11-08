@@ -11,8 +11,13 @@ from handshake_backend.mixed import (fresh_scalar_fields,execute_secret,field_to
 from backend_adapter.boolean import load
 from backend_adapter.aig_packed import execute_mpc
 from signal_backend.VariableServiceWork.shape import VariableShape
-field_path,image_path,*dimensions=program.args[1:]
+arguments=program.args[1:]
+if len(arguments) not in (6,7):raise ValueError('expected field,image,four dimensions[,SHA profile]')
+field_path,image_path=arguments[:2];dimensions=arguments[2:6]
+sha_profile=arguments[6] if len(arguments)==7 else 'reference'
+if sha_profile not in ('reference','gate-efficient','latency'):raise ValueError('unsupported SHA profile')
 shape=VariableShape(*map(int,dimensions));field=load_field(field_path);image=load(image_path)
+if image.get('sha_profile','reference')!=sha_profile:raise ValueError('SHA artifact/profile mismatch')
 if(field['input_count']!=257 or image['name']!='signal-private-variable-conversation' or
  image['input_bits']!=shape.boolean_input_bytes*8 or len(image['outputs'])!=shape.output_bytes*8):raise ValueError('variable conversation artifact mismatch')
 def evaluate(inputs,outputs):
