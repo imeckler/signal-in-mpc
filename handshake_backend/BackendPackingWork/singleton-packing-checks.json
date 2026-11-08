@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "public_equivalence_cases": 192,
+  "modeled_upstream_singleton_width": 40,
+  "profiles": {
+    "1": {
+      "legacy_triples": 40,
+      "singleton_triples": 1,
+      "new_batch_widths": [
+        1
+      ]
+    },
+    "2": {
+      "legacy_triples": 2,
+      "singleton_triples": 2,
+      "new_batch_widths": [
+        2
+      ]
+    },
+    "3": {
+      "legacy_triples": 3,
+      "singleton_triples": 3,
+      "new_batch_widths": [
+        3
+      ]
+    },
+    "39": {
+      "legacy_triples": 39,
+      "singleton_triples": 39,
+      "new_batch_widths": [
+        39
+      ]
+    },
+    "40": {
+      "legacy_triples": 40,
+      "singleton_triples": 40,
+      "new_batch_widths": [
+        40
+      ]
+    },
+    "41": {
+      "legacy_triples": 41,
+      "singleton_triples": 41,
+      "new_batch_widths": [
+        41
+      ]
+    },
+    "63": {
+      "legacy_triples": 63,
+      "singleton_triples": 63,
+      "new_batch_widths": [
+        63
+      ]
+    },
+    "64": {
+      "legacy_triples": 64,
+      "singleton_triples": 64,
+      "new_batch_widths": [
+        64
+      ]
+    },
+    "65": {
+      "legacy_triples": 104,
+      "singleton_triples": 65,
+      "new_batch_widths": [
+        64,
+        1
+      ]
+    },
+    "127": {
+      "legacy_triples": 127,
+      "singleton_triples": 127,
+      "new_batch_widths": [
+        64,
+        63
+      ]
+    },
+    "128": {
+      "legacy_triples": 128,
+      "singleton_triples": 128,
+      "new_batch_widths": [
+        64,
+        64
+      ]
+    },
+    "129": {
+      "legacy_triples": 168,
+      "singleton_triples": 129,
+      "new_batch_widths": [
+        64,
+        64,
+        1
+      ]
+    }
+  },
+  "actual_compiler_evidence": "SignalReference/FastShaSumWork/compile-report-singleton.json",
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "handshake_backend/BackendPackingWork/check_singleton_packing.py": "4ae4fa8b50e3a2cc84d7c1e48290d761b8c7a901de65b8f73a090ec53cd2bf42",
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630"
+  }
+}

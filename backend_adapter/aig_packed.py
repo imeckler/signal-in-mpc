@@ -87,7 +87,11 @@ def execute_mpc(image, inputs):
     from Compiler.program import Program
     if any(not isinstance(value, sbit) or value.n != 1 for value in inputs):
         raise TypeError('expected single-lane secret input bits')
-    return execute(image, inputs, sbit(0), sbit(1), sbits.bit_compose,
+    def pack_bits(bits):
+        # Upstream sbits.bit_compose([sbit]) widens to default sbits.n (40).
+        # A singleton is already the complete one-lane representation.
+        return bits[0] if len(bits) == 1 else sbits.bit_compose(bits)
+    return execute(image, inputs, sbit(0), sbit(1), pack_bits,
                    lambda value, size: value.bit_decompose(size),
                    lambda size, value: sbits.get_type(size)(value),
                    begin_depth=lambda depth: Program.prog.curr_tape.start_new_basicblock(

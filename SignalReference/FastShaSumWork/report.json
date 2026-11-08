@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "public_numeric_cases": 1046,
+  "actual_hashlib_vectors": 3,
+  "profiles": {
+    "double": {
+      "legacy": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "artifact_sha256": "7132acba3450dd07a73f70cb0c713e5874c7d932e4246fdd65896b890a11bd3e"
+      },
+      "carry": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1,
+        "and_depth": 0,
+        "local_xor_depth": 0,
+        "artifact_sha256": "de2838d8dc21b4f8b827234cf9eca525aca1966f4381503c39a5c3a029820ca5"
+      }
+    },
+    "pair3": {
+      "legacy": {
+        "raw_and_gates": 288,
+        "executed_and_gates": 62,
+        "executed_xor_gates": 95,
+        "unreachable_nodes": 131,
+        "and_depth": 1,
+        "local_xor_depth": 2,
+        "artifact_sha256": "6f490236e9966973707985f4299832473602a9eb782a02f52916f4e1ed7f0775"
+      },
+      "carry": {
+        "raw_and_gates": 288,
+        "executed_and_gates": 62,
+        "executed_xor_gates": 95,
+        "unreachable_nodes": 131,
+        "and_depth": 1,
+        "local_xor_depth": 2,
+        "artifact_sha256": "b36a1daa2a9eba496af9acc7d35b8a40773454e86414c59daeb4e5aba6bbec91"
+      }
+    },
+    "sum5": {
+      "legacy": {
+        "raw_and_gates": 880,
+        "executed_and_gates": 364,
+        "executed_xor_gates": 252,
+        "unreachable_nodes": 265,
+        "and_depth": 61,
+        "local_xor_depth": 7,
+        "artifact_sha256": "7cf1684644b2960ee2726d2ec7c24bb77d4c32545d5eb92022ee8be764fb47e6"
+      },
+      "carry": {
+        "raw_and_gates": 1065,
+        "executed_and_gates": 272,
+        "executed_xor_gates": 342,
+        "unreachable_nodes": 452,
+        "and_depth": 60,
+        "local_xor_depth": 6,
+        "artifact_sha256": "fcf3315baca194c4bd7c79b8f23143272820aeeefaaccb2117321b55c97097b9"
+      }
+    },
+    "block-state": {
+      "legacy": {
+        "raw_and_gates": 192416,
+        "executed_and_gates": 59759,
+        "executed_xor_gates": 55549,
+        "unreachable_nodes": 77109,
+        "and_depth": 3212,
+        "local_xor_depth": 20,
+        "artifact_sha256": "fdcefa93ec2a64f52c1cab5a8d2279f3280bf34e8362a676018af94a0ba43792"
+      },
+      "carry": {
+        "raw_and_gates": 208134,
+        "executed_and_gates": 51945,
+        "executed_xor_gates": 63195,
+        "unreachable_nodes": 92995,
+        "and_depth": 3212,
+        "local_xor_depth": 15,
+        "artifact_sha256": "72f4a839e2510e96511b6c165c351ee5acce388b8f2c4cd2ac40f7bc393ac271"
+      }
+    }
+  },
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "TlsMpc/Sha256CarrySave.lean": "4c1a0e15102018c6b53406add71da1508245eef4145a34f215b2ed805559cf72",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "SignalReference/FastShaSumWork/Export.lean": "5eb65b8cbb9e24fdff453dd3d22c9ebd7211467af6bf77841cd97108e43e5385",
+    "SignalReference/FastShaSumWork/check.py": "bf01175701ff2d66f2b7d19959c57b3fe5d678a3bfafafc33234152689e1191a"
+  },
+  "scope": "carry-save pairs/full final CPA and arbitrary-state compression compared to old kernel; no production integration or latency claim",
+  "compiled_before_singleton": "compile-report.json",
+  "compiled_after_singleton": "compile-report-singleton.json",
+  "compiled_cost_scope": "same representative closure, new adapter copied into fresh stages; no native MPC execution"
+}
