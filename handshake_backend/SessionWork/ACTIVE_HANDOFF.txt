@@ -93,3 +93,28 @@ Worker1 checkpoint (private-length native run completed):
   throughput/WAN optimization. Positive test is loopback functional evidence,
   NOT100k/hour throughput or fullsystem completion. Earlier TLSsuite covers
   bothKU,replay/authentication/abort separately; new test covers clientKU only.
+
+2026-11-08 normal embedding checkpoint:
+- Newnormalcore lifecycle_worker_main.cpp+ProviderCoordinator/NativeProvider/
+  PrivateProviderRegistry, genericProviderController usesopaque19/20/21 and18.
+  SeparateNoProvider(default)/FixtureProviderFactory translationunits, no macros.
+- Crypto genericwrapperb6e90b8; securebootstrap/recoverable import remainsABSENT.
+  Only embedding-ownedauthenticatedBits admission, preservedcomputedflags,
+  authoritativeperpartyfences; nodefault/provider/share/plaintextRPC importer.
+- Normalprofile36124 PASSall5/523.704s rawc3819853896afb8f immutable snapshots,
+  source/canonicalstable cleanup[]. Holdreleased. DefaultNoProvider5138 PASS
+  all5/119.233s raw94fffa0a5bf514ed, noappseal/produce; endpointincompletion is
+  EXPECTEDnegative outcome. Publicreadinessfalseall5 PASS0.033s,noProducerVM,
+  erasurebarrier/destruction cleanup[]. No live handles.
+- ProviderGate3 endpoints foundation-only +freshAIG65536pairspass; Registry24
+  ASAN/UBSAN transitions; actualOwnedBitsadapter compile/link; opcode21 boundary
+ 1253framing+contracts/wipes pass. No fullSystem/throughput claim.
+- Nextparentpriority:bounded multiplexed pendingprovider/requestslots withprivate
+  correlation/coalescedmessages andperconversation ordering, then necessary
+  integratedmeasurement PUBLICstages/provider/seal/receive/epochs +bandwidth/
+  preprocessing; don't rerun wholesuite justforlogs. Need honest27.8msg/s estimate.
+- PlannedNEW TlsChatResponseMux wrapper keeps corestable for parseragentproof:
+  Core.process ending0, Core.finish with expected:=parsed.id validatesstructure;
+  separatelycompare privateID to bounded pendingIDs/exactlyone, resetparser at
+  privateend, latchvalidity+boundedcompletionqueue. Agentconfirmed acceptance
+  projection sound, correlation/reset/queue require separateproofs.

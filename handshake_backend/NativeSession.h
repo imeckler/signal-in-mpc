@@ -203,6 +203,22 @@ public:
         return guarded([&] {require_application();
             return retain_private_payload(PrivatePayload::from_result(std::move(encoded),capacity));});
     }
+    // Embedding-only public constants and computed private validity. Neither is
+    // a public RPC input/import path. Unpatched/unsupported sessions fail here.
+    Bits share_public_constants(const Bytes& value) {
+        return guarded([&] {require_application();return public_bits(value);});
+    }
+    uint64_t retain_validated_upgrade(Bits payload,Bits computed_validity) {
+        return guarded([&] {require_application();require(payload.size()%8==0&&payload.size()<=16384*8&&computed_validity.size()==8,
+            "invalid private upgrade dimensions");
+            size_t capacity=payload.size()/8;
+            return retain_private_payload(PrivatePayload(std::move(payload),
+                public_bits({uint8_t(capacity>>8),uint8_t(capacity)}),std::move(computed_validity),capacity));});
+    }
+    Bits combine_private_validity(Bits producer,Bits upstream) {
+        return guarded([&] {require_application();require(producer.size()==8&&upstream.size()==8,"invalid private validity dimensions");
+            return eval("tls-provider-validity",concat({producer,upstream}),1);});
+    }
     // Consume exactly once into an internal HTTP/WebSocket/Signal processor.
     // No plaintext bytes or actual length are returned over RPC.
     PrivatePayload take_private_payload(uint64_t handle) {

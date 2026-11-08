@@ -60,3 +60,7 @@ root = "handshake_backend.WebSocketWork.EmitControl"
 [[lean_exe]]
 name = "websocket_control_checks"
 root = "handshake_backend.WebSocketWork.ControlFixture"
+
+[[lean_exe]]
+name = "provider_gate_emitter"
+root = "handshake_backend.WebSocketWork.EmitProviderGate"

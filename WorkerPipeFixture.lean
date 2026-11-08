@@ -50,7 +50,7 @@ def main (args : List String) : IO Unit := do
     IO.println "pipe framing duplex: receive pending while send completes"
     return
   let operations : List Operation := if mode == "valid" then
-    [.begin,.derive,.openHandshake,.authenticate,.verifyFinished,.finish,.retire,.abort,.connect,.sendRecord,.receiveRecord,.openApplication,.sealApplication,.sealControl,.rotateSend,.rotateReceive,.pollRecord,.processWebSocket] else [.begin]
+    [.begin,.derive,.openHandshake,.authenticate,.verifyFinished,.finish,.retire,.abort,.connect,.sendRecord,.receiveRecord,.openApplication,.sealApplication,.sealControl,.rotateSend,.rotateReceive,.pollRecord,.processWebSocket,.providerCatalogue,.providerUpgrade,.providerProduce] else [.begin]
   let result ← (do
     for operation in operations do
       let payload := if operation == .authenticate then
@@ -81,3 +81,4 @@ where
     | .connect => 19 | .sendRecord => 16645 | .receiveRecord => 0
     | .openApplication => 16414 | .sealApplication => 20 | .sealControl => 14
     | .rotateSend => 0 | .rotateReceive => 0 | .pollRecord => 0 | .processWebSocket => 8
+    | .providerCatalogue => 0 | .providerUpgrade => 8 | .providerProduce => 16

@@ -78,8 +78,58 @@ never a live account. Canonical application gate remainsclosed; refreshpaused.
 Bounds are firstintegration profiles: incomingpublicbacking1..128, frame/message
 4096, max4controlresponses/chunk, onependingresponse. Later production requires
 bounded multiplexed conversations/correlation and broaderrecord profiles.
-ASCII-bounded responseheader validation is an explicit narrower profile; actual
-fixture service headers are ASCII. No wholeRustresponse refinement, recoverable
+Responseheader names use ASCII tokens; values support validUTF8 and RustUnicode
+whitespace trimming within the public responsecap. No wholeRustresponse refinement, recoverable
 ratchet persistence, fullmobilecompromise/OS-erasure,or throughput claim follows.
 Peerclose guard permits only its tagged close response; dedicated negative
 close/reservationfailure integrated tests remain pending.
+
+Normal lifecycle-enabled embedding profile:
+- lifecycle_worker_main.cpp is the normal core; ProviderController.lean uses
+  only catalogue19/upgrade20/produce21 opaque state/input handles plus RPC18.
+  It contains no fixture credentials, Signal keys/plaintext construction or
+  endpoint oracle. Factory selection is a separate linked translation unit.
+- NoProvider.cpp is the default. It admits NO provider; there is no share or
+  plaintext importer. The normal default rejected upgrade after authenticated
+  TLS retirement on allfive parties119.233s, without any appseal/produce.
+- Trusted embeddings implement make_provider_factory() returning ProviderFactory
+  (ProviderCoordinator.h). It moves existing authenticated same-worker Bits into
+  NativeProvider plus computed credential/state/input validity masks. It must
+  not perform private VM work before collective admission. Secure authenticated
+  bootstrap/recoverable import is NOT provided; provenance is an external duty.
+- Per-party authoritative opaque fence paths must remain stable across restart;
+  do not relabel old state into fresh slots/directories. FixtureProviderFactory
+  deliberately uses only disposable known state in a new test workingdir.
+- PrivateProviderRegistry owns exactly one provider/state slot, up to64 oneuse
+  preadmitted input slots and onepending response in this first normal profile.
+  Upgrade completion requires authenticated101; stateadvance acknowledgement
+  requires authenticated correlated2xx after the receive erasure barrier.
+  Wrong/stale inputs, rejected/uncertain callbacks or checkpoints close allstate.
+- TlsProviderGate combines actual producer status with upstream computed flags;
+  nothing is opened. PrivateTLS sealing rejects invalid status before wire
+  disclosure. Upgrade validity remains attached to private fixed-length bytes.
+- Actual lifecycle capability comes from NativeLifecycle on the patched isolated
+  runtime, never an enable-app flag. Legacy/unpatched worker remains failclosed.
+  The normal candidate retains the tested every-record policy; epoch policy is
+  an embedding/security choice, not a TLS semantic requirement.
+
+Build normal default inside .deps/tls-session-runtime/MP-SPDZ:
+  make -f /ABS/tls-mpc/handshake_backend/WebSocketWork/Makefile \
+    TLS_ROOT=/ABS/tls-mpc/handshake_backend ../tls-lifecycle-websocket-worker
+For a trusted factory use TLS_PROVIDER_FACTORY=/ABS/Factory.cpp and a FRESH
+TLS_BUILD outputdirectory (avoid selecting a stale executable). Program/config
+closures and emitter/toolchain must be pinned before private work. Public cache
+reuse now copies/verifies the exact archived compiler source closure; it never
+rewrites immutable receipts or recopies mutable workspace additions.
+
+Evidence: tls-native-provider-profile.json all5exit0/523.704s with separately
+linked disposable factory through the NORMAL core/registry/controller, two
+actual requests/responses,3pongs,clientKU/terminalabort,stablehashes/cleanup[].
+This523.7s includes handshake,setup,parsers/renewals/two sends; it is NOT a
+steady-state throughput estimate. tls-native-provider-absent.json checks default
+absence; tls-native-provider-readiness.json checks onepublic localfailure is
+rejected collectively before producerVM with erasure/destruction onallfive.
+Hostregistry24 ASAN/UBSAN transitions and65536 freshAIG validity pairs pass.
+Current native compiled producer profile remains cert260/plaintext0/nochunk/no
+addresses; receivebacking128/frame-response4096 limits above stillapply. Broader
+profiles require their exact pinned artifacts, not a gate/manifest-only claim.

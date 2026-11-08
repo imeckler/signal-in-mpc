@@ -11,6 +11,18 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 
+def clone_public_cache(source,backend):
+    # Compiler trees may be workspace symlinks. Copy only the exact archived
+    # compiler source closure, never newly discovered files/changed sources.
+    config=json.loads((source/'Worker-Public/tls-shape-toolchain.json').read_text())
+    for name in ('Worker-Public','Programs'):
+        shutil.copytree(source/name,backend/name)
+    for name,expected in config['files'].items():
+        if name.startswith(('Compiler/','backend_adapter/','handshake_backend/')) or name=='compile.py':
+            assert digest(source/name)==expected,('archived compiler source changed',name)
+            target=backend/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source/name,target)
+    if not (backend/'compile.py').exists():shutil.copy2(source/'compile.py',backend/'compile.py')
+
 def provision(backend):
     baseline=ROOT/'.deps/sharing-refresh/MP-SPDZ'
     public_files=set()
@@ -41,12 +53,18 @@ def provision(backend):
           if line.split(' ',1)[1].startswith('Programs/Functions/'))
     # Install the application-capable helper, not the historical handshake-only
     # helper in the canonical runtime. Keep its archived accepted TLS emitter.
-    compiler_config=json.loads((baseline/'Worker-Public/tls-shape-toolchain.json').read_text())
-    for name in compiler_config['files']:
-        target=backend/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(baseline/name,target)
     emitter=ROOT/'.deps/sharing-refresh/tls-application-shapes-v2/Worker-Public/tls-shape-emitter'
-    (backend/'Programs/Source').mkdir(parents=True,exist_ok=True)
-    install(backend,emitter,ROOT/".lake/build/bin/private_tls_emitter")
+    if not (backend/'Worker-Public/tls-shape-compiler').exists():
+        compiler_config=json.loads((baseline/'Worker-Public/tls-shape-toolchain.json').read_text())
+        for name in compiler_config['files']:
+            target=backend/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(baseline/name,target)
+        (backend/'Programs/Source').mkdir(parents=True,exist_ok=True)
+        install(backend,emitter,ROOT/".lake/build/bin/private_tls_emitter")
+    else:
+        # Immutable archived compiler closure: reinstalling from the mutable
+        # workspace would invalidate existing receipts, even for unrelated files.
+        compiler_config=json.loads((backend/'Worker-Public/tls-shape-toolchain.json').read_text())
+        assert all(digest(backend/name)==value for name,value in compiler_config['files'].items()),'archived compiler changed'
     for arguments in [('tls-seal-record',23,345,0),('tls-seal-record',22,5,0),
                       ('tls-seal-private-record',1186),('tls-seal-private-record',131)]:
         shape=Shape(arguments)
@@ -110,9 +128,7 @@ def main():
     if args.public_cache:
         # Copy only explicitly public compiler/program material. PlayerData and
         # runtime state/peer secrets from the old execution are never reused.
-        for name in ('Compiler','backend_adapter','handshake_backend','Worker-Public','Programs'):
-            shutil.copytree(args.public_cache/name,backend/name)
-        shutil.copy2(args.public_cache/'compile.py',backend/'compile.py')
+        clone_public_cache(args.public_cache,backend)
     manifest=output/'programs.manifest';manifest.write_text(provision(backend))
     for name in ['websocket-initial-state.bin','tls-websocket-frame-v2-4096-initial.bin','websocket-control-initial.bin','tls-chat-response-4096-initial.bin']:
         assert ' Worker-Public/'+name+'\n' in manifest.read_text(),('missing parser state pin',name)

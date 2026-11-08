@@ -13,6 +13,10 @@ class Dispatch {
 public:
     Dispatch(Session& session, Collective& collective, ShapeCompiler* shapes=nullptr) : session(session), collective(collective),shapes(shapes) {}
     bool fail_from_private_producer() noexcept {failed=true;transport.close();return session.abort();}
+    template<class Extension> Bytes private_extension(const Request& request,Extension&& extension) {
+        try {public_require(!failed,"worker already aborted");collective.agree(request);return extension();}
+        catch(...) {failed=true;transport.close();session.abort();throw;}
+    }
     Bytes call(const Request& request) {
         try {
             // A completed terminal cleanup can be acknowledged again without
@@ -87,6 +91,10 @@ public:
                 }
                 return out;
             }
+            case Opcode::provider_catalogue:
+            case Opcode::provider_upgrade:
+            case Opcode::provider_produce:
+                throw std::runtime_error("private provider launch profile unavailable");
             case Opcode::abort:
                 in.done(); {bool erased=session.abort();failed=true;transport.close();
                     public_require(erased,"native VM erasure capability failed or unavailable");return {};}

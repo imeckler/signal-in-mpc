@@ -16,6 +16,7 @@ def code : Operation → Nat
   | .rotateSend => 15 | .rotateReceive => 16
   | .pollRecord => 17
   | .processWebSocket => 18
+  | .providerCatalogue => 19 | .providerUpgrade => 20 | .providerProduce => 21
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

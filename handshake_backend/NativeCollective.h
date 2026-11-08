@@ -64,6 +64,9 @@ public:
         for(const auto& item:all)public_require(item.get_length()==2&&
             item.get_data()[0]==0x53&&item.get_data()[1]==255,"collective producer preparation failed");
     }
+    void agree_provider_availability(bool present) {
+        identical(PublicBytes{0x54,uint8_t(present?255:0)});
+    }
     template<class Action> PublicBytes leader(Action&& action) {
         auto& player=current_player();
         PublicBytes packet;

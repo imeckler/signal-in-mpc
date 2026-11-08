@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "gate_pairs": 65536,
+  "proof_endpoints": [
+    "gate_map",
+    "gate_value",
+    "compiled_gate_correct"
+  ],
+  "registry_checks": "24 public provider-registry transitions passed; no native MPC claim",
+  "native_mpc_executed": false,
+  "scope": "embedding-only opaque ownership/phase/failure and computed validity propagation; authenticated bootstrap/normal-worker/native composition separate",
+  "sha256": {
+    "TlsMpc/TlsProviderGate.lean": "e4354df24b35fc4a757b1766cdff015fb09f0d11db01fcc3e785e2881f158849",
+    "handshake_backend/WebSocketWork/EmitProviderGate.lean": "a4c32f335589eff5fc2def58533db72a2aa6ef103449eff9630d460f5611aac5",
+    "handshake_backend/WebSocketWork/PrivateProviderRegistry.h": "09d26f75067466dd434aefb8e0fa9d3f1a93ea88a98aede62dc121b044d3a907",
+    "handshake_backend/WebSocketWork/provider_registry_checks.cpp": "7954f52ca1fb0be237d20800198e59247ca35b79bb95c15c78d364938a6e698a",
+    "scripts/check_private_provider.py": "0fbf3d76d45797accbf08e4a1785706886a31b29692b0ef3a5d6a6633ac01cde",
+    ".lake/build/bin/provider_gate_emitter": "21074bc7a6d69c90a545a64573afa22d6836e359e5a369bc07dd84f02f75a31a"
+  }
+}

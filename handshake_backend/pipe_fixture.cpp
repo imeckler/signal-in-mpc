@@ -31,7 +31,7 @@ int main(int argc,char** argv) {
             sequence.reserve(request->sequence);write_reply(std::cout,true,request->payload);}
         return 0;
     }
-    for(int i=0;i<(mode=="valid"?18:1);++i) {
+    for(int i=0;i<(mode=="valid"?21:1);++i) {
         auto request=read_request(std::cin); if(!request) return 3;
         sequence.reserve(request->sequence);
         if(mode=="oversized") { PublicBytes head{0};put_number(head,max_request_bytes+1,4);std::cout.write(reinterpret_cast<char*>(head.data()),head.size());std::cout.flush();return 0; }

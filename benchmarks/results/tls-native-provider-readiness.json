@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "native_mpc_executed": true,
+  "private_producer_vm_entered": false,
+  "source_and_product_sha256": {
+    "scripts/check_native_provider_readiness.py": "24ce00fd791befe381a804ce33e68ecf5e0f3caa31a1465bd8be78375eb20883",
+    "handshake_backend/NativeCollective.h": "a9877dd61dac2e0b6ed2303e85b753fe19686a3e9f822c3381f60b823f89688b",
+    "handshake_backend/WebSocketWork/readiness_native_fixture.cpp": "b60da5ff387684013e7925f31963366ba2d1002279cd321d1a8605788219ddfc",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "9ce89ec5437eec310f8c0e941661c66f926cf406666b0646a5b5be45e9d647ec",
+    "handshake_backend/SessionWork/ErasedHostCall.h": "798f7bc4eec5b8f6eec31d1e6d8a36bbea027cac0ba4e78294ed0a637f1bbd01",
+    ".deps/tls-session-runtime/tls-readiness-negative-fixture": "f0bbc192041aa26bcdcb5251cedb4856c59e5cc5725c6faae39a4e8fa9b51507",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992"
+  },
+  "logs": "benchmarks/results/raw/provider-readiness/836b06557d8083df",
+  "all_five_rejected_local_failure": true,
+  "erasure_barrier_passed": true,
+  "cleanup_errors": [],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "elapsed_seconds": 0.03287183307111263
+}
