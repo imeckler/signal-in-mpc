@@ -64,3 +64,11 @@ root = "handshake_backend.WebSocketWork.ControlFixture"
 [[lean_exe]]
 name = "provider_gate_emitter"
 root = "handshake_backend.WebSocketWork.EmitProviderGate"
+
+[[lean_exe]]
+name = "chat_mux_emitter"
+root = "handshake_backend.WebSocketWork.EmitMux"
+
+[[lean_exe]]
+name = "request_id_emitter"
+root = "handshake_backend.WebSocketWork.EmitRequestId"

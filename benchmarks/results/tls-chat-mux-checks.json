@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "native_mpc_executed": false,
+  "scope": "candidate four-slot mux/counter source and compiler maps; full Rust/schema refinement, native mux/ID lifecycle and randomized VM wrapper integration separate",
+  "vectors": [
+    {
+      "mode": "byte",
+      "vectors": 115,
+      "sha256": "04ac874a13303cfe2791513aacee5d65a48cbc354ab3dd798e9eab9de5b115f7"
+    },
+    {
+      "mode": "admit",
+      "vectors": 4,
+      "sha256": "578d7561cd76248198a9821848473fd037ca68a44ecafedbca3c5df3e5401fec"
+    },
+    {
+      "mode": "seed",
+      "vectors": 258,
+      "sha256": "e3bf1ac32c699eaf4c1fd524997fd4ecd10241069a8040b72f4d4fc49ea1c267"
+    },
+    {
+      "mode": "next",
+      "vectors": 138,
+      "sha256": "45d6924a0bda68b4322f6261b44eea477b803df6ede7fe6e6ca06756e2a298b4"
+    }
+  ],
+  "proof_endpoints": {
+    "mux": [
+      "process_map",
+      "admit_map",
+      "runByte_map",
+      "runAdmit_map",
+      "exactlyOne_four",
+      "compiled_runByte_correct",
+      "compiled_runAdmit_correct"
+    ],
+    "counter": [
+      "seedBytes_map",
+      "next_map",
+      "allowed_value",
+      "next_increases",
+      "seed_prefix",
+      "seed_range",
+      "compiled_seed_correct",
+      "compiled_next_correct"
+    ]
+  },
+  "sha256": {
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/TlsPrivateRequestId.lean": "146a898aafed9c859f0dc4746a6293422b6c418128bab372a310012691f0ef5e",
+    "handshake_backend/WebSocketWork/EmitMux.lean": "7fa4cc970941e45495bf9ae87165602149fa086bc34fcc60a75101fcb4f18063",
+    "handshake_backend/WebSocketWork/EmitRequestId.lean": "df22605965a535bb6f4cdd40360e40b135fa2428537e648a65aad04de67ce99a",
+    "handshake_backend/WebSocketWork/MuxFixture.lean": "ae4326c0062c70ed5fef670132725c196d14d68530a9aa0ed9f51b29a8aa29d0",
+    "scripts/check_chat_mux.py": "6e2f2df4cebfb4ff23ffccf6d689bcd64ce2b862209c7e744cbe770380d6df40",
+    "programs/tls_private_request_id.mpc": "e03efa0dc1e8c6ca1b0d5d37b22bc4747f89c83f11d5c2f1256988c4a993e14d",
+    ".lake/build/bin/chat_mux_emitter": "abd5b659ae1872875a3f8f922f808d495ec78a077410b3bf25f04aa3c3e6fe4f",
+    ".lake/build/bin/request_id_emitter": "376caaf508a0c4b98e490a61ccad159b732fbf79e6b59753c391ecc42fbd39b1"
+  }
+}

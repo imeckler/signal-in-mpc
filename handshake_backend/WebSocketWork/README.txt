@@ -133,3 +133,20 @@ Hostregistry24 ASAN/UBSAN transitions and65536 freshAIG validity pairs pass.
 Current native compiled producer profile remains cert260/plaintext0/nochunk/no
 addresses; receivebacking128/frame-response4096 limits above stillapply. Broader
 profiles require their exact pinned artifacts, not a gate/manifest-only claim.
+
+Candidate mux proof checkpoint (native integration pending):
+TlsChatResponseMux parses once, with4pending conversation slots. Eligibility is
+latched at private message start; no eligible slot rejects even an orphanprefix.
+At private end Core.finish(expected:=parsed.id) validates structure/status, then
+exactlyone eligible ID mustmatch and status mustbe2xx. IDs are cleared/slots
+consumed insidecircuit before hostdrain;4completion rows support coalescing and
+reordering, and replay/unknown/late-admission/non2xx failclosed. Partial body/
+header events remain uncommitted private prefixes. Coreparser source unchanged;
+whole actualRust schema/streaming refinement remains separate work.
+TlsPrivateRequestId proves seedprefix10/range[2^63,3*2^62), guarded monotone
+increment withoutwrap and symbolic/compiler maps. VMwrapper will use freshjoint
+random bits, never caller-supplied IDentropy. This gives canonicalu64width10;
+no traffic-padding guarantee follows. Randomizedwrapper/native mux/epoch and
+multi-provider C++ integration are NOT certified by this source checkpoint.
+check_chat_mux.py passes115byte/4admit/258seed/138next freshAIG numericvectors
+and15 audited foundational-axiom endpoints; reporttls-chat-mux-checks.json.
