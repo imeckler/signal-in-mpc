@@ -1,0 +1,35 @@
+{
+  "scope": "cleanup observation and sticky circuit rejection; not whole owned-parser refinement",
+  "checks": [
+    {
+      "modules": [
+        "DropReferenceCore",
+        "DropObservation"
+      ],
+      "exit_code": 0,
+      "output_directory": "Revisions/drop-observation"
+    },
+    {
+      "modules": [
+        "StreamingRejection"
+      ],
+      "exit_code": 0,
+      "output_directory": "Revisions/streaming-rejection"
+    }
+  ],
+  "source_sha256": {
+    "DropReferenceCore.lean": "b5125d73a32361f511311418fb8a37a06593d65c411bda7238149b972e9cad48",
+    "DropObservation.lean": "08cd5f4688cda355620d1296f798ca364296d66322a4581c04164b118f473956",
+    "StreamingRejection.lean": "49df8a56cea120b5feddc578ebb647080e245697d92d6422fe34459a4679708e",
+    "replay_drop.py": "9f7b369348e246825ed04bc8b5c7766b61bbab67e9802b32ab38ffc864db571b",
+    "drop-replay.json": "cd3764c77008911e2ad6ee99bbc17902163fa3a781f20ad97aa2761019f72033",
+    "OWNED_API_BOUNDARY.md": "329761610e83916c68409651dddc67c458112a1d2a425ec826e91741b4cd9355"
+  },
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "complete_owned_api_refinement": false,
+  "no_active_handles": true
+}

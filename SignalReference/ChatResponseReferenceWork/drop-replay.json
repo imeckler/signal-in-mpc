@@ -1,0 +1,11 @@
+{
+  "candidate_only": true,
+  "source_funs_sha256": "68fde4f831937d593be67eadf9aa33fd8e281b57b8aa8d6f98f1532c30dc84b6",
+  "source_types_sha256": "c0da49348027598464afb4fa50402fc00fbdbe3b3db4e5f7decffe6d0c33208f",
+  "original_translation_receipt_sha256": "de8d24a97330f35ba466cb38ca3d37e4e7d5cd88fddd68962e9251561b1c3d98",
+  "output_sha256": "b5125d73a32361f511311418fb8a37a06593d65c411bda7238149b972e9cad48",
+  "native_drop_body_unchanged": true,
+  "replayed_body_sha256": "a1ebae0783c16f7ec7c63e9307f0aa1a0baff33ea9f88943541f451304687407",
+  "model_boundary": "U8 Vec.clear is total empty contents; allocation/layout and general T destructors not modeled",
+  "does_not_claim_full_string_merge_state_refinement": true
+}

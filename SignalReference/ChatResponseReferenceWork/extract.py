@@ -8,7 +8,7 @@ sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 source=canonical.check_sources();pins=canonical.PINS;rust=ROOT/'.deps/rust-nightly-2026-08-18'
 charon=(REF/pins['charon']['directory']/'target/release/charon').resolve()
 profile=sys.argv[1] if len(sys.argv)>1 else 'dispatch'
-profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation']
+profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation','owned_decode','owned_slice']
 assert profile in profiles
 versions={'charon':subprocess.check_output([str(charon),'version'],text=True).strip(),'rustc':subprocess.check_output([str(rust/'bin/rustc'),'--version'],text=True).strip()}
 assert pins['charon']['commit'] in versions['charon'] and pins['charon']['rustc_version']==versions['rustc']
@@ -16,10 +16,14 @@ verified=0
 for package in ['prost-0.14.4','bytes-1.12.0','http-1.4.2']:
  vendor=ROOT/'.deps/libsignal-vendor'/package
  for name,digest in json.loads((vendor/'.cargo-checksum.json').read_text())['files'].items():assert sha(vendor/name)==digest;verified+=1
-primitive=profile in ('uint64','string','string_precise','string_drop')
+primitive=profile in ('uint64','string','string_precise','string_drop','owned_decode')
 env=os.environ.copy();env.update(PATH=str(rust/'bin')+os.pathsep+env.get('PATH',''),CHARON_TOOLCHAIN_IS_IN_PATH='1',DYLD_LIBRARY_PATH=str(rust/'lib'),LD_LIBRARY_PATH=str(rust/'lib'),CARGO_HOME=str(ROOT/'.deps/libsignal-cargo-home'),CARGO_TARGET_DIR=str(ROOT/'.deps/chat-response-charon-target'/profile),RUSTFLAGS='')
 dest=H/'Artifacts'/profile;dest.mkdir(parents=True,exist_ok=True);llbc=dest/'chat.llbc';(dest/'inventory.json').unlink(missing_ok=True)
-if profile=='validation':
+if profile=='owned_slice':
+ selected=['--start-from=crate::decode_envelope','--include=prost::message::Message::decode','--monomorphize','--opaque=prost::message::Message::merge','--opaque=prost::encoding::merge_loop','--opaque=prost::encoding::varint::decode_varint','--opaque=prost::encoding::varint::encode_varint']
+elif profile=='owned_decode':
+ selected=['--start-from=crate::message::Message::decode','--opaque=crate::message::Message::merge','--opaque=crate::encoding::merge_loop','--opaque=crate::encoding::varint::decode_varint','--opaque=crate::encoding::varint::encode_varint']
+elif profile=='validation':
  selected=['--start-from=crate::validation_replay::validate_decoded','--include=crate::chat_websocket::web_socket_message::Type','--include=crate::chat_websocket::web_socket_message::*::try_from']
 elif profile=='dispatch':
  selected=['--start-from=crate::merge_envelope','--start-from=crate::merge_response','--include=crate::chat_websocket::*::merge_field','--include=prost::error::DecodeError','--include=prost::error::Inner','--include=prost::error::*::from','--include=prost::error::*::push','--opaque=crate::chat_websocket::*::merge_field::*::call_once']

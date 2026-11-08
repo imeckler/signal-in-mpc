@@ -1,0 +1,40 @@
+{
+  "candidate_only": true,
+  "exit_code": 2,
+  "binary_sha256": "1235a3dd1d5a4468395217fc9090854d2e05ff2045b2be6716313f8f5ce47305",
+  "llbc_sha256": "e325fd45d3ecdda31e80349094d9f986b53e3de808484975b7538dd1c7dfdfc7",
+  "source_sha256": "b29a73237185ed719be8f2f408666116fc408e2fcb81e2a5ed63caab8d0a039a",
+  "script_sha256": "6784dd847a961c5d5afa56626a0b330d036fc887f4daf329ddd700d55359d1bb",
+  "extract": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--precise-drops",
+    "--desugar-drops",
+    "--start-from=crate::always_error",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/DropCandidate/Artifacts/guard.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "translate": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/DropCandidate/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/DropCandidate/Artifacts/guard.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/DropCandidate/Generated",
+    "-namespace",
+    "DropRegression",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "generated_sha256": {}
+}

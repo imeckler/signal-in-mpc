@@ -1,0 +1,11 @@
+--- upstream/src/PrePasses.ml
++++ candidate/src/PrePasses.ml
+@@ -983,7 +983,7 @@
+         "core::marker::Sized";
+         "core::marker::MetaSized";
+         "core::marker::PointeeSized";
+-        "core::marker::Destruct";
++        (* Destruct has callable drop_glue bodies; retain its metadata. *)
+         "core::ptr::metadata::Pointee";
+         "core::ptr::metadata::Thin";
+         "core::marker::Send";

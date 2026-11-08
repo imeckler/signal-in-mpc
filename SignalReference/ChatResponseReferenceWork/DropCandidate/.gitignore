@@ -1,0 +1,6 @@
+Source/
+Bin/
+*.log
+Rust/target/
+Artifacts/
+Generated/

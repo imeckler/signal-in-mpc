@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "scope": "Retain Destruct trait, implementations, associated drop_glue bodies, bounds and calls; no source/LLBC/model/body edits",
+  "source_archive_sha256": "ceb3a9a8114488f7deef705599316d1282133b4aea203cbf902117c11175d453",
+  "charon_archive_sha256": "6201c2f41fee4e20e2d565db6790aeb14d4f356bfe7632ca3ea8f18f2da2532b",
+  "source_delta": [
+    "src/PrePasses.ml"
+  ],
+  "original_file_sha256": "0cb73a1f7385e3c0d525f02c54dd589057669390fed22948082e642d759ea7f2",
+  "modified_file_sha256": "4f42ca38bfe63c203f80e1c6085909996a0ab7d508f7f1f5c4c835caf2de554c",
+  "diff_sha256": "f3fa938172d2c40ae8e426fb01b22cfc32cf804641d8331412b62a658dfb9e52",
+  "exit_code": 0,
+  "script_sha256": "b0b93de77ac6cd7b0a55f85373d302c2df24a118d32f3afae049ff15e02dad19",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+    "build",
+    "--profile",
+    "release",
+    "main.exe",
+    "-j",
+    "4"
+  ],
+  "binary_sha256": "1235a3dd1d5a4468395217fc9090854d2e05ff2045b2be6716313f8f5ce47305",
+  "version": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-retain-destruct"
+}

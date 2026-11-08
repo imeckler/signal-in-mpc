@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "profile": "owned_slice",
+  "exit_code": 2,
+  "binary_sha256": "95025db3e6186263ee7c6dceb518dd19f3d35662709d5a1020c063f270a95d38",
+  "llbc_sha256": "25e15f3b3ad13bcf45844cf4589182fc187a0a85ff93ebb91915c3de6d5dd428",
+  "manual_generated_body_edits": false,
+  "slice_metadata_lowering": false,
+  "translator_candidate_unaccepted": true,
+  "translator_receipt_sha256": "4c7dd85a451101973c589b423927b926b67337d66b2eddac3a4c00723b70c2da",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/owned_slice/chat.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/GeneratedOwnedSlice",
+    "-namespace",
+    "ActualChatResponseOwned_slice",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "generated_sha256": {}
+}

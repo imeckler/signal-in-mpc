@@ -41,3 +41,9 @@ pub fn slice_metadata_negative_u16(input: &[u16]) -> usize { input.len() }
 pub fn slice_metadata_negative_raw(input: *const [u8]) -> usize { input.len() }
 
 mod validation_replay;
+
+/// Actual owned API used by the private net validator, with its concrete schema
+/// and immutable contiguous input representation retained for monomorphization.
+pub fn decode_envelope(input: &[u8]) -> Result<chat_websocket::WebSocketMessage, prost::DecodeError> {
+    <chat_websocket::WebSocketMessage as prost::Message>::decode(input)
+}
