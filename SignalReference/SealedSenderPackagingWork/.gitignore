@@ -4,3 +4,7 @@ Generated/WireFieldsFull/
 LoopCandidate/Generated/
 Artifacts/ContentConstructor/*.llbc
 Artifacts/WireFieldsFull/*.llbc
+Build/
+Artifacts/ContentConstructorMono/*.llbc
+Generated/ContentConstructorMono/
+*.olean

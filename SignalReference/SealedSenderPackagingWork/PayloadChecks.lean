@@ -1,0 +1,9 @@
+import SealedSenderPackagingWork.VecPayloadReference
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.extend_bytes
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.put_loop_one_chunk_any
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.drop_all
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.actual_put_slice_appends
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.actual_put_slice_overflow
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.forward_contiguous
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.actual_adapter_appends
+#print axioms LibSignalReference.Candidate.SealedSenderPayload.actual_adapter_overflow

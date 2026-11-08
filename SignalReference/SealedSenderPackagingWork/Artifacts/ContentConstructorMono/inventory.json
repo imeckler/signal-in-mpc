@@ -1,0 +1,3313 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "source_patches": [],
+  "archive_sha256": "c632360ddab50f89133b5ae9cdc4d5f1cc2b75e04d4bf70731c46b58317e5125",
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/sealed_sender.rs": "aa6f5dd7865bb38d3ef9dc9ae849d58157e21dbd796e4c5bca241d0fa39f6916",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/sealed_sender.proto": "c87628041cac289d413e92433b9adae4538a7fd44632b309929302b309919609",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "opaque_primitives": [],
+  "primitive_implementation_refinement_established": false,
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::sealed_sender::UnidentifiedSenderMessageContent::new",
+    "--start-from-if-exists=crate::sealed_sender::*::new",
+    "--include=prost",
+    "--include=bytes",
+    "--monomorphize",
+    "--dest-file=$WORKSPACE/SignalReference/SealedSenderPackagingWork/Artifacts/ContentConstructorMono/ss_content.llbc",
+    "--",
+    "--package",
+    "libsignal-protocol",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 0,
+  "script_sha256": "2228834aaec650dbf35298b506d8c028f61233bda3dfba2f14f8fd15225c2869",
+  "llbc_sha256": "a76e42f26cc49ed27fe729c1443a306807d341bcb4a689ec09191551ee3208be",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 60,
+    "fun_decls": 83,
+    "global_decls": 2,
+    "trait_decls": 23,
+    "trait_impls": 38,
+    "ordered_decls": 136
+  },
+  "body_kinds": {
+    "Structured": 42,
+    "Opaque": 39,
+    "Intrinsic": 2
+  },
+  "external_functions": [
+    {
+      "id": 2,
+      "name": "alloc::vec::{impl}::clone::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3879,
+            "col": 4
+          },
+          "end": {
+            "line": 3879,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::convert::{impl}::into::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 14,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "core::result::{impl}::branch::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 2176,
+            "col": 4
+          },
+          "end": {
+            "line": 2176,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "alloc::slice::{impl}::to_vec::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 16,
+          "beg": {
+            "line": 372,
+            "col": 4
+          },
+          "end": {
+            "line": 374,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::option::{impl}::as_ref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 742,
+            "col": 4
+          },
+          "end": {
+            "line": 742,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::option::{impl}::and_then::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1537,
+            "col": 4
+          },
+          "end": {
+            "line": 1539,
+            "col": 61
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::option::Option::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 598,
+            "col": 0
+          },
+          "end": {
+            "line": 598,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "alloc::vec::Vec::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "alloc::vec::{impl}::deref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3854,
+            "col": 4
+          },
+          "end": {
+            "line": 3854,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::result::Result::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 558,
+            "col": 0
+          },
+          "end": {
+            "line": 558,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "core::ops::control_flow::ControlFlow::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 89,
+            "col": 0
+          },
+          "end": {
+            "line": 89,
+            "col": 31
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::result::Result::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 558,
+            "col": 0
+          },
+          "end": {
+            "line": 558,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "alloc::vec::{impl}::with_capacity::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 521,
+            "col": 4
+          },
+          "end": {
+            "line": 521,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "alloc::vec::{impl}::is_empty::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3125,
+            "col": 4
+          },
+          "end": {
+            "line": 3125,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "core::intrinsics::discriminant_value::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 2422,
+            "col": 0
+          },
+          "end": {
+            "line": 2422,
+            "col": 83
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::intrinsics::discriminant_value::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 2422,
+            "col": 0
+          },
+          "end": {
+            "line": 2422,
+            "col": 83
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::cmp::impls::{impl}::eq::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 2398,
+            "col": 8
+          },
+          "end": {
+            "line": 2398,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::option::{impl}::as_ref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 742,
+            "col": 4
+          },
+          "end": {
+            "line": 742,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "alloc::string::String::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 353,
+            "col": 0
+          },
+          "end": {
+            "line": 353,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 45,
+      "name": "core::option::Option::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 598,
+            "col": 0
+          },
+          "end": {
+            "line": 598,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 57,
+      "name": "core::ops::range::{impl}::contains::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 534,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 58,
+      "name": "core::convert::num::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 44,
+          "beg": {
+            "line": 69,
+            "col": 12
+          },
+          "end": {
+            "line": 69,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 59,
+      "name": "core::iter::traits::collect::{impl}::into_iter::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 45,
+          "beg": {
+            "line": 322,
+            "col": 4
+          },
+          "end": {
+            "line": 322,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 60,
+      "name": "core::iter::range::{impl}::next::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 48,
+          "beg": {
+            "line": 1184,
+            "col": 4
+          },
+          "end": {
+            "line": 1184,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 62,
+      "name": "alloc::vec::{impl}::len::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3100,
+            "col": 4
+          },
+          "end": {
+            "line": 3100,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 63,
+      "name": "alloc::vec::{impl}::as_slice::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 1848,
+            "col": 4
+          },
+          "end": {
+            "line": 1848,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 71,
+      "name": "alloc::vec::{impl}::reserve::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 1460,
+            "col": 4
+          },
+          "end": {
+            "line": 1460,
+            "col": 48
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 74,
+      "name": "core::slice::{impl}::len::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 55,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 75,
+      "name": "alloc::vec::{impl}::extend_from_slice::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3605,
+            "col": 4
+          },
+          "end": {
+            "line": 3605,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 77,
+      "name": "core::num::nonzero::{impl}::new_unchecked::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 405,
+            "col": 4
+          },
+          "end": {
+            "line": 405,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 78,
+      "name": "core::num::nonzero::{impl}::ilog2",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 1801,
+            "col": 8
+          },
+          "end": {
+            "line": 1801,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 79,
+      "name": "core::ops::range::{impl}::new::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 395,
+            "col": 4
+          },
+          "end": {
+            "line": 395,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 80,
+      "name": "core::slice::index::{impl}::index::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 58,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 84,
+      "name": "core::fmt::rt::{impl}::new_display::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 89,
+            "col": 4
+          },
+          "end": {
+            "line": 89,
+            "col": 63
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 85,
+      "name": "core::fmt::{impl}::new::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 729,
+            "col": 4
+          },
+          "end": {
+            "line": 732,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 1,
+      "name": "alloc::vec::Vec::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "libsignal_core::curve::PublicKey",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 19,
+          "beg": {
+            "line": 64,
+            "col": 0
+          },
+          "end": {
+            "line": 64,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "libsignal_core::address::DeviceId",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 678,
+            "col": 0
+          },
+          "end": {
+            "line": 678,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "alloc::string::String",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 353,
+            "col": 0
+          },
+          "end": {
+            "line": 353,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "libsignal_core::address::ProtocolAddress",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 769,
+            "col": 0
+          },
+          "end": {
+            "line": 769,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "uuid::Uuid",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 24,
+          "beg": {
+            "line": 467,
+            "col": 0
+          },
+          "end": {
+            "line": 467,
+            "col": 15
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::error::Error::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 27,
+          "beg": {
+            "line": 59,
+            "col": 0
+          },
+          "end": {
+            "line": 59,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::marker::Sync::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 15,
+          "beg": {
+            "line": 657,
+            "col": 0
+          },
+          "end": {
+            "line": 657,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::marker::Send::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 15,
+          "beg": {
+            "line": 92,
+            "col": 0
+          },
+          "end": {
+            "line": 92,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "core::panic::unwind_safe::UnwindSafe::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 91,
+            "col": 0
+          },
+          "end": {
+            "line": 91,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::ops::function::FnOnce::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 242,
+            "col": 0
+          },
+          "end": {
+            "line": 242,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "core::fmt::Debug::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 1053,
+            "col": 0
+          },
+          "end": {
+            "line": 1053,
+            "col": 29
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "core::fmt::Display::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 1187,
+            "col": 0
+          },
+          "end": {
+            "line": 1187,
+            "col": 31
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 45,
+      "name": "core::cmp::PartialEq::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 250,
+            "col": 0
+          },
+          "end": {
+            "line": 250,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "core::ops::deref::Deref::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 38,
+          "beg": {
+            "line": 139,
+            "col": 0
+          },
+          "end": {
+            "line": 139,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "core::ops::range::RangeInclusive::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 357,
+            "col": 0
+          },
+          "end": {
+            "line": 357,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "core::num::nonzero::NonZero::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 112,
+            "col": 0
+          },
+          "end": {
+            "line": 112,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "core::iter::traits::collect::IntoIterator::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 45,
+          "beg": {
+            "line": 283,
+            "col": 0
+          },
+          "end": {
+            "line": 283,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 52,
+      "name": "core::iter::traits::iterator::Iterator::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 53,
+          "beg": {
+            "line": 42,
+            "col": 0
+          },
+          "end": {
+            "line": 42,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 57,
+      "name": "core::fmt::Arguments::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 716,
+            "col": 0
+          },
+          "end": {
+            "line": 716,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 58,
+      "name": "core::fmt::rt::Argument::{impl}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 38,
+            "col": 0
+          },
+          "end": {
+            "line": 38,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 59,
+      "name": "core::ops::index::Index::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 59,
+          "beg": {
+            "line": 59,
+            "col": 0
+          },
+          "end": {
+            "line": 59,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "rust/protocol/src/sealed_sender.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "rust/protocol/src/lib.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/alloc/src/vec/mod.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/alloc/src/lib.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/alloc/src/alloc.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "rust/protocol/src/protocol.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "rust/protocol/src/error.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/ss-wrapper-charon-target/aarch64-apple-darwin/debug/build/libsignal-protocol/6931135015e7080b/out/signal.proto.sealed_sender.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "rust/protocol/src/proto.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/control_flow.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "/rustc/library/alloc/src/slice.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs"
+      },
+      "crate_name": "prost"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/lib.rs"
+      },
+      "crate_name": "prost"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "rust/core/src/curve.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "rust/core/src/lib.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 21,
+      "name": {
+        "Local": "rust/core/src/address.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 22,
+      "name": {
+        "Local": "/rustc/library/alloc/src/string.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 23,
+      "name": {
+        "Local": "rust/protocol/src/timestamp.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 24,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/uuid-1.23.4/src/lib.rs"
+      },
+      "crate_name": "uuid"
+    },
+    {
+      "id": 25,
+      "name": {
+        "Local": "/rustc/library/alloc/src/boxed.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 26,
+      "name": {
+        "Local": "/rustc/library/core/src/panic/unwind_safe.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 27,
+      "name": {
+        "Local": "/rustc/library/core/src/error.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 28,
+      "name": {
+        "Local": "/rustc/library/core/src/panic.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 29,
+      "name": {
+        "Local": "rust/protocol/src/kem.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 30,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/function.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 31,
+      "name": {
+        "Local": "/rustc/library/core/src/panicking.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 32,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 33,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/try_trait.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 34,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 35,
+      "name": {
+        "Local": "/rustc/library/core/src/cmp.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 36,
+      "name": {
+        "Local": "/rustc/library/core/src/intrinsics/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 37,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 38,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/deref.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 39,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs"
+      },
+      "crate_name": "prost"
+    },
+    {
+      "id": 40,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding/wire_type.rs"
+      },
+      "crate_name": "prost"
+    },
+    {
+      "id": 41,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding/varint.rs"
+      },
+      "crate_name": "prost"
+    },
+    {
+      "id": 42,
+      "name": {
+        "Local": "/rustc/library/core/src/macros/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 43,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 44,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/num.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 45,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 46,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 47,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 48,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 49,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 50,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/mod.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 51,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/lib.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 52,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 53,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 54,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs"
+      },
+      "crate_name": "bytes"
+    },
+    {
+      "id": 55,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 56,
+      "name": {
+        "Local": "/rustc/library/core/src/num/nonzero.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 57,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 58,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 59,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 60,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/rt.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": true,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::sealed_sender::UnidentifiedSenderMessageContent::new"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "libsignal_protocol::sealed_sender::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 558,
+            "col": 4
+          },
+          "end": {
+            "line": 590,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "libsignal_protocol::sealed_sender::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 446,
+            "col": 4
+          },
+          "end": {
+            "line": 456,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "alloc::vec::{impl}::clone::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3879,
+            "col": 4
+          },
+          "end": {
+            "line": 3879,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::convert::{impl}::into::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 14,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "libsignal_protocol::sealed_sender::{impl}::serialized",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 418,
+            "col": 4
+          },
+          "end": {
+            "line": 420,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "core::result::{impl}::branch::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 2176,
+            "col": 4
+          },
+          "end": {
+            "line": 2176,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "alloc::slice::{impl}::to_vec::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 16,
+          "beg": {
+            "line": 372,
+            "col": 4
+          },
+          "end": {
+            "line": 374,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::result::{impl}::from_residual::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 2191,
+            "col": 4
+          },
+          "end": {
+            "line": 2191,
+            "col": 70
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "libsignal_protocol::sealed_sender::{impl}::to_proto",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 468,
+            "col": 4
+          },
+          "end": {
+            "line": 474,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::option::{impl}::as_ref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 742,
+            "col": 4
+          },
+          "end": {
+            "line": 742,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::option::{impl}::and_then::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1537,
+            "col": 4
+          },
+          "end": {
+            "line": 1539,
+            "col": 61
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "prost::message::Message::encode_to_vec::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 61,
+            "col": 4
+          },
+          "end": {
+            "line": 63,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "libsignal_protocol::sealed_sender::{impl}::new::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 571,
+            "col": 49
+          },
+          "end": {
+            "line": 577,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::message::{impl}::eq",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 91,
+            "col": 12
+          },
+          "end": {
+            "line": 91,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::option::Option::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 598,
+            "col": 0
+          },
+          "end": {
+            "line": 598,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "alloc::vec::Vec::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 16,
+      "name": "libsignal_protocol::sealed_sender::SenderCertificate::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 199,
+            "col": 0
+          },
+          "end": {
+            "line": 209,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "alloc::vec::{impl}::deref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3854,
+            "col": 4
+          },
+          "end": {
+            "line": 3854,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::result::Result::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 558,
+            "col": 0
+          },
+          "end": {
+            "line": 558,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "core::ops::control_flow::ControlFlow::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 89,
+            "col": 0
+          },
+          "end": {
+            "line": 89,
+            "col": 31
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "libsignal_protocol::sealed_sender::{impl}::eq",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 459,
+            "col": 22
+          },
+          "end": {
+            "line": 459,
+            "col": 31
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "libsignal_protocol::sealed_sender::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 501,
+            "col": 4
+          },
+          "end": {
+            "line": 503,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::result::Result::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 558,
+            "col": 0
+          },
+          "end": {
+            "line": 558,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "alloc::vec::{impl}::with_capacity::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 521,
+            "col": 4
+          },
+          "end": {
+            "line": 521,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encode_raw::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::Message::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 73,
+            "col": 4
+          },
+          "end": {
+            "line": 84,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 27,
+      "name": "libsignal_protocol::sealed_sender::UnidentifiedSenderMessageContent::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 506,
+            "col": 0
+          },
+          "end": {
+            "line": 513,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "alloc::vec::{impl}::is_empty::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3125,
+            "col": 4
+          },
+          "end": {
+            "line": 3125,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "core::intrinsics::discriminant_value::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 2422,
+            "col": 0
+          },
+          "end": {
+            "line": 2422,
+            "col": 83
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::intrinsics::discriminant_value::{impl}",
+      "body_kind": "Intrinsic",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 2422,
+            "col": 0
+          },
+          "end": {
+            "line": 2422,
+            "col": 83
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::cmp::impls::{impl}::eq::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 2398,
+            "col": 8
+          },
+          "end": {
+            "line": 2398,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "libsignal_protocol::sealed_sender::{impl}::to_u32",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 476,
+            "col": 4
+          },
+          "end": {
+            "line": 484,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::option::{impl}::as_ref::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 742,
+            "col": 4
+          },
+          "end": {
+            "line": 742,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::option::{impl}::map_or::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 1222,
+            "col": 4
+          },
+          "end": {
+            "line": 1225,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "prost::encoding::int32::encode::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 263,
+            "col": 12
+          },
+          "end": {
+            "line": 263,
+            "col": 82
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "prost::encoding::bytes::encode::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 691,
+            "col": 4
+          },
+          "end": {
+            "line": 691,
+            "col": 77
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "libsignal_protocol::sealed_sender::SenderCertificateSigner::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 193,
+            "col": 0
+          },
+          "end": {
+            "line": 196,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "alloc::string::String::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 353,
+            "col": 0
+          },
+          "end": {
+            "line": 353,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 45,
+      "name": "core::option::Option::{impl}::drop_glue::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 598,
+            "col": 0
+          },
+          "end": {
+            "line": 598,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 47,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 48,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 49,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "libsignal_protocol::proto::sealed_sender::unidentified_sender_message::{impl}::encoded_len::{impl}::call_once",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 10,
+          "beg": {
+            "line": 72,
+            "col": 41
+          },
+          "end": {
+            "line": 72,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "prost::encoding::encode_key::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 106,
+            "col": 0
+          },
+          "end": {
+            "line": 106,
+            "col": 71
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 52,
+      "name": "prost::encoding::varint::encode_varint::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 41,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 11,
+            "col": 59
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 53,
+      "name": "prost::encoding::{impl}::len",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 671,
+            "col": 4
+          },
+          "end": {
+            "line": 671,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 54,
+      "name": "prost::encoding::{impl}::append_to::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 681,
+            "col": 4
+          },
+          "end": {
+            "line": 681,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 55,
+      "name": "prost::encoding::int32::encoded_len",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 294,
+            "col": 12
+          },
+          "end": {
+            "line": 294,
+            "col": 73
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 56,
+      "name": "prost::encoding::bytes::encoded_len::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 542,
+            "col": 8
+          },
+          "end": {
+            "line": 542,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 57,
+      "name": "core::ops::range::{impl}::contains::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 534,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 58,
+      "name": "core::convert::num::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 44,
+          "beg": {
+            "line": 69,
+            "col": 12
+          },
+          "end": {
+            "line": 69,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 59,
+      "name": "core::iter::traits::collect::{impl}::into_iter::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 45,
+          "beg": {
+            "line": 322,
+            "col": 4
+          },
+          "end": {
+            "line": 322,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 60,
+      "name": "core::iter::range::{impl}::next::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 48,
+          "beg": {
+            "line": 1184,
+            "col": 4
+          },
+          "end": {
+            "line": 1184,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 61,
+      "name": "bytes::buf::buf_mut::BufMut::put_u8::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 49,
+          "beg": {
+            "line": 330,
+            "col": 4
+          },
+          "end": {
+            "line": 330,
+            "col": 31
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 62,
+      "name": "alloc::vec::{impl}::len::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3100,
+            "col": 4
+          },
+          "end": {
+            "line": 3100,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 63,
+      "name": "alloc::vec::{impl}::as_slice::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 1848,
+            "col": 4
+          },
+          "end": {
+            "line": 1848,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 64,
+      "name": "bytes::buf::buf_mut::{impl}::put::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 49,
+          "beg": {
+            "line": 1641,
+            "col": 4
+          },
+          "end": {
+            "line": 1643,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 65,
+      "name": "libsignal_protocol::sealed_sender::ServerCertificate::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 32,
+            "col": 0
+          },
+          "end": {
+            "line": 38,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 66,
+      "name": "prost::encoding::key_len",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 133,
+            "col": 0
+          },
+          "end": {
+            "line": 133,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 67,
+      "name": "prost::encoding::varint::encoded_len_varint",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 41,
+          "beg": {
+            "line": 27,
+            "col": 0
+          },
+          "end": {
+            "line": 27,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 69,
+      "name": "bytes::buf::buf_mut::{impl}::put_slice",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 49,
+          "beg": {
+            "line": 1657,
+            "col": 4
+          },
+          "end": {
+            "line": 1657,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 70,
+      "name": "bytes::buf::buf_impl::{impl}::remaining::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 2896,
+            "col": 4
+          },
+          "end": {
+            "line": 2896,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 71,
+      "name": "alloc::vec::{impl}::reserve::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 1460,
+            "col": 4
+          },
+          "end": {
+            "line": 1460,
+            "col": 48
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 72,
+      "name": "bytes::buf::buf_impl::Buf::has_remaining::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 274,
+            "col": 4
+          },
+          "end": {
+            "line": 274,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 73,
+      "name": "bytes::buf::buf_impl::{impl}::chunk::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 2901,
+            "col": 4
+          },
+          "end": {
+            "line": 2901,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 74,
+      "name": "core::slice::{impl}::len::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 55,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 36
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 75,
+      "name": "alloc::vec::{impl}::extend_from_slice::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 2,
+          "beg": {
+            "line": 3605,
+            "col": 4
+          },
+          "end": {
+            "line": 3605,
+            "col": 52
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 76,
+      "name": "bytes::buf::buf_impl::{impl}::advance::{impl}",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 2906,
+            "col": 4
+          },
+          "end": {
+            "line": 2906,
+            "col": 37
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 77,
+      "name": "core::num::nonzero::{impl}::new_unchecked::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 405,
+            "col": 4
+          },
+          "end": {
+            "line": 405,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 78,
+      "name": "core::num::nonzero::{impl}::ilog2",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 1801,
+            "col": 8
+          },
+          "end": {
+            "line": 1801,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 79,
+      "name": "core::ops::range::{impl}::new::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 43,
+          "beg": {
+            "line": 395,
+            "col": 4
+          },
+          "end": {
+            "line": 395,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 80,
+      "name": "core::slice::index::{impl}::index::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 58,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 81,
+      "name": "bytes::panic_advance",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 51,
+          "beg": {
+            "line": 206,
+            "col": 0
+          },
+          "end": {
+            "line": 206,
+            "col": 47
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 82,
+      "name": "prost::encoding::MIN_TAG",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 100,
+            "col": 0
+          },
+          "end": {
+            "line": 100,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 83,
+      "name": "prost::encoding::MAX_TAG",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 39,
+          "beg": {
+            "line": 101,
+            "col": 0
+          },
+          "end": {
+            "line": 101,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 84,
+      "name": "core::fmt::rt::{impl}::new_display::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 60,
+          "beg": {
+            "line": 89,
+            "col": 4
+          },
+          "end": {
+            "line": 89,
+            "col": 63
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 85,
+      "name": "core::fmt::{impl}::new::{impl}",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 729,
+            "col": 4
+          },
+          "end": {
+            "line": 732,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit_code": 2,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/SealedSenderPackagingWork/Artifacts/ContentConstructorMono/ss_content.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/SealedSenderPackagingWork/Generated/ContentConstructorMono",
+    "-split-files",
+    "-namespace",
+    "SealedSenderPackaging",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {}
+}

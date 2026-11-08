@@ -51,7 +51,7 @@
   ],
   "source_sha256": {
     "SignalReference/SealedSenderPackagingWork/check.py": "2172a46f8fe78576057ae54cc5adf35308b13d0a9a67d2654b020bf9a5b6979b",
-    "SignalReference/SealedSenderPackagingWork/extract.py": "e52402a0c9e618da1d61ffc31bb326433116eac9cba154a0764f60a69c7d0780",
+    "SignalReference/SealedSenderPackagingWork/extract.py": "2228834aaec650dbf35298b506d8c028f61233bda3dfba2f14f8fd15225c2869",
     "SignalReference/SealedSenderPackagingWork/select_step_metadata.py": "10e4ccb3ee08a0c9fa34c06e99314bd602b1ed59517c4051a7db609e10dc8b53",
     "SignalReference/SealedSenderPackagingWork/translate_loop_candidate.py": "35d4c7a2149f4ae4bb66a86e1b39739012e5b01c7fd11635cf118dea05d2a054",
     "SignalReference/SealedSenderPackagingWork/Artifacts/WireFields/ss_content.llbc": "0ff64449ef45410483bc28c90b4df302386d4c53728e90241b27b0f4e7be5b0a",

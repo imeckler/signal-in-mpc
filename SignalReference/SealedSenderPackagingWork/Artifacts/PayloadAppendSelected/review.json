@@ -1,0 +1,26 @@
+{
+  "candidate_only": true,
+  "independent_review": "pending",
+  "source_sha256": "5876f62cff70a3bd53d7a75559647db6cec6c52899285983d8019c512fac5613",
+  "normalized_input_fingerprint": "93c76ac520fcca2242161a5021f49fb2fd18bd07530a3bdba8b110ee5dcd9cbe",
+  "selected_sha256": "32fd998512189abce090fbc5c094b341b5f4a6ba14df01b410fdca15a02a441d",
+  "changes_sha256": "99005414d9d7dac741284dcaf5e2ce57a8eaaabf89f562a43ee4dfb88bebab80",
+  "script_sha256": "37d2aad3eed3423e8c40dd2921196ec9bac2de8176e5269bf71e38352a47e0c8",
+  "reversible_changes": 5,
+  "retained_computational_bodies_identical": [
+    0,
+    1,
+    2,
+    3,
+    139,
+    140
+  ],
+  "put_callback_slot_retained": 4,
+  "allocation_or_payload_implementation_replaced": false,
+  "aeneas_exit_code": 0,
+  "generated_sha256": {
+    "SignalReference/SealedSenderPackagingWork/Generated/PayloadAppendSelected/Funs.lean": "3a66d2e77da9a35c89783de2ab2d011b6b9f4e52c807f8a80b7cb1280707b366",
+    "SignalReference/SealedSenderPackagingWork/Generated/PayloadAppendSelected/FunsExternal_Template.lean": "012bd8ed795e02dc379a8d67722a1406c6445767fae3db4b1f7c59535eaad85e",
+    "SignalReference/SealedSenderPackagingWork/Generated/PayloadAppendSelected/Types.lean": "3b6494d77c66a05bd3b8f03a6186ccc9b4f2e799ad4d6059b36cb565a6a5b4c8"
+  }
+}
