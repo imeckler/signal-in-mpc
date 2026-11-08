@@ -1,0 +1,94 @@
+{
+  "candidate_only": true,
+  "scope": "Selected closed-Self actual adapter specialization; abstract/mixed borrowed generic methods fail closed. Minimal result+exact-buffer kernel proof; unchanged Prost extraction and translation. Not full String/response refinement.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/build.py": "3bb412cdd27b1eed6de6abf62a0a7fbaf3b76f2e8ce173eba3ae7a3316033a9b",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/closed_adapter_patch.py": "7c0d26faa528fe1ada7535496fb204d0257bb363c011da39d49effc1dc5657d5",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/name_specializations.py": "84f423bdc9da07ca494c855de0dd4d83247106b93d2613b89712443cced75c1a",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/test.py": "7ccc6a09290f96c8a545dc2fe526fe9226c3bd2ac9c48da32bc990f499154de0",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/check.py": "5d2ce7c0b1419835cffa0fcd66b25661bb7e8e1706b475a2ecd38b380d1ea22c",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/tool.diff": "7b5d4b0c9ea51df0447aa2da23a779ac08da3c152516fa883a08c6b778eb5f10",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Regression/src/lib.rs": "aad00edb53f8eae575acd0cfcbf1bf4371e7e0b68e2f0807e47ee7fb4826299a",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Regression/src/bin/check.rs": "ced15f9f041454caa9e8713750347ce890b0bcfadd6a7365ffdbd0b734248df7",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/RegressionReference.lean": "c6b4002ff5f77e57a989e669b23152081b3a4842684c26de2c68b8dbc524508d",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/build-report.json": "6e690bb3e0853882066e1834f0aa66d2e2beb1448a247f7736b2192b59ce0c7a",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/test-report.json": "648abc50e47e4d5d0fda0e0f712281549e5df94a294dff09de2e7e85c207657e",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Generated/Funs.lean": "b144f181fbd388e4ac07724df04f9a16233721920d249512a17ca88c058d6451",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Generated/Types.lean": "6026022ba600fd110832f7c26b9c3c320f3752e6082899fa716e27742daf78de",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedProst/Funs.lean": "dc60f1cce73cfb7b65eed36e1aac5ce02b51d7433e72be87f252af2e4e6aabcc",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedProst/FunsExternal_Template.lean": "26cbc140ffefdabd8b6ef5672d5385a6bed8b316089e49827c978d10e96f97d0",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedProst/Types.lean": "4db70efa840ffb50e27d02a4320c7e3c89d1b2497199ac408f75bf9839e61459",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedProst/TypesExternal_Template.lean": "38e75706c9c36de5cf7dbb825ca7bdd5030de625818dcca6e3a5aad907452083"
+  },
+  "pinned_prost_files_verified": 16,
+  "pinned_prost_encoding_sha256": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4",
+  "translator_sha256": "95025db3e6186263ee7c6dceb518dd19f3d35662709d5a1020c063f270a95d38",
+  "translations": [
+    {
+      "input_sha256": "db126a30d08071eefef3880a4195d26344a836128f6e0f2746275875efe393a3",
+      "named_sha256": "4fd8980463f80302e70331bb76582cfda9630cede6a0b2d9bfe2c519a89ddcb2",
+      "names_receipt_sha256": "562d7055903658452531540a7be1048ba1cee9fa662673fe482e26bca84a0e27",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Artifacts/candidate-static-named.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ChatResponseReferenceWork/PartialMonoCandidate/Generated",
+        "-namespace",
+        "PartialMonoRegression",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-sequential"
+      ],
+      "exit_code": 0,
+      "generated_sha256": {
+        "Funs.lean": "b144f181fbd388e4ac07724df04f9a16233721920d249512a17ca88c058d6451",
+        "Types.lean": "6026022ba600fd110832f7c26b9c3c320f3752e6082899fa716e27742daf78de"
+      }
+    },
+    {
+      "input_sha256": "6d28520b8aea73d6b1532fb1e301b7678d698b7a061222ca062ccf1874e6099e",
+      "named_sha256": "ea4da0972d6422c3e6f1ac46aeadb7302ee910920ca6f5ff9aa6235bfe2024a9",
+      "names_receipt_sha256": "84db3a6258535237d80c6073ae7754d4d9f8acc6762dbdc15e1c054950bb4426",
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Artifacts/prost-named.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedProst",
+        "-namespace",
+        "PartialMonoProst",
+        "-split-files",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-sequential"
+      ],
+      "exit_code": 0,
+      "generated_sha256": {
+        "Funs.lean": "dc60f1cce73cfb7b65eed36e1aac5ce02b51d7433e72be87f252af2e4e6aabcc",
+        "FunsExternal_Template.lean": "26cbc140ffefdabd8b6ef5672d5385a6bed8b316089e49827c978d10e96f97d0",
+        "Types.lean": "4db70efa840ffb50e27d02a4320c7e3c89d1b2497199ac408f75bf9839e61459",
+        "TypesExternal_Template.lean": "38e75706c9c36de5cf7dbb825ca7bdd5030de625818dcca6e3a5aad907452083"
+      }
+    }
+  ],
+  "kernel_log": "Checking PartialMonoCandidate.Generated.Types\nChecking PartialMonoCandidate.Generated.Funs\nChecking PartialMonoCandidate.RegressionReference\n'PartialMonoRegression.entry_reference' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/final-lean/ChatResponseReferenceWork/PartialMonoCandidate/Generated/Types.olean": "1f88added982018be2f4d05b762430f77b614ae0732123a7e95bf6fa78512062",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/final-lean/ChatResponseReferenceWork/PartialMonoCandidate/Generated/Funs.olean": "2b73fa1feb81cdf8b980d331ae3415fef885ce139f029e42ba2faf2e56e5e4d0",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/final-lean/ChatResponseReferenceWork/PartialMonoCandidate/RegressionReference.olean": "d94a9ce3a007d18141584aec397c4c7f5fdf945e741484290599498b9fe049da"
+  },
+  "whole_generated_prost_kernel_checked": false,
+  "remaining": [
+    "Std UTF8 executable-spec boundary and Vec/String allocation content models.",
+    "Actual generated opaque &mut Buf.advance interface versus its trait field needs separate check; no assumed forwarding adapter.",
+    "Precise error DropGuard observation and full schema/streaming induction remain separate."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "candidate_only": true,
+  "full_specialization_fix": false,
+  "scope": "Selected closed Self/adapter dictionary specialization with binder-aware actual impl resolution; abstract/mixed callers fail closed. Canonical tool, all type checkers and borrow regions preserved.",
+  "exit_code": 0,
+  "source_path": ".deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon",
+  "pinned_source_sha256": "31893be44630da6d7f52b225a198ce6c63111e3c4f5fc6d53d5969238ac03e8e",
+  "candidate_source_sha256": "f82e94efaadf017db073b7666fb9d80e40ae1096157273be68e9f4696c9d4d89",
+  "script_sha256": "3bb412cdd27b1eed6de6abf62a0a7fbaf3b76f2e8ce173eba3ae7a3316033a9b",
+  "patch_script_sha256": "7c0d26faa528fe1ada7535496fb204d0257bb363c011da39d49effc1dc5657d5",
+  "modified_sources": {
+    "src/transform/normalize/partial_monomorphization.rs": {
+      "pinned": "31893be44630da6d7f52b225a198ce6c63111e3c4f5fc6d53d5969238ac03e8e",
+      "candidate": "f82e94efaadf017db073b7666fb9d80e40ae1096157273be68e9f4696c9d4d89"
+    },
+    "src/transform/normalize/skip_trait_refs_when_known.rs": {
+      "pinned": "b6600034780ec37f6a746cbd3a8bf992358fe8d442cb295d945e06ca977fbdb7",
+      "candidate": "c1121c698b22f3781eb2f5620fa4044e7d9aae00718c23286e4b4ad904e40583"
+    },
+    "src/transform/normalize/normalize_trait_refs.rs": {
+      "pinned": "3eee4cac567c60bcae75d7ace40cdd2a0326383edfb446de4a550002c2812f61",
+      "candidate": "7169dec182c2a52ad0ea9edc43b4295c922bf208173fb3c767f55d35a36e262a"
+    }
+  },
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/rust-nightly-2026-08-18/bin/cargo",
+    "build",
+    "--release",
+    "--offline",
+    "--locked",
+    "--bin",
+    "charon",
+    "--bin",
+    "charon-driver"
+  ],
+  "binaries": {
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/tool/release/charon": "be2834d61da5d8b73ee155ce879d7a747fde4ab338462f24a66c412457df96c3",
+    "SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/tool/release/charon-driver": "fe8eb1bdd065cea3806867d9ba1abc676c3999f56a3c5330000ee4040a969372"
+  }
+}
