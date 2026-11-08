@@ -1,0 +1,17 @@
+{
+  "scope": "Explicit tagged raw/trait ABI projection, executing auxiliary backward map; actual native forwarding instantiation. No general function coercion and no new primitive correctness premise.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/TypedLoanProjection.lean": "33774f3c023e6ebd9d7c7292b69bcc142e03141fda4e2fc10fde6a25d2cf1566",
+    "SignalReference/ChatResponseReferenceWork/check_typed_loan.py": "6f136761569064ab62989cfba59a7c3b1fa1334346e3f4ad8ba8aa8ef809cd5d"
+  },
+  "grounded_forward_receipt_sha256": "d38c23911f9b096be80f83979fcae29be410cbadad11aa99a7973a072159993b",
+  "inherited_source_count": 10,
+  "object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/typed-loan-final/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Types.olean": "4d84fed8b0e94c9856e79a042db3c3605d1a325cf7d5cdad42b71fd21069985e",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/typed-loan-final/ChatResponseReferenceWork/PartialMonoCandidate/GeneratedForwardActual/Funs.olean": "cdb8037b7e1d49380b6b0132fa3baa21818ca3b1ac0278079d069af87ef19210",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/typed-loan-final/ChatResponseReferenceWork/PartialMonoCandidate/ActualForwardReference.olean": "7b5cac214686cc5350a9d59882fc77ad59cc75aa7fb310de642eb8adf8e315ce",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/typed-loan-final/ChatResponseReferenceWork/TypedLoanProjection.olean": "cd82a49f2dc0a1ad5960f759c15cb00bbb7bcc444ebc034738616fb1fb49fac2"
+  },
+  "kernel_log": "Checking PartialMonoCandidate.GeneratedForwardActual.Types\nChecking PartialMonoCandidate.GeneratedForwardActual.Funs\nChecking PartialMonoCandidate.ActualForwardReference\n'ActualBufForward.forward_all_outcomes' does not depend on any axioms\n'ActualBufForward.raw_forward_success' does not depend on any axioms\nChecking TypedLoanProjection\n'ChatResponseReference.TypedLoanProjection.field_view' does not depend on any axioms\n'ChatResponseReference.TypedLoanProjection.failure_exact' does not depend on any axioms\n'ChatResponseReference.TypedLoanProjection.actual_field_exact' does not depend on any axioms\n",
+  "full_string_or_response_refinement": false
+}
