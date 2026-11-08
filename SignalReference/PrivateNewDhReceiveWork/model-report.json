@@ -1,0 +1,33 @@
+{
+  "candidate": true,
+  "model_only": true,
+  "typechecks": true,
+  "selector_rejection_kernel_endpoints": 1,
+  "foundation_axioms_only": true,
+  "actual_libsignal_new_DH_transition_matches": 2,
+  "whole_output_bytes_checked": 608,
+  "computed_rejection_state_preservation_cases": 12,
+  "actual_PQXDH_initialized_DR_baseline": true,
+  "selected_established_SPQR_phase_override": true,
+  "full_fresh_session_prekey_bootstrap_implemented": false,
+  "actual_MAC_failure_preserved_Rust_store": true,
+  "all_authentication_PQ_CBC_masks_computed": true,
+  "test_supplies_actual_oracle_DH_results": true,
+  "native_DH_binding_executed": false,
+  "full_numeric_compiler_agreement_proved": false,
+  "actual_whole_source_refinement_proved": false,
+  "native_MPC_executed": false,
+  "recoverable_persistence": false,
+  "identity_store_callbacks_and_other_session_metadata_modeled": false,
+  "domain": "New unknown DH ratchet, five retained receiving slots/no skipped keys, counter0,V4,noaddresses,ciphertext96,PKCS7plaintext80; selected V1kind0sameepoch exactnext PQ index, retainedcounter<2^31-1; actual wirecapacity256 with private length.",
+  "parser_dependency": "04edbf6 versioned private parser Hom API; full take-n/source theorem remains pending under parser ownership.",
+  "next": "Prove whole pipeline Hom/compiler, bind native computed pair/DHs to SAME actual parsed remote point, then actual private native receive/reply interoperability before provider/store admission.",
+  "oracle_sha256": "d1b9b3c6e99a6a732720337ba9b4c39a85d2b90de6d51e430ec6ce38601ebb4b",
+  "source_sha256": {
+    "SignalReference/PrivateNewDhReceiveWork/check_model.py": "55e07a80a79abbd8d637b32f7f6362dbcae2429b3595e73cec4de7f2ddd83c68",
+    "SignalReference/PrivateNewDhReceiveWork/Checks.lean": "dfccfd6c7574a05e8f116199b21f5bc200bfbef5c05b82f12bfc8d89471bcf59",
+    "SignalReference/PrivateNewDhReceiveWork/Evaluate.lean": "bde18509db74fc78587439efa6cbce07203fb906f7027399e8792fbb23625997",
+    "TlsMpc/Signal/PrivateNewDhReceive.lean": "b160e6dccc5efaba5221bcacae7d8b97543e1be18ba1cd070e51c929f9790dae",
+    "signal_backend/Oracle/src/bin/signal-new-dh-receive-oracle.rs": "98b130f3427a4b0963ecbc9007ff46420eedc21f90bade7aa7749f3cf1832166"
+  }
+}
