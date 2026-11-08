@@ -1,0 +1,111 @@
+--- /dev/null
++++ b/Tools/ErasingThreadStack.h
+@@ -0,0 +1,36 @@
++#pragma once
++#include <sodium.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <atomic>
++#include <stdexcept>
++
++// A worker stack has one exclusive owner. Erase/release only after pthread_join.
++class ErasingThreadStack {
++    void* mapping;
++    size_t mapped_size, page;
++public:
++    void* data;
++    size_t size;
++    static inline std::atomic<size_t> wiped_stacks{0}, wiped_bytes{0};
++    explicit ErasingThreadStack(size_t requested=8*1024*1024) {
++        page=static_cast<size_t>(getpagesize());
++        size=(requested+page-1)/page*page;
++        mapped_size=size+2*page;
++        mapping=mmap(nullptr,mapped_size,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANON,-1,0);
++        if(mapping==MAP_FAILED) throw std::runtime_error("worker stack allocation failed");
++        data=static_cast<char*>(mapping)+page;
++        if(mprotect(mapping,page,PROT_NONE) ||
++            mprotect(static_cast<char*>(data)+size,page,PROT_NONE)) {
++            munmap(mapping,mapped_size);
++            throw std::runtime_error("worker stack guard setup failed");
++        }
++    }
++    ErasingThreadStack(const ErasingThreadStack&)=delete;
++    ErasingThreadStack& operator=(const ErasingThreadStack&)=delete;
++    void erase() noexcept { sodium_memzero(data,size); }
++    ~ErasingThreadStack() {
++        erase(); ++wiped_stacks; wiped_bytes+=size;
++        munmap(mapping,mapped_size);
++    }
++};
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -23,6 +23,8 @@
+ #include "Tools/ExecutionStats.h"
+ 
+ #include "Protocols/SecureShuffle.h"
++#include "Tools/ErasingThreadStack.h"
++#include <memory>
+ #include "Protocols/NoShare.h"
+ 
+ #include <vector>
+@@ -41,6 +43,7 @@
+ 
+   vector<thread_info<sint, sgf2n>> tinfo;
+   vector<pthread_t> threads;
++  vector<unique_ptr<ErasingThreadStack>> worker_stacks;
+ 
+   int my_number;
+   Names& N;
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -206,8 +206,22 @@
+       tinfo[i].alpha2i=&alpha2i;
+       tinfo[i].machine=this;
+       pthread_t thread;
+-      int res = pthread_create(&thread, NULL,
++      // Dedicated guarded stacks are owned until every worker has joined.
++      worker_stacks.emplace_back(new ErasingThreadStack);
++      auto& stack = *worker_stacks.back();
++      pthread_attr_t attributes;
++      int res = pthread_attr_init(&attributes);
++      if (res != 0)
++        throw runtime_error("cannot initialize worker stack attributes");
++      res = pthread_attr_setstack(&attributes, stack.data, stack.size);
++      if (res != 0)
++        {
++          pthread_attr_destroy(&attributes);
++          throw runtime_error("cannot assign owned worker stack");
++        }
++      res = pthread_create(&thread, &attributes,
+           thread_info<sint, sgf2n>::Main_Func, &tinfo[i]);
++      pthread_attr_destroy(&attributes);
+ 
+       if (res == 0)
+         threads.push_back(thread);
+@@ -624,6 +638,8 @@
+ 
+   queues.clear();
+   threads.clear();
++  // No thread can still access these mappings after the completed joins.
++  worker_stacks.clear();
+ 
+   nthreads = 0;
+ 
+--- a/Tools/BitVector.h
++++ b/Tools/BitVector.h
+@@ -201,6 +201,7 @@
+ #endif
+         octet* tmp = new octet[new_nbytes];
+         memcpy(tmp, bytes, min(new_nbytes, nbytes));
++        sodium_memzero(bytes, capacity);
+         delete[] bytes;
+         bytes = tmp;
+         capacity = new_nbytes;
+@@ -243,6 +244,7 @@
+     BitVector(const vector<Bit>& other);
+     ~BitVector() {
+         //cout << "Destroy, size = " << nbytes << endl;
++        sodium_memzero(bytes, capacity);
+         delete[] bytes;
+     }
+     BitVector& operator=(const BitVector& K)

@@ -1,0 +1,39 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "layers": {
+    "handshake_backend/ScratchWork/vm-scratch.patch": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+    "handshake_backend/LifetimeWork/fixed-field-lifetime.patch": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19",
+    "handshake_backend/ByteBufferWork/serialized-buffer.patch": "d5d374a30698e82d897db7ae6c413150ca2f9e85dad0f5857d203c034b2b7600",
+    "handshake_backend/EpochWork/runtime-epoch.patch": "10707c8af974b176348eb79f4a4efafa984096831daacfc5d3a41bf708345547"
+  },
+  "patch_sha256": "f588c13324274164665a803c77279341c06a3397986d58977280222f591ecd6f",
+  "script_sha256": "795b5a7cf9946b77c57f86ae69096720fa2a8f13df6dc7acdabd0d8d01902075",
+  "files": {
+    "Tools/ErasingThreadStack.h": {
+      "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after": "17d58914b099a9a0b5aa949fd9e611116b85da1b1956afa863416f8364526e20"
+    },
+    "Processor/Machine.h": {
+      "before": "27fbddb2c3ee478fc786dddf5523b5a0410b96e2b0b335dda20e115adb3adfe9",
+      "after": "af84e76148df3db0369338a1cc3164b8def4b39fb0e2cecd07afb22c5a70e43e"
+    },
+    "Processor/Machine.hpp": {
+      "before": "e183705bff7203731698efde613ea6bee17d0df0cf86c76dd34f2274365053c4",
+      "after": "4b372f11204a7beafbf01f6782d3e832dbc39da942bb2da2b46e571c68c74ca5"
+    },
+    "Tools/BitVector.h": {
+      "before": "41c00045fd9566fe9940b7e49e55d5ba6cd9fb8dfd04cbbb001da4b68ff3eb30",
+      "after": "32146e400d632ed223ffb077398c3ad8b2a0a5acf659530cf5745abede9ae6ae"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false
+}
