@@ -1,0 +1,85 @@
+{
+  "candidate_only": true,
+  "append_cases": 614,
+  "capacities": [
+    {
+      "capacity": 0,
+      "cases": 25,
+      "sha256": "4d052bb295573eb1b625b5e8967b3695a2adfa31d618dc60b69792263e3ce9c0"
+    },
+    {
+      "capacity": 1,
+      "cases": 30,
+      "sha256": "6cd9c3155631364e0d50dfec92bfc128134ec1c824779e5cc859e193ec0b81c3"
+    },
+    {
+      "capacity": 2,
+      "cases": 37,
+      "sha256": "32b80a03fb86f9287ec2017758acf7f1cdec1dea0d4e29aeac5e8fd229a122b4"
+    },
+    {
+      "capacity": 7,
+      "cases": 102,
+      "sha256": "eaf22e13550f91300aff1727ab8e5858544f7dddd33c9cf2760e8c59e08c68ea"
+    },
+    {
+      "capacity": 16,
+      "cases": 70,
+      "sha256": "2a9db7a100c213574f8c4717f8b0e0b87e31853934ca13792b341eb50b1ad8f8"
+    },
+    {
+      "capacity": 127,
+      "cases": 70,
+      "sha256": "5f0be32b91fd32e2b7d5859939c31ecab792c49570778d8c77000cedcfcc09ca"
+    },
+    {
+      "capacity": 128,
+      "cases": 70,
+      "sha256": "5d0977f12539baead373f60017f70bf81ca50cdcfaf2519c538e1d8425e01263"
+    },
+    {
+      "capacity": 255,
+      "cases": 70,
+      "sha256": "ecfc52d2bfb3c16917d57559cf6d747583feea44f37ce52c3c93b2547b4ffb1d"
+    },
+    {
+      "capacity": 256,
+      "cases": 70,
+      "sha256": "9b29298b87bafa816e55e9381c72f9a672ebe9799460522eb70dba546388fb8b"
+    },
+    {
+      "capacity": 1024,
+      "cases": 70,
+      "sha256": "e72b31ca1fe11a3e1dd08ed09a635512f9763169186381391a42cbf6969652fe"
+    }
+  ],
+  "actual_prost_varint_cases": {
+    "32": {
+      "cases": 394,
+      "sha256": "2bd37baae4fd72a0995e193010a2d8fda115ac0346b6f9086b0ad8cc0df21817"
+    },
+    "64": {
+      "cases": 409,
+      "sha256": "e808db542fbc730ed7d44676376b42cad726f63ffaa07fb465928e8843619f45"
+    }
+  },
+  "counter_width_chunk_cases": 7,
+  "127_to_128_preserves_secret_length_and_canonical_bytes": true,
+  "wire_contract": "valid mask8 || lengthBE16 || fixed-capacity data; valid empty distinct from rejection",
+  "append_overflow": "Reject and zero validity/length/data; never truncate accepted data",
+  "chunk_semantics": "Concatenate only each valid chunk prefix, preserving embedded zero bytes and order; any rejected chunk poisons result",
+  "native_mpc_executed": false,
+  "full_signal_private_length_hmac_and_serialization": false,
+  "tls_integrated": false,
+  "source_sha256": {
+    "SignalReference/PrivateBufferWork/Export.lean": "2cea684bc6355dfedb93fb990cde32ab41cc629902bc3d13732ffd27f193535b",
+    "SignalReference/PrivateBufferWork/Checks.lean": "e89230ca685023b6bbb00b8d2cf0d5cc361831b0e0b433671c87c407e7cb9f9b",
+    "SignalReference/PrivateBufferWork/check.py": "4226e9a43f49598043dca4d3c5bf8e1cb0a957ae50458dcebf03c61e00df1c99",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e",
+    "TlsMpc/Signal/PrivateVarint.lean": "f289a49c8a7f2990a51eea9a6c9633a149c36aa7d7b941c81a1cb987761927c8"
+  },
+  "oracle_sha256": "201344729ea00e8b9aae8ea3e1887fa138f9cf108a07c4b25e01fe070efebf04",
+  "integer_endian_add_compare_lemmas": false,
+  "all_capacity_append_integer_spec_theorem": false,
+  "production_ready": false
+}
