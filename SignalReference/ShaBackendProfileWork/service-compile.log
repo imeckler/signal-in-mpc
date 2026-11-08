@@ -1,0 +1,48 @@
+WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.
+Default bit length for compilation: 253
+Default security parameter for compilation: 40
+Compiling file Programs/Source/signal_private_conversation.mpc
+Changed statistical security for comparison etc. to 128
+Compiled 100000 lines at Sun Nov  8 15:35:32 2026
+Compiled 200000 lines at Sun Nov  8 15:35:38 2026
+Compiled 300000 lines at Sun Nov  8 15:35:40 2026
+Compiled 400000 lines at Sun Nov  8 15:35:42 2026
+Compiled 500000 lines at Sun Nov  8 15:35:43 2026
+Compiled 600000 lines at Sun Nov  8 15:35:45 2026
+Compiled 700000 lines at Sun Nov  8 15:35:52 2026
+Compiled 800000 lines at Sun Nov  8 15:35:54 2026
+Compiled 900000 lines at Sun Nov  8 15:35:55 2026
+Compiled 1000000 lines at Sun Nov  8 15:35:56 2026
+Compiled 1100000 lines at Sun Nov  8 15:35:58 2026
+Compiled 1200000 lines at Sun Nov  8 15:36:07 2026
+Compiled 1300000 lines at Sun Nov  8 15:36:09 2026
+Compiled 1400000 lines at Sun Nov  8 15:36:10 2026
+Compiled 1500000 lines at Sun Nov  8 15:36:12 2026
+Compiled 1600000 lines at Sun Nov  8 15:36:13 2026
+Compiled 1700000 lines at Sun Nov  8 15:36:15 2026
+Compiled 1800000 lines at Sun Nov  8 15:36:17 2026
+Compiled 1900000 lines at Sun Nov  8 15:36:26 2026
+Compiled 2000000 lines at Sun Nov  8 15:36:28 2026
+Compiled 2100000 lines at Sun Nov  8 15:36:29 2026
+Compiled 2200000 lines at Sun Nov  8 15:36:31 2026
+Compiled 2300000 lines at Sun Nov  8 15:36:33 2026
+Compiled 2400000 lines at Sun Nov  8 15:36:35 2026
+Compiled 2500000 lines at Sun Nov  8 15:36:36 2026
+Compiled 2600000 lines at Sun Nov  8 15:36:37 2026
+Compiled 2700000 lines at Sun Nov  8 15:36:50 2026
+Writing to Programs/Bytecode/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-latency-signal_private_variable_conversation_260_80_0_0-1.bc
+Writing to Programs/Functions/signal_private_variable_conversation_260_80_0_0-sbv:[4888x1]-sbv:[10984x1]
+Writing to Programs/Schedules/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-latency.sch
+Writing to Programs/Bytecode/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-latency-0.bc
+Hash: 3955815b0be60df619fc1f6f9eb1aa109748ee8f53a647bbfd0378672fde46b6
+Program requires at most:
+        1787 integer dabits
+        4120 bit opens
+       20404 integer triples
+       20404 integer simple multiplications
+        1024 integer randoms
+           8 integer opens
+     7688135 bit triples
+          32 bit bits
+       38321 virtual machine rounds
+/Users/izzy/repos/tls-mpc/.deps/private-variable-conversation-native/260-80-0-0/sha-latency/service.manifest

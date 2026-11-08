@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "modules": [
+    "LibSignalReference.Proofs.Sha256Round",
+    "LibSignalReference.Proofs.ShaCompact",
+    "LibSignalReference.Proofs.ShaCompactEquivalence"
+  ],
+  "scope": "Focused existing actual-source SHA bridges rebuilt after default-preserving Ops sum fields and ShaCompact dispatch; no generated-source edits",
+  "invocation": "lean -o <existing SignalReference build lib>/<module>.olean <source>; LEAN_PATH uses existing root/SignalReference/Aeneas/package build libraries",
+  "source_sha256": {
+    "SignalReference/LibSignalReference/Proofs/Sha256Round.lean": "72323e9eefeb4c80c5f0e42832f11d1ee571e0772751037efb4f4c53083d2d16",
+    "SignalReference/LibSignalReference/Proofs/ShaCompact.lean": "dbfb1681bc97556cce96bdcf4a2b6128cf71bff5ac756170c49223d45db62294",
+    "SignalReference/LibSignalReference/Proofs/ShaCompactEquivalence.lean": "bcbeb408023423675af1909d92c48aed6274c67789c0bab4310fecf098545128",
+    "TlsMpc/Sha256.lean": "778acff9c62af4599c51ca492bd44370635e9b8f5c967ffb2f0325fb9fe96ea9",
+    "TlsMpc/Signal/ShaCompact.lean": "cbe197589f9754ae108b1a328faf28054804990e189f67325211e32ab7dcd04e",
+    "lean-toolchain": "efac0b94923b2d8b6840cd35be9177ad0fc5ab2332f4f4311c98712cee92fdee"
+  },
+  "log_sha256": "8a742379cf2e62ef4061e0d83af4674f84a148b188b14718a4fab9769037a0ef"
+}

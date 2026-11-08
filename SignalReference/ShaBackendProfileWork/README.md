@@ -40,3 +40,23 @@ selection endpoint composes to ORIGINAL concrete service semantics.
 This checkpoint does not include Base64 countV2 production integration; its
 normalized-buffer composition proof remains pending. Previous mixed commit aacda3d
 included the parser owner's validated files and was retained without rewriting.
+
+## Full same-capacity compile checkpoint
+
+`service-compile-report.json` now verifies the actual260/80/0/0 latency closure,
+all pinned products, and the unchanged transitive exporter source identity.
+Historical/latency mixed VM rounds:122243/38321; bit triples:6769205/7688135.
+Graph AND depths:114049/30127; logical ANDs:6738497/7680983.
+The historical adapter's604 singleton batches cost23556 extra triples; removing
+exactly those leaves the SAME7152 non-Boolean bit triples in both closures.
+Mixed rounds minus graph AND depth are exactly8194 in both. Thus profile-only
+logical AND growth is942486, while combined compiled growth is918930.
+This separates the adapter correction without an expensive legacy recompile.
+Packed AND batches fall173314→134936 and XOR batches1027737→248350; these
+are compiler packing counts, not packed network-bit/throughput measurements.
+
+Full native recipient interoperability and persistent communication/time
+comparison remain the next validation. The long codegen-output gap did finish;
+process CPU/RSS/stack sampling was unavailable (`ps` rejected by environment),
+and no memory-pressure or hang attribution is claimed. All old closures remain
+untouched. Base64V2 adoption is queued for a later required migration.
