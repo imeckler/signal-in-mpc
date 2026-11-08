@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "profiles": {
+    "sequential-1": {
+      "bit_triples": 444,
+      "VM_rounds": 12,
+      "compiler_elapsed_seconds": 0.1934600828681141,
+      "pid": 45057,
+      "children_maxrss": 56213504,
+      "log_sha256": "93e0a745387b704a2895bc1e1ca81893e427d8dbe1b51d78e24543a8951e2b3e"
+    },
+    "batch-1": {
+      "bit_triples": 444,
+      "VM_rounds": 12,
+      "compiler_elapsed_seconds": 0.1869805830065161,
+      "pid": 45058,
+      "children_maxrss": 57475072,
+      "log_sha256": "453a7572ae9f4d333ae1a944c0080f9a6e65ac0d776de8fe056ccc53bbed83fd"
+    },
+    "sequential-2": {
+      "bit_triples": 888,
+      "VM_rounds": 24,
+      "compiler_elapsed_seconds": 0.20019212504848838,
+      "pid": 45059,
+      "children_maxrss": 57475072,
+      "log_sha256": "3ae8a2ced305d3b03a1f2c1344ba09d6d460047bc0ce0522119dc3cc65aa773d"
+    },
+    "batch-2": {
+      "bit_triples": 888,
+      "VM_rounds": 12,
+      "compiler_elapsed_seconds": 0.19529762514866889,
+      "pid": 45060,
+      "children_maxrss": 57868288,
+      "log_sha256": "330478614d36ec358d2c2dc6c0d62ec81a533ea50e2804bfd1e3a42f1d80a9c4"
+    },
+    "sequential-4": {
+      "bit_triples": 1776,
+      "VM_rounds": 48,
+      "compiler_elapsed_seconds": 0.22375445789657533,
+      "pid": 45061,
+      "children_maxrss": 57868288,
+      "log_sha256": "e731288f9ff2a0d17478f4a7b2ecf5d01126e01fbeb8d192822391f86d265c68"
+    },
+    "batch-4": {
+      "bit_triples": 1776,
+      "VM_rounds": 12,
+      "compiler_elapsed_seconds": 0.21880091610364616,
+      "pid": 45062,
+      "children_maxrss": 57868288,
+      "log_sha256": "009bc44904d9dbd9278fcd21e6be81daca76f8a6a08c693ca8d03a66767d7dea"
+    },
+    "sequential-8": {
+      "bit_triples": 3552,
+      "VM_rounds": 96,
+      "compiler_elapsed_seconds": 0.27165966597385705,
+      "pid": 45063,
+      "children_maxrss": 60588032,
+      "log_sha256": "a2b9361467c834ede7081d666e933516ee1e3472859ee6d39f23a0e640364618"
+    },
+    "batch-8": {
+      "bit_triples": 3552,
+      "VM_rounds": 12,
+      "compiler_elapsed_seconds": 0.2588978752028197,
+      "pid": 45064,
+      "children_maxrss": 60588032,
+      "log_sha256": "cf6b102bf39ceb91c4b463524cce71f625fb698acb3b0e35849c9b6331855cb4"
+    }
+  },
+  "native_MPC_executed": false,
+  "scope": "same Boolean DAG, sequential vs independent-instance packing; no mixedfield, store, TLS, or throughput claim",
+  "source_sha256": {
+    "handshake_backend/BatchThroughputWork/batch_tiny.mpc": "fe65c36db8fe86cd47f52eead0e6a1d8d6bf3fbc8d476b2bdbee2925c8d6446b",
+    "handshake_backend/BatchThroughputWork/compile_tiny.py": "f72d62dc6c9ea3401dda96a5aec2831bd9ac7cd87945b70f80bf39bc6a04b46e",
+    "backend_adapter/aig_batched.py": "005243e6d0ae9d019baee96fb4e23ddf1893daec678be40380360f0efdaa9d35"
+  }
+}

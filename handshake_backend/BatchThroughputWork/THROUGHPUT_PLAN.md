@@ -77,3 +77,25 @@ party at target rate by simple linear scaling, before external/link overhead.
 The13.1% SHA-block gate saving is not enough by itself. Cross-instance packing
 can amortize opens/round/setup overhead but does not remove logical AND work;
 protocol/preprocessing bytes and the mixed-field cost decide feasibility.
+
+## Frozen persistent-window attribution and TLS connection choice
+
+Root's nonoverlapping top-level party0 RPC slice (first rpc24..last rpc25 in
+`a30680461a80ab54/party-0.log`) totals20821778000B:
+producer9657935744(46.384%), private response7996251776(38.403%), TLSseal
+2715856896(13.043%), TLSopen250014208(1.201%), control16905408(.081%),
+rotate184813968(.888%). TLS-related total15.213% is a BYTE fraction, not walltime.
+The endpoint8899B/4≈2.225kB/message including setup/control would be~61.8kB/s at
+target for this fixture shape; MPC internal transport dominates those external
+TLS bytes. Preserve the old suspend-clock caveat in all time comparisons.
+
+Prioritize same-connection batch sealing with an ordered, unique TLS sequence
+range reserved before computation and a quarantined ciphertext queue released
+in order after complete successful checks. Failed/uncertain reservations never
+reuse a nonce; KeyUpdate/abort cannot cross pending-range boundaries. Current
+single pending_send API does not already implement this. Do not add threads
+calling the same Machine. A bounded2/4-connection shard remains an option ONLY
+if measurements isolate TLS queue/head-of-line blocking after batching; it does
+not remove MPC bytes or single-Machine serialization. Real service same-account
+connection acceptance/replacement policy must be verified before pool integration;
+no assumption that the service accepts arbitrary parallel authenticated sockets.
