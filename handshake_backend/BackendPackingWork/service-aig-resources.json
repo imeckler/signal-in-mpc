@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "native_MPC_executed": false,
+  "scope": "public immutable circuit resource scan; no new execution adapter or algorithm implementation",
+  "artifact": ".deps/private-variable-conversation-native/260-80-0-0/Worker-Public/service.json",
+  "artifact_sha256": "fc49fae8f2d50d70ae33ca59841540878a51e52dc5c39f9bbf1f9cfab4610dbe",
+  "scanner_sha256": "ff2cf9f65b5e00b447013c2b42b8226af46d1825c242d67a623721cb74bf53b2",
+  "elapsed_python_awake_seconds": 9.582738499972038,
+  "maximum_child_resident_bytes": 712704000,
+  "metrics": {
+    "nodes": 25315873,
+    "raw_and_gates": 25310216,
+    "executed_and_gates": 6738497,
+    "executed_xor_gates": 6578452,
+    "unreachable_nodes": 11993272,
+    "and_depth": 114049,
+    "maximum_local_xor_depth": 191,
+    "and_groups": 114049,
+    "xor_groups": 991058,
+    "packed_and_batches64": 173314,
+    "packed_xor_batches64": 1027737
+  },
+  "compiler_counts_at_most": {
+    "bit_triples": 6769205,
+    "vm_rounds": 122243,
+    "independent_websocket_random_bits": 32,
+    "integer_simple_multiplications": 20404,
+    "integer_dabits": 1787
+  },
+  "and_pack_occupancy64": 0.6075043887106639,
+  "xor_pack_occupancy64": 0.10001421813168154,
+  "logical_and_gates_per_depth": 59.08422695508071,
+  "unsupported_claims": [
+    "No per-module cryptographic attribution from flattened DAG",
+    "No mapping of each dependency level to a WAN RTT",
+    "No protocol speedup/throughput claim"
+  ]
+}

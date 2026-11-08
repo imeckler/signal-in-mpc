@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "public_dags": 100,
+  "scope": "resource counts/packing groups versus existing adapter; no execution or proof extension",
+  "source_sha256": {
+    "handshake_backend/BackendPackingWork/aig_resource_scan.cpp": "a7a83a5ef38ee07aefa6410be39b22c23dbbd1080fde14de290f15b571848ca3",
+    "handshake_backend/BackendPackingWork/check_aig_resource_scan.py": "e8349b0f9a980e8d492f5d11be856fd52c64752dd87fdc6bd487a034d48553de",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/aig_packed.py": "2694856c9b115f7ff4841dcc977a7dc00888361b7da6a318623b255c70aa18cc"
+  },
+  "binary_sha256": "ff2cf9f65b5e00b447013c2b42b8226af46d1825c242d67a623721cb74bf53b2"
+}
