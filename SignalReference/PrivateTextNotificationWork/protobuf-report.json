@@ -1,0 +1,15 @@
+{
+  "kernel_endpoints": 4,
+  "foundational_axioms_only": true,
+  "native_reflection": false,
+  "proved": "Actual private uint32 encoder/BE16-to-word length conversion for all128 short lengths, general triple record append, and actual bytesField equals tag||length||payload for every canonical payload<128B fitting its declared capacity.",
+  "domain": "sourceCapacity+4<65536; raw length<=sourceCapacity and<128. Covers both text body<=48 and DataMessage<=61 without opening lengths.",
+  "boundary": "Canonical input record and upstream scalar/string encoding semantics remain separate; no whole application or source implementation agreement assumed.",
+  "source_sha256": {
+    "SignalReference/PrivateTextNotificationWork/check_protobuf.py": "f3d04c96714f04f79b0d5c425f07739ae04f586edc15c221968f872fe934644e",
+    "SignalReference/PrivateTextNotificationWork/ProtobufChecks.lean": "0f561103197adfde395a9b82eb3aca6d0a4f66d119f59930cd2bec2e59f8a8c1",
+    "TlsMpc/Signal/PrivateProtobufShortSemantics.lean": "c7f73266684a4a0b226306b9d6a99d204fb2f3b2bcfba2c27dc15d704bf7159e",
+    "TlsMpc/Signal/PrivateProtobuf.lean": "748952919fa92ed1eb52d6713130f38d3ddad511628136e50f7ce435a87c6608",
+    "TlsMpc/Signal/PrivateBufferRecordSemantics.lean": "383ed6d20493d0e1e858582a46feabfb6974882f1748d642b2a31f87bd5cd094"
+  }
+}
