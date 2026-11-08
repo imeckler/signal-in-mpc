@@ -1,4 +1,6 @@
 #pragma once
+#include <chrono>
+#include <cstdint>
 // Persistent mixed VM adapter. Only native shares cross the function boundary.
 // This header intentionally has no share reconstruction or network RPC parser.
 #include "Protocols/MaliciousShamirShare.h"
@@ -20,6 +22,7 @@ using Field = gfp_<0, 4>;
 using Share = StrongShamirShare<Field>;
 using Bit = Share::bit_type;
 using Bits = OwnedBits<Bit>;
+using PublicFunctionObserver=std::function<void(const std::string&,uint64_t,uint64_t)>;
 
 class Worker {
     Machine<Share>& machine;
@@ -28,19 +31,34 @@ class Worker {
     // is not a retirement capability: preprocessing/PRNG/history remain live.
     // The callback runs only after checked execution and output copy-out.
     std::function<void()> cleanup_function_scratch;
+    PublicFunctionObserver observe_public_function;
     std::vector<Share> scalar;
     bool begun = false;
     bool derived = false;
     void run(const std::string& name,std::vector<FunctionArgument>& args) {
         FunctionArgument result;
+        auto started=observe_public_function?std::chrono::steady_clock::now():std::chrono::steady_clock::time_point{};
         pinned.verify_function(name,args);
+        auto verified=observe_public_function?std::chrono::steady_clock::now():std::chrono::steady_clock::time_point{};
         machine.run_function(name,result,args);
+        if(observe_public_function) {
+            try {
+                auto finished=std::chrono::steady_clock::now();
+                auto descriptor="Programs/Functions/"+name;
+                for(auto& arg:args)descriptor+="-"+arg.get_type_string();
+                observe_public_function(descriptor,
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(verified-started).count(),
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(finished-verified).count());
+            }catch(...){} // Telemetry must never skip mandatory cleanup.
+        }
         if(cleanup_function_scratch)cleanup_function_scratch();
     }
 public:
     explicit Worker(Machine<Share>& machine, const PinnedPrograms& pinned,
-                    std::function<void()> cleanup_function_scratch={})
+                    std::function<void()> cleanup_function_scratch={},
+                    PublicFunctionObserver observe_public_function={})
         : machine(machine), pinned(pinned),cleanup_function_scratch(std::move(cleanup_function_scratch)),
+          observe_public_function(std::move(observe_public_function)),
           scalar(256, Share::constant(0, machine.get_N().my_num(), machine.get_sint_mac_key())) {}
     Worker(const Worker&)=delete;
     Worker& operator=(const Worker&)=delete;

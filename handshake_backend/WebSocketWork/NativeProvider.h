@@ -27,6 +27,14 @@ public:
             return{output.ticket,std::move(output.payload),std::move(output.request_id),provider.shape().frame_capacity()};
         }catch(...){if(!joined){joined=true;collective.require_local_success(false);}throw;}
     }
+    ProviderRegistry::Produced produce_with_request_id(Bits payload,Bits timestamp,Bits id) override {
+        bool joined=false;
+        try {
+            auto output=provider.produce_with_request_id(std::move(payload),std::move(timestamp),std::move(id),[&](const auto& shape,Bits input){
+                joined=true;collective.require_local_success(true);return session.evaluate_variable(shape,std::move(input));});
+            return{output.ticket,std::move(output.payload),std::move(output.request_id),provider.shape().frame_capacity()};
+        }catch(...){if(!joined){joined=true;collective.require_local_success(false);}throw;}
+    }
     void response_complete(uint64_t ticket) override {provider.response_complete(ticket);}
     void close() noexcept override {provider.close();}
 };

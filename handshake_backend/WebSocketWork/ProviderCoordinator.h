@@ -4,10 +4,17 @@
 #include <openssl/evp.h>
 namespace tls_mpc_worker {
 struct ProviderInput {Bits payload,timestamp,computed_validity;};
+class PrivateInputBuilder {
+public:
+    virtual ~PrivateInputBuilder()=default;
+    virtual void validate_public_shape() const=0;
+    virtual ProviderInput evaluate(Session& session)=0;
+};
 struct ProviderAdmission {
     std::unique_ptr<ProviderRegistry::Provider> provider;
     Bits credential_validity,state_validity;
     std::vector<ProviderInput> inputs;
+    std::vector<std::unique_ptr<PrivateInputBuilder>> deferred_inputs;
 };
 // Factory only moves already authenticated same-worker state. It must not
 // perform private VM work before collective admission readiness. There is no
@@ -41,7 +48,19 @@ public:
             state_handle=registry->admit(std::move(admission.provider),std::move(admission.credential_validity),std::move(admission.state_validity));
             for(auto& input:admission.inputs)input_handles.push_back(registry->admit_input(
                 std::move(input.payload),std::move(input.timestamp),std::move(input.computed_validity)));
+            for(const auto& builder:admission.deferred_inputs){
+                public_require(bool(builder),"missing private input builder");builder->validate_public_shape();
+            }
             factory={};joined=true;collective.require_local_success(true);
+            // No private builder runs until all parties' local state/fence and
+            // public input-shape preparation has succeeded collectively.
+            bool computed=!admission.deferred_inputs.empty();
+            for(auto& builder:admission.deferred_inputs){
+                auto input=builder->evaluate(session);
+                input_handles.push_back(registry->admit_input(std::move(input.payload),std::move(input.timestamp),std::move(input.computed_validity)));
+            }
+            admission.deferred_inputs.clear();admission.inputs.clear();
+            if(computed)session.checkpoint_private_computation();
         }catch(...){factory={};if(!joined){joined=true;collective.require_local_success(false);}close();throw;}
     }
     PublicBytes catalogue() const {

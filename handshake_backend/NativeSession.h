@@ -3,10 +3,12 @@
 #include "SessionLifecycle.h"
 #include "PayloadWork/PrivatePayload.h"
 #include "PayloadWork/StatusGate.h"
+#include "PublicMetrics.h"
 #include "../signal_backend/SealedSenderWork/NativeService.h"
 #include "../signal_backend/SealedSenderWork/NativeUpgrade.h"
 #include "../signal_backend/SealedSenderWork/NativePayload.h"
 #include "../signal_backend/VariableServiceWork/NativeVariableService.h"
+#include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
 #include "WebSocketWork/NativeWebSocket.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
@@ -24,6 +26,7 @@ class Session {
     ShapeCompiler* shapes;
     SessionLifecycle* lifecycle;
     const PinnedPrograms& pinned_programs;
+    PublicMetrics* metrics;
     SessionPolicy policy;
     struct Traffic { Bits secret, key, iv; };
     Traffic client_hs, server_hs, client_app, server_app;
@@ -31,6 +34,8 @@ class Session {
     ApplicationPolicy application_policy;
     bool application_ready=false;
     Bits parser_state;
+    Bits next_request_id;
+    bool request_ids_initialized=false;
     enum class Origin {producer,authenticated_receive,websocket_close};
     struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; Origin origin=Origin::producer; };
     std::map<uint64_t,Buffer> buffers;
@@ -102,9 +107,16 @@ class Session {
         try { require(!lifecycle || lifecycle->host_active(),"private work requires erased host call"); return operation(); }
         catch (...) { abort(); throw; }
     }
+    template<class F> auto measured(const char* stage,F&& operation) -> decltype(operation()) {
+        if(!metrics)return operation();auto before=metrics->begin();
+        try {auto result=operation();metrics->finish(stage,before);return result;}
+        catch(...){metrics->finish(stage,before,false);throw;}
+    }
 public:
-    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr,SessionLifecycle* lifecycle=nullptr)
-        : machine(machine), worker(machine, pinned),shapes(shapes),lifecycle(lifecycle),pinned_programs(pinned) {}
+    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr,SessionLifecycle* lifecycle=nullptr,PublicMetrics* metrics=nullptr)
+        : machine(machine), worker(machine, pinned,{},metrics?PublicFunctionObserver(
+            [this](const std::string& descriptor,uint64_t verify_ns,uint64_t run_ns){this->metrics->function_resources(descriptor,verify_ns,run_ns,true);}):PublicFunctionObserver{}),
+          shapes(shapes),lifecycle(lifecycle),pinned_programs(pinned),metrics(metrics) {}
     Session(const Session&)=delete;
     Session& operator=(const Session&)=delete;
     ~Session(){abort();}
@@ -219,6 +231,19 @@ public:
         return guarded([&] {require_application();require(producer.size()==8&&upstream.size()==8,"invalid private validity dimensions");
             return eval("tls-provider-validity",concat({producer,upstream}),1);});
     }
+    void initialize_private_request_ids(const Bytes& public_nonce) {
+        guarded([&] {require_application();require(!request_ids_initialized&&public_nonce.size()==16,"private request allocator initialization rejected");
+            request_ids_initialized=true;
+            next_request_id=eval("tls-private-request-id-init",public_bits(public_nonce),8);});
+    }
+    Bits reserve_private_request_id() {
+        return guarded([&] {require_application();require(request_ids_initialized&&next_request_id.size()==64,"private request allocator unavailable");
+            auto output=measured("request.id",[&]{return eval("tls-private-request-id-next",Bits(next_request_id),9);});
+            require(release(bytes(output,0,1))==Bytes{255},"private request admission rejected");
+            auto selected=std::move(next_request_id);next_request_id=bytes(output,1,8);
+            return selected; // Never a public RPC result; reservation cannot roll back.
+        });
+    }
     // Consume exactly once into an internal HTTP/WebSocket/Signal processor.
     // No plaintext bytes or actual length are returned over RPC.
     PrivatePayload take_private_payload(uint64_t handle) {
@@ -254,12 +279,21 @@ public:
     Bits evaluate_upgrade(const signal_mpc::UpgradeShape& shape,Bits input) {
         return guarded([&] {require_application();
             signal_mpc::NativeUpgrade upgrade(machine,worker,pinned_programs);
-            return upgrade.evaluate(shape,std::move(input));});
+            auto result=measured("upgrade.builder",[&]{return upgrade.evaluate(shape,std::move(input));});
+            if(metrics)metrics->function_resources(shape.descriptor());return result;});
     }
     Bits evaluate_variable(const signal_mpc::VariableShape& shape,Bits input) {
         return guarded([&] {require_application();
             signal_mpc::NativeVariableService service(machine,worker,pinned_programs);
-            return service.evaluate(shape,std::move(input));});
+            auto result=measured("provider.crypto",[&]{return service.evaluate(shape,std::move(input));});
+            if(metrics)metrics->function_resources(shape.descriptor());return result;});
+    }
+    Bits evaluate_text_notification(Bits input) {
+        return guarded([&] {require_application();
+            signal_mpc::NativeTextNotification builder(machine,worker,pinned_programs);
+            auto result=measured("content.builder",[&]{return builder.evaluate(std::move(input));});
+            if(metrics)metrics->function_resources("Programs/Functions/signal_private_text_notification_48_80-sbv:[472x1]-sbv:[720x1]");
+            return result;});
     }
     void start_websocket(const Bytes& expected_accept) {
         guarded([&] {require_application();require(!websocket,"WebSocket already initialized");
@@ -386,7 +420,7 @@ public:
         for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {
             traffic->secret.clear();traffic->key.clear();traffic->iv.clear();
         }
-        main_secret.clear();parser_state.clear();buffers.clear();
+        main_secret.clear();parser_state.clear();next_request_id.clear();buffers.clear();
         pending_wire.clear();pending_send=false;
         return lifecycle && lifecycle->abort_epoch();
     }

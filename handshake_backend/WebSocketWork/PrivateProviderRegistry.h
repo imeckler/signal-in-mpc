@@ -20,6 +20,9 @@ public:
         virtual Upgrade upgrade(Bits public_nonce)=0;
         virtual void upgrade_complete()=0;
         virtual Produced produce(Bits payload,Bits timestamp)=0;
+        virtual Produced produce_with_request_id(Bits,Bits,Bits) {
+            throw std::runtime_error("private provider connection ID binding unavailable");
+        }
         virtual void response_complete(uint64_t ticket)=0;
         virtual void close() noexcept=0;
     };
