@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "original_sha256": "ee1497d5fc342884535aae66cf7fbb04799fba1389729be35e9971be80313d5e",
+  "original_fingerprint": "53de1e4ce7d9c5c490f801824ac78df17d976d485cc4481c38115e2c1b035f3e",
+  "selected_sha256": "adf2fd875eca0fcb0eba17316f341289652f6e7a91fd793e19548a330dac6e94",
+  "changes_sha256": "4c3599fa91d296cd2610a2c552bdc2f6f6f7d41a00af2cab916d6fe6dda7022b",
+  "script_sha256": "3255a7699e58b03f4591d13b9ea425138c9e71a90396a47b96aa858a69e4f710",
+  "reversible_changes": 7,
+  "removed_functions": [
+    302,
+    306
+  ],
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_references_to_removed_slots": true,
+  "additional_trusted_preprocessing": true,
+  "source_or_translator_changes": [],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "ProtoParseWork/FieldReferenceWork/Generated/uint32_step/Funs.lean": "5bcaeddc0d5ac613039a97336346347610b068d97b63d0a90ffbac4b82cb57c5",
+    "ProtoParseWork/FieldReferenceWork/Generated/uint32_step/FunsExternal_Template.lean": "e53e4edcdc02be410050f9ed0d6cc41207aa7d798ae9622d20dd0af89aa2421f",
+    "ProtoParseWork/FieldReferenceWork/Generated/uint32_step/Types.lean": "5705c0c619153e956ca764e00563a7fac7fa9b7969ca298f4eab45d1f7f58863"
+  },
+  "external_templates": [
+    "FunsExternal_Template.lean"
+  ],
+  "independent_review": "pending"
+}

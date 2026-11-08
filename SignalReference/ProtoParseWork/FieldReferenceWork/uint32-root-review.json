@@ -1,0 +1,34 @@
+{
+  "reviewed_at_utc": "2026-11-08T02:31:01.738421+00:00",
+  "accepted_scope": "Actual pinned Prost uint32::merge on contiguous byte slices, including wire-type rejection, exact decoded suffix/error behavior, truncation and successful duplicate overwrite.",
+  "accepted_for_reference_composition": true,
+  "proof_report_sha256": "006d01e3355149d8886a46a5be9820127caa5d8fb206bdb49f11aafe321b708d",
+  "independent_new_endpoint_axiom_audit": 8,
+  "independent_root_axiom_audit_sha256": "8592183a247aa873c02fc23a7372062f221c58ac04a6fa1d5578170e4cb94602",
+  "frozen_source_and_object_hashes_verified": true,
+  "extraction_source_inventory_hashes_verified": true,
+  "metadata_delta_reversed_to_exact_original": true,
+  "all_retained_computational_bodies_unchanged": true,
+  "reviewed_theorems": [
+    "check_wire_reference",
+    "uint32_wire_error",
+    "uint32_after",
+    "uint32_error",
+    "uint32_truncates",
+    "uint32_last_value",
+    "uint32_from_decode",
+    "uint32_full_reference"
+  ],
+  "review_notes": [
+    "Full contiguous-slice theorem composes the previously accepted total varint reference; it has no caller-supplied decoder equality premise.",
+    "Wrong wire type is rejected before consuming the buffer. Decoder failure retains the old scalar and preserves the actual post-error suffix.",
+    "Successful uint64 values are cast modulo2^32; a later successful duplicate overwrites the earlier scalar."
+  ],
+  "trust_boundary": "Pinned release Charon/Aeneas and seven explicit unused Step metadata removals remain trusted extraction steps. Accepted contiguous Buf/unsafe-index wrappers are inherited by exact namespace replay. No new model or translator patch is accepted here.",
+  "not_established": [
+    "Whole generated SignalMessage merge/parser",
+    "Bytes merge model/reference (extracted separately, not included)",
+    "Whole numeric parser/artifact agreement",
+    "Arbitrary segmented Buf, Rust allocator/Drop behavior, MPC execution or security."
+  ]
+}

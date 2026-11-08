@@ -597,6 +597,48 @@
       "compressed_sha256": "5e9f8993c6af1966ab2ca073b20a97a33125b34b757b34bb05ad1acfbfe43ff4"
     },
     {
+      "path": "ProtoParseWork/BytesReferenceWork/Artifacts/vec_replace/prost.llbc",
+      "bytes": 249571,
+      "sha256": "0d75dcfea700652817a11c48dfdff5b12e730323e9b6ed35173a38518ae6d923",
+      "blob": "0d75dcfea700652817a11c48dfdff5b12e730323e9b6ed35173a38518ae6d923.llbc.gz",
+      "compressed_sha256": "d32ba521c079681841cba624c48574e2a187c9892bd4f358d3976963fc79b904"
+    },
+    {
+      "path": "ProtoParseWork/BytesReferenceWork/Artifacts/vec_replace_with_reachability/prost.llbc",
+      "bytes": 249804,
+      "sha256": "c5c966f3bb704caf251a4dc4a1d5ace27aad8f8ff91f3404a9100ea9e20ca401",
+      "blob": "c5c966f3bb704caf251a4dc4a1d5ace27aad8f8ff91f3404a9100ea9e20ca401.llbc.gz",
+      "compressed_sha256": "f8506bd2186c1700dd4c4545567b691913a931030f6ccfec4d0a95e966da0bc1"
+    },
+    {
+      "path": "ProtoParseWork/FieldReferenceWork/Artifacts/bytes/prost.llbc",
+      "bytes": 1547717,
+      "sha256": "905646a1879a9a05e3ef9768b5c3eda4d7c83643872d49c97274ed79aa9a141e",
+      "blob": "905646a1879a9a05e3ef9768b5c3eda4d7c83643872d49c97274ed79aa9a141e.llbc.gz",
+      "compressed_sha256": "7bd0d826dd12b69ed8ce086e7f231ba90dbfdf5613a423b24ad59987cafb6265"
+    },
+    {
+      "path": "ProtoParseWork/FieldReferenceWork/Artifacts/bytes-step/selected.llbc",
+      "bytes": 1540676,
+      "sha256": "20eef26ea0eb3ee3fe332cf3796c2d7beea11f797de18d222a6803e444d9be7b",
+      "blob": "20eef26ea0eb3ee3fe332cf3796c2d7beea11f797de18d222a6803e444d9be7b.llbc.gz",
+      "compressed_sha256": "4103c160f47b10f3507af46339893679e4dcfb1e69f8f0f35a37008e7c5c4a83"
+    },
+    {
+      "path": "ProtoParseWork/FieldReferenceWork/Artifacts/uint32/prost.llbc",
+      "bytes": 1459214,
+      "sha256": "ee1497d5fc342884535aae66cf7fbb04799fba1389729be35e9971be80313d5e",
+      "blob": "ee1497d5fc342884535aae66cf7fbb04799fba1389729be35e9971be80313d5e.llbc.gz",
+      "compressed_sha256": "3985fb29008b519f884edfa8ffab76412a3c4da04d40dfb30e77d43b90062694"
+    },
+    {
+      "path": "ProtoParseWork/FieldReferenceWork/Artifacts/uint32-step/selected.llbc",
+      "bytes": 1452173,
+      "sha256": "adf2fd875eca0fcb0eba17316f341289652f6e7a91fd793e19548a330dac6e94",
+      "blob": "adf2fd875eca0fcb0eba17316f341289652f6e7a91fd793e19548a330dac6e94.llbc.gz",
+      "compressed_sha256": "f92e3ea53a3a92cdf689f62b43210789be6e24a9ab92642a3fe8fd77429d6cfc"
+    },
+    {
       "path": "ProtoParseWork/KeyReferenceWork/Artifacts/key/prost.llbc",
       "bytes": 1413180,
       "sha256": "ed7af1b2aa58bd39ef192a7f39262ce0117e6faf0ff7dcbd0dcc102dde1d6915",

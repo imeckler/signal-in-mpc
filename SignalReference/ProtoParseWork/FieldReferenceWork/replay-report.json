@@ -1,0 +1,57 @@
+{
+  "candidate_only": true,
+  "actual_common_varint_bodies_identical": true,
+  "generated_files_modified": false,
+  "substitutions": {
+    "LibSignalReference.Candidate.ProstKeySlice": "LibSignalReference.Candidate.ProstFieldSlice",
+    "LibSignalReference.Candidate.ProstKeyVarint": "LibSignalReference.Candidate.ProstFieldBuf",
+    "ProstKeySlice.": "ProstFieldSlice.",
+    "ProstKeyCandidate": "ProstFieldCandidate",
+    "ProtoParseWork.KeyReferenceWork.Generated.key_step": "ProtoParseWork.FieldReferenceWork.Generated.uint32_step",
+    "ProtoParseWork.KeyReferenceWork.Replayed": "FieldReferenceWork.Replayed",
+    "ProstKeyVarint.": "ProstFieldBuf."
+  },
+  "files": {
+    "BufModel": {
+      "source_sha256": "7cffb36f032dbb02c5790d527a5c74fa364f5b11476e4ad95a22aa39a95a916e",
+      "destination_sha256": "c9ad9dcb299ab2ed91690928cbdd5ddf117b0c1b20ffdbcf90e1bbfb5fbab5f0"
+    },
+    "SliceReference": {
+      "source_sha256": "bb53a602ef330ca9549c2adef10c3095ac3a16233cdfc43264ba585d288395f9",
+      "destination_sha256": "7aa52dcf0128faf8383ce50f52fb0007bf7545d4f0dcbff8278a80a789d13f35"
+    },
+    "SliceBridge": {
+      "source_sha256": "76c3a7d7cb1e7b32b09d52d90addc7099affde16d63e4a5e3546a1201f550b2f",
+      "destination_sha256": "732154b5aef0311d72b5b65bfd8f7adf8bd47ef385e7ad5c29251b33e50d08a2"
+    },
+    "SliceAdapter": {
+      "source_sha256": "fbab8ced67db3f64081a7736598d741ee21a3ef5921c2420fadce1f3d36b7019",
+      "destination_sha256": "4ea5c91e7620eea8c09df1280356f630fc49f16cec8025ac6930013d936e4c33"
+    },
+    "SlowReference": {
+      "source_sha256": "b61187e163199686d4d19aabeea6984416d9d6ad768bcbe1e7622c06b3e02ccd",
+      "destination_sha256": "fd74dd6a355b010550a83bde6b5cc19004514dcb29fab277dc020bc7d199d178"
+    },
+    "StateBridge": {
+      "source_sha256": "3f8d05d067f45ad36af195b59ea846293badc53f6d2bf8376de4e630ee364f78",
+      "destination_sha256": "d3c85af2e11b119e0ab27a130de5624a0aaf08c1da6fee249fcd2bfe16b20269"
+    },
+    "WrapperReference": {
+      "source_sha256": "7cc68c1eeb36b9b0bccce2a4a5aeef849346e0bb538fe6967b395ace48a62cbe",
+      "destination_sha256": "f40e285149fe2c1e1f6af90f7c7f2f138e79bd90bf1829d8b8ad6d6ff3a835fc"
+    },
+    "ArtifactBridge": {
+      "source_sha256": "f490539968ee08d72b4e366a59fc9da425eb7a2e351fabc2f4fc9fa959276659",
+      "destination_sha256": "e48d24e51a086d6ffc2bf59aec234163615d9e78ce0d95d5f3191e696e8247d2"
+    },
+    "Consumption": {
+      "source_sha256": "fae49d6826ecb4ff9c27cd3430537a3b562b4fec7fad1704a8ab086bc20648f3",
+      "destination_sha256": "88baeddfaaac1b7cc51ccabf70213591909b60f262f8d0b4d12dcddb6af21855"
+    },
+    "External": {
+      "source_sha256": "6448b2b67877162e20328928bd19a149b685c8fc9e77aa5d3e258aeec47fef4b",
+      "destination_sha256": "5f485076c7da05c92cbb500619ba4f5d0610ed4602b7357ff4fee04da12b5f07"
+    }
+  },
+  "script_sha256": "24914f14218a3f392e92de4ee39128d02a5e779aa1ab541f7f98ea97952c6a80"
+}

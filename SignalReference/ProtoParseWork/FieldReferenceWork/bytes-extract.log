@@ -1,0 +1,3 @@
+warning: version qualifier in `-p prost@0.14.4` is ignored, cleaning all versions of `prost` found
+     Removed 10 files, 2.4MiB total
+{"profile": "bytes", "charon_exit_code": 0, "has_errors": false, "counts": {"type_decls": 55, "fun_decls": 66, "global_decls": 0, "trait_decls": 40, "trait_impls": 37, "ordered_decls": 108}, "aeneas_exit_code": 2, "remaining_external_templates": []}

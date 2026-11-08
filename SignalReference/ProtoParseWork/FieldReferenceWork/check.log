@@ -1,0 +1,108 @@
+Checking ProtoParseWork.FieldReferenceWork.Generated.uint32_step.Types
+Checking ProtoParseWork.FieldReferenceWork.Generated.uint32_step.FunsExternal
+Checking ProtoParseWork.FieldReferenceWork.Generated.uint32_step.Funs
+Checking FieldReferenceWork.Replayed.BufModel
+Checking FieldReferenceWork.Replayed.SliceReference
+'LibSignalReference.Candidate.ProstFieldSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.preconditions_iff' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.access_bound' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.get_unchecked_at' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.initialChecks_ok' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.add_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.sub_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.shift_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.cast8_number' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_two' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.cast32_number' depends on axioms: [propext, Quot.sound]
+Checking FieldReferenceWork.Replayed.SliceBridge
+'LibSignalReference.Candidate.ProstFieldSlice.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_invalid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.prefix_rejected_tenth' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.pack_count' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.mask254_large' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.prefix_accepted' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_4' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_5' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_6' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_7' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_8' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_9' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.spqr_10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.payload_number' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.or_number_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.terminates_of_large' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.payload_zero_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.terminates_of_small' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.decode_first' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.pack_valueBytes' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldSlice.prefix_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking FieldReferenceWork.Replayed.SliceAdapter
+Checking FieldReferenceWork.Replayed.SlowReference
+'LibSignalReference.Candidate.ProstFieldBuf.slow_loop_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.slow_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.body_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.body_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking FieldReferenceWork.Replayed.StateBridge
+'LibSignalReference.Candidate.ProstFieldBuf.slice_count_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.stateResult_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.slow_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking FieldReferenceWork.Replayed.WrapperReference
+'LibSignalReference.Candidate.ProstFieldBuf.finishSlice' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.fast_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.first_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.decode_reference' depends on axioms: [propext, Classical.choice, Quot.sound]
+Checking FieldReferenceWork.Replayed.ArtifactBridge
+'LibSignalReference.Candidate.ProstFieldBuf.post_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.decode_bytes_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.decode_refines_artifact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Checking FieldReferenceWork.Replayed.Consumption
+'LibSignalReference.Candidate.ProstFieldBuf.run_not_done' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.slow_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.fast_error_post' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.decode_error_post' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstFieldBuf.decode_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

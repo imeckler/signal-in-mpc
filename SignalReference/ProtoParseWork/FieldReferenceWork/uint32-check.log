@@ -1,0 +1,12 @@
+'LibSignalReference.Candidate.ProstField.check_wire_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_wire_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_after' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_error' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_truncates' depends on axioms: [propext]
+'LibSignalReference.Candidate.ProstField.uint32_last_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_from_decode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstField.uint32_full_reference' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

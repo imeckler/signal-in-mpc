@@ -1,0 +1,11 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.46
+   Compiling anyhow v1.0.103
+   Compiling either v1.16.0
+   Compiling bytes v1.12.0
+   Compiling itertools v0.14.0
+   Compiling syn v2.0.118
+   Compiling prost-derive v0.14.4
+   Compiling prost v0.14.4
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.46s
