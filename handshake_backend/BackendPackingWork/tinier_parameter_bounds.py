@@ -20,7 +20,9 @@ def bound(outputs, bucket, combine=None):
                 correctness_bits=math.log2(denominator)-math.log2(buckets),
                 correctness_at_most_2_minus_128=correctness_128,
                 leakage_lemma_128_strict=leakage_128,
-                raw_authentication_ot_input_cost_measured=False)
+                raw_authentication_ot_input_cost_measured=False,
+                authentication_cot_payload_lower_bound_per_party=12*((raw+127)//128)*2048,
+                authentication_cot_payload_bound_source='3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs')
 
 def tests():
     # Independently enumerate all bad-triple counts for small divisible batches.

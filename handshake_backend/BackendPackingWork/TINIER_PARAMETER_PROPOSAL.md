@@ -52,4 +52,4 @@ Security accounting still required before implementation/promotion:
 Primary sources: [FLNW17, section 5](https://eprint.iacr.org/2016/944.pdf) and
 [FKOS15, appendix F](https://eprint.iacr.org/2015/901.pdf). Exact runtime source
 hashes are in tinier-security-feasibility.json; the upstream pin is
-73aa234e20e61425ad5d5276239a600fb2d6e3e8. No new mechanism security proof is claimed.
+113c4e47dd94bca9ecab029d2f0abe649bea5c52. No new mechanism security proof is claimed.

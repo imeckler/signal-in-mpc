@@ -1,6 +1,6 @@
 {
   "scope": "source/serialization audit only, not protocol switch or new native MPC",
-  "pinned_upstream": "73aa234e20e61425ad5d5276239a600fb2d6e3e8",
+  "pinned_upstream": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
   "serializer_probe": {
     "logical_bits": 128,
     "Bit_serializer_bytes": 16,
@@ -20,7 +20,7 @@
     "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
     "handshake_backend/BackendPackingWork/serialize_fixture.cpp": "2abfbece12af2058f929b3b282d0e06f7a8cc4eaf7afc12d2bea7aebac12b984",
     "handshake_backend/BackendPackingWork/Makefile": "3166aee555cc462484e13a9acbc09c6023191c64e7bcb0db7888e4cea56920db",
-    "handshake_backend/BackendPackingWork/AUDIT.md": "454f91c8a03680d1aba3823f5197758390210764e910baa54ae5d17a52065bf8",
+    "handshake_backend/BackendPackingWork/AUDIT.md": "1876a5c8388cb97702fb4161fb71fcc94984cceb6465d758b569410662682b4d",
     ".deps/tls-session-runtime/MP-SPDZ/GC/MaliciousCcdSecret.h": "a566ef84ef3c87f67fb4a234013b5d2453b629a1e5fa91660d88bb1493949522",
     ".deps/tls-session-runtime/MP-SPDZ/GC/MaliciousCcdShare.h": "e4950d56c8dd4ebce02773a9ae7a017715db9bcc40d64355ef89a11cd4a11cd9",
     ".deps/tls-session-runtime/MP-SPDZ/GC/TinySecret.h": "eed25a8bc5b7bf65f09d401388baf98b724dba28824b4a10967a73d52079c904",
@@ -39,5 +39,6 @@
   },
   "products_sha256": {
     ".deps/tls-session-runtime/tls-backend-serialize-fixture": "b7b9e2229f1dae5100087aac95af34e2c1fde35499be6b4d43da83c7ecc9fcff"
-  }
+  },
+  "upstream_label_correction": "Revision label corrected against authoritative dependency manifest and pinned archive; native source/product hashes unchanged."
 }

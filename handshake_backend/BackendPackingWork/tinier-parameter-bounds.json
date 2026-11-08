@@ -13,7 +13,9 @@
       "correctness_bits": 129.94964538531855,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 3416064,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 256,
@@ -28,7 +30,9 @@
       "correctness_bits": 133.6798723346164,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 9216000,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 1024,
@@ -43,7 +47,9 @@
       "correctness_bits": 135.69496760847105,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 27549696,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 4096,
@@ -58,7 +64,9 @@
       "correctness_bits": 134.74003875639866,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 84959232,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 16384,
@@ -73,7 +81,9 @@
       "correctness_bits": 130.916849334551,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 276848640,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 65536,
@@ -88,7 +98,9 @@
       "correctness_bits": 142.89027799859196,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 905994240,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 262144,
@@ -103,7 +115,9 @@
       "correctness_bits": 134.37182889064493,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 3170918400,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 1048576,
@@ -118,7 +132,9 @@
       "correctness_bits": 145.35227712394652,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 11274313728,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     }
   ],
   "separate_buckets_implemented": false,
@@ -140,7 +156,9 @@
       "correctness_bits": 261.11935148481626,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 6512640,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 256,
@@ -155,7 +173,9 @@
       "correctness_bits": 214.5516537294789,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 14229504,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 1024,
@@ -170,7 +190,9 @@
       "correctness_bits": 196.45608776125363,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 38559744,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 4096,
@@ -185,7 +207,9 @@
       "correctness_bits": 185.6188730672508,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 113270784,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 16384,
@@ -200,7 +224,9 @@
       "correctness_bits": 187.39761928800007,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 380657664,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 65536,
@@ -215,7 +241,9 @@
       "correctness_bits": 163.4196042345598,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 1019240448,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 262144,
@@ -230,7 +258,9 @@
       "correctness_bits": 179.4195950621586,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 4076888064,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     },
     {
       "outputs": 1048576,
@@ -245,7 +275,9 @@
       "correctness_bits": 169.70079275553462,
       "correctness_at_most_2_minus_128": true,
       "leakage_lemma_128_strict": true,
-      "raw_authentication_ot_input_cost_measured": false
+      "raw_authentication_ot_input_cost_measured": false,
+      "authentication_cot_payload_lower_bound_per_party": 12884926464,
+      "authentication_cot_payload_bound_source": "3 authenticated columns *4 peers *2048 bytes per128 raw bits; excludes all other protocol costs"
     }
   ],
   "primary_sources": [

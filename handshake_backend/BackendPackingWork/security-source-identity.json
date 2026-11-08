@@ -1,0 +1,22 @@
+{
+  "upstream": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+  "files": {
+    "GC/TinyPrep.hpp": "92a8feca8e8ef1d04a4381186862ee1b8ebb3646b9301cfb96d29ad99a2672ef",
+    "GC/TinierShare.h": "5a0e71c2017149f1c834615ea32673483f5ca6fdb6c317bcacd27640cce5101e",
+    "GC/TinierSharePrep.hpp": "eb6e3d2af16b7f1b21c35d3328a2266d2c32ecebc5e0cab8b89c1876c8751fc6",
+    "OT/OTMultiplier.hpp": "12429b0c5a81c17e02c80b36b5636d763efa679086e5244dabe1838792b25eb4",
+    "OT/MascotMacKey.hpp": "155a8848fb253ce2bead8e9f03df703337ce6a94e97db18a9593c1383e5d2a0c",
+    "OT/OTExtension.cpp": "5bc6b957a5d5b8e0abb9d2c88d8d4a0cb9d15ac8a33ff61f84168a2b0c40e14a",
+    "OT/OTExtensionWithMatrix.cpp": "229e22315d8e002e9ce2fb216e8318e9e447fd5908ce32d7d51986a71979ce44",
+    "Protocols/ShuffleSacrifice.hpp": "f9ce89d917d6f34e751cb1fd419505e53269d025f778b57e5bfe6d265814fd35",
+    "Protocols/ShuffleSacrifice.h": "4809e4a709c0876a0f7dbba9183c032ba6ccbfe9f66d45158bf235528a2cb950"
+  }
+}

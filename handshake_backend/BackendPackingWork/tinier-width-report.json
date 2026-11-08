@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "asan_ubsan": true,
+  "native_MPC_executed": false,
+  "scope": "public full128 MAC representation and actual matrix packing only; no Tinier runtime enabled",
+  "legacy_high_half_loss_detected": true,
+  "full_width_roundtrip": true,
+  "authentication_matrix_rows": [
+    {
+      "bits": 1,
+      "packed_bytes": 2048
+    },
+    {
+      "bits": 64,
+      "packed_bytes": 2048
+    },
+    {
+      "bits": 128,
+      "packed_bytes": 2048
+    },
+    {
+      "bits": 129,
+      "packed_bytes": 4096
+    },
+    {
+      "bits": 33879,
+      "packed_bytes": 542720
+    }
+  ],
+  "source_product_sha256": {
+    "handshake_backend/BackendPackingWork/tinier_mac_width_checks.cpp": "85fc02a4178492a2089a710c3bf60c097eb18bcb9c9d3d43994cb2fca752c3fa",
+    "handshake_backend/BackendPackingWork/tinier-width.mk": "a4599b896c95ea7df6d5141101d12d9c991ed85d80a65b4f1154465fa88b16a5",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+    ".deps/tls-caught-failure-runtime/tls-tinier-width-checks": "552bbfe84f77362e03c7827552d056297bc506c56aa0173dc1362555d0387664",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/GC/TinierShare.h": "5a0e71c2017149f1c834615ea32673483f5ca6fdb6c317bcacd27640cce5101e",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/OT/BitMatrix.hpp": "0eba646c126ed2c03d787284434e1c88e6d806633d7485b4921fd44c25cdbe44",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Math/gf2nlong.h": "f0e32233ddf8ad7b13156cc412ab5f951cfd93f36e0033e3361203bb0ad5ab33"
+  },
+  "softspoken_gitlink": "fe6b2ff82a976a5332b3a2efe325831588b1324a",
+  "softspoken_header_sha256": "acbbae5e2033331770eee742666a28b89f938796edf3f9ffb3c5582e5c630a0e"
+}

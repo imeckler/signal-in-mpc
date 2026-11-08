@@ -7,7 +7,7 @@ and retirement-tail traffic. Required traffic reduction is about1157x for a
 1Gb/s link,116x for10Gb/s, or11.6x for100Gb/s. These are linear extrapolations of
 this small, bounded local fixture, not a production throughput model.
 
-Current representation (pinned base73aa234e20e61425ad5d5276239a600fb2d6e3e8):
+Current representation (pinned base113c4e47dd94bca9ecab029d2f0abe649bea5c52):
 StrongShamirShare uses malicious prime-field Shamir plus MaliciousCcdSecret over
 GF(2^128). VectorSecret's default_length64 is a vector of part shares.
 VectorProtocol loops over individual registers; TinyMC opens individual parts;
@@ -66,9 +66,9 @@ Primary references (local pinned files are hash-bound in audit.json):
 
 - [Protocol models and implementations](https://mp-spdz.readthedocs.io/en/latest/readme.html#protocols)
 - [Supported mixed-protocol pairs](https://mp-spdz.readthedocs.io/en/latest/non-linear.html#protocol-pairs)
-- [Pinned vector multiplication](https://github.com/data61/MP-SPDZ/blob/73aa234e20e61425ad5d5276239a600fb2d6e3e8/GC/VectorProtocol.hpp)
-- [Pinned Shamir opening](https://github.com/data61/MP-SPDZ/blob/73aa234e20e61425ad5d5276239a600fb2d6e3e8/Protocols/ShamirMC.hpp)
-- [Pinned Tinier share](https://github.com/data61/MP-SPDZ/blob/73aa234e20e61425ad5d5276239a600fb2d6e3e8/GC/TinierShare.h)
+- [Pinned vector multiplication](https://github.com/data61/MP-SPDZ/blob/113c4e47dd94bca9ecab029d2f0abe649bea5c52/GC/VectorProtocol.hpp)
+- [Pinned Shamir opening](https://github.com/data61/MP-SPDZ/blob/113c4e47dd94bca9ecab029d2f0abe649bea5c52/Protocols/ShamirMC.hpp)
+- [Pinned Tinier share](https://github.com/data61/MP-SPDZ/blob/113c4e47dd94bca9ecab029d2f0abe649bea5c52/GC/TinierShare.h)
 - [libc++ Apple clock](https://github.com/llvm/llvm-project/blob/main/libcxx/src/chrono.cpp)
 - [CPython3.9 Apple clock](https://github.com/python/cpython/blob/3.9/Python/pytime.c)
 
