@@ -1,0 +1,51 @@
+{
+  "steps": [
+    {
+      "signal_counter": 127,
+      "pq_counter_before": 126,
+      "inner_bytes": 72,
+      "sealed_bytes": 433,
+      "websocket_bytes": 900
+    },
+    {
+      "signal_counter": 128,
+      "pq_counter_before": 127,
+      "inner_bytes": 74,
+      "sealed_bytes": 435,
+      "websocket_bytes": 901
+    }
+  ],
+  "actual_output_state_reused": true,
+  "final_status_selects_both_old_chains_on_reject": true,
+  "rejection_cases": 4,
+  "numeric_aig_nodes": 23207219,
+  "output_capacity": 1186,
+  "artifact_bytes": 576722704,
+  "artifact_sha256": "249cf6371e27f85cd5e95588f5e9c65e403b814c5d4f4bff6bbb79ce6084e294",
+  "standard_axioms_only": true,
+  "compiler_agreement_established": true,
+  "integer_semantic_refinements_proved": false,
+  "test_supplied_native_dh": true,
+  "test_reuses_synthetic_ephemeral": true,
+  "native_mpc_executed": false,
+  "tls_integrated": false,
+  "active_epoch_selection_and_kem_state_implemented": false,
+  "recoverable_shared_state": false,
+  "production_ready": false,
+  "source_sha256": {
+    "SignalReference/PrivateServiceWork/check.py": "cce10843689133b1d6dc93a6a5b8b69803048ffc62f645335653732db271f03d",
+    "SignalReference/PrivateServiceWork/Export.lean": "b1766fd9c19984f4b4a13d2bab553643e8a99dfdf6d5b80f1d1997f07508ad98",
+    "SignalReference/PrivateServiceWork/Checks.lean": "79db536609ddb7c5bac92b174fea32c11f2cf50a5166d699089c848cd968328d",
+    "TlsMpc/Signal/PrivateService.lean": "cb6a4dd28a02f969876877de4ca64d0910ca7b04011b1098d6bd92f41ed95f35",
+    "TlsMpc/Signal/PrivateSpqrSend.lean": "f75e4382fad2efce2fc5e029d3b97c27b7eadfe899b39d85e318686cd4535bd1",
+    "TlsMpc/Signal/PrivateSignalMessage.lean": "c393633f31aad90946805c72d0b36d08bdfbafcce82624cdb5513fdee5f3b693",
+    "TlsMpc/Signal/PrivateRelay.lean": "602c97e66098e236e83ada03c3bec98ff86a75327b0255377a6a898a7601ca25",
+    "TlsMpc/Signal/PrivateSealedSender.lean": "c5052f66b74648c48e999e0521f411cede3c1f01781aba9405700fc91e760d9e",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e",
+    "TlsMpc/Signal/PrivateVarint.lean": "f289a49c8a7f2990a51eea9a6c9633a149c36aa7d7b941c81a1cb987761927c8",
+    "TlsMpc/Signal/PrivateBase64.lean": "e8e1ca3c74b56a7d77226294698e828a18fafebf20d8e7d01fa1b296b0fe803f",
+    "TlsMpc/Signal/PrivateDecimal.lean": "19d952eb7c3c1a7046e6e1c35f5393ffd7a319f420ad3b92aee359616b228250",
+    "TlsMpc/Signal/PrivateProtobuf.lean": "748952919fa92ed1eb52d6713130f38d3ddad511628136e50f7ce435a87c6608"
+  }
+}
