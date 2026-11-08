@@ -19,3 +19,12 @@ clang++ -std=c++17 -pthread -fsanitize=address,undefined -g \
   -o /tmp/tls-socket-cancellation-checks
 /tmp/tls-socket-cancellation-checks
 ```
+
+`prepare_queue_candidate.py` creates an exact-source isolated WaitQueue candidate
+from diagnostic v4. It changes wait predicates to loops, broadcasts terminal stop,
+rejects pushes after stop, and reads the terminal result under the mutex. The
+ASAN/UBSAN queue test covers normal delivery, suppression of queued results after
+stop, 32 joined blocked consumers, and empty-queue signals. These changes do not
+connect ThreadQueue/Machine failure propagation yet. Existing runtime sources
+are unchanged. Run the preparation script then compile the test with
+`-I.deps/tls-caught-failure-queue` and the same sanitizer flags above.

@@ -1,0 +1,52 @@
+--- a/Tools/WaitQueue.h
++++ b/Tools/WaitQueue.h
+@@ -58,23 +58,27 @@
+     void push(const T& value)
+     {
+         lock();
+-        queue.push_back(value);
+-        signal();
++        if (running)
++        {
++            queue.push_back(value);
++            signal();
++        }
+         unlock();
+     }
+ 
+     bool pop(T& value)
+     {
+         lock();
+-        if (running and queue.size() == 0)
++        while (running and queue.size() == 0)
+             wait();
+         if (running)
+         {
+             value = queue.front();
+             queue.pop_front();
+         }
++        const bool result = running;
+         unlock();
+-        return running;
++        return result;
+     }
+ 
+     T pop()
+@@ -87,7 +91,7 @@
+     bool pop_dont_stop(T& value)
+     {
+         lock();
+-        if (running and queue.size() == 0)
++        while (running and queue.size() == 0)
+             wait();
+         bool something_for_you = queue.size() > 0;
+         if (something_for_you)
+@@ -103,7 +107,7 @@
+     {
+         lock();
+         running = false;
+-        signal();
++        pthread_cond_broadcast(&cond);
+         unlock();
+     }
+ 

@@ -1,0 +1,7 @@
+{
+  "candidate_only": true,
+  "runtime_integrated": false,
+  "source": ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ/Tools/WaitQueue.h",
+  "source_sha256": "d996b626413ead20666c7b7efa1a1d73a2e127c30b87720ca0789bf47ff8cea8",
+  "candidate_sha256": "d4e2bac27b69f09552c467d52940a2c82b98cdf872abba8b74d598debd134f62"
+}
