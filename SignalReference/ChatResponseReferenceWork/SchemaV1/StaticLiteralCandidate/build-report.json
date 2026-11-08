@@ -1,0 +1,22 @@
+{
+  "candidate_only": true,
+  "scope": "Original Literal::Str shared-reference provenance only; static callee input type restoration after body erasure. No general borrow compatibility relaxation; literal payload/source bodies unchanged.",
+  "inherited_receipt_sha256": "6a94e8d2dc3b9bf67d888a8c4dd1bfa0a60a60826a84b5393f7510e9638d4a43",
+  "inherited_source_files": 794,
+  "source_file": "src/interp/InterpStatements.ml",
+  "inherited_source_sha256": "0d091ed7e25b63b45bbdff66a0311cb27d913c33d365cb22337df8b7d00097f1",
+  "candidate_source_sha256": "1fb8a3433ed8db07b860f15a7c0b6b9446db4b596de4422bf06add1a3c8c9b1f",
+  "patch_sha256": "13bfe6c12225d46188bf5e82a303bd466e317a3e65de1c07526fcfa4115504e7",
+  "script_sha256": "9cc6355b1eecf033fb781ac32eb1469ea4a0aabad5f28f0efca554668dc36f3e",
+  "exit_code": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+    "build",
+    "--profile",
+    "release",
+    "main.exe",
+    "-j",
+    "4"
+  ],
+  "binary_sha256": "3318cd88eda89f4dedbe92a476a9a4d4469cb1e71a7d65bba25cafcdb93d7431"
+}

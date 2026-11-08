@@ -1,0 +1,73 @@
+{
+  "candidate_only": true,
+  "scope": "Executable diagnostic stack model and owned/request-state observation; exact modeled failure/divergence/capacity effects and cursor retained before quotient. Native literal body replay confirms stack mutation/order. Actual static-reference push extraction remains OPEN; no complete actual-source schema/refinement claim.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/SourceSnapshots/schema-lib.rs": "ec9ba81a8ede2f99903b9f52e71d63609234dbb289dabe8d38c077459ffeb15b",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/SourceSnapshots/stamp-lib.rs": "335b37b15a492e6de4fac30dfef91f5feb9c5aed7815f93d698ce5954de720dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/DiagnosticModel.lean": "b7b7d5f71b13a32ba1214003cb3bc066d9a92be111ee49603d415871574b0820",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/check_diagnostics.py": "75d0b39050e52929144ea7322a4e9aa26fe0d06538c5e8d16b878727eb2b7127",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/DIAGNOSTICS.md": "6e301c7d6296ab40e9584de171e4a1d94f1f70558123e11873613a83ca3983da",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/specialize_push.py": "da16cacc8f266b58211de09c3b160dbe5f498644f60425601c4e6ff4af594a4e",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/box_reborrow.py": "b7f194285d38a5ca323d20f57af6ceaf882fcd1148be7a1f0112b21256fcc240",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/replay_native_push.py": "8b40f389872261db60b3ee50714fd4eba64f37b1e1c8907fc3750cdfa9f64a37",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/native-push-replay.json": "20ed5665332af80ba318902e2a5ef3f5d21ab999911962e2087e660ba7b2f55f",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/BorrowedRejected.rs": "4c4a95e564dad86fb2ab0703483abffe0599b4cb269a3404ff635e5b3d8fd056",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Native/Cargo.toml": "c8e56ce67122f95f5fc1307c203836cb342c6426bacd969f34bf5e4d28ba2dc1",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Native/Cargo.lock": "15d3175b966604496c1e1ea9f3dc2f5c41e615e08c3d20b35e102a12b4aa448e",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Native/.cargo/config.toml": "03c9029ae601d154dec80207b6c1f3e8453887786f00df6097c073b569c51c4d",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Native/src/main.rs": "38916e6c62df8febe15dafa81b0224a9ad4a66c2b31957e043567bebd95be79b",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Rust/Cargo.toml": "c8cfab726eea5dcf019b4fb7c94aaebc32720ae5f112f1efb8165f875c1f98f7",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Rust/Cargo.lock": "5a1345de877a703d8b65bbb7b36250eb4baf825e9ee691123da9da226cc977ea",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Rust/build.rs": "c8eef993f43fec4e3aafaf8ccce0eca46c1ac6bb4070df9cdb2feb5315bf59be",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/Rust/src/lib.rs": "335b37b15a492e6de4fac30dfef91f5feb9c5aed7815f93d698ce5954de720dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/extract.py": "3ed985220ed5622ba9989455e1fccd86d6e098b9e3ae084c33969cfd0e4694d4",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/extract_stamp.py": "783f4cd3b4893de7240386792423704e122533ff75c8476baac4b65e7893e5b0",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/extraction.json": "6d5dfc3bc2e103e40bc471d889c57b714fe214291cd0674603205bf6ce92487c",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/stamp-extraction.json": "360ce5878643cecef24668f302b9ef585e86a7dd11b2c02725ce49c61a8bc9c8"
+  },
+  "original_llbc_sha256": {
+    "minimal": "d248769eb9020b2d2649557f43003bcde0d9ec095ff4a052d63789ac837ee775",
+    "schema": "7a01206f2c40d02d147fa1f5c045976a20357c1fa99c5178652ae61dda9b138b"
+  },
+  "native_caller_sha256": "cc62453bcc782f8ffe0b400ce81abc367c8b32433898d3ac6013781b4a82414e",
+  "caller_lines": [
+    1268,
+    1339,
+    1389
+  ],
+  "log_contents_excluded_from_observation": true,
+  "negative_guards": [
+    "dynamic-local",
+    "mutable-string",
+    "nonliteral-payload",
+    "box-extra-use",
+    "box-shared-reborrow",
+    "box-raw-receiver",
+    "native-dynamic-lifetime"
+  ],
+  "native_comparisons": 4368,
+  "kernel_log": "Checking BytesContentV1.Replayed.TypesExternal\nChecking BytesContentV1.Replayed.Types\nChecking SchemaV1.DiagnosticModel\n'ChatResponseReference.SchemaV1.Diagnostic.push_kind_all_outcomes' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.SchemaV1.Diagnostic.push_bounded' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.SchemaV1.Diagnostic.push_two_order' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.SchemaV1.Diagnostic.observe_error_push' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.SchemaV1.Diagnostic.caller_diagnostics_unobservable' depends on axioms: [propext]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/SchemaV1/Build/diagnostic-final/ChatResponseReferenceWork/BytesContentV1/Replayed/TypesExternal.olean": "cddec4c8ed1fccb5da17718b68f2206e30fc6c2363ae1cb78aa671857d3dec1b",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/SchemaV1/Build/diagnostic-final/ChatResponseReferenceWork/BytesContentV1/Replayed/Types.olean": "bcda6fca6dc237e3b2a3241b12fd939cc15dd390b5b0d9fba8e4a473fa526fc0",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/SchemaV1/Build/diagnostic-final/ChatResponseReferenceWork/SchemaV1/DiagnosticModel.olean": "046803157372f1218340f2ee3c9fbd78e9cb8d022276d7cad87100b7226d3338"
+  },
+  "failed_candidate_steps": {
+    "stamp-original.log": "[\u001b[91mError\u001b[39m] The input arguments don't have the proper type",
+    "stamp-static.log": "[\u001b[91mError\u001b[39m] The input arguments don't have the proper type",
+    "stamp-candidate.log": "[\u001b[91mError\u001b[39m] The pushed variables and their values do not have the same type",
+    "stamp-specialized.log": "[\u001b[91mError\u001b[39m] Can't copy an builtin value other than Option",
+    "stamp-reborrow.log": "[\u001b[91mError\u001b[39m] Assertion failed: new value doesn't have the same type as its destination",
+    "stamp-storage.log": "[\u001b[91mError\u001b[39m] The input arguments don't have the proper type"
+  },
+  "unaccepted_transformations": [
+    "static_literals.py operand retag alone erased again by Aeneas prepass",
+    "StaticLiteralCandidate argument-type restoration exposes static input/local mismatch",
+    "Literal push specialization + Box-place normalization advances to static reference Vec storage mismatch",
+    "StorageTypeCandidate one-line computed-v_ty fix advances to static receiver/generic Vec.push type mismatch"
+  ],
+  "remaining": [
+    "Actual static-reference push bridge is trusted/open.",
+    "Schema/default/submessage/repeated headers and streaming/compiler composition."
+  ]
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import os,subprocess,json,hashlib,time
+H=Path(__file__).resolve().parent;ROOT=H.parents[2];rust=ROOT/'.deps/rust-nightly-2026-08-18';binary=ROOT/'.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon';out=H/'Artifacts';out.mkdir(parents=True,exist_ok=True);llbc=out/'schema.llbc';llbc.unlink(missing_ok=True)
+e=os.environ.copy();e.update(PATH=str(rust/'bin')+os.pathsep+e['PATH'],CHARON_TOOLCHAIN_IS_IN_PATH='1',DYLD_LIBRARY_PATH=str(rust/'lib'),CARGO_TARGET_DIR=str(H/'Build/rust'),CARGO_HOME=str(ROOT/'.deps/libsignal-cargo-home'))
+command=[str(binary),'cargo','--preset=aeneas','--sysroot=default','--error-on-warnings','--no-dedup-serialized-ast','--start-from=crate::merge_envelope','--start-from=crate::merge_response','--include=crate::chat_websocket::*::merge_field','--include=prost::error::DecodeError','--include=prost::error::Inner','--include=prost::error::*::from','--include=prost::error::*::push','--dest-file='+str(llbc),'--','--lib','--offline']
+with (out/'charon.log').open('w') as f:
+ p=subprocess.Popen(command,cwd=H/'Rust',env=e,stdout=f,stderr=subprocess.STDOUT);record={'parent_pid':os.getpid(),'parent_pgid':os.getpgrp(),'child_pid':p.pid,'child_pgid':os.getpgid(p.pid),'command':command,'status':'running','started_unix':time.time()};assert record['parent_pgid']==record['child_pgid'];(out/'process.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record),flush=True)
+ try:code=p.wait()
+ except KeyboardInterrupt:code=p.wait(timeout=20)
+ record.update(status='terminal',exit_code=code,finished_unix=time.time());(out/'process.json').write_text(json.dumps(record,indent=2)+'\n')
+d=json.loads(llbc.read_text()) if llbc.exists() else None;sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();(H/'extraction.json').write_text(json.dumps({'candidate_only':True,'exit_code':code,'has_errors':None if d is None else d['has_errors'],'command':command,'script_sha256':sha(Path(__file__)),'llbc_sha256':sha(llbc) if llbc.exists() else None,'charon_sha256':sha(binary)},indent=2)+'\n');print(code,None if d is None else d['has_errors']);raise SystemExit(code if code else int(d is None or d['has_errors']))

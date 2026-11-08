@@ -1,0 +1,27 @@
+--- inherited/src/interp/InterpStatements.ml
++++ candidate/src/interp/InterpStatements.ml
+@@ -1433,8 +1433,24 @@
+   in
+   let dest_place = Some (S.mk_mplace span dest ctx) in
+ 
++  (* Preserve operand provenance before body-region erasure has evaluated it. *)
++  let source_operands = args in
+   (* Evaluate the input operands *)
+   let args, ctx, cc = eval_operands config span args ctx in
++  (* Scoped static literal content lowering: only a true immutable Rust string
++     literal can regain static at a callee that requires it. No local/dynamic
++     borrow, mutable reference, or other pointer kind is adapted. *)
++  let args =
++    List.map2
++      (fun op ((arg, expected) : tvalue * rty) ->
++        match (op, arg.ty, expected, arg.value) with
++        | Constant { kind = CLiteral (VStr _); _ },
++          TRef (RErased, (TAdt { id = TBuiltin TStr; _ } as actual), RShared),
++          TRef (RStatic, target, RShared), VBorrow (VSharedBorrow _)
++          when actual = target -> { arg with ty = expected }
++        | _ -> arg)
++      source_operands (List.combine args inst_sg.inputs)
++  in
+ 
+   [%ldebug
+     "- args:\n"

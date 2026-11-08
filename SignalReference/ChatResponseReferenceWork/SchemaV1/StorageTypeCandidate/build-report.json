@@ -1,0 +1,22 @@
+{
+  "candidate_only": true,
+  "scope": "Compare the two already-computed erased storage types, as the existing comment intends; preserve every non-region type check, computation and argument check.",
+  "inherited_receipt_sha256": "6a94e8d2dc3b9bf67d888a8c4dd1bfa0a60a60826a84b5393f7510e9638d4a43",
+  "inherited_source_files": 794,
+  "source_file": "src/interp/InterpPaths.ml",
+  "inherited_source_sha256": "fa3d8b19614f7765ef2bcf2612a8ff1942bdfba8dd725e484678721aff93316f",
+  "candidate_source_sha256": "2b34b4f62a3acbea57e738615bb38f1176f97f5622a33ef2f1c4ee178df158e3",
+  "patch_sha256": "60635c1bfe27b923ce273177e0b309e88d9ecd6c8476da4b8b6279cead735b1a",
+  "script_sha256": "267b629cbeb0e866f9e180b5273742e374781099e5dbc3a1f377fa425a872fca",
+  "exit_code": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+    "build",
+    "--profile",
+    "release",
+    "main.exe",
+    "-j",
+    "4"
+  ],
+  "binary_sha256": "35bdb4f7d98daa3f4d1384388a773e5a66c72b7b1a264b8399229a1679ce42d2"
+}

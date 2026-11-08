@@ -1,0 +1,12 @@
+[package]
+name = "chat-response-reference"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+prost = "=0.14.4"
+bytes = "=1.12.0"
+http = "=1.4.2"
+[build-dependencies]
+prost-build = "=0.14.4"
+[workspace]

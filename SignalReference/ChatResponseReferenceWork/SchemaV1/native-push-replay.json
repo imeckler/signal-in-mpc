@@ -1,0 +1,64 @@
+{
+  "scope": "Private scoped copy of pinned prost; original method unchanged; additional literal helpers replay exact actual body. Native diagnostic mutation/order regression only; static-reference Aeneas bridge remains open.",
+  "pinned_error_sha256": "3c24128fca68c3cca7f48e7d185f9696c949dc9de7d22bbac1871f393f36b992",
+  "original_method_sha256": "ff7ecb841caaa1b47e051086c355ebc90b7a6cc0ec529bdf1679d59e41c53782",
+  "specialization_receipt_sha256": "6c2d06d8030a183f1dfa2ecbbef89ead770ae7496f023dff6b31d85b24448f6d",
+  "replayed_error_sha256": "659896dd66b8ff6da821857e8667d9c77d2ff30ea756a8eb000f9b0a4355e0bc",
+  "script_sha256": "8b40f389872261db60b3ee50714fd4eba64f37b1e1c8907fc3750cdfa9f64a37",
+  "pairs": [
+    [
+      "WebSocketMessage",
+      "r#type"
+    ],
+    [
+      "WebSocketMessage",
+      "request"
+    ],
+    [
+      "WebSocketMessage",
+      "response"
+    ],
+    [
+      "WebSocketResponseMessage",
+      "id"
+    ],
+    [
+      "WebSocketResponseMessage",
+      "status"
+    ],
+    [
+      "WebSocketResponseMessage",
+      "message"
+    ],
+    [
+      "WebSocketResponseMessage",
+      "body"
+    ],
+    [
+      "WebSocketResponseMessage",
+      "headers"
+    ],
+    [
+      "WebSocketRequestMessage",
+      "verb"
+    ],
+    [
+      "WebSocketRequestMessage",
+      "path"
+    ],
+    [
+      "WebSocketRequestMessage",
+      "body"
+    ],
+    [
+      "WebSocketRequestMessage",
+      "id"
+    ],
+    [
+      "WebSocketRequestMessage",
+      "headers"
+    ]
+  ],
+  "compared": 4368,
+  "generated_main_sha256": "38916e6c62df8febe15dafa81b0224a9ad4a66c2b31957e043567bebd95be79b"
+}

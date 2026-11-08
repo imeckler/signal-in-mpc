@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--start-from=crate::stamp_error",
+    "--include=prost::error::DecodeError",
+    "--include=prost::error::Inner",
+    "--include=prost::error::*::from",
+    "--include=prost::error::*::push",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/SchemaV1/Artifacts/stamp/stamp.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "783f4cd3b4893de7240386792423704e122533ff75c8476baac4b65e7893e5b0",
+  "llbc_sha256": "d248769eb9020b2d2649557f43003bcde0d9ec095ff4a052d63789ac837ee775",
+  "charon_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+}
