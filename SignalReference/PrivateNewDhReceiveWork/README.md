@@ -25,8 +25,10 @@ fresh prekey authentication, initial SPQR negotiation or full KEM phase evolutio
 Two public fixture cases compare every608 output bytes, plus twelve computed
 rejections. Actual Rust MAC failure is separately checked to preserve its store.
 
-This is **model-only**, with one foundational selector-rejection endpoint. The
-numeric compiler theorem, full take-n/private parser source theorem, exact native
+This began as a **model-only** fixture checkpoint. The separate compiler receipt
+now adds eight foundational endpoints proving the whole Boolean pipeline lowering;
+it does not establish full Rust implementation agreement. Full take-n/private parser
+source theorem, exact native
 binding of fresh private/public and both DHs to the SAME parsed remote point, and
 native complete receiving interoperability are pending. The model differential
 supplies actual oracle DH results; the compiled native DH candidate generates and

@@ -1,0 +1,15 @@
+{
+  "kernel_endpoints": 8,
+  "foundation_axioms_only": true,
+  "full_Boolean_pipeline_compiler_agreement": true,
+  "scope": "Whole private parser/PQ/root-KDF/MAC/CBC/state-selection Boolean model, including malformed inputs and public shape branches. No supplied auth/PQ verification flag.",
+  "pending": "Native mixed DH fresh-pair/agreement binding to SAME parsed remote point; numeric artifact/native full transaction interoperability; full private parser take-n/source theorem; RustCrypto/session source refinement; persistent share recovery.",
+  "native_DH_composition_proved": false,
+  "full_Rust_implementation_refinement": false,
+  "source_sha256": {
+    "SignalReference/PrivateNewDhReceiveWork/check_compiler.py": "d93648d0a6a4b45c2fbf3f77a96d12e4d4c653d70a843ca9da116d6ded37c607",
+    "SignalReference/PrivateNewDhReceiveWork/CompilerChecks.lean": "beb00551551a3b0b4bd25cbc0c1f0e6fe7f138e8ef22e9dbdc3f15b87a67f951",
+    "TlsMpc/Signal/PrivateNewDhReceiveProofs.lean": "79249e0d76990e9b0601ea2bab84e0b721526655725e94a4d4fa9850812bdf50",
+    "TlsMpc/Signal/PrivateNewDhReceive.lean": "b160e6dccc5efaba5221bcacae7d8b97543e1be18ba1cd070e51c929f9790dae"
+  }
+}
