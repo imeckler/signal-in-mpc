@@ -1,0 +1,17 @@
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+count=int(program.args[1])
+if count not in (2,4,8):raise ValueError('unsupported helper batch')
+def random(inputs,outputs):
+ binary_io.write_bits(outputs,[sbit.get_random_bit()for _ in range(8*count)])
+random.__name__='tls_batch_random_'+str(count)
+def compare(inputs,outputs):
+ raw=binary_io.read_bits(inputs);size=37*count;valid=sbit(1)
+ for a,b in zip(raw[:size],raw[size:]):valid=valid&(a^b^1)
+ binary_io.write_bits(outputs,[valid]*8)
+compare.__name__='tls_batch_compare_'+str(count)
+Array=sbitvec.get_type(1).Array
+export(random)(Array(8),Array(8*count))
+export(compare)(Array(74*count),Array(8))

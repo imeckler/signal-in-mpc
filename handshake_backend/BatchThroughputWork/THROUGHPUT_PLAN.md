@@ -99,3 +99,22 @@ if measurements isolate TLS queue/head-of-line blocking after batching; it does
 not remove MPC bytes or single-Machine serialization. Real service same-account
 connection acceptance/replacement policy must be verified before pool integration;
 no assumption that the service accepts arbitrary parallel authenticated sockets.
+
+## Tiny native evidence (Boolean stage only)
+
+`native-report.json`: all five parties passed independent private-input aggregate
+output comparisons and a deliberate functional mismatch rejection at B2/4/8,
+two alternating orders; no shared inputs/outputs were opened. This is NOT a
+malicious MAC-tamper test. Epoch renewal follows each pair, so first/second call
+preprocessing/setup asymmetry is visible rather than hidden. B8 party0 means:
+sequential45.68ms vs batch31.10ms,~1.47x tiny-call throughput; identical3552
+consumed AND triples and mean1251424B per batch (~156428B/instance). This is not
+steady service throughput, WAN performance or an8x claim from compiler rounds.
+
+Online binary traffic is exactly128B per logical AND here; preprocessing is
+about224B/AND plus small fixed overhead. The historical producer's6738497 ANDs
+already imply862527616B perparty online alone at that rate, BEFORE field-DH,
+response parsers/TLS/offline generation/epochs. Scheduling cannot close the
+100k/hour communication gap. After executable mixed/store batching, prioritize
+fewer circuit gates or an evidenced malicious n5/t2 backend with lower per-bit
+wire cost, preserving security128. Do not infer a new protocol from packed IO.
