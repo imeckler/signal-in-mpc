@@ -1,3 +1,11 @@
 import TlsMpc.Signal.PrivateSessionReceiveV1Proofs
 #print axioms TlsMpc.Signal.PrivateSessionReceiveV1.finish_reject
 #print axioms TlsMpc.Signal.PrivateSessionReceiveV1.known_sender_preserved
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.lookup_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.replace_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.knownEntry_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.finish_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.receiveSummary_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.parsed_receive_map
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.compiled_receiveSummary_correct
+#print axioms TlsMpc.Signal.PrivateSessionReceiveV1.compiled_parsed_receive_correct

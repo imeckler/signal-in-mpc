@@ -36,3 +36,10 @@ actual RustCrypto/session source refinement and native execution of THIS new
 known-path module remain pending. The separate staged native new-DH test does
 not cover this new module. No provider/RPC admission, full SPQR KEM epochs,
 authenticated fresh prekey bootstrap or recoverable shared-state store is claimed.
+
+The focused proof audit now checks10 foundational endpoints, including whole
+known/new model Hom, both crypto-summary compiler lowering and composition with
+the actual private parser. These supersede the initial two-helper proof receipt.
+They do not close the actual RustCrypto/session source bridge or establish native
+known-path execution. The raw point source/model and actual-output differential
+receipts remain unchanged; only proof code was extended.
