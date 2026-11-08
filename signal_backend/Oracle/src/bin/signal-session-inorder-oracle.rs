@@ -44,6 +44,11 @@ async fn fixture(v:&Value)->Value{
  bob_pb.current_session.as_mut().unwrap().pq_ratchet_state=pqstate(spqr::Direction::A2B,[22;32],[21;32]);
  let alice_address=ProtocolAddress::new("00112233-4455-6677-8899-aabbccddeeff".into(),1u32.try_into().unwrap());
  let bob_address=ProtocolAddress::new("ffeeddcc-bbaa-9988-7766-554433221100".into(),1u32.try_into().unwrap());
+ if v["origin_local_new"].as_bool().unwrap_or(false){
+  let state=bob_pb.current_session.as_mut().unwrap();state.origin=storage::session_structure::Origin::LocalNew as i32;
+  state.pending_pre_key=Some(storage::session_structure::PendingPreKey{pre_key_id:Some(0),signed_pre_key_id:17,base_key:base.public_key.serialize().to_vec(),timestamp:1900000000000});
+  state.pending_kyber_pre_key=Some(storage::session_structure::PendingKyberPreKey{pre_key_id:23,ciphertext:vec![31;64]});
+ }
  let mut alice_sessions=InMemSessionStore::new();alice_sessions.store_session(&bob_address,&SessionRecord::deserialize(&alice_pb.encode_to_vec()).unwrap()).await.unwrap();
  let mut bob_sessions=InMemSessionStore::new();bob_sessions.store_session(&alice_address,&SessionRecord::deserialize(&bob_pb.encode_to_vec()).unwrap()).await.unwrap();
  let mut alice_identities=InMemIdentityKeyStore::new(alice_id.clone(),1);let mut bob_identities=InMemIdentityKeyStore::new(bob_id.clone(),2);
@@ -87,7 +92,7 @@ async fn fixture(v:&Value)->Value{
  assert_eq!(reloaded.serialize().unwrap(),SessionRecord::deserialize(&after.encode_to_vec()).unwrap().serialize().unwrap());
  let restored=record(&reloaded);let restored=restored.current_session.as_ref().unwrap();
  assert_eq!([sender(restored),receivers(restored),receiving_pq(restored)].concat(),expected[1..526]);
- rows.push(json!({"canonical_record_projection_reload":true,"unrelated_record_retained":true,"rejected_result_preserved_record":true,"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
+ rows.push(json!({"record_before":hex(&before_pb.encode_to_vec()),"record_after":hex(&after.encode_to_vec()),"canonical_record_projection_reload":true,"unrelated_record_retained":true,"rejected_result_preserved_record":true,"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
  let after_bytes=bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap();
  assert!(message_decrypt_signal(&message,&alice_address,&bob_address,&mut bob_sessions,&mut bob_identities,&mut receive_rng).await.is_err());
  assert_eq!(bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap(),after_bytes);

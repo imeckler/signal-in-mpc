@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "whole_record_byte_cases": 4,
+  "first_new_DH": true,
+  "repeated_known": true,
+  "LocalNew_prekey_acknowledgement": true,
+  "rejected_result_exact_preservation": true,
+  "encoder_Hom_and_compiler_endpoints": 5,
+  "axiom_audit": "'TlsMpc.Signal.PrivateRecordEncodingV1.selectBuffer_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordEncodingV1.optional_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordEncodingV1.field_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordEncodingV1.encode_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordEncodingV1.compiled_encode_correct' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "update_Hom_proof": false,
+  "actual_source_refinement": false,
+  "full_schema_private_validation": false,
+  "provider_admission": false,
+  "atomic_outbox_restart": false,
+  "native_MPC_run": false,
+  "seconds": 99.30563108297065,
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check.py": "72e4659b10b658858bf287add0b941d399a8a6956f57a06100a13113600a705d",
+    "SignalReference/PrivateRecordWork/Evaluate.lean": "1db4706e5f8856dae6e7f20a8416861c592c5d29333c1aa42a2cc4258e920aec",
+    "SignalReference/PrivateRecordWork/Checks.lean": "afd44349bfd2508e4166407b0d3267e3501f07645ff73072a9e556d154a365f4",
+    "SignalReference/PrivateRecordWork/README.md": "698bbc9229650d737782c68691d5633283c98f0a0225c94326d63de53fa03011",
+    "TlsMpc/Signal/PrivateRecordEncodingV1.lean": "2095ad10957f8d5c7c255500ca7dd3448ea588691f866f926a550e11e8d0995b",
+    "TlsMpc/Signal/PrivateRecordEncodingV1Proofs.lean": "c4a077d2fc055403157c62e132b3eccb5cca3b40316fc52f032200c25112cff4",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "299b5490d7f6f7e144981f55efb8daef830d412da8b2664bfb5f7e023b81d383",
+    "signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs": "375b319abde10c40b7378a53a0415245c70d29f10df4d75a1a95f9689e573e25",
+    "signal_backend/Oracle/src/session_projection.rs": "a270af55031971308530de19734d84f5e3939d7776427fa10242488f4c96d0fe"
+  },
+  "oracle_binary_sha256": "ce5587b27b1792f69b162b479b49b02560ed6030d36bee157d1e394aea685b19"
+}

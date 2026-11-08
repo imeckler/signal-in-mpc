@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "endpoints": 6,
+  "scope": "Private update helper Hom only; full applyReceive Hom and source/refinement remain open",
+  "axiom_audit": "'TlsMpc.Signal.PrivateRecordUpdateV1.chooseList_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putBytes_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putScalar_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.presence_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.nested_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.receiver_map' depends on axioms: [propext, Quot.sound]\n",
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/UpdateChecks.lean": "9ccd1e88470aa88e042a68ff9bf9a906c952471df7a1c98005809b6653b0948b",
+    "TlsMpc/Signal/PrivateRecordUpdateV1Proofs.lean": "45b18082e23ea36bbc4437dea35631b8524e44d5f112bd5bab6961a9c5596129"
+  }
+}
