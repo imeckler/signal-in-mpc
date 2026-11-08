@@ -1,0 +1,27 @@
+{
+  "kernel_endpoints": 12,
+  "standard_axioms_only": true,
+  "native_reflection_used": false,
+  "capacity_domain": "Every natural capacity0..16384; all status bytes/BE16 input lengths and arbitrary capacity-byte data.",
+  "actual_private_hash_padding_and_final_state_selection_proved": true,
+  "actual_hmac_64_byte_prefix_bitlength_proved": true,
+  "accepted_wire": "255 || BE16(32) || Sha256.hash/hmac(key, data.take decodedLength)",
+  "rejected_wire": "35 zero bytes for non255 status, out-of-capacity length, malformed public dimensions or unsupported capacity.",
+  "reference_boundary": "Existing executable Sha256.hash/hmac primitive models and prepared-key equivalence; no cryptographic-security theorem.",
+  "compiler_model_agreement_endpoint_audited": true,
+  "full_actual_rust_aeneas_refinement": false,
+  "source_sha256": {
+    "SignalReference/PrivateHashSemanticsWork/check.py": "432006956737ca13e289ec87625181aaf14bbccc5ec857d15d01ed6fa2b42064",
+    "SignalReference/PrivateHashSemanticsWork/Checks.lean": "02b4c69ed97bdfb78127b5b6659d3ae6900b13117532f2465ef1ca536810e696",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateHashSemantics.lean": "f473d6cb39fe2458bc5460eef5da4af13b7f5096040d367a4ce8a6834559111a",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e",
+    "TlsMpc/Signal/PrivateBufferSemantics.lean": "74d553805be7d7f67f35da7d1b4c7c41ccb56e2df82a1d87be1fb9782424aa84",
+    "TlsMpc/Signal/PrivateBufferPacking.lean": "601cccf966d6bdfff901f7bf22f7c2a31a52ac11490903bb7ff9b7b6ef91fb51",
+    "TlsMpc/Signal/PrivateBufferAppendSemantics.lean": "a0dffa64f98fe6d4d51beb42c87692e292e6156f5a97fc0cd871cef7ff022a98",
+    "TlsMpc/Signal/PrivateBufferLengthEncoding.lean": "3db30f226537eabdf0681a65ef6f20cea87b7bc45a2c0efcc40f0ba3ed5ab3e0",
+    "TlsMpc/Signal/PrivateBufferWireSemantics.lean": "24654e7ac4068e64311f0daffad9a903eb8cd249e0d7efaa6d85e4ff32f1a47b",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9"
+  }
+}
