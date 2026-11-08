@@ -1,0 +1,29 @@
+{
+  "local_standard_tls13_memory_bio_passed": true,
+  "actual_native_producer_frames_used": true,
+  "native_tls_controller_executed": false,
+  "aes128_native_profile_tested": false,
+  "peer_result": {
+    "tls13_h1": true,
+    "upgrade_authenticated": true,
+    "upgrade_split_and_ws_coalesced": true,
+    "requests_validated": 2,
+    "actual_sealed_decrypt_certificate_and_inner_verified": true,
+    "response_ids_copied": true,
+    "response_binary_fragmentation": true,
+    "interleaved_pongs_validated": 3,
+    "client_pings": 1,
+    "fragmented_client_requests": 1,
+    "client_signal_key_inputs": false,
+    "live_account_side_effects": false
+  },
+  "no_client_signal_keys_given_to_server": true,
+  "public_helper_initial_matches_native_test": true,
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/check_fixture_server.py": "ce1a44943cb03dfca5a1343d1701bc615ecbe39e6cc0aa0879d954bf75bbbe62",
+    "signal_backend/VariableServiceWork/fixture_server.py": "e1f2e490bfe57264c95f646f84772d6c9bc2f995fc1b2bb7eb5e401fb3f03ed6",
+    "signal_backend/VariableServiceWork/server-fixture.json": "b6066719600a962bfa8c718560a88757b8c63cd2d0f936d74637ede4bf9491e5",
+    "signal_backend/VariableServiceWork/PublicFixtureProducer.h": "5a9ac4d323aa073c178fc299c94d3f20c5a14293cc1fcaef643b326c9fd8aedf"
+  },
+  "native_receipt_sha256": "16733f75c6a9d2faead93688f0c967ab04b71c48f02693b582d98be50ef5b22d"
+}

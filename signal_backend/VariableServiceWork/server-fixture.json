@@ -1,0 +1,20 @@
+{
+  "public_disposable_fixture_only": true,
+  "recipient_secret": "b8b7d40b7bb8e41c550696fdef78fff6f013bb34627ba50ca2d63b6e84cffa6c",
+  "root_public": "05b78dac0eed34359a3ee17946359fb3a0db099cb2f808c669c56047da7bdf4310",
+  "expected_inner": [
+    "440a210561495c6d3b3215b0b6d10a73415f8e271852515c5808f7fbb970e1156e87ba50107f187f2210d5ea4c48aa4912a22edb04a5fb98db902a04017f7f0095e3a21cb7d4da5d",
+    "440a210561495c6d3b3215b0b6d10a73415f8e271852515c5808f7fbb970e1156e87ba50108001187f22109b2ed2f1c2c1c23eba2af47c5ef761772a05017f8001003500b255ba4a5a44"
+  ],
+  "recipient_uuid": "ffeeddcc-bbaa-9988-7766-554433221100",
+  "access_key": "103ce6993f721dd949a1194fefaa28b8",
+  "device_id": 1,
+  "registration_id": 16383,
+  "request_ids": [
+    127,
+    128
+  ],
+  "timestamp": 1900000000000,
+  "upgrade_username": "00112233-4455-6677-8899-aabbccddeeff",
+  "upgrade_password": "xxxxxxxxxxxxxxxxxxxxxx"
+}

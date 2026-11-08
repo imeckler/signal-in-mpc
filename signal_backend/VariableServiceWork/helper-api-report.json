@@ -1,0 +1,14 @@
+{
+  "compile_link_passed": true,
+  "native_runtime_executed": false,
+  "opens_executed": false,
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/helper_api_probe.cpp": "3d2c894ae1fa226be63bb19369d6b353edc6d2bd60df7e3458084352e0498242",
+    "signal_backend/VariableServiceWork/PublicFixtureProducer.h": "5a9ac4d323aa073c178fc299c94d3f20c5a14293cc1fcaef643b326c9fd8aedf",
+    "signal_backend/VariableServiceWork/NativeVariableService.h": "9ea4840eac96ebfec54df445a20af2537d889f20d79c3897d51a1d668986def6",
+    "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "35a0a0a76009241144bcd52cbd424c1ce84d880c5565c4a309fe78715c089e3f",
+    "signal_backend/VariableServiceWork/Makefile": "317a1cffcec04618070fe19bb1fd902e2df287c7f3e220a94817439ad69219de"
+  },
+  "binary_sha256": "bf58ba4e46c30c33c37341393e0dafae7751f6c27e5063033ff47a3e4a5b85e5"
+}

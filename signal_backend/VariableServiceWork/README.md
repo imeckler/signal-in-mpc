@@ -35,3 +35,33 @@ Lean compiler agreement does not establish every integer packing/hash semantic
 refinement. Active epoch/KEM transitions, authenticated initial state binding,
 all-device fanout, real response/TLS integration, recoverable snapshots and
 full Rust/Aeneas refinement remain open. Application readiness stays closed.
+
+Local integration helpers (PUBLIC DISPOSABLE FIXTURE ONLY):
+
+- `PublicFixtureProducer.h`: `PublicVariableProducer<Bits>(public_bits,slot)`;
+  `produce(eval,public_bits,timestampBE8)` returns `{ticket,payload,request_id}`;
+  `response_complete(ticket)`, `close()`, `shape()`. Limit two sends. Initial
+  state exactly matches the tested native fixture. Timestamp public fixture
+  bytes come from `PublicVariableFixture::timestamp()`. Runtime link probe
+  compiles this exact API but does not execute private computation.
+- `fixture_server.py CERT KEY FRAGMENT no http/1.1 [--report PATH]`: executable
+  memory-BIO line peer. Input ciphertexthex or `-`; output `ready|waiting HEX`
+  (`-` means no bytes); `quit` asserts both requests/pongs completed and exits.
+  TLS1.3, X25519, H1 and AES128 are asserted for the native controller. No
+  unsolicited application banner. Header response writes are<=127 bytes with
+  coalesced WS ping. Binary responses are fragmented around interleaved ping.
+  Masked client controls/fragments are parsed without dumping plaintext.
+- `server-fixture.json` contains disposable recipient/root/expected-inner and
+  protocol assertions only; no client identity secret or chain state. The
+  server checks actual generated request schema, SS decrypt/certificate and
+  exact expected inner, then copies the ID into a200 JSON{} response. Response
+  encoding is checked by actual prost plus the explicitly copied inspected
+  target validator. It never calls live Signal services.
+
+`check_fixture_server.py` passed a local standard Python TLS1.3 MemoryBIO
+exchange using both actual native frames, split HTTP headers, coalesced ping,
+a fragmented second client request, client ping, three masked pongs, fragmented
+correlated responses and close. This standard-client test permits its default
+TLS1.3 cipher; native AES128/controller integration is separate and unclaimed.
+The server implementation is an unverified test harness, not a new production
+protocol implementation or private parsing proof.
