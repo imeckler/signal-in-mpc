@@ -1,0 +1,24 @@
+{
+  "kernel_proofs_pass": true,
+  "foundation_only": true,
+  "proof_endpoints": 9,
+  "native_MPC_executed": false,
+  "cost_checks_complete": false,
+  "producer_integrated": false,
+  "scope": "exact sums, arbitrary-state compression equivalence, Hom and compiler endpoint; no performance claim",
+  "axioms": [
+    "'TlsMpc.Sha256CarrySave.natural_identity' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.sum3_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.sum4_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.sum5_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.scheduleStep_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.round_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.compress_correct' depends on axioms: [propext, Quot.sound]",
+    "'TlsMpc.Sha256CarrySave.compress_map' depends on axioms: [propext]",
+    "'TlsMpc.Sha256CarrySave.compiled_compress_correct' depends on axioms: [propext, Classical.choice, Quot.sound]"
+  ],
+  "source_sha256": {
+    "TlsMpc/Sha256CarrySave.lean": "4c1a0e15102018c6b53406add71da1508245eef4145a34f215b2ed805559cf72",
+    "SignalReference/FastShaSumWork/Checks.lean": "75f878c0114706f761d6b591e93cf88bc16302e56f2d2ab2b64ae92e8f8dc01e"
+  }
+}
