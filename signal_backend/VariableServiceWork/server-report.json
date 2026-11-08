@@ -21,7 +21,7 @@
   "public_helper_initial_matches_native_test": true,
   "source_sha256": {
     "signal_backend/VariableServiceWork/check_fixture_server.py": "ce1a44943cb03dfca5a1343d1701bc615ecbe39e6cc0aa0879d954bf75bbbe62",
-    "signal_backend/VariableServiceWork/fixture_server.py": "e1f2e490bfe57264c95f646f84772d6c9bc2f995fc1b2bb7eb5e401fb3f03ed6",
+    "signal_backend/VariableServiceWork/fixture_server.py": "dd1f3d39edb4815cf1d066620fbdb4004038d68bbc882ce79f3e8f16e23bbf12",
     "signal_backend/VariableServiceWork/server-fixture.json": "b6066719600a962bfa8c718560a88757b8c63cd2d0f936d74637ede4bf9491e5",
     "signal_backend/VariableServiceWork/PublicFixtureProducer.h": "5a9ac4d323aa073c178fc299c94d3f20c5a14293cc1fcaef643b326c9fd8aedf"
   },

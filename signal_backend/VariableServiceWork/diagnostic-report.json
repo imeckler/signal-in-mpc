@@ -1,0 +1,9 @@
+{
+  "fixed_exception_categories_checked": 8,
+  "upgrade_failure_stages_checked": 3,
+  "exception_or_payload_text_logged": false,
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/check_fixture_diagnostics.py": "253b12d7ee879bd24d87f0ceecd87206871231b48a98834238f0dcc0ce0bafdd",
+    "signal_backend/VariableServiceWork/fixture_server.py": "dd1f3d39edb4815cf1d066620fbdb4004038d68bbc882ce79f3e8f16e23bbf12"
+  }
+}

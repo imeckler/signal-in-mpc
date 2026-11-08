@@ -8,6 +8,23 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1]
 DEFAULT_ORACLE=ROOT/'.deps/signal-established-send-oracle-target/debug/signal-established-send-oracle'
 DEFAULT_RESPONSE_ORACLE=ROOT/'.deps/signal-established-send-oracle-target/debug/signal-chat-response-oracle'
+STAGES=frozenset(['startup','tls_setup','input_decode','tls_handshake','tls_profile','tls_read','tls_write',
+ 'upgrade_read','upgrade_oracle','upgrade_status','upgrade_credentials','upgrade_response',
+ 'ws_frame','relay_oracle','relay_binding','sealed_oracle','sealed_verification','response_oracle','response_write','finish'])
+CURRENT_STAGE='startup'
+def stage(name):
+ global CURRENT_STAGE
+ assert name in STAGES
+ CURRENT_STAGE=name
+def failure_diagnostic(error):
+ # Fixed labels only: never print exception strings, oracle stdout/stderr,
+ # plaintext, credentials, identifiers, keys, shares or input byte values.
+ category=('tls' if isinstance(error,ssl.SSLError) else
+  'oracle_process' if isinstance(error,subprocess.SubprocessError) else
+  'assertion' if isinstance(error,AssertionError) else
+  'format' if isinstance(error,(ValueError,KeyError,TypeError,UnicodeError)) else
+  'io' if isinstance(error,OSError) else 'internal')
+ return 'protocol fixture failed stage='+CURRENT_STAGE+' category='+category
 def varint(n):
  b=bytearray()
  while n>127:b.append((n&127)|128);n>>=7
@@ -25,6 +42,7 @@ def run_oracle(path,row):
  return json.loads(lines[0])
 class Peer:
  def __init__(self,cert,key,fixture,oracle=DEFAULT_ORACLE,response_oracle=DEFAULT_RESPONSE_ORACLE,fragment=127,require_aes128=True):
+  stage('tls_setup')
   assert 8<=fragment<=127
   self.fixture=fixture;self.oracle=oracle;self.response_oracle=response_oracle;self.fragment=fragment;self.require_aes128=require_aes128
   context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.minimum_version=context.maximum_version=ssl.TLSVersion.TLSv1_3
@@ -33,16 +51,21 @@ class Peer:
   self.ready=False;self.upgraded=False;self.closed=False;self.buffer=bytearray();self.fragments=None;self.pending_pings=[]
   self.requests=0;self.pongs=0;self.fragmented_requests=0;self.client_pings=0
  def write_app(self,data):
+  stage('tls_write')
   assert len(data)<=self.fragment
   assert self.tls.write(data)==len(data),'TLS write failed'
  def ping(self,data):self.pending_pings.append(data);return frame(data,9)
  def upgrade(self):
+  stage('upgrade_read')
   end=self.buffer.find(b'\r\n\r\n')
   if end<0:assert len(self.buffer)<=8192,'HTTP header capacity';return False
   request=bytes(self.buffer[:end+4]);del self.buffer[:end+4]
+  stage('upgrade_oracle')
   answer=run_oracle(self.oracle,dict(mode='upgrade',wire=request.hex()))
   expected=(self.fixture['upgrade_username']+':'+self.fixture['upgrade_password']).encode()
-  assert answer['status']==101 and bytes.fromhex(answer['credentials'])==expected,'fixture HTTP authentication failed'
+  stage('upgrade_status');assert answer['status']==101,'fixture HTTP status failed'
+  stage('upgrade_credentials');assert bytes.fromhex(answer['credentials'])==expected,'fixture HTTP authentication failed'
+  stage('upgrade_response')
   response=('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+answer['accept']+'\r\n\r\n').encode()
   ping=self.ping(b'u0')
   # Exact HTTP terminator + first WS control can share one authenticated chunk.
@@ -52,20 +75,26 @@ class Peer:
   assert self.requests<len(self.fixture['expected_inner']),'unexpected extra request'
   # Actual generated protobuf + JSON/base64 decoder. The harness reconstructs
   # one normalized masked frame after independently validating fragmentation.
+  stage('relay_oracle')
   answer=run_oracle(self.oracle,dict(mode='relay',wire=frame(payload,mask=bytes(4)).hex()))
+  stage('relay_binding')
   f=self.fixture;body=answer['body'];messages=body['messages'];assert len(messages)==1
   assert answer['path']=='/v1/messages/'+f['recipient_uuid']+'?story=false' and answer['access_key']==f['access_key'],'recipient/access binding'
   assert answer['id']==f['request_ids'][self.requests],'request ID progression'
   assert body['online'] is False and body['urgent'] is True and body['timestamp']==f['timestamp'],'request flags/timestamp'
   message=messages[0];assert message['type']==6 and message['destinationDeviceId']==f['device_id'] and message['destinationRegistrationId']==f['registration_id'],'device metadata'
+  stage('sealed_oracle')
   decoded=run_oracle(self.oracle,dict(mode='sealed_decrypt',wire=answer['ciphertext'],recipient_secret=f['recipient_secret'],root_public=f['root_public']))
+  stage('sealed_verification')
   assert decoded==dict(inner=f['expected_inner'][self.requests],certificate_valid=True),'actual sealed/inner verification'
   response=b'\x08'+varint(answer['id'])+b'\x10'+varint(200)+field(26,b'OK')+field(34,b'{}')+field(42,b'content-type: application/json')
   payload=b'\x08\x02'+field(26,response)
+  stage('response_oracle')
   checked=run_oracle(self.response_oracle,dict(wire=payload.hex(),expected_id=answer['id']))
   assert checked['accepted'] and checked['correlated'] and checked['is_success'],'response construction'
   # Fragment binary response around an interleaved ping. No fabricated client
   # parser result or decrypted client shares are accepted by this server.
+  stage('response_write')
   ping=self.ping(('r'+str(self.requests)).encode())
   self.write_app(frame(payload[:3],2,False)+ping)
   rest=payload[3:]
@@ -73,6 +102,7 @@ class Peer:
   self.write_app(frame(rest,0,True));self.requests+=1
  def parse_frames(self):
   while len(self.buffer)>=2:
+   stage('ws_frame')
    first,second=self.buffer[:2];assert first&0x70==0,'RSV bits';opcode=first&15;fin=bool(first&128)
    assert second&128,'unmasked client frame';n=second&127;offset=2
    if n==127:raise AssertionError('64-bit frame length outside bounded fixture')
@@ -109,19 +139,23 @@ class Peer:
   if data:self.incoming.write(data)
   if not self.ready:
    try:
+    stage('tls_handshake')
     self.tls.do_handshake();self.ready=True
+    stage('tls_profile')
     assert self.tls.version()=='TLSv1.3' and self.tls.selected_alpn_protocol()=='http/1.1','TLS profile'
     if self.require_aes128:assert self.tls.cipher()[0]=='TLS_AES_128_GCM_SHA256','TLS AES128 profile'
    except (ssl.SSLWantReadError,ssl.SSLWantWriteError):pass
   if self.ready:
    while True:
     try:
+     stage('tls_read')
      plain=self.tls.read(16384)
      if not plain:break
      self.plaintext(plain)
     except (ssl.SSLWantReadError,ssl.SSLWantWriteError,ssl.SSLZeroReturnError):break
   return self.ready,self.outgoing.read()
  def finish(self):
+  stage('finish')
   assert self.upgraded and self.requests==2 and not self.pending_pings and self.fragments is None,'incomplete fixture exchange'
   return dict(tls13_h1=True,upgrade_authenticated=True,upgrade_split_and_ws_coalesced=True,requests_validated=self.requests,
    actual_sealed_decrypt_certificate_and_inner_verified=True,response_ids_copied=True,response_binary_fragmentation=True,
@@ -138,10 +172,12 @@ def main():
    report=peer.finish()
    if args.report:args.report.write_text(json.dumps(report,indent=2)+'\n')
    return
-  ready,output=peer.feed(bytes.fromhex(line) if line!='-' else b'')
+  stage('input_decode')
+  incoming=bytes.fromhex(line) if line!='-' else b''
+  ready,output=peer.feed(incoming)
   print(('ready ' if ready else 'waiting ')+(output.hex() if output else '-'),flush=True)
  raise AssertionError('fixture closed without completion command')
 if __name__=='__main__':
  try:main()
- except Exception:
-  print('protocol fixture failed',file=sys.stderr);sys.exit(1)
+ except Exception as error:
+  print(failure_diagnostic(error),file=sys.stderr);sys.exit(1)
