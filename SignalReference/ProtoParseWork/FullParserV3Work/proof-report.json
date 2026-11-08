@@ -1,6 +1,7 @@
 {
   "candidate_only": true,
-  "full_parser_refinement": false,
+  "full_parser_refinement": true,
+  "bounded_full_parser_refinement": true,
   "lean_exit_code": 0,
   "modules": [
     "SuccessScan",
@@ -115,7 +116,17 @@
     "KnownRejectionStep",
     "KnownMessageRejection",
     "RejectedScan",
-    "EOFRejectedScan"
+    "EOFRejectedScan",
+    "SkippedMask",
+    "SkipFailureLeaves",
+    "SkipFailureHeaders",
+    "FailedSkipScan",
+    "ActualFailedSkipScan",
+    "MessageRejected",
+    "UnknownMessageRejection",
+    "FailedMessageScan",
+    "FullParserRefinement",
+    "CompiledParserRefinement"
   ],
   "endpoints": {
     "LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff": [
@@ -1874,6 +1885,130 @@
       "propext",
       "Classical.choice",
       "Quot.sound"
+    ],
+    "FullParserV3.Observed.active_fields_congr": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.skipped_row_allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skipped_initialization": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skipped_payload_failure": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skipped_length_failure": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skipped_fixed_failure": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skipped_limit_failure": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.key_failure_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.mismatched_group_failure_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.top_end_failure_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.failed_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_skipped_failure_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_group_failure_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.message_rejected_of_scan": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.known_message_rejected_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.unknown_message_rejected_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.failed_message_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.initial_observed_parse": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.trace_parser_observation": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_parser_refinement": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.production_erasure": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.production_checked_erasure": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.production_rejection": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_rejection_is_masked": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.compiled_actual_parser": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.compiled_actual_production_parser": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
     ]
   },
   "source_sha256": {
@@ -1898,9 +2033,11 @@
     "KnownTotality.lean": "f8988aa16128403a6be228a744dd5e212bc3d1058540acdc0dff3cf00630d4c4",
     "BytesWrongRejection.lean": "853d669947106f9a50ffc9102b01caca9424ddd9c1147e4d779c7c26520252f2",
     "TopLeafState.lean": "0e00878730179daa4babfc97c51fe7d9c864e47540038c8c50199e0ec72713b4",
+    "SkipFailureHeaders.lean": "fd50e136e777f1770306aac57759236da64d16ff8110eec4a4056954f855f2d9",
+    "FullParserRefinement.lean": "aae504db71cfa88cbbb1dbfe77981113138575dbb21b366f03e8da0d3b841add",
     "Table.lean": "c4d9192286db049e96173269001de4937199da0b83da0694c2b19557e008adff",
     "MessageErrorDomain.lean": "5c8e155e447cbe1859187babfb3d94596ceb8ee35d93ad28606e85a1b5ac25b9",
-    "audit.py": "1c9dbdc761894852d8cc08d681362b7de0f6925bef3ed9590365df8b796cfc16",
+    "audit.py": "6425a037b4f6571b75f3e425304f31babc9b80f0085147e492d88634f12db438",
     "check.py": "479845688c79fdafd0f417bd726f653974f7708785499f54e9829a0ef7bd860d",
     "WrongWirePlan.lean": "708ab217812351397a643298c3b54d81cbb5a45808f52edc13eee7708d8eb88c",
     "WrongWirePrimitive.lean": "ef93cb98eab12ccdaf2ce238119530ba3138cd1a50e6279b61c12fe86f7d2d58",
@@ -1929,7 +2066,9 @@
     "SkipScanHeaders.lean": "338d0a51375e38bc7d25d14081e2728c6e061eed14cb68fc8e96e12763183254",
     "KnownMessageRejection.lean": "73149d2a07cfebf054aed42ca15f2f2f998dca0053a37290ae4ba1fe857b0d48",
     "StateMasks.lean": "ab9003efeec10ddccc6adec547661753d17ef44ea7aacaf0116b2bfccf0fd48e",
+    "ActualFailedSkipScan.lean": "4ca890c3357cea8478bd6c4fa1a7bb9748451dedb0fb769ad904f146916f4eec",
     "PayloadRejectionStep.lean": "6462d312af625efe9c93520f7536c42ddf4b6537f56aec28942fb55aa952bb68",
+    "SkipFailureLeaves.lean": "8783e9277ba5a3bf5de5719947c18d7757c7f501944ea14a8d519c3fb1f2b265",
     "Observed.lean": "5165fa2d25a2e7c4e73cf6ea69b574f506ab289ea39b74cab64fd7ca39274b14",
     "TopScalarScan.lean": "4ba248bcb96535f6daeb14973d55b4b728a5b3b67b2c83710ad7301e164cabf7",
     "PlanFailure.lean": "7a575b9ac066a3caeb65358f53f814fd2c368c921cdea9ef070d1fc5398757b2",
@@ -1938,6 +2077,8 @@
     "ObservedCircuit.lean": "438ce6c6e62d73aa5ed66575256489ab4b1b56a5f11f3672e2a10c2d07d39936",
     "KnownSuccess.lean": "cecd00d54de25a578c62a5fa05be0908a956d56882ea2576173d307748a158a5",
     "KeyErrorTable.lean": "25d2ad2cc5cb95d7b521725928fd0c021ec8aad536f4c6a127acca715a96b227",
+    "SkippedMask.lean": "49e8c1f53b3cb044ddcf72b12c376345b15b79931acfa210b3d7dab7a3de2a5e",
+    "UnknownMessageRejection.lean": "607eda8ba22842ad17ddb4e82632aefff6d2a8ab56ffefc94ce274c4e53ff629",
     "NestedFixedScan.lean": "81d9807b1c01681f76ed247a8b7706c9c2cbfcd07a548fccb13371732bb233ee",
     "NonPayloadPlan.lean": "f3b215eeff5971ad97aee6c78087c570d5720074eceffefa366da5b210c8c790",
     "CompiledSuccess.lean": "43a60ae16efebc983126035cb54067a11287d0d7a884e12fa46d255e651ed074",
@@ -1953,6 +2094,7 @@
     "KnownRejectionStep.lean": "5c99982f7b8c1d81e2b74ec157c28c0f07f903dbca6a156ac3a5777a106b6288",
     "DispatcherTotality.lean": "c0fd7a5228247d5f535af39fb906900cd26d4fce5c33d6c3ede7e8e43bbebb1a",
     "ObservedSuccess.lean": "63506befb926fc8724173d5f9b1ce4b0a4d564798590df1b3a661f18330ac2e4",
+    "FailedMessageScan.lean": "7c2f341c3a2c307458103f4826c266392e7a26037406b8f76a4daa029db72487",
     "GroupHeaderScan.lean": "bc56d02e792a7e856a63e741a606600b6489226f749c6842b4d2264f65a1707f",
     "KnownDispatchSuccess.lean": "6a03abcd18965984477fb7300ebe5012cdfc7b305144fa468fe9f50151945cc7",
     "DecoderErrorTransport.lean": "ff39aa13fc7322f81d4abf4fd3e809bce1d0e2ee80a0de9aed09e73bb9824cb2",
@@ -1960,6 +2102,7 @@
     "ObservedIntervals.lean": "93a2d23fb9cbdb768c8d1fcb604e018ed9906aad48c2fe636cf8ded69c724546",
     "FieldSuffix.lean": "917993d4fb70883d96dacefe43b028c54b02094f7a10fb19eb116ba8301e9b30",
     "ScanState.lean": "5c1395e6fedb254a7644b9cfa8706ced4df0761d7a24bba8aaec3bbfe467f577",
+    "FailedSkipScan.lean": "01d9eb5671543a3a93c863edc3f781e29740eabf12d37701ab84224dd38d2f90",
     "WrongWireRejectionStep.lean": "20fb57aeec63aae05d1f6dfe78facb3ea67424891dad975f5e9a11ff646364ba",
     "PayloadActive.lean": "a0c30e983a68b0bf7cc98ead8b14b4182f1b25fb572df641ba840ecce58303bc",
     "KnownDispatchError.lean": "ddf4da0b2c5e59d7f8c696104d3856a929b569921c6180498169f25e41ec8505",
@@ -1976,6 +2119,7 @@
     "RejectedScan.lean": "a1fecc1545b0330b516ca202862c688792d50dd73b915971de5ca0c61497714f",
     "ScalarPayloadError.lean": "0b3cb0df9051b5f91a6e073d2f91196e364bb8e107b65550dcd4d42430707411",
     "KeyRejectionStep.lean": "fae1b4591e14d3a187b4086e48b683a457c14279680944457c3a8026c7302935",
+    "CompiledParserRefinement.lean": "76f0fcb5e426b3c0beccdded5b888de3ba9444bf53004e5751400f6babbc3549",
     "FieldErrorProjection.lean": "0e3f71934ac7eb901f44629d59b424f9f6d636160c94366f946b065cad33ce7b",
     "TopBytesScan.lean": "81826a119a34d139521e707318a43250e76247e98829b2f63626fce1c99d4afb",
     "RecursionRejectionStep.lean": "7b911d30833ae58d773577dbf67600e1deb666db11fcd077e41361bd7e9c103c",
@@ -1986,6 +2130,7 @@
     "TopRejection.lean": "fc84d0b430a0eadeb3b29a3709ad0c1b6b42df125704546dd5835cbd459205b5",
     "ObservedScan.lean": "bd0bb02acbd14ee258335372c44de4e882bf7fc584b17fad6439191ad1bb81d2",
     "Intervals.lean": "fb0fe97be71d999d5e9d8cde66abab0c238bafc953cb4b02caabcadacc1de7c6",
+    "MessageRejected.lean": "8acb6e3608c56a17c14fd87e71f42bd4da0e5dcbcb5733c80fe25ef745e8bd15",
     "FieldTransition.lean": "25b9bd9891f02ef8f19c4298b1275cbe30954009d6dfd1594d308b51ed4ece7f",
     "Skip/SkipLeaf.lean": "d77f426beca3deca2b14bef9464ace87e7b9772b1e19eca48cb6c36375712e44",
     "Skip/KeyValue.lean": "d3f94918d5b3413f709ac3661b125b11b2cee222cbc8f5e8227ffde09a91d276",
@@ -2014,7 +2159,7 @@
     "Skip/Replayed/SliceAdapter.lean": "c8288d39209d89c66b188b45a026af1f31a1b6287373e73aa488dd0c4d165de2"
   },
   "log_sha256": "ec6c64f604a0db5123daf1869c0e84624af29065d2551ab1317377af587bd443",
-  "extension_log_sha256": "43d696b484ef86cb5e9e34e37694f5c88ad51d0f23a88d21cf80453f892d3a00",
+  "extension_log_sha256": "7e7ebd18fd3e04d014ea4dcfae790757152d881d741680f8b6fe633520361683",
   "core_source_sha256": {
     "TlsMpc/Signal/ProtoParse.lean": "c2e5832c7e6b1ff1fcf555a44cf7478269ddb904d26229cafaae73d269b10a8f",
     "TlsMpc/Signal/ProtoParseProofs.lean": "3103e97c75f7c14260bf62040def0628251ee9272768e1f5856f67dc95ab3de9",
@@ -2055,8 +2200,16 @@
     "pinned Aeneas"
   ],
   "remaining": [
-    "Compose all actual rejection branches (wrong wire, underflow, recursion/group/EOF) with full numeric/metadata scan relation; success full scan is proved.",
-    "Extend actual compiled success subtheorem to all outcomes; derive the production masked-output theorem under its explicit framing/field policy."
+    "Independent review/acceptance of this bounded candidate and its reviewed translator/safe-index/allocation model boundaries.",
+    "Separate Rust Message::decode/Default wrapper, non-contiguous Buf implementations, larger bodies and session-security claims are outside this theorem."
   ],
-  "domain": "contiguous valid U8 slices; parser composition target body <=512, six initial absent fields, recursion budget100; modeled successful bounded allocation; diagnostic stack text quotient only"
+  "domain": "contiguous valid U8 slices; body <=512, explicit six-None initial Rust record, actual default recursion budget100; modeled successful bounded allocation and accepted safe-index preconditions; diagnostic stack text quotient only (constructors/parameters injectively preserved)",
+  "entrypoints": [
+    "FullParserV3.Observed.actual_parser_refinement",
+    "FullParserV3.Observed.compiled_actual_parser",
+    "FullParserV3.Observed.compiled_actual_production_parser",
+    "FullParserV3.Observed.actual_rejection_is_masked"
+  ],
+  "production_policy": "Existing ProtoParse.acceptedMask and metadata projection: wire length/version, complete parse, required ratchet/counter/ciphertext presence, ratchet length/prefix checks; diagnostic instrumentation is erased and absent from production circuits",
+  "constructor_boundary": "Actual extracted Message::merge.default with actual generated merge_field and an explicit six-None record; separate Message::decode/Default wrapper is not assumed"
 }
