@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "ASAN_UBSAN_checks": 12,
+  "child_process_durable_save_then_exit_without_cleanup": true,
+  "parent_reopen_authenticated_own_evaluation_roundtrip": true,
+  "immutable_idempotent_content_addressed_ciphertext": true,
+  "corruption_wrong_digest_wrong_size_symlink_and_conflicting_overwrite_refused": true,
+  "plaintext_or_local_evaluations_written_to_disk": false,
+  "fsync_file_and_directory_before_success": true,
+  "full_Signal_schema": false,
+  "private_share_readmission": false,
+  "complete_4of5_phase_and_recovery_protocol": false,
+  "secure_Signal_restore": false,
+  "production_provider_admitted": false,
+  "platform_honest_durability_assumptions": true,
+  "binary_sha256": "69749f81b6abf97e3cbf8c8d632d23493147253410b9ea548b6919bf5aaa351c",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_store.py": "66e0f3dc10abd3bb74d74d0504e1680923eb4c850349c2d89a36a4c5c8bbe805",
+    "signal_backend/RecoveryWork/CiphertextStore.h": "b200ab9ecbf2de9d7f7de8ca9f6e2f817355100354b76fb149515e36f5381e75",
+    "signal_backend/RecoveryWork/store_check.cpp": "fbf7ad3151df3bda48e07dd4fadbf7ae54aa6592014f9fdc8cc8ffee8f0b1056",
+    "signal_backend/RecoveryWork/OwnShareBox.h": "5b5f468a195aaa0ad00c63af80ae4ca4457675f575bc6dd1ebdc88ff617d0ffd",
+    "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09"
+  }
+}

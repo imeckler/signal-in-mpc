@@ -38,3 +38,13 @@ state. Full schema/provider serialization, immutable outbox/intent storage,
 restore tests remain required. No normal RPC/import path or existing burn fence
 is changed by this candidate. Storage-key provisioning and honest durable storage
 are explicit epoch assumptions, not a trusted external witness.
+
+`CiphertextStore` now persists these encrypted artifacts under their exact content
+hash, using no-follow files, immutable installation and file+directory flushes.
+Existing artifacts must match exactly; corruption cannot be overwritten silently.
+Twelve sanitizer checks include a child saving then exiting without cleanup,
+parent reopen/authenticated local-evaluation recovery, idempotency and malformed/
+corrupt/symlink/conflicting objects. Only ciphertext reaches disk. This supplies
+local persistence, not freshness/quorum/re-admission: an old valid encrypted
+artifact still requires the certified-head/fresh-status protocol and private MPC
+consistency checks before any provider can consume its state.
