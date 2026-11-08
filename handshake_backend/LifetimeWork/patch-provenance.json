@@ -1,0 +1,26 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "scratch_patch_sha256": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+  "patch_sha256": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19",
+  "script_sha256": "c350dbebacc36855aa4b370f99138a110faff796e8359ff5de6ad2cf4a11f4ef",
+  "files": {
+    "Math/gf2n.h": {
+      "before": "09f51268c7b2175c95ea058c795c94e8b3168e95901bc969fef8563ebb5d5996",
+      "after": "a7a350d6e678a8c22e474d13efda7c7fc7c7247368bfb013c199717499ef77fb"
+    },
+    "Math/modp.h": {
+      "before": "45ecf29432e9e182329c9dd79984bcd1698c3e8a006d84a9b59e4a38175b1d15",
+      "after": "aa581459b85dfdc282ec0eb8fd8479bd95ac0b69bf2883ce422a283f4eb72dbb"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "full_vm_erasure_implemented": false,
+  "scope": "destruction of constructed fixed-width modp/gf2n field payloads; no raw byte, bigint, live preprocessing or PRNG erasure"
+}

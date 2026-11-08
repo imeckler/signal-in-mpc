@@ -427,6 +427,12 @@ output shares across automatic cleanup. Production retirement remains disabled:
 freed allocations, preprocessing copies and retained PRNG seeds still need
 cleanup. See `benchmarks/results/tls-vm-scratch-checks.json` for the tested scope.
 
+`handshake_backend/LifetimeWork` extends that isolated candidate with field
+destructors that wipe discarded vector elements and temporary values. Allocation
+observer tests and five-party MPC reuse checks pass. Live protocol buffers,
+serialized bytes, bigint allocations and PRNG state remain outside that cleanup;
+the candidate is not yet enabled for production application sessions.
+
 TLS record opening now uses a balanced Lean padding/type parser, proved equal
 to the original specification for every input. Its 1024-byte parser has 27 AND
 layers, down from 1040, at the cost of more gates. The compiler theorem and

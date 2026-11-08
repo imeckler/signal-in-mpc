@@ -1,0 +1,44 @@
+--- a/Math/gf2n.h
++++ b/Math/gf2n.h
+@@ -2,6 +2,7 @@
+ #define _gf2n
+ 
+ #include <stdlib.h>
++#include <sodium.h>
+ #include <string.h>
+ 
+ #include <iostream>
+@@ -122,6 +123,12 @@
+       { a &= ~(1UL<<i); }
+   }
+   
++  // Fixed-width field payload cleanup on every C++ lifetime end. This also
++  // covers discarded vector elements and temporary field values. It does not
++  // erase live protocol/PRNG buffers or copies serialized as raw bytes.
++  gf2n_(const gf2n_&) = default;
++  gf2n_& operator=(const gf2n_&) = default;
++  ~gf2n_() { sodium_memzero(&a, sizeof(a)); }
+   gf2n_() : a(0)       {}
+   gf2n_(bool a) : a(a) {}
+   gf2n_(U a) : a(a & mask) {}
+--- a/Math/modp.h
++++ b/Math/modp.h
+@@ -14,6 +14,7 @@
+  *
+  */
+ 
++#include <sodium.h>
+ #include "Tools/octetStream.h"
+ #include "Tools/random.h"
+ 
+@@ -34,6 +35,10 @@
+   mp_limb_t get_limb(int i) const { return x[i]; }
+ 
+   // use mem* functions instead of mpn_*, so the compiler can optimize
++  modp_(const modp_&) = default;
++  modp_& operator=(const modp_&) = default;
++  // All fixed-width limbs are wiped, including any unused high limbs.
++  ~modp_() { sodium_memzero(x, sizeof(x)); }
+   modp_()
+     { avx_memzero(x, sizeof(x)); }
+   

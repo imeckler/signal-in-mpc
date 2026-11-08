@@ -16,6 +16,17 @@ The canonical runtime and production Session do not install this callback yet.
 This partially addresses items1-3below; it does not address freed allocation
 history, preprocessing, PRNG state, or provide an erasure receipt.
 
+2026-11-08 lifetime candidate: LifetimeWork layers fixed-field destructors on
+the scratch candidate in another fully rebuilt isolated runtime. Actual modp/
+Fp25519/arithmetic-share/GF128/CCD-part storage is observed before deallocation:
+baseline retains555of975payloadslots; candidate retains0. Ninety releases and
+forty injected copy failures are checked with ASan/UBSan in the test TU. Real
+five-party X25519/router reuse still passes. This addresses discarded ordinary
+C++ field objects, including vector-held preprocessing copies, but not live
+buffers, serialized bytes, dynamic bigint/PRNG state or arbitrary allocator/
+mapped-memory paths. See LifetimeWork/README.txt and tls-field-lifetime-checks.json.
+Canonical backend sources/library and application retirement gates are unchanged.
+
 Implemented in this checkout:
 * OwnedSecrets.h replaces NativeWorker's raw Bits alias with OwnedBits. It
   overwrites the fixed-width GF(2^128) value of every currently owned bit-share

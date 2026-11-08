@@ -1,5 +1,5 @@
 {
-  "checked_at_utc": "2026-11-08T02:50:44.364331+00:00",
+  "checked_at_utc": "2026-11-08T03:13:25.786831+00:00",
   "passed": true,
   "parties": 5,
   "threshold": 2,
@@ -8,6 +8,7 @@
   "native_mpc_executed": true,
   "full_vm_erasure_implemented": false,
   "application_execution_enabled": false,
+  "fixed_field_destruction_cleanup_tested": false,
   "scope": "constructed secret VM memory/register objects and temp.Sansp only; explicit host quiescence; no freed allocation, preprocessing or PRNG cleanup",
   "source_sha256": {
     "handshake_backend/ScratchWork/VmScratch.h": "bc56f7dd6e067a1b63317295b21d7df489a3d6151430b5ed154714650d4c563a",
@@ -33,7 +34,7 @@
     "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
     "handshake_backend/TcpRecords.h": "e2a8d55f6f047102c87e6248b8da14eed0f6766fa9d0bf48632584bf8c58ec73",
     "scripts/prepare_tls_scratch_runtime.py": "94ba93a24cd4bf870d476c58acc6b399d5de8a9deb787c1cd8d4396fab56f121",
-    "scripts/check_tls_vm_scratch.py": "1ae63b6206224179f43587977efe29e06ee29963f24284c3bb4f7da40fdffc16"
+    "scripts/check_tls_vm_scratch.py": "5d6822aa261fc8a8f866e2fac0de7e35ec5b7c9beccbc55173cea7bb6eef9f33"
   },
   "product_sha256": {
     ".deps/tls-scratch-runtime/MP-SPDZ/libSPDZ.so": "177e166f35a64e597ecd708602e0ca25c101f11786cd5f2c11ec3dd78d1ca2a6",
@@ -41,7 +42,7 @@
     ".deps/tls-scratch-runtime/tls-stacked-checks": "a0205edd165d9fff81e6314ce162e48ae96a4babb8584acc564bbea1c8f5776e"
   },
   "program_manifest_sha256": "7050b435ac1bcf728bcbd6505c24dd32fd1824ea1ddafa507ebc2de75645cc85",
-  "logs": "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a",
+  "logs": "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103",
   "stacked_check": "64 packed widths;18720 fields; nested hidden frames, shrink, pop and reuse; ASan/UBSan on test translation unit",
   "cases": [
     {
@@ -59,7 +60,7 @@
         0,
         0
       ],
-      "elapsed_seconds": 1.2220652910182253
+      "elapsed_seconds": 1.2725271249655634
     },
     {
       "capacity": 1029,
@@ -76,7 +77,7 @@
         0,
         0
       ],
-      "elapsed_seconds": 0.3884079169947654
+      "elapsed_seconds": 0.4077844580169767
     },
     {
       "capacity": 16385,
@@ -93,29 +94,26 @@
         0,
         0
       ],
-      "elapsed_seconds": 5.0309903339948505
+      "elapsed_seconds": 5.079703625058755
     }
   ],
   "log_sha256": {
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-1029-party-0.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-1029-party-1.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-1029-party-2.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-1029-party-3.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-1029-party-4.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-16385-party-0.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-16385-party-1.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-16385-party-2.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-16385-party-3.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-16385-party-4.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-6-party-0.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-6-party-1.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-6-party-2.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-6-party-3.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/capacity-6-party-4.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/fixture-build.log": "77bc42528c73217ade214e4237ff1a6cf3f081a7947673210f8d2919aeb6fcb7",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/library-build.log": "3afc1e3335e641f0036d906a0befec699bbe3adb6a25a81b12c23e574b34ad0e",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/library-install-name.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/setup-ssl.log": "7852e778e39f7bd54b43fcaf240f2516ee8f249142c3ada09d78fff19d30b8cc",
-    "benchmarks/results/raw/tls-vm-scratch/1234875084c92b5a/stacked.log": "1c4ca343dad2cb45f045befb0d42c77adfe9921663ae9ee60ea6608bca5beddf"
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-1029-party-0.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-1029-party-1.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-1029-party-2.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-1029-party-3.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-1029-party-4.log": "dc3b7b49a56df13eb609dc78173f0c0048b5f28ebf6014c610f40fc795af23ae",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-16385-party-0.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-16385-party-1.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-16385-party-2.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-16385-party-3.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-16385-party-4.log": "6856819a5a30ef8f53bc6208dedba1a838420205ad01b169a416a4d4325e2f8b",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-6-party-0.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-6-party-1.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-6-party-2.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-6-party-3.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/capacity-6-party-4.log": "cb3d2524ce7f5996fabfebbff4112fce802c93eca5b3596b7223a46733eb04d2",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/setup-ssl.log": "1d06ade04e63bb9de5ad45fd4773bc5914b97277ba7eceb1bd9b9a9e9d85bf2f",
+    "benchmarks/results/raw/tls-vm-scratch/4c16b762b132f103/stacked.log": "1c4ca343dad2cb45f045befb0d42c77adfe9921663ae9ee60ea6608bca5beddf"
   }
 }

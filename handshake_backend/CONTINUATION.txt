@@ -843,3 +843,60 @@ RefreshremainsPAUSED; goalACTIVE. No extra permission changesreported.
 - User requested status and was told handshake stages pass, application erasure
   and full Signal integration are incomplete, and measured performance remains
   far below100,000/hour. Sharing refresh remains paused. Root handles terminal.
+
+2026-11-08 fixed-field object lifetime cleanup candidate
+- Previous goal turn made progress:3a4bfab accepted/preserved the bounded Prost
+  bytes content reference. This turn addresses copies discarded during C++
+  execution rather than only the final live VM scratch set.
+- New prepare_tls_lifetime_runtime.py creates fresh source-only isolated
+  .deps/tls-lifetime-runtime/MP-SPDZ from the pinned archive plus ScratchWork.
+  LifetimeWork/fixed-field-lifetime.patch adds sodium_memzero destructors for
+  gf2n_ payloads and modp_ limbs, with default copy construction/assignment.
+  Exact byte hashes and original CRLF line endings are preserved in provenance.
+  Nontrivial destruction changes ABI: complete object/library rebuild required.
+  Canonical MP-SPDZ source/library remains unchanged; no production migration.
+- Complete candidate library build56854 succeeded. First test builds2572/88596
+  failed on a diagnostic for memset of raw, unconstructed allocator storage;
+  an explicit void* cast made that intent clear. First run17299 hit ASan's
+  container-poisoned unused capacity in the TEST inspector. Final inspector
+  observes only allocator deallocate, after container annotations are removed
+  and BEFORE free, with each mutation immediately ending its vector scope.
+  No sanitizer checks were disabled, and no freed-memory read is performed.
+- Lifetime checks use five actual native types (modp4,Fp25519,arithmeticShare,
+  GF128,CCDpart),90allocationreleases,40injectedcopy-constructorfailures and
+  growth/pop/shrink/shortassignment/clear/movereplacement/shrink_to_fit.
+  Baseline has555nonzeroof975payloadslots; candidate has0of975. Independent live
+  copies survive. Test TU has ASan/UBSan; linked library is optimized normally.
+- check_tls_vm_scratch.py now supports --lifetime while retaining the original
+  scratch profile. Corrected candidate runs45450 and final44478 succeeded;
+  final original-profile30589 also succeeded. Both profiles pass five-party
+  capacities6/1029/16385 with3routercalls, auth rejection, actual output-share
+  reuse, automatic cleanup, and two pre-visitation guards. Capacity6 also runs
+  tls_begin/base-pointagreement across cleanup; hiddenstack18720celltestpasses.
+  Final candidate elapsed1.249/0.521/6.745seconds; original1.273/0.408/5.080.
+  These are component-check timings, NOT controlled performance comparisons.
+- tls-field-lifetime-checks.json and refreshed tls-vm-scratch-checks.json sources,
+  products, program manifests and all logs independently hash-verified. Baseline
+  field source hashes still match original; candidate hashes match recipe.
+- Lifetime cleanup covers destroyed ordinary field objects, including discarded
+  std::vector preprocessing/Beaver copies. Live protocol buffers, byte streams,
+  bigint allocations, logical-prefix containers and PRNG state remain open.
+  Tested profile uses ordinary memory, not mapped DiskVector storage. Production
+  application readiness and retirement remain disabled. See LifetimeWork/README.
+- PRNG trace for next work: non-AES branch in pinned Tools/random.cpp already
+  expands and updates seed using libsodium, BUT InitSeed copies the old seed
+  into state and cached/temporary output is not wiped. Simply disabling USE_AES
+  is not an erasure fix. Audit get_seed users and correlated generator lifetime
+  before changing stream semantics or declaring forward erasure.
+- Signal agent continues MessageReferenceWork actual generated dispatcher and
+  merge loop. New isolated pure-function-item/lifetime translation extensions
+  and explicit error-annotation observational models are UNREVIEWED. Root told
+  agent to preserve rejection/input-suffix/fields while projecting away only
+  diagnostic stack text; success-only lemmas are insufficient for full refinement.
+- PreKeyReferenceWork frozen/root-review pending: completion SHA256
+  ec47f0a1403345e441c7560aa644ea0adf653f7af5bec888c82564268685eb80;
+  agent reports72files/8endpoints/2048nativepresencecases with explicit Option,
+  NonZero and closure model boundaries. Existing Astra-high helper now works on
+  a bounded actual Rust XEdDSA/challenge Aeneas slice, consulting prior BAF work.
+  Frozen TopField/XEdDSA/prekey reviews remain pending. Sharing refresh paused.
+  All root handles above are terminal; no root background work remains.

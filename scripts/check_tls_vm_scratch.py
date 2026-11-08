@@ -23,12 +23,15 @@ def digest(path):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build',action='store_true')
+    parser.add_argument('--lifetime',action='store_true',help='also test the isolated fixed-field destruction patch')
     parser.add_argument('--timeout',type=int,default=600)
     parser.add_argument('--port',type=int,default=19500)
     args=parser.parse_args()
-    runtime=ROOT/'.deps/tls-scratch-runtime/MP-SPDZ'
+    runtime=ROOT/('.deps/tls-lifetime-runtime/MP-SPDZ' if args.lifetime else '.deps/tls-scratch-runtime/MP-SPDZ')
     work=ROOT/'handshake_backend/ScratchWork'
-    output=ROOT/'benchmarks/results/raw/tls-vm-scratch'/secrets.token_hex(8)
+    lifetime=ROOT/'handshake_backend/LifetimeWork'
+    label='tls-field-lifetime' if args.lifetime else 'tls-vm-scratch'
+    output=ROOT/'benchmarks/results/raw'/label/secrets.token_hex(8)
     output.mkdir(parents=True)
     def run_logged(command,name,cwd=runtime):
         with (output/name).open('wb') as log:
@@ -37,20 +40,43 @@ def main():
         run_logged(['make','-j2','libSPDZ.so'],'library-build.log')
         if sys.platform=='darwin':
             run_logged(['install_name_tool','-id','@rpath/libSPDZ.so','libSPDZ.so'],'library-install-name.log')
-        run_logged(['make','-f',str(work/'Makefile'),'TLS_ROOT='+str(ROOT/'handshake_backend'),
-                    '../tls-scratch-fixture','../tls-stacked-checks'],'fixture-build.log')
+        makefile=(lifetime if args.lifetime else work)/'Makefile'
+        targets=['../tls-scratch-fixture','../tls-stacked-checks']
+        if args.lifetime:targets.append('../tls-lifetime-checks')
+        run_logged(['make','-f',str(makefile),'TLS_ROOT='+str(ROOT/'handshake_backend'),*targets],'fixture-build.log')
+        if args.lifetime:
+            run_logged(['make','-f',str(makefile),'TLS_ROOT='+str(ROOT/'handshake_backend'),
+                        '../tls-lifetime-checks'],'baseline-build.log',ROOT/'.deps/sharing-refresh/MP-SPDZ')
     run_logged([str(runtime.parent/'tls-stacked-checks')],'stacked.log',ROOT)
     assert '18720 fields' in (output/'stacked.log').read_text()
     provenance=json.loads((work/'patch-provenance.json').read_text())
     assert digest(work/'vm-scratch.patch')==provenance['patch_sha256']
     for name, hashes in provenance['files'].items():
         assert digest(runtime/name)==hashes['after'],name
+    if args.lifetime:
+        lifetime_provenance=json.loads((lifetime/'patch-provenance.json').read_text())
+        assert digest(lifetime/'fixed-field-lifetime.patch')==lifetime_provenance['patch_sha256']
+        for name,hashes in lifetime_provenance['files'].items():
+            assert digest(runtime/name)==hashes['after'],name
+            assert digest(ROOT/'.deps/sharing-refresh/MP-SPDZ'/name)==hashes['before'],name
+        run_logged([str(runtime.parent/'tls-lifetime-checks')],'lifetime-candidate.log',ROOT)
+        run_logged([str(ROOT/'.deps/sharing-refresh/tls-lifetime-checks'),'baseline'],'lifetime-baseline.log',ROOT)
+        assert 'candidate payload cleanup passed:' in (output/'lifetime-candidate.log').read_text()
+        assert '; 0 nonzero;' in (output/'lifetime-candidate.log').read_text()
+        assert 'baseline retained payloads:' in (output/'lifetime-baseline.log').read_text()
     source_paths=[*sorted(work.glob('*.h')),*sorted(work.glob('*.cpp')),work/'Makefile',
                   work/'vm-scratch.patch',work/'patch-provenance.json',
                   *sorted((ROOT/'handshake_backend').glob('*.h')),
                   ROOT/'scripts/prepare_tls_scratch_runtime.py',Path(__file__).resolve()]
+    if args.lifetime:
+        source_paths += [*sorted(lifetime.glob('*.cpp')),lifetime/'Makefile',
+                         lifetime/'fixed-field-lifetime.patch',lifetime/'patch-provenance.json',
+                         ROOT/'scripts/prepare_tls_lifetime_runtime.py']
     snapshots={str(p.relative_to(ROOT)):digest(p) for p in source_paths}
     executables=[runtime/'libSPDZ.so',runtime.parent/'tls-scratch-fixture',runtime.parent/'tls-stacked-checks']
+    if args.lifetime:
+        executables += [runtime.parent/'tls-lifetime-checks',ROOT/'.deps/sharing-refresh/tls-lifetime-checks',
+                        ROOT/'.deps/sharing-refresh/MP-SPDZ/libSPDZ.so']
     products={str(p.relative_to(ROOT)):digest(p) for p in executables}
     baseline=ROOT/'.deps/sharing-refresh/MP-SPDZ'
     shape_backend=ROOT/'.deps/sharing-refresh/tls-application-shapes-v2'
@@ -74,11 +100,19 @@ def main():
             'parties':5,'threshold':2,'statistical_security_parameter':128,
             'binary_field_degree':128,'native_mpc_executed':False,
             'full_vm_erasure_implemented':False,'application_execution_enabled':False,
+            'fixed_field_destruction_cleanup_tested':args.lifetime,
             'scope':'constructed secret VM memory/register objects and temp.Sansp only; explicit host quiescence; no freed allocation, preprocessing or PRNG cleanup',
             'source_sha256':snapshots,'product_sha256':products,
             'program_manifest_sha256':digest(manifest),'logs':str(output.relative_to(ROOT)),
             'stacked_check':'64 packed widths;18720 fields; nested hidden frames, shrink, pop and reuse; ASan/UBSan on test translation unit',
             'cases':[]}
+    if args.lifetime:
+        report['field_lifetime_local_checks']={
+            'candidate':(output/'lifetime-candidate.log').read_text().strip(),
+            'baseline':(output/'lifetime-baseline.log').read_text().strip(),
+            'sanitizers':['address','undefined'],
+            'scope':'fixed field payloads observed in allocator deallocate before free; five native types, vector growth/shrink/clear/replacement and constructor failure; normal library build with sanitized test translation unit',
+            'raw_byte_bigint_live_protocol_and_prng_cleanup':False}
     try:
         for capacity in (6,1029,16385):
             processes=[];logs=[];started=time.monotonic()
@@ -114,7 +148,7 @@ def main():
         report['log_sha256']={str(p.relative_to(ROOT)):digest(p) for p in sorted(output.glob('*.log'))}
         text=json.dumps(report,indent=2)+'\n'
         (output/'report.json').write_text(text)
-        (ROOT/'benchmarks/results/tls-vm-scratch-checks.json').write_text(text)
+        (ROOT/'benchmarks/results'/f'{label}-checks.json').write_text(text)
     if not report['passed']:raise SystemExit('scratch check failed: '+str(output))
 
 
