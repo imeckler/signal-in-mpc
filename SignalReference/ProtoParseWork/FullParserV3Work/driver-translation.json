@@ -1,0 +1,29 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FullParserV3Work/Artifacts/driver/prost.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ProtoParseWork/FullParserV3Work/GeneratedDriver",
+    "-namespace",
+    "ActualMessageDriver",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "binary_sha256": "5ea6276549fac0be5c55ac6608ae8b4efa1dd1b147c15a988543871d8094bbec",
+  "llbc_sha256": "10d11ead37dbe71db4d82972402d024b81f0c1025b85aca22b7120822ad8292d",
+  "generated_sha256": {
+    "Funs.lean": "4a2b92dfb8efe44152be6b5bfba816c7e6c4900f1e5e48a651834e4617f60b6c",
+    "FunsExternal_Template.lean": "120ac7f83dfea63ecfc3a1beaa9689669b68831925e2db3ff78676933fc57706",
+    "Types.lean": "66a8bb8e0af35255472e1c8997aceb8dbb787e3f318275c17361f946facc8d72",
+    "TypesExternal_Template.lean": "aac0c4ab54c153974eb3ee52cd4a585e22aab0d9da4ae12eca5895a6ed125495"
+  },
+  "manual_generated_body_edits": false
+}

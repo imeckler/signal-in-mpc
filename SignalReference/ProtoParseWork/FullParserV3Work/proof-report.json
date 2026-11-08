@@ -1,0 +1,981 @@
+{
+  "candidate_only": true,
+  "full_parser_refinement": false,
+  "lean_exit_code": 0,
+  "modules": [
+    "SuccessScan",
+    "Intervals",
+    "SkipTotality",
+    "DispatcherTotality",
+    "KnownTotality",
+    "MessageTotality",
+    "Suffix",
+    "FieldSuffix",
+    "Numeric.Fixed",
+    "Numeric.Group",
+    "Numeric.Stack",
+    "Numeric.Reference",
+    "Numeric.GroupReference",
+    "GeneratedDriver.TypesExternal",
+    "GeneratedDriver.Types",
+    "GeneratedDriver.FunsExternal",
+    "GeneratedDriver.Funs",
+    "DriverTrace",
+    "DriverTotality",
+    "MessageSuffix",
+    "TraceUniqueness",
+    "Observed",
+    "ObservedProofs",
+    "ObservedCircuit",
+    "ErrorProjection",
+    "KeyErrors",
+    "KeyErrorTable",
+    "SkipErrorDomain",
+    "KnownErrorDomain",
+    "MessageErrorDomain",
+    "DriverErrorDomain"
+  ],
+  "endpoints": {
+    "LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_1": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_invalid": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_3": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_4": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_5": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_6": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_7": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_8": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_9": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_10": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.access_bound": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.get_unchecked_at": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.initialChecks_ok": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_one": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.add_number": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.sub_number": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.shift_number": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.cast8_number": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_two": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.cast32_number": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_refines_artifact": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_bytes_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_invalid": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.prefix_rejected_tenth": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.pack_count": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.mask254_large": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.prefix_accepted": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_2": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_3": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_4": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_5": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_6": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_7": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_8": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_9": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.spqr_10": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.payload_number": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.or_number_shift": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.terminates_of_large": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.payload_zero_of_small": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.terminates_of_small": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.decode_first": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.pack_valueBytes": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipSlice.prefix_one": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.slow_loop_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.slow_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.body_some": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.body_none": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.slice_count_bound": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.stateResult_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.slow_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.finishSlice": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.fast_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.first_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.decode_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.post_bytes": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.decode_bytes_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.decode_refines_artifact": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.run_not_done": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.slow_error_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.fast_error_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.decode_error_post": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipBuf.decode_full_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.wire_reference": [
+      "propext"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.wire_ok": [
+      "propext"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_after_varint": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_after_varint_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_success": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_success_fields": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_invalid": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_from_varint": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.decode_key_reference": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.decode_key_success": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.word_eq_value": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.key_mask": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipKey.keyFields_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.lookup_decoded_past": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.payload_window_end": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.select_decoded_full": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.select_decoded_zero": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.lookup_decoded_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.table_length": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.table_get": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.payload_window_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.payload_actual_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.table_actual_key": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.payload_actual_success": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.decode_prefix_drop": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.contents_drop": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.done_index_positive": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.prefix_count_positive": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.table_actual_success": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.table_actual_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.successful_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.write_after_initialize": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scan_inactive": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scan_before_cursor": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scan_step_interval": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scan_split": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.varint_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.key_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_field_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_group_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_deterministic": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_slice_adapter": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.unknown_dispatch_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.uint32_merge_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_merge_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.message_field_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_suffix": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.suffix_absolute": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.suffix_at_cursor": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.uint32_merge_suffix": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_merge_suffix": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.fixed64_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.fixed64_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.fixed32_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.fixed32_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.fixed_bounds": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.length_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.varint_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.recursion_reject": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.length_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.varint_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.length_bounds": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.start_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.end_in_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.group_stop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.apply_start_depth": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.apply_end_depth": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.select_field_zero": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.write_fields_zero": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.nested_fields_unchanged": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.apply_next": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.write_stack_length": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.write_stack_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.lookup_stack_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_fixed64_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_fixed32_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_length_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_varint_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_varint_error_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_length_error_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_limit_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.depth_predecessor": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.lookup_current_group": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstSkipPlan.actual_end_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.driver_has_remaining_default": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.driver_skip_adapter": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.trace_actual_loop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.merge_trace_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_merge_total": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.message_field_suffix": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.merge_trace_suffix": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.trace_deterministic": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_merge_observation": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.erase_parse": [
+      "propext"
+    ],
+    "FullParserV3.Observed.erase_external": [
+      "propext"
+    ],
+    "FullParserV3.Observed.classify_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.step_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.parse_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.viewCore_map": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.compiled_viewCore_correct": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.error_view_injective": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.diagnostics_only": [
+      "propext"
+    ],
+    "FullParserV3.Observed.key_varint_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_key_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.key_validation_error": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.classify_invalid_range": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.classify_invalid_wire": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.classify_invalid_tag": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.classify_rebase": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.actual_key_error_at": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.varint_error_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.key_error_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.skip_errors_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.bytes_errors_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.uint32_errors_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.message_status_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.Observed.trace_status_represented": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "source_sha256": {
+    "extract_driver.py": "40f7f961d75c0c139b499406a9182183306ed0a2ee4cfedfd86789e21562e190",
+    "SkipTotality.lean": "ff2c9727d3a7c8476aa72e112dfeb63ec0f94f3778f9867d60c19028d73eff5f",
+    "KnownErrorDomain.lean": "8c08890a66b28e6e94e27cf174d7529e191ed1f9da0140b9433deec40eef9e05",
+    "MessageTotality.lean": "39e7f484b34828abe142ea65caa31f33a0c952c6a0a79d66c11e0e08a6f515a2",
+    "KnownTotality.lean": "f8988aa16128403a6be228a744dd5e212bc3d1058540acdc0dff3cf00630d4c4",
+    "Table.lean": "c4d9192286db049e96173269001de4937199da0b83da0694c2b19557e008adff",
+    "MessageErrorDomain.lean": "5c8e155e447cbe1859187babfb3d94596ceb8ee35d93ad28606e85a1b5ac25b9",
+    "audit.py": "d746c93f3b14fecec0c47c8f10029db3e307a374082c4a9e5cbef454710e6c85",
+    "check.py": "f64ddc4a46005a995d739c1744fed2698b5f45ed6446a47017cbb268c2698386",
+    "translate_driver.py": "3d33302c4ece23c20dd84ef1613fb82f2c824ca710a48ace7a10d6c00538c7ce",
+    "DriverTotality.lean": "feea402b0cc19fbac8cc5f8913b75a15c5d7d6455f14d42164cc83df41d845bf",
+    "DecoderTable.lean": "d26b4de83237655978e45f3c7bfbb508cd35b1b99ffd1eaa973931303396b48f",
+    "KeyErrors.lean": "3ad56b514261d53cd5e7c6332d925bc03864990de63ad963a3d663bfca557899",
+    "SuccessScan.lean": "ac05106247abe33b3974ea2838eabf184f744aa5f572025bdaa380b25fb9620d",
+    "ObservedProofs.lean": "902f0f850a487a0a2dc6565f9c6a862284dcf5bf047d230ebcfa9bb057c71ef8",
+    "DriverErrorDomain.lean": "9388fb20d405519fd05c8379775a35423cf84279ddbb61c5c0cafd1e52fcc0d8",
+    "Observed.lean": "5165fa2d25a2e7c4e73cf6ea69b574f506ab289ea39b74cab64fd7ca39274b14",
+    "ObservedCircuit.lean": "438ce6c6e62d73aa5ed66575256489ab4b1b56a5f11f3672e2a10c2d07d39936",
+    "KeyErrorTable.lean": "25d2ad2cc5cb95d7b521725928fd0c021ec8aad536f4c6a127acca715a96b227",
+    "ErrorProjection.lean": "909e65fe785e51a426c44160d02f0106f7a8f3049d814576e49c179db95105a9",
+    "DriverTrace.lean": "b863363618d40e50c2db3c12ef5d9c31a3f38cf17931365f5e2eec82a1d48faa",
+    "TraceUniqueness.lean": "98c38051d3ef91c2083e699a964770d78dc226ef7ae7a59aa6f067e25697b9b2",
+    "MessageSuffix.lean": "a754e6c0c2efea2b1280afe7e8741650e4b65a7325bf5c16d1d34bd2cc206e42",
+    "DispatcherTotality.lean": "c0fd7a5228247d5f535af39fb906900cd26d4fce5c33d6c3ede7e8e43bbebb1a",
+    "Suffix.lean": "4985a9e5b72a63d3f657c7d3d3c3f73dc4190e440deb3c19a84ddef814733c11",
+    "FieldSuffix.lean": "917993d4fb70883d96dacefe43b028c54b02094f7a10fb19eb116ba8301e9b30",
+    "KeyCircuit.lean": "7364b8347064a819e6bdd1d5b6849999b880aadcf52b69b98d76e0a948ce02cb",
+    "SkipErrorDomain.lean": "493432df5f1b3f16bdc61b49d4072b3e48105dc12da784026905fa7208d05cb5",
+    "prepare.py": "a6cb8eb6b73ce962804d5782665c6748e50f91b81a743fe6ce78fbc11c91cb2b",
+    "Intervals.lean": "fb0fe97be71d999d5e9d8cde66abab0c238bafc953cb4b02caabcadacc1de7c6",
+    "Skip/SkipLeaf.lean": "d77f426beca3deca2b14bef9464ace87e7b9772b1e19eca48cb6c36375712e44",
+    "Skip/KeyValue.lean": "d3f94918d5b3413f709ac3661b125b11b2cee222cbc8f5e8227ffde09a91d276",
+    "Skip/SkipSemantics.lean": "2678562b9e4e127370b48aa6eac77412352c15e8a36bf7689a53594a4c7389da",
+    "Skip/KeyReference.lean": "4bac3d110a1354b4db2b27799601ae43322960f88a18e21a6ebcae7a8524714d",
+    "Skip/SkipGroup.lean": "29a5e7eef45323344f65d19ae7053fb9e706149ed617fb9e1502ed036c919f5c",
+    "Numeric/Reference.lean": "bcbe472f086ebd4feddb78009e0a8f785a72dea02f846a09a79bc4e605e1d27a",
+    "Numeric/Group.lean": "0f557880f699950e7621ea8cbf2cfaef27101e8b45984d35be927af1cc3c50d8",
+    "Numeric/GroupReference.lean": "55fa442a52d499472e7c2e5806e6e63cab0bb33090f73d5818ae22396b5088b6",
+    "Numeric/Stack.lean": "6b780141d457297740308afff99a44a7cb7ee37bce452a6f12b30a9c222ab361",
+    "Numeric/Fixed.lean": "bd129ec692214cf538e834ee3eac71668373cfb37b22c3c05d91a46c1a16bf47",
+    "GeneratedDriver/Funs.lean": "4a2b92dfb8efe44152be6b5bfba816c7e6c4900f1e5e48a651834e4617f60b6c",
+    "GeneratedDriver/FunsExternal_Template.lean": "120ac7f83dfea63ecfc3a1beaa9689669b68831925e2db3ff78676933fc57706",
+    "GeneratedDriver/TypesExternal.lean": "2719d09ba0ff51553b6d8e092ff941702a8e6b89db849f6f73b4537043fbdb52",
+    "GeneratedDriver/FunsExternal.lean": "7f29c5ab2dbf386d3af01969544ba645e1f3410a1eaded5325225ded5c790408",
+    "GeneratedDriver/Types.lean": "66a8bb8e0af35255472e1c8997aceb8dbb787e3f318275c17361f946facc8d72",
+    "GeneratedDriver/TypesExternal_Template.lean": "aac0c4ab54c153974eb3ee52cd4a585e22aab0d9da4ae12eca5895a6ed125495",
+    "Skip/Replayed/SliceBridge.lean": "37c87dcd196e31f1e7a9802a39470768a01ee98387c545210ed9f9043954802d",
+    "Skip/Replayed/Consumption.lean": "d341257e1e311f9a960840d338df4ff567aface125c8173b7d1e4ecc7c371daf",
+    "Skip/Replayed/BufModel.lean": "3da4fa508287d5648da097125178f09c513bf58e76211b2e6b2943d4861e34e4",
+    "Skip/Replayed/WrapperReference.lean": "a522dbd8f2cd69c353407186e4ffbc520ca8a16b655b01f4c07692ea36b69a26",
+    "Skip/Replayed/SliceReference.lean": "bda70dd6579a59bada7655ee3466b8e3e323402266e0222e08a98d2780cf04ef",
+    "Skip/Replayed/StateBridge.lean": "d0c8046869a564376d82efa9144f35ade531902032ed16222614c1736cc2c9f3",
+    "Skip/Replayed/ArtifactBridge.lean": "0ad18fb54a8ce07107f89890d634231b87b7aaade2960548576301e3b2afd30f",
+    "Skip/Replayed/SlowReference.lean": "f61265c856f7241a4286c4f1c8a1498f2bef53cd07d9f47fbe39ab47a52433b7",
+    "Skip/Replayed/SliceAdapter.lean": "c8288d39209d89c66b188b45a026af1f31a1b6287373e73aa488dd0c4d165de2"
+  },
+  "log_sha256": "ec6c64f604a0db5123daf1869c0e84624af29065d2551ab1317377af587bd443",
+  "extension_log_sha256": "c84079fa9929940c718071187c913d9b9e58e0448c3f56d57113b13148eb2e5a",
+  "model_search_order": [
+    "ProtoParseWork/ModelCandidate/Build",
+    ".lake/build/lib/lean",
+    "FullParserV3Work/Build",
+    "pinned Aeneas"
+  ],
+  "remaining": [
+    "Prove full numeric scan and group induction against actual driver trace, including v2 error state and exact cursor.",
+    "Connect private observed-state compiler theorem to actual driver; derive production masked-output theorem by erasure."
+  ],
+  "domain": "contiguous valid U8 slices; parser composition target body <=512, six initial absent fields, recursion budget100; modeled successful bounded allocation; diagnostic stack text quotient only"
+}

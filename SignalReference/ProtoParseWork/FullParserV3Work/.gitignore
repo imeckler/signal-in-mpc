@@ -1,0 +1,9 @@
+Build/
+__pycache__/
+*.log
+Artifacts/*/prost.llbc
+Skip/
+Numeric/
+KeyCircuit.lean
+Table.lean
+DecoderTable.lean
