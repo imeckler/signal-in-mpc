@@ -1,0 +1,37 @@
+{
+  "reviewed_at_utc": "2026-11-08T19:21:37.430166+00:00",
+  "commit": "c5a87d2",
+  "decision": "accept bounded private-length parser/compiler refinement within inherited actual-source/model boundary",
+  "proof_report_sha256": "a8ddc11d70228a5e22c92a5f67efa9da4d5c61448ed05377e7e32c6d6a4ca43d",
+  "verified_hash_groups": {
+    "source_sha256": {
+      "count": 22,
+      "mismatches": []
+    },
+    "object_sha256": {
+      "count": 19,
+      "mismatches": []
+    },
+    "verified_inherited_sha256": {
+      "count": 174,
+      "mismatches": []
+    }
+  },
+  "independent_check": "PRIVATE_PARSE_OUTPUT_ROOT=SignalReference/ProtoParseWork/PrivateLengthV1Work/Revisions/final python3 SignalReference/ProtoParseWork/PrivateLengthV1Work/check.py CompiledActual",
+  "exit_code": 0,
+  "printed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "domain": "Every n<=public wire capacity<=512; BE16 length representation; arbitrary upstream validity with canonical eqMask acceptance; target capacity256",
+  "constructor_boundary": "Explicit six-None record and default recursion100; actual generated dispatcher and default merge; Message::decode/Default wrapper not assumed",
+  "model_boundary": "Inherited accepted contiguous safe-index slice and successful bounded allocation/content models; no new correctness/termination axiom",
+  "scope": "Read final API/theorem and independently kernel-checked final compiled composition against receipt-bound dependencies; did not repeat all47 endpoint checks or extraction",
+  "remaining": [
+    "MAC authentication and atomic receive-state integration",
+    "Response schema/source refinement",
+    "Whole session/bootstrap/durability/backend system completion"
+  ],
+  "full_system_complete": false
+}
