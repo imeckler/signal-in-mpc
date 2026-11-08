@@ -1,0 +1,13 @@
+{
+  "fixture_binary_compile_link_passed": true,
+  "native_parties_launched": false,
+  "native_receive_checks_pending": true,
+  "scope": "Public synthetic fixture opens only2 equality bits. Positive first state/root136 omitted, remaining472bytes matched against actual Rust; negative MAC expects all608selected bytes. This is test harness intent, not an executed result.",
+  "binary_sha256": "43b3e4fc9e1239e85e735a8d68a4a09d13045b78ec5b8a7285bc94b5e2d27c40",
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/new_dh_native_check.py": "376370d30d460f7dd016baa8bdba05bfb0d67e1ea592be6a2d9dde8cde82f10c",
+    "signal_backend/SessionTransitionWork/new_dh_native_fixture.cpp": "46f3f073ad4aadcf796cd0d86dedac304cd896d110904e11c45466c8c7afd78a",
+    "signal_backend/SessionTransitionWork/Makefile": "264cb32931d2a88412b39f0f1506f46e88baa0403ca079c5013c9ea046602051",
+    "programs/signal_new_dh_fixture_check.mpc": "8d2ae80df48b4f1665ff507baa3e7591d12516857d5332197f2dd1513cac92d4"
+  }
+}

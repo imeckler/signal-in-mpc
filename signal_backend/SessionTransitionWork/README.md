@@ -118,3 +118,12 @@ transition, so simply opening a predicted fresh key is not sufficient evidence.
 Actual full RustCrypto/session-source refinement, fresh authenticated bootstrap,
 full SPQR KEM phases, retained/skipped receiving paths and durable recovery remain
 open. The production provider does not admit this candidate.
+
+`new_dh_native_check.py` is a separate public-fixture harness. Its C++ binary
+compiles/links, but its build receipt intentionally records **no native execution**
+until the actual runner completes. The planned positive comparison checks status,
+receiving slots/PQ and private plaintext against actual libsignal; it omits the
+fresh136B sender/root region entirely. The planned bad-MAC comparison checks all
+608B against unchanged old state plus zero plaintext. Only two equality bits would
+be opened. This narrower first test will not establish retained fresh-private
+correctness across a reply; the stateful peer preflight prepares that next test.

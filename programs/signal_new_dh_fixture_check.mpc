@@ -1,0 +1,12 @@
+# PUBLIC-FIXTURE-ONLY equality; no state/key value is opened.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+def equal(inputs,outputs):
+ raw=binary_io.read_bits(inputs);result=sbit(1)
+ for i in range(4864):result=result & ~(raw[i]^raw[i+4864])
+ binary_io.write_bits(outputs,[result]*8)
+equal.__name__='signal_new_dh_fixture_equal_4864'
+function=export(equal);Array=sbitvec.get_type(1).Array
+function(Array(9728),Array(8))
