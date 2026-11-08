@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "native_mpc_executed": true,
+  "consecutive_sends": 2,
+  "elapsed_seconds": 121.32028866605833,
+  "party_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "public_fixture_only": true,
+  "opened_outputs": "public fixture Signal wire only; no chain state opened",
+  "native_fixture_sha256": "fde850c49e4f7462e1613f36c56932280b1c03b5fabdc21596b1cdb6b173d016",
+  "manifest_sha256": "749c0ef85236cfb1e12fda4d8c7842e8f172029467ac177c7d17a16e864ec139",
+  "fixture_sha256": "d7297af4523da88df17af019b08bb4b8469267ea28131fa71b5b95e7a3d8eab9",
+  "logs": ".deps/signal-established-native/signal-spqr-send-0-1-1-1-1-0-none-none/fixture-logs",
+  "source_sha256": {
+    "signal_backend/native_check.py": "c10b612af3777e63ce0bfe0a2bb94e3b68aea8fe49e6d6130c24a11c13a8b558",
+    "signal_backend/native_store_fixture.cpp": "4bec91a487298b2d24f1fc4d953733fcf20e0a1db6b237dab452eeff243847f5",
+    "signal_backend/EstablishedSendStore.h": "9d2704f0c17e9d4dd41b87f8730a7eff29f5c625ab08f8823b5766f309442a1a",
+    "signal_backend/SendShape.h": "3453e19ee5557f041cf267c2e6322255835959eb1164824d0ed55a0a9454b2c2",
+    "signal_backend/PrivateGrpcRequest.h": "cac0bf4e50f93708ada5a95db10192b64470429aabbc784c8a50caeb89115945",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "programs/signal_export.mpc": "216fac8b658729b01f665cd5e060fa85e3059e6ad12b0637470c28dc2ea029a1",
+    "signal_backend/prepare.py": "05ec5b3710a15a5333db405867d081ff6ce8ada0bc0235c3249ffd0ac2425b45"
+  },
+  "owned_bits_request_framing_executed": true,
+  "tls_payload_handoff_tested": false,
+  "full_libsignal_session_refinement": false,
+  "application_readiness_gate_opened": false,
+  "production_ready": false,
+  "wan_throughput_measured": false,
+  "closure_files_sha256": {
+    "Programs/Bytecode/signal_send_export-Worker-Public_signal-spqr-send-0-1-1-1-1-0-none-none.json-0.bc": "b27613257a20988e6d18d2a1590becae28c4e6d1cdc7219694a58cf15f066371",
+    "Programs/Bytecode/signal_send_export-Worker-Public_signal-spqr-send-0-1-1-1-1-0-none-none.json-signal_binary_signal_spqr_send_0_1_1_1_1_0_none_none-1.bc": "b7c20563c9c105a7ac218b678aa644a1a7c626f82f373a9d421525aeddb78afe",
+    "Programs/Functions/signal_binary_signal_spqr_send_0_1_1_1_1_0_none_none-sbv:[1456x1]-sbv:[1160x1]": "d7de5bb2da1b5eec655529718507e69427f0fe32ae0552e7aa6072f21cc324ac",
+    "Programs/Schedules/signal_send_export-Worker-Public_signal-spqr-send-0-1-1-1-1-0-none-none.json.sch": "5a73c315249d6f20847284992245cc2eb288b1aeedb160419d9e58d70f631bcd"
+  },
+  "compiled_artifact_sha256": "c5ffdeed09ea1282607aea8eb28358fbc6b08fb6b9964de1009085befe7cec91",
+  "compiler_bit_triples_per_send": 1827067,
+  "compiler_virtual_machine_rounds_per_send": 66553,
+  "timing_scope": "Local process startup plus two consecutive sends and synthetic-wire checking; not steady-state/WAN throughput.",
+  "proof_boundary": "Executable Lean circuit/host transition testing; full actual libsignal session/SPQR state and XEdDSA agreements remain open."
+}

@@ -43,7 +43,12 @@ fixtures construct matching wire but the actual parser rejects their versions;
 these errors are recorded rather than counted as successful message roundtrips.
 `request-report.json` checks framing with the unchanged vendored h2 server parser,
 including HPACK integer-length boundaries. All test inputs are public synthetic
-fixtures. Native fixture evidence, when available, is separate in `native-report.json`.
+fixtures. The five-party native fixture passed two consecutive sends using actual shared
+next-chain state. Only synthetic wire was opened; chain state was retained as
+shares. Native request framing ran without opening the framed result. The
+121.320-second local test includes startup and both calls, and is not a
+steady-state or WAN throughput estimate. Exact hashes and scope are in
+`native-report.json`.
 
 The caller still needs authenticated established-session initialization, complete
 DH/SPQR epoch and chunk state transitions, actual service request protobuf
