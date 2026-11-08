@@ -1,0 +1,7 @@
+'TlsMpc.Signal.PrivateBuffer.length_roundtrip' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.addLoop_masks' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.addLoop_integer' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.less_integer' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.decodeLength_value' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.less_decoded_integer' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateBuffer.Semantics.add_decoded_integer' depends on axioms: [propext, Quot.sound]

@@ -1,0 +1,102 @@
+{
+  "cases": 11,
+  "actual_generated_prost_decoder": true,
+  "actual_private_net_conversion_api_called": false,
+  "validation_boundary": "Explicit copied inspected chat/ws.rs envelope/id checks and chat.rs HTTP status/header conversion, using actual http types.",
+  "network_side_effects": false,
+  "results": [
+    {
+      "accepted": true,
+      "body": "00616263",
+      "body_present": true,
+      "boundary": "actual generated prost; copied inspected private validation",
+      "correlated": true,
+      "header_count": 1,
+      "id": 127,
+      "is_success": true,
+      "message_present": false,
+      "status": 200
+    },
+    {
+      "accepted": false,
+      "error": "invalid HTTP status"
+    },
+    {
+      "accepted": false,
+      "error": "missing id"
+    },
+    {
+      "accepted": false,
+      "error": "response has request"
+    },
+    {
+      "accepted": false,
+      "error": "status exceeds u16"
+    },
+    {
+      "accepted": true,
+      "body": "",
+      "body_present": false,
+      "boundary": "actual generated prost; copied inspected private validation",
+      "correlated": true,
+      "header_count": 0,
+      "id": 127,
+      "is_success": false,
+      "message_present": false,
+      "status": 999
+    },
+    {
+      "accepted": false,
+      "error": "invalid header name"
+    },
+    {
+      "accepted": false,
+      "error": "protobuf:failed to decode Protobuf message: WebSocketResponseMessage.message: WebSocketMessage.response: invalid string value: data is not UTF-8 encoded"
+    },
+    {
+      "accepted": true,
+      "body": "",
+      "body_present": false,
+      "boundary": "actual generated prost; copied inspected private validation",
+      "correlated": true,
+      "header_count": 0,
+      "id": 127,
+      "is_success": true,
+      "message_present": false,
+      "status": 201
+    },
+    {
+      "accepted": true,
+      "body": "",
+      "body_present": true,
+      "boundary": "actual generated prost; copied inspected private validation",
+      "correlated": true,
+      "header_count": 0,
+      "id": 127,
+      "is_success": true,
+      "message_present": false,
+      "status": 200
+    },
+    {
+      "accepted": true,
+      "body": "",
+      "body_present": false,
+      "boundary": "actual generated prost; copied inspected private validation",
+      "correlated": true,
+      "header_count": 0,
+      "id": 127,
+      "is_success": false,
+      "message_present": false,
+      "status": 404
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/RelayServiceWork/check_chat_response.py": "d8151bd07d4316beee066c2ed48330a2fc75cb9af2a269e9855ae69288ac2bff",
+    "signal_backend/Oracle/src/bin/signal-chat-response-oracle.rs": "850af7f893b3f9cff55bd344ee40222df8b2ddb65a964356a1bc1d738e0b143a",
+    "signal_backend/Oracle/build.rs": "7b6164935dc734997d469f7c29f2157743b5d65541fd4cb8750b9d6389e23695",
+    ".deps/libsignal-v0.106.1/rust/net/src/chat.rs": "37b6a7005dc560717ca23b5508a1c4119b6042ff830c14cf594ce76ab6998fb9",
+    ".deps/libsignal-v0.106.1/rust/net/src/chat/ws.rs": "cc62453bcc782f8ffe0b400ce81abc367c8b32433898d3ac6013781b4a82414e",
+    ".deps/libsignal-v0.106.1/rust/net/src/proto/chat_websocket.proto": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5"
+  },
+  "oracle_sha256": "3f5c8e3477bdfc6b5d1e33883cfda7a053248614433f6250fbd0a5eb8c8e9ebe"
+}

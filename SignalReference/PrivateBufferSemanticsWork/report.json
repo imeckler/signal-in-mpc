@@ -1,0 +1,21 @@
+{
+  "kernel_endpoints": 7,
+  "standard_axioms_only": true,
+  "native_reflection_used": false,
+  "proved": [
+    "Byte reassembly and BE16 encode/decode roundtrip",
+    "Decoded BE16 bit-mask integer value",
+    "Actual masked ripple-adder: integer sum plus explicit overflow carry",
+    "Actual masked comparator: unsigned integer comparison",
+    "Actual decoded BE16 addition/comparison for all byte inputs"
+  ],
+  "bounded_kernel_enumeration": "256-byte reconstruction/value and2048 byte/bit mask cases; Boolean full-adder/borrow truth tables.",
+  "general_append_prefix_shift_packing_spec_established": false,
+  "private_hash_padding_semantics_established": false,
+  "source_sha256": {
+    "SignalReference/PrivateBufferSemanticsWork/check.py": "0774d99dac9b1965b87496e787c3227bdb9879a1e7590cae098b4ef6d4fb0779",
+    "SignalReference/PrivateBufferSemanticsWork/Checks.lean": "5e0a823e5d00022d261771d492838da0f9bb9d88af415e269e635fc6590f259c",
+    "TlsMpc/Signal/PrivateBufferSemantics.lean": "74d553805be7d7f67f35da7d1b4c7c41ccb56e2df82a1d87be1fb9782424aa84",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e"
+  }
+}
