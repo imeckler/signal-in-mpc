@@ -1,0 +1,38 @@
+{
+  "scope": "Unaccepted String ABI candidates; no complete response refinement claim",
+  "source_problem": "Generic bytes.replace_with instantiated with Take<&mut B> requires borrowed buffer output which the generic interface omits. Pure Take constructor inline removes only the take-call mismatch; replace_with remains.",
+  "partial_monomorphization": {
+    "exit_code": 101,
+    "source": ".deps/libsignal-vendor/prost-0.14.4/src/encoding.rs:740",
+    "error": "Mismatched trait clause: expected Buf<Take<&mut T1>>; got specialized Buf<Take<&mut _>> dictionary. Pinned Charon rejects its post-transformation LLBC.",
+    "also_failed": "--monomorphize-mut=all; --monomorphize-mut=except-types with required --remove-adt-clauses --lift-associated-types=*"
+  },
+  "full_monomorphization": {
+    "charon_exit_code": 0,
+    "aeneas_exit_code": 2,
+    "error": "Monomorphic DropGuard has no generic lifetimes but its borrowed Vec field uses Erased region; Aeneas rejects type declaration before function translation."
+  },
+  "files_sha256": {
+    "SignalReference/ChatResponseReferenceWork/Artifacts/string_mut/charon.log": "1db7d69a59ee92ee57e5308423aae9a572c1956edc8e470fee03199e73b27547",
+    "SignalReference/ChatResponseReferenceWork/Artifacts/string_mut/inventory.json": "2b4cdffddb32c8868b64f674ca2d3148fa6c31541d7f5e51966df6840b9cf990",
+    "SignalReference/ChatResponseReferenceWork/Artifacts/string_slice/inventory.json": "da85690be1d6623471621c874080d4b08bccd35647dc5aa75f1b32b2a661a8cd",
+    "SignalReference/ChatResponseReferenceWork/string_slice-translate.log": "25c3d6aa23d11c68b40619df17bd52ba4347b41f3e15e1f31a1973021b049a7e",
+    "SignalReference/ChatResponseReferenceWork/Revisions/string-abi-candidates/extract.py": "1d8281a708fe0665c241465e0e30310144ff7d9d0906b0e5b660a67d3b6097bb",
+    "SignalReference/ChatResponseReferenceWork/Revisions/string-abi-candidates/translate.py": "98b2b9f7f2cded4acbd21d94ca8080fa62088ae1af7be749202ce62a02953aef",
+    "SignalReference/ChatResponseReferenceWork/Revisions/string-abi-candidates/Rust/src/lib.rs": "206e764fa42d5413ffa29fb63c9587cf0d8c938881280ff1810f3e02d86c3912",
+    "SignalReference/ChatResponseReferenceWork/Revisions/string-abi-candidates/inline_take_constructor.py": "89a041371daa1c3f2b6d92c66690016f601ab7fb56638126b4615ce3842dfc06",
+    "SignalReference/ChatResponseReferenceWork/Revisions/string-abi-candidates/take-constructor-inline.json": "cbaafe5e19055efa3d6394695ef149e1fd51a67a905d9550383a57597eb2b56d"
+  },
+  "accepted_progress": [
+    "dfdbbe7 typed owned wrapper; exact native differential66408",
+    "b231c88 actual default merge driver and key totality",
+    "5e973f1 concrete borrowed forget helper specialization",
+    "cbdd824 actual HTTP conversion to both Core finish flags"
+  ],
+  "remaining": [
+    "Actual full chat dispatcher/string/headers/streaming all-outcomes composition",
+    "std UTF8 raw-pointer validator body bridge remains an explicit independent boundary",
+    "Full internal String mutation refinement; owned error projection is already separately proved"
+  ],
+  "active_handles": []
+}
