@@ -72,8 +72,8 @@ public:
             case Opcode::rotate_send: in.done();session.rotate_send();return {};
             case Opcode::rotate_receive: in.done();session.rotate_receive();return {};
             case Opcode::abort:
-                in.done(); session.abort(); failed=true;
-                throw std::runtime_error("native VM erasure not implemented; process teardown required");
+                in.done(); {bool erased=session.abort();failed=true;transport.close();
+                    public_require(erased,"native VM erasure capability failed or unavailable");return {};}
             }
             throw std::runtime_error("unknown worker operation");
         } catch(...) { failed=true; transport.close(); session.abort(); throw; }

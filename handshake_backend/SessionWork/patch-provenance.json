@@ -1,0 +1,33 @@
+{
+  "source_archive": {
+    "version": "0.4.4",
+    "commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+    "repository": "https://github.com/data61/MP-SPDZ",
+    "source_archive_url": "https://api.github.com/repos/data61/MP-SPDZ/tarball/v0.4.4",
+    "source_archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+    "purpose": "unverified experimental execution backend"
+  },
+  "layers": {
+    "handshake_backend/ScratchWork/vm-scratch.patch": "0e187cc3f7f23fb7bc27ebd8eda9ac74b39bc4c88e5e8e7407cc961b18a3d40e",
+    "handshake_backend/LifetimeWork/fixed-field-lifetime.patch": "242dd0afb925782a60fe1a8468b82bca2648e4e446f31eeabd0e10249e851b19",
+    "handshake_backend/ByteBufferWork/serialized-buffer.patch": "d5d374a30698e82d897db7ae6c413150ca2f9e85dad0f5857d203c034b2b7600",
+    "handshake_backend/EpochWork/runtime-epoch.patch": "10707c8af974b176348eb79f4a4efafa984096831daacfc5d3a41bf708345547",
+    "handshake_backend/LifecycleWork/owned-storage.patch": "f588c13324274164665a803c77279341c06a3397986d58977280222f591ecd6f",
+    "handshake_backend/TransportEpochWork/transport-epoch.patch": "76f1a737ee0dbdaea9a9d5d7b91096333244b1c4cf872b13eeafe9bd1db0bda0"
+  },
+  "patch_sha256": "8ec374023c7513210ea42007954ed0266b066e629e9f0a3be72870d00aca8833",
+  "script_sha256": "0bc4acc565e4e2d6ec22eb1f89750a286e22dd2a4e2b59d8dc32e5555a306526",
+  "files": {
+    "Processor/Machine.h": {
+      "before": "a2ba5320a0bb3afe3164c77aca81923b9134078993f9b8811d0874607efa6c11",
+      "after": "3ae56e445cef9afd00e8cbbecf67fdfa2d741bdb0b690532358b16ae549880f3"
+    },
+    "Processor/Machine.hpp": {
+      "before": "9679b23328ba1a2bb15faeea8544f66b179fbd4575caf03c09d48d6736481fa8",
+      "after": "16fcc9afe466973688a8de3046dd8b17060556d7c45a64ed6eec0a8da909bd42"
+    }
+  },
+  "abi_requires_complete_rebuild": true,
+  "application_execution_enabled": false,
+  "full_vm_erasure_implemented": false
+}

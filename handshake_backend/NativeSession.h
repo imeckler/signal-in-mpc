@@ -1,5 +1,6 @@
 #pragma once
 #include "NativeWorker.h"
+#include "SessionLifecycle.h"
 #include "SessionPolicy.h"
 #include "ApplicationPolicy.h"
 #include "ShapeCompiler.h"
@@ -14,6 +15,7 @@ class Session {
     Machine<Share>& machine;
     Worker worker;
     ShapeCompiler* shapes;
+    SessionLifecycle* lifecycle;
     SessionPolicy policy;
     struct Traffic { Bits secret, key, iv; };
     Traffic client_hs, server_hs, client_app, server_app;
@@ -56,7 +58,8 @@ class Session {
         return {std::move(secret), bytes(output, 0, 16), bytes(output, 16, 12)};
     }
     void require_application() const {
-        require(policy.phase()==SessionPolicy::Phase::application && application_ready,
+        require(policy.phase()==SessionPolicy::Phase::application && application_ready &&
+            lifecycle && lifecycle->application_allowed(),
             "application unavailable before actual handshake-state retirement");
     }
     static Bytes sequence_bytes(uint64_t sequence) {
@@ -85,12 +88,12 @@ class Session {
         return result;
     }
     template<class F> auto guarded(F&& operation) -> decltype(operation()) {
-        try { return operation(); }
+        try { require(!lifecycle || lifecycle->host_active(),"private work requires erased host call"); return operation(); }
         catch (...) { abort(); throw; }
     }
 public:
-    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr)
-        : machine(machine), worker(machine, pinned),shapes(shapes) {}
+    explicit Session(Machine<Share>& machine, const PinnedPrograms& pinned,ShapeCompiler* shapes=nullptr,SessionLifecycle* lifecycle=nullptr)
+        : machine(machine), worker(machine, pinned),shapes(shapes),lifecycle(lifecycle) {}
     Session(const Session&)=delete;
     Session& operator=(const Session&)=delete;
     ~Session(){abort();}
@@ -152,10 +155,20 @@ public:
         });
     }
     void retire() {
-        // Do not enable application_ready until *all* scalar/handshake copies
-        // in the VM and preprocessing/processor buffers are actually erased.
-        guarded([&] { require(policy.phase()==SessionPolicy::Phase::application,"invalid retirement phase");
-            throw std::runtime_error("native VM retirement/erasure not implemented"); });
+        guarded([&] {
+            require(policy.phase()==SessionPolicy::Phase::application && !application_ready,
+                "invalid or repeated retirement phase");
+            require(lifecycle,"native VM retirement/erasure capability unavailable");
+            worker.erase_owned_scalar();
+            for(auto* traffic:{&client_hs,&server_hs}) {
+                traffic->secret.clear();traffic->key.clear();traffic->iv.clear();
+            }
+            main_secret.clear();
+            lifecycle->renew_epoch();
+            // application_allowed stays false until the host-call stack wipe
+            // barrier completes. The dispatcher replies only after that barrier.
+            application_ready=true;
+        });
     }
     // Internal same-worker producer interface, never a public RPC importing or
     // opening bytes. Signal/H2 circuits may retain their fixed-shape output here.
@@ -163,6 +176,9 @@ public:
         return guarded([&] { require_application(); require(payload.size()%8==0 && payload.size()<=16384*8,"invalid fixed payload");
             size_t size=payload.size()/8;
             return retain({std::move(payload),{},size,true}); });
+    }
+    Bits evaluate_signal(const signal_mpc::SendShape& shape,Bits input) {
+        return guarded([&] { require_application();return worker.signal(shape,std::move(input)); });
     }
     Bytes seal_application(uint64_t sequence,uint64_t handle,size_t size,size_t padding) {
         return guarded([&] { require_application();
@@ -225,15 +241,14 @@ public:
     void rotate_send() {
         guarded([&] { require_application();application_policy.rotated_send();
             auto next=traffic(eval("tls-update-traffic",client_app.secret,32));
-            // This must be replaced by real retirement before enabling apps.
-            (void)next;throw std::runtime_error("native traffic-key erasure not implemented"); });
+            client_app=std::move(next);lifecycle->renew_epoch(); });
     }
     void rotate_receive() {
         guarded([&] { require_application();application_policy.rotated_receive();
             auto next=traffic(eval("tls-update-traffic",server_app.secret,32));
-            (void)next;throw std::runtime_error("native traffic-key erasure not implemented"); });
+            server_app=std::move(next);lifecycle->renew_epoch(); });
     }
-    void abort() noexcept {
+    bool abort() noexcept {
         policy.abort();application_policy.abort();application_ready=false;
         worker.erase_owned_scalar();
         for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {
@@ -241,8 +256,8 @@ public:
         }
         main_secret.clear();parser_state.clear();buffers.clear();
         pending_wire.clear();pending_send=false;
+        return lifecycle && lifecycle->abort_epoch();
     }
-    // Abort overwrites current owned shares but NOT runtime/preprocessing copies.
-    // No full erasure success is acknowledged by the RPC dispatcher.
+    // A missing/failed lifecycle capability never acknowledges runtime erasure.
 };
 }

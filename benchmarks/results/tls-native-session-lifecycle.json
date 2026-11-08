@@ -1,0 +1,193 @@
+{
+  "checked_utc": "2026-11-08T04:55:47.465670+00:00",
+  "passed": true,
+  "parties": 5,
+  "threshold": 2,
+  "native_mpc_attempted": true,
+  "native_mpc_executed": true,
+  "full_application_session_accepted": false,
+  "full_vm_erasure_implemented": false,
+  "lifecycle_handshake_retirement_tested": true,
+  "persistent_application_records_tested": false,
+  "wan_throughput_tested": false,
+  "logs": "benchmarks/results/raw/native-session-lifecycle/d195cba0d86a267b",
+  "manifest_sha256": "1ac05f89a5052e5ffe154af5460e30e4df8374c14603c2c7b3ad2e22d59942d3",
+  "source_and_executable_sha256": {
+    "handshake_backend/SessionWork/NativeHandshakeFixture.lean": "d1f5b1fe18cacc439198335cecd2631a8bacf018f321420506c9c48a56da70f4",
+    "TlsMpc/TlsWorkerProcess.lean": "d6737158713cd350658edc420bddc9e72e17847938f27159e373486476bc16d9",
+    "TlsMpc/TlsWorkerPipe.lean": "2f4a7cff4087a0f35830c1f259591099b22ed915562b876818fb513974f500f6",
+    "TlsMpc/TlsWorker.lean": "629e7c20b2973f24d21d889067ba5a24df8e29cc23689dc2ce04e6ccfd98adb4",
+    "TlsMpc/TlsClient.lean": "d059c3360d4f46c1e38f5f045685db9b7f14130aa3c1f621c9888844d4fbf456",
+    "TlsMpc/TlsWire.lean": "98d33a76915b41deaa605eb5df39c95ad4ed5bc2171404150b0d354548d82701",
+    "handshake_backend/public_auth.cpp": "30d04a2da1cfa841165ce482d893ed28dbc81180e02ab50cef0eb3b646c9357a",
+    "handshake_backend/fixture_server.cpp": "1beb9dcb8c4a1bdee407d665bb2ddb5acc0850adac4aace0d63a1c54364c744f",
+    "scripts/check_native_session_lifecycle.py": "a78b73774bfe4d2c4ecbb877d9f56875a85819a2d5422c71c42daf76fea097d4",
+    ".deps/tls-session-runtime/tls-worker": "3013e16f4275e5a3929e836c43247426cd6175af07a2dfd8d4e3744a18a3a18a",
+    "handshake_backend/SessionWork/worker_main.cpp": "108e1da2ce4f6ddcb07a8ebe75d5c7d75734e1142c327d9e8c9a55976aae5a4d",
+    "handshake_backend/ShapeCompiler.h": "cb0dc9fbaea4b74d20ada6e39d36681bc9918fe05cd672a1616ef2de1d7d5f55",
+    "handshake_backend/DaBitOnly.h": "9c2eece68ee6b4d024167bc762b85fec2bef242167c5bdb4c53fbdbdd60b8154",
+    "handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "handshake_backend/SessionPolicy.h": "03e3e8335d6edcb848a29b6240f8f120a6c3d895976b010210efa8329e23cf3e",
+    "handshake_backend/KernelShape.h": "fcfd8f251a468b2a2e3834d75a7a9bfc3b4f85ff4fe84506fcbfce32d3f78b58",
+    "handshake_backend/TcpRecords.h": "e2a8d55f6f047102c87e6248b8da14eed0f6766fa9d0bf48632584bf8c58ec73",
+    "handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
+    "handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
+    "handshake_backend/NativeDispatch.h": "4496be1ab7570a923fdea3030c9329a0da16994c13a2c14e12885191e972eae0",
+    "handshake_backend/NativeCollective.h": "f83b108ac2e5dfcac28b528501c103be8254726bc854ba93790ee9a8a98676f4",
+    "handshake_backend/StrongShamirShare.h": "e8e3bdb0eb030d8972a30fa869b4834ee0c43f7f825b6aa49b58c8cfc9162216",
+    "handshake_backend/ApplicationPolicy.h": "d3ff6b78143714f528af625f5e38e951816fcf2db85dee53072504f92cb0f442",
+    "handshake_backend/PublicProtocol.h": "1dfd11d3b066332bb27f5aa9579baea5233148b014a450e6fdda9757e0ac9389",
+    "handshake_backend/NativeSession.h": "59a21cba530458df9aaa5cfe93cb1a238e6016bc7c528e2dc8835bf423dc43de",
+    "handshake_backend/SessionLifecycle.h": "eb251c3f46fe768f1dcf1a5117490f3f2096ce34a5c5d204771315a7e0259bb8",
+    "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "dc184dda31426122059a93e321803f9c54945abdb3dd2628644aa3febb14da6b",
+    "handshake_backend/SessionWork/ErasedHostCall.h": "798f7bc4eec5b8f6eec31d1e6d8a36bbea027cac0ba4e78294ed0a637f1bbd01",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
+    "handshake_backend/LifecycleWork/SecureGmp.h": "c42d1bdfcb6184869d873be07105f0e4a5717ab2a0a30cad66b98172a542243d",
+    "handshake_backend/SessionWork/session-epoch.patch": "8ec374023c7513210ea42007954ed0266b066e629e9f0a3be72870d00aca8833",
+    "handshake_backend/SessionWork/patch-provenance.json": "4fccf7a94b28e87ee062d0e4cc72777ec26bca191991423d95f3a3f4b6607e74"
+  },
+  "controllers": [
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    }
+  ],
+  "application_gate_activated": true,
+  "server": {
+    "client_finished_accepted": true,
+    "outgoing_records": [
+      {
+        "type": 22,
+        "wire_bytes": 95
+      },
+      {
+        "type": 20,
+        "wire_bytes": 6
+      },
+      {
+        "type": 23,
+        "wire_bytes": 37
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 316
+      },
+      {
+        "type": 23,
+        "wire_bytes": 94
+      },
+      {
+        "type": 23,
+        "wire_bytes": 58
+      },
+      {
+        "type": 23,
+        "wire_bytes": 48
+      }
+    ]
+  },
+  "elapsed_seconds": 114.70855220791418,
+  "controller_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

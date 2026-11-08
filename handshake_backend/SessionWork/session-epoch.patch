@@ -1,0 +1,36 @@
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -118,7 +118,7 @@
+   // Host-exclusive barrier. Destroy per-thread protocol/randomness/prep owners;
+   // the next checked run_function collectively creates fresh ones. Does not
+   // promise complete erasure of machine-global or externally retained storage.
+-  void retire_worker_epoch();
++  void retire_worker_epoch(bool renew_transport = true);
+ 
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -562,10 +562,10 @@
+ }
+ 
+ template<class sint, class sgf2n>
+-void Machine<sint, sgf2n>::retire_worker_epoch()
++void Machine<sint, sgf2n>::retire_worker_epoch(bool renew_transport)
+ {
+   // Validate before mutation. In particular, never consume someone else's job.
+-  if (ThreadQueue::thread_queue or threads.empty() or
++  if (ThreadQueue::thread_queue or (threads.empty() and renew_transport) or
+       threads.size() != tinfo.size() or queues.size() != threads.size() or
+       not active_threads.empty())
+     throw runtime_error("epoch retirement requires initialized quiescent host");
+@@ -595,7 +595,8 @@
+   auto previous_player = P;
+   P = nullptr;
+   delete previous_player;
+-  P = new CryptoPlayer(N, "machineepoch" + to_string(worker_epoch));
++  if (renew_transport)
++    P = new CryptoPlayer(N, "machineepoch" + to_string(worker_epoch));
+   // Host-owned FunctionArgument/output shares deliberately survive. Memory
+   // sizes and all protocol owners are rebuilt by prepare on the next call.
+ }
