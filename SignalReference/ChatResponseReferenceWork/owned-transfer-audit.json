@@ -1,0 +1,895 @@
+{
+  "candidate_only": true,
+  "scope": "Actual generated owned decode wrapper control/error projection; merge is an explicit dictionary operation, NOT a proved response decoder.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/check_owned_transfer.py": "8f13a08c56b348beb07b66c437822066510b2d6f5efedfa52bc7537ab5ff379c",
+    "SignalReference/ChatResponseReferenceWork/replay_owned_slice.py": "5fa43614051fb0b92134bda32053cbaee2c1a4c1ee1b806e0afcf8d2e1aa04ab",
+    "SignalReference/ChatResponseReferenceWork/owned-slice-replay.json": "86d122aa36ba6faf968c3e14b1d8cc8d36e6bb0dc0d34d8670f303a85d7a0d74",
+    "SignalReference/ChatResponseReferenceWork/owned-slice-transfer.diff": "bf171d72aa4cf3d261f261feda49118a6e685b4089a94f1bfc847ca6c4aa05f1",
+    "SignalReference/ChatResponseReferenceWork/Rust/src/owned_slice_replay.rs": "eda1d9d8531c6d6dc86cdf9ba2a5d63cad213ff17bb489cbc06911014a3daca1",
+    "SignalReference/ChatResponseReferenceWork/Rust/src/bin/owned-decode-check.rs": "d600bd4ac88d1c84ba67e1907f2eec9cabed2c0c757e5b443443c684edec39c9",
+    "SignalReference/ChatResponseReferenceWork/Rust/src/lib.rs": "41da69c031bfea123c9d66314856062352f639f25f3fdf8eb1fd684dec7a8977",
+    "SignalReference/ChatResponseReferenceWork/Rust/Cargo.lock": "5a1345de877a703d8b65bbb7b36250eb4baf825e9ee691123da9da226cc977ea",
+    "SignalReference/ChatResponseReferenceWork/extract.py": "885e4a151c3c2f315b120faa5c940ae4f2f12cbe9d29175be59deb3d58a8a5cc",
+    "SignalReference/ChatResponseReferenceWork/translate.py": "ad41668c9f666a4d76f4fff42d5729035bcf75a15a4c13b0af21ce1536ca505d",
+    "SignalReference/ChatResponseReferenceWork/OwnedTransferredReference.lean": "d132451f6a344f9ff59814c0e6fbde913a44986872724ae7c776dbf795013690",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/Funs.lean": "3fa6fbbaa788ad1ecf63360e30e8215ca9de841ea7ca7f75d06d003eb9b142a5",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/FunsExternal.lean": "0a6126ec791c7467c7d89127bd5aa3169b3468bd67d391a5b2af1a4195fbfdeb",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/FunsExternal_Template.lean": "1f9fa175c2558c7d7dac7c32bc1be3693207ef9401af1c7a6d74ff42260536dc",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/Types.lean": "73f8c5417275dc7854c0f446ec2af8439ce844af12493a696246179fd3781bc4",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/TypesExternal.lean": "277f18e69b0f6b4c78a94331cd6face14e6dcc9baabc7f176484bd350e712cc2",
+    "SignalReference/ChatResponseReferenceWork/GeneratedOwnedTransferred/TypesExternal_Template.lean": "5a174b82b681a64096f066ed78d9d26388d46a196c725eb700bba4342669fd7b"
+  },
+  "objects": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-transfer-audit/ChatResponseReferenceWork/GeneratedOwnedTransferred/TypesExternal.olean": "b37a78022ce8bc3e8e191b4e795d85dd8ec560ce8ce24e3d97b7f5f1228fc08d",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-transfer-audit/ChatResponseReferenceWork/GeneratedOwnedTransferred/Types.olean": "b3ca6ad9291af5c307a61beb56562e4086d1b2c7b7a6e9f943883260fc015a58",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-transfer-audit/ChatResponseReferenceWork/GeneratedOwnedTransferred/FunsExternal.olean": "beaa616457236a73f9da4c71dfadf68d7eda525df7516c3b0361d618f8178f5b",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-transfer-audit/ChatResponseReferenceWork/GeneratedOwnedTransferred/Funs.olean": "ce8890a456c256cfd1aa97e112d9c93f464b6c6af8c05d270865588716253d29",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Revisions/owned-transfer-audit/ChatResponseReferenceWork/OwnedTransferredReference.olean": "943fefe9c3d7f301c40ada392344aaf20321e6a69429e85a0fc410843849ef46"
+  },
+  "extraction": {
+    "tool_versions": {
+      "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+      "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+    },
+    "verified_vendor_files": 91,
+    "generated_rust_sha256": {
+      ".deps/chat-response-charon-target/owned_transferred/aarch64-apple-darwin/debug/build/chat-response-reference/643effb9a09e2001/out/signal.proto.chat_websocket.rs": "728cbb2e5765ea2fc05ef5dc2c6d628261d0e598c50667839e1f2106022d63d6"
+    },
+    "candidate_only": true,
+    "profile": "owned_transferred",
+    "charon_exit_code": 0,
+    "source_patches": [],
+    "llbc_preprocessing": false,
+    "actual_net_bytes_generator_options": true,
+    "private_validator_api_called": false,
+    "command": [
+      "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+      "cargo",
+      "--preset=aeneas",
+      "--no-dedup-serialized-ast",
+      "--sysroot=default",
+      "--error-on-warnings",
+      "--start-from=crate::owned_slice_replay::decode_buffer",
+      "--opaque=prost::message::Message::merge",
+      "--include=prost::error::DecodeError",
+      "--include=prost::error::Inner",
+      "--opaque=crate::chat_websocket::*::merge_field::*::call_once",
+      "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/owned_transferred/chat.llbc",
+      "--",
+      "--lib",
+      "--locked",
+      "--offline"
+    ],
+    "source_sha256": {
+      "SignalReference/ChatResponseReferenceWork/extract.py": "885e4a151c3c2f315b120faa5c940ae4f2f12cbe9d29175be59deb3d58a8a5cc",
+      "SignalReference/ChatResponseReferenceWork/Rust/Cargo.toml": "c8cfab726eea5dcf019b4fb7c94aaebc32720ae5f112f1efb8165f875c1f98f7",
+      "SignalReference/ChatResponseReferenceWork/Rust/Cargo.lock": "5a1345de877a703d8b65bbb7b36250eb4baf825e9ee691123da9da226cc977ea",
+      "SignalReference/ChatResponseReferenceWork/Rust/build.rs": "fbba70b1f7a627367ea9354173bcf0a0f0330af95d00cfb67b3ffee4304c9477",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/lib.rs": "41da69c031bfea123c9d66314856062352f639f25f3fdf8eb1fd684dec7a8977",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/validation_replay.rs": "131eeef2c0b5887bdd6b8f4a889e5b46c757a876a50f6268084291c681535494",
+      "SignalReference/ChatResponseReferenceWork/Rust/src/owned_slice_replay.rs": "eda1d9d8531c6d6dc86cdf9ba2a5d63cad213ff17bb489cbc06911014a3daca1",
+      "SignalReference/ChatResponseReferenceWork/replay_validation.py": "77a70d527846ee4e827d2f1614847805bf9bfb5aeaf3dee5bec87696df173bd8",
+      "SignalReference/ChatResponseReferenceWork/replay_owned_slice.py": "5fa43614051fb0b92134bda32053cbaee2c1a4c1ee1b806e0afcf8d2e1aa04ab",
+      ".deps/libsignal-v0.106.1/rust/net/build.rs": "a49f4afc72cea93db2c7cb86720a15c147918dc0404bbe291133581cf427ebe0",
+      ".deps/libsignal-v0.106.1/rust/net/src/proto/chat_websocket.proto": "e67351b52fb4ef39091f9b3ee0934a88979255c368548adcec42133447b6c0a5",
+      ".deps/libsignal-v0.106.1/rust/net/src/chat.rs": "37b6a7005dc560717ca23b5508a1c4119b6042ff830c14cf594ce76ab6998fb9",
+      ".deps/libsignal-v0.106.1/rust/net/src/chat/ws.rs": "cc62453bcc782f8ffe0b400ce81abc367c8b32433898d3ac6013781b4a82414e"
+    },
+    "llbc_sha256": "2c8f0ca589cc546fb32e49b51a16af24af0c8f492e894b35da03738ac2cf99c5",
+    "charon_version": "0.1.245",
+    "has_errors": false,
+    "counts": {
+      "type_decls": 21,
+      "fun_decls": 8,
+      "global_decls": 0,
+      "trait_decls": 10,
+      "trait_impls": 5,
+      "ordered_decls": 27
+    },
+    "body_kinds": {
+      "Structured": 3,
+      "Opaque": 5
+    },
+    "external_functions": [
+      {
+        "id": 1,
+        "name": "core::result::{impl}::map",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 832,
+              "col": 4
+            },
+            "end": {
+              "line": 834,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "prost::message::Message::merge",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 2,
+            "beg": {
+              "line": 126,
+              "col": 4
+            },
+            "end": {
+              "line": 128,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 96,
+        "name": "core::result::Result::{impl}::drop_glue",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 558,
+              "col": 0
+            },
+            "end": {
+              "line": 558,
+              "col": 21
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "alloc::str::{impl}::to_owned",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 250,
+              "col": 4
+            },
+            "end": {
+              "line": 250,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 145,
+        "name": "alloc::str::{impl}::borrow",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 231,
+              "col": 4
+            },
+            "end": {
+              "line": 231,
+              "col": 28
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "external_or_union_types": [
+      {
+        "id": 5,
+        "name": "prost::encoding::DecodeContext",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 16,
+            "beg": {
+              "line": 37,
+              "col": 0
+            },
+            "end": {
+              "line": 37,
+              "col": 24
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 6,
+        "name": "prost::error::EncodeError",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 10,
+            "beg": {
+              "line": 185,
+              "col": 0
+            },
+            "end": {
+              "line": 185,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "alloc::vec::Vec",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 17,
+            "beg": {
+              "line": 436,
+              "col": 0
+            },
+            "end": {
+              "line": 436,
+              "col": 96
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 10,
+        "name": "core::io::io_slice::IoSlice",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 20,
+            "beg": {
+              "line": 189,
+              "col": 0
+            },
+            "end": {
+              "line": 189,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 12,
+        "name": "bytes::bytes::Bytes",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 22,
+            "beg": {
+              "line": 101,
+              "col": 0
+            },
+            "end": {
+              "line": 101,
+              "col": 16
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 13,
+        "name": "bytes::buf::take::Take",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 23,
+            "beg": {
+              "line": 13,
+              "col": 0
+            },
+            "end": {
+              "line": 13,
+              "col": 18
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 14,
+        "name": "bytes::buf::chain::Chain",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 24,
+            "beg": {
+              "line": 30,
+              "col": 0
+            },
+            "end": {
+              "line": 30,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 15,
+        "name": "bytes::buf::reader::Reader",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 25,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 21,
+        "name": "bytes::buf::uninit_slice::UninitSlice",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 27,
+            "beg": {
+              "line": 22,
+              "col": 0
+            },
+            "end": {
+              "line": 22,
+              "col": 22
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 22,
+        "name": "bytes::buf::limit::Limit",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 28,
+            "beg": {
+              "line": 9,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 19
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 23,
+        "name": "bytes::buf::writer::Writer",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 29,
+            "beg": {
+              "line": 11,
+              "col": 0
+            },
+            "end": {
+              "line": 11,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 25,
+        "name": "alloc::string::String",
+        "kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 31,
+            "beg": {
+              "line": 353,
+              "col": 0
+            },
+            "end": {
+              "line": 353,
+              "col": 17
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "id": 0,
+        "name": {
+          "Local": "src/owned_slice_replay.rs"
+        },
+        "crate_name": "chat_response_reference"
+      },
+      {
+        "id": 1,
+        "name": {
+          "Local": "src/lib.rs"
+        },
+        "crate_name": "chat_response_reference"
+      },
+      {
+        "id": 2,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/message.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 3,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/lib.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 4,
+        "name": {
+          "Local": "/rustc/library/core/src/default.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 5,
+        "name": {
+          "Local": "/rustc/library/core/src/lib.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 6,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_impl.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 7,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/mod.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 8,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/lib.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 9,
+        "name": {
+          "Local": "/rustc/library/core/src/result.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 10,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/error.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 11,
+        "name": {
+          "Local": "/rustc/library/core/src/marker.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 12,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/function.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 13,
+        "name": {
+          "Local": "/rustc/library/core/src/ops/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 14,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/buf_mut.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 15,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding/wire_type.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 16,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs"
+        },
+        "crate_name": "prost"
+      },
+      {
+        "id": 17,
+        "name": {
+          "Local": "/rustc/library/alloc/src/vec/mod.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 18,
+        "name": {
+          "Local": "/rustc/library/alloc/src/lib.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 19,
+        "name": {
+          "Local": "/rustc/library/alloc/src/alloc.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 20,
+        "name": {
+          "Local": "/rustc/library/core/src/io/io_slice.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 21,
+        "name": {
+          "Local": "/rustc/library/core/src/io/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 22,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/bytes.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 23,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/take.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 24,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/chain.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 25,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/reader.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 26,
+        "name": {
+          "Local": "/rustc/library/alloc/src/boxed.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 27,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/uninit_slice.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 28,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/limit.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 29,
+        "name": {
+          "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/bytes-1.12.0/src/buf/writer.rs"
+        },
+        "crate_name": "bytes"
+      },
+      {
+        "id": 30,
+        "name": {
+          "Local": "/rustc/library/core/src/ptr/mod.rs"
+        },
+        "crate_name": "core"
+      },
+      {
+        "id": 31,
+        "name": {
+          "Local": "/rustc/library/alloc/src/string.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 32,
+        "name": {
+          "Local": "/rustc/library/alloc/src/borrow.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 33,
+        "name": {
+          "Local": "/rustc/library/alloc/src/str.rs"
+        },
+        "crate_name": "alloc"
+      },
+      {
+        "id": 34,
+        "name": {
+          "Local": "/rustc/library/core/src/borrow.rs"
+        },
+        "crate_name": "core"
+      }
+    ],
+    "explicit_exclusions": [],
+    "explicit_opaque_patterns": [
+      "prost::message::Message::merge",
+      "crate::chat_websocket::*::merge_field::*::call_once"
+    ],
+    "preset_hidden_traits": [
+      "core::marker::Sized",
+      "core::marker::MetaSized",
+      "core::marker::PointeeSized",
+      "core::marker::Tuple",
+      "core::clone::TrivialClone",
+      "core::alloc::Allocator"
+    ],
+    "translation_options": {
+      "preset": "Aeneas",
+      "sysroot": "default",
+      "monomorphize": false,
+      "monomorphize_mut": null,
+      "extract_opaque_bodies": false,
+      "precise_drops": false,
+      "desugar_drops": false,
+      "skip_borrowck": false,
+      "no_typecheck": false,
+      "lift_associated_types": [
+        "*"
+      ]
+    },
+    "entry_patterns": [
+      "crate::owned_slice_replay::decode_buffer"
+    ],
+    "selected_functions": [
+      {
+        "id": 0,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 6,
+              "col": 0
+            },
+            "end": {
+              "line": 9,
+              "col": 5
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 1,
+        "name": "core::result::{impl}::map",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 832,
+              "col": 4
+            },
+            "end": {
+              "line": 834,
+              "col": 53
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 8,
+        "name": "prost::message::Message::merge",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 2,
+            "beg": {
+              "line": 126,
+              "col": 4
+            },
+            "end": {
+              "line": 128,
+              "col": 20
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 94,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer::{impl}::call_once",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 8,
+              "col": 40
+            },
+            "end": {
+              "line": 8,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 95,
+        "name": "chat_response_reference::owned_slice_replay::decode_buffer::closure::{impl}::drop_glue",
+        "body_kind": "Structured",
+        "span": {
+          "data": {
+            "file_id": 0,
+            "beg": {
+              "line": 8,
+              "col": 40
+            },
+            "end": {
+              "line": 8,
+              "col": 51
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 96,
+        "name": "core::result::Result::{impl}::drop_glue",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 9,
+            "beg": {
+              "line": 558,
+              "col": 0
+            },
+            "end": {
+              "line": 558,
+              "col": 21
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 143,
+        "name": "alloc::str::{impl}::to_owned",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 250,
+              "col": 4
+            },
+            "end": {
+              "line": 250,
+              "col": 32
+            }
+          },
+          "generated_from_span": null
+        }
+      },
+      {
+        "id": 145,
+        "name": "alloc::str::{impl}::borrow",
+        "body_kind": "Opaque",
+        "span": {
+          "data": {
+            "file_id": 33,
+            "beg": {
+              "line": 231,
+              "col": 4
+            },
+            "end": {
+              "line": 231,
+              "col": 28
+            }
+          },
+          "generated_from_span": null
+        }
+      }
+    ],
+    "proof_status": "not established by extraction; run the Lean proof checks"
+  },
+  "translation": {
+    "candidate_only": true,
+    "profile": "owned_transferred",
+    "exit_code": 0,
+    "binary_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+    "llbc_sha256": "2c8f0ca589cc546fb32e49b51a16af24af0c8f492e894b35da03738ac2cf99c5",
+    "manual_generated_body_edits": false,
+    "slice_metadata_lowering": false,
+    "translator_candidate_unaccepted": true,
+    "translator_receipt_sha256": "6a94e8d2dc3b9bf67d888a8c4dd1bfa0a60a60826a84b5393f7510e9638d4a43",
+    "command": [
+      "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-dbae191bb9f72719",
+      "-backend",
+      "lean",
+      "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/owned_transferred/chat.llbc",
+      "-dest",
+      "/Users/izzy/repos/tls-mpc/SignalReference",
+      "-subdir",
+      "/ChatResponseReferenceWork/GeneratedOwnedTransferred",
+      "-namespace",
+      "ActualChatResponseOwned_transferred",
+      "-split-files",
+      "-warnings-as-errors",
+      "-no-progress-bar",
+      "-sequential"
+    ],
+    "generated_sha256": {
+      "Funs.lean": "3fa6fbbaa788ad1ecf63360e30e8215ca9de841ea7ca7f75d06d003eb9b142a5",
+      "FunsExternal_Template.lean": "1f9fa175c2558c7d7dac7c32bc1be3693207ef9401af1c7a6d74ff42260536dc",
+      "Types.lean": "73f8c5417275dc7854c0f446ec2af8439ce844af12493a696246179fd3781bc4",
+      "TypesExternal_Template.lean": "5a174b82b681a64096f066ed78d9d26388d46a196c725eb700bba4342669fd7b"
+    }
+  },
+  "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+  "native_differential": "   Compiling chat-response-reference v0.1.0 (/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Rust)\nwarning: enum `ChatProtoDataError` is never used\n --> src/validation_replay.rs:5:17\n  |\n5 | pub(super) enum ChatProtoDataError {\n  |                 ^^^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: enum `ChatMessageProto` is never used\n  --> src/validation_replay.rs:20:17\n   |\n20 | pub(super) enum ChatMessageProto {\n   |                 ^^^^^^^^^^^^^^^^\n\nwarning: function `validate_decoded` is never used\n  --> src/validation_replay.rs:25:15\n   |\n25 | pub(super) fn validate_decoded(msg: MessageProto) -> Result<ChatMessageProto, ChatProtoDataError> {\n   |               ^^^^^^^^^^^^^^^^\n\nwarning: `chat-response-reference` (lib) generated 3 warnings\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running `/Users/izzy/repos/tls-mpc/.deps/chat-response-owned-diff-target/debug/owned-decode-check`\nCompared 66408 actual original/specialized outcomes: 1723 full records, 64685 exact Debug errors\n",
+  "lean_log": "Checking GeneratedOwnedTransferred.TypesExternal\nChecking GeneratedOwnedTransferred.Types\nChecking GeneratedOwnedTransferred.FunsExternal\nChecking GeneratedOwnedTransferred.Funs\nChecking OwnedTransferredReference\n'ChatResponseOwnedTransferred.decode_normal_form' depends on axioms: [propext]\n'ChatResponseOwnedTransferred.decode_error' depends on axioms: [propext]\n",
+  "remaining": [
+    "Universal source equivalence of the narrowly typed buffer transfer is a translation boundary supported by exact source diff and native comparisons.",
+    "Actual default merge/schema/streaming composition is not discharged here.",
+    "std UTF8 raw-pointer body and full internal String DropGuard mutation refinement remain open."
+  ]
+}

@@ -1,0 +1,9 @@
+--- actual/prost/decode-body
++++ specialized/shared-slice-owned-buffer-body
+@@ -1,4 +1,4 @@
+ 
+-        let mut message = Self::default();
+-        Self::merge(&mut message, &mut buf).map(|_| message)
++        let mut message = M::default();
++        M::merge(&mut message, buf).map(|_| message)
+     

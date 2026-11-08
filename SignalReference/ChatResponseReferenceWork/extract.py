@@ -8,7 +8,7 @@ sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 source=canonical.check_sources();pins=canonical.PINS;rust=ROOT/'.deps/rust-nightly-2026-08-18'
 charon=(REF/pins['charon']['directory']/'target/release/charon').resolve()
 profile=sys.argv[1] if len(sys.argv)>1 else 'dispatch'
-profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation','owned_decode','owned_slice']
+profiles=['dispatch','string','uint64','status','status_mono','string_precise','utf8','metadata_positive','metadata_negative','string_drop','validation','owned_decode','owned_slice','owned_transferred']
 assert profile in profiles
 versions={'charon':subprocess.check_output([str(charon),'version'],text=True).strip(),'rustc':subprocess.check_output([str(rust/'bin/rustc'),'--version'],text=True).strip()}
 assert pins['charon']['commit'] in versions['charon'] and pins['charon']['rustc_version']==versions['rustc']
@@ -19,7 +19,9 @@ for package in ['prost-0.14.4','bytes-1.12.0','http-1.4.2']:
 primitive=profile in ('uint64','string','string_precise','string_drop','owned_decode')
 env=os.environ.copy();env.update(PATH=str(rust/'bin')+os.pathsep+env.get('PATH',''),CHARON_TOOLCHAIN_IS_IN_PATH='1',DYLD_LIBRARY_PATH=str(rust/'lib'),LD_LIBRARY_PATH=str(rust/'lib'),CARGO_HOME=str(ROOT/'.deps/libsignal-cargo-home'),CARGO_TARGET_DIR=str(ROOT/'.deps/chat-response-charon-target'/profile),RUSTFLAGS='')
 dest=H/'Artifacts'/profile;dest.mkdir(parents=True,exist_ok=True);llbc=dest/'chat.llbc';(dest/'inventory.json').unlink(missing_ok=True)
-if profile=='owned_slice':
+if profile=='owned_transferred':
+ selected=['--start-from=crate::owned_slice_replay::decode_buffer','--opaque=prost::message::Message::merge','--include=prost::error::DecodeError','--include=prost::error::Inner','--opaque=crate::chat_websocket::*::merge_field::*::call_once']
+elif profile=='owned_slice':
  selected=['--start-from=crate::decode_envelope','--include=prost::message::Message::decode','--monomorphize','--opaque=prost::message::Message::merge','--opaque=prost::encoding::merge_loop','--opaque=prost::encoding::varint::decode_varint','--opaque=prost::encoding::varint::encode_varint']
 elif profile=='owned_decode':
  selected=['--start-from=crate::message::Message::decode','--opaque=crate::message::Message::merge','--opaque=crate::encoding::merge_loop','--opaque=crate::encoding::varint::decode_varint','--opaque=crate::encoding::varint::encode_varint']
@@ -48,7 +50,7 @@ subprocess.run([str(rust/'bin/cargo'),'clean','--package',('prost@0.14.4' if pri
 command=[str(charon),'cargo','--preset=aeneas','--no-dedup-serialized-ast','--sysroot=default','--error-on-warnings',*selected,'--dest-file='+str(llbc),'--',*(['--package','prost@0.14.4'] if primitive else []),'--lib','--locked','--offline']
 llbc.unlink(missing_ok=True)
 with (dest/'charon.log').open('w') as log:r=subprocess.run(command,cwd=H/'Rust',env=env,stdout=log,stderr=subprocess.STDOUT,timeout=240)
-files=[H/'extract.py',H/'Rust/Cargo.toml',H/'Rust/Cargo.lock',H/'Rust/build.rs',H/'Rust/src/lib.rs',H/'Rust/src/validation_replay.rs',H/'replay_validation.py',source/'rust/net/build.rs',source/'rust/net/src/proto/chat_websocket.proto',source/'rust/net/src/chat.rs',source/'rust/net/src/chat/ws.rs']
+files=[H/'extract.py',H/'Rust/Cargo.toml',H/'Rust/Cargo.lock',H/'Rust/build.rs',H/'Rust/src/lib.rs',H/'Rust/src/validation_replay.rs',H/'Rust/src/owned_slice_replay.rs',H/'replay_validation.py',H/'replay_owned_slice.py',source/'rust/net/build.rs',source/'rust/net/src/proto/chat_websocket.proto',source/'rust/net/src/chat.rs',source/'rust/net/src/chat/ws.rs']
 generated=list(Path(env['CARGO_TARGET_DIR']).rglob('signal.proto.chat_websocket.rs'))
 if generated:assert len({sha(p) for p in generated})==1
 report={'tool_versions':versions,'verified_vendor_files':verified,'generated_rust_sha256':{str(p.relative_to(ROOT)):sha(p) for p in generated},'candidate_only':True,'profile':profile,'charon_exit_code':r.returncode,'source_patches':[],'llbc_preprocessing':False,'actual_net_bytes_generator_options':True,'private_validator_api_called':False,'command':command,'source_sha256':{str(p.relative_to(ROOT)):sha(p) for p in files if p.exists()}}

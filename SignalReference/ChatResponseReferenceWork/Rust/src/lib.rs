@@ -47,3 +47,5 @@ mod validation_replay;
 pub fn decode_envelope(input: &[u8]) -> Result<chat_websocket::WebSocketMessage, prost::DecodeError> {
     <chat_websocket::WebSocketMessage as prost::Message>::decode(input)
 }
+
+pub mod owned_slice_replay;

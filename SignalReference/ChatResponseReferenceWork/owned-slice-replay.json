@@ -1,0 +1,18 @@
+{
+  "candidate_only": true,
+  "source": ".deps/libsignal-vendor/prost-0.14.4/src/message.rs",
+  "source_sha256": "466407987e2dfb94640845ac9ec722b249ee9d86e54c1918de225e5da527e27b",
+  "original_function_sha256": "8f5f54b6c598e8b4e4b0d752f6dfdb2184b6d9022430f97a0a30eb2af935069f",
+  "original_body_sha256": "0a92d367ba95fad88b29efd23834ca26cc5f76265b2198c4ec9986f0b24241e5",
+  "output_sha256": "eda1d9d8531c6d6dc86cdf9ba2a5d63cad213ff17bb489cbc06911014a3daca1",
+  "diff_sha256": "bf171d72aa4cf3d261f261feda49118a6e685b4089a94f1bfc847ca6c4aa05f1",
+  "script_sha256": "5fa43614051fb0b92134bda32053cbaee2c1a4c1ee1b806e0afcf8d2e1aa04ab",
+  "domain": "Actual generated WebSocketMessage; immutable contiguous &[u8]; default Message::merge; no observable buffer cursor or slice destructor",
+  "changes": [
+    "Rename Self to the explicit generic Message type; expose the actual generated message and shared-slice Rust wrapper.",
+    "Move the local slice into the same actual default merge instead of creating an unobserved mutable-reference forwarding wrapper."
+  ],
+  "parse_computation_changes": false,
+  "hand_edited_generated_lean": false,
+  "general_buffer_transformation_claim": false
+}

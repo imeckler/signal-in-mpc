@@ -34,3 +34,28 @@ Response work is paused here only because root prioritized the private-length
 SignalMessage parser for the actual receive/DH path. The earlier component
 receipt is bound to commit833ecfd; its historical scripts/source hashes are not
 silently rewritten to match later experimental extraction profiles.
+
+## Owned shared-slice transfer candidate
+
+`check_owned_transfer.py` reproduces the new `owned_transferred` profile. It
+mechanically replays the pinned Prost decode body with generic `M: Message +
+Default` and `B: Buf`, transferring the local buffer into the same merge rather
+than taking `&mut` of that local. The claimed specialization domain is only the
+actual generated WebSocketMessage and contiguous immutable shared slice. It is
+not a general Buf/Drop transformation. The native check compares 66,408 original
+and replayed outcomes (1,723 complete records; 64,685 exact Debug errors).
+
+The generated wrapper now has the correct pair return ABI and kernel-checks
+unchanged. `OwnedTransferredReference.decode_normal_form` and `decode_error`
+preserve outer failure/divergence and the exact owned error while erasing only
+the partial message on Err. Merge remains an explicit dictionary operation;
+there is no assumed merge/default correctness declaration in FunsExternal.
+The unused generated external template is evidence, not an imported axiom.
+The tiny Result.map model follows the native match and closure behavior.
+
+This resolves the wrapper translation obstruction, not response refinement.
+The source-preserving specialization remains an explicit translation boundary;
+full schema/streaming composition and the actual std UTF8 raw-pointer body are
+still open. Scoped String/Vec content and DecodeContext models retain the
+successful bounded-allocation boundary. No full mutable merge-state claim is
+made by an owned-error observation theorem.
