@@ -1,0 +1,11 @@
+{
+  "artifact_sha256": "ac70460c7567c182e2d1b910422380d3bda66fea7b8d020f47355c22774cacef",
+  "manifest_sha256": "52c7b3ec6e30a3d8d62e8436a85008f8ff802dc78a12c4eeddc27899f3d32d97",
+  "native_executed": false,
+  "source_sha256": {
+    "signal_backend/TextNotificationWork/prepare.py": "d4066ddc6873eb434daea37ac2104337d1ba3c2bbf3ba10f43a56f7c1a88c9ad",
+    "programs/signal_text_notification.mpc": "ebd374a3d33d943fc8f7346d4aee50a9d2c85578c8737558fc08ef376f0f7ae0",
+    "SignalReference/PrivateTextNotificationWork/Export.lean": "ba897c4af00248270a4f0eed1be5acdfbb23abd699c7c7dbcc6fc8c361c53c1a",
+    "TlsMpc/Signal/PrivateTextNotification.lean": "1e2bc4490a73010502abe6649e97a29547038e5aa58b9e1c14b6293f01ac26e4"
+  }
+}

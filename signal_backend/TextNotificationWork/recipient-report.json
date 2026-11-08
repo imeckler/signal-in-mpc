@@ -1,0 +1,59 @@
+{
+  "artifact_sha256": {
+    "private-text-48-80.json": "ac70460c7567c182e2d1b910422380d3bda66fea7b8d020f47355c22774cacef",
+    "private-conversation-260-80-none-none.json": "fc49fae8f2d50d70ae33ca59841540878a51e52dc5c39f9bbf1f9cfab4610dbe"
+  },
+  "records": [
+    {
+      "slot": 0,
+      "round": 0,
+      "signal_counter": 127,
+      "pq_counter": 127,
+      "actual_recipient_text_matches": true,
+      "app_plaintext_bytes": 80,
+      "websocket_bytes": 1017
+    },
+    {
+      "slot": 1,
+      "round": 0,
+      "signal_counter": 127,
+      "pq_counter": 127,
+      "actual_recipient_text_matches": true,
+      "app_plaintext_bytes": 80,
+      "websocket_bytes": 1017
+    },
+    {
+      "slot": 0,
+      "round": 1,
+      "signal_counter": 128,
+      "pq_counter": 128,
+      "actual_recipient_text_matches": true,
+      "app_plaintext_bytes": 80,
+      "websocket_bytes": 1017
+    },
+    {
+      "slot": 1,
+      "round": 1,
+      "signal_counter": 128,
+      "pq_counter": 128,
+      "actual_recipient_text_matches": true,
+      "app_plaintext_bytes": 80,
+      "websocket_bytes": 1017
+    }
+  ],
+  "actual_session_receive": true,
+  "actual_prost_outer_Content": true,
+  "minimal_DataMessage_schema": "exact relay messaging.rs derive fields1,6,7",
+  "tamper_and_replay_rejections": 8,
+  "independent_recipient_and_chain_states": true,
+  "selected_established_state_fixture": true,
+  "fresh_session_initialization": false,
+  "native_MPC_executed": false,
+  "pinned_libsignal_commit": "904c8dc8216073b078a5f2f5090e3da8382e6a92",
+  "source_sha256": {
+    "signal_backend/TextNotificationWork/check_recipient.py": "a9d3cd29e8e6828b036c1bc7d41edd27edfcee12099c919a3bac052aab7c83dc",
+    "signal_backend/Oracle/src/bin/signal-text-recipient-oracle.rs": "0cce4f496bfc8a9c0553b1de75f5104b66a0d2e6e0869d6ca97c933606a9125f",
+    "signal_backend/Oracle/build.rs": "1cf80fe3ab949d4bc11b0e3a92b53db7e2a5632fc0ff9e32a442ffb11c07823c",
+    "TlsMpc/Signal/PrivateTextNotification.lean": "1e2bc4490a73010502abe6649e97a29547038e5aa58b9e1c14b6293f01ac26e4"
+  }
+}

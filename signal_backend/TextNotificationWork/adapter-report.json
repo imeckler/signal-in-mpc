@@ -1,0 +1,13 @@
+{
+  "compile_link_and_fixture_dimensions_passed": true,
+  "native_MPC_executed": false,
+  "source_sha256": {
+    "signal_backend/TextNotificationWork/check_adapter.py": "b8daa455208e6d80f23f6468dd1f51bbdad17183cb2c1e17887eea1edb9fe18d",
+    "signal_backend/TextNotificationWork/adapters_probe.cpp": "04b217884ddc0769c49b54b55359f0eb2de74d3498b3585faa821da27f20e0e2",
+    "signal_backend/TextNotificationWork/Makefile": "7ff57231052c3c12a7b6f28b2dace632e6b0d6d6a4b3a912ba07d5f1223c17e9",
+    "signal_backend/TextNotificationWork/NativeTextNotification.h": "3aad91ec59000a8fad305d5419f3914986dddedc7e9b615bf55f8fe649fd2452",
+    "signal_backend/TextNotificationWork/TextNotificationInput.h": "cc4fa96f70da693d8779fabffdac2b55c4e47a341aa7ebb345969a13b50b7103",
+    "signal_backend/TextNotificationWork/PublicTextFixture.h": "e9d1923e8dab21e389efcabff048eba8e8aff854eab917b36fea84c39944ab99",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76"
+  }
+}

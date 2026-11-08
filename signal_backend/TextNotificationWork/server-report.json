@@ -1,0 +1,24 @@
+{
+  "tls13_h1": true,
+  "upgrade_authenticated": true,
+  "actual_session_texts_recovered": 4,
+  "independent_conversations": 2,
+  "actual_sealed_certificate_verified": true,
+  "same_body_request_timestamp_verified": true,
+  "private_client_plaintext_opened": false,
+  "receiver_only_disposable_state": true,
+  "responses_reordered": true,
+  "response_ids_copied": true,
+  "interleaved_pongs_validated": 5,
+  "live_account_side_effects": false,
+  "standard_local_TLS_only": true,
+  "native_MPC_executed_here": false,
+  "source_sha256": {
+    "signal_backend/TextNotificationWork/check_server.py": "f6ac603b2d5c94a4bde7c804d002eba0465c26a28b9bdfd0525c3ca86ca73c09",
+    "signal_backend/TextNotificationWork/fixture_server.py": "ef4873cec817ad61ef9842c814c4fab2c27cf59ee210776fa7b4a4a35f580478",
+    "signal_backend/TextNotificationWork/server-fixtures.json": "9d7bf88b6c4bd2924444462ef3a9453dfb4b7d498ddc6644464d27e01b107eba",
+    "signal_backend/TextNotificationWork/PublicTextFixture.h": "e9d1923e8dab21e389efcabff048eba8e8aff854eab917b36fea84c39944ab99",
+    "signal_backend/TextNotificationWork/prepare_fixtures.py": "0447ef07491a8f0a0368c2663c4bc36ce68dc52789438947b1552da1f8bee718",
+    "signal_backend/Oracle/src/bin/signal-text-recipient-oracle.rs": "0cce4f496bfc8a9c0553b1de75f5104b66a0d2e6e0869d6ca97c933606a9125f"
+  }
+}

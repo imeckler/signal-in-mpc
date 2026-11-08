@@ -1,0 +1,22 @@
+{
+  "cases": 374,
+  "numeric_nodes": 153936,
+  "kernel_endpoints": 4,
+  "foundational_axioms_only": true,
+  "private_text_capacity": 48,
+  "public_iso7816_bucket": 80,
+  "timestamp_body_and_return_identical": true,
+  "utf8_domain": "strict valid UTF8; relay lossy replacement outside this domain is rejected",
+  "native_MPC_executed": false,
+  "actual_session_recipient_tested": false,
+  "actual_prost_valid_fixture_matches": 355,
+  "full_app_schema_refinement_proved": false,
+  "utf8_unicode_semantic_refinement_proved": false,
+  "artifact_sha256": "ac70460c7567c182e2d1b910422380d3bda66fea7b8d020f47355c22774cacef",
+  "source_sha256": {
+    "SignalReference/PrivateTextNotificationWork/check.py": "d2d853b3337734c5e48e585049754cbdd34710727e67579b92f0eddb1b90f570",
+    "SignalReference/PrivateTextNotificationWork/Export.lean": "ba897c4af00248270a4f0eed1be5acdfbb23abd699c7c7dbcc6fc8c361c53c1a",
+    "SignalReference/PrivateTextNotificationWork/Checks.lean": "0e84fab4b148a10ae5b2bd76b7595d166e764f03cb8dd9008a78bd0915a8bda9",
+    "TlsMpc/Signal/PrivateTextNotification.lean": "1e2bc4490a73010502abe6649e97a29547038e5aa58b9e1c14b6293f01ac26e4"
+  }
+}
