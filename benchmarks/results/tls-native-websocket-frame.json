@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "native_mpc_executed": true,
+  "application_gate_changed": false,
+  "scope": "public disposable five-party private chunk activity,HTTP101,fragmentation/control/close composition; no actual TLS/service connection",
+  "cleanup_errors": [],
+  "logs": "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c",
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "sha256": {
+    "TlsMpc/TlsWebSocketUpgrade.lean": "d95759c26e3eabb0abf36c19e56c4dc3719e0347459515fb77978de19ff56c2d",
+    "handshake_backend/WebSocketWork/EmitUpgrade.lean": "ecace3360aa0b07244fcecdb233caebb0f52baba569d775c2714b15574d61efd",
+    "handshake_backend/WebSocketWork/NativeUpgradeResponse.h": "33e26cf748b1caf41b7836134460f8bc749f17b19ae1873d1f50421bd179739d",
+    "handshake_backend/WebSocketWork/frame_native_fixture.cpp": "f5b08ac4cb0b6f7f38aa4c7c13d45f6d3a0a67e6ba9e2010816cdc41ec10a53b",
+    "handshake_backend/WebSocketWork/prepare.py": "48c4e1bf39c31f1f8e77ec3d1f324d3677f0f9896cffc699fcbdb4aa572c3a21",
+    "scripts/check_native_websocket_frame.py": "baed452a11da5abbba29320e6a73a52b65d7af6ff32a6b3ffec23313b3c3bb95",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "handshake_backend/SessionWork/Makefile": "3c68ebfe771f91d488fe4c8e2c65ca60d89a94779ec3fbfd26a76d4bb6f3b9d5",
+    ".deps/tls-session-runtime/tls-websocket-frame-fixture": "ab5f2178a4e066f6982411ecebea5f137cf12a5cb4854a677bb80d484a9d3ca5",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
+    ".lake/build/bin/websocket_upgrade_emitter": "7b11b8d665e6c3e972ac6b1be4abaeca8374f8c56e6031b21225242f1718a24b",
+    ".deps/tls-websocket-upgrade-native/upgrade.manifest": "7717cfa9d207b2382fbd806bf98852ed91c6090c07a07fb6a591b46f1435e3e7",
+    ".deps/tls-websocket-upgrade-native/activity-128.manifest": "46835a7379ec9abc4648c3695a2217f8a8a62b3ecd30e6723f686c459f503354",
+    "TlsMpc/TlsWebSocketActivity.lean": "dff54da777bd32962d27bfa2d51dd30871cf7bc5a71f3e3b400fd4477559d97d",
+    "handshake_backend/PayloadWork/PrivatePayload.h": "34cc3bb8174ab0bda5ae4aba285220829662906e26cdcd9ccdbb705c6a1311e7",
+    "handshake_backend/SessionLifecycle.h": "9b304d48d3f9070556461cbd8d7c25138041961aa19b207c2202bcabe4024d24",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "9ce89ec5437eec310f8c0e941661c66f926cf406666b0646a5b5be45e9d647ec",
+    "TlsMpc/TlsWebSocketFrame.lean": "3f0f388edb0c77b4f632dbba2a1f493c7c63802f303e05f777d4cba5142eb157",
+    "handshake_backend/WebSocketWork/NativeFrame.h": "09bdf671f5235b4e686611d79dbda66cccb90f0e05f075fa0fa0c757fe10ad18",
+    "handshake_backend/WebSocketWork/EmitFrame.lean": "5cd55659b99dbe01fb08271fe186741991524648ea23d6aa1cf521a3521fff3f",
+    "handshake_backend/WebSocketWork/prepare_frame.py": "a3726b35555683b1c7f7d85b7429a4006390f097a53aaa189a3ed222e3d440c5",
+    "handshake_backend/WebSocketWork/Makefile": "ed57daa49b88a7c6c372ed964ee39c9e3b48ce7bc4043e3b7eca0744cb95a72e",
+    ".deps/tls-websocket-upgrade-native/frame-4096.manifest": "e8d4c3ba83f6600de3ded9e1195cb598c5f6dc47730d114036148c02dcc7fb2f",
+    ".lake/build/bin/websocket_frame_emitter": "86885f2d274916910082d8e763238231562827b32a0f1bd0cf9f4e65d5c96012"
+  },
+  "sources_unchanged_at_end": true,
+  "log_sha256": {
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/party-4.log": "97e8a6bb536ae092fd300ed17f0fa994f14158e1097e21f957f633e6495dd474",
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/party-2.log": "97e8a6bb536ae092fd300ed17f0fa994f14158e1097e21f957f633e6495dd474",
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/party-3.log": "97e8a6bb536ae092fd300ed17f0fa994f14158e1097e21f957f633e6495dd474",
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/party-1.log": "97e8a6bb536ae092fd300ed17f0fa994f14158e1097e21f957f633e6495dd474",
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/party-0.log": "97e8a6bb536ae092fd300ed17f0fa994f14158e1097e21f957f633e6495dd474",
+    "benchmarks/results/raw/native-websocket-frame/c6ca9fe355bc1d2c/ssl.log": "c8e7f7541914b607588f572303ea151d3d252215182a43c37673c57f95fc74e9"
+  },
+  "elapsed_seconds": 139.84684629098047
+}
