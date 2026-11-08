@@ -53,6 +53,7 @@ structure Event (B : Type) where
   frameDone : B
   messageDone : B
   controlDone : B
+  controlKind : B
 
 def start (a : ByteAuth.Ops B) (capacity : Nat) : State B :=
   ⟨TlsWebSocketUpgrade.initial a 4,a.const 255,a.const 0,a.const 0,a.const 0,a.const 0,a.const 0,a.const 0,
@@ -131,33 +132,36 @@ def step (a : ByteAuth.Ops B) (capacity : Nat) (s : State B) (x : B) : Event B :
   let next : State B := {s with
     phases := [frameDone,p 0,a.and small extended,p 2,
       either a (a.and ready (a.not empty)) (a.and (p 4) (a.not payloadEnd))],valid := valid,closed := either a s.closed (a.and controlDone (eq a s.opcode 8)),
-    opcode := TlsInner.select a (p 0) op s.opcode,fin := TlsInner.select a (p 0) fin s.fin,
+    opcode := TlsInner.select a frameDone (a.const 0) (TlsInner.select a (p 0) op s.opcode),
+    fin := TlsInner.select a frameDone (a.const 0) (TlsInner.select a (p 0) fin s.fin),
     fragmented := TlsInner.select a (a.and frameDone dat) (a.not s.fin) s.fragmented,
     high := TlsInner.select a (p 2) x (TlsInner.select a ready high
       (TlsInner.select a (p 4) payloadNext.1 s.high)),
     low := TlsInner.select a ready low (TlsInner.select a (p 4) payloadNext.2 s.low),
-    messageHigh := TlsInner.select a newMessage (a.const (capacity/256))
+    messageHigh := TlsInner.select a (either a newMessage messageDone) (a.const (capacity/256))
       (TlsInner.select a (a.and (p 4) dat) messageNext.1 s.messageHigh),
-    messageLow := TlsInner.select a newMessage (a.const capacity)
+    messageLow := TlsInner.select a (either a newMessage messageDone) (a.const capacity)
       (TlsInner.select a (a.and (p 4) dat) messageNext.2 s.messageLow),
-    payloadFirst := TlsInner.select a ready (a.const 255)
-      (TlsInner.select a (p 4) (a.const 0) s.payloadFirst),
-    payloadSecond := TlsInner.select a ready (a.const 0)
+    payloadFirst := TlsInner.select a frameDone (a.const 0) (TlsInner.select a ready (a.const 255)
+      (TlsInner.select a (p 4) (a.const 0) s.payloadFirst)),
+    payloadSecond := TlsInner.select a (either a ready frameDone) (a.const 0)
       (TlsInner.select a (p 4) s.payloadFirst s.payloadSecond),
-    closeCodeHigh := TlsInner.select a (a.and (p 4) s.payloadFirst) x s.closeCodeHigh,
-    closeCodeValid := TlsInner.select a ready (a.const 0)
-      (TlsInner.select a (a.and (p 4) s.payloadSecond) codeNow s.closeCodeValid),
-    utfPhases := TlsWebSocketUpgrade.choose a ready (TlsWebSocketUpgrade.initial a 7)
+    closeCodeHigh := TlsInner.select a (either a ready frameDone) (a.const 0)
+      (TlsInner.select a (a.and (p 4) (a.and (eq a s.opcode 8) s.payloadFirst)) x s.closeCodeHigh),
+    closeCodeValid := TlsInner.select a (either a ready frameDone) (a.const 0)
+      (TlsInner.select a (a.and (p 4) (a.and (eq a s.opcode 8) s.payloadSecond)) codeNow s.closeCodeValid),
+    utfPhases := TlsWebSocketUpgrade.choose a (either a ready frameDone) (TlsWebSocketUpgrade.initial a 7)
       (TlsWebSocketUpgrade.choose a reason utfNext s.utfPhases)}
   ⟨next,a.and valid (a.and (p 4) dat),a.and valid (a.and (p 4) ctl),
-   a.and valid newMessage,a.and valid frameDone,a.and valid messageDone,a.and valid controlDone⟩
+   a.and valid newMessage,a.and valid frameDone,a.and valid messageDone,a.and valid controlDone,
+   a.and valid (a.and controlDone s.opcode)⟩
 
 def State.map (f : B → C) (s : State B) : State C :=
   ⟨s.phases.map f,f s.valid,f s.closed,f s.opcode,f s.fin,f s.fragmented,f s.high,f s.low,
    f s.messageHigh,f s.messageLow,f s.payloadFirst,f s.payloadSecond,f s.closeCodeHigh,
    f s.closeCodeValid,s.utfPhases.map f⟩
 def Event.map (f : B → C) (e : Event B) : Event C :=
-  ⟨e.state.map f,f e.data,f e.controlData,f e.messageStart,f e.frameDone,f e.messageDone,f e.controlDone⟩
+  ⟨e.state.map f,f e.data,f e.controlData,f e.messageStart,f e.frameDone,f e.messageDone,f e.controlDone,f e.controlKind⟩
 def stateSelect (a : ByteAuth.Ops B) (mask : B) (yes no : State B) : State B :=
   ⟨TlsWebSocketUpgrade.choose a mask yes.phases no.phases,
    TlsInner.select a mask yes.valid no.valid,TlsInner.select a mask yes.closed no.closed,
@@ -185,7 +189,7 @@ def readState (a : ByteAuth.Ops B) (raw : List B) : State B :=
   let valid := a.and selected.valid (either a (eq a active 0) (eq a active 255))
   let next := {selected with valid := valid}
   valid :: (ByteAuth.release a (a.and valid active)
-    [event.data,event.controlData,event.messageStart,event.frameDone,event.messageDone,event.controlDone] ++ stateBytes next)
+    [event.data,event.controlData,event.messageStart,event.frameDone,event.messageDone,event.controlDone,event.controlKind] ++ stateBytes next)
 
 section Refinement
 variable {a : ByteAuth.Ops B} {b : ByteAuth.Ops C} {f : B → C} (h : ByteAuth.Hom a b f)
@@ -254,6 +258,7 @@ theorem runByte_map (capacity : Nat) (raw : List B) :
   have eframe := congrArg Event.frameDone mapped
   have emessage := congrArg Event.messageDone mapped
   have econtrolDone := congrArg Event.controlDone mapped
+  have econtrolKind := congrArg Event.controlKind mapped
   change event.state.map f = _ at estate
   change f event.data = _ at edata
   change f event.controlData = _ at econtrol
@@ -261,6 +266,7 @@ theorem runByte_map (capacity : Nat) (raw : List B) :
   change f event.frameDone = _ at eframe
   change f event.messageDone = _ at emessage
   change f event.controlDone = _ at econtrolDone
+  change f event.controlKind = _ at econtrolKind
   have selected := stateSelect_map h (eq a active 255) event.state s
   simp only [TlsWebSocketUpgrade.eq_map h,estate] at selected
   have sv := congrArg State.valid selected
@@ -270,8 +276,8 @@ theorem runByte_map (capacity : Nat) (raw : List B) :
     TlsWebSocketUpgrade.either_map h,List.map_nil,stateBytes_map h]
   rw [validUpdate_map h]
   simp only [h.and,TlsWebSocketUpgrade.eq_map h,TlsWebSocketUpgrade.either_map h]
-  simp only [event,s,active,byte] at selected sv edata econtrol estart eframe emessage econtrolDone
-  rw [sv,selected,edata,econtrol,estart,eframe,emessage,econtrolDone]
+  simp only [event,s,active,byte] at selected sv edata econtrol estart eframe emessage econtrolDone econtrolKind
+  rw [sv,selected,edata,econtrol,estart,eframe,emessage,econtrolDone,econtrolKind]
   simp only [readState_map h,List.map_take,List.map_drop,TlsWebSocketUpgrade.get_map h]
 omit h in
 theorem compiled_runByte_correct (capacity : Nat) (raw : List (BVExpr 8)) (assign : BVExpr.Assignment)

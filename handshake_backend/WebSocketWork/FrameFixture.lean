@@ -23,6 +23,12 @@ def main (args : List String) : IO Unit := do
       let result := step ByteAuth.concrete 4096 acc.1 byte
       unless stateBytes (readState ByteAuth.concrete (stateBytes result.state)) == stateBytes result.state do
         throw (IO.userError "frame state codec failed")
+      if result.frameDone==255 then
+        unless result.state.closeCodeHigh==0 && result.state.closeCodeValid==0 && result.state.fin==0 && result.state.opcode==0 do
+          throw (IO.userError "dead frame scratch retained")
+      if result.messageDone==255 then
+        unless result.state.messageHigh==16 && result.state.messageLow==0 do
+          throw (IO.userError "completed message length retained")
       acc := (result.state,
         if result.data==255 then acc.2.1++[byte] else acc.2.1,
         if result.controlData==255 then acc.2.2.1++[byte] else acc.2.2.1,

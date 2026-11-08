@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "vectors": [
+    {
+      "mode": "collect",
+      "vectors": 152,
+      "artifact_sha256": "fdeb7a1fd740bb4d264e32a9ef2709fb95c4bf9cdf6fae46ee2545d06b3e9ff1"
+    },
+    {
+      "mode": "encode",
+      "vectors": 13,
+      "artifact_sha256": "2597483ae1d73291e64acea8a8364c7a925f7d340595ff932b998f100434aac5"
+    }
+  ],
+  "proof_endpoints": [
+    "step_map",
+    "run_map",
+    "encode_map",
+    "addSix_value",
+    "compiled_run_correct",
+    "compiled_encode_correct"
+  ],
+  "native_mpc_executed": false,
+  "scope": "private control collection/overflow and independent WebSocket header/mask checks; fresh joint randomness/native TLS composition separate",
+  "sha256": {
+    "TlsMpc/TlsWebSocketControl.lean": "b956b6b68a7e7aa4bf9c9e76f695b8466a60bb5e4ee35941118a62c65f52b754",
+    "handshake_backend/WebSocketWork/EmitControl.lean": "27485109e18c92c257bb3fe577ca3db43ed9ad035f3470ad7d00672720550414",
+    "handshake_backend/WebSocketWork/ControlFixture.lean": "09226663dbb31695827f8fe132687f798a72a8d29ecf3dd030d122bce74de6be",
+    "scripts/check_websocket_control.py": "0f69524f4c47141f0b9ae25d82dbfdb752884398b6a20ac9716660a416fa5930",
+    ".lake/build/bin/websocket_control_emitter": "af912feaf3e8d0ffa806f1443d8e3a02b487c10a3a483dbe92ad6285827fd285"
+  }
+}

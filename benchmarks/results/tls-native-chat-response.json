@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "native_mpc_executed": true,
+  "application_gate_changed": false,
+  "scope": "public disposable five-party streaming uint64/uint32/merge/UTF8/body validation and shared request-ID correlation; only three decision bytes opened; no actual TLS/service connection",
+  "cleanup_errors": [],
+  "logs": "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de",
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "sha256": {
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsWebSocketFrame.lean": "ff94d6f8cc0b6b0db14206d660729f8a4c59170979e27877ddf645ead3fcc913",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/Signal/VarintDecode/Spqr.lean": "de5cbc8467cf466c8da7d9582406ea04e9191dbc4b14dc1c3bf53ec2424c9865",
+    "handshake_backend/WebSocketWork/NativeChatResponse.h": "7688ed3fa2b8e1983704810570a1042e624f71a6acad53f6b45393e1ec00f964",
+    "handshake_backend/WebSocketWork/chat_native_fixture.cpp": "83fc3dfaad0a36ac3a7aff037a79ae9fb97f8b3f5ffb9435b8afb70e306035c1",
+    "handshake_backend/WebSocketWork/EmitChatResponse.lean": "80849c72da17e32145747eb7902cb0fc1fc492ec71b5da6da4dc1a531a08244f",
+    "handshake_backend/WebSocketWork/prepare_chat_response.py": "e8909accb41b2cf59911f76fbd11228d06a98c456c7091d9ae30d29193a7b8a7",
+    "scripts/check_native_chat_response.py": "17874a0d8d98e90c57a382230eba0d6094570c5741c06d06800026cfb90bf3d6",
+    "handshake_backend/NativeWorker.h": "06a4fbcc560589fb4ad7c5c7337157c883c55f3ee05f0925a62edaabb6059c76",
+    "handshake_backend/WebSocketWork/Makefile": "eb7f04fdbc8cd893271ffbde6d71d335c3ff255475bb30562b2d5b11cd7d31c3",
+    "handshake_backend/SessionLifecycle.h": "9b304d48d3f9070556461cbd8d7c25138041961aa19b207c2202bcabe4024d24",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "9ce89ec5437eec310f8c0e941661c66f926cf406666b0646a5b5be45e9d647ec",
+    ".deps/tls-session-runtime/tls-chat-response-fixture": "66e77415ac6829049302e496e495c15f84d3ed30c7dc63b0b298a890c5640621",
+    ".deps/tls-session-runtime/MP-SPDZ/libSPDZ.so": "0d41c5b9cac5aba696b25fec24ae4551cdf11c0b8b81517515bab4108337b992",
+    ".lake/build/bin/chat_response_emitter": "ec3a4b744df8e8ca3753947c15c5901c5f7d26c1b1cfbc21cea5e30d9d9f867a",
+    ".deps/tls-websocket-upgrade-native/chat-4096.manifest": "651f5203083f87098f70b261d702354228e71509db279fbec83f59a9656d5fa0"
+  },
+  "sources_unchanged_at_end": true,
+  "log_sha256": {
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/party-4.log": "c20c23704ed93d9c11f88e11226f5049f986522482188230540cdf23e7858819",
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/party-2.log": "c20c23704ed93d9c11f88e11226f5049f986522482188230540cdf23e7858819",
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/party-3.log": "c20c23704ed93d9c11f88e11226f5049f986522482188230540cdf23e7858819",
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/party-1.log": "c20c23704ed93d9c11f88e11226f5049f986522482188230540cdf23e7858819",
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/party-0.log": "c20c23704ed93d9c11f88e11226f5049f986522482188230540cdf23e7858819",
+    "benchmarks/results/raw/native-chat-response/96cbf159c0bcf0de/ssl.log": "69672c681aa7e5298265cfb0a4df0dbc206b0fd826997626ba5a1e1458367d0b"
+  },
+  "elapsed_seconds": 65.62378108291887
+}

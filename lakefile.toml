@@ -44,3 +44,19 @@ root = "handshake_backend.WebSocketWork.EmitActivity"
 [[lean_exe]]
 name = "websocket_frame_emitter"
 root = "handshake_backend.WebSocketWork.EmitFrame"
+
+[[lean_exe]]
+name = "chat_response_checks"
+root = "handshake_backend.WebSocketWork.ChatResponseFixture"
+
+[[lean_exe]]
+name = "chat_response_emitter"
+root = "handshake_backend.WebSocketWork.EmitChatResponse"
+
+[[lean_exe]]
+name = "websocket_control_emitter"
+root = "handshake_backend.WebSocketWork.EmitControl"
+
+[[lean_exe]]
+name = "websocket_control_checks"
+root = "handshake_backend.WebSocketWork.ControlFixture"

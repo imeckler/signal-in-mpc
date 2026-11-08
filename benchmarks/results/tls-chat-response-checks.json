@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "cases": 220,
+  "native_mpc_executed": false,
+  "elapsed_seconds": 80.64528829196934,
+  "scope": "streaming algorithm versus actual generatedprost plus explicitly copied private target validation, mapped compiler and numeric byte-machine checks; no whole-target refinement or native claim",
+  "interface_mask_cases": 4,
+  "compiled_step_vectors": 155,
+  "proof_endpoints": [
+    "step_map",
+    "process_map",
+    "readState_map",
+    "runByte_map",
+    "compiled_runByte_correct"
+  ],
+  "artifact_sha256": "05933c793bec2f20a5f95f825cf950304e85aab9a81aa64dd32067729368dafc",
+  "integration_profile": "UTF8 strings and Unicode trim; one pending response; capacity4096",
+  "sha256": {
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "handshake_backend/WebSocketWork/ChatResponseFixture.lean": "d6532472859ea56768763c8ea19d2663229b5c34732a34c6e7f71613cff3bbdb",
+    "handshake_backend/WebSocketWork/EmitChatResponse.lean": "80849c72da17e32145747eb7902cb0fc1fc492ec71b5da6da4dc1a531a08244f",
+    "scripts/check_chat_response.py": "267adc67bfbe9e56f18e4590b7543376e63986ddd3aca5aaf5db20aae0703db2",
+    ".lake/build/bin/chat_response_checks": "cd2b46fca9c300ac97b0ccb89ec07fe2b9c2d231529ca14f7c14ad37ce66e756",
+    ".lake/build/bin/chat_response_emitter": "ec3a4b744df8e8ca3753947c15c5901c5f7d26c1b1cfbc21cea5e30d9d9f867a"
+  }
+}

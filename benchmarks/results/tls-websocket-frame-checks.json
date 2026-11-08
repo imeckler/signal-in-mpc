@@ -5,12 +5,12 @@
   "native_mpc_executed": false,
   "scope": "private frame algorithm tests and map/kernel byte-decrement proofs; no full frame refinement theorem, native or TLS integration yet",
   "intentional_divergence": "invalid close code rejected directly; pinned tungstenite converts it to protocol-violation close1002",
-  "elapsed_seconds": 54.893989250063896,
+  "elapsed_seconds": 57.89526841707993,
   "sha256": {
-    "TlsMpc/TlsWebSocketFrame.lean": "3f0f388edb0c77b4f632dbba2a1f493c7c63802f303e05f777d4cba5142eb157",
-    "handshake_backend/WebSocketWork/FrameFixture.lean": "78143d32be8211baa1a6588305251a836b493cf8c807b4b25cff1e5edc6624e2",
+    "TlsMpc/TlsWebSocketFrame.lean": "ff94d6f8cc0b6b0db14206d660729f8a4c59170979e27877ddf645ead3fcc913",
+    "handshake_backend/WebSocketWork/FrameFixture.lean": "b783786fe24cfa2b07119058f82490fa03e240d4fe9cf004175304ea38ace37a",
     "scripts/check_websocket_frame.py": "5ed4884f3562e83f45928613d3e1639b5ad3716b1071f43670082566bdee556c",
-    "lakefile.toml": "bfe5287c3c13d6d27e770d5e303e76e44d47ec6f2abd27410fd4953681ab1fbc",
-    ".lake/build/bin/websocket_frame_checks": "fe4cec608f456a88841f9cd392492200db997fc0bca84c37949798e56ccb2ce3"
+    "lakefile.toml": "51e2dcf7e8ba158cabf348443dee018b5ce4defb47b9fed62d504f420a564a5d",
+    ".lake/build/bin/websocket_frame_checks": "1287cc9d1dc0e4b4133ae66e0057612ef5cb7bb323bae5d6ceafa3b8fc590d69"
   }
 }

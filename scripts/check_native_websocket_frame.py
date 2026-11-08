@@ -22,13 +22,13 @@ def main():
       'handshake_backend/SessionLifecycle.h','handshake_backend/SessionWork/NativeLifecycle.h',
       'TlsMpc/TlsWebSocketFrame.lean','handshake_backend/WebSocketWork/NativeFrame.h',
       'handshake_backend/WebSocketWork/EmitFrame.lean','handshake_backend/WebSocketWork/prepare_frame.py',
-      'handshake_backend/WebSocketWork/Makefile','.deps/tls-websocket-upgrade-native/frame-4096.manifest',
+      'handshake_backend/WebSocketWork/Makefile','.deps/tls-websocket-upgrade-native/frame-v2-4096.manifest',
       '.lake/build/bin/websocket_frame_emitter']
     before={name:sha(ROOT/name) for name in names}
     try:
         manifest=output/'upgrade.manifest'
         selected={}
-        for source in (stage/'upgrade.manifest',stage/'activity-128.manifest',stage/'frame-4096.manifest'):
+        for source in (stage/'upgrade.manifest',stage/'activity-128.manifest',stage/'frame-v2-4096.manifest'):
             for line in source.read_text().splitlines()[1:]:
                 digest,name=line.split(' ',1)
                 assert name not in selected or selected[name]==digest
