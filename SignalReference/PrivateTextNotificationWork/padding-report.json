@@ -1,0 +1,14 @@
+{
+  "kernel_endpoints": 5,
+  "foundational_axioms_only": true,
+  "native_reflection": false,
+  "proved": "Actual join/append padding preserves canonical Content payload, appends0x80, zero-fills public80-byte bucket and succeeds for every payload<80B.",
+  "boundary": "Preceding Content buffer equals canonical ofContents record. Full actual protobuf/UTF8 refinement remains separate, not assumed by a success flag.",
+  "source_sha256": {
+    "SignalReference/PrivateTextNotificationWork/check_padding.py": "b8ede3e8a148e064b58a7c204d792f3ed8fbba3197588734410ec83d5ecf06b7",
+    "SignalReference/PrivateTextNotificationWork/PaddingChecks.lean": "d6e3989558a30fd99962fd6493cbc31ec6ec0716e84ceed02be282e8139d5d45",
+    "TlsMpc/Signal/PrivateTextNotificationSemantics.lean": "a04c143bf100ee7e73b97f722bdbef4c6c3f9fe74de2b847cdccf56f7d70edef",
+    "TlsMpc/Signal/PrivateBufferRecordSemantics.lean": "383ed6d20493d0e1e858582a46feabfb6974882f1748d642b2a31f87bd5cd094",
+    "TlsMpc/Signal/PrivateTextNotification.lean": "1e2bc4490a73010502abe6649e97a29547038e5aa58b9e1c14b6293f01ac26e4"
+  }
+}

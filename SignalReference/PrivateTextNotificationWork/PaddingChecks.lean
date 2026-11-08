@@ -1,0 +1,6 @@
+import TlsMpc.Signal.PrivateTextNotificationSemantics
+#print axioms TlsMpc.Signal.PrivateTextNotification.iso7816_contents
+#print axioms TlsMpc.Signal.PrivateTextNotification.iso7816_data
+#print axioms TlsMpc.Signal.PrivateTextNotification.iso7816_status
+#print axioms TlsMpc.Signal.PrivateTextNotification.iso7816_payload_prefix
+#print axioms TlsMpc.Signal.PrivateTextNotification.iso7816_terminator_and_zeros
