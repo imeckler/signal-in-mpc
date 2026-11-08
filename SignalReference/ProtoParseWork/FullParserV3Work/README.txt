@@ -51,3 +51,24 @@ v2 changes; frozen receipts remain evidence of their original definitions.
 KeyCircuit/Table/DecoderTable declarations are unchanged and revalidated with
 narrowed imports. Prior primitive source receipts and model review remain scoped
 assumptions/evidence, not a universal Rust semantics theorem.
+
+Subsequent composition progress: FieldProjection/FieldTransition cover all six
+numeric Options on success and rejection; DispatcherMutation/ErrorMutation prove
+actual generated known-field get-or-insert and old-value retention on every
+error. ScanMasks derives the required masks over the entire numeric scan from
+the actual decoder reference. CursorGuard/KeyFailureCursor connect malformed-key
+v2 cursor to the actual fast/slow error suffix for arbitrary public positions.
+KeyRow derives every successful key/table invariant from the actual key call.
+NestedVarintScan proves one arbitrary successful nested varint's complete scan
+interval, fields, depth, cursor, and status against actual decoder calls. These
+are component cases of the still-open field/group/full driver induction.
+
+SuccessfulSkipScan now proves the full successful finite skip grammar by
+induction, with exact complete public intervals and live frame/field preservation.
+ActualSkipScan discharges finite derivation/termination premises using constructive
+totality and connects actual nested skip_field, actual group loop, and unknown
+top-level StartGroup success. Recursion correspondence is count+liveFrameCount=100
+for field mode and count+outerFrameCount=100 for a group whose current tag is
+already pushed. Matching EndGroup at depth100 is covered. Complete-message
+successful field composition and all-error scan correspondence remain open;
+these success subtheorems do not replace the full rejection observation.

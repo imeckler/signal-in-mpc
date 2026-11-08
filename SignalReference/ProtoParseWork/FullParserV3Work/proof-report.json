@@ -33,7 +33,34 @@
     "SkipErrorDomain",
     "KnownErrorDomain",
     "MessageErrorDomain",
-    "DriverErrorDomain"
+    "DriverErrorDomain",
+    "Numeric.Fields",
+    "Numeric.TopPlan",
+    "FieldProjection",
+    "FieldTransition",
+    "ErrorMutation",
+    "DispatcherMutation",
+    "Masks",
+    "StateMasks",
+    "ScanMasks",
+    "PlanFailure",
+    "CursorGuard",
+    "KeyFailureCursor",
+    "KeyRow",
+    "NumericLeaf",
+    "NestedVarintScan",
+    "NestedFixedScan",
+    "NestedLengthScan",
+    "Frames",
+    "UnknownFields",
+    "GroupNumeric",
+    "GroupHeaderScan",
+    "ScanState",
+    "SkipStrict",
+    "SkipScanLeaves",
+    "SkipScanHeaders",
+    "SuccessfulSkipScan",
+    "ActualSkipScan"
   ],
   "endpoints": {
     "LibSignalReference.Candidate.ProstSkipSlice.preconditions_iff": [
@@ -906,39 +933,414 @@
       "propext",
       "Classical.choice",
       "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.select_field_full": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.write_fields_length": [
+      "propext",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.write_fields_get": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.duplicate_last_value": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.fixed64_unknown_top": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.fixed32_unknown_top": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.length_unknown_top": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.varint_unknown_top": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.scalar_wire_reject": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.bytes_wire_reject": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.scalar_top_mask": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.bytes_top_mask": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "LibSignalReference.Candidate.ProstTopField.top_end_reject": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.message_write_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.message_initialize_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.initialize_get_general": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scalar_initialize_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_initialize_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_top_success_fields": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_fields_length": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_top_success_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_top_error_view": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.uint32_error_value": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.bytes_error_value": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.known_error_initialization": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.prefix_mask": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.plan_mask": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.planWithCursor_mask": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.initialize_masks": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.write_masks": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_masks": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.table_masks": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.step_masks": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.scan_masks": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.parse_masks": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.plan_varint_key_failure": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.table_last_clear_slice": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.key_fast_mask": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.last_byte_drop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.fast_guard_drop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.table_last_clear": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_key_varint_failure_cursor": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_key_row": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_nested_leaf": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.nested_varint_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.nested_fixed_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.nested_length_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.frames_push": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.frames_pop": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.frames_top": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.initialize_unknown": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.write_unknown": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.start_skip_plan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_skip_fields": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_start_frames": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.apply_end_frames": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.group_end_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.group_start_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_nonstart_stack": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.package_leaf_scan": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_nonincrease": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.skip_success_decreases": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.varint_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.fixed_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.length_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.start_header_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.end_header_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.concat_skip_scan": [
+      "propext",
+      "Quot.sound"
+    ],
+    "FullParserV3.successful_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_nested_skip_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_group_success_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "FullParserV3.actual_start_group_scan": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
     ]
   },
   "source_sha256": {
+    "Masks.lean": "78583d279d9d6be73a756f4b3ed3a61ae183732e2a2636e6ef6fb0f0297bbdee",
+    "NumericLeaf.lean": "a65a89cd93904ce269166045a1156c8509fdc8b1600ca41ccdd55312d15b1bcd",
+    "CursorGuard.lean": "68d2178c516bb53dd2047035b36dafdf23648d5ccaeb93e45a2c0608bd4cc0ba",
+    "NestedLengthScan.lean": "286d6649c0f1d606942543b5e1c817f376fb9187642ae549bfa02ed359bcb674",
     "extract_driver.py": "40f7f961d75c0c139b499406a9182183306ed0a2ee4cfedfd86789e21562e190",
+    "ScanMasks.lean": "42648d6cd40c51c963a53ab9afc10dc239e332f38857c640fc40199322a72d87",
+    "Frames.lean": "273e46879e33792bee7ed4feb93361a1fab2af76568dbefebb6d3c693b8ef5f0",
     "SkipTotality.lean": "ff2c9727d3a7c8476aa72e112dfeb63ec0f94f3778f9867d60c19028d73eff5f",
     "KnownErrorDomain.lean": "8c08890a66b28e6e94e27cf174d7529e191ed1f9da0140b9433deec40eef9e05",
     "MessageTotality.lean": "39e7f484b34828abe142ea65caa31f33a0c952c6a0a79d66c11e0e08a6f515a2",
     "KnownTotality.lean": "f8988aa16128403a6be228a744dd5e212bc3d1058540acdc0dff3cf00630d4c4",
     "Table.lean": "c4d9192286db049e96173269001de4937199da0b83da0694c2b19557e008adff",
     "MessageErrorDomain.lean": "5c8e155e447cbe1859187babfb3d94596ceb8ee35d93ad28606e85a1b5ac25b9",
-    "audit.py": "d746c93f3b14fecec0c47c8f10029db3e307a374082c4a9e5cbef454710e6c85",
+    "audit.py": "b29495cafc467669a80c50864011be531f0f68e1179cd20ba941d15bc184cff2",
     "check.py": "f64ddc4a46005a995d739c1744fed2698b5f45ed6446a47017cbb268c2698386",
     "translate_driver.py": "3d33302c4ece23c20dd84ef1613fb82f2c824ca710a48ace7a10d6c00538c7ce",
     "DriverTotality.lean": "feea402b0cc19fbac8cc5f8913b75a15c5d7d6455f14d42164cc83df41d845bf",
+    "SuccessfulSkipScan.lean": "c2630c0f7893a880796f165511ec26f4eb87c3e1a1937b8a04fd57234cc93f96",
     "DecoderTable.lean": "d26b4de83237655978e45f3c7bfbb508cd35b1b99ffd1eaa973931303396b48f",
     "KeyErrors.lean": "3ad56b514261d53cd5e7c6332d925bc03864990de63ad963a3d663bfca557899",
+    "KeyFailureCursor.lean": "a81a01e71d3decba0d3f275334bf1791c59debc72461d055f2742c22a701fcb7",
     "SuccessScan.lean": "ac05106247abe33b3974ea2838eabf184f744aa5f572025bdaa380b25fb9620d",
+    "FieldProjection.lean": "e21bfcaffe96491c22c853d7d85fcd217f7ac98b5215a3b37597833605be059b",
     "ObservedProofs.lean": "902f0f850a487a0a2dc6565f9c6a862284dcf5bf047d230ebcfa9bb057c71ef8",
+    "DispatcherMutation.lean": "4b418ded33da05b72823e994ace0ebdbcdd13dfd6eb515e116ca7bb01b5b904b",
     "DriverErrorDomain.lean": "9388fb20d405519fd05c8379775a35423cf84279ddbb61c5c0cafd1e52fcc0d8",
+    "SkipScanLeaves.lean": "d089327afdd948778a818c50caaa12c96b855a16a5f8b17ab260f2fe8e4753fd",
+    "ActualSkipScan.lean": "7fc1c6bba95762b6bc6ced92485a194765e0adff5cdf17147d1ec6acaba768f8",
+    "SkipScanHeaders.lean": "338d0a51375e38bc7d25d14081e2728c6e061eed14cb68fc8e96e12763183254",
+    "StateMasks.lean": "ab9003efeec10ddccc6adec547661753d17ef44ea7aacaf0116b2bfccf0fd48e",
     "Observed.lean": "5165fa2d25a2e7c4e73cf6ea69b574f506ab289ea39b74cab64fd7ca39274b14",
+    "PlanFailure.lean": "7a575b9ac066a3caeb65358f53f814fd2c368c921cdea9ef070d1fc5398757b2",
     "ObservedCircuit.lean": "438ce6c6e62d73aa5ed66575256489ab4b1b56a5f11f3672e2a10c2d07d39936",
     "KeyErrorTable.lean": "25d2ad2cc5cb95d7b521725928fd0c021ec8aad536f4c6a127acca715a96b227",
+    "NestedFixedScan.lean": "81d9807b1c01681f76ed247a8b7706c9c2cbfcd07a548fccb13371732bb233ee",
     "ErrorProjection.lean": "909e65fe785e51a426c44160d02f0106f7a8f3049d814576e49c179db95105a9",
+    "ErrorMutation.lean": "2f6a8a92b0b34e0c6e2622172403b3d87c75ca1e4561da674de7f1865206a5ee",
+    "UnknownFields.lean": "0a0c0ac2b760c1ea693d39fcea341440818fcffd4bb0fd83094e166615676d6f",
     "DriverTrace.lean": "b863363618d40e50c2db3c12ef5d9c31a3f38cf17931365f5e2eec82a1d48faa",
     "TraceUniqueness.lean": "98c38051d3ef91c2083e699a964770d78dc226ef7ae7a59aa6f067e25697b9b2",
     "MessageSuffix.lean": "a754e6c0c2efea2b1280afe7e8741650e4b65a7325bf5c16d1d34bd2cc206e42",
     "DispatcherTotality.lean": "c0fd7a5228247d5f535af39fb906900cd26d4fce5c33d6c3ede7e8e43bbebb1a",
+    "GroupHeaderScan.lean": "bc56d02e792a7e856a63e741a606600b6489226f749c6842b4d2264f65a1707f",
     "Suffix.lean": "4985a9e5b72a63d3f657c7d3d3c3f73dc4190e440deb3c19a84ddef814733c11",
     "FieldSuffix.lean": "917993d4fb70883d96dacefe43b028c54b02094f7a10fb19eb116ba8301e9b30",
+    "ScanState.lean": "5c1395e6fedb254a7644b9cfa8706ced4df0761d7a24bba8aaec3bbfe467f577",
+    "GroupNumeric.lean": "c43aab5c11e0b38936d362032d9239383bc1f98b1d029d4b6b365ff6ad26a585",
+    "KeyRow.lean": "10fea894cc43451c37a26c66ede241bf4b364194b08a49fb147da01269887904",
     "KeyCircuit.lean": "7364b8347064a819e6bdd1d5b6849999b880aadcf52b69b98d76e0a948ce02cb",
+    "NestedVarintScan.lean": "0ca9c3e25b1387622b7e47a151043453bb50dd9f748933037f44f8a1e787e6eb",
     "SkipErrorDomain.lean": "493432df5f1b3f16bdc61b49d4072b3e48105dc12da784026905fa7208d05cb5",
-    "prepare.py": "a6cb8eb6b73ce962804d5782665c6748e50f91b81a743fe6ce78fbc11c91cb2b",
+    "SkipStrict.lean": "d01884000dd0229ae0f1e4fe4c4be21bea099f98004d968ab6086d0be2dbeddb",
+    "prepare.py": "034abf325558d820a6ded00a6165379f2c9b4ed512e08bd7f04c2be3bb780dca",
     "Intervals.lean": "fb0fe97be71d999d5e9d8cde66abab0c238bafc953cb4b02caabcadacc1de7c6",
+    "FieldTransition.lean": "25b9bd9891f02ef8f19c4298b1275cbe30954009d6dfd1594d308b51ed4ece7f",
     "Skip/SkipLeaf.lean": "d77f426beca3deca2b14bef9464ace87e7b9772b1e19eca48cb6c36375712e44",
     "Skip/KeyValue.lean": "d3f94918d5b3413f709ac3661b125b11b2cee222cbc8f5e8227ffde09a91d276",
     "Skip/SkipSemantics.lean": "2678562b9e4e127370b48aa6eac77412352c15e8a36bf7689a53594a4c7389da",
@@ -947,14 +1349,14 @@
     "Numeric/Reference.lean": "bcbe472f086ebd4feddb78009e0a8f785a72dea02f846a09a79bc4e605e1d27a",
     "Numeric/Group.lean": "0f557880f699950e7621ea8cbf2cfaef27101e8b45984d35be927af1cc3c50d8",
     "Numeric/GroupReference.lean": "55fa442a52d499472e7c2e5806e6e63cab0bb33090f73d5818ae22396b5088b6",
+    "Numeric/TopPlan.lean": "2896bad6100d4f220fa6c18a685a8c7bf3a5f99b3f54f3ba42a07d62adbab743",
     "Numeric/Stack.lean": "6b780141d457297740308afff99a44a7cb7ee37bce452a6f12b30a9c222ab361",
     "Numeric/Fixed.lean": "bd129ec692214cf538e834ee3eac71668373cfb37b22c3c05d91a46c1a16bf47",
+    "Numeric/Fields.lean": "725553aeb0271edd0f3cdca9b8ba1f1eb6931f97e64d8e0f6e876aa137cbcec7",
     "GeneratedDriver/Funs.lean": "4a2b92dfb8efe44152be6b5bfba816c7e6c4900f1e5e48a651834e4617f60b6c",
-    "GeneratedDriver/FunsExternal_Template.lean": "120ac7f83dfea63ecfc3a1beaa9689669b68831925e2db3ff78676933fc57706",
     "GeneratedDriver/TypesExternal.lean": "2719d09ba0ff51553b6d8e092ff941702a8e6b89db849f6f73b4537043fbdb52",
     "GeneratedDriver/FunsExternal.lean": "7f29c5ab2dbf386d3af01969544ba645e1f3410a1eaded5325225ded5c790408",
     "GeneratedDriver/Types.lean": "66a8bb8e0af35255472e1c8997aceb8dbb787e3f318275c17361f946facc8d72",
-    "GeneratedDriver/TypesExternal_Template.lean": "aac0c4ab54c153974eb3ee52cd4a585e22aab0d9da4ae12eca5895a6ed125495",
     "Skip/Replayed/SliceBridge.lean": "37c87dcd196e31f1e7a9802a39470768a01ee98387c545210ed9f9043954802d",
     "Skip/Replayed/Consumption.lean": "d341257e1e311f9a960840d338df4ff567aface125c8173b7d1e4ecc7c371daf",
     "Skip/Replayed/BufModel.lean": "3da4fa508287d5648da097125178f09c513bf58e76211b2e6b2943d4861e34e4",
@@ -966,7 +1368,7 @@
     "Skip/Replayed/SliceAdapter.lean": "c8288d39209d89c66b188b45a026af1f31a1b6287373e73aa488dd0c4d165de2"
   },
   "log_sha256": "ec6c64f604a0db5123daf1869c0e84624af29065d2551ab1317377af587bd443",
-  "extension_log_sha256": "c84079fa9929940c718071187c913d9b9e58e0448c3f56d57113b13148eb2e5a",
+  "extension_log_sha256": "b04bd9f9601826292884e5abbc39ef32b635c3940b98f0525936fb2bad18c462",
   "model_search_order": [
     "ProtoParseWork/ModelCandidate/Build",
     ".lake/build/lib/lean",

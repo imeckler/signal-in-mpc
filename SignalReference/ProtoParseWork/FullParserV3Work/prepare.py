@@ -40,4 +40,10 @@ for name in ['Fixed','Group','Stack','Reference','GroupReference']:
  target=H/'Numeric'/(name+'.lean');target.parent.mkdir(parents=True,exist_ok=True);write(target,after)
  modules.append({'module':'Numeric.'+name,'original':str(src),'original_sha256':sha(src),'replayed_sha256':sha(target),'changes':'Import substitutions; Group adds v2 disabled initialization identity.'})
 
+for name in ['Fields','TopPlan']:
+ src=T/(name+'.lean');before=src.read_text()
+ after=before.replace('import SkipPlanWork.Group','import ProtoParseWork.FullParserV3Work.Numeric.Group').replace('import TopFieldWork.Fields','import ProtoParseWork.FullParserV3Work.Numeric.Fields')
+ target=H/'Numeric'/(name+'.lean');write(target,after)
+ modules.append({'module':'Numeric.'+name,'original':str(src),'original_sha256':sha(src),'replayed_sha256':sha(target),'changes':'Import substitutions only; revalidated against v2.'})
+
 (H/'replay.json').write_text(json.dumps(modules,indent=2)+'\n')
