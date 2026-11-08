@@ -1,0 +1,41 @@
+{
+  "scope": "matched purebinary component and separate conversion epoch-policy experiment; not throughput/application/backend promotion",
+  "pure_binary": {
+    "parties": 5,
+    "threshold": 2,
+    "configured_statistical_security": 128,
+    "ANDs_including_comparison": 381,
+    "private_state_steps": 3,
+    "ccd_source_raw": "2f2c9ba094713443",
+    "bmr_source_raw": "462805a11e693943",
+    "ccd_pass": true,
+    "bmr_pass": true,
+    "ccd_party0_payload_bytes": 275600,
+    "bmr_party0_payload_bytes": 4024352,
+    "bmr_to_ccd_payload_ratio": 14.602148040638607,
+    "domain_phase_labels_from_v3_not_used": true,
+    "BMR_mixed_Fp_and_lifecycle_verified": false
+  },
+  "epoch_policy": {
+    "scope": "same3-call CCD128 conversion/state fixture; record=renew eachcall; epoch=retain preprocessing/VM history until final3-call boundary; no intermediate retirement acknowledgement/application capability or throughput claim",
+    "both_passed": true,
+    "per_record_party0_bytes": 32522208,
+    "single_three_call_epoch_party0_bytes": 30200480,
+    "fraction_reduction": 0.07138900286229033,
+    "consumed_resources_per_call_unchanged": true,
+    "raw_generated_count_available": false,
+    "nonzero_tracked_unused_buffer_rows": 0,
+    "no_intermediate_full_retirement_ack": true
+  },
+  "domain_correction": {
+    "old": "only DATA_GF2 treated as binary; DATA_GF2N wrongly grouped with arithmetic",
+    "new": "DATA_INT arithmetic, DATA_GF2N and DATA_GF2 binary",
+    "v1_v2_v3_totals_valid": true,
+    "v1_v2_v3_prime_domain_inferences_invalid": true,
+    "v4_pass": true,
+    "v4_exact_reconciled_rows": 15
+  },
+  "Tinier128_supported_in_pin": false,
+  "tested_runtime_changed": false,
+  "no_live_account_effects": true
+}

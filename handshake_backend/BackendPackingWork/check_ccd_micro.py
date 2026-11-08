@@ -6,7 +6,7 @@ RUNTIME=ROOT/'.deps/tls-backend-diagnostic-runtime/MP-SPDZ';STAGE=ROOT/'.deps/tl
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
  global RUNTIME,STAGE
- parser=argparse.ArgumentParser();parser.add_argument("--version",type=int,choices=[1,2,3],default=1);args=parser.parse_args();version=args.version
+ parser=argparse.ArgumentParser();parser.add_argument("--version",type=int,choices=[1,2,3,4],default=1);args=parser.parse_args();version=args.version
  if version>=2:
   RUNTIME=ROOT/f'.deps/tls-backend-diagnostic-runtime-v{version}/MP-SPDZ';STAGE=ROOT/f'.deps/tls-backend-diagnostic-programs-v{version}'
   if not STAGE.exists():

@@ -90,3 +90,31 @@ all5exit0). Fixed print handling then reached BMR's pre-network secondary parser
 failure (raw2f2c9ba094713443). All children were reaped in both cases. The BMR
 wrapper fix compiles/links; its native retry is held for another agent's active
 receive test. A successful BMR protocol or performance comparison is pending.
+
+Domain-label correction and bounded alternative results
+
+V1–V3 treated only DATA_GF2 as binary, inadvertently grouping DATA_GF2N with
+arithmetic. Their totals/reconciliation and consumed counts remain valid; their
+old split must not establish prime-Fp dominance. V4 classifies DATA_INT as
+arithmetic and DATA_GF2N/DATA_GF2 as binary; all15native rows reconcile/pass.
+Party0 per mix call: arithmetic online384B/preprocessing10,165,728B; binary
+online237,632B/preprocessing436,032B; unattributed960B. This workload intentionally
+uses the full255-bit canonical conversion even though its synthetic square is
+small; it is not a representative complete message distribution.
+
+BMR retry raw462805a11e693943 passes allfive at configured128/n5/t2, three private
+state-step equality outputs. Same381AND purebinary source: party0 BMR4,024,352B
+versus CCD275,600B (~14.6x MORE). This is negative bandwidth evidence, not a
+backend speedup or a mixed-field/retirement/tamper pass. The RealProgramParty
+path sends through Player; its standard reported4.02435MB matches these total
+counters. No bare legacy Node path is used in that entrypoint. Old v3 domain/
+phase labels are not used to compare these binaries. Timings are tiny local
+observations, not steady-state/WAN results.
+
+Separate CCD conversion epoch-policy pair passes allfive in both cases. Party0
+three-call bytes are32,522,208 with renewal percall versus30,200,480 with a single
+final boundary (~7.1% less). Consumed resources percall are identical. No
+intermediate full retirement acknowledgement/application capability is made in
+the retained-history mode. No nonzero accepted BufferPrep leftovers were reported
+by verbose destruction; raw pre-sacrifice generation/discard counts remain
+unavailable. Neither result closes the measured application throughput gap.

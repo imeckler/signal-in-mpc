@@ -30,6 +30,7 @@ def prepare(version=1):
   after,count=re.subn(r'(?m)^(\s*)(?:comm_stats\.)?sent \+= ([^;\n]+);',hook,after);assert count>0
   changes[name]=(before,after)
  tag='tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_GF2?tls_public_diagnostics::Domain::binary:tls_public_diagnostics::Domain::field, tls_public_diagnostics::Phase::'
+ if version>=4:tag=tag.replace('==DATA_GF2?tls_public_diagnostics::Domain::binary:tls_public_diagnostics::Domain::field','==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary')
  edit('Protocols/Beaver.hpp','void Beaver<T>::exchange()\n{','void Beaver<T>::exchange()\n{\n    '+tag+'online);')
  edit('Processor/Data_Files.h','array<T, 3> Preprocessing<T>::get_triple(int n_bits)\n{','array<T, 3> Preprocessing<T>::get_triple(int n_bits)\n{\n  '+tag+'preprocessing);')
  edit('Processor/Machine.hpp','void Machine<sint, sgf2n>::prepare(const string& progname_str)\n{','void Machine<sint, sgf2n>::prepare(const string& progname_str)\n{\n  tls_public_diagnostics::LoadTimer public_prepare(false);')
@@ -79,4 +80,4 @@ DataPositions Machine<sint, sgf2n>::public_function_usage()
  report={'scope':'isolated additive diagnostic candidate; no protocol/config switch','base_source_identity':identity,'base_source_sha256':identities,'overlay_sha256':sha(patch.encode()),'header_sha256':sha((WORK/'PublicProtocolMetrics.h').read_bytes()),'destination':str(DEST.relative_to(ROOT)),'coverage':'Player sent-counter increments; Beaver online exchange and triple-fetch preprocessing scopes; other paths explicitly unattributed; nested times overlap; bytes do not','runtime_build_passed':False}
  (WORK/('diagnostic-prepare.json' if version==1 else f'diagnostic-prepare-v{version}.json')).write_text(json.dumps(report,indent=2)+'\n');print(DEST)
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--version',type=int,choices=[1,2,3],default=1);args=parser.parse_args();prepare(args.version)
+ parser=argparse.ArgumentParser();parser.add_argument('--version',type=int,choices=[1,2,3,4],default=1);args=parser.parse_args();prepare(args.version)

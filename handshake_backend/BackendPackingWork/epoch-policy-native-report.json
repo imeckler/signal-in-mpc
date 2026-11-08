@@ -1,0 +1,1516 @@
+{
+  "scope": "same3-call CCD128 conversion/state fixture; record=renew eachcall; epoch=retain preprocessing/VM history until final3-call boundary; no intermediate retirement acknowledgement/application capability or throughput claim",
+  "generated_raw_preprocessing_count_available": false,
+  "unused_counts_scope": "actual BufferPrep destructor rows, accepted buffer leftovers; not raw pre-sacrifice generation",
+  "cases": {
+    "record": {
+      "passed": true,
+      "source_product_sha256": {
+        "handshake_backend/BackendPackingWork/ccd_epoch_policy_fixture.cpp": "201c0f83c01b1a994b0944784366e0267424a45805affece014a9aeedf92bb6e",
+        "handshake_backend/BackendPackingWork/PublicProtocolMetrics.h": "31b148365ae25baadddf57ba8695912f867dc1f2a4935eda76a2f64308e0523d",
+        "handshake_backend/BackendPackingWork/diagnostics-v3.patch": "6a1863845cd447ce21621f14c87ce8ec875f29785af99f8440c90590c552fe92",
+        ".deps/tls-backend-diagnostic-runtime-v3/tls-ccd-epoch-policy-fixture": "7fe76e9b8fb64db8ed8ff5e6c285c7b11d38768605dff491cdf22061aec01cda",
+        ".deps/tls-backend-diagnostic-runtime-v3/MP-SPDZ/libSPDZ.so": "938bd25b08add9898a241fcc8c3acf561dc3ade2f0047862c87eb6aab789f11b",
+        "benchmarks/results/raw/ccd-epoch-policy/b2d011a32d30a481/record/programs.manifest": "01adad59341a274fd99a6d53f7dd707c4e0658c39cf8a055b42fe1f9da24445c"
+      },
+      "parties": [
+        [
+          {
+            "party": 0,
+            "step": 0,
+            "epoch_policy": "record",
+            "prepare_ns": 147462791,
+            "load_ns": 130228500,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 576,
+            "bytes": [
+              960,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 0,
+            "step": 1,
+            "epoch_policy": "record",
+            "prepare_ns": 130404084,
+            "load_ns": 113682750,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 576,
+            "bytes": [
+              960,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 0,
+            "step": 2,
+            "epoch_policy": "record",
+            "prepare_ns": 130318791,
+            "load_ns": 113061584,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 576,
+            "bytes": [
+              960,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 1,
+            "step": 0,
+            "epoch_policy": "record",
+            "prepare_ns": 147437958,
+            "load_ns": 130225125,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 1,
+            "step": 1,
+            "epoch_policy": "record",
+            "prepare_ns": 130329334,
+            "load_ns": 113712250,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 1,
+            "step": 2,
+            "epoch_policy": "record",
+            "prepare_ns": 130346042,
+            "load_ns": 113230833,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 2,
+            "step": 0,
+            "epoch_policy": "record",
+            "prepare_ns": 147451166,
+            "load_ns": 124355750,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 2,
+            "step": 1,
+            "epoch_policy": "record",
+            "prepare_ns": 130474917,
+            "load_ns": 113811167,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 2,
+            "step": 2,
+            "epoch_policy": "record",
+            "prepare_ns": 130392500,
+            "load_ns": 113155041,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 3,
+            "step": 0,
+            "epoch_policy": "record",
+            "prepare_ns": 147429958,
+            "load_ns": 130193459,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 3,
+            "step": 1,
+            "epoch_policy": "record",
+            "prepare_ns": 130568541,
+            "load_ns": 112322750,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 3,
+            "step": 2,
+            "epoch_policy": "record",
+            "prepare_ns": 130415167,
+            "load_ns": 111171791,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 4,
+            "step": 0,
+            "epoch_policy": "record",
+            "prepare_ns": 147450541,
+            "load_ns": 129913167,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 4,
+            "step": 1,
+            "epoch_policy": "record",
+            "prepare_ns": 132855083,
+            "load_ns": 88770750,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 4,
+            "step": 2,
+            "epoch_policy": "record",
+            "prepare_ns": 132813666,
+            "load_ns": 87694917,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ]
+      ],
+      "elapsed_python_awake_seconds": 1.4124422910390422,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cleanup_errors": [],
+      "integrity_verified": true,
+      "unused_buffer_rows_at_destruction": []
+    },
+    "epoch": {
+      "passed": true,
+      "source_product_sha256": {
+        "handshake_backend/BackendPackingWork/ccd_epoch_policy_fixture.cpp": "201c0f83c01b1a994b0944784366e0267424a45805affece014a9aeedf92bb6e",
+        "handshake_backend/BackendPackingWork/PublicProtocolMetrics.h": "31b148365ae25baadddf57ba8695912f867dc1f2a4935eda76a2f64308e0523d",
+        "handshake_backend/BackendPackingWork/diagnostics-v3.patch": "6a1863845cd447ce21621f14c87ce8ec875f29785af99f8440c90590c552fe92",
+        ".deps/tls-backend-diagnostic-runtime-v3/tls-ccd-epoch-policy-fixture": "7fe76e9b8fb64db8ed8ff5e6c285c7b11d38768605dff491cdf22061aec01cda",
+        ".deps/tls-backend-diagnostic-runtime-v3/MP-SPDZ/libSPDZ.so": "938bd25b08add9898a241fcc8c3acf561dc3ade2f0047862c87eb6aab789f11b",
+        "benchmarks/results/raw/ccd-epoch-policy/b2d011a32d30a481/epoch/programs.manifest": "01adad59341a274fd99a6d53f7dd707c4e0658c39cf8a055b42fe1f9da24445c"
+      },
+      "parties": [
+        [
+          {
+            "party": 0,
+            "step": 0,
+            "epoch_policy": "epoch",
+            "prepare_ns": 137079125,
+            "load_ns": 119656708,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 576,
+            "bytes": [
+              960,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 0,
+            "step": 1,
+            "epoch_policy": "epoch",
+            "prepare_ns": 116351000,
+            "load_ns": 116098084,
+            "original_payload_byte_delta": 9679872,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              9195808,
+              0,
+              237632,
+              245664
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 0,
+            "step": 2,
+            "epoch_policy": "epoch",
+            "prepare_ns": 118967625,
+            "load_ns": 118760666,
+            "original_payload_byte_delta": 9679872,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              9195808,
+              0,
+              237632,
+              245664
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 1,
+            "step": 0,
+            "epoch_policy": "epoch",
+            "prepare_ns": 136967042,
+            "load_ns": 119950708,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 1,
+            "step": 1,
+            "epoch_policy": "epoch",
+            "prepare_ns": 116290500,
+            "load_ns": 116143167,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 1,
+            "step": 2,
+            "epoch_policy": "epoch",
+            "prepare_ns": 118910292,
+            "load_ns": 118586167,
+            "original_payload_byte_delta": 9679872,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              9195808,
+              0,
+              237632,
+              245664
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 2,
+            "step": 0,
+            "epoch_policy": "epoch",
+            "prepare_ns": 137035917,
+            "load_ns": 119716500,
+            "original_payload_byte_delta": 10840160,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              10343520,
+              0,
+              237632,
+              258240
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 2,
+            "step": 1,
+            "epoch_policy": "epoch",
+            "prepare_ns": 116517958,
+            "load_ns": 104929792,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 2,
+            "step": 2,
+            "epoch_policy": "epoch",
+            "prepare_ns": 118916209,
+            "load_ns": 118465375,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 3,
+            "step": 0,
+            "epoch_policy": "epoch",
+            "prepare_ns": 137019541,
+            "load_ns": 115283875,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 3,
+            "step": 1,
+            "epoch_policy": "epoch",
+            "prepare_ns": 116495250,
+            "load_ns": 115448667,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 3,
+            "step": 2,
+            "epoch_policy": "epoch",
+            "prepare_ns": 118991083,
+            "load_ns": 118777583,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "party": 4,
+            "step": 0,
+            "epoch_policy": "epoch",
+            "prepare_ns": 137110666,
+            "load_ns": 120028792,
+            "original_payload_byte_delta": 9680320,
+            "initialization_reset_bytes": 512,
+            "bytes": [
+              896,
+              0,
+              0,
+              0,
+              384,
+              9196192,
+              0,
+              237632,
+              245728
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 4,
+            "step": 1,
+            "epoch_policy": "epoch",
+            "prepare_ns": 116343750,
+            "load_ns": 116022042,
+            "original_payload_byte_delta": 9679872,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              9195808,
+              0,
+              237632,
+              245664
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          },
+          {
+            "party": 4,
+            "step": 2,
+            "epoch_policy": "epoch",
+            "prepare_ns": 119059667,
+            "load_ns": 105465875,
+            "original_payload_byte_delta": 10839712,
+            "initialization_reset_bytes": 0,
+            "bytes": [
+              384,
+              0,
+              0,
+              0,
+              384,
+              10343136,
+              0,
+              237632,
+              258176
+            ],
+            "scope_calls": [
+              1,
+              0,
+              0,
+              0,
+              3,
+              1345,
+              0,
+              1026,
+              1858
+            ],
+            "consumed": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                4,
+                263
+              ],
+              [
+                2,
+                0,
+                1852
+              ]
+            ]
+          }
+        ]
+      ],
+      "elapsed_python_awake_seconds": 1.323031916981563,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cleanup_errors": [],
+      "integrity_verified": true,
+      "unused_buffer_rows_at_destruction": []
+    }
+  },
+  "passed": true
+}

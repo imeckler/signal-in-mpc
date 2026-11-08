@@ -1,0 +1,356 @@
+--- a/Networking/Player.cpp
++++ b/Networking/Player.cpp
+@@ -1,4 +1,5 @@
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Player.h"
+ #include "ssl_sockets.h"
+ #include "Tools/Exceptions.h"
+@@ -376,6 +377,7 @@
+ {
+   TimeScope ts(comm_stats["Sending by number"].add(sizeof(long)));
+   send(sockets[i], (octet*)&a, sizeof(long));
++  tls_public_diagnostics::sent_bytes(sizeof(long));
+   sent += sizeof(long);
+ }
+ 
+@@ -393,6 +395,7 @@
+ {
+   TimeScope ts(comm_stats["Sending directly"].add(o, player));
+   send_to_no_stats(player, o);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -411,6 +414,7 @@
+      { if (i!=player_no)
+          send_to_no_stats(i, o);
+      }
++  tls_public_diagnostics::sent_bytes(o.get_length() * (num_players() - 1));
+   sent += o.get_length() * (num_players() - 1);
+ }
+ 
+@@ -513,6 +517,7 @@
+ {
+   TimeScope ts(comm_stats["Exchanging"].add(o, other));
+   exchange_no_stats(other, o, to_receive);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -538,6 +543,7 @@
+ {
+   TimeScope ts(comm_stats["Passing around"].add(o));
+   pass_around_no_stats(o, to_receive, offset);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -605,6 +611,7 @@
+ {
+   TimeScope ts(comm_stats["Broadcasting"].add(o[player_no]));
+   Broadcast_Receive_no_stats(o);
++  tls_public_diagnostics::sent_bytes(o[player_no].get_length() * (num_players() - 1));
+   sent += o[player_no].get_length() * (num_players() - 1);
+ }
+ 
+@@ -662,6 +669,7 @@
+           cerr << "Send " << to_send.at(i).get_length() << " bytes to " << i << endl;
+       }
+   TimeScope ts(comm_stats["Sending/receiving"].add(data));
++  tls_public_diagnostics::sent_bytes(data);
+   sent += data;
+   send_receive_all_no_stats(channels, to_send, to_receive);
+ }
+@@ -772,6 +780,7 @@
+ {
+   TimeScope ts(comm_stats["Sending one-to-one"].add(o));
+   P.send_to_no_stats(other_player, o);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   comm_stats.sent += o.get_length();
+ }
+ 
+@@ -785,6 +794,7 @@
+ void VirtualTwoPartyPlayer::send_receive_player(vector<octetStream>& o) const
+ {
+   TimeScope ts(comm_stats["Exchanging one-to-one"].add(o[0]));
++  tls_public_diagnostics::sent_bytes(o[0].get_length());
+   comm_stats.sent += o[0].get_length();
+   P.exchange_no_stats(other_player, o[0], o[1]);
+ }
+@@ -806,6 +816,7 @@
+   auto sent = P.send_no_stats(other_player, buffer, block);
+   lock.lock();
+   comm_stats.add_to_last_round("Sending one-to-one", sent);
++  tls_public_diagnostics::sent_bytes(sent);
+   comm_stats.sent += sent;
+   lock.unlock();
+   return sent;
+@@ -823,6 +834,7 @@
+ void VirtualTwoPartyPlayer::exchange(octetStream& o)
+ {
+   TimeScope ts(comm_stats["Exchanging one-to-one"].add(o));
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   comm_stats.sent += o.get_length();
+   P.exchange_no_stats(other_player, o, o);
+ }
+--- a/Networking/CryptoPlayer.cpp
++++ b/Networking/CryptoPlayer.cpp
+@@ -3,6 +3,7 @@
+  *
+  */
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "CryptoPlayer.h"
+ #include "Math/Setup.h"
+ #include "Tools/Bundle.h"
+@@ -238,6 +239,7 @@
+         if (my_receivers.at(other))
+         {
+             this->senders[other]->request(os[my_num()]);
++            tls_public_diagnostics::sent_bytes(os[my_num()].get_length());
+             sent += os[my_num()].get_length();
+         }
+         if (receive)
+--- a/Protocols/Beaver.hpp
++++ b/Protocols/Beaver.hpp
+@@ -6,6 +6,7 @@
+ #ifndef PROTOCOLS_BEAVER_HPP_
+ #define PROTOCOLS_BEAVER_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Beaver.h"
+ 
+ #include "Replicated.hpp"
+@@ -89,6 +90,7 @@
+ template<class T>
+ void Beaver<T>::exchange()
+ {
++    tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     CODE_LOCATION
+     size_t n_mults = lengths.size() + multiplicands.size();
+     MC->init_open(P, n_mults);
+--- a/Processor/Data_Files.h
++++ b/Processor/Data_Files.h
+@@ -5,6 +5,7 @@
+  * so the streams are easy to pass around and access
+  */
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Math/field_types.h"
+ #include "Tools/Buffer.h"
+ #include "Processor/InputTuple.h"
+@@ -434,6 +435,7 @@
+ template<class T>
+ array<T, 3> Preprocessing<T>::get_triple(int n_bits)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::preprocessing);
+   if (T::clear::field_type() == DATA_GF2)
+     count(DATA_TRIPLE, n_bits);
+   if (n_bits == T::default_length)
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PROCESSOR_MACHINE_HPP_
+ #define PROCESSOR_MACHINE_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Machine.h"
+ 
+ #include "Memory.hpp"
+@@ -161,9 +162,10 @@
+ template<class sint, class sgf2n>
+ void Machine<sint, sgf2n>::prepare(const string& progname_str)
+ {
++  tls_public_diagnostics::LoadTimer public_prepare(false);
+   int old_n_threads = nthreads;
+   progs.clear();
+-  load_schedule(progname_str);
++  { tls_public_diagnostics::LoadTimer public_load(true); load_schedule(progname_str); }
+ 
+   if (opts.verbose)
+     suggest_optimizations();
+@@ -531,6 +533,21 @@
+           else
+             arguments[i].get_value<sint>(j) = Mp.MS[arg_regs.at(i) + j];
+         }
++}
++
++template<class sint, class sgf2n>
++DataPositions Machine<sint, sgf2n>::public_function_usage()
++{
++  if (ThreadQueue::thread_queue or threads.size()!=1 or threads.size()!=tinfo.size() or
++      queues.size()!=threads.size() or not active_threads.empty())
++    throw runtime_error("diagnostic usage requires quiescent host");
++  DataPositions result;
++  for(size_t i=0;i<tinfo.size();++i) {
++    if(not queues[i] or not queues[i]->available() or not tinfo[i].processor)
++      throw runtime_error("diagnostic usage requires joined jobs");
++    result.increase(tinfo[i].processor->DataF.get_usage());
++  }
++  return result;
+ }
+ 
+ template<class sint, class sgf2n>
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -119,6 +119,7 @@
+   // the next checked run_function collectively creates fresh ones. Does not
+   // promise complete erasure of machine-global or externally retained storage.
+   void retire_worker_epoch(bool renew_transport = true);
++  DataPositions public_function_usage();
+ 
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+--- a/Protocols/ReplicatedPrep.hpp
++++ b/Protocols/ReplicatedPrep.hpp
+@@ -6,6 +6,7 @@
+ #ifndef PROTOCOlS_REPLICATEDPREP_HPP_
+ #define PROTOCOlS_REPLICATEDPREP_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "ReplicatedPrep.h"
+ 
+ #include "BufferScope.h"
+@@ -1276,6 +1277,7 @@
+ template<class T>
+ void Preprocessing<T>::get_dabit(T& a, typename T::bit_type& b)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::preprocessing);
+     get_dabit_no_count(a, b);
+     this->count(DATA_DABIT);
+ }
+--- a/Protocols/ShamirMC.hpp
++++ b/Protocols/ShamirMC.hpp
+@@ -6,6 +6,7 @@
+ #ifndef PROTOCOLS_SHAMIRMC_HPP_
+ #define PROTOCOLS_SHAMIRMC_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "ShamirMC.h"
+ 
+ #include "MAC_Check_Base.hpp"
+@@ -32,6 +33,7 @@
+ void ShamirMC<T>::POpen_Begin(vector<typename T::open_type>& values,
+         const vector<T>& S, const Player& P)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     (void) values;
+     prepare(S, P);
+     P.send_all(os->mine);
+@@ -93,6 +95,7 @@
+ template<class T>
+ void ShamirMC<T>::exchange(const Player& P)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     CODE_LOCATION
+     vector<bool> my_senders(P.num_players()), my_receivers(P.num_players());
+     for (int i = 0; i < P.num_players(); i++)
+@@ -106,6 +109,7 @@
+ template<class T>
+ void ShamirMC<T>::start_exchange(const Player& P)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     P.send_all(os->mine);
+ }
+ 
+--- a/Protocols/ShamirInput.hpp
++++ b/Protocols/ShamirInput.hpp
+@@ -6,6 +6,7 @@
+ #ifndef PROTOCOLS_SHAMIRINPUT_HPP_
+ #define PROTOCOLS_SHAMIRINPUT_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "ShamirInput.h"
+ #include "ShamirOptions.h"
+ #include "Protocols/ReplicatedInput.hpp"
+@@ -128,6 +129,7 @@
+ template<class T>
+ void IndividualInput<T>::exchange()
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     CODE_LOCATION
+     P.send_receive_all(senders, os, InputBase<T>::os);
+     this->shares.reset();
+@@ -136,6 +138,7 @@
+ template<class T>
+ void IndividualInput<T>::start_exchange()
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+     if (senders[P.my_num()])
+         for (int offset = 1; offset < P.num_players(); offset++)
+             P.send_relative(offset, os[P.get_player(offset)]);
+--- a/Protocols/MAC_Check.hpp
++++ b/Protocols/MAC_Check.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PROTOCOLS_MAC_CHECK_HPP_
+ #define PROTOCOLS_MAC_CHECK_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Protocols/MAC_Check.h"
+ #include "Tools/Subroutines.h"
+ #include "Tools/Exceptions.h"
+@@ -114,6 +115,7 @@
+ template<class U>
+ void Tree_MAC_Check<U>::exchange(const Player& P)
+ {
++  tls_public_diagnostics::Scope public_scope(U::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+   this->run(this->values, P);
+ 
+   this->values_opened += this->values.size();
+@@ -186,6 +188,7 @@
+ template<class U>
+ void MAC_Check_<U>::Check(const Player& P)
+ {
++  tls_public_diagnostics::Scope public_scope(U::clear::field_type()==DATA_INT?tls_public_diagnostics::Domain::field:tls_public_diagnostics::Domain::binary, tls_public_diagnostics::Phase::online);
+   assert(U::mac_type::invertible);
+   check_field_size<typename U::mac_type>();
+ 
+--- a/Processor/ThreadJob.h
++++ b/Processor/ThreadJob.h
+@@ -6,6 +6,7 @@
+ #ifndef PROCESSOR_THREADJOB_H_
+ #define PROCESSOR_THREADJOB_H_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Data_Files.h"
+ #include "Math/modp.h"
+ 
+@@ -34,6 +35,7 @@
+ {
+ public:
+     ThreadJobType type;
++    tls_public_diagnostics::Context public_diagnostic_context;
+ 
+     int prognum;
+ 
+--- a/Processor/ThreadQueue.cpp
++++ b/Processor/ThreadQueue.cpp
+@@ -20,7 +20,8 @@
+     lock.unlock();
+     if (thread_queue)
+         thread_queue->wait_timer.start();
+-    in.push(job);
++    auto tagged_job=job;tagged_job.public_diagnostic_context=tls_public_diagnostics::context;
++    in.push(tagged_job);
+     if (thread_queue)
+         thread_queue->wait_timer.stop();
+ 
+--- a/Processor/Online-Thread.hpp
++++ b/Processor/Online-Thread.hpp
+@@ -107,6 +107,7 @@
+   auto& Proc = *processor;
+ 
+   // don't count communication for initialization
++  tls_public_diagnostics::record_initialization_reset(P.total_comm().sent);
+   P.reset_stats();
+ 
+   bool flag=true;
+@@ -129,6 +130,7 @@
+   while (flag)
+     { // Wait until I have a program to run
+       ThreadJob job = queues->next();
++      tls_public_diagnostics::Scope public_job_scope(job.public_diagnostic_context.domain,job.public_diagnostic_context.phase);
+       program = job.prognum;
+ #ifdef DEBUG_THREADS
+       printf("\tRunning program %d/job %d in thread %d\n", program, job.type,

@@ -1,0 +1,104 @@
+{
+  "scope": "5party/t2/security128 tiny purebinary comparison;3repeatedstate steps/381ANDs inclcomparison; noFp conversion, secret retirement, tamper, network performance or application capability claim",
+  "compiler_flags": "-B64 -M; BMR additionally-G",
+  "no_native_workload_overlap": true,
+  "cases": {
+    "bmr": {
+      "passed": true,
+      "source_product_sha256": {
+        ".deps/tls-bmr128-candidate/tls-bmr128-component": "8e20ab43cd1f7c42ad16f2c0a19aacffb3ebe3c82f77faaf32e5a40b18ecb99d",
+        ".deps/tls-bmr128-candidate/MP-SPDZ/libSPDZ.so": "e97e16bd71125e7f0f274d1b956a32986112a14581e0aec1c23a7ece47fc7bd4",
+        ".deps/tls-bmr128-candidate/MP-SPDZ/BMR/config.h": "0f9cbd7c442fa186debe54bf7358ff2d47b9f8ae696a2be1b61244c30669336f",
+        "handshake_backend/BackendPackingWork/pure_and.mpc": "dd59b6916b1ac0d02c1a9824eb92c76c7980e7f1468801b1f1ae80d4fd382621",
+        "handshake_backend/BackendPackingWork/bmr128_component_main.cpp": "8b48bba81afd23e9d88f151377852ed67e2e1ee1010c493eee1ee9ffaaee3ba0",
+        "handshake_backend/BackendPackingWork/emit_backend_totals.h": "cda0144044fac374c73117f697ee24cca201c6011209b79a1d223c1c457a867b",
+        ".deps/tls-bmr128-pure-and/Programs/Source/pure_and.mpc": "dd59b6916b1ac0d02c1a9824eb92c76c7980e7f1468801b1f1ae80d4fd382621",
+        ".deps/tls-bmr128-pure-and/Programs/Schedules/pure_and.sch": "1fb99dc6cd1dee5181c37ae4c9544595b0284619d9e00da29f1949eeaebb1e25",
+        ".deps/tls-bmr128-pure-and/Programs/Bytecode/pure_and-0.bc": "fa108c3591a66ed9c6b2185f04acc09adeb87813a35ff8866f84f561e6fef1e4"
+      },
+      "parties": [
+        {
+          "backend": "bmr-malicious-shamir128",
+          "bytes": [
+            9040,
+            0,
+            0,
+            0,
+            1997376,
+            2017936,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "backend": "bmr-malicious-shamir128",
+          "bytes": [
+            9040,
+            0,
+            0,
+            0,
+            1997376,
+            2017936,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "backend": "bmr-malicious-shamir128",
+          "bytes": [
+            8784,
+            0,
+            0,
+            0,
+            1995328,
+            2017936,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "backend": "bmr-malicious-shamir128",
+          "bytes": [
+            8784,
+            0,
+            0,
+            0,
+            1963328,
+            2017936,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "backend": "bmr-malicious-shamir128",
+          "bytes": [
+            8784,
+            0,
+            0,
+            0,
+            1963328,
+            2017936,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsed_python_awake_seconds": 0.08507183298934251,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cleanup_errors": [],
+      "integrity_verified": true
+    }
+  },
+  "passed": true
+}
