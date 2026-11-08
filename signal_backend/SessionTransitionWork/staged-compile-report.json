@@ -1,0 +1,25 @@
+{
+  "compile_passed": true,
+  "staged": true,
+  "parser_calls": 1,
+  "crypto_calls": 1,
+  "native_MPC_executed": false,
+  "full_actual_source_refinement": false,
+  "descriptors": [
+    "signal_private_new_dh_summary_256_5-sbv:[2072x1]-sbv:[600x1]",
+    "signal_private_new_dh_crypto_256_5-sbv:[8408x1]-sbv:[4864x1]",
+    "signal_private_dh_receive_candidate-sbv:[512x1]-sbv:[1024x1]"
+  ],
+  "manifest_sha256": "510455342176aff80da1300c43cfc8987918e6e0ddefd900adc99c5808da64bc",
+  "artifact_sha256": {
+    "private-new-dh-summary-256.json": "cb5c72a159f34f450bed9abb1317c1f3a6b2f4f87ec31c2d2cc44ba0f6a5c9b2",
+    "private-new-dh-crypto-256-5.json": "d8d1505c13d2b2b3ee5af6a0bce442f2a52b93261bf1954f774b7b59c121de46"
+  },
+  "source_sha256": {
+    "signal_backend/SessionTransitionWork/prepare_receive_staged.py": "ba6e26bb9701673fd58f248f2c063a217d4019ae00bb3b4174532de0cf05caf2",
+    "programs/signal_new_dh_stage.mpc": "0b5cc79b035e5a0c2e1a72bcff2d973e61b064c81ff3baa16baec99b46088e41",
+    "signal_backend/SessionTransitionWork/NativeNewDhReceive.h": "8a36aa9574f6f974a2dcbda0c43240c30509519a550fa726d6f4645b9b68963f",
+    "signal_backend/SessionTransitionWork/NativeComputedDh.h": "082b203eed3ffe29d79b0f7f6558e3d6047ca88ebc23de718cd814461a1eded1",
+    "signal_backend/SessionTransitionWork/compile_diagnostic.py": "b4039d7e1b1a9b55f6e05374190d5808f45fd5823478070059b782a0c2a11d15"
+  }
+}

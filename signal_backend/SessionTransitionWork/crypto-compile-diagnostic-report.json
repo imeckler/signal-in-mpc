@@ -1,0 +1,179 @@
+{
+  "compile_passed": true,
+  "native_MPC_executed": false,
+  "elapsed_seconds": 349.8343011669349,
+  "peak_RSS_bytes": 23785209856,
+  "bit_triples": 3484226,
+  "VM_rounds": 82466,
+  "phase_events": [
+    {
+      "phase": "compile",
+      "event": "begin",
+      "elapsed_seconds": 4.349998198449612e-05,
+      "user_cpu_seconds": 0.07525799999999999,
+      "system_cpu_seconds": 0.009245999999999999,
+      "max_rss": 37470208,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Program.finalize_tape",
+      "event": "begin",
+      "elapsed_seconds": 86.31161645799875,
+      "user_cpu_seconds": 85.161853,
+      "system_cpu_seconds": 1.166312,
+      "max_rss": 17589354496,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "begin",
+      "elapsed_seconds": 86.31170233292505,
+      "user_cpu_seconds": 85.161885,
+      "system_cpu_seconds": 1.166371,
+      "max_rss": 17589354496,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "end",
+      "elapsed_seconds": 321.28792091691867,
+      "user_cpu_seconds": 319.031941,
+      "system_cpu_seconds": 2.118813,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "begin",
+      "elapsed_seconds": 321.2880037080031,
+      "user_cpu_seconds": 319.031979,
+      "system_cpu_seconds": 2.118863,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "end",
+      "elapsed_seconds": 347.65851016691886,
+      "user_cpu_seconds": 345.169938,
+      "system_cpu_seconds": 2.193808,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Program.finalize_tape",
+      "event": "end",
+      "elapsed_seconds": 349.8330284169642,
+      "user_cpu_seconds": 347.340635,
+      "system_cpu_seconds": 2.196207,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Program.finalize",
+      "event": "begin",
+      "elapsed_seconds": 349.8334662920097,
+      "user_cpu_seconds": 347.340826,
+      "system_cpu_seconds": 2.196458,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "begin",
+      "elapsed_seconds": 349.83348049991764,
+      "user_cpu_seconds": 347.340836,
+      "system_cpu_seconds": 2.196463,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "end",
+      "elapsed_seconds": 349.8336771669565,
+      "user_cpu_seconds": 347.341022,
+      "system_cpu_seconds": 2.196473,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "begin",
+      "elapsed_seconds": 349.8336877080146,
+      "user_cpu_seconds": 347.341029,
+      "system_cpu_seconds": 2.196477,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.optimize",
+      "event": "end",
+      "elapsed_seconds": 349.8336952920072,
+      "user_cpu_seconds": 347.341034,
+      "system_cpu_seconds": 2.19648,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "begin",
+      "elapsed_seconds": 349.83402683294844,
+      "user_cpu_seconds": 347.341223,
+      "system_cpu_seconds": 2.196622,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "end",
+      "elapsed_seconds": 349.83415912499186,
+      "user_cpu_seconds": 347.341282,
+      "system_cpu_seconds": 2.196696,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "begin",
+      "elapsed_seconds": 349.83416829199996,
+      "user_cpu_seconds": 347.341287,
+      "system_cpu_seconds": 2.196699,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Tape.write_bytes",
+      "event": "end",
+      "elapsed_seconds": 349.83417454198934,
+      "user_cpu_seconds": 347.341291,
+      "system_cpu_seconds": 2.196702,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "Program.finalize",
+      "event": "end",
+      "elapsed_seconds": 349.83419099997263,
+      "user_cpu_seconds": 347.341298,
+      "system_cpu_seconds": 2.196711,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    },
+    {
+      "phase": "compile",
+      "event": "end",
+      "elapsed_seconds": 349.8343011669349,
+      "user_cpu_seconds": 347.34137,
+      "system_cpu_seconds": 2.196749,
+      "max_rss": 23785209856,
+      "max_rss_unit": "bytes"
+    }
+  ],
+  "hotpaths_observed": [
+    "allocator.dependency_graph",
+    "allocator.register_consolidation"
+  ],
+  "log": ".deps/private-new-dh-staged-native/crypto-compile.log",
+  "log_sha256": "3f225ee1677b80f093703643564cdd7d7a9c658f3137936f86ce61d3b1277d71",
+  "timing_scope": "Public crypto-stage compilation only; no native runtime or throughput measurement."
+}

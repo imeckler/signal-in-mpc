@@ -12,7 +12,7 @@ def main():
  stage=ROOT/'.deps/private-new-dh-staged-native';runtime=ROOT/'.deps/sharing-refresh/MP-SPDZ'
  assert(stage/'receive.manifest').exists(),'staged receive compile must pass first'
  service=ROOT/'.deps/private-variable-conversation-native/260-80-0-0'
- for folder in ['Bytecode','Schedules']:
+ for folder in ['Bytecode','Schedules','Functions']:
   for p in(service/'Programs'/folder).iterdir():
    if not p.is_file():continue
    target=stage/'Programs'/folder/p.name

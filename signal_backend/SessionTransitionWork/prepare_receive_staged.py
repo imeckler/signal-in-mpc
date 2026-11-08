@@ -30,7 +30,7 @@ for mode,n,m in [('summary',259,75),('crypto',1051,608)]:
  print(mode+' compiled',flush=True)
  # Reuse exact already-compiled private computed-DH closure, not a new source build.
 dh=ROOT/'.deps/private-dh-receive-native'
-for folder in ['Bytecode','Schedules']:
+for folder in ['Bytecode','Schedules','Functions']:
  dest=stage/'Programs'/folder;dest.mkdir(exist_ok=True)
  for p in(dh/'Programs'/folder).iterdir():
   if p.is_file():
