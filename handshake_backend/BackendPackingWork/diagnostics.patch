@@ -1,0 +1,204 @@
+--- a/Networking/Player.cpp
++++ b/Networking/Player.cpp
+@@ -1,4 +1,5 @@
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Player.h"
+ #include "ssl_sockets.h"
+ #include "Tools/Exceptions.h"
+@@ -376,6 +377,7 @@
+ {
+   TimeScope ts(comm_stats["Sending by number"].add(sizeof(long)));
+   send(sockets[i], (octet*)&a, sizeof(long));
++  tls_public_diagnostics::sent_bytes(sizeof(long));
+   sent += sizeof(long);
+ }
+ 
+@@ -393,6 +395,7 @@
+ {
+   TimeScope ts(comm_stats["Sending directly"].add(o, player));
+   send_to_no_stats(player, o);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -411,6 +414,7 @@
+      { if (i!=player_no)
+          send_to_no_stats(i, o);
+      }
++  tls_public_diagnostics::sent_bytes(o.get_length() * (num_players() - 1));
+   sent += o.get_length() * (num_players() - 1);
+ }
+ 
+@@ -513,6 +517,7 @@
+ {
+   TimeScope ts(comm_stats["Exchanging"].add(o, other));
+   exchange_no_stats(other, o, to_receive);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -538,6 +543,7 @@
+ {
+   TimeScope ts(comm_stats["Passing around"].add(o));
+   pass_around_no_stats(o, to_receive, offset);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   sent += o.get_length();
+ }
+ 
+@@ -605,6 +611,7 @@
+ {
+   TimeScope ts(comm_stats["Broadcasting"].add(o[player_no]));
+   Broadcast_Receive_no_stats(o);
++  tls_public_diagnostics::sent_bytes(o[player_no].get_length() * (num_players() - 1));
+   sent += o[player_no].get_length() * (num_players() - 1);
+ }
+ 
+@@ -662,6 +669,7 @@
+           cerr << "Send " << to_send.at(i).get_length() << " bytes to " << i << endl;
+       }
+   TimeScope ts(comm_stats["Sending/receiving"].add(data));
++  tls_public_diagnostics::sent_bytes(data);
+   sent += data;
+   send_receive_all_no_stats(channels, to_send, to_receive);
+ }
+@@ -772,6 +780,7 @@
+ {
+   TimeScope ts(comm_stats["Sending one-to-one"].add(o));
+   P.send_to_no_stats(other_player, o);
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   comm_stats.sent += o.get_length();
+ }
+ 
+@@ -785,6 +794,7 @@
+ void VirtualTwoPartyPlayer::send_receive_player(vector<octetStream>& o) const
+ {
+   TimeScope ts(comm_stats["Exchanging one-to-one"].add(o[0]));
++  tls_public_diagnostics::sent_bytes(o[0].get_length());
+   comm_stats.sent += o[0].get_length();
+   P.exchange_no_stats(other_player, o[0], o[1]);
+ }
+@@ -806,6 +816,7 @@
+   auto sent = P.send_no_stats(other_player, buffer, block);
+   lock.lock();
+   comm_stats.add_to_last_round("Sending one-to-one", sent);
++  tls_public_diagnostics::sent_bytes(sent);
+   comm_stats.sent += sent;
+   lock.unlock();
+   return sent;
+@@ -823,6 +834,7 @@
+ void VirtualTwoPartyPlayer::exchange(octetStream& o)
+ {
+   TimeScope ts(comm_stats["Exchanging one-to-one"].add(o));
++  tls_public_diagnostics::sent_bytes(o.get_length());
+   comm_stats.sent += o.get_length();
+   P.exchange_no_stats(other_player, o, o);
+ }
+--- a/Networking/CryptoPlayer.cpp
++++ b/Networking/CryptoPlayer.cpp
+@@ -3,6 +3,7 @@
+  *
+  */
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "CryptoPlayer.h"
+ #include "Math/Setup.h"
+ #include "Tools/Bundle.h"
+@@ -238,6 +239,7 @@
+         if (my_receivers.at(other))
+         {
+             this->senders[other]->request(os[my_num()]);
++            tls_public_diagnostics::sent_bytes(os[my_num()].get_length());
+             sent += os[my_num()].get_length();
+         }
+         if (receive)
+--- a/Protocols/Beaver.hpp
++++ b/Protocols/Beaver.hpp
+@@ -6,6 +6,7 @@
+ #ifndef PROTOCOLS_BEAVER_HPP_
+ #define PROTOCOLS_BEAVER_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Beaver.h"
+ 
+ #include "Replicated.hpp"
+@@ -89,6 +90,7 @@
+ template<class T>
+ void Beaver<T>::exchange()
+ {
++    tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_GF2?tls_public_diagnostics::Domain::binary:tls_public_diagnostics::Domain::field, tls_public_diagnostics::Phase::online);
+     CODE_LOCATION
+     size_t n_mults = lengths.size() + multiplicands.size();
+     MC->init_open(P, n_mults);
+--- a/Processor/Data_Files.h
++++ b/Processor/Data_Files.h
+@@ -5,6 +5,7 @@
+  * so the streams are easy to pass around and access
+  */
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Math/field_types.h"
+ #include "Tools/Buffer.h"
+ #include "Processor/InputTuple.h"
+@@ -434,6 +435,7 @@
+ template<class T>
+ array<T, 3> Preprocessing<T>::get_triple(int n_bits)
+ {
++  tls_public_diagnostics::Scope public_scope(T::clear::field_type()==DATA_GF2?tls_public_diagnostics::Domain::binary:tls_public_diagnostics::Domain::field, tls_public_diagnostics::Phase::preprocessing);
+   if (T::clear::field_type() == DATA_GF2)
+     count(DATA_TRIPLE, n_bits);
+   if (n_bits == T::default_length)
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PROCESSOR_MACHINE_HPP_
+ #define PROCESSOR_MACHINE_HPP_
+ 
++#include "Tools/PublicProtocolMetrics.h"
+ #include "Machine.h"
+ 
+ #include "Memory.hpp"
+@@ -161,9 +162,10 @@
+ template<class sint, class sgf2n>
+ void Machine<sint, sgf2n>::prepare(const string& progname_str)
+ {
++  tls_public_diagnostics::LoadTimer public_prepare(false);
+   int old_n_threads = nthreads;
+   progs.clear();
+-  load_schedule(progname_str);
++  { tls_public_diagnostics::LoadTimer public_load(true); load_schedule(progname_str); }
+ 
+   if (opts.verbose)
+     suggest_optimizations();
+@@ -531,6 +533,21 @@
+           else
+             arguments[i].get_value<sint>(j) = Mp.MS[arg_regs.at(i) + j];
+         }
++}
++
++template<class sint, class sgf2n>
++DataPositions Machine<sint, sgf2n>::public_function_usage()
++{
++  if (ThreadQueue::thread_queue or threads.empty() or threads.size()!=tinfo.size() or
++      queues.size()!=threads.size() or not active_threads.empty())
++    throw runtime_error("diagnostic usage requires quiescent host");
++  DataPositions result;
++  for(size_t i=0;i<tinfo.size();++i) {
++    if(not queues[i] or not queues[i]->available() or not tinfo[i].processor)
++      throw runtime_error("diagnostic usage requires joined jobs");
++    result.increase(tinfo[i].processor->DataF.get_usage());
++  }
++  return result;
+ }
+ 
+ template<class sint, class sgf2n>
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -119,6 +119,7 @@
+   // the next checked run_function collectively creates fresh ones. Does not
+   // promise complete erasure of machine-global or externally retained storage.
+   void retire_worker_epoch(bool renew_transport = true);
++  DataPositions public_function_usage();
+ 
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);

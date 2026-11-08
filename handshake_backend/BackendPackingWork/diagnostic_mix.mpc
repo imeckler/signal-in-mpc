@@ -1,0 +1,25 @@
+# Public dimensions; all values remain in the worker's own share domains.
+# Exact canonical Fp25519 -> binary conversion uses the tested checked-daBit
+# implementation, not an approximate Rabbit-gap conversion.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbitvec
+from handshake_backend.mixed import field_to_wire_bits
+Bits=sbitvec.get_type(1).Array
+@export
+def tls_diagnostic_mix(inputs,outputs):
+    bits=[inputs[i].v[0] for i in range(128)]
+    products=[bits[i]&bits[64+i] for i in range(64)]
+    value=sum((sint(products[i])*(1<<i) for i in range(8)),sint(0))
+    result=field_to_wire_bits(value*value+17)
+    for i,b in enumerate(products+result):outputs[i]=sbitvec.from_vec([b])
+tls_diagnostic_mix(Bits(128),Bits(320))
+
+@export
+def tls_diagnostic_compare(inputs,outputs):
+    same=[~(inputs[i].v[0]^inputs[320+i].v[0]) for i in range(320)]
+    while len(same)>1:
+        same=[same[i]&same[i+1] if i+1<len(same) else same[i] for i in range(0,len(same),2)]
+    for i in range(8):outputs[i]=sbitvec.from_vec([same[0]])
+tls_diagnostic_compare(Bits(640),Bits(8))
