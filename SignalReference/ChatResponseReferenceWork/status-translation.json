@@ -1,0 +1,33 @@
+{
+  "candidate_only": true,
+  "profile": "status",
+  "exit_code": 0,
+  "binary_sha256": "95025db3e6186263ee7c6dceb518dd19f3d35662709d5a1020c063f270a95d38",
+  "llbc_sha256": "bb69af391206837967bf963a4932116ffc631dcfb1b749d71d0ff24ac8b71305",
+  "manual_generated_body_edits": false,
+  "slice_metadata_lowering": false,
+  "translator_candidate_unaccepted": true,
+  "translator_receipt_sha256": "4c7dd85a451101973c589b423927b926b67337d66b2eddac3a4c00723b70c2da",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/TranslatorCandidate/Bin/candidate",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/status/chat.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/GeneratedStatus",
+    "-namespace",
+    "ActualChatResponseStatus",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "generated_sha256": {
+    "Funs.lean": "26c624a54d0ef7a1ed3e3d8fa362688faa5577732d1d3cce65a5a82d1ffb5539",
+    "FunsExternal_Template.lean": "5cb6c0d7fa7fc14492e897f7bea894d35fdaee4416498365bbacdb50b7c2389c",
+    "Types.lean": "86007ba9f3b44a56c734140b2e5900e8406bbf3b6b86a00f044c3c1798273ee1",
+    "TypesExternal_Template.lean": "d63f1d8cc468c8aa69ebe06bdde2d992d14105a0dee22b7bc48ff9e781a0ab46"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "scope": "Printed identifier/record field names only; no computational body/model/LLBC changes",
+  "source_archive_sha256": "ceb3a9a8114488f7deef705599316d1282133b4aea203cbf902117c11175d453",
+  "charon_archive_sha256": "6201c2f41fee4e20e2d565db6790aeb14d4f356bfe7632ca3ea8f18f2da2532b",
+  "source_delta": [
+    "src/extract/ExtractBase.ml"
+  ],
+  "original_file_sha256": "afe92051e64e99c7e918a9a3fa002dda766303bb2323297997c5218e5d76e73c",
+  "modified_file_sha256": "662a16e25a74f7fb164b48b3190eaeba363a458b714423e382015426983dd960",
+  "diff_sha256": "9b0541a0ef72b456622336234e45298c680c9ccc9d1d209fb66854759e815b0e",
+  "exit_code": 0,
+  "script_sha256": "c27fc09e4295260d07fbc1b761d36d69d6c94c4511824a282ad7594307eeb0c9",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProstEncodingWork/AdvanceWork/TranslatorCandidate/Opam/aeneas-never/bin/dune",
+    "build",
+    "--profile",
+    "release",
+    "main.exe",
+    "-j",
+    "4"
+  ],
+  "binary_sha256": "95025db3e6186263ee7c6dceb518dd19f3d35662709d5a1020c063f270a95d38",
+  "version": "aeneas 5b9dcf33dccdb1560ea7203ac57ea202476b6ed3-chat-names"
+}

@@ -1,0 +1,51 @@
+--- upstream/src/extract/ExtractBase.ml
++++ candidate/src/extract/ExtractBase.ml
+@@ -1922,6 +1922,7 @@
+ 
+ let ctx_compute_trait_parent_clause_name (ctx : extraction_ctx)
+     (trait_decl : trait_decl) (clause : trait_param) : string =
++  let parent_clause_id = clause.clause_id in
+   (* We derive the name of the clause from the trait instance.
+      For instance, if the clause gives us an instance of `Foo<u32>`,
+      we generate a name along the lines of "fooU32Inst".
+@@ -1938,6 +1939,24 @@
+     else ctx_compute_trait_decl_name ctx trait_decl ^ "_" ^ clause
+   in
+   let clause = clause ^ "Inst" in
++  (* Naming only: equal parent trait names can denote different bounds.
++     Preserve both slots and disambiguate their printed record field names. *)
++  let same_name (other : trait_param) =
++    let n =
++      ctx_compute_trait_clause_name ctx trait_decl.item_meta.name
++        trait_decl.llbc_generics trait_decl.llbc_parent_clauses other.clause_id
++    in
++    let n =
++      if !Config.record_fields_short_names then n
++      else ctx_compute_trait_decl_name ctx trait_decl ^ "_" ^ n
++    in
++    n ^ "Inst" = clause
++  in
++  let clause =
++    if List.length (List.filter same_name trait_decl.parent_clauses) > 1 then
++      clause ^ "_" ^ TraitClauseId.to_string parent_clause_id
++    else clause
++  in
+   match backend () with
+   | FStar -> StringUtils.lowercase_first_letter clause
+   | Coq | HOL4 | Lean -> clause
+@@ -2046,8 +2065,13 @@
+               (* The name shouldn't be empty, and its last element (after we remove
+                  the target architecture suffix) should be an ident *)
+               let name = LlbcAstUtils.strip_target_suffix def.item_meta.name in
+-              let cl = Collections.List.last name in
+-              name_from_type_ident (TypesUtils.as_ident cl))
++              match
++                List.find_opt
++                  (function T.PeIdent _ -> true | _ -> false)
++                  (List.rev name)
++              with
++              | Some cl -> name_from_type_ident (TypesUtils.as_ident cl)
++              | None -> "x")
+       | TVar _ -> (
+           (* TODO: use "t" also for F* *)
+           match backend () with

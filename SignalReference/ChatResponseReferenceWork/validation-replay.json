@@ -1,0 +1,15 @@
+{
+  "source": ".deps/libsignal-v0.106.1/rust/net/src/chat/ws.rs",
+  "source_sha256": "cc62453bcc782f8ffe0b400ce81abc367c8b32433898d3ac6013781b4a82414e",
+  "output": "SignalReference/ChatResponseReferenceWork/Rust/src/validation_replay.rs",
+  "output_sha256": "131eeef2c0b5887bdd6b8f4a889e5b46c757a876a50f6268084291c681535494",
+  "private_api_called": false,
+  "decoded_boundary_explicit": true,
+  "changes": [
+    "Replace decode_and_validate(data) signature and first Message::decode statement with validate_decoded(msg).",
+    "Supply imported generated type aliases; replay both enums unchanged without display derives."
+  ],
+  "validation_suffix_identical": true,
+  "original_function_sha256": "842c89dc203e144f272c193a69233b39ed3a71e097e00329019961d05306c588",
+  "validation_suffix_sha256": "10eac121fdb99b888c9c9fc0d6cc1f8225d425c5f2b750f5571261154013c48a"
+}

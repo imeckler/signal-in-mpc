@@ -1,0 +1,6 @@
+Artifacts/
+Build/
+__pycache__/
+*.log
+Rust/target/
+Revisions/

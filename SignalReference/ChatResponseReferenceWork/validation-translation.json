@@ -1,0 +1,33 @@
+{
+  "candidate_only": true,
+  "profile": "validation",
+  "exit_code": 0,
+  "binary_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+  "llbc_sha256": "b0a97d7ddd943c59b895c0b88277ebaf652cea6a2635d38eb5fdd8be7597965f",
+  "manual_generated_body_edits": false,
+  "slice_metadata_lowering": false,
+  "translator_candidate_unaccepted": true,
+  "translator_receipt_sha256": "6a94e8d2dc3b9bf67d888a8c4dd1bfa0a60a60826a84b5393f7510e9638d4a43",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-dbae191bb9f72719",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/validation/chat.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/GeneratedValidation",
+    "-namespace",
+    "ActualChatResponseValidation",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "generated_sha256": {
+    "Funs.lean": "6d78160f3a0631203a7b92c7a5a84022a55aa6f27720ddb08c66aff81ba7da3d",
+    "FunsExternal_Template.lean": "ada4b951135afa81aa3a804468ab2a4c2d72fc28817509c5d535d486f071dc0f",
+    "Types.lean": "490242d216cdcc8614d41626092df3150e10d15277005b8495a892999036b64c",
+    "TypesExternal_Template.lean": "08e407cfd1ce4957bfcf35b760386a14e67c1cba17f1cd3b11d24d3368474a50"
+  }
+}
