@@ -1,0 +1,22 @@
+{
+  "actual_schema_cases": 7,
+  "rejection_cases": 3,
+  "shared_numeric_and_ciphertext_lengths": true,
+  "output_capacity": 550,
+  "artifact_sha256": "9eb6676b232edeff56051279120c0fb739dc0920eebe80060bfcb96d428639c8",
+  "source_sha256": {
+    "SignalReference/PrivateRelayWork/check.py": "741679ca91fc7c3846be711b162a7e8f190705575aa061420bd6a6d4295eb73a",
+    "SignalReference/PrivateRelayWork/Export.lean": "5580afba1046ed289003dc4dc107d4717b24ec047f9339a2ff000e8a2414e335",
+    "SignalReference/PrivateRelayWork/Checks.lean": "bb0e602ec4824d91f4f5fcdf3c18e7621060d2b4637027ffae51d7154fbfce78",
+    "TlsMpc/Signal/PrivateRelay.lean": "602c97e66098e236e83ada03c3bec98ff86a75327b0255377a6a898a7601ca25",
+    "TlsMpc/Signal/PrivateDecimal.lean": "19d952eb7c3c1a7046e6e1c35f5393ffd7a319f420ad3b92aee359616b228250",
+    "TlsMpc/Signal/PrivateBase64.lean": "e8e1ca3c74b56a7d77226294698e828a18fafebf20d8e7d01fa1b296b0fe803f",
+    "TlsMpc/Signal/PrivateProtobuf.lean": "748952919fa92ed1eb52d6713130f38d3ddad511628136e50f7ce435a87c6608",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e"
+  },
+  "compiler_theorem_established": true,
+  "standard_axioms_only": true,
+  "integer_semantic_refinement_proved": false,
+  "native_mpc_executed": false,
+  "device_registration_values": "Encodes bounded integer domain; authenticated device-store membership/range remains a separate boundary."
+}

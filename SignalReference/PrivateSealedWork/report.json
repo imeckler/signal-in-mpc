@@ -1,0 +1,25 @@
+{
+  "actual_ssv1_prefix_cases": 8,
+  "rejection_cases": 4,
+  "input_inner_capacity": 80,
+  "output_capacity": 444,
+  "same_artifact_variable_lengths": true,
+  "supplied_dh_fixture_only": true,
+  "native_computed_dh_executed": false,
+  "compiler_theorem_established": true,
+  "standard_axioms_only": true,
+  "integer_semantic_refinement_proved": false,
+  "service_integrated": false,
+  "artifact_sha256": "f47724b45f2e0b22b57083aa42e9da3795e4c50963220ba7b565c20cbff73e59",
+  "artifact_bytes": 238349638,
+  "source_sha256": {
+    "SignalReference/PrivateSealedWork/check.py": "ecedff75d528ae94442a6ca516de200c9ac53c9690c98f3e46a6b9e2b496422a",
+    "SignalReference/PrivateSealedWork/Export.lean": "9fdad431531a22168500f0faab990b6e2ae2e28c475f589db98d6dcb879a665c",
+    "SignalReference/PrivateSealedWork/Checks.lean": "88de50c9ea3049c16490a3b152f250bdc7cc49d041c428782757cb03179d75bd",
+    "TlsMpc/Signal/PrivateSealedSender.lean": "c5052f66b74648c48e999e0521f411cede3c1f01781aba9405700fc91e760d9e",
+    "TlsMpc/Signal/PrivateProtobuf.lean": "748952919fa92ed1eb52d6713130f38d3ddad511628136e50f7ce435a87c6608",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e"
+  },
+  "oracle_sha256": "300664bf044730e690f03f1264e45fb07010376f1ae20ae6538c924d68992d07"
+}

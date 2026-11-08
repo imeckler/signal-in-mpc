@@ -1,0 +1,6 @@
+'TlsMpc.Signal.PrivateBase64.encode_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateDecimal.encode_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateRelay.body_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateRelay.protobuf_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateRelay.frame_map' depends on axioms: [propext, Quot.sound]
+'TlsMpc.Signal.PrivateRelay.compiled_encode_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
