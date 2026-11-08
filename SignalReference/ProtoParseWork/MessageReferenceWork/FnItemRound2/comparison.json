@@ -1,0 +1,179 @@
+{
+  "candidate_only": true,
+  "accepted_translator": false,
+  "script_sha256": "aa105354d527f0923c83bbe8a7547f68403d262b66cd0e028fd0288c82f2c075",
+  "rows": [
+    {
+      "profile": "default",
+      "translator": "baseline",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "ead351664ad8925a6acf41b96c81839ac42339f81155b82ad394d251737a3c22",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "14d2abbe0e429e52524900435df068841f9f3addff896c259e48b0fa8d6f484c",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/default.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/baseline_default",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "default",
+      "translator": "candidate",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "ead351664ad8925a6acf41b96c81839ac42339f81155b82ad394d251737a3c22",
+      "binary_sha256": "2b296e6208f7a12e4ca9d12c6597b22b4909c42510a13a4705e0bfa407ff50da",
+      "log_sha256": "61aaeccf994cd6b03e8679f99dd40c19a778dee5ad6279860c75e70d38443096",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_default/Funs.lean": "32c3267e922ffac7b0f6b533288d581ff99928fc1695712e966dfdced24e3430",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_default/FunsExternal_Template.lean": "a88dae120fe29628ab6382e7aaf14fad9389f85d4c5be2618ada26cb4f6cd505",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_default/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/candidate-2b296e6208f7a12e",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/default.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_default",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "literal",
+      "translator": "baseline",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "38e0ae0bd92638a48e78ca3b24516b3e44f54c9d2d44f9c5b562da4a537400a1",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "a651f9a30cbf4065c0c88b5f41324814fc8d67ec7d9143fb19dc306dc8928fe1",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/baseline_literal/Funs.lean": "a0524332d73ffc158bf285cbd869a851f4b0a28b266b7e0f686ad2a3674d8850",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/baseline_literal/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/literal.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/baseline_literal",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "literal",
+      "translator": "candidate",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "38e0ae0bd92638a48e78ca3b24516b3e44f54c9d2d44f9c5b562da4a537400a1",
+      "binary_sha256": "2b296e6208f7a12e4ca9d12c6597b22b4909c42510a13a4705e0bfa407ff50da",
+      "log_sha256": "58a7df6d33e6ede47cda1d7242723444a0939e3482852ffaf31e3ef66dfe37cd",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_literal/Funs.lean": "937fb91153aab6f99668e83ac20df46e4ea18d566ad26c579b8f35316b95b3b1",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_literal/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/candidate-2b296e6208f7a12e",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/literal.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_literal",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "negative",
+      "translator": "baseline",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "c2d4f5cc15cea4ced9cae8a520159ca84142cbd7e3a943a6e5ad1a338374f415",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "24cb6404d5e65edfad2a63b5a76e3c2362b4dd6a328ff1aa096f62cb130afa7b",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/negative.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/baseline_negative",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "negative",
+      "translator": "candidate",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "c2d4f5cc15cea4ced9cae8a520159ca84142cbd7e3a943a6e5ad1a338374f415",
+      "binary_sha256": "2b296e6208f7a12e4ca9d12c6597b22b4909c42510a13a4705e0bfa407ff50da",
+      "log_sha256": "7ac4032efa21123e81d204280e9093279baa19cb5f02ed6889e178a3db1b0320",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/candidate-2b296e6208f7a12e",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/Regressions/negative.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemRound2/Generated/candidate_negative",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    }
+  ]
+}

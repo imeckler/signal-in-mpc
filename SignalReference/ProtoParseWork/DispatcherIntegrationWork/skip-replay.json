@@ -1,0 +1,23 @@
+{
+  "changes": "Import substitutions and explicit uniquely named equivalent wire discriminant instance; removed unused DecodeErrorKind discriminant attribute. Function computational bodies unchanged.",
+  "modules": [
+    {
+      "module": "SkipReplay.Types",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Trees/candidate/SkipTranslatorWork/Generated/skip/Types.lean",
+      "source_sha256": "3bf1326e167fab93f5875558170fbde75ce1d6a140f2ba37a5ae140c3c74268e",
+      "replayed_sha256": "6c166d60802df3f9cb9ccc89e8bc1e7530b8d3893e430f3f7e2df40eedfd245f"
+    },
+    {
+      "module": "SkipReplay.FunsExternal",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Modules/SkipTranslatorWork/Generated/skip/FunsExternal.lean",
+      "source_sha256": "43edc92e53480300f10a3742a4763c4f0d8e7f528d5aad768fbe79bea9564b61",
+      "replayed_sha256": "57a5a04ea62a7e788a842e2693b0507f4c818372888be7260783e5b53303fe83"
+    },
+    {
+      "module": "SkipReplay.Funs",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/SkipTranslatorWork/Trees/candidate/SkipTranslatorWork/Generated/skip/Funs.lean",
+      "source_sha256": "950d8c67687e77a39784dcc92a0b961f9beb3640f283d96b16910999a3f06f98",
+      "replayed_sha256": "feea79c71b6cda67e4b40251d093b6a07ce3dbfcd0c166807914410b1d39a8fc"
+    }
+  ]
+}

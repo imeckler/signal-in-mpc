@@ -1,0 +1,107 @@
+--- upstream/src/symbolic/SymbolicToPureTypes.ml
++++ candidate/src/symbolic/SymbolicToPureTypes.ml
+@@ -407,8 +407,15 @@
+           let sg = sigs.sg in
+           (* Check that the function lives in the expected effect - otherwise we
+                  have to lift it *)
+-          [%cassert_opt_span] span sg.fwd_info.effect_info.can_fail
+-            "Unimplemented";
++          (* Candidate: a total, zero-input literal function item can be
++             represented by its pure result carrier. Reject all
++             other previously unsupported pure function-item shapes. *)
++          [%cassert_opt_span] span
++            (sg.fwd_info.effect_info.can_fail ||
++             (sg.inputs = [] && not sg.fwd_info.effect_info.can_diverge &&
++              RegionGroupId.Map.is_empty sg.back_effect_info &&
++              (match sg.output with TLiteral _ -> true | _ -> false)))
++            "Unsupported pure function item: requires total zero-input literal";
+           [%cassert_opt_span] span
+             (RegionGroupId.Map.for_all
+                (fun _ (e : fun_effect_info) -> not e.can_fail)
+@@ -416,7 +423,8 @@
+             "Unimplemented";
+           (* Substitute *)
+           let subst = make_subst_from_generics sg.generics generics in
+-          ty_substitute subst sigs.ty
++          let ty = ty_substitute subst sigs.ty in
++          ty
+       | T.TraitMethod _ -> [%craise_opt_span] span "Unimplemented")
+   | TFnPtr _ -> [%craise_opt_span] span "Arrow types are not supported yet"
+   | TDynTrait { binder } ->
+@@ -535,7 +543,12 @@
+           (generics = TypesUtils.empty_generic_args)
+           "Unimplemented";
+         save_count outer_regions
+-    | TFnDef _ | TFnPtr _ ->
++    | TFnDef _ ->
++        (* Lifetime-free function items are zero-sized and carry no borrowed
++           environment. Reuse the existing analysis, which rejects regions. *)
++        ignore (TypesAnalysis.analyze_ty span type_infos ty);
++        save_count outer_regions
++    | TFnPtr _ ->
+         [%craise_opt_span] span "Arrow types are not supported yet"
+     | TDynTrait _ ->
+         [%craise_opt_span] span "Dynamic trait types are not supported yet"
+@@ -670,7 +683,10 @@
+           (generics = TypesUtils.empty_generic_args)
+           "Unimplemented";
+         stop outer_regions ty
+-    | TFnDef _ | TFnPtr _ ->
++    | TFnDef _ ->
++        ignore (TypesAnalysis.analyze_ty span type_infos ty);
++        stop outer_regions ty
++    | TFnPtr _ ->
+         [%craise_opt_span] span "Arrow types are not supported yet"
+     | TDynTrait _ ->
+         [%craise_opt_span] span "Dynamic trait types are not supported yet"
+--- upstream/src/symbolic/SymbolicToPureExpressions.ml
++++ candidate/src/symbolic/SymbolicToPureExpressions.ml
+@@ -1607,7 +1607,7 @@
+         let generics = ctx_translate_fwd_generic_args ctx generics in
+         let func = Fun (FromLlbc (id, None)) in
+         let qualif = Qualif { id = FunOrOp func; generics } in
+-        let ty =
++        let ty, _needs_lift =
+           match kind with
+           | T.FunId (FBuiltin _) -> [%craise] ctx.span "Unimplemented"
+           | T.FunId (FRegular _) ->
+@@ -1618,8 +1618,12 @@
+               in
+               (* Check that the function lives in the expected effect - otherwise we
+                  have to lift it *)
+-              [%cassert] ctx.span sg.sg.fwd_info.effect_info.can_fail
+-                "Unimplemented";
++              [%cassert] ctx.span
++                (sg.sg.fwd_info.effect_info.can_fail ||
++                 (sg.sg.inputs = [] && not sg.sg.fwd_info.effect_info.can_diverge &&
++                  RegionGroupId.Map.is_empty sg.sg.back_effect_info &&
++                  (match sg.sg.output with TLiteral _ -> true | _ -> false)))
++                "Unsupported pure function item: requires total zero-input literal";
+               [%cassert] ctx.span
+                 (RegionGroupId.Map.for_all
+                    (fun _ (e : fun_effect_info) -> not e.can_fail)
+@@ -1627,10 +1631,11 @@
+                 "Unimplemented";
+               (* Substitute *)
+               let subst = make_subst_from_generics sg.sg.generics generics in
+-              ty_substitute subst sg.ty
++              (ty_substitute subst sg.ty, not sg.sg.fwd_info.effect_info.can_fail)
+           | T.TraitMethod _ -> [%craise] ctx.span "Unimplemented"
+         in
+-        ({ e = qualif; ty }, false)
++        let value = { e = qualif; ty } in
++        (value, false)
+   in
+ 
+   (* Make the let-binding *)
+--- upstream/src/pure/PureMicroPassesGeneral.ml
++++ candidate/src/pure/PureMicroPassesGeneral.ml
+@@ -537,7 +537,7 @@
+                   };
+               ty = _;
+             },
+-            x ) ->
++            x ) when monadic ->
+           [%ldebug "Case: result"];
+           (* return/fail case *)
+           if variant_id = result_ok_id then

@@ -1,0 +1,29 @@
+{
+  "candidate_only": true,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemRound2/candidate-2b296e6208f7a12e",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/DispatcherIntegrationWork/Artifacts/dispatch_error_models/prost.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ProtoParseWork/DispatcherIntegrationWork/Generated",
+    "-split-files",
+    "-namespace",
+    "SignalMessageIntegration",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "2b296e6208f7a12e4ca9d12c6597b22b4909c42510a13a4705e0bfa407ff50da",
+  "llbc_sha256": "fa7701f892589825c03b5a7152e365b240b32d44de313c9b8332e67342a445ae",
+  "generated_sha256": {
+    "Funs.lean": "4139c9886bb7470e5fbf70373f36b992f071edf62346415ba93384e2c0b32508",
+    "FunsExternal_Template.lean": "f7119784879e954568e8e835fd1e3f3be42e4ad26399acfd69b5f59df3aa0420",
+    "Types.lean": "c4ac92fcee1b777b5c88c1e513552f939a45bd95bf2e59fd2d36919652376209",
+    "TypesExternal_Template.lean": "715427b0807c9e48e0371b26e7e3373da6ee3720ecbf8653a2dce4f1a36e75f1"
+  },
+  "manual_generated_edits": false
+}

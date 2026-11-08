@@ -1,0 +1,17 @@
+{
+  "candidate_only": true,
+  "source_sha256": {
+    ".deps/libsignal-vendor/prost-0.14.4/src/error.rs": "3c24128fca68c3cca7f48e7d185f9696c949dc9de7d22bbac1871f393f36b992",
+    ".deps/libsignal-vendor/prost-0.14.4/src/encoding.rs": "2262da48addaf0544bb7c1f38ae617160fc4fba1781bd9c99fdc96b0dd6288d4"
+  },
+  "explicit_boundaries": [
+    "Pinned Charon/Aeneas plus isolated FnItemRound2 translator; not globally verified.",
+    "Exact actual parser bodies are used for uint32, bytes, Vec replacement and skip; structural dictionaries preserve observed methods.",
+    "TypesExternal aliases DecodeError and DecodeContext to the accepted bytes extraction layout, preserving recursion count. Field/skip errors are mapped constructor-by-constructor, retaining description and diagnostic stack.",
+    "Generated error annotation closures are observational models: identity modulo diagnostic stack. error_projection proves any stack replacement preserves rejection kind, fields and suffix. Rust error.rs::push only appends to stack. Successful bounded allocation (including diagnostic append) is required; allocator failure/Drop/erasure are not modeled.",
+    "Unused append_to dictionary slot fails closed and is not exercised by bytes merge. Its correctness is not claimed.",
+    "Bounded contiguous-buffer/Vec allocation below isize::MAX assumptions inherited from accepted BytesReferenceWork.",
+    "Skip body is actual accepted loop translation; no new totality theorem is claimed.",
+    "Whole numeric scan/group/circuit agreement remains open. RejectionMismatch records the known absent-to-initialized Option discrepancy."
+  ]
+}

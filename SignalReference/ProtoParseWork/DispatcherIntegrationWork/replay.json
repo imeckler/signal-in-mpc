@@ -1,0 +1,83 @@
+{
+  "changes": "Import paths only, remove unused Cow/error-kind discriminant attributes, and spell the identical wire discriminant mapping with a unique instance name to avoid global collisions. Parser computational declarations unchanged.",
+  "modules": [
+    {
+      "module": "FieldReplay.Types",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Generated/uint32_step/Types.lean",
+      "original_sha256": "5705c0c619153e956ca764e00563a7fac7fa9b7969ca298f4eab45d1f7f58863",
+      "replayed_sha256": "a2080c4b0a8a05284b8156239b416b42457ba48db9d7f8a4e3da3147ad615514"
+    },
+    {
+      "module": "FieldReplay.FunsExternal",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/ProtoParseWork/FieldReferenceWork/Generated/uint32_step/FunsExternal.lean",
+      "original_sha256": "5f485076c7da05c92cbb500619ba4f5d0610ed4602b7357ff4fee04da12b5f07",
+      "replayed_sha256": "6b21165a8c900fd81e7a96cd1dcc97c2ac80546a3222f236d74b79b2150fff98"
+    },
+    {
+      "module": "FieldReplay.Funs",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Generated/uint32_step/Funs.lean",
+      "original_sha256": "5bcaeddc0d5ac613039a97336346347610b068d97b63d0a90ffbac4b82cb57c5",
+      "replayed_sha256": "c3bc3647d6f99289de3c4f805acda238f87121cfaed8c8c8ea6b37c38df01c4d"
+    },
+    {
+      "module": "FieldReplay.Replayed.BufModel",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/BufModel.lean",
+      "original_sha256": "c9ad9dcb299ab2ed91690928cbdd5ddf117b0c1b20ffdbcf90e1bbfb5fbab5f0",
+      "replayed_sha256": "2df825806871597e9008fbd71e3fda1be5466502edea4763d72569ef7ced8558"
+    },
+    {
+      "module": "FieldReplay.Replayed.SliceReference",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/SliceReference.lean",
+      "original_sha256": "7aa52dcf0128faf8383ce50f52fb0007bf7545d4f0dcbff8278a80a789d13f35",
+      "replayed_sha256": "d2e4b4fc215abf69ffa4c9f5769d831766487fbfa5f621047f19dfed9ca8f723"
+    },
+    {
+      "module": "FieldReplay.Replayed.SliceBridge",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/SliceBridge.lean",
+      "original_sha256": "732154b5aef0311d72b5b65bfd8f7adf8bd47ef385e7ad5c29251b33e50d08a2",
+      "replayed_sha256": "ae9d94dd85ec2824645c3e7a9b610750fed01e628d89046114deeba46cee1b9e"
+    },
+    {
+      "module": "FieldReplay.Replayed.SliceAdapter",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/SliceAdapter.lean",
+      "original_sha256": "4ea5c91e7620eea8c09df1280356f630fc49f16cec8025ac6930013d936e4c33",
+      "replayed_sha256": "4a7fe89deeb0cda00b579487cf2f11eca6c07adc9cce88814d21320555ebe22f"
+    },
+    {
+      "module": "FieldReplay.Replayed.SlowReference",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/SlowReference.lean",
+      "original_sha256": "fd74dd6a355b010550a83bde6b5cc19004514dcb29fab277dc020bc7d199d178",
+      "replayed_sha256": "b9e4aa2b649fe91efa600a23ad51a772ec49a63f9fd32db76852248f44a37710"
+    },
+    {
+      "module": "FieldReplay.Replayed.StateBridge",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/StateBridge.lean",
+      "original_sha256": "d3c85af2e11b119e0ab27a130de5624a0aaf08c1da6fee249fcd2bfe16b20269",
+      "replayed_sha256": "824992ee8d53606b217009af363274baf0d9d2917fe04472577b3e40c47386a3"
+    },
+    {
+      "module": "FieldReplay.Replayed.WrapperReference",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/WrapperReference.lean",
+      "original_sha256": "f40e285149fe2c1e1f6af90f7c7f2f138e79bd90bf1829d8b8ad6d6ff3a835fc",
+      "replayed_sha256": "e4a81768e734e11d417396725f09bb98ee70fb2cdc45cdd6d51a8adeae1093b3"
+    },
+    {
+      "module": "FieldReplay.Replayed.ArtifactBridge",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/ArtifactBridge.lean",
+      "original_sha256": "e48d24e51a086d6ffc2bf59aec234163615d9e78ce0d95d5f3191e696e8247d2",
+      "replayed_sha256": "32e08012f35e6217bc7aee2d7ba83a144320f1328b843200f16f60b9e8227792"
+    },
+    {
+      "module": "FieldReplay.Replayed.Consumption",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Replayed/Consumption.lean",
+      "original_sha256": "88baeddfaaac1b7cc51ccabf70213591909b60f262f8d0b4d12dcddb6af21855",
+      "replayed_sha256": "cb0ce5726761014e8f135b1cda044bfd5bd52a1de72a50081440cf8d72c96ed0"
+    },
+    {
+      "module": "FieldReplay.Uint32Reference",
+      "source": "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/FieldReferenceWork/Modules/FieldReferenceWork/Uint32Reference.lean",
+      "original_sha256": "d5565e03cdb3498bd5f6a56c9069756de2fad5af10317ff9a6f852fd7288599f",
+      "replayed_sha256": "807f6b5e5f92ad15bca81313f99f1ba147bbe7458189c697ee379806e064764a"
+    }
+  ]
+}

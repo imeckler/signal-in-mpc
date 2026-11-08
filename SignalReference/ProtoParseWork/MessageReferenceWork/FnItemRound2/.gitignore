@@ -1,0 +1,7 @@
+Source/
+Build/
+RegressionBuild/
+Generated/
+Regressions/
+candidate-*
+__pycache__/

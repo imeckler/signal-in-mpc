@@ -1,0 +1,5 @@
+Build/
+__pycache__/
+Artifacts/**/*.llbc
+FieldReplay/
+SkipReplay/
