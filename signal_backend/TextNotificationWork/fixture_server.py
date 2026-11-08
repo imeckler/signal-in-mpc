@@ -16,9 +16,12 @@ class TextPeer(base.Peer):
   assert len(self.fixture['conversations'])==2
   self.steps=[0,0];self.response_queue=[];self.response_order=[];self.request_base=None
   self.recipient=subprocess.Popen([str(recipient)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True)
-  for slot,c in enumerate(self.fixture['conversations']):
-   assert 'initial'not in c
-   assert self.recipient_call(dict(mode='init',slot=slot,receiving_state=c['receiving_state'],recipient_secret=c['recipient_secret']))=={'initialized':True}
+  try:
+   for slot,c in enumerate(self.fixture['conversations']):
+    assert 'initial'not in c
+    assert self.recipient_call(dict(mode='init',slot=slot,receiving_state=c['receiving_state'],recipient_secret=c['recipient_secret']))=={'initialized':True}
+  except BaseException:
+   self.close_recipient();raise
  def recipient_call(self,row):
   self.recipient.stdin.write(json.dumps(row)+'\n');self.recipient.stdin.flush()
   return json.loads(self.recipient.stdout.readline())

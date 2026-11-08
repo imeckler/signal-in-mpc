@@ -15,7 +15,7 @@
   "native_MPC_executed_here": false,
   "source_sha256": {
     "signal_backend/TextNotificationWork/check_server.py": "f6ac603b2d5c94a4bde7c804d002eba0465c26a28b9bdfd0525c3ca86ca73c09",
-    "signal_backend/TextNotificationWork/fixture_server.py": "ef4873cec817ad61ef9842c814c4fab2c27cf59ee210776fa7b4a4a35f580478",
+    "signal_backend/TextNotificationWork/fixture_server.py": "378c65867a5344d7fb2309af2f8f60019739a3842211df61a5d268ea935fc695",
     "signal_backend/TextNotificationWork/server-fixtures.json": "9d7bf88b6c4bd2924444462ef3a9453dfb4b7d498ddc6644464d27e01b107eba",
     "signal_backend/TextNotificationWork/PublicTextFixture.h": "e9d1923e8dab21e389efcabff048eba8e8aff854eab917b36fea84c39944ab99",
     "signal_backend/TextNotificationWork/prepare_fixtures.py": "0447ef07491a8f0a0368c2663c4bc36ce68dc52789438947b1552da1f8bee718",
