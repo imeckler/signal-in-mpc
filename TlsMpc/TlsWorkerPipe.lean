@@ -36,6 +36,7 @@ def readExact (stream : IO.FS.Stream) (size : Nat) : M Bytes := do
 private structure PipeState where
   next : Nat := 0
   failed : Bool := false
+  cleanupAvailable : Bool := false
 
 def make (input output : IO.FS.Stream)
     (authenticate : String → List Bytes → Nat → Bytes → Bytes → M Bool) : IO Rpc := do
@@ -44,18 +45,27 @@ def make (input output : IO.FS.Stream)
     authenticate
     call := fun operation payload => ExceptT.mk <| state.atomically fun stateRef => do
       let before ← stateRef.get
-      if before.failed then return .error "worker pipe is terminal after failure"
+      if before.failed && !(operation == .abort && before.cleanupAvailable) then
+        return .error "worker pipe is terminal after failure"
       let action : M Bytes := do
         insist (payload.length ≤ maxPayload) "worker pipe request exceeds bound"
         let sequence := before.next
         insist (sequence < 2^64) "worker request sequence exhausted"
-        liftM (stateRef.set { before with next := sequence+1 } : IO Unit)
+        liftM (stateRef.set { before with next := sequence+1, cleanupAvailable := false } : IO Unit)
         liftM (output.write ⟨(frame operation sequence payload).toArray⟩)
         liftM output.flush
         let header ← readExact input 5
         let size := number (header.drop 1)
         let response ← readExact input size
-        insist (header[0]?.getD 255 == 0) "native worker rejected the operation"
+        let status := header[0]?.getD 255
+        insist (status == 0 || (status == 1 && response.isEmpty)) "invalid worker pipe status"
+        if status == 1 then
+          -- A complete, bounded rejection preserves framing. Private work stays
+          -- terminal; only a cleanup receipt may use this pipe afterward.
+          liftM (stateRef.modify (fun current => { current with cleanupAvailable := true }) : IO Unit)
+          throw "native worker rejected the operation"
+        if before.failed then
+          liftM (stateRef.modify (fun current => { current with cleanupAvailable := true }) : IO Unit)
         return response
       let result ← try action.run catch _ => pure (.error "worker pipe I/O failed")
       match result with

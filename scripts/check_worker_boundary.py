@@ -30,7 +30,7 @@ def main():
         for name in ['session_policy_checks','application_policy_checks','public_protocol_checks','transport_checks','owned_secrets_checks']:
             result=run([str(directory/name)])
             checks.append({'test':name,'output':result.stdout.strip()})
-        for mode in ['valid','truncated','oversized','rejected','concurrent','duplex']:
+        for mode in ['valid','truncated','oversized','rejected','reject-cleanup','bad-status','rejected-body','concurrent','duplex']:
             result=run([str(ROOT/'.lake/build/bin/worker_pipe_fixture'),str(directory/'pipe_fixture'),mode])
             checks.append({'test':'Lean/C++ pipe '+mode,'output':result.stdout.strip()})
         result=run(['lake','env','lean','--run','WorkerApplicationFixture.lean'])

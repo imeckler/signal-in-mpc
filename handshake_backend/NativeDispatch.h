@@ -12,8 +12,16 @@ class Dispatch {
     ShapeCompiler* shapes;
 public:
     Dispatch(Session& session, Collective& collective, ShapeCompiler* shapes=nullptr) : session(session), collective(collective),shapes(shapes) {}
+    bool fail_from_private_producer() noexcept {failed=true;transport.close();return session.abort();}
     Bytes call(const Request& request) {
         try {
+            // A completed terminal cleanup can be acknowledged again without
+            // touching the already-discarded MPC transport. No other operation
+            // can run or disclose output after the terminal transition.
+            if(failed && request.operation==Opcode::abort) {
+                Cursor terminal{request.payload};terminal.done();
+                public_require(session.abort(),"terminal cleanup unavailable");return {};
+            }
             public_require(!failed,"worker already aborted");
             collective.agree(request); // BEFORE private work or output.
             Cursor in{request.payload};

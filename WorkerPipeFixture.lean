@@ -5,6 +5,20 @@ def main (args : List String) : IO Unit := do
   let [path, mode] := args | throw (IO.userError "pipe_fixture MODE")
   let child ← IO.Process.spawn {cmd := path, args := #[mode], stdin := .piped, stdout := .piped, stderr := .inherit}
   let rpc ← TlsWorkerPipe.make (IO.FS.Stream.ofHandle child.stdout) (IO.FS.Stream.ofHandle child.stdin) (fun _ _ _ _ _ => pure true)
+  if mode == "reject-cleanup" then
+    let rejected ← (rpc.call .begin []).run
+    unless !rejected.isOk do throw (IO.userError "rejection fixture accepted")
+    let blocked ← (rpc.call .begin []).run
+    unless !blocked.isOk do throw (IO.userError "private retry survived rejection")
+    for _ in [0,1] do
+      match ← (rpc.call .abort []).run with
+      | .ok bytes => unless bytes.isEmpty do throw (IO.userError "cleanup receipt payload")
+      | .error message => throw (IO.userError message)
+    let blockedAgain ← (rpc.call .sendRecord []).run
+    unless !blockedAgain.isOk do throw (IO.userError "cleanup reopened private pipe")
+    unless (← child.wait) == 0 do throw (IO.userError "cleanup pipe fixture failed")
+    IO.println "pipe rejection: cleanup receipts allowed, private work terminal"
+    return
   if mode == "concurrent" then
     let jobs ← (List.range 32).mapM fun index => IO.asTask (do
       let expected := uint 8 index
@@ -54,6 +68,11 @@ def main (args : List String) : IO Unit := do
       | .error message => unless message == "worker pipe is terminal after failure" do
           throw (IO.userError "pipe failure was not sticky")
       | .ok _ => throw (IO.userError "failed pipe accepted another operation")
+      if mode != "rejected" then
+        match ← (rpc.call .abort []).run with
+        | .error message => unless message == "worker pipe is terminal after failure" do
+            throw (IO.userError "broken framing attempted a cleanup exchange")
+        | .ok _ => throw (IO.userError "broken framing allowed cleanup receipt")
   IO.println s!"pipe framing {mode}: passed"
 where
   codeSize : Operation → Nat

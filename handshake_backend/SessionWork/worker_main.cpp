@@ -4,6 +4,9 @@
 #include "PublicPipe.h"
 #include "SessionWork/NativeLifecycle.h"
 #include <memory>
+#ifdef TLS_PRIVATE_PRODUCER_FIXTURE
+#include "../signal_backend/PublicSyntheticProducer.h"
+#endif
 #include <unistd.h>
 #include <cerrno>
 #include <charconv>
@@ -45,6 +48,29 @@ struct WorkerState {
     std::unique_ptr<NativeLifecycle> lifecycle;
     std::unique_ptr<Session> session;
     std::unique_ptr<Dispatch> dispatcher;
+#ifdef TLS_PRIVATE_PRODUCER_FIXTURE
+    std::unique_ptr<signal_mpc::PublicSyntheticProducer<tls_mpc_worker::Bits>> producer;
+    uint64_t producer_handle=0;
+    size_t produced=0;
+    bool producer_sealed=false;
+    void produce_fixture() {
+        std::cerr<<"synthetic producer start "<<produced+1<<"\n";
+        auto public_bits=[&](const std::vector<uint8_t>& input) {
+            tls_mpc_worker::Bits result(input.size()*8,std::vector<tls_mpc_worker::Bit>(1,tls_mpc_worker::Bit::constant(0,names->my_num(),machine->get_bit_mac_key())));
+            for(size_t i=0;i<input.size()*8;++i)
+                result[i][0]=tls_mpc_worker::Bit::constant((input[i/8]>>(7-i%8))&1,names->my_num(),machine->get_bit_mac_key());
+            return result;
+        };
+        auto payload=producer->produce([&](const signal_mpc::SendShape& shape,tls_mpc_worker::Bits input) {
+            std::cerr<<"synthetic fixed-shape evaluation begin\n";
+            auto output=session->evaluate_signal(shape,std::move(input));
+            std::cerr<<"synthetic fixed-shape evaluation complete\n";return output;
+        },public_bits);
+        std::cerr<<"synthetic fixed frame ready\n";
+        producer_handle=session->retain_fixed_payload(std::move(payload));++produced;
+        std::cerr<<"synthetic opaque handle retained\n";
+    }
+#endif
 };
 int main(int argc,char** argv) {
     SecureGmp::install_before_threads();
@@ -80,11 +106,36 @@ int main(int argc,char** argv) {
         }),"native worker bootstrap failed");
         while(auto request=read_request(std::cin)) {
             PublicBytes result;
-            public_require(ErasedHostCall::run([&] {result=state->dispatcher->call(*request);}),"native worker operation failed");
+            bool succeeded=ErasedHostCall::run([&] {result=state->dispatcher->call(*request);});
+#ifdef TLS_PRIVATE_PRODUCER_FIXTURE
+            // Internal fixture-only producer handoff; no plaintext import RPC.
+            // Retirement's first host barrier must complete before private work.
+            if(succeeded && request->operation==Opcode::retire)
+                succeeded=ErasedHostCall::run([&] {
+                    state->producer=std::make_unique<signal_mpc::PublicSyntheticProducer<tls_mpc_worker::Bits>>();
+                    state->produce_fixture();
+                });
+            if(succeeded && state->producer && request->operation==Opcode::seal_application) {
+                Cursor input{request->payload};input.number(8);auto handle=input.number(8);
+                state->producer_sealed=handle==state->producer_handle;
+            }
+            if(succeeded && state->producer && state->producer_sealed && request->operation==Opcode::send)
+                succeeded=ErasedHostCall::run([&] {
+                    state->producer->transport_complete();state->producer_sealed=false;
+                    if(state->produced<3)state->produce_fixture();
+                });
+            if(!succeeded && state->producer)
+                ErasedHostCall::run([&] {
+                    std::cerr<<"synthetic producer failure; terminal cleanup\n";
+                    state->producer->close();state->dispatcher->fail_from_private_producer();
+                });
+#endif
             // The return barrier has already joined, destroyed thread-local
             // state and wiped the full host stack before any receipt is sent.
-            write_reply(response,true,result);
-            if(request->operation==Opcode::abort)break;
+            write_reply(response,succeeded,succeeded?result:PublicBytes{});
+            // A failed Dispatch is terminal. Keep only its idempotent abort
+            // receipt available; Dispatch rejects every other operation.
+
         }
         public_require(destroy(),"native worker teardown failed");
         return 0;
