@@ -22,13 +22,14 @@ roots/keys, actual message_encrypt to emit the first unknown-ratchet message and
 actual message_decrypt_signal to derive/update the receiving state. SPQR alone is
 set to an explicit selected established no-chunk phase; this does not implement
 fresh prekey authentication, initial SPQR negotiation or full KEM phase evolution.
-Two public fixture cases compare every608 output bytes, plus twelve computed
+Three public fixture cases compare every608 output bytes (including a re-MACed
+wire counter2^32 accepted by actual Prost as uint32counter0), plus eighteen computed
 rejections. Actual Rust MAC failure is separately checked to preserve its store.
 
 This began as a **model-only** fixture checkpoint. The separate compiler receipt
 now adds eight foundational endpoints proving the whole Boolean pipeline lowering;
-it does not establish full Rust implementation agreement. Full take-n/private parser
-source theorem, exact native
+it does not establish full Rust implementation agreement. The full-wire private parser take-n theorem is now available separately; final
+private parser native Rust composition, exact native
 binding of fresh private/public and both DHs to the SAME parsed remote point, and
 native complete receiving interoperability are pending. The model differential
 supplies actual oracle DH results; the compiled native DH candidate generates and

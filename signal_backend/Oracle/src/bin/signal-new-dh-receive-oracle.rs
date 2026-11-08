@@ -48,8 +48,11 @@ async fn fixture(v:&Value)->Value{
  let mut bob_sessions=InMemSessionStore::new();bob_sessions.store_session(&alice_address,&SessionRecord::deserialize(&bob_pb.encode_to_vec()).unwrap()).await.unwrap();
  let mut alice_identities=InMemIdentityKeyStore::new(alice_id.clone(),1);let mut bob_identities=InMemIdentityKeyStore::new(bob_id.clone(),2);
  let plaintext=raw(v,"plaintext");assert_eq!(plaintext.len(),80);
+ let sender_chain_before=alice_pb.current_session.as_ref().unwrap().sender_chain.as_ref().unwrap().chain_key.as_ref().unwrap().key.clone();
+ let pqr_probe=spqr::send(&alice_pb.current_session.as_ref().unwrap().pq_ratchet_state,&mut rng.clone()).unwrap();
  let message=message_encrypt(&plaintext,&bob_address,&alice_address,&mut alice_sessions,&mut alice_identities,std::time::SystemTime::UNIX_EPOCH+std::time::Duration::from_secs(1900000000),&mut rng).await.unwrap();
- assert_eq!(message.message_type(),CiphertextMessageType::Whisper);let wire=message.serialize();let message=SignalMessage::try_from(wire).unwrap();assert_eq!(message.counter(),0);
+ assert_eq!(message.message_type(),CiphertextMessageType::Whisper);let wire=if v["wire_override"].is_string(){raw(v,"wire_override")}else{message.serialize().to_vec()};let message=SignalMessage::try_from(wire.as_slice()).unwrap();assert_eq!(message.counter(),0);
+ assert_eq!(message.pq_ratchet(),pqr_probe.msg.as_slice());
  let mut receive_rng=StdRng::seed_from_u64(seed+1000);let mut cloned=receive_rng.clone();let fresh=KeyPair::generate(&mut cloned);
  let old_private=PrivateKey::deserialize(&old.sender_chain.as_ref().unwrap().sender_ratchet_key_private).unwrap();
  let receiving=old_private.calculate_agreement(message.sender_ratchet_key()).unwrap();let sending=fresh.private_key.calculate_agreement(message.sender_ratchet_key()).unwrap();
@@ -65,6 +68,6 @@ async fn fixture(v:&Value)->Value{
  let encoded_wire=[vec![255],(wire.len()as u16).to_be_bytes().to_vec(),wire.to_vec(),vec![0;256-wire.len()]].concat();
  let input=[old_sender,old_receivers,old_pq,alice_id.public_key().serialize()[1..].to_vec(),bob_id.public_key().serialize()[1..].to_vec(),computed,encoded_wire].concat();
  let expected=[vec![255],sender(post),receivers(post),receiving_pq(post),vec![0,80],plaintext].concat();
- json!({"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true})
+ json!({"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true})
 }
 fn main(){let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();for line in io::stdin().lock().lines(){let v=serde_json::from_str(&line.unwrap()).unwrap();println!("{}",rt.block_on(fixture(&v)));}}

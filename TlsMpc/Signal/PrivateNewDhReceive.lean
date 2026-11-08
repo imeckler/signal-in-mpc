@@ -84,7 +84,7 @@ def receive (d : VarintDecode.Spqr.Ops B V) (o : Word64.Ops B V) (aes : AesInver
   let accepted := conjunction a [shape,parsed.valid,OpenResult.get a pq 0,
     PrivateMessageMac.verify o s a wire.length material.material.macKey sender receiver encodedWire,
     OpenResult.get a opened 0,
-    Word64.eq o a (ProtoParse.getField o a parsed.state 1).scalar (o.const 0),
+    Word64.eq o a (o.band (ProtoParse.getField o a parsed.state 1).scalar (o.const 4294967295)) (o.const 0),
     Word64.eq o a field.length (o.const 96),
     a.not (ProtoParse.getField o a parsed.state 5).present,
     ByteAuth.equalMask a ((opened.drop 1).take 8) (OpenResult.encodeLength a 80),

@@ -125,7 +125,7 @@ theorem receive_map (old : RatchetStep.State B) (receivers : List (ReceiverStore
   simp only [receive,selectResult_map ha,conjunction_map ha,List.map_cons,List.map_nil,
     List.map_append,List.map_take,List.map_drop,List.map_replicate,ha.const,ha.not,ha.and,
     OpenResult.get_map ha,ByteAuth.eqMask_map ha,ByteAuth.equalMask_map ha,
-    Word64.eq_map ho ha,ho.const,PrivateMessageMac.verify_map ho hs ha,
+    Word64.eq_map ho ha,ho.band,ho.const,PrivateMessageMac.verify_map ho hs ha,
     RatchetStep.State.map,RatchetStep.previousCounter_map hs ha,
     RatchetStep.bytes_map,DhRatchet.agreementMask_map ha,OpenResult.encodeLength_map ha,
     List.length_map,List.length_drop,apply_ite,hvalid,hmeta,hpq,root,recv,send,ck,cipher,mac,iv,opened,knownValid,

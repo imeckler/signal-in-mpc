@@ -4,9 +4,10 @@
   "typechecks": true,
   "selector_rejection_kernel_endpoints": 1,
   "foundation_axioms_only": true,
-  "actual_libsignal_new_DH_transition_matches": 2,
+  "actual_libsignal_new_DH_transition_matches": 3,
+  "actual_uint64_to_uint32_counter_wrap_fixture": 1,
   "whole_output_bytes_checked": 608,
-  "computed_rejection_state_preservation_cases": 12,
+  "computed_rejection_state_preservation_cases": 18,
   "actual_PQXDH_initialized_DR_baseline": true,
   "selected_established_SPQR_phase_override": true,
   "full_fresh_session_prekey_bootstrap_implemented": false,
@@ -20,14 +21,14 @@
   "recoverable_persistence": false,
   "identity_store_callbacks_and_other_session_metadata_modeled": false,
   "domain": "New unknown DH ratchet, five retained receiving slots/no skipped keys, counter0,V4,noaddresses,ciphertext96,PKCS7plaintext80; selected V1kind0sameepoch exactnext PQ index, retainedcounter<2^31-1; actual wirecapacity256 with private length.",
-  "parser_dependency": "04edbf6 versioned private parser Hom API; full take-n/source theorem remains pending under parser ownership.",
+  "parser_dependency": "9084bfd private full-wire take-n theorem plus unchanged5fab7fc metadata-read hardening; final native Rust composition remains under parser ownership.",
   "next": "Prove whole pipeline Hom/compiler, bind native computed pair/DHs to SAME actual parsed remote point, then actual private native receive/reply interoperability before provider/store admission.",
-  "oracle_sha256": "d1b9b3c6e99a6a732720337ba9b4c39a85d2b90de6d51e430ec6ce38601ebb4b",
+  "oracle_sha256": "dba465e8e9230b413539badd5d0b0b6bda08e28afd9da76c08062dace1e6b7b1",
   "source_sha256": {
-    "SignalReference/PrivateNewDhReceiveWork/check_model.py": "55e07a80a79abbd8d637b32f7f6362dbcae2429b3595e73cec4de7f2ddd83c68",
+    "SignalReference/PrivateNewDhReceiveWork/check_model.py": "9c1128fec786ec1c06d9b8e7a513d90069a59ec4430f472b5509709864ab710a",
     "SignalReference/PrivateNewDhReceiveWork/Checks.lean": "dfccfd6c7574a05e8f116199b21f5bc200bfbef5c05b82f12bfc8d89471bcf59",
     "SignalReference/PrivateNewDhReceiveWork/Evaluate.lean": "bde18509db74fc78587439efa6cbce07203fb906f7027399e8792fbb23625997",
-    "TlsMpc/Signal/PrivateNewDhReceive.lean": "b160e6dccc5efaba5221bcacae7d8b97543e1be18ba1cd070e51c929f9790dae",
-    "signal_backend/Oracle/src/bin/signal-new-dh-receive-oracle.rs": "98b130f3427a4b0963ecbc9007ff46420eedc21f90bade7aa7749f3cf1832166"
+    "TlsMpc/Signal/PrivateNewDhReceive.lean": "1c2c96c53ab5a9b5bae1765575fb3f2d0553e4ba34663f2babd30abea7cef62d",
+    "signal_backend/Oracle/src/bin/signal-new-dh-receive-oracle.rs": "f6a5e9fd1fb7ca0068eb045a60a2fdc1fa0b3192748f2b27653a56488a6df60c"
   }
 }
