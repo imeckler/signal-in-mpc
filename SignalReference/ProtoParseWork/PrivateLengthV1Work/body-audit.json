@@ -1,0 +1,38 @@
+{
+  "candidate_only": true,
+  "scope": "complete all-outcomes private body scan and composition with accepted actual Rust default-merge theorem",
+  "checks_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/DecoderPadding.lean": "5f3e199642a400a7fa28aa204a4f83de96ab62ec774bfe8fdb5a76ebdc6db46e",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Lookup.lean": "ea5060651cd3b3600e670c45db53d8d81ce21dd53967434171c56e0d29ad3952",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Step.lean": "af9e434ce8ed051c81a910335cbff58bc2baac5042be4f8e2b3f30141f607fa3",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/Scan.lean": "78bc5109c85119562274f83616db4a6481ab7a70318e90141411b85b5898cc2b",
+    "SignalReference/ProtoParseWork/PrivateLengthV1Work/ActualBody.lean": "f6f870747df42747dda1de478032c05775effea55f6f10c269e32528fa802a21"
+  },
+  "object_sha256": {
+    "DecoderPadding": "f20edf2688d115721bac6db2efae99bf80c065d6c2808184771fba1186d2a829",
+    "Lookup": "983427a0e178300b7a5a4464182dbbc05b09bbada80199d0bef34ae25b22f756",
+    "Step": "e4941f9243b51ca82da7783c6e63e2061d38c4f9f012bfa01019fd8968e0ac35",
+    "Scan": "32132c95a7ab078acf173c167a8b71b795d0d22bc5aa0715c7dda0b126d275bd",
+    "ActualBody": "5ad308aa75290b471f12d447378c19a5fb3cfc37c67c27a61cdbb49cd22f12d6"
+  },
+  "core_sha256": "9f2423efebfa61f007a3045dbd8d8f05d26bf3151e65d696760cb6f57a25da72",
+  "endpoints": [
+    "PrivateLengthV1.Scan.parseBody_take",
+    "PrivateLengthV1.Scan.padding_noninterference",
+    "PrivateLengthV1.ActualBody.actual_private_body"
+  ],
+  "allowed_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "domain": "ending<=capacityBytes.length<=512; native Slice contents equal take ending capacityBytes; initial explicit six-None record and recursion100 as in accepted source theorem",
+  "observation": "exact success/rejection/fields/cursor/depth; native error constructor and parameters, suffix and Options via unchanged ParserObservation; zero extension only for unaddressable stack cells",
+  "remaining": [
+    "BE16 wire framing and released-metadata take-n theorem",
+    "full production circuit to native theorem",
+    "capacity256 native validation"
+  ],
+  "active_handles": []
+}
