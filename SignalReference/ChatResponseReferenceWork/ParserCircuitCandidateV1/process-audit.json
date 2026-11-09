@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Actual Core process and Mux process/admit sequences preserve reachable canonical controls and valid0-or-narrow stack for all private inputs, including malformed high-tag keys and resets. Codec roundtrip/rejected-state bisimulation/full compact streaming equivalence remains OPEN; no runtime/profile/native jobs.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/ProcessMasks.lean": "3643736615ce8a370cb6c1d89ebc50149f57886986ec631e2fe44f1320e1ae11",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/SelectStackSafe.lean": "e2eb23943696827e9a4b26ea08eadb782e0b2f723183e1e7ebc7e7d4d61b72fa",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/ProcessStackSafe.lean": "6a22b470e6ba8324b8ce151881da284f405fb9944f5f07ff176aeaee5114d1c2",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/MuxStackSafe.lean": "76c933fa5fe509bcfcfe9d755c9246ae73502795bf06cb94857d080fdcafe318",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_process.py": "3430356100abfb938691d2a08c7d0ffa143b7418b2fb475a32f5922854b45327",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/PROCESS.md": "4a73faa1f79fedd963cc0b022dd46a28b6bb228baba407be2e3e4686336a9011"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/narrow-audit.json": "d0c5ff12808437c9a849e009a371fc193fcdf4e96db082d49f74e2f0a8de0f0f"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/process-b949e83994dc-96344.log",
+  "kernel_log_sha256": "01065ca33b5d551a378f9ab24bc6a710bf3d6a11949cef9e00ee8bb35d947c7c",
+  "kernel_log": "Checking ParserCircuitCandidateV1.ProcessMasks\n'ChatResponseReference.ParserCircuitCandidateV1.process_control_masks' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking ParserCircuitCandidateV1.SelectStackSafe\n'ChatResponseReference.ParserCircuitCandidateV1.narrow_zip_left' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.narrow_zip_right' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.select_safe_stack' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.guard_safe_stack' depends on axioms: [propext, Quot.sound]\nChecking ParserCircuitCandidateV1.ProcessStackSafe\n'ChatResponseReference.ParserCircuitCandidateV1.process_safe_stack' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.process_reachable_stack' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.coreRun_reachable' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.fresh_coreRun_reachable' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking ParserCircuitCandidateV1.MuxStackSafe\n'ChatResponseReference.ParserCircuitCandidateV1.mux_process_reachable' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_admit_reachable' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.muxRun_reachable' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.fresh_muxRun_reachable' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/process-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/ProcessMasks.olean": "7a1b2104af192c0cdd3e3fb220dbed1fb0f47a68f76738c8aa974232767e0a64",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/process-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/SelectStackSafe.olean": "32ea514ab63129f79a47097e6594763b558b7e3d985b066f4b488a401d56fc5c",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/process-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/ProcessStackSafe.olean": "455244108e9d71c1a1192c643335c6b5fb984b59c88698f7b2351b116fdd9345",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/process-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/MuxStackSafe.olean": "79796dd77abc6ea6406eca07d3c7cb02589c60b947f999a3e5145243e627ef23"
+  }
+}

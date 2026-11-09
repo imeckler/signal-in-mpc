@@ -98,3 +98,10 @@ frames are ignored with a warning; matched invalid HTTP responses consume their
 request with an error. No complete ChatConnection scheduler/retry/device-fanout
 or Signal-session security theorem is claimed. Shared TLS/Word64/parser runtime
 APIs and historical accepted checkpoints remain untouched by this work.
+
+Candidate stack32 process checkpoint: actual Core.process and Mux.process/admit
+sequences preserve canonical controls and valid-zero-or-narrow-stack for arbitrary
+private input/control sequences. Combined process-audit.json exits 0 with only
+foundational axioms. Malformed high tags remain explicitly represented after
+rejection. Codec carry/roundtrip and rejected-state bisimulation remain open;
+no compact whole-stream equivalence or runtime promotion is claimed.
