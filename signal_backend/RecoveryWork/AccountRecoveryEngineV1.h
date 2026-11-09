@@ -20,7 +20,8 @@ public:
   std::function<std::vector<std::unique_ptr<tls_mpc_worker::PrivateInputBuilder>>(Session&,Collective&,unsigned)> inputs;
   ~Config(){OPENSSL_cleanse(signing_seed.data(),signing_seed.size());OPENSSL_cleanse(local_storage_key.data(),local_storage_key.size());}
  };
-private:
+public:
+ // Typed local persistence is also used by the explicit initialization fixture.
  struct Persistence {
   std::shared_ptr<Config> config;AccountLayoutV2 layout{1};Digest manifest;Signer signer;OwnShareBox box;CiphertextStore files;PublicCheckpointStore certificates;VoteJournal journal;LocalAccountCheckpoint checkpoint;NativeAccountCapture capture;AccountCheckpointCoordinator coordinator;
   Persistence(std::shared_ptr<Config> cfg,unsigned party,Machine<tls_mpc_worker::Share>& machine,const tls_mpc_worker::PinnedPrograms& pinned,Collective& collective)

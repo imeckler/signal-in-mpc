@@ -1,0 +1,20 @@
+{
+  "compiled": true,
+  "linked": true,
+  "candidate_only": true,
+  "fixture_only": true,
+  "native_MPC": false,
+  "actual_full_account_restore_or_activation": false,
+  "binary_sha256": "2ac9975c70c8a63a738af44082a4e090c135227204aa8ffaa3f9a31489d69dd8",
+  "runtime_library_sha256": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/AccountCaptureWork/fixture.cpp": "a8dd22795c1d7d472703b517b3534f78984f463292b9dd2ca2e7f302b6bf7383",
+    "signal_backend/RecoveryWork/AccountCaptureWork/RecoveryFixtureFactory.cpp": "54586f35bdf1ea275522edf6e823e25203a096f1bd11a95e51cdf1039fa0001c",
+    "signal_backend/RecoveryWork/AccountCaptureWork/PublicAccountFixture.h": "7d8304cff9384f83e607f7c2f5b607382ae1239842493d5dc0ecd8667f1fea9d",
+    "signal_backend/RecoveryWork/AccountCaptureWork/Makefile": "828c9bdae50f8ed54b2d1dbe630dc9242bdee95c3d29d2a36e7f01978e21a373",
+    "signal_backend/RecoveryWork/AccountCaptureWork/check.py": "fc4d7d23fcbbdef91c48a20b5fef6eda25721cd36d7701d71a9ab87654e383c6",
+    "signal_backend/RecoveryWork/AccountRecoveryEngineV1.h": "4148e5dc45da9e1aa774b4e2b4e30f36d723d2f789a198b082dc0b908ebdbd06",
+    "signal_backend/RecoveryWork/NativeAccountReadmit.h": "880887e94f3b84bf840ba289fc433d53510c61c1272ef091b99b9234f84d0999",
+    "handshake_backend/NativeSession.h": "0242dc601fb14c28382bed845461ee20733d3fa8eb6892856edd55f6c9c805d6"
+  }
+}

@@ -7,7 +7,8 @@
 namespace signal_mpc::recovery {
 // Full-schema checked import using the already tested partial-import lifecycle.
 // Caller must first authorize/load the exact current certified ciphertext. This
-// does not manufacture account provenance or interpret a private validity mask.
+// does not manufacture account provenance. Optional admission opens only the
+// pinned canonical aggregate accept/reject predicate, never logical account data.
 class NativeAccountReadmit {
  using Bits=tls_mpc_worker::Bits;
  struct Completion {size_t& count;~Completion(){++count;}};
@@ -40,12 +41,13 @@ public:
    NativeAccountAdmission validator(machine,worker,pinned);validity=validator.evaluate(*account);
    if(pending_ordinal){require(layout.conversations()==1,"account resume policy currently c1");pending.emplace(NativeAccountOutbox::evaluate(*account,0,*pending_ordinal,Bits(validity.begin(),validity.end()),machine,worker,pinned));}
    if(require_accepted){
-    // Only canonical computed acceptance masks are declassified, never account
-    // bytes/IDs/keys. The malicious opener Check completes before any capability.
-    Opener<tls_mpc_worker::Bit> opener(machine.get_player(),machine.get_bit_mac_key());opener.init_open();
-    for(auto& bit:validity)opener.prepare_open(bit[0]);
-    if(pending)for(auto& bit:pending->computed_resumability)opener.prepare_open(bit[0]);
-    opener.exchange();bool accepted=true;for(size_t i=0;i<(pending?16:8);++i)accepted&=opener.finalize_open().get()==1;opener.Check();require(accepted,"account computed admission rejected");
+    // Reuse the pinned TLS exact255 gate before a one-bit authenticated
+    // declassification. Even a noncanonical byte cannot become a byte oracle.
+    Bits masks(validity.begin(),validity.end());
+    if(pending)masks.insert(masks.end(),pending->computed_resumability.begin(),pending->computed_resumability.end());
+    else {auto known=worker.allocate(8);for(auto& cell:known)cell[0]=tls_mpc_worker::Bit::constant(1,machine.get_player().my_num(),machine.get_bit_mac_key(),1);masks.insert(masks.end(),known.begin(),known.end());}
+    auto accepted=worker.binary("tls-provider-validity",std::move(masks),8);
+    Opener<tls_mpc_worker::Bit> opener(machine.get_player(),machine.get_bit_mac_key());opener.init_open();opener.prepare_open(accepted.front()[0]);opener.exchange();bool valid=opener.finalize_open().get()==1;opener.Check();require(valid,"account computed admission rejected");
    }
   }catch(...){flat.clear();account.reset();pending.reset();validity.clear();raw=QuarantinedEvaluations(SecretBytes(0));throw;}});
   require(success&&destroyed==1&&account&&ErasedHostCall::completed(imported),"account import/coherence host failed");
