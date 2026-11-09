@@ -156,6 +156,7 @@ int main(int argc,char** argv) {
                         }
                         ProviderRegistry::Receipt receipt;
                         if(request->operation==Opcode::mux_upgrade){input.done();receipt=state->providers->upgrade();}
+                        else if(request->operation==Opcode::mux_resume_outbox){auto owner=input.number(8),handle=input.number(8);input.done();receipt=state->providers->resume_outbox(owner,handle);}
                         else if(request->operation==Opcode::mux_produce){auto owner=input.number(8),handle=input.number(8);input.done();receipt=state->providers->produce(owner,handle);}
                         else throw std::runtime_error("unsupported mux operation");
                         PublicBytes out;put_number(out,receipt.handle,8);put_number(out,receipt.capacity,2);return out;

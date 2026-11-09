@@ -3,9 +3,13 @@
 #include "NativeConversation.h"
 #include "PrivateMuxRegistry.h"
 namespace tls_mpc_worker {
+struct PendingOutboxAdmission {
+    uint64_t fresh_resume_lease;Bits typed_payload,expected_request_id,computed_resumability;size_t capacity;
+};
 struct ConversationAdmission {
     std::unique_ptr<NativeConversation> conversation;Bits computed_validity;
     std::vector<std::unique_ptr<PrivateInputBuilder>> inputs;
+    std::vector<PendingOutboxAdmission> pending_outboxes={};
 };
 struct MuxProviderAdmission {
     signal_mpc::UpgradeShape upgrade_shape{22};Bits credentials,computed_credential_validity;
@@ -22,6 +26,7 @@ class MuxProviderCoordinator {
     std::unique_ptr<Registry> registry;signal_mpc::UpgradeShape shape{22};
     Bits credentials,credential_validity;PublicBytes nonce;
     std::vector<std::pair<uint64_t,std::vector<uint64_t>>> catalogue_rows;
+    std::map<uint64_t,std::vector<uint64_t>> outbox_catalogue;bool restored_catalogue=false;
     bool initialized=false,upgrading=false,upgraded=false,closed=false;
     static PublicBytes accept(const PublicBytes& nonce){
         public_require(nonce.size()==16,"invalid public WebSocket nonce");
@@ -50,8 +55,10 @@ public:
                 [&](Bits a,Bits b){return session.combine_private_validity(std::move(a),std::move(b));},
                 [&](size_t slot,Bits id,Bits valid){session.expect_websocket_mux_response(slot,std::move(id),std::move(valid));},
                 [&](Bits payload,size_t capacity){return session.retain_private_result(std::move(payload),capacity);},
-                [&]{session.checkpoint_private_computation();},std::move(terminal)},Bits(credential_validity));
+                [&]{session.checkpoint_private_computation();},std::move(terminal),
+                [&](Bits payload,Bits valid,size_t capacity){return session.remask_restored_outbox(std::move(payload),std::move(valid),capacity);}},Bits(credential_validity));
             std::string inventory=shape.descriptor();
+            restored_catalogue=restored;
             NativeConversation* restored_owner=nullptr;std::vector<size_t> account_slots;
             for(auto& conversation:admission.conversations){
                 public_require(bool(conversation.conversation)&&(!restored||conversation.conversation->durable()),"missing private/durable conversation");
@@ -64,6 +71,14 @@ public:
                 inventory+="\nconversation:"+conversation.conversation->public_profile();
                 auto owner=registry->admit(std::move(conversation.conversation),std::move(conversation.computed_validity));
                 catalogue_rows.push_back({owner,{}});
+                public_require(conversation.pending_outboxes.size()<=1&&
+                    (restored||conversation.pending_outboxes.empty()),"restored outbox profile rejected");
+                for(auto& outbox:conversation.pending_outboxes){
+                    inventory+="\noutbox:"+std::to_string(outbox.fresh_resume_lease)+":"+std::to_string(outbox.capacity);
+                    outbox_catalogue[owner].push_back(registry->admit_outbox(owner,outbox.fresh_resume_lease,
+                        std::move(outbox.typed_payload),std::move(outbox.expected_request_id),std::move(outbox.computed_resumability),outbox.capacity));
+                }
+                conversation.pending_outboxes.clear();
                 for(const auto& input:conversation.inputs){public_require(bool(input),"missing mux input builder");input->validate_public_shape();auto profile=input->public_profile();public_require(!profile.empty(),"missing private input profile");inventory+="\ninput:"+profile;}
             }
             joined=true;collective.require_local_success(true);
@@ -86,8 +101,9 @@ public:
         }catch(...){factory={};if(!joined){joined=true;collective.require_local_success(false);}close();throw;}
     }
     PublicBytes catalogue()const{
-        public_require(initialized&&!closed,"mux catalogue unavailable");PublicBytes out{1,static_cast<uint8_t>(catalogue_rows.size())};
-        for(const auto& row:catalogue_rows){put_number(out,row.first,8);put_number(out,row.second.size(),2);for(auto input:row.second)put_number(out,input,8);}return out;
+        public_require(initialized&&!closed,"mux catalogue unavailable");PublicBytes out{uint8_t(restored_catalogue?2:1),static_cast<uint8_t>(catalogue_rows.size())};
+        for(const auto& row:catalogue_rows){put_number(out,row.first,8);put_number(out,row.second.size(),2);for(auto input:row.second)put_number(out,input,8);
+            if(restored_catalogue){auto saved=outbox_catalogue.find(row.first);size_t n=saved==outbox_catalogue.end()?0:saved->second.size();put_number(out,n,1);if(saved!=outbox_catalogue.end())for(auto handle:saved->second)put_number(out,handle,8);}}return out;
     }
     ProviderRegistry::Receipt upgrade(){
         public_require(initialized&&!closed&&registry&&!upgrading,"mux upgrade unavailable");upgrading=true;
@@ -99,6 +115,9 @@ public:
     }
     ProviderRegistry::Receipt produce(uint64_t owner,uint64_t input){
         public_require(initialized&&!closed&&registry&&upgraded,"mux producer unavailable");auto receipt=registry->produce(owner,input);return{receipt.handle,receipt.capacity};
+    }
+    ProviderRegistry::Receipt resume_outbox(uint64_t owner,uint64_t handle){
+        public_require(initialized&&!closed&&registry&&upgraded,"restored outbox unavailable");auto receipt=registry->resume_outbox(owner,handle);return{receipt.handle,receipt.capacity};
     }
     std::vector<ProviderRegistry::Receipt> produce_batch(const std::vector<std::pair<uint64_t,uint64_t>>& requests){
         public_require(initialized&&!closed&&registry&&upgraded,"mux batch producer unavailable");
@@ -118,6 +137,6 @@ public:
         for(auto slot:slots)put_number(out,registry->authenticated_response_complete(slot),8);
         out.insert(out.end(),receipt.begin()+control_offset,receipt.end());return out;
     }
-    void close()noexcept{closed=true;factory={};credentials.clear();credential_validity.clear();if(registry){registry->close();registry.reset();}}
+    void close()noexcept{closed=true;factory={};outbox_catalogue.clear();credentials.clear();credential_validity.clear();if(registry){registry->close();registry.reset();}}
 };
 }

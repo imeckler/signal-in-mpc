@@ -1,0 +1,7 @@
+{
+  "compiled": true,
+  "native_executed": false,
+  "source_sha256": "ebe53d4b3eed3d2853e18078c99c763568a66032f53953a3786069c435f38565",
+  "positive_account_tls_interop": false,
+  "scope": "Lean controller plus TlsWorkerProcess dependencies built; actual OwnedBits coordinator compiled separately; no fabricated authorization capability."
+}

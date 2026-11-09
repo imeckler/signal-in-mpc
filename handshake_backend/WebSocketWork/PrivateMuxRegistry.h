@@ -18,12 +18,15 @@ public:
         std::function<void(size_t,Bits,Bits)> expect;
         std::function<uint64_t(Bits,size_t)> retain;
         std::function<void()> checkpoint,terminal;
+        std::function<Bits(Bits,Bits,size_t)> remask_outbox={};
     };
 private:
     struct Entry {std::unique_ptr<Conversation> conversation;Bits validity;bool pending=false;};
     struct Input {uint64_t owner;Bits payload,timestamp,validity;};
     struct Pending {uint64_t owner=0,ticket=0;};
+    struct Outbox {uint64_t owner,ticket;Bits payload,request_id,validity;size_t capacity;};
     Hooks hooks;Bits credentials;std::map<uint64_t,Entry> entries;std::map<uint64_t,Input> inputs;
+    std::map<uint64_t,Outbox> outboxes;uint64_t next_outbox=1;
     std::array<Pending,4> pending{};uint64_t next_input=1;bool active=false,closed=false;
     static void require(bool ok,const char* reason){if(!ok)throw std::runtime_error(reason);}
     void live()const{require(!closed,"private mux registry closed");}
@@ -43,6 +46,30 @@ public:
     uint64_t admit_input(uint64_t owner,Bits payload,Bits timestamp,Bits validity){
         try{live();require(!active&&entries.count(owner)&&payload.size()%8==0&&payload.size()<=16384*8&&timestamp.size()==64&&validity.size()==8&&inputs.size()<64&&next_input,"private conversation input rejected");
             auto id=next_input++;inputs.emplace(id,Input{owner,std::move(payload),std::move(timestamp),std::move(validity)});return id;
+        }catch(...){fail();throw;}
+    }
+    uint64_t admit_outbox(uint64_t owner,uint64_t fresh_lease,Bits payload,Bits expected_id,Bits computed_resumability,size_t capacity){
+        try{live();auto found=entries.find(owner);
+            require(!active&&found!=entries.end()&&bool(hooks.remask_outbox)&&fresh_lease&&next_outbox&&outboxes.size()<4&&
+                capacity==found->second.conversation->frame_capacity()&&capacity<=16384&&payload.size()==8*(capacity+3)&&expected_id.size()==64&&computed_resumability.size()==8,
+                "restored outbox admission rejected");
+            found->second.conversation->admit_pending_outbox(fresh_lease);
+            auto handle=next_outbox++;outboxes.emplace(handle,Outbox{owner,fresh_lease,std::move(payload),std::move(expected_id),std::move(computed_resumability),capacity});return handle;
+        }catch(...){fail();throw;}
+    }
+    Receipt resume_outbox(uint64_t owner,uint64_t outbox_handle){
+        try{live();auto found=entries.find(owner);auto saved=outboxes.find(outbox_handle);
+            require(active&&found!=entries.end()&&!found->second.pending&&saved!=outboxes.end()&&saved->second.owner==owner,"restored outbox resume rejected");
+            size_t slot=0;while(slot<4&&pending[slot].owner)++slot;require(slot<4,"restored outbox queue full");
+            auto outbox=std::move(saved->second);outboxes.erase(saved); // One-shot handle, including on uncertainty.
+            found->second.conversation->resume_pending_outbox(outbox.ticket);
+            found->second.pending=true;pending[slot]={owner,outbox.ticket};
+            auto valid=hooks.combine(Bits(credentials),Bits(found->second.validity));valid=hooks.combine(std::move(valid),std::move(outbox.validity));
+            auto encoded=hooks.remask_outbox(std::move(outbox.payload),std::move(valid),outbox.capacity);
+            require(encoded.size()==8*(outbox.capacity+3),"restored outbox remask dimensions");
+            Bits computed(encoded.begin(),encoded.begin()+8);
+            hooks.expect(slot,std::move(outbox.request_id),std::move(computed));
+            auto handle=hooks.retain(std::move(encoded),outbox.capacity);hooks.checkpoint();return{handle,outbox.capacity};
         }catch(...){fail();throw;}
     }
     void authenticated_connection_ready(){
@@ -104,7 +131,7 @@ public:
             entry.conversation->authenticated_response_complete(selected.ticket);entry.pending=false;pending[slot]={};return selected.owner;
         }catch(...){fail();throw;}
     }
-    void close()noexcept{closed=true;active=false;inputs.clear();credentials.clear();pending.fill({});
+    void close()noexcept{closed=true;active=false;inputs.clear();outboxes.clear();credentials.clear();pending.fill({});
         for(auto& item:entries)item.second.conversation->close();entries.clear();}
 };
 }

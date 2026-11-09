@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "party_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "controller_error": null,
+  "cleanup": [],
+  "seconds": 2.3505005829501897,
+  "integrity": true,
+  "source_pins": {
+    ".deps/tls-outbox-remask-native/v1-candidate-1/tls-native-outbox-remask-fixture": "612ed5e2f4fd287090d54c83241bc91578c231cef958062f71205cfe786f9a25",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+    "handshake_backend/OutboxResumeWork/native_fixture.cpp": "ebde286e89d62152710a80441df5356d3713bde80b1842e5a3e5a3620899821d",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "6120708e9d4ec31f9f51c38ece983a2d747e4129dbd7933fbef866bde5b716fb",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/remask.manifest": "762587e96f803d8a3d4fd14b5ff7d99b71f300403e626360b4ef031f4b20d3b3",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/Programs/Bytecode/tls_websocket_remask-Worker-Public_remask-1290.json-1290-0.bc": "ca50ecca5cf12bd3831b5b3a4cabf92e33018c8f98fe0749ff304e82263147ae",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/Programs/Bytecode/tls_websocket_remask-Worker-Public_remask-1290.json-1290-tls_binary_tls_websocket_remask_1290-1.bc": "fe48151f1cf0bc20b0f223291f7321d28829fcb3ed93d5ef220297e9510618cc",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/Programs/Functions/tls_binary_tls_websocket_remask_1290-sbv:[10352x1]-sbv:[10344x1]": "8cc78d9422e4e3a59d065312d86937d668d680efd869e8cd46552dbb1f114aac",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/Programs/Schedules/tls_websocket_remask-Worker-Public_remask-1290.json-1290.sch": "6f34ab63c43e59a2653b200b4762a192ed2be07980612266455cf2a56763b88c"
+  },
+  "logs": ".deps/tls-outbox-remask-native/v1-candidate-1/run-j7xlonva",
+  "public_fixture_masks": [
+    [
+      248,
+      68,
+      139,
+      90
+    ],
+    [
+      183,
+      241,
+      207,
+      16
+    ]
+  ],
+  "sampled_masks_distinct": true,
+  "cases": [
+    "two valid remasks with fresh private VM randomness",
+    "computed account validity rejection",
+    "noncanonical padding rejection"
+  ],
+  "all_five_positive_status": true,
+  "opened_only_public_synthetic_fixture": true,
+  "malformed_mac_test": false,
+  "account_authorization": false,
+  "tls_restore_interop": false
+}

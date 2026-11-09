@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "source_sha256": "20f8f3d7489c989db662b137382b7168f58722042f5eef5f3b22a12197638521",
+  "kernel_checked": true,
+  "axiom_output": "'TlsMpc.TlsWebSocketRemask.compiled_correct' depends on axioms: [propext, Classical.choice, Quot.sound]\n'TlsMpc.TlsWebSocketRemask.unmasked_unchanged' depends on axioms: [propext, Quot.sound]\n'TlsMpc.TlsWebSocketRemask.run_length' depends on axioms: [propext, Quot.sound]",
+  "scope": "Generic Hom/compiler agreement; exact output length for fixed input shape; scalar XOR unmask preservation. Full frame acceptance semantics checked by exhaustive public length differential cases, not a complete framing-spec refinement theorem."
+}

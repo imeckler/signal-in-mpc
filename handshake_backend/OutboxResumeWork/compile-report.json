@@ -1,0 +1,17 @@
+{
+  "compiled": true,
+  "native_mpc": false,
+  "statistical_parameter": 128,
+  "fresh_joint_random_bits": 32,
+  "capacity": 1290,
+  "manifest_sha256": "762587e96f803d8a3d4fd14b5ff7d99b71f300403e626360b4ef031f4b20d3b3",
+  "artifact_sha256": "4f9ac4a5e13dba4b416678259974cebf8d2039e87292197cf15960c7378082fc",
+  "source_sha256": {
+    "TlsMpc/TlsWebSocketRemask.lean": "20f8f3d7489c989db662b137382b7168f58722042f5eef5f3b22a12197638521",
+    "handshake_backend/OutboxResumeWork/EmitRemask.lean": "fba260ac7b58ca0fbb9c63ca6afc61135a48ad90f2d2d8102b45731de82379a9",
+    "programs/tls_websocket_remask.mpc": "b690615daa6ab5ac351cf42feaa2d917c1fdf439d56209895a2141af9d160dbd",
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630",
+    "handshake_backend/OutboxResumeWork/prepare.py": "1963e8c5c894b8da7a4a67fa00a3b1a61d7c02645dbeff2e08eff63156dbb4f2"
+  },
+  "proof_only_addition_reexport_byteidentical": true
+}

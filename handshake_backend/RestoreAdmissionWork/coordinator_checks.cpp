@@ -39,11 +39,11 @@ struct Account:tls_mpc_worker::DurableConversationHooksT<Bits>{
 };
 struct Fixture{
  Session session;Collective collective;signal_mpc::VariableShape shape{260,0,false,false};std::shared_ptr<Account> account;
- std::filesystem::path dir;Registry registry;unsigned retained=0;std::vector<size_t> slots;
+ std::filesystem::path dir;Registry registry;unsigned retained=0,remasks=0;std::vector<size_t> slots;std::vector<unsigned> expected_ids;bool reject_expect=false;
  Fixture(unsigned& disk,const std::filesystem::path& directory):account(std::make_shared<Account>(disk)),dir(directory),registry({
   [&]{return session.reserve();},[](Bits a,Bits b){for(size_t i=0;i<a.size();++i)a[i]&=b[i];return a;},
-  [&](size_t slot,Bits,Bits){slots.push_back(slot);},[&](Bits,size_t){assert(account->commits&&session.cursor.committed());return uint64_t(++retained);},
-  [&]{assert(session.cursor.committed());},[]{}},Bits(8,255)){session.cursor.initialize(id(disk),true);}
+  [&](size_t slot,Bits expected,Bits valid){assert(valid==Bits(8,255));if(reject_expect)throw std::runtime_error("correlation rejected");slots.push_back(slot);expected_ids.push_back(expected.back());},[&](Bits,size_t){assert((account->commits||remasks)&&session.cursor.committed());return uint64_t(++retained);},
+  [&]{assert(session.cursor.committed());},[]{},[&](Bits payload,Bits valid,size_t capacity){assert(capacity==shape.frame_capacity()&&payload.size()==8*(capacity+3)&&valid==Bits(8,255));++remasks;return payload;}},Bits(8,255)){session.cursor.initialize(id(disk),true);}
  uint64_t add(size_t slot){return registry.admit(std::make_unique<Conversation>(session,collective,shape,Bits(shape.input_bytes()*8), (dir/std::to_string(slot)).string(),account,slot),Bits(8,255));}
  uint64_t input(uint64_t owner){return registry.admit_input(owner,Bits(8),Bits(64),Bits(8,255));}
 };
@@ -67,5 +67,17 @@ int main(int argc,char**argv){assert(argc==2);std::filesystem::path root(argv[1]
    assert(f.account->commits==(mode==1));if(mode==1)assert(f.account->retained_outbox_ids.size()==1);}
   else{f.registry.produce(a,ai);f.account->fail_response=true;rejects([&]{f.registry.authenticated_response_complete(0);});assert(f.account->closed);}
  }
+
+ auto resume_path=root/"resume";std::filesystem::create_directories(resume_path);unsigned before=disk;
+ {Fixture f(disk,resume_path);auto a=f.add(0),b=f.add(1);auto cap=f.shape.frame_capacity();
+  auto ah=f.registry.admit_outbox(a,1001,Bits(8*(cap+3),255),id(7),Bits(8,255),cap);
+  auto bh=f.registry.admit_outbox(b,1002,Bits(8*(cap+3),255),id(8),Bits(8,255),cap);
+  f.registry.authenticated_connection_ready();f.registry.resume_outbox(a,ah);f.registry.resume_outbox(b,bh);
+  assert(disk==before&&f.session.evals==0&&f.account->reserves==0&&f.account->commits==0&&f.remasks==2&&f.retained==2);
+  assert(f.expected_ids==std::vector<unsigned>({7,8}));assert(f.registry.authenticated_response_complete(1)==b);assert(f.registry.authenticated_response_complete(0)==a);
+  assert(f.account->acks==2&&f.account->states.empty());rejects([&]{f.registry.resume_outbox(a,ah);});assert(disk==before);}
+ auto invalid_resume=root/"resume-reject";std::filesystem::create_directories(invalid_resume);
+ {Fixture f(disk,invalid_resume);auto a=f.add(0);auto cap=f.shape.frame_capacity();auto saved=f.registry.admit_outbox(a,2001,Bits(8*(cap+3),255),id(7),Bits(8,255),cap);
+  f.registry.authenticated_connection_ready();f.reject_expect=true;rejects([&]{f.registry.resume_outbox(a,saved);});assert(f.retained==0&&f.account->acks==0&&f.account->closed&&disk==before&&f.session.evals==0);}
 
 }

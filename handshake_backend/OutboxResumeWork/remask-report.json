@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "capacity": 1290,
+  "accepted_lengths": 1157,
+  "rejected_cases": 12,
+  "case_count": 1169,
+  "nodes": 120397,
+  "seconds": 2.0976386250695214,
+  "artifact_sha256": "4f9ac4a5e13dba4b416678259974cebf8d2039e87292197cf15960c7378082fc",
+  "native_mpc": false,
+  "fresh_mask_source": "Public fixture input here; production wrapper must generate32 joint private VM random bits per call."
+}

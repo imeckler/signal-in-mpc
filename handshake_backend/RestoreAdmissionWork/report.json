@@ -29,19 +29,22 @@
     "old outbox IDs retained without reuse",
     "actual-output binding failure quarantines output",
     "post-durable-commit failure prevents local install/output",
-    "response-disposition failure poisons account"
+    "response-disposition failure poisons account",
+    "two restored outboxes preserve old IDs without cursor/producer/checkpoint advance",
+    "resumed reordered completion uses fresh lease",
+    "stale outbox handle/correlation rejection closes account"
   ],
   "restart_authorization": "Simulated authorized burned cursor/current head; no unresolved actual Reserve resolution. Real coordinator must block unresolved higher reservations.",
   "full_account_authorization_validated": false,
   "fresh_tls_restore_interop_validated": false,
   "sources": {
     "handshake_backend/RestoreAdmissionWork/PrivateRequestCursor.h": "79e3c32ac0645e01f4b5bb0f6b5adb3a7630f61057fc4cbef5e7d249d61a278d",
-    "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "6e2a6b1a0d305d7d8f8d8b94855c6d4ef6cf5dd5da9772ea8807b76c0c85a90a",
+    "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "06e4b8667d72d655d97c195eae972def61c017077253a567a14511d324f243f2",
     "handshake_backend/RestoreAdmissionWork/cursor_checks.cpp": "fe50241f47453bdb214169f8f31c6f0e38f13f748fa7d2199193097f16586514",
-    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "66734c72bb57577b1801973156b52a11b7ce29d8dc0cb1191df0b757e4e1651b",
-    "handshake_backend/NativeSession.h": "5865260335c677c9ae010c20b175364f31c6e78d90896ed1e855ccf1e8acadd6",
+    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "4a3576b4a2d59bd6e38bd04f3e4bd8d6b47bd022475c5e3e5f0cefcc334041ce",
+    "handshake_backend/NativeSession.h": "dc4413f956b904db2b85eb3e01d77943d01ccd62903b26bc17fc97503405858e",
     "handshake_backend/WebSocketWork/NativeConversation.h": "5046c1ac88a0502e9adfe7d79234e754223f528a59ebde49326b5bbd34b17e0d",
-    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "f825e9a73289d4915940a850289713fe0843af0a2161ca6016b635607f555ede",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "ddf9ced3f41264b645f97467f74ec14d2cf2f46bcd4f802cafbff5e95b886983",
     "signal_backend/RecoveryWork/NativeRecordBinding.h": "edf6a779846a69859aad1d28e96747e599251b7908765bda11b090ed94d4b815"
   },
   "api_binary_sha256": "3815af0f880293f1400d978387f90fe81f5b438070d218198f3551ee1c514a81"

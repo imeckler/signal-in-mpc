@@ -26,9 +26,9 @@ template<class Bits,class Session,class Collective> class CoordinatedConversatio
     Session& session;Collective& collective;
     signal_mpc::VariableShape shape;
     signal_mpc::VariableSendStore<Bits> store;
-    enum class Phase {admitted,active,producing,pending,closed};
+    enum class Phase {admitted,active,resume_ready,producing,pending,closed};
     Phase phase=Phase::admitted;
-    std::shared_ptr<DurableConversationHooks> account;size_t account_slot=0;
+    std::shared_ptr<DurableConversationHooks> account;size_t account_slot=0;uint64_t resume_ticket=0;bool resumed_pending=false;
 public:
     struct Produced {uint64_t ticket;Bits payload,request_id;size_t capacity;};
     CoordinatedConversation(Session& session,Collective& collective,signal_mpc::VariableShape shape,
@@ -48,8 +48,19 @@ public:
     CoordinatedConversation& operator=(const CoordinatedConversation&)=delete;
     std::string public_profile()const{return shape.descriptor();}
     void authenticated_connection_ready(){
-        try{public_require(phase==Phase::admitted,"conversation activation rejected");phase=Phase::active;}
+        try{public_require(phase==Phase::admitted,"conversation activation rejected");phase=resume_ticket?Phase::resume_ready:Phase::active;}
         catch(...){close();throw;}
+    }
+    size_t frame_capacity()const{return shape.frame_capacity();}
+    void admit_pending_outbox(uint64_t ticket){
+        try{public_require(account&&phase==Phase::admitted&&!resume_ticket&&ticket,"pending outbox admission rejected");resume_ticket=ticket;}
+        catch(...){close();throw;}
+    }
+    void resume_pending_outbox(uint64_t ticket){
+        bool joined=false;
+        try{public_require(account&&phase==Phase::resume_ready&&resume_ticket==ticket,"pending outbox lease rejected");
+            phase=Phase::pending;resumed_pending=true;joined=true;collective.require_local_success(true);
+        }catch(...){close();if(!joined)collective.require_local_success(false);throw;}
     }
     Produced produce(Bits payload,Bits timestamp,Bits assigned_id){
         auto results=produce_batch({BatchRequest{this,std::move(payload),std::move(timestamp),std::move(assigned_id)}});
@@ -93,9 +104,12 @@ public:
         }catch(...){abort_all();if(first&&!joined){joined=true;first->collective.require_local_success(false);}throw;}
     }
     void authenticated_response_complete(uint64_t ticket){
-        try{public_require(phase==Phase::pending,"conversation response unavailable");if(account)account->response_complete(account_slot,ticket);store.response_complete(ticket);phase=Phase::active;}
+        try{public_require(phase==Phase::pending,"conversation response unavailable");if(resumed_pending)public_require(ticket==resume_ticket,"restored response lease rejected");
+            if(account)account->response_complete(account_slot,ticket);
+            if(!resumed_pending)store.response_complete(ticket);
+            resumed_pending=false;resume_ticket=0;phase=Phase::active;}
         catch(...){close();throw;}
     }
-    void close()noexcept{phase=Phase::closed;store.close();if(account)account->close();}
+    void close()noexcept{phase=Phase::closed;resume_ticket=0;resumed_pending=false;store.close();if(account)account->close();}
 };
 }

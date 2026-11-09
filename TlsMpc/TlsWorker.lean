@@ -15,7 +15,7 @@ inductive Operation where
   | connect | sendRecord | receiveRecord
   | openApplication | sealApplication | sealControl | rotateSend | rotateReceive
   | pollRecord | processWebSocket | providerCatalogue | providerUpgrade | providerProduce
-  | muxCatalogue | muxUpgrade | muxProduce | muxProcess | muxProduceBatch
+  | muxCatalogue | muxUpgrade | muxProduce | muxProcess | muxProduceBatch | muxResumeOutbox
   deriving Repr, BEq
 
 structure Rpc where

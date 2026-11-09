@@ -99,6 +99,7 @@ public:
             case Opcode::mux_produce:
             case Opcode::mux_process:
             case Opcode::mux_produce_batch:
+            case Opcode::mux_resume_outbox:
                 throw std::runtime_error("private provider launch profile unavailable");
             case Opcode::abort:
                 in.done(); {bool erased=session.abort();failed=true;transport.close();

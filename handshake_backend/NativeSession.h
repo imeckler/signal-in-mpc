@@ -302,6 +302,13 @@ public:
             auto result=measured("upgrade.builder",[&]{return upgrade.evaluate(shape,std::move(input));});
             if(metrics)metrics->function_resources(shape.descriptor());return result;});
     }
+    Bits remask_restored_outbox(Bits typed_payload,Bits computed_resumability,size_t capacity){
+        return guarded([&]{require_application();require(request_ids.committed()&&capacity==1290&&
+                typed_payload.size()==8*(capacity+3)&&computed_resumability.size()==8,"restored outbox profile/dimensions rejected");
+            computed_resumability.insert(computed_resumability.end(),typed_payload.begin(),typed_payload.end());
+            return measured("provider.outbox.remask",[&]{return worker.binary("tls-websocket-remask-1290",std::move(computed_resumability),8*(capacity+3));});
+        }); // Wrapper supplies fresh32 joint private mask bits; no producer/ID call.
+    }
     signal_mpc::recovery::NativeRecordBinding::Bound bind_canonical_record(
         Bits snapshot,const signal_mpc::VariableShape& shape,Bits actual_call,Bits actual_result) {
         return guarded([&]{require_application();require(request_ids.committed(),"private account reservation incomplete");
