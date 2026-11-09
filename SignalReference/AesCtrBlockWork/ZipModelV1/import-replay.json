@@ -1,0 +1,10 @@
+{
+  "candidate_only": true,
+  "accepted_extracted_Zip_proof": false,
+  "imports_only": true,
+  "actual_computational_body_edits": false,
+  "original": "SignalReference/AesZipInvestigation/Generated/Baseline/Funs.lean",
+  "original_sha256": "669156312f41ce6b234deaf5339057690a3bb3dff01b651587616aa8837765ab",
+  "replayed_sha256": "a64cfe381a4efb8e3ed00358b498e528067260293ef0489a31214966ff420929",
+  "script_sha256": "5fc5c8c66cfeec59ac5cc4bc0c86b7a2330c96022135a3571ff7e8885fcc55f1"
+}

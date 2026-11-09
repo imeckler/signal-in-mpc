@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "public_fixture_only": true,
+  "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)",
+  "unchanged_actual_vendor_prefix": true,
+  "appended_forwarding_only": true,
+  "profile": {
+    "debug_assertions": true,
+    "pointer_bits": 64,
+    "type": "core::iter::adapters::zip::Zip<core::slice::iter::IterMut<'_, u64>, core::slice::iter::Iter<'_, u64>>"
+  },
+  "binary_sha256": "12b4caae1fb3163f9bf2e3552b8a79a0f03e44c14f1c9df9786b274ee82b99b3",
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/ZipModelV1/build_oracle.py": "82aa774943b015dc724d44a993f4d834a7cb27219aa9094bf87a9da2025c989c",
+    "SignalReference/AesCtrBlockWork/ZipModelV1/Oracle/Cargo.toml": "1f1dad2f4e0cf1d1511406f35b604bd7ed9b4ba9e0f2fe93e033c22af16d2505",
+    "SignalReference/AesCtrBlockWork/ZipModelV1/Oracle/main.rs": "1840dbca5da27832cd26942181d99063eed1e34bbc6692ea3b2ef23ec0a9043f",
+    "SignalReference/AesCtrBlockWork/ZipModelV1/Oracle/wrappers.rs": "740c20c33567f422a9dc918625547f40b3246e73bc6169175b2c86a2c0aced76",
+    ".deps/libsignal-vendor/aes-0.9.1/src/soft/fixslice64.rs": "cfb6f3fb36290bc2925624d206005eca7394beccb6a957dcfaee5e80935319f8"
+  },
+  "stage": ".deps/aes-std-borrow-oracle-source-v1",
+  "runtime_bitness": 64
+}
