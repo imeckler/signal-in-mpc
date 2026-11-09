@@ -9,12 +9,12 @@
   "import_retirement_integrated": false,
   "fresh_TLS_required": true,
   "source_sha256": {
-    "signal_backend/RecoveryWork/CertifiedArchiveGate.h": "b3fe712ca74e4bd2d910392569fbe5a8076c2170fd7d055b1e8105895faeb064",
+    "signal_backend/RecoveryWork/CertifiedArchiveGate.h": "2d2e3aebc7e4be0d6222aa225663703a7e1e4673d439bfefd3b07917b2dab3b7",
     "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09",
     "signal_backend/RecoveryWork/OwnShareBox.h": "5b5f468a195aaa0ad00c63af80ae4ca4457675f575bc6dd1ebdc88ff617d0ffd",
     "signal_backend/RecoveryWork/phase_check.cpp": "9e8bdf240b21155d4c0fc976bb0f816f1dd3100961677de40e46d2dd6ee4e84d",
     "signal_backend/RecoveryWork/check_phase.py": "57e7f6e4d1a2723fd29e470a660f1afa4583c0141deaef2c197809d34f23181a",
-    "signal_backend/RecoveryWork/PHASE_GATE.md": "283b546acebcab9d42b44ed58a5a9f0682057ff3d342d8b2888e490e15058939"
+    "signal_backend/RecoveryWork/PHASE_GATE.md": "cfed177ad218a51215d9ed5d9cb020f2fddf9172b3665878244669bcd9c4f931"
   },
-  "binary_sha256": "8c5bc0608740ee2762d71a06f3a874996bd39f6435f0559d63cc459115cd26f6"
+  "binary_sha256": "089545a52784d76d0e8575efed618d05ddf1d85a78df47a187838fa22eb46d68"
 }

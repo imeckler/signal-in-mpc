@@ -6,8 +6,8 @@ namespace signal_mpc::recovery {
 // A concrete local archive+vote adapter. Full private semantic validation and
 // collective runtime retirement are separate, closed admission prerequisites.
 class LocalAccountCheckpoint {
- Epoch epoch_;AccountSchemaV1 schema_;Digest context_,manifest_,sharing_;unsigned party_;const OwnShareBox& box_;CiphertextStore& files_;VoteJournal& journal_;
- Digest phase_schema(const AccountSchemaV1& schema,Phase phase)const{auto b=label("SIGNAL-ACCOUNT-PHASE-SCHEMA-1");b.push_back(unsigned(phase));append(b,schema.digest());return hash(b);}
+ Epoch epoch_;AccountSchemaV1 schema_;Digest context_,manifest_,sharing_,encoding_;unsigned party_;const OwnShareBox& box_;CiphertextStore& files_;VoteJournal& journal_;
+ Digest phase_schema(const AccountSchemaV1& schema,Phase phase)const{auto b=label("SIGNAL-ACCOUNT-PHASE-SCHEMA-3/COMMIT-HEAD");b.push_back(unsigned(phase));append(b,schema.digest());append(b,encoding_);return hash(b);}
  void own(const Proposal& p)const{require(p.context==context_&&p.manifest==manifest_,"account checkpoint context/manifest");}
  void predecessor(const Proposal& p,const CertifiedPhase& previous,Phase phase,bool same_slot)const{
   require(previous.proposal.phase==phase&&certificate(epoch_,previous.proposal,previous.votes),"account checkpoint predecessor certificate");own(previous.proposal);
@@ -22,8 +22,8 @@ public:
  public:
   const ShareDomain& domain()const{return domain_;}const Digest& ciphertext()const{return ciphertext_;}
  };
- LocalAccountCheckpoint(Epoch epoch,AccountSchemaV1 schema,Digest context,Digest manifest,Digest sharing,unsigned party,const OwnShareBox& box,CiphertextStore& files,VoteJournal& journal)
- :epoch_(epoch),schema_(std::move(schema)),context_(context),manifest_(manifest),sharing_(sharing),party_(party),box_(box),files_(files),journal_(journal){require(party<5,"account checkpoint member");epoch_.digest();
+ LocalAccountCheckpoint(Epoch epoch,AccountSchemaV1 schema,Digest context,Digest manifest,Digest sharing,Digest encoding,unsigned party,const OwnShareBox& box,CiphertextStore& files,VoteJournal& journal)
+ :epoch_(epoch),schema_(std::move(schema)),context_(context),manifest_(manifest),sharing_(sharing),encoding_(encoding),party_(party),box_(box),files_(files),journal_(journal){require(party<5&&encoding_!=Digest{},"account checkpoint member/encoding");epoch_.digest();
   auto bind=hash(label("local-account-journal-identity-binding"));auto status=journal_.status(bind);
   require(status.party==party_&&verify_status(epoch_,context_,bind,status),"account checkpoint journal identity/context mismatch");}
  Prepared persist(Phase phase,uint64_t slot,std::vector<QuarantinedEvaluations> local){
@@ -39,23 +39,17 @@ public:
   require(proposal.phase==prepared.phase_&&proposal.slot==d.slot&&proposal.bundles[party_]==prepared.ciphertext_,"prepared account proposal mismatch");
   if(proposal.phase==Phase::Reserve){
    if(proposal.slot==1)require(!previous&&proposal.parent==epoch_.genesis,"account genesis link");
-   else{require(previous,"account preceding acknowledgement missing");predecessor(proposal,*previous,Phase::Acknowledge,false);}
+   else{require(previous,"account preceding commit missing");predecessor(proposal,*previous,Phase::Commit,false);}
   }else{require(previous,"account reservation missing");predecessor(proposal,*previous,Phase::Reserve,true);}
   // Re-read the installed file before durable vote. No private plaintext escapes.
   files_.get(prepared.ciphertext_,d.header().size()+16+d.bit_count*16);
   return journal_.vote(proposal);
  }
- Vote acknowledge(const Prepared& prepared,const Proposal& proposal,const CertifiedPhase& committed){
-  own(proposal);const auto& d=prepared.domain_;require(d.party==party_&&d.epoch==epoch_.number&&d.membership==epoch_.digest()&&d.context==context_&&d.manifest==manifest_&&d.sharing_epoch==sharing_&&d.bit_count==schema_.bits()&&d.schema==phase_schema(schema_,Phase::Commit),"account acknowledgement owner/schema");require(prepared.phase_==Phase::Commit&&proposal.phase==Phase::Acknowledge,"account acknowledgement phase");
-  predecessor(proposal,committed,Phase::Commit,true);
-  require(proposal.bundles==committed.proposal.bundles&&proposal.bundles[party_]==prepared.ciphertext_&&prepared.domain_.slot==proposal.slot,"account acknowledgement outbox binding");
-  files_.get(prepared.ciphertext_,prepared.domain_.header().size()+16+prepared.domain_.bit_count*16);return journal_.vote(proposal);
- }
- QuarantinedEvaluations load_committed(unsigned party,uint64_t bits,const Digest& previous_ack,
-   const CertifiedPhase& reserve,const CertifiedPhase& commit,const CertifiedPhase& ack,const Digest& challenge,const std::vector<Status>& statuses)const{
+ QuarantinedEvaluations load_committed(unsigned party,uint64_t bits,const Digest& previous_commit,
+   const CertifiedPhase& reserve,const CertifiedPhase& commit,const Digest& challenge,const std::vector<Status>& statuses)const{
   require(party==party_&&bits==schema_.bits(),"account reload schema dimensions");
   CertifiedArchiveGate gate(epoch_,context_,manifest_,phase_schema(schema_,Phase::Commit),sharing_);
-  auto domain=gate.authorize(party,bits,previous_ack,reserve,commit,ack,challenge,statuses,commit.proposal.bundles[party]);
+  auto domain=gate.authorize_committed(party,bits,previous_commit,reserve,commit,challenge,statuses,commit.proposal.bundles[party]);
   auto ciphertext=files_.get(commit.proposal.bundles[party],domain.header().size()+16+bits*16);
   return box_.open_quarantined(domain,ciphertext);
  }

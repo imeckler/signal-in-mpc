@@ -29,6 +29,7 @@
     "signal_backend/RecoveryWork/check.py": "2154dc296bca985efb2c6138f121a6af8e3b6b8d120e26e5bbf2e2fb9c85e019",
     "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09",
     "signal_backend/RecoveryWork/check.cpp": "22bab0722016d0e79256277bb47b51052c7bed8307cb43fe07b7646d926b9e37",
-    "signal_backend/RecoveryWork/PROTOCOL.md": "d7b032e04cac7b2aec154b8d27d343f28afaa3c16827d72343cfc3f1d56fc684"
-  }
+    "signal_backend/RecoveryWork/PROTOCOL.md": "9ca25fb3f5140c8865ab067711417be5159c7ef66de9947b635ba145b1327868"
+  },
+  "documentation_only_update": "Commit-head/disposition protocol clarification; original655 signature/journal tests and their unchanged code retained, no completed recovery claim"
 }

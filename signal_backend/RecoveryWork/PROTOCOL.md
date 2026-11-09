@@ -62,7 +62,15 @@ key, private request ID, plaintext or aggregate share is opened by this protocol
    responses never roll back consumed Signal state. The immutable pending outbox
    remains; retransmission/duplicate-delivery policy is separate from key reuse.
 
-Reservations/commits/acknowledgements have separate signature domains. A recovery
+The certified state COMMIT is the next reservation's parent and the recoverable
+head; it does not wait for remote delivery acknowledgment. A batch may advance
+other conversations while retaining earlier immutable pending outboxes. Private
+disposition distinguishes committed-unsent, attempted, observed server accepted/
+rejected and uncertain; server acceptance is not recipient delivery. Delivery
+observations become later certified state updates, not permission to roll back
+keys. No exactly-once delivery guarantee is made. Reserve/Commit have separate
+signature domains. The historical Phase3 publication fixture is not a remote
+delivery certificate and is not used by the active commit-head account adapter. A recovery
 query includes a fresh challenge and obtains4signed responses covering BOTH the
 last certified head and every higher reservation/vote. A committed signer set
 intersects the response set honestly. Any higher unresolved evidence blocks

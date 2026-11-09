@@ -32,7 +32,7 @@ fn receiving_pq(s:&storage::SessionStructure)->Vec<u8>{let p=pqr::PqRatchetState
  [(chain.current_epoch+1).to_be_bytes().to_vec(),recv.next.clone(),recv.ctr.to_be_bytes().to_vec()].concat()}
 async fn fixture(v:&Value)->Value{
  let seed=v["seed"].as_u64().unwrap();let mut rng=StdRng::seed_from_u64(seed);
- let alice_id=IdentityKeyPair::generate(&mut rng);let bob_id=IdentityKeyPair::generate(&mut rng);
+ let alice_id=if let Some(seed)=v["account_seed"].as_u64(){IdentityKeyPair::generate(&mut StdRng::seed_from_u64(seed))}else{IdentityKeyPair::generate(&mut rng)};let bob_id=IdentityKeyPair::generate(&mut rng);
  let base=KeyPair::generate(&mut rng);let signed=KeyPair::generate(&mut rng);let kyber=kem::KeyPair::generate(kem::KeyType::Kyber1024,&mut rng);
  let parameters=AliceSignalProtocolParameters::new(alice_id.clone(),base,*bob_id.identity_key(),signed.public_key,signed.public_key,kyber.public_key.clone(),false);
  let alice=initialize_alice_session_record(&parameters,&mut rng).unwrap();let mut alice_pb=record(&alice);
@@ -44,7 +44,7 @@ async fn fixture(v:&Value)->Value{
  alice_pb.current_session.as_mut().unwrap().pq_ratchet_state=pqstate(spqr::Direction::B2A,[21;32],[22;32]);
  bob_pb.current_session.as_mut().unwrap().pq_ratchet_state=pqstate(spqr::Direction::A2B,[22;32],[21;32]);
  let alice_address=ProtocolAddress::new("00112233-4455-6677-8899-aabbccddeeff".into(),1u32.try_into().unwrap());
- let bob_address=ProtocolAddress::new("ffeeddcc-bbaa-9988-7766-554433221100".into(),1u32.try_into().unwrap());
+ let bob_address=ProtocolAddress::new(v["recipient_uuid"].as_str().unwrap_or("ffeeddcc-bbaa-9988-7766-554433221100").into(),1u32.try_into().unwrap());
  if v["send_last_inactive"].as_bool().unwrap_or(false){
   alice_pb.session_management_state=Some(storage::record_structure::SessionManagementState::Tahini(storage::TahiniSessionManagementState{last_act:storage::tahini_session_management_state::LastAct::ReceiveInactive as i32,direction_change_ctr:7}));
  }
@@ -107,7 +107,7 @@ async fn fixture(v:&Value)->Value{
  let sent_prefix=[vec![255],sent.sender_chain.as_ref().unwrap().chain_key.as_ref().unwrap().key.clone(),sent.sender_chain.as_ref().unwrap().chain_key.as_ref().unwrap().index.to_be_bytes().to_vec(),sent_chain.next.clone(),sent_chain.ctr.to_be_bytes().to_vec(),vec![0;8]].concat();
  assert_eq!(session_send_projection::apply(&alice_pb,&sent_prefix).unwrap(),sent_pb,"canonical sender mismatch");
  let reloaded=SessionRecord::deserialize(&sent_pb.encode_to_vec()).unwrap();assert_eq!(record(&reloaded),sent_pb);
- rows.push(json!({"sender_record_before":hex(&alice_pb.encode_to_vec()),"sender_result":hex(&sent_prefix),"sender_record_after":hex(&sent_pb.encode_to_vec()),"sender_selected_after":hex(&sent_selected),"record_before":hex(&before_pb.encode_to_vec()),"record_after":hex(&after.encode_to_vec()),"canonical_record_projection_reload":true,"unrelated_record_retained":true,"rejected_result_preserved_record":true,"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
+ rows.push(json!({"account_identity":hex(&[alice_id.private_key().serialize().to_vec(),alice_id.public_key().serialize().to_vec()].concat()),"sender_selected_before":hex(&[sender(alice_pb.current_session.as_ref().unwrap()),receivers(alice_pb.current_session.as_ref().unwrap()),receiving_pq(alice_pb.current_session.as_ref().unwrap())].concat()),"sender_record_before":hex(&alice_pb.encode_to_vec()),"sender_result":hex(&sent_prefix),"sender_record_after":hex(&sent_pb.encode_to_vec()),"sender_selected_after":hex(&sent_selected),"record_before":hex(&before_pb.encode_to_vec()),"record_after":hex(&after.encode_to_vec()),"canonical_record_projection_reload":true,"unrelated_record_retained":true,"rejected_result_preserved_record":true,"counter":step,"root_private_preserved":step>0,"input":hex(&input),"expected":hex(&expected),"wire_bytes":wire.len(),"sender_chain_before":hex(&sender_chain_before),"actual_pq_key":hex(&pqr_probe.key.unwrap()),"actual_PQXDH_initialization":true,"selected_PQR_phase_override":true,"actual_new_DH_message_decrypt":true,"tampered_MAC_preserved_actual_store":true}));
  let after_bytes=bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap();
  assert!(message_decrypt_signal(&message,&alice_address,&bob_address,&mut bob_sessions,&mut bob_identities,&mut receive_rng).await.is_err());
  assert_eq!(bob_sessions.load_session(&alice_address).await.unwrap().unwrap().serialize().unwrap(),after_bytes);
