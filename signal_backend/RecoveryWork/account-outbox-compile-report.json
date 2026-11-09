@@ -1,0 +1,39 @@
+{
+  "compiled": true,
+  "candidate_only": true,
+  "stages": [
+    {
+      "ordinal": 0,
+      "descriptor": "signal_private_account_outbox_v1_o0-sbv:[41704x1]-sbv:[10416x1]",
+      "seconds": 3.513239625026472,
+      "artifact_sha256": "3a55b4156375e27e216b0d3978c58c8220c5f67de9346227e11be7a521782790"
+    },
+    {
+      "ordinal": 1,
+      "descriptor": "signal_private_account_outbox_v1_o1-sbv:[41704x1]-sbv:[10416x1]",
+      "seconds": 3.4711105830501765,
+      "artifact_sha256": "25ae1988e2f2de0182de6ec006fc62a3c3258b409f8ade1744799e40f3002ac2"
+    },
+    {
+      "ordinal": 2,
+      "descriptor": "signal_private_account_outbox_v1_o2-sbv:[41704x1]-sbv:[10416x1]",
+      "seconds": 3.5661912499926984,
+      "artifact_sha256": "b4eb7a83c745dbef4c86fad38da4004972ab43b3c669222bbfb951af834f7ded"
+    },
+    {
+      "ordinal": 3,
+      "descriptor": "signal_private_account_outbox_v1_o3-sbv:[41704x1]-sbv:[10416x1]",
+      "seconds": 3.5799340419471264,
+      "artifact_sha256": "37734151fc5feb5c41cd568fefbb47fafa7374c69b366f2f1d50247f14b10db7"
+    }
+  ],
+  "manifest_sha256": "77732d14570f0200b71141ef601697fd942952fed93e22891e39da6daa16874a",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateAccountOutboxV1.lean": "a7e28bf3eba16910fe4749322b6cc47699dd9c2b4318241c6125a2685cc73e32",
+    "SignalReference/PrivateRecordWork/ExportAccountOutbox.lean": "3e926f19ca98d5afb1b3c8c3b4166c70f39974a123ea83587d0f2e6c59fc89fd",
+    "programs/signal_account_outbox_v1.mpc": "075245ab2849498bb45e922991121f7894550a9f2b3e9faddec6c11b2d224fb0",
+    "signal_backend/RecoveryWork/prepare_account_outbox.py": "658b5cfbd53a461fb3a87f351a5548988143a1cca7009a3343b9a4d844587eb8"
+  },
+  "native_MPC": false,
+  "whole_account_activation": false
+}

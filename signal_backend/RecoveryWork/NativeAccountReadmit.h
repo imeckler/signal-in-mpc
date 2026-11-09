@@ -1,5 +1,7 @@
 #pragma once
 #include "NativeAccountAdmission.h"
+#include "NativeAccountOutbox.h"
+#include "Protocols/Opener.h"
 #include "ImportV2Work/RawFieldReadmitV2.h"
 #include "SessionWork/NativeLifecycle.h"
 namespace signal_mpc::recovery {
@@ -12,15 +14,15 @@ class NativeAccountReadmit {
  struct Helper {Completion completion;import_v2::RawFieldReadmitV2 input;Helper(size_t& count,Player& player):completion{count},input(player){}};
 public:
  struct Imported {
-  OwnedAccountV2 account;Bits computed_validity;uint64_t import_host,retirement_host;size_t helpers_destroyed;
+  OwnedAccountV2 account;Bits computed_validity;uint64_t import_host,retirement_host;size_t helpers_destroyed;std::optional<NativeAccountOutbox::Pending> pending;
  };
  static Imported run(AccountLayoutV2 layout,QuarantinedEvaluations raw,ShareDomain domain,
    Machine<tls_mpc_worker::Share>& machine,tls_mpc_worker::Worker& worker,
-   const tls_mpc_worker::PinnedPrograms& pinned){
+   const tls_mpc_worker::PinnedPrograms& pinned,std::optional<size_t> pending_ordinal=std::nullopt,bool require_accepted=false){
   using tls_mpc_worker::ErasedHostCall;
   require(!ErasedHostCall::active(),"account readmission must own both host barriers");
   require(domain.bit_count==layout.schema().bits()&&raw.bit_count()==domain.bit_count,"account readmission full schema dimensions");
-  std::optional<OwnedAccountV2> account;Bits validity,flat;size_t destroyed=0;uint64_t imported=0,retired=0;
+  std::optional<OwnedAccountV2> account;std::optional<NativeAccountOutbox::Pending> pending;Bits validity,flat;size_t destroyed=0;uint64_t imported=0,retired=0;
   bool success=ErasedHostCall::run([&]{imported=ErasedHostCall::generation();try{
    {Helper helper(destroyed,machine.get_player());
     flat.reserve(domain.bit_count);
@@ -36,12 +38,21 @@ public:
    for(unsigned slot=0;slot<layout.conversations();++slot)for(unsigned tag=10;tag<=16;++tag)take(layout.conversation_width(tag));
    require(at==flat.size(),"account section split trailing cells");flat.clear();account.emplace(layout,std::move(sections));
    NativeAccountAdmission validator(machine,worker,pinned);validity=validator.evaluate(*account);
-  }catch(...){flat.clear();account.reset();validity.clear();raw=QuarantinedEvaluations(SecretBytes(0));throw;}});
+   if(pending_ordinal){require(layout.conversations()==1,"account resume policy currently c1");pending.emplace(NativeAccountOutbox::evaluate(*account,0,*pending_ordinal,Bits(validity.begin(),validity.end()),machine,worker,pinned));}
+   if(require_accepted){
+    // Only canonical computed acceptance masks are declassified, never account
+    // bytes/IDs/keys. The malicious opener Check completes before any capability.
+    Opener<tls_mpc_worker::Bit> opener(machine.get_player(),machine.get_bit_mac_key());opener.init_open();
+    for(auto& bit:validity)opener.prepare_open(bit[0]);
+    if(pending)for(auto& bit:pending->computed_resumability)opener.prepare_open(bit[0]);
+    opener.exchange();bool accepted=true;for(size_t i=0;i<(pending?16:8);++i)accepted&=opener.finalize_open().get()==1;opener.Check();require(accepted,"account computed admission rejected");
+   }
+  }catch(...){flat.clear();account.reset();pending.reset();validity.clear();raw=QuarantinedEvaluations(SecretBytes(0));throw;}});
   require(success&&destroyed==1&&account&&ErasedHostCall::completed(imported),"account import/coherence host failed");
   // Existing actual validator initialized the VM; no empty anchor/retire(false).
   bool renewed=ErasedHostCall::run([&]{tls_mpc_worker::NativeLifecycle lifecycle(machine);lifecycle.renew_epoch();retired=ErasedHostCall::generation();require(!lifecycle.application_allowed(),"account epoch host barrier bypass");});
   require(renewed&&retired>imported&&ErasedHostCall::completed(retired),"account retirement host failed");
-  return {std::move(*account),std::move(validity),imported,retired,destroyed};
+  return {std::move(*account),std::move(validity),imported,retired,destroyed,std::move(pending)};
  }
 };
 }

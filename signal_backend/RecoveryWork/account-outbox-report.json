@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 3,
+  "foundational_axioms_only": true,
+  "exact_AIG_cases": 48,
+  "ordinals": 4,
+  "one_pending_profile": true,
+  "computed_resumability_not_host_flag": true,
+  "native_MPC": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_account_outbox.py": "6e0bfed2e9d4097a9b38b5f9576a2bac97dc50f734d4fe87a9dfd95ad9fd8c34",
+    "signal_backend/RecoveryWork/AccountOutboxAudit.lean": "2321574965ad7db0eb59eaf48a732fbaf150d8b040fc7f9b2c459293bbeb0de5",
+    "TlsMpc/Signal/PrivateAccountOutboxV1.lean": "a7e28bf3eba16910fe4749322b6cc47699dd9c2b4318241c6125a2685cc73e32",
+    "SignalReference/PrivateRecordWork/ExportAccountOutbox.lean": "3e926f19ca98d5afb1b3c8c3b4166c70f39974a123ea83587d0f2e6c59fc89fd",
+    "signal_backend/RecoveryWork/NativeAccountOutbox.h": "741ba41044fa23abe291da22dd7f1a0f0a53d08dc09d8787ab8d252bda8892b7"
+  }
+}
