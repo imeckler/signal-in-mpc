@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "source_sha256": "eeba841be75313d9f82c1a9dab74f9cb7779494437323f5c56f46e0c8b872781",
+  "kernel_checked": true,
+  "axiom_output": "'TlsMpc.TlsPrivateRequestId.Batch.staged_batch' depends on axioms: [propext, Classical.choice, Quot.sound]\n'TlsMpc.TlsPrivateRequestId.Batch.rejected_next' depends on axioms: [propext, Classical.choice, Quot.sound]\n'TlsMpc.TlsPrivateRequestId.compiled_next_correct' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "scope": "Exact accepted repeated existing increment; distinct allocation indices and final successor. Reject returns flag0/value0; host must close entire staged group, not commit partial range. No C++/distributed authorization theorem."
+}
