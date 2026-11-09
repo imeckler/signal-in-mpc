@@ -1,0 +1,43 @@
+'LibSignalReference.Candidate.FixedCtr.nonce_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.actual_next' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.single_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.block_bytes_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.generator_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.generator_counter_no_wrap' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.run_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.after_no_wrap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.blocks_length' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.required_ceil' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.cached_only' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixedCtr.exact_remaining_guard' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.actual_remaining_authorizes' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.stream_bytes_length' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.length_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.exhausted_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.buffered_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.cache_arithmetic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.success_lengths' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.success_counter' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.stream_expression_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.keystream_expression_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.xor_expression_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.fresh_expression_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.fresh_buffered_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.compiled_fresh_buffered' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.compiled_fresh_actual_driver' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
