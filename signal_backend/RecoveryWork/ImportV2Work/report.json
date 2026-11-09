@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "local_public_checks": 9,
+  "raw_helper_V2_typechecked": true,
+  "base_helper_unchanged": true,
+  "native_MPC": false,
+  "private_container_reallocation_and_final_deallocation_wipe": true,
+  "protocol_prep_input_PRNG_owners_not_covered": true,
+  "full_restore_admission": false,
+  "stdout": "9 wiping allocator checks passed\n",
+  "binary_sha256": "08d98bb245199689f7756f969126d1cd9958b6cfa1fa54bb57eb8c6b46761c39",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ImportV2Work/check.py": "074bf1d4db5ea7af6e0f98c7d8aef3107b00db09c8cfab09fc080846b3f72b00",
+    "signal_backend/RecoveryWork/ImportV2Work/prepare.py": "e0651902df5593499797591583d6c4ff39b53c9a3b5e212e809aeef96d53f702",
+    "signal_backend/RecoveryWork/ImportV2Work/WipingAllocator.h": "3e207e23d9efe4a9113bfdcde7a33f42696806b687bb7029ba8f67224b6c6f8e",
+    "signal_backend/RecoveryWork/ImportV2Work/RawFieldReadmitV2.h": "4a5fc3c96afad4b14b8604f7acf0fec7b88f359da40de7b5feb660b0afe4ffd6",
+    "signal_backend/RecoveryWork/ImportV2Work/wipe_check.cpp": "bc1fc0c8c84b126401d46f6c13670aff7caa56fecb9feb37967eecf83fe31592",
+    "signal_backend/RecoveryWork/ImportV2Work/derivation.json": "d4418f0f73cb82a226829df2821d65161d6e7e5b9ec47d3df63af2b0be6af88a",
+    "signal_backend/RecoveryWork/RawFieldReadmit.h": "4ed99744d620f005232124a8c6390fe336d59b6d3b4abc6e97fc4543f459ae9d",
+    "signal_backend/RecoveryWork/CanonicalMakefile": "004529cc2614f64f2a5a622ae3fabc825c26e409bd676d4c6112ad9bee389b07"
+  }
+}

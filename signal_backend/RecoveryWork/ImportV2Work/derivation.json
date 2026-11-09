@@ -1,0 +1,51 @@
+{
+  "candidate_only": true,
+  "base_sha256": "4ed99744d620f005232124a8c6390fe336d59b6d3b4abc6e97fc4543f459ae9d",
+  "candidate_sha256": "4a5fc3c96afad4b14b8604f7acf0fec7b88f359da40de7b5feb660b0afe4ffd6",
+  "transformations": [
+    [
+      "#include \"NativeOwnShareArchive.h\"",
+      "#include \"../NativeOwnShareArchive.h\"\n#include \"WipingAllocator.h\""
+    ],
+    [
+      "namespace signal_mpc::recovery {",
+      "namespace signal_mpc::recovery::import_v2 {"
+    ],
+    [
+      "class RawFieldReadmit {",
+      "class RawFieldReadmitV2 {"
+    ],
+    [
+      "explicit RawFieldReadmit(Player& player)",
+      "explicit RawFieldReadmitV2(Player& player)"
+    ],
+    [
+      "std::vector<Share> private_inputs(const std::vector<Field>& mine)",
+      "PrivateVector<Share> private_inputs(const PrivateVector<Field>& mine)"
+    ],
+    [
+      "input.exchange();std::vector<Share> out;",
+      "input.exchange();PrivateVector<Share> out;"
+    ],
+    [
+      "std::vector<Field> mine(count)",
+      "PrivateVector<Field> mine(count)"
+    ],
+    [
+      "std::vector<Share> values,checks;",
+      "PrivateVector<Share> values,checks;"
+    ],
+    [
+      "std::vector<Field> local_random(checks.size())",
+      "PrivateVector<Field> local_random(checks.size())"
+    ],
+    [
+      "std::vector<Share> coefficients(checks.size(),Share(Field(0)))",
+      "PrivateVector<Share> coefficients(checks.size(),Share(Field(0)))"
+    ]
+  ],
+  "computational_field_expressions_changed": false,
+  "private_container_allocation_erasure": true,
+  "protocol_prep_PRNG_teardown_covered": false,
+  "provider_admission": false
+}

@@ -6,3 +6,6 @@ $(CANONICAL_OUTPUT): $(CANONICAL_WORK)/canonical_owner_fixture.cpp $(wildcard $(
 SHAPE_OUTPUT ?= ../signal-archive-shape-check
 $(SHAPE_OUTPUT): $(CANONICAL_WORK)/archive_shape_check.cpp $(wildcard $(CANONICAL_WORK)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(CANONICAL_WORK) -I$(CANONICAL_WORK)/../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+WIPE_OUTPUT ?= ../signal-import-wipe-check
+$(WIPE_OUTPUT): $(CANONICAL_WORK)/ImportV2Work/wipe_check.cpp $(CANONICAL_WORK)/ImportV2Work/WipingAllocator.h $(CANONICAL_WORK)/ImportV2Work/RawFieldReadmitV2.h libSPDZ.so
+	$(CXX) $(CFLAGS) -std=c++20 -I. -I$(CANONICAL_WORK)/ImportV2Work -I$(CANONICAL_WORK)/../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
