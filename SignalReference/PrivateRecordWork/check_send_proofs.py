@@ -8,10 +8,10 @@ def main():
     run=subprocess.run(['lake','env','lean',SOURCES[-1]],cwd=ROOT,text=True,capture_output=True,check=True)
     audit=run.stdout
     entries=re.findall(r"'([^']+)' depends on axioms: \[(.*?)\]",audit,re.S)
-    assert len(entries)==9,(audit,entries)
+    assert len(entries)==10,(audit,entries)
     for name,axioms in entries:
         assert set(x.strip() for x in axioms.split(',')) <= {'propext','Classical.choice','Quot.sound'},(name,axioms)
     report={'passed':True,'endpoints':len(entries),'scope':'Generic model-relative send-update/flatten Hom and symbolic byte-circuit agreement. Does not prove Rust SessionRecord refinement, restore/project coherence, full binding, native execution, durable recovery or admission.','axiom_audit':audit,'source_sha256':{s:hashlib.sha256((ROOT/s).read_bytes()).hexdigest() for s in SOURCES}}
     (ROOT/'SignalReference/PrivateRecordWork/send-proof-report.json').write_text(json.dumps(report,indent=2)+'\n')
-    print('PASS: 9 foundation-only private record send/flatten proof endpoints')
+    print('PASS: 10 foundation-only private record send/flatten proof endpoints')
 if __name__=='__main__': main()

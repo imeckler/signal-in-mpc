@@ -8,3 +8,4 @@ import TlsMpc.Signal.PrivateRecordSnapshotV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordSendV1.applySend_map
 #print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.flatten_map
 #print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.compiled_applySend_correct
+#print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.project_receivers_map

@@ -13,6 +13,51 @@ include ha
    apply congrArg (fun g => nodes.flatMap g)
    funext node
    cases node <;> simp only [Node.map,List.map_cons,PrivateBuffer.output_map ha,ih]
+ theorem project_receivers_map (nodes : List (Node B)) :
+    (nodes.flatMap fun node => match node with
+      | .message 7 present ns =>
+        present :: ByteAuth.release a present ((bytesValue 1 ns).drop 1 ++ bytesValue 2 (children 3 ns) ++ scalarValue 1 (children 3 ns))
+      | _ => []).map f =
+    (nodes.map (Node.map f)).flatMap (fun node => match node with
+      | .message 7 present ns =>
+        present :: ByteAuth.release a' present ((bytesValue 1 ns).drop 1 ++ bytesValue 2 (children 3 ns) ++ scalarValue 1 (children 3 ns))
+      | _ => []) := by
+  simp only [List.map_flatMap,List.flatMap_map]
+  apply congrArg (fun h => nodes.flatMap h)
+  funext node
+  cases node with
+  | bytes tag present empty value => simp only [Node.map,List.map_nil]
+  | scalar tag present defaults raw => simp only [Node.map,List.map_nil]
+  | message tag present ns =>
+    cases tag with
+    | zero => simp only [Node.map,List.map_nil]
+    | succ tag =>
+      cases tag with
+      | zero => simp only [Node.map,List.map_nil]
+      | succ tag =>
+        cases tag with
+        | zero => simp only [Node.map,List.map_nil]
+        | succ tag =>
+          cases tag with
+          | zero => simp only [Node.map,List.map_nil]
+          | succ tag =>
+            cases tag with
+            | zero => simp only [Node.map,List.map_nil]
+            | succ tag =>
+              cases tag with
+              | zero => simp only [Node.map,List.map_nil]
+              | succ tag =>
+                cases tag with
+                | zero => simp only [Node.map,List.map_nil]
+                | succ tag =>
+                  cases tag with
+                  | zero => simp only [Node.map,List.map_cons,ByteAuth.release_map ha,
+                    PrivateRecordOperationsV1Proofs.children_map,
+                    PrivateRecordOperationsV1Proofs.bytesValue_map,
+                    PrivateRecordOperationsV1Proofs.snapshot_scalarValue_map,
+                    List.map_drop,List.map_append]
+                  | succ tag => simp only [Node.map,List.map_nil]
+
 end
  theorem compiled_applySend_correct (fuel : Nat) (nodes : List (Node (BVExpr 8)))
   (producer : List (BVExpr 8)) (assign : BVExpr.Assignment) :
