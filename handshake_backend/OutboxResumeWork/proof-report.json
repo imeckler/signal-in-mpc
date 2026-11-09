@@ -3,5 +3,8 @@
   "source_sha256": "20f8f3d7489c989db662b137382b7168f58722042f5eef5f3b22a12197638521",
   "kernel_checked": true,
   "axiom_output": "'TlsMpc.TlsWebSocketRemask.compiled_correct' depends on axioms: [propext, Classical.choice, Quot.sound]\n'TlsMpc.TlsWebSocketRemask.unmasked_unchanged' depends on axioms: [propext, Quot.sound]\n'TlsMpc.TlsWebSocketRemask.run_length' depends on axioms: [propext, Quot.sound]",
-  "scope": "Generic Hom/compiler agreement; exact output length for fixed input shape; scalar XOR unmask preservation. Full frame acceptance semantics checked by exhaustive public length differential cases, not a complete framing-spec refinement theorem."
+  "scope": "Generic Hom/compiler agreement, exact output length, scalar XOR unmask preservation, and exact bounded length-scan acceptance for arbitrary BE16 secret lengths. Full combined framing-spec refinement is not claimed; remaining checks have public differential coverage.",
+  "length_scan_kernel_checked": true,
+  "length_scan_source_sha256": "af9acfb0fa621698c376888033e8d526d575e32eddf41535b43188a602006247",
+  "length_scan_axiom_output": "'TlsMpc.TlsWebSocketRemask.lengthMatch_value' depends on axioms: [propext, Classical.choice, Quot.sound]"
 }
