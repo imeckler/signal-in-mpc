@@ -1,0 +1,7 @@
+{
+  "promoted": false,
+  "compiled_candidate": "v1-candidate-2",
+  "numeric_cases_passed_before_failure": 6,
+  "failure": "LocalNew acknowledgement cleared optional pending prekey presence but retained hidden payload; stronger canonical flat snapshot comparison detects it",
+  "fix": "clear entire optional prekey/Kyber node under computed acknowledgement mask; preserve prior artifacts"
+}

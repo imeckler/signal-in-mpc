@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "cases": 4,
+  "first_and_repeated_send": true,
+  "actual_whole_SessionRecord_equality_in_Rust": true,
+  "private_full_tree_snapshot_equal": true,
+  "private_restored_selected525_equal": true,
+  "Tahini_inactive_to_send_increment": true,
+  "rejected_exact_preserve": true,
+  "full_private_schema_validation": false,
+  "computed_profile_validity": false,
+  "send_update_Hom_proof": false,
+  "native_MPC": false,
+  "atomic_restart_and_retirement": false,
+  "scope": "Bounded no-chunk active-epoch private-ops canonical sender model; no skipped keys/epoch transitions and inactive-direction counter excludes overflow",
+  "seconds": 4.759181624976918,
+  "oracle_binary_sha256": "1368b91553c5442581b16025649cae057549632b66d076ecfbba9cb9a30052aa",
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_send.py": "f3f0d86e541dd8a5add521b512f5966ee4f8d70d4dc3fd586bd602690776d076",
+    "SignalReference/PrivateRecordWork/EvaluateSend.lean": "b5584eb067765c7950e86a4cd5d116d452e7393580df2c30268534579807378c",
+    "SignalReference/PrivateRecordWork/check.py": "3563b77250aeb5c3f0dd61a3aa98be36cea742b8c827466364fc1baa19cfcc45",
+    "SignalReference/PrivateRecordWork/README.md": "b826a6865186f516d5bfa1199d22376fb887d43f436d98ee08f989c7bc4c563a",
+    "TlsMpc/Signal/PrivateRecordSendV1.lean": "91f41060b9f29b61dcdb5fe550c747263eb60779e12ee624781919d912a24461",
+    "TlsMpc/Signal/PrivateRecordSnapshotV1.lean": "f7e82fca6759b12ee4e00c94c323ddb36604499c0c21e6311ca30bc6dd722f42",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "791a8cda460876c2139db268f5fe83fc9fc27e40b178ad8d3c9e82cb6202a629",
+    "TlsMpc/Signal/PrivateRecordEncodingV1.lean": "2095ad10957f8d5c7c255500ca7dd3448ea588691f866f926a550e11e8d0995b",
+    "signal_backend/Oracle/src/bin/signal-recovery-send-record-oracle.rs": "dc5d4cbdf481285272e39998dec1cfd7623d2bc0eb00b8bb635f9c2b6910c2ed",
+    "signal_backend/Oracle/src/session_send_projection.rs": "c6c8d9351da72bf451d257a5b16c413cb71fd3be5379d53e60709729522e3150"
+  }
+}

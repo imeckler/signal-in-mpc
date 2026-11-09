@@ -1,0 +1,6 @@
+{
+  "promoted": false,
+  "previous_exact_cases_passed": 8,
+  "source_condition_fix": "Pinned is_known_by_peer depends on pending_pre_key presence, not origin; retain Kyber-only pending state and LocalNew without pending prekey",
+  "actual_source": ".deps/libsignal-v0.106.1/rust/protocol/src/state/session.rs:215 and tahini.rs:132"
+}

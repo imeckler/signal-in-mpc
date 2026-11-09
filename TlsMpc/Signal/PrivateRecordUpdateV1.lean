@@ -38,14 +38,30 @@ def scalarValue (a : ByteAuth.Ops B) (tag : Nat) (nodes : List (Node B)) : List 
  (nodes.foldl (fun old node => match node with | .scalar t _ _ raw => if t=tag then raw else old | _ => old)
    (List.replicate 4 (a.const 0)))
 
+def fieldPresence (a : ByteAuth.Ops B) (tag : Nat) (nodes : List (Node B)) : B :=
+ nodes.foldl (fun old node => match node with
+  | .bytes t p _ _ | .scalar t p _ _ | .message t p _ => if t=tag then p else old) (a.const 0)
+
 def slice (xs : List B) (start size : Nat) : List B := (xs.drop start).take size
+
+/-- Canonical empty receiver capacity slots contain no hidden retired fields. -/
+def clearNode (a : ByteAuth.Ops B) (mask : B) : Nat → Node B → Node B
+ | 0,node => node
+ | fuel+1,node => match node with
+  | .bytes t p e value => .bytes t (PrivateBuffer.choose a mask (a.const 0) p) e
+      (selectBuffer a mask (PrivateBuffer.fromPublic a value.data.length []) value)
+  | .scalar t p e raw => .scalar t (PrivateBuffer.choose a mask (a.const 255) p) e
+      (chooseList a mask (List.replicate raw.length (a.const 0)) raw)
+  | .message t p children => .message t (PrivateBuffer.choose a mask (a.const 0) p)
+      (children.map (clearNode a mask fuel))
 
 def receiver (a : ByteAuth.Ops B) (mask : B) (slot : List B) (node : Node B) : Node B :=
  match node with
  | .message tag p children =>
   let children := presence a mask (a.const 255) 1 (putBytes a mask 1 (a.const 5::slice slot 1 32) children)
   let children := presence a mask (a.const 255) 3 (nested 3 (presence a mask (a.const 255) 2 ∘ putScalar a mask 1 (slice slot 65 4) ∘ putBytes a mask 2 (slice slot 33 32)) children)
-  .message tag (PrivateBuffer.choose a mask (OpenResult.get a slot 0) p) children
+  .message tag (PrivateBuffer.choose a mask (OpenResult.get a slot 0) p)
+    (children.map (clearNode a (a.and mask (ByteAuth.eqMask a (OpenResult.get a slot 0) (a.const 0))) 8))
  | other => other
 
 def receivers (a : ByteAuth.Ops B) (mask : B) (state : List B) (nodes : List (Node B)) : List (Node B) :=
@@ -55,11 +71,10 @@ def receivers (a : ByteAuth.Ops B) (mask : B) (state : List B) (nodes : List (No
 
 def current (a : ByteAuth.Ops B) (mask : B) (state : List B) (nodes : List (Node B)) : List (Node B) :=
  let oldOrigin := scalarValue a 16 nodes
- let legacy := ByteAuth.equalMask a oldOrigin (List.replicate 4 (a.const 0))
  let localNew := ByteAuth.equalMask a oldOrigin [a.const 0,a.const 0,a.const 0,a.const 1]
- let clear := a.and mask (a.xor legacy localNew)
- let nodes := presence a clear (a.const 0) 14 (presence a clear (a.const 0) 9 nodes)
- let nodes := putScalar a (a.and mask localNew) 16 [a.const 0,a.const 0,a.const 0,a.const 2] nodes
+ let clear := a.and mask (ByteAuth.eqMask a (fieldPresence a 9 nodes) (a.const 255))
+ let nodes := alter 14 (clearNode a clear 8) (alter 9 (clearNode a clear 8) nodes)
+ let nodes := putScalar a (a.and clear localNew) 16 [a.const 0,a.const 0,a.const 0,a.const 2] nodes
  let nodes := putBytes a mask 4 (slice state 0 32) nodes
  let nodes := putScalar a mask 5 (slice state 132 4) nodes
  let nodes := nested 6 (fun chain =>

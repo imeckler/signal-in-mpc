@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "syntax_only": true,
+  "linked": false,
+  "native_MPC": false,
+  "provider_admission": false,
+  "command": [
+    "clang++",
+    "-std=c++20",
+    "-fsyntax-only",
+    "-DUSE_GF2N_LONG",
+    "-I/Users/izzy/repos/tls-mpc/handshake_backend",
+    "-I/Users/izzy/repos/tls-mpc/signal_backend",
+    "-I/Users/izzy/repos/tls-mpc/.deps/sharing-refresh/MP-SPDZ",
+    "-I/Users/izzy/repos/tls-mpc/.deps/sharing-refresh/MP-SPDZ/deps",
+    "-I/opt/homebrew/include",
+    "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/native_record_probe.cpp"
+  ],
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_native_record_header.py": "282243ab5630672c740fafdddee3f85138bebbaa377c487fa14f96aaeba0a368",
+    "signal_backend/RecoveryWork/NativeCanonicalRecord.h": "4c5e99d9994eece0b8835263d669f85be02ddf1fda02f9d8f2e58fc5adce31b2",
+    "signal_backend/RecoveryWork/native_record_probe.cpp": "ce35fecbfb674b44235c0ad92f944f43cc7f613e5ce094959facf560d443bfbe",
+    "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
+    "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3"
+  }
+}

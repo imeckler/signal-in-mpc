@@ -1,0 +1,8 @@
+{
+  "public_capacity_schema_only": true,
+  "no_live_record_inspected": true,
+  "byte_count": 5550,
+  "descriptor_sha256": "510bd678767ca3b7918486cdc1b872890d86b18e3a790d187f9361fadca28b0a",
+  "generator_sha256": "b871f98f741fdc00cc5b108a5936c573be3547249f428d0197745789047a797a",
+  "source_sha256": "69494653150233bf2b6c831acbf508ce626dbc920e647deeedf0805298a60cfb"
+}

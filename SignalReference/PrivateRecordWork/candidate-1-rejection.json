@@ -1,0 +1,8 @@
+{
+  "promoted": false,
+  "compiled_candidate": "v1-candidate-1",
+  "numeric_send_cases_passed_before_failure": 4,
+  "receive_failure": "Full flat snapshot differs from canonical empty child fields in inactive receiver capacity slots; selected525/protobuf observations matched earlier tests",
+  "fix": "clear inactive receiver child presence/value buffers under computed slot inactivity mask; preserve old artifact/closure, rebuild versioned candidate2",
+  "source_or_cryptographic_security_claim": false
+}

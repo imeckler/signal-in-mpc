@@ -46,6 +46,21 @@ end
 section
 variable {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'} (ha : ByteAuth.Hom a a' f)
  include ha
+ theorem clearNode_map (mask : B) (fuel : Nat) (node : Node B) :
+  Node.map f (clearNode a mask fuel node)=clearNode a' (f mask) fuel (Node.map f node) := by
+  induction fuel generalizing node with
+  | zero => rfl
+  | succ fuel ih =>
+   cases node with
+   | bytes t p e value =>
+    simp only [clearNode,Node.map,PrivateBuffer.choose_map ha,ha.const]
+    change Node.bytes _ _ _ ((selectBuffer a mask (PrivateBuffer.fromPublic a value.data.length []) value).map f) = _
+    rw [selectBuffer_map ha,PrivateBuffer.fromPublic_map ha]
+    simp only [PrivateBuffer.Buffer.map,List.length_map,List.map_nil]
+   | scalar t p e raw =>
+    simp only [clearNode,Node.map,PrivateBuffer.choose_map ha,ha.const,chooseList_map ha,List.map_replicate,List.length_map]
+   | message t p children =>
+    simp only [clearNode,Node.map,PrivateBuffer.choose_map ha,ha.const,List.map_map,Function.comp_def,ih]
  theorem receiver_map (mask : B) (slot : List B) (node : Node B) :
   Node.map f (receiver a mask slot node) = receiver a' (f mask) (slot.map f) (Node.map f node) := by
   cases node with
@@ -54,11 +69,17 @@ variable {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'} (ha : ByteAu
   | message tag p children =>
    simp only [receiver,Node.map,PrivateBuffer.choose_map ha,OpenResult.get_map ha]
    congr 1
+   simp only [List.map_map,Function.comp_def,clearNode_map ha,ha.and,ByteAuth.eqMask_map ha,OpenResult.get_map ha,ha.const]
+   have hm (g : Node B' → Node B') (ns : List (Node B)) :
+    ns.map (fun x => g (Node.map f x)) = (ns.map (Node.map f)).map g := by simp only [List.map_map,Function.comp_def]
+   rw [hm]
+   congr 1
    rw [presence_map ha]
    have hn (ns : List (Node B)) := nested_map (f:=f) 3
     (presence a mask (a.const 255) 2 ∘ putScalar a mask 1 (slice slot 65 4) ∘ putBytes a mask 2 (slice slot 33 32))
     (presence a' (f mask) (a'.const 255) 2 ∘ putScalar a' (f mask) 1 ((slice slot 65 4).map f) ∘ putBytes a' (f mask) 2 ((slice slot 33 32).map f))
     (by intro ns; simp only [Function.comp_apply,presence_map ha,putScalar_map ha,putBytes_map ha,ha.const]) ns
+   simp only [Function.comp_def] at hn
    rw [hn]
    simp only [presence_map ha,putBytes_map ha,List.map_cons,ha.const,slice,List.map_take,List.map_drop]
 end

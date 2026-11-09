@@ -30,7 +30,7 @@ pub fn apply_receive(record:&storage::RecordStructure,state:&[u8])->Result<stora
  if !recv.prev.is_empty(){return Err("PQ skipped keys unsupported")}
  recv.next=state[489..521].to_vec();recv.ctr=u32be(&state[521..525]);s.pq_ratchet_state=pq.encode_to_vec();
  // Pinned tahini::on_receive_session_state / on_receive_active bookkeeping.
- if s.origin==storage::session_structure::Origin::Legacy as i32 || s.origin==storage::session_structure::Origin::LocalNew as i32 {
+ if s.pending_pre_key.is_some() {
   s.pending_pre_key=None;s.pending_kyber_pre_key=None;
   if s.origin==storage::session_structure::Origin::LocalNew as i32{s.origin=storage::session_structure::Origin::LocalAcked as i32;}
  }

@@ -26,8 +26,9 @@ def make(raw,schema):
  f=fields(raw);out=[]
  for tag,kind,arg,count in schema:
   values=f.pop(tag,[]);assert len(values)<=count,(tag,len(values),count)
+  used=len(values);values=[0 if kind=='s' else b'']*(count-used)+values
   for i in range(count):
-   v=values[i] if i<len(values) else (0 if kind=='s' else b'');p=255 if i<len(values) else 0
+   v=values[i];p=255 if i>=count-used else 0
    if kind=='s':out.append(scalar(tag,v))
    elif kind=='b':out.append(byte(tag,v,arg,p))
    elif kind=='o':out.append(byte(tag,v,arg,p,True))

@@ -5,3 +5,5 @@ import TlsMpc.Signal.PrivateRecordUpdateV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordUpdateV1.presence_map
 #print axioms TlsMpc.Signal.PrivateRecordUpdateV1.nested_map
 #print axioms TlsMpc.Signal.PrivateRecordUpdateV1.receiver_map
+
+#print axioms TlsMpc.Signal.PrivateRecordUpdateV1.clearNode_map

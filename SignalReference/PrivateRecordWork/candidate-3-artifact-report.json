@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "cases": 8,
+  "actual_pinned_records": true,
+  "full_flat_snapshot_and_selected_projection_equal": true,
+  "artifact_sha256": {
+    "send": "d61cc0bfadf04b49dd45f6c05275dffe0be7fb859f4e38cc8442ee4573337afb",
+    "receive": "471fae7331e825a863df19314f8a99f6f73817f362e6dc83534d9d391abc95fa"
+  },
+  "native_MPC": false,
+  "full_source_refinement": false,
+  "provider_admission": false,
+  "seconds": 2.2671154170529917,
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_snapshot_artifact.py": "ecda759dbb046a024b6ed79124b76d2b46548fd2d1fba4d6547227207524f63e",
+    "SignalReference/PrivateRecordWork/check.py": "3563b77250aeb5c3f0dd61a3aa98be36cea742b8c827466364fc1baa19cfcc45",
+    "SignalReference/PrivateRecordWork/check_send.py": "f3f0d86e541dd8a5add521b512f5966ee4f8d70d4dc3fd586bd602690776d076",
+    "SignalReference/PrivateRecordWork/ExportSnapshot.lean": "bfd8a1f018bced0fec3c9d85bde0e84f1a5556573f5ce6982cda821c341541a2",
+    "SignalReference/PrivateRecordWork/native-compile-report.json": "56da70c83c5a1590bfffb843e78b877477bc0ccda9614518c218d5105cd025b3",
+    "TlsMpc/Signal/PrivateRecordSchemaV1.lean": "69494653150233bf2b6c831acbf508ce626dbc920e647deeedf0805298a60cfb",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "f8b07fc3bc6400d424990a44eb4702ba71e408b1a802c33f96a9b27cf920e719",
+    "TlsMpc/Signal/PrivateRecordSnapshotV1.lean": "f7e82fca6759b12ee4e00c94c323ddb36604499c0c21e6311ca30bc6dd722f42",
+    "TlsMpc/Signal/PrivateRecordSendV1.lean": "91f41060b9f29b61dcdb5fe550c747263eb60779e12ee624781919d912a24461",
+    "TlsMpc/Signal/PrivateRecordEncodingV1.lean": "2095ad10957f8d5c7c255500ca7dd3448ea588691f866f926a550e11e8d0995b"
+  }
+}

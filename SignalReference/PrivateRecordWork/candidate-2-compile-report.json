@@ -1,0 +1,68 @@
+{
+  "compiled": true,
+  "candidate_only": true,
+  "native_MPC": false,
+  "full_update_refinement": false,
+  "provider_admission": false,
+  "stage": ".deps/private-record-snapshot-native/v1-candidate-2",
+  "manifest_sha256": "40e0a823e53521bcdfcc2dd3a7d35f8834500607a15bf058a47c8406b6bc7fb0",
+  "stages": [
+    {
+      "mode": "send",
+      "completed": true,
+      "export_seconds": 2.193401792086661,
+      "artifact_sha256": "d61cc0bfadf04b49dd45f6c05275dffe0be7fb859f4e38cc8442ee4573337afb",
+      "manifest_sha256": "8749777414dbb3c09e697a71665927e9da27bc2bd419557146310cc086ca9981",
+      "descriptor": "signal_private_record_send_v1-sbv:[45048x1]-sbv:[48608x1]"
+    },
+    {
+      "mode": "receive",
+      "completed": true,
+      "export_seconds": 2.3406187079381198,
+      "artifact_sha256": "1953735020dbc89e6c104b2e74ea98446cc0964bbc600527644fb982d762c452",
+      "manifest_sha256": "d813847373ac6148175e8dccc3544ce37bd32d49ecc2e784b4bd642780309afa",
+      "descriptor": "signal_private_record_receive_v1-sbv:[49264x1]-sbv:[48608x1]"
+    }
+  ],
+  "lean_source_sha256": {
+    "SignalReference/PrivateRecordWork/ExportSnapshot.lean": "bfd8a1f018bced0fec3c9d85bde0e84f1a5556573f5ce6982cda821c341541a2",
+    "TlsMpc/Signal/PrivateRecordSendV1.lean": "91f41060b9f29b61dcdb5fe550c747263eb60779e12ee624781919d912a24461",
+    "TlsMpc/Signal/PrivateRecordSnapshotV1.lean": "f7e82fca6759b12ee4e00c94c323ddb36604499c0c21e6311ca30bc6dd722f42",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/Signal/Varint64.lean": "25516a570a8d58e8db0b8357312daf8547d327b52d7b8c97e1e3ba3812c2df4c",
+    "TlsMpc/Signal/Varint.lean": "68921d81149233ecd975650a1c4fd6c82ef8e56c310758465623bfb8e14291b8",
+    "TlsMpc/Sha256.lean": "778acff9c62af4599c51ca492bd44370635e9b8f5c967ffb2f0325fb9fe96ea9",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "1231e831a35af5effddb3998352bbad67dce5e76ec9b8fdc0ae4421776d2d725",
+    "TlsMpc/Signal/PrivateRecordEncodingV1.lean": "2095ad10957f8d5c7c255500ca7dd3448ea588691f866f926a550e11e8d0995b",
+    "TlsMpc/Signal/PrivateProtobuf.lean": "748952919fa92ed1eb52d6713130f38d3ddad511628136e50f7ce435a87c6608",
+    "TlsMpc/Signal/PrivateSend.lean": "1d35668c4f67b0ac91e85b40d2a94b1f4d6acdd965a56563f14b721218322b51",
+    "TlsMpc/Signal/Send.lean": "f50534e2b8b86cfc88c98afb885956951503f804a219412cacd1dcec6f61417d",
+    "TlsMpc/Signal/Cbc.lean": "f513777fdffbe824fc229eb0140522a025ab15459a64e0825f8a618245491bf9",
+    "TlsMpc/Aes.lean": "d4b427c4dc2c66d76562dc46a7c4c3d27bf489e42925f96851f3acc1d8ed0c99",
+    "TlsMpc/AesSbox.lean": "ea32bee73fe1e7bda0d661c4060e7fd94c2501cada31f501826ce88f47eda464",
+    "TlsMpc/Signal/Serialization.lean": "60d78ba132081f896954f0a8f749907cc7e8c130e30aa73441015a385289d1b0",
+    "TlsMpc/Signal/ReceiveSpec.lean": "ca9fca9c54cd291f49872498f89ec450864665a0c78a4a66c5b2f23732e3ddab",
+    "TlsMpc/Signal/Receive.lean": "a252ff059004964617cdc619094f2c801185019464e75ef5d09fe9c3183e7c26",
+    "TlsMpc/Signal/MessageMac.lean": "a1df406edf05f8cd122b064930dec41b2bead6988c0f7f499a8d7437000a4dca",
+    "TlsMpc/HmacPrepared.lean": "0ce5a61f644be400b9ae9aaddc112a58d56c77c5438cd7c28e738159bbeb5ee9",
+    "TlsMpc/Signal/CbcOpen.lean": "a30c198d80ae9a8cd0d57feb59eda25af01a9891830fcbd55fe69e2d0d4e09fb",
+    "TlsMpc/AesInverse.lean": "4d59258cf512c35749e974257ede13a03438d6fbc81fe74c69c26c04a8d590bf",
+    "TlsMpc/Signal/PrivateHash.lean": "c72652e34cb114627a0766d33925f02d39f182d41e09f078a86062914119c5b7",
+    "TlsMpc/Signal/PrivateBuffer.lean": "ea199a4ccfb3b7ea5fc951ee9768f542e56e8301154ab4653f8d0957a33c8e1e",
+    "TlsMpc/Signal/PrivateVarint.lean": "f289a49c8a7f2990a51eea9a6c9633a149c36aa7d7b941c81a1cb987761927c8",
+    "TlsMpc/Signal/PrivateRecordSchemaV1.lean": "69494653150233bf2b6c831acbf508ce626dbc920e647deeedf0805298a60cfb"
+  },
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/prepare_native.py": "8c473d74a87099085eea9689f7f84c6b2ed9f605a2dc733b5aecabdf9590a1b5",
+    "programs/signal_record_snapshot_v1.mpc": "6c8ef56a4ec18d15c9218f469fa22e77ca98a0e33345233f4963adf3c05680ff",
+    "signal_backend/SessionTransitionWork/compile_diagnostic.py": "b4039d7e1b1a9b55f6e05374190d5808f45fd5823478070059b782a0c2a11d15",
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630",
+    "handshake_backend/binary_io.py": "3d5df8fa5ba534d9a2e708f76be9615255c501baa1e4ae485b65e2de2b7525c7"
+  }
+}

@@ -49,6 +49,11 @@ async fn fixture(v:&Value)->Value{
   state.pending_pre_key=Some(storage::session_structure::PendingPreKey{pre_key_id:Some(0),signed_pre_key_id:17,base_key:base.public_key.serialize().to_vec(),timestamp:1900000000000});
   state.pending_kyber_pre_key=Some(storage::session_structure::PendingKyberPreKey{pre_key_id:23,ciphertext:vec![31;64]});
  }
+ if v["keep_kyber_without_prekey"].as_bool().unwrap_or(false){
+  let state=bob_pb.current_session.as_mut().unwrap();state.pending_pre_key=None;
+  state.pending_kyber_pre_key=Some(storage::session_structure::PendingKyberPreKey{pre_key_id:23,ciphertext:vec![31;64]});
+ }
+ if v["origin_without_prekey"].as_bool().unwrap_or(false){bob_pb.current_session.as_mut().unwrap().origin=storage::session_structure::Origin::LocalNew as i32;}
  let mut alice_sessions=InMemSessionStore::new();alice_sessions.store_session(&bob_address,&SessionRecord::deserialize(&alice_pb.encode_to_vec()).unwrap()).await.unwrap();
  let mut bob_sessions=InMemSessionStore::new();bob_sessions.store_session(&alice_address,&SessionRecord::deserialize(&bob_pb.encode_to_vec()).unwrap()).await.unwrap();
  let mut alice_identities=InMemIdentityKeyStore::new(alice_id.clone(),1);let mut bob_identities=InMemIdentityKeyStore::new(bob_id.clone(),2);

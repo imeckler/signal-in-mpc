@@ -1,10 +1,11 @@
 {
   "passed": true,
-  "endpoints": 6,
-  "scope": "Private update helper Hom only; full applyReceive Hom and source/refinement remain open",
-  "axiom_audit": "'TlsMpc.Signal.PrivateRecordUpdateV1.chooseList_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putBytes_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putScalar_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.presence_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.nested_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.receiver_map' depends on axioms: [propext, Quot.sound]\n",
+  "endpoints": 7,
+  "scope": "Private update helper Hom including canonical clear only; full applyReceive Hom and source/refinement remain open",
+  "axiom_audit": "'TlsMpc.Signal.PrivateRecordUpdateV1.chooseList_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putBytes_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.putScalar_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.presence_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.nested_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.receiver_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordUpdateV1.clearNode_map' depends on axioms: [propext, Quot.sound]\n",
   "source_sha256": {
-    "SignalReference/PrivateRecordWork/UpdateChecks.lean": "9ccd1e88470aa88e042a68ff9bf9a906c952471df7a1c98005809b6653b0948b",
-    "TlsMpc/Signal/PrivateRecordUpdateV1Proofs.lean": "45b18082e23ea36bbc4437dea35631b8524e44d5f112bd5bab6961a9c5596129"
+    "SignalReference/PrivateRecordWork/UpdateChecks.lean": "b4634c89e3ed95acc4b27018bd3a19d19e5916bfb454cf50b2ddb6955cbc0c9e",
+    "TlsMpc/Signal/PrivateRecordUpdateV1Proofs.lean": "d765d9acf4a45204b7c449d72bab3693b53c6ccfc6b3975d09bfeacc96328552",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "791a8cda460876c2139db268f5fe83fc9fc27e40b178ad8d3c9e82cb6202a629"
   }
 }

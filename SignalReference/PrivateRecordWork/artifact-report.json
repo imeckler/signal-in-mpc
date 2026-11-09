@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "cases": 10,
+  "actual_pinned_records": true,
+  "full_flat_snapshot_and_selected_projection_equal": true,
+  "artifact_sha256": {
+    "send": "d61cc0bfadf04b49dd45f6c05275dffe0be7fb859f4e38cc8442ee4573337afb",
+    "receive": "f81146d57542588c8029828625814616b6133cac67cf508271ff327c391f04aa"
+  },
+  "native_MPC": false,
+  "full_source_refinement": false,
+  "provider_admission": false,
+  "seconds": 2.8298608750337735,
+  "oracle_binary_sha256": {
+    "signal-recovery-send-record-oracle": "1368b91553c5442581b16025649cae057549632b66d076ecfbba9cb9a30052aa",
+    "signal-session-inorder-oracle": "3b0ed5a634e34d43bd2479d221641616e94ed5ee46c17d43f9e9537f2bd9a4dc"
+  },
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_snapshot_artifact.py": "b4272fa44c15cd909553ec7b3ba956295b34f51f292c2a9c6b890505a8093544",
+    "SignalReference/PrivateRecordWork/check.py": "3563b77250aeb5c3f0dd61a3aa98be36cea742b8c827466364fc1baa19cfcc45",
+    "SignalReference/PrivateRecordWork/check_send.py": "f3f0d86e541dd8a5add521b512f5966ee4f8d70d4dc3fd586bd602690776d076",
+    "SignalReference/PrivateRecordWork/ExportSnapshot.lean": "bfd8a1f018bced0fec3c9d85bde0e84f1a5556573f5ce6982cda821c341541a2",
+    "SignalReference/PrivateRecordWork/native-compile-report.json": "af0207ecee4adc2e919db5cafcf79f95e8b96f2c8237a348f297b3130020fcd9",
+    "TlsMpc/Signal/PrivateRecordSchemaV1.lean": "69494653150233bf2b6c831acbf508ce626dbc920e647deeedf0805298a60cfb",
+    "TlsMpc/Signal/PrivateRecordUpdateV1.lean": "791a8cda460876c2139db268f5fe83fc9fc27e40b178ad8d3c9e82cb6202a629",
+    "TlsMpc/Signal/PrivateRecordSnapshotV1.lean": "f7e82fca6759b12ee4e00c94c323ddb36604499c0c21e6311ca30bc6dd722f42",
+    "TlsMpc/Signal/PrivateRecordSendV1.lean": "91f41060b9f29b61dcdb5fe550c747263eb60779e12ee624781919d912a24461",
+    "TlsMpc/Signal/PrivateRecordEncodingV1.lean": "2095ad10957f8d5c7c255500ca7dd3448ea588691f866f926a550e11e8d0995b",
+    "signal_backend/Oracle/src/bin/signal-session-inorder-oracle.rs": "d186473f1851156db28e9a6c689ddbdb28c8e105b3e69fa4d1ce7ccf2412ca97",
+    "signal_backend/Oracle/src/bin/signal-recovery-send-record-oracle.rs": "dc5d4cbdf481285272e39998dec1cfd7623d2bc0eb00b8bb635f9c2b6910c2ed",
+    "signal_backend/Oracle/src/session_projection.rs": "c1d865ab673cb2be3d0046ca42434e844a061ba2c5ff04b9b69703a8a22d6c42",
+    "signal_backend/Oracle/src/session_send_projection.rs": "c6c8d9351da72bf451d257a5b16c413cb71fd3be5379d53e60709729522e3150"
+  }
+}
