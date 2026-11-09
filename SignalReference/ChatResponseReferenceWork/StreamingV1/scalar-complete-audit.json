@@ -1,0 +1,58 @@
+{
+  "candidate_only": true,
+  "scope": "Actual generated ID/status source success joins exact native consumed-prefix/suffix, complete cached-data update/other-cache preservation, actual validity and key/position/value reset at one prefix. Full scan must derive explicit state/bounds and join error branches; remaining parser proof open.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarData.lean": "ec5ab92a82c7f44022e73067ca3331374c301a28499d5403eecd50271d3a17d4",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ConsumedPrefix.lean": "bf9cc973773e8eda47f7c1aa204f66aa9ebe0e446d54e31c34bd3562c2db2bd9",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/NativeScalarData.lean": "c43a2324241508d540bc22cc33de1e7e634148e11044da86d944e933780a990d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_scalar_complete.py": "412c0480c4778db7de3f167c17a75b0cd6260d4a5ffeb2d75500f3df4ae45a75",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/SCALAR_COMPLETE.md": "dd4ffd7b1ec0c80151872c68b7a7da516a58dafb1653ab5f6df2f0c580689a17"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-valid-audit.json": "621661714301fe65b4236df89de34ca98e0bde151f5eb6bd4cf9a509bbfb7f35",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/body-data-audit.json": "389d9379bf8940373f12f1a8acaf3475128dc4d340baac302bfd0daf003080d6",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/opaque-body-audit.json": "b59cc37cabf59802cfee89a64fd66f7b97f4e26e61e784bd00d72d1e29d75d24",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/wrong-wire-audit.json": "187159dc6f19e3b8cb8ff75220f6320d5cf06e00f65e8fc2cad706f190f78fa0",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/native-recognition-audit.json": "b29d4533d1daab2bd2a2c7c4894b3831c11bec8c4228a61247ad3b79ce7ab2aa",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-update-audit.json": "49e1390ee5ec1f23a7d256a02d82d044d275763bb4bbca859fa8fe8ffea5d707",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-success-audit.json": "0718a6318a7636c0ce7aaeea1071dc913210447e885d5762437c97a27dfc6a0f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-audit.json": "71cf6a078fe74d9ba6179301352c0a9af36d68c99fa81318acbc7f4b78fad42a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-error-audit.json": "660564695679ff14ee5c14572d1590497acffa71e9429ba09b0afe27bb67bc8d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-payload-audit.json": "f4d00906af964dbd72a2b9dcfe53a2ec1ce6e1dd79d350af248e3b8878f09079",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/prefix-context-audit.json": "b845ef7b1ff74f0153e155e719dac47d9672c5d907fae83f5a5d202d97a6e08b",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/inactive-audit.json": "82bf96e677aadedbf8b6197a2be52c1f9272a4fc35e0b99ddbf960976dba183e",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-field-audit.json": "35d4b671e30247bcad5a41d0e61f022a622d048ebfe3ed3cb6139981cb7006b3",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/body-field-audit.json": "b7afc4e5d5c2081b73d487f19c935eed31e0fc38d460132cc5f276dd1f4d1e6a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/child-overrun-audit.json": "b6b7e3b360ab9de839eee5e684bc6fc5bc786cb6147d36ee190917d34e245842"
+  },
+  "inherited_source_count": 307,
+  "inherited_object_count": 142,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-complete-b239f7f6f1c6-72847.log",
+  "kernel_log_sha256": "cd8131a47fd6b101762dc68c52823e704acda6f78f831795b67b2690df8d5764",
+  "kernel_log": "Checking StreamingV1.ScalarData\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarData.lean:50:79: warning: This simp argument is unused:\n  either_hot\n\nHint: Omit it from the simp argument list.\n  simp only [\u0335p\u03350\u0335,\u0335p\u03351\u0335,\u0335p\u03352\u0335,\u0335s\u0335a\u0335m\u0335e\u0335,\u0335o\u0335t\u0335h\u0335e\u0335r\u0335,\u0335z\u0335e\u0335r\u0335o\u0335_\u0335a\u0335n\u0335d\u0335,\u0335a\u0335n\u0335d\u0335_\u0335z\u0335e\u0335r\u0335o\u0335,\u0335h\u0335o\u0335t\u0335_\u0335a\u0335n\u0335d\u0335,\u0335n\u0335o\u0335t\u0335_\u0335h\u0335o\u0335t\u0335,\u0335e\u0335i\u0335t\u0335h\u0335e\u0335r\u0335_\u0335z\u0335e\u0335r\u0335o\u0335,\u0335e\u0335i\u0335t\u0335h\u0335e\u0335r\u0335_\u0335h\u0335o\u0335t\u0335,\u0335\n  \u0335 \u0335 \u0335 \u0335 \u0335W\u0335o\u0335r\u0335d\u03356\u03354\u0335.\u0335s\u0335e\u0335l\u0335e\u0335c\u0335t\u0335_\u0335r\u0335e\u0335j\u0335e\u0335c\u0335t\u0335,\u0335W\u0335o\u0335r\u0335d\u03356\u03354\u0335.\u0335s\u0335e\u0335l\u0335e\u0335c\u0335t\u0335_\u0335a\u0335c\u0335c\u0335e\u0335p\u0335t\u0335]\u0335[\u0332p\u03320\u0332,\u0332 \u0332p\u03321\u0332,\u0332 \u0332p\u03322\u0332,\u0332 \u0332s\u0332a\u0332m\u0332e\u0332,\u0332 \u0332o\u0332t\u0332h\u0332e\u0332r\u0332,\u0332 \u0332z\u0332e\u0332r\u0332o\u0332_\u0332a\u0332n\u0332d\u0332,\u0332 \u0332a\u0332n\u0332d\u0332_\u0332z\u0332e\u0332r\u0332o\u0332,\u0332 \u0332h\u0332o\u0332t\u0332_\u0332a\u0332n\u0332d\u0332,\u0332 \u0332n\u0332o\u0332t\u0332_\u0332h\u0332o\u0332t\u0332,\u0332 \u0332e\u0332i\u0332t\u0332h\u0332e\u0332r\u0332_\u0332z\u0332e\u0332r\u0332o\u0332,\u0332\n  \u0332 \u0332 \u0332 \u0332 \u0332W\u0332o\u0332r\u0332d\u03326\u03324\u0332.\u0332s\u0332e\u0332l\u0332e\u0332c\u0332t\u0332_\u0332r\u0332e\u0332j\u0332e\u0332c\u0332t\u0332,\u0332 \u0332W\u0332o\u0332r\u0332d\u03326\u03324\u0332.\u0332s\u0332e\u0332l\u0332e\u0332c\u0332t\u0332_\u0332a\u0332c\u0332c\u0332e\u0332p\u0332t\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarData.lean:60:83: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice\n\nNote: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`\n'ChatResponseReference.StreamingV1.id_terminal_response_data' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.status_terminal_response_data' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.StreamingV1.scalar_terminal_modes' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.ConsumedPrefix\n'ChatResponseReference.StreamingV1.consumed_prefix_unique' depends on axioms: [propext, Quot.sound]\nChecking StreamingV1.NativeScalarData\n'ChatResponseReference.StreamingV1.native_scalar_data_complete' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.StreamingV1.native_scalar_complete' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.actual_scalar_field_complete' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-complete-v1-final/ChatResponseReferenceWork/StreamingV1/ScalarData.olean": "d0263482a5161734079c95a9d9382b878e1b9aa26c46388f26688ea2fcd0d6c4",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-complete-v1-final/ChatResponseReferenceWork/StreamingV1/ConsumedPrefix.olean": "f17c96e95768c2e36ea6f73f6763c38ac369278dc7934033ac9d5853ce0a7b6a",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-complete-v1-final/ChatResponseReferenceWork/StreamingV1/NativeScalarData.olean": "3f0474c0f4a305e74e5e76a465d57c76fcca39bbea4394816c5cc9b7ee6ff224"
+  }
+}
