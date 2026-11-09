@@ -107,3 +107,11 @@ preservation plus exact remaining decrement; actual ID/status updates equal
 full64/low32 source values without prefix/table premises. Whole scan must still
 derive those cursor/counter/recognition relations at each field, and compose
 optional initialization/duplicates/other fields/groups/private end/HTTP/compiler.
+
+Generic prefix/recognition checkpoint: `StreamingV1/prefix-context-audit.json`
+records clean three-module aggregate0. All continuing varint prefixes preserve
+tag/recognition/group depth; bounded inner prefixes decrement remaining exactly
+and outer prefixes retain inner0. Actual Core key-terminal scalar recognition
+now matches native dispatcher tags (outer1; inner1/2) under the explicit new-tag
+projection. Full scan must still join key projections/context/known-wire guards
+to source field dispatch and compose remaining field/private-end/HTTP/compiler work.
