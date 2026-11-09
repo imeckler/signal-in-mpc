@@ -1,0 +1,83 @@
+{
+  "passed": true,
+  "scope": "one private curve plus checked conversion control; no EMP curve or full send claim",
+  "security": {
+    "parties": 2,
+    "corruptions": 1,
+    "statistical_parameter": 40,
+    "computational_target": 128,
+    "ot": "checked SoftSpoken",
+    "fresh_key_ot_directory_per_case": true
+  },
+  "field_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "compiler_source_sha256": "6b5d7d0d996fea410cf34b57dfdf5342c0dd76f51b1ab931578b36a03d00adc9",
+  "mixed_module_sha256": "b8ea56df8b0747fed6aea3175a2c878a2154e9b930ac27681013d649077467e6",
+  "field_executor_sha256": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+  "worker_sha256": "824dda6e17eb65ffa205e1681b2beddddc814698c376475fdf8b8abb7d315894",
+  "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614",
+  "compiler_resource_report": "WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.\nDefault bit length for compilation: 253\nDefault security parameter for compilation: 40\nCompiling file Programs/Source/two_party_curve.mpc\nWriting to Programs/Schedules/two_party_curve.sch\nWriting to Programs/Bytecode/two_party_curve-0.bc\nHash: b12060d37e734eb9e4146f8f14a705d04d9b0eeb5a9416319bf8de575dfe5e1e\nProgram requires at most:\n         512 bit inputs from player 0\n         512 bit inputs from player 1\n         766 integer dabits\n        4112 bit opens\n        5101 integer triples\n        5101 integer simple multiplications\n         256 integer randoms\n           2 integer opens\n        2300 bit triples\n        2308 virtual machine rounds\n",
+  "cases": [
+    {
+      "passed": true,
+      "control": "private X25519 equality",
+      "controller_wall_seconds": 2.1726174170617014,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.954431,
+          "peak_rss_bytes": 1089961984,
+          "socket_sent_bytes": 773440226,
+          "socket_received_bytes": 773440315,
+          "leftover_report": [
+            "1778 triples of SPDZ gfp left",
+            "1 triples of Tinier left"
+          ],
+          "phase_report": [
+            "Spent 0.091185 seconds (0.328552 MB, 4673 rounds, 1.78702 CPU seconds, 0.081658 communication seconds) on the online phase and 1.89207 seconds (773.045 MB, 260 rounds, 1.78723 CPU seconds, 0.478251 communication seconds) on the preprocessing/offline phase."
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.970377,
+          "peak_rss_bytes": 1088798720,
+          "socket_sent_bytes": 773440230,
+          "socket_received_bytes": 773440141,
+          "leftover_report": [
+            "1778 triples of SPDZ gfp left",
+            "1 triples of Tinier left"
+          ],
+          "phase_report": [
+            "Spent 0.09243 seconds (0.328552 MB, 4673 rounds, 1.80169 CPU seconds, 0.083738 communication seconds) on the online phase and 1.8908 seconds (773.045 MB, 260 rounds, 1.80188 CPU seconds, 0.459379 communication seconds) on the preprocessing/offline phase."
+          ]
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/mascot-curve-u08dnc6c"
+    },
+    {
+      "passed": true,
+      "control": "low-order rejection",
+      "controller_wall_seconds": 2.025127958972007,
+      "parties": [
+        {
+          "exit_code": 1,
+          "cpu_seconds": 1.8876439999999999,
+          "peak_rss_bytes": 1088782336,
+          "socket_sent_bytes": 773440043,
+          "socket_received_bytes": 773440132,
+          "leftover_report": [],
+          "phase_report": []
+        },
+        {
+          "exit_code": 1,
+          "cpu_seconds": 1.862577,
+          "peak_rss_bytes": 1090027520,
+          "socket_sent_bytes": 773440047,
+          "socket_received_bytes": 773439958,
+          "leftover_report": [],
+          "phase_report": []
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/mascot-curve-todwafu7"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# Actual Lean X25519 field DAG with private XOR-shared byte inputs and the
+# existing checked Tinier<->MASCOT daBit bridge. This is one curve control,
+# not the four-curve established producer and not an EMP curve implementation.
+import os
+from Compiler.GC.types import sbit, sbits
+from Compiler.library import print_ln, runtime_error_if, check_point
+from handshake_backend.field_dag import load
+from handshake_backend.mixed import (wire_bits_to_scalar_fields,
+    wire_bits_to_field, execute_secret, field_to_wire_bits)
+
+program.set_security(40)
+program.unlimited_compilation()
+image=load(os.environ['TWO_PARTY_FIELD_DAG'])
+left=[sbit.get_input_from(0) for _ in range(512)]
+right=[sbit.get_input_from(1) for _ in range(512)]
+raw=[a^b for a,b in zip(left,right)]
+scalar=wire_bits_to_scalar_fields(raw[:256])
+point=wire_bits_to_field(raw[256:],mask_high_bit=True)
+result=execute_secret(image,scalar+[point])[0]
+# Only the final equality predicate is opened, never the scalar or DH result.
+# Expected is a public-known dummy fixture constant; it is not an input agreement.
+wire=field_to_wire_bits(result)
+check_point()
+expected=bytes.fromhex(os.environ['TWO_PARTY_CURVE_EXPECTED'])
+if len(expected)!=32:raise ValueError('invalid public fixture expected size')
+equal=sbit(1)
+nonzero=sbit(0)
+for i,bit in enumerate(wire):
+    equal &= ~(bit ^ ((expected[i//8]>>(7-i%8))&1))
+    nonzero = nonzero ^ bit ^ (nonzero & bit)
+runtime_error_if(nonzero.reveal()==0,'curve control low-order result')
+print_ln('CURVE_MATCH %s',equal.reveal())
