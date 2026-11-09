@@ -1,5 +1,8 @@
 #pragma once
 #include "NativeWorker.h"
+#ifdef TLS_DIAGNOSTIC_V4_PROFILE
+#include "Tools/PublicProtocolMetrics.h"
+#endif
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -17,7 +20,11 @@ public:
             communication_operations+x.communication_operations,external_tls_sent+x.external_tls_sent,
             external_tls_received+x.external_tls_received};}
     };
-    struct Token {Counts counts;std::chrono::steady_clock::time_point time;};
+    struct Token {Counts counts;std::chrono::steady_clock::time_point time;
+#ifdef TLS_DIAGNOSTIC_V4_PROFILE
+        tls_public_diagnostics::Snapshot diagnostic;
+#endif
+    };
 private:
     Machine<tls_mpc_worker::Share>& machine;unsigned party;
     Counts sealed,external;bool terminal=false;
@@ -51,7 +58,11 @@ public:
             return sealed+external+Counts{worker.sent,host.sent,operations(worker)+operations(host),0,0};
         }catch(...){return sealed+external;}
     }
-    Token begin() noexcept {return{snapshot(),std::chrono::steady_clock::now()};}
+    Token begin() noexcept {return{snapshot(),std::chrono::steady_clock::now()
+#ifdef TLS_DIAGNOSTIC_V4_PROFILE
+        ,tls_public_diagnostics::snapshot()
+#endif
+        };}
     void finish(const char* stage,const Token& before,bool success=true) noexcept {
         try {
             auto after=snapshot();auto ns=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-before.time).count();
@@ -66,6 +77,18 @@ public:
                 <<",\"external_tls_sent\":"<<after.external_tls_sent-before.counts.external_tls_sent
                 <<",\"external_tls_received\":"<<after.external_tls_received-before.counts.external_tls_received;
             std::cerr<<"}\n";
+#ifdef TLS_DIAGNOSTIC_V4_PROFILE
+            auto diagnostic=tls_public_diagnostics::snapshot();
+            std::cerr<<"TLS_DOMAIN_METRIC {\"party\":"<<party<<",\"stage\":\""<<stage<<"\",\"mapping\":\"v4-field-DATA_INT-binary-GF2N\",\"bytes\":[";
+            for(size_t i=0;i<9;++i){if(i)std::cerr<<',';std::cerr<<diagnostic.bytes[i]-before.diagnostic.bytes[i];}
+            std::cerr<<"],\"scope_calls\":[";
+            for(size_t i=0;i<9;++i){if(i)std::cerr<<',';std::cerr<<diagnostic.calls[i]-before.diagnostic.calls[i];}
+            std::cerr<<"],\"prepare_ns\":"<<diagnostic.prepare_ns-before.diagnostic.prepare_ns
+                <<",\"load_ns\":"<<diagnostic.load_ns-before.diagnostic.load_ns
+                <<",\"prepare_calls\":"<<diagnostic.prepare_calls-before.diagnostic.prepare_calls
+                <<",\"load_calls\":"<<diagnostic.load_calls-before.diagnostic.load_calls
+                <<",\"initialization_reset_bytes\":"<<diagnostic.initialization_reset_bytes-before.diagnostic.initialization_reset_bytes<<"}\n";
+#endif
         }catch(...){}
     }
     // Capture BEFORE cleanup destroys protocol owners. Final retirement checks,

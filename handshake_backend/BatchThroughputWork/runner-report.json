@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "native_MPC_executed": false,
+  "public_cache_actual_provisioning_verified": true,
+  "unknown_function_collision_rejected": true,
+  "selected_runtime_loader_invalid_argc_check": true,
+  "scope": "Historical completed latency closure used ONLY as a public provisioning fixture; no latency native run. Equal-work8text gateefficient sequential/batch execution remains pending.",
+  "source_sha256": {
+    "scripts/check_native_text_mux_profile.py": "ddacc895ccfd1bcf841a64f6591991ed0263a48b205164b4d1ca23acf0b43928",
+    "handshake_backend/PublicMetrics.h": "4124ac7edcf304c98cb58896bf38b964440f1b3f7bf72afc0fdbadeff32b9543",
+    "handshake_backend/BatchThroughputWork/TextExtendedMuxFixtureFactory.cpp": "c7ed120ff2947c85bc753bfd02773d3cd0aad66f935f6cf0b5949f6d04f5bdfb",
+    "handshake_backend/BatchThroughputWork/Makefile": "52de5f182da09580c90e0f9e56baf2a93fdac3d69ceb7a27ca58691749f55661",
+    "handshake_backend/BatchThroughputWork/check_runner.py": "57566de0784acf2d89616b15db7257eff8c654c07394f11aec192dfd6c8d1790"
+  },
+  "public_provision_manifest_sha256": "d7541565348e06eb75dd11acfbf3d6d83f4e7a14d9176cf7b5fb3818e3e89a11",
+  "fixture_commit": "1e7667a"
+}

@@ -158,3 +158,26 @@ messages each with actual retained recipient state, same capacity/security/
 epoch policy in sequential versus batch runs. End-to-end bytes and throughput,
 not SHA depth, choose adoption. More repetitions will be required before a
 credible steady-state/WAN production estimate.
+
+## Equal-work runner ready, native comparison pending
+
+Extended fixture1e7667a supplies eight actual recipient-validated texts at the
+same capacity. The new disposable worker enables ONLY diagnosticv4 telemetry:
+`TLS_DOMAIN_METRIC` bins are domain-major (unattributed/field/binary) then phase
+(unattributed/online/preprocessing); counts/times are nested inclusive scopes,
+never sum their wall times. Loader and initialization-reset counters are explicit.
+Legacy worker builds without the macro retain their prior telemetry layout.
+The runner uses one identical manifest/runtime/worker across `sequential` and
+`batch`, four rounds per conversation, unique result files, and RAW elapsed/PIDs.
+All source/product/oracle hashes are checked across each run. Explicit runtime
+library selection is necessary because the diagnostic library's install ID is
+relative; the frozen runtime itself is not edited. Real archived-cache profile
+substitution, unknown collision rejection and loader checks passed WITHOUT MPC.
+
+The ongoing92684 builder has completed its single closure at6116602 bittriples /
+122242 VMrounds. Batch compile is still pending; none of these runner checks are
+an end-to-end batch/recipient/throughput pass. After this frozen comparison, the
+priority is an explicit compact Boolean-backend audit (n5/t2/malicious, actual
+wire/offline costs and conversions). Current GF128 CCD is functionally Boolean+
+Fp hybrid but is NOT compact Boolean wire sharing. Any3PC/t1 alternative must be
+separately labeled as a security tradeoff, never a silent default change.
