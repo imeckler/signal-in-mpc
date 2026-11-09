@@ -181,3 +181,42 @@ priority is an explicit compact Boolean-backend audit (n5/t2/malicious, actual
 wire/offline costs and conversions). Current GF128 CCD is functionally Boolean+
 Fp hybrid but is NOT compact Boolean wire sharing. Any3PC/t1 alternative must be
 separately labeled as a security tradeoff, never a silent default change.
+
+## Frozen equal-work native result
+
+Both eight-text runs PASS all five parties, no cleanup errors, exact same
+source/worker/runtime/manifest identity. Actual target recipient validates all8
+texts/timestamps/certificates on2independent conversations, reordered responses,
+9pongs, TLS1.3/H1/KeyUpdate and terminal abort. No live account effects or client
+plaintext opening. Reports: sequential2ebd4e9, paired comparison-report.json.
+
+|Local equal8-message sample|Sequential|Batch2|
+|---|---:|---:|
+|Inclusive elapsed seconds|1505.434|1256.156|
+|Inclusive messages/second|0.005314|0.006369|
+|Persistent-window party0 payload bytes/message|4951091390|4946014800.5|
+|Window loader seconds|702.910|521.577|
+|All reported epoch renewals|48|44|
+
+Inclusive throughput improves1.198x; payload falls only0.103%. Binary online
+window bytes are IDENTICAL14314139136; binary preprocessing25065459280→
+25065409872. Most byte saving is field preprocessing. Fewer producer group
+checkpoints account for4fewer epochs; every-record policy itself is unchanged.
+Both counter streams reconcile exactly after recorded initialization-reset bytes
+(23616/21312). RPC-only window durations exclude host gaps and are upper-bound
+rates, NOT measured wall-window steady throughput. Eight messages/local parties
+are not enough for a WAN production estimate. Generated/discarded triple counts
+remain unavailable; measured preprocessing traffic includes their cost.
+
+Repeated single producer calls take104–111s, with64–66s program loading EACH;
+B2pairs take151–152s with86–87s loading/pair. Source prepare() unconditionally
+clears progs and reloads the schedule. Immutable public-code caching is justified,
+but cannot fix bytes. At~4.946GB/message,27.78/s requires~137.4GB/s perparty
+MPC payload alone, before link overhead. Target100k/hour remains unmet.
+
+No further full application baseline is warranted without an actionable change.
+Next: actual compact Boolean/small-field verification/backend-selection audit,
+LN17/CHI23 controls, checked active n5/t2 conversions and full128 statistical
+parameter mapping. Do not assume128-bit statistical checks require128-bit value
+shares; verify published machinery and supported pinned code, never invent an
+unaudited construction. Loader cache is a separate bounded implementation task.
