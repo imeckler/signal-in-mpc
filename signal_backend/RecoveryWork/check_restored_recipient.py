@@ -9,7 +9,10 @@ def main():
   return [json.loads(x)for x in subprocess.check_output([str(binary)],input=''.join(json.dumps(v)+'\n'for v in values),text=True).splitlines()]
  body='Restored conversation: hello again!';timestamp=1900000000019
  padded=ask(receiver,[dict(mode='text',body=body.encode().hex(),timestamp=timestamp)])[0]['padded']
- legacy=(b'E'*79+b'\x80').hex();rows=ask(account,[dict(seed=19,steps=3,plaintext=legacy,plaintexts=[legacy,legacy,padded])])[0]['rows']
+ identity_fixture=ask(sealed,[dict(mode='sealed',seed=19,inner='')])[0]
+ legacy=(b'E'*79+b'\x80').hex();rows=ask(account,[dict(seed=19,steps=3,alice_secret=identity_fixture['sender_secret'],bob_secret=identity_fixture['recipient_secret'],plaintext=legacy,plaintexts=[legacy,legacy,padded])])[0]['rows']
+ assert rows[0]['account_identity'][:64]==identity_fixture['sender_secret'] and rows[0]['peer_identity'][:64]==identity_fixture['recipient_secret']
+ assert rows[0]['account_identity'][66:]==bytes.fromhex(identity_fixture['input'])[64:96].hex()
  def inner(row):
   encoded=bytes.fromhex(row['input'])[-259:];assert encoded[0]==255
   return encoded[3:3+int.from_bytes(encoded[1:3],'big')].hex()

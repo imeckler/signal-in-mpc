@@ -42,6 +42,8 @@ impl Receiver {
   let identity=IdentityKeyPair::new(IdentityKey::new(private.public_key().unwrap()),private);
   let record=raw(v,"session_record");let parsed=SessionRecord::deserialize(&record).unwrap();
   assert_eq!(parsed.serialize().unwrap(),record);
+  let structure=storage::RecordStructure::decode(record.as_slice()).unwrap();
+  assert_eq!(structure.current_session.as_ref().unwrap().local_identity_public,identity.public_key().serialize().as_ref());
   let remote=ProtocolAddress::new(v["sender_uuid"].as_str().unwrap().into(),v["sender_device"].as_u64().unwrap_or(1).try_into().map(|d|libsignal_core::DeviceId::new(d).unwrap()).unwrap());
   let local=ProtocolAddress::new(v["recipient_uuid"].as_str().unwrap().into(),v["recipient_device"].as_u64().unwrap_or(1).try_into().map(|d|libsignal_core::DeviceId::new(d).unwrap()).unwrap());
   let mut sessions=InMemSessionStore::new();sessions.store_session(&remote,&parsed).await.unwrap();
