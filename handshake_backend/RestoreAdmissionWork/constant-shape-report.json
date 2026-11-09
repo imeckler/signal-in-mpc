@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "public_construction_checks": 37,
+  "persisted_public_bytes": [
+    3,
+    255,
+    1
+  ],
+  "default64_still_rejected": true,
+  "explicit_one_cell_at_construction": true,
+  "guard_relaxed": false,
+  "local_only": true,
+  "source_sha256": {
+    "handshake_backend/OwnedSecrets.h": "a696e773e52aa6e811787064cb28805ec3becdebb70adb8aaa5ade4afd517f7e",
+    "handshake_backend/NativeWorker.h": "6d69a72b6b5535025b241774409e6e90a24a1e8bf32b8b754bc745743a76f3eb",
+    "handshake_backend/NativeSession.h": "32701ea1d4446846657c7d417ef36497f18738055eeecc91b0223b766f3b9b9d",
+    "handshake_backend/RestoreAdmissionWork/constant_shape_checks.cpp": "1bab186097f81aefd1c267e47846b7a4e5cd1a33cbbd167319646a8f5b47676c"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "party_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "controller_error": null,
+  "cleanup": [],
+  "integrity": true,
+  "seconds": 0.1065180420409888,
+  "source_product_sha256": {
+    ".deps/tls-public-constant-native/v1/tls-public-constant-native-fixture": "22961f5433bad195f003a3b2914c257d11c31329830c655567747d95cbde5f2a",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+    "handshake_backend/RestoreAdmissionWork/constant_native_fixture.cpp": "d56574c4323b3010abe2dc1d17ccc0b189fefc2e09ad6e8f28d4194fb665a23b",
+    "handshake_backend/NativeWorker.h": "6d69a72b6b5535025b241774409e6e90a24a1e8bf32b8b754bc745743a76f3eb",
+    "handshake_backend/OwnedSecrets.h": "a696e773e52aa6e811787064cb28805ec3becdebb70adb8aaa5ade4afd517f7e",
+    "handshake_backend/NativeSession.h": "32701ea1d4446846657c7d417ef36497f18738055eeecc91b0223b766f3b9b9d",
+    ".deps/tls-public-constant-native/v1/constants.manifest": "07638cfb04bf5a1ffce8ce909d68eb1b919050926bbe79bacddf33ac69fa6f18",
+    ".deps/tls-public-constant-native/v1/Programs/Bytecode/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json-0.bc": "a503cd41e2b007815d9a8746f19c383d284457bb029f7d95e89b6297ef8a3666",
+    ".deps/tls-public-constant-native/v1/Programs/Bytecode/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json-tls_binary_tls_provider_validity-1.bc": "d1f93596cc9d932ab6525ac0927e7fe34c9bfaf2a7ce4a50a6c2edf4fde41b5b",
+    ".deps/tls-public-constant-native/v1/Programs/Functions/tls_binary_tls_provider_validity-sbv:[16x1]-sbv:[8x1]": "3125ff34c7c0546c23ff3339c4efd487e6c2532aa24f4f59cca2476d8cacafec",
+    ".deps/tls-public-constant-native/v1/Programs/Schedules/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json.sch": "99fd47578bd4049f1796fff257732fdb4905870b5d4f2eabe7b9c9285d25a96f"
+  },
+  "logs": ".deps/tls-public-constant-native/v1/run-bfo9_4rf",
+  "scope": "Actual Worker.allocate exact-cell check BEFORE VM overwrite, one-cell input/result/copy/interface and authenticated known-public status across epoch renewal. Existing program closure only; no account authorization or full TLS retry claim."
+}

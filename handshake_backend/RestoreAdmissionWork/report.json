@@ -42,8 +42,8 @@
     "handshake_backend/RestoreAdmissionWork/PrivateRequestCursor.h": "79e3c32ac0645e01f4b5bb0f6b5adb3a7630f61057fc4cbef5e7d249d61a278d",
     "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "06e4b8667d72d655d97c195eae972def61c017077253a567a14511d324f243f2",
     "handshake_backend/RestoreAdmissionWork/cursor_checks.cpp": "fe50241f47453bdb214169f8f31c6f0e38f13f748fa7d2199193097f16586514",
-    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "d5861a87eb1e1a0089a357c0be8160f872c6c9ba08a20a62a974ec38cf4d5e11",
-    "handshake_backend/NativeSession.h": "0242dc601fb14c28382bed845461ee20733d3fa8eb6892856edd55f6c9c805d6",
+    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "28880b17c66de3dff3edb43d61635f964f6919256fb9e756312ca564e9fe28a8",
+    "handshake_backend/NativeSession.h": "32701ea1d4446846657c7d417ef36497f18738055eeecc91b0223b766f3b9b9d",
     "handshake_backend/WebSocketWork/NativeConversation.h": "5046c1ac88a0502e9adfe7d79234e754223f528a59ebde49326b5bbd34b17e0d",
     "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "ecd9a77bb54b82c0dc7349f24ee6b8f377f507f7f40f5cc189c8291f7ef800be",
     "signal_backend/RecoveryWork/NativeRecordBinding.h": "edf6a779846a69859aad1d28e96747e599251b7908765bda11b090ed94d4b815"

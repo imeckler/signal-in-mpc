@@ -62,7 +62,7 @@ class Session {
         auto result = worker.allocate(input.size() * 8);
         for (size_t i = 0; i < input.size(); ++i)
             for (size_t j = 0; j < 8; ++j)
-                result[8*i+j][0] = Bit::constant((input[i] >> (7-j)) & 1,
+                result[8*i+j][0] = single_cell_constant<Bit>((input[i] >> (7-j)) & 1,
                     machine.get_N().my_num(), machine.get_bit_mac_key());
         return result;
     }

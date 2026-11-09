@@ -5,6 +5,13 @@
 #include <stdexcept>
 
 namespace tls_mpc_worker {
+// sbv:[...x1] owns one field cell per logical bit. The upstream constant
+// default is a64-cell packed word; never narrow/truncate that after creation.
+template<class Bit,class Mac> Bit single_cell_constant(unsigned value,int party,const Mac& mac){
+    if(value>1)throw std::runtime_error("non-bit public constant");
+    return Bit::constant(value,party,mac,1);
+}
+
 // Only the currently owned native share storage is covered. This does NOT
 // erase VM copies, allocator history inside MP-SPDZ, registers, preprocessing,
 // PRNG state, swap/core dumps, or copies made by callers outside this owner.

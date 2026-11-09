@@ -68,7 +68,7 @@ public:
         begun=true;derived=true; // Erased scalar storage can never be reused.
     }
     Bits allocate(size_t count) {
-        return Bits(count, std::vector<Bit>(1, Bit::constant(0,
+        return Bits(count, std::vector<Bit>(1, single_cell_constant<Bit>(0,
             machine.get_N().my_num(), machine.get_bit_mac_key())));
     }
     Bits begin() {

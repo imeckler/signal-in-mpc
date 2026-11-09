@@ -70,8 +70,8 @@ int main(int argc,char**argv){assert(argc==2);std::filesystem::path root(argv[1]
 
  auto resume_path=root/"resume";std::filesystem::create_directories(resume_path);unsigned before=disk;
  {Fixture f(disk,resume_path);auto a=f.add(0),b=f.add(1);auto cap=f.shape.frame_capacity();
-  auto ah=f.registry.admit_outbox(a,1001,Bits(8*(cap+3),255),id(7),Bits(8,255),cap);
-  auto bh=f.registry.admit_outbox(b,1002,Bits(8*(cap+3),255),id(8),Bits(8,255),cap);
+  auto ah=f.registry.admit_outbox(a,(uint64_t(1)<<63)+1001,Bits(8*(cap+3),255),id(7),Bits(8,255),cap);
+  auto bh=f.registry.admit_outbox(b,UINT64_MAX-3,Bits(8*(cap+3),255),id(8),Bits(8,255),cap);
   f.registry.authenticated_connection_ready();f.registry.resume_outbox(a,ah);f.registry.resume_outbox(b,bh);
   assert(disk==before&&f.session.evals==0&&f.account->reserves==0&&f.account->commits==0&&f.remasks==2&&f.retained==2);
   assert(f.expected_ids==std::vector<unsigned>({7,8}));assert(f.registry.authenticated_response_complete(1)==b);assert(f.registry.authenticated_response_complete(0)==a);
