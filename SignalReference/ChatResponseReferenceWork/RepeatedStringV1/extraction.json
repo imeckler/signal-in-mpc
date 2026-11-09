@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--start-from=crate::encoding::string::merge_repeated",
+    "--include=crate::error::DecodeError",
+    "--include=crate::error::Inner",
+    "--include=crate::error::*::from",
+    "--include=crate::encoding::DecodeContext",
+    "--opaque=crate::encoding::string::merge",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/RepeatedStringV1/Artifacts/repeated.llbc",
+    "--",
+    "--package",
+    "prost@0.14.4",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "f061b85798b5a144cf361e08f79afee0e2c513b60cb9244439465f67944937ce",
+  "llbc_sha256": "c25c08c315a0161d603732452576fc8e2991502a4d94a38e50aec3961166b3ff",
+  "charon_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "Primitive type aliases to identical pinned String extraction types plus established byte-content String interpretation; import paths only in Funs, no computational-body edits.",
+  "script_sha256": "3721d9f44c3f841dc71ca2f081d5c2a66b4c74a43f14d01d25ba48d01f854dba",
+  "original_types_sha256": "04df9db4c64c8180e2a0267258d784ed4cc1f24b87e533f975b55e20ec0d95ba",
+  "original_funs_sha256": "067bc9818db8e37fb594166763ee8b42418c6fdb5f57a3b256e61ef1c337b227",
+  "replayed_types_sha256": "0c2c99a4cb136a64a0752f2cfb705f91af632fcaeccf0714ab72bce208cf974d",
+  "replayed_funs_sha256": "c8c022773868991e8f2577a97e1b4a9ac6dd04f9a288953c742d761c5bccf9ef",
+  "aliases": [
+    "alloc.borrow.Cow",
+    "encoding.wire_type.WireType",
+    "error.DecodeErrorKind",
+    "error.Inner",
+    "error.DecodeError",
+    "encoding.DecodeContext"
+  ]
+}
