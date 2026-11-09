@@ -1,0 +1,9 @@
+# Actual source cache and loop-step preservation
+
+`sourceCache` is an executable projection of actual response id/status/body/message optional fields to precisely the fields cached by Core, retaining the independent outer/expected-ID data. `CacheAgrees` is equality with that projection. Full String/body/header content remains visible in the source results and event references; the projection is not a final observation.
+
+The actual generated default is related to zero-valued/absent cached fields. Update lemmas prove exact optional presence, full64 ID, low32 status, copied body length, String presence and header-cache independence. Body length is derived from the actual copied bytes, not assumed.
+
+`actual_known_key_cache_ready` threads source-cache equality through actual generated key acceptance and complete derived field context. `actual_scalar_cache_resumes`, `actual_body_cache_resumes` and `actual_message_cache_resumes` preserve the relation for the actual updated source message and complete next-key boundary on one exact native consumed prefix/suffix. Exact source content/results and body payload events remain in the statements. Duplicate fields and optional initialization are handled by the source update; String success uses the executable UTF8 acceptance branch. Failed records are not assumed cache-related: their separate exact source/error/rejection results remain unchanged.
+
+These are concrete iteration preservation results, not a full scan theorem or a generic assumed callback premise. Initial full scan/body-event observation, all error/repeated-header/unknown-group/outer schema/HTTP/correlation/private EOF/compiler composition remains open. Std unsafe UTF8/static diagnostic-push/scoped content-allocation boundaries unchanged. No runtime/generated computation edits.
