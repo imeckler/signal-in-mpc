@@ -56,7 +56,8 @@ public:
                 [&](size_t slot,Bits id,Bits valid){session.expect_websocket_mux_response(slot,std::move(id),std::move(valid));},
                 [&](Bits payload,size_t capacity){return session.retain_private_result(std::move(payload),capacity);},
                 [&]{session.checkpoint_private_computation();},std::move(terminal),
-                [&](Bits payload,Bits valid,size_t capacity){return session.remask_restored_outbox(std::move(payload),std::move(valid),capacity);}},Bits(credential_validity));
+                [&](Bits payload,Bits valid,size_t capacity){return session.remask_restored_outbox(std::move(payload),std::move(valid),capacity);},
+                [&](Bits status){session.require_private_status(std::move(status));}},Bits(credential_validity));
             std::string inventory=shape.descriptor();
             restored_catalogue=restored;
             NativeConversation* restored_owner=nullptr;std::vector<size_t> account_slots;

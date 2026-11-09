@@ -39,13 +39,13 @@ struct Account:tls_mpc_worker::DurableConversationHooksT<Bits>{
 };
 struct Fixture{
  Session session;Collective collective;signal_mpc::VariableShape shape{260,0,false,false};std::shared_ptr<Account> account;
- std::filesystem::path dir;Registry registry;unsigned retained=0,remasks=0;std::vector<size_t> slots;std::vector<unsigned> expected_ids;bool reject_expect=false;
- Fixture(unsigned& disk,const std::filesystem::path& directory):account(std::make_shared<Account>(disk)),dir(directory),registry({
+ std::filesystem::path dir;Registry registry;unsigned retained=0,remasks=0,early_checks=0;std::vector<size_t> slots;std::vector<unsigned> expected_ids;bool reject_expect=false;
+ Fixture(unsigned& disk,const std::filesystem::path& directory,bool credentials_valid=true):account(std::make_shared<Account>(disk)),dir(directory),registry({
   [&]{return session.reserve();},[](Bits a,Bits b){for(size_t i=0;i<a.size();++i)a[i]&=b[i];return a;},
   [&](size_t slot,Bits expected,Bits valid){assert(valid==Bits(8,255));if(reject_expect)throw std::runtime_error("correlation rejected");slots.push_back(slot);expected_ids.push_back(expected.back());},[&](Bits,size_t){assert((account->commits||remasks)&&session.cursor.committed());return uint64_t(++retained);},
-  [&]{assert(session.cursor.committed());},[]{},[&](Bits payload,Bits valid,size_t capacity){assert(capacity==shape.frame_capacity()&&payload.size()==8*(capacity+3)&&valid==Bits(8,255));++remasks;return payload;}},Bits(8,255)){session.cursor.initialize(id(disk),true);}
- uint64_t add(size_t slot){return registry.admit(std::make_unique<Conversation>(session,collective,shape,Bits(shape.input_bytes()*8), (dir/std::to_string(slot)).string(),account,slot),Bits(8,255));}
- uint64_t input(uint64_t owner){return registry.admit_input(owner,Bits(8),Bits(64),Bits(8,255));}
+  [&]{assert(session.cursor.committed());},[]{},[&](Bits payload,Bits valid,size_t capacity){assert(capacity==shape.frame_capacity()&&payload.size()==8*(capacity+3)&&valid==Bits(8,255));++remasks;return payload;},[&](Bits status){++early_checks;if(status!=Bits(8,255))throw std::runtime_error("upstream validity rejected");}},Bits(8,credentials_valid?255:0)){session.cursor.initialize(id(disk),true);}
+ uint64_t add(size_t slot,bool valid=true){return registry.admit(std::make_unique<Conversation>(session,collective,shape,Bits(shape.input_bytes()*8), (dir/std::to_string(slot)).string(),account,slot),Bits(8,valid?255:0));}
+ uint64_t input(uint64_t owner,bool valid=true){return registry.admit_input(owner,Bits(8),Bits(64),Bits(8,valid?255:0));}
 };
 int main(int argc,char**argv){assert(argc==2);std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);unsigned disk=30;std::vector<unsigned> old_outbox;
  {Fixture f(disk,root);auto a=f.add(0),b=f.add(1);auto ai=f.input(a),bi=f.input(b);f.registry.authenticated_connection_ready();auto receipts=f.registry.produce_batch({{a,ai},{b,bi}});
@@ -79,5 +79,14 @@ int main(int argc,char**argv){assert(argc==2);std::filesystem::path root(argv[1]
  auto invalid_resume=root/"resume-reject";std::filesystem::create_directories(invalid_resume);
  {Fixture f(disk,invalid_resume);auto a=f.add(0);auto cap=f.shape.frame_capacity();auto saved=f.registry.admit_outbox(a,2001,Bits(8*(cap+3),255),id(7),Bits(8,255),cap);
   f.registry.authenticated_connection_ready();f.reject_expect=true;rejects([&]{f.registry.resume_outbox(a,saved);});assert(f.retained==0&&f.account->acks==0&&f.account->closed&&disk==before&&f.session.evals==0);}
+
+ // Every selected state/input flag is checked before the first range/store
+ // reservation. An invalid second member cannot partially reserve the first.
+ for(unsigned which=0;which<4;++which){auto path=root/("invalid-upstream-"+std::to_string(which));std::filesystem::create_directories(path);unsigned original=disk;
+  Fixture f(disk,path);auto a=f.add(0,which!=0),b=f.add(1,which!=2);auto ai=f.input(a,which!=1),bi=f.input(b,which!=3);f.registry.authenticated_connection_ready();
+  rejects([&]{f.registry.produce_batch({{a,ai},{b,bi}});});assert(disk==original&&f.session.evals==0&&f.account->reserves==0&&f.account->commits==0&&f.retained==0&&f.early_checks==1&&f.account->closed);}
+ {auto path=root/"invalid-single";std::filesystem::create_directories(path);unsigned original=disk;Fixture f(disk,path);auto a=f.add(0),ai=f.input(a,false);f.registry.authenticated_connection_ready();rejects([&]{f.registry.produce(a,ai);});assert(disk==original&&f.session.evals==0&&f.account->reserves==0&&f.retained==0);}
+
+ {auto path=root/"invalid-credentials";std::filesystem::create_directories(path);unsigned original=disk;Fixture f(disk,path,false);auto a=f.add(0),ai=f.input(a);f.registry.authenticated_connection_ready();rejects([&]{f.registry.produce(a,ai);});assert(disk==original&&f.session.evals==0&&f.account->reserves==0&&f.retained==0);}
 
 }

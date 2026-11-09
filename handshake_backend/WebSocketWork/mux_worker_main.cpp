@@ -99,8 +99,9 @@ int main(int argc,char** argv) {
 #endif
         }),"native worker bootstrap failed");
 #ifdef TLS_ACCOUNT_RESTORE_PROFILE
-        auto resolver=make_account_recovery_resolver();
+        signal_mpc::recovery::AccountRecoveryResolver resolver;
         public_require(ErasedHostCall::run([&]{
+            try{resolver=make_account_recovery_resolver();}catch(...){resolver={};}
             state->collective->agree_provider_availability(bool(resolver));
             if(!resolver)std::cerr<<"TLS account admission rejected category=resolver-absent\n";
             public_require(bool(resolver),"authorized account recovery unavailable");

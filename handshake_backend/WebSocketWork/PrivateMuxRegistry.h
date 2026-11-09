@@ -6,6 +6,7 @@
 #include <memory>
 #include <functional>
 #include <stdexcept>
+#include <type_traits>
 namespace tls_mpc_worker {
 // Internal only: authenticated connection activation and completion events come
 // from the coordinator after receive cleanup. No public ACK/ID import exists.
@@ -19,8 +20,12 @@ public:
         std::function<uint64_t(Bits,size_t)> retain;
         std::function<void()> checkpoint,terminal;
         std::function<Bits(Bits,Bits,size_t)> remask_outbox={};
+        std::function<void(Bits)> require_private_status={};
     };
 private:
+    template<class C,class=void>struct HasDurable : std::false_type {};
+    template<class C>struct HasDurable<C,std::void_t<decltype(std::declval<const C&>().durable())>> : std::true_type {};
+    static bool durable(const Conversation& conversation){if constexpr(HasDurable<Conversation>::value)return conversation.durable();else return false;}
     struct Entry {std::unique_ptr<Conversation> conversation;Bits validity;bool pending=false;};
     struct Input {uint64_t owner;Bits payload,timestamp,validity;};
     struct Pending {uint64_t owner=0,ticket=0;};
@@ -40,6 +45,7 @@ public:
     PrivateMuxRegistry& operator=(const PrivateMuxRegistry&)=delete;
     uint64_t admit(std::unique_ptr<Conversation> conversation,Bits validity){
         try{live();require(!active&&conversation&&validity.size()==8&&entries.size()<4,"conversation admission rejected");
+            require(!durable(*conversation)||bool(hooks.require_private_status),"durable status gate unavailable");
             auto id=entries.size()+1;entries.emplace(id,Entry{std::move(conversation),std::move(validity)});return id;
         }catch(...){fail();throw;}
     }
@@ -82,6 +88,11 @@ public:
             live();auto found=entries.find(owner);auto input_it=inputs.find(input_handle);
             require(active&&found!=entries.end()&&!found->second.pending&&input_it!=inputs.end()&&input_it->second.owner==owner,"private conversation send rejected");
             size_t slot=0;while(slot<4&&pending[slot].owner)++slot;require(slot<4,"private connection queue full");
+            if(durable(*found->second.conversation)){
+                auto accepted=hooks.combine(Bits(credentials),Bits(found->second.validity));
+                accepted=hooks.combine(std::move(accepted),Bits(input_it->second.validity));
+                require(accepted.size()==8,"invalid durable upstream validity");hooks.require_private_status(std::move(accepted));
+            }
             auto input=std::move(input_it->second);inputs.erase(input_it);
             // Burn the global reservation before any producer state transition.
             auto id=hooks.reserve_id();require(id.size()==64,"invalid private ID reservation");auto expected=id;
@@ -109,6 +120,13 @@ public:
             for(size_t i=0;i<requests.size();++i){auto [owner,handle]=requests[i];auto found=entries.find(owner);auto input=inputs.find(handle);
                 require(found!=entries.end()&&!found->second.pending&&input!=inputs.end()&&input->second.owner==owner,"private batch admission rejected");
                 for(size_t j=0;j<i;++j)require(requests[j].first!=owner&&requests[j].second!=handle,"duplicate private batch conversation/input");}
+            bool recovering=false;for(auto request:requests)recovering=recovering||durable(*entries.at(request.first).conversation);
+            if(recovering){
+                auto accepted=Bits(credentials);
+                for(auto request:requests){accepted=hooks.combine(std::move(accepted),Bits(entries.at(request.first).validity));
+                    accepted=hooks.combine(std::move(accepted),Bits(inputs.at(request.second).validity));}
+                require(accepted.size()==8,"invalid durable batch upstream validity");hooks.require_private_status(std::move(accepted));
+            }
             std::vector<Input> admitted;std::vector<Bits> expected;std::vector<typename Conversation::BatchRequest> batch;
             for(size_t i=0;i<requests.size();++i){auto [owner,handle]=requests[i];auto found=inputs.find(handle);admitted.push_back(std::move(found->second));inputs.erase(found);
                 auto id=hooks.reserve_id();require(id.size()==64,"invalid private batch ID");expected.push_back(id);

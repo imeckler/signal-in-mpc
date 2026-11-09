@@ -1,0 +1,11 @@
+{
+  "compiled_linked": true,
+  "native_executed": false,
+  "source_sha256": {
+    "handshake_backend/WebSocketWork/PrivateMuxRegistry.h": "87aa018b46456b92432a3643181445895c0bf0dd17976043f3536ba7d98f4722",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "ecd9a77bb54b82c0dc7349f24ee6b8f377f507f7f40f5cc189c8291f7ef800be",
+    "handshake_backend/WebSocketWork/mux_worker_main.cpp": "075de505085716c2f483d5db1c748e6222a0af01b6b550e8b3dee11664d804fb"
+  },
+  "binary_sha256": "1442f7c392c94ebf9213f8d396c2ef0905d1b8c26fa2dce5f14dc343a985f81c",
+  "scope": "Restored early upstream status gate and factory-inside-EHC launcher compilation; host sanitizers reported separately. No new program manifest/genesis domain."
+}
