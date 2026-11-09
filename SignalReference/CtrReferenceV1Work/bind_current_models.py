@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Authored standard-container bindings; never edits generated Funs/Types."""
-import pathlib,re
-HERE=pathlib.Path(__file__).resolve().parent;folder=HERE/'Generated/CurrentModelViewsV1';template=(folder/'FunsExternal_Template.lean').read_text();types=(folder/'Types.lean').read_text()
+import argparse,pathlib,re
+parser=argparse.ArgumentParser();parser.add_argument('--folder',default='CurrentModelViewsV1');parser.add_argument('--namespace',default='CtrCurrentV1');args=parser.parse_args();assert args.folder.replace('_','').isalnum() and args.namespace.isidentifier()
+HERE=pathlib.Path(__file__).resolve().parent;folder=HERE/'Generated'/args.folder;template=(folder/'FunsExternal_Template.lean').read_text();types=(folder/'Types.lean').read_text()
 def one(pattern):
  values=re.findall(pattern,types,re.S);assert len(values)==1,(pattern,values);return values[0]
 R=one(r'structure (core\.ops\.range\.Range\.specialized_Type_\w+)\s')
@@ -28,5 +29,5 @@ def replace(match):
  elif name.endswith('.CoreDefaultDefault.default'):body='Aeneas.Std.core.default.DefaultArray.default 16#usize Aeneas.Std.core.default.DefaultU8'
  else:raise AssertionError(name)
  return 'def '+name+' : '+signature.strip()+' :=\n  '+body+'\n'
-text=re.sub(r'axiom\s+([\w.]+)\s*:\s*(.*?)(?=\n/--|\Z)',replace,template,flags=re.S);assert len(seen)==10,len(seen);text=text.replace('open CtrCurrentV1','namespace CtrCurrentV1')+'\nend CtrCurrentV1\n';text=text.replace('-- This is a template file: rename it to "FunsExternal.lean" and fill the holes.','-- Authored bindings: official Aeneas scalar/range/slice/array models.\n-- Hybrid raw-pointer views/default map to valid fixed-array contents; memory\n-- address/layout/Drop are outside this functional scope. Native endian is\n-- little-endian for the pinned aarch64 target; zero nonce is endian-independent.')
+text=re.sub(r'axiom\s+([\w.]+)\s*:\s*(.*?)(?=\n/--|\Z)',replace,template,flags=re.S);assert len(seen)==10,len(seen);text=text.replace('open '+args.namespace,'namespace '+args.namespace)+'\nend '+args.namespace+'\n';text=text.replace('-- This is a template file: rename it to "FunsExternal.lean" and fill the holes.','-- Authored bindings: official Aeneas scalar/range/slice/array models.\n-- Hybrid raw-pointer views/default map to valid fixed-array contents; memory\n-- address/layout/Drop are outside this functional scope. Native endian is\n-- little-endian for the pinned aarch64 target; zero nonce is endian-independent.')
 (folder/'FunsExternal.lean').write_text(text)
