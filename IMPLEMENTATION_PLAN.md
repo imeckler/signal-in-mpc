@@ -15,6 +15,10 @@ remains paused.
   reservations. Avoid copying or revalidating thousands of unchanged conversation
   records on every send. Do not substitute a larger fixed test cap for scalable
   persistence. Coordinate the revised account schema and circuit profiles.
+  Update: the two-conversation cut/restart milestone now passed (receipt below).
+  Freeze its receipt and mandatory-gap handoff, then take separately owned Signal
+  session/bootstrap implementation as described in the workload split. Existing
+  TLS scalability and negative/lifecycle gaps remain required, not waived.
 - **signal_crypto_sol:** continue actual pinned Rust CTR implementation
   refinement in isolated work, then the remaining crypto wrapper composition and
   fresh-session/PQXDH, SPQR and skipped-message/session transitions. The accepted
@@ -49,7 +53,25 @@ four-block costs/depth, key-schedule reuse and Rust ciphertext interoperability.
 Retain explicit Std/content trust boundaries and production artifacts until the
 candidate passes; coordinate any heavy export/native work with TLS source holds.
 
-Bounded integrated milestone: root inspected
+Latest bounded integrated milestone: root inspected
+`signal_backend/RecoveryWork/ShardedAccountWork/integrated-report.json`, controller
+18113, raw `benchmarks/results/raw/tls-sharded-account/eba2a5429624f308`.
+Cut and restored phases both passed with all five exits 0, cleanup empty and
+integrity true: 565.122s and 2271.229s respectively. Two actual recipient decrypts
+preceded restart; restored private admission classified pending0/idle1, replayed
+the unchanged application payload with recipient duplicate rejection and state
+preservation, and delivered ten further fixture texts with two reordered response
+pairs, outbox reuse and KeyUpdate. Manifest is
+`511b04805187ae7f6756b8866e406bb956b182f80a617907999eda8f01c24a49`.
+The genuinely new fixture account at that raw root advanced to Commit 10; do not
+roll it back. Earlier head-3 account remains untouched. No live native processes
+remain; test source holds released. This is local fixture evidence, not fresh
+Signal bootstrap, live service compatibility, refresh, throughput or full-system
+completion. Stale ACK generation checks remain helper evidence, not a replayed
+server ACK in this positive run. Mandatory scalability gaps include the bounded
+global latest-send ancestry scan, journal growth and global-store capacity.
+
+Earlier bounded integrated milestone: root inspected
 `handshake_backend/OutboxResumeWork/integrated-report.json` for run 88196,
 raw directory `19ccc57d3b64c8d6`: all five controllers exited 0 in 396.952 seconds, integrity true,
 cleanup empty, actual certified c1 account import/barriers, fresh TLS/HTTP101,
