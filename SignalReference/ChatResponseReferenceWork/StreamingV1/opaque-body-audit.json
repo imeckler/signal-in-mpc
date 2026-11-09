@@ -1,0 +1,53 @@
+{
+  "candidate_only": true,
+  "scope": "Actual Core opaque prefixes/exact completion/truncated EOF, body length/presence/reset including empty duplicates, exact byte counters and next-valid event masks. Source Bytes copy/event/validity/full scan composition remains open.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/OpaqueBody.lean": "f32159f3209457245908a42d4bf9af1365de51fea7eff5e495b8565d3cd42cd4",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/OpaquePrefix.lean": "498f8d7446f2d9e30f4c47d018c1544866caef7aa6a29a9a8b8976357f093483",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/LengthBody.lean": "4c59d3fd54806d7af0e93c142529b38435716c10583a2cbaa4414c84eaf697c2",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_opaque_body.py": "76d9ce43e89e992d9deecbcf652719a205f4df991fcd526ff773b139bcb2e529",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/OPAQUE_BODY.md": "7271522343b776507e67f047fe5bcf45c48c09c1e6561829cd095e661dbd276f"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-field-audit.json": "35d4b671e30247bcad5a41d0e61f022a622d048ebfe3ed3cb6139981cb7006b3",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/inactive-audit.json": "82bf96e677aadedbf8b6197a2be52c1f9272a4fc35e0b99ddbf960976dba183e",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/prefix-context-audit.json": "b845ef7b1ff74f0153e155e719dac47d9672c5d907fae83f5a5d202d97a6e08b",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-payload-audit.json": "f4d00906af964dbd72a2b9dcfe53a2ec1ce6e1dd79d350af248e3b8878f09079",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-error-audit.json": "660564695679ff14ee5c14572d1590497acffa71e9429ba09b0afe27bb67bc8d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-audit.json": "71cf6a078fe74d9ba6179301352c0a9af36d68c99fa81318acbc7f4b78fad42a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-success-audit.json": "0718a6318a7636c0ce7aaeea1071dc913210447e885d5762437c97a27dfc6a0f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-update-audit.json": "49e1390ee5ec1f23a7d256a02d82d044d275763bb4bbca859fa8fe8ffea5d707",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/native-recognition-audit.json": "b29d4533d1daab2bd2a2c7c4894b3831c11bec8c4228a61247ad3b79ce7ab2aa",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/wrong-wire-audit.json": "187159dc6f19e3b8cb8ff75220f6320d5cf06e00f65e8fc2cad706f190f78fa0"
+  },
+  "inherited_source_count": 281,
+  "inherited_object_count": 126,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/opaque-body-d8dd822476ee-70565.log",
+  "kernel_log_sha256": "8ba7a41c4f78151d234d0171863a89db4374dcd3126fd8adc3b5d757476a1bdb",
+  "kernel_log": "Checking StreamingV1.OpaqueBody\n'ChatResponseReference.StreamingV1.opaque_body_event' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.opaque_skip_step' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.opaque_mode_step' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.OpaquePrefix\n'ChatResponseReference.StreamingV1.opaque_prefix_inside' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.opaque_truncated_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.opaque_payload_complete' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.LengthBody\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/LengthBody.lean:118:85: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice\n\nNote: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/LengthBody.lean:125:85: warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice\n\nNote: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`\n'ChatResponseReference.StreamingV1.nonterminal_kinds' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.prefix_kinds' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.body_length_terminal' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.body_present_terminal' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.body_reset_event' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.length_skip_terminal' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.body_mode_terminal' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/opaque-body-v1-final/ChatResponseReferenceWork/StreamingV1/OpaqueBody.olean": "9b33cb92bf6e6f48c5f164737c6b08128ac7bd57a5e1f2d0fd8a88a3f285efba",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/opaque-body-v1-final/ChatResponseReferenceWork/StreamingV1/OpaquePrefix.olean": "49802de19afb13d26b0983941548abbcb918e3ea96fb85f3c124df8da8fe4890",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/opaque-body-v1-final/ChatResponseReferenceWork/StreamingV1/LengthBody.olean": "56affbdea9cf061da7e6534fa165b3191b696848406384f923535d012aedc701"
+  }
+}

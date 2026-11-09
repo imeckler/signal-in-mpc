@@ -21,6 +21,7 @@ source→streaming→HTTP/correlation→circuit theorem is claimed.
 | Bounded scalar context / updates | scalar-payload-audit.json; scalar-update-audit.json; prefix-context-audit.json | Actual all-outcome native scalar payload relation; exact prefix counter/tag/recognition/depth/inner preservation; actual full64 ID and low32 status updates. |
 | Actual known-field wire checks | c39e00c; wrong-wire-audit.json | Exact all-six-kind guard; native wrong-wire key branches reject complete Core fold/finish outer and bounded inner. Nested groups have no schema recognition. |
 | Actual scalar dispatcher field composition | scalar-field-audit.json | Every source ID/status outcome retains optional initialization/duplicates/errors/diagnostics/suffix. Bounded successful fields match Core ID+presence/status; errors reject. Full scan must derive child bounds and other state preservation. |
+| Opaque/body numeric transitions | opaque-body-audit.json | Exact prefix/count/completion/truncated EOF and body length/presence/reset, including empty duplicates; event masks equal next-valid. Source Bytes copy/event equality and valid-mask preservation remain open. |
 | Inactive padding / compiler endpoint | 7201891; inactive-audit.json | Actual process state shape, complete inactive state preservation and zero events through arbitrary padding; existing AIG byte endpoint composed under explicit raw-state/zero-control hypotheses. Not active private-EOF/source refinement. |
 
 Next implementation/proof work:
