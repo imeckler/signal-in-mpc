@@ -1,0 +1,92 @@
+[
+  {
+    "name": "v1.0.0-alpha.1",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/v1.0.0-alpha.1",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/v1.0.0-alpha.1",
+    "commit": {
+      "sha": "03acb042b98e82fd5fd0da33babd44801f8ec082",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/03acb042b98e82fd5fd0da33babd44801f8ec082"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzL3YxLjAuMC1hbHBoYS4x"
+  },
+  {
+    "name": "v0.1-alpha",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/v0.1-alpha",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/v0.1-alpha",
+    "commit": {
+      "sha": "a47501d1d8ff5723227c675befbdb53a878414ee",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/a47501d1d8ff5723227c675befbdb53a878414ee"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzL3YwLjEtYWxwaGE="
+  },
+  {
+    "name": "0.3.0",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.3.0",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.3.0",
+    "commit": {
+      "sha": "52b32c8371c09c1567e3d650c0f0adfbb229a270",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/52b32c8371c09c1567e3d650c0f0adfbb229a270"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMy4w"
+  },
+  {
+    "name": "0.2.4",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.2.4",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.2.4",
+    "commit": {
+      "sha": "d5f4fc89433c1e391de16c209bcca1a08755507b",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/d5f4fc89433c1e391de16c209bcca1a08755507b"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMi40"
+  },
+  {
+    "name": "0.2.3",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.2.3",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.2.3",
+    "commit": {
+      "sha": "fd98de43c81014671fa4b956be669054ad6cc210",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/fd98de43c81014671fa4b956be669054ad6cc210"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMi4z"
+  },
+  {
+    "name": "0.2.2",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.2.2",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.2.2",
+    "commit": {
+      "sha": "f5aa97337b7f30cbf8ccbb4a763860e6576a8108",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/f5aa97337b7f30cbf8ccbb4a763860e6576a8108"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMi4y"
+  },
+  {
+    "name": "0.2.0",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.2.0",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.2.0",
+    "commit": {
+      "sha": "62d0258fc0ce43db11fa82841943525ed9339fba",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/62d0258fc0ce43db11fa82841943525ed9339fba"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMi4w"
+  },
+  {
+    "name": "0.1.1",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.1.1",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.1.1",
+    "commit": {
+      "sha": "d2d71995a08240a32e5f1f4d7a288cbb186b33b6",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/d2d71995a08240a32e5f1f4d7a288cbb186b33b6"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMS4x"
+  },
+  {
+    "name": "0.1.0",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/zipball/refs/tags/0.1.0",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ot/tarball/refs/tags/0.1.0",
+    "commit": {
+      "sha": "2c2d34801ae2003422d69815f26fc1f99121ec8d",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ot/commits/2c2d34801ae2003422d69815f26fc1f99121ec8d"
+    },
+    "node_id": "MDM6UmVmNjA4MDE5MzU6cmVmcy90YWdzLzAuMS4w"
+  }
+]

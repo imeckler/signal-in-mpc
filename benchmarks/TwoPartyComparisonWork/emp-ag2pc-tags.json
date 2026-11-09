@@ -1,0 +1,22 @@
+[
+  {
+    "name": "v0.3.0",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/zipball/refs/tags/v0.3.0",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/tarball/refs/tags/v0.3.0",
+    "commit": {
+      "sha": "356cfd824772af9334ac9a994d1eec17ab5f565a",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/commits/356cfd824772af9334ac9a994d1eec17ab5f565a"
+    },
+    "node_id": "MDM6UmVmMTA5MTcxMzA3OnJlZnMvdGFncy92MC4zLjA="
+  },
+  {
+    "name": "v0.1-alpha",
+    "zipball_url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/zipball/refs/tags/v0.1-alpha",
+    "tarball_url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/tarball/refs/tags/v0.1-alpha",
+    "commit": {
+      "sha": "4676dd50c96425d838f49e8f0686e880acbde71b",
+      "url": "https://api.github.com/repos/emp-toolkit/emp-ag2pc/commits/4676dd50c96425d838f49e8f0686e880acbde71b"
+    },
+    "node_id": "MDM6UmVmMTA5MTcxMzA3OnJlZnMvdGFncy92MC4xLWFscGhh"
+  }
+]
