@@ -1,4 +1,4 @@
-import TlsMpc.Signal.PrivateRecordSnapshotV1Proofs
+import TlsMpc.Signal.PrivateRecordProjectionV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fold_map
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.update_scalarValue_map
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fieldPresence_map
@@ -9,3 +9,5 @@ import TlsMpc.Signal.PrivateRecordSnapshotV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.flatten_map
 #print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.compiled_applySend_correct
 #print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.project_receivers_map
+#print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.project_map
+#print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.compiled_project_correct
