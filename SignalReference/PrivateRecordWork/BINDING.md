@@ -26,3 +26,25 @@ proof of arbitrary serialized KEM validity. Full bootstrap/schema validation,
 actual source and Hom/compiler theorem, full SPQR/skipped/prekey transitions,
 native bound owner, durable callbacks/import and retirement remain required.
 Normal recovery/provider admission stays closed.
+
+## Internal owner wiring candidate
+
+`RecoveryWork/NativeRecordBinding.h` names only the fixed pinned
+`signal_private_record_bind_v1` function. Its future input is the 5550-byte private
+snapshot, actual 611-byte staged call and actual 81-byte service prefix; output is
+bound prefix81, selected525 and snapshot5550. `ExportBinding.lean` typechecks that
+layout, but an exported/compiled binding artifact has not been tested yet.
+
+`NativeCanonicalSendOwner.h` owns the canonical snapshot and volatile service
+view alongside the store. B1 delegates to the batch-first path: reserve one full
+account, evaluate the actual service batch once, privately bind each lane,
+preview all results, durably commit all selected records/outboxes, then install
+all stores before releasing any payload. An uncertain failure closes every
+admitted owner. Distinct conversations retain independent response completion;
+remote delivery acknowledgment is not the state-commit boundary. Transactions
+must preserve unrelated conversations and earlier pending outboxes.
+
+The compile-only probe instantiates B1 and batch templates with actual OwnedBits;
+it does not execute MPC, persist an account or grant admission. Actual archive
+transaction callbacks, complete account fields, checked import and pre-Session
+helper/epoch retirement remain unbound. No normal provider selects this path.
