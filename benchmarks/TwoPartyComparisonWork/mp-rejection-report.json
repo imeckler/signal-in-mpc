@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "scope": "stock per-party opened-check-value corruption rejected; not tamper completeness or erasure",
+  "debug_mac_enabled": false,
+  "corrupt_party": 1,
+  "mac_checker_sha256": "6aa24821e6dae6370cd89832f407523dc046d4648dcc281f36dd054d7cb723b8",
+  "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614",
+  "cases": [
+    {
+      "passed": true,
+      "backend": "tinier",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "wall_seconds": 0.17029829195234925,
+      "failure_category": null,
+      "no_fixture_output": true,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/reject-tinier-_2hkifs4",
+      "both_actual_mac_failure_diagnostics": true
+    },
+    {
+      "passed": true,
+      "backend": "mascot",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "wall_seconds": 0.19437804096378386,
+      "failure_category": null,
+      "no_fixture_output": true,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/reject-mascot-9_0hwdom",
+      "both_actual_mac_failure_diagnostics": true
+    }
+  ]
+}

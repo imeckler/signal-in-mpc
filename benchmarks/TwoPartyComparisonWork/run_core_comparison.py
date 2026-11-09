@@ -7,6 +7,7 @@ import re
 import subprocess
 import tempfile
 import time
+import argparse
 
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 BASE=ROOT/'.deps/two-party-comparison'
@@ -15,7 +16,7 @@ PREP=BASE/'signal-core-2-check'
 
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 
-def run(backend,port):
+def run(backend,port,batch=10000,bucket=4):
     work=pathlib.Path(tempfile.mkdtemp(prefix='core-'+backend+'-',dir=BASE))
     children=[];streams=[];stats=[];failure=None;start=time.monotonic()
     try:
@@ -32,7 +33,7 @@ def run(backend,port):
                 # starting BOB first is supported but measured waiting is included.
                 env=dict(os.environ,DYLD_LIBRARY_PATH=str(BASE/'install/lib'))
             else:
-                command=[str(MP/f'{backend}-party.x'),'-N','2','-p',str(p),'-pn',str(port),'-S','40','-b','10000','-v','-IF',str(work/'Input')]
+                command=[str(MP/f'{backend}-party.x'),'-N','2','-p',str(p),'-pn',str(port),'-S','40','-b',str(batch),'-B',str(bucket),'-v','-IF',str(work/'Input')]
                 if backend=='mascot':command+=['-P',str(2**255-19)]
                 command+=['two_party_signal_core'];env=dict(os.environ,DYLD_LIBRARY_PATH=str(MP))
             children.append(subprocess.Popen(command,cwd=work,env=env,stdout=stream,stderr=subprocess.STDOUT))
@@ -67,10 +68,12 @@ def run(backend,port):
             stat['phase_report']=[line.strip() for line in log.splitlines() if line.startswith('Spent ')]
             stat['leftover_report']=[line.strip() for line in log.splitlines() if ' left' in line]
         passed=passed and sum(s.get('socket_sent_bytes',0) for s in stats)==sum(s.get('socket_received_bytes',0) for s in stats)
-    return {'passed':passed,'backend':backend,'controller_wall_seconds':time.monotonic()-start,'parties':stats,
+    return {'passed':passed,'backend':backend,'preprocessing_batch_option':batch,'sacrifice_bucket':bucket,
+            'controller_wall_seconds':time.monotonic()-start,'parties':stats,
             'failure_category':failure,'directory':str(work)}
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--tinier-bulk',action='store_true');args=parser.parse_args()
     prepared=json.loads((PREP/'prepare-report.json').read_text())
     if sha(PREP/'circuit.txt')!=prepared['bristol_sha256']:raise ValueError('prepared graph drift')
     results=[]
@@ -83,12 +86,15 @@ if __name__=='__main__':
             'mascot_worker_sha256':sha(MP/'mascot-party.x'),'mp_runtime_sha256':sha(MP/'libSPDZ.so'),
             'source_sha256':sha(ROOT/'benchmarks/TwoPartyComparisonWork/signal_core_check.mpc'),
             'expected_fixture_sha256':sha(PREP/'expected-logical.json'),'results':results,'passed':False}
-    target=ROOT/'benchmarks/TwoPartyComparisonWork/core-comparison-report.json'
+    target=ROOT/'benchmarks/TwoPartyComparisonWork'/('core-tinier-bulk-report.json' if args.tinier_bulk else 'core-comparison-report.json')
     try:
-        for i,backend in enumerate(('emp','tinier','mascot')):
-            result=run(backend,31430+i*10);results.append(result)
+        backends=('tinier',) if args.tinier_bulk else ('emp','tinier','mascot')
+        for i,backend in enumerate(backends):
+            result=run(backend,31460 if args.tinier_bulk else 31430+i*10,
+                       prepared['counts']['AND'] if args.tinier_bulk else 10000,3 if args.tinier_bulk else 4)
+            results.append(result)
             if not result['passed']:break
-        report['passed']=len(results)==3 and all(r['passed'] for r in results)
+        report['passed']=len(results)==len(backends) and all(r['passed'] for r in results)
     finally:target.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({'passed':report['passed'],'report':str(target),'results':len(results)}))
     if not report['passed']:raise SystemExit(1)

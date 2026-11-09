@@ -89,3 +89,9 @@ All three entries execute3,650,587 logical ANDs:3,647,972 core plus2,615 balance
 EMP generated3,650,588 authenticated triples for3,650,587 consumed ANDs; Tinier entries report5unused logical triples. This removes the tiny-AES overshoot explanation for most of this component difference. MP uses stock bucket4; a supported bucket3/bulk-preprocessing control remains warranted before calling this an optimized Tinier result. Cold loading is included: EMP reports1.59–1.61s loading, while MP loader time is not yet separately instrumented. Phase details are in the report; no warm/sustained-rate or full-message inference follows.
 
 The MP compile took446.99s and produced133,120VM rounds; compilation is public offline work, excluded from native run totals. Source adapter and public artifacts are frozen by the report hashes. The historical numeric Signal fixture has zero plaintext; actual nonempty Content/sealed-sender/TLS/recipient response semantics remain required for the final benchmark.
+
+## Bounded tuning and corruption controls
+
+`run_core_comparison.py --tinier-bulk` uses stock bucket3 and a3,650,587output preprocessing target, preserving S40. It passes the identical predicate with3,764,504,754B global payload,34.268s cold wall,4,390,436,864B maximum party RSS and53,092unused logical triples. This is a bulk-memory/traffic tradeoff, not an optimized full application result; default-bucket receipts remain intact.
+
+`check_mp_rejection.py` uses the stock `-o mac_fail` hook only on party1, never `debug_mac`. Both Tinier and MASCOT-wrapper groups detect actual MAC failure on both peers and exit1 before fixture output. This is opened-check-value corruption detection, not arbitrary tamper coverage or caught-failure secret erasure. All children were reaped.
