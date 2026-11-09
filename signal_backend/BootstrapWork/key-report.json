@@ -1,0 +1,16 @@
+{
+  "key_composition_build_passed": true,
+  "independent_HKDF_layout_matches": true,
+  "accepted_bytes": 546,
+  "rejection_profiles": 7,
+  "foundation_endpoints": 4,
+  "actual_Rust_init_refinement": false,
+  "native_MPC": false,
+  "whole_bootstrap": false,
+  "source_sha256": {
+    "signal_backend/BootstrapWork/check_keys.py": "62bab3e40a808e600d5047dece7275b487b3bfebfcedc3a1f76070ce397c9ea3",
+    "signal_backend/BootstrapWork/KeyChecks.lean": "72d274721d50bf0a871b9a9e39ae4a2a8e8a7597918577df939783bce0eec455",
+    "signal_backend/BootstrapWork/KeyAudit.lean": "fe1bf4cb2daccb60168cdfeb206afc15c0d08c1a2d5adf036545b354599db1da",
+    "TlsMpc/Signal/PrivateBootstrapKeysV1.lean": "7a6b3d479792a142d9f11a7ca7fadd50e6d256290e05ab447e17710e2e6236b0"
+  }
+}
