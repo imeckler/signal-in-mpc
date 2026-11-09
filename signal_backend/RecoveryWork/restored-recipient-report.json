@@ -3,6 +3,7 @@
   "public_disposable_fixture_only": true,
   "target": "libsignal 904c8dc",
   "actual_serialized_session_reload": true,
+  "exact_first_two_capture_rows": true,
   "actual_duplicate_rejection_preserves_record": true,
   "actual_next_text_body_timestamp": true,
   "actual_sealed_sender_decrypt_and_certificate": true,
@@ -10,10 +11,11 @@
   "native_MPC": false,
   "whole_account_activation": false,
   "source_sha256": {
-    "signal_backend/RecoveryWork/check_restored_recipient.py": "207ca13821a6edd3eb7693fca035798d9ce51ec9bdc75ea3959b8985de604731",
+    "signal_backend/RecoveryWork/check_restored_recipient.py": "35a1cf8ab1b14e2ad00b2259acdf81a8a27400c9aae62dfc1d4f203356c124d4",
     "signal_backend/Oracle/src/bin/signal-restored-recipient-oracle.rs": "6710be0dce70ac4825cee62c93541478bfb5f80aa1adfe8e3b74f19f93bddbad",
     "signal_backend/Oracle/src/bin/signal-account-snapshot-oracle.rs": "b5f7e518094e87a3e475acaecd7bbf2aafd135cd1596fabe12cc0a3dd34eab32",
-    "signal_backend/RecoveryWork/restored-recipient-fixture.json": "8c5c3b4aec2fbdeed2cf8d47ba600d13bd65bfd6c626ec95611c45d1a14eacad"
+    "signal_backend/RecoveryWork/restored-recipient-fixture.json": "8c5c3b4aec2fbdeed2cf8d47ba600d13bd65bfd6c626ec95611c45d1a14eacad",
+    "signal_backend/RecoveryWork/account_fixture.py": "c806cfc412f98150c848958e2121c9f9ca24d47459308288656cf2d4565d7ea1"
   },
   "binary_sha256": {
     "signal-restored-recipient-oracle": "024edf3dd60917184a52a4a2eadaf77a8287ec05ad48d44e23f10cb96c52041f",
