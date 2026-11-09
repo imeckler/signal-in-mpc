@@ -1,0 +1,105 @@
+WARNING: --prime/-P activates code that usually isn't the most efficient variant. Consider using --field/-F and set the prime only during the actual computation.
+Default bit length for compilation: 253
+Default security parameter for compilation: 40
+Compiling file Programs/Source/signal_variable_service_batch.mpc
+Changed statistical security for comparison etc. to 128
+Compiled 100000 lines at Sun Nov  8 23:28:25 2026
+Compiled 200000 lines at Sun Nov  8 23:28:45 2026
+Compiled 300000 lines at Sun Nov  8 23:28:46 2026
+Compiled 400000 lines at Sun Nov  8 23:28:48 2026
+Compiled 500000 lines at Sun Nov  8 23:28:49 2026
+Compiled 600000 lines at Sun Nov  8 23:28:54 2026
+Compiled 700000 lines at Sun Nov  8 23:28:56 2026
+Compiled 800000 lines at Sun Nov  8 23:28:57 2026
+Compiled 900000 lines at Sun Nov  8 23:28:58 2026
+Compiled 1000000 lines at Sun Nov  8 23:28:59 2026
+Compiled 1100000 lines at Sun Nov  8 23:28:59 2026
+Compiled 1200000 lines at Sun Nov  8 23:29:00 2026
+Compiled 1300000 lines at Sun Nov  8 23:29:07 2026
+Compiled 1400000 lines at Sun Nov  8 23:29:08 2026
+Compiled 1500000 lines at Sun Nov  8 23:29:10 2026
+Compiled 1600000 lines at Sun Nov  8 23:29:13 2026
+Compiled 1700000 lines at Sun Nov  8 23:29:21 2026
+Compiled 1800000 lines at Sun Nov  8 23:29:22 2026
+Compiled 1900000 lines at Sun Nov  8 23:29:23 2026
+Compiled 2000000 lines at Sun Nov  8 23:29:24 2026
+Compiled 2100000 lines at Sun Nov  8 23:29:25 2026
+Compiled 2200000 lines at Sun Nov  8 23:29:26 2026
+Compiled 2300000 lines at Sun Nov  8 23:29:27 2026
+Compiled 2400000 lines at Sun Nov  8 23:29:28 2026
+Compiled 2500000 lines at Sun Nov  8 23:29:29 2026
+Compiled 2600000 lines at Sun Nov  8 23:29:29 2026
+Compiled 2700000 lines at Sun Nov  8 23:29:30 2026
+Compiled 2800000 lines at Sun Nov  8 23:29:31 2026
+Compiled 2900000 lines at Sun Nov  8 23:29:32 2026
+Compiled 3000000 lines at Sun Nov  8 23:29:40 2026
+Compiled 3100000 lines at Sun Nov  8 23:29:41 2026
+Compiled 3200000 lines at Sun Nov  8 23:29:42 2026
+Compiled 3300000 lines at Sun Nov  8 23:29:43 2026
+Compiled 3400000 lines at Sun Nov  8 23:29:44 2026
+Compiled 3500000 lines at Sun Nov  8 23:29:45 2026
+Compiled 3600000 lines at Sun Nov  8 23:29:46 2026
+Compiled 3700000 lines at Sun Nov  8 23:29:47 2026
+Compiled 3800000 lines at Sun Nov  8 23:29:48 2026
+Compiled 3900000 lines at Sun Nov  8 23:29:49 2026
+Compiled 4000000 lines at Sun Nov  8 23:29:50 2026
+Compiled 4100000 lines at Sun Nov  8 23:29:51 2026
+Compiled 4200000 lines at Sun Nov  8 23:29:52 2026
+Compiled 4300000 lines at Sun Nov  8 23:29:53 2026
+Compiled 4400000 lines at Sun Nov  8 23:30:02 2026
+Compiled 4500000 lines at Sun Nov  8 23:30:03 2026
+Compiled 4600000 lines at Sun Nov  8 23:30:04 2026
+Compiled 4700000 lines at Sun Nov  8 23:30:05 2026
+Compiled 4800000 lines at Sun Nov  8 23:30:06 2026
+Compiled 4900000 lines at Sun Nov  8 23:30:07 2026
+Compiled 5000000 lines at Sun Nov  8 23:30:08 2026
+Compiled 5100000 lines at Sun Nov  8 23:30:09 2026
+Compiled 5200000 lines at Sun Nov  8 23:30:10 2026
+Compiled 5300000 lines at Sun Nov  8 23:30:11 2026
+Compiled 5400000 lines at Sun Nov  8 23:30:12 2026
+Compiled 5500000 lines at Sun Nov  8 23:30:14 2026
+Compiled 5600000 lines at Sun Nov  8 23:30:15 2026
+Compiled 5700000 lines at Sun Nov  8 23:30:16 2026
+Compiled 5800000 lines at Sun Nov  8 23:30:17 2026
+Compiled 5900000 lines at Sun Nov  8 23:30:18 2026
+Compiled 6000000 lines at Sun Nov  8 23:30:19 2026
+Compiled 6100000 lines at Sun Nov  8 23:30:43 2026
+Compiled 6200000 lines at Sun Nov  8 23:30:44 2026
+Compiled 6300000 lines at Sun Nov  8 23:30:45 2026
+Compiled 6400000 lines at Sun Nov  8 23:30:46 2026
+Compiled 6500000 lines at Sun Nov  8 23:30:47 2026
+Compiled 6600000 lines at Sun Nov  8 23:30:48 2026
+Compiled 6700000 lines at Sun Nov  8 23:30:51 2026
+Compiled 6800000 lines at Sun Nov  8 23:30:53 2026
+Compiled 6900000 lines at Sun Nov  8 23:30:54 2026
+Compiled 7000000 lines at Sun Nov  8 23:30:55 2026
+Compiled 7100000 lines at Sun Nov  8 23:30:56 2026
+Compiled 7200000 lines at Sun Nov  8 23:30:57 2026
+Compiled 7300000 lines at Sun Nov  8 23:30:58 2026
+Compiled 7400000 lines at Sun Nov  8 23:30:59 2026
+Compiled 7500000 lines at Sun Nov  8 23:30:59 2026
+Compiled 7600000 lines at Sun Nov  8 23:31:00 2026
+Compiled 7700000 lines at Sun Nov  8 23:31:01 2026
+Compiled 7800000 lines at Sun Nov  8 23:31:02 2026
+Compiled 7900000 lines at Sun Nov  8 23:31:02 2026
+Compiled 8000000 lines at Sun Nov  8 23:31:03 2026
+Compiled 8100000 lines at Sun Nov  8 23:31:40 2026
+Compiled 8200000 lines at Sun Nov  8 23:31:41 2026
+Compiled 8300000 lines at Sun Nov  8 23:31:42 2026
+Compiled 8400000 lines at Sun Nov  8 23:31:44 2026
+Compiled 8500000 lines at Sun Nov  8 23:31:47 2026
+Writing to Programs/Bytecode/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2-signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-1.bc
+Writing to Programs/Functions/signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-sbv:[9776x1]-sbv:[21968x1]
+Writing to Programs/Schedules/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2.sch
+Writing to Programs/Bytecode/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2-0.bc
+Hash: 4ac38f5666cc49e1b36f8429e0f61904c231a06c4811aebf4504dc70e3f789ba
+Program requires at most:
+        3574 integer dabits
+        8240 bit opens
+       40808 integer triples
+       40808 integer simple multiplications
+        2048 integer randoms
+          16 integer opens
+    12233204 bit triples
+          64 bit bits
+      130436 virtual machine rounds
