@@ -1,0 +1,10 @@
+[package]
+name = "signal-ctr-reference"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+ctr = {version="=0.10.1",features=["zeroize"]}
+[lib]
+path = "lib.rs"
+[workspace]

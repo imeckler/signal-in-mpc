@@ -1,0 +1,51 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "source_wrapper_only_calls_unchanged_upstream": true,
+  "upstream_computational_body_edits": false,
+  "charon_exit_code": 0,
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--monomorphize",
+    "--start-from=crate::current",
+    "--include=ctr",
+    "--include=core::convert",
+    "--include=core::result",
+    "--dest-file=$WORKSPACE/SignalReference/CtrReferenceV1Work/Artifacts/CurrentModelViewsV1/ctr.llbc",
+    "--opaque=hybrid_array::*::as_slice",
+    "--opaque=hybrid_array::*::as_mut_slice",
+    "--opaque=hybrid_array::*::default",
+    "--include=hybrid_array",
+    "--include=typenum",
+    "--",
+    "--verbose",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "dependency_checksums_match_pinned_Signal_lock": {
+    "block-buffer@0.12.1": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+    "cipher@0.5.2": "e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c",
+    "crypto-common@0.2.2": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+    "ctr@0.10.1": "baaca1c4b237092596f64d571e9db6ce4109c4ef9742e27590f1709594461f21",
+    "hybrid-array@0.4.13": "818356c5132c1fede50f837ca96afbe78ff42413047f4abb886217845e1b6c8c",
+    "inout@0.2.2": "4250ce6452e92010fdf7268ccc5d14faa80bb12fc741938534c58f16804e03c7",
+    "typenum@1.20.1": "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20",
+    "zeroize@1.9.0": "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"
+  },
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/extract_mono.py": "7aa6d8c97aa04a775d351510ed2adfbcc986493b065cb49017d1a8468f65fefc",
+    "SignalReference/CtrReferenceV1Work/Source/Cargo.toml": "f1fa2462a1fabf009272cbb68e7031267ca5f423e5ec3a05cfd4b7ce77a968d1",
+    "SignalReference/CtrReferenceV1Work/Source/lib.rs": "846346df598ea4805f3f652218cdd6fed55ebbdabe022baf273629d3f486d367"
+  },
+  "lock_sha256": "2e0431ec600465ffe9a7c1828038a8267cf3e9fb32270de6cf801c903a6bd234",
+  "llbc_sha256": "031ddf9196e629e3dafbd6ed6f4ab4b3b3354855fab611f510e5111cd8341f6e",
+  "full_ctr_refinement": false
+}

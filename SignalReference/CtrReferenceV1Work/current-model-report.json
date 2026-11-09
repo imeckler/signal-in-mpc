@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "actual_generated_Funs_Types_replayed_unchanged": true,
+  "name_only_LLBC_replay": true,
+  "kernel_endpoints": 2,
+  "foundation_axioms_only": true,
+  "model_boundary": "Official Aeneas Array/Slice/Range functional content; hybrid raw views/default bound to fixed valid arrays; pinned native little endian; address/layout/Drop/resource effects excluded",
+  "full_current_block_refinement": false,
+  "full_remaining_stream_AES_HMAC_refinement": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/check_current_models.py": "0eca7779895aad6ca5e01b0c83317f7e47c20327ca1f654044e22f31d13c2ee3",
+    "SignalReference/CtrReferenceV1Work/CurrentReference.lean": "de968ab8a2dd8ebba325148acb2c17b87fb9396a3005a21fb6a14370411b6023",
+    "SignalReference/CtrReferenceV1Work/bind_current_models.py": "24d78aab90dcef61b96e5e3806db3568c085c21c93a6b28da42f297ee3de17b9",
+    "SignalReference/CtrReferenceV1Work/replay_mono_names.py": "f6bdfe93667305a1a4084f05610b0e2125ea3e3394da258d5f519c766584a673",
+    "SignalReference/CtrReferenceV1Work/Generated/CurrentModelViewsV1/Funs.lean": "1f664af8298ce5a6c620730d89bbf6968487331aec33cce9b90f5f6e6657f08e",
+    "SignalReference/CtrReferenceV1Work/Generated/CurrentModelViewsV1/FunsExternal_Template.lean": "4c779cd073ca5a5cf8b4628e728826bf343ca9deba07a48cea425de4dafd75f1",
+    "SignalReference/CtrReferenceV1Work/Generated/CurrentModelViewsV1/FunsExternal.lean": "42e778306636712f7659f873e98be4378e43d1ddd831818aed085506ee09c62b",
+    "SignalReference/CtrReferenceV1Work/Generated/CurrentModelViewsV1/Types.lean": "b65153ff6f5f5f7495944766a48c052670ecd831ed07bdf6c1212c08ccb02231",
+    "SignalReference/CtrReferenceV1Work/Artifacts/CurrentModelViewsV1/inventory.json": "1677504266e2f40f4c2793f3ab546de78fc5f1a499d0d0a40e0aff8219b2e81f",
+    "SignalReference/CtrReferenceV1Work/Artifacts/CurrentModelViewsV1/ctr.llbc": "031ddf9196e629e3dafbd6ed6f4ab4b3b3354855fab611f510e5111cd8341f6e",
+    "SignalReference/CtrReferenceV1Work/Artifacts/CurrentModelViewsV1/named.llbc": "b409a6f22e6565882ca7de6714fc0cfe09acef7eac3dda0dd64335d6f2506cd4"
+  }
+}
