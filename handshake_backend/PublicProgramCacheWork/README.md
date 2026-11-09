@@ -35,3 +35,24 @@ These are single-host public parser/cache results, not five-party execution/RSS,
 `CachedBatchService.h` preserves the existing typed same-profile batch validation and quarantined output split, routing the exact compiled mixed-domain function through pinned cache admission. `cached_producer_fixture.cpp` and `check_cached_producer.py` prepare two real B2 calls over two disposable established conversation states and two nonempty text rounds. The fixture includes the actual text builder, one VM batch entry, selected-state group installation, completed owned-host-stack barriers and fresh worker/transport epochs between batches. It will compare actual recipient decryption/state continuation and record loader/call/payload/consumption/individual-process peakRSS. Only disposable final wire and known-fixture builder validity are opened; synthetic response acknowledgements are explicitly component-only.
 
 At source checkpoint creation this fixture has compiled/linked and its controller passed syntax checking; its native run is pending. It is not evidence of application throughput, a promoted normal profile or complete caught-MAC-failure erasure. The original cache-free eight-text report remains unchanged.
+
+## Actual cached producer execution: terminal checkpoint
+
+The pending fixture above completed: five parties/threshold2/statistical128, all five exits0,139.378s inclusive, cleanup empty, source/binary/compiled closure integrity true. The actual pinned Rust recipient decrypted all four nonempty texts and matched body/timestamp/padding, Signal counters127→128 and selected next counters128→129 across two independent conversations. Two recipient replays rejected. Four distinct ephemeral public keys and four distinct WS masks were observed. Selected state/identity/private scalar/DH values stayed unopened. Fixture response acknowledgements remain synthetic; no TLS application path or production admission is claimed.
+
+Party0 perB2call (same exact compiled mixed-field/binary closure):
+
+| Call | Epoch | Total call | Runtimeprepare | Loader | Cacheloads/hits | Payloadbytes |
+|---|---:|---:|---:|---:|---:|---:|
+| First |0|69.248s|2.895s|2.871s|1/0|4355814592|
+| Second after renewal/text-builder interleave |1|66.756s|0.000105s|0|0/1|4355814592|
+
+Each call carries two messages. Online binary payload1565929024B and binary preprocessing2742863120B are identical on both calls: code caching removes parse cost, not protocol traffic. This is a producer component experiment, not equal work to the historical eight-text wholeTLS run and not a sustained application throughput estimate. At the observed producer-only2.178GB/message,27.78messages/s would still require about60.5GB/s per party before TLS/parser/other protocol costs. The target remains unmet; compact Boolean plus checked Fp integration is a core outstanding task.
+
+Actual individual party peakRSS values:2499723264,2506227712,2502983680,2489319424,2547367936B. Their sum12545622016B is a sum of individual peaks, not simultaneous systemRSS. The cache reservation is accounted public storage; these RSS measurements also include active secret execution/protocol state and temporary snapshots.
+
+Counter correction: raw `CACHED_PRODUCER_METRIC.consumed` values were incorrectly formed by subtracting usage of the preceding text-builder function. Runtime DataF.reset_usage runs perjob, so these are **invalid as consumed-preprocessing counts**. Bytes/timing/cache/interop checks are unaffected. Original raw logs/report and exact tested source/controller are preserved under `benchmarks/results/raw/private-native-cached-producer/3dcb294118f92851`; reviewed-report.json and the checked-in receipt mark this limitation. Source instrumentation now reads job-local post-function usage directly, but that correction has not been natively re-executed. No expensive rerun is justified solely to repair this diagnostic field.
+
+The candidate remains isolated pending normal-profile integration and composition with the separate caught-failure/constructor-safe runtime. No full-system/gate/refresh/security-threshold change follows from this checkpoint.
+
+The corrected counter fixture compiled/linked as the separately named `tls-native-cached-producer-fixture-v2`; counter-fix-build-report.json pins that unexecuted correction. The tested original binary is preserved. The controller now selects the corrected binary for any future necessary run, preventing an old executable from being silently relabeled with the new counter semantics.

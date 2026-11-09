@@ -1,0 +1,10 @@
+{
+  "compiled_and_linked": true,
+  "native_executed": false,
+  "change": "post-function job-local runtime usage; no subtraction of previous job",
+  "source_sha256": "65cf114ac854aa964ad6f51bd0c238671c6fdb1f652fd2616e5cc974d58845ce",
+  "controller_sha256": "2cbfbd502569eb0b2105647f298471877086b1a0cf011a48ca7a8407abde2e60",
+  "binary_sha256": "a9116d16cb49448f3f2afd20722bad3319e97bc1651d0037095cac961a573d21",
+  "tested_old_binary_preserved": true,
+  "old_native_run_consumed_field_invalid": true
+}

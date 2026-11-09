@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib,json,os,subprocess,sys,time,secrets
 root=Path(__file__).resolve().parents[2];work=Path(__file__).parent;sys.path.insert(0,str(root))
 from SignalReference.RelayServiceWork.check import oracle
-runtime=root/'.deps/tls-public-program-cache-runtime-v2/MP-SPDZ';binary=runtime.parent/'tls-native-cached-producer-fixture'
+runtime=root/'.deps/tls-public-program-cache-runtime-v2/MP-SPDZ';binary=runtime.parent/'tls-native-cached-producer-fixture-v2'
 base=root/'.deps/native-cached-text-producer-v1';base.mkdir(exist_ok=True)
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 source_manifests=[root/'.deps/private-variable-conversation-native/260-80-0-0/batch-2-sha-gate-efficient/service.manifest',root/'.deps/private-text-notification-native/text.manifest']
@@ -32,7 +32,7 @@ library=base/'libSPDZ.so'
 if not library.exists():library.symlink_to(runtime/'libSPDZ.so')
 assert library.resolve()==(runtime/'libSPDZ.so').resolve();hosts=out/'hosts';hosts.write_text('127.0.0.1\n'*5)
 clock=lambda:time.clock_gettime(time.CLOCK_MONOTONIC_RAW);started=clock();children=[];streams=[];cleanup=[]
-report={'passed':False,'scope':'two real B2 producer calls/four nonempty texts, independent conversation state and epoch renewal; not full TLS/application throughput, production admission, authenticated response, MAC-tamper or complete failure-erasure claim','source_product_sha256':hashes,'compiled_closure_sha256':products,'raw':str(out.relative_to(root)),'synthetic_component_response_ack':True,'statistical_security':128,'parties':5,'threshold':2,'messages':4,'cache_free_eight_text_baseline_preserved':True}
+report={'passed':False,'scope':'two real B2 producer calls/four nonempty texts, independent conversation state and epoch renewal; not full TLS/application throughput, production admission, authenticated response, MAC-tamper or complete failure-erasure claim','source_product_sha256':hashes,'compiled_closure_sha256':products,'raw':str(out.relative_to(root)),'synthetic_component_response_ack':True,'statistical_security':128,'parties':5,'threshold':2,'messages':4,'cache_free_eight_text_baseline_preserved':True,'runtime_consumption_semantics':'post-function job-local usage, never subtract previous function'}
 (out/'launch-receipt.json').write_text(json.dumps(report,indent=2)+'\n')
 try:
  for party in range(5):
