@@ -40,6 +40,15 @@ This is a pending handoff, not evidence that either track is complete. Keep the
 native parser scan/state invariants with signal_parser_sol; header/Unicode-trim
 proofs are separable if capacity later becomes available. Do not restart refresh.
 
+AES refinement decision: crypto may build an isolated symbolic fixslice circuit
+directly from the explicit model of the actual extracted AES entry. Compose its
+evaluation/compiler theorem with the actual key-schedule and entry theorems.
+The requirement is circuit agreement with translated Rust, not a separate proof
+between two AES implementations. Before promotion compare exact one-block and
+four-block costs/depth, key-schedule reuse and Rust ciphertext interoperability.
+Retain explicit Std/content trust boundaries and production artifacts until the
+candidate passes; coordinate any heavy export/native work with TLS source holds.
+
 Bounded integrated milestone: root inspected
 `handshake_backend/OutboxResumeWork/integrated-report.json` for run 88196,
 raw directory `19ccc57d3b64c8d6`: all five controllers exited 0 in 396.952 seconds, integrity true,
