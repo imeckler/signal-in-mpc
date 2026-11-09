@@ -1,0 +1,9 @@
+# Exact-child pending key and length error joins
+
+`core_close_pending_reject` factors actual child closure: any byte leaving non-key mode at counter1 rejects. `native_pending_key_at_child_end` derives this from actual native key success for scalar/fixed/length wires (wire0/1/2/5), actual key count equal to private child remainder, and original numeric key entry. Validity stays rejected through all later actual parent bytes. This supplies the previously open zero-remaining-field prior-key rejection case for those wires; group boundary handling remains separate. No capacity suffix is borrowed to repair it.
+
+`LengthFieldErrors` joins actual generated String/body malformed or truncated length source results to numeric rejection, including empty input. String total clear and exact mapped native error/suffix/diagnostic Result effects are retained. Body source expression keeps its optional default/old-value behavior.
+
+`MessageUnderflow` derives actual String opaque mode/counter from native length success without a source/UTF validity premise. Declared length beyond physical input forces actual EOF rejection. Its generated String dispatcher theorem retains exact BufferUnderflow, String clear, native suffix and diagnostic mutation/failure/divergence. These are ordinary parsing/error joins, not an equality of every internal cursor: source error cursors remain native, and Core may reject earlier at a child boundary.
+
+Full scan still must derive key-entry/private cursor correspondence, join child-overrun/error branches for all fields and groups, repeated HTTP headers, outer schema/HTTP/correlation/private EOF/compiler. Std UTF8 unsafe validator, static diagnostic push and scoped allocation/content boundaries remain explicit. No runtime/generated computation edits or complete response claim.
