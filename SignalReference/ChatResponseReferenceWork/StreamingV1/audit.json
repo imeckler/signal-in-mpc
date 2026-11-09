@@ -1,0 +1,80 @@
+{
+  "candidate_only": true,
+  "scope": "Three-module actual numeric Core varint/prefix and native enum/u32 scalar projection milestone, not full streaming/source refinement.",
+  "recorded_after_completed_focused_checks": true,
+  "source_unchanged_since_focused_checks": true,
+  "validation": [
+    {
+      "module": "VarintReference",
+      "terminal_tool_session": 58478,
+      "module_exit_code": 0,
+      "tool_session_exit_code": 1,
+      "source_sha256": "ef758ed91f5e3c1c18bf7289722a99475f609ceca14dd21e9eedea60af510ba6",
+      "object_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/VarintReference.olean",
+      "object_sha256": "df975dd6c24ffd4f3605f5bfd73926ab91d94b49c87171f0451154a711b9bd7c",
+      "stdout_provenance": "Final six-declaration module stdout observed in session58478; that checker proceeded to ScalarProjection, which then failed and was fixed/tested separately. The reused scalar.log was overwritten by later ScalarProjection-only checks; no raw final VarintReference log is claimed.",
+      "observed_axioms": "All six printed declarations had foundational-only dependencies [propext, Classical.choice, Quot.sound] (some subsets)."
+    },
+    {
+      "module": "ScalarProjection",
+      "terminal_tool_session": 47362,
+      "module_exit_code": 0,
+      "tool_session_exit_code": 0,
+      "source_sha256": "21712061f74a26d892f88d3175e871e0c7bf1ab18b4a5de500d90522492b6804",
+      "object_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/ScalarProjection.olean",
+      "object_sha256": "6acbc6c736dcbf0dfff968772210e720ce778ef2121f7a6309145a16a4448296",
+      "kernel_log": "Checking StreamingV1.ScalarProjection\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarProjection.lean:12:52: warning: This simp argument is unused:\n  BitVec.toNat_ofNat\n\nHint: Omit it from the simp argument list.\n  simp only [\u0335B\u0335i\u0335t\u0335V\u0335e\u0335c\u0335.\u0335t\u0335o\u0335N\u0335a\u0335t\u0335_\u0335s\u0335e\u0335t\u0335W\u0335i\u0335d\u0335t\u0335h\u0335,\u0335B\u0335i\u0335t\u0335V\u0335e\u0335c\u0335.\u0335t\u0335o\u0335N\u0335a\u0335t\u0335_\u0335a\u0335n\u0335d\u0335,\u0335B\u0335i\u0335t\u0335V\u0335e\u0335c\u0335.\u0335t\u0335o\u0335N\u0335a\u0335t\u0335_\u0335o\u0335f\u0335N\u0335a\u0335t\u0335]\u0335[\u0332B\u0332i\u0332t\u0332V\u0332e\u0332c\u0332.\u0332t\u0332o\u0332N\u0332a\u0332t\u0332_\u0332s\u0332e\u0332t\u0332W\u0332i\u0332d\u0332t\u0332h\u0332,\u0332 \u0332B\u0332i\u0332t\u0332V\u0332e\u0332c\u0332.\u0332t\u0332o\u0332N\u0332a\u0332t\u0332_\u0332a\u0332n\u0332d\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.StreamingV1.enum_cast_projection' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.status_cast_projection' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.enum_two_exact' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.actual_enum_projection' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.actual_status_projection' depends on axioms: [propext, Classical.choice, Quot.sound]\n"
+    },
+    {
+      "module": "VarintPrefix",
+      "terminal_tool_session": 43128,
+      "module_exit_code": 0,
+      "tool_session_exit_code": 0,
+      "source_sha256": "fd2c290a2b181715fbe1ec35a1e4de7ff074b67a77038eb49d496a6f236f569d",
+      "object_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/VarintPrefix.olean",
+      "object_sha256": "01e5b5349ab3a069fa229198b22fe4a9bb402e0650a6ad876252b72e3be63c5c",
+      "kernel_log": "Checking StreamingV1.VarintPrefix\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/VarintPrefix.lean:65:39: warning: This simp argument is unused:\n  TlsWebSocketUpgrade.any\n\nHint: Omit it from the simp argument list.\n  simp [\u0335l\u0335a\u0335n\u0335e\u0335,\u0335T\u0335l\u0335s\u0335W\u0335e\u0335b\u0335S\u0335o\u0335c\u0335k\u0335e\u0335t\u0335U\u0335p\u0335g\u0335r\u0335a\u0335d\u0335e\u0335.\u0335g\u0335e\u0335t\u0335,\u0335T\u0335l\u0335s\u0335W\u0335e\u0335b\u0335S\u0335o\u0335c\u0335k\u0335e\u0335t\u0335U\u0335p\u0335g\u0335r\u0335a\u0335d\u0335e\u0335.\u0335a\u0335n\u0335y\u0335,\u0335T\u0335l\u0335s\u0335W\u0335e\u0335b\u0335S\u0335o\u0335c\u0335k\u0335e\u0335t\u0335U\u0335p\u0335g\u0335r\u0335a\u0335d\u0335e\u0335.\u0335e\u0335i\u0335t\u0335h\u0335e\u0335r\u0335,\u0335B\u0335y\u0335t\u0335e\u0335A\u0335u\u0335t\u0335h\u0335.\u0335c\u0335o\u0335n\u0335c\u0335r\u0335e\u0335t\u0335e\u0335]\u0335[\u0332l\u0332a\u0332n\u0332e\u0332,\u0332 \u0332T\u0332l\u0332s\u0332W\u0332e\u0332b\u0332S\u0332o\u0332c\u0332k\u0332e\u0332t\u0332U\u0332p\u0332g\u0332r\u0332a\u0332d\u0332e\u0332.\u0332g\u0332e\u0332t\u0332,\u0332 \u0332T\u0332l\u0332s\u0332W\u0332e\u0332b\u0332S\u0332o\u0332c\u0332k\u0332e\u0332t\u0332U\u0332p\u0332g\u0332r\u0332a\u0332d\u0332e\u0332.\u0332e\u0332i\u0332t\u0332h\u0332e\u0332r\u0332,\u0332 \u0332B\u0332y\u0332t\u0332e\u0332A\u0332u\u0332t\u0332h\u0332.\u0332c\u0332o\u0332n\u0332c\u0332r\u0332e\u0332t\u0332e\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.StreamingV1.core_value_continue' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.core_modes_continue' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.core_prefix_invariant' depends on axioms: [propext, Classical.choice, Quot.sound]\n"
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/VarintReference.lean": "ef758ed91f5e3c1c18bf7289722a99475f609ceca14dd21e9eedea60af510ba6",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarProjection.lean": "21712061f74a26d892f88d3175e871e0c7bf1ab18b4a5de500d90522492b6804",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/VarintPrefix.lean": "fd2c290a2b181715fbe1ec35a1e4de7ff074b67a77038eb49d496a6f236f569d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check.py": "388d2060dfbe01c209c6e03ce6a6d3631acbc4cf44ec15c0b78d0ab2fac5235a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/record.py": "3472d7b02b6eab6babafdc3a76b8ee01c314a284e3a9dc6205cac832f7051689",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/README.md": "c45e23172ecb8b6142d355a6517bbe955d22656811404c3ed3b8a47f59fe29be"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00"
+  },
+  "core_source_sha256": {
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsWebSocketUpgrade.lean": "d95759c26e3eabb0abf36c19e56c4dc3719e0347459515fb77978de19ff56c2d",
+    "TlsMpc/TlsWebSocketFrame.lean": "ff94d6f8cc0b6b0db14206d660729f8a4c59170979e27877ddf645ead3fcc913",
+    "TlsMpc/TlsInner.lean": "a11f4b63df88d57ca36d0aed49480a4fb7a9737b6fd8b1d4a300bdce4b2eefca",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/Signal/VarintDecode/Spqr.lean": "de5cbc8467cf466c8da7d9582406ea04e9191dbc4b14dc1c3bf53ec2424c9865",
+    "TlsMpc/Signal/VarintDecode/Spec.lean": "3a1240d1a448a7c1d719904eee73111db7e7d95f91f56ea4f8841e6933d576d7"
+  },
+  "core_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsChatResponse.olean": "2334f6fab4fc888329da7cb1979cc80e7914cdd5e9659d5f4ec4d06dcb7f5dc0",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsWebSocketUpgrade.olean": "bdb39395f83f1a1a6fe2080928bdf97ad77f24e792bf2aaf51c4372b9b6629dd",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsWebSocketFrame.olean": "4432e9de2784c9852c1d1d960facbf0a3ed17b613d49ef66e06e3795c39413e4",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsInner.olean": "fc311d4502caa21cda3af0dbf176debcc0d1457302ba41ea507451010e445de6",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/ByteAuth.olean": "c7f4bc1ab25dcfee238ebce5397dab8b6eeaf951042a70160db24852621fcc6b",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/Signal/Word64.olean": "a4969cc845ab7b17d99d0be343fb89c116e0b05839168bcf27986d48af324335",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/Signal/VarintDecode/Spqr.olean": "21ad512b6daa5d56fcc38126d408a20926a6f6c8fd91d402482334bb68c33c24",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/Signal/VarintDecode/Spec.olean": "8fe03159f1620534dc81b01648ff3ce12743297519a8c7610823f712d3f02db5"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/VarintReference.olean": "df975dd6c24ffd4f3605f5bfd73926ab91d94b49c87171f0451154a711b9bd7c",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/ScalarProjection.olean": "6acbc6c736dcbf0dfff968772210e720ce778ef2121f7a6309145a16a4448296",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/Build/final/ChatResponseReferenceWork/StreamingV1/VarintPrefix.olean": "01e5b5349ab3a069fa229198b22fe4a9bb402e0650a6ad876252b72e3be63c5c"
+  },
+  "remaining": [
+    "Full prefix/span/absolute-cursor to actual owned schema relation.",
+    "HTTP header/Unicode trim source validation and correlation/compiler composition.",
+    "Inherited static-reference diagnostic push and optimized unsafe std UTF8/content/allocation model boundaries."
+  ]
+}
