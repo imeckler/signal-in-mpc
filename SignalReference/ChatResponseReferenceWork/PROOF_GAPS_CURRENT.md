@@ -92,3 +92,10 @@ key supplies exact input/tail span, bounded count, actual Core stored tag,
 wire-kind lane, accumulator reset and position reset without supplied-prefix/
 table premises. Both attempted-key branches are now composed; successful field/
 group/private-end/full-scan and HTTP/correlation/compiler work remains open.
+
+Scalar payload checkpoint: `StreamingV1/scalar-payload-audit.json` records clean
+two-module aggregate0. The actual uint64/u32 mergers compose with actual Core
+payload accumulation/reset and error rejection on every input/outcome. Exact
+source scalar values, old-value/error/suffix observations and low32 projection
+are preserved. This does not yet supply inner-end bounds, optional-field
+initialization/duplicates or message-state updates in the full scan invariant.
