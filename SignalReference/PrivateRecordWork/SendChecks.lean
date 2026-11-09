@@ -1,0 +1,10 @@
+import TlsMpc.Signal.PrivateRecordSnapshotV1Proofs
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fold_map
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.update_scalarValue_map
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fieldPresence_map
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.children_map
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.bytesValue_map
+#print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.snapshot_scalarValue_map
+#print axioms TlsMpc.Signal.PrivateRecordSendV1.applySend_map
+#print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.flatten_map
+#print axioms TlsMpc.Signal.PrivateRecordSnapshotV1.compiled_applySend_correct

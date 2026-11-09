@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "endpoints": 9,
+  "scope": "Generic model-relative send-update/flatten Hom and symbolic byte-circuit agreement. Does not prove Rust SessionRecord refinement, restore/project coherence, full binding, native execution, durable recovery or admission.",
+  "axiom_audit": "'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fold_map' depends on axioms: [propext]\n'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.update_scalarValue_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fieldPresence_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.children_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.bytesValue_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordOperationsV1Proofs.snapshot_scalarValue_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordSendV1.applySend_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordSnapshotV1.flatten_map' depends on axioms: [propext, Quot.sound]\n'TlsMpc.Signal.PrivateRecordSnapshotV1.compiled_applySend_correct' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateRecordOperationsV1Proofs.lean": "7d655084a0647c8da1da07823ac6d38ea521081613570de245e6a8257ad7e14f",
+    "TlsMpc/Signal/PrivateRecordSendV1Proofs.lean": "be1b102caca4386027f426b641e1adaf1c88785d24807e017c4e0bd02588c04b",
+    "TlsMpc/Signal/PrivateRecordSnapshotV1Proofs.lean": "aafd14566f7117ffb56bc273e034dd6c28b85fbeb505ca3daf795c3ace3b98f6",
+    "SignalReference/PrivateRecordWork/SendChecks.lean": "e00bd82f44db6b9f8ad716aaa70ebdac713759d8acef87ae0b81b5814181acc2"
+  }
+}
