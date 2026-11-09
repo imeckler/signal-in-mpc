@@ -1,0 +1,42 @@
+{
+  "candidate_only": true,
+  "scope": "Actual native key validation failures reject in actual Core common-key guard and stay rejected through arbitrary tail/finalization. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/KeyGuard.lean": "ca3606f6c707dd487d5da8d5c27e9e17b3d835a2b43164dd02b14b52ee1a46ce",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/CoreKeyGuard.lean": "028a238230e5be4e012f3592a586a70e51e5c57b84b3735570afee86d8f119d7",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_key_guard.py": "72febbbb040bdd441486dea09391ff230574a6523a113d6809cb1643937738b3",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/KEY_GUARD.md": "185ed0df06ccb0285ee940627f98461a3ca7e641550eef2c177b01ed7c69373c",
+    "SignalReference/ProtoParseWork/FullParserV3Work/KeyCircuit.lean": "7364b8347064a819e6bdd1d5b6849999b880aadcf52b69b98d76e0a948ce02cb"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99"
+  },
+  "inherited_source_count": 232,
+  "inherited_object_count": 98,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-8268859de6ac-67462.log",
+  "kernel_log_sha256": "89722d758bf12d1409ebeb71b25d6839b4ad943403f399647b8a2f316a05ccd7",
+  "kernel_log": "'LibSignalReference.Candidate.ProstSkipKey.word_eq_value' depends on axioms: [propext, Quot.sound]\n'LibSignalReference.Candidate.ProstSkipKey.key_mask' depends on axioms: [propext, Classical.choice, Quot.sound]\n'LibSignalReference.Candidate.ProstSkipKey.keyFields_map' depends on axioms: [propext, Quot.sound]\nChecking StreamingV1.KeyGuard\n'ChatResponseReference.StreamingV1.common_key_exact' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.native_key_rejected_common' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking StreamingV1.CoreKeyGuard\n'ChatResponseReference.StreamingV1.core_common_key_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.native_key_failure_core' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.native_key_failure_tail' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ChatResponseReferenceWork/StreamingV1/KeyGuard.olean": "48a2f6155ff772bd223a5dae59cf37a676d4a6d47ebe835ab93f607f531b6bdb",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ChatResponseReferenceWork/StreamingV1/CoreKeyGuard.olean": "374729e4bc7662bc83eea68d383cb2bddc00efbc5723ccc67d24ad8098218b89"
+  }
+}

@@ -71,3 +71,10 @@ clean kernel exit0. Native successful key validation supplies the exact tag and
 wire-kind equalities for actual Core stored-tag and next-lane transitions across
 all six wire kinds; actual terminal value reset is proved. The common key guard,
 known-field wire/depth guards and full schema/private-end induction remain open.
+
+Common key rejection checkpoint: `StreamingV1/key-guard-audit.json` records
+clean aggregate0 for the affected accepted KeyCircuit dependency and two new
+modules. Native key-validation Err now implies zero actual Core validity and
+sticky rejection through arbitrary tails/finalization. The original range/
+wire/tag diagnostic ordering/suffix remains in the native bridge. Known-field
+wire/depth conditions and whole schema/private-end induction remain open.
