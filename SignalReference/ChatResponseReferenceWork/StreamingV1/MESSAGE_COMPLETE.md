@@ -1,0 +1,7 @@
+# Complete message String field cache/control join
+
+`message_length_response_data` proves the actual message String length step changes only cached message presence. `native_message_data_complete` follows the exact native length/copy span through arbitrary copied payload bytes, preserving other cached response fields and returning key mode/zero skip. The relation is independent of UTF acceptance and initial validity.
+
+`actual_message_field_complete` joins this cache/control result to the prior actual generated source result/content/error effects and complete-field UTF validity equality. Prefix uniqueness binds both proofs to one actual consumed prefix and native suffix. Malformed/incomplete UTF8, empty fields and duplicates are included. On invalid UTF8 the exact source clear/InvalidString/diagnostic Result effects remain; cached presence is internal evidence and does not convert rejection into success.
+
+The complete statement has the same explicit bounded current-field entry relation as message-field-audit.json. Full scan must derive key entry relations and post-field child/scope/cursor invariants and join malformed length/physical underflow/child-overrun branches. Repeated HTTP-header eligibility, full schema/correlation/private EOF/compiler composition and actual std UTF8/static diagnostic-push/content trust boundaries remain open. Cache projection is a proof component, not the final application observation. No runtime/generated computation edits.
