@@ -115,3 +115,11 @@ and outer prefixes retain inner0. Actual Core key-terminal scalar recognition
 now matches native dispatcher tags (outer1; inner1/2) under the explicit new-tag
 projection. Full scan must still join key projections/context/known-wire guards
 to source field dispatch and compose remaining field/private-end/HTTP/compiler work.
+
+Native key recognition checkpoint: `StreamingV1/native-recognition-audit.json`
+records clean three-module aggregate0. Actual native key success now derives
+actual Core scalar and response/body/message/header recognition at outer and
+bounded inner boundaries, with no caller prefix/table/new-tag premises. The
+four-entry kind-list shape is invariant under all Core bytes. Full scan still
+must derive explicit child-cursor/counter/depth/state conditions, known-field
+wire guards and remaining field/group/private-end/HTTP/compiler composition.
