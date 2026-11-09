@@ -114,6 +114,12 @@ int main(int argc,char** argv) {
             resolver={};state->import_worker.reset();
             state->collective->require_local_success(bool(state->restored_account));
             public_require(bool(state->restored_account),"authorized account recovery rejected");
+            const auto& head=state->restored_account->certified_head();
+            const auto& boot=state->restored_account->boot_context();
+            PublicBytes binding(head.begin(),head.end());binding.insert(binding.end(),boot.begin(),boot.end());
+            PublicBytes binding_digest(32);SHA256(binding.data(),binding.size(),binding_digest.data());
+            state->collective->agree_program("restored-account-admission-v1",binding_digest);
+            PublicBytes restored_nonce(boot.begin(),boot.begin()+16);
             state->session=std::make_unique<Session>(*state->machine,*state->pinned,state->shapes.get(),state->lifecycle.get(),state->metrics.get());
             state->dispatcher=std::make_unique<Dispatch>(*state->session,*state->collective,state->shapes.get());
             MuxProviderFactory admitted=[pointer=state](Session& session,Collective& collective,unsigned selected_party){
@@ -121,7 +127,7 @@ int main(int argc,char** argv) {
                 auto result=pointer->restored_account->consume(session,collective,selected_party);
                 pointer->restored_account.reset();return result;
             };
-            state->providers=std::make_unique<MuxProviderCoordinator>(*state->session,*state->collective,std::move(admitted),PublicBytes(session_id.begin(),session_id.begin()+16));
+            state->providers=std::make_unique<MuxProviderCoordinator>(*state->session,*state->collective,std::move(admitted),std::move(restored_nonce));
         }),"restored fresh TLS bootstrap failed");
 #endif
         auto close_private=[&]{

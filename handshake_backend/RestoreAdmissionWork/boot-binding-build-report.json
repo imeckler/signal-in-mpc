@@ -1,0 +1,12 @@
+{
+  "compiled_linked": true,
+  "native_positive_executed": false,
+  "source_sha256": {
+    "handshake_backend/WebSocketWork/mux_worker_main.cpp": "5814814ad75f1f430b0daa0f66b4640e3fc859b398f6c77368f7883af39f8c88",
+    "signal_backend/RecoveryWork/AccountAdmission.h": "6b62b7fd93e4c42031369cfe657cf42ec5788457072c35f528989e92c0e497c6",
+    "handshake_backend/NativeSession.h": "dc4413f956b904db2b85eb3e01d77943d01ccd62903b26bc17fc97503405858e",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "ddf9ced3f41264b645f97467f74ec14d2cf2f46bcd4f802cafbff5e95b886983"
+  },
+  "binary_sha256": "e7566e46b498ff40c3ed612847ebce357f23dc095611b21e143af6bfc2b0f0c6",
+  "scope": "Restored launcher compiled with actual private head/boot capability, collectively agrees head+fresh joint boot digest, derives fresh public WS nonce from boot; actual resolver/positive activation not executed. Previous absent-resolver report remains historical."
+}
