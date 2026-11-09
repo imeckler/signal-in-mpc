@@ -85,3 +85,10 @@ supplied-prefix/table premises: every nonempty input whose actual generated
 schema driver key decoder errors is rejected by the actual Core fold/finish.
 Native error contents/cursor remain exact in the source key reference. The
 successful field/group/schema/private-end induction remains open.
+
+All-input successful-key branch: `StreamingV1/any-key-success-audit.json`
+records clean two-module aggregate0. Every actual generated driver successful
+key supplies exact input/tail span, bounded count, actual Core stored tag,
+wire-kind lane, accumulator reset and position reset without supplied-prefix/
+table premises. Both attempted-key branches are now composed; successful field/
+group/private-end/full-scan and HTTP/correlation/compiler work remains open.
