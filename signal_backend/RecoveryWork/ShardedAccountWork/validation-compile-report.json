@@ -1,0 +1,27 @@
+{
+  "compiled": true,
+  "candidate_only": true,
+  "stages": [
+    {
+      "ordinal": "global",
+      "descriptor": "signal_private_shard_validate_v1_global-sbv:[66448x1]-sbv:[8x1]",
+      "seconds": 14.886336040915921,
+      "artifact_sha256": "51dd4d6bd57fb2f2ddedef31608102e56ac10405b0fde2ceff1624c5ac0a9803"
+    },
+    {
+      "ordinal": "conversation",
+      "descriptor": "signal_private_shard_validate_v1_conversation-sbv:[167336x1]-sbv:[8x1]",
+      "seconds": 40.036258958047256,
+      "artifact_sha256": "d7ac9dffbb7774c00c07ee18cf46cbbb859e46561393bf2d0fa4f6a164f69950"
+    }
+  ],
+  "manifest_sha256": "2a102ea6e3c47cd484f814c260ef36419ad66f5720eb0bd46be77e1520cd8a67",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateShardedAccountV1.lean": "2f3494be8962f5bd84da1df8ba0e90f90b9232725cd0b56a6d458c47b35533f9",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportValidation.lean": "9dac1625b1deee918c4475b6212c8f85fb66731f0eeb76d377ac04f44bff414b",
+    "signal_backend/RecoveryWork/ShardedAccountWork/shard_validate.mpc": "794e471a3f85fe9ad15b463595e693d5c0b0ec57706c9c710f6015a94b69ad6d",
+    "signal_backend/RecoveryWork/ShardedAccountWork/prepare_validation.py": "2f7fcb7ebb45cbc8958f5990e9253b127eb892dffa9f84930b656606664531b7"
+  },
+  "native_MPC": false,
+  "whole_account_activation": false
+}

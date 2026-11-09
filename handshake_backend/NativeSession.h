@@ -12,6 +12,7 @@
 #include "BatchThroughputWork/NativeBatchService.h"
 #include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
 #include "../signal_backend/RecoveryWork/NativeRecordBinding.h"
+#include "../signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h"
 #include "WebSocketWork/NativeWebSocket.h"
 #include "WebSocketWork/NativeWebSocketMux.h"
 #include "SessionPolicy.h"
@@ -309,6 +310,19 @@ public:
         guarded([&]{require_application();require(computed_status.size()==8,"private status dimensions rejected");
             auto accepted=eval("tls-provider-validity",concat({computed_status,public_bits({255})}),1);
             require(release(std::move(accepted))==Bytes{255},"private computation rejected");
+        });
+    }
+    // Embedding-only changed-shard check: evaluates this exact owned data with
+    // a fixed pinned validator, then opens only its authenticated accept flag.
+    signal_mpc::recovery::Digest check_shard_for_capture(bool conversation,const Bits& global,const Bits& body,
+            const signal_mpc::recovery::Digest& expected_manifest){
+        return guarded([&]{require_application();signal_mpc::recovery::Digest manifest{};
+            std::copy_n(pinned_programs.digest().begin(),32,manifest.begin());
+            require(manifest==expected_manifest,"shard capture manifest mismatch");
+            auto valid=signal_mpc::recovery::sharded::NativeShardValidation::evaluate(conversation,
+                Bits(global.begin(),global.end()),body,machine,worker,pinned_programs);
+            require_private_status(std::move(valid));
+            return signal_mpc::recovery::sharded::NativeShardValidation::program_identity(conversation,manifest);
         });
     }
     Bits remask_restored_outbox(Bits typed_payload,Bits computed_resumability,size_t capacity){

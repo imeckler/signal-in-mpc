@@ -1,0 +1,15 @@
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+image=load(program.args[1]);kind=image.get('kind')
+if kind not in ('global','conversation'):raise ValueError('shard validation kind')
+count=8306 if kind=='global' else 20917
+if image['name']!='signal-private-shard-validation-v1' or image['input_bits']!=count*8 or len(image['outputs'])!=8:raise ValueError('shard validation profile')
+def evaluate(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+evaluate.__name__='signal_private_shard_validate_v1_'+kind
+function=export(evaluate);Array=sbitvec.get_type(1).Array
+function(Array(count*8),Array(8))

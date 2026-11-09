@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 5,
+  "foundational_axioms_only": true,
+  "exact_AIG_cases": 16,
+  "public_structural_fixture_only": true,
+  "native_MPC": false,
+  "account_activation": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_validation.py": "9f5471165bca45ca75f7f45257eff780718767ac83cd737a37345e8c40c4db66",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ValidationAudit.lean": "423f32c58035c83cf39090e24309e0f99c0a0ae6058556deb6955d630043ed4c",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportValidation.lean": "9dac1625b1deee918c4475b6212c8f85fb66731f0eeb76d377ac04f44bff414b",
+    "TlsMpc/Signal/PrivateShardedAccountV1.lean": "2f3494be8962f5bd84da1df8ba0e90f90b9232725cd0b56a6d458c47b35533f9"
+  }
+}

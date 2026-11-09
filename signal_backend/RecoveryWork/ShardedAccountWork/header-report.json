@@ -3,8 +3,11 @@
   "actual_OwnedBits_compile_link": true,
   "native_MPC": false,
   "source_sha256": {
-    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "92f5f9b4c61edfeea0ed751aa9d323df928675284b2e04cdde518e7c867d19ab",
+    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "fd322972d88be6f759fb7ef150c45c7ab9840c4b686482cfedeb296e2bd09b4f",
     "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h": "c591bc29f8aea88a8df0542eec5d445414b409403d93b35b2a3df36da35c7aae",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "65fd6d6c0860909dd2b7095b52dd8a8333828580beca87f4ac4242a68185ff99",
+    "handshake_backend/NativeSession.h": "b61013ef1e5127ec497ec534fa3db1f98058826e5ac30273fed1b68820265d9e",
     "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "56dec6ea07ddc420a6369cff9d2145a0c7d841fde402828e78943e3e3f98fdb2"
   },
   "binary_sha256": "d4cb9b003c3ff792baa13879d0771ed1e7998fa73a0ea02a164b740e42b6a41d"
