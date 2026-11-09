@@ -43,3 +43,10 @@ No complete ChatConnection scheduling, retry/fanout, log-trace, or Signal sessio
 security theorem is claimed.
 
 Shared TLS/Word64/parser core APIs remain untouched by this response work.
+
+Terminal lexer checkpoint: `StreamingV1/terminal-audit.json` now records a clean
+two-module combined exit0 in separate output `terminal-v1-final`. Actual Core
+accumulation constructs the accepted strict numeric row, then the pinned native
+Prost value/exact tail with explicit in-input bound. Noncanonical encodings are
+included. Lane/position/span establishment across the schema and malformed/EOF
+lexer cases remain subsequent work; no whole streaming theorem is claimed.

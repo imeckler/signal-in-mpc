@@ -1,0 +1,34 @@
+{
+  "candidate_only": true,
+  "scope": "Actual Core terminal accumulator and strict tenth-byte condition construct the numeric row and actual pinned Prost value/exact tail. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/TerminalReader.lean": "0a13e2e7bdb92bb27c46c96230d8f9f184af0f5f621044748e6ea7ead91dd8cf",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/TerminalNative.lean": "7c33eb9ba5b565922a3fa3a4db01c85ce668b9164d7f25ac8089996d6cd7bcbc",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_terminal.py": "843cf5005c66aa1f6097f15fa9ea1d265bd95bc19f06d27f68bc8c6c53214df9",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/TERMINAL.md": "d463074d3fe212f7e39cc16e56cc77d2417cbad139fc4440ade8e66dcdd0e345"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba"
+  },
+  "inherited_source_count": 216,
+  "inherited_object_count": 90,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-5be0fde6dbec-66588.log",
+  "kernel_log_sha256": "da29abfc1205a9ae84a2f198377354d4e531185f44f6a84e9e1e59539ec73619",
+  "kernel_log": "Checking StreamingV1.TerminalReader\n'ChatResponseReference.StreamingV1.reader_terminal_state' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.strict_terminal_row' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.core_terminal_row' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.TerminalNative\n'ChatResponseReference.StreamingV1.core_terminal_native' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/terminal-v1-final/ChatResponseReferenceWork/StreamingV1/TerminalReader.olean": "07b5f6ff82a4caf8cf444e9cc72a7f80c6c25ab158a262d7e0b42dd12e8c9886",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/terminal-v1-final/ChatResponseReferenceWork/StreamingV1/TerminalNative.olean": "95aa8f27821d5464b43bfa12d99dc7f4f12b86db84170663acb164ea2ca0b67c"
+  }
+}
