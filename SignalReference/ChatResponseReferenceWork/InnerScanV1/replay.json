@@ -1,0 +1,12 @@
+{
+  "scope": "Namespace/import replay; identical pinned primitive Wire/Context/Error type aliases. Actual default merge loop and transferred owned wrapper computational bodies unchanged.",
+  "script_sha256": "3341f34647b117cb95dcb4ff3fe28443c617468a4004cac18a062fc24ed15306",
+  "original_sha256": {
+    "Types.lean": "b77e3b21ba11bccfff9946265bf394b06d7239b557ceb6439ce70c36297b196c",
+    "Funs.lean": "8e0c9135b16dc9e32d4b5239f40480bc36b73774cfdca9179a160412ba36e518"
+  },
+  "replayed_sha256": {
+    "Types.lean": "5633ca78ba4d2a97ce0b01b716077d8052d4fbb90edfbf0cbed6706521b7e695",
+    "Funs.lean": "61c41f8082dfe8dc4a822379ed11852d7e1c1a72760c1e13c3880400bced308a"
+  }
+}
