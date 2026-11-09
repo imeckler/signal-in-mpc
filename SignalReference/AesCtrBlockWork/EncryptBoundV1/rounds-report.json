@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 15,
+  "foundation_axioms_only": true,
+  "actual_four_iteration_round_loop": true,
+  "actual_loop_termination_and_full_state_result": true,
+  "actual_checked_additions_and_key_ranges": true,
+  "arbitrary_eight_word_state": true,
+  "arbitrary_fifteen_eight_word_round_keys": true,
+  "raw_substitution_NOTs_not_restored": true,
+  "generated_body_edits": false,
+  "Std_content_and_trusted_indexed_Zip_boundary_retained": true,
+  "ordinary_AES_key_compensation_and_CTR_wrapper": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/check_rounds.py": "77c05269de3264c5169a71a49681bdfcfab2929bcc6a20d708889bd33ca33934",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/report.json": "874ed68fbcbaee9496e405dd5f7a86c0f47e114303a9c6f873aa0cf71a76f141",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/raw-sub-report.json": "27f2ffb4516011800d0476a9c246efe215ad223bd7504a1cec28a645378f511b",
+    "SignalReference/LibSignalReference/Proofs/AesLinearReference.lean": "43ae1dba1ce278ba826ff030e6e516a6ba26864b1588b94d85b162eff5eb913a",
+    "SignalReference/LibSignalReference/Proofs/AesMixPhaseReference.lean": "570f38fea78a5373dab43325bf99d84a3345d1de157d43c07a6bfeef672067e5",
+    "SignalReference/LibSignalReference/Proofs/AesShiftReference.lean": "4bdb10a1186c0f904ca6fed9d8cb890a6db0f2fcc08ee2f620f67b0be0e9a4dc",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/RoundModel.lean": "404c63c0a9f40ac9e174ec97d4b971172cd4bbb00c3522f03f49436a48974116",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/KeyRanges.lean": "d2c7f98d502a29c78cb6308ab76ed937769583bde81e37645f5876f54ceec729",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/LoopReference.lean": "9d849f3bf3fd66eddd14a5c979d14b53b106c7c9b4db9f94c65336c95d212d0f"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/LibSignalReference/Proofs/AesLinearReference.olean": "8efd6296d95474ecc1012931899571674f9779fda902249a357f28dc03ee8cc1",
+    "SignalReference/CtrReferenceV1Work/Build/LibSignalReference/Proofs/AesMixPhaseReference.olean": "9909ff656bb0c912818e7e7b0a5de7eef12428350460ff339246c9562a2ef2d8",
+    "SignalReference/CtrReferenceV1Work/Build/LibSignalReference/Proofs/AesShiftReference.olean": "f04556d9dd2ae168de76e743bcaa69d223e1b506f39312dfcf152aeb4d2403f7",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/RoundModel.olean": "a57a4a64cafb537144ef28bb9dc0a3490a916123c7f3c39fc7a004a043ba4552",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/KeyRanges.olean": "36fc0489d6557d08f8f0c9145fdcca0a5e8a7a7c9b6a02971a0261cd55a11c85",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/LoopReference.olean": "4e38b17487fb05b9858c7860669cf0ce92d31d656fe1dd81dc3fb7f5c3bc02f5",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/RawSubReference.olean": "4599b693f6399edfd8576d5c2ecf832264e854518a47e6cca51f7816e09ed947",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/ZipModelV1/RoundKeyReference.olean": "6a3d27e7a8d2e2d1d774a3767b0854ad3c26134b3e53bf25c1ff0e95a81c4667"
+  }
+}
