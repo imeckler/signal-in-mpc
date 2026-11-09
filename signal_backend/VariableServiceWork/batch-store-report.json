@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "ASAN_UBSAN": true,
+  "checks": 156,
+  "batch_sizes": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "reserve_callbacks_per_batch": 1,
+  "commit_callbacks_per_batch": 1,
+  "independent_conversation_completion": true,
+  "partial_install_failure_no_outputs": true,
+  "poison_all_on_uncertainty": true,
+  "move_only_weak_lease_tickets": true,
+  "default_mock_profiles": 32,
+  "prior_checkpoint_checks": 12,
+  "native_MPC": false,
+  "durable_account_callback_binding": false,
+  "runtime_retirement": false,
+  "normal_recovery_admission": false,
+  "source_sha256": {
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "761e335c4a55a53c7915a4ba45a43b366a63ad37478d8f8b07f15f927b2ad0e7",
+    "signal_backend/VariableServiceWork/VariableSendBatch.h": "aadba8adb4d57d2b94bd5d56f5865c151fb327da2b1bf25d69929480155c9bc7",
+    "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
+    "signal_backend/VariableServiceWork/batch_store_checks.cpp": "77874aba2fea03f93cb0d08e8a6da85d5ebcf54d9bc1976413a30dcd376da6e6",
+    "signal_backend/VariableServiceWork/check_batch_store.py": "4dfd96cd02ae36822b45eb34d918c7ad21bb2f1009e010b92ba04f2e6d3e7c2d",
+    "signal_backend/VariableServiceWork/BATCH_STORE.md": "7e7b5c0b228d20b0761adf58db378ab8ab0f5e5db465258f5f1bdf070ac35614"
+  },
+  "binary_sha256": "7d9f207c4e06a56b69ccb26348c03f8cc9b3d43521945e05ba30e0f3ca754ba1"
+}

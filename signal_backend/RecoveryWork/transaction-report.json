@@ -11,7 +11,7 @@
     "signal_backend/RecoveryWork/check_transaction.py": "69e75378992ab26653688cdac5da60c656d1818b18f9fa47f0e1aed111677e40",
     "signal_backend/RecoveryWork/transaction_check.cpp": "464e61fe576525ab7642b9254d589c0665a88e3a5247ff3fc58ee6577ab202ae",
     "signal_backend/RecoveryWork/STORE_CHECKPOINT.md": "0a9305fde6bd033780c1c56b5fb1483480eea70a267edef88c75a0a6ffc2c268",
-    "signal_backend/VariableServiceWork/VariableSendStore.h": "2b9512556f3c79f2ebf8c002aa0dd10edaddac6701612dab64182f1ad779b9b1",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "761e335c4a55a53c7915a4ba45a43b366a63ad37478d8f8b07f15f927b2ad0e7",
     "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
     "signal_backend/VariableServiceWork/store_checks.cpp": "45d6fe4814b362c0267597f66118c6285ae1942b9e47ca2014f1d6e280d055c8"
   }
