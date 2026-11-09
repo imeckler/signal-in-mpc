@@ -7,28 +7,21 @@ source pins govern the scope of completed checks; this plan is not a blanket
 acceptance of their results. All three Sol workers are active. Sharing refresh
 remains paused.
 
-- **tls_sol:** finish the bounded immutable public-program cache candidate and
-  test repeated real producer execution, including fresh secret state and epoch
-  retirement. The single-process observed-working-set replay is not evidence of
-  five-party application throughput. Continue compact Boolean MPC selection and
-  integration with Fp25519 arithmetic and checked conversions as a core task.
-  The current CCD backend represents Boolean shares as GF128 elements; register
-  batching does not fix its wire cost. Preserve two-malicious tolerance in the
-  production candidate. Compact Rep3 measurements use a weaker corruption and
-  configured statistical-security profile and do not authorize replacing it.
-  References: `handshake_backend/PublicProgramCacheWork/README.md`,
-  `handshake_backend/BooleanBackendSelectionWork/AUDIT.md`, and
-  `handshake_backend/BatchThroughputWork/comparison-report.json`.
-- **signal_crypto_sol:** complete actual independent-helper cleanup and
-  fresh-process shared-state import, then connect committed canonical state and
-  pending outboxes to fresh TLS and continued actual-peer interoperability.
-  Whole-account bootstrap, quorum/rollback checks and activation remain separate
-  obligations from successful per-conversation owner transactions. Continue the
-  remaining fresh-session/PQXDH, skipped-message/session transitions and crypto
-  implementation-refinement work after this integration checkpoint; established
-  sends do not cover those requirements. References:
-  `signal_backend/RecoveryWork/ACCOUNT_SCHEMA.md` and
-  `signal_backend/RecoveryWork/ImportV2Work/README.md`.
+- **tls_sol:** preserve the successful integrated restore evidence, then extend
+  restoration to multiple conversations and more than four sends. Crypto has
+  handed over account engine/persistence/owner/layout work for this milestone.
+  First inspect the c1 and certificate-slot limits and specify a concrete state
+  and outbox change that preserves uncertain pending entries and durable cursor
+  reservations. Avoid copying or revalidating thousands of unchanged conversation
+  records on every send. Do not substitute a larger fixed test cap for scalable
+  persistence. Coordinate the revised account schema and circuit profiles.
+- **signal_crypto_sol:** continue actual pinned Rust CTR implementation
+  refinement in isolated work, then the remaining crypto wrapper composition and
+  fresh-session/PQXDH, SPQR and skipped-message/session transitions. The accepted
+  CTR conversion/exhaustion prefix is narrower than full CTR/AES/HMAC agreement.
+  Keep explicit extraction/standard-library/model boundaries; do not modify
+  TLS/account-engine files now owned by tls_sol without coordination. Established
+  restored sends do not cover fresh-session functionality or full refinement.
 - **signal_parser_sol:** connect the complete owned-envelope scan to the numeric
   streaming parser, then finish HTTP validation, private response correlation
   and compiler composition. Commit `5b2ee7d` supplies the bounded actual-source
@@ -36,6 +29,30 @@ remains paused.
   divergence observations and explicitly track static-push, UTF8 and content
   model boundaries in
   `SignalReference/ChatResponseReferenceWork/PROOF_GAPS_CURRENT.md`.
+
+Bounded integrated milestone: root inspected
+`handshake_backend/OutboxResumeWork/integrated-report.json` for run 88196,
+raw directory `19ccc57d3b64c8d6`: all five controllers exited 0 in 396.952 seconds, integrity true,
+cleanup empty, actual certified c1 account import/barriers, fresh TLS/HTTP101,
+retained-outbox replay with actual Rust recipient state preserved, then one new
+message decrypted, followed by KeyUpdate/abort. Production gate and full-system
+completion remain false. This is one conversation with bounded outbox slots,
+local fixture credentials and no live Signal account side effects. Successful
+working clone `retry-aaaa6047d704/account` advanced to head 3; the original head 2
+capture is historical evidence, not a rollback source for that active account.
+Preserve the first failed run 90731 and its source/binary snapshots as well.
+
+Performance remains unresolved. The tested hybrid uses Fp25519 and Boolean CCD
+with full GF128 shares; batching/caching do not remove its communication cost.
+The bounded compact-backend assessment (`d9721df`) found no validated five-party
+drop-in: Coral's examined release lacks required checks and contains two-party
+preprocessing/conversion assumptions. Compact Rep3 measurements have a weaker
+corruption/statistical profile. No production security change is authorized by
+those measurements. Preserve this decision frontier and the throughput target
+while completing functional work; neither the restore test nor cache tests
+establish 100,000 delivered messages/hour. References:
+`handshake_backend/BooleanBackendSelectionWork/AUDIT.md` and
+`handshake_backend/BatchThroughputWork/comparison-report.json`.
 
 Coordinate heavy native runs between workers. Commit owned files at meaningful
 checkpoints; hold an exclusive `fcntl.flock` on `/tmp/tls-mpc-git-index.lock`
