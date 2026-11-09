@@ -1,0 +1,27 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Measured compact byte endpoint feedback recurrence equals every585-byte compact original Mux event output for arbitrary private byte/control sequences following arbitrary actual Mux operation prefixes; exact582-byte state carry+4 new controls, malformed/rejected states included. Exported AIG bits agree per endpoint under the same encoding. No exported compact admission circuit/runtime promotion or complete actual Rust-response refinement claimed.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactInput.lean": "d514f1c2e70e06cf8bcd9b59a1f7210761d7a116b5a7cbfd3606c8a2a7a5dfb4",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/EncodedByteStep.lean": "3e882452d7d63b7613ca6ddf89de37e0223a5647dddd94fdaaef002935811c94",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledEncodedByte.lean": "14bb853c30e5daa00613c27122153d37da0a389fbd6a2a3b3edd341d02130d1d",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactCarry.lean": "fb48c20eaa544f590a2400bff84d0d816856c31837f1056f15c9b9e57b57ac62",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactFeed.lean": "278279baa74e796892e679f2d23285b3c8dd4ddc9c2165efaacfd9459395885b",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_compact_feed.py": "a91d1e0e985b89fe8a173d685515b14dc8b31c06cf5e089f2bfc9c3ffded5206",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/COMPACT_FEED.md": "53d1c33b5127b90f1565ca670fd22ffc74b94b14290df462494c207c90868c5b"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/serialized-trim-audit.json": "347fae5d9016209ab5a3d1d0135d6379b8643c983cdb1c2b6ef9ca70254aaf3d"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/compact-feed-ad9d55893d20-892.log",
+  "kernel_log_sha256": "9951ba8cf328486f18f2331a2b9b4ea98f41d303aa513822f0d9cd76ac8bd481",
+  "kernel_log": "Checking ParserCircuitCandidateV1.CompactInput\n'ChatResponseReference.ParserCircuitCandidateV1.expanded_input_test' does not depend on any axioms\n'ChatResponseReference.ParserCircuitCandidateV1.expand_encoded_input' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking ParserCircuitCandidateV1.EncodedByteStep\n'ChatResponseReference.ParserCircuitCandidateV1.mux_runByte_encoded' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.compact_trim_output' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.encoded_byte_step' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking ParserCircuitCandidateV1.CompiledEncodedByte\n'ChatResponseReference.ParserCircuitCandidateV1.compiled_encoded_byte' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\nChecking ParserCircuitCandidateV1.CompactCarry\n'ChatResponseReference.ParserCircuitCandidateV1.retained_state_bound' does not depend on any axioms\n'ChatResponseReference.ParserCircuitCandidateV1.encode_after_event' depends on axioms: [propext, Quot.sound]\nChecking ParserCircuitCandidateV1.CompactFeed\n'ChatResponseReference.ParserCircuitCandidateV1.event_state_carry' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.compact_feed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.admitted_compact_feed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/compact-feed-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactInput.olean": "bc98609d868eee14a3269df33a991ebcba2d16cc568a6e4405714cd91a0b81a7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/compact-feed-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/EncodedByteStep.olean": "d02fe69bb5878c2b1cda9a4a2cb7cda5e0077373a29c1732941663573b2b2ba7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/compact-feed-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledEncodedByte.olean": "25d4c0aea5e2c43dfbc194384914253665aed543041e6ab46bf6dc620139a5c7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/compact-feed-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactCarry.olean": "747fe8d1459dcb8e91130e3f8648f2935ee9ff502ab6c393a6468c7492a4ada2",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/compact-feed-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompactFeed.olean": "580454d709918c2e0610f7d00327ea47f0d28243e1ed0bce1848b99ae718803b"
+  }
+}

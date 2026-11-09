@@ -153,3 +153,13 @@ plus all3 exact event bytes, arbitrary state values under reachable ABI shape.
 serialized-trim-audit.json aggregate0/foundational-only. Explicit next4-control
 input encoding and exported compact recurrence/compiler trace join remain open;
 no valid/success premise or runtime promotion.
+
+Candidate compact process/feed/compiler milestone: CompactInput/EncodedByteStep/
+CompiledEncodedByte/CompactCarry/CompactFeed prove the measured byte endpoint
+feedback equals every585-byte compact actual Mux event output, arbitrary private
+byte/control sequences following arbitrary actual Mux operation prefixes. Exact
+582-byte state carry plus4 fresh controls and all exported AIG bits agree;
+malformed/rejected behavior included, no success premise. compact-feed-audit.json
+aggregate0/foundational-only. No runtime promotion or complete Rust-response claim.
+Compact exported admission/native adaptation remains open; original Mux admit
+semantics already proved. Stack profile40,529AND/depth275 vs65,825/depth275.
