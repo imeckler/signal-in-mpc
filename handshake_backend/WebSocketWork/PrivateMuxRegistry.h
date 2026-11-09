@@ -73,6 +73,31 @@ public:
             auto handle=hooks.retain(std::move(result.payload),result.capacity);hooks.checkpoint();return{handle,result.capacity};
         }catch(...){fail();throw;}
     }
+    std::vector<Receipt> produce_batch(const std::vector<std::pair<uint64_t,uint64_t>>& requests){
+        try{
+            live();require(active&&!requests.empty()&&requests.size()<=4,"private mux batch unavailable");
+            std::vector<size_t> slots;
+            for(size_t slot=0;slot<4;++slot)if(!pending[slot].owner)slots.push_back(slot);
+            require(slots.size()>=requests.size(),"private batch queue full");
+            for(size_t i=0;i<requests.size();++i){auto [owner,handle]=requests[i];auto found=entries.find(owner);auto input=inputs.find(handle);
+                require(found!=entries.end()&&!found->second.pending&&input!=inputs.end()&&input->second.owner==owner,"private batch admission rejected");
+                for(size_t j=0;j<i;++j)require(requests[j].first!=owner&&requests[j].second!=handle,"duplicate private batch conversation/input");}
+            std::vector<Input> admitted;std::vector<Bits> expected;std::vector<typename Conversation::BatchRequest> batch;
+            for(size_t i=0;i<requests.size();++i){auto [owner,handle]=requests[i];auto found=inputs.find(handle);admitted.push_back(std::move(found->second));inputs.erase(found);
+                auto id=hooks.reserve_id();require(id.size()==64,"invalid private batch ID");expected.push_back(id);
+                entries.at(owner).pending=true;pending[slots[i]].owner=owner;
+                batch.push_back({entries.at(owner).conversation.get(),std::move(admitted.back().payload),std::move(admitted.back().timestamp),std::move(id)});}
+            auto results=Conversation::produce_batch(std::move(batch));require(results.size()==requests.size(),"invalid private batch result count");
+            for(size_t i=0;i<results.size();++i){auto& result=results[i];require(result.ticket&&result.capacity<=16384&&result.payload.size()==8*(result.capacity+3)&&result.request_id.size()==64,"invalid private batch result");pending[slots[i]].ticket=result.ticket;}
+            std::vector<Receipt> receipts;receipts.reserve(results.size());
+            for(size_t i=0;i<results.size();++i){auto& result=results[i];auto& entry=entries.at(requests[i].first);
+                Bits status(result.payload.begin(),result.payload.begin()+8);
+                auto valid=hooks.combine(Bits(credentials),Bits(entry.validity));valid=hooks.combine(std::move(valid),std::move(admitted[i].validity));valid=hooks.combine(std::move(valid),std::move(status));
+                require(valid.size()==8,"invalid private batch validity");hooks.expect(slots[i],std::move(expected[i]),Bits(valid));
+                std::move(valid.begin(),valid.end(),result.payload.begin());receipts.push_back({hooks.retain(std::move(result.payload),result.capacity),result.capacity});}
+            hooks.checkpoint();return receipts; // Nothing released until whole batch barrier succeeds.
+        }catch(...){fail();throw;}
+    }
     uint64_t authenticated_response_complete(size_t slot){
         try{live();require(active&&slot<4&&pending[slot].owner&&pending[slot].ticket,"stale private completion slot");
             auto selected=pending[slot];auto& entry=entries.at(selected.owner);require(entry.pending,"private completion ownership rejected");

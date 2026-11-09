@@ -33,7 +33,11 @@ private def catalogueRows (fuel offset : Nat) (raw : Bytes) : M (List Conversati
     return (⟨owner,inputs,false⟩::tail,ending)
 
 def main (args : List String) : IO Unit := do
-  let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_payloadBytes] := args |
+  let batchMode ← match args.drop 13 with
+    | [] | ["sequential"] => pure false
+    | ["batch"] => pure true
+    | _ => throw (IO.userError "unknown mux execution mode")
+  let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_payloadBytes] := args.take 13 |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST BYTES")
   let certificate ← IO.mkRef false
   let operations ← IO.mkRef ([] : List Nat)
@@ -103,15 +107,28 @@ def main (args : List String) : IO Unit := do
             insist (!closing) "WebSocket closed before mux completion"
             let finished := completed+count
             if completed < 2 && finished ≥ 2 then TlsApplication.keyUpdate app false
-            let mut sent : List Conversation := []
-            for row in next do
-              match row.inputs with
-              | input::tail =>
-                if upgraded == 1 && !row.pending then
-                  sendReceipt (← rpc.call .muxProduce (uint 8 row.owner ++ uint 8 input))
-                  sent := sent ++ [{row with inputs := tail,pending := true}]
-                else sent := sent ++ [row]
-              | [] => sent := sent ++ [row]
+            let ready := next.filter (fun row => upgraded == 1 && !row.pending && !row.inputs.isEmpty)
+            let selected := ready.take 2
+            let mut sent := next
+            if batchMode && selected.length == 2 then
+              let payload := [UInt8.ofNat selected.length] ++ selected.flatMap (fun row => uint 8 row.owner ++ uint 8 (row.inputs.headD 0))
+              let result ← rpc.call .muxProduceBatch payload
+              insist (result.length == 2+10*selected.length && result[0]?.getD 0 == 1 && (result[1]?.getD 0).toNat == selected.length) "invalid private batch receipt"
+              -- TLS records remain ordered through the existing unique sequence
+              -- allocator; multiple Machine calls never run concurrently.
+              for i in List.range selected.length do sendReceipt ((result.drop (2+10*i)).take 10)
+              sent := next.map (fun row => if selected.any (fun chosen => chosen.owner == row.owner) then
+                {row with inputs := row.inputs.drop 1,pending := true} else row)
+            else if !batchMode || !(next.any (fun row => row.pending)) then
+              sent := []
+              for row in next do
+                match row.inputs with
+                | input::tail =>
+                  if upgraded == 1 && !row.pending then
+                    sendReceipt (← rpc.call .muxProduce (uint 8 row.owner ++ uint 8 input))
+                    sent := sent ++ [{row with inputs := tail,pending := true}]
+                  else sent := sent ++ [row]
+                | [] => sent := sent ++ [row]
             if sent.all (fun row => row.inputs.isEmpty && !row.pending) then
               insist (finished > 0) "mux supplied no requests"
             else responses fuel sent finished
@@ -127,7 +144,7 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 25 && codes.contains 24 && codes.contains 8
+    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 25 && codes.contains (if batchMode then 26 else 24) && codes.contains 8
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("private_mux_responses",toJson outcome.isOk),("send_update",toJson (codes.contains 15)),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress

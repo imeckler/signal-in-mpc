@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "owned_bits_shape_probe_executed": true,
+  "normal_worker_compiled": true,
+  "full_service_batch_native_executed": false,
+  "canonical_gate_promoted": false,
+  "source_sha256": {
+    "handshake_backend/BatchThroughputWork/NativeBatchService.h": "ea7d3c004174e4e6d228d6f8e1ce29f676ee79b3192603d207c6e74a0fc48c23",
+    "handshake_backend/BatchThroughputWork/service_api_probe.cpp": "bf20a61ca76c7aaa934d179fecd8c7006482ca1c53ffaf8e836657a2eb380afb",
+    "handshake_backend/NativeSession.h": "25d36061f2940cebdebf43ae928e8fbef519033d40bce721cf8ea06aab69553b",
+    "handshake_backend/WebSocketWork/NativeConversation.h": "1293726ab7f10db1fca3669d33fe41b7a64875e2cc9ac7861931c0c37bebc7a0",
+    "handshake_backend/WebSocketWork/mux_worker_main.cpp": "e854475c2146a8c6bab96c2f10da715b64c9bf501629930912631566061ba7e8",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "761e335c4a55a53c7915a4ba45a43b366a63ad37478d8f8b07f15f927b2ad0e7",
+    "signal_backend/VariableServiceWork/VariableSendBatch.h": "aadba8adb4d57d2b94bd5d56f5865c151fb327da2b1bf25d69929480155c9bc7"
+  },
+  "product_sha256": {
+    ".deps/tls-backend-diagnostic-runtime-v4/tls-batch-service-api-probe": "c1ef6dff8fa1d61099d2247fb46907ba0272c719dcbd7a48663200e48bedeeac",
+    ".deps/tls-backend-diagnostic-runtime-v4/tls-mux-worker": "491bc3aa823be23f0965bcc0e33f7a45b6782d834f235969affafc52c0d7ac4c",
+    ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ/libSPDZ.so": "cc6ba46cf7ab170d64b747ca46a82d8d1b0f4db2ce1a905966a6b8b9d76c097b"
+  },
+  "build_log_sha256": {
+    "/tmp/tls-batch-rpc-api-build.log": "0d6959adbbd0a9dc46c36f3c3dae0d9c4ec43986d210d60589bb2e6ca77b9ad8",
+    "/tmp/tls-batch-normal-worker-build.log": "defeff2a371dcec51d381d85ae558dfd781d0efad7519a0d48a14d94ac29b227"
+  }
+}

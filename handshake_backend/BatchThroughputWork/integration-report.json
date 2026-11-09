@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "scope": "Sanitized registry batch ownership/rejection/one-checkpoint/independentcompletion, oldregistry regressions and actualLean controller elaboration; OwnedBits API compiled separately. No fullservicebatch artifact/native execution or application gate promotion.",
+  "source_sha256": {
+    "handshake_backend/BatchThroughputWork/NativeBatchService.h": "ea7d3c004174e4e6d228d6f8e1ce29f676ee79b3192603d207c6e74a0fc48c23",
+    "handshake_backend/BatchThroughputWork/mux_batch_checks.cpp": "a0c3f93779a9080e7c05ceb512749f4486a051d8c01cfb107fbd9405313f006b",
+    "handshake_backend/NativeSession.h": "25d36061f2940cebdebf43ae928e8fbef519033d40bce721cf8ea06aab69553b",
+    "handshake_backend/NativeDispatch.h": "92c00e6df1c8c508844d4871b6de6daac0040e9aa164655704e2ff95a368d771",
+    "handshake_backend/PublicProtocol.h": "ded3ca68c39767fd0641ae9228121a9f75568399861ebc3037cd2477afcd9bdb",
+    "handshake_backend/WebSocketWork/NativeConversation.h": "1293726ab7f10db1fca3669d33fe41b7a64875e2cc9ac7861931c0c37bebc7a0",
+    "handshake_backend/WebSocketWork/PrivateMuxRegistry.h": "2f11665244aaa3e11832a9249ad9bbcc4b14ead6c38f4e1a3e243441d0204a35",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "83f7fd6510fbf3871d4f00e64c6f2d81c36444b382e577cf5402b815792ac76d",
+    "handshake_backend/WebSocketWork/mux_worker_main.cpp": "e854475c2146a8c6bab96c2f10da715b64c9bf501629930912631566061ba7e8",
+    "handshake_backend/WebSocketWork/MuxProviderController.lean": "0bb8589fc5a0561980e9fbd4be0464485af9ff3c14aa4305560c31ccbb5071eb",
+    "TlsMpc/TlsWorker.lean": "d58f4ae29508d627d9587149315d0b8df27b9f82d9d819092b6469b1f6dcca65",
+    "TlsMpc/TlsWorkerPipe.lean": "b198fa72e32b443301cb20904cb125becc593b19a99c712bcdaec6a46ec04beb",
+    "programs/signal_variable_service_batch.mpc": "d005158654b5c3a5f02e740fea2579c1451b4f821a6b5b80606a63e54191840d",
+    "signal_backend/VariableServiceWork/VariableSendStore.h": "761e335c4a55a53c7915a4ba45a43b366a63ad37478d8f8b07f15f927b2ad0e7",
+    "signal_backend/VariableServiceWork/VariableSendBatch.h": "aadba8adb4d57d2b94bd5d56f5865c151fb327da2b1bf25d69929480155c9bc7"
+  }
+}

@@ -130,3 +130,31 @@ B8 consumes17856 bittriples,2104 daBits,8 fieldmults in BOTH modes; measured
 1.225s→1.151s (~1.064x); B4 batch was slightly slower .666s vs .658s.
 This explicitly limits the Boolean-only scheduling result. Offline batch/setup
 and field/conversion costs must remain in a real throughput comparison.
+
+## Candidate normal-profile integration
+
+Opcode26 now accepts a bounded public list of opaque owner/input handles. The
+controller's explicit `batch` mode selects TWO ready distinct conversations,
+waits for response ownership to release them, and sends returned TLS records in
+order through the existing sequence allocator. This is actual producer batching,
+not just outstanding WebSocket slots; there is still ONE synchronous VM entry.
+`NativeConversation` uses the staged crypto helper4e644ba with one collective
+readiness and whole-group commit/install before any result; registry validates
+all dimensions before retaining, preserves every computed/upstream validity,
+burns global private IDs first and performs ONE retirement checkpoint. Any
+uncertainty closes the entire admitted registry. Its current no-op durable
+reserve/commit hooks preserve the existing nonrecovering profile; authenticated
+full-account durability/bootstrap gates remain closed.
+
+Host sanitizer ownership/rejection tests, old registry regressions, actual Lean
+controller elaboration and normal worker/OwnedBits API compilation pass. No
+full-service batch artifact/native recipient pass is claimed yet. Explicit next
+command is `python3 -u handshake_backend/BatchThroughputWork/prepare_service.py
+260 80 0 0 --count2 --sha-profile gate-efficient` (spell CLI as `--count 2`).
+It preserves old products, compiles a same-profile SINGLE baseline and B2 closure,
+pins source/public profile identity, and records public phase PID/CPU/RSS/elapsed.
+The workload will be two distinct established conversations, four nonempty
+messages each with actual retained recipient state, same capacity/security/
+epoch policy in sequential versus batch runs. End-to-end bytes and throughput,
+not SHA depth, choose adoption. More repetitions will be required before a
+credible steady-state/WAN production estimate.

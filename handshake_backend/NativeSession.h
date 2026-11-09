@@ -8,6 +8,7 @@
 #include "../signal_backend/SealedSenderWork/NativeUpgrade.h"
 #include "../signal_backend/SealedSenderWork/NativePayload.h"
 #include "../signal_backend/VariableServiceWork/NativeVariableService.h"
+#include "BatchThroughputWork/NativeBatchService.h"
 #include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
 #include "WebSocketWork/NativeWebSocket.h"
 #include "WebSocketWork/NativeWebSocketMux.h"
@@ -289,6 +290,13 @@ public:
             signal_mpc::NativeVariableService service(machine,worker,pinned_programs);
             auto result=measured("provider.crypto",[&]{return service.evaluate(shape,std::move(input));});
             if(metrics)metrics->function_resources(shape.descriptor());return result;});
+    }
+    std::vector<Bits> evaluate_variable_batch(const std::vector<signal_mpc::VariableShape>& shapes,std::vector<Bits> inputs) {
+        return guarded([&] {require_application();require(!shapes.empty(),"empty conversation batch");
+            NativeBatchService service(machine,worker,pinned_programs);
+            auto result=measured("provider.crypto.batch",[&]{return service.evaluate(shapes,std::move(inputs));});
+            if(metrics)metrics->function_resources(VariableBatchShape(shapes.front(),shapes.size()).descriptor());
+            return result;});
     }
     Bits evaluate_text_notification(Bits input) {
         return guarded([&] {require_application();

@@ -83,6 +83,11 @@ public:
     ProviderRegistry::Receipt produce(uint64_t owner,uint64_t input){
         public_require(initialized&&!closed&&registry&&upgraded,"mux producer unavailable");auto receipt=registry->produce(owner,input);return{receipt.handle,receipt.capacity};
     }
+    std::vector<ProviderRegistry::Receipt> produce_batch(const std::vector<std::pair<uint64_t,uint64_t>>& requests){
+        public_require(initialized&&!closed&&registry&&upgraded,"mux batch producer unavailable");
+        auto receipts=registry->produce_batch(requests);std::vector<ProviderRegistry::Receipt> result;
+        for(auto receipt:receipts)result.push_back({receipt.handle,receipt.capacity});return result;
+    }
     // Receipt schema is versioned by the dedicated mux opcode, not opcode18.
     // Called in a new erased host call after receive's successful cleanup barrier.
     PublicBytes authenticated_receipt(const PublicBytes& receipt){

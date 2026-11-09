@@ -104,6 +104,13 @@ int main(int argc,char** argv) {
                             out.insert(out.end(),receipt.completed_slots.begin(),receipt.completed_slots.end());out.push_back(receipt.controls.size());
                             for(const auto& control:receipt.controls){out.push_back(control.first);put_number(out,control.second,8);put_number(out,131,2);}return out;
                         }
+                        if(request->operation==Opcode::mux_produce_batch){
+                            auto count=input.number(1);public_require(count>=1&&count<=4,"invalid mux batch count");
+                            std::vector<std::pair<uint64_t,uint64_t>> requests;
+                            for(size_t i=0;i<count;++i){auto owner=input.number(8),handle=input.number(8);requests.push_back({owner,handle});}input.done();
+                            auto receipts=state->providers->produce_batch(requests);PublicBytes out{1,static_cast<uint8_t>(receipts.size())};
+                            for(auto receipt:receipts){put_number(out,receipt.handle,8);put_number(out,receipt.capacity,2);}return out;
+                        }
                         ProviderRegistry::Receipt receipt;
                         if(request->operation==Opcode::mux_upgrade){input.done();receipt=state->providers->upgrade();}
                         else if(request->operation==Opcode::mux_produce){auto owner=input.number(8),handle=input.number(8);input.done();receipt=state->providers->produce(owner,handle);}

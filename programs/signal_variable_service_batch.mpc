@@ -1,0 +1,45 @@
+# Native selected-chain private service. Raw DH/scalars are not input APIs.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from handshake_backend.field_dag import load as load_field
+from handshake_backend.mixed import (fresh_scalar_fields,execute_secret,field_to_wire_bits,
+    wire_bits_to_field,wire_bits_to_scalar_fields)
+from backend_adapter.boolean import load
+from backend_adapter.aig_batched import execute_mpc_batch
+from signal_backend.VariableServiceWork.shape import VariableShape
+arguments=program.args[1:]
+if len(arguments)!=8:raise ValueError('expected field,image,four dimensions,SHA profile,batch count')
+field_path,image_path=arguments[:2];dimensions=arguments[2:6]
+sha_profile=arguments[6];count=int(arguments[7])
+if not 1<=count<=4:raise ValueError('batch count must be1..4')
+if sha_profile not in ('reference','gate-efficient','latency'):raise ValueError('unsupported SHA profile')
+shape=VariableShape(*map(int,dimensions));field=load_field(field_path);image=load(image_path)
+if image.get('sha_profile','reference')!=sha_profile:raise ValueError('SHA artifact/profile mismatch')
+if(field['input_count']!=257 or image['name']!='signal-private-variable-conversation' or
+ image['input_bits']!=shape.boolean_input_bytes*8 or len(image['outputs'])!=shape.output_bytes*8):raise ValueError('variable conversation artifact mismatch')
+def bind(raw):
+ sender=wire_bits_to_scalar_fields(raw[:256])
+ recipient=(shape.spqr_offset+150+34*shape.chunk)*8
+ point=wire_bits_to_field(raw[recipient:recipient+256],mask_high_bit=True)
+ ephemeral=fresh_scalar_fields()
+ epk=field_to_wire_bits(execute_secret(field,ephemeral+[sint(9)])[0])
+ spk=field_to_wire_bits(execute_secret(field,sender+[sint(9)])[0])
+ edh=field_to_wire_bits(execute_secret(field,ephemeral+[point])[0])
+ sdh=field_to_wire_bits(execute_secret(field,sender+[point])[0])
+ # Independent joint random WebSocket mask. Never reuse ephemeral scalar bits.
+ mask=[sbit.get_random_bit() for _ in range(32)]
+ bound=epk+spk+edh+sdh+raw[256:-32]+mask
+ return bound
+def evaluate(inputs,outputs):
+ raw=binary_io.read_bits(inputs)
+ # Scalar field-DH/conversion remains serial; Boolean DAG is jointly packed.
+ bound=[bind(raw[i*shape.input_bytes*8:(i+1)*shape.input_bytes*8])for i in range(count)]
+ result=execute_mpc_batch(image,bound)
+ binary_io.write_bits(outputs,[bit for output in result for bit in output])
+evaluate.__name__='signal_private_variable_batch_'+str(count)+'_'+shape.name
+function=export(evaluate);BitArray=sbitvec.get_type(1).Array
+function(BitArray(shape.input_bytes*8*count),BitArray(shape.output_bytes*8*count))

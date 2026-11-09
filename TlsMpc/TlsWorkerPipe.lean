@@ -17,7 +17,7 @@ def code : Operation → Nat
   | .pollRecord => 17
   | .processWebSocket => 18
   | .providerCatalogue => 19 | .providerUpgrade => 20 | .providerProduce => 21
-  | .muxCatalogue => 22 | .muxUpgrade => 23 | .muxProduce => 24 | .muxProcess => 25
+  | .muxCatalogue => 22 | .muxUpgrade => 23 | .muxProduce => 24 | .muxProcess => 25 | .muxProduceBatch => 26
 
 def maxPayload : Nat := 2 * 1024 * 1024
 
