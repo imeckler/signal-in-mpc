@@ -1,5 +1,37 @@
 # Implementation handoff — Sol workers
 
+## EMP selection — latest user direction
+
+The user selected EMP as the primary execution backend after the two-party
+comparison. This section supersedes older runtime assignments below. The compute
+security model is now two parties with at most one malicious party: at least one
+of A/B must remain honest. Distributed storage does not preserve the former
+any-two-compute-node corruption guarantee. Sharing refresh remains paused.
+
+- **tls_sol:** implement the complete EMP execution path, building on the pinned
+  authenticated-session candidate in `benchmarks/TwoPartyComparisonWork`.
+  First validate nonlinear circuit calls carrying authenticated private state,
+  then exact Boolean Fp25519/X25519, nonempty Signal production, TLS and private
+  response processing, retained state and actual Rust recipient interoperability.
+  Continue through full handshake, fresh-session/bootstrap/session transitions,
+  durable restart and lifecycle requirements. Preserve MP-SPDZ/legacy EMP receipts
+  as reference; further comparison tuning is secondary to EMP integration.
+- **signal_crypto_sol:** continue backend-independent actual Rust/Aeneas
+  AES/CTR buffer/XOR composition, then HMAC/KDF, preserving explicit trusted
+  library/dispatch boundaries and generic circuit/compiler interfaces.
+- **signal_parser_sol:** continue group/full-scan, HTTP and private correlation
+  refinement and compiler composition; coordinate compact parser state layouts
+  with the EMP runtime owner.
+
+EMP selection is not production approval or a claim of completed security
+validation. The legacy measured candidate and current authenticated-session
+candidate are distinct revisions. Current S40 parameters, source/theorem mapping,
+unaudited rewrite, small-chunk checks and authenticated durable state handoff must
+remain explicit and be resolved without disabling checks. No S128 claim follows.
+The previous matched core benchmark excludes curve/sealed-sender/TLS/parser work
+and does not establish sustained full-message throughput. Retain the target of
+100,000 messages/hour, with preprocessing and lifecycle costs included.
+
 ## Current assignments — 2026-11-09
 
 This section supersedes the historical assignments below. Per-work receipts and
