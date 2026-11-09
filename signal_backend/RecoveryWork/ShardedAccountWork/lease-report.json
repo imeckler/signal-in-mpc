@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "checks": 41,
+  "sanitizers": [
+    "ASAN",
+    "UBSAN"
+  ],
+  "actual_signatures": true,
+  "unequal_conversation_activity": true,
+  "stale_ACK_after_reuse": true,
+  "private_request_IDs_opened": false,
+  "registry_integration_test": false,
+  "native_MPC": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_leases.py": "88f548a58186980a3d819bdff0be9e7794a4c1f9304ce0b8db6119c62e97f219",
+    "signal_backend/RecoveryWork/ShardedAccountWork/lease_checks.cpp": "8ab7d9db4f6ca60160e70084d679747662560e179a83c2a15875f0837abc7f55",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ResponseLeases.h": "a877099a17b8c7d31bf92bc2041b378467a13141146645b687cf4d3abc2276d0"
+  }
+}

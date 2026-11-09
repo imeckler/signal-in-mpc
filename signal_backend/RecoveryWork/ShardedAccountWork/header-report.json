@@ -1,14 +1,21 @@
 {
   "passed": true,
-  "actual_OwnedBits_compile_link": true,
+  "actual_OwnedBits_factory_owner_compile_link": true,
   "native_MPC": false,
+  "owner_execution_tested": false,
   "source_sha256": {
-    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "fd322972d88be6f759fb7ef150c45c7ab9840c4b686482cfedeb296e2bd09b4f",
+    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "dafe0fa4f2bda77715a1ec075c376ab69ae1875c9cf0695da1cef11b1478170e",
     "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
     "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h": "c591bc29f8aea88a8df0542eec5d445414b409403d93b35b2a3df36da35c7aae",
-    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "65fd6d6c0860909dd2b7095b52dd8a8333828580beca87f4ac4242a68185ff99",
-    "handshake_backend/NativeSession.h": "b61013ef1e5127ec497ec534fa3db1f98058826e5ac30273fed1b68820265d9e",
-    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "56dec6ea07ddc420a6369cff9d2145a0c7d841fde402828e78943e3e3f98fdb2"
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "da9c90db5bf044efe0b384ce65bcf65d6d042a463b8865551896537a70eac09a",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ResponseLeases.h": "a877099a17b8c7d31bf92bc2041b378467a13141146645b687cf4d3abc2276d0",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedDurableOwner.h": "8be3c948d3d1b3440d1789dc99e9a75b6a44295490bf665beb919a1c641a0aae",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardPersistence.h": "5ee2f4f36ecb5ef42f59ef1c2603dda5cde86d1f249cdba8dd5cf8917139de55",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FreshProviderFactory.cpp": "908524fb545eaf92112b0ce5192a8ef30e7b23c00c81ebae73e288258d1ae861",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FreshFixture.h": "73af776b730fa3a3047950f6d3b04f54a8ac50c1e544400b492015f53d498fb5",
+    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "b141367048ad0781e137f1e482f3ea7160311f80a173e66053a266b9153ef8ce",
+    "handshake_backend/NativeSession.h": "25b4ec477405409c156f39fd8e60a794a584c1323f2d51b66678d030dba29272",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "6e149e2ff98ba01906e52cfe57c2413f7b2e3d5b4c03ab687245af65b6c0c79b"
   },
-  "binary_sha256": "d4cb9b003c3ff792baa13879d0771ed1e7998fa73a0ea02a164b740e42b6a41d"
+  "binary_sha256": "88570c014a03649512d8f5762630f522a1395f1ed02b0dccc095ae7ee6e196a1"
 }

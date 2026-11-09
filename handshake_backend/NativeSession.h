@@ -13,6 +13,7 @@
 #include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
 #include "../signal_backend/RecoveryWork/NativeRecordBinding.h"
 #include "../signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h"
+#include "../signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h"
 #include "WebSocketWork/NativeWebSocket.h"
 #include "WebSocketWork/NativeWebSocketMux.h"
 #include "SessionPolicy.h"
@@ -23,9 +24,11 @@
 #include <initializer_list>
 #include <map>
 
+namespace signal_mpc::recovery::sharded {class Persistence;}
 namespace tls_mpc_worker {
 using Bytes = std::vector<uint8_t>;
 class Session {
+    friend class signal_mpc::recovery::sharded::Persistence;
     Machine<Share>& machine;
     Worker worker;
     ShapeCompiler* shapes;
@@ -323,6 +326,14 @@ public:
                 Bits(global.begin(),global.end()),body,machine,worker,pinned_programs);
             require_private_status(std::move(valid));
             return signal_mpc::recovery::sharded::NativeShardValidation::program_identity(conversation,manifest);
+        });
+    }
+    signal_mpc::recovery::sharded::NativeReusableOutbox::Result replace_reusable_outbox(
+            unsigned ordinal,Bits valid,const Bits& queue,const Bits& dispositions,Bits new_cell,const Bits& generation){
+        return guarded([&]{require_application();require(request_ids.committed(),"private account reservation incomplete");
+            auto result=signal_mpc::recovery::sharded::NativeReusableOutbox::replace(ordinal,std::move(valid),queue,
+                dispositions,std::move(new_cell),generation,machine,worker,pinned_programs);
+            require_private_status(Bits(result.computed_validity.begin(),result.computed_validity.end()));return result;
         });
     }
     Bits remask_restored_outbox(Bits typed_payload,Bits computed_resumability,size_t capacity){

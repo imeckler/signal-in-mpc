@@ -1,5 +1,6 @@
 #pragma once
 #include "ShardCheckpoint.h"
+#include "../../../handshake_backend/SessionWork/ErasedHostCall.h"
 #include "../../../handshake_backend/NativeSession.h"
 namespace signal_mpc::recovery::sharded {
 // Actual Session-only capture. No supplied status/validator/program-hash API.

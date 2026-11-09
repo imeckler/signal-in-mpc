@@ -1,0 +1,15 @@
+{
+  "prepared": true,
+  "NEW_fixture_only": true,
+  "existing_head3_untouched": true,
+  "conversations": 2,
+  "texts": 12,
+  "exact_initial_shard_AIG_cases": 3,
+  "private_MPC_bootstrap": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/prepare_fixture.py": "c11996c7029023b47a24ff1074c61917d30970c0978db73952f3056adbbfd020",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/client.json": "1045db4c50fad6a3da0d869b22e1224dec6d1ceec08c626cfea722e66d4caa4a",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/recipient.json": "1a8ac79feb2a568ca5cbfb861af68cadd94cd146c7578430a8aaf9b61ba3bb88",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FreshFixture.h": "73af776b730fa3a3047950f6d3b04f54a8ac50c1e544400b492015f53d498fb5"
+  }
+}
