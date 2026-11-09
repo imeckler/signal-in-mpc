@@ -13,17 +13,21 @@ owned wrapper preserves exact error contents and all outer failures/divergence;
 it drops only the failed local message value. Unused encoding/clear trait slots
 fail closed and are not invoked by the actual default merge body.
 
-This is not yet a total full-schema theorem: trace existence, bounded allocation,
-outer submessage/envelope, streaming invariants and compiler composition remain
-open. The diagnostic static-reference push bridge and std UTF8/content model
+`Totality.actual_scan_finite` derives finite execution for every valid contiguous
+slice from actual key and complete field consumption, without a primitive
+correctness/termination or finite-trace premise. Ordinary errors and outer
+allocation/model fail/div outcomes remain distinct. The outer schema, streaming
+invariants and compiler composition remain open. The diagnostic static-reference push bridge and std UTF8/content model
 boundaries from InnerResponseV1 remain explicit. No log-trace equivalence.
 
 Run `python3 SignalReference/ChatResponseReferenceWork/InnerScanV1/check.py`.
-The six-module check links verified ancestor objects into a separate output
+The eleven-module check links verified ancestor objects into a separate output
 and binds source/object hashes without rebuilding large ancestors.
 
 `FiniteRun` retains fail/div leaf outcomes and derives finite execution from a
 strict continuation measure. `Consumption` proves scalar all-wire and strong
 String length-delimited suffix bounds from actual primitive references, without
-primitive correctness or termination premises. The full dispatcher continuation
-bound and trace-existence instantiation are still open.
+primitive correctness or termination premises. `ContentConsumption`/`HeaderConsumption`/`FieldConsumption` prove the complete
+dispatcher continuation bound, including diagnostic effects and optional-field
+initialization. `StepReference` retains every generated one-step outcome.
+`Totality` instantiates the finite-run argument for the actual complete inner scan.
