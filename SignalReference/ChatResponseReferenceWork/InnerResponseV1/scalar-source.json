@@ -1,0 +1,18 @@
+{
+  "scope": "Unchanged actual generated uint32/uint64 body replay, namespace qualification only; decoder delegates actual accepted varint.",
+  "script_sha256": "5a1ee03b018c2bd73ec5e17d191575a234182eb45830620fa53068e475f3f41d",
+  "bodies": [
+    {
+      "source": "SignalReference/ProtoParseWork/DispatcherIntegrationWork/FieldReplay/Funs.lean",
+      "source_file_sha256": "c3bc3647d6f99289de3c4f805acda238f87121cfaed8c8c8ea6b37c38df01c4d",
+      "body_sha256": "56a1aa6a7fb1715d5023efb5c74b788deaab165253b0af491917ffa71b017480",
+      "qualified_body_sha256": "c11090b403839d222ddcd488039ee7b8fba8d8a161c336b650f4cb81ceb69aa6"
+    },
+    {
+      "source": "SignalReference/ChatResponseReferenceWork/GeneratedUint64/Funs.lean",
+      "source_file_sha256": "ba6b954bf0b5ca21ae6b3fea0edbba754558271d693b14c1cf5ee03bf92950b6",
+      "body_sha256": "38efbd85c4b6f7a87539d77f83adb8ce58ce80d96c210855b2a6a6e60aa0e2b2",
+      "qualified_body_sha256": "53f1dc2aee4cec226cf66e990e4aca10d7a8a3738baa4f684806db7e39a91f4f"
+    }
+  ]
+}

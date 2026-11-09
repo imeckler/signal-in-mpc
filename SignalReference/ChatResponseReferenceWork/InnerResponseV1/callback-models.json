@@ -1,0 +1,37 @@
+{
+  "scope": "Exact executable diagnostic stack model; static-reference source bridge remains open. Literal frame bytes are ASCII from actual inspected callbacks, with no native_decide proof.",
+  "native_original_llbc_sha256": "7a01206f2c40d02d147fa1f5c045976a20357c1fa99c5178652ae61dda9b138b",
+  "generator_sha256": "400d27100a8075cae0bef795a6d7a94ec93a5e5e2900e3de357afb2debd0e588",
+  "callbacks": [
+    {
+      "source_caller": 193,
+      "index": 0,
+      "message": "WebSocketResponseMessage",
+      "field": "id"
+    },
+    {
+      "source_caller": 194,
+      "index": 1,
+      "message": "WebSocketResponseMessage",
+      "field": "status"
+    },
+    {
+      "source_caller": 195,
+      "index": 2,
+      "message": "WebSocketResponseMessage",
+      "field": "message"
+    },
+    {
+      "source_caller": 196,
+      "index": 3,
+      "message": "WebSocketResponseMessage",
+      "field": "body"
+    },
+    {
+      "source_caller": 197,
+      "index": 4,
+      "message": "WebSocketResponseMessage",
+      "field": "headers"
+    }
+  ]
+}

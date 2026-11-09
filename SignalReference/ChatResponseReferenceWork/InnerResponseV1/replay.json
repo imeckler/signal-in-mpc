@@ -1,0 +1,16 @@
+{
+  "scope": "Identical pinned primitive type/constructor aliases, established String byte-content interpretation, and import paths only in computational Funs. No computational body edits.",
+  "script_sha256": "29bde8320b1bc9cd5c839cda41b3d88d9096278557368ca6d3ee5cef70356100",
+  "original_types_sha256": "97768f0622f3fe0822101141648dc650dbab689ca593553fd165e8c37b1e979a",
+  "original_funs_sha256": "1d4b8a9a63966a2098bacf4df58379c9d8b5a3b3ba8bb929afc46a50f81945ea",
+  "replayed_types_sha256": "337eb4165fd43714735c687e6244d40495ef3d7c3fbadaf792f85148f091b898",
+  "replayed_funs_sha256": "96d3f67e3069cff1f064e0d6cbe1bad6fa8603ea9f258a7c4c08845204f5f6a2",
+  "aliases": [
+    "alloc.borrow.Cow",
+    "prost.encoding.wire_type.WireType",
+    "prost.encoding.DecodeContext",
+    "prost.error.DecodeErrorKind",
+    "prost.error.Inner",
+    "prost.error.DecodeError"
+  ]
+}
