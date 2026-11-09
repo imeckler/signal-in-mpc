@@ -1,0 +1,278 @@
+--- a/Processor/BaseMachine.h
++++ b/Processor/BaseMachine.h
+@@ -103,6 +103,7 @@
+     virtual ~BaseMachine() {}
+ 
+     void load_schedule(const string& progname, bool load_bytecode = true);
++    void load_schedule_stream(const string&, istream&, bool load_bytecode = true);
+     void print_compiler();
+ 
+     void time();
+--- a/Processor/BaseMachine.cpp
++++ b/Processor/BaseMachine.cpp
+@@ -138,6 +138,13 @@
+   inpf.open(fname);
+   if (inpf.fail()) { throw file_error("Missing '" + fname + "'. Did you compile '" + progname + "'?"); }
+ 
++  load_schedule_stream(progname, inpf, load_bytecode);
++}
++
++void BaseMachine::load_schedule_stream(const string& progname, istream& inpf, bool load_bytecode)
++{
++  this->progname = progname;
++  string fname = "Programs/Schedules/" + progname + ".sch";
+   int nprogs;
+   inpf >> nthreads;
+   inpf >> nprogs;
+@@ -198,7 +205,6 @@
+   getline(inpf, security);
+   getline(inpf, gf2n);
+   getline(inpf, expected_communication);
+-  inpf.close();
+ }
+ 
+ void BaseMachine::print_compiler()
+--- a/Processor/Program.h
++++ b/Processor/Program.h
+@@ -48,6 +48,8 @@
+   void parse(string filename);
+   void parse_with_error(string filename);
+   void parse(istream& s);
++  void parse_pinned(const string&, const map<string,string>&);
++  size_t public_storage_bytes() const;
+ 
+   DataPositions get_offline_data_used() const { return offline_data_used; }
+   void print_offline_cost() const;
+--- a/Processor/Program.cpp
++++ b/Processor/Program.cpp
+@@ -1,5 +1,6 @@
+ 
+ #include "Processor/Program.h"
++#include "Tools/PinnedPublicCode.h"
+ #include "Processor/Data_Files.h"
+ #include "Processor/Processor.h"
+ 
+@@ -151,3 +152,27 @@
+     { s << i << " :: " << P.p[i] << endl; }
+   return s;
+ }
++
++// Exact admitted bytes are hashed once and then parsed from that same owned
++// snapshot. Only public instructions/usage metadata may enter the cache.
++void Program::parse_pinned(const string& filename, const map<string,string>& pins)
++{
++  name = boost::filesystem::path(filename).stem().string();
++  auto bytes = tls_public_code::read(filename, pins);
++  tls_public_code::Stream stream(bytes);
++  parse(stream);
++  Hash hasher; hasher.update(bytes.data(), bytes.size());
++  hash = hasher.final().str();
++}
++size_t Program::public_storage_bytes() const
++{
++  size_t bytes = sizeof(*this) + p.capacity() * sizeof(Instruction) + name.capacity() + hash.capacity();
++  for (const auto& instruction : p)
++    bytes += instruction.start.capacity() * sizeof(unsigned) + instruction.str.capacity();
++  bytes += offline_data_used.inputs.capacity() * sizeof(offline_data_used.inputs[0]);
++  for (const auto& values : offline_data_used.extended)
++    bytes += values.size() * (sizeof(map<DataTag,long long>::value_type) + 4 * sizeof(void*));
++  bytes += offline_data_used.edabits.size() * (sizeof(decltype(offline_data_used.edabits)::value_type) + 4 * sizeof(void*));
++  bytes += offline_data_used.matmuls.size() * (sizeof(decltype(offline_data_used.matmuls)::value_type) + 4 * sizeof(void*));
++  return bytes;
++}
+--- a/Processor/Machine.h
++++ b/Processor/Machine.h
+@@ -25,6 +25,8 @@
+ #include "Protocols/SecureShuffle.h"
+ #include "Tools/ErasingThreadStack.h"
+ #include <memory>
++#include "Tools/PublicCodeCache.h"
++#include "Tools/PinnedPublicCode.h"
+ #include "Protocols/NoShare.h"
+ 
+ #include <vector>
+@@ -62,6 +64,16 @@
+ 
+   size_t load_program(const string& threadname, const string& filename);
+ 
++  struct PublicPreparedImage {
++    vector<Program> programs; vector<string> filenames;
++    string program, compiler, domain, relevant, security, gf2n, communication;
++    int threads; size_t accounted_bytes;
++  };
++  tls_public_code::Cache<PublicPreparedImage> public_cache{size_t(1024)*1024*1024, 16};
++  const map<string,string>* admitted_public_files = nullptr;
++  string admitted_public_key, current_public_key, current_public_config;
++  bool public_cache_failed = false;
++  uint64_t public_cache_direct_hits = 0, public_cache_loads = 0;
+   void prepare(const string& progname_str);
+ 
+   void suggest_optimizations();
+@@ -124,6 +136,15 @@
+   void run_function(const string& name, FunctionArgument& result,
+       vector<FunctionArgument>& arguments);
+ 
++  // Internal pinned embedding API; no RPC/import entry point. Full closure
++  // must be independently pinned/agreed by the caller before admission.
++  void run_function_pinned(const string&, FunctionArgument&, vector<FunctionArgument>&,
++      const string& closure_identity, const map<string,string>& files);
++  array<uint64_t,5> public_program_cache_metrics() const {
++    return {public_cache_direct_hits + public_cache.hits, public_cache_loads,
++      public_cache.evictions, public_cache.retained_bytes(), public_cache.size()};
++  }
++
+   // Exclusive host-owner API, between completed exported function calls.
+   // Visitors must not allocate MPC work, reveal values, or call back into us.
+   // Partial cleanup only: no preprocessing, PRNG, allocator-history receipt.
+--- a/Processor/Machine.hpp
++++ b/Processor/Machine.hpp
+@@ -164,8 +164,63 @@
+ {
+   tls_public_diagnostics::LoadTimer public_prepare(false);
+   int old_n_threads = nthreads;
+-  progs.clear();
+-  { tls_public_diagnostics::LoadTimer public_load(true); load_schedule(progname_str); }
++  // Quiescent host only. Cache holds no Processor, protocol, prep, RNG,
++  // secret registers, memory, sockets or function arguments.
++  bool reused = false;
++  if (not admitted_public_key.empty())
++    {
++      if (admitted_public_key == current_public_key and not progs.empty())
++        { reused = true; ++public_cache_direct_hits; }
++      else
++        {
++          auto requested = public_cache.take(admitted_public_key);
++          if (not current_public_key.empty() and not progs.empty())
++            {
++              auto image = make_unique<PublicPreparedImage>();
++              image->accounted_bytes = sizeof(PublicPreparedImage);
++              for (const auto& p : progs) image->accounted_bytes += p.public_storage_bytes();
++              image->programs = std::move(progs); image->filenames = bc_filenames;
++              image->program = progname; image->threads = nthreads;
++              image->compiler = compiler; image->domain = domain;
++              image->relevant = relevant_opts; image->security = security;
++              image->gf2n = gf2n; image->communication = expected_communication;
++              auto bytes = image->accounted_bytes;
++              public_cache.put(current_public_key, std::move(image), bytes);
++            }
++          if (requested)
++            {
++              progs = std::move(requested->programs); bc_filenames = std::move(requested->filenames);
++              progname = requested->program; nthreads = requested->threads;
++              compiler = requested->compiler; domain = requested->domain;
++              relevant_opts = requested->relevant; security = requested->security;
++              gf2n = requested->gf2n; expected_communication = requested->communication;
++              reused = true;
++            }
++        }
++    }
++  current_public_key.clear();
++  if (not reused)
++    {
++      progs.clear();
++      tls_public_diagnostics::LoadTimer public_load(true);
++      if (admitted_public_files)
++        {
++          auto bytes = tls_public_code::read("Programs/Schedules/" + progname_str + ".sch", *admitted_public_files);
++          tls_public_code::Stream stream(bytes); load_schedule_stream(progname_str, stream);
++          ++public_cache_loads;
++        }
++      else load_schedule(progname_str);
++    }
++  else
++    for (auto& program : progs)
++      {
++        auto name = program.get_name();
++        M2.minimum_size(SGF2N, CGF2N, program, name);
++        Mp.minimum_size(SINT, CINT, program, name);
++        Mi.minimum_size(NONE, INT, program, name);
++        bit_memories.reset(program);
++      }
++  current_public_key = admitted_public_key;
+ 
+   if (opts.verbose)
+     suggest_optimizations();
+@@ -258,7 +313,8 @@
+ {
+   progs.push_back(N.num_players());
+   int i = progs.size() - 1;
+-  progs[i].parse(filename);
++  if (admitted_public_files) progs[i].parse_pinned(filename, *admitted_public_files);
++  else progs[i].parse(filename);
+   M2.minimum_size(SGF2N, CGF2N, progs[i], threadname);
+   Mp.minimum_size(SINT, CINT, progs[i], threadname);
+   Mi.minimum_size(NONE, INT, progs[i], threadname);
+@@ -457,8 +513,18 @@
+ void Machine<sint, sgf2n>::run_function(const string& name,
+         FunctionArgument& result, vector<FunctionArgument>& arguments)
+ {
+-  ifstream file;
+-  FunctionArgument::open(file, name, arguments);
++  ifstream ordinary;
++  string descriptor_bytes;
++  unique_ptr<tls_public_code::Stream> admitted;
++  if (admitted_public_files)
++    {
++      string path = "Programs/Functions/" + name;
++      for (auto& argument : arguments) path += "-" + argument.get_type_string();
++      descriptor_bytes = tls_public_code::read(path, *admitted_public_files);
++      admitted.reset(new tls_public_code::Stream(descriptor_bytes));
++    }
++  else FunctionArgument::open(ordinary, name, arguments);
++  istream& file = admitted ? static_cast<istream&>(*admitted) : static_cast<istream&>(ordinary);
+ 
+   string progname, return_type;
+   int tape_number, return_reg;
+@@ -930,3 +996,52 @@
+ }
+ 
+ #endif
++
++#ifndef TLS_PUBLIC_CODE_PINNED_METHOD_DEFINED
++#define TLS_PUBLIC_CODE_PINNED_METHOD_DEFINED
++template<class sint, class sgf2n>
++void Machine<sint, sgf2n>::run_function_pinned(const string& name,
++    FunctionArgument& result, vector<FunctionArgument>& arguments,
++    const string& identity, const map<string,string>& files)
++{
++  if (public_cache_failed or admitted_public_files or ThreadQueue::thread_queue or
++      not active_threads.empty() or identity.size() != 64 or files.empty())
++    throw runtime_error("invalid public cache admission");
++  // Configuration changes invalidate retained public parse metadata. Epoch
++  // renewal deliberately does not: code contains no cryptographic state.
++  ostringstream config;
++  config << typeid(sint).name() << ":" << typeid(sgf2n).name() << ":" << N.num_players()
++    << ":" << opts.prime << ":" << opts.lgp << ":" << opts.lg2
++    << ":" << opts.security_parameter << ":" << opts.semi_honest
++    << ":" << opts.live_prep << ":" << opts.disk_memory
++    << ":" << sint::clear::pr() << ":" << gf2n_long::degree()
++    << ":" << opts.direct << ":" << opts.bits_from_squares << ":" << opts.batch_size
++    << ":" << opts.bucket_size << ":" << opts.trunc_error;
++  for (auto value : opts.args) config << ":" << value;
++  for (const auto& option : OnlineOptions::singleton.options) config << ":" << option;
++  for (auto& option : opts.options) config << ":" << option;
++  if (current_public_config != config.str())
++    { public_cache.clear(); current_public_key.clear(); current_public_config = config.str(); }
++  try
++    {
++      string admitted = name + "\n";
++      for (auto& argument : arguments) admitted += argument.get_type_string() + "\n";
++      for (const auto& entry : files) admitted += entry.second + " " + entry.first + "\n";
++      if (identity != tls_public_code::sha256(admitted))
++        throw runtime_error("public cache closure identity mismatch");
++      // Even cache hits reject any mutation of the admitted closure. Filenames
++      // are lookup locations, never cache identities.
++      for (const auto& entry : files) tls_public_code::read(entry.first, files);
++      admitted_public_files = &files;
++      admitted_public_key = identity + ":" + current_public_config;
++      run_function(name, result, arguments);
++      admitted_public_files = nullptr; admitted_public_key.clear();
++    }
++  catch (...)
++    {
++      admitted_public_files = nullptr; admitted_public_key.clear();
++      current_public_key.clear(); public_cache.clear(); public_cache_failed = true;
++      throw;
++    }
++}
++#endif

@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "scope": "public-only policy/snapshot host checks, separate from actual MPC fixture",
+  "sanitizers": [
+    "address",
+    "undefined"
+  ],
+  "checks": [
+    "LRU eviction",
+    "accounted budget",
+    "entry replacement",
+    "oversized bypass",
+    "configuration identity separation",
+    "explicit clear",
+    "SHA mutation rejection",
+    "missing pin rejection",
+    "parse snapshot stable after pathname mutation",
+    "stream seek/tell"
+  ],
+  "sources": {
+    "check_policy.py": "1e7e35e016b92f077e27d6be67984c0338ba7eaf311faf5e62851fa3b3824117",
+    "cache_checks.cpp": "146a9586ff24f6e0d4fbcd1f54cd4c217aff29a2fcf1aeca765018db9d391e37",
+    "PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
+    "PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "production_runtime_changed": false,
+  "base_runtime": ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ",
+  "source_hashes": {
+    "Processor/BaseMachine.h": "05dfe4f0c2f7c9b91390f385281874ff1df757367322cbbdc7e107faa17e09e5",
+    "Processor/BaseMachine.cpp": "b32593e6233d64a44545393ea019b01f49a7f7bdf028e9880231f6f0f9c9ea3c",
+    "Processor/Program.h": "22f5fca4ea74514030db793d2fd4bcc5c11267cfc1ad24417ba09392e70f9abd",
+    "Processor/Program.cpp": "66099f5b0c913b53d590f233de39b89e13ab0ec05348b9acf821fae70e028e8e",
+    "Processor/Machine.h": "97509d2c1c3b4a937fb9c18ba7e493024c8eecf218850b72dc738f83d7311428",
+    "Processor/Machine.hpp": "bb25e7d829bc5122d9003a2479a485b1e91db9ee745477b9695f46dbd4233180"
+  },
+  "candidate_hashes": {
+    "Processor/BaseMachine.h": "9dc579e5eaae6bf578186a4a5e13bf7b3c7ca71b4611b1578e70848bdfa7be02",
+    "Processor/BaseMachine.cpp": "13b637f325513a94c7e7198da391e9349ce1b479f512d9bdef80d9e81b82f88f",
+    "Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
+    "Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
+    "Processor/Machine.h": "5c83ee0f545c6989e52c09e45ec8efaf25315cce6884360c4b4f05df58ead74c",
+    "Processor/Machine.hpp": "6a96898dfdda9bac44c33345e9c747e99e0394f602831c0aabe1f4230522854c"
+  },
+  "helper_hashes": {
+    "PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
+    "PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674"
+  },
+  "native_executed": false,
+  "accounted_retained_instruction_budget_bytes": 1073741824,
+  "max_retained_entries": 16,
+  "memory_budget_scope": "accounted parsed instruction vectors/arguments plus usage metadata estimate; excludes current active image and allocator overhead/RSS",
+  "replayed_source_matches_built_candidate": true
+}

@@ -1,0 +1,18 @@
+# Isolated pinned public-program cache candidate
+
+This candidate preserves the functional runtime. It is not a promoted application/recovery capability. Source overlay is in public-cache.patch; prepare_runtime.py clones only public source/build products into `.deps/tls-public-program-cache-runtime/MP-SPDZ`. No Player-Data, preprocessing, memory snapshot or private archive is copied. Source replay reproduced all8changed/new runtime files.
+
+The cache retains parsed `Program` instruction vectors, usage/register/memory requirements and public schedule metadata only. It never stores a Processor, protocol/preprocessing owner, RNG, registers, secret memory, function argument/output, socket or private I/O state. Execution still performs ordinary memory sizing/reset, collective program-hash agreement, worker initialization and checked execution. Existing epoch retirement continues to destroy cryptographic owners; public code can survive an epoch.
+
+The internal typed `PinnedCacheAdmission` first uses canonical `PinnedPrograms` descriptor/closure validation. Runtime admission independently verifies closure identity, rechecks every SHA-pinned file even on hits, and parses misses from the exact verified owned descriptor/schedule/bytecode snapshots. A mutable pathname is a lookup location, not an identity. Identity binds descriptor argument types, complete closure digests and actual runtime type/party/field/security/options context. Changing configuration clears retained metadata. Any admitted parse/execution failure poisons future cached execution and discards retained images. The wrapper supplies no RPC/default-provider/share-import bypass.
+
+Up to16public entries and1GiB of accounted retained parsed instruction storage are allowed; LRU eviction/oversized bypass is explicit. This is not a hard RSS limit: active image, temporary SHA-verification snapshots, allocator overhead and map metadata are separate. Program::public_storage_bytes counts instruction/operand/string capacities and usage metadata estimates. No extra deep Program copy is performed: completed public vectors move between active and retained ownership while host jobs are quiescent. The cache is per Machine, not shared across worker processes.
+
+Validation:
+
+* `check_policy.py`: ASAN+UBSAN public LRU/budget/replacement/config/clear, mutation/missing-pin rejection, and stable verified snapshot/stream seek tests.
+* `check_native.py`: all5parties exited0; cleanup empty; exact source/library/product integrity passed. Adjacent and interleaved private Boolean calls produce identical aggregate outputs. Four public programs initially load, then6cache hits preserve public metadata across actual epoch renewal with fresh execution owners. A public option change forces two new parses. Invalid closure identity then poisons later valid cached execution and clears retained entries. Only aggregate equality flags are opened.
+
+Authoritative final native raw receipt: `benchmarks/results/raw/private-native-public-cache/a33ceccf0000cf66`; initial positive-only run `cefabe5b5046f313` remains historical. Final receipt includes the core runtime source hashes omitted by the initial runner.
+
+Limits: no malformed-MAC/protocol-failure test is claimed for this cache patch. Its base diagnostic v4 has separate caught-failure/partial-constructor gaps addressed by ExceptionWork but not yet composed here; this prevents promotion for recovery/admission. No production NativeWorker/Session/provider imports or frozen runtime files changed. Real interleaved producer parse reuse and resource measurement remain required before declaring the loader bottleneck solved. This cache cannot reduce the measured protocol bytes/message.

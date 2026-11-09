@@ -1,0 +1,3 @@
+CACHE_FAILURE_CLOSED 1
+CACHE_METRIC {"hits":6,"loads":6,"evictions":0,"retained_accounted_bytes":466122,"retained_entries":1,"epoch":1}
+private native cache fixture passed
