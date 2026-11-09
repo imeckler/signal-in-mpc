@@ -1,0 +1,120 @@
+{
+  "passed": true,
+  "public_numeric_cases": [
+    {
+      "case": 0,
+      "auth": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seed": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "first_state_sha256": "838f3785ca3cfe484825b1329db2a4ce3297f770ac6b150dd5a41a4829d26a4e",
+      "second_state_sha256": "c435b647b3d504e2b562ccdd0246478174c5101817e43bfb3c0a497d8bf61fc8",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 1,
+      "auth": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "seed": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "first_state_sha256": "c0a795b63836b1ac629639dde0fb22e9f017c82f49015c80b9ce2b6b1dff108c",
+      "second_state_sha256": "2d09f4b21aa9be5e42650fb7b5d289c9f3a7a858fe6065b5e8b0f7d4e6782452",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 2,
+      "auth": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "seed": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "first_state_sha256": "a1dc6eee70060393e7039cde90a37fb1f536e9989edfab4943264ebc54e5dfa2",
+      "second_state_sha256": "bbd625124bf2f19edf039e573b3d6a57b5e42ead35a306c18b8f9a83312ccb02",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 3,
+      "auth": "9529039df5d352c787d60b6f7698ea000cfdf616d6fc5cbce4afa51d1a0777e6",
+      "seed": "1c2c5cbb041bc3f5282420dead488a1980c2ea9530bb1b2ed945f35744180d6cd1b3538a3fa15c53308c66279391fdc823123f9468ee923f03828481218d4785",
+      "first_state_sha256": "35376938b14c6717c41ada5b4ee94e0186288eb455f42e8cb7d8ddfc3404bfbb",
+      "second_state_sha256": "8b5a16c68781ef7dd7f0623efd4f60e0a9e1133aaadddb9a1556be8de097b518",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 4,
+      "auth": "87e7a4a9a0bd5532845b2ecb50d1eea2e0998c12b1afeaf459f7405d3600ba32",
+      "seed": "e3da786c735ce72fdad3af2446bf092aa23ce4e6d13630254e6b866e274293b74ac40c95bd4c8a81e0adf9b3149ce47c0f3c16a2b91045ed1456683467566a3f",
+      "first_state_sha256": "db54edfa4153e26b6d981e23051183d9dffdabb2b590f8704eac8c72ee8f6bba",
+      "second_state_sha256": "369a9bf8f71a0966783a271c63a9d0fc891cafd5e509f663a2ac86d432eab4b8",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 5,
+      "auth": "bc357b0d1ab25182e7d33668f673ed6346a7bb984b1a73315f6f8a7511440e21",
+      "seed": "26cca6305173da30d5a247d70bdb051f3354960a0add9d749b38d967b33a3dd16b4a46caa57dff66c3dc09e851086cc6c2844166ec6966038333a1eb52c900f2",
+      "first_state_sha256": "da135427cde397d0b0ab1a2379f4f93118e6effcf5ec40b654fc64c6e9d3cacb",
+      "second_state_sha256": "bea117650f3363f96e8d4db4f53ccfb298365bf93a18aeba33d8cf90147ad355",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 6,
+      "auth": "86d82acf82fd3447c26db786bb18a2f6d247d42aa7d75d33b1d0f4129cbd1267",
+      "seed": "4bf33e357458b8753ad2d41c373a39919825e7b6cfff42aaaaeded69ef8ce29344881d2db5ced6ddba9214642674c0471129beee121d6146e63eab779d4dd72b",
+      "first_state_sha256": "610b383f039baf5eed00b6376efcbd73b823c8ef59a6f8667f52a298838eed52",
+      "second_state_sha256": "1e088b2778f3bb3de425ee7ecfaad9ef405d54d06273ccbd28374a559f72b81f",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    },
+    {
+      "case": 7,
+      "auth": "c24009b05648111e562cacb2b2808986bd627c2f9cc0c7d23ca89e505d385a7b",
+      "seed": "e719e5043000996fd3aa91061df6e388c0b8e9244c1e8f69317c3e11b0b364d429098f726f6c0dadeb73d12f9de312165fadf35dea343e9bc1d56acadb51b2ef",
+      "first_state_sha256": "f15b54ec84091896f21c88da8551ed0ecac39343c541997ddabf0fd4f5cea6c6",
+      "second_state_sha256": "5414637d655ce08be027d823f426183bf20507388d0b584fa800a3b293d0e02f",
+      "full_serialized_states_match": true,
+      "first_and_second_wire_keys_match": true,
+      "retained_state_reuse_rejected": true
+    }
+  ],
+  "foundation_endpoints": 14,
+  "full_state_bytes": 3926,
+  "typed_state_bytes": 3841,
+  "first_second_entropy_bytes": [
+    64,
+    0
+  ],
+  "phase_override": false,
+  "native_MPC": false,
+  "whole_bootstrap": false,
+  "actual_source_refinement": false,
+  "source_sha256": {
+    "signal_backend/BootstrapWork/check_spqr.py": "c57d92c10d4818ad7184c56a746dbc3391f75c06af3dd587fb493bbd3dde99de",
+    "signal_backend/BootstrapWork/SpqrChecks.lean": "27e80458ac3f7e59df5f4ed89d3f0d0b97400598053f56b496028d3ccf987583",
+    "signal_backend/BootstrapWork/SpqrAudit.lean": "cf84f9678edb57abbc6d5a27688b240efa2f348fef1cf859269f2e39962b2816",
+    "TlsMpc/Signal/PrivateInitialSpqrV1.lean": "a16abca24616770ceb326400f110c2b16edcb853365911e871e16f3fa8384bfa",
+    "TlsMpc/Signal/PrivateInitialSpqrV1Proofs.lean": "02808579a48f03d2a85f1b882739cf30ff2350d35cb1e9e7e9951b39f787a7ab",
+    "signal_backend/Oracle/src/bin/signal-bootstrap-spqr-oracle.rs": "aa1ee75935b43d57db16407d93d5245ed6f8b559a725826c966c9c2f8907bc06",
+    "signal_backend/Oracle/Cargo.lock": "c9804860aa6cf73a78ba995a5f172c6751f5aedd129d4bebac8eae4f9661842a",
+    ".deps/libsignal-vendor/spqr/src/lib.rs": "c2e7aa686cad87ba2daf012231ee192445fe7c332b59bf55b48abaa7dfab63a4",
+    ".deps/libsignal-vendor/spqr/src/v1/chunked/states.rs": "631451f91dade2f072475a37376c1b26c5f10c027149766d47720a8eb1332a17",
+    ".deps/libsignal-vendor/spqr/src/v1/chunked/send_ek.rs": "b3005b9b1d4b96c7eb5d1c91dc98f1cbb94e08812a0f49c3169d4e5828b5cbf4",
+    ".deps/libsignal-vendor/spqr/src/v1/unchunked/send_ek.rs": "407a15bd1dd115dbafc30d675333c7142c004bffa9b40c94701408659adbc616",
+    ".deps/libsignal-vendor/spqr/src/chain.rs": "49ae6d3c880b0f97b684018161c736760edc4d77290f03b64dd12854d6bcedd2",
+    ".deps/libsignal-vendor/spqr/src/authenticator.rs": "f477c3f5ba0b3dd151671a05455663da95f557d1845bcdc3304dc9db594a6ee8",
+    ".deps/libsignal-vendor/spqr/src/incremental_mlkem768.rs": "51be93780874dd40e981506b299e73ec7deb4bd4bcf03721b577cb20218d13c0",
+    ".deps/libsignal-vendor/spqr/src/encoding/polynomial.rs": "45a2cdc6e0ca76ce70ce39c4752277b4e1c02e06ba76a3956aa944f623c7e922",
+    ".deps/libsignal-vendor/spqr/src/proto/pq_ratchet.proto": "ee82a17b3101c673aba1ab79e82d5f743e320f23707ff0358e7549d88d134309",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental.rs": "c1be889f9c807a769047853363eaee900b49eb455e3eb7de025f365c5cf63fd2",
+    ".deps/libsignal-vendor/libcrux-ml-kem-0.0.10/src/ind_cca/incremental/types.rs": "53eba1de40e5c2123fb609a7b780eefdcc8fa5ea40abceb23162230daff2ed03"
+  },
+  "oracle_sha256": {
+    ".deps/signal-established-send-oracle-target/debug/signal-bootstrap-spqr-oracle": "5ca1ec3317b8b69221637bc13c7b661220161b22e5fce50106477f3ccb50bc14",
+    ".deps/signal-libcrux-mlkem-oracle-target/debug/signal-libcrux-mlkem-oracle": "eb4c40d4f8d2d68e70a3119ffaad114ac6ba5c9fc3d608957e9e48b85113ad98"
+  }
+}
