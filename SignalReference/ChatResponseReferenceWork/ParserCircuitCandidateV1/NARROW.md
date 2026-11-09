@@ -1,0 +1,9 @@
+# Conditional stack-width reachability
+
+`NarrowWord` requires a zero high32 half. Arithmetic lemmas prove narrow words are preserved by the actual64-bit select, arbitrary-mask stack writes of a narrow tag, and inactive writes. `CanonicalMasks` proves concrete byte/word comparison masks and Boolean selectors are0/255 without assumptions or native proof oracles. `ControlMasks` proves mode/kind/inner masks start canonical, stay canonical through every actual byte (including malformed keys), and are preserved by finish/canonical state selection.
+
+`key_range_reject` factors the actual Core key guard: an active decoded key above u32 range rejects. `nonrejected_key_tag_narrow` derives the actual shifted group tag bound from nonrejection. `SafeStack` is explicitly **valid0 OR narrow stack**, not a false universal stack-width claim. `step_safe_stack` proves that invariant through every actual step under the proved control-mask relation; source rejected scratch is retained. Initial and finish cases are proved.
+
+The kernel-checked negative regression constructs the actual state before terminal byte1 after nine continuation bytes83 80...80. Actual Core rejects decoded key2^63+3 while writing tag2^60 into stack scratch. This would refute a universal narrow-write proof; the conditional invariant includes it exactly. No failed record is relabeled successful.
+
+Still open: process/Mux reachability, compact codec roundtrip/carry, bisimulation after rejected high writes, full streaming/private-length/fragmented-assembly and exported observation equivalence. Runtime remains unchanged and candidate unpromoted. Only small isolated proof checks ran during TLS's frozen cut/restart window; no new profile/native export or shared edit. Draft control check75543 was explicitly interrupted via PTY exit1 before the narrow syntax-directed closure proof replaced it; no unresolved handles remain.
