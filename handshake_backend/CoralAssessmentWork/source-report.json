@@ -1,0 +1,223 @@
+{
+  "revision": "9da23b7dca5ab8638428c91b65ebd405a65a046e",
+  "repository": "https://github.com/AntCPLab/OpenCoral",
+  "source_files": {
+    ".gitmodules": {
+      "sha256": "e1c2359dc046fcfcb8de01df5899e0541dbbb8146d2e0359a8b57fef34c97efa",
+      "git_blob": "02feb3c72446a027b103552e0b7ae984d2ca2858",
+      "bytes": 1033
+    },
+    "CONFIG": {
+      "sha256": "9e739c2c19dd33d1f621ae19b33652a31dc78d7216b2a999c290e9bbf57bfed7",
+      "git_blob": "0cbe0d612676c492ebdbdf19530d6b517e523cc4",
+      "bytes": 3250
+    },
+    "CONFIG.mine": {
+      "sha256": "d7e32f8a576d8ee4fafb90467659d7a538641302e9a76f228f2dcd8b8d276128",
+      "git_blob": "c105c9cb20b49516a98a92d77cf076da5b8c01d5",
+      "bytes": 584
+    },
+    "GC/RmfeInput.hpp": {
+      "sha256": "44938cf53a1387b46e7fc893a34a4d7701e3df2ab7282627bae008b91877a334",
+      "git_blob": "74157adb04b348de15a4f78f2172e69b89236d5a",
+      "bytes": 2272
+    },
+    "GC/RmfeMC.h": {
+      "sha256": "ffc5dbda1f2ac619e63c0d3c9ea56b16c0e77559b9e23ecf0abf3e95a699f15b",
+      "git_blob": "f968768cb779994c21ac1385cf2bf607e0eeab04",
+      "bytes": 2060
+    },
+    "GC/RmfeMultiplier.h": {
+      "sha256": "ce120334c039f2a8d4e6568d45bd707a6a3c1894593c18bef0317b7027e417f9",
+      "git_blob": "dad90973f11c7338538a77801c4190ba1aa131d0",
+      "bytes": 1713
+    },
+    "GC/RmfeMultiplier.hpp": {
+      "sha256": "b33138e44744489b966834de7417208a1f8e3daccfe91b9bed8f613545ea8486",
+      "git_blob": "188abbaad2ef61a08d505cf2caed361d9fb78e13",
+      "bytes": 8437
+    },
+    "GC/RmfeShare.h": {
+      "sha256": "6e6fd0f6de598c80e5da1cbcefb30a94f7d9e5df4250b42ecdea3a153f25c9b9",
+      "git_blob": "b295b0b6df9e5e8359315972ed211b749a3d2c06",
+      "bytes": 8733
+    },
+    "GC/RmfeShare.hpp": {
+      "sha256": "fc43c6fd7ad47aedb875684b6a4fafbcfbbdc3774aafc5df85e8a0f2f56a1b56",
+      "git_blob": "6db132e4556a8d7cb8d69ed1d08dc149f3df64f7",
+      "bytes": 5045
+    },
+    "GC/RmfeSharePrep.h": {
+      "sha256": "e7a391da45fe00b9c78db99cc019504adfcad9cb8f7a8b6f713b9ee46d510fff",
+      "git_blob": "42fb9043fc0f2e73dfc1508c1240c702bdd25d16",
+      "bytes": 2219
+    },
+    "GC/RmfeSharePrep.hpp": {
+      "sha256": "79392d6ef01b27e5c8bff2b8194c9504c5ae913f1c2a0a62f55ae4ef34c73b7c",
+      "git_blob": "806e3509b38bcc6c5b43f92cd69a4d20fd6f2339",
+      "bytes": 20717
+    },
+    "GC/SilentOT.h": {
+      "sha256": "d6d4effd37eccb5317a0f100afaa1f442bf1bfbf8d8348d8117a42ae71905de5",
+      "git_blob": "26032dcbf277bba6b0ab11e669ff71226b909563",
+      "bytes": 14818
+    },
+    "Machines/Coral.hpp": {
+      "sha256": "a844d713cb2bfe602ceaa1e3235941c4dfccab128348d503e363690c36b66a07",
+      "git_blob": "1e4e4ef112e1a5b45b6dd9f2da7ec774c1f7af26",
+      "bytes": 583
+    },
+    "Machines/Rmfe.hpp": {
+      "sha256": "f05ce2e97f8bf38aa832e987ec2b6224feed73181da0a37afb768e888091e30c",
+      "git_blob": "7d3cf9031dce08ecc9111cc76523de8f1100b2d5",
+      "bytes": 1134
+    },
+    "Machines/coral-party.cpp": {
+      "sha256": "48e522426115b0f2e39e79a51e20c209a75ed797ac65caa9a6fa8459853e2a83",
+      "git_blob": "7aa5063d6432841b4c82e758b8c82d3cd843c78f",
+      "bytes": 2358
+    },
+    "Machines/coralmascot-party.cpp": {
+      "sha256": "0e9b54d6f3a91a38ed0127cb7f51f4b1c0526101adb7e839d5efae0babee3e3a",
+      "git_blob": "aedeaad850bcddb17ca408d3f0d18a550b48630f",
+      "bytes": 637
+    },
+    "Protocols/CoralMascotShare.h": {
+      "sha256": "1e63f059a58ce8c4f413783ff05eea67bf5a17044bd2a9841dc277b2262579c0",
+      "git_blob": "f588f31d683f368be5e51f6ca85db85ee72feb1d",
+      "bytes": 1246
+    },
+    "Protocols/CoralPrep.hpp": {
+      "sha256": "95346f7dd283a0a32c0bb510652572a62b3e38750d2e35a0f2857042992d93b0",
+      "git_blob": "4f3a31f84fe9091c3e2aea4b4143e8a41f58e415",
+      "bytes": 5399
+    },
+    "Protocols/RmfeBeaver.h": {
+      "sha256": "f05c8ad59a55dea6d3a1f00e4268b048a8db220f3d7c187f6852a1cf78b170f2",
+      "git_blob": "4bec0e8483f3c766de35544c82f706542fc69d5d",
+      "bytes": 2274
+    },
+    "Protocols/RmfeBeaver.hpp": {
+      "sha256": "0a23dc02dc741c772ef200762d5600b7562a699f177ac5787335e096d8ad167f",
+      "git_blob": "65c43706c8c2f2042049dd0e72af8212053f0ad7",
+      "bytes": 5568
+    },
+    "Protocols/RmfeShareConverter.h": {
+      "sha256": "14e94cb82f0c01ceda5c6d83919161284b5ba628075e21747c4c88e7d3cd1e2c",
+      "git_blob": "ae90a04d715cd85e25756546390891cfbbf62c56",
+      "bytes": 1981
+    },
+    "Protocols/RmfeShareConverter.hpp": {
+      "sha256": "fcd726e4ecdf0970296d7cd42e0fc4db5e684eb812d037a54b7e686ba4f3d3ed",
+      "git_blob": "19c8be78265254b3672b95aadfb6c565d49802df",
+      "bytes": 4066
+    },
+    "README.md": {
+      "sha256": "19916597a311db2a4eda2a4856aee3175b831af0997abd9577393fbf78d7f6e3",
+      "git_blob": "c8b69f195705ffb16c7366fa4dd44adf495d70db",
+      "bytes": 5403
+    },
+    "TinyOT/fpre_silent.h": {
+      "sha256": "8fb496f2a9f9a466f80397153b0a9dc04e61cd8ddb158b4d0d09cb8754bc1444",
+      "git_blob": "4df91f7d5658fa1d1bea75141a526c9e70659233",
+      "bytes": 13119
+    },
+    "TinyOT/tinyotprep.cpp": {
+      "sha256": "1bcdf5f2efac136c7186985beefb6bcb75d5e8fa66f706d7d576a946fa1b0e6c",
+      "git_blob": "1010a326094a651e81b08816dc1f221207de2373",
+      "bytes": 2739
+    },
+    "TinyOT/tinyotprep.h": {
+      "sha256": "c235f6ccc73e83f24ffafa40096a5d1731baa3c981100d859f4442c1d2d2057c",
+      "git_blob": "49b004a34aa824a93f1f14d246bb79fec738d758",
+      "bytes": 1184
+    },
+    "TinyOT/tinyotshare.h": {
+      "sha256": "8eb38216316d413b81eaff11b203a04086502197bfe952f3fd083dcbbf110006",
+      "git_blob": "65f7e929f1bb640b6240ba10bcc4fae66f19464f",
+      "bytes": 2905
+    },
+    "Utils/mixed-coral-dabit-example.cpp": {
+      "sha256": "4324ea72d0ce7198149cb6ddc33b26e10d70ecbde6df01206c29ed7cd6aa2658",
+      "git_blob": "36dab36f4c81798b6cd40bae47eb1a36b0849b4d",
+      "bytes": 3324
+    },
+    "test/test_rmfe_beaver.cpp": {
+      "sha256": "294692b93b8c237b5ccbe79dd140978f20ea6391132e9c3bf158db565189b1ac",
+      "git_blob": "37af914d1069fbc78d10513b3d92e9348c4dbccd",
+      "bytes": 3010
+    },
+    "test/test_rmfeshare_converter.cpp": {
+      "sha256": "cd02f0c89d328ca4e4e055f05b76a4ae4c320f74e74d2cf07980f13c54e91f92",
+      "git_blob": "728295211646b8b42275524d450b4d5c49458a72",
+      "bytes": 3861
+    },
+    "test/test_silent_ole.cpp": {
+      "sha256": "1381cd5b9e84a46eb362f83dd312eb5451c19d2aef6e169909bfdd1ae785817f",
+      "git_blob": "32a30cad029d0471ca25e3242ec6aa665d31eb02",
+      "bytes": 2984
+    }
+  },
+  "submodules": {
+    "Programs/Circuits": "908452826cbd67f9757850a4943871bf66574e48",
+    "benchmarks/EzPC": "56b9ce62dd81696d28fae07185d77b79660cbb37",
+    "benchmarks/imagenet-sample-images": "bc69043e2862758a1906c6a24a792bb28c6bb2ff",
+    "deps/SimpleOT": "84d73522619f90ba2aabce8d660baef1442aa26d",
+    "deps/SimplestOT_C": "033e24280ae32d599c5b037b44edd7c7e8228b35",
+    "deps/emp-ot": "6826b5621ebd8881946a614a096562cc0544beb1",
+    "deps/emp-tool": "00f755283f05a2bc7fe042893b2b9c8e99c5d140",
+    "deps/libOTe": "5d9f9c400c6acda734cbd20b5b8ea02392c0f75e",
+    "deps/ntl": "91acd5b3a7df709c0d8bf88a99a24bc340dc34f7",
+    "deps/simde": "0ba20859e9f557cee161d2cab2728b56dca7ec38"
+  },
+  "findings": {
+    "missing_mac_equation": {
+      "path": "GC/RmfeMC.h",
+      "lines": [
+        49
+      ]
+    },
+    "two_party_preprocessing": {
+      "path": "TinyOT/tinyotprep.cpp",
+      "lines": [
+        23
+      ]
+    },
+    "two_party_conversion": {
+      "path": "Protocols/RmfeShareConverter.hpp",
+      "lines": [
+        67
+      ]
+    },
+    "two_party_normal_pairs": {
+      "path": "GC/RmfeSharePrep.hpp",
+      "lines": [
+        345
+      ]
+    },
+    "passive_auth_fole_argument": {
+      "path": "GC/RmfeMultiplier.hpp",
+      "lines": [
+        23
+      ]
+    },
+    "conversion_calls_destination_check": {
+      "path": "Protocols/RmfeShareConverter.hpp",
+      "lines": [
+        102
+      ]
+    },
+    "normal_pairs_call_check": {
+      "path": "GC/RmfeSharePrep.hpp",
+      "lines": [
+        371,
+        539
+      ]
+    }
+  },
+  "source_blob_verification": true,
+  "native_execution": false,
+  "malicious_backend_validated": false,
+  "n5_t2_conversion_validated": false,
+  "scope": "Selected exact upstream blobs; source reachability/provenance only. No MAC/triple/conversion tamper test and no protocol performance claim."
+}
