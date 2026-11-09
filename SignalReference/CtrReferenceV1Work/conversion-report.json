@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 8,
+  "foundation_axioms_only": true,
+  "actual_unchanged_generated_u32_usize_conversion": true,
+  "pinned_release_caller_and_lock_verified": true,
+  "ctr_zeroize_feature_observed": true,
+  "remaining_prefix_arithmetic_model_relative": true,
+  "remaining_prefix_err_unreachable": true,
+  "generic_Result_ok_Drop_assumed": false,
+  "full_actual_remaining_or_CTR_AES_HMAC_wrapper": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/Artifacts/remaining_pinned_v1/inventory.json": "ccc7c6b4f55154b55e261a145b4195accc7a9f059dcdd090e01974e32bfb4a1a",
+    "SignalReference/CtrReferenceV1Work/Artifacts/ConversionFinal/review.json": "042a9a4d67fa83af320f83a8b4cc6b5f35fcc6736f80e1411ea24d975ae5da36",
+    "SignalReference/CtrReferenceV1Work/check_conversion.py": "57dd7504e29244887abeec66a344295c1703774b32561e2e04658be8c13b4b08",
+    "SignalReference/CtrReferenceV1Work/ConversionReference.lean": "577099ecba9efffb1854667962dfc564f8a12472e5d575d3eb0814fb5a099226",
+    "SignalReference/CtrReferenceV1Work/ConversionChecks.lean": "cf5ce4c723e2b54fe5d14388fb7a3a00a04ae4aa5c56c16512f45d530a7a2226",
+    "SignalReference/CtrReferenceV1Work/select_conversion.py": "2bf353fcba15a809efacbe7c15dc5d323e8b7bdab218763d46bc5b42bd6418dc",
+    "SignalReference/CtrReferenceV1Work/Generated/ConversionFinal/Funs.lean": "5f64015976a56d35a4d14038e7272ff1613debb5778c3113f4331a0452ad07e4",
+    "SignalReference/CtrReferenceV1Work/Generated/ConversionFinal/Types.lean": "9b8f3d2c4ad6eef182d533e07f1a1e99b2df2a970470a27dfdac3c48455ce343"
+  }
+}

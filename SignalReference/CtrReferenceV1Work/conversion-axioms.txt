@@ -1,0 +1,18 @@
+'LibSignalReference.Candidate.CtrConversionV1.max_value' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.actual_widen_ok' does not depend on any axioms
+'LibSignalReference.Candidate.CtrConversionV1.actual_widen_value' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.remaining_prefix_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.remaining_prefix_never_err' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.exhaustion_exact' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.bounded_ss_blocks' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrConversionV1.initial_counter_capacity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

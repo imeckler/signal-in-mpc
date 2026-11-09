@@ -1,0 +1,9 @@
+import CtrReferenceV1Work.ConversionReference
+#print axioms LibSignalReference.Candidate.CtrConversionV1.max_value
+#print axioms LibSignalReference.Candidate.CtrConversionV1.actual_widen_ok
+#print axioms LibSignalReference.Candidate.CtrConversionV1.actual_widen_value
+#print axioms LibSignalReference.Candidate.CtrConversionV1.remaining_prefix_success
+#print axioms LibSignalReference.Candidate.CtrConversionV1.remaining_prefix_never_err
+#print axioms LibSignalReference.Candidate.CtrConversionV1.exhaustion_exact
+#print axioms LibSignalReference.Candidate.CtrConversionV1.bounded_ss_blocks
+#print axioms LibSignalReference.Candidate.CtrConversionV1.initial_counter_capacity

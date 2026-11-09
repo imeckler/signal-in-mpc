@@ -1,0 +1,31 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "selection": "only ordered types7,8 and function27; every declaration including body/signature unchanged",
+  "original_llbc_sha256": "c1f7f7bea39a1f8ec8f11f2ace5f9677d0682668c3602990d6fad60982505744",
+  "selected_llbc_sha256": "842c2d36dc7d6eef002e270f81723827521449d077c6a29ac96eb88df12ee5d5",
+  "selected_function_body_sha256": "2fb91351b5527ebfc73def62bc3f40f55d9ec3b7afc954ade2aa4ca67d305aa8",
+  "inverse_checked": true,
+  "manual_generated_body_edits": false,
+  "aeneas_exit_code": 0,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/CtrReferenceV1Work/Artifacts/ConversionFinal/conversion.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/Generated/ConversionFinal",
+    "-split-files",
+    "-namespace",
+    "CtrConversionV1",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_sha256": {
+    "CtrReferenceV1Work/Generated/ConversionFinal/Funs.lean": "5f64015976a56d35a4d14038e7272ff1613debb5778c3113f4331a0452ad07e4",
+    "CtrReferenceV1Work/Generated/ConversionFinal/Types.lean": "9b8f3d2c4ad6eef182d533e07f1a1e99b2df2a970470a27dfdac3c48455ce343"
+  },
+  "full_remaining_or_CTR_refinement": false
+}

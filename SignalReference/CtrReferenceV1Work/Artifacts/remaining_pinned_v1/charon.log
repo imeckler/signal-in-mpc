@@ -1,0 +1,20 @@
+       Fresh unicode-ident v1.0.24
+       Fresh typenum v1.20.1
+       Fresh rand_core v0.10.1
+       Fresh cfg-if v1.0.4
+       Fresh proc-macro2 v1.0.106
+       Fresh quote v1.0.46
+       Fresh libc v0.2.186
+       Fresh syn v2.0.118
+       Fresh getrandom v0.4.3
+       Fresh zeroize_derive v1.5.0
+       Fresh zeroize v1.9.0
+       Fresh hybrid-array v0.4.13
+       Fresh block-padding v0.4.2
+       Fresh crypto-common v0.2.2
+       Fresh block-buffer v0.12.1
+       Fresh inout v0.2.2
+       Fresh cipher v0.5.2
+   Compiling ctr v0.10.1
+     Running `/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon-driver rustc --crate-name ctr --edition=2024 /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/ctr-0.10.1/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C embed-bitcode=no -C debuginfo=2 -C split-debuginfo=unpacked --cfg 'feature="zeroize"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("alloc", "block-padding", "zeroize"))' -C metadata=bc7cb20f385d1e83 -C extra-filename=-21801c29ede31887 --out-dir /Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/ctr/21801c29ede31887/out --target aarch64-apple-darwin -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/block-buffer/3729970060742123/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/block-padding/672a7c77402937a4/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/cfg-if/5bcbd551ce9e3c0a/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/cipher/c808ae5296fddfea/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/crypto-common/e005339b84b87978/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/getrandom/98c185c30e5721cc/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/hybrid-array/ed8cc8818834b9cb/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/inout/f774d0a25f185de9/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/libc/f25e6b3e3301c651/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/rand_core/c6b791425c18bb98/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/typenum/5f581151d498f765/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/zeroize/ec96420d1d06d45c/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/debug/build/zeroize_derive/85f0dfa50b64f76c/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/debug/build/ctr/21801c29ede31887/out --extern cipher=/Users/izzy/repos/tls-mpc/.deps/ctr-reference-charon-target/aarch64-apple-darwin/debug/build/cipher/c808ae5296fddfea/out/libcipher-c808ae5296fddfea.rmeta --cap-lints allow`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s

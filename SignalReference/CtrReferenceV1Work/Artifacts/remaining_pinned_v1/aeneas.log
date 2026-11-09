@@ -1,0 +1,10 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/Artifacts/remaining_pinned_v1/ctr.llbc
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/Generated/remaining_pinned_v1/TypesExternal_Template.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/Generated/remaining_pinned_v1/Types.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/Generated/remaining_pinned_v1/FunsExternal_Template.lean
+[[91mError[39m] Could not find: trait_decl_id: 0
+Source: 'src/flavors/ctr32.rs', lines 54:4-56:5
+[[91mError[39m] Could not find: trait_decl_id: 0
+Source: 'src/flavors/ctr32.rs', lines 54:4-56:5
+[[92mInfo[39m ] Generated the partial file (because of 2 errors, including 1 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/Generated/remaining_pinned_v1/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.189877 seconds

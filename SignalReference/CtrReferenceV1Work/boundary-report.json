@@ -1,0 +1,49 @@
+{
+  "candidate_only": true,
+  "profiles": [
+    {
+      "profile": "remaining",
+      "reason": "Cargo rejects features for dependency package selection.",
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "6e2d56f97b381204bf5df0903687d2c280bfa7121aaebaa5d14a60adb053edfa"
+    },
+    {
+      "profile": "remaining_borrow_v1",
+      "reason": "Charon start-path resolver rejects explicit trait generic syntax.",
+      "charon_exit_code": 101,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "2d44f2dd9113218c3743b232e150a2c5b0ff5b00464ce316a894d29822dd2a8f"
+    },
+    {
+      "profile": "remaining_trait_v1",
+      "reason": "Actual hybrid-array associated type cannot be analyzed by pinned Aeneas.",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "inventory_sha256": "7b9280f2292e73b5d4ab747d0a34f086b69a21294652c7089feedb0eeefa56e9"
+    },
+    {
+      "profile": "remaining_array_v1",
+      "reason": "Cargo up-to-date cache skipped extraction; no LLBC produced; rejected.",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": null,
+      "inventory_sha256": "44478b5f40d4c328fa498e41c25b931479cfd00dcffb2d495a848c10334ff1d1"
+    },
+    {
+      "profile": "remaining_array_v2",
+      "reason": "Opaque unread nonce array gets past type analysis, but excluded ArraySize dictionary metadata is unresolved.",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 1,
+      "inventory_sha256": "26f2b4e16eeaabe2e6095c066e05356948540a0237c2a6f3ea76a498c22054dd"
+    },
+    {
+      "profile": "remaining_closed_v1",
+      "reason": "Included actual generic Result::ok hits owned Err/drop bottoms; no unaccepted translator adopted.",
+      "charon_exit_code": 0,
+      "aeneas_exit_code": 2,
+      "inventory_sha256": "28ab655ee0c13d50149d9e59c8b2b2699a4a391a95db100bf08643ffed7e3dbf"
+    }
+  ],
+  "authoritative_feature_profile": "remaining_pinned_v1",
+  "full_source_refinement": false
+}
