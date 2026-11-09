@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "syntax_only": true,
+  "native_MPC": false,
+  "key_configuration_inside_own_completed_host_call": true,
+  "collective_local_readiness": true,
+  "actual_resolver_outside_host_call": true,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/AccountCaptureWork/RecoveryFixtureFactory.cpp": "a6b862d9d78400176b8a823daff8588a944775a947454ddf9fcc389933132a23",
+    "signal_backend/RecoveryWork/AccountCaptureWork/PublicAccountFixture.h": "7d8304cff9384f83e607f7c2f5b607382ae1239842493d5dc0ecd8667f1fea9d",
+    "signal_backend/RecoveryWork/AccountRecoveryEngineV1.h": "be77201fd7ad6425fd8fd64cc408baa8bd34aae07d1beed48b34973d22383a7d"
+  }
+}

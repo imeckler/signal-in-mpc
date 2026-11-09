@@ -14,6 +14,7 @@ class AccountRecoveryEngineV1 {
  static std::string hex(const Digest& digest){std::string text;const char* table="0123456789abcdef";for(auto byte:digest){text+=table[byte>>4];text+=table[byte&15];}return text;}
 public:
  struct Config {
+  Config(){require(tls_mpc_worker::ErasedHostCall::active(),"account config construction requires erased host call");}
   Epoch epoch;Digest context,archive_sharing_domain,signing_seed;std::array<unsigned char,64> local_storage_key;
   std::string local_directory;
   // Embedding-only input builders. The normal RPC accepts opaque handles only.
