@@ -1,4 +1,4 @@
-import TlsMpc.Signal.PrivateBase64
+import TlsMpc.Signal.PrivateBase64CountV2
 import TlsMpc.Signal.PrivateDecimal
 import TlsMpc.Signal.RelayRequest
 
@@ -10,7 +10,7 @@ open RelayEncoding
 
 def body (d : DecimalOps B W) (v : Varint64.Ops B W) (a : ByteAuth.Ops B)
     (metadata : List B) (sealed : PrivateBuffer.Buffer B) : PrivateBuffer.Buffer B :=
-  let content := PrivateBase64.encode a sealed
+  let content := PrivateBase64CountV2.encode a sealed
   let cap := content.data.length+256
   PrivateSend.join a cap [
     PrivateSend.literal a cap (literal a "{\"messages\":[{\"content\":\""),content,
@@ -66,11 +66,11 @@ include hd hv ha
 
 theorem body_map (metadata : List B) (sealed : PrivateBuffer.Buffer B) :
     (body d v a metadata sealed).map f = body d' v' a' (metadata.map f) (sealed.map f) := by
-  have clen := congrArg (fun b => b.data.length) (PrivateBase64.encode_map ha sealed)
+  have clen := congrArg (fun b => b.data.length) (PrivateBase64CountV2.encode_map ha sealed)
   change (List.map f _).length=_ at clen
   simp only [List.length_map] at clen
   simp only [body,PrivateSend.join_map ha,List.map_cons,List.map_nil,PrivateSend.literal_map ha,
-    PrivateDecimal.encode_map hd ha,RelayRequest.word_map hv ha,PrivateBase64.encode_map ha,literal_map ha,clen]
+    PrivateDecimal.encode_map hd ha,RelayRequest.word_map hv ha,PrivateBase64CountV2.encode_map ha,literal_map ha,clen]
 include hs
 
 theorem protobuf_map (metadata : List B) (sealed : PrivateBuffer.Buffer B) :

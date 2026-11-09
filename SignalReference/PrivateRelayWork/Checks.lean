@@ -5,3 +5,6 @@ import TlsMpc.Signal.PrivateRelay
 #print axioms TlsMpc.Signal.PrivateRelay.protobuf_map
 #print axioms TlsMpc.Signal.PrivateRelay.frame_map
 #print axioms TlsMpc.Signal.PrivateRelay.compiled_encode_correct
+
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.encode_correct
+#print axioms TlsMpc.Signal.PrivateBase64CountV2.encode_map

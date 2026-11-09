@@ -1,8 +1,8 @@
 # Balanced base64 length-count candidate
 
 The versioned PrivateBase64CountV2 kernel balances the SAME masked sixteen-bit
-additions used by PrivateBase64.count. The original producer/imports/artifact
-remain unchanged. There is no division approximation, opened length, or secret
+additions used by PrivateBase64.count. The initial isolated checkpoint preserved producer/imports/artifacts; the later
+required migration now selects V2 in PrivateRelay with a proved concrete body bridge. There is no division approximation, opened length, or secret
 branch. Fuel is public and logarithmic; insufficient fuel still finishes with
 an equivalent sequential fold.
 
@@ -35,8 +35,10 @@ Kernel composition is now complete: `make_canonical`/`resize_canonical` prove
 normalization produces canonical masks even for malformed Buffer inputs.
 `normalized_count_equiv` and `encode_correct` prove the entire versioned encoder
 equals the original for arbitrary concrete Buffers; `encode_map` preserves the
-compiler/Hom boundary. Production imports remain unchanged pending coordinated
-integration and dependent receipts. This proof does not claim a meaningful
+compiler/Hom boundary. PrivateRelay now selects V2 as part of the already-required gate-efficient
+artifact migration; production-report.json and Migration.lean record its body
+equivalence, producer build and audited compiler/Hom checks. Old artifacts remain
+immutable; full-service/native migration is not yet claimed. This proof does not claim a meaningful
 end-to-end performance improvement.
 
 Reproduce with `lake build TlsMpc.Signal.PrivateBase64CountV2`, kernel Checks.lean,

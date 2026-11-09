@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "producer_caller_integrated": true,
+  "full_service_rebuilt": false,
+  "native_MPC_executed": false,
+  "scope": "PrivateRelay selects balancedcounter encoder; complete concrete body equality to previous body for arbitrary sealedbuffers and arithmetic/varint Ops; wholePrivateConversationBackend build andfoundation-only relay/compiler audits pass. Intended required gateefficient migration; oldartifacts immutable.",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateRelay.lean": "37c18941e52bfb577cf7d9606e1574bfeeb9dd03703ab98c89b5621b9ee76859",
+    "TlsMpc/Signal/PrivateBase64CountV2.lean": "4439035bfc9cda79ec852abe6e3c1ed508224c994e3d29b40752717e3c783e16",
+    "SignalReference/PrivateBase64CountV2Work/Migration.lean": "ef3696e29205319580c1fd7d67121e9b4cd4a4056e2f1c85e17d8bbfd176d297",
+    "SignalReference/PrivateRelayWork/Checks.lean": "996f6438b0e02d9040f96f9bc3d28f2e73195a421cd8b67ffaef010a057cf9b2"
+  }
+}
