@@ -1,27 +1,44 @@
 # Implementation handoff — Sol workers
 
-## EMP selection — latest user direction
+## EMP plus native field MPC — latest user direction
 
-The user selected EMP as the primary execution backend after the two-party
-comparison. This section supersedes older runtime assignments below. The compute
+The user selected EMP for Boolean computation plus native field MPC over
+Fp25519 for curve computation. MP-SPDZ MASCOT is the initial arithmetic backend
+candidate, using the same two party identities as EMP. This section supersedes
+older runtime assignments and the full Boolean X25519 lowering plan. The compute
 security model is now two parties with at most one malicious party: at least one
 of A/B must remain honest. Distributed storage does not preserve the former
 any-two-compute-node corruption guarantee. Sharing refresh remains paused.
 
-- **tls_sol:** implement the complete EMP execution path, building on the pinned
+- **tls_sol:** implement the complete hybrid execution path, building on the pinned
   authenticated-session candidate in `benchmarks/TwoPartyComparisonWork`.
-  First validate nonlinear circuit calls carrying authenticated private state,
-  then exact Boolean Fp25519/X25519, nonempty Signal production, TLS and private
+  First specify and validate authenticated bidirectional EMP/field conversions,
+  including secret input consistency and private state continuity; reuse the
+  existing field DAG for native X25519. Then integrate nonempty Signal production, TLS and private
   response processing, retained state and actual Rust recipient interoperability.
   Continue through full handshake, fresh-session/bootstrap/session transitions,
   durable restart and lifecycle requirements. Preserve MP-SPDZ/legacy EMP receipts
-  as reference; further comparison tuning is secondary to EMP integration.
+  as reference; further comparison tuning is secondary to hybrid integration.
+  Preserve bounded Boolean arithmetic evidence without building giant Boolean
+  curve circuits as the primary route.
 - **signal_crypto_sol:** continue backend-independent actual Rust/Aeneas
   AES/CTR buffer/XOR composition, then HMAC/KDF, preserving explicit trusted
   library/dispatch boundaries and generic circuit/compiler interfaces.
 - **signal_parser_sol:** continue group/full-scan, HTTP and private correlation
   refinement and compiler composition; coordinate compact parser state layouts
   with the EMP runtime owner.
+
+The next hybrid milestone requires an explicit representation and security
+design before the conversion is treated as usable: exact source pins and
+parameters; canonical field encodings; authentication of the same value on both
+sides; session/operation binding; failure and replay behavior; and no unmasked
+host reconstruction of scalars, DH results or keys. Existing MASCOT/Tinier daBits
+do not by themselves provide an EMP/MASCOT bridge. Specify Lean conversion
+functionality and compiler obligations separately from the unmechanized backend
+security argument. Execute roundtrip, field-operation and X25519 controls with
+malicious-input rejection tests, then measure preprocessing and conversion costs
+as part of complete repeated sends. Conversion should surround whole curve
+computations, not each individual field operation.
 
 EMP selection is not production approval or a claim of completed security
 validation. The legacy measured candidate and current authenticated-session
