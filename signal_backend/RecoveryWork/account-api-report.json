@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "syntax_only": true,
+  "native_MPC": false,
+  "engine_implemented": false,
+  "capability_constructed": false,
+  "whole_account_activation": false,
+  "command": [
+    "clang++",
+    "-std=c++20",
+    "-fsyntax-only",
+    "-DUSE_GF2N_LONG",
+    "-I/Users/izzy/repos/tls-mpc/handshake_backend",
+    "-I/Users/izzy/repos/tls-mpc/signal_backend",
+    "-I/Users/izzy/repos/tls-mpc/.deps/tls-caught-failure-runtime/MP-SPDZ",
+    "-I/Users/izzy/repos/tls-mpc/.deps/tls-caught-failure-runtime/MP-SPDZ/deps",
+    "-I/opt/homebrew/include",
+    "-I/opt/homebrew/opt/openssl@3.5/include",
+    "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/account_api_compile.cpp"
+  ],
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_account_api.py": "f91e0322b5c16a0a3660fb83160e799b58765924662a162b77ae3054176e91a7",
+    "signal_backend/RecoveryWork/account_api_compile.cpp": "9a5b605cef252f25d889ee8be3ab609f941fcdeb4ba4c7156f49c670b9991f4d",
+    "signal_backend/RecoveryWork/AccountAdmission.h": "6b62b7fd93e4c42031369cfe657cf42ec5788457072c35f528989e92c0e497c6",
+    "signal_backend/RecoveryWork/NativeAccountAdmission.h": "ec0a2292a4a437b4658e0fe1363c09d8a7643ecade8d2d156b5a0cacf42f9879",
+    "signal_backend/RecoveryWork/NativeAccountReadmit.h": "fd13eb0752399a9395ccf06fa8a39dfad221ba9c3040a75871828aa3bfad85b2",
+    "signal_backend/RecoveryWork/ImportV2Work/RawFieldReadmitV2.h": "4a5fc3c96afad4b14b8604f7acf0fec7b88f359da40de7b5feb660b0afe4ffd6",
+    "handshake_backend/SessionWork/NativeLifecycle.h": "6120708e9d4ec31f9f51c38ece983a2d747e4129dbd7933fbef866bde5b716fb"
+  }
+}

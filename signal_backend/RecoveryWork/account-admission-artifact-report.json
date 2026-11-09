@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "cases": [
+    {
+      "name": "initial",
+      "expected": 255
+    },
+    {
+      "name": "reserve",
+      "expected": 255
+    },
+    {
+      "name": "committed",
+      "expected": 255
+    },
+    {
+      "name": "second_reserve",
+      "expected": 255
+    },
+    {
+      "name": "second_commit",
+      "expected": 255
+    },
+    {
+      "name": "identity",
+      "expected": 0
+    },
+    {
+      "name": "global",
+      "expected": 0
+    },
+    {
+      "name": "cursor",
+      "expected": 0
+    },
+    {
+      "name": "binding",
+      "expected": 0
+    },
+    {
+      "name": "device",
+      "expected": 0
+    },
+    {
+      "name": "selected",
+      "expected": 0
+    },
+    {
+      "name": "outbox",
+      "expected": 0
+    },
+    {
+      "name": "disposition",
+      "expected": 0
+    }
+  ],
+  "conversations": 1,
+  "logical_bytes": 20885,
+  "exact_AIG": true,
+  "private_native": false,
+  "semantic_bootstrap_validation": false,
+  "whole_account_activation": false,
+  "artifact_sha256": "ddd472a6bbcb5e6f43fd964610b7f59f4469823a73abb7337f1824d856ef38e5",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_account_artifact.py": "7f2616f3501529e6c513fea1676045315c161b7739cfb14cff2a28535150b2e1",
+    "signal_backend/RecoveryWork/account_fixture.py": "c806cfc412f98150c848958e2121c9f9ca24d47459308288656cf2d4565d7ea1",
+    "SignalReference/PrivateRecordWork/ExportAccount.lean": "43992b75e6d78d7b7df017c3232a5c21baff6227a46fa64e58ef6b2908cb8843"
+  }
+}

@@ -1,0 +1,14 @@
+# Candidate account structural coherence; all sections and result stay shared.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+image=load(program.args[1]);count=image.get('conversations');n=8306+12579*count if isinstance(count,int) else 0
+if count not in (1,2,3,4) or image.get('logical_bytes')!=n or image['name']!='signal-private-account-admit-v2' or image['input_bits']!=n*8 or len(image['outputs'])!=8:raise ValueError('account admission artifact dimensions/profile')
+def evaluate(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+evaluate.__name__='signal_private_account_admit_v2_c'+str(count)
+function=export(evaluate);Array=sbitvec.get_type(1).Array
+function(Array(n*8),Array(8))
