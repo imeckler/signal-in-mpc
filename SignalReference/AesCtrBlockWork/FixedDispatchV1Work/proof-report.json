@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "foundation_axioms_only": true,
+  "kernel_endpoints": 10,
+  "endpoints": [
+    "actual_cipher_link",
+    "both_writebacks",
+    "single_batch",
+    "default_batch",
+    "update_batch",
+    "batch_index_zero",
+    "parallel_actual",
+    "single_actual",
+    "selected_original_zero",
+    "single_computed_compiled"
+  ],
+  "pinned_wrapper_statement_text_preserved": true,
+  "explicit_fixed_dispatch_and_library_model_trusted": true,
+  "actual_AES_entry_linkage_is_definition": true,
+  "both_owner_continuations_preserved": true,
+  "computed_key_schedule_to_single_wrapper_to_compiled_circuit": true,
+  "parallel_wrapper_to_actual_AES_entry": true,
+  "whole_crypto_result_assumed": false,
+  "original_GAT_graph_refinement": false,
+  "address_unsafe_pointer_and_Drop_proved": false,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/check.py": "2a6959d2ccdf6d5f445f85bfc118494e006dbbf9ed4646ede0648a98b131c6c3",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/complete-extraction-report.json": "28afafcb69329483c0ea421ed756dc9cc50e0d6f7b09872ffc121f0b230ddee6",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/Model/prefix.rs": "c92f54006ce481a4f8e507de76635c843ed1fb8b1dc3805db5b2e9f22d30a28c",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/Model/Cargo.toml": "b8e6ec6b64712020702a85fbd134521af6baf187b5e4695c7ccb0e0f205d35ca",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/extract_complete.py": "3af7a136c5a1a2c7a94af7f1e434fbdc9b25713ffefc230a4745e3df5e9a5b77",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/selected-methods.rs": "10c412a59a14d2883a5525f26b7283634a8019cdda5db1d6cc581d64447d6be6",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/instantiated-methods.rs": "f01b5b6e60211109b4638b6005fd1a2ec91c6922b6532c1f0e6973db642069db",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/Types.lean": "ea974a84a9dbfd059897fcbbfd46f61ebcb81cbcbeaad702e0e8e98f42913e12",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/FunsExternal.lean": "9f21f86b82ce5c327aab7800293a10d84ede449908e3d6629f02aa78fd03d38e",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/Funs.lean": "171cae5287e3ed5b77fc05c343b0e8ce5f3c6d26d1d1fff175f5d93c69edd117",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/WrapperReference.lean": "fa9175ade1bc0d6bb0f18319d09ae1b0e3b5079a3c559a6c64c05596db8b02ec"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/Types.olean": "a64c1a73fab5f8aaab480e75193dbddcda68fd9ad1d8394cf737281c977ba918",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/FunsExternal.olean": "7aed71a3d51bd84684f5ba2a825d5aa0a01b74f253b043794e93af526ebc6bee",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete/Funs.olean": "c5ee20626e62b4d4cf731137f278e8ca0fd90acbbc1b8b2202971f8231b40863",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixedDispatchV1Work/WrapperReference.olean": "f0d810e39df41da786844db331bddc531e3061111c6bdc405ecbdecfe6764d53"
+  }
+}

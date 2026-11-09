@@ -1,0 +1,16 @@
+'LibSignalReference.Candidate.FixedDispatch.actual_cipher_link' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.both_writebacks' does not depend on any axioms
+'LibSignalReference.Candidate.FixedDispatch.single_batch' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.default_batch' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.update_batch' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.batch_index_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.parallel_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.single_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.selected_original_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedDispatch.single_computed_compiled' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

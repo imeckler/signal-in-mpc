@@ -1,0 +1,590 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "charon_exit": 0,
+  "actual_wrapper_statement_text_preserved": true,
+  "macro_symbol_and_visibility_only_instantiated": true,
+  "trusted_model_boundary": "fixed hybrid-array content and InOut entry-read/complete-output-owner, explicit AES256 dispatch; no address/Drop/allocator semantics",
+  "whole_AES_result_assumed": false,
+  "actual_AES_slot_not_bound_yet": true,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate",
+    "--opaque=crate::aes256_encrypt",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/dispatch.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/extract_complete.py": "3af7a136c5a1a2c7a94af7f1e434fbdc9b25713ffefc230a4745e3df5e9a5b77",
+    ".deps/libsignal-vendor/aes-0.9.1/src/soft.rs": "fd83353ad38832a4224f501793d41bec85f1f439dc8872e0ba3dff5c74ab9095",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/Model/prefix.rs": "c92f54006ce481a4f8e507de76635c843ed1fb8b1dc3805db5b2e9f22d30a28c",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/Model/Cargo.toml": "b8e6ec6b64712020702a85fbd134521af6baf187b5e4695c7ccb0e0f205d35ca",
+    ".deps/reference-aes-fixed-dispatch-complete-v1/src/lib.rs": "6264a39c4f99c2f7ac957a688722dcec904eb2bf506b348e8e82f9e4543e9ae4",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/selected-methods.rs": "10c412a59a14d2883a5525f26b7283634a8019cdda5db1d6cc581d64447d6be6",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/instantiated-methods.rs": "f01b5b6e60211109b4638b6005fd1a2ec91c6922b6532c1f0e6973db642069db"
+  },
+  "llbc_sha256": "72398cd9c6e20eb7566efd9c22f3e5d414e43f9b830469ea544ebe1c8d19a0a7",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 5,
+    "fun_decls": 13,
+    "global_decls": 0,
+    "trait_decls": 6,
+    "trait_impls": 9,
+    "ordered_decls": 29
+  },
+  "body_kinds": {
+    "Opaque": 8,
+    "Structured": 5
+  },
+  "external_functions": [
+    {
+      "id": 0,
+      "name": "aes_fixed_dispatch_content_model::aes256_encrypt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::convert::{impl}::into",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::convert::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 791,
+            "col": 4
+          },
+          "end": {
+            "line": 791,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 467,
+            "col": 4
+          },
+          "end": {
+            "line": 467,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "aes_fixed_dispatch_content_model::Block",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 4,
+            "col": 0
+          },
+          "end": {
+            "line": 4,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "aes_fixed_dispatch_content_model::BatchBlocks",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 5,
+            "col": 0
+          },
+          "end": {
+            "line": 5,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "aes_fixed_dispatch_content_model"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [
+    "crate::aes256_encrypt"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "aes_fixed_dispatch_content_model::aes256_encrypt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "aes_fixed_dispatch_content_model::{impl}::clone_in",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 10,
+            "col": 4
+          },
+          "end": {
+            "line": 10,
+            "col": 47
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "aes_fixed_dispatch_content_model::{impl}::get_in",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 11,
+            "col": 4
+          },
+          "end": {
+            "line": 11,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "aes_fixed_dispatch_content_model::{impl}::get_out",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 12,
+            "col": 4
+          },
+          "end": {
+            "line": 12,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "aes_fixed_dispatch_content_model::{impl}::encrypt_block",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 20,
+            "col": 12
+          },
+          "end": {
+            "line": 25,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "aes_fixed_dispatch_content_model::{impl}::encrypt_par_blocks",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 26,
+            "col": 12
+          },
+          "end": {
+            "line": 29,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::convert::{impl}::into",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "core::convert::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 791,
+            "col": 4
+          },
+          "end": {
+            "line": 791,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 467,
+            "col": 4
+          },
+          "end": {
+            "line": 467,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/FixedDispatchV1Work/ArtifactsComplete/dispatch.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/AesCtrBlockWork/FixedDispatchV1Work/GeneratedComplete",
+    "-split-files",
+    "-namespace",
+    "FixedAesDispatch",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}

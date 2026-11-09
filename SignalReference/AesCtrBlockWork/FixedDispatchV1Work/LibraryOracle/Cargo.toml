@@ -1,0 +1,8 @@
+[package]
+name = "aes-fixed-library-content-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+inout = "=0.2.2"
+hybrid-array = "=0.4.13"
