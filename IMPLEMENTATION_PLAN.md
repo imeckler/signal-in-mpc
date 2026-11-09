@@ -30,6 +30,16 @@ remains paused.
   model boundaries in
   `SignalReference/ChatResponseReferenceWork/PROOF_GAPS_CURRENT.md`.
 
+Next workload split: crypto has the broadest remaining scope. After the current
+multi-conversation restore/replay/continued-send milestone, tls_sol should hand
+off concrete remaining mandatory TLS gaps rather than start optional TLS
+optimization or expand the fixture matrix. Subject to those gaps, move tls_sol
+to a separately owned Signal fresh-session/PQXDH and session-transition track;
+keep signal_crypto_sol focused on AES/CTR/HMAC/KDF implementation refinement.
+This is a pending handoff, not evidence that either track is complete. Keep the
+native parser scan/state invariants with signal_parser_sol; header/Unicode-trim
+proofs are separable if capacity later becomes available. Do not restart refresh.
+
 Bounded integrated milestone: root inspected
 `handshake_backend/OutboxResumeWork/integrated-report.json` for run 88196,
 raw directory `19ccc57d3b64c8d6`: all five controllers exited 0 in 396.952 seconds, integrity true,
