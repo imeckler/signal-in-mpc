@@ -1,0 +1,25 @@
+{
+  "candidate_only": true,
+  "actual_AES_body_edits": false,
+  "import_only_replay": true,
+  "source_leaf_aliases": {
+    "add_round_key": "RustCryptoAesZipDiagnostic.soft.fixslice.add_round_key",
+    "inv_bitslice": "RustCryptoAesCtrInverse.soft.fixslice.inv_bitslice",
+    "bitslice": "RustCryptoAesLayout.soft.fixslice.bitslice",
+    "sub_bytes": "RustCryptoAesSubBytes.soft.fixslice.sub_bytes",
+    "shift_rows_2": "RustCryptoAesLinear.soft.fixslice.shift_rows_2",
+    "mix_columns_0": "RustCryptoAesLinear.soft.fixslice.mix_columns_0",
+    "mix_columns_1": "RustCryptoAesRemainingLinear.soft.fixslice.mix_columns_1",
+    "mix_columns_2": "RustCryptoAesRemainingLinear.soft.fixslice.mix_columns_2",
+    "mix_columns_3": "RustCryptoAesRemainingLinear.soft.fixslice.mix_columns_3"
+  },
+  "Std_content_bindings": 6,
+  "whole_AES_equivalence": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/prepare.py": "b9082952a2664f176cb41001c325535d1d9706569ba5fc02f5e2044f6389ea4c",
+    "SignalReference/AesCtrBlockWork/Generated/EncryptNamedV1/Funs.lean": "596f6922a53779e1be6a6496b129bbe5639fd395dde0c66643c72fc7352cf0f4",
+    "SignalReference/AesCtrBlockWork/Generated/EncryptNamedV1/FunsExternal_Template.lean": "aedf71b8410d2c3e2faffa6bf11e7abb6bd520db18cabeda9b8517246d3a43b6",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/Funs.lean": "78524e7e810cfdda2c47158a8d32ff2adb294f9aaaaa77d23d7cbc7e71a0c51f",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/FunsExternal.lean": "c0008d8a5d6b1897d998ac5edbd8d955220ee50ee445fcff182456e5c1c66483"
+  }
+}
