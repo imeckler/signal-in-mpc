@@ -1,0 +1,119 @@
+{
+  "scope": "Exact frozen byte-graph output cone/depth attribution. Fanin counts overlap and are not additive; exclusive nodes mean output pruning only, not an implemented parser optimization.",
+  "artifact_sha256": "54541344315ce670d54f0f3be7c81449d53845759ab245d070bb40b14c924342",
+  "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-v1/candidate.json",
+  "inherited_profile_sha256": "6911bd65c5b4828edd9dda4d5a7c8f28b31778adb136882d84058bdb9fb60ed9",
+  "baseline_executed_ands": 40529,
+  "baseline_and_depth": 275,
+  "groups": [
+    {
+      "field": "mux-valid",
+      "compact_output_bytes": 1,
+      "max_and_depth": 272,
+      "fanin_executed_ands_nonadditive": 17956,
+      "exclusive_output_ands": 0
+    },
+    {
+      "field": "parser-valid-finish",
+      "compact_output_bytes": 4,
+      "max_and_depth": 272,
+      "fanin_executed_ands_nonadditive": 17988,
+      "exclusive_output_ands": 32
+    },
+    {
+      "field": "modes-positions",
+      "compact_output_bytes": 14,
+      "max_and_depth": 31,
+      "fanin_executed_ands_nonadditive": 1125,
+      "exclusive_output_ands": 432
+    },
+    {
+      "field": "varint-value-tag",
+      "compact_output_bytes": 16,
+      "max_and_depth": 14,
+      "fanin_executed_ands_nonadditive": 1098,
+      "exclusive_output_ands": 701
+    },
+    {
+      "field": "response-remaining",
+      "compact_output_bytes": 8,
+      "max_and_depth": 136,
+      "fanin_executed_ands_nonadditive": 953,
+      "exclusive_output_ands": 384
+    },
+    {
+      "field": "budget",
+      "compact_output_bytes": 8,
+      "max_and_depth": 134,
+      "fanin_executed_ands_nonadditive": 401,
+      "exclusive_output_ands": 192
+    },
+    {
+      "field": "skip",
+      "compact_output_bytes": 8,
+      "max_and_depth": 137,
+      "fanin_executed_ands_nonadditive": 1031,
+      "exclusive_output_ands": 637
+    },
+    {
+      "field": "group-depth",
+      "compact_output_bytes": 8,
+      "max_and_depth": 136,
+      "fanin_executed_ands_nonadditive": 767,
+      "exclusive_output_ands": 64
+    },
+    {
+      "field": "stack",
+      "compact_output_bytes": 400,
+      "max_and_depth": 26,
+      "fanin_executed_ands_nonadditive": 21324,
+      "exclusive_output_ands": 17804
+    },
+    {
+      "field": "type-value",
+      "compact_output_bytes": 8,
+      "max_and_depth": 27,
+      "fanin_executed_ands_nonadditive": 684,
+      "exclusive_output_ands": 64
+    },
+    {
+      "field": "id-expected-status",
+      "compact_output_bytes": 24,
+      "max_and_depth": 27,
+      "fanin_executed_ands_nonadditive": 1546,
+      "exclusive_output_ands": 448
+    },
+    {
+      "field": "body-length",
+      "compact_output_bytes": 8,
+      "max_and_depth": 13,
+      "fanin_executed_ands_nonadditive": 693,
+      "exclusive_output_ands": 384
+    },
+    {
+      "field": "utf-header",
+      "compact_output_bytes": 15,
+      "max_and_depth": 144,
+      "fanin_executed_ands_nonadditive": 2065,
+      "exclusive_output_ands": 579
+    },
+    {
+      "field": "slots-queue",
+      "compact_output_bytes": 49,
+      "max_and_depth": 275,
+      "fanin_executed_ands_nonadditive": 18424,
+      "exclusive_output_ands": 468
+    },
+    {
+      "field": "event-masks",
+      "compact_output_bytes": 3,
+      "max_and_depth": 273,
+      "fanin_executed_ands_nonadditive": 18068,
+      "exclusive_output_ands": 88
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/attribute_existing.py": "6478a1710ac986571dc4e6f462887158e43510e95a10a57a9e50d8ca9aea7dbd",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  }
+}

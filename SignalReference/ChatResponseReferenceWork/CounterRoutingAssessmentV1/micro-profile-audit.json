@@ -1,0 +1,96 @@
+{
+  "candidate_only": true,
+  "runtime_promoted": false,
+  "native_mpc_executed": false,
+  "scope": "Six bounded standalone counter/UTF helper resource micrographs, not integrated parser replacements or a correctness proof of the guarded comparator. Whole-parser/dead-state/bounded-counter joins remain unproved; no runtime or native work.",
+  "lean_memory_limit_mb": 2048,
+  "cases": [
+    {
+      "mode": "sub64",
+      "artifact_sha256": "362c1a08cec10b84de56f8140ba4c372c88d467d73dea01eaecd480e667ab94f",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/sub64.json",
+      "input_bits": 64,
+      "output_bits": 64,
+      "raw_and_gates": 252,
+      "executed_and_gates": 124,
+      "executed_xor_gates": 63,
+      "unreachable_nodes": 66,
+      "and_dependency_depth": 124,
+      "export_seconds": 3.194971458055079
+    },
+    {
+      "mode": "sub13",
+      "artifact_sha256": "d6f04d1dcc79a4749ad6c58fd236f888e96192666d0cb22895493c3bdc1a6ab7",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/sub13.json",
+      "input_bits": 16,
+      "output_bits": 16,
+      "raw_and_gates": 48,
+      "executed_and_gates": 22,
+      "executed_xor_gates": 12,
+      "unreachable_nodes": 17,
+      "and_dependency_depth": 22,
+      "export_seconds": 0.9959961249260232
+    },
+    {
+      "mode": "ule64",
+      "artifact_sha256": "b2062b174c86e79374e23f86cbc71aaf5acf4bfe2c333c165c7efdcfd5ed6ea8",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/ule64.json",
+      "input_bits": 128,
+      "output_bits": 8,
+      "raw_and_gates": 636,
+      "executed_and_gates": 253,
+      "executed_xor_gates": 127,
+      "unreachable_nodes": 257,
+      "and_dependency_depth": 127,
+      "export_seconds": 0.920066500082612
+    },
+    {
+      "mode": "ule64-bound13",
+      "artifact_sha256": "33065f023d7d2ce9ee6d767b32e0a4cb768e3bee80c4201d6a2f590d34b288d3",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/ule64-bound13.json",
+      "input_bits": 80,
+      "output_bits": 8,
+      "raw_and_gates": 432,
+      "executed_and_gates": 151,
+      "executed_xor_gates": 76,
+      "unreachable_nodes": 209,
+      "and_dependency_depth": 76,
+      "export_seconds": 1.0259607089683414
+    },
+    {
+      "mode": "ule-guarded13",
+      "artifact_sha256": "7cdf4f5c4cc61da3b760f1f56d146e275bd23e9658eb2f1f92f4da761f55d0b6",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/ule-guarded13.json",
+      "input_bits": 80,
+      "output_bits": 8,
+      "raw_and_gates": 177,
+      "executed_and_gates": 100,
+      "executed_xor_gates": 25,
+      "unreachable_nodes": 56,
+      "and_dependency_depth": 26,
+      "export_seconds": 1.1543256250442937
+    },
+    {
+      "mode": "utf-step",
+      "artifact_sha256": "5b7c1652bfa2f0a65f29d3fe6f9f8d63b946f26483fd04bc956b6213e7670c26",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/Build/micro-v1/utf-step.json",
+      "input_bits": 72,
+      "output_bits": 64,
+      "raw_and_gates": 983,
+      "executed_and_gates": 983,
+      "executed_xor_gates": 0,
+      "unreachable_nodes": 1,
+      "and_dependency_depth": 136,
+      "export_seconds": 1.1729709999635816
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/EmitMicro.lean": "9583857c46b8a5d7b1ada43ff545b2cef5592ed521ba95edf2c783124095c7ed",
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/profile_micro.py": "2e90378142a033a856b8026639baecd444d87f62922742df638d307d2aae8714",
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "child_peak_rss": 1293680640
+}

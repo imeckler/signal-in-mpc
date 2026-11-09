@@ -1,0 +1,34 @@
+{
+  "scope": "Bounded resource-only helper/cone assessment; no replacement functional correctness or whole-parser improvement claim",
+  "all_jobs_terminal": true,
+  "micro_handle": 99587,
+  "cone_handle": 44891,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/ASSESSMENT.md": "a141d4930066b5a575ec5a27ddd0a985614b74ba2d5da44604f9751a785a63a4",
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/EmitMicro.lean": "9583857c46b8a5d7b1ada43ff545b2cef5592ed521ba95edf2c783124095c7ed",
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/profile_micro.py": "2e90378142a033a856b8026639baecd444d87f62922742df638d307d2aae8714",
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/attribute_existing.py": "6478a1710ac986571dc4e6f462887158e43510e95a10a57a9e50d8ca9aea7dbd"
+  },
+  "evidence_sha256": {
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/micro-profile-audit.json": "53503fcfd4d8de0d6f61814f2f35b28ad6a3633523844bb1363aac2be3771654",
+    "SignalReference/ChatResponseReferenceWork/CounterRoutingAssessmentV1/output-cones.json": "31e1f6c2e0f8ed8c1cf1e803f6edeec58fe6365222f73fe73937453870b983c8",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/proof-audit.json": "b9d63d0070b93dd054d7e8beb0d7bbb5c5b3fa2dd0b2dee2ef777d36cd4ab79b",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile-audit.json": "6911bd65c5b4828edd9dda4d5a7c8f28b31778adb136882d84058bdb9fb60ed9"
+  },
+  "inherited_core_source_sha256": {
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/TlsWebSocketFrame.lean": "ff94d6f8cc0b6b0db14206d660729f8a4c59170979e27877ddf645ead3fcc913"
+  },
+  "inherited_core_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsChatResponse.olean": "2334f6fab4fc888329da7cb1979cc80e7914cdd5e9659d5f4ec4d06dcb7f5dc0",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsChatResponseMux.olean": "72479b6aa68642b22c38a9b23e58e3d88e1f8c16f9f4c5c9d62acb7f2df82f0a",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/Signal/Word64.olean": "a4969cc845ab7b17d99d0be343fb89c116e0b05839168bcf27986d48af324335",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/ByteAuth.olean": "c7f4bc1ab25dcfee238ebce5397dab8b6eeaf951042a70160db24852621fcc6b",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsWebSocketFrame.olean": "4432e9de2784c9852c1d1d960facbf0a3ed17b613d49ef66e06e3795c39413e4"
+  },
+  "native_executed": false,
+  "runtime_promoted": false
+}
