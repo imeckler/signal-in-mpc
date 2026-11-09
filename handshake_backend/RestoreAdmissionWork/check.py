@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import hashlib,json,pathlib,subprocess,tempfile
 ROOT=pathlib.Path(__file__).resolve().parents[2];HERE=pathlib.Path(__file__).resolve().parent
-sources=[HERE/'PrivateRequestCursor.h',HERE/'CoordinatedConversation.h',HERE/'cursor_checks.cpp',HERE/'coordinator_checks.cpp',ROOT/'handshake_backend/NativeSession.h',ROOT/'handshake_backend/WebSocketWork/NativeConversation.h',ROOT/'handshake_backend/WebSocketWork/MuxProviderCoordinator.h']
+sources=[HERE/'PrivateRequestCursor.h',HERE/'CoordinatedConversation.h',HERE/'cursor_checks.cpp',HERE/'coordinator_checks.cpp',ROOT/'handshake_backend/NativeSession.h',ROOT/'handshake_backend/WebSocketWork/NativeConversation.h',ROOT/'handshake_backend/WebSocketWork/MuxProviderCoordinator.h',ROOT/'signal_backend/RecoveryWork/NativeRecordBinding.h']
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory(prefix='tls-restore-admission-') as tmp:
  tmp=pathlib.Path(tmp)
@@ -20,6 +20,7 @@ with tempfile.TemporaryDirectory(prefix='tls-restore-admission-') as tmp:
  'actual_code_under_test':['PrivateRequestCursor','CoordinatedConversation','VariableSendStore','produce_batch_with_checkpoint','PrivateMuxRegistry'],
  'mock_boundaries':['kernel evaluation','whole-account certificate/disk cursor','account canonical binding','network/TLS'],
  'checks':['staged batch cursor commit once','reentrant close/reserve poisons','dimensions/phase rejection','two independent conversations','reserve/bind/commit before retain','reordered correlated completion slots','stale response rejection','failure after durable reserve before cursor install','whole failed range burned on simulated restart','old outbox IDs retained without reuse','actual-output binding failure quarantines output','post-durable-commit failure prevents local install/output','response-disposition failure poisons account'],
+ 'restart_authorization':'Simulated authorized burned cursor/current head; no unresolved actual Reserve resolution. Real coordinator must block unresolved higher reservations.',
  'full_account_authorization_validated':False,'fresh_tls_restore_interop_validated':False,
  'sources':{str(p.relative_to(ROOT)):sha(p) for p in sources},'api_binary_sha256':sha(target)}
  (HERE/'report.json').write_text(json.dumps(report,indent=2)+'\n')

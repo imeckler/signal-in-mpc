@@ -5,6 +5,9 @@
 #include "SessionWork/NativeLifecycle.h"
 #include <memory>
 #include "MuxProviderCoordinator.h"
+#ifdef TLS_ACCOUNT_RESTORE_PROFILE
+#include "RestoreAdmissionWork/RecoveryFactory.h"
+#endif
 #include <unistd.h>
 #include <cerrno>
 #include <charconv>
@@ -48,6 +51,10 @@ struct WorkerState {
     std::unique_ptr<Session> session;
     std::unique_ptr<Dispatch> dispatcher;
     std::unique_ptr<MuxProviderCoordinator> providers;
+#ifdef TLS_ACCOUNT_RESTORE_PROFILE
+    std::unique_ptr<Worker> import_worker;
+    std::unique_ptr<signal_mpc::recovery::AuthorizedRestoredAccount> restored_account;
+#endif
 
 };
 int main(int argc,char** argv) {
@@ -83,17 +90,53 @@ int main(int argc,char** argv) {
             // checkpoint/KeyUpdate/abort and cannot acknowledge early retirement.
             state->metrics=std::make_unique<PublicMetrics>(*state->machine,party);
             state->lifecycle=std::make_unique<NativeLifecycle>(*state->machine,ApplicationEpochPolicy::every_record,state->metrics.get());
+#ifdef TLS_ACCOUNT_RESTORE_PROFILE
+            state->import_worker=std::make_unique<Worker>(*state->machine,*state->pinned);
+#else
             state->session=std::make_unique<Session>(*state->machine,*state->pinned,state->shapes.get(),state->lifecycle.get(),state->metrics.get());
             state->dispatcher=std::make_unique<Dispatch>(*state->session,*state->collective,state->shapes.get());
             state->providers=std::make_unique<MuxProviderCoordinator>(*state->session,*state->collective,make_mux_provider_factory(),PublicBytes(session_id.begin(),session_id.begin()+16));
+#endif
         }),"native worker bootstrap failed");
+#ifdef TLS_ACCOUNT_RESTORE_PROFILE
+        auto resolver=make_account_recovery_resolver();
+        public_require(ErasedHostCall::run([&]{
+            state->collective->agree_provider_availability(bool(resolver));
+            if(!resolver)std::cerr<<"TLS account admission rejected category=resolver-absent\n";
+            public_require(bool(resolver),"authorized account recovery unavailable");
+        }),"authorized account recovery unavailable");
+        // The real resolver owns its load/import/helper-erasure/VM-retirement
+        // host calls. No Session/TLS state exists until it returns its private,
+        // one-shot current-head/full-account capability after both barriers.
+        try{state->restored_account=resolver(*state->machine,*state->import_worker,*state->pinned,*state->collective,party);}
+        catch(...){state->restored_account.reset();}
+        public_require(ErasedHostCall::run([&]{
+            resolver={};state->import_worker.reset();
+            state->collective->require_local_success(bool(state->restored_account));
+            public_require(bool(state->restored_account),"authorized account recovery rejected");
+            state->session=std::make_unique<Session>(*state->machine,*state->pinned,state->shapes.get(),state->lifecycle.get(),state->metrics.get());
+            state->dispatcher=std::make_unique<Dispatch>(*state->session,*state->collective,state->shapes.get());
+            MuxProviderFactory admitted=[pointer=state](Session& session,Collective& collective,unsigned selected_party){
+                public_require(bool(pointer->restored_account),"restored account capability consumed");
+                auto result=pointer->restored_account->consume(session,collective,selected_party);
+                pointer->restored_account.reset();return result;
+            };
+            state->providers=std::make_unique<MuxProviderCoordinator>(*state->session,*state->collective,std::move(admitted),PublicBytes(session_id.begin(),session_id.begin()+16));
+        }),"restored fresh TLS bootstrap failed");
+#endif
+        auto close_private=[&]{
+            state->providers->close();
+#ifdef TLS_ACCOUNT_RESTORE_PROFILE
+            state->restored_account.reset(); // Failed/aborted handshake cannot retain/reuse admission.
+#endif
+        };
         while(auto request=read_request(std::cin)) {
             PublicBytes result;
             const auto metric_token=state->metrics->begin();
             const auto old_epochs=state->lifecycle->renewal_count();
             const auto old_time=state->lifecycle->renewal_nanoseconds();
             bool succeeded=ErasedHostCall::run([&] {
-                if(request->operation==Opcode::abort)state->providers->close();
+                if(request->operation==Opcode::abort)close_private();
                 if(static_cast<unsigned>(request->operation)>=19) {
                     result=state->dispatcher->private_extension(*request,[&] {
                         Cursor input{request->payload};
@@ -126,7 +169,7 @@ int main(int argc,char** argv) {
                 succeeded=ErasedHostCall::run([&] {state->providers->initialize(party,[&]{state->dispatcher->fail_from_private_producer();});});
             if(succeeded&&request->operation==Opcode::mux_process)
                 succeeded=ErasedHostCall::run([&] {result=state->providers->authenticated_receipt(result);});
-            if(!succeeded)ErasedHostCall::run([&] {state->providers->close();state->dispatcher->fail_from_private_producer();});
+            if(!succeeded)ErasedHostCall::run([&] {close_private();state->dispatcher->fail_from_private_producer();});
 
             // The return barrier has already joined, destroyed thread-local
             // state and wiped the full host stack before any receipt is sent.

@@ -11,6 +11,7 @@
 #include "../signal_backend/VariableServiceWork/NativeVariableService.h"
 #include "BatchThroughputWork/NativeBatchService.h"
 #include "../signal_backend/TextNotificationWork/NativeTextNotification.h"
+#include "../signal_backend/RecoveryWork/NativeRecordBinding.h"
 #include "WebSocketWork/NativeWebSocket.h"
 #include "WebSocketWork/NativeWebSocketMux.h"
 #include "SessionPolicy.h"
@@ -300,6 +301,14 @@ public:
             signal_mpc::NativeUpgrade upgrade(machine,worker,pinned_programs);
             auto result=measured("upgrade.builder",[&]{return upgrade.evaluate(shape,std::move(input));});
             if(metrics)metrics->function_resources(shape.descriptor());return result;});
+    }
+    signal_mpc::recovery::NativeRecordBinding::Bound bind_canonical_record(
+        Bits snapshot,const signal_mpc::VariableShape& shape,Bits actual_call,Bits actual_result) {
+        return guarded([&]{require_application();require(request_ids.committed(),"private account reservation incomplete");
+            signal_mpc::recovery::NativeRecordBinding binding(machine,worker,pinned_programs);
+            return measured("provider.bind",[&]{return binding.apply(std::move(snapshot),shape,
+                std::move(actual_call),std::move(actual_result));});
+        }); // Actual computed status remains shared and reaches the TLS gate.
     }
     Bits evaluate_variable(const signal_mpc::VariableShape& shape,Bits input) {
         return guarded([&] {require_application();

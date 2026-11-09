@@ -19,3 +19,9 @@ $(TLS_BUILD)/tls-mux-worker: $(TLS_ROOT)/WebSocketWork/mux_worker_main.cpp $(TLS
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_MUX_FACTORY) $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
 $(TLS_BUILD)/tls-text-mux-fixture-worker: $(TLS_ROOT)/WebSocketWork/mux_worker_main.cpp $(TLS_ROOT)/WebSocketWork/TextMuxFixtureFactory.cpp $(PAYLOAD_HEADERS) $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_ROOT)/WebSocketWork/TextMuxFixtureFactory.cpp $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+
+# Explicit restored-account profile. Default resolver is absent; no fixture or
+# generic hook can substitute for the crypto-owned one-shot authorization token.
+TLS_ACCOUNT_FACTORY ?= $(TLS_ROOT)/RestoreAdmissionWork/NoAccountRecovery.cpp
+$(TLS_BUILD)/tls-restored-mux-worker: $(TLS_ROOT)/WebSocketWork/mux_worker_main.cpp $(TLS_ACCOUNT_FACTORY) $(SESSION_DEPENDENCIES) $(wildcard $(TLS_ROOT)/RestoreAdmissionWork/*.h) $(wildcard $(TLS_ROOT)/../signal_backend/RecoveryWork/*.h) $(wildcard $(TLS_ROOT)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -DTLS_ACCOUNT_RESTORE_PROFILE -I. -I$(TLS_ROOT) -I$(TLS_ROOT)/WebSocketWork $< $(TLS_ACCOUNT_FACTORY) $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
