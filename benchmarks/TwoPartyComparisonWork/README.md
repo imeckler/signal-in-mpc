@@ -95,3 +95,15 @@ The MP compile took446.99s and produced133,120VM rounds; compilation is public o
 `run_core_comparison.py --tinier-bulk` uses stock bucket3 and a3,650,587output preprocessing target, preserving S40. It passes the identical predicate with3,764,504,754B global payload,34.268s cold wall,4,390,436,864B maximum party RSS and53,092unused logical triples. This is a bulk-memory/traffic tradeoff, not an optimized full application result; default-bucket receipts remain intact.
 
 `check_mp_rejection.py` uses the stock `-o mac_fail` hook only on party1, never `debug_mac`. Both Tinier and MASCOT-wrapper groups detect actual MAC failure on both peers and exit1 before fixture output. This is opened-check-value corruption detection, not arbitrary tamper coverage or caught-failure secret erasure. All children were reaped.
+
+## Current EMP candidate (separate, unaudited)
+
+Current AG2PC `a245ca0f67abaf2d48c711e3c050ce961e60ad29`, tool `339bde8479842c88d115cec16ffca90a4c050c3f`, OT `5072bdab546c89a24be3368a7ce2bab1cdefec1f` are built separately. The README's unaudited AI-assisted rewrite warning applies. The current backend identifies the KRRW2018 half-gate/authenticated-carry construction; it is a different implementation from the legacy2017 backend. It uses SoftSpoken<4> with malicious mode defaulttrue, SSP40. Full theorem/implementation composition remains unvalidated.
+
+These pinned main heads initially fail compilation due to duplicate global/emp helper names. The preparation script explicitly qualifies AG's own helpers (namespace-only change) and records source hashes; a second overlay aggregates NetIO byte counters after destruction, including final COT checks and sibling channels. Crypto checks are unchanged. Release/O3 and context checks are enabled. Initial unoptimized functional results are retained as historical and excluded from performance comparisons.
+
+`run_modern_smoke.py` passes identical imported AES/SHA graphs, authenticated result retention through checkpoint, Bob-only output, and a deliberately changed local Delta rejected by actual c_gamma authentication before output. This is a narrow corruption control, not complete adversarial coverage or erasure. All children are reaped.
+
+Source parameter caveat: `get_bucket_size` floors its sizing argument at1024 while `compute_inplace` uses actualANDcount. The adapter rejects nonzero chunks below1024 instead of assuming the sizing comment proves their security. Every executed graph has at least8832ANDs. The current session's authenticated carried wires are a concrete route toward repeated private state and bounded curve chunks; they have not yet been exercised across two nonlinear circuit calls in this checkpoint.
+
+Reproduce this separate candidate with `prepare_modern_emp.py`, then `run_modern_smoke.py`. This does not replace any legacy receipt. The host environment is recorded in `environment.json`; cold means a fresh process/program parse, not a controlled cold OS page cache. No WAN claim or production configuration change.

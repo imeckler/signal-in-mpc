@@ -1,0 +1,165 @@
+{
+  "passed": true,
+  "unaudited_rewrite": true,
+  "scope": "current EMP imported AES/SHA gates, authenticated checkpoint and Bob-only output; no curve/full Signal claim",
+  "security": "declared S40; tiny nonzero chunks below1024 rejected; full implementation/theorem composition unvalidated",
+  "build": {
+    "unaudited_rewrite_warning": true,
+    "pins": {
+      "emp-tool": [
+        "339bde8479842c88d115cec16ffca90a4c050c3f",
+        "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04"
+      ],
+      "emp-ot": [
+        "5072bdab546c89a24be3368a7ce2bab1cdefec1f",
+        "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f"
+      ],
+      "emp-ag2pc": [
+        "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+        "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+      ]
+    },
+    "archive_sha256": {
+      "emp-tool": "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04",
+      "emp-ot": "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f",
+      "emp-ag2pc": "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+    },
+    "counter_original_sha256": "efe2f8401fef3fd0cf42188c942e7008d968a96613a27e2998e737a7b38527e3",
+    "counter_overlay_sha256": "5831c6dea86342185516b26306a458caf7aa7f5dba8f1d340acd7ddf0ecf6315",
+    "compatibility_namespace_qualification": {
+      "backend/triple_pool.h": {
+        "original_sha256": "5aaea6736e1a8cdda63f5c733c3d0dd87e72d80ada9284c767e35ca45b869077",
+        "overlay_sha256": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7"
+      },
+      "backend/protocol.h": {
+        "original_sha256": "de69d98323920d10781fed0ffc26bbddb1d5a6d7ac17e5d3085eef11ee7a460f",
+        "overlay_sha256": "26ca350dcd72c9a8a2a082e14ee5dee052fc86d8e801f34f886bef2c1e1f99ed"
+      }
+    },
+    "worker_sha256": "9daa84d03f8c9676b359b785ff5adbc2c1506a0f028afebe98020632cd8c6c29",
+    "worker_source_sha256": "b7e9eb5ffdfcc3ec7b736ea7a1f4683ffa2fbcf5e8afc7985cc1223211e65ab3",
+    "ssp": 40,
+    "tiny_nonzero_chunks_below1024": "rejected by adapter before protocol execution",
+    "worker_build_type": "Release",
+    "context_checks_enabled": true,
+    "security_validation": "pending native replay and adversarial controls; no production promotion"
+  },
+  "results": [
+    {
+      "passed": true,
+      "name": "aes256",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.06564837496262044,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-zl1v23ku",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0190991,
+          "setup_seconds": 0.0209312,
+          "input_seconds": 0.00071775,
+          "run_seconds": 0.00686417,
+          "reveal_seconds": 7.041e-06,
+          "close_seconds": 0.000298833,
+          "wall_seconds": 0.0489435,
+          "cpu_seconds": 0.03975,
+          "peak_rss_bytes": 12566528,
+          "and_gates": 8832,
+          "sent_bytes": 1583093,
+          "received_bytes": 1278037
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0195878,
+          "setup_seconds": 0.0209249,
+          "input_seconds": 0.000733625,
+          "run_seconds": 0.00685487,
+          "reveal_seconds": 8.583e-06,
+          "close_seconds": 0.000110834,
+          "wall_seconds": 0.0488634,
+          "cpu_seconds": 0.042191,
+          "peak_rss_bytes": 12075008,
+          "and_gates": 8832,
+          "sent_bytes": 1278037,
+          "received_bytes": 1583093
+        }
+      ]
+    },
+    {
+      "passed": true,
+      "name": "sha256-empty",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.11854258400853723,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-a868dw_j",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0712599,
+          "setup_seconds": 0.00934617,
+          "input_seconds": 0.000505333,
+          "run_seconds": 0.0294609,
+          "reveal_seconds": 1.1167e-05,
+          "close_seconds": 0.000523,
+          "wall_seconds": 0.111674,
+          "cpu_seconds": 0.107209,
+          "peak_rss_bytes": 39059456,
+          "and_gates": 59759,
+          "sent_bytes": 8516018,
+          "received_bytes": 6522145
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0705557,
+          "setup_seconds": 0.00936175,
+          "input_seconds": 0.000518125,
+          "run_seconds": 0.0294292,
+          "reveal_seconds": 2.5125e-05,
+          "close_seconds": 0.000156792,
+          "wall_seconds": 0.11075,
+          "cpu_seconds": 0.111204,
+          "peak_rss_bytes": 42303488,
+          "and_gates": 59759,
+          "sent_bytes": 6522145,
+          "received_bytes": 8516018
+        }
+      ]
+    },
+    {
+      "passed": true,
+      "name": "aes256",
+      "corrupt_delta_control": true,
+      "failure_category": null,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "controller_wall_seconds": 0.04072124999947846,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-uuxcvi52",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "parties": [
+        null,
+        null
+      ],
+      "actual_authentication_failure_diagnostic": true
+    }
+  ]
+}
