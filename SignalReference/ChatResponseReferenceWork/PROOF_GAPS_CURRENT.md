@@ -112,3 +112,10 @@ private controls/input lists from initialization, including malformed keys,
 sticky rejection, reset and finish. Combined trim-audit.json exits0 with only
 foundational axioms. Mux admission/correlation trace and byte codec bridge remain
 open; this is not yet compact exported Mux streaming equivalence.
+
+Candidate stack32 Mux trace checkpoint: TrimMux proves complete actual Mux
+process/admit projected-event traces equal under per-operation high-stack
+erasure from initialization, for arbitrary private input/control/admission lists.
+Correlation/queue consumption/reset/non2xx abort and malformed rejection remain
+exact. mux-trim-audit.json exits0/foundational-only. Byte codec carry and exported
+compact recurrence/compiler join remain open; no runtime promotion.

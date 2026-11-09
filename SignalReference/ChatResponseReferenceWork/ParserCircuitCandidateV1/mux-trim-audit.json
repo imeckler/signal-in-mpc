@@ -1,0 +1,19 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Actual Mux process/admit projected-event traces agree under per-operation stack-high-half erasure for arbitrary private inputs and admissions from initialization. Includes correlation, queue consumption, reset, and failclosed non2xx policy. Byte codec bridge and exported compact stream composition remain OPEN; no runtime promotion/native jobs.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimMux.lean": "91e250141fd68e5f45ac07161e6c2468860440b728b08f7c2acbf1a0c7d4bb2f",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_mux_trim.py": "4d21bbea94c832315668acffbfb6407f5727b06c841db1d00db7d075fdc4f0a7",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/MUX_TRIM.md": "d737c067a858f819f6ae138f9fdb317290a41ac50861123f7b788aee0bca9800"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/trim-audit.json": "e6c6c9e73b075eac5ae8dba4bf3a0fa023f14a03a34c5edc9ba7d8fdba3e86e5"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/mux-trim-2d2248b03f68-97157.log",
+  "kernel_log_sha256": "e00e4f63e7dd246996996d03a5aa0e609a342e61029c24dfb37b9d7923acd588",
+  "kernel_log": "Checking ParserCircuitCandidateV1.TrimMux\n'ChatResponseReference.ParserCircuitCandidateV1.trim_mux_tail' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_mux_process' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_mux_admit' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_trimmed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.fresh_mux_trimmed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_process_as_tail' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_correlated_parser' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/mux-trim-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimMux.olean": "657ca493f15e9c088f0352b42a1a783450e88fdd52b1278a6abed61c6c39f426"
+  }
+}
