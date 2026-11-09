@@ -1,5 +1,54 @@
 # Implementation handoff — Sol workers
 
+## Current assignments — 2026-11-09
+
+This section supersedes the historical assignments below. Per-work receipts and
+source pins govern the scope of completed checks; this plan is not a blanket
+acceptance of their results. All three Sol workers are active. Sharing refresh
+remains paused.
+
+- **tls_sol:** finish the bounded immutable public-program cache candidate and
+  test repeated real producer execution, including fresh secret state and epoch
+  retirement. The single-process observed-working-set replay is not evidence of
+  five-party application throughput. Continue compact Boolean MPC selection and
+  integration with Fp25519 arithmetic and checked conversions as a core task.
+  The current CCD backend represents Boolean shares as GF128 elements; register
+  batching does not fix its wire cost. Preserve two-malicious tolerance in the
+  production candidate. Compact Rep3 measurements use a weaker corruption and
+  configured statistical-security profile and do not authorize replacing it.
+  References: `handshake_backend/PublicProgramCacheWork/README.md`,
+  `handshake_backend/BooleanBackendSelectionWork/AUDIT.md`, and
+  `handshake_backend/BatchThroughputWork/comparison-report.json`.
+- **signal_crypto_sol:** complete actual independent-helper cleanup and
+  fresh-process shared-state import, then connect committed canonical state and
+  pending outboxes to fresh TLS and continued actual-peer interoperability.
+  Whole-account bootstrap, quorum/rollback checks and activation remain separate
+  obligations from successful per-conversation owner transactions. Continue the
+  remaining fresh-session/PQXDH, skipped-message/session transitions and crypto
+  implementation-refinement work after this integration checkpoint; established
+  sends do not cover those requirements. References:
+  `signal_backend/RecoveryWork/ACCOUNT_SCHEMA.md` and
+  `signal_backend/RecoveryWork/ImportV2Work/README.md`.
+- **signal_parser_sol:** connect the complete owned-envelope scan to the numeric
+  streaming parser, then finish HTTP validation, private response correlation
+  and compiler composition. Commit `5b2ee7d` supplies the bounded actual-source
+  scan composition, not the full streaming relation. Preserve error/failure/
+  divergence observations and explicitly track static-push, UTF8 and content
+  model boundaries in
+  `SignalReference/ChatResponseReferenceWork/PROOF_GAPS_CURRENT.md`.
+
+Coordinate heavy native runs between workers. Commit owned files at meaningful
+checkpoints; hold an exclusive `fcntl.flock` on `/tmp/tls-mpc-git-index.lock`
+across index mutations and commits, using explicit paths and `git commit --only`.
+Do not alter other workers' staged changes or historical receipts.
+
+Completion still requires the full TLS/Signal integration, fresh and established
+sessions, durable shared state, requested circuit/compiler/refinement coverage,
+and appropriate interoperability and persistent-session performance evidence.
+Local fixture success does not establish live Signal service compatibility or
+100,000 delivered messages/hour. The backend remains unverified. Paused refresh
+work cannot support a claim of completed mobile-adversary protection.
+
 User direction, 2026-11-07: reduce token consumption and delegate actual
 implementation to Sol. This supersedes the earlier Astra-high preference.
 The user has resumed the root goal and explicitly authorizes delegated
