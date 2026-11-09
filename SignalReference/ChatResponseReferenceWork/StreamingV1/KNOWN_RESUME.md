@@ -1,0 +1,9 @@
+# Actual known-field loop boundary composition
+
+`ChildCommon` records exact bounded source parent-buffer/current-budget/private-child correspondence, actual state shape, reset lexer scratch, validity/seen/unfinished/depth and counters. `ChildAtKey` adds key mode and inner scope, allowing exact child completion. `ChildReady` adds positive child remainder and active inner scope; field mode/recognition and source cache remain separate explicit facts. These are induction state predicates, not assumed parser correctness.
+
+`actual_known_key_ready` derives the complete field context from actual generated driver known-key success plus the previous key-boundary invariant, a proper supported wire and a key leaving bytes for its value. No individual post-key invariant is assumed.
+
+`actual_scalar_resumes`, `actual_body_resumes` and `actual_message_resumes` derive the next complete key-boundary invariant from actual source native field success. Exact source results/content/suffix, low32 status/full64 ID/cache updates and actual body payload events remain visible. Budget/private child/physical parent-buffer bounds, lexer scratch/control, full state list shape and child-end inner flag are derived on one exact consumed prefix. Message String success requires executable UTF8 acceptance; its rejected branch remains exact in message-scoped/string-error receipts.
+
+These close the known scalar/body/message successful iteration interfaces. They do not prove full schema scan: key errors/wrong wires/exact-end pending keys, malformed/underflow/child-overrun joins, repeated HTTP headers, unknown/group recursion, outer schema/HTTP/correlation/private EOF/compiler remain to compose. Initial source-cache relation/defaults and content observation projection remain explicit work. Std unsafe UTF8/static diagnostic push/scoped allocation-content boundaries unchanged. No runtime/generated computation edits.
