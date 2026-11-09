@@ -1,0 +1,19 @@
+{
+  "prepared": true,
+  "candidate_only": true,
+  "normal_backend_promoted": false,
+  "native_MPC": false,
+  "full_account": false,
+  "quorum_recovery": false,
+  "stage": ".deps/private-canonical-restore-native/v1-candidate-1",
+  "runtime": ".deps/tls-caught-failure-runtime/MP-SPDZ",
+  "runtime_library_sha256": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+  "exception_report_sha256": "56eb6ec2e168abf8690c6d5bc6ff2bce913eb0418b30ee3cbc9f17a075664482",
+  "original_native_report_sha256": "85100f887be5dc40ea6999376fb3bede37422f49142ea3be1d6d11383efd2e22",
+  "source_archive_logs": ".deps/private-canonical-owner-native/v1-candidate-1/run-djqh_w45",
+  "base_manifest_sha256": "e3c97606a2aa2359fce3b0f40c3555629fa175e4b4fcf35f41d137da241af449",
+  "extension_manifest_sha256": "12ec8bb14e30be8bf3c1a214ecc93f65165c835df70f022cf42bcd650e47e4fe",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ImportV2Work/prepare_restore.py": "a0eecf83e4016722b85a658658237253452c17db0d8d4d913cd6420a734681dd"
+  }
+}

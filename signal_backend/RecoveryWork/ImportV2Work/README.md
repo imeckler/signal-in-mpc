@@ -6,8 +6,9 @@ not field arithmetic, masked checks, input ordering or rejection flow. V1 native
 receipts remain historical V1 evidence; V2 has not run an MPC import yet.
 
 The allocator clears each complete allocation before release, including vector
-growth, destruction and exception cleanup. Only trivially destructible pinned
-field/share value types are supported. Nine public local checks verify the wipe
+growth, destruction and exception cleanup. Element destructors must be noexcept and run first; this also supports the
+exception candidate's nontrivial GF destructor. It never replaces that destructor
+or claims to wipe nested owners on its behalf. Nine public local checks verify the wipe
 before deallocation, vector-growth value preservation and share-move behavior
 at capacities1/17/4096. The full V2 helper typechecks against the actual runtime.
 This is C++ source/test evidence with sodium's memory-clearing call trusted;

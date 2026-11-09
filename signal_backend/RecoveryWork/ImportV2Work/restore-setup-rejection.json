@@ -1,0 +1,15 @@
+{
+  "passed": false,
+  "setup_failure_before_archive_import": true,
+  "not_an_import_or_cleanup_rejection_test": true,
+  "reason": "Isolated candidate runtime had no fixture SSL PEM/key files; controller must copy original passed owner-stage credentials.",
+  "launch_receipt_sha256": "028a69fabe8d08a8e6eec19eca1a40414b82a57fd9cb70e8022b7df189d8e565",
+  "log_sha256": {
+    "positive-party-0.log": "bcde6b6d53d4f970ee06f851b43f0ca549f911a1f22371082fafc1849ac5f4f8",
+    "positive-party-1.log": "129697f418a0009fd77ea62db3a366512b5cdcd7942850a351181f70c102efc6",
+    "positive-party-2.log": "71b3fe3706663cf31e526513c9da0110a4bd9aa06dde3edbba5104f02e2d2586",
+    "positive-party-3.log": "d416cd8a13cdabaa500c805ffed52296175f804e85754bf7908978a268e0ccd6",
+    "positive-party-4.log": "09789d4a80d0b23de20237d71746645a13a80a52c6e2b14fcf59db77ebf44864"
+  },
+  "logs": ".deps/private-canonical-restore-native/v1-candidate-1/run-jmazagzh"
+}

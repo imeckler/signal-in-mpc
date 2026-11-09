@@ -1,0 +1,5 @@
+include CONFIG
+CANONICAL_WORK ?= ../../../signal_backend/RecoveryWork
+RESTORE_OUTPUT ?= ../signal-canonical-restore-fixture
+$(RESTORE_OUTPUT): $(CANONICAL_WORK)/ImportV2Work/restore_fixture.cpp $(wildcard $(CANONICAL_WORK)/ImportV2Work/*.h) $(wildcard $(CANONICAL_WORK)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -std=c++20 -I. -I$(CANONICAL_WORK)/ImportV2Work -I$(CANONICAL_WORK)/../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@

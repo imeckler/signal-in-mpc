@@ -6,7 +6,9 @@
 #include <vector>
 namespace signal_mpc::recovery::import_v2 {
 template<class T,class Release>void wipe_then_release(T* pointer,size_t count,Release&& release)noexcept{
- static_assert(std::is_trivially_destructible_v<T>,"only pinned scalar/share value storage");
+ static_assert(std::is_nothrow_destructible_v<T>,"pinned elements must finish noexcept destruction before allocation wipe");
+ // std::vector destroys live elements first. This clears dead allocation
+ // storage and slack; it never skips or substitutes for element destructors.
  if(pointer)sodium_memzero(pointer,count*sizeof(T));
  release(pointer,count);
 }

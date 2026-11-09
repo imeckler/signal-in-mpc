@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "runtime": ".deps/tls-caught-failure-runtime/MP-SPDZ",
+  "runtime_library_sha256": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+  "local_public_checks": 9,
+  "raw_helper_V2_typechecked": true,
+  "base_helper_unchanged": true,
+  "native_MPC": false,
+  "private_container_reallocation_and_final_deallocation_wipe": true,
+  "protocol_prep_input_PRNG_owners_not_covered": true,
+  "full_restore_admission": false,
+  "stdout": "9 wiping allocator checks passed\n",
+  "binary_sha256": "c5a5ace62b60453cc0a0954ac822884ed1f3a60f0c376af7c53520d6416d719f",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ImportV2Work/check.py": "a3957011a0d26c699cb070df60ab17661669dc12235270c09954cde1055355d4",
+    "signal_backend/RecoveryWork/ImportV2Work/prepare.py": "4a5d442560840f3c0f7b3847243df0e013d5e55480e7e4e61e71ac6ef859e29b",
+    "signal_backend/RecoveryWork/ImportV2Work/WipingAllocator.h": "7b092213d2ce65cc631c555725f759f3765c1ac0ef2fe2835c427f2c6c96d254",
+    "signal_backend/RecoveryWork/ImportV2Work/RawFieldReadmitV2.h": "4a5fc3c96afad4b14b8604f7acf0fec7b88f359da40de7b5feb660b0afe4ffd6",
+    "signal_backend/RecoveryWork/ImportV2Work/wipe_check.cpp": "bb92a852d72461262222d478f25979ed73e3d7c55c430dc72840a7e09ddaea56",
+    "signal_backend/RecoveryWork/ImportV2Work/derivation.json": "d4418f0f73cb82a226829df2821d65161d6e7e5b9ec47d3df63af2b0be6af88a",
+    "signal_backend/RecoveryWork/RawFieldReadmit.h": "4ed99744d620f005232124a8c6390fe336d59b6d3b4abc6e97fc4543f459ae9d",
+    "signal_backend/RecoveryWork/CanonicalMakefile": "004529cc2614f64f2a5a622ae3fabc825c26e409bd676d4c6112ad9bee389b07",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Math/gf2n.h": "a7a350d6e678a8c22e474d13efda7c7fc7c7247368bfb013c199717499ef77fb",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/Tools/random.h": "c88020eeb7a02c40b068163b4b55796cbc9de1d6fd169a5de47afd92f32c1fbc"
+  }
+}

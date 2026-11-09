@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace signal_mpc::recovery::import_v2;
 int main(){try{gf2n_long::init_field(128);using Field=gf2n_long;using Share=tls_mpc_worker::StrongShamirShare<Field>;size_t checks=0;
- static_assert(std::is_trivially_destructible_v<Field>&&std::is_trivially_destructible_v<Share>);
+ static_assert(std::is_nothrow_destructible_v<Field>&&std::is_nothrow_destructible_v<Share>);
  for(size_t count:{size_t(1),size_t(17),size_t(4096)}){
   auto* p=std::allocator<Field>{}.allocate(count);for(size_t i=0;i<count;++i)std::construct_at(p+i,Field(73));
   for(size_t i=0;i<count;++i)std::destroy_at(p+i);
