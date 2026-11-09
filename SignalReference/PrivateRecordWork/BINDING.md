@@ -48,3 +48,9 @@ The compile-only probe instantiates B1 and batch templates with actual OwnedBits
 it does not execute MPC, persist an account or grant admission. Actual archive
 transaction callbacks, complete account fields, checked import and pre-Session
 helper/epoch retirement remain unbound. No normal provider selects this path.
+
+The owner additionally retains the 525-byte selected receive view and includes it
+in reserve/commit borrows. Its replacement comes from the same private binding
+output as the canonical snapshot, rather than leaving a stale receive overlay.
+Initial record/selected/service coherence must be established by the future
+checked bootstrap resolver; constructor dimension checks do not establish it.
