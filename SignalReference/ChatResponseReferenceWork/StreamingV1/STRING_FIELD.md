@@ -1,0 +1,7 @@
+# Actual message String field integration
+
+`actual_message_field_decoded` composes the generated response tag3 dispatcher with the actual String primitive reference and executable UTF8/content model. All native length outcomes remain visible, with absent initialization, existing values/duplicates, String total clear on ordinary errors, exact returned native suffix, and diagnostic-stack mutation/failure/divergence retained. No assumed String parse result is introduced.
+
+`message_field_utf_success` gives exact copied String replacement and suffix for accepted UTF8. `message_field_utf_failure` preserves exact InvalidString and clears the field even when an old value existed. Diagnostic stamp remains a Result computation and is not relabeled successful.
+
+`actual_message_utf_rejection` joins generated source invalid-UTF8 clear/error/diagnostic/suffix to actual Core rejection on the same copied bytes. It starts from an explicit post-length opaque String state with exact copied-payload counter and reset validator. Derivation of that state from the actual recognized key/length, successful String validity/cache relation, repeated headers/HTTP eligibility and full scan/compiler composition remain open. The executable grammar versus actual std unsafe validator body, scoped content/allocation and static diagnostic push boundaries remain unchanged. No runtime or generated computation edits.
