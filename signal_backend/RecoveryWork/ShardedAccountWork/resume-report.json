@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 2,
+  "foundational_axioms_only": true,
+  "exact_AIG_cases": 44,
+  "original_private_ID_and_wire_preserved": true,
+  "expected_generation_must_come_from_actual_certified_ancestry": true,
+  "private_MPC": false,
+  "restore_activation": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_resume.py": "21a1d8e5ca79d1103217fc7938de72f7535cd210dbc619e809a9889ee549a612",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ResumeAudit.lean": "00818348c800b7943ba7bc223923fde48b74a214fac62d3bd2941b5416435565",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportResume.lean": "0227df3ad0fcbc300ddac67ed34b21afbe64109b1fabdba6b51eb4df05f9d792",
+    "TlsMpc/Signal/PrivateShardedOutboxResumeV1.lean": "e4a400c8ac4f78f023357d1891fd89308194b45cc2a7e94c25dac3375b66b409"
+  }
+}

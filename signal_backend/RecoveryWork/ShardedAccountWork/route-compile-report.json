@@ -1,0 +1,39 @@
+{
+  "compiled": true,
+  "candidate_only": true,
+  "stages": [
+    {
+      "ordinal": 0,
+      "descriptor": "signal_private_shard_route_v1_o0-sbv:[42024x1]-sbv:[10432x1]",
+      "seconds": 13.906387457973324,
+      "artifact_sha256": "9ca59178988fb4b41b5b5e2ee1e37bd0826d13a14f5e2c097382b05b7644895b"
+    },
+    {
+      "ordinal": 1,
+      "descriptor": "signal_private_shard_route_v1_o1-sbv:[42024x1]-sbv:[10432x1]",
+      "seconds": 13.552083124988712,
+      "artifact_sha256": "34eb0c809b048901d4e80e57bac2e49d168a0f5fadf3088f2d1974465aa96026"
+    },
+    {
+      "ordinal": 2,
+      "descriptor": "signal_private_shard_route_v1_o2-sbv:[42024x1]-sbv:[10432x1]",
+      "seconds": 13.366614750004373,
+      "artifact_sha256": "d739e755bf13cc7864ad56df0f4684077749f05e93e678c28e05787ecfd4b8cb"
+    },
+    {
+      "ordinal": 3,
+      "descriptor": "signal_private_shard_route_v1_o3-sbv:[42024x1]-sbv:[10432x1]",
+      "seconds": 13.371913165901788,
+      "artifact_sha256": "6f9dbdfa67e8ac8130d465dbdadbcf9d1894979c3a4293dba6d89f0ab0550eef"
+    }
+  ],
+  "manifest_sha256": "19d0d81d8c633aee5bb46517331648996a5d5d1e989fdb78f4acbc71698c61d7",
+  "source_sha256": {
+    "TlsMpc/Signal/PrivateShardedOutboxRouteV1.lean": "ae6c1c031c3185897e1de1c20a038bb85f208ca0f4e3b5b6ffdce72f92f3ac71",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportRoute.lean": "482d5f233b8f95dce32d15360277efcbcda0362bd6e0079f8e524f88bfff8003",
+    "signal_backend/RecoveryWork/ShardedAccountWork/shard_route.mpc": "54c9ad5f5c69777097730f69ef49e31874e0ce71a3c9d9cdd16f5dc3bfc97d59",
+    "signal_backend/RecoveryWork/ShardedAccountWork/prepare_route.py": "c97e490bd0878319e0f87e5e650d1152a5f372e6bbfae594cdc99a9b6a93c03a"
+  },
+  "native_MPC": false,
+  "whole_account_activation": false
+}

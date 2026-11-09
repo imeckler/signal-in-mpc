@@ -33,6 +33,14 @@ public:
   auto ciphertext=box_.seal(d,QuarantinedEvaluations(std::move(local)));auto digest=bodies_.put(ciphertext);
   return Verified({key,generation,ciphertext.size(),digest,schema(conversation),{}},program);
  }
+ struct Quarantine {ShareDomain archive_domain;QuarantinedEvaluations values;};
+ // AEAD authentication returns only local quarantined evaluations. It grants no
+ // Bits/provider capability; the engine must first authorize a fresh head/root.
+ Quarantine load_quarantined(const Leaf& leaf,bool conversation){
+  require((conversation?leaf.key>0:leaf.key==0)&&leaf.schema==schema(conversation),"shard archive kind/schema");
+  auto expected=domain(conversation,leaf.key,leaf.generation);auto size=expected.header().size()+16+expected.bit_count*16;
+  require(leaf.ciphertext_bytes==size,"shard archive ciphertext dimensions");auto bytes=bodies_.get(leaf.ciphertext,size);return{expected,box_.open_quarantined(expected,bytes)};
+ }
  // A one-shot token binds exact ciphertext/schema/key/generation to the actual
  // pinned computation above. Unchanged leaves inherit certified provenance.
  static void stage(Checkpoint& checkpoint,std::vector<Verified> verified){

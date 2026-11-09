@@ -1,21 +1,31 @@
 {
   "passed": true,
-  "actual_OwnedBits_factory_owner_compile_link": true,
+  "actual_fresh_and_restored_factory_owner_compile_link": true,
   "native_MPC": false,
   "owner_execution_tested": false,
   "source_sha256": {
-    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "dafe0fa4f2bda77715a1ec075c376ab69ae1875c9cf0695da1cef11b1478170e",
-    "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
-    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h": "c591bc29f8aea88a8df0542eec5d445414b409403d93b35b2a3df36da35c7aae",
-    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "da9c90db5bf044efe0b384ce65bcf65d6d042a463b8865551896537a70eac09a",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h": "be1c465e5399b69ba894ade7afcbd33066352318f694c6db33f51c0fd40f2483",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "f9a9d90dc68e05e8460611a71fc92459f84aec9e71c95555f57d63eada552b39",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedRecoveryEngine.h": "1d765a0421d172c631e3092468be9a7fdae1b932fed3e26029a8551242b0f9ad",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardResume.h": "fa82e5ae6b68624e05a4da6b8a20ac478113f0a6f9cd5eea16622b8dedcceee8",
+    "signal_backend/RecoveryWork/ShardedAccountWork/SendProvenance.h": "371a6ad8eceafa837e722267934ac01f6bdda0b6f560fe88b1b937408ac076d6",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardPersistence.h": "feab8ac370d2664a2235b6b6883a39343d3d6dd8df49ebaadbdc272960797a46",
     "signal_backend/RecoveryWork/ShardedAccountWork/ResponseLeases.h": "a877099a17b8c7d31bf92bc2041b378467a13141146645b687cf4d3abc2276d0",
-    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedDurableOwner.h": "8be3c948d3d1b3440d1789dc99e9a75b6a44295490bf665beb919a1c641a0aae",
-    "signal_backend/RecoveryWork/ShardedAccountWork/ShardPersistence.h": "5ee2f4f36ecb5ef42f59ef1c2603dda5cde86d1f249cdba8dd5cf8917139de55",
-    "signal_backend/RecoveryWork/ShardedAccountWork/FreshProviderFactory.cpp": "908524fb545eaf92112b0ce5192a8ef30e7b23c00c81ebae73e288258d1ae861",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardRoute.h": "43c694bfc4516fea6465b0f940218b7c4b54dc6ba9b3e326ebcb425eacce46db",
     "signal_backend/RecoveryWork/ShardedAccountWork/FreshFixture.h": "73af776b730fa3a3047950f6d3b04f54a8ac50c1e544400b492015f53d498fb5",
-    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "b141367048ad0781e137f1e482f3ea7160311f80a173e66053a266b9153ef8ce",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedDurableOwner.h": "897badab9895bca33a208ce99486d6e46faf5eb4ea420d24d4d3eff960b4399b",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardReadmit.h": "f7964e16450a7e938f1f79e8c1c94a96472c540b731a58bdf2f17a2a95b44cba",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardDirectory.h": "2e0b5e4f671d589574a3173a936c12b9c0d08919e14a58fc04f0557d607c7846",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardCheckpoint.h": "76224265acd70b03f543b82f529b629084469c3a411af3efefe87b502a93b876",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FixtureConfig.h": "8ef1398e8cd38c30c749cab64608c22a5b17ef3dbcef3378fdc5a93c0177904f",
+    "signal_backend/RecoveryWork/ShardedAccountWork/RestoredProviderFactory.cpp": "2c677969325b49209bd3938a955455ef1a3c9e0d021abf10a0040e075c54bbab",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FreshProviderFactory.cpp": "295eb729ab91ca3da135c9e5ef3731e99e4d346716ec61ddcb1f885f5653f87b",
+    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "30a70208763cdfc605c2f902ee79451864ab659774a4f66cf1bef0148193e2f7",
+    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "555c7f3f29a6516d6fd5a30390f645d87079913f13fdfb1805736a086758c965",
     "handshake_backend/NativeSession.h": "25b4ec477405409c156f39fd8e60a794a584c1323f2d51b66678d030dba29272",
-    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "6e149e2ff98ba01906e52cfe57c2413f7b2e3d5b4c03ab687245af65b6c0c79b"
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "36a92301ac52ec79816b1728af0ccf5cea08f0472b64ae1e17431eb147e495c0",
+    "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "d1e94a2d27a9ccd558c63dcaf028b3737b0f99b15efa1afd1abce34e13f42607"
   },
-  "binary_sha256": "88570c014a03649512d8f5762630f522a1395f1ed02b0dccc095ae7ee6e196a1"
+  "binary_sha256": "a9912296c0d9479c567736e40dbf4a121fb86d8ab41954e37cf83d26683e80c0"
 }

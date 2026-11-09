@@ -11,6 +11,6 @@ public:
   std::vector<FunctionArgument> args={{1,global.function_argument()},{1,output.function_argument()}};
   auto name=std::string("signal_private_shard_validate_v1_")+(conversation?"conversation":"global");pinned.verify_function(name,args);FunctionArgument ignored;machine.run_function(name,ignored,args);return output;
  }
- static Digest program_identity(bool conversation,const Digest& manifest){auto bytes=label("SIGNAL-SHARD-VALIDATOR-PINNED-V1");append(bytes,manifest);auto name=label(conversation?"signal_private_shard_validate_v1_conversation/sbv20917x8/sbv1x8":"signal_private_shard_validate_v1_global/sbv8306x8/sbv1x8");bytes.insert(bytes.end(),name.begin(),name.end());return hash(bytes);}
+ static Digest program_identity(bool conversation,const Digest& manifest){auto bytes=label("SIGNAL-SHARD-VALIDATOR-PINNED-V1");append(bytes,manifest);auto name=label(conversation?"signal_private_shard_validate_v1_conversation-sbv:[167336x1]-sbv:[8x1]":"signal_private_shard_validate_v1_global-sbv:[66448x1]-sbv:[8x1]");bytes.insert(bytes.end(),name.begin(),name.end());return hash(bytes);}
 };
 }

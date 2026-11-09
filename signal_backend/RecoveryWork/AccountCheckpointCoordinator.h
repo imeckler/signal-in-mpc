@@ -69,6 +69,9 @@ public:
  CertifiedPhase commit(const std::vector<const tls_mpc_worker::Bits*>& sections){require(tls_mpc_worker::ErasedHostCall::active(),"account coordinator requires erased host call");require(!failed_&&reserved_,"account coordinator commit phase");try{
   auto result=certify(Phase::Commit,reserved_->proposal.slot,reserved_->proposal.digest(epoch_),reserved_->proposal.attempt,sections,&*reserved_);current_=result;reserved_.reset();return result;
  }catch(...){failed_=true;throw;}}
+ // Public certificate reads for a caller walking from the freshly authorized
+ // current head. This is not authority to restore an unrelated signed root.
+ CertifiedPhase ancestry_certificate(const Digest& id){require(tls_mpc_worker::ErasedHostCall::active()&&!failed_&&recovered_,"account ancestry read phase");try{return fetch(id);}catch(...){failed_=true;throw;}}
  void poison()noexcept{failed_=true;}bool failed()const noexcept{return failed_;}
 };
 }

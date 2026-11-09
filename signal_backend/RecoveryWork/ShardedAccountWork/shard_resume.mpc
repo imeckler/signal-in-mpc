@@ -1,0 +1,13 @@
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+image=load(program.args[1]);ordinal=image.get('ordinal')
+if ordinal not in (0,1,2,3) or image['name']!='signal-private-shard-resume-v1' or image['input_bits']!=5253*8 or len(image['outputs'])!=1302*8:raise ValueError('account outbox artifact profile')
+def evaluate(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+evaluate.__name__='signal_private_shard_resume_v1_o'+str(ordinal)
+function=export(evaluate);Array=sbitvec.get_type(1).Array
+function(Array(5253*8),Array(1302*8))

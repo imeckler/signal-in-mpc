@@ -6,11 +6,13 @@
 #include <memory>
 namespace signal_mpc::recovery {
 class AccountRecoveryEngineV1;
+namespace sharded {class Engine;}
 // An embedding-only one-shot capability, not a public/share-import RPC.
-// Only the actual whole-account recovery engine may construct it. That engine
-// is not yet implemented/admitted; presence of a resolver is not authorization.
+// Only the concrete account engines may construct it after actual checks.
+// Presence of a resolver or hook is not authorization.
 class AuthorizedRestoredAccount {
  friend class AccountRecoveryEngineV1;
+ friend class sharded::Engine;
  using Build=std::function<tls_mpc_worker::MuxProviderAdmission(tls_mpc_worker::Session&,tls_mpc_worker::Collective&,unsigned)>;
  Build build_;unsigned party_;Digest head_,boot_;uint64_t import_host_,retirement_host_;bool consumed_=false;
  AuthorizedRestoredAccount(Build build,unsigned party,Digest head,Digest boot,uint64_t imported,uint64_t retired)

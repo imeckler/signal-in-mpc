@@ -19,7 +19,7 @@
         0,
         0
       ],
-      "seconds": 0.31663491704966873,
+      "seconds": 0.3161993749672547,
       "error": null
     },
     {
@@ -31,7 +31,7 @@
         0,
         0
       ],
-      "seconds": 0.11238504108041525,
+      "seconds": 0.1069416250102222,
       "error": null
     },
     {
@@ -43,7 +43,19 @@
         0,
         0
       ],
-      "seconds": 0.11536170798353851,
+      "seconds": 0.11072412494104356,
+      "error": null
+    },
+    {
+      "mode": "outcome",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.32148745795711875,
       "error": null
     },
     {
@@ -55,7 +67,7 @@
         0,
         0
       ],
-      "seconds": 0.10905895789619535,
+      "seconds": 0.2118866250384599,
       "error": null
     },
     {
@@ -67,27 +79,39 @@
         0,
         0
       ],
-      "seconds": 0.10787820897530764,
+      "seconds": 0.114778499933891,
       "error": null
     }
   ],
   "error": null,
   "cleanup": [],
   "integrity": true,
-  "logs": ".deps/signal-sharded-account-native/v1-public/run-tp635p58",
+  "logs": ".deps/signal-sharded-account-native/v1-public/run-b345z2zr",
   "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardValidation.h": "c591bc29f8aea88a8df0542eec5d445414b409403d93b35b2a3df36da35c7aae",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardCapture.h": "f9a9d90dc68e05e8460611a71fc92459f84aec9e71c95555f57d63eada552b39",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedRecoveryEngine.h": "1d765a0421d172c631e3092468be9a7fdae1b932fed3e26029a8551242b0f9ad",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardResume.h": "fa82e5ae6b68624e05a4da6b8a20ac478113f0a6f9cd5eea16622b8dedcceee8",
+    "signal_backend/RecoveryWork/ShardedAccountWork/SendProvenance.h": "371a6ad8eceafa837e722267934ac01f6bdda0b6f560fe88b1b937408ac076d6",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardPersistence.h": "feab8ac370d2664a2235b6b6883a39343d3d6dd8df49ebaadbdc272960797a46",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ResponseLeases.h": "a877099a17b8c7d31bf92bc2041b378467a13141146645b687cf4d3abc2276d0",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardRoute.h": "43c694bfc4516fea6465b0f940218b7c4b54dc6ba9b3e326ebcb425eacce46db",
+    "signal_backend/RecoveryWork/ShardedAccountWork/FreshFixture.h": "73af776b730fa3a3047950f6d3b04f54a8ac50c1e544400b492015f53d498fb5",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardedDurableOwner.h": "897badab9895bca33a208ce99486d6e46faf5eb4ea420d24d4d3eff960b4399b",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeShardReadmit.h": "f7964e16450a7e938f1f79e8c1c94a96472c540b731a58bdf2f17a2a95b44cba",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
     "signal_backend/RecoveryWork/ShardedAccountWork/ShardDirectory.h": "2e0b5e4f671d589574a3173a936c12b9c0d08919e14a58fc04f0557d607c7846",
     "signal_backend/RecoveryWork/ShardedAccountWork/ShardCheckpoint.h": "76224265acd70b03f543b82f529b629084469c3a411af3efefe87b502a93b876",
-    "signal_backend/RecoveryWork/ShardedAccountWork/fixture.cpp": "3ed40899ba77921f6e1b5c0d7d928619dd45d77ee83589bca220235d90e3f942",
-    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "26ceca3b01e4920acdf7187341111a98516fecfc335431a240229541c45d48e9",
-    "signal_backend/RecoveryWork/ShardedAccountWork/check_native.py": "e1ec373c24ae8cc6f1d3521817909e949964bdbcdcaec0b6d57566ce74db88e5",
-    "signal_backend/RecoveryWork/AccountCheckpointCoordinator.h": "ee6b6e98ca1b09535e7894aa4f15213b2ab81439dd098e2fb0c174d08337c3e7",
+    "signal_backend/RecoveryWork/ShardedAccountWork/fixture.cpp": "f776c71145163aeded9e56af3c24763e9b468760b4424f460833118ed07cbe3f",
+    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "b141367048ad0781e137f1e482f3ea7160311f80a173e66053a266b9153ef8ce",
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_native.py": "d60da5a1e125906732d7726002a0fb157bde739901425f2426614050a9f45b49",
+    "signal_backend/RecoveryWork/AccountCheckpointCoordinator.h": "24cbcd2c855e5896d63f9048712ee2957cc01df2d6abe00baa5a89bc82979514",
     "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09",
     "signal_backend/RecoveryWork/CiphertextStore.h": "b200ab9ecbf2de9d7f7de8ca9f6e2f817355100354b76fb149515e36f5381e75",
     "signal_backend/RecoveryWork/PublicCheckpointStore.h": "dba44b069c5a38adc91ddc2486aa066ee1520b2ba802f2933fcfcb35c50339bf"
   },
   "product_sha256": {
-    ".deps/signal-sharded-account-fixture": "aa6850443cb3df32ff47d51b3d70c98ec8ab3d577d111b0ad7afcfdced446c8a",
+    ".deps/signal-sharded-account-fixture": "cadb5330f6e030ed4b5cd9854a4864ce74c4da395984837455e3c288c062302f",
     ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
     ".deps/private-record-admission-native/v1-candidate-1/admission.manifest": "12ec8bb14e30be8bf3c1a214ecc93f65165c835df70f022cf42bcd650e47e4fe"
   },

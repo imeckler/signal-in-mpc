@@ -163,6 +163,7 @@ int main(int argc,char** argv) {
                             auto receipts=state->providers->produce_batch(requests);PublicBytes out{1,static_cast<uint8_t>(receipts.size())};
                             for(auto receipt:receipts){put_number(out,receipt.handle,8);put_number(out,receipt.capacity,2);}return out;
                         }
+                        if(request->operation==Opcode::mux_checkpoint_outcomes){input.done();return PublicBytes{static_cast<uint8_t>(state->providers->checkpoint_outcomes())};}
                         ProviderRegistry::Receipt receipt;
                         if(request->operation==Opcode::mux_upgrade){input.done();receipt=state->providers->upgrade();}
                         else if(request->operation==Opcode::mux_resume_outbox){auto owner=input.number(8),handle=input.number(8);input.done();receipt=state->providers->resume_outbox(owner,handle);}

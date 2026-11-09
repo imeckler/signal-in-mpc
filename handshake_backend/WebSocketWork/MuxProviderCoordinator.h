@@ -10,6 +10,7 @@ struct ConversationAdmission {
     std::unique_ptr<NativeConversation> conversation;Bits computed_validity;
     std::vector<std::unique_ptr<PrivateInputBuilder>> inputs;
     std::vector<PendingOutboxAdmission> pending_outboxes={};
+    bool blocked=false;
 };
 struct MuxProviderAdmission {
     signal_mpc::UpgradeShape upgrade_shape{22};Bits credentials,computed_credential_validity;
@@ -74,6 +75,8 @@ public:
                     inventory+="\naccount-slot:"+std::to_string(slot);
                 }
                 inventory+="\nconversation:"+conversation.conversation->public_profile();
+                inventory+="\nblocked:"+std::to_string(conversation.blocked);
+                if(conversation.blocked){public_require(seeded&&conversation.inputs.empty()&&conversation.pending_outboxes.empty(),"blocked conversation has send work");conversation.conversation->admit_blocked();}
                 auto owner=registry->admit(std::move(conversation.conversation),std::move(conversation.computed_validity));
                 catalogue_rows.push_back({owner,{}});
                 public_require(conversation.pending_outboxes.size()<=1&&
@@ -105,6 +108,7 @@ public:
             admission.conversations.clear();session.checkpoint_private_computation();
         }catch(...){factory={};if(!joined){joined=true;collective.require_local_success(false);}close();throw;}
     }
+    bool checkpoint_outcomes(){public_require(initialized&&upgraded&&!closed&&registry,"outcome checkpoint before upgrade");return registry->checkpoint_outcomes();}
     PublicBytes catalogue()const{
         public_require(initialized&&!closed,"mux catalogue unavailable");PublicBytes out{uint8_t(restored_catalogue?2:1),static_cast<uint8_t>(catalogue_rows.size())};
         for(const auto& row:catalogue_rows){put_number(out,row.first,8);put_number(out,row.second.size(),2);for(auto input:row.second)put_number(out,input,8);

@@ -8,5 +8,5 @@ SHARD_HEADER_OUTPUT ?= ../signal-sharded-header-probe
 $(SHARD_HEADER_OUTPUT): $(SHARD_WORK)/header_probe.cpp $(wildcard $(SHARD_WORK)/*.h) libSPDZ.so
 	$(CXX) $(CFLAGS) -std=c++20 -I. -I$(SHARD_WORK) -I$(SHARD_WORK)/../../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
 SHARD_FACTORY_OUTPUT ?= ../signal-sharded-factory-probe
-$(SHARD_FACTORY_OUTPUT): $(SHARD_WORK)/header_probe.cpp $(SHARD_WORK)/FreshProviderFactory.cpp $(wildcard $(SHARD_WORK)/*.h) libSPDZ.so
-	$(CXX) $(CFLAGS) -std=c++20 -I. -I$(SHARD_WORK) -I$(SHARD_WORK)/../../../handshake_backend $< $(SHARD_WORK)/FreshProviderFactory.cpp $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+$(SHARD_FACTORY_OUTPUT): $(SHARD_WORK)/header_probe.cpp $(SHARD_WORK)/FreshProviderFactory.cpp $(SHARD_WORK)/RestoredProviderFactory.cpp $(wildcard $(SHARD_WORK)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -std=c++20 -I. -I$(SHARD_WORK) -I$(SHARD_WORK)/../../../handshake_backend $< $(SHARD_WORK)/FreshProviderFactory.cpp $(SHARD_WORK)/RestoredProviderFactory.cpp $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@

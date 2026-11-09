@@ -15,6 +15,7 @@ public:
     virtual void commit(const std::vector<size_t>& slots,const std::vector<signal_mpc::VariableShape>& shapes,
         const std::vector<typename Store::Candidate>& candidates)=0;
     virtual void response_complete(size_t slot,uint64_t ticket)=0;
+    virtual bool checkpoint_outcomes(){throw std::runtime_error("durable outcome checkpoint unsupported");}
     virtual void close()noexcept=0;
 };
 // A conversation on an independently authenticated connection. Credential
@@ -26,9 +27,9 @@ template<class Bits,class Session,class Collective> class CoordinatedConversatio
     Session& session;Collective& collective;
     signal_mpc::VariableShape shape;
     signal_mpc::VariableSendStore<Bits> store;
-    enum class Phase {admitted,active,resume_ready,producing,pending,closed};
+    enum class Phase {admitted,active,resume_ready,producing,pending,blocked,closed};
     Phase phase=Phase::admitted;
-    std::shared_ptr<DurableConversationHooks> account;size_t account_slot=0;uint64_t resume_ticket=0;bool resumed_pending=false;
+    std::shared_ptr<DurableConversationHooks> account;size_t account_slot=0;uint64_t resume_ticket=0;bool resumed_pending=false;bool blocked_on_activation=false;
 public:
     struct Produced {uint64_t ticket;Bits payload,request_id;size_t capacity;};
     CoordinatedConversation(Session& session,Collective& collective,signal_mpc::VariableShape shape,
@@ -48,12 +49,16 @@ public:
     CoordinatedConversation& operator=(const CoordinatedConversation&)=delete;
     std::string public_profile()const{return shape.descriptor();}
     void authenticated_connection_ready(){
-        try{public_require(phase==Phase::admitted,"conversation activation rejected");phase=resume_ticket?Phase::resume_ready:Phase::active;}
+        try{public_require(phase==Phase::admitted,"conversation activation rejected");phase=blocked_on_activation?Phase::blocked:(resume_ticket?Phase::resume_ready:Phase::active);}
         catch(...){close();throw;}
     }
     size_t frame_capacity()const{return shape.frame_capacity();}
+    void admit_blocked(){
+        try{public_require(account&&phase==Phase::admitted&&!resume_ticket,"blocked admission rejected");blocked_on_activation=true;}
+        catch(...){close();throw;}
+    }
     void admit_pending_outbox(uint64_t ticket){
-        try{public_require(account&&phase==Phase::admitted&&!resume_ticket&&ticket,"pending outbox admission rejected");resume_ticket=ticket;}
+        try{public_require(account&&phase==Phase::admitted&&!blocked_on_activation&&!resume_ticket&&ticket,"pending outbox admission rejected");resume_ticket=ticket;}
         catch(...){close();throw;}
     }
     void resume_pending_outbox(uint64_t ticket){
@@ -61,6 +66,10 @@ public:
         try{public_require(account&&phase==Phase::resume_ready&&resume_ticket==ticket,"pending outbox lease rejected");
             phase=Phase::pending;resumed_pending=true;joined=true;collective.require_local_success(true);
         }catch(...){close();if(!joined)collective.require_local_success(false);throw;}
+    }
+    bool checkpoint_outcomes(){
+        try{public_require(account&&(phase==Phase::active||phase==Phase::pending||phase==Phase::blocked),"outcome checkpoint unavailable");return account->checkpoint_outcomes();}
+        catch(...){close();throw;}
     }
     Produced produce(Bits payload,Bits timestamp,Bits assigned_id){
         auto results=produce_batch({BatchRequest{this,std::move(payload),std::move(timestamp),std::move(assigned_id)}});

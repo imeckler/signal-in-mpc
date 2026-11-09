@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 5,
+  "foundational_axioms_only": true,
+  "exact_AIG_cases": 64,
+  "idle_pending_blocked_distinct": true,
+  "never_sent_requires_canonical_all_absent": true,
+  "original_ID_and_wire_preserved_for_pending": true,
+  "metadata_declassification_requires_prior_aggregate_authenticated_validity": true,
+  "private_MPC": false,
+  "restore_activation": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_route.py": "1fc9745c68ede63a02ead044be567fcf04e472d90686d7618bbb208c184fa00a",
+    "signal_backend/RecoveryWork/ShardedAccountWork/RouteAudit.lean": "0de8ab5db579f0825e4ec5d2ccfa809c3057e781c0070949a7811bfc38571d4b",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportRoute.lean": "482d5f233b8f95dce32d15360277efcbcda0362bd6e0079f8e524f88bfff8003",
+    "TlsMpc/Signal/PrivateShardedOutboxRouteV1.lean": "ae6c1c031c3185897e1de1c20a038bb85f208ca0f4e3b5b6ffdce72f92f3ac71"
+  }
+}

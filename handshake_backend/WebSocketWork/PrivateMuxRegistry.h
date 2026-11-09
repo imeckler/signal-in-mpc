@@ -43,6 +43,12 @@ public:
     ~PrivateMuxRegistry(){close();}
     PrivateMuxRegistry(const PrivateMuxRegistry&)=delete;
     PrivateMuxRegistry& operator=(const PrivateMuxRegistry&)=delete;
+    bool checkpoint_outcomes(){
+        try{live();require(active&&!entries.empty(),"outcome checkpoint unavailable");auto* first=entries.begin()->second.conversation.get();require(durable(*first),"outcome checkpoint requires durable account");
+            for(auto& [owner,entry]:entries)require(entry.conversation->same_durable_account(*first),"mixed outcome checkpoint accounts");
+            bool changed=first->checkpoint_outcomes();if(changed)hooks.checkpoint();return changed;
+        }catch(...){fail();throw;}
+    }
     uint64_t admit(std::unique_ptr<Conversation> conversation,Bits validity){
         try{live();require(!active&&conversation&&validity.size()==8&&entries.size()<4,"conversation admission rejected");
             require(!durable(*conversation)||bool(hooks.require_private_status),"durable status gate unavailable");

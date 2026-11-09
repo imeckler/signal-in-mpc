@@ -16,7 +16,7 @@ def main():
  owned=list(HERE.glob('*.h'))+[HERE/'fixture.cpp',HERE/'Makefile',pathlib.Path(__file__),HERE.parent/'AccountCheckpointCoordinator.h',HERE.parent/'Evidence.h',HERE.parent/'CiphertextStore.h',HERE.parent/'PublicCheckpointStore.h']
  pins={str(p.relative_to(ROOT)):sha(p)for p in owned};products={str(p.relative_to(ROOT)):sha(p)for p in [binary,runtime/'libSPDZ.so',manifest]};cases=[];cleanup=[];error=None
  try:
-  for index,mode in enumerate(['write','read','invalid','reserve','reject']):
+  for index,mode in enumerate(['write','read','invalid','outcome','reserve','reject']):
    procs=[];streams=[];start=time.monotonic();case_error=None
    try:
     for party in range(5):
