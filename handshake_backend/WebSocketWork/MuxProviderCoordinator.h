@@ -10,6 +10,9 @@ struct ConversationAdmission {
 struct MuxProviderAdmission {
     signal_mpc::UpgradeShape upgrade_shape{22};Bits credentials,computed_credential_validity;
     std::vector<ConversationAdmission> conversations;
+    // Empty only for the existing nonrecovering fresh-account profile.
+    Bits restored_request_cursor,computed_cursor_validity;
+    bool restored_account=false;
 };
 using MuxProviderFactory=std::function<MuxProviderAdmission(Session&,Collective&,unsigned)>;
 MuxProviderFactory make_mux_provider_factory();
@@ -37,6 +40,10 @@ public:
             auto admission=factory(session,collective,party);factory={};shape=admission.upgrade_shape;
             public_require(admission.credentials.size()==8*(shape.input_bytes()-16)&&admission.computed_credential_validity.size()==8&&
                 !admission.conversations.empty()&&admission.conversations.size()<=4,"invalid mux provider admission");
+            const bool restored=!admission.restored_request_cursor.empty();
+            public_require(restored==admission.restored_account&&
+                (restored?admission.computed_cursor_validity.size()==8:admission.computed_cursor_validity.empty()),
+                "incomplete restored request cursor admission");
             credentials=std::move(admission.credentials);credential_validity=std::move(admission.computed_credential_validity);
             registry=std::make_unique<Registry>(typename Registry::Hooks{
                 [&]{return session.reserve_private_request_id();},
@@ -45,8 +52,15 @@ public:
                 [&](Bits payload,size_t capacity){return session.retain_private_result(std::move(payload),capacity);},
                 [&]{session.checkpoint_private_computation();},std::move(terminal)},Bits(credential_validity));
             std::string inventory=shape.descriptor();
+            NativeConversation* restored_owner=nullptr;std::vector<size_t> account_slots;
             for(auto& conversation:admission.conversations){
-                public_require(bool(conversation.conversation),"missing private conversation");
+                public_require(bool(conversation.conversation)&&(!restored||conversation.conversation->durable()),"missing private/durable conversation");
+                if(restored){
+                    auto* owner=conversation.conversation.get();
+                    public_require(!restored_owner||owner->same_durable_account(*restored_owner),"mixed restored accounts");restored_owner=owner;
+                    auto slot=owner->durable_slot();public_require(std::find(account_slots.begin(),account_slots.end(),slot)==account_slots.end(),"duplicate restored account slot");account_slots.push_back(slot);
+                    inventory+="\naccount-slot:"+std::to_string(slot);
+                }
                 inventory+="\nconversation:"+conversation.conversation->public_profile();
                 auto owner=registry->admit(std::move(conversation.conversation),std::move(conversation.computed_validity));
                 catalogue_rows.push_back({owner,{}});
@@ -58,7 +72,10 @@ public:
             collective.agree_program("mux-provider-inventory-v1",inventory_digest);
             // No private execution until all local factories/fences/shapes are
             // collectively ready. All temporary state is dropped before renewal.
-            session.initialize_private_request_ids(nonce);
+            collective.agree_program(restored?"mux-restored-cursor-v1":"mux-fresh-cursor-v1",inventory_digest);
+            if(restored)session.restore_private_request_ids(std::move(admission.restored_request_cursor),
+                std::move(admission.computed_cursor_validity));
+            else session.initialize_private_request_ids(nonce);
             for(size_t i=0;i<admission.conversations.size();++i){
                 for(auto& builder:admission.conversations[i].inputs){auto input=builder->evaluate(session);
                     catalogue_rows[i].second.push_back(registry->admit_input(catalogue_rows[i].first,

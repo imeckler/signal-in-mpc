@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "asan_ubsan": true,
+  "actual_ownedbits_api_compiled_linked": true,
+  "native_mpc_executed": false,
+  "actual_code_under_test": [
+    "PrivateRequestCursor",
+    "CoordinatedConversation",
+    "VariableSendStore",
+    "produce_batch_with_checkpoint",
+    "PrivateMuxRegistry"
+  ],
+  "mock_boundaries": [
+    "kernel evaluation",
+    "whole-account certificate/disk cursor",
+    "account canonical binding",
+    "network/TLS"
+  ],
+  "checks": [
+    "staged batch cursor commit once",
+    "reentrant close/reserve poisons",
+    "dimensions/phase rejection",
+    "two independent conversations",
+    "reserve/bind/commit before retain",
+    "reordered correlated completion slots",
+    "stale response rejection",
+    "failure after durable reserve before cursor install",
+    "whole failed range burned on simulated restart",
+    "old outbox IDs retained without reuse"
+  ],
+  "full_account_authorization_validated": false,
+  "fresh_tls_restore_interop_validated": false,
+  "sources": {
+    "handshake_backend/RestoreAdmissionWork/PrivateRequestCursor.h": "79e3c32ac0645e01f4b5bb0f6b5adb3a7630f61057fc4cbef5e7d249d61a278d",
+    "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "6e2a6b1a0d305d7d8f8d8b94855c6d4ef6cf5dd5da9772ea8807b76c0c85a90a",
+    "handshake_backend/RestoreAdmissionWork/cursor_checks.cpp": "fe50241f47453bdb214169f8f31c6f0e38f13f748fa7d2199193097f16586514",
+    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "9982b7364bf0578934b35b6aea671dfc24ad73d8c5244df17b760a613ebb0fd1",
+    "handshake_backend/NativeSession.h": "d0254c25c2c78afe88bfe1e091d30ea1264f3c5fac1fa27d9abec00851492314",
+    "handshake_backend/WebSocketWork/NativeConversation.h": "5046c1ac88a0502e9adfe7d79234e754223f528a59ebde49326b5bbd34b17e0d",
+    "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "f825e9a73289d4915940a850289713fe0843af0a2161ca6016b635607f555ede"
+  },
+  "api_binary_sha256": "3815af0f880293f1400d978387f90fe81f5b438070d218198f3551ee1c514a81"
+}

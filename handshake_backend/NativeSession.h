@@ -4,6 +4,7 @@
 #include "PayloadWork/PrivatePayload.h"
 #include "PayloadWork/StatusGate.h"
 #include "PublicMetrics.h"
+#include "RestoreAdmissionWork/PrivateRequestCursor.h"
 #include "../signal_backend/SealedSenderWork/NativeService.h"
 #include "../signal_backend/SealedSenderWork/NativeUpgrade.h"
 #include "../signal_backend/SealedSenderWork/NativePayload.h"
@@ -36,8 +37,7 @@ class Session {
     ApplicationPolicy application_policy;
     bool application_ready=false;
     Bits parser_state;
-    Bits next_request_id;
-    bool request_ids_initialized=false;
+    PrivateRequestCursor<Bits> request_ids;
     enum class Origin {producer,authenticated_receive,websocket_close};
     struct Buffer { Bits data, private_length, validity; size_t capacity; bool fixed_length; Origin origin=Origin::producer; };
     std::map<uint64_t,Buffer> buffers;
@@ -216,6 +216,7 @@ public:
     }
     uint64_t retain_private_result(Bits encoded,size_t capacity) {
         return guarded([&] {require_application();
+            require(request_ids.committed(),"private account reservation incomplete");
             return retain_private_payload(PrivatePayload::from_result(std::move(encoded),capacity));});
     }
     // Embedding-only public constants and computed private validity. Neither is
@@ -235,17 +236,32 @@ public:
             return eval("tls-provider-validity",concat({producer,upstream}),1);});
     }
     void initialize_private_request_ids(const Bytes& public_nonce) {
-        guarded([&] {require_application();require(!request_ids_initialized&&public_nonce.size()==16,"private request allocator initialization rejected");
-            request_ids_initialized=true;
-            next_request_id=eval("tls-private-request-id-init",public_bits(public_nonce),8);});
+        guarded([&] {require_application();require(public_nonce.size()==16,"private request allocator initialization rejected");
+            request_ids.initialize(eval("tls-private-request-id-init",public_bits(public_nonce),8));});
+    }
+    // Trusted same-worker admission only. Account authorization/coherence must
+    // supply the computed flag; actual account Reserve must commit its staged
+    // range before producer evaluation. No RPC import exists.
+    // TLS sequence numbers, traffic keys and nonce state are always fresh.
+    void restore_private_request_ids(Bits cursor,Bits computed_validity) {
+        guarded([&] {require_application();require(cursor.size()==64&&computed_validity.size()==8,
+                "restored request allocator admission rejected");
+            auto checked=eval("tls-private-request-id-next",Bits(cursor),9);
+            auto accepted=eval("tls-provider-validity",concat({bytes(checked,0,1),computed_validity}),1);
+            require(release(std::move(accepted))==Bytes{255},"restored request allocator admission rejected");
+            request_ids.initialize(std::move(cursor),true);});
+    }
+    // Invoked inside the actual staged-group Reserve hook. The callback binds
+    // this cursor range and ALL staged callinputs in one account certificate.
+    template<class Commit> void commit_private_request_ids(Commit&& commit) {
+        guarded([&]{require_application();request_ids.commit_pending(std::forward<Commit>(commit));});
     }
     Bits reserve_private_request_id() {
-        return guarded([&] {require_application();require(request_ids_initialized&&next_request_id.size()==64,"private request allocator unavailable");
-            auto output=measured("request.id",[&]{return eval("tls-private-request-id-next",Bits(next_request_id),9);});
+        return guarded([&] {require_application();return request_ids.reserve([&](Bits current){
+            auto output=measured("request.id",[&]{return eval("tls-private-request-id-next",std::move(current),9);});
             require(release(bytes(output,0,1))==Bytes{255},"private request admission rejected");
-            auto selected=std::move(next_request_id);next_request_id=bytes(output,1,8);
-            return selected; // Never a public RPC result; reservation cannot roll back.
-        });
+            return bytes(output,1,8);
+        });}); // Restored IDs are quarantined until whole-account Reserve completes.
     }
     // Consume exactly once into an internal HTTP/WebSocket/Signal processor.
     // No plaintext bytes or actual length are returned over RPC.
@@ -263,7 +279,7 @@ public:
     // inputs. New TLS/app/producer shares and retained outputs deliberately live.
     // Further application work waits for this host call's complete wipe barrier.
     void checkpoint_private_computation() {
-        guarded([&] {require_application();require(!pending_send,"private checkpoint with pending ciphertext");
+        guarded([&] {require_application();require(!pending_send&&request_ids.committed(),"private checkpoint with pending ciphertext/account reservation");
             lifecycle->renew_epoch();});
     }
     Bits evaluate_signal(const signal_mpc::SendShape& shape,Bits input) {
@@ -272,7 +288,7 @@ public:
     Bits evaluate_service(const signal_mpc::ServiceShape& shape,Bits input) {
         return guarded([&] {require_application();
             signal_mpc::NativeService service(machine,worker,pinned_programs);
-            return service.evaluate(shape,std::move(input));});
+            require(request_ids.committed(),"private account reservation incomplete");return service.evaluate(shape,std::move(input));});
     }
     uint64_t retain_service_result(const signal_mpc::ServiceShape& shape,Bits result) {
         return guarded([&] {require_application();
@@ -288,13 +304,13 @@ public:
     Bits evaluate_variable(const signal_mpc::VariableShape& shape,Bits input) {
         return guarded([&] {require_application();
             signal_mpc::NativeVariableService service(machine,worker,pinned_programs);
-            auto result=measured("provider.crypto",[&]{return service.evaluate(shape,std::move(input));});
+            auto result=measured("provider.crypto",[&]{require(request_ids.committed(),"private account reservation incomplete");return service.evaluate(shape,std::move(input));});
             if(metrics)metrics->function_resources(shape.descriptor());return result;});
     }
     std::vector<Bits> evaluate_variable_batch(const std::vector<signal_mpc::VariableShape>& shapes,std::vector<Bits> inputs) {
         return guarded([&] {require_application();require(!shapes.empty(),"empty conversation batch");
             NativeBatchService service(machine,worker,pinned_programs);
-            auto result=measured("provider.crypto.batch",[&]{return service.evaluate(shapes,std::move(inputs));});
+            auto result=measured("provider.crypto.batch",[&]{require(request_ids.committed(),"private account reservation incomplete");return service.evaluate(shapes,std::move(inputs));});
             if(metrics)metrics->function_resources(VariableBatchShape(shapes.front(),shapes.size()).descriptor());
             return result;});
     }
@@ -456,7 +472,7 @@ public:
         for(auto* traffic:{&client_hs,&server_hs,&client_app,&server_app}) {
             traffic->secret.clear();traffic->key.clear();traffic->iv.clear();
         }
-        main_secret.clear();parser_state.clear();next_request_id.clear();buffers.clear();
+        main_secret.clear();parser_state.clear();request_ids.close();buffers.clear();
         pending_wire.clear();pending_send=false;
         return lifecycle && lifecycle->abort_epoch();
     }
