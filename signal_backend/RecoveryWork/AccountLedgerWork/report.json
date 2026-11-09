@@ -1,0 +1,92 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "actual_five_node_network": true,
+  "quorum": 4,
+  "threshold": 2,
+  "all_five_persistence_and_status_required": true,
+  "actual_encrypted_full_layout_capture": true,
+  "full_sections": 18,
+  "conversations": 2,
+  "cases": [
+    {
+      "name": "two_commits",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.4300977078964934
+    },
+    {
+      "name": "fresh_restart",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.1159181670518592
+    },
+    {
+      "name": "fetch_missing_local_certificate",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.10816895810421556
+    },
+    {
+      "name": "stale_certificates_durable_journals",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.11230608401820064
+    },
+    {
+      "name": "reserve_without_commit",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.2089747079880908
+    },
+    {
+      "name": "higher_reservation_blocks_restart",
+      "passed": true,
+      "all_five_exit_zero": true,
+      "seconds": 0.11725274997297674
+    }
+  ],
+  "fresh_status_challenge_per_process": true,
+  "complete_commit_ancestry": true,
+  "earlier_pending_outbox_retained_across_commit": true,
+  "public_constant_share_fixture_only": true,
+  "synthetic_structural_outbox": true,
+  "private_MPC_import": false,
+  "actual_provider_activation": false,
+  "full_account_security_or_recovery": false,
+  "unresolved_reservation_fail_closed_not_resumed": true,
+  "cleanup": [],
+  "logs": ".deps/signal-account-ledger-native/v2-candidate-1/run-hihom6cs",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/AccountLedgerWork/fixture.cpp": "5821669178899af88f390d9f8817a93d37d5c52a12cec32244e13ca17b44ce03",
+    "signal_backend/RecoveryWork/AccountLedgerWork/Makefile": "67d6e684346b9c6ed8f7caaa94bac98f817482c2f7c1a10f863f06b488ece110",
+    "signal_backend/RecoveryWork/AccountLedgerWork/check.py": "fae1891d33ed16ef06a1976b47b1b3d3e38b25925102c9dd77f0e2bb454daf47",
+    "signal_backend/RecoveryWork/AccountCheckpointCoordinator.h": "c497a98410ab56aa547fa98c19890581d2be86ee6985f54f10ec204d20277f90",
+    "signal_backend/RecoveryWork/NativeAccountCapture.h": "e28bf845fa3af5845a6b4bdc092b9c7618c3d6357a6c0d9a0a4c469c7b8abfcd",
+    "signal_backend/RecoveryWork/PublicCheckpointStore.h": "dba44b069c5a38adc91ddc2486aa066ee1520b2ba802f2933fcfcb35c50339bf",
+    "signal_backend/RecoveryWork/AccountLayoutV2.h": "442abd2c4d9ddf8259cf6c71b7c12c223825fd2411ed009aad8862d702ac005f",
+    "signal_backend/RecoveryWork/account_fixture.py": "c806cfc412f98150c848958e2121c9f9ca24d47459308288656cf2d4565d7ea1"
+  },
+  "binary_sha256": "e6b0c1c24c8020338fc4a8c5901c10bb1fab5c1691dabb07f436dc0757fb9ff5",
+  "runtime_library_sha256": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+  "manifest_sha256": "12ec8bb14e30be8bf3c1a214ecc93f65165c835df70f022cf42bcd650e47e4fe",
+  "fixture_sha256": "c362970692111d35bde595932c2fbfc7f5999bbd717c63727400bb4c30ecdca6",
+  "credential_sha256": {
+    "P4.pem": "f6172f7bf913468d520123ac50de5a40c305e1dcbe3ab39788b7efe7af6409b2",
+    "P0.pem": "f8919bfcbd87c4131364e384a3aff8aefb2cd1f1e750207ee71dc3d78de09291",
+    "P1.pem": "d964ae7af4739125d941680e5e178c11d8645bc91b5faabf12ee8973fd73bf33",
+    "P3.pem": "03e277d7ea47338d8056c963c35bc1c97f7394b8ea4dd6073b1ef5a80c21e81f",
+    "P2.pem": "4816a346a5710d5b33cdf5cc4a8f3367159317b33fceff183c8d08d4b158b462",
+    "P2.key": "8e081cd47f8b45c4540014ff58705c991b07a4b199c747aebf6a2fbd02ad16bf",
+    "P3.key": "1d4cb2f89239bb73beeb9dece95b88f2126db5eee31f217063f546f2b49cb5af",
+    "P1.key": "a7f1dead55bb562f1d0b232f18b0d25d5d05abc6db69e87ab8f5b7692a095427",
+    "P0.key": "a8d46ec575681a6efb5869790ac5e9407a88d29932b0e7f37491deb6d8a8c3a4",
+    "P4.key": "98534d52eca8c8612dce1809f2d8cf50a3761d7436f15983847ef990d5a96dde",
+    "690ad341.0": "f8919bfcbd87c4131364e384a3aff8aefb2cd1f1e750207ee71dc3d78de09291",
+    "786af600.0": "4816a346a5710d5b33cdf5cc4a8f3367159317b33fceff183c8d08d4b158b462",
+    "fe403b7a.0": "03e277d7ea47338d8056c963c35bc1c97f7394b8ea4dd6073b1ef5a80c21e81f",
+    "0c19e31f.0": "d964ae7af4739125d941680e5e178c11d8645bc91b5faabf12ee8973fd73bf33",
+    "36365ab9.0": "f6172f7bf913468d520123ac50de5a40c305e1dcbe3ab39788b7efe7af6409b2"
+  },
+  "credentials_verified_before_launch": true
+}

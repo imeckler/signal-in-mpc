@@ -1,0 +1,7 @@
+{
+  "setup_failure_before_certificate_flow": true,
+  "logs": ".deps/signal-account-ledger-native/v2-candidate-1/run-g0e5glkq",
+  "cause": "PinnedPrograms uses cwd-relative Programs; initial new stage had no immutable Programs link",
+  "fixed": "new stage links exact existing admission Programs and hashes manifest before launch",
+  "not_import_or_cleanup_rejection_evidence": true
+}
