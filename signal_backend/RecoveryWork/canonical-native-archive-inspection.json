@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "post_run_only": true,
+  "encrypted_blob_counts": {
+    "0": 4,
+    "1": 4,
+    "2": 4,
+    "3": 4,
+    "4": 4
+  },
+  "expected_two_local_reserves_and_commits": true,
+  "phase_or_quorum_restore_not_verified": true,
+  "native_report_sha256": "85100f887be5dc40ea6999376fb3bede37422f49142ea3be1d6d11383efd2e22",
+  "log_sha256": {
+    "party-0.log": "4ff4d0ebd1cbcb72a19897c21badf6bf06a9639e92200a16f94e228b49c5ddd5",
+    "party-1.log": "4ff4d0ebd1cbcb72a19897c21badf6bf06a9639e92200a16f94e228b49c5ddd5",
+    "party-2.log": "4ff4d0ebd1cbcb72a19897c21badf6bf06a9639e92200a16f94e228b49c5ddd5",
+    "party-3.log": "4ff4d0ebd1cbcb72a19897c21badf6bf06a9639e92200a16f94e228b49c5ddd5",
+    "party-4.log": "4ff4d0ebd1cbcb72a19897c21badf6bf06a9639e92200a16f94e228b49c5ddd5"
+  }
+}
