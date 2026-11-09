@@ -1,0 +1,51 @@
+{
+  "candidate_only": true,
+  "scope": "Actual known-field scalar/bytes wire guard exact for all six kinds; wrong-wire native key branches force actual Core complete-input rejection at outer/bounded inner sites; nested groups have no schema recognition. Component checkpoint, not complete scan/source refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/WireGuard.lean": "5f57cea95e28817c35202a08259583cd4b5dc6db56414fd1f10fbbd43750f8b7",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/KnownWire.lean": "6cd1124fce4f87e20583480890ded390b398b77d64695bd3961cd08ee04a503d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/WrongWireRejection.lean": "22730c7e94a016599dcfa0c4a2a9b0a335d9574633ca2c1b05b71a76991f52b8",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_wrong_wire.py": "c8dd2365b15461fef3c1ec33c009d06e3a90eb96c541096d7c874a83ebe6a31d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/WRONG_WIRE.md": "1a7a53a879a0357048f29fb611b395768b3a3222c08efdddde0549eada1a4df6"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/inactive-audit.json": "82bf96e677aadedbf8b6197a2be52c1f9272a4fc35e0b99ddbf960976dba183e",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/prefix-context-audit.json": "b845ef7b1ff74f0153e155e719dac47d9672c5d907fae83f5a5d202d97a6e08b",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-payload-audit.json": "f4d00906af964dbd72a2b9dcfe53a2ec1ce6e1dd79d350af248e3b8878f09079",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-error-audit.json": "660564695679ff14ee5c14572d1590497acffa71e9429ba09b0afe27bb67bc8d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-audit.json": "71cf6a078fe74d9ba6179301352c0a9af36d68c99fa81318acbc7f4b78fad42a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-success-audit.json": "0718a6318a7636c0ce7aaeea1071dc913210447e885d5762437c97a27dfc6a0f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-update-audit.json": "49e1390ee5ec1f23a7d256a02d82d044d275763bb4bbca859fa8fe8ffea5d707",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/native-recognition-audit.json": "b29d4533d1daab2bd2a2c7c4894b3831c11bec8c4228a61247ad3b79ce7ab2aa"
+  },
+  "inherited_source_count": 271,
+  "inherited_object_count": 120,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/wrong-wire-db0bac69fd05-69488.log",
+  "kernel_log_sha256": "2039f02182cc35892c9d62f96f02a4c17bf11ec1702ac9bacf61cc0ee482eb24",
+  "kernel_log": "Checking StreamingV1.WireGuard\n'ChatResponseReference.StreamingV1.core_schema_wire_reject' depends on axioms: [propext, Quot.sound]\nChecking StreamingV1.KnownWire\n'ChatResponseReference.StreamingV1.scalar_wrong_wire_mask' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.bytes_wrong_wire_mask' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.scalar_wire_mask' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.bytes_wire_mask' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.nested_schema_unknown' depends on axioms: [propext, Quot.sound]\nChecking StreamingV1.WrongWireRejection\n'ChatResponseReference.StreamingV1.bounded_inner_wrong_wire_reject' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.StreamingV1.outer_wrong_wire_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/wrong-wire-v1-final/ChatResponseReferenceWork/StreamingV1/WireGuard.olean": "0a9723cd841ce1a739380c96f301c7ae267f48207c50d38359f6dfa0ed0622c6",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/wrong-wire-v1-final/ChatResponseReferenceWork/StreamingV1/KnownWire.olean": "bd9fa59400abc3f14c1a68b85f23905d2d271588ba8732df2fb4ef9333106592",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/wrong-wire-v1-final/ChatResponseReferenceWork/StreamingV1/WrongWireRejection.olean": "7142ce2eb18e98871e7ab75af2e6d2121a4f1d170f28a2e69172446e228d08ba"
+  }
+}

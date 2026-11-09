@@ -130,3 +130,12 @@ inactive bytes/tails preserve complete state and emit zero events. This reaches
 the existing exported AIG byte compiler endpoint under explicit decoded-state
 and zero activity/start/end hypotheses. Active/private EOF controls and active
 source schema agreement are not inferred from this padding component.
+
+Known wrong-wire checkpoint: `StreamingV1/wrong-wire-audit.json` records clean
+three-module aggregate0. Actual scalar/byte schema wire guard is exact for all
+six kinds; native known-field wrong-wire key branches now force complete-input
+Core rejection at outer/bounded inner sites without prefix/table/new-tag
+premises. Nested unknown groups have no schema recognition. Source diagnostic/
+optional initialization/error suffix remain in the actual dispatcher references.
+Whole scan still must derive inner cursor context and compose correct-wire
+fields, unknown/groups, private EOF, HTTP/correlation/compiler and trust boundaries.
