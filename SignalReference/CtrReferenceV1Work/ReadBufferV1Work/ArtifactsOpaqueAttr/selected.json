@@ -1,0 +1,8 @@
+{
+  "get_pos": "    pub fn get_pos(&self) -> usize {\n        let pos = self.buffer[0];\n        if pos == 0 || pos > BS::U8 {\n            debug_assert!(false);\n            // SAFETY: `pos` never breaks the invariant\n            unsafe {\n                core::hint::unreachable_unchecked();\n            }\n        }\n        pos as usize\n    }",
+  "size": "    pub fn size(&self) -> usize {\n        BS::USIZE\n    }",
+  "remaining": "    pub fn remaining(&self) -> usize {\n        self.size() - self.get_pos()\n    }",
+  "set_pos_unchecked": "    unsafe fn set_pos_unchecked(&mut self, pos: usize) {\n        debug_assert!(pos != 0 && pos <= BS::USIZE);\n        self.buffer[0] = pos as u8;\n    }",
+  "read_cached": "    pub fn read_cached(&mut self, len: usize) -> &[u8] {\n        let rem = self.remaining();\n        let new_len = core::cmp::min(rem, len);\n        let pos = self.get_pos();\n\n        // SAFETY: `pos + new_len` is not equal to zero and not bigger than block size\n        unsafe { self.set_pos_unchecked(pos + new_len) };\n        &self.buffer[pos..][..new_len]\n    }",
+  "reset": "    pub fn reset(&mut self) {\n        self.buffer[0] = BS::U8;\n    }"
+}

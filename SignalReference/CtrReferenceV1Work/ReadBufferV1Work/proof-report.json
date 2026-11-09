@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 15,
+  "endpoints": [
+    "getter_valid",
+    "position_val",
+    "cursor_val",
+    "cast_position",
+    "update_head",
+    "set_cursor",
+    "reset_exhausts",
+    "available_val",
+    "remaining_actual",
+    "count_val",
+    "add_position",
+    "minimum_actual",
+    "read_cached_actual",
+    "advance_unread",
+    "read_cached_logical"
+  ],
+  "foundation_axioms_only": true,
+  "selected_non_getter_method_statement_bodies_retained": true,
+  "fixed_hybrid_array_native16_content_binding_trusted": true,
+  "source_grounded_getter_model_trusted": true,
+  "getter_actual_bottom_branch_translation_not_proved": true,
+  "valid_cursor_domain": "1..16, Fin16 representation; invariant established by setter/reset",
+  "requested_usize_unrestricted": true,
+  "all_payload_tail_bytes_unrestricted": true,
+  "actual_read_cached_to_take_drop_logical_suffix": true,
+  "both_supported_platform_widths_checked": true,
+  "source_write_block_ResetGuard_and_callbacks_not_yet_composed": true,
+  "full_CTR_HMAC_KDF_refinement": false,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/check.py": "3b3c8ca7bd2193e09620c66fe553a6dab3fe71860850bf971b8000271833fa71",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/extract_opaque_attr.py": "86b2e4e6fc123f6148f9ec269019e9bb111e4a855abe8564067b41500f23aa40",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/opaque-attr-extraction-report.json": "4468f72a67b0189e020656c0ca4a1353b7029705bee059ad8f03502cd053a025",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/ArtifactsOpaqueAttr/model.rs": "14cdfc10001d09e5c23b6ce791b7dd075de01917c68e0e2063b03baa9f826724",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/ArtifactsOpaqueAttr/selected.json": "e724648520089c70b96b173b7f4e867637129d2313d4455518673557c5be897e",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/Types.lean": "a84cc658e3029ae925cb51fb18b3f69dd99b9a947228b5b76444ecb6a54f0329",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/FunsExternal.lean": "6da8b566a6cc159226af6932fe8e221a74a37b4a4aab3b76140e78e118517dfe",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/Funs.lean": "11f590cd88f563bd72e936799608e45f0d9bec84c5742e78be9c223a7b1f2dd2",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/CursorReference.lean": "59e17bddd2108af98c60901e0b9c0f6faa4af256c017958c1a8d773123dd3071"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/Types.olean": "67c7643afca275d90e944772a3b094ca50f4d47111a8b1f7ebb7ee52738968b6",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/FunsExternal.olean": "7ec8a5ca119d42a1f8df950e7c5f69ebc243163d5860a9686fd1d6799fe6e587",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ReadBufferV1Work/GeneratedOpaqueAttr/Funs.olean": "da1c445e1b1582d40fa896b0c18db5e1ece32e453b8846dc426ef44256579166",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ReadBufferV1Work/CursorReference.olean": "f83bd7d229ec9e6fde2998c07bdc294cf5955f55b4b0ab8dc05b4930aeb551f9"
+  }
+}

@@ -1,0 +1,19 @@
+'LibSignalReference.Candidate.ReadBuffer16.getter_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.position_val' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.cursor_val' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.cast_position' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.update_head' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.set_cursor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.reset_exhausts' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.available_val' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.remaining_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.count_val' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.add_position' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.minimum_actual' does not depend on any axioms
+'LibSignalReference.Candidate.ReadBuffer16.read_cached_actual' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.advance_unread' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ReadBuffer16.read_cached_logical' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
