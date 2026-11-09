@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "standard_TLS_only": true,
+  "native_MPC": false,
+  "native_AES128_profile_tested": false,
+  "actual_recipient_fresh_texts": 12,
+  "actual_replay_rejections": 1,
+  "cut_withheld0_acknowledged1": true,
+  "restored_reordered_pairs": 2,
+  "original_application_bytes_and_ID_preserved": true,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_server.py": "a3ff42edb7ef927e13cee8080407bcc4b47d3f99a240038e2154f619db3dc93d",
+    "signal_backend/RecoveryWork/ShardedAccountWork/fixture_server.py": "52cff7c761d3b1d168fc443b68fccbae1e6a1f10eb690f5affd2c297e88bff6a",
+    "signal_backend/RecoveryWork/ShardedAccountWork/peer-cut.json": "854e5c55f01031d65568ef845c9939b25d0266e6bc9f6d73708c461accbd0530",
+    "signal_backend/RecoveryWork/ShardedAccountWork/peer-restored.json": "b5a8c723d4f48937ea2c37adb9c19c7dd5af1e1085378e66ee9270ca989019ba",
+    "signal_backend/Oracle/src/bin/signal-sharded-peer-fixture-oracle.rs": "c5579170a54dd699440d608e927b634b662ba7441db2edeeaaeb9abc15fd3e87"
+  },
+  "cases": [
+    {
+      "passed": true,
+      "phase": "cut",
+      "actual_serialized_bob_session": true,
+      "fresh_texts_decrypted": 2,
+      "replays_rejected_state_preserved": 0,
+      "withheld_responses": 1,
+      "response_count": 1,
+      "application_sha256": {
+        "0": "cabb594618f0353a43fcca310d9fe6e45b3b49fb78aac07fde8876ebc5461907",
+        "1": "40bf48b8017f8ae512d41becc4cf9d8c78b546df74a6f123e13079a4e3eeb27f"
+      },
+      "resume_application_hash_matches": false,
+      "reordered_response_pairs": 0,
+      "pongs_validated": 2,
+      "private_client_IDs_opened": false,
+      "unique_delivery_claim": false,
+      "live_account_effects": false
+    },
+    {
+      "passed": true,
+      "phase": "restored",
+      "actual_serialized_bob_session": true,
+      "fresh_texts_decrypted": 10,
+      "replays_rejected_state_preserved": 1,
+      "withheld_responses": 0,
+      "response_count": 11,
+      "application_sha256": {
+        "0": "3318afe8bc9ff926ba35ea600c1dc464096c9d2cbc7de37a4bb6af3860bba97b",
+        "1": "fe205467466606df562d91b4d5621ebec9ebd37ca9f6d5fc1ccb9684ba84b856"
+      },
+      "resume_application_hash_matches": true,
+      "reordered_response_pairs": 2,
+      "pongs_validated": 12,
+      "private_client_IDs_opened": false,
+      "unique_delivery_claim": false,
+      "live_account_effects": false
+    }
+  ]
+}

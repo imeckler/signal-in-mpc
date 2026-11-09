@@ -1,0 +1,17 @@
+{
+  "prepared": true,
+  "receiver_only_outputs": true,
+  "NEW_public_disposable_fixture": true,
+  "ordinary_smoke_envelopes": 12,
+  "restart_bob_after_message0": true,
+  "private_MPC": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/prepare_peer.py": "c6701370081f8914fa88a1a821b117a9c902e97801a1ec427425cd7015af676d",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/client.json": "1045db4c50fad6a3da0d869b22e1224dec6d1ceec08c626cfea722e66d4caa4a",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/recipient.json": "1a8ac79feb2a568ca5cbfb861af68cadd94cd146c7578430a8aaf9b61ba3bb88",
+    "signal_backend/RecoveryWork/ShardedAccountWork/peer-cut.json": "854e5c55f01031d65568ef845c9939b25d0266e6bc9f6d73708c461accbd0530",
+    "signal_backend/RecoveryWork/ShardedAccountWork/peer-restored.json": "b5a8c723d4f48937ea2c37adb9c19c7dd5af1e1085378e66ee9270ca989019ba",
+    "signal_backend/Oracle/src/bin/signal-sharded-peer-fixture-oracle.rs": "c5579170a54dd699440d608e927b634b662ba7441db2edeeaaeb9abc15fd3e87"
+  },
+  "oracle_binary_sha256": "e97d57d0a52951683768be23bc34694d7fed86e4b27180e9138854e40e6eca6c"
+}

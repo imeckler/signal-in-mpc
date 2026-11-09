@@ -1,0 +1,20 @@
+{
+  "prepared": true,
+  "NEW_fixture_domain_only": true,
+  "old_head3_untouched": true,
+  "private_account_state_copied": false,
+  "account_certificate_created": false,
+  "native_MPC": false,
+  "stage": ".deps/tls-sharded-account-native/v1-candidate-1",
+  "manifest_sha256": "511b04805187ae7f6756b8866e406bb956b182f80a617907999eda8f01c24a49",
+  "input_manifest_sha256": {
+    ".deps/tls-authorized-account-native/v1-candidate-2/programs.manifest": "a41455546132840185159061c880095c3ac2111b55d6862afe0419091e74e006",
+    ".deps/private-reusable-outbox-native/v1-candidate-1/outbox.manifest": "a8607236276e45dad51125be498f6714833e84a4112d05a496f5f29f5a5939ad",
+    ".deps/private-shard-validation-native/v1-candidate-3/validation.manifest": "2a102ea6e3c47cd484f814c260ef36419ad66f5720eb0bd46be77e1520cd8a67",
+    ".deps/private-shard-route-native/v1-candidate-2/route.manifest": "19d0d81d8c633aee5bb46517331648996a5d5d1e989fdb78f4acbc71698c61d7"
+  },
+  "pinned_files": 741,
+  "functions": 183,
+  "toolchain_files": 57,
+  "source_sha256": "fae48e53b1aaa0f758fe0a9439b4db2e31466b8ac5e6f25f34660887256b9eb4"
+}
