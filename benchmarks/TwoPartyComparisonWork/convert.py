@@ -15,20 +15,10 @@ sys.path.insert(0, str(ROOT))
 from backend_adapter.aig import validate, _plan, _xor_sources, execute
 
 
-def convert(image):
+def lower(image, inputs, gate):
+    """Lower one graph into an existing gate builder, preserving private wires."""
     validate(image)
-    n, m = image['input_bits'], len(image['outputs'])
-    if n == 0:
-        raise ValueError('at least one input required for constant construction')
-    # Bristol n1 is Bob's input, n2 Alice's (legacy C2PC online ownership).
-    gates, next_wire = [], 2*n+m
-    def gate(op, a, b=0):
-        nonlocal next_wire
-        out = next_wire
-        next_wire += 1
-        gates.append((op, a, b, out))
-        return out
-    inputs = [gate('XOR', i, n+i) for i in range(n)]
+    if len(inputs)!=image['input_bits'] or not inputs:raise ValueError('input dimensions')
     zero = gate('XOR', 0, 0)
     negated = {}
     def inv(w):
@@ -53,8 +43,24 @@ def convert(image):
             a, ai, b, bi = _xor_sources(nodes, node) if kinds[i] == 2 else node[1:]
             a, b = wires[a], wires[b]
             wires[i] = gate('XOR' if kinds[i] == 2 else 'AND', inv(a) if ai else a, inv(b) if bi else b)
+    return [inv(wires[w]) if flip else wires[w] for w, flip in image['outputs']]
+
+
+def convert(image):
+    validate(image)
+    n, m = image['input_bits'], len(image['outputs'])
+    if n == 0:raise ValueError('at least one input required for constant construction')
+    # Bristol n1 is Bob's input, n2 Alice's (legacy C2PC online ownership).
+    gates, next_wire = [], 2*n+m
+    def gate(op, a, b=0):
+        nonlocal next_wire
+        out = next_wire
+        next_wire += 1
+        gates.append((op, a, b, out))
+        return out
+    inputs = [gate('XOR', i, n+i) for i in range(n)]
+    outputs = lower(image,inputs,gate)
     # Make outputs contiguous and last. Bob receives y XOR Alice-private pad.
-    outputs = [inv(wires[w]) if flip else wires[w] for w, flip in image['outputs']]
     for j, w in enumerate(outputs):
         gate('XOR', w, 2*n+j)
     return {'n1': n, 'n2': n+m, 'n3': m, 'wires': next_wire, 'gates': gates}

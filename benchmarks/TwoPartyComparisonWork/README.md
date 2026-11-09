@@ -69,3 +69,9 @@ Primary protocol: [Wang–Ranellucci–Katz2017](https://obj.umiacs.umd.edu/pape
 ## Executed mixed curve control
 
 `python3 benchmarks/TwoPartyComparisonWork/run_curve_control.py` runs the existing Lean X25519 field DAG with secret XOR-shared scalar and recipient point, checked daBit conversions into MASCOT Fp25519, and canonical field-to-binary conversion. Only low-order/equality predicates open; the expected dummy result is independently computed by cryptography/OpenSSL, not supplied as an agreement. Positive and low-order rejection groups pass. Exact resource/time/bytes and unconsumed preprocessing are in `curve-control-report.json`. This is one curve, not the four-curve producer; EMP curve execution remains unimplemented. MAC-corruption rejection and caught-failure cleanup are distinct untested boundaries of this new runtime.
+
+## Fused Signal-core intermediate
+
+`prepare_signal_core.py --steps 2` and `run_emp_signal_core.py` passed two consecutive fixed-width zero-plaintext Signal/SPQR core sends inside one AG2PC execution. The first returned chain/counters feed the second graph internally; final state is padded with fresh Alice-only random pads and delivered only to Bob. No independent-session authentication/durability claim follows from XOR sharing. The301MB Bristol graph has3,647,972ANDs; measured cold total3.624s, global payload1,829,102,274B, peak party RSS3,530,227,712B. Loading alone took1.43–1.45s; this is not a sustained-rate estimate. Expected wires/state come from the historical coupled public fixture, not a new full recipient/TLS run.
+
+A matched equality-only wrapper (`prepare_core_check.py`, `signal_core_check.mpc`) is a **pending** comparison entry: it preserves the two-send state evolution but opens only a balanced equality predicate against the public-known fixture, avoiding sender-state reconstruction in a binary runtime without private reveal. Its MP-SPDZ compile/native results are not yet accepted.

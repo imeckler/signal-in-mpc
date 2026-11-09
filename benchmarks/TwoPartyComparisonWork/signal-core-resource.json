@@ -1,0 +1,13 @@
+{
+  "raw_and_gates": 5947449,
+  "executed_and_gates": 1823986,
+  "executed_xor_gates": 1715287,
+  "unreachable_nodes": 2408180,
+  "source": ".deps/signal-established-send-checks/signal-spqr-send-0-1-1-1-1-0-none-none.json",
+  "source_sha256": "c5ffdeed09ea1282607aea8eb28358fbc6b08fb6b9964de1009085befe7cec91",
+  "input_bits": 1456,
+  "output_bits": 1160,
+  "scan_seconds": 4.200891999993473,
+  "peak_rss_bytes": 1506443264,
+  "scope": "fixed-width established Signal/SPQR send core; zero-byte plaintext, no curve/sealed sender/TLS/parser"
+}

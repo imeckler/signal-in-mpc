@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "scope": "two fused zero-plaintext Signal core sends; no curve/sealed sender/TLS/response claim",
+  "retained_state": "first returned selected chain/counter feeds second graph internally; no host share handoff",
+  "security": "legacy EMP with40-bit comparison-mask/failclosed overlay; full composition unvalidated",
+  "controller_wall_seconds": 3.6240328340791166,
+  "exit_codes": [
+    0,
+    0
+  ],
+  "failure_category": null,
+  "prepared": {
+    "scope": "fused zero-plaintext established Signal core only; no full producer/TLS claim",
+    "steps": 2,
+    "input_bits": 1464,
+    "output_bits": 2616,
+    "counts": {
+      "AND": 3647972,
+      "XOR": 3434656,
+      "INV": 3199656
+    },
+    "wires": 10287828,
+    "source_sha256": "c5ffdeed09ea1282607aea8eb28358fbc6b08fb6b9964de1009085befe7cec91",
+    "fixture_sha256": "d7297af4523da88df17af019b08bb4b8469267ea28131fa71b5b95e7a3d8eab9",
+    "bristol_sha256": "229f12a561dd419f1e3955ec80c8d973891b3ee0b52ab18916fdd1622c4ba9b7",
+    "preparation_seconds": 17.510553291998804,
+    "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/signal-core-2",
+    "bristol_bytes": 301182817,
+    "peak_rss_bytes": null,
+    "peak_rss_note": "not collected for this terminal public adapter preparation; scan-only RSS recorded separately"
+  },
+  "parties": [
+    {
+      "party": 1,
+      "load_seconds": 1.4316,
+      "setup_seconds": 0.0275866,
+      "independent_seconds": 0.968906,
+      "dependent_seconds": 0.906555,
+      "online_seconds": 0.000966708,
+      "wall_seconds": 3.35937,
+      "cpu_seconds": 3.78278,
+      "peak_rss_bytes": 3063300096,
+      "sent_bytes": 1067811645,
+      "received_bytes": 761290629,
+      "offline_sent_bytes": 1067705781,
+      "offline_received_bytes": 761289165,
+      "generated_triples": 3647972,
+      "consumed_ands": 3647972
+    },
+    {
+      "party": 2,
+      "load_seconds": 1.4548,
+      "setup_seconds": 0.0280814,
+      "independent_seconds": 0.968812,
+      "dependent_seconds": 0.906064,
+      "online_seconds": 0.123914,
+      "wall_seconds": 3.48232,
+      "cpu_seconds": 3.77788,
+      "peak_rss_bytes": 3530227712,
+      "sent_bytes": 761290629,
+      "received_bytes": 1067811645,
+      "offline_sent_bytes": 761289165,
+      "offline_received_bytes": 1067705781,
+      "generated_triples": 3647972,
+      "consumed_ands": 3647972
+    }
+  ],
+  "worker_sha256": "ba5044daf8e5396ea82d4f7460dc62aef4679b6bb94a56642d3f952e23fd5209",
+  "controller_sha256": "127f58998cd44a62da717cc49e401bb3b1833d173b6d24333504ff8e6676661b"
+}
