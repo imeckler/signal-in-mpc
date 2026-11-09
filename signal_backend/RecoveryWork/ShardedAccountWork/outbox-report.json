@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 5,
+  "foundational_axioms_only": true,
+  "concrete_cases": 42,
+  "exact_AIG_cases": 60,
+  "private_reclaim_only_absent_or_observed_accepted": true,
+  "preserve_unsent_attempted_rejected_uncertain": true,
+  "other_cells_byte_exact": true,
+  "host_must_bind_generation_to_actual_certificate": true,
+  "native_MPC": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_outbox.py": "4e4c22b7660245afe0c3ee9cb5e5499aeb94ed469970dca2248f7b88a4007ae1",
+    "signal_backend/RecoveryWork/ShardedAccountWork/OutboxChecks.lean": "0d2efef0ec1ebe0603bc394d7cff678577f60654c0b0c21c63fb57a167c86d1c",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ExportOutbox.lean": "02789651c60c1c245e12004a45dd5682312a79effa2629f1c1f4d412c282e26f",
+    "TlsMpc/Signal/PrivateReusableOutboxV1.lean": "1bd046519381435f3caf8d37603d19865b1d99f6ab32d366d55e6498bf1ed9e7"
+  }
+}

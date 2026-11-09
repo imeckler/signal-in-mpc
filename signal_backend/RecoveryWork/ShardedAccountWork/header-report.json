@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "actual_OwnedBits_compile_link": true,
+  "native_MPC": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/header_probe.cpp": "92f5f9b4c61edfeea0ed751aa9d323df928675284b2e04cdde518e7c867d19ab",
+    "signal_backend/RecoveryWork/ShardedAccountWork/NativeReusableOutbox.h": "8e6230d60cc09a82b7445cc4ca17025f5bbee1aded389406ba315e22debf5bef",
+    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "56dec6ea07ddc420a6369cff9d2145a0c7d841fde402828e78943e3e3f98fdb2"
+  },
+  "binary_sha256": "d4cb9b003c3ff792baa13879d0771ed1e7998fa73a0ea02a164b740e42b6a41d"
+}
