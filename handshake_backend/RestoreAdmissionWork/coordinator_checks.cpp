@@ -17,7 +17,7 @@ struct Session {
 using Conversation=tls_mpc_worker::CoordinatedConversation<Bits,Session,Collective>;
 using Registry=tls_mpc_worker::PrivateMuxRegistry<Bits,Conversation>;
 struct Account:tls_mpc_worker::DurableConversationHooksT<Bits>{
- unsigned& disk;bool fail_after_reserve=false,closed=false;unsigned reserves=0,binds=0,commits=0,acks=0;
+ unsigned& disk;bool fail_after_reserve=false,fail_bind=false,fail_commit=false,fail_response=false,closed=false;unsigned reserves=0,binds=0,commits=0,acks=0;
  std::vector<unsigned> frozen_ids,retained_outbox_ids;std::vector<Bits> states;
  explicit Account(unsigned& disk):disk(disk){}
  void reserve(const std::vector<size_t>& slots,const std::vector<signal_mpc::VariableShape>& shapes,const std::vector<Store::Staged>& staged,const Bits& current,const Bits& final,uint64_t lease)override{
@@ -27,13 +27,14 @@ struct Account:tls_mpc_worker::DurableConversationHooksT<Bits>{
   if(fail_after_reserve)throw std::runtime_error("injected after certificate before cursor install");
  }
  std::vector<Bits> bind(const std::vector<size_t>& slots,const std::vector<signal_mpc::VariableShape>& shapes,std::vector<Bits> outputs)override{
-  assert(!closed&&reserves>binds&&slots.size()==outputs.size()&&shapes.size()==outputs.size());++binds;return outputs;
+  assert(!closed&&reserves>binds&&slots.size()==outputs.size()&&shapes.size()==outputs.size());++binds;if(fail_bind)throw std::runtime_error("injected bind failure");return outputs;
  }
  void commit(const std::vector<size_t>& slots,const std::vector<signal_mpc::VariableShape>&,const std::vector<Store::Candidate>& candidates)override{
   assert(!closed&&binds>commits&&slots.size()==candidates.size());++commits;
   for(auto& c:candidates){states.push_back(c.next_state());retained_outbox_ids.push_back(c.request_id().back());}
+  if(fail_commit)throw std::runtime_error("injected after durable commit before install");
  }
- void response_complete(size_t,uint64_t ticket)override{assert(!closed&&ticket);++acks;}
+ void response_complete(size_t,uint64_t ticket)override{assert(!closed&&ticket);++acks;if(fail_response)throw std::runtime_error("injected response disposition failure");}
  void close()noexcept override{closed=true;}
 };
 struct Fixture{
@@ -58,4 +59,13 @@ int main(int argc,char**argv){assert(argc==2);std::filesystem::path root(argv[1]
  auto third=root/"restart2";std::filesystem::create_directories(third);
  {Fixture f(disk,third);auto a=f.add(0),ai=f.input(a);f.registry.authenticated_connection_ready();f.registry.produce(a,ai);
   assert(f.account->frozen_ids==std::vector<unsigned>({34})&&disk==35&&old_outbox==std::vector<unsigned>({30,31}));}
+ for(unsigned mode=0;mode<3;++mode){auto path=root/("failure-"+std::to_string(mode));std::filesystem::create_directories(path);
+  Fixture f(disk,path);auto a=f.add(0),ai=f.input(a);f.registry.authenticated_connection_ready();
+  if(mode==0)f.account->fail_bind=true;
+  if(mode==1)f.account->fail_commit=true;
+  if(mode<2){rejects([&]{f.registry.produce(a,ai);});assert(f.session.evals==1&&f.retained==0&&f.account->closed);
+   assert(f.account->commits==(mode==1));if(mode==1)assert(f.account->retained_outbox_ids.size()==1);}
+  else{f.registry.produce(a,ai);f.account->fail_response=true;rejects([&]{f.registry.authenticated_response_complete(0);});assert(f.account->closed);}
+ }
+
 }

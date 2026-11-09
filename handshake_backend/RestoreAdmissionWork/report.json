@@ -26,7 +26,10 @@
     "stale response rejection",
     "failure after durable reserve before cursor install",
     "whole failed range burned on simulated restart",
-    "old outbox IDs retained without reuse"
+    "old outbox IDs retained without reuse",
+    "actual-output binding failure quarantines output",
+    "post-durable-commit failure prevents local install/output",
+    "response-disposition failure poisons account"
   ],
   "full_account_authorization_validated": false,
   "fresh_tls_restore_interop_validated": false,
@@ -34,7 +37,7 @@
     "handshake_backend/RestoreAdmissionWork/PrivateRequestCursor.h": "79e3c32ac0645e01f4b5bb0f6b5adb3a7630f61057fc4cbef5e7d249d61a278d",
     "handshake_backend/RestoreAdmissionWork/CoordinatedConversation.h": "6e2a6b1a0d305d7d8f8d8b94855c6d4ef6cf5dd5da9772ea8807b76c0c85a90a",
     "handshake_backend/RestoreAdmissionWork/cursor_checks.cpp": "fe50241f47453bdb214169f8f31c6f0e38f13f748fa7d2199193097f16586514",
-    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "9982b7364bf0578934b35b6aea671dfc24ad73d8c5244df17b760a613ebb0fd1",
+    "handshake_backend/RestoreAdmissionWork/coordinator_checks.cpp": "66734c72bb57577b1801973156b52a11b7ce29d8dc0cb1191df0b757e4e1651b",
     "handshake_backend/NativeSession.h": "d0254c25c2c78afe88bfe1e091d30ea1264f3c5fac1fa27d9abec00851492314",
     "handshake_backend/WebSocketWork/NativeConversation.h": "5046c1ac88a0502e9adfe7d79234e754223f528a59ebde49326b5bbd34b17e0d",
     "handshake_backend/WebSocketWork/MuxProviderCoordinator.h": "f825e9a73289d4915940a850289713fe0843af0a2161ca6016b635607f555ede"
