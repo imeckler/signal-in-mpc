@@ -1,0 +1,10 @@
+[package]
+name = "reference-fixslice-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+aes = { version = "=0.9.1", features = ["zeroize"] }
+cipher = "=0.5.2"
+ctr = "=0.10.1"
+serde_json = "=1.0.150"

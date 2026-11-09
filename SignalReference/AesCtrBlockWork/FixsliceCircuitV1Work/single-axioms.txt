@@ -1,0 +1,54 @@
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_get' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_xor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_and' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_or' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_not' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_right4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_left4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_rotate4' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.projectionHom' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.projected_encrypt' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.evaluationHom16' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.packedProject_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.projectExpr_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.symbolic_state_correct16' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.project_extract1' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.decode16_project' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.decodeExpr16_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.projectWordsExpr_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.stateExpression16_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.expression16_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.selected_original' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.compiled_actual16' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.compiled_actual_from_key16' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
