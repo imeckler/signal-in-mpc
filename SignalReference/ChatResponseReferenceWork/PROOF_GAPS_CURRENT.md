@@ -133,3 +133,9 @@ shape alone, including the complete actual100-word pack/slice table and header.
 state-codec-audit.json aggregate0/foundational-only. Mux slots/rows wrapper,
 compressed serialized trim equality, reachable shape and exported compact
 recurrence/compiler join remain open. No promotion/native/profile job.
+
+Candidate whole Mux codec checkpoint: MuxCodec proves actual Mux
+readState(stateBytes(state))=state under Core ABI shape/slots4/rows4, exact
+actual slot slices/private queue/ID/row state included. mux-codec-audit.json
+aggregate0/foundational-only. Compressed serialized trim, reachable ABI shape
+and exported compact recurrence/compiler remain open. No promotion/runtime edit.
