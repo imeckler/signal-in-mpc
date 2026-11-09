@@ -58,3 +58,10 @@ bad tenth bytes after the prefix invariant, and finish rejects scalar/length EOF
 or a nonempty incomplete key. Clean key boundaries are explicitly distinguished.
 Whole-schema/private-end induction and HTTP/correlation/compiler composition
 remain open; this is not a full response acceptance theorem.
+
+Key/sticky checkpoint: `StreamingV1/key-closure-audit.json` records clean two-module
+aggregate0. The actual Core terminal value now composes with native key
+validation and the generated driver's adapter (all key-validation errors retained).
+Actual Core invalidity is sticky under arbitrary byte tails and finish; the bad
+tenth-byte theorem composes through complete remaining input. Common key checks
+and field transitions still need connection to Core guards in the schema invariant.

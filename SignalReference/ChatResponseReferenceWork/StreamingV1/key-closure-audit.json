@@ -1,0 +1,36 @@
+{
+  "candidate_only": true,
+  "scope": "Actual Core terminal value executes native key validation preserving all range/wire/tag errors and suffix. Actual Core rejection is sticky through arbitrary tail and finish. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/TerminalKey.lean": "b9acb1f569924b5f3eb977574176d69f745f17301144b00ceade43ec74caf37e",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/RejectionClosure.lean": "c3b3230bc60f8aff390f1efc9dd7aaefe0f2951a9e2084e21ef4c3d13ffbc42b",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_key_closure.py": "ed98e70098cdb6b9c567beca468d3fd7b68f91c072e8e542f7246d895b43ff9a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/KEY_CLOSURE.md": "17fa13059ca7849f5b2a06eb767e573c40b319a05718f0bf1583c97355e65436"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f"
+  },
+  "inherited_source_count": 225,
+  "inherited_object_count": 95,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-73ca82b78472-67044.log",
+  "kernel_log_sha256": "3b4b87304b08ce30c659bf63406e40a410e95d3a5484254fe4c5b192baf57907",
+  "kernel_log": "Checking StreamingV1.TerminalKey\n'ChatResponseReference.StreamingV1.core_terminal_key' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.RejectionClosure\n'ChatResponseReference.StreamingV1.step_invalid_sticky' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.feed_invalid_sticky' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.finish_invalid_sticky' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.bad_tenth_suffix_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-closure-v1-final/ChatResponseReferenceWork/StreamingV1/TerminalKey.olean": "b3597dd0983fe93b4cfcec193a190d9846de609c2f50266709d17417382e7448",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-closure-v1-final/ChatResponseReferenceWork/StreamingV1/RejectionClosure.olean": "b97aa8f7ae567c3e70f9663a0e0ea672bc95bcc1295fba9bf136b329e326a844"
+  }
+}
