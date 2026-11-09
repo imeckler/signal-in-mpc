@@ -12,6 +12,12 @@ int main(int argc,char**argv){
  put("closure-a",3,6);put("closure-c",4,5);assert(!cache.take("closure-b")&&!cache.take("closure-a"));assert(cache.take("closure-c")->value==4);
  put("too-large",5,11);assert(cache.size()==0);put("same",6,4);put("same",7,5);assert(cache.size()==1&&cache.take("same")->value==7);
  put("config-1",8,4);assert(!cache.take("config-2"));cache.clear();assert(!cache.take("config-1")&&cache.retained_bytes()==0);
+ tls_public_code::ReservedCache<PublicImage> reserved(10,4,2);
+ reserved.put("producer",std::make_unique<PublicImage>(PublicImage{42}),9,true);
+ for(int i=0;i<100;++i)reserved.put("small"+std::to_string(i),std::make_unique<PublicImage>(PublicImage{i}),3);
+ assert(reserved.retained_bytes()<=14&&reserved.take("producer")->value==42);
+ reserved.put("oversized",std::make_unique<PublicImage>(PublicImage{0}),11,true);assert(!reserved.take("oversized"));
+ reserved.clear();assert(reserved.retained_bytes()==0&&reserved.size()==0);
  std::string path=argv[1];{std::ofstream f(path,std::ios::binary);f<<"public-bytecode-v1";}
  std::map<std::string,std::string> pins{{path,tls_public_code::sha256("public-bytecode-v1")}};
  auto bytes=tls_public_code::read(path,pins);{std::ofstream f(path);f<<"modified-after-snapshot";}

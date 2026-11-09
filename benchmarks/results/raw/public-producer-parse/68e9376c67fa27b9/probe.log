@@ -1,0 +1,4 @@
+PARSE_METRIC {"hit":false,"seconds":2.07690954185,"accounted_bytes":1054256070,"instructions":6031974,"parse_count":1}
+PARSE_METRIC {"hit":false,"seconds":0.000763375079259,"accounted_bytes":463436,"instructions":2321,"parse_count":2}
+PARSE_METRIC {"hit":true,"seconds":0.533642000053,"accounted_bytes":1054256070,"instructions":6031974,"parse_count":2}
+PARSE_RESULT {"passed":true,"retained_accounted_bytes":1054719506,"maxrss_bytes":1793753088,"private_execution":false}

@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "scope": "actual265MBproducer parsed once, interleaved with small publicProgram, then same parsed image reused; no private execution, parties, crypto or application throughput claim",
+  "source_product_sha256": {
+    "handshake_backend/PublicProgramCacheWork/check_producer_parse.py": "7cbb09cdf83960a667d23b2f757fb5f3b5c59e6def6768e8ad4ab3f1b2fc8b48",
+    "handshake_backend/PublicProgramCacheWork/producer_parse_probe.cpp": "825bb498d62500ebb6851fd1b554a3a6130ded4e59b5de7de05d727e6018b831",
+    "handshake_backend/PublicProgramCacheWork/PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
+    "handshake_backend/PublicProgramCacheWork/PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674",
+    ".deps/tls-public-program-cache-runtime/tls-public-producer-parse-probe": "67e9b1cdd6ccc834e4532bf5c5e7498321830b94e33fdb857cfa22ff2cd92bb1",
+    ".deps/tls-public-program-cache-runtime/MP-SPDZ/libSPDZ.so": "80deda8751c2f3c62e1ab4c3cf4ab6c1e07364f043f9685d897c8571c20aaf11",
+    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
+    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
+    ".deps/private-variable-conversation-native/260-80-0-0/sha-gate-efficient/Programs/Bytecode/signal_private_conversation-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-signal_private_variable_conversation_260_80_0_0-1.bc": "ee51e0e8b5bfdeb7e584c49d6a9c03cd1e3f8e28017aad73c76f09ec1a722d54",
+    ".deps/throughput-public-cache-fixture-v1/Programs/Bytecode/batch_tiny-sequential-8-tls_batch_tiny_sequential_8-1.bc": "573342c98a40e69d90f6a51227a7cf185c0314578d1df86ce9fe924bca480bff",
+    ".deps/private-variable-conversation-native/260-80-0-0/sha-gate-efficient/service.manifest": "61f70fee96969721a85ae28d06d56795c00f93c3398b4d191a4a9462b06275e9"
+  },
+  "large_bytecode_bytes": 277524588,
+  "metrics": [
+    {
+      "hit": false,
+      "seconds": 2.07690954185,
+      "accounted_bytes": 1054256070,
+      "instructions": 6031974,
+      "parse_count": 1
+    },
+    {
+      "hit": false,
+      "seconds": 0.000763375079259,
+      "accounted_bytes": 463436,
+      "instructions": 2321,
+      "parse_count": 2
+    },
+    {
+      "hit": true,
+      "seconds": 0.533642000053,
+      "accounted_bytes": 1054256070,
+      "instructions": 6031974,
+      "parse_count": 2
+    }
+  ],
+  "result": [
+    {
+      "passed": true,
+      "retained_accounted_bytes": 1054719506,
+      "maxrss_bytes": 1793753088,
+      "private_execution": false
+    }
+  ],
+  "elapsed_seconds": 2.685192332835868,
+  "pid": 62271,
+  "exit_code": 0,
+  "raw": "benchmarks/results/raw/public-producer-parse/68e9376c67fa27b9",
+  "integrity_verified": true
+}

@@ -3,7 +3,7 @@
 from pathlib import Path
 import shutil,hashlib,json,subprocess,difflib
 ROOT=Path(__file__).resolve().parents[2];WORK=Path(__file__).parent
-BASE=ROOT/'.deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ';DEST=ROOT/'.deps/tls-public-program-cache-runtime/MP-SPDZ'
+BASE=ROOT/'.deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ';DEST=ROOT/'.deps/tls-public-program-cache-runtime-v2/MP-SPDZ'
 if DEST.exists():raise SystemExit('preserve existing public-cache candidate')
 DEST.mkdir(parents=True)
 # Public source/build products only. No Player-Data, memory snapshots or prep.
@@ -63,10 +63,10 @@ edit('Processor/Machine.h','  void prepare(const string& progname_str);','''  st
     string program, compiler, domain, relevant, security, gf2n, communication;
     int threads; size_t accounted_bytes;
   };
-  tls_public_code::Cache<PublicPreparedImage> public_cache{size_t(1024)*1024*1024, 16};
+  tls_public_code::ReservedCache<PublicPreparedImage> public_cache{size_t(2048)*1024*1024, size_t(256)*1024*1024, 16};
   const map<string,string>* admitted_public_files = nullptr;
   string admitted_public_key, current_public_key, current_public_config;
-  bool public_cache_failed = false;
+  bool public_cache_failed = false, current_public_reserved = false, admitted_public_reserved = false;
   uint64_t public_cache_direct_hits = 0, public_cache_loads = 0;
   void prepare(const string& progname_str);''')
 edit('Processor/Machine.h','  // Exclusive host-owner API, between completed exported function calls.','''  // Internal pinned embedding API; no RPC/import entry point. Full closure
@@ -104,7 +104,7 @@ new='''  // Quiescent host only. Cache holds no Processor, protocol, prep, RNG,
               image->relevant = relevant_opts; image->security = security;
               image->gf2n = gf2n; image->communication = expected_communication;
               auto bytes = image->accounted_bytes;
-              public_cache.put(current_public_key, std::move(image), bytes);
+              public_cache.put(current_public_key, std::move(image), bytes, current_public_reserved);
             }
           if (requested)
             {
@@ -139,7 +139,7 @@ new='''  // Quiescent host only. Cache holds no Processor, protocol, prep, RNG,
         Mi.minimum_size(NONE, INT, program, name);
         bit_memories.reset(program);
       }
-  current_public_key = admitted_public_key;'''
+  current_public_key = admitted_public_key; current_public_reserved = admitted_public_reserved;'''
 edit('Processor/Machine.hpp',old,new)
 # Descriptor reads also use the same verified byte snapshot.
 edit('Processor/Machine.hpp','''  ifstream file;
@@ -191,6 +191,8 @@ void Machine<sint, sgf2n>::run_function_pinned(const string& name,
       // Even cache hits reject any mutation of the admitted closure. Filenames
       // are lookup locations, never cache identities.
       for (const auto& entry : files) tls_public_code::read(entry.first, files);
+      admitted_public_reserved = name.rfind("signal_private_variable_conversation_", 0) == 0 or
+        name.rfind("signal_private_variable_batch_", 0) == 0;
       admitted_public_files = &files;
       admitted_public_key = identity + ":" + current_public_config;
       run_function(name, result, arguments);
@@ -209,6 +211,6 @@ patch=''
 for path,old in original.items():patch+=''.join(difflib.unified_diff(old.splitlines(True),(DEST/path).read_text().splitlines(True),fromfile='a/'+path,tofile='b/'+path))
 (WORK/'public-cache.patch').write_text(patch)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-receipt={'candidate_only':True,'production_runtime_changed':False,'base_runtime':str(BASE.relative_to(ROOT)),'source_hashes':{p:sha(BASE/p)for p in original},'candidate_hashes':{p:sha(DEST/p)for p in original},'helper_hashes':{n:sha(WORK/n)for n in ['PublicCodeCache.h','PinnedPublicCode.h']},'native_executed':False,'accounted_retained_instruction_budget_bytes':1024**3,'max_retained_entries':16,'memory_budget_scope':'accounted parsed instruction vectors/arguments plus usage metadata estimate; excludes current active image and allocator overhead/RSS'}
+receipt={'candidate_only':True,'production_runtime_changed':False,'base_runtime':str(BASE.relative_to(ROOT)),'source_hashes':{p:sha(BASE/p)for p in original},'candidate_hashes':{p:sha(DEST/p)for p in original},'helper_hashes':{n:sha(WORK/n)for n in ['PublicCodeCache.h','PinnedPublicCode.h']},'native_executed':False,'accounted_producer_reservation_bytes':2*1024**3,'accounted_small_cache_budget_bytes':256*1024**2,'max_retained_entries':16,'memory_budget_scope':'accounted parsed instruction vectors/arguments plus usage metadata estimate; excludes current active image and allocator overhead/RSS'}
 (WORK/'prepare-report.json').write_text(json.dumps(receipt,indent=2)+'\n')
 print('Prepared isolated cache source candidate; not yet built or validated')

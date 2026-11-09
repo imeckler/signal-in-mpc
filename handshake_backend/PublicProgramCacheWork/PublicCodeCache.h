@@ -38,3 +38,28 @@ public:
  }
 };
 }
+
+namespace tls_public_code {
+// An explicit producer reservation cannot be evicted by parser/TLS churn.
+// Both budgets are accounted public-image storage, not RSS/allocator limits.
+template<class Image> class ReservedCache {
+ Cache<Image> small;std::unique_ptr<Image> producer;
+ std::string producer_key;size_t producer_bytes=0,producer_budget;
+public:
+ uint64_t hits=0,misses=0,evictions=0;
+ ReservedCache(size_t producer_budget,size_t small_budget,size_t limit):small(small_budget,limit),producer_budget(producer_budget){if(!producer_budget)throw std::invalid_argument("empty producer budget");}
+ ReservedCache(const ReservedCache&)=delete;ReservedCache&operator=(const ReservedCache&)=delete;
+ size_t retained_bytes()const{return producer_bytes+small.retained_bytes();}
+ size_t size()const{return bool(producer)+small.size();}
+ void clear()noexcept{producer.reset();producer_key.clear();producer_bytes=0;small.clear();}
+ std::unique_ptr<Image> take(const std::string&key){
+  if(producer&&producer_key==key){++hits;auto result=std::move(producer);producer_key.clear();producer_bytes=0;return result;}
+  auto before=small.hits;auto result=small.take(key);hits+=small.hits-before;if(!result)++misses;return result;
+ }
+ void put(std::string key,std::unique_ptr<Image> image,size_t bytes,bool reserved=false){
+  if(!image||key.empty())throw std::invalid_argument("invalid public cache image");
+  if(reserved){if(bytes>producer_budget)return;if(producer)++evictions;producer=std::move(image);producer_key=std::move(key);producer_bytes=bytes;}
+  else{auto before=small.evictions;small.put(std::move(key),std::move(image),bytes);evictions+=small.evictions-before;}
+ }
+};
+}

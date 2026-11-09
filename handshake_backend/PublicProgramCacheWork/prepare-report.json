@@ -15,15 +15,16 @@
     "Processor/BaseMachine.cpp": "13b637f325513a94c7e7198da391e9349ce1b479f512d9bdef80d9e81b82f88f",
     "Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
     "Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
-    "Processor/Machine.h": "5c83ee0f545c6989e52c09e45ec8efaf25315cce6884360c4b4f05df58ead74c",
-    "Processor/Machine.hpp": "6a96898dfdda9bac44c33345e9c747e99e0394f602831c0aabe1f4230522854c"
+    "Processor/Machine.h": "a8bfa7cb108cfa95a943235a0c236eb8a75f9f8283ddc747532fd3ffb8f861fe",
+    "Processor/Machine.hpp": "d1f5e57576ff1f41e1561c28dc07bf2824149a3f0344ebbc7cbb7018805053a6"
   },
   "helper_hashes": {
-    "PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
+    "PublicCodeCache.h": "557727f1d256119f58282c46a40aa9e258f780c84ed7b89af06203de250542c9",
     "PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674"
   },
   "native_executed": false,
-  "accounted_retained_instruction_budget_bytes": 1073741824,
+  "accounted_producer_reservation_bytes": 2147483648,
+  "accounted_small_cache_budget_bytes": 268435456,
   "max_retained_entries": 16,
   "memory_budget_scope": "accounted parsed instruction vectors/arguments plus usage metadata estimate; excludes current active image and allocator overhead/RSS",
   "replayed_source_matches_built_candidate": true

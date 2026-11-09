@@ -3,7 +3,7 @@
 from pathlib import Path
 import hashlib,json,os,secrets,signal,subprocess,time,argparse
 ROOT=Path(__file__).resolve().parents[2];WORK=Path(__file__).parent
-RUNTIME=ROOT/'.deps/tls-public-program-cache-runtime/MP-SPDZ';STAGE=ROOT/'.deps/throughput-public-cache-fixture-v1'
+RUNTIME=ROOT/'.deps/tls-public-program-cache-runtime-v2/MP-SPDZ';STAGE=ROOT/'.deps/throughput-public-cache-fixture-v2'
 clock=lambda:time.clock_gettime(time.CLOCK_MONOTONIC_RAW)
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():

@@ -1,0 +1,895 @@
+{
+  "passed": true,
+  "mode": "batch",
+  "scope": "public-only conservative observed descriptor-set stress from frozen8text run, allotherobservedclosures betweenproduceruses; exact chronological descriptor order was not logged; no private execution/application throughput claim",
+  "observed_distinct_descriptors": 42,
+  "observed_total_calls": 2198,
+  "dynamic_extension_binding": "retained public receipts+manifests bound to boot-pinned toolchain; historical per-call extension digests were not logged",
+  "producer_reservation_bytes": 2147483648,
+  "small_cache_budget_bytes": 268435456,
+  "source_product_sha256": {
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-345.manifest": "522ad4f0169f470339bc808b6601a3ae25af960b83708800a1615b7d639bb006",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-345.receipt.json": "42005e18302c2cba8f1d324f909a4f0ed2ec45cab8808408274f369e5efe662e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-71.manifest": "f57156b23e2f9b8d31c653a79d85618f782f89db62dd775852aa9d5ffa930a4a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-71.receipt.json": "b34a7c60d2e3faaff7fde6c3d3384505abac6b1560ef3f86806d44967bf23c02",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-70.manifest": "b852c2c3bef8ce253d1c5769521a178d3b99f085f724f2284f4888d466c1e2a2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-70.receipt.json": "aaa1712977eabbb1bb9591993b33d689877612f0086d7c8a892e8b515cc155bc",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-50.manifest": "8f3a0f157b935cf5712aa10e96effd39ba684c32df8017b5d9fcbccd6e10e04c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-50.receipt.json": "8a3958d84cb9c2a57b73292d9a9bf3e057ca855dbccc05e7f6877f7c47cf6676",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-1290.manifest": "18bf8920dba4c1b563a7279411df1edef4e3d99465e0c1ea189d7d1b443fa1ab",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-1290.receipt.json": "bf025938db9c6cf6f5fac18c1a8dd7bba33330923a1bdc64ca69ec60143d17bf",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-1340.manifest": "05db619a838fb6b491bbfd2236e34e71b9feb3c59d93b11cd8e3e9b196bf7782",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-1340.receipt.json": "4cd75fc251237d796d8092f1a9f126bd487fffbd30a8ad08c9eea1c5f090837f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-7.manifest": "c006cf2b01541990825a8ab9a43ea9ed7298ebbc63681c2ca993fb4e17ae2fb4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-7.receipt.json": "a70994951b2281268c735ff81a958949679c38f71c3d1ade3a8dc821dca8d56d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-28.manifest": "da7c10be7153a641125fc969315e38d61ed9c4f3e79d1853550d27e9581122e9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-28.receipt.json": "e114519dadbac3c3b4e28af8062f518708a5a8d366e4a37dc1465a0e16e6087a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-43.manifest": "b5bf5f2eaee31a8013e21ab7306ace8a9bff8a563bf993196f8ca02c72e3bbd2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-43.receipt.json": "3f1ca7fb88506b8e2207bd8584e41c04ac733c4ce26b42da72b92fad54f33210",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-149.manifest": "d523473058dd99aa9508e363392ac8408b578782469edc64f53b7171e71da54f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-149.receipt.json": "c01a72df7fb1313c85129ec95605547773c54af93c7d62cf4e9f2cb53105fae8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-28.manifest": "fba5a1e47c8c86b63df5aebbd63eb3f46164e9c5c3f2a51aa0c6d73c53c92a1b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-28.receipt.json": "14cff2be1ae03faeb851b019bfd863e5f36cab1d986594401d573aaa391b832c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-1186.manifest": "e90998ee97c10378e7409fffa904983a7a5f859c46fa6796db677cecebc479a4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-1186.receipt.json": "97c70826ca870e9b1fac7dde6857b46bc917935f9f671020b6c2db692eb2f5f2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-79.manifest": "c9469f195c784ab078b9a2b319b4885bf7d8aef082dd0ecb3659cfaf8eec1f3b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-79.receipt.json": "1896bf2189aa3e38941b5e7f4547bf00401da0d4991454dd09a25188752ca882",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-record-22-5-0.manifest": "0c707c6b5d6299a131e74ea5bcc3b9a52073e88444cdd4a8f8c1cdf2059205b4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-record-22-5-0.receipt.json": "3bb13b2131fb3de61ef0263253f0aa47c1568bfcb47fd17affca4f82ba01bae3",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-31.manifest": "15dad8e092ca7d32ead161adafd771f7ceea6e739d53df477af7f1ec134234aa",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-open-record-31.receipt.json": "abfbca0e3b627827fd84985e1e668a2a1b63fa30f842a9931193385acd71ac47",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-49.manifest": "57b171740b1914f8ec80395238840ee67a947145e1fb00baf46f933029fd43b6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-49.receipt.json": "ba2873436eb84784ac4cb94b577944b00bd0d81b354899d1a1c661db8f712ff0",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-128.manifest": "cbe5753095cf4edb539e27b838670708b4702d18c4c6b04db768968e22089cb9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-128.receipt.json": "4b5a9e125d7c09ceeaaadae85b0f0eb7b09fb147303d7ec948d9f0f44d95f170",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-10.manifest": "5fe5464225822ba7c795716eafff604f09a8d744067844098e2c39fcf6691ee4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-10.receipt.json": "a6b9fdca325f1551ff97fbc8ca18d25906e1ebcbb7e4d55370a485e4e9aacb19",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-131.manifest": "f53ab6a979648365037ebfb62e20ef0a03e4fa7b7b873cfc87c9fd0080c262c9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-private-record-131.receipt.json": "da2545561b903c3db1528c2f4a07c9d1d1c924ce451cfc7c961af90e7713bf63",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-58.manifest": "c36c40514e5df1f067b52cb2b57194142f885dd939fdf1e02f809fb7965595cf",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-route-application-58.receipt.json": "c10124aefc1a82f7767630b59cf10bd04920026d086cb23eec6252f775d3c53d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-record-23-345-0.manifest": "515a31088c93b5f1b52d34585788b292836137aaa895730c42742db49355cebc",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Worker-Public/tls-shape-tls-seal-record-23-345-0.receipt.json": "3cd52f155ee87c73083c2bc41eed29ac70f06d5e10aa4969a5823c5e5d35acad",
+    "handshake_backend/PublicProgramCacheWork/check_working_set.py": "10aa9dc849baf1e2402f350c2fc18b7875bdb25b363bae2c8e00e1613fd3fcf3",
+    "handshake_backend/PublicProgramCacheWork/working_set_probe.cpp": "47a5d00ed8697e0943ddd2683e229714ffa157a9e9a018cb34f0e39820e8559b",
+    "handshake_backend/PublicProgramCacheWork/PublicCodeCache.h": "557727f1d256119f58282c46a40aa9e258f780c84ed7b89af06203de250542c9",
+    "handshake_backend/PublicProgramCacheWork/PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674",
+    "benchmarks/results/tls-native-text-throughput-batch.json": "2b8d560524a00c3823988193ad11d061d6743f44497566267ff29b4417f3d0b3",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/programs.manifest": "0814661630d25d9763ed7d3f74d57686ad145a06796a13727af8ae7f0241e63c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/party-0.log": "1d8a626bc2ff6c9843515315ab7ac892af8167c5cdb2096d1e98a758a847d65e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/signal_private_text_notification_48_80-sbv:[472x1]-sbv:[720x1]": "af082355d01a2a2a6f1ba67eda679190bcb5eaffb8046838d32eaa76e06be4f8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/signal_text_notification-_Users_izzy_repos_tls-mpc_.deps_private-hash-artifacts_private-text-48-80.json.sch": "0466f6b9acbe3fd034d15e0fef2c822df42fbff596963c57106d6e0553d18a4e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_text_notification-_Users_izzy_repos_tls-mpc_.deps_private-hash-artifacts_private-text-48-80.json-0.bc": "303b7c220c94dd02484f2d7394d79467b1a7a011d65b54bb4204fd2099f5f7d5",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_text_notification-_Users_izzy_repos_tls-mpc_.deps_private-hash-artifacts_private-text-48-80.json-signal_private_text_notification_48_80-1.bc": "c3381336f1b4a1696ecd70c763d32b7a73b71cebaaba04ea863492125d66724d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-sbv:[9776x1]-sbv:[21968x1]": "420a921931bf8306c5edae9a6e8e79af1b095a55652b55747165053a386565fd",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2.sch": "0bee3142cb3accb3b7b7053aa3ef16a4862446f262590f8acaab92fbf3b3aae6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2-0.bc": "0c622d821ac51ec975579c247dced0db2c75661670f1ece4126ba697da76eafe",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_variable_service_batch-Worker-Public_x25519-field.json-Worker-Public_service.json-260-80-0-0-gate-efficient-2-signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-1.bc": "55926f72b7729cb93e0ee4384b9466b5a5c11587400a85a3e2a98504dc7633c9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/signal_relay_upgrade_22-sbv:[432x1]-sbv:[2760x1]": "b154c097bd1cd41f1674e1ce05963e8cf7094bd3abd5220ea1991c273395d762",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/signal_upgrade_export-Worker-Public_upgrade.json-22.sch": "70af5478af3767accdbe908cba17b4a763e66141d1416fea184434b8f14cb851",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_upgrade_export-Worker-Public_upgrade.json-22-0.bc": "e929598f76d4fc0bc3dedd33b8fcce7b726e3017473a75d737f905bdb6abc223",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/signal_upgrade_export-Worker-Public_upgrade.json-22-signal_relay_upgrade_22-1.bc": "27f3dce650d8adc299417cce236fc01bb0d91c6fe3554d381f2141df66d23351",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_agreement-s:[256]-s:1-sbv:[256x1]": "3a56fdb94f1c11f90112440c501af321a0ec787ffc946d58375cbfcea48807af",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-agreement-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json.sch": "77360df4cbf6e34858b7a278323264a215877c97279815d31a200527981de0c7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-agreement-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-0.bc": "bdc51668f953d5d63a584ebc4e65c74f919bb94c8199c7df6336a859b9728d1f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-agreement-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-tls_agreement-1.bc": "911b9c7f14eef4d076cc2d616241093fddd8d99879cad7b9fc46436881266cd4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_begin-s:[256]-sbv:[256x1]": "fa691692b9f19c86c21596a09674d076dec67294bf6c1a1474f49234b354bc2d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json.sch": "f009aea755d6d49823575b70ba7d3078b719da23c1d1c847892fcea362513b22",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-0.bc": "c6256984632046e0848818685219be838d0c96c710b3bb32c9e23c793e37bc8b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-begin-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_x25519-field.json-tls_begin-1.bc": "863af3d59e9cb1f68dd61d52cce29fa466d215e43e700642f98f3a885795f97a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_application_secrets-sbv:[512x1]-sbv:[512x1]": "e96475dc51397fe01a433525ab9060196fec90f8ada77be281b96652a7c9bf5c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-application-secrets.json.sch": "22da48b25f7cd3e39006cc5e4ed0d7f1f918c341646979a5a037ed3e8920eb06",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-application-secrets.json-0.bc": "c5064ca5a674a7c3d17ed58519ecd6b4ed175e69ac35d8f067152a940ff83973",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-application-secrets.json-tls_binary_tls_application_secrets-1.bc": "491ad86771df8f552826670a3ad04255ee23e99e57c4b9b24e9e02f0b858892e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_chat_mux_admit_4-sbv:[7936x1]-sbv:[7856x1]": "4411db45110453620897430a7fc02f7aebc03293528ea780f23079cde0f67d60",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_mux_admit-binary-packed-Worker-Public_tls-chat-mux-admit-4.json.sch": "aed4c5d1a94a2fa8aae816e4036b5ebb52e2919ca5e34d4517259c5e0624ab39",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_mux_admit-binary-packed-Worker-Public_tls-chat-mux-admit-4.json-0.bc": "1f5285220e07148f4e0099d3192e9d45bb4daf97b1721e09b69e5d3c375abe0b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_mux_admit-binary-packed-Worker-Public_tls-chat-mux-admit-4.json-tls_binary_tls_chat_mux_admit_4-1.bc": "87f6708200e29885495120e4a31f0fcc125c0b18deabdfc440bb048334e4e6fa",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_chat_mux_byte_4096_4-sbv:[7888x1]-sbv:[7880x1]": "d9ec00bd61d0cf60b57a9a9fb9aaf2f4d31d2ad59ff3fa036c1535f0cf90c63b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_mux_byte-binary-packed-Worker-Public_tls-chat-mux-byte-4096-4.json.sch": "e69509b990e2881946d20d1f6709bb3a865d9cb157e37d6ad9b144ddca881084",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_mux_byte-binary-packed-Worker-Public_tls-chat-mux-byte-4096-4.json-0.bc": "a138bb85b943caa5301dc6c4e5f6d83b80d5fd3b637e6198a3643f45483a87a8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_mux_byte-binary-packed-Worker-Public_tls-chat-mux-byte-4096-4.json-tls_binary_tls_chat_mux_byte_4096_4-1.bc": "0a9705964291e08e127804c5b1fa3ac8e0d4408a1c6deb84600b35c239288745",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_finished-sbv:[512x1]-sbv:[256x1]": "092bbe2823dfe0b9824418474c8d3cf1a0c6ec84a06a65e5d459424e27c1fc51",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json.sch": "9d5bb45c4ad3ad3197c102180fa8890be68631871cb79b34a15f99bc0e413887",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json-0.bc": "1b55c3d0b2f08e74c532334f867812c43e922c1904ea41516b951352a28b146d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-finished.json-tls_binary_tls_finished-1.bc": "23c765196cc5477d01d3da4b202ce8244943b491a68801247f8b03e8da8bbcbc",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_handshake_secrets-sbv:[512x1]-sbv:[1024x1]": "1e3fee3bebe4b94397ba174825166c1326f9f52a7a5ad199704a3cf9f1c83a7a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-handshake-secrets.json.sch": "1964b475afad83319b90a113aae03df0d487d19f1d3c981a823e30cd0b3c4de7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-handshake-secrets.json-0.bc": "281ea57f927029e6b7af45bc15a839b95c89bc0a7b08af44c3d63be2e852700a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-handshake-secrets.json-tls_binary_tls_handshake_secrets-1.bc": "0fb0793b08b350ad16dbbe1ed308b694355b16324a69b66f5ed501c06a098d4c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_handshake_record_1340-sbv:[11008x1]-sbv:[10584x1]": "92ba7262016ae991f66ef9705f60a73fc936118a054e815c473f5c0133ba18bd",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1340.json.sch": "bf879a1d21e1c526fc9a1116a6207fb246436581a2e1f14adc3053e2f945b921",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1340.json-0.bc": "d57c59905aff60a985baf7dddd20fe05d72c52a51489a88dee5e6c3a1278194e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-1340.json-tls_binary_tls_open_handshake_record_1340-1.bc": "557afa7cc6b3cb06307c3b0402ba577b71aecd9a3f29efd76c42ac84659cd5a6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_handshake_record_43-sbv:[632x1]-sbv:[208x1]": "01097bba0bd89c9a048d5c20270590a9dc82ee45b6490b09b2c92da6cc2a1dc4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-43.json.sch": "69b5606322ca0378856a73f8980eaaab225c9c5ef8f648dd4a920e33acd102ed",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-43.json-0.bc": "1bebc93850aae86bff201d420f1a185d1c9f9cd261519797594ca85cdcd174c8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-43.json-tls_binary_tls_open_handshake_record_43-1.bc": "7722b85ff87941223713d25057899f914cff6ab82b618eda7005816ee6035a9c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_handshake_record_58-sbv:[752x1]-sbv:[328x1]": "17474cbeb63ee65a283afacab2d708251405c4c77b9f13c3395634a4a50b5c31",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-open-handshake-record-58.json.sch": "867dabee5901c71bda86ddcbeb48f23e63a087c7162e05156aae440e2d0b17f1",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-open-handshake-record-58.json-0.bc": "30643ee41bda2011ff136faaa4e9a341ac5ffb21e6c4d044d1a0cc31a33eed0d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-open-handshake-record-58.json-tls_binary_tls_open_handshake_record_58-1.bc": "480e67d514f078ccf364fc68f06beaad76a594ec16f6c0300acf2fb44c71f00d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_handshake_record_94-sbv:[1040x1]-sbv:[616x1]": "cf53edeef703b6ae99cb053e2f76dee8cf26a0522ea7c6df51e9e72c17371365",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json.sch": "0facabea240effeeacf9f2f2f1f09caf2eba909efbdc7b3e5cbfb2780d6a7187",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json-0.bc": "6c677e331c66b5f1566dd3f00f09a6e8e8932749e6d30ac16591913890bbd953",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-handshake-record-94.json-tls_binary_tls_open_handshake_record_94-1.bc": "d8e4c73591090929a14df6b637d1c49bd564ec4c22451d5a89235064be73ecc7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_record_149-sbv:[1480x1]-sbv:[1056x1]": "e14fe9a543db3614bda3e7d94a6972dffb963dc865684376ff156ef65e2779d9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-record-149.json.sch": "3493ab3c5332a8eea2d4cb12d3cf8f1e92efc209db8eaacfe5165ee5034a33c2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-149.json-0.bc": "bbcb55feff650160e9a7dfbb683580fbb6ecd2597e8d207970c93192028379e6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-149.json-tls_binary_tls_open_record_149-1.bc": "5f0db60bdf3df0afe5ea12ce16131ea6074c48c33be7ae68081d31bff01c1756",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_record_28-sbv:[512x1]-sbv:[88x1]": "21e2f4a2e43e1f5703400363f9cf4ffda6326978c1b510be63042495372fe239",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-record-28.json.sch": "a16fc0fe32509100d2e42343ab23d619e7fc71bbdbd903299e4d06a8220496d8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-28.json-0.bc": "e72039d285271e331689f9c6436740bcaf6fee0f0860e86b16d4477cbf44c090",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-28.json-tls_binary_tls_open_record_28-1.bc": "a370702785261d497a40cf123f4f8e868f37311a7808b7f90aae719c600853c4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_record_31-sbv:[536x1]-sbv:[112x1]": "421acd93fd5256fd1c05110bf738634c94b6859111def1201e7e6f3c8abe31cd",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-record-31.json.sch": "c4041d1b1dd49f4dcfaabe78f82a7fe2593ef16d5a5dfa85c68de5647d71df08",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-31.json-0.bc": "1e353108b6d38f807663cd5aac3dcb7f189f448017759fb134e191fcab9ee9ad",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-31.json-tls_binary_tls_open_record_31-1.bc": "3eb43ba18fc3cb18d06ea01492f7370d1be0fba1d632be11db9bef739e1f6ac7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_open_record_79-sbv:[920x1]-sbv:[496x1]": "5cc32dfe3c38eae2748ee5fd0ef3dddfd1980618674ebab0d4c3a4e8e1c0da49",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-open-record-79.json.sch": "86effc6354f9e43db68f0d144856146dcd598490c654b21fd319cbb248cfe5d7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-79.json-0.bc": "8b24ea62b9491a6153fdc52f599c53c3cf89f010dc9b1e5392496a007dd5bc80",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-open-record-79.json-tls_binary_tls_open_record_79-1.bc": "c93d059c20833aff33e6b6e09d59174d99aa2844ea5e2ea63723be03e85c2f68",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_private_request_id_init-sbv:[128x1]-sbv:[64x1]": "b9b904f7f03fc2c6e64b9847b7675f710bca5c4012560fb05dcbba323207cdf3",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_private_request_id_init-Worker-Public_tls-private-request-id-seed.json.sch": "568c6b0d54a7afa092f8b03119d5a3cbdb4bd39a028327ca7250678da6cb0856",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_private_request_id_init-Worker-Public_tls-private-request-id-seed.json-0.bc": "6f4e6b6a51c73f0e54725270c9db61a69f445f4ecec1b3fe9ddf8cf07c62b451",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_private_request_id_init-Worker-Public_tls-private-request-id-seed.json-tls_binary_tls_private_request_id_init-1.bc": "e0235446bee9ffa943a235aaeecb9ba189551afee629171261ea1e877ade7fbe",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_private_request_id_next-sbv:[64x1]-sbv:[72x1]": "bc15addfe4b7b43e5c7ff100d8542c9cac790fc8a18b173f522119becf7087dd",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_request_id_next-binary-packed-Worker-Public_tls-private-request-id-next.json.sch": "45f263f57c3d47b961bb77e6a98fab2840e8ee3d20e1f3eb408a3a119cbb605e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_request_id_next-binary-packed-Worker-Public_tls-private-request-id-next.json-0.bc": "4cff515768a13556d44c42df90d297164a163dbd1c530818f72487f40f4be360",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_request_id_next-binary-packed-Worker-Public_tls-private-request-id-next.json-tls_binary_tls_private_request_id_next-1.bc": "6e8dcb155a1d2a85d0c5444fdb359a5700af44dbad81291f9b80bb9b4cd49490",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_provider_validity-sbv:[16x1]-sbv:[8x1]": "3125ff34c7c0546c23ff3339c4efd487e6c2532aa24f4f59cca2476d8cacafec",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json.sch": "99fd47578bd4049f1796fff257732fdb4905870b5d4f2eabe7b9c9285d25a96f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json-0.bc": "a503cd41e2b007815d9a8746f19c383d284457bb029f7d95e89b6297ef8a3666",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_provider_gate-binary-packed-Worker-Public_tls-provider-validity.json-tls_binary_tls_provider_validity-1.bc": "d1f93596cc9d932ab6525ac0927e7fe34c9bfaf2a7ce4a50a6c2edf4fde41b5b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_route_application_10-sbv:[200x1]-sbv:[200x1]": "59b3ae8e537cdd344b3c68e0eb83543b41b2638ceb5a7fbe55f9e0bb53259242",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-route-application-10.json.sch": "f0fc82a85b9c62b5a561e3833b43631c6a5e6d5c58a6e4f0c741827696fb9bca",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-10.json-0.bc": "b844c0649aaa96527e87757be1c8192c56bdaa9077449ba9f73ab0168914d54d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-10.json-tls_binary_tls_route_application_10-1.bc": "5c5270ff948210da2771ed57eea47d2990204afdbd2585c4bc878232278c9e06",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_route_application_128-sbv:[1144x1]-sbv:[1144x1]": "a235f32520e1d5e98a2f119fa0eb34265cf51374f754fb0ae2b31654434d52dc",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-route-application-128.json.sch": "0daa57f98980d82253af586948d9f8466fa7440faaf148a4383717165c3a8935",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-128.json-0.bc": "f8053a652e6e574cdf8dd984a89d30a9655743de9056286830f742efc1e03f3f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-128.json-tls_binary_tls_route_application_128-1.bc": "29c93d3c4c900c31c348d8a6e09424a9a9e50a7a5302176707b6bf9dfab68b29",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_route_application_58-sbv:[584x1]-sbv:[584x1]": "709cf167fda04a0dbc56d3bd6ae9c32dc2eddb5fa0cb0633603964b1cd229664",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-route-application-58.json.sch": "573015357e7ab95dccda0ba0650aca1d306af7b59fed2c310c8414cb44c6bcd2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-58.json-0.bc": "54d871f26effb8de557d44b5e5f9408733ee11a346019c0200c142112f15c42f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-58.json-tls_binary_tls_route_application_58-1.bc": "2700f4502e494b265ec101884da0210c24c270e2f8efe50e22c010a506abf87c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_route_application_7-sbv:[176x1]-sbv:[176x1]": "f4ffb8fa7ecbbd6383bcc6bfbdf224e5afd764d5ab9f3438078ce2e99a5d515b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-route-application-7.json.sch": "78a7111629f250c549689d29cacfbc79a87cda32184ff4171484a61815f9a3d0",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-7.json-0.bc": "4f90a4abec5ddc2f344a988d24d09dae1f94c767132e11af77d16909bec31c2d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-route-application-7.json-tls_binary_tls_route_application_7-1.bc": "114ee36c475804ea641e5a48ca43420cba6e4ea78d5336e9312a29139af17f7e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_seal_private_record_1290-sbv:[10632x1]-sbv:[10504x1]": "98d69acefdeafdb8e585317d450a72f62e776d9e562f71f9291d6ec3ea9e661d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-1290.json.sch": "154405dcdeff3d92e5676acb6098a7ed5e0cc95ef51aee1b901b66c67639b17c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-1290.json-0.bc": "f95b9eaf284bc05048840fa035d377f955dc62094b5495d0f0c61db0b6da7ea2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-1290.json-tls_binary_tls_seal_private_record_1290-1.bc": "71516c3cde28fdf755a63cc7293d8810831125bee7173448e5b3e0ca8ba5a5c1",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_seal_private_record_131-sbv:[1360x1]-sbv:[1232x1]": "a65b36d9d6a8b3a46b6478c4beb396a05566454f84448ab4d938db97505811c0",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-131.json.sch": "9294f709e0c1d8cee3939ec363eff276ac9d6e9cb43679f42234ce8a80e036f0",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-131.json-0.bc": "4e39a1099d6f75a1f3979929adfddb40ff4687b1aa4a998a774c5ec1ce18b32a",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-131.json-tls_binary_tls_seal_private_record_131-1.bc": "ed4642a9f33ce13edaff9e8b264288d31889a81404a920043d363ba3a724459d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_seal_private_record_345-sbv:[3072x1]-sbv:[2944x1]": "0757fc181794e0abc96b0f828f09418dcd739596e5a7213415d6f6dfc70e19c9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-345.json.sch": "0b442acdf26c89195cabf95d24ff91037198f1f01277f5f283d6802ebfb6bfd4",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-345.json-0.bc": "ea18daf8a6693cafc88709855f7be37ea28035c3ba55d66a3d2d3e86bd11a4a7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-private-record-345.json-tls_binary_tls_seal_private_record_345-1.bc": "79a1835e248134c2bcb89b3cfbc697971ca8b414f10b269a3c2d81902fb91467",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_seal_record_22_36_0-sbv:[576x1]-sbv:[464x1]": "1cf67cbec6b22e27150a654278768cec69abf6caf4173acdf2bb7970989de2e5",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-36-0.json.sch": "438e0d16c58a608d30097746e87959f431c9bebfe41dfffa16beb0160dd4973c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-36-0.json-0.bc": "b6dbd416c2460eb7902e40b77a0bd10c38cf7e2ac7b08f6219104a7e22806c32",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-seal-record-22-36-0.json-tls_binary_tls_seal_record_22_36_0-1.bc": "f0d94ebe1494ecee4e67f9e05a1439e16246d0a95f89383b22e4f18e8482caaf",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_seal_record_22_5_0-sbv:[328x1]-sbv:[216x1]": "bddd4ef7e0a65ddf7fc2d88ab8c83d4d7b0d250b70e70d3eeba714ecbce46d57",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_shape_export-binary-packed-Worker-Public_tls-seal-record-22-5-0.json.sch": "9c7c705561e497a28399fc242fa2551d73e8c07fd3fbb054dccea73988793209",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-record-22-5-0.json-0.bc": "37a548197cd252139364d625fe5681ab1f176e641097f988fbe4a71242093a7c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_shape_export-binary-packed-Worker-Public_tls-seal-record-22-5-0.json-tls_binary_tls_seal_record_22_5_0-1.bc": "fc7fdf4496c91b31e165c31966304cffe1ae63267205103298a543ee54371a05",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_traffic_keys-sbv:[256x1]-sbv:[224x1]": "9e98756168fc2a53b07c2ac2689d084be8f12d4950a6df70fb4599e01c4c8b08",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json.sch": "0fef9f207c33d3f0be5aba52e2c3a7a711ae0c6f40027e553608a1582ef81455",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json-0.bc": "ff53bb6b58b39cfedfbc0431ebcd14e17fc13610c7420694f60969813005b0a8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-traffic-keys.json-tls_binary_tls_traffic_keys-1.bc": "ac20d6660af6c57afd2105518a724474a673d90c84b97caeaaea6a82041b2a8c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_update_traffic-sbv:[256x1]-sbv:[256x1]": "5d73613eaf042c10ce3f3a13080d7a910e07ab8e9ab60f32d93a085ccaa98db2",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_lifecycle_export-binary-packed-Worker-Public_tls-update-traffic.json.sch": "6a0689996a5131ca58db887024c2ae34c3225b0129828fce19f1b38ac82b9058",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_lifecycle_export-binary-packed-Worker-Public_tls-update-traffic.json-0.bc": "6f3db41c45ef338d7731e127775e471534bdde69695150ba168a6f317d11f4e9",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_lifecycle_export-binary-packed-Worker-Public_tls-update-traffic.json-tls_binary_tls_update_traffic-1.bc": "1f89114a4553322345eb4e8889f003a949e9b980c6de0fd6663956acf95d33e7",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_verify_finished-sbv:[800x1]-sbv:[8x1]": "e7ea7aff8ea91331618f5f5878d18c2b547d6ad4c869364a28734a2ce46dfea6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json.sch": "43765f5a7cf6460f46081a7a905ef731173a36daafbe45c5d91549d6e728ec7f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json-0.bc": "f421d86573fe1eff31ce556f04759fce7d29fd6963f168d12104d1c62e530a2c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_export-binary-_Users_izzy_repos_tls-mpc_artifacts_lean_handshake_tls-verify-finished.json-tls_binary_tls_verify_finished-1.bc": "eeb574ad285409a2872891f031b9e835c1362bee60e28e65484112c85134fbb5",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_activity_10-sbv:[24x1]-sbv:[88x1]": "ee605cb5fda16cd9f1eb123355846e9321fb9f1c24d4b8ec11b6526d9bb9640d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-10.json.sch": "37ca8bd707d4bc1af2fd53eaa5ae7582be7695c2511cc3ad036dcb181334205b",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-10.json-0.bc": "e984a164634ca83b62cf1447e4a8feabd5212d8c1a2ac2745cd6c9180538f89c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-10.json-tls_binary_tls_websocket_activity_10-1.bc": "e5c9e6ede46d5a584bbb93b3c52ca65a2d687a07a4c161fccc5a496bde745cff",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_activity_128-sbv:[24x1]-sbv:[1032x1]": "df600054187b13a1d6c33b2a57bac55c83dfa58d6c1f6dc959c025998c39acf6",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-128.json.sch": "58cbd19b95ccee47ed868aff55b81ce50f7ae569a61ba5ceae541236e7d07fb8",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-128.json-0.bc": "cfe3c65c5f09af9500d22b36f2f5fe5146a5f3821b3073ef6c6be8da31521c6c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-128.json-tls_binary_tls_websocket_activity_128-1.bc": "df0a4214c7577f28492c550f603ea0ac1d57988044d39212feb9e3b3b28b537e",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_activity_58-sbv:[24x1]-sbv:[472x1]": "7ebce6702538549979ed10c615561478c7e3ca5318327578758c124fed07bf87",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-58.json.sch": "ff25f168cc34b9c886f5d776be67c07b112d826e58f7838a74d2324220e3fadb",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-58.json-0.bc": "6dda80a20f04ee75f72813b0d12832baaf7eb6c2561b9c3d79f8a95bcdbcc784",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-58.json-tls_binary_tls_websocket_activity_58-1.bc": "4d6561d7f867b6b8a0c9f003f967e5fa809b49a95341a3517a9f8520457bc549",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_activity_7-sbv:[24x1]-sbv:[64x1]": "f870d0c0b0de535470c91a8c25c029c24a072851b1c3ee9044f1c775bd96e412",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-7.json.sch": "a0eccc1674998e8a94cedb71350d1228f13c15d96fdce7373ea0f33e05b7df33",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-7.json-0.bc": "5f5ebb498700e7da75c3ccccca65e00e772d43f2ac4c986c107c1b6e24f4554f",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_activity-binary-packed-Worker-Public_tls-websocket-activity-7.json-tls_binary_tls_websocket_activity_7-1.bc": "2a332a7f40e78953a6c2cb7e9a020ab53ae4972aef4af500db345b08899bfe64",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_control_collect-sbv:[5120x1]-sbv:[5088x1]": "c60ff295e8c4314e092c0579f4bf6a7ad9b1e63475c33079fb49884cdbd15d68",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_control_collect-binary-packed-Worker-Public_tls-websocket-control-collect.json.sch": "8cc1759f6f9b2add89c740a4c56cec6f1b83c8f99ab286d0af8c8e466d3419b5",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_control_collect-binary-packed-Worker-Public_tls-websocket-control-collect.json-0.bc": "124f2ca9db6741eed8063e595b965823542ed8f3e9526d234bd44d5ca799beef",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_control_collect-binary-packed-Worker-Public_tls-websocket-control-collect.json-tls_binary_tls_websocket_control_collect-1.bc": "bc74b6e89a83191e836132d55ba32f49c741c2147a41a8e073a24c87273c5715",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_control_encode_125-sbv:[1032x1]-sbv:[1072x1]": "2a6bde129e8cac5005cfb71f934f932a238d35dbe9cd36b4dbbe7ff77d1dd7cb",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_control_encode-Worker-Public_tls-websocket-control-encode-125.json.sch": "3fad0b27708dc4cbca4b211616f254c26abb7f00ce6471504050a9da9645ebcb",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_control_encode-Worker-Public_tls-websocket-control-encode-125.json-0.bc": "827fb16410a3ff475e8cc2ba9dc43535ab74ad18ccc3262986167d82ea45bdc0",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_control_encode-Worker-Public_tls-websocket-control-encode-125.json-tls_binary_tls_websocket_control_encode_125-1.bc": "af02c2a8ffd02c1d4c61dc314698f01a1ca8b18ff8a0debcb9efeed607918b35",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_frame_idle_v2_4096-sbv:[224x1]-sbv:[272x1]": "e2ac7119149adb771e027c757045365626775658aac05a39f9595e2055584d4d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_idle-binary-packed-Worker-Public_tls-websocket-frame-idle-v2-4096.json.sch": "1ae3ba291a4c0480875cc38c8af20ea3394f4d822c985c92614eeb3187caab7c",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_idle-binary-packed-Worker-Public_tls-websocket-frame-idle-v2-4096.json-0.bc": "b8b487874a0ca2945f0f3c5b7eb4d54f35c3e4815ffbfa76dc75017253ba7516",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_idle-binary-packed-Worker-Public_tls-websocket-frame-idle-v2-4096.json-tls_binary_tls_websocket_frame_idle_v2_4096-1.bc": "84ebde6e1346335667abfba5c24e7f175d38bad68bf1171d808ea07ca52476a1",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_frame_v2_4096-sbv:[224x1]-sbv:[272x1]": "2f805ee8f3d7a998031fecb45cae00a487a59859c7aad64f06d45935966af7da",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_frame-binary-packed-Worker-Public_tls-websocket-frame-v2-4096.json.sch": "45aacd05139e5de2260df442f638a87a059a4a06f1d66f0da3df3096b827b772",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_frame-binary-packed-Worker-Public_tls-websocket-frame-v2-4096.json-0.bc": "91e2417fa73354bf34ce9cd9748b1f2c2471a81a23f2c1c3dc41268d1154d7ea",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_frame-binary-packed-Worker-Public_tls-websocket-frame-v2-4096.json-tls_binary_tls_websocket_frame_v2_4096-1.bc": "906e83df42bfdbbb4d1dabea730378efa5c0c711739a37a4b1d5cb5862b72182",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Functions/tls_binary_tls_websocket_upgrade_byte-sbv:[1680x1]-sbv:[1464x1]": "349320df1c5e2ea2d969970b8f5606a1c01d32d6896921ff513bac3ab2fa5515",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Schedules/tls_websocket_export-binary-packed-Worker-Public_tls-websocket-upgrade-byte.json.sch": "b7c841f851804035b6974aed3bed5176a85258a74b5259819a7df0a2e541219d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_export-binary-packed-Worker-Public_tls-websocket-upgrade-byte.json-0.bc": "c43ab2bb125c8f55a1ff6f63b47211b10e5c4d994f00f7f8f59d9ce5466bfc4d",
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/working/Programs/Bytecode/tls_websocket_export-binary-packed-Worker-Public_tls-websocket-upgrade-byte.json-tls_binary_tls_websocket_upgrade_byte-1.bc": "f9b667f4d6820939efaec6afb955841f11bf11fe2fd56464081939ea23546bc4",
+    ".deps/tls-public-program-cache-runtime-v2/tls-public-working-set-probe": "70e5f261765cf214f5d673f0151a6d39ce109d7ea998c38e4952e61e9feb4892",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/libSPDZ.so": "3ad5956b74d378ffb71a7f67de20b85a1dd80e3215ed0f72e86542af072e23c9",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Tools/PublicCodeCache.h": "557727f1d256119f58282c46a40aa9e258f780c84ed7b89af06203de250542c9"
+  },
+  "trace_sha256": "7fc7b2ea9b3e8617ee6b27ee2bba8a32191bfbe666462a95ca2cd69f6f1df27f",
+  "closures": [
+    {
+      "descriptor": "Programs/Functions/signal_private_text_notification_48_80-sbv:[472x1]-sbv:[720x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "3fbf0d62af505faecf6a9cee7f71dd0692dfb3938d4165d7bd07de73227fe737"
+    },
+    {
+      "descriptor": "Programs/Functions/signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-sbv:[9776x1]-sbv:[21968x1]",
+      "observed_calls": 4,
+      "producer": true,
+      "identity": "2df78615c8c01843b292e5d774716302bc1c7d565a880823cf4e6262d9cad6ac"
+    },
+    {
+      "descriptor": "Programs/Functions/signal_relay_upgrade_22-sbv:[432x1]-sbv:[2760x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "dbc61b0fc8feb49d75b4e73976a76190515d6d022ade4b1e1b5ec132d16274bd"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_agreement-s:[256]-s:1-sbv:[256x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "4c408039a161e2b166735d394a19f90f19236df23f80adceeca2142105d03058"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_begin-s:[256]-sbv:[256x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "cb5309abf907de2c3976f9b2a1b337c44b607a95a29b2410d71cdab588a7612a"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_application_secrets-sbv:[512x1]-sbv:[512x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "8373aa4060c41cc3a72fe21feda2c3d053eeddd7f9c1af85943fe3da29ba1d19"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_chat_mux_admit_4-sbv:[7936x1]-sbv:[7856x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "4305b176664d01e2bfddd4ca5f2c6e4e1235a47eb323ddafc7098e1573186a7c"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_chat_mux_byte_4096_4-sbv:[7888x1]-sbv:[7880x1]",
+      "observed_calls": 544,
+      "producer": false,
+      "identity": "d15daf0e3ca9f878e62a50ecf3a7a93d354de6d3023c44336a65cc4e6f1ed42d"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_finished-sbv:[512x1]-sbv:[256x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "cd06c6f54a1e9ef0ac789001af47569b64d620cfa7eb10ac90fa0728d2dda4b6"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_handshake_secrets-sbv:[512x1]-sbv:[1024x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "f307c5b2069be670923f6ee537177d750198621f54a0d5b1a98e3f43536c9b0d"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_handshake_record_1340-sbv:[11008x1]-sbv:[10584x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "3a96bda2c601b08e665dcb3c5e7ac0185a1246e7170391bb43c9586eade21871"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_handshake_record_43-sbv:[632x1]-sbv:[208x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "3b4e4c5539e7624685baa0462538e12799b0ed3791cb33732743dcbacdc8080e"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_handshake_record_58-sbv:[752x1]-sbv:[328x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "6ce7ed398620879413b0ca158463ed2caefa7b5ccb7761a01d90524373e43d24"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_handshake_record_94-sbv:[1040x1]-sbv:[616x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "28dc9c3e7e59e3bdee453b428d6705e33553a601a3722bfefbc632aa225a2fc0"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_record_149-sbv:[1480x1]-sbv:[1056x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "e709f8b14037a99f55c426ff25264feaeb19a03ceeda894203655911f91d3025"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_record_28-sbv:[512x1]-sbv:[88x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "91b38e8c67843adc718bfe1d570f5a10b07837dda2467395ceb511ba27deed22"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_record_31-sbv:[536x1]-sbv:[112x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "d1f94a1bdcf0435840e284974795b8649e98a243c5452b302e5a8b8143878912"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_open_record_79-sbv:[920x1]-sbv:[496x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "82a75dc2fe6f684c98aed49928b3826a8d3f8794e222e3465a7f1cf1b5a1768b"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_private_request_id_init-sbv:[128x1]-sbv:[64x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "a93c28e0388a7fcbb47cf75f46db3f6a4d48a3a1c7a01ef137a525d223ab2fb2"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_private_request_id_next-sbv:[64x1]-sbv:[72x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "7f22715decaeca2dc37df401aa950dd8f97c75f2c07dd6ad1ccbee92ffecdce3"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_provider_validity-sbv:[16x1]-sbv:[8x1]",
+      "observed_calls": 32,
+      "producer": false,
+      "identity": "63b632d11b63df8d7aa01a4a3cafa421f5f0ebafe7410fb4e784171b407f2fa4"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_route_application_10-sbv:[200x1]-sbv:[200x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "c15c1e7e412bb8492ea47c9d287bb0e4c2ea078993cbb8686540092e0c4cc5b1"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_route_application_128-sbv:[1144x1]-sbv:[1144x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "a8e66a45005a9bfdbf78890ac14887c0a4eda2c8839a81f9449cb5d4cadfccda"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_route_application_58-sbv:[584x1]-sbv:[584x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "9daabf810b3773a8124aa486e2ba2bfdd63499f9c5ecff7e19916dd059808724"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_route_application_7-sbv:[176x1]-sbv:[176x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "a4255fdff1adf4ee72c7d6faf717a0e104bf604c1a2a6944c4ae1ed1215d5f82"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_seal_private_record_1290-sbv:[10632x1]-sbv:[10504x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "6ec5393755f541e7c6eb88e8a117a30e5ebcb093ba889ca0604f9619dbe875f8"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_seal_private_record_131-sbv:[1360x1]-sbv:[1232x1]",
+      "observed_calls": 9,
+      "producer": false,
+      "identity": "b99f2f1932d787ad20d86243ceb6af07b43af6a1b15585a2af7b721642ea767e"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_seal_private_record_345-sbv:[3072x1]-sbv:[2944x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "25fc6cc78f8b686ab26d2a317c8b854d69679b3bbfb9ac0a0cae878f56f14b8a"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_seal_record_22_36_0-sbv:[576x1]-sbv:[464x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "1213fb8944c397f7e89a28a30ba889d94c456d11d0a3c12f0e4b0ee51e7cd982"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_seal_record_22_5_0-sbv:[328x1]-sbv:[216x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "932c6a8f3e2318baa36b6ed81bf831b98dc3752aee56d4455d0140194349543a"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_traffic_keys-sbv:[256x1]-sbv:[224x1]",
+      "observed_calls": 5,
+      "producer": false,
+      "identity": "8f6f6f73b0da9ace7dced0c085df7cfc135abf88df158aa8d81a0031815156e5"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_update_traffic-sbv:[256x1]-sbv:[256x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "438ce5f52dcae6df6622b7bf76d1fb74705514c2fb70aa5537fe8864436b656f"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_verify_finished-sbv:[800x1]-sbv:[8x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "610018a0644e4553cafb953f1a1f7c991606b8fda7da5ceb3d6c2518a268c1b4"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_activity_10-sbv:[24x1]-sbv:[88x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "6f73d4adc200778ac8cecf49f3831a71d9afd6c0c2ee61ffe4d0843b4dd52518"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_activity_128-sbv:[24x1]-sbv:[1032x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "66e4f74bb5a5678f5bd859c5f39137da442247fb84b9a5d24ac065c7f158565c"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_activity_58-sbv:[24x1]-sbv:[472x1]",
+      "observed_calls": 8,
+      "producer": false,
+      "identity": "d6e0a83ad429bd5b6647e253e5df504f0b0395191afac6d1099a922a7b1f237b"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_activity_7-sbv:[24x1]-sbv:[64x1]",
+      "observed_calls": 1,
+      "producer": false,
+      "identity": "308d7e536e558a7efb99e2d6f325395e24276f2150277acc91022e849fa18abd"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_control_collect-sbv:[5120x1]-sbv:[5088x1]",
+      "observed_calls": 679,
+      "producer": false,
+      "identity": "8f62351485ee7689eb8084f4ed52476e3380a3833c08c683dfd4dd9a11f3766d"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_control_encode_125-sbv:[1032x1]-sbv:[1072x1]",
+      "observed_calls": 9,
+      "producer": false,
+      "identity": "b74b3e92ebc05bcf9ad716daef8ddac792304b97e0fbdc492711b8d7ce2cdc82"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_frame_idle_v2_4096-sbv:[224x1]-sbv:[272x1]",
+      "observed_calls": 135,
+      "producer": false,
+      "identity": "4aa5a76aaef3c8970096e11dfc264010f92db95ec5ec9a62c48f8e219a718e68"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_frame_v2_4096-sbv:[224x1]-sbv:[272x1]",
+      "observed_calls": 544,
+      "producer": false,
+      "identity": "d7e8c9135f76f3de867f0881cdd7ccd3812d3d31ceda36f96755f2f4ae10f9b7"
+    },
+    {
+      "descriptor": "Programs/Functions/tls_binary_tls_websocket_upgrade_byte-sbv:[1680x1]-sbv:[1464x1]",
+      "observed_calls": 135,
+      "producer": false,
+      "identity": "37e328c42d557607f3d28473ebfe9222554a1f4e166c82a3955d3d29375c18ee"
+    }
+  ],
+  "metrics": [
+    {
+      "index": 1,
+      "producer": true,
+      "hit": false,
+      "seconds": 3.10170112504,
+      "accounted_bytes": 1268574868,
+      "retained_bytes": 1268574868,
+      "parse_count": 1
+    },
+    {
+      "index": 0,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00943420804106,
+      "accounted_bytes": 4523062,
+      "retained_bytes": 1273097930,
+      "parse_count": 2
+    },
+    {
+      "index": 2,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00268162507564,
+      "accounted_bytes": 1221326,
+      "retained_bytes": 1274319256,
+      "parse_count": 3
+    },
+    {
+      "index": 3,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00382587499917,
+      "accounted_bytes": 3459874,
+      "retained_bytes": 1277779130,
+      "parse_count": 4
+    },
+    {
+      "index": 4,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00388445914723,
+      "accounted_bytes": 3464588,
+      "retained_bytes": 1281243718,
+      "parse_count": 5
+    },
+    {
+      "index": 5,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.220218791859,
+      "accounted_bytes": 125713538,
+      "retained_bytes": 1406957256,
+      "parse_count": 6
+    },
+    {
+      "index": 6,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0010353338439,
+      "accounted_bytes": 510400,
+      "retained_bytes": 1407467656,
+      "parse_count": 7
+    },
+    {
+      "index": 7,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00903400010429,
+      "accounted_bytes": 4591834,
+      "retained_bytes": 1412059490,
+      "parse_count": 8
+    },
+    {
+      "index": 8,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.265399709111,
+      "accounted_bytes": 135636988,
+      "retained_bytes": 1535027628,
+      "parse_count": 9
+    },
+    {
+      "index": 9,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.476348458091,
+      "accounted_bytes": 259381482,
+      "retained_bytes": 1527956350,
+      "parse_count": 10
+    },
+    {
+      "index": 10,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.345550625119,
+      "accounted_bytes": 111748962,
+      "retained_bytes": 1380323830,
+      "parse_count": 11
+    },
+    {
+      "index": 11,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0156398750842,
+      "accounted_bytes": 4312050,
+      "retained_bytes": 1384635880,
+      "parse_count": 12
+    },
+    {
+      "index": 12,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0506034160499,
+      "accounted_bytes": 31154914,
+      "retained_bytes": 1415790794,
+      "parse_count": 13
+    },
+    {
+      "index": 13,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0298045000527,
+      "accounted_bytes": 11177310,
+      "retained_bytes": 1426968104,
+      "parse_count": 14
+    },
+    {
+      "index": 14,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0395009999629,
+      "accounted_bytes": 13270358,
+      "retained_bytes": 1440238462,
+      "parse_count": 15
+    },
+    {
+      "index": 15,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0113354169298,
+      "accounted_bytes": 3548478,
+      "retained_bytes": 1443786940,
+      "parse_count": 16
+    },
+    {
+      "index": 16,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0113834999502,
+      "accounted_bytes": 3559544,
+      "retained_bytes": 1447346484,
+      "parse_count": 17
+    },
+    {
+      "index": 17,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0236331250053,
+      "accounted_bytes": 7292818,
+      "retained_bytes": 1454639302,
+      "parse_count": 18
+    },
+    {
+      "index": 18,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000126958824694,
+      "accounted_bytes": 17496,
+      "retained_bytes": 1454656798,
+      "parse_count": 19
+    },
+    {
+      "index": 19,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000869209179655,
+      "accounted_bytes": 302062,
+      "retained_bytes": 1454958860,
+      "parse_count": 20
+    },
+    {
+      "index": 20,
+      "producer": false,
+      "hit": false,
+      "seconds": 9.07911453396e-05,
+      "accounted_bytes": 10978,
+      "retained_bytes": 1454969838,
+      "parse_count": 21
+    },
+    {
+      "index": 21,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000373666873202,
+      "accounted_bytes": 139298,
+      "retained_bytes": 1455109136,
+      "parse_count": 22
+    },
+    {
+      "index": 22,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000588624970987,
+      "accounted_bytes": 263502,
+      "retained_bytes": 1455372638,
+      "parse_count": 23
+    },
+    {
+      "index": 23,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000495207961649,
+      "accounted_bytes": 249142,
+      "retained_bytes": 1455621780,
+      "parse_count": 24
+    },
+    {
+      "index": 24,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000366832828149,
+      "accounted_bytes": 139060,
+      "retained_bytes": 1455760840,
+      "parse_count": 25
+    },
+    {
+      "index": 25,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.364223166835,
+      "accounted_bytes": 107478928,
+      "retained_bytes": 1451490806,
+      "parse_count": 26
+    },
+    {
+      "index": 26,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0409477089997,
+      "accounted_bytes": 13663496,
+      "retained_bytes": 1465154302,
+      "parse_count": 27
+    },
+    {
+      "index": 27,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.086553750094,
+      "accounted_bytes": 29105756,
+      "retained_bytes": 1489948008,
+      "parse_count": 28
+    },
+    {
+      "index": 28,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0470412920695,
+      "accounted_bytes": 30813628,
+      "retained_bytes": 1489606722,
+      "parse_count": 29
+    },
+    {
+      "index": 29,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00989654194564,
+      "accounted_bytes": 3398846,
+      "retained_bytes": 1481828258,
+      "parse_count": 30
+    },
+    {
+      "index": 30,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.183893500129,
+      "accounted_bytes": 122669242,
+      "retained_bytes": 1468225836,
+      "parse_count": 31
+    },
+    {
+      "index": 31,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.174864916131,
+      "accounted_bytes": 119853532,
+      "retained_bytes": 1514496488,
+      "parse_count": 32
+    },
+    {
+      "index": 32,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.255539542064,
+      "accounted_bytes": 135664838,
+      "retained_bytes": 1524093238,
+      "parse_count": 33
+    },
+    {
+      "index": 33,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000253207981586,
+      "accounted_bytes": 40708,
+      "retained_bytes": 1524133946,
+      "parse_count": 34
+    },
+    {
+      "index": 34,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000876540783793,
+      "accounted_bytes": 328274,
+      "retained_bytes": 1524462220,
+      "parse_count": 35
+    },
+    {
+      "index": 35,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000443083001301,
+      "accounted_bytes": 161104,
+      "retained_bytes": 1524623324,
+      "parse_count": 36
+    },
+    {
+      "index": 36,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000141167081892,
+      "accounted_bytes": 37258,
+      "retained_bytes": 1524660582,
+      "parse_count": 37
+    },
+    {
+      "index": 37,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0023815408349,
+      "accounted_bytes": 810360,
+      "retained_bytes": 1525470942,
+      "parse_count": 38
+    },
+    {
+      "index": 38,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.00117429206148,
+      "accounted_bytes": 560412,
+      "retained_bytes": 1526031354,
+      "parse_count": 39
+    },
+    {
+      "index": 39,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000877166865394,
+      "accounted_bytes": 499190,
+      "retained_bytes": 1526530544,
+      "parse_count": 40
+    },
+    {
+      "index": 40,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.000942124985158,
+      "accounted_bytes": 498146,
+      "retained_bytes": 1527028690,
+      "parse_count": 41
+    },
+    {
+      "index": 41,
+      "producer": false,
+      "hit": false,
+      "seconds": 0.0015341672115,
+      "accounted_bytes": 639478,
+      "retained_bytes": 1527668168,
+      "parse_count": 42
+    },
+    {
+      "index": 1,
+      "producer": true,
+      "hit": true,
+      "seconds": 0.884176833089,
+      "accounted_bytes": 1268574868,
+      "retained_bytes": 1527668168,
+      "parse_count": 42
+    }
+  ],
+  "result": [
+    {
+      "passed": true,
+      "producer_parse_count": 1,
+      "closure_count": 42,
+      "cache_hits": 1,
+      "evictions": 30,
+      "retained_accounted_bytes": 1527668168,
+      "maxrss_bytes": 2956705792,
+      "private_execution": false
+    }
+  ],
+  "raw": "benchmarks/results/raw/public-working-set-replay/aa350ec901a9f27a",
+  "elapsed_seconds": 6.819588625105098,
+  "pid": 62970,
+  "exit_code": 0,
+  "integrity_verified": true
+}

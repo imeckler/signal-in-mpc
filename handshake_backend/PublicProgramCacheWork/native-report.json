@@ -4,26 +4,26 @@
   "scope": "Candidate public-only cache: adjacent/interleaved reuse and epoch renewal with fresh secret execution; aggregate equality only; no application throughput or production promotion",
   "timing_clock": "CLOCK_MONOTONIC_RAW",
   "source_product_sha256": {
-    "handshake_backend/PublicProgramCacheWork/native_cache_fixture.cpp": "8654a1d0e20cc6164b5aad9615f6899fd5cd89e6fda39451651c02cf6bdb5dd2",
-    "handshake_backend/PublicProgramCacheWork/check_native.py": "01c9defc3b583379d7746d9f762fc80edfff402bfd0b97a12d6566d0f71ff9e4",
+    "handshake_backend/PublicProgramCacheWork/native_cache_fixture.cpp": "fb5f8287e523dbabf4247f9cac4185c35075e0a91edde0fb38e8b1f4f0d034f0",
+    "handshake_backend/PublicProgramCacheWork/check_native.py": "d4488007e6da5a52839fe7a02d06461450be37056ea3e18a51d841ba3a05e8e0",
     "handshake_backend/PublicProgramCacheWork/PinnedCacheAdmission.h": "f43049bbcdc4cbc4ecaa2b6a6a25b2a3903d053768ff973125c07dcc8b8b5dc0",
-    "handshake_backend/PublicProgramCacheWork/PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
+    "handshake_backend/PublicProgramCacheWork/PublicCodeCache.h": "557727f1d256119f58282c46a40aa9e258f780c84ed7b89af06203de250542c9",
     "handshake_backend/PublicProgramCacheWork/PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/libSPDZ.so": "80deda8751c2f3c62e1ab4c3cf4ab6c1e07364f043f9685d897c8571c20aaf11",
-    ".deps/tls-public-program-cache-runtime/tls-native-public-cache-fixture": "01ddd22b401b3ccfd86d478e93f505f15349f3893bb74b1a60415e839335b9a8",
-    ".deps/throughput-public-cache-fixture-v1/batch.manifest": "3c0b0cd3f09e336dcbbce7bb145fcedf32aa8bfc7d25f4708ed73d0b4c18d0c5",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/libSPDZ.so": "3ad5956b74d378ffb71a7f67de20b85a1dd80e3215ed0f72e86542af072e23c9",
+    ".deps/tls-public-program-cache-runtime-v2/tls-native-public-cache-fixture": "e79d4f1c03cd02e2b7b7416bc81dcfd5874f67e144ebc576f35708b79b3cbd72",
+    ".deps/throughput-public-cache-fixture-v2/batch.manifest": "d51a9bda01dd6b9d70f73a002e3753e8ba17f1ea22a510c365d22907099db8ec",
     "handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
     "handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/BaseMachine.h": "9dc579e5eaae6bf578186a4a5e13bf7b3c7ca71b4611b1578e70848bdfa7be02",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/BaseMachine.cpp": "13b637f325513a94c7e7198da391e9349ce1b479f512d9bdef80d9e81b82f88f",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Machine.h": "5c83ee0f545c6989e52c09e45ec8efaf25315cce6884360c4b4f05df58ead74c",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Processor/Machine.hpp": "6a96898dfdda9bac44c33345e9c747e99e0394f602831c0aabe1f4230522854c",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Tools/PublicCodeCache.h": "cb9fef33fe78a1e2d2da1466620b5339bfa9c3921e8275484f28acca4a1e4ad9",
-    ".deps/tls-public-program-cache-runtime/MP-SPDZ/Tools/PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674"
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/BaseMachine.h": "9dc579e5eaae6bf578186a4a5e13bf7b3c7ca71b4611b1578e70848bdfa7be02",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/BaseMachine.cpp": "13b637f325513a94c7e7198da391e9349ce1b479f512d9bdef80d9e81b82f88f",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Program.h": "f5bd94809ec810ea16f6f67c7cadad46d6cc2c3d0c3f920a8c1d4e490c3547a0",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Program.cpp": "fcd9b65b7a3c80a75ab3616fad90f8c4cf33ef8f97aee5ede432fc0267c5d125",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Machine.h": "a8bfa7cb108cfa95a943235a0c236eb8a75f9f8283ddc747532fd3ffb8f861fe",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Processor/Machine.hpp": "d1f5e57576ff1f41e1561c28dc07bf2824149a3f0344ebbc7cbb7018805053a6",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Tools/PublicCodeCache.h": "557727f1d256119f58282c46a40aa9e258f780c84ed7b89af06203de250542c9",
+    ".deps/tls-public-program-cache-runtime-v2/MP-SPDZ/Tools/PinnedPublicCode.h": "626ec8044923ededbbcc1ef2f8a444bcd01b5c2274c5134f4f2ba47eba1ad674"
   },
-  "logs": "benchmarks/results/raw/private-native-public-cache/a33ceccf0000cf66",
+  "logs": "benchmarks/results/raw/private-native-public-cache/cc116f8965ec9855",
   "parties": [
     [
       {
@@ -77,13 +77,13 @@
     ]
   ],
   "native_MPC_executed": true,
-  "elapsed_seconds": 0.5299268329981714,
+  "elapsed_seconds": 0.5149921660777181,
   "controller_pids": [
-    62136,
-    62137,
-    62138,
-    62139,
-    62140
+    62822,
+    62823,
+    62824,
+    62825,
+    62826
   ],
   "exit_codes": [
     0,
