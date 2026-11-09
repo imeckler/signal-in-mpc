@@ -99,3 +99,11 @@ payload accumulation/reset and error rejection on every input/outcome. Exact
 source scalar values, old-value/error/suffix observations and low32 projection
 are preserved. This does not yet supply inner-end bounds, optional-field
 initialization/duplicates or message-state updates in the full scan invariant.
+
+Bounded scalar state checkpoint: `StreamingV1/scalar-update-audit.json` records
+clean four-module aggregate0. An explicit native child-cursor check derives
+inside-response terminal span and actual Core prefix tag/recognition/inner
+preservation plus exact remaining decrement; actual ID/status updates equal
+full64/low32 source values without prefix/table premises. Whole scan must still
+derive those cursor/counter/recognition relations at each field, and compose
+optional initialization/duplicates/other fields/groups/private end/HTTP/compiler.

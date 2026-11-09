@@ -1,0 +1,49 @@
+{
+  "candidate_only": true,
+  "scope": "Explicit bounded native child-cursor domain preserves actual Core scalar prefix context and exact remaining counter; native successful ID/status payload reaches actual full64ID/low32status update without prefix premises. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarContext.lean": "29e0a5b30b131e040962f41611696f976da49bf015bb02bbf5c7679ddeb9416c",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarPrefixContext.lean": "91d068c41e33aa9a5a94b971d824a5094d3f9989b2934034c3f0004be742477f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/VarintSpan.lean": "db02ebe911b7d01ffa1b0b49eafb313f3d7d1d58b2597d287a1f2665d39ccbe5",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/ScalarUpdate.lean": "159d783a5739fb1a4ca1fbc23570f7b89cef8ef8f9e4ad753dc5e62bae295034",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_scalar_update.py": "5df44f5035335df74e288eb2f82cd9698e2a5d6877d762f416bee78965258e7c",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/SCALAR_UPDATE.md": "06d1c2cc0702f47c4b3c418d84a349d56611f63ae1cafe9c9f62b0f516f90c0f"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-payload-audit.json": "f4d00906af964dbd72a2b9dcfe53a2ec1ce6e1dd79d350af248e3b8878f09079",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-error-audit.json": "660564695679ff14ee5c14572d1590497acffa71e9429ba09b0afe27bb67bc8d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-audit.json": "71cf6a078fe74d9ba6179301352c0a9af36d68c99fa81318acbc7f4b78fad42a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-success-audit.json": "0718a6318a7636c0ce7aaeea1071dc913210447e885d5762437c97a27dfc6a0f"
+  },
+  "inherited_source_count": 249,
+  "inherited_object_count": 106,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-update-c0d1797b9a14-68397.log",
+  "kernel_log_sha256": "35a0a494ce5989db20a39922a27dd826cf838cfdb4d169f92e6efa36cd33ed8a",
+  "kernel_log": "Checking StreamingV1.ScalarContext\n'ChatResponseReference.StreamingV1.scalar_continue_tag' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.scalar_continue_known' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.scalar_continue_inner' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.scalar_continue_remaining' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.ScalarPrefixContext\n'ChatResponseReference.StreamingV1.scalar_prefix_context' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.VarintSpan\n'ChatResponseReference.StreamingV1.native_success_span' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.ScalarUpdate\n'ChatResponseReference.StreamingV1.bounded_scalar_terminal' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.bounded_scalar_id_update' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.bounded_scalar_status_update' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-update-v1-final/ChatResponseReferenceWork/StreamingV1/ScalarContext.olean": "492273d4b9a82d941f1a1dc1f15ef48dccf0a59d8f5eb63e0d56c6768f624b2d",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-update-v1-final/ChatResponseReferenceWork/StreamingV1/ScalarPrefixContext.olean": "c4d517ce6e79d3229bccdfd2d0a3924b9183b46c4f348acda547016ccbf9df63",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-update-v1-final/ChatResponseReferenceWork/StreamingV1/VarintSpan.olean": "db2c938d978200b077ad95e03576483f543fbf92d5ff42d889dd54d04bfecce9",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/scalar-update-v1-final/ChatResponseReferenceWork/StreamingV1/ScalarUpdate.olean": "1b9efa1b7574ccf7f8a707e8dc9f27bd3e0bafb923d4bba0dabd90f9b7d03cb9"
+  }
+}
