@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 6,
+  "foundation_axioms_only": true,
+  "all_512_input_bits_unrestricted": true,
+  "actual_bitslice_inverse_roundtrip": true,
+  "actual_functions_unchanged": true,
+  "whole_AES_CTR_refinement": false,
+  "Std_content_and_translator_boundary_retained": true,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/check_inverse_layout.py": "a37c634477e9cd92350244c4b046aa6a0cec6f98ee1bb5f4c0a9a004e239c8c2",
+    "SignalReference/AesCtrBlockWork/InverseLayoutCircuit.lean": "0cd57b13fcfcce0898382eea4c719ef85821b37077abf2f23545c99a2238ef55",
+    "SignalReference/AesCtrBlockWork/inverse-composition-report.json": "6af3fa4bcdf02fababde145b4c240b1fcf93c68de01b3112fffede17444ffe32",
+    "SignalReference/AesCtrBlockWork/inverse-source-report.json": "e826443c133438452307d1093c256862283c4b285730f4371df8b2aa4bafd246",
+    "SignalReference/LibSignalReference/Proofs/AesLayoutPermutation.lean": "f70116e0ef52f795034b9e46e2c07170d78bbfdd5e0e18d4f2c54eacf2f8f7f8"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FactoredInverse.olean": "560f880f6d0dcc120a7d38ba8828f9dd6f441e96b884bff2aa18c02657b902d3",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/InverseWritebackLemmas.olean": "f3d751779fcd0853bee00795cb41783ee17936af72b1c09c505b607c5967fa1e",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/InverseReference.olean": "8e7b6c313733835dc20fb2b08743f5d69b1acafe238457d1a8b265e9b25f41b3",
+    "SignalReference/CtrReferenceV1Work/Build/LibSignalReference/Proofs/AesLayoutReference.olean": "2e28d95da9d625f2f05eb1e717f0892691e8a72122c9a47559b28cd2736d98f7",
+    "SignalReference/CtrReferenceV1Work/Build/LibSignalReference/Proofs/AesLayoutPermutation.olean": "182b3e5612f3fe1c5d77a91329ccc7d714749a06eee1f19a4531725362d4a292",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/InverseLayoutCircuit.olean": "216eb0bfd9d3dd7f6c2b41c900961fb6c28068371a77de7d01827c8de85ab6d1"
+  }
+}
