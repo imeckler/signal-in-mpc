@@ -29,3 +29,9 @@ Both modes passed with producer parsed exactly once despite30small-cache evictio
 | B2 service |1268574868|3.102s|0.884s|1527668168|2956705792|
 
 These are single-host public parser/cache results, not five-party execution/RSS, fresh-state validation of the full producer, or a direct comparison with the earlier64s loader under five-party workload. Snapshot-backed parsing itself changes the file-backed parser's seek/I/O behavior. The independent tiny five-party test validates actual Machine integration/epoch/output behavior; it does not turn the public-only stress into an application pass. Actual cached producer execution is the next acceptance step. No whole-application speedup or throughput target claim follows.
+
+## Next runtime acceptance fixture
+
+`CachedBatchService.h` preserves the existing typed same-profile batch validation and quarantined output split, routing the exact compiled mixed-domain function through pinned cache admission. `cached_producer_fixture.cpp` and `check_cached_producer.py` prepare two real B2 calls over two disposable established conversation states and two nonempty text rounds. The fixture includes the actual text builder, one VM batch entry, selected-state group installation, completed owned-host-stack barriers and fresh worker/transport epochs between batches. It will compare actual recipient decryption/state continuation and record loader/call/payload/consumption/individual-process peakRSS. Only disposable final wire and known-fixture builder validity are opened; synthetic response acknowledgements are explicitly component-only.
+
+At source checkpoint creation this fixture has compiled/linked and its controller passed syntax checking; its native run is pending. It is not evidence of application throughput, a promoted normal profile or complete caught-MAC-failure erasure. The original cache-free eight-text report remains unchanged.
