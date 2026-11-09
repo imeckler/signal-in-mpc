@@ -1,0 +1,5 @@
+Build/
+Artifacts/
+*.log
+__pycache__/
+Unadapted/

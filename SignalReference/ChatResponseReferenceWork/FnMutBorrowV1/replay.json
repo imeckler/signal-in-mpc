@@ -1,0 +1,14 @@
+{
+  "candidate_only": true,
+  "scope": "Exact borrowed-triple trait type specialization; raw generated helper moved unchanged to Raw namespace; its public identifier is a tagged proved projection. Generated caller and helper computational bodies unchanged.",
+  "script_sha256": "28b1f0eaffbc7eeacd014698495dcb0929c5f4e66b8d92cee0fd3196b3569321",
+  "generated_sha256": {
+    "Funs.lean": "9c62063dc5b9f75acc85e4dcfedecc2f83e3f2b9e437c93be7b8406fa38741c7",
+    "Types.lean": "f562cca3a9ddeda92ccded6660a37550eb5b630421974032fd769753759d331c"
+  },
+  "replayed_sha256": {
+    "Funs.lean": "6213e1395e67258a072cfc6589d9cb0c9946a107b75dd2e531a539dcfb6aa5d6",
+    "Raw.lean": "c80d2222f1b440786108aafa7b2081f185fc984c307e897ad5c9118c25530241",
+    "Types.lean": "f562cca3a9ddeda92ccded6660a37550eb5b630421974032fd769753759d331c"
+  }
+}

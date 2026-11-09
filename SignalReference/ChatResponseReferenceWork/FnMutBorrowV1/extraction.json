@@ -1,0 +1,22 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--start-from=crate::actual",
+    "--include=crate::*",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/Artifacts/schema.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "cb083685dad968a216470e259b00cf55874120be200b4c845aa5fa3bdfe6eb5c",
+  "llbc_sha256": "c2de4a3fdc17d09238e00f417ced9e5640a2c5a1efe0a165dacd81659d2ff674",
+  "charon_sha256": "4b6f8e74571c08e9ea0b5d26480036ba722104364aaa90c3543d97f09b4992f7"
+}
