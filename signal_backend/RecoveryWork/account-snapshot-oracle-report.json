@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "actual_pinned_libsignal": true,
+  "cases": [
+    {
+      "seed": 19,
+      "global_store_bytes": 5251,
+      "global_store_sha256": "653f41eb65771a5ed274337f25748f5cacde12fb690fbb2d179f9c5c116b6195",
+      "record_bytes": {
+        "prekeys": 71,
+        "signed_prekeys": 146,
+        "kyber_prekeys": 4821
+      }
+    },
+    {
+      "seed": 23,
+      "global_store_bytes": 5251,
+      "global_store_sha256": "e8f682ebfcc75007bcfb67805ff582050360ea7970f245979b32e35687de0c34",
+      "record_bytes": {
+        "prekeys": 71,
+        "signed_prekeys": 146,
+        "kyber_prekeys": 4821
+      }
+    },
+    {
+      "seed": 29,
+      "global_store_bytes": 5251,
+      "global_store_sha256": "3b6a986d6e7f98be6e193b870524a21bd3c9543711fe48ce3550cc8c0411cae3",
+      "record_bytes": {
+        "prekeys": 71,
+        "signed_prekeys": 146,
+        "kyber_prekeys": 4821
+      }
+    }
+  ],
+  "existing_signal_record_cases_unchanged": true,
+  "actual_global_store_serialize_reload": true,
+  "consumed_prekey_absence_preserved": true,
+  "kyber_replay_state_preserved": true,
+  "replay_state_mirrors_actual_API_calls_not_private_map_extraction": true,
+  "fixture_only": true,
+  "native_MPC": false,
+  "whole_account_activation": false,
+  "full_source_refinement": false,
+  "oracle_binary_sha256": "82d50d119b73335f58c4d9f04e4e3b306970c600d397f4b76327d10bff5dfee5",
+  "prior_oracle_binary_sha256": "3a27cea769c60de0a9289fa6bd8ca160835e967caae2bf05cfdc9702ea58887b",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_account_snapshot_oracle.py": "329c4fb17ce7e0cc187ad609d7d442259085f8bdf4f252ad1188aa042a8fb822",
+    "signal_backend/Oracle/src/bin/signal-account-snapshot-oracle.rs": "b5f7e518094e87a3e475acaecd7bbf2aafd135cd1596fabe12cc0a3dd34eab32",
+    "signal_backend/Oracle/src/session_projection.rs": "c1d865ab673cb2be3d0046ca42434e844a061ba2c5ff04b9b69703a8a22d6c42",
+    "signal_backend/Oracle/src/session_send_projection.rs": "c6c8d9351da72bf451d257a5b16c413cb71fd3be5379d53e60709729522e3150"
+  }
+}
