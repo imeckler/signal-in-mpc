@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "checks": 19,
+  "two_slots": {
+    "directory_read_bytes": 15922,
+    "directory_write_bytes": 8050
+  },
+  "thousand_slots": {
+    "directory_read_bytes": 15922,
+    "directory_write_bytes": 8050
+  },
+  "changed_ciphertext_bytes": 123,
+  "private_semantic_validation": false,
+  "actual_journal": true,
+  "seconds": 19.451900625019334,
+  "source_sha256": {
+    "directory_checks.cpp": "12136d15d7292b1fdb844a18c1568af60c42aaafebdc2067aca85e2a351ea4ab",
+    "ShardDirectory.h": "2e0b5e4f671d589574a3173a936c12b9c0d08919e14a58fc04f0557d607c7846",
+    "ShardCheckpoint.h": "76224265acd70b03f543b82f529b629084469c3a411af3efefe87b502a93b876",
+    "check_directory.py": "9b8ae0be4cdc0d13f75f57f00c9622d27bd63de937de9a220b7fe44d7aa24aa6"
+  }
+}

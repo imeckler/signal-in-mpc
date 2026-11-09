@@ -8,8 +8,11 @@ namespace signal_mpc::recovery {
 // make private account sections semantically valid or activate a provider.
 // Static epoch keys must be bound to authenticated MPC peer slots externally.
 class AccountCheckpointCoordinator {
- Epoch epoch_;Digest context_,manifest_;unsigned party_;NativeAccountCapture& capture_;
- LocalAccountCheckpoint& checkpoint_;VoteJournal& journal_;PublicCheckpointStore& public_;
+ Epoch epoch_;Digest context_,manifest_;unsigned party_;
+ std::function<Digest(Phase,uint64_t,const std::vector<const tls_mpc_worker::Bits*>&)> persist_;
+ std::function<Vote(const Proposal&,const CertifiedPhase*)> vote_;
+ std::optional<LocalAccountCheckpoint::Prepared> local_prepared_;
+ VoteJournal& journal_;PublicCheckpointStore& public_;
  tls_mpc_worker::Collective& collective_;std::function<Player&()> player_;
  std::optional<CertifiedPhase> current_,reserved_;bool failed_=false,recovered_=false;
  std::vector<Bytes> broadcast(const Bytes& mine){auto& player=player_();require(player.num_players()==5&&unsigned(player.my_num())==party_,"account coordinator peer domain");require(mine.size()<=4096,"account coordinator frame bounds");std::vector<octetStream> streams(5);streams[party_]=octetStream(std::string(mine.begin(),mine.end()));player.Broadcast_Receive(streams);player.Check_Broadcast();std::vector<Bytes> out;for(auto& stream:streams){require(stream.get_length()<=4096,"account coordinator received frame bounds");if(stream.get_length())out.emplace_back(stream.get_data(),stream.get_data()+stream.get_length());else out.emplace_back();}return out;}
@@ -19,12 +22,12 @@ class AccountCheckpointCoordinator {
   require(bool(found),"account coordinator required certificate unavailable");return std::move(*found);
  }
  CertifiedPhase certify(Phase phase,uint64_t slot,const Digest& parent,const Digest& attempt,const std::vector<const tls_mpc_worker::Bits*>& sections,const CertifiedPhase* previous){
-  std::optional<LocalAccountCheckpoint::Prepared> prepared;try{prepared.emplace(capture_.persist(phase,slot,sections));}catch(...){prepared.reset();}
+  std::optional<Digest> prepared;try{prepared.emplace(persist_(phase,slot,sections));}catch(...){prepared.reset();}
   // No private producer may run before ALL five local reservations persist.
   collective_.require_local_success(bool(prepared));require(bool(prepared),"account coordinator local prepare failed");
-  auto bundles=broadcast(Bytes(prepared->ciphertext().begin(),prepared->ciphertext().end()));Proposal proposal{phase,slot,context_,parent,attempt,manifest_,{}};
+  auto bundles=broadcast(Bytes(prepared->begin(),prepared->end()));Proposal proposal{phase,slot,context_,parent,attempt,manifest_,{}};
   for(size_t i=0;i<5;++i){require(bundles[i].size()==32,"account coordinator bundle digest width");std::copy_n(bundles[i].begin(),32,proposal.bundles[i].begin());}
-  std::optional<Vote> vote;try{vote.emplace(checkpoint_.vote(*prepared,proposal,previous));}catch(...){vote.reset();}
+  std::optional<Vote> vote;try{vote.emplace(vote_(proposal,previous));}catch(...){vote.reset();}
   collective_.require_local_success(bool(vote));require(bool(vote),"account coordinator local durable vote failed");
   Bytes own{static_cast<unsigned char>(vote->party)};own.insert(own.end(),vote->signature.begin(),vote->signature.end());auto replies=broadcast(own);std::vector<Vote> votes;
   for(size_t i=0;i<5;++i){require(replies[i].size()==65&&replies[i][0]==i,"account coordinator vote identity");Vote item{unsigned(i),{}};std::copy_n(replies[i].begin()+1,64,item.signature.begin());votes.push_back(item);}
@@ -34,7 +37,20 @@ class AccountCheckpointCoordinator {
 public:
  struct CurrentHead {std::optional<CertifiedPhase> commit,reservation;Digest challenge;std::vector<Status> statuses;};
  AccountCheckpointCoordinator(Epoch epoch,Digest context,Digest manifest,unsigned party,NativeAccountCapture& capture,LocalAccountCheckpoint& checkpoint,VoteJournal& journal,PublicCheckpointStore& public_store,tls_mpc_worker::Collective& collective,std::function<Player&()> player)
- :epoch_(epoch),context_(context),manifest_(manifest),party_(party),capture_(capture),checkpoint_(checkpoint),journal_(journal),public_(public_store),collective_(collective),player_(std::move(player)){require(party<5&&bool(player_),"account coordinator configuration");epoch_.digest();}
+ :epoch_(epoch),context_(context),manifest_(manifest),party_(party),journal_(journal),public_(public_store),collective_(collective),player_(std::move(player)){require(party<5&&bool(player_),"account coordinator configuration");epoch_.digest();
+  persist_=[this,&capture](Phase phase,uint64_t slot,const auto& sections){local_prepared_=capture.persist(phase,slot,sections);return local_prepared_->ciphertext();};
+  vote_=[this,&checkpoint](const Proposal& proposal,const CertifiedPhase* previous){require(bool(local_prepared_),"account prepared persistence missing");auto vote=checkpoint.vote(*local_prepared_,proposal,previous);local_prepared_.reset();return vote;};
+ }
+ // Alternate durable local representation; same five-node agreement, journal,
+ // certificates and current-head protocol. Callbacks must validate root lineage
+ // and changed private shards before returning a digest or durable vote.
+ AccountCheckpointCoordinator(Epoch epoch,Digest context,Digest manifest,unsigned party,
+  std::function<Digest(Phase,uint64_t,const std::vector<const tls_mpc_worker::Bits*>&)> persist,
+  std::function<Vote(const Proposal&,const CertifiedPhase*)> vote,
+  VoteJournal& journal,PublicCheckpointStore& public_store,tls_mpc_worker::Collective& collective,std::function<Player&()> player)
+ :epoch_(epoch),context_(context),manifest_(manifest),party_(party),persist_(std::move(persist)),vote_(std::move(vote)),journal_(journal),public_(public_store),collective_(collective),player_(std::move(player)){
+  require(party<5&&bool(player_)&&bool(persist_)&&bool(vote_),"account coordinator local adapter configuration");epoch_.digest();
+ }
  AccountCheckpointCoordinator(const AccountCheckpointCoordinator&)=delete;AccountCheckpointCoordinator&operator=(const AccountCheckpointCoordinator&)=delete;
  CurrentHead recover_current(){require(tls_mpc_worker::ErasedHostCall::active(),"account coordinator requires erased host call");require(!failed_&&!recovered_,"account coordinator current-head consumed");try{
   auto random=collective_.public_random();Digest challenge;std::copy_n(random.begin(),32,challenge.begin());std::optional<Status> own_status;try{own_status.emplace(journal_.status(challenge));}catch(...){}collective_.require_local_success(bool(own_status));require(bool(own_status),"account coordinator local status failed");auto status=*own_status;Bytes encoded{static_cast<unsigned char>(status.party)};u64(encoded,status.highest_slot);append(encoded,status.context);append(encoded,status.challenge);append(encoded,status.journal);encoded.insert(encoded.end(),status.signature.begin(),status.signature.end());auto replies=broadcast(encoded);std::vector<Status> statuses;uint64_t high=0;

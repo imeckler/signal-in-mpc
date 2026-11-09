@@ -1,0 +1,27 @@
+// PUBLIC opaque shards only. Real five-node coordinator, journals and restarts.
+#include "../AccountCheckpointCoordinator.h"
+#include "ShardCheckpoint.h"
+#include "LifecycleWork/SecureGmp.h"
+#include <filesystem>
+#include <iostream>
+using namespace tls_mpc_worker;using namespace signal_mpc::recovery;
+static Digest seed(unsigned p){Digest x{};x.fill(p+91);return x;}
+int main(int argc,char**argv){SecureGmp::install_before_threads();if(argc!=7)return 2;unsigned party=std::stoul(argv[1]);std::string mode=argv[6];bool passed=false;const char* stage="setup";
+ auto run=[&]{try{ShamirOptions::singleton={5,2};OnlineOptions opts;opts.playerno=party;opts.live_prep=true;opts.security_parameter=128;opts.lg2=128;opts.lgp=255;opts.prime=1;opts.prime<<=255;opts.prime-=19;
+ Names names(party,std::stoul(argv[3]),std::string(argv[2]));Machine<tls_mpc_worker::Share> machine(names,true,opts);PinnedPrograms pinned(argv[4]);Collective collective(machine.get_player(),pinned.digest(),PublicBytes(32,93));
+ Epoch epoch{};epoch.number=1;epoch.genesis=signal_mpc::recovery::hash(label("NEW-SHARDED-PUBLIC-NATIVE-FIXTURE-GENESIS"));for(unsigned i=0;i<5;++i){Signer s(seed(i));epoch.members[i]=s.public_key();}Signer signer(seed(party));auto context=signal_mpc::recovery::hash(label("NEW-SHARDED-PUBLIC-CONTEXT"));Digest manifest{};std::copy_n(pinned.digest().begin(),32,manifest.begin());
+ auto dir=std::filesystem::path(argv[5])/std::to_string(party);std::filesystem::create_directories(dir/"nodes");std::filesystem::create_directories(dir/"bodies");std::filesystem::create_directories(dir/"certificates");CiphertextStore nodes((dir/"nodes").string()),bodies((dir/"bodies").string());VoteJournal journal((dir/"journal").string(),epoch,context,party,signer);PublicCheckpointStore public_store((dir/"certificates").string());
+ sharded::Directory tree(nodes,signal_mpc::recovery::hash(label("DIRECTORY-DOMAIN-BOUND-TO-FIXTURE-MANIFEST")));sharded::Checkpoint local(tree,bodies,journal,epoch,context,manifest,party);
+ AccountCheckpointCoordinator coordinator(epoch,context,manifest,party,[&](signal_mpc::recovery::Phase p,uint64_t s,const auto& sections){require(sections.empty(),"public fixture imports no shares");return local.persist(p,s);},[&](const Proposal& p,const CertifiedPhase* old){return local.vote(p,old);},journal,public_store,collective,[&]()->Player&{return machine.get_player();});
+ stage="current_head";if(mode=="reject"){bool rejected=false;try{coordinator.recover_current();}catch(...){rejected=true;}require(rejected&&coordinator.failed(),"unresolved reserve accepted");passed=true;return;}
+ auto current=coordinator.recover_current();if(current.commit)local.restore_root(*current.commit);
+ auto validator=[](const auto&,const auto&){return signal_mpc::recovery::hash(label("PUBLIC-FIXTURE-VALIDATOR-NO-PRIVATE-MPC"));};
+ auto stage_change=[&](uint64_t key){auto old=tree.lookup(local.root(),key);Bytes bytes(128,static_cast<unsigned char>(key));auto cipher=bodies.put(bytes);sharded::Leaf leaf{key,old?old->generation+1:1,bytes.size(),cipher,signal_mpc::recovery::hash(label("PUBLIC-SHARD-SCHEMA")),{}};local.stage({leaf},validator);};
+ if(mode=="write"){require(!current.commit,"fixture genesis reused");stage="two_root_transitions";stage_change(7);coordinator.reserve({});stage_change(7);coordinator.commit({});auto first=tree.lookup(local.root(),7);stage_change(8);coordinator.reserve({});stage_change(8);coordinator.commit({});require(tree.lookup(local.root(),7)->validation==first->validation,"unchanged validity provenance changed");require(tree.lookup(local.root(),7)->generation==2&&tree.lookup(local.root(),8)->generation==2,"shard routing");}
+ else if(mode=="read"){require(current.commit&&current.commit->proposal.slot==2,"current root missing");stage="root_lookup";require(tree.lookup(local.root(),7)->generation==2&&tree.lookup(local.root(),8)->generation==2,"restart lost inherited shard");}
+ else if(mode=="reserve"){require(current.commit&&current.commit->proposal.slot==2,"reserve predecessor");stage_change(8);coordinator.reserve({});}
+ else if(mode=="invalid"){require(bool(current.commit),"invalid predecessor");auto n=journal.count();auto old=tree.lookup(local.root(),8);local.stage({*old},validator);bool rejected=false;try{coordinator.reserve({});}catch(...){rejected=true;}require(rejected&&coordinator.failed()&&journal.count()==n,"invalid change reached vote");}
+ else throw std::runtime_error("unknown fixture mode");passed=true;
+ }catch(...){std::cerr<<"sharded fixture stage="<<stage<<" category=protocol\n";throw;}};
+ bool cleaned=ErasedHostCall::run(run);if(passed&&cleaned){std::cout<<"SHARDED_ACCOUNT {\"passed\":true,\"mode\":\""<<mode<<"\",\"public_fixture_only\":true}\n";return 0;}return 1;
+}

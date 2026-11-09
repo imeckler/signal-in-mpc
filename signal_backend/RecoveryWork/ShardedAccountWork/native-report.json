@@ -1,0 +1,111 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "actual_five_node_coordinator": true,
+  "actual_journal": true,
+  "quorum": 4,
+  "threshold": 2,
+  "statistical_parameter": 128,
+  "public_shards_only": true,
+  "private_semantic_validation": false,
+  "provider_activation": false,
+  "cases": [
+    {
+      "mode": "write",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.31663491704966873,
+      "error": null
+    },
+    {
+      "mode": "read",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.11238504108041525,
+      "error": null
+    },
+    {
+      "mode": "invalid",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.11536170798353851,
+      "error": null
+    },
+    {
+      "mode": "reserve",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.10905895789619535,
+      "error": null
+    },
+    {
+      "mode": "reject",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "seconds": 0.10787820897530764,
+      "error": null
+    }
+  ],
+  "error": null,
+  "cleanup": [],
+  "integrity": true,
+  "logs": ".deps/signal-sharded-account-native/v1-public/run-tp635p58",
+  "source_sha256": {
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardDirectory.h": "2e0b5e4f671d589574a3173a936c12b9c0d08919e14a58fc04f0557d607c7846",
+    "signal_backend/RecoveryWork/ShardedAccountWork/ShardCheckpoint.h": "76224265acd70b03f543b82f529b629084469c3a411af3efefe87b502a93b876",
+    "signal_backend/RecoveryWork/ShardedAccountWork/fixture.cpp": "3ed40899ba77921f6e1b5c0d7d928619dd45d77ee83589bca220235d90e3f942",
+    "signal_backend/RecoveryWork/ShardedAccountWork/Makefile": "26ceca3b01e4920acdf7187341111a98516fecfc335431a240229541c45d48e9",
+    "signal_backend/RecoveryWork/ShardedAccountWork/check_native.py": "e1ec373c24ae8cc6f1d3521817909e949964bdbcdcaec0b6d57566ce74db88e5",
+    "signal_backend/RecoveryWork/AccountCheckpointCoordinator.h": "ee6b6e98ca1b09535e7894aa4f15213b2ab81439dd098e2fb0c174d08337c3e7",
+    "signal_backend/RecoveryWork/Evidence.h": "b4aa3b6083074cf6d29fc4cb23a69488bbe3e1038885c8b83e7075ee91928b09",
+    "signal_backend/RecoveryWork/CiphertextStore.h": "b200ab9ecbf2de9d7f7de8ca9f6e2f817355100354b76fb149515e36f5381e75",
+    "signal_backend/RecoveryWork/PublicCheckpointStore.h": "dba44b069c5a38adc91ddc2486aa066ee1520b2ba802f2933fcfcb35c50339bf"
+  },
+  "product_sha256": {
+    ".deps/signal-sharded-account-fixture": "aa6850443cb3df32ff47d51b3d70c98ec8ab3d577d111b0ad7afcfdced446c8a",
+    ".deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
+    ".deps/private-record-admission-native/v1-candidate-1/admission.manifest": "12ec8bb14e30be8bf3c1a214ecc93f65165c835df70f022cf42bcd650e47e4fe"
+  },
+  "credential_hashes": {
+    "P4.pem": "f6172f7bf913468d520123ac50de5a40c305e1dcbe3ab39788b7efe7af6409b2",
+    "P0.pem": "f8919bfcbd87c4131364e384a3aff8aefb2cd1f1e750207ee71dc3d78de09291",
+    "P1.pem": "d964ae7af4739125d941680e5e178c11d8645bc91b5faabf12ee8973fd73bf33",
+    "P3.pem": "03e277d7ea47338d8056c963c35bc1c97f7394b8ea4dd6073b1ef5a80c21e81f",
+    "P2.pem": "4816a346a5710d5b33cdf5cc4a8f3367159317b33fceff183c8d08d4b158b462",
+    "P2.key": "8e081cd47f8b45c4540014ff58705c991b07a4b199c747aebf6a2fbd02ad16bf",
+    "P3.key": "1d4cb2f89239bb73beeb9dece95b88f2126db5eee31f217063f546f2b49cb5af",
+    "P1.key": "a7f1dead55bb562f1d0b232f18b0d25d5d05abc6db69e87ab8f5b7692a095427",
+    "P0.key": "a8d46ec575681a6efb5869790ac5e9407a88d29932b0e7f37491deb6d8a8c3a4",
+    "P4.key": "98534d52eca8c8612dce1809f2d8cf50a3761d7436f15983847ef990d5a96dde",
+    "690ad341.0": "f8919bfcbd87c4131364e384a3aff8aefb2cd1f1e750207ee71dc3d78de09291",
+    "786af600.0": "4816a346a5710d5b33cdf5cc4a8f3367159317b33fceff183c8d08d4b158b462",
+    "fe403b7a.0": "03e277d7ea47338d8056c963c35bc1c97f7394b8ea4dd6073b1ef5a80c21e81f",
+    "0c19e31f.0": "d964ae7af4739125d941680e5e178c11d8645bc91b5faabf12ee8973fd73bf33",
+    "36365ab9.0": "f6172f7bf913468d520123ac50de5a40c305e1dcbe3ab39788b7efe7af6409b2"
+  }
+}
