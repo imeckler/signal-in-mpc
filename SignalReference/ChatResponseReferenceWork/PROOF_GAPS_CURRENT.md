@@ -15,7 +15,7 @@ recorded versions; this scoped ledger tracks the current response work.
 | Inner owned merge driver | InnerScanV1/audit.json | Actual dispatcher installed; key strict consumption, scalar/String suffix bounds and all-effects finite-run framework; finite success/error traces project to actual merge loop; exact owned error result. Complete actual inner scan finite execution now proved from complete all-wire field consumption, preserving outer fail/div. Full outer schema and streaming composition remain open. |
 | Borrowed-triple FnMut ABI | 6a7b07b; FnMutBorrowV1/audit.json | Grounded typed raw/trait inverse projection; six-module original caller check,8192 native cases,two fail-closed shape guards. Canonical translator/model unchanged. |
 | Actual generic Prost submessage | SubmessageV1/audit.json | Actual message::merge/merge_loop/closure computations kernel check with grounded typed projection; exact wire/recursion/end/overrun facts and10800 native result/mutation/suffix comparisons. Complete instantiated inner-response parent-limit loop finite execution now proved from actual key/field bounds, preserving Err/fail/div and overrun behavior. Outer/streaming composition remains open. |
-| Actual outer envelope fields | OuterEnvelopeV1/audit.json | Twelve-module kernel check: actual default/envelope dispatcher and signed enum scalar; reachable response field/submessage equals proved inner source on all outcomes. Encoding/clear slots fail closed and proved irrelevant to parse. Actual request dispatcher/all-wire consumption and both actual submessage finite scans now proved without primitive validity/termination premises. Full outer scan buffer composition and streaming/HTTP/correlation/compiler relation remain open. |
+| Actual outer envelope fields | OuterEnvelopeV1/audit.json | Sixteen-module kernel check: actual default/envelope dispatcher and signed enum scalar; reachable response field/submessage equals proved inner source on all outcomes. Encoding/clear slots fail closed and proved irrelevant to parse. Actual request dispatcher/all-wire consumption and both actual submessage finite scans now proved without primitive validity/termination premises. Complete actual owned outer scan finite trace now composes full returned-buffer bounds, constructor/context100 and exact error result, with ordinary Err/fail/div preserved. Streaming/HTTP/correlation/compiler relation remains open. |
 | Diagnostic stack / owned error | ad0acce; SchemaV1/diagnostic-audit.json | Exact executable Vec append effects before projection; actual static-reference push extraction remains OPEN/trusted. Functional pending-state/event observation excludes warning log text. |
 
 Next implementation/proof work:
@@ -25,7 +25,9 @@ Next implementation/proof work:
    cursor/private end and the streaming error-state observation.
 2. Prove the bounded full-scan relation to the streaming response state, including
    private actual end, varint/field/group bounds and sticky rejection.
-3. Compose actual outer envelope/default/submessage/owned decode behavior.
+3. Actual outer envelope/default/submessage/owned decode finite execution is
+   composed. Establish absolute-cursor/success-span and numeric streaming
+   invariants against that complete actual source computation.
 4. Close actual HTTP header/name/value and Unicode trim validation composition;
    existing status and UTF8-machine component proofs are narrower checkpoints.
 5. Connect source eligibility/result to private ID correlation and the existing

@@ -30,6 +30,14 @@ consumption, including malformed/duplicate/unknown/group cases. Generic submessa
 progress is instantiated for both actual request and response dictionaries, with
 no primitive validity/termination/finite-trace premise in those exports.
 
-This is not yet the full envelope scan, HTTP validation or TLS streaming/correlation/compiler theorem. No response validity
+`Consumption` composes exact ordinary-return buffer bounds for both submessages
+and every envelope field. `FullScan.actual_owned_decode_finite` connects the actual
+fresh constructor, default recursion context100, complete native envelope loop
+and owned result projection. Ordinary Err and outer fail/div stay distinct;
+there is no primitive correctness/termination/finite-trace/validity premise in
+that fixed-schema export. The actual unmasked errors remain exact before any
+application observation.
+
+This is not yet the HTTP validation or TLS streaming/correlation/compiler theorem. No response validity
 is assumed. Actual parent-tail overrun behavior is retained by the submessage
 bridge; a bounded streaming relation must justify its owned-error projection.
