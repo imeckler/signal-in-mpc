@@ -1,0 +1,50 @@
+{
+  "scope": "public field-size guard and codec only; no parties, preprocessing, authentication or MPC security validation",
+  "upstream_revision": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+  "runtime": "isolated diagnostic v4; unchanged",
+  "cases": [
+    {
+      "field_bits": 8,
+      "configured_statistical_security": 128,
+      "guard_rejected": true,
+      "public_field_codec_bytes": 8,
+      "MPC_executed": false
+    },
+    {
+      "field_bits": 40,
+      "configured_statistical_security": 128,
+      "guard_rejected": true,
+      "public_field_codec_bytes": 8,
+      "MPC_executed": false
+    },
+    {
+      "field_bits": 128,
+      "configured_statistical_security": 128,
+      "guard_rejected": false,
+      "public_field_codec_bytes": 16,
+      "MPC_executed": false
+    },
+    {
+      "field_bits": 40,
+      "configured_statistical_security": 40,
+      "guard_rejected": false,
+      "public_field_codec_bytes": 8,
+      "MPC_executed": false
+    }
+  ],
+  "source_hashes": {
+    "Math/gf2n.h": "a7a350d6e678a8c22e474d13efda7c7fc7c7247368bfb013c199717499ef77fb",
+    "Protocols/mac_key.hpp": "d434035aac9d275e0bca42371c556bbaf8897dccf3285b452a62996e77fd8b15",
+    "Protocols/MaliciousRepPrep.hpp": "2e1a4bbc3b9bb1fb1a6f4a6ac04863e3d85ae4f0d21179f6b948892b47ce04a0",
+    "Protocols/SpdzWise.hpp": "4f1457ba46586fd882b0df75e2398d5ba8fac7c1cd7af5e511f1de8ead147792",
+    "GC/MaliciousCcdShare.h": "e4950d56c8dd4ebce02773a9ae7a017715db9bcc40d64355ef89a11cd4a11cd9",
+    "GC/MaliciousCcdSecret.h": "a566ef84ef3c87f67fb4a234013b5d2453b629a1e5fa91660d88bb1493949522",
+    "GC/CcdPrep.h": "df8fe138802d69bee12c5eab50e254307a438553ec8bbccacca4de080d48578b"
+  },
+  "fixture_hashes": {
+    "check_guard.py": "cee6086e49fe891b2b4940301b25a6ab4646ceda7e20e93c985523be7a064faa",
+    "field_guard.cpp": "850d3fa391c600e2f8a87e634ce170b85e2035b41a21997bc029ca2b03b1672d"
+  },
+  "binary_sha256": "2ca1c43e0fde2799e4b159b9f7e2413161c84b77179c2368233558c1eee212c4",
+  "production_configuration_changed": false
+}
