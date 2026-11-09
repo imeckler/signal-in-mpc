@@ -1,0 +1,16 @@
+# Candidate internal binding only; no RPC/public result or supplied agreement API.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.boolean import load
+from backend_adapter.aig_packed import execute_mpc
+image=load(program.args[1])
+if image.get('schema_sha256')!='510bd678767ca3b7918486cdc1b872890d86b18e3a790d187f9361fadca28b0a' or image.get('snapshot_bytes')!=5550:raise ValueError('record binding schema')
+n=6242;m=6156
+if image['name']!='signal-private-record-bind-v1' or image['input_bits']!=n*8 or len(image['outputs'])!=m*8:raise ValueError('record binding artifact dimensions')
+def evaluate(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+evaluate.__name__='signal_private_record_bind_v1'
+function=export(evaluate);Array=sbitvec.get_type(1).Array
+function(Array(n*8),Array(m*8))

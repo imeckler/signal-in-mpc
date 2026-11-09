@@ -33,7 +33,7 @@ Normal recovery/provider admission stays closed.
 `signal_private_record_bind_v1` function. Its future input is the 5550-byte private
 snapshot, actual 611-byte staged call and actual 81-byte service prefix; output is
 bound prefix81, selected525 and snapshot5550. `ExportBinding.lean` typechecks that
-layout, but an exported/compiled binding artifact has not been tested yet.
+layout, with a separate immutable exported/compiled candidate now checked below.
 
 `NativeCanonicalSendOwner.h` owns the canonical snapshot and volatile service
 view alongside the store. B1 delegates to the batch-first path: reserve one full
@@ -62,3 +62,13 @@ also covers restore, projection and sender update; only foundational axioms are
 permitted. This does not establish that the canonical capacity schema describes
 all Rust states, prove snapshot roundtrip normalization, or replace actual-source
 refinement and native artifact/runtime tests.
+
+The first binding candidate is compiled at
+`.deps/private-record-binding-native/v1-candidate-1/binding.manifest`: fixed
+49936-bit input / 49248-bit output, 181085 Boolean triples and 77 compiler VM
+rounds. The compiler finished in 6.324 seconds (peak RSS562135040 bytes); this
+is a public build measurement, not an MPC throughput measurement. Twenty exact
+public artifact evaluations match bound prefix, selected projection and complete
+canonical snapshot, including all rejected binding fixtures. These use actual
+Rust record/state prefixes and a dummy certificate, without executing service
+crypto in this check. Native canonical-owner and recovery execution remain next.

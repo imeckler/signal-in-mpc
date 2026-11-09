@@ -11,7 +11,7 @@ def service(row,index=0):
  raw=bytearray(bytes.fromhex(row['account_identity'])[:32]+bytes(260)+body+bytes(57));assert len(raw)==611
  raw[594:602]=(2**63+index).to_bytes(8,'big');return raw
 
-def main():
+def cases():
  oracle=ROOT/'.deps/signal-established-send-oracle-target/debug/signal-recovery-send-record-oracle'
  def ask(**args):return json.loads(subprocess.check_output([str(oracle)],input=json.dumps(dict(seed=19,plaintext=(b'E'*79+b'\x80').hex(),**args))+'\n',text=True))['rows']
  rows=ask();requests=[];expected=[]
@@ -35,6 +35,10 @@ def main():
  nodes=make(bytes.fromhex(row['sender_record_before']),record);current=nodes[0]['children'];pq=next(n for n in current if n['tag']==15)['children'];next(n for n in pq if n['tag']==3)['data'][0]=10;append(row,raw,result,nodes,False)
  nodes=make(bytes.fromhex(row['sender_record_before']),record);management=next(n for n in nodes if n['tag']==3)['children'];next(n for n in management if n['tag']==1)['data']=[0,0,0,2];next(n for n in management if n['tag']==2)['data']=[255]*4;append(row,raw,result,nodes,False)
  nodes=make(bytes.fromhex(row['sender_record_before']),record);management=next(n for n in nodes if n['tag']==3)['children'];counter=next(n for n in management if n['tag']==2);counter['present']=0;counter['data']=[0,0,0,7];append(row,raw,result,nodes,False)
+ return requests,expected,oracle
+
+def main():
+ requests,expected,oracle=cases()
  start=time.monotonic();p=subprocess.run(['lake','env','lean','--run',str(HERE/'EvaluateBinding.lean')],cwd=ROOT,input=''.join(json.dumps(r)+'\n'for r in requests),text=True,capture_output=True,timeout=120);assert p.returncode==0,p.stderr
  for i,(want,line)in enumerate(zip(expected,p.stdout.splitlines(),strict=True)):
   actual=bytes(json.loads(line));assert actual==want,(i,len(actual),len(want),[(n,x,y)for n,(x,y)in enumerate(zip(actual,want))if x!=y][:4])

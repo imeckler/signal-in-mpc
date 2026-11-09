@@ -1,6 +1,6 @@
 #pragma once
 // Internal candidate. Fixed pinned function only; no raw DH, public input import,
-// opening, RPC registration or provider admission. Compile/proof still pending.
+// opening, RPC registration or provider admission. Native execution/recovery pending.
 #include "NativeWorker.h"
 #include "../VariableServiceWork/VariableShape.h"
 namespace signal_mpc::recovery {

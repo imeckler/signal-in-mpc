@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "cases": 20,
+  "full_bound_prefix_selected_snapshot_equal": true,
+  "actual_Rust_record_fixtures": true,
+  "private_service_crypto_executed_here": false,
+  "public_dummy_certificate": true,
+  "native_MPC": false,
+  "full_actual_source_refinement": false,
+  "provider_admission": false,
+  "seconds": 3.901923833996989,
+  "artifact_sha256": "74d8310bcf59c806be19b2618c1b19ddaaadc2c088c6575110deee6a8c38c13a",
+  "oracle_binary_sha256": "160e1dba17a0ba7d1796d340bc51077ced1ea762ed4e47093e58c50a79591b7b",
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_binding_artifact.py": "4cbec3f11d9290e30d19b267fadbe9d2e154530e138f6005262396f053d15d51",
+    "SignalReference/PrivateRecordWork/check_binding.py": "5d1484dad4a7d76bc609adb5ed4f5de651d2b1e324b9ecebf1f9b5b8dfd3a564",
+    "SignalReference/PrivateRecordWork/check.py": "3563b77250aeb5c3f0dd61a3aa98be36cea742b8c827466364fc1baa19cfcc45",
+    "SignalReference/PrivateRecordWork/check_send.py": "f3f0d86e541dd8a5add521b512f5966ee4f8d70d4dc3fd586bd602690776d076",
+    "SignalReference/PrivateRecordWork/binding-native-compile-report.json": "185d32278e1a8c727e40e70bcf10e23662f1dd18fdd38f98acd9d7c3ec16699a"
+  }
+}
