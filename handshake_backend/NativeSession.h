@@ -302,6 +302,15 @@ public:
             auto result=measured("upgrade.builder",[&]{return upgrade.evaluate(shape,std::move(input));});
             if(metrics)metrics->function_resources(shape.descriptor());return result;});
     }
+    // Internal computed-status declassification only. Normalize with the pinned
+    // validity gate so noncanonical input can reveal only accept/reject, not an
+    // arbitrary private byte. No RPC/general opening API is provided.
+    void require_private_status(Bits computed_status){
+        guarded([&]{require_application();require(computed_status.size()==8,"private status dimensions rejected");
+            auto accepted=eval("tls-provider-validity",concat({computed_status,public_bits({255})}),1);
+            require(release(std::move(accepted))==Bytes{255},"private computation rejected");
+        });
+    }
     Bits remask_restored_outbox(Bits typed_payload,Bits computed_resumability,size_t capacity){
         return guarded([&]{require_application();require(request_ids.committed()&&capacity==1290&&
                 typed_payload.size()==8*(capacity+3)&&computed_resumability.size()==8,"restored outbox profile/dimensions rejected");

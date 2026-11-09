@@ -1,0 +1,7 @@
+{
+  "compiled_linked": true,
+  "native_executed": false,
+  "source_sha256": "0242dc601fb14c28382bed845461ee20733d3fa8eb6892856edd55f6c9c805d6",
+  "binary_sha256": "2623d7720f132755967c9fd552d20365fce3c5e57a0d5a08032abb740680c5e7",
+  "scope": "Internal require_private_status normalizes exact255 through existing pinned gate, then authenticates/opener-checks one accept/reject flag under guarded abort. No RPC, raw-byte opening or new program closure."
+}
