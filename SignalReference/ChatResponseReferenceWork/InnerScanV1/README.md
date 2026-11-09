@@ -19,5 +19,11 @@ open. The diagnostic static-reference push bridge and std UTF8/content model
 boundaries from InnerResponseV1 remain explicit. No log-trace equivalence.
 
 Run `python3 SignalReference/ChatResponseReferenceWork/InnerScanV1/check.py`.
-The four-module check links verified ancestor objects into a separate output
+The six-module check links verified ancestor objects into a separate output
 and binds source/object hashes without rebuilding large ancestors.
+
+`FiniteRun` retains fail/div leaf outcomes and derives finite execution from a
+strict continuation measure. `Consumption` proves scalar all-wire and strong
+String length-delimited suffix bounds from actual primitive references, without
+primitive correctness or termination premises. The full dispatcher continuation
+bound and trace-existence instantiation are still open.
