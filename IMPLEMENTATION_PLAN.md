@@ -69,6 +69,22 @@ checkpoints; hold an exclusive `fcntl.flock` on `/tmp/tls-mpc-git-index.lock`
 across index mutations and commits, using explicit paths and `git commit --only`.
 Do not alter other workers' staged changes or historical receipts.
 
+Throughput-review follow-up: retain both circuit reduction and compact-backend
+selection as required work. After a coherent scan-proof checkpoint, parser owns
+an isolated bounded parser candidate proved against existing process/feed
+observations, with exact exported AND/depth comparisons before native promotion.
+Candidates include narrowing bounded counters, capacity-derived group-stack
+bounds, and avoiding generic routing on opaque payload bytes; unrolling alone
+does not establish savings. Preserve private lengths, errors, headers, UTF8,
+duplicates, unknown groups and the fragmented-assembly boundary. Verified SHA
+gate/depth improvements and stage attribution are subsequent performance work;
+native-field GHASH needs a checked field-to-bit conversion, not merely packing.
+The review's throughput numbers are scenarios, not WAN measurements: in-flight
+messages need not be distinct conversations in a future durable pipeline, and
+CPU, bandwidth and latency can overlap. Existing public-code cache evidence is
+component-only; reuse of consumed preprocessing is never permitted. No threshold
+or deployment-topology change follows from this review.
+
 Completion still requires the full TLS/Signal integration, fresh and established
 sessions, durable shared state, requested circuit/compiler/refinement coverage,
 and appropriate interoperability and persistent-session performance evidence.
