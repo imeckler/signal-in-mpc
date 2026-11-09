@@ -90,3 +90,18 @@ Party0 exact diagnostic bytes:
 | n3/t1/S40 Rep3 |2656|106808|64|109528|
 
 Online payload ratio65.52x; total ratio4.38x on this small workload. Rep3 explicitly warns of unused generated triples from its minimum batch size. These are generated-traffic measurements, not exact consumed-preprocessing counts or extrapolated steady throughput. Inclusive local controller times0.08495s/0.03861s and runtime-reported0.04103s/0.008469s are startup-sensitive single samples, not reliable sustained-rate comparisons. No source contention was deliberately introduced; a small independent crypto compiler was announced around preparation, so no pristine timing claim is made. The important result is that a real compact-bit protocol can materially reduce wire cost; adapting an established protocol to S128 and/or the requested threshold remains separate work.
+
+## Larger warmed comparator (one additional bounded run)
+
+The same20-layer graph was expanded to4096 input bits per party and86015 logical ANDs per repetition including equality. Five repetitions execute in one VM/protocol instance: one warm-up then four measured repetitions. `compact-warm-comparison.json` is generated from the preserved native logs by `analyze_warm_control.py`.
+
+All8party exits0, five equality flags passed, no cleanup failures, immutable source/library/bytecode integrity passed. This run consumes430075 logical ANDs across both backends. Party0 payloads:
+
+| Profile | Binary online | Binary preprocessing | Total inclunattributed | Bytes/logicalAND |
+|---|---:|---:|---:|---:|
+| n5/t2/S128 CCD |55180992|97735744|152917056|355.56|
+| n3/t1/S40 Rep3 |432848|747656|1181120|2.75|
+
+Online ratio127.48x, total129.47x. Unlike the tiny case, generated preprocessing batch overshoot no longer dominates the Rep3 result. Nevertheless Rep3 reports28672 leftover triples and CCD5. Runtime consumed-resource displays are in backend-specific packed units (Rep3:14075;CCD:430075); the compiler's430075 logical ANDs is the common normalization. Exact generated batch event counts were not instrumented; no equality between differently packed counter units is asserted. These measured totals include all generated/preprocessing traffic and one warm-up, rather than an imagined consumed-only offline cost.
+
+The warmed344060-AND timer window was5.47998s CCD versus0.020751s Rep3 in this one local sample. It excludes initial input/setup and first repetition, but includes any new preprocessing generated during the window. GC timer communication counters misleadingly show0MB because of their thread stats scope; only the separate exact whole-run diagnostic byte counters are used. This is not sustained service throughput, a WAN comparison, a statistical128 compact protocol, or evidence permitting a threshold switch. Both changed security assumptions remain explicit. No further broad control catalog or application rebuild is justified from this checkpoint alone.

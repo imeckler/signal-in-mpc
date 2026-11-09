@@ -1,0 +1,18 @@
+# Optional benchmark ONLY: same binary graph across n3/t1/S40 and n5/t2/S128.
+program.set_security(40)
+from Compiler.GC.types import sbits,sbit
+from Compiler.library import print_ln,start_timer,stop_timer
+Word=sbits.get_type(64);width=64
+initial_x=[Word.get_input_from(0)for _ in range(width)]
+initial_y=[Word.get_input_from(1)for _ in range(width)]
+for repetition in range(5):
+ if repetition==1:start_timer(1)
+ xs=list(initial_x);ys=list(initial_y)
+ a=0x255AA55AA55AA55A;b=0x0FF00FF00FF00FF0
+ for step in range(20):
+  zs=[x&y for x,y in zip(xs,ys)];c=a&b
+  xs=[z^x for z,x in zip(zs,xs)];ys=[z^y for z,y in zip(zs,ys)];a=c^a;b=c^b
+ flags=[x.equal(Word(a))for x in xs]
+ while len(flags)>1:flags=[flags[i]&flags[i+1]for i in range(0,len(flags),2)]
+ print_ln('DIAGNOSTIC_COMPARE %s',flags[0].reveal())
+stop_timer(1)

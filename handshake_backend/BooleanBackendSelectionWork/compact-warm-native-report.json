@@ -1,0 +1,173 @@
+{
+  "scope": "OPTIONAL BENCHMARK ONLY: n3/t1/stat40 versus n5/t2/stat128; same430075AND synthetic bytecode,1warmup+4measured86015AND iterations, no mixed Fp bridge/application/lifecycle/tamper claim",
+  "cases": {
+    "ccd128": {
+      "passed": true,
+      "n": 5,
+      "threshold": 2,
+      "statistical_security": 128,
+      "source_product_sha256": {
+        ".deps/tls-backend-diagnostic-runtime-v4/tls-ccd128-component": "e4d94212a9694ed4e0aa5bd79ccc512e80657d012cbef01e16793d803a0909e8",
+        ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ/libSPDZ.so": "cc6ba46cf7ab170d64b747ca46a82d8d1b0f4db2ce1a905966a6b8b9d76c097b",
+        "handshake_backend/BooleanBackendSelectionWork/rep3_stat40.cpp": "d50bf1eb2b35ab3c8d4930531a514d897544868368d40d2682df44f10928e46c",
+        "handshake_backend/BooleanBackendSelectionWork/compact_warm_control.mpc": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+        "handshake_backend/BooleanBackendSelectionWork/check_compact_warm_control.py": "c4bb81f94150845fcf00be311bdf50f1b05c7fc545651336587e81135019307f",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/ccd128/Programs/Source/compact_warm_control.mpc": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/ccd128/Programs/Schedules/compact_warm_control.sch": "30d3e27b66018cf9dba21b58a828599178fe3f2a816b4da32577c7ee5864959d",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/ccd128/Programs/Bytecode/compact_warm_control-0.bc": "c70b2cf039129c52bfbf1bf422dadf10cebc920b7443ef73f1e659f929a1d113"
+      },
+      "parties": [
+        {
+          "backend": "ccd128",
+          "bytes": [
+            320,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            55180992,
+            97735744
+          ]
+        },
+        {
+          "backend": "ccd128",
+          "bytes": [
+            320,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            55180992,
+            97735744
+          ]
+        },
+        {
+          "backend": "ccd128",
+          "bytes": [
+            320,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            55049920,
+            97735744
+          ]
+        },
+        {
+          "backend": "ccd128",
+          "bytes": [
+            320,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            55049920,
+            97735744
+          ]
+        },
+        {
+          "backend": "ccd128",
+          "bytes": [
+            320,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            55049920,
+            97735744
+          ]
+        }
+      ],
+      "elapsed_seconds": 7.004380750004202,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cleanup_errors": [],
+      "integrity_verified": true
+    },
+    "rep3-stat40": {
+      "passed": true,
+      "n": 3,
+      "threshold": 1,
+      "statistical_security": 40,
+      "source_product_sha256": {
+        ".deps/tls-backend-diagnostic-runtime-v4/tls-rep3-stat40-benchmark": "7a48eabe82889632dc46b6a84a712f0e2876cac4538dd9dd355410651f182524",
+        ".deps/tls-backend-diagnostic-runtime-v4/MP-SPDZ/libSPDZ.so": "cc6ba46cf7ab170d64b747ca46a82d8d1b0f4db2ce1a905966a6b8b9d76c097b",
+        "handshake_backend/BooleanBackendSelectionWork/rep3_stat40.cpp": "d50bf1eb2b35ab3c8d4930531a514d897544868368d40d2682df44f10928e46c",
+        "handshake_backend/BooleanBackendSelectionWork/compact_warm_control.mpc": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+        "handshake_backend/BooleanBackendSelectionWork/check_compact_warm_control.py": "c4bb81f94150845fcf00be311bdf50f1b05c7fc545651336587e81135019307f",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/rep3-stat40/Programs/Source/compact_warm_control.mpc": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/rep3-stat40/Programs/Schedules/compact_warm_control.sch": "30d3e27b66018cf9dba21b58a828599178fe3f2a816b4da32577c7ee5864959d",
+        "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e/rep3-stat40/Programs/Bytecode/compact_warm_control-0.bc": "c70b2cf039129c52bfbf1bf422dadf10cebc920b7443ef73f1e659f929a1d113"
+      },
+      "parties": [
+        {
+          "backend": "rep3-stat40-benchmark-only",
+          "bytes": [
+            616,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            432848,
+            747656
+          ]
+        },
+        {
+          "backend": "rep3-stat40-benchmark-only",
+          "bytes": [
+            616,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            432848,
+            747656
+          ]
+        },
+        {
+          "backend": "rep3-stat40-benchmark-only",
+          "bytes": [
+            104,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            432848,
+            747656
+          ]
+        }
+      ],
+      "elapsed_seconds": 0.13390800007618964,
+      "exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "cleanup_errors": [],
+      "integrity_verified": true
+    }
+  },
+  "raw": "benchmarks/results/raw/compact-boolean-warm-control/80aeb82d90a7f07e",
+  "passed": true
+}

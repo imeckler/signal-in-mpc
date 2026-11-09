@@ -1,0 +1,15 @@
+{
+  "compiler_security": 40,
+  "native_executed": false,
+  "warmup_repetitions": 1,
+  "measured_repetitions": 4,
+  "logical_ANDs_per_repetition": 86015,
+  "total_logical_ANDs": 430075,
+  "source": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+  "products": {
+    "Programs/Source/compact_warm_control.mpc": "3499a7c39228876a4b91b192e5cb79d47039eda73f2d22faa123e5b83af44202",
+    "Programs/Schedules/compact_warm_control.sch": "30d3e27b66018cf9dba21b58a828599178fe3f2a816b4da32577c7ee5864959d",
+    "Programs/Bytecode/compact_warm_control-0.bc": "c70b2cf039129c52bfbf1bf422dadf10cebc920b7443ef73f1e659f929a1d113"
+  },
+  "log_sha256": "44729ebf126afff4dad017be3ed65067a94a22028f68355626470c8dcd6a4293"
+}

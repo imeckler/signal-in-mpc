@@ -1,0 +1,8 @@
+DIAGNOSTIC_COMPARE 1
+Starting timer 1 at 0 (0 MB, 0 rounds, 0 CPU seconds, 0 communication seconds) after 3e-06
+DIAGNOSTIC_COMPARE 1
+DIAGNOSTIC_COMPARE 1
+DIAGNOSTIC_COMPARE 1
+DIAGNOSTIC_COMPARE 1
+Stopped timer 1 at 0.020751 (0 MB, 0 rounds, 0.017228 CPU seconds, 0 communication seconds)
+DIAGNOSTIC_TOTAL {"backend":"rep3-stat40-benchmark-only","bytes":[616,0,0,0,0,0,0,432848,747656]}

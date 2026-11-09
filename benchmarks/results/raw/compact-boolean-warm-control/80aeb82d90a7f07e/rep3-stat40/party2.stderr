@@ -1,0 +1,17 @@
+Using statistical security parameter 40
+Compiler: compile.py -M -B 64 compact_warm_control
+  Type bit
+         14075        Triples
+Spent 0.023674 seconds (0.432936 MB, 182 rounds, 0.032287 CPU seconds, 0.01641 communication seconds) on the online phase and 0.009639 seconds (0.747672 MB, 50 rounds, 0.0324 CPU seconds, 0.008511 communication seconds) on the preprocessing/offline phase.
+	28672 triples of replicated secret left
+Significant amount of unused triples of replicated secret distorting the benchmark. This protocol has a large minimum batch size, which makes this unavoidable for small programs.
+Broadcasting 0.000224 MB in 8 rounds, taking 0.001584 seconds
+Partial broadcasting 0.000364 MB in 14 rounds, taking 0.001174 seconds
+Passing around 0.287032 MB in 16 rounds, taking 0.004276 seconds
+Receiving directly 0.000512 MB in 1 rounds, taking 0.0001 seconds
+Sending/receiving 0.8924 MB in 194 rounds, taking 0.017972 seconds
+The following benchmarks are including preprocessing (offline phase).
+Time = 0.037632 seconds 
+Time1 = 0.017668 seconds (0 MB, 0 rounds, 0.016298 CPU seconds, 0 communication seconds)
+Data sent = 1.18061 MB in ~233 rounds (party 2 only)
+Global data sent = 3.54285 MB (all parties)

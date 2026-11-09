@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "scope": "optional weaker n3/t1/stat40 comparator vs n5/t2/stat128; not application throughput or secure backend promotion",
+  "whole_run_same_logical_work": true,
+  "setup_excluded_from_warmed_timer": true,
+  "timer_communication_counters_valid": false,
+  "generated_discarded_batch_traffic_included": true,
+  "profiles": {
+    "ccd128": {
+      "logical_ANDs": 430075,
+      "logical_ANDs_warmed_window": 344060,
+      "binary_online_bytes": 55180992,
+      "binary_preprocessing_bytes": 97735744,
+      "unattributed_bytes": 320,
+      "total_bytes": 152917056,
+      "whole_run_bytes_per_logical_AND": 355.5590443527292,
+      "runtime_reported_used_triples": 430075,
+      "runtime_reported_left_triples": 5,
+      "runtime_resource_units_identical_across_backends": false,
+      "exact_generated_triple_counts_available": false,
+      "warmed_seconds": 5.47998,
+      "warmed_logical_ANDs_per_local_second": 62784.900674819975,
+      "raw_hashes": {
+        "party1.stderr": "040d22784b0490315f450410b5d3a7e1a62cd91673ee2750cd9ef5d992fbe120",
+        "party3.stderr": "ab19ac161431f2984a7207087db36ce1c66119dc7fbffd6547370a6721ddd060",
+        "party3.stdout": "24147dec7d1297639e4cbe2b65f7d6a81fb287ad86caeac44dce8e6fde6548c0",
+        "party1.stdout": "a1a42a8c546bf2e7c7bcca2bb0cbbde716c489f5e949b7aa2e7bd1e7672797d3",
+        "party0.stderr": "6ac59098c0a4803c2f9e003bc70d4c70be93dc16afe3df238d3964d0337b999d",
+        "party4.stdout": "45bd6e32ae3c57850ce37f99ee20aadb880ee5f5f0dba87ceb561c79456bb6e3",
+        "party2.stderr": "c1db2570edf950327e8451ec3ef63684a0682c79037a3827c57741b4956cfbc9",
+        "party2.stdout": "b9769185d258169460c82acab4b5827091330c410c2c0ac7b2b29636b110fc24",
+        "party4.stderr": "a1a66f8fbaadbe59babd4fede22f7db118f69d2c7f0707f92038bd8648a8c2a7",
+        "party0.stdout": "46625eb35b345855fd5a400bd570bea02a12c0d6a1b5369445a17945519550e8"
+      }
+    },
+    "rep3-stat40": {
+      "logical_ANDs": 430075,
+      "logical_ANDs_warmed_window": 344060,
+      "binary_online_bytes": 432848,
+      "binary_preprocessing_bytes": 747656,
+      "unattributed_bytes": 616,
+      "total_bytes": 1181120,
+      "whole_run_bytes_per_logical_AND": 2.746311689821543,
+      "runtime_reported_used_triples": 14075,
+      "runtime_reported_left_triples": 28672,
+      "runtime_resource_units_identical_across_backends": false,
+      "exact_generated_triple_counts_available": false,
+      "warmed_seconds": 0.020751,
+      "warmed_logical_ANDs_per_local_second": 16580405.76357766,
+      "raw_hashes": {
+        "party1.stderr": "86ea07ae755892744dceb66e0fdea8b58537b6b54eea2e21a99cf5b2ab6cbfec",
+        "party1.stdout": "6fb266a8287bdc56ff4b50434a5c9662a44819fabbdbd03b97848ffd63c6a8cc",
+        "party0.stderr": "3a888896813e835ef97a6d034eaa6c2dc3dc6f04329424ccec3b9535f17b5b03",
+        "party2.stderr": "d0ad5d7f5d016f0d7d348a57acc211e2e6a333047ff4ac7a3002269cf8070feb",
+        "party2.stdout": "cc571ee81be1038b97ed16dc214062f2049b44f7f4117fc3707b3ea44dac91aa",
+        "party0.stdout": "1de04c4c8a4a368c8348ee0399fa3a21fd10f6fe098f9bd6a47797a7c02a7d04"
+      }
+    }
+  },
+  "ratios": {
+    "binary_online": 127.48353232543526,
+    "total": 129.46784069357898,
+    "local_warmed_seconds": 264.0826948098887
+  }
+}

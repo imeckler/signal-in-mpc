@@ -1,0 +1,3 @@
+Starting timer 1 at 0 (0 MB, 0 rounds, 0 CPU seconds, 0 communication seconds) after 4e-06
+Stopped timer 1 at 5.47989 (0 MB, 0 rounds, 8.23497 CPU seconds, 0 communication seconds)
+DIAGNOSTIC_TOTAL {"backend":"ccd128","bytes":[320,0,0,0,0,0,0,55180992,97735744]}

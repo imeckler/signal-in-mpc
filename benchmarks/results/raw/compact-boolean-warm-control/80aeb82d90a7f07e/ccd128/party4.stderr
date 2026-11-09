@@ -1,0 +1,14 @@
+Using statistical security parameter 128
+Compiler: compile.py -M -B 64 compact_warm_control
+  Type bit
+        430075        Triples
+Spent 0.325435 seconds (55.05 MB, 182 rounds, 10.1898 CPU seconds, 0.062861 communication seconds) on the online phase and 6.49345 seconds (97.736 MB, 40325 rounds, 10.1899 CPU seconds, 5.00217 communication seconds) on the preprocessing/offline phase.
+	5 triples of Shamir gf2n_long left
+Broadcasting 0.34944 MB in 13441 rounds, taking 1.71687 seconds
+Partial broadcasting 27.525 MB in 13620 rounds, taking 1.74159 seconds
+Sending/receiving 41.2881 MB in 13447 rounds, taking 1.60665 seconds
+The following benchmarks are including preprocessing (offline phase).
+Time = 6.82575 seconds 
+Time1 = 5.47991 seconds (0 MB, 0 rounds, 8.2699 CPU seconds, 0 communication seconds)
+Data sent = 152.786 MB in ~40508 rounds (party 4 only)
+Global data sent = 764.192 MB (all parties)
