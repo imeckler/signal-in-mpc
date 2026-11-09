@@ -1,0 +1,52 @@
+{
+  "candidate_only": true,
+  "scope": "Actual production parser list shape invariant, inactive-byte/tail complete state preservation and zero events, composed with existing AIG byte compiler endpoint under explicit raw-state/control interpretation. Component checkpoint, not complete private EOF/source/schema refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/StateShape.lean": "9d31ceeb13d0e1db32f897d4bca1a3de2d7c9d47b45416ad030363cd1cb8a216",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/StateSelection.lean": "a280335a7c7acda3ccd476c560b326056bbc42370754528b846fc197cbbf3f33",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/InactiveByte.lean": "78c8ea0f1d7a0d0adfcced8c865614051855ba7fecaa375f32d8c52b23d3ab49",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/CompiledInactive.lean": "3fb830e8f0c612b417c1f1fca6e2da13ef6949fe0b9ec051bba2df1b1ae00c0d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_inactive.py": "09b6885810eea04c7646243fb5c3906a45283e50c9931b5a78cb3561ba999c28",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/INACTIVE.md": "2ff2b835dcfc0ebbe620fa534e7cbf52d944cfffcea5b91416f4e2768cd53317"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/native-recognition-audit.json": "b29d4533d1daab2bd2a2c7c4894b3831c11bec8c4228a61247ad3b79ce7ab2aa",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-update-audit.json": "49e1390ee5ec1f23a7d256a02d82d044d275763bb4bbca859fa8fe8ffea5d707",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-success-audit.json": "0718a6318a7636c0ce7aaeea1071dc913210447e885d5762437c97a27dfc6a0f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-guard-audit.json": "71cf6a078fe74d9ba6179301352c0a9af36d68c99fa81318acbc7f4b78fad42a",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-closure-audit.json": "0318cf00f0d1987e8eb6d810a23f09541bb9c083399b93f7ad7e43a6842edf99",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-audit.json": "398a9d992bf2546b0998969377a61cd73b61ca3489d3dbee572634616651c449",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/key-transition-audit.json": "35c9423760a25b8a0c617937e833bebf6b985fb894b8673eed860c006f6ad833",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/any-key-error-audit.json": "660564695679ff14ee5c14572d1590497acffa71e9429ba09b0afe27bb67bc8d",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/scalar-payload-audit.json": "f4d00906af964dbd72a2b9dcfe53a2ec1ce6e1dd79d350af248e3b8878f09079",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/prefix-context-audit.json": "b845ef7b1ff74f0153e155e719dac47d9672c5d907fae83f5a5d202d97a6e08b"
+  },
+  "inherited_source_count": 265,
+  "inherited_object_count": 116,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/inactive-375fd64038c1-69208.log",
+  "kernel_log_sha256": "b635f9a403d7f3db29e57ab4fa5da6a8263a6ce34b392695145f4a1644427a73",
+  "kernel_log": "Checking StreamingV1.StateShape\n'ChatResponseReference.StreamingV1.initial_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.step_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.finish_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.feed_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.select_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.process_shape' depends on axioms: [propext, Quot.sound]\nChecking StreamingV1.StateSelection\n'ChatResponseReference.StreamingV1.state_select_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.state_select_accept' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.InactiveByte\n'ChatResponseReference.StreamingV1.process_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.inactive_padding_exact' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.runByte_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.CompiledInactive\n'ChatResponseReference.StreamingV1.compiled_inactive_correct' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "new_dependency_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/key-guard-v1-final/ProtoParseWork/FullParserV3Work/KeyCircuit.olean": "455329829ea0f40024127601b4c6dabd12ff9fee253a69d5d2829b8fa3968cf0"
+  },
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/inactive-v1-final/ChatResponseReferenceWork/StreamingV1/StateShape.olean": "ee1127755a73b4028375128dcb1ca269167f0ed9f2bb6449dec8ee102e37a15d",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/inactive-v1-final/ChatResponseReferenceWork/StreamingV1/StateSelection.olean": "49851f0089ce1a198d1ed27be906e5dee973aa1cb28e8902d90e58394f68e04a",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/inactive-v1-final/ChatResponseReferenceWork/StreamingV1/InactiveByte.olean": "6516ab32a57736792b921c2b4c54afdce657c510048c1699aecea81e8bdab89e",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/inactive-v1-final/ChatResponseReferenceWork/StreamingV1/CompiledInactive.olean": "4c83c4b636ea1e54da27f797f2ca7f356227f0928530d876e36f953e18fe74a5"
+  }
+}

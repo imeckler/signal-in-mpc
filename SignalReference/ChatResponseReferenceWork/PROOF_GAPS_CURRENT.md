@@ -123,3 +123,10 @@ bounded inner boundaries, with no caller prefix/table/new-tag premises. The
 four-entry kind-list shape is invariant under all Core bytes. Full scan still
 must derive explicit child-cursor/counter/depth/state conditions, known-field
 wire guards and remaining field/group/private-end/HTTP/compiler composition.
+
+Inactive/compiler checkpoint: `StreamingV1/inactive-audit.json` records clean
+four-module aggregate0. Full fixed state shape is invariant under actual process;
+inactive bytes/tails preserve complete state and emit zero events. This reaches
+the existing exported AIG byte compiler endpoint under explicit decoded-state
+and zero activity/start/end hypotheses. Active/private EOF controls and active
+source schema agreement are not inferred from this padding component.
