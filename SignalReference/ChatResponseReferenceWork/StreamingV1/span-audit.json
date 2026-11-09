@@ -1,0 +1,35 @@
+{
+  "candidate_only": true,
+  "scope": "Actual Core nonterminal prefix\u2192shared reader; actual native strict-row success/rejection\u2192exact value/relative and absolute suffix; bounded no-wrap cursor. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/NativePrefix.lean": "5054e749453b93778b2b018f3ddeb845a94bdae4c6af420ca288edd0cf5058fb",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/PrefixValue.lean": "15d1a289a85668eec681b5b9b852f4c866daf189f909d15b58d2f2c8702809d2",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/AbsoluteCursor.lean": "fedc0199d593ea2515ce5db9d818df62918351618caa8f4ee888f02495be9c1e",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_span.py": "721e508e53cec244c1e067e76ee33fe8961cd8035915aa4893794206ee8f33c4",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/SPAN.md": "ec19b2d90f4c37f2883334f342672a9c32833abbfbc4e34f7bc189def4dd440a"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc"
+  },
+  "inherited_source_count": 211,
+  "inherited_object_count": 87,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/span-f16a8a7c75b3-65499.log",
+  "kernel_log_sha256": "cc36dcb8434a668aaa0c8faa53879a3deebd0ac960ade42b48dd41d70643968f",
+  "kernel_log": "Checking StreamingV1.NativePrefix\n'ChatResponseReference.StreamingV1.native_prefix_success' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.native_prefix_rejection' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.PrefixValue\n'ChatResponseReference.StreamingV1.spec_run_add' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.spec_run_prefix' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.core_prefix_reader_value' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.AbsoluteCursor\n'ChatResponseReference.StreamingV1.contents_drop' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.native_prefix_absolute' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.native_rejection_absolute' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.cursor_word_exact' depends on axioms: [propext, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/span-v1-final/ChatResponseReferenceWork/StreamingV1/NativePrefix.olean": "c884579475afc7201bd58683c151dac10ba87b0d2c05f98ba7ebc86bb4e5ded4",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/span-v1-final/ChatResponseReferenceWork/StreamingV1/PrefixValue.olean": "23ea914454f0665c29ff6da3f218f092d683fd5c8ed0b5abbebc8b0e44448d6b",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/span-v1-final/ChatResponseReferenceWork/StreamingV1/AbsoluteCursor.olean": "8d892ad3fd963f3a7f2423fde41d7982e876efd0489cbc7831c42989b2111462"
+  }
+}
