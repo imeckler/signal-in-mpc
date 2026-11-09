@@ -1,0 +1,25 @@
+'LibSignalReference.Candidate.FixsliceCircuitV1.groupAt_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.fromList_eight' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.fromList_take' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.groupAt_list' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.chunks_take' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.flatten_groups' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.scheduleExpression_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.keyGroupsExpression_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.scheduleValue_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.keyArray_groups' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.map_bv_injective' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.actual_schedule' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.compiled_actual_from_key64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

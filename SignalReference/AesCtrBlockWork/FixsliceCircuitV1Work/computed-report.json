@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 13,
+  "foundation_axioms_only": true,
+  "actual_key_schedule_and_AES256_entry_to_compiled_four_block_circuit": true,
+  "all_256_key_bits_and_512_plaintext_bits_unrestricted": true,
+  "supplied_expanded_keys_or_crypto_validity_flags": false,
+  "actual_generated_body_edits": false,
+  "inherited_Std_models_and_metadata_selection_trust_retained": true,
+  "trust_boundary_recheck": "key-schedule-recheck.json",
+  "single_block_reduction": false,
+  "ciphertext_interop_tested": false,
+  "resource_measurements": false,
+  "production_changed": false,
+  "endpoints": [
+    "groupAt_map",
+    "fromList_eight",
+    "fromList_take",
+    "groupAt_list",
+    "chunks_take",
+    "flatten_groups",
+    "scheduleExpression_correct",
+    "keyGroupsExpression_correct",
+    "scheduleValue_length",
+    "keyArray_groups",
+    "map_bv_injective",
+    "actual_schedule",
+    "compiled_actual_from_key64"
+  ],
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/FixsliceCircuitV1Work/check_computed.py": "e748c1680b9a9ebccbbbe8ab0a8743d3cc1119fa3436386314149d643c1dd277",
+    "SignalReference/AesCtrBlockWork/FixsliceCircuitV1Work/report.json": "12c81449102a11192d9eba5cd175d5ad46ddc5a9669ebdfd2e1b9554cdfbd1d1",
+    "SignalReference/AesCtrBlockWork/FixsliceCircuitV1Work/key-schedule-recheck.json": "5bef5caaf5e98f6002d30583138702a4d9bfae0590960ffaade0761f0746db16",
+    "SignalReference/AesCtrBlockWork/FixsliceCircuitV1Work/KeySchedule.lean": "3a54ff2e83c556e0e72d4605345be4a3dbae34cfcbbfef2ccb21f0bebf88d392",
+    "SignalReference/AesCtrBlockWork/FixsliceCircuitV1Work/ComputedCipher64.lean": "c0f64f13d2f89ddab1bb910b4a534789309eb047df1639696c0eb1d974634172"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixsliceCircuitV1Work/KeySchedule.olean": "43450489448e827f110d506cb2a1c3fdbf25de0fee81592aa8079c397d244a60",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixsliceCircuitV1Work/ComputedCipher64.olean": "c051bc9d42bbba674b9826444d56bf691004d1f906702ff7f6a6e90dfc4b9b80",
+    "SignalReference/CtrReferenceV1Work/Build/AesKeyScheduleWork/FullSchedule.olean": "ede6a7f34a5171246042d454393992a175f469162271508854a833e2d263a496",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/FixsliceCircuitV1Work/Cipher64.olean": "b0dab1a4f5f9ef4f25db19b969809631e1bfeadb10b6f07116c06a29e4afec58"
+  }
+}
