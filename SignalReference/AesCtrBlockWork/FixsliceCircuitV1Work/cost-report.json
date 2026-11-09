@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "production_changed": false,
+  "public_fixture_only": true,
+  "native_performance_measured": false,
+  "interop": "actual aes0.9.1 forced-soft public encrypt_block/encrypt_blocks;32 fixtures/profile; raw and XOR-recovered numeric evaluation",
+  "key_reuse": "one secret32-byte key, one shared expansion per profile; repeats2 encrypts independent inputs under same key",
+  "profiles": {
+    "candidate-1x1": {
+      "raw_and_gates": 159912,
+      "executed_and_gates": 8832,
+      "executed_xor_gates": 34636,
+      "unreachable_nodes": 116445,
+      "logical_depth": 447,
+      "and_depth": 84,
+      "input_bytes": 48,
+      "output_bytes": 16,
+      "public_rust_cases": 32,
+      "artifact_sha256": "0d13abb5bb7f69bb97c9d89824b1e59f3dc31132491b7d3bbd102f3e8331ca69"
+    },
+    "candidate-4x1": {
+      "raw_and_gates": 412776,
+      "executed_and_gates": 30336,
+      "executed_xor_gates": 111964,
+      "unreachable_nodes": 270477,
+      "logical_depth": 447,
+      "and_depth": 84,
+      "input_bytes": 96,
+      "output_bytes": 64,
+      "public_rust_cases": 32,
+      "artifact_sha256": "1d97ea613bc2bbe4c5c9a5a06e4e6d8734ae41392f7991c132c339893891ff65"
+    },
+    "candidate-1x2": {
+      "raw_and_gates": 244200,
+      "executed_and_gates": 16000,
+      "executed_xor_gates": 60412,
+      "unreachable_nodes": 167789,
+      "logical_depth": 447,
+      "and_depth": 84,
+      "input_bytes": 64,
+      "output_bytes": 32,
+      "public_rust_cases": 32,
+      "artifact_sha256": "5cf0a982dbf5f9f28230ca50bfc0d8088b88702a599f8421b5980983839182ea"
+    },
+    "candidate-4x2": {
+      "raw_and_gates": 749928,
+      "executed_and_gates": 59008,
+      "executed_xor_gates": 215068,
+      "unreachable_nodes": 475853,
+      "logical_depth": 447,
+      "and_depth": 84,
+      "input_bytes": 160,
+      "output_bytes": 128,
+      "public_rust_cases": 32,
+      "artifact_sha256": "976d8df2c2695860980993517c8c300b7517e6bc65e100a16f29e92e700fb907"
+    },
+    "reference-1x1": {
+      "raw_and_gates": 108972,
+      "executed_and_gates": 8832,
+      "executed_xor_gates": 33564,
+      "unreachable_nodes": 66577,
+      "logical_depth": 459,
+      "and_depth": 84,
+      "input_bytes": 48,
+      "output_bytes": 16,
+      "public_rust_cases": 32,
+      "artifact_sha256": "41a836935d61f1f01ad07aff51648964a69a4dc8d6bf20f462115747998ffbba"
+    },
+    "reference-4x1": {
+      "raw_and_gates": 377388,
+      "executed_and_gates": 30336,
+      "executed_xor_gates": 116316,
+      "unreachable_nodes": 230737,
+      "logical_depth": 459,
+      "and_depth": 84,
+      "input_bytes": 96,
+      "output_bytes": 64,
+      "public_rust_cases": 32,
+      "artifact_sha256": "62b690c61fed3b25f5728f1c018ce188402c3342afb35962bd25128712e4a2b7"
+    },
+    "reference-1x2": {
+      "raw_and_gates": 198444,
+      "executed_and_gates": 16000,
+      "executed_xor_gates": 61148,
+      "unreachable_nodes": 121297,
+      "logical_depth": 459,
+      "and_depth": 84,
+      "input_bytes": 64,
+      "output_bytes": 32,
+      "public_rust_cases": 32,
+      "artifact_sha256": "66bf8128d082416eea30bc266db189408a18b3f9897f323aca662419c38e853f"
+    },
+    "reference-4x2": {
+      "raw_and_gates": 735276,
+      "executed_and_gates": 59008,
+      "executed_xor_gates": 226652,
+      "unreachable_nodes": 449617,
+      "logical_depth": 459,
+      "and_depth": 84,
+      "input_bytes": 160,
+      "output_bytes": 128,
+      "public_rust_cases": 32,
+      "artifact_sha256": "93543dc2da08e066465379374e64ad41599c44a391ca37f9efbb1fbfaf46e799"
+    }
+  },
+  "source_sha256": {
+    "Export.lean": "c421597653cf0a7e6ad2120172de49805f3226f3f35506109ddad977e86df539",
+    "check_cost.py": "0006346fa5104a4012ae938011ca6e246d64dabd64b5ed151d8d5ec64c21fad7",
+    "export_cost.py": "632ed49ae385b9549ea993447f3430939e0e0008ca5df2da6b34fe387ba21a50"
+  },
+  "oracle_sha256": "e8f0395fd888bbb82fba280b30186688020011a93df64bd8a4a213ca5fb723a7",
+  "remaining": [
+    "actual backend trait borrow/copy wrapper extraction",
+    "CTR buffering/XOR wrapper composition",
+    "HMAC/KDF and full sealed-sender wrapper source composition"
+  ]
+}
