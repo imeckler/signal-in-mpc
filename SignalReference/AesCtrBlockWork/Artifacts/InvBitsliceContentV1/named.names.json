@@ -1,0 +1,3453 @@
+{
+  "candidate_only": true,
+  "scope": "declaration names/item-name lookup only; full qualified original name hash, no body/type/region/trait/rename-attribute changes",
+  "input_sha256": "2750374619aa017edf434e997cf36a355472e4408c5c8eaaf9c16c79fde5bbae",
+  "output_sha256": "45d48c06ac97d46c96e47ffc724d441360ad8d9b120ecd166f24b1ed6668122d",
+  "script_sha256": "5dcb2d15b923a6391ed6190b6a4f670ea164c5345d87d88cf7ab6029a3beb79e",
+  "inverse_checked": true,
+  "semantic_json_equal": true,
+  "collision_checked": true,
+  "changes": [
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 0,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 1
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 11,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Array",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 1
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 4
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 1,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 2
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 10,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Array",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "U8"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 2
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 2,
+      "old": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 3
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 9
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_6aa2d817176984f47e715db7b3390d222ffb0409daf65679640286d9bd0d806c",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 9,
+          "old": [
+            {
+              "Ident": [
+                "typenum",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "uint",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "UInt",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 3
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 9
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 3,
+      "old": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 9
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_cd5d24409b9ebcc01d310a03f71eb2e6b8232c4b3b04f3ef5b08cbe77f0637c8",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 8,
+          "old": [
+            {
+              "Ident": [
+                "typenum",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "uint",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "UInt",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 4
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 9
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 4,
+      "old": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 9
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_db3127d1b5521181286151502e88c2e9661531f14ae79838864bd28ae8d47d9d",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 7,
+          "old": [
+            {
+              "Ident": [
+                "typenum",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "uint",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "UInt",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 5
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 9
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 5,
+      "old": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 6
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 9
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_c73b5ba58aec2fe1f93adc3d59fc00f469429135c387c4ad02e7c8d3a736fa07",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 6,
+          "old": [
+            {
+              "Ident": [
+                "typenum",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "uint",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "UInt",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 6
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 9
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 6,
+      "old": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 7
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 8
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_1b0dd39d6e026990a5ca91c1079f60786394f224594a9bbaffcf5c616b85111a",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 4,
+          "old": [
+            {
+              "Ident": [
+                "typenum",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "uint",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "UInt",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 7
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 8
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 11,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "option",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Option",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 12
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "option",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Option",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_969e9c7710f2ebf339255594c7d19b9ab558013e45caf0a5a4014363db99a7ef",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 14,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "option",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Option",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 12
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 12,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "fmt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Arguments",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased"
+              ],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "fmt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Arguments",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_a6ea52b6b6b4ba18dd5669fcef94caffe05037678836cc2cc371581236f8ed51",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 13,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "fmt",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Arguments",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [
+                    "Erased"
+                  ],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "type_decls",
+      "kind": "Type",
+      "id": 13,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Range",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 15,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "ops",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Range",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 2,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Slice": {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "U64"
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "len",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U64"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Slice": {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "U64"
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "len",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_119f09e8f72b57b7623987b9b0f893bbea4ce9fea982447bc97cd7147a229fe0",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 16,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "slice",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Ty": {
+                  "params": {
+                    "regions": [],
+                    "types": [],
+                    "const_generics": [],
+                    "trait_clauses": [],
+                    "regions_outlive": [],
+                    "types_outlive": [],
+                    "trait_type_constraints": []
+                  },
+                  "skip_binder": {
+                    "Untagged": {
+                      "Slice": {
+                        "Untagged": {
+                          "Literal": {
+                            "UInt": "U64"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": "InherentImplBlock"
+                }
+              }
+            },
+            {
+              "Ident": [
+                "len",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "U64"
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 5,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 0
+          }
+        },
+        {
+          "Ident": [
+            "default",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 1
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 0
+          }
+        },
+        {
+          "Ident": [
+            "default",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_f6487109033a08be5199a752d239e4c4d8d4edd0f7288048a0abb1da09424db7",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 21,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 0
+              }
+            },
+            {
+              "Ident": [
+                "default",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 1
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 4
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 6,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 1
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 1
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 1
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_c653114554c74cd578c0e765a0cc5d5cc33dfa49cad3b1ac4531271f9faf83ac",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 23,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 1
+              }
+            },
+            {
+              "Ident": [
+                "index_mut",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 1
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 4
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 7,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 2
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 13
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 2
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 2
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_90aad869578cd06d08074c1d40362a4832b7f3f814987b31974c325a09411d63",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 25,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 2
+              }
+            },
+            {
+              "Ident": [
+                "index_mut",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "U8"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 13
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 2
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 9,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 0
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "as_mut_slice",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 1
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 0
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "as_mut_slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_a6180b7c4a0a7b5b08e019a3fd707d007e0f22c30533e51bacf90c12e87aff48",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 32,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Ty": {
+                  "params": {
+                    "regions": [],
+                    "types": [],
+                    "const_generics": [],
+                    "trait_clauses": [],
+                    "regions_outlive": [],
+                    "types_outlive": [],
+                    "trait_type_constraints": []
+                  },
+                  "skip_binder": {
+                    "Untagged": {
+                      "Adt": {
+                        "id": {
+                          "Adt": 0
+                        },
+                        "generics": {
+                          "regions": [],
+                          "types": [],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  },
+                  "kind": "InherentImplBlock"
+                }
+              }
+            },
+            {
+              "Ident": [
+                "as_mut_slice",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 1
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 4
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 10,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 4
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 1
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 4
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_fd7bccd2c0865c64a5a2b94aaa503b742717bc31cf4ed4b8ba663ad9c6f18af4",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 34,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "slice",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "index",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 4
+              }
+            },
+            {
+              "Ident": [
+                "index_mut",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 1
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 11,
+      "old": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 1
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "as_mut_slice",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 2
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 1
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "as_mut_slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_fa49050490a6794932845a12ade3002a418c61a22f1911911b223e0c1dbb9454",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 38,
+          "old": [
+            {
+              "Ident": [
+                "hybrid_array",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Ty": {
+                  "params": {
+                    "regions": [],
+                    "types": [],
+                    "const_generics": [],
+                    "trait_clauses": [],
+                    "regions_outlive": [],
+                    "types_outlive": [],
+                    "trait_type_constraints": []
+                  },
+                  "skip_binder": {
+                    "Untagged": {
+                      "Adt": {
+                        "id": {
+                          "Adt": 1
+                        },
+                        "generics": {
+                          "regions": [],
+                          "types": [],
+                          "const_generics": [],
+                          "trait_refs": []
+                        }
+                      }
+                    }
+                  },
+                  "kind": "InherentImplBlock"
+                }
+              }
+            },
+            {
+              "Ident": [
+                "as_mut_slice",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "U8"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 2
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 12,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 6
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 13
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "slice",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 6
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_4dfb1d21c07c9929873789e452897fa36e8f49dc3c1a2b3f45117d61b048bd84",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 40,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "slice",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "index",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 6
+              }
+            },
+            {
+              "Ident": [
+                "index_mut",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "U8"
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Adt": {
+                          "id": {
+                            "Adt": 13
+                          },
+                          "generics": {
+                            "regions": [],
+                            "types": [],
+                            "const_generics": [],
+                            "trait_refs": []
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "field": "fun_decls",
+      "kind": "Fun",
+      "id": 13,
+      "old": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Range",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 7
+          }
+        },
+        {
+          "Ident": [
+            "drop_glue",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ops",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "range",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Range",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 7
+          }
+        },
+        {
+          "Ident": [
+            "drop_glue",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "specialized_Fun_afacb72a9b47d842b589b2f1daa1c302f999943ffb01c626869e0085bbd382c3",
+            0
+          ]
+        }
+      ],
+      "item_name_changes": [
+        {
+          "index": 50,
+          "old": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "ops",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Range",
+                0
+              ]
+            },
+            {
+              "Impl": {
+                "Trait": 7
+              }
+            },
+            {
+              "Ident": [
+                "drop_glue",
+                0
+              ]
+            },
+            {
+              "Instantiated": {
+                "params": {
+                  "regions": [],
+                  "types": [],
+                  "const_generics": [],
+                  "trait_clauses": [],
+                  "regions_outlive": [],
+                  "types_outlive": [],
+                  "trait_type_constraints": []
+                },
+                "skip_binder": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                },
+                "kind": "Other"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

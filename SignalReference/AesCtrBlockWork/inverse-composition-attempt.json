@@ -1,0 +1,10 @@
+{
+  "accepted": false,
+  "proved_whole_inverse_equality": false,
+  "attempts": [
+    {"method": "direct full-wrapper simplification", "result": "simp maximum steps exceeded"},
+    {"method": "same full-wrapper simplification maxSteps1000000", "result": "timeout", "timeout_seconds": 90, "tool_session": 25583}
+  ],
+  "followup": "factor nested two-column array/slice writebacks; do not repeat monolithic simplification",
+  "source_computational_edits": false
+}

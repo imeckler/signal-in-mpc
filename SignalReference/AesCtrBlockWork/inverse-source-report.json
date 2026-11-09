@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "actual_complete_inverse_body_compiles": true,
+  "manual_generated_body_edits": false,
+  "source_leaf_equivalences": true,
+  "kernel_endpoints": 6,
+  "actual_function_axioms_audited": true,
+  "foundation_axioms_only": true,
+  "official_Std_content_bindings": 6,
+  "whole_inverse_numeric_equality": false,
+  "whole_AES_CTR_refinement": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/check_inverse.py": "c0a467e7edd44c34170918800a762e19f3bd7e35b6ad9d36ba348b66715787be",
+    "SignalReference/AesCtrBlockWork/bind_inverse_models.py": "afae364c676c7b4018c50082fcb6878fc668677b9a4cd5cd18c0b9c934a3ba30",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/Funs.lean": "7fb70830eee95257101599716516dc330fc3683d9ed21e5e6ba18d04f29832b2",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/FunsExternal_Template.lean": "6373d2e82683b9cf885aa31c4a84515546c1ee1ceba86120829fd5a0d814e6bf",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/TypesExternal.lean": "6a936201c5fe101072b05773f8b1897fd1c1478e27b3cb6f2f41470d69dd9c4f",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/FunsExternal.lean": "7bc7a6d3fa3421d6d501d4e4b9c7735f13ec6ea3e495581a5a55d08d83460785",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/Types.lean": "09634d00d510f09762aad6b7cd85b978c59f2e849919262072f1c7ad88d33fd7",
+    "SignalReference/AesCtrBlockWork/Generated/InvBitsliceNamedV1/TypesExternal_Template.lean": "f4922945043c56d8c2d862a9d41f8c18efb4a09758f5dd9f74f89db217e17594",
+    "SignalReference/LibSignalReference/Generated/AesLayout/Types.lean": "652989fc05815fb6242b1831168ec04e02bb3f8ac032db67baa651c4184835cb",
+    "SignalReference/LibSignalReference/Generated/AesLayout/Funs.lean": "19f2a42dc02c9500ffdf2c9e973a1479ffc5e0402e68c6ba2b948cfa7cc887a4",
+    "SignalReference/LibSignalReference/Proofs/AesLayoutReference.lean": "f45bba722fdac9918660b252d63b1c4a44424c935ff09923c8646d3cc4311c75",
+    "SignalReference/LibSignalReference/Generated/AesInverseWrite/Types.lean": "47b0714a19173bb943dcdf30a7af6359e9d5164e3f1ac88c5ca4deafd543bb4b",
+    "SignalReference/LibSignalReference/Generated/AesInverseWrite/Funs.lean": "8bdade04e314133630bcf8e3d7360611b0c31885fd9a9bde789f1207979d3121",
+    "SignalReference/LibSignalReference/Proofs/AesInverseWrite.lean": "bc6e8b52fee92f91534ce1e21e8a655d54b89744139baf662f98c25a6e1e2a31",
+    "SignalReference/AesCtrBlockWork/InverseReference.lean": "fc294cf4ddb6da1ac6069548fdb1bcb400f413f81d26ee85d4f06799712981e9",
+    "SignalReference/AesCtrBlockWork/Artifacts/InvBitsliceContentV1/report.json": "1f20c52149d8a56c5e0774c9e8f0c580d8d241335aeaae6c7a5075f821ed1ff1",
+    "SignalReference/AesCtrBlockWork/Artifacts/InvBitsliceContentV1/aes.llbc": "2750374619aa017edf434e997cf36a355472e4408c5c8eaaf9c16c79fde5bbae",
+    "SignalReference/AesCtrBlockWork/Artifacts/InvBitsliceContentV1/named.llbc": "45d48c06ac97d46c96e47ffc724d441360ad8d9b120ecd166f24b1ed6668122d"
+  }
+}

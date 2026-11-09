@@ -1,0 +1,90 @@
+-- AUTHORED fixed-array Std content bindings; no crypto model supplied.
+-- [aes]: external functions.
+-- This is a template file: rename it to "FunsExternal.lean" and fill the holes.
+import Aeneas
+import AesCtrBlockWork.Generated.InvBitsliceNamedV1.Types
+open Aeneas Aeneas.Std Result ControlFlow Error
+set_option linter.dupNamespace false
+set_option linter.hashCommand false
+set_option linter.unusedVariables false
+
+/- You can set the `maxHeartbeats` value with the `-max-heartbeats` CLI option -/
+set_option maxHeartbeats 1000000
+
+/- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
+set_option maxRecDepth 2048
+namespace RustCryptoAesCtrInverse
+
+/-- [core::slice::index::{impl core::ops::index::IndexMut<usize> for [hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f]}::index_mut::specialized_Fun_fd7bccd2c0865c64a5a2b94aaa503b742717bc31cf4ed4b8ba663ad9c6f18af4]:
+    Source: '/rustc/library/core/src/slice/index.rs', lines 31:4-31:55
+    Name pattern: [core::slice::index::{core::ops::index::IndexMut<[hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f], usize>}::index_mut::specialized_Fun_fd7bccd2c0865c64a5a2b94aaa503b742717bc31cf4ed4b8ba663ad9c6f18af4]
+    Visibility: public -/
+@[rust_fun
+  "core::slice::index::{core::ops::index::IndexMut<[hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f], usize>}::index_mut::specialized_Fun_fd7bccd2c0865c64a5a2b94aaa503b742717bc31cf4ed4b8ba663ad9c6f18af4"]
+def Slicespecialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f.Insts.CoreOpsIndexIndexMutUsize.index_mut : Slice
+    hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f
+    → Std.Usize → Result
+    (hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f
+    ×
+    (hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f
+    → Slice
+    hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f)) :=
+  fun value index => Aeneas.Std.Slice.index_mut_usize value index
+
+/-- [core::slice::index::{impl core::ops::index::IndexMut<core::ops::range::Range::specialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9> for [u8]}::index_mut::specialized_Fun_4dfb1d21c07c9929873789e452897fa36e8f49dc3c1a2b3f45117d61b048bd84]:
+    Source: '/rustc/library/core/src/slice/index.rs', lines 31:4-31:55
+    Name pattern: [core::slice::index::{core::ops::index::IndexMut<[u8], core::ops::range::Range::specialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9>}::index_mut::specialized_Fun_4dfb1d21c07c9929873789e452897fa36e8f49dc3c1a2b3f45117d61b048bd84]
+    Visibility: public -/
+@[rust_fun
+  "core::slice::index::{core::ops::index::IndexMut<[u8], core::ops::range::Range::specialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9>}::index_mut::specialized_Fun_4dfb1d21c07c9929873789e452897fa36e8f49dc3c1a2b3f45117d61b048bd84"]
+def SliceU8.Insts.CoreOpsIndexIndexMutspecialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9.index_mut : Slice Std.U8 →
+    core.ops.range.Range.specialized_Type_a6d41e09652f1286a20c9e5d6cdaa143f56a848c0ded3779accf5fbb4661efb9
+    → Result ((Slice Std.U8) × (Slice Std.U8 → Slice Std.U8)) :=
+  fun value range => Aeneas.Std.core.slice.index.SliceIndexRangeUsizeSlice.index_mut {start:=range.start,«end»:=range.end} value
+
+/-- [core::slice::{[u64]}::len::specialized_Fun_119f09e8f72b57b7623987b9b0f893bbea4ce9fea982447bc97cd7147a229fe0]:
+    Source: '/rustc/library/core/src/slice/mod.rs', lines 116:4-116:36
+    Name pattern: [core::slice::{[u64]}::len::specialized_Fun_119f09e8f72b57b7623987b9b0f893bbea4ce9fea982447bc97cd7147a229fe0]
+    Visibility: public -/
+@[rust_fun
+  "core::slice::{[u64]}::len::specialized_Fun_119f09e8f72b57b7623987b9b0f893bbea4ce9fea982447bc97cd7147a229fe0"]
+def core.slice.SliceU64.len.specialized_Fun_119f09e8f72b57b7623987b9b0f893bbea4ce9fea982447bc97cd7147a229fe0 : Slice Std.U64 → Result Std.Usize :=
+  fun value => .ok value.len
+
+/-- [hybrid_array::{hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5}::as_mut_slice::specialized_Fun_a6180b7c4a0a7b5b08e019a3fd707d007e0f22c30533e51bacf90c12e87aff48]:
+    Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 185:4-185:52
+    Name pattern: [hybrid_array::{hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5}::as_mut_slice::specialized_Fun_a6180b7c4a0a7b5b08e019a3fd707d007e0f22c30533e51bacf90c12e87aff48]
+    Visibility: public -/
+@[rust_fun
+  "hybrid_array::{hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5}::as_mut_slice::specialized_Fun_a6180b7c4a0a7b5b08e019a3fd707d007e0f22c30533e51bacf90c12e87aff48"]
+def hybrid_array.specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5.as_mut_slice.specialized_Fun_a6180b7c4a0a7b5b08e019a3fd707d007e0f22c30533e51bacf90c12e87aff48 : hybrid_array.Array.specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5
+    → Result ((Slice
+    hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f)
+    × (Slice
+    hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f
+    →
+    hybrid_array.Array.specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5)) :=
+  fun value => .ok (Aeneas.Std.Array.to_slice_mut value)
+
+/-- [hybrid_array::{hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f}::as_mut_slice::specialized_Fun_fa49050490a6794932845a12ade3002a418c61a22f1911911b223e0c1dbb9454]:
+    Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 185:4-185:52
+    Name pattern: [hybrid_array::{hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f}::as_mut_slice::specialized_Fun_fa49050490a6794932845a12ade3002a418c61a22f1911911b223e0c1dbb9454]
+    Visibility: public -/
+@[rust_fun
+  "hybrid_array::{hybrid_array::Array::specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f}::as_mut_slice::specialized_Fun_fa49050490a6794932845a12ade3002a418c61a22f1911911b223e0c1dbb9454"]
+def hybrid_array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f.as_mut_slice.specialized_Fun_fa49050490a6794932845a12ade3002a418c61a22f1911911b223e0c1dbb9454 : hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f
+    → Result ((Slice Std.U8) × (Slice Std.U8 →
+    hybrid_array.Array.specialized_Type_f6d0079c9d47818b2c760c13dc530abd0fcf2330bbf625eeaa753c4e448e7d5f)) :=
+  fun value => .ok (Aeneas.Std.Array.to_slice_mut value)
+
+/-- [hybrid_array::{impl core::default::Default for hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5}::default::specialized_Fun_f6487109033a08be5199a752d239e4c4d8d4edd0f7288048a0abb1da09424db7]:
+    Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 713:4-713:24
+    Name pattern: [hybrid_array::{core::default::Default<hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5>}::default::specialized_Fun_f6487109033a08be5199a752d239e4c4d8d4edd0f7288048a0abb1da09424db7]
+    Visibility: public -/
+@[rust_fun
+  "hybrid_array::{core::default::Default<hybrid_array::Array::specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5>}::default::specialized_Fun_f6487109033a08be5199a752d239e4c4d8d4edd0f7288048a0abb1da09424db7"]
+def hybrid_array.Array.specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5.Insts.CoreDefaultDefault.default : Result
+    hybrid_array.Array.specialized_Type_466e03121b73c7d435361c7adc904649fbf81c760e593c61b65a8532a101fdf5 :=
+  Aeneas.Std.core.default.DefaultArray.default (4#usize) (Aeneas.Std.core.default.DefaultArray (16#usize) Aeneas.Std.core.default.DefaultU8)
+
+end RustCryptoAesCtrInverse

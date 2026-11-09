@@ -1,0 +1,30 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/Artifacts/AddRoundKeyMutNamedV1/named.llbc
+[[91mError[39m] Found an unknown type declaration with region parameters for which Charon could not determine mutability: we conservatively assume they are used in mutable borrows, but the extracted code may be incorrect.
+Type: core::iter::adapters::zip::Zip::specialized_Type_20a21b54a7281c0304eb28cd3f50bdbb0c3ca2494c485de985ac6ae5363b0037
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::iter::adapters::zip::Zip::specialized_Type_20a21b54a7281c0304eb28cd3f50bdbb0c3ca2494c485de985ac6ae5363b0037 (Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20)
+[[91mError[39m] Found an unknown type declaration with region parameters for which Charon could not determine mutability: we conservatively assume they are used in mutable borrows, but the extracted code may be incorrect.
+Type: core::iter::adapters::zip::Zip::specialized_Type_0213f7746e4f9d45124d2d2563a3ebd95a20881978e21b182b6bb7612fbaa285
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+core::iter::adapters::zip::Zip::specialized_Type_0213f7746e4f9d45124d2d2563a3ebd95a20881978e21b182b6bb7612fbaa285 (Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20)
+[[91mError[39m] Internal error: please file an issue
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+[[91mError[39m] Could not translate type decl 'core::iter::adapters::zip::Zip::specialized_Type_20a21b54a7281c0304eb28cd3f50bdbb0c3ca2494c485de985ac6ae5363b0037 because of previous error
+Name pattern: 'core::iter::adapters::zip::Zip::specialized_Type_20a21b54a7281c0304eb28cd3f50bdbb0c3ca2494c485de985ac6ae5363b0037'
+
+This definition is (transitively) used at the following locations:
+Source: 'src/soft/fixslice64.rs', lines 1362:0-1367:1
+Source: 'src/soft/fixslice64.rs', lines 1364:18-1364:44
+
+Source: '/rustc/library/core/src/iter/adapters/zip.rs', lines 13:0-13:20
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__SymbolicToPure.translate_type_decls.(fun) in file "symbolic/SymbolicToPure.ml", lines 146-149, characters 8-76
+Called from Stdlib__List.filter_map in file "list.ml", line 280, characters 12-15
+Called from Stdlib__List.filter_map in file "list.ml", line 282, characters 23-37
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 326, characters 19-64
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

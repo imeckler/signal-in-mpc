@@ -1,0 +1,37 @@
+{
+  "passed_source_replay": true,
+  "candidate_only": true,
+  "accepted_AES_refinement": false,
+  "actual_entry_body_translated": true,
+  "manual_generated_body_edits": false,
+  "name_only_LLBC_replay": true,
+  "unbound_actual_crypto_leaves": [
+    "soft.fixslice.add_round_key",
+    "soft.fixslice.inv_bitslice",
+    "soft.fixslice.bitslice",
+    "soft.fixslice.shift_rows_2",
+    "soft.fixslice.mix_columns_0",
+    "soft.fixslice.mix_columns_3",
+    "soft.fixslice.mix_columns_2",
+    "soft.fixslice.mix_columns_1",
+    "soft.fixslice.sub_bytes"
+  ],
+  "leaf_agreement_assumed": false,
+  "actual_add_round_key_loop_proved": false,
+  "actual_inv_bitslice_wrapper_proved": false,
+  "concrete_tool_boundary": "lifetime-preserving actual mutable-Zip graph: pinned Aeneas InterpReduceCollapse.ml1137 marker-elimination sanity check; original opaque-Zip variant has unknown-region-mutability error",
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/check_frontier.py": "accc3580e092b10df8b16009ec227afda2433eb9b1e62f0af0f5c325f486fb3d",
+    "SignalReference/AesCtrBlockWork/extract.py": "5a13ec0cf1a07d47dd1ec0d9b248ec6b8bf62255ba97abab6f3355e7ce6b23f2",
+    "SignalReference/AesCtrBlockWork/extract_zip_type.py": "93735e3cf77cfc117777c55c19543fccdf8d21ef142ee71d1cb7b2a89649ce7f",
+    "SignalReference/CtrReferenceV1Work/replay_mono_names.py": "5dcb2d15b923a6391ed6190b6a4f670ea164c5345d87d88cf7ab6029a3beb79e",
+    "SignalReference/AesCtrBlockWork/Artifacts/EncryptLeafBoundariesV1/aes.llbc": "82a31eb44937e2aa96f943515f8df71c8d6e5eee7e5d4504969c6ab093b6e266",
+    "SignalReference/AesCtrBlockWork/Artifacts/EncryptLeafBoundariesV1/named.llbc": "fffaffbdefba71eaaa59424d083be4b536514350bdb1160b968893d5957d10f1",
+    "SignalReference/AesCtrBlockWork/Artifacts/EncryptLeafBoundariesV1/named.names.json": "33dbba491f929aa0c580ca277f2bc9b87ed6b4ada5099a922ea5260de0330899",
+    "SignalReference/AesCtrBlockWork/Artifacts/EncryptLeafBoundariesV1/report.json": "629dbfc708395f67c67c7485e370792f5db55d2a293a804b133e00beb694617f",
+    "SignalReference/AesCtrBlockWork/Generated/EncryptNamedV1/Funs.lean": "596f6922a53779e1be6a6496b129bbe5639fd395dde0c66643c72fc7352cf0f4",
+    "SignalReference/AesCtrBlockWork/Generated/EncryptNamedV1/FunsExternal_Template.lean": "aedf71b8410d2c3e2faffa6bf11e7abb6bd520db18cabeda9b8517246d3a43b6",
+    "SignalReference/AesCtrBlockWork/Generated/EncryptNamedV1/Types.lean": "bb24392cea3e7506fbc7c2ec965416419cba73d010333a682ed0f3ac61e70663",
+    "SignalReference/AesCtrBlockWork/Artifacts/AddRoundKeyMutTypeV1/diagnostic.log": "5a02fb245b7b0e4431453724e7beeb896754aa41e0ebf33a3ea69b9bc5b268bb"
+  }
+}
