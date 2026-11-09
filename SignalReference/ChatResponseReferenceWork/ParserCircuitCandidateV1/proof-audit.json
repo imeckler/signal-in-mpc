@@ -1,0 +1,35 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "One-step compact-input/stack-output projected equality and all-assignment exported compiler correctness only. Fresh/full streaming/private length/fragmented assembly/reachable stack32/error-carry equivalence remains OPEN; runtime untouched.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Stack32Codec.lean": "c46d9398521dcc5b622eabaec059991aeb6f78e19bff60fd33e7ed73e6e709d0",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledCodec.lean": "3e8fa0a36b90b879966f440de6dbd918e9cc3b1d8948fe4cfd1ac76e02cbab95",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Emit.lean": "549f8f1f119298b8c7797d3405564ed9d0e1a039837d77fb2390707a0f611665",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile.py": "1ff445b89ffd2a9ec2a0608ef5b96934ab7ff7dfe275d62c8ec0bfcdc0abdffe",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile-audit.json": "6911bd65c5b4828edd9dda4d5a7c8f28b31778adb136882d84058bdb9fb60ed9",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check.py": "b03805c842f8f7fe9b2734b5967b8ab7a4a71248aab827ad0c4556f7075ec5b6",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CHECKPOINT.md": "5a73c1edfef73c11ccb12512f3f3898352446adcfebedb352e10c06284c7c4b7"
+  },
+  "core_source_sha256": {
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/TlsWebSocketFrame.lean": "ff94d6f8cc0b6b0db14206d660729f8a4c59170979e27877ddf645ead3fcc913"
+  },
+  "core_object_sha256": {
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsChatResponse.olean": "2334f6fab4fc888329da7cb1979cc80e7914cdd5e9659d5f4ec4d06dcb7f5dc0",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsChatResponseMux.olean": "72479b6aa68642b22c38a9b23e58e3d88e1f8c16f9f4c5c9d62acb7f2df82f0a",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/Signal/Word64.olean": "a4969cc845ab7b17d99d0be343fb89c116e0b05839168bcf27986d48af324335",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/ByteAuth.olean": "c7f4bc1ab25dcfee238ebce5397dab8b6eeaf951042a70160db24852621fcc6b",
+    "/Users/izzy/repos/tls-mpc/.lake/build/lib/lean/TlsMpc/TlsWebSocketFrame.olean": "4432e9de2784c9852c1d1d960facbf0a3ed17b613d49ef66e06e3795c39413e4"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/proof-c0a738a2106f-93673.log",
+  "kernel_log_sha256": "3cb261f147b8d61d81b8033665de2a2218a8a72287f443acdeed003ae905ef73",
+  "kernel_log": "Checking ParserCircuitCandidateV1.Stack32Codec\n'ChatResponseReference.ParserCircuitCandidateV1.one_step_projection' depends on axioms: [propext]\n'ChatResponseReference.ParserCircuitCandidateV1.output_length' depends on axioms: [propext]\n'ChatResponseReference.ParserCircuitCandidateV1.expand_length' depends on axioms: [propext]\nChecking ParserCircuitCandidateV1.CompiledCodec\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledCodec.lean:15:40: warning: This simp argument is unused:\n  Function.comp_apply\n\nHint: Omit it from the simp argument list.\n  simp only [\u0335c\u0335o\u0335m\u0335p\u0335a\u0335c\u0335t\u0335O\u0335u\u0335t\u0335p\u0335u\u0335t\u0335,\u0335L\u0335i\u0335s\u0335t\u0335.\u0335m\u0335a\u0335p\u0335_\u0335m\u0335a\u0335p\u0335,\u0335F\u0335u\u0335n\u0335c\u0335t\u0335i\u0335o\u0335n\u0335.\u0335c\u0335o\u0335m\u0335p\u0335_\u0335a\u0335p\u0335p\u0335l\u0335y\u0335]\u0335[\u0332c\u0332o\u0332m\u0332p\u0332a\u0332c\u0332t\u0332O\u0332u\u0332t\u0332p\u0332u\u0332t\u0332,\u0332 \u0332L\u0332i\u0332s\u0332t\u0332.\u0332m\u0332a\u0332p\u0332_\u0332m\u0332a\u0332p\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledCodec.lean:23:38: warning: This simp argument is unused:\n  Function.comp_apply\n\nHint: Omit it from the simp argument list.\n  simp only [\u0335e\u0335x\u0335p\u0335a\u0335n\u0335d\u0335I\u0335n\u0335p\u0335u\u0335t\u0335,\u0335L\u0335i\u0335s\u0335t\u0335.\u0335m\u0335a\u0335p\u0335_\u0335m\u0335a\u0335p\u0335,\u0335F\u0335u\u0335n\u0335c\u0335t\u0335i\u0335o\u0335n\u0335.\u0335c\u0335o\u0335m\u0335p\u0335_\u0335a\u0335p\u0335p\u0335l\u0335y\u0335]\u0335[\u0332e\u0332x\u0332p\u0332a\u0332n\u0332d\u0332I\u0332n\u0332p\u0332u\u0332t\u0332,\u0332 \u0332L\u0332i\u0332s\u0332t\u0332.\u0332m\u0332a\u0332p\u0332_\u0332m\u0332a\u0332p\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.ParserCircuitCandidateV1.compact_map' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.expand_map' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.runByte_map' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.compiled_correct' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/proof-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/Stack32Codec.olean": "f6167987e4558cff9fbe4b52094fb88b1113b7676f6ad10e67c45b62d45451c7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/proof-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledCodec.olean": "9dd144bfc7888a400c4f2533a4864732a93262a32b63b34dd0774c3c0a54c1f7"
+  }
+}

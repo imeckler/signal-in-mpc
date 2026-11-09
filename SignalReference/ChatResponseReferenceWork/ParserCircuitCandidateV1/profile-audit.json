@@ -1,0 +1,58 @@
+{
+  "candidate_only": true,
+  "runtime_promoted": false,
+  "native_mpc_executed": false,
+  "scope": "Exact isolated one-byte mux exported-AIG attribution for compact32-bit group-tag stack; full reachable-state/carry/private-length/fragmented-assembly equivalence remains OPEN. One-step projected observation and compiler proof only.",
+  "cases": [
+    {
+      "mode": "baseline",
+      "artifact_sha256": "54c813fc4504b1d762784f1e95723adf998ac38ab6c488efeebb05434e5df340",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-v1/baseline.json",
+      "input_bits": 7888,
+      "output_bits": 7880,
+      "raw_and_gates": 137444,
+      "executed_and_gates": 65825,
+      "executed_xor_gates": 23550,
+      "unreachable_nodes": 48070,
+      "and_dependency_depth": 275,
+      "export_seconds": 1.4692801669007167
+    },
+    {
+      "mode": "mapped-full",
+      "artifact_sha256": "9e5c8f5f8751f748309141c7974ab694b500a132b344c5d95efc15b6d082616e",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-v1/mapped-full.json",
+      "input_bits": 4688,
+      "output_bits": 7880,
+      "raw_and_gates": 92957,
+      "executed_and_gates": 49229,
+      "executed_xor_gates": 14253,
+      "unreachable_nodes": 29475,
+      "and_dependency_depth": 275,
+      "export_seconds": 1.33429737505503
+    },
+    {
+      "mode": "candidate",
+      "artifact_sha256": "54541344315ce670d54f0f3be7c81449d53845759ab245d070bb40b14c924342",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-v1/candidate.json",
+      "input_bits": 4688,
+      "output_bits": 4680,
+      "raw_and_gates": 92957,
+      "executed_and_gates": 40529,
+      "executed_xor_gates": 14253,
+      "unreachable_nodes": 38176,
+      "and_dependency_depth": 275,
+      "export_seconds": 1.2699548749951646
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Stack32Codec.lean": "c46d9398521dcc5b622eabaec059991aeb6f78e19bff60fd33e7ed73e6e709d0",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CompiledCodec.lean": "3e8fa0a36b90b879966f440de6dbd918e9cc3b1d8948fe4cfd1ac76e02cbab95",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Emit.lean": "549f8f1f119298b8c7797d3405564ed9d0e1a039837d77fb2390707a0f611665",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile.py": "1ff445b89ffd2a9ec2a0608ef5b96934ab7ff7dfe275d62c8ec0bfcdc0abdffe",
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "child_peak_rss": 1387102208
+}
