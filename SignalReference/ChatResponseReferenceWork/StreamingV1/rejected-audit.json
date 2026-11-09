@@ -1,0 +1,37 @@
+{
+  "candidate_only": true,
+  "scope": "Truncated prefixes and invalid tenth bytes reject in strict reader/native Prost with exact native error suffix; Core rejects invalid tenth bytes and EOF in incomplete lexer states. Component checkpoint, not complete schema/streaming refinement.",
+  "aggregate_exit_code": 0,
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/RejectedReader.lean": "51b02856d6fd52e58858a41c0a419b70165b68b9ee79aa3cf7bbb3fb76193d55",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/RejectedCore.lean": "693936c8ec13c90ec8f04bdfea1fc063065caf4796fa2dac579c1cb61d61e556",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/IncompleteFinish.lean": "86650ff550ef2e877a5628dc4cc33f6fd5aaaa21471ba6362ce89d29cffebffa",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/check_rejected.py": "c672dbbb8aa3767c543dad079dd128a170bc7463394640b5d139950c22aa25b1",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/REJECTED.md": "82b4d6e6312bd5cce3d4ecef6b2e68f88a72b23c4bd852e495f831df84b64444"
+  },
+  "inherited_receipts_sha256": {
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/terminal-audit.json": "4ad17c1d59c82c7d08bd933636b0cb9aa3b8afd762bae16bfff6e0bb1c32920f",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/audit.json": "a07351e56c732a477faa51a5398bc3ce9ed230244d08d82cbdfdbd8e985558ba",
+    "SignalReference/ChatResponseReferenceWork/OuterEnvelopeV1/audit.json": "c92b2dda4766d8594c499c5254ca46519c64d21d06e710172e398f08dda58d00",
+    "SignalReference/ChatResponseReferenceWork/FnMutBorrowV1/audit.json": "25452dbdf26960cd46da981c84dc540e71528a043274ed994ec9586ca774e13b",
+    "SignalReference/ChatResponseReferenceWork/InnerScanV1/audit.json": "892c4e0d21c7bf3bcb0f5e6479354b93148bd614f5be42ba5511fabf6755a203",
+    "SignalReference/ChatResponseReferenceWork/SchemaV1/diagnostic-audit.json": "2e8c12f021e7c7bcfbe63a6e0beb17c5c026dcab4c1000deee75482e2aa71e4d",
+    "SignalReference/ChatResponseReferenceWork/RepeatedStringV1/audit.json": "da1773317f4f5e68a7ee78aaacd6ff22f71a1df35ad16525c02d3d6965dddb94",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/full-audit.json": "5a9603e8044c6b476abe26336cf646e3959b8a5de9416903dc830c63413d68d0",
+    "SignalReference/ChatResponseReferenceWork/StringContentV3/audit.json": "fd1c348876df8623d6a83def27c067519933df9f27dbf2b00db3bf67f810d210",
+    "SignalReference/ChatResponseReferenceWork/BytesContentV1/audit.json": "0f3d607e8f8b4f3fe7418570b99064873fcc86db6072045378344d74993526b3",
+    "SignalReference/ChatResponseReferenceWork/InnerResponseV1/audit.json": "58d343ddeb738fae1f8ba375f23acc8d6dd55f22558eaece7b41f957f0d6d9dd",
+    "SignalReference/ChatResponseReferenceWork/SubmessageV1/audit.json": "37b14b881b6d27461c9d864018503e07547f592bb260af627745d07ef1846cdc",
+    "SignalReference/ChatResponseReferenceWork/StreamingV1/span-audit.json": "518357a3e4a3cbb5d073a045bf3ae4483f46ad15dc0db748514408ba289e511d"
+  },
+  "inherited_source_count": 220,
+  "inherited_object_count": 92,
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/rejected-5cbfdbae4f98-66941.log",
+  "kernel_log_sha256": "939f20bf59448bbd7f8f615016ab0ed547964b6d03b0011015b760402ba52ab2",
+  "kernel_log": "Checking StreamingV1.RejectedReader\n'ChatResponseReference.StreamingV1.truncated_reader' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.truncated_row' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.tenth_reader' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.rejected_tenth_row' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.truncated_native' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.RejectedCore\n'ChatResponseReference.StreamingV1.core_tenth_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.core_prefix_tenth_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.StreamingV1.rejected_tenth_native' depends on axioms: [propext, Classical.choice, Quot.sound]\nChecking StreamingV1.IncompleteFinish\n'ChatResponseReference.StreamingV1.finish_nonkey' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.finish_partial_position' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.StreamingV1.prefix_eof_reject' depends on axioms: [propext, Classical.choice, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/rejected-v1-final/ChatResponseReferenceWork/StreamingV1/RejectedReader.olean": "52b7d79f3ddd0a1a86c5fbad85682614d333c9efcf0b0e5731169368526ecb96",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/rejected-v1-final/ChatResponseReferenceWork/StreamingV1/RejectedCore.olean": "8f604f9fd6d6ce0e7467225c56e7d29fad2d9bcffbf19e3d8891afab6af59643",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/StreamingV1/Build/rejected-v1-final/ChatResponseReferenceWork/StreamingV1/IncompleteFinish.olean": "b8c933cc6031f5b26a4cbf76f7dd64f28fb84d2037e3a23cdbc60f55869f83c0"
+  }
+}

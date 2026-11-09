@@ -50,3 +50,11 @@ accumulation constructs the accepted strict numeric row, then the pinned native
 Prost value/exact tail with explicit in-input bound. Noncanonical encodings are
 included. Lane/position/span establishment across the schema and malformed/EOF
 lexer cases remain subsequent work; no whole streaming theorem is claimed.
+
+Rejection lexer checkpoint: `StreamingV1/rejected-audit.json` records a clean
+three-module combined exit0. Truncated all-continuation inputs and invalid tenth
+bytes now derive native rejection with exact error suffix; actual Core rejects
+bad tenth bytes after the prefix invariant, and finish rejects scalar/length EOF
+or a nonempty incomplete key. Clean key boundaries are explicitly distinguished.
+Whole-schema/private-end induction and HTTP/correlation/compiler composition
+remain open; this is not a full response acceptance theorem.
