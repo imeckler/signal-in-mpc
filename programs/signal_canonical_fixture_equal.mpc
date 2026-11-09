@@ -1,0 +1,14 @@
+# PUBLIC fixture only: open aggregate equality, never a restored/state/key bit.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+n=int(program.args[1])
+if n!=53488:raise ValueError('canonical fixture profile')
+def equal(inputs,outputs):
+ raw=binary_io.read_bits(inputs);level=[~(raw[i]^raw[n+i])for i in range(n)]
+ while len(level)>1:level=[level[i]&level[i+1]for i in range(0,len(level)-1,2)]+(level[-1:]if len(level)%2 else [])
+ binary_io.write_bits(outputs,[level[0]]*8)
+equal.__name__='signal_canonical_fixture_equal_53488'
+function=export(equal);Array=sbitvec.get_type(1).Array
+function(Array(2*n),Array(8))

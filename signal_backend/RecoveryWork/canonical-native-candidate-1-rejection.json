@@ -1,0 +1,19 @@
+{
+  "passed": false,
+  "expected_fail_closed": true,
+  "stage": "first reserve before service evaluation",
+  "reason": "Fixture VectorSecret::constant without n_bits creates 64 registers; exact single-cell archive guard rejects.",
+  "all_five_failure_logs": true,
+  "keys_or_state_opened": false,
+  "source_or_binary_snapshot_not_preserved": true,
+  "numeric_exit_codes_not_recorded": true,
+  "logs": ".deps/private-canonical-owner-native/v1-candidate-1/run-u0zqge4v",
+  "log_sha256": {
+    "party-0.log": "2f3cfe4a24a00687cd04ed1115425579be98d551713c148e13d20909c7c46588",
+    "party-1.log": "2f3cfe4a24a00687cd04ed1115425579be98d551713c148e13d20909c7c46588",
+    "party-2.log": "2f3cfe4a24a00687cd04ed1115425579be98d551713c148e13d20909c7c46588",
+    "party-3.log": "2f3cfe4a24a00687cd04ed1115425579be98d551713c148e13d20909c7c46588",
+    "party-4.log": "2f3cfe4a24a00687cd04ed1115425579be98d551713c148e13d20909c7c46588"
+  },
+  "corrective_action": "Use explicit n_bits=1 for PUBLIC fixture constants; preserve exact archive representation guard and add local regression before rerun."
+}

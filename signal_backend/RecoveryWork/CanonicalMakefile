@@ -1,0 +1,8 @@
+include CONFIG
+CANONICAL_WORK ?= ../../../signal_backend/RecoveryWork
+CANONICAL_OUTPUT ?= ../private-canonical-owner-fixture
+$(CANONICAL_OUTPUT): $(CANONICAL_WORK)/canonical_owner_fixture.cpp $(wildcard $(CANONICAL_WORK)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(CANONICAL_WORK) -I$(CANONICAL_WORK)/../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@
+SHAPE_OUTPUT ?= ../signal-archive-shape-check
+$(SHAPE_OUTPUT): $(CANONICAL_WORK)/archive_shape_check.cpp $(wildcard $(CANONICAL_WORK)/*.h) libSPDZ.so
+	$(CXX) $(CFLAGS) -I. -I$(CANONICAL_WORK) -I$(CANONICAL_WORK)/../../handshake_backend $< $(CURDIR)/libSPDZ.so $(LDLIBS) -Wl,-rpath,$(CURDIR) -o $@

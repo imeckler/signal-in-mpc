@@ -1,0 +1,14 @@
+{
+  "prepared": true,
+  "native_MPC": false,
+  "provider_admission": false,
+  "manifest_sha256": "e3c97606a2aa2359fce3b0f40c3555629fa175e4b4fcf35f41d137da241af449",
+  "upstream_manifest_sha256": {
+    ".deps/private-variable-conversation-native/260-80-0-0/batch-2-sha-gate-efficient/service.manifest": "d4b21771a7f53504949e48c3b0b2c845278d337f11c179b8e533919efe3379c1",
+    ".deps/private-record-binding-native/v1-candidate-1/binding.manifest": "1fc55d7f356971ed28b309a2a571359dc74c74a2dd4690ba3746aab51606cb18"
+  },
+  "source_sha256": {
+    "signal_backend/RecoveryWork/prepare_canonical_native.py": "bd3a296910dee304b0e9eb3af558e0aea1837488bde03ca0b7a0fb038f30dcd7",
+    "programs/signal_canonical_fixture_equal.mpc": "fc3323ec9904072d1f74a3ce5c73d0543bebb47edc59f1166b6cca29c303d2e2"
+  }
+}
