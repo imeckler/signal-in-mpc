@@ -3,6 +3,7 @@
 #include "AccountLayoutV2.h"
 #include "../../handshake_backend/WebSocketWork/NativeConversation.h"
 #include <map>
+#include <iostream>
 namespace signal_mpc::recovery {
 // Candidate concrete whole-layout owner for the existing bounded established
 // no-chunk profile. Public certificate slots1..4 select immutable outbox cells;
@@ -11,7 +12,7 @@ class AccountDurableOwnerV1 final : public tls_mpc_worker::DurableConversationHo
  using Bits=tls_mpc_worker::Bits;using Session=tls_mpc_worker::Session;
  using Store=VariableSendStore<Bits>;
  std::shared_ptr<void> persistence_;AccountCheckpointCoordinator& coordinator_;
- std::optional<OwnedAccountV2> account_;Session* session_=nullptr;uint64_t slot_;bool closed_=false,reserved_=false;
+ std::optional<OwnedAccountV2> account_;Bits observed_accepted_;Session* session_=nullptr;uint64_t slot_;bool closed_=false,reserved_=false;
  std::vector<size_t> slots_;std::vector<Bits> calls_,records_,selected_;
  std::vector<uint64_t> tickets_;std::map<std::pair<size_t,uint64_t>,size_t> responses_;
  static Bits copy(const Bits& value){return {value.begin(),value.end()};}
@@ -26,7 +27,8 @@ class AccountDurableOwnerV1 final : public tls_mpc_worker::DurableConversationHo
 public:
  AccountDurableOwnerV1(std::shared_ptr<void> persistence,AccountCheckpointCoordinator& coordinator,OwnedAccountV2 account,uint64_t current_slot)
  :persistence_(std::move(persistence)),coordinator_(coordinator),account_(std::move(account)),slot_(current_slot){require(persistence_&&current_slot>0&&current_slot<=4,"account owner certified slot/profile");}
- void attach_fresh_session(Session& session){require(!closed_&&!session_,"account owner session already attached");session_=&session;}
+ void attach_fresh_session(Session& session){require(!closed_&&!session_,"account owner session already attached");
+  auto accepted=session.share_public_constants({3});NativeOwnShareArchive::require_cells(accepted);require(accepted.size()==8,"account observed disposition width");observed_accepted_=std::move(accepted);session_=&session;}
  const OwnedAccountV2& snapshot()const{require(!closed_&&bool(account_),"account owner snapshot unavailable");return *account_;}
  void register_resume(size_t slot,uint64_t lease,size_t ordinal){live();require(slot<account_->layout().conversations()&&lease&&ordinal<4,"account resume lease domain");require(responses_.emplace(std::make_pair(slot,lease),ordinal).second,"account duplicate resume lease");}
  void reserve(const std::vector<size_t>& slots,const std::vector<VariableShape>& shapes,const std::vector<Store::Staged>& staged,const Bits& current,const Bits& final,uint64_t lease)override{
@@ -59,11 +61,14 @@ public:
   }catch(...){close();throw;}
  }
  void response_complete(size_t slot,uint64_t ticket)override{
-  try{live();auto found=responses_.find({slot,ticket});require(found!=responses_.end(),"account response lease unavailable");auto values=copy(account_->conversation(slot,16));auto accepted=constant(3);std::copy(accepted.begin(),accepted.end(),values.begin()+found->second*8);account_->replace_conversation(slot,16,std::move(values));responses_.erase(found);
+  const char* stage="owner-live";
+  try{live();stage="lease-lookup";auto found=responses_.find({slot,ticket});require(found!=responses_.end(),"account response lease unavailable");
+   stage="cached-disposition";require(observed_accepted_.size()==8,"account observed disposition cache absent");auto values=copy(account_->conversation(slot,16));std::copy(observed_accepted_.begin(),observed_accepted_.end(),values.begin()+found->second*8);
+   stage="owned-update";account_->replace_conversation(slot,16,std::move(values));responses_.erase(found);
    // This observed disposition is coalesced into the next certified snapshot.
    // A crash before it leaves the old immutable uncertain outbox resumable.
-  }catch(...){close();throw;}
+  }catch(...){std::cerr<<"ACCOUNT_RESPONSE_REJECT stage="<<stage<<"\n";close();throw;}
  }
- void close()noexcept override{closed_=true;coordinator_.poison();account_.reset();calls_.clear();records_.clear();selected_.clear();tickets_.clear();slots_.clear();responses_.clear();session_=nullptr;}
+ void close()noexcept override{closed_=true;coordinator_.poison();account_.reset();observed_accepted_.clear();calls_.clear();records_.clear();selected_.clear();tickets_.clear();slots_.clear();responses_.clear();session_=nullptr;}
 };
 }
