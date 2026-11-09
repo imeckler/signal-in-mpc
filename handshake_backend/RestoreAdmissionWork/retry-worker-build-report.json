@@ -1,0 +1,13 @@
+{
+  "compiled_linked": true,
+  "native_retry_executed": false,
+  "source_sha256": {
+    "handshake_backend/NativeWorker.h": "6d69a72b6b5535025b241774409e6e90a24a1e8bf32b8b754bc745743a76f3eb",
+    "handshake_backend/NativeSession.h": "32701ea1d4446846657c7d417ef36497f18738055eeecc91b0223b766f3b9b9d",
+    "handshake_backend/OwnedSecrets.h": "a696e773e52aa6e811787064cb28805ec3becdebb70adb8aaa5ade4afd517f7e",
+    "signal_backend/RecoveryWork/AccountDurableOwnerV1.h": "8a9d3ea3de219f5dec2d77ca7bef533c54157ad3d4b18196c1eb7579f784d8fb",
+    "signal_backend/RecoveryWork/AccountCaptureWork/RecoveryFixtureFactory.cpp": "a6b862d9d78400176b8a823daff8588a944775a947454ddf9fcc389933132a23"
+  },
+  "binary_sha256": "9397b44b9004928884ab5cb3fd640722b31806bac81cc5a0dc21259817f6c0b5",
+  "scope": "Exact-cell construction8260306 plus purecached-disposition hook56a8e70; actualengine-linked worker rebuilt before retry; originalfailedrun preserved and finalmanifestunchanged."
+}
