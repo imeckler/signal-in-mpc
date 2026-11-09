@@ -1,141 +1,72 @@
 # Current parser proof ledger
 
-Historical frozen receipts and global obligations.json are evidence of their
-recorded versions; this scoped ledger tracks the current response work.
+Historical frozen receipts and global obligations.json retain their recorded
+scope. This mutable scoped ledger summarizes the latest response work; receipts
+and module statements define the exact hypotheses. No complete ChatResponse
+source→streaming→HTTP/correlation→circuit theorem is claimed.
 
-| Component | Current proof checkpoint | Remaining boundary |
+| Component | Latest checked evidence | Current scope / remaining boundary |
 | --- | --- | --- |
-| SignalMessage, bounded public input | d76db87; root review 1dd9d55 | Accepted only in its stated bounded/model scope; unchanged here. |
-| SignalMessage, true private length | root review 0dc19ed | Accepted scoped take-n/actual-source composition; unchanged here. |
-| Contiguous Vec copier | aacda3d (mixed TLS/parser commit) | Exact generated contents/suffix/all-model outcomes; bounded allocation and Take/raw loan content model. |
-| Single String field | 82d5b2f; StringContentV3/full-audit.json | All-outcomes actual Prost control composed with varint/copier; executable UTF8 grammar versus optimized unsafe std body remains explicit. |
-| Native bytes::Bytes field | be37d6e; BytesContentV1/audit.json | Actual sealed adapter and merger, exact errors/replacement/suffix; immutable allocation/reference-count/pointer content model. |
-| Repeated String/header field | RepeatedStringV1/audit.json | Actual body composed with String; exact errors/old headers/order/suffix and Vec effects; inherited String/UTF8/content boundaries. 9,504 native comparisons supplement the kernel theorem. |
-| Inner response default / dispatcher | InnerResponseV1/audit.json | Exact generated default/field normal form with actual primitive bridges, String error clear, scalar/Bytes/String/header full references and finite skip. Diagnostic/static/std memory boundaries remain; no full scan or streaming theorem yet. |
-| Inner owned merge driver | InnerScanV1/audit.json | Actual dispatcher installed; key strict consumption, scalar/String suffix bounds and all-effects finite-run framework; finite success/error traces project to actual merge loop; exact owned error result. Complete actual inner scan finite execution now proved from complete all-wire field consumption, preserving outer fail/div. Full outer schema and streaming composition remain open. |
-| Borrowed-triple FnMut ABI | 6a7b07b; FnMutBorrowV1/audit.json | Grounded typed raw/trait inverse projection; six-module original caller check,8192 native cases,two fail-closed shape guards. Canonical translator/model unchanged. |
-| Actual generic Prost submessage | SubmessageV1/audit.json | Actual message::merge/merge_loop/closure computations kernel check with grounded typed projection; exact wire/recursion/end/overrun facts and10800 native result/mutation/suffix comparisons. Complete instantiated inner-response parent-limit loop finite execution now proved from actual key/field bounds, preserving Err/fail/div and overrun behavior. Outer/streaming composition remains open. |
-| Actual outer envelope fields | OuterEnvelopeV1/audit.json | Sixteen-module kernel check: actual default/envelope dispatcher and signed enum scalar; reachable response field/submessage equals proved inner source on all outcomes. Encoding/clear slots fail closed and proved irrelevant to parse. Actual request dispatcher/all-wire consumption and both actual submessage finite scans now proved without primitive validity/termination premises. Complete actual owned outer scan finite trace now composes full returned-buffer bounds, constructor/context100 and exact error result, with ordinary Err/fail/div preserved. Streaming/HTTP/correlation/compiler relation remains open. |
-| Numeric streaming varints/scalars | StreamingV1/audit.json | Three checked modules: actual Core3-lane nonterminal prefix invariant; all10payload/terminal/strict-overflow guards; actual ID/type/status terminal updates and native signed enum/u32 low32 projections preserving errors/old value/suffix. Full span/cursor/schema relation and HTTP/correlation/compiler remain open. |
-| Numeric/native prefix span and cursor | StreamingV1/span-audit.json | Three new modules: complete Core nonterminal prefix→shared reader; actual native strict-row success/reject→exact value/count and absolute suffix; no-wrap4096-byte cursors. Native fast-error unchanged cursor retained; not equated to Core bytes-read count. Terminal→strict row and full schema-streaming/HTTP/correlation/compiler relation remain open. |
-| Diagnostic stack / owned error | ad0acce; SchemaV1/diagnostic-audit.json | Exact executable Vec append effects before projection; actual static-reference push extraction remains OPEN/trusted. Functional pending-state/event observation excludes warning log text. |
+| Bounded SignalMessage public input | d76db87; root review 1dd9d55 | Accepted bounded all-outcomes composition; unchanged. |
+| SignalMessage true private length | root review 0dc19ed | Accepted scoped take-n/actual-source composition; unchanged. |
+| Actual contiguous Vec copier | aacda3d (mixed TLS/parser provenance) | Generated loop/content/suffix bridge; bounded allocation and contiguous Take/raw-loan model. |
+| Actual String / bytes::Bytes / repeated headers | 82d5b2f; be37d6e; RepeatedStringV1/audit.json | Actual primitive control/effects composed, including String clear and repeated append/errors. Explicit std/content boundaries below. |
+| Actual diagnostic stack model | ad0acce; SchemaV1/diagnostic-audit.json | Exact executable push effects/order; actual static-reference push extraction remains OPEN/trusted. |
+| Grounded borrowed-triple FnMut ABI | 6a7b07b; FnMutBorrowV1/audit.json | Typed inverse projection, original caller kernel check, native comparisons and fail-closed guards; canonical translator/models unchanged. |
+| Actual schema defaults/field dispatch | InnerResponseV1/audit.json; OuterEnvelopeV1/audit.json | Actual request/response/envelope dispatch and primitives, all outcomes; encoding/clear slots proved irrelevant to parse. |
+| Actual full owned source scan | 5b2ee7d; OuterEnvelopeV1/audit.json | Complete finite inner/request/submessage/outer scan composition; exact constructor/context100, parent-limit overrun, ordinary Err/fail/div. No primitive-validity/termination premise. Streaming equality still open. |
+| Core prefix / strict reader / native cursors | StreamingV1/audit.json; span-audit.json; terminal-audit.json | Three lanes, exact accumulator/terminal/tenth guards, native success/rejection, exact relative/absolute suffix and no-wrap4096 cursor. Original audit's raw-log limitation remains recorded; newer combined receipts have immutable clean logs. |
+| All-input attempted key branches | any-key-error-audit.json; any-key-success-audit.json | Exhaustive lexer classification removes prefix/table premises. Actual driver key Err forces Core rejection; successful key gives exact span/tail/tag/lane/value+position reset. |
+| Native key field recognition | native-recognition-audit.json | Native key success derives actual Core scalar/response/body/message/header recognition outer and bounded inner; exact kind-list shape. Child cursor/counter/depth conditions remain explicit. |
+| Bounded scalar context / updates | scalar-payload-audit.json; scalar-update-audit.json; prefix-context-audit.json | Actual all-outcome native scalar payload relation; exact prefix counter/tag/recognition/depth/inner preservation; actual full64 ID and low32 status updates. |
+| Actual known-field wire checks | c39e00c; wrong-wire-audit.json | Exact all-six-kind guard; native wrong-wire key branches reject complete Core fold/finish outer and bounded inner. Nested groups have no schema recognition. |
+| Actual scalar dispatcher field composition | scalar-field-audit.json | Every source ID/status outcome retains optional initialization/duplicates/errors/diagnostics/suffix. Bounded successful fields match Core ID+presence/status; errors reject. Full scan must derive child bounds and other state preservation. |
+| Inactive padding / compiler endpoint | 7201891; inactive-audit.json | Actual process state shape, complete inactive state preservation and zero events through arbitrary padding; existing AIG byte endpoint composed under explicit raw-state/zero-control hypotheses. Not active private-EOF/source refinement. |
 
 Next implementation/proof work:
 
-1. Inner default/field integration and complete scan finite execution are
-   implemented and kernel checked. Compose the scan invariants with absolute
-   cursor/private end and the streaming error-state observation.
-2. Prove the bounded full-scan relation to the streaming response state, including
-   private actual end, varint/field/group bounds and sticky rejection.
-3. Actual outer envelope/default/submessage/owned decode finite execution is
-   composed. Establish absolute-cursor/success-span and numeric streaming
-   invariants against that complete actual source computation.
-4. Close actual HTTP header/name/value and Unicode trim validation composition;
-   existing status and UTF8-machine component proofs are narrower checkpoints.
-5. Connect source eligibility/result to private ID correlation and the existing
-   compiled_runByte_correct endpoint. No whole response source→circuit theorem yet.
+1. Compose the complete actual source scan with the numeric message-state
+   invariant. Derive child cursor/counter/depth/recognition conditions from real
+   submessage execution; prove preservation of all remaining state fields and
+   optional/duplicate semantics. Scalar field components are checked; whole scan
+   composition, correct-wire String/Bytes/header transitions and child overrun
+   rejection are still open.
+2. Prove numeric unknown/group skipping agrees with the actual finite skip
+   semantics, including matching tags, stack restoration and 100/99 recursion
+   budgets. Exact source skip totality is available; complete Core agreement is
+   not supplied by the schema guard component.
+3. Join active prefix/input bounds and actual private EOF, including truncated
+   varints/lengths/fields and declared submessage lengths beyond actual input.
+   Inactive padding is proved independently and does not substitute for this.
+4. Compose actual HTTP header/name/value and Rust Unicode trim validation, source
+   envelope/type/ID validation and private correlation. Status range, signed enum
+   and low32 projections, and full UTF8 byte-machine/spec components are proved.
+5. Compose the resulting active source eligibility/result relation with the
+   existing production compiler endpoint. Preserve full native errors/cursors
+   before the justified owned-result observation; no full response theorem yet.
 
-Core response structural acceptance, valid non-2xx response, successful 2xx,
-private pending-ID match, and Mux/application abort policy remain separate.
-Malformed DataError frames are ignored by the native caller (with a warning);
-matched invalid HTTP responses complete their native request with an error.
-No complete ChatConnection scheduling, retry/fanout, log-trace, or Signal session
-security theorem is claimed.
+Explicit source/model boundaries:
 
-Shared TLS/Word64/parser core APIs remain untouched by this response work.
+- The optimized unsafe std UTF8 raw-pointer/word implementation is not bridged.
+  Executable UTF8 grammar↔Core byte machine is proved for all byte lists; it does
+  not itself prove the optimized std body.
+- Successful bounded Vec/String/Bytes allocation/content, immutable Bytes
+  reference counting/pointers and safe contiguous buffers/Take/raw loans are
+  scoped model boundaries, not general allocator or unsafe-memory verification.
+- Actual static-reference DecodeError.push extraction remains OPEN/trusted.
+  The executable diagnostic model retains mutation order, allocation/fail/div
+  effects before any quotient of unobserved stack contents. Warning log text is
+  excluded from the functional observation.
+- Native owned decode hides a failed message value; source partial-record/error
+  mutation remains exact in the reference. No full Core/internal merge-error
+  record equality is asserted. Native submessage fields may consume beyond the
+  child limit before reporting DelimitedLengthExceeded; Core may reject earlier.
+  Native fast varint errors can leave the cursor unchanged. These exact source
+  suffixes remain explicit and are not falsely equated to Core bytes processed.
 
-Terminal lexer checkpoint: `StreamingV1/terminal-audit.json` now records a clean
-two-module combined exit0 in separate output `terminal-v1-final`. Actual Core
-accumulation constructs the accepted strict numeric row, then the pinned native
-Prost value/exact tail with explicit in-input bound. Noncanonical encodings are
-included. Lane/position/span establishment across the schema and malformed/EOF
-lexer cases remain subsequent work; no whole streaming theorem is claimed.
-
-Rejection lexer checkpoint: `StreamingV1/rejected-audit.json` records a clean
-three-module combined exit0. Truncated all-continuation inputs and invalid tenth
-bytes now derive native rejection with exact error suffix; actual Core rejects
-bad tenth bytes after the prefix invariant, and finish rejects scalar/length EOF
-or a nonempty incomplete key. Clean key boundaries are explicitly distinguished.
-Whole-schema/private-end induction and HTTP/correlation/compiler composition
-remain open; this is not a full response acceptance theorem.
-
-Key/sticky checkpoint: `StreamingV1/key-closure-audit.json` records clean two-module
-aggregate0. The actual Core terminal value now composes with native key
-validation and the generated driver's adapter (all key-validation errors retained).
-Actual Core invalidity is sticky under arbitrary byte tails and finish; the bad
-tenth-byte theorem composes through complete remaining input. Common key checks
-and field transitions still need connection to Core guards in the schema invariant.
-
-Key transition checkpoint: `StreamingV1/key-transition-audit.json` records a
-clean kernel exit0. Native successful key validation supplies the exact tag and
-wire-kind equalities for actual Core stored-tag and next-lane transitions across
-all six wire kinds; actual terminal value reset is proved. The common key guard,
-known-field wire/depth guards and full schema/private-end induction remain open.
-
-Common key rejection checkpoint: `StreamingV1/key-guard-audit.json` records
-clean aggregate0 for the affected accepted KeyCircuit dependency and two new
-modules. Native key-validation Err now implies zero actual Core validity and
-sticky rejection through arbitrary tails/finalization. The original range/
-wire/tag diagnostic ordering/suffix remains in the native bridge. Known-field
-wire/depth conditions and whole schema/private-end induction remain open.
-
-All-input attempted-key-error branch: `StreamingV1/any-key-error-audit.json`
-records clean two-module aggregate0. Exhaustive lexer classification removes
-supplied-prefix/table premises: every nonempty input whose actual generated
-schema driver key decoder errors is rejected by the actual Core fold/finish.
-Native error contents/cursor remain exact in the source key reference. The
-successful field/group/schema/private-end induction remains open.
-
-All-input successful-key branch: `StreamingV1/any-key-success-audit.json`
-records clean two-module aggregate0. Every actual generated driver successful
-key supplies exact input/tail span, bounded count, actual Core stored tag,
-wire-kind lane, accumulator reset and position reset without supplied-prefix/
-table premises. Both attempted-key branches are now composed; successful field/
-group/private-end/full-scan and HTTP/correlation/compiler work remains open.
-
-Scalar payload checkpoint: `StreamingV1/scalar-payload-audit.json` records clean
-two-module aggregate0. The actual uint64/u32 mergers compose with actual Core
-payload accumulation/reset and error rejection on every input/outcome. Exact
-source scalar values, old-value/error/suffix observations and low32 projection
-are preserved. This does not yet supply inner-end bounds, optional-field
-initialization/duplicates or message-state updates in the full scan invariant.
-
-Bounded scalar state checkpoint: `StreamingV1/scalar-update-audit.json` records
-clean four-module aggregate0. An explicit native child-cursor check derives
-inside-response terminal span and actual Core prefix tag/recognition/inner
-preservation plus exact remaining decrement; actual ID/status updates equal
-full64/low32 source values without prefix/table premises. Whole scan must still
-derive those cursor/counter/recognition relations at each field, and compose
-optional initialization/duplicates/other fields/groups/private end/HTTP/compiler.
-
-Generic prefix/recognition checkpoint: `StreamingV1/prefix-context-audit.json`
-records clean three-module aggregate0. All continuing varint prefixes preserve
-tag/recognition/group depth; bounded inner prefixes decrement remaining exactly
-and outer prefixes retain inner0. Actual Core key-terminal scalar recognition
-now matches native dispatcher tags (outer1; inner1/2) under the explicit new-tag
-projection. Full scan must still join key projections/context/known-wire guards
-to source field dispatch and compose remaining field/private-end/HTTP/compiler work.
-
-Native key recognition checkpoint: `StreamingV1/native-recognition-audit.json`
-records clean three-module aggregate0. Actual native key success now derives
-actual Core scalar and response/body/message/header recognition at outer and
-bounded inner boundaries, with no caller prefix/table/new-tag premises. The
-four-entry kind-list shape is invariant under all Core bytes. Full scan still
-must derive explicit child-cursor/counter/depth/state conditions, known-field
-wire guards and remaining field/group/private-end/HTTP/compiler composition.
-
-Inactive/compiler checkpoint: `StreamingV1/inactive-audit.json` records clean
-four-module aggregate0. Full fixed state shape is invariant under actual process;
-inactive bytes/tails preserve complete state and emit zero events. This reaches
-the existing exported AIG byte compiler endpoint under explicit decoded-state
-and zero activity/start/end hypotheses. Active/private EOF controls and active
-source schema agreement are not inferred from this padding component.
-
-Known wrong-wire checkpoint: `StreamingV1/wrong-wire-audit.json` records clean
-three-module aggregate0. Actual scalar/byte schema wire guard is exact for all
-six kinds; native known-field wrong-wire key branches now force complete-input
-Core rejection at outer/bounded inner sites without prefix/table/new-tag
-premises. Nested unknown groups have no schema recognition. Source diagnostic/
-optional initialization/error suffix remain in the actual dispatcher references.
-Whole scan still must derive inner cursor context and compose correct-wire
-fields, unknown/groups, private EOF, HTTP/correlation/compiler and trust boundaries.
+Core structural acceptance, valid non-2xx, successful 2xx, private pending-ID match
+and stricter Mux/application abort remain separate. Native malformed DataError
+frames are ignored with a warning; matched invalid HTTP responses consume their
+request with an error. No complete ChatConnection scheduler/retry/device-fanout
+or Signal-session security theorem is claimed. Shared TLS/Word64/parser runtime
+APIs and historical accepted checkpoints remain untouched by this work.
