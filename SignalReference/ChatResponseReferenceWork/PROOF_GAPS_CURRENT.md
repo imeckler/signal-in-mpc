@@ -163,3 +163,11 @@ malformed/rejected behavior included, no success premise. compact-feed-audit.jso
 aggregate0/foundational-only. No runtime promotion or complete Rust-response claim.
 Compact exported admission/native adaptation remains open; original Mux admit
 semantics already proved. Stack profile40,529AND/depth275 vs65,825/depth275.
+
+Candidate compact admission/mixed exported trace milestone: AdmissionCodec/Step/
+CompiledAdmission/Carry/MixedFeed/CompiledMixedFeed prove new592B→582B admission
+exactly implements actual Mux.admit and arbitrary mixed admit/feed feedback
+traces, every exported AIG bit after arbitrary prefixes included. No canonical
+private-payload/success assumption. Public operation schedule, private fields and
+controls. mixed-feed-audit.json aggregate0/foundational-only. Admission gate/depth
+measurement next; no runtime/native promotion, full Rust-response still open.
