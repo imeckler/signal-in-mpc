@@ -1,0 +1,231 @@
+{
+  "candidate_only": true,
+  "actual_wrapper_refinement": false,
+  "production_changed": false,
+  "source_patches": false,
+  "sanity_checks_disabled": false,
+  "concrete_call_root_retains_actual_AES_backend": true,
+  "full_mono_region_sanity_failure": true,
+  "canonical_partial_mut_lifted_trait_type_failure": true,
+  "empty_translation_rejected": true,
+  "narrow_Std_content_models_not_yet_installed": true,
+  "attempts": [
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConcreteHarness",
+      "charon_exit": 0,
+      "aeneas_exit": 2,
+      "has_errors": false,
+      "counts": {
+        "type_decls": 24,
+        "fun_decls": 24,
+        "global_decls": 0,
+        "trait_decls": 16,
+        "trait_impls": 22,
+        "ordered_decls": 35
+      },
+      "accepted": false,
+      "receipt_sha256": "9c0430ffcec9b9ddb37b80855519a29a86b0f0defe1e9e6e64cd06d311fbc25c",
+      "files": {
+        "named.llbc": "c5a817db6a5fe348bc48154f3fd7a10dc869270409f00290aa4cb2e009e1bf73",
+        "harness.llbc": "ecce641dae9f8c6157f48f32fba9608f7a6d22f22b58b2ec45ca78499bacc68d",
+        "aeneas.log": "7ce20a53f394508fe7102dc00a27ef34e5b6ec2ea9bc879bc67f9d207a2e45a9",
+        "charon.log": "561a6be5db4fb26f227824ba2ecd2f31cb7c58468a9674e864b34aab1c9ca718"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConcretePartial",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": true,
+      "counts": {
+        "type_decls": 55,
+        "fun_decls": 155,
+        "global_decls": 24,
+        "trait_decls": 63,
+        "trait_impls": 95,
+        "ordered_decls": 314
+      },
+      "accepted": false,
+      "receipt_sha256": "b204c5f4cb2373c173a891214f0ac5fb55473224c9fa12faae4420cbc32969cf",
+      "files": {
+        "harness.llbc": "ae34517ccafa30cc1a00833f61fee7e6a217f3f6848bb9054086c4331c69360f",
+        "charon.log": "bf9fd2c67ebc62cf77675d1dda57c79f66d07ea79c7b2834cd679e7d9271617b"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConcreteSingle",
+      "charon_exit": 0,
+      "aeneas_exit": 2,
+      "has_errors": false,
+      "counts": {
+        "type_decls": 20,
+        "fun_decls": 21,
+        "global_decls": 0,
+        "trait_decls": 14,
+        "trait_impls": 20,
+        "ordered_decls": 30
+      },
+      "accepted": false,
+      "receipt_sha256": "457b2e842f9f557a1773e80f3cd7c17faf0713c5696594da693ac436833d842f",
+      "files": {
+        "named.llbc": "01bf1f04bd8cf9ecb64c107416848e1852e93ba7e8f36531f989a267888007ad",
+        "harness.llbc": "27c6ae2cf1b7caee3fa5e8f0a89ec702dd355a8d29ae92796860da95541e239b",
+        "aeneas.log": "87b8153f61089bf6073c2375c2815501218054992089d5eb7a2733cc115221f2",
+        "named-aeneas.log": "b2e9547c1a4458fef35f137c989610280c7c27a3fe713fc00670731539ea458d",
+        "charon.log": "ed5def02d31b5a84bdc2ceb01e2d1aad7f9cbe94573d608d91f20204d760c6cc",
+        "diagnostic-aeneas.log": "8cdd1e86fc20a3d3b4cbc4dc43b88507e75a83bd3280ebdd2077ece86d3273d5"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConfiguredRoots",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": null,
+      "counts": null,
+      "accepted": false,
+      "receipt_sha256": "9714916dbf81d71fbc0fc38fb04481a5c16b1ed77e06a46244810bafe0ee0679",
+      "files": {
+        "charon.log": "0532783233d886acf72f4f6c260c640dbc406205e010d009f4e086235ed925cb"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConfiguredVendor",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": null,
+      "counts": null,
+      "accepted": false,
+      "receipt_sha256": "0e1fe3bd417a0f4903485ab292be55b0f2b98cc87900dc9818aa6a1dc10e4c70",
+      "files": {
+        "charon.log": "7647b47c3a4d8810cb9618357e6c13a95e01da63a2ad2a8076b59844777930df"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsExactImpl",
+      "charon_exit": 0,
+      "aeneas_exit": null,
+      "has_errors": false,
+      "counts": {
+        "type_decls": 45,
+        "fun_decls": 103,
+        "global_decls": 24,
+        "trait_decls": 40,
+        "trait_impls": 58,
+        "ordered_decls": 0
+      },
+      "accepted": false,
+      "receipt_sha256": "815e81a8cb418bafbd35ab5df05c6f1e846f8cb71aca60177f0ad4958f92925e",
+      "files": {
+        "aeneas.log": "377f7d0673628f3ccf55cd1676b6d71f294724c0e178ab62c77ed63c17756d98",
+        "charon.log": "1586505b177aef89497cf077f38644b51f4449ef4816fe032600f7151825e1f0",
+        "backend.llbc": "cb27008ff7728893b1319fdafcbd5d38f5dd4bebb3f551e406f0cf763057770e"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsFixedMono",
+      "charon_exit": 0,
+      "aeneas_exit": 0,
+      "has_errors": false,
+      "counts": {
+        "type_decls": 0,
+        "fun_decls": 0,
+        "global_decls": 0,
+        "trait_decls": 0,
+        "trait_impls": 0,
+        "ordered_decls": 0
+      },
+      "accepted": false,
+      "receipt_sha256": "407ed402a3fb1334ee463bdb74a029161a0585b588434b533a66f250c6f6ea09",
+      "files": {
+        "aeneas.log": "c1b978e1fe21af999924ac8cdbb411bb65efaa7ba780b8ffba703d8fec87d631",
+        "charon.log": "ba0210fcd0bde749a54a713fcf84ea637a08723f895d1613b9e331edc0ad72ad",
+        "backend.llbc": "fb795a6a54cdfc378bf58138b813efe687f7004b5b57d8843e6cf293778e745d"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsLiftedRoot",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": null,
+      "counts": null,
+      "accepted": false,
+      "receipt_sha256": "5d29a4a6e71e2c66cf90a1d33d947e3fe6b0acf790a27cdbcc1af569d59a613f",
+      "files": {
+        "charon.log": "7dab96b06f674cd9e0507614f6f28695bc6a8056126d321656061b50e9b3dfc5"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsRetainedTraits",
+      "charon_exit": 0,
+      "aeneas_exit": null,
+      "has_errors": null,
+      "counts": null,
+      "accepted": false,
+      "receipt_sha256": "f45a52176233b502ad736910805b020291cc94a9f4015f4541aff357bea661df",
+      "files": {
+        "charon.log": "c95e6f2700b547b00c60403ea420aff417ef121dc56cd02e7fb37f0f33a26ad7"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsRetainedTraitsFresh",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": true,
+      "counts": {
+        "type_decls": 45,
+        "fun_decls": 103,
+        "global_decls": 24,
+        "trait_decls": 41,
+        "trait_impls": 58,
+        "ordered_decls": 0
+      },
+      "accepted": false,
+      "receipt_sha256": "325f7769fec7c8be7be7fbfaf3a06e0521af82cf1b6acb80b93e4546a94cfb38",
+      "files": {
+        "charon.log": "9c31f7c6c3e3a8a860ba33fd3db2672a94965d6c9c4e92f6788b52d70fab6828",
+        "backend.llbc": "1e8efeb221615395261c9ef9bd8269e606434c45e9c09c717f66ab95979eb504"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsSoftModule",
+      "charon_exit": 0,
+      "aeneas_exit": 0,
+      "has_errors": false,
+      "counts": {
+        "type_decls": 28,
+        "fun_decls": 42,
+        "global_decls": 0,
+        "trait_decls": 11,
+        "trait_impls": 84,
+        "ordered_decls": 157
+      },
+      "accepted": false,
+      "receipt_sha256": "8a197669b35fa0dc0d212aa08d94bacec4310832f089e14726ebb48f3e1bee97",
+      "files": {
+        "aeneas.log": "34d6f9fe32d3f0d221a114618bc10223b0fd82c870c95e24e3189d82ecc4cc8c",
+        "charon.log": "d55732528ad3dc86f2a1b1392994302b27d716741306a91ea5876bf6a263f106",
+        "backend.llbc": "3d8bf01398232a35d05a0bf29fb393c8bbdd4e7b2c17ef51c1d8e46b07a81c7f"
+      }
+    },
+    {
+      "directory": "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsWildcardTrait",
+      "charon_exit": 101,
+      "aeneas_exit": null,
+      "has_errors": null,
+      "counts": null,
+      "accepted": false,
+      "receipt_sha256": "1456106e4e5e2e164f90cb31b41ba017f0721a64e9a14ac8b5a9146571b74fcd",
+      "files": {
+        "charon.log": "5af4363af3173c498115ba939f5124b5a4c55fb44f533e895ba47b1a81bfd3e0"
+      }
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/Harness/Cargo.toml": "1d58dfe4ebea8645f7bee6ff330f7ee8780fcab352f9e86fd7d4ab5d320f0638",
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/Harness/lib.rs": "d077f06c0a9228538a5a66a95f34d1efbca27af81ed5d2e54d38cec44e9b9747",
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/extract_harness.py": "3a497a58828f671899346906c7b22e6f3a7a72869aa2fad35e76d6bd1f249b55",
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/extract_harness_single.py": "6922acf85073b912afa824035aa9a9172dfb19161de4985d2154ab81a2c34e93",
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/extract_harness_partial.py": "649de9d337f3e53b59c602260648e954a6cfa9aad557783a2b53adfc2a469455",
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/README.md": "293aca2050eda93e8b5b7cf65cd5261b2f8f59027d554e7a102ca44bdb736800"
+  }
+}

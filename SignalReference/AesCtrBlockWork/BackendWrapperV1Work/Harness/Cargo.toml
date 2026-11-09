@@ -1,0 +1,8 @@
+[package]
+name = "reference-aes-backend-harness"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[dependencies]
+aes = { version = "=0.9.1", features = ["zeroize"] }
+cipher = "=0.5.2"

@@ -1,0 +1,120 @@
+   Compiling reference-aes-backend-harness v0.1.0 (/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-partial-v1)
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlockCtx<'31, '32, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlockCtx<'31, '32, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlockCtx<_, _, _>, _><'31, '32, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: missing(@TypeBound(1, 1)): missing('_Bound(1, 1)), TypeOutlives2: missing(@TypeBound(1, 0)): missing('_Bound(1, 1))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:54:9
+
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlockCtx<'15, '16, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlockCtx<'15, '16, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlockCtx<_, _, _>, _><'15, '16, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, '_2, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 1)), TypeOutlives2: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 2))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:41:9
+
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlocksCtx<'15, '16, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlocksCtx<'15, '16, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlocksCtx<_, _, _>, _><'15, '16, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, '_2, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 1)), TypeOutlives2: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 2))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:47:9
+
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlockCtx<'47, '48, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlockCtx<'47, '48, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlockCtx<_, _, _>, _><'47, '48, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, '_2, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: missing(@TypeBound(1, 1)): missing('_Bound(1, 1)), TypeOutlives2: missing(@TypeBound(1, 0)): missing('_Bound(1, 1)), TypeOutlives3: missing(@TypeBound(1, 1)): missing('_Bound(1, 2)), TypeOutlives4: missing(@TypeBound(1, 0)): missing('_Bound(1, 2))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:61:9
+
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlocksCtx<'31, '32, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlocksCtx<'31, '32, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlocksCtx<_, _, _>, _><'31, '32, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: missing(@TypeBound(1, 1)): missing('_Bound(1, 1)), TypeOutlives2: missing(@TypeBound(1, 0)): missing('_Bound(1, 1))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:68:9
+
+error: Type error after transformations:
+       Mismatched trait clause:
+       expected: TraitClause0: (BlocksCtx<'13, '14, Clause0_Clause0_BlockSize>: BlockCipherEncClosure<Clause0_Clause0_BlockSize>)
+            got: impl_BlockCipherEncClosure_for_BlocksCtx<'13, '14, Clause0_Clause0_BlockSize>[TraitClause0::ImpliedClause0::ImpliedClause0]: cipher::block::backends::BlockCipherEncClosure::<BlocksCtx<_, _, _>, _><'13, '14, Clause0_Clause0_BlockSize, Clause0_Clause0_BlockSize>
+       Visitor stack:
+         charon_lib::ast::items::item_ids::FnPtr
+         charon_lib::ast::bodies::FnOperand
+         charon_lib::ast::bodies::Call
+         charon_lib::ast::bodies::structured::StatementKind
+         charon_lib::ast::bodies::structured::Statement
+         alloc::vec::Vec<charon_lib::ast::bodies::structured::Statement>
+         charon_lib::ast::bodies::structured::Block
+         charon_lib::ast::bodies::GExprBody<charon_lib::ast::bodies::structured::Block>
+         charon_lib::ast::bodies::Body
+         charon_lib::ast::items::fun_decl::FunDecl
+       Binding stack (depth 1):
+         0: <'_0, '_1, '_2, Self, Clause0_Clause0_BlockSize, TraitClause0: (missing(@TypeBound(1, 0)): @TraitDecl3<missing(@TypeBound(1, 1))>), TypeOutlives0: missing(@TypeBound(1, 0)): missing('_Bound(1, 0)), TypeOutlives1: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 1)), TypeOutlives2: @Adt1<u8, missing(@TypeBound(1, 1))>: missing('_Bound(1, 2))>
+ --> /Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs:83:27
+
+ERROR Charon failed to translate this code (6 errors)
+error: could not compile `reference-aes-backend-harness` (lib)
+
+Caused by:
+  process didn't exit successfully: `/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon-driver charon-dont-cache-this-20036-1794250906242408000 rustc --crate-name reference_aes_backend_harness --edition=2024 src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C embed-bitcode=no -C debuginfo=2 -C split-debuginfo=unpacked --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=ab5e737b9c495fcc -C extra-filename=-45de84feb399df07 --out-dir /Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/reference-aes-backend-harness/45de84feb399df07/out --target aarch64-apple-darwin -C incremental=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/incremental -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/aes/f97a94ae423c62a5/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/cipher/3bebada595c9d5a6/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/cpubits/d862b2b9e091de28/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/cpufeatures/47edd12456a5b5b4/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/crypto-common/1dbe301ec7b36643/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/hybrid-array/a843a6b35547acc3/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/inout/36784c3520bd352a/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/libc/9bf5c2460659ca6e/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/typenum/1dfe56174b62b326/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/zeroize/9eabffd43bb0b429/out -L dependency=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/debug/build/reference-aes-backend-harness/45de84feb399df07/out --extern aes=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/aes/f97a94ae423c62a5/out/libaes-f97a94ae423c62a5.rmeta --extern cipher=/Users/izzy/repos/tls-mpc/.deps/reference-aes-backend-harness-target/aarch64-apple-darwin/debug/build/cipher/3bebada595c9d5a6/out/libcipher-3bebada595c9d5a6.rmeta --cfg 'aes_backend="soft"'` (exit status: 1)
