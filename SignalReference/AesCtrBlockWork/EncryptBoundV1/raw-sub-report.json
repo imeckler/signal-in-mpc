@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 9,
+  "foundation_axioms_only": true,
+  "actual_raw_sub_bytes_gate_and_word_agreement": true,
+  "all_eight_u64_inputs_unrestricted": true,
+  "actual_not_operations_not_restored": true,
+  "rejects_wrong_length_before_reads": true,
+  "actual_function_body_unchanged": true,
+  "whole_AES_CTR_refinement": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/check_raw_sub.py": "28cee88ec58428d1fec83b61967ec80055d480457342043c15b86598ddd87b9a",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/RawSubReference.lean": "b89dd752a3996ca71d7021b1ff39d61eba1e45324d1a4ff1790b5a75a643c940",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/report.json": "874ed68fbcbaee9496e405dd5f7a86c0f47e114303a9c6f873aa0cf71a76f141",
+    "SignalReference/LibSignalReference/Proofs/AesNetwork.lean": "af0ecc495de18f49b5cec4d46c34b12c6517b00a001a47f3eed96a73401d004e"
+  }
+}
