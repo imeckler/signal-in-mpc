@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "default_two_rounds_preserved": true,
+  "extended_four_rounds": true,
+  "cpp_input_cases": 8,
+  "signal_counters": [
+    127,
+    128,
+    129,
+    130
+  ],
+  "next_signal_counters": [
+    128,
+    129,
+    130,
+    131
+  ],
+  "pq_receive_counters": [
+    127,
+    128,
+    129,
+    130
+  ],
+  "repeated_bodies_intentional": true,
+  "timestamps_distinct": true,
+  "records": [
+    {
+      "tls13_h1": true,
+      "upgrade_authenticated": true,
+      "actual_session_texts_recovered": 4,
+      "independent_conversations": 2,
+      "actual_sealed_certificate_verified": true,
+      "same_body_request_timestamp_verified": true,
+      "private_client_plaintext_opened": false,
+      "receiver_only_disposable_state": true,
+      "responses_reordered": true,
+      "response_ids_copied": true,
+      "interleaved_pongs_validated": 5,
+      "live_account_side_effects": false,
+      "rounds_per_conversation": 2,
+      "actual_selected_counters_checked": false,
+      "standard_local_TLS_only": true,
+      "native_MPC_executed_here": false
+    },
+    {
+      "tls13_h1": true,
+      "upgrade_authenticated": true,
+      "actual_session_texts_recovered": 8,
+      "independent_conversations": 2,
+      "actual_sealed_certificate_verified": true,
+      "same_body_request_timestamp_verified": true,
+      "private_client_plaintext_opened": false,
+      "receiver_only_disposable_state": true,
+      "responses_reordered": true,
+      "response_ids_copied": true,
+      "interleaved_pongs_validated": 9,
+      "live_account_side_effects": false,
+      "rounds_per_conversation": 4,
+      "actual_selected_counters_checked": true,
+      "standard_local_TLS_only": true,
+      "native_MPC_executed_here": false
+    }
+  ],
+  "native_MPC": false,
+  "old_fixture_files_not_rewritten": true,
+  "source_sha256": {
+    "signal_backend/TextNotificationWork/check_extended_server.py": "185a580a7f58f407be7bbf1e228f562f5f72178829334bbf3a332416cc57fb60",
+    "signal_backend/TextNotificationWork/fixture_server.py": "9188a63323d8f8415b4a6b47bc2fe48a1a408b01a01f6ce2ba9099c57978df84",
+    "signal_backend/TextNotificationWork/extended_fixture.py": "719c5f1abbf293ce5c740748587715bf7a01d7005b0611822bb0015a8106a5da",
+    "signal_backend/TextNotificationWork/PublicTextExtendedFixture.h": "9d41dc46e81feffa7ae96da86f9409e6054ea1d563d400118eb2add1cef614f4",
+    "signal_backend/TextNotificationWork/server-fixtures.json": "9d7bf88b6c4bd2924444462ef3a9453dfb4b7d498ddc6644464d27e01b107eba",
+    "signal_backend/TextNotificationWork/PublicTextFixture.h": "e9d1923e8dab21e389efcabff048eba8e8aff854eab917b36fea84c39944ab99",
+    "signal_backend/Oracle/src/bin/signal-text-recipient-extended-oracle.rs": "72cd0676f91fe627df2aca21f100842215f0cff4a4a54e72b1a74c447eea285d",
+    "signal_backend/TextNotificationWork/EXTENDED_FIXTURE.md": "df3f7039ead36e6050fd6188daf5c82f70e29c36dfb1f5766c19f208de4bfa70"
+  },
+  "recipient_binary_sha256": "523689cc0bfb519d01273e6408e56594ef432966f1db21bd3b27374833a8b339",
+  "documentation_added_after_pass": true
+}

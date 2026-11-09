@@ -9,10 +9,16 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1]
 spec=importlib.util.spec_from_file_location('signal_variable_fixture_server',ROOT/'signal_backend/VariableServiceWork/fixture_server.py')
 base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+sys.path.insert(0,str(HERE))
+from extended_fixture import derive as derive_extended_fixture
+DEFAULT_EXTENDED_RECIPIENT=ROOT/'.deps/signal-established-send-oracle-target/debug/signal-text-recipient-extended-oracle'
 DEFAULT_RECIPIENT=ROOT/'.deps/signal-established-send-oracle-target/debug/signal-text-recipient-oracle'
 class TextPeer(base.Peer):
- def __init__(self,*args,recipient=DEFAULT_RECIPIENT,batch=2,**kwargs):
-  super().__init__(*args,**kwargs);assert batch in [1,2];self.batch=batch
+ def __init__(self,cert,key,fixture,*args,recipient=None,batch=2,rounds=2,**kwargs):
+  assert rounds in [2,4];self.rounds=rounds
+  fixture=derive_extended_fixture(fixture,rounds)
+  super().__init__(cert,key,fixture,*args,**kwargs);assert batch in [1,2];self.batch=batch
+  if recipient is None:recipient=DEFAULT_RECIPIENT if rounds==2 else DEFAULT_EXTENDED_RECIPIENT
   assert len(self.fixture['conversations'])==2
   self.steps=[0,0];self.response_queue=[];self.response_order=[];self.request_base=None
   self.recipient=subprocess.Popen([str(recipient)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True)
@@ -30,10 +36,10 @@ class TextPeer(base.Peer):
   answer=base.run_oracle(self.oracle,dict(mode='relay',wire=base.frame(payload,mask=bytes(4)).hex()))
   base.stage('relay_binding')
   matches=[(slot,c)for slot,c in enumerate(self.fixture['conversations'])if answer['path']=='/v1/messages/'+c['recipient_uuid']+'?story=false']
-  assert len(matches)==1;slot,c=matches[0];step=self.steps[slot];assert step<2
+  assert len(matches)==1;slot,c=matches[0];step=self.steps[slot];assert step<self.rounds
   body=answer['body'];assert answer['access_key']==c['access_key']
   if self.request_base is None:
-   self.request_base=answer['id'];assert 2**63<=self.request_base<=2**64-5
+   self.request_base=answer['id'];assert 2**63<=self.request_base<=2**64-(2*self.rounds+1)
   assert answer['id']==self.request_base+self.requests
   assert body['timestamp']==c['timestamps'][step] and body['online']is False and body['urgent']is True
   assert len(body['messages'])==1;message=body['messages'][0]
@@ -44,8 +50,14 @@ class TextPeer(base.Peer):
   assert decoded==dict(inner=c['expected_inner'][step],certificate_valid=True)
   # Actual retained receiver SessionRecord derives both Signal and SPQR keys,
   # verifies Signal MAC and decrypts, then actual Content/minimal DataMessage.
-  recovered=self.recipient_call(dict(slot=slot,wire=decoded['inner']))
-  assert recovered==dict(accepted=True,body=c['expected_text'][step],timestamp=c['timestamps'][step],padded_bytes=80)
+  call=dict(slot=slot,wire=decoded['inner'])
+  if self.rounds==4:call['inspect_counters']=True
+  recovered=self.recipient_call(call)
+  expected=dict(accepted=True,body=c['expected_text'][step],timestamp=c['timestamps'][step],padded_bytes=80)
+  if self.rounds==4:
+   initial=bytes.fromhex(c['receiving_state']);counter=int.from_bytes(initial[1:5],'big')+step
+   expected.update(signal_counter=counter,next_signal_counter=counter+1,pq_receive_counter=int.from_bytes(initial[105:109],'big')+step+1)
+  assert recovered==expected
   self.steps[slot]+=1;self.requests+=1;self.response_queue.append(answer['id'])
   if len(self.response_queue)==self.batch:
    # Deliberately reverse independent conversation responses.
@@ -69,17 +81,17 @@ class TextPeer(base.Peer):
    except subprocess.TimeoutExpired:self.recipient.kill();self.recipient.wait()
  def finish(self):
   base.stage('finish')
-  assert self.upgraded and self.steps==[2,2]and self.requests==4 and not self.pending_pings and self.fragments is None and not self.response_queue
+  assert self.upgraded and self.steps==[self.rounds,self.rounds]and self.requests==2*self.rounds and not self.pending_pings and self.fragments is None and not self.response_queue
   self.close_recipient();assert self.recipient.returncode==0
-  return dict(tls13_h1=True,upgrade_authenticated=True,actual_session_texts_recovered=4,independent_conversations=2,
+  return dict(tls13_h1=True,upgrade_authenticated=True,actual_session_texts_recovered=2*self.rounds,independent_conversations=2,
    actual_sealed_certificate_verified=True,same_body_request_timestamp_verified=True,private_client_plaintext_opened=False,
    receiver_only_disposable_state=True,responses_reordered=self.batch==2,response_ids_copied=True,
    interleaved_pongs_validated=self.pongs,live_account_side_effects=False)
 def main():
  p=argparse.ArgumentParser();p.add_argument('cert');p.add_argument('key');p.add_argument('fragment',nargs='?',type=int,default=127);p.add_argument('request_cert',nargs='?',default='no');p.add_argument('alpn',nargs='?',default='http/1.1')
- p.add_argument('--fixture',type=Path,default=HERE/'server-fixtures.json');p.add_argument('--report',type=Path);p.add_argument('--batch',type=int,default=2)
+ p.add_argument('--fixture',type=Path,default=HERE/'server-fixtures.json');p.add_argument('--report',type=Path);p.add_argument('--batch',type=int,default=2);p.add_argument('--rounds',type=int,choices=[2,4],default=2)
  args=p.parse_args();assert args.request_cert=='no'and args.alpn=='http/1.1'
- peer=TextPeer(args.cert,args.key,json.loads(args.fixture.read_text()),fragment=args.fragment,batch=args.batch)
+ peer=TextPeer(args.cert,args.key,json.loads(args.fixture.read_text()),fragment=args.fragment,batch=args.batch,rounds=args.rounds)
  try:
   for line in sys.stdin:
    line=line.strip()
