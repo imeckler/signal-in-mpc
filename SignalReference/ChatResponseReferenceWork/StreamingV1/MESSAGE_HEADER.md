@@ -1,0 +1,7 @@
+# Native message String header state
+
+The five modules instantiate actual String kind `[0,0,255,0]` in the length validity/control proofs. `native_message_header_valid` derives header validity from actual native varint success, explicit current child/budget counters and complete declared payload fitting the child. Strict terminal/tenth guards and remaining-input comparison are derived, including an empty String ending exactly at child closure.
+
+`MessageLengthContext` proves actual kind/depth preservation, exact child decrement/inner behavior and zero/nonzero opaque mode choice. `StringUtfShape` proves exact UTF validator list shape through every Core byte. `native_message_header_state` joins these with native success on one exact consumed prefix: valid255, ready UTF reset, exact budget/private child remainder, message kind/depth0, native skip and key/opaque mode, retaining inner response state for nonempty payloads.
+
+Bounds remain explicit:4096 public budget/private child, physical input within budget, initial mode2/position0/value0/messagekind/validseen255/unfinished/innerdepth0, exact counters and UTF shape8. No post-header validity/reset state is supplied. Full scan must derive the entry relation from the actual message key. Complete copied String payload acceptance/cache/source result and repeated header/HTTP/correlation/compiler joins remain open. Existing all-outcome errors/overruns and std unsafe/static diagnostic-push/content boundaries are preserved. No runtime/generated computation edits.
