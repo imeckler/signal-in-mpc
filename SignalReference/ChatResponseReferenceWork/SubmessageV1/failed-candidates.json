@@ -1,0 +1,28 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "scope": "Preserved failed extraction/translation alternatives; the successful path uses original generic source with explicit typed projection.",
+  "fnitem_only": {
+    "reason": "Early returns inside loops unsupported; actual merge_loop body omitted, unaccepted.",
+    "translator_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+    "llbc_sha256": "ac2766a81054c3b9000b3930900a0971302aec5aede2c0f8e2e7a7f15aae4000",
+    "log": "[\u001b[92mInfo\u001b[39m ] Imported: SignalReference/ChatResponseReferenceWork/SubmessageV1/Artifacts/named.llbc\n[\u001b[91mError\u001b[39m] Early returns inside of loops are not supported yet\nSource: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs', lines 139:0-147:11\n[\u001b[91mError\u001b[39m] Ignoring the body of 'prost::encoding::merge_loop' because of previous error\nSource: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs', lines 139:0-147:11\n[\u001b[92mInfo\u001b[39m ] Creating missing directory: SignalReference/ChatResponseReferenceWork/SubmessageV1//Generated\n[\u001b[92mInfo\u001b[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): SignalReference/ChatResponseReferenceWork/SubmessageV1//Generated/TypesExternal_Template.lean\n[\u001b[92mInfo\u001b[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): SignalReference/ChatResponseReferenceWork/SubmessageV1//Generated/Types.lean\n[\u001b[92mInfo\u001b[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): SignalReference/ChatResponseReferenceWork/SubmessageV1//Generated/FunsExternal_Template.lean\n[\u001b[92mInfo\u001b[39m ] Generated the partial file (because of 2 errors, including 2 unique errors): SignalReference/ChatResponseReferenceWork/SubmessageV1//Generated/Funs.lean\n[\u001b[92mInfo\u001b[39m ] Total execution time: 0.300631 seconds\n",
+    "failed_generated_sha256": {
+      "Funs.lean": "5d31e95bca38805cdc45c16072e3b4ae539c5f1cdf317c65c71ee85694c6e9ec",
+      "FunsExternal_Template.lean": "f4710066d390c18d259d62ff0d570ce58ed1679f82267aaaa99ed2214b6fd56e",
+      "Types.lean": "a0315d38d5aa6a0fb31eedaece057d84d0e5fc4d48f97f00872d3ed58ba3aaac",
+      "TypesExternal_Template.lean": "18fa60b64e62caa5cc3eac36c5c469120d381dfcea8c5c66a2255dc7cd9c48e1"
+    }
+  },
+  "closed_partial": {
+    "reason": "Filtered extraction/translation succeeds, but generated partial FnMut declared field and caller group ordering disagree; no kernel acceptance.",
+    "extraction_sha256": "b4d8de8a85dacf229f9b4831fdf8abae1d3acc927d8a735ee95a6c4dcd11a58e",
+    "llbc_sha256": "5b35dc2d6c4b91ed54c696fa9477352c9c72ffae4b9768aa34d7d64d603b290f"
+  },
+  "closed_full": {
+    "reason": "Translator internal signature error at actual prost::encoding::message::merge; unaccepted.",
+    "extraction_sha256": "7c0acd4ebaf9f4705477612006409d48a9432e6edaef86cd6f36445e41712ebc",
+    "llbc_sha256": "f418c6c57d2768fa093abea031eaad145b1addd3fe81a3d3a6cf85088a6c5559",
+    "log": "[\u001b[92mInfo\u001b[39m ] Imported: SignalReference/ChatResponseReferenceWork/SubmessageMonoV1/Artifacts/named.llbc\n[\u001b[91mError\u001b[39m] Internal error, please file an issue\nSource: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs', lines 797:4-805:15\n[\u001b[91mError\u001b[39m] Could not translate the function signature of 'prost::encoding::message::merge::partial_Fun_1 because of previous error\nName pattern: 'prost::encoding::message::merge::partial_Fun_1'\nDefinition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs', lines 797:4-805:15\n\nThis definition is (transitively) used at the following locations:\nSource: 'src/lib.rs', lines 6:4-6:64\n\nSource: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/prost-0.14.4/src/encoding.rs', lines 797:4-805:15\nUncaught exception:\n  \n  Aeneas.Errors.CFailure(_)\n\nRaised at Aeneas__Errors.craise_opt_span in file \"Errors.ml\", line 123, characters 4-46\nCalled from Aeneas__Translate.translate_crate_to_pure.(fun) in file \"Translate.ml\", lines 392-397, characters 12-79\nCalled from Stdlib__List.filter_map in file \"list.ml\", line 280, characters 12-15\nCalled from Stdlib__List.filter_map in file \"list.ml\", line 282, characters 23-37\nCalled from Aeneas__Translate.translate_crate_to_pure in file \"Translate.ml\", lines 374-399, characters 6-59\nCalled from Aeneas__Translate.translate_crate in file \"Translate.ml\", line 2200, characters 31-71\nCalled from Dune__exe__Main in file \"Main.ml\", lines 754-755, characters 8-37\n"
+  }
+}

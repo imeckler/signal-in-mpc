@@ -1,0 +1,21 @@
+{
+  "candidate_only": true,
+  "scope": "Identical pinned primitive aliases; borrowed-triple FnOnce/FnMut type annotations specialized; actual raw closure helper namespace split, tagged raw/trait projection; computational bodies otherwise unchanged.",
+  "typed_annotations": {
+    "FnOnce": 1,
+    "FnMut": 4
+  },
+  "script_sha256": "a36f38af01b1a71c1dc06987f56e8bc30cde2c057e3d71324eb7092b12e612c7",
+  "generated_sha256": {
+    "Funs.lean": "384247d720ed723b15fe9fec7d4dba89a8a594aea5d80c1c0a73744fa561a11a",
+    "FunsExternal_Template.lean": "938e59eed7d963f9f0fa86ee6fccdbe5abbb2134765474b3d56a7d4d494fbb92",
+    "Types.lean": "a0315d38d5aa6a0fb31eedaece057d84d0e5fc4d48f97f00872d3ed58ba3aaac",
+    "TypesExternal_Template.lean": "18fa60b64e62caa5cc3eac36c5c469120d381dfcea8c5c66a2255dc7cd9c48e1"
+  },
+  "replayed_sha256": {
+    "Funs.lean": "ab9c65a85d2babaab306d3129584ea33e2025b454e0cb3ecb3731586a1a9753a",
+    "FunsExternal.lean": "a0465413cb34f5f42a3c5a9c4b9c5117cfa6beec7bd9d8d396121c7f843f5628",
+    "Raw.lean": "488c640c58720157e73f6409ef1d6eb46eadc5bb2de49dfec5d44f9b55bd134a",
+    "Types.lean": "dc6860453510eb3cb267159681136da3bf830f886a4145f9c5f7d985ed1a08c1"
+  }
+}
