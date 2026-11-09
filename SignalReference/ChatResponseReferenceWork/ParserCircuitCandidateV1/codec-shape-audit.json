@@ -1,0 +1,21 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Actual Core/Mux process/admit and trim preserve exact serialization ABI shape for arbitrary private inputs/operations. Whole-state codec therefore applies to reachable states, without valid/success assumptions. Compressed serialization/export recurrence still OPEN.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CodecShape.lean": "435ac1a2c7fd05c6225fb48155174b5eec6a1bcf42f9fabe462f749e24e4dd97",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/MuxCodecShape.lean": "8d3b9c400c03b83440b2d2de305e18e68638489052da767285da48927c96ca83",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_codec_shape.py": "d3e530db3b7b9cfbd95351aa601bc80662b89bb1829e8542c111bdffa2c99d1c",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CODEC_SHAPE.md": "010d5f6fa2eff0cc87b64d33311b776dd1cef5596ed764255ca2fe74b23708aa"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/mux-codec-audit.json": "d9c3c63f4cbf73d19e0a9668e03893909564393c0ad72474f6eb58c2de2778aa"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/codec-shape-ddf131815cd7-98505.log",
+  "kernel_log_sha256": "59deed7827dfa77ddbbe1fe2235df3e60562df5939c8cc86f195cc3f9214ce55",
+  "kernel_log": "Checking ParserCircuitCandidateV1.CodecShape\n'ChatResponseReference.ParserCircuitCandidateV1.codec_initial_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.codec_step_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.codec_process_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.codec_trim_shape' depends on axioms: [propext, Quot.sound]\nChecking ParserCircuitCandidateV1.MuxCodecShape\n'ChatResponseReference.ParserCircuitCandidateV1.mux_codec_initial_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_process_codec_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_admit_codec_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_trim_codec_shape' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.mux_run_codec_shape' depends on axioms: [propext, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/codec-shape-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CodecShape.olean": "c76d3cbe05667f043dc6a18284fd86692e6b80d2bd5b1d85c80fd7578505718a",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/codec-shape-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/MuxCodecShape.olean": "07ff7432493e9e992ef6a5540619568fe7442a374163c35196eebc7ea3b6c40b"
+  }
+}

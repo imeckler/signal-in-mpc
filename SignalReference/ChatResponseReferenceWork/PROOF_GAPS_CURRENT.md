@@ -139,3 +139,10 @@ readState(stateBytes(state))=state under Core ABI shape/slots4/rows4, exact
 actual slot slices/private queue/ID/row state included. mux-codec-audit.json
 aggregate0/foundational-only. Compressed serialized trim, reachable ABI shape
 and exported compact recurrence/compiler remain open. No promotion/runtime edit.
+
+Candidate reachable ABI checkpoint: CodecShape/MuxCodecShape prove fixed
+serialization shapes preserved by actual process/admit and trim, for arbitrary
+private inputs including rejected intermediate states. Whole Core/Mux codec
+roundtrips now apply throughout reachable sequences. codec-shape-audit.json
+aggregate0/foundational-only. Compressed serialized trim and exported compact
+recurrence/compiler join remain open; semantic trace equality already closed.
