@@ -1,0 +1,124 @@
+{
+  "repository": "https://github.com/anderspkd/ccs-DEN22",
+  "revision": "57d7bed3895975f78b215226d851156aea1826c8",
+  "archive_sha256": "b694903d40e82992deddfb0af6e857a6ba930917eabe97b9bf2b0773c6ff5327",
+  "tree_hashes": {
+    ".gitignore": "b0dd1624fe0c6621269a7b6f3f8c7cdba7c65be1e89184e8a05f6156285e96af",
+    "CMakeLists.txt": "4a7053c5db7ebc5076f005ad2cebb1eaaa8024e70b8cee0a3c2ea9211a7c5e68",
+    "LICENSE": "7f41690453170faef78fa3aeabdf23ab6e563aec6b5d07c302c9890464de8a9d",
+    "Makefile": "b3d035e83363e32886928bab50b6a4782129a6074a0b0aee569a301b3afad6d4",
+    "README.md": "1d060fa6fbe0dd4ef7d52d5eb016286614f05192362cc037f45ed0b7401423b8",
+    "run.sh": "763cb391bba84e355c1e532eb495e2b055798e7020ec1054cef523d12afdaea3",
+    "src/frn/check.cc": "a211a3cc10a2e491ca2b171497574abe3f548296e22f4e1a282376bdd888bf5b",
+    "src/frn/check.h": "1a7328cc69134e6568451e78bf7c5e6f332d420dd905ceb1f15db7fe118daf74",
+    "src/frn/corr.cc": "b06349f2980235e000242a3277d7eac9ade89bff928a265b4f0e9438c1a92bf9",
+    "src/frn/corr.h": "c13a859c2e7ed669fbc1f20586379806585d059b0a263493c327c6aba1e5f652",
+    "src/frn/exp_check.cc": "21cba4f12831dedc80b309be2a0ee73443dbefcbc768bfc2808c2b1abd5da0fd",
+    "src/frn/exp_input.cc": "d6fd078bb8e11e9d9463a5e735dd4e7023f29310040b055d3c49b2aaa533707c",
+    "src/frn/exp_mult.cc": "0cd06fcd1b4da63bc8845737470f84d6e36137b25f1d8804f2e78f376bdfebd6",
+    "src/frn/input.cc": "33915d2ef79277e17da125bbe467d7569593285f24e5bff8d0598feba4071f92",
+    "src/frn/input.h": "185ac3837d04769df0f97977ca21482f0b596dfe8cd818e5fff9c99d1678d6ac",
+    "src/frn/input_corr.cc": "89acec6b02a4483c760522713e62e90ec7153f3735182323a4cca0cf75acc4ce",
+    "src/frn/input_corr.h": "26991e18414f5ceb5da61b39e47a9fb6ce29db964e5fc27e67642fc9429ba5ba",
+    "src/frn/lib/logging/logger.h": "3e986c680110bfe93f3d984f21044a42dc68aae65b914f4068878254dcca8c80",
+    "src/frn/lib/logging/nowhere.h": "e876d870086020a4e96e0673989da5da907430ec1de0d0b1e8891bacd247c4b4",
+    "src/frn/lib/logging/stdout.h": "ddb437eddb1dd2f5cba0d4d8d1bc52cf21b2c6296cbf8c84ab4a874eb2bf3b64",
+    "src/frn/lib/logging.h": "e4bf34115448b30564a8474cbf3064e0721f37d9b7e70fff093119a8d71dcc25",
+    "src/frn/lib/math/arithmetic.cc": "e6bf3999314b731e67c18a5309a33a53feba6ce2d5cd5e570aa78e9e8762c902",
+    "src/frn/lib/math/arithmetic.h": "2f2328676ae0d3c2dd698033d64488d17e7ab8b89f7b17eaf11375dbef7693d7",
+    "src/frn/lib/math/fp.h": "335f34d8b6a563584f61ae6aad60639738de90a6670785655e0304ef2a993f2b",
+    "src/frn/lib/math/mat.h": "a601f893262aa147aba5a5db322d0bb40f224fe5e01a03bf61f20487b63994c7",
+    "src/frn/lib/math/p.h": "47db7aa04e66f0c33e598f6206a97095440bc8824d81a8ab31c0ff82c34b4472",
+    "src/frn/lib/math/ring.h": "9950602abc3196a811706933f805460f46dcba25d8c5b2efc2fa17ce07607e58",
+    "src/frn/lib/math/vec.h": "ecbe770794e637c6b5055ebd55e04797800848b85783a01f2b3f46aae62a10f4",
+    "src/frn/lib/net/builder.cc": "7e5a71ed02716414a75e033869d8b9b2a0e6536fc910f5a083b81fa6efbe9b65",
+    "src/frn/lib/net/builder.h": "1650d6713ec866d14398e7fb0280aa9c8be52aa94e8454afcc8ae597e46e4996",
+    "src/frn/lib/net/channel.cc": "681a49eb3620bfc1599f051566090fa8f3a51299fce3a173c29c955dd48940c9",
+    "src/frn/lib/net/channel.h": "8b2c6c4e07fa9a0f931329103febccdad1440f296e0339ca7bdc68e7f3c17b2b",
+    "src/frn/lib/net/connector.cc": "697c7e74ea7f71cdb5170072c6faf7b2e1ac359eb081ad25a8324ec4bb83adb0",
+    "src/frn/lib/net/connector.h": "2762d14cf62478f745d6c1f96ad81e09e5e89f0e86eb229f61d33eac8fa02b27",
+    "src/frn/lib/net/network.h": "06d5237a54469fd4476193202408b0b90673e9eb99b8e945d3820e48dd3b8fb0",
+    "src/frn/lib/net/shared_deque.h": "bcc75c82153812ba3aae22a1ce38327ec31e13ef9bf1c0425898b4f35c8e5d15",
+    "src/frn/lib/net/sysi.cc": "3df6c215f3a41a3074e40800d4a790eae699da333b18f8d225a9bc4b400720bb",
+    "src/frn/lib/net/sysi.h": "c224a439f959b53a65825989642c25408197b1ed2e1ecb10a1c3428b74d03e4a",
+    "src/frn/lib/primitives/hash.h": "61276c460966c687c95496f5ca3933a01c659a44029195587a909d383861967d",
+    "src/frn/lib/primitives/prg.cc": "94f5ff9d75612340013f6ec8369099e3ba9561b76e15b91981122091656c6932",
+    "src/frn/lib/primitives/prg.h": "dc4a93d9a09f5d03091aad10c2cc342fbd3b35aedeea1eabe0fdfa1bfd0939b8",
+    "src/frn/lib/secret_sharing/additive.h": "9644761be1688fc87ccf33d49eb86c6f5508d0e5ec35d3905cd6c7b774ee923d",
+    "src/frn/lib/secret_sharing/rep.h": "c855b1401b97dfce358b9b87265d26420c6c7de4bb73dbd4a554f2b923eeaf7d",
+    "src/frn/lib/tools.cc": "5ed82969e050038dd57e0dcfe79e35c661a47ceca803351e11f281843872dcf8",
+    "src/frn/lib/tools.h": "8ed20b241c8e5bf62330df2cc4872be11d206c02fb137b3e61d7f70f638fd11e",
+    "src/frn/mult.cc": "9fc8c1f779bfdb4785bef169cbb44951bc41720209589b0f43f757e2cd1bfba3",
+    "src/frn/mult.h": "6c76c1fd9d8e7c955a93458359315b08e3ad56f64da27ffc785f870e6a0150ed",
+    "src/frn/network.h": "c0b96f08b371204c03210288d6623deb45711862d188bde8c82e091c0fd5344f",
+    "src/frn/shr.cc": "3097ff2de407857f65c83fb1d42ccbffac6d1f909e05ef236598db6d4d5ad208",
+    "src/frn/shr.h": "14d9ae6d705d9071962ea68f9febc1dfb1c40f6d9e18e75c25cb8eadd8210bf8",
+    "src/frn/tcp_network.h": "a742807766acdd347467f6db72e13c939069580e6fa314a5632f9b5a3bdd85c7",
+    "src/frn/util.h": "d2435e37dbd993ef6ccfa0a8ca7f8596ca1eb9eb8a521c1b6b6f13dbd2c49f3d",
+    "src/frn.h": "13dcf00e5ca32c942de137913b5befa4649ded3b88c02fef54eda74ad1fb51e8",
+    "test/main.cc": "a333fa1648b63c461f8bfb8c28fe2a351a247beadae1652cebe3203cd0720d1d",
+    "test/mock_network.cc": "b0529b51da2e7157a1f70ec9c83c264a2674619fd3c33f225e8dcf33cfde59fa",
+    "test/mock_network.h": "91142f45032cbd068bad8bd8c8e652fc9d00df0b6d64f5a9c9fc1b37bab01b23",
+    "test/tcp_network_helper.h": "7e0d846622d0ef97b3a7146b3b2110e44e9f64478addacd70312da7159861761",
+    "test/test_check.cc": "7026c290ed9825441ab137d4ed44f606a51bc9a8a71c71b58f5c19c4eccb7b45",
+    "test/test_corr.cc": "e12deabeb724f44bc41c332751ee5310269a9235a298e78fff1aa9a43eb9f50c",
+    "test/test_input.cc": "8086ba683e3007e7e3b19f5e3545e1c2045b222814818b0edbcf7872452a29a3",
+    "test/test_mult.cc": "0497b3114a76e068606b444e5369ed18da444dab49e80bb6e72fc78b926165e5",
+    "test/test_shr.cc": "f7cdafd2fb67040bd4cab35a5d571b5a76a19d1ab6c5ad3b13b01c2ede1583f0",
+    "test/test_tcp_network.cc": "9c3a73cf46e4b8c9ae2296239e910f89c9eaee9e3f82978dcae78c13a7484818"
+  },
+  "checks": {
+    "README.md": [
+      "implementation of core components",
+      "with 7"
+    ],
+    "src/frn/check.h": [
+      "// Omitted for now",
+      "void SetupPRG();",
+      "void AgreeOnTranscript();",
+      "hash = Field(0);",
+      "// TODO protocol for obtaining it"
+    ],
+    "src/frn/util.h": [
+      "FpElement<frn::lib::math::Mp61>"
+    ],
+    "src/frn/lib/primitives/prg.h": [
+      "mSeed[sizeof(BlockType)] = {0}"
+    ],
+    "src/frn/exp_mult.cc": [
+      "FakeInputs(xs, ys",
+      "(void)output;"
+    ],
+    "src/frn/exp_check.cc": [
+      "check_protocol.ReconstructMsgs();"
+    ],
+    "src/frn/lib/math/fp.h": [
+      "return sizeof(ValueType);"
+    ],
+    "src/frn/mult.cc": [
+      "mId < 2 * mThreshold + 1",
+      "party_id < mSize - mThreshold"
+    ]
+  },
+  "supported_malicious_backend_established": false,
+  "MPC_executed": false,
+  "configured_value_domain": "61-bit prime;8-byte element; no bit-packed Boolean implementation established",
+  "n7_t2_local_replicated_share_elements": 15,
+  "n7_t2_local_replicated_share_bytes": 120,
+  "n7_t2_multiplication_only_source_loop_payload": {
+    "all_Send_calls_bytes_per_gate": 80,
+    "external_peer_Send_calls_bytes_per_gate_aggregate": 64,
+    "scope": "Two sends of5 field elements total across the group, excluding2self sends for external total. Excludes correlation/input/check/output/network framing; incomplete check means NOT secure full-protocol cost."
+  },
+  "blockers": [
+    "unimplemented joint check randomness setup",
+    "unimplemented transcript agreement",
+    "dummy zero hashes",
+    "received check values discarded without verification",
+    "no application output reconstruction/check path established",
+    "default deterministic benchmark PRG seed",
+    "no checked Fp25519 mixed bridge",
+    "no runtime erasure/epoch/failure integration"
+  ],
+  "decision": "Do not build or promote as malicious7PC/t2 candidate; retain as core experiment reference only."
+}

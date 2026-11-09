@@ -61,3 +61,13 @@ The matrix's concrete cost/security details are supplemented here:
 3. Independently cache immutable prepared public programs to eliminate measured repeated loads. Cache complete pinned code/config identity only; retain no secret processor, preprocessing, protocol or I/O state. This can save CPU/load time but cannot remove gigabytes of protocol traffic.
 
 No more full application baseline is warranted until one of these changes has actionable evidence. All prior measured reports remain historical receipts.
+
+## DEN22 bounded implementation result
+
+The author repository at immutable commit `57d7bed3895975f78b215226d851156aea1826c8` is **rejected as a secure replacement**, without compiling or running parties. `den22-report.json` pins the downloaded archive and every source file; `audit_den22.py` checks the exact inspected markers. This is an engineering completeness result about that code, not a criticism or disproof of the published protocol.
+
+`check.h` declares but omits check-randomness setup and transcript agreement; generates coefficients with a default-zero-seeded PRG; substitutes zero for the required hashes; and receives/discards reconstruction values without checking them. `exp_mult.cc` uses fake public inputs and never calls the check protocol. `exp_check.cc` measures incomplete check components. Default values are61-bit prime elements serialized in8bytes, not a Boolean packed implementation. The code uses t=(n−1)/3, hence7nodes/t2, but the experiment does not establish complete malicious security, output validation or statistical128.
+
+For7/t2 a local replicated share contains15 elements (120bytes). The multiplication-only Send loops move10field elements/group/gate including two self sends, or8external elements=64bytes/group/gate. This is source-derived incomplete-component traffic, **not secure full-protocol throughput**; it omits correlation setup, input, complete verification, output and framing. No performance advantage is accepted from this number. There is no existing checked Fp25519 bridge or lifecycle ownership integration.
+
+A published full small-field protocol plus missing engineering is distinct from cryptographic uncertainty: a future implementation must first bind the corrected theorem and exact parameters, then supply all missing protocol stages and tests. Absence of a supported stock5PC/t2 backend is not an impossibility result. Optional3PC/t1 comparisons may inform an explicit trust/performance choice, while production remains5PC/t2.
