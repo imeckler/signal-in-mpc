@@ -1,0 +1,29 @@
+# Isolated same-depth arithmetic/Boolean controls, not a service benchmark.
+program.set_security(128)
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbitvec
+from handshake_backend import binary_io
+from backend_adapter.aig_packed import execute_mpc
+mode,width=program.args[1:];width=int(width)
+if mode not in ('field','boolean') or width not in (8,64,1024):raise ValueError('unsupported public control profile')
+if mode=='field':
+ def evaluate(inputs,outputs):
+  value=inputs.get_vector(0,width);factor=inputs.get_vector(width,width)
+  for _ in range(20):value=value*factor
+  outputs.assign_vector(value)
+ Array=sint.Array
+else:
+ nodes=[[0]]+[[1,i,1,0]for i in range(width*2)];previous=list(range(1,width+1))
+ for depth in range(20):
+  current=[]
+  for i in range(width):
+   nodes.append([2,previous[i],0,1+width+(i+depth)%width,0]);current.append(len(nodes)-1)
+  previous=current
+ image={'format':'tls-mpc-aig-v1','input_bits':width*2,'input_widths':[1]*(width*2),'nodes':nodes,'outputs':[[i,0]for i in previous]}
+ def evaluate(inputs,outputs):binary_io.write_bits(outputs,execute_mpc(image,binary_io.read_bits(inputs)))
+ Array=sbitvec.get_type(1).Array
+ evaluate=evaluate
+
+evaluate.__name__='tls_depth20_'+mode+'_'+str(width)
+export(evaluate)(Array(width*2),Array(width))

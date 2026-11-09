@@ -1,0 +1,6 @@
+Using statistical security parameter 40
+Significant amount of unused triples of replicated secret distorting the benchmark. This protocol has a large minimum batch size, which makes this unavoidable for small programs.
+The following benchmarks are including preprocessing (offline phase).
+Time = 0.010718 seconds 
+Data sent = 0.10952 MB in ~95 rounds (party 2 only; use '-v' for more details)
+Global data sent = 0.328576 MB (all parties)

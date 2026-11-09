@@ -1,0 +1,16 @@
+{
+  "native_executed": false,
+  "compiler_security": 40,
+  "scope": "same synthetic binary bytecode; optional weaker n3/t1/S40 benchmark vs n5/t2/S128, not production replacement",
+  "sources": {
+    "handshake_backend/BooleanBackendSelectionWork/prepare_compact_control.py": "78643b9e626e638a64840d2facac52652c1628ace4be846bebf11e3b1e96550f",
+    "handshake_backend/BooleanBackendSelectionWork/compact_control.mpc": "6fac7b190d6a619fea8557cf333d632ef8963d28c4ab6469448b4e3ad0186a0d"
+  },
+  "products": {
+    "compile.log": "782a6fcebb514616fef1a1f16c0349cb93bda35a13d46bcd340262d1b21399be",
+    "compile.py": "1f0d3eb9108e4819b3335feb4e0bab2b2a19b6451bc3bc6a43fceb2d93fe6868",
+    "Programs/Source/compact_control.mpc": "6fac7b190d6a619fea8557cf333d632ef8963d28c4ab6469448b4e3ad0186a0d",
+    "Programs/Schedules/compact_control.sch": "0dd7caa155ef18f7764c375d4766851ec8cb6fe1eba53a2fcebe6a5e2215d410",
+    "Programs/Bytecode/compact_control-0.bc": "c8d04d7222f3f81cb6a5210e574297cec435c89e29b6c26cc4ca0e8fc5959e50"
+  }
+}

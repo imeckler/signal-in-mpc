@@ -71,3 +71,22 @@ The author repository at immutable commit `57d7bed3895975f78b215226d851156aea182
 For7/t2 a local replicated share contains15 elements (120bytes). The multiplication-only Send loops move10field elements/group/gate including two self sends, or8external elements=64bytes/group/gate. This is source-derived incomplete-component traffic, **not secure full-protocol throughput**; it omits correlation setup, input, complete verification, output and framing. No performance advantage is accepted from this number. There is no existing checked Fp25519 bridge or lifecycle ownership integration.
 
 A published full small-field protocol plus missing engineering is distinct from cryptographic uncertainty: a future implementation must first bind the corrected theorem and exact parameters, then supply all missing protocol stages and tests. Absence of a supported stock5PC/t2 backend is not an impossibility result. Optional3PC/t1 comparisons may inform an explicit trust/performance choice, while production remains5PC/t2.
+
+## Executable depth and optional compact controls
+
+`compile_controls.py` compiled six isolated field/Boolean profiles at statistical128 and Fp25519: width8/64/1024, each20 dependent multiplication layers. Exact exported counts are160/1280/20480 multiplications and20 VM rounds in both domains. These compiler controls do not execute MPC or reproduce LN17's61-bit/stat40/Azure benchmark.
+
+Stock compact3PC is not automatically an S128 alternative: `GC::RepPrep::buffer_triples` calls `shuffle_triple_generation`, which constructs the guarded `TripleShuffleSacrifice`. `GC/PostSacriBin.cpp::check` also constructs `TripleShuffleSacrifice(2,6)`. Both hit the stock>40 rejection. The earlier exact sacrifice-bound research can inform a future published parameter adaptation, but no guard is removed and no S128 result is claimed here.
+
+At the user's explicit authorization, `rep3_stat40.cpp` creates a separate benchmark-only executable requiring explicit `-S 40`. It is never selected by the normal application. `check_compact_control.py` ran identical synthetic64-bit input/20-AND-layer bytecode on current n5/t2/S128 CCD and n3/t1/S40 malicious Rep3; both include final public-fixture equality checking, totaling1343 logical ANDs and85 compiler VM rounds. Both use batch request64; Rep3 uses supported bucket5. Compiler statistical40 is explicit and bytecode is identical; the CCD runtime still enforces128 and GF128. The two trust/security differences must accompany every comparison.
+
+All eight party exits were0, equality flags passed, source/library/products remained unchanged, cleanup errors were empty. No private application data or malicious-tamper test is involved. Raw public stdout/stderr are under `benchmarks/results/raw/compact-boolean-control/89cf83d6448edc63`.
+
+Party0 exact diagnostic bytes:
+
+| Profile | Binary online | Binary preprocessing | Unattributed | Total |
+|---|---:|---:|---:|---:|
+| n5/t2/S128 CCD |174016|305488|320|479824|
+| n3/t1/S40 Rep3 |2656|106808|64|109528|
+
+Online payload ratio65.52x; total ratio4.38x on this small workload. Rep3 explicitly warns of unused generated triples from its minimum batch size. These are generated-traffic measurements, not exact consumed-preprocessing counts or extrapolated steady throughput. Inclusive local controller times0.08495s/0.03861s and runtime-reported0.04103s/0.008469s are startup-sensitive single samples, not reliable sustained-rate comparisons. No source contention was deliberately introduced; a small independent crypto compiler was announced around preparation, so no pristine timing claim is made. The important result is that a real compact-bit protocol can materially reduce wire cost; adapting an established protocol to S128 and/or the requested threshold remains separate work.

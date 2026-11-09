@@ -1,0 +1,12 @@
+# OPTIONAL BENCHMARK ONLY: compiler statistical40; runtime profiles differ.
+# Three-party t1/stat40 versus five-party t2/stat128. No production promotion.
+program.set_security(40)
+from Compiler.GC.types import sbits
+from Compiler.library import print_ln
+Word=sbits.get_type(64)
+x=Word.get_input_from(0);y=Word.get_input_from(1)
+a=0x255AA55AA55AA55A;b=0x0FF00FF00FF00FF0
+for step in range(20):
+ z=x&y;c=a&b
+ x=z^x;y=z^y;a=c^a;b=c^b
+print_ln('DIAGNOSTIC_COMPARE %s',x.equal(Word(a)).reveal())

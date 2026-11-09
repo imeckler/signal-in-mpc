@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "statistical_security": 128,
+  "arithmetic_prime": "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+  "native_MPC_executed": false,
+  "scope": "depth20 same-count scalar field versus Boolean controls; no LN17 timing reproduction or throughput claim",
+  "profiles": {
+    "field-8": {
+      "multiplications": 160,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.1643634159117937,
+      "log_sha256": "026cc11bd9a76b6640558f6b1b79adc0e150b1bedf472c5102212d0ce3988126"
+    },
+    "boolean-8": {
+      "multiplications": 160,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.16258066589944065,
+      "log_sha256": "a3041bccc0582964cd495c09e2007cebcee28e0e9de289de24b81f58cc0cb0a8"
+    },
+    "field-64": {
+      "multiplications": 1280,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.16132625006139278,
+      "log_sha256": "17c607da0ff95e7f3ef26a20bd350424a0c44b84016e317e317ed982b00a6e06"
+    },
+    "boolean-64": {
+      "multiplications": 1280,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.182242332957685,
+      "log_sha256": "4f2f53ade89a4d9185eff4e2be5619e3bfc4676d7be90ab7e154e46fc3a1f628"
+    },
+    "field-1024": {
+      "multiplications": 20480,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.16070308396592736,
+      "log_sha256": "dc9826f8b5a0d5b642883c88257fe107910aa270a2f742830052993f909bfb0f"
+    },
+    "boolean-1024": {
+      "multiplications": 20480,
+      "VM_rounds": 20,
+      "elapsed_seconds": 0.45178470807150006,
+      "log_sha256": "4bd4390745ac11c60375e1a1acb6c6dfd6ed735f821a69a8e5ce2315d19ddbc9"
+    }
+  },
+  "sources": {
+    "handshake_backend/BooleanBackendSelectionWork/compile_controls.py": "b151041834dc1b9ed92ba7130d416bdbdc4137ea928c94c6c971595809b96aab",
+    "handshake_backend/BooleanBackendSelectionWork/depth20.mpc": "1507ac3fde217ff38b15f225fcfe0e681f3e01a8fbd74c5118868a9ba445f48e",
+    "backend_adapter/aig_packed.py": "133227c0a74c06465bb2147e154e095fabc25a109febfae81403f60959635630"
+  },
+  "products": {
+    "Programs/Functions/tls_depth20_boolean_1024-sbv:[2048x1]-sbv:[1024x1]": "be85dbdd18cecd0d5e3c8c1d5d5114c1a5c79369bc2d05e3b701c48e5b232bb3",
+    "Programs/Functions/tls_depth20_boolean_64-sbv:[128x1]-sbv:[64x1]": "425c433ff68e54defac03bc8829296f462119d29287fc9b57663c8cfa5db3567",
+    "Programs/Functions/tls_depth20_boolean_8-sbv:[16x1]-sbv:[8x1]": "20abea439eb9e5c38a05b4ab93cee054f1800506900cf7fdce39816d7204f6f0",
+    "Programs/Functions/tls_depth20_field_1024-s:[2048]-s:[1024]": "8d8d6f448eb9f75f2453071b58ef5b8ab7a698273be60c21812f540fa7b3d84f",
+    "Programs/Functions/tls_depth20_field_64-s:[128]-s:[64]": "e95ed55597701562a0d0b0002aed40eafb97c245e4012827cb3abed8578af695",
+    "Programs/Functions/tls_depth20_field_8-s:[16]-s:[8]": "18922d3a65ab111f70f6b0b242a2537134b8e696dceb21b3f7c02d43f7e11b8a",
+    "Programs/Bytecode/depth20-boolean-1024-0.bc": "60fe25deca6141c87395f9ab8682f305f2cf6105d03b719651ea2587671efb75",
+    "Programs/Bytecode/depth20-boolean-1024-tls_depth20_boolean_1024-1.bc": "0012bd99c96b1e55c174244b0319f40c08acccf7306020c6f913db9e97e4a432",
+    "Programs/Bytecode/depth20-boolean-64-0.bc": "54784493c4bc861bba35aca79f66bf88faf6b5b9fa3eaf2eec00edf2dc36449f",
+    "Programs/Bytecode/depth20-boolean-64-tls_depth20_boolean_64-1.bc": "7130adb32a0bba28f51035ae059252717dfdc58b4deebacbd79c35c753bc309d",
+    "Programs/Bytecode/depth20-boolean-8-0.bc": "6df769266732db0f3012b75147052d9115db48c552c23ad7597d126ea9a1cc13",
+    "Programs/Bytecode/depth20-boolean-8-tls_depth20_boolean_8-1.bc": "f4a037458d0ea5bf72cb9b98ac56cec7c466b5437e7e4a712b9c0c6eefb32ff4",
+    "Programs/Bytecode/depth20-field-1024-0.bc": "c8552872134a773405d20d5cd52223795c56b4d8cc8f9965d0debd96e57c5d7f",
+    "Programs/Bytecode/depth20-field-1024-tls_depth20_field_1024-1.bc": "4d2b71eb3b69fd6a59e6554a954d810ba08c37d57f04d146e5eddbdbb8896e34",
+    "Programs/Bytecode/depth20-field-64-0.bc": "d34df63a976d8757f81b4849a083f658a7541179b986320dfc2639af17bec8ec",
+    "Programs/Bytecode/depth20-field-64-tls_depth20_field_64-1.bc": "3f3470454e5601ea0cabfed5cc44b72fee9457044358345ac3d956e96c0ea83d",
+    "Programs/Bytecode/depth20-field-8-0.bc": "0f1b82d7beebe38b180ab78898420ea22363eadf0a1248590f14ecdbfceeeee1",
+    "Programs/Bytecode/depth20-field-8-tls_depth20_field_8-1.bc": "e101ec7c942a6d2e4f01968165e2f2200a3dbf3e1df74fec59f9a0b641362b14",
+    "Programs/Schedules/depth20-boolean-1024.sch": "6e1e8f25a96e0c7351bc6eff346f8fe27747be2a555a5e116000a9970c5dae74",
+    "Programs/Schedules/depth20-boolean-64.sch": "b42da568d0ef481a48b7c0bb1d3d7dcbca7744ad80f605b13acbe33a77824ee5",
+    "Programs/Schedules/depth20-boolean-8.sch": "f76279784381e3c15752b13a56e2d929fe4f216cbd0c80fde894cc70d9a50e49",
+    "Programs/Schedules/depth20-field-1024.sch": "91e9030c22841ba5bcd6dabf419430b048945441f679650e38760332478b0884",
+    "Programs/Schedules/depth20-field-64.sch": "73c80b35e6ba9d4988d1ff81b7827f64d591f971dadf78f5d7499128a173c2c8",
+    "Programs/Schedules/depth20-field-8.sch": "2dfe41b6779aad1cb519594799c0418fe9e5ba9f97218990b2c4327d44aa3b29"
+  }
+}
