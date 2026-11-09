@@ -1,0 +1,14 @@
+{
+  "compile_link_passed": true,
+  "native_MPC": false,
+  "whole_bootstrap": false,
+  "binary_sha256": "f6b2ae12e4f96a4aa8a2f248e69e68ea8eedd697a05e04f7bc56cd6773a00ea9",
+  "source_sha256": {
+    "signal_backend/BootstrapWork/check_adapters.py": "00da1a2b83dc0f2eb30fbff53906b0b9cb994897ac71e9ead3d306ce22f06f0c",
+    "signal_backend/BootstrapWork/adapter_probe.cpp": "3c51912ea0668c7cbff84ef6517346394f322c76014d0d2fa99467601458de3e",
+    "signal_backend/BootstrapWork/Makefile": "fa9ecdb4c81617f994039f7832055ec0ea079fc7a46aee5921279f9a79ce4f29",
+    "signal_backend/BootstrapWork/NativeKyber1024.h": "93bb0542f39b07e041cc7a59f13348bf91826ef8ed7df9da4e5a25cf09f83785",
+    "signal_backend/BootstrapWork/NativeBootstrapDh.h": "23d6945be728a851142fb7ea3816244a2348e4ed57fd400ce0685b79ddab6447",
+    "handshake_backend/NativeWorker.h": "6d69a72b6b5535025b241774409e6e90a24a1e8bf32b8b754bc745743a76f3eb"
+  }
+}

@@ -1,0 +1,29 @@
+# Internal bootstrap dependency. Tagged private recipient public key -> computed
+# status || tagged ciphertext || shared agreement. No openings or host secrets.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from signal_backend.BootstrapWork.pinned_stages import PinnedStages
+from SignalReference.MlKemWork.adapter import MlKem
+stages=PinnedStages(program.args[1])
+execute=stages.compiler_executor()
+Array=sbitvec.get_type(1).Array
+
+def encapsulate(inputs,outputs):
+    raw=binary_io.read_bits(inputs)
+    # Every party contributes through the existing malicious binary backend.
+    # Entropy is never supplied by the host or returned to it.
+    entropy=[sbit.get_random_bit()for _ in range(256)]
+    kem=MlKem('kyber1024',execute,sbit(0),sbit(1))
+    result=kem.encapsulate(raw[8:]+entropy)
+    tag_ok=sbit(1)
+    for bit,want in zip(raw[:8],[0,0,0,0,1,0,0,0]):
+        tag_ok=tag_ok & (bit if want else bit ^ sbit(1))
+    accepted=tag_ok & result[0]
+    tag=[sbit(x)for x in [0,0,0,0,1,0,0,0]]
+    binary_io.write_bits(outputs,[accepted]*8+[accepted & bit for bit in tag+result[8:]])
+encapsulate.__name__='signal_private_bootstrap_kyber1024'
+function=export(encapsulate)
+function(Array(1569*8),Array(1602*8))

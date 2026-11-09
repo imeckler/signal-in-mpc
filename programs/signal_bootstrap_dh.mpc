@@ -1,0 +1,36 @@
+# Internal PQXDH/init stage. Agreements and private scalars remain shared.
+# Whole bootstrap validates identity binding/all-zero results before state use.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.types import sint
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from handshake_backend.field_dag import load
+from handshake_backend.mixed import execute_secret,field_to_wire_bits,wire_bits_to_field,wire_bits_to_scalar_fields
+field=load(program.args[1])
+if field['input_count']!=257:raise ValueError('bootstrap X25519 field dimensions')
+
+def prepare(inputs,outputs):
+    # own identity private || recipient identity || signed prekey || one-time
+    raw=binary_io.read_bits(inputs)
+    own=wire_bits_to_scalar_fields(raw[:256])
+    identity=wire_bits_to_field(raw[256:512],mask_high_bit=True)
+    signed=wire_bits_to_field(raw[512:768],mask_high_bit=True)
+    one_time=wire_bits_to_field(raw[768:1024],mask_high_bit=True)
+    def fresh():
+        bits=[sbit.get_random_bit()for _ in range(256)]
+        for index in (5,6,7,248):bits[index]=sbit(0)
+        bits[249]=sbit(1)
+        return bits,wire_bits_to_scalar_fields(bits)
+    base_bits,base=fresh();ratchet_bits,ratchet=fresh()
+    def dh(scalar,point):return field_to_wire_bits(execute_secret(field,scalar+[point])[0])
+    # Correct pinned PQXDH order: IK_A/SPK_B, EK_A/IK_B, EK_A/SPK_B,
+    # EK_A/OPK_B; initial create_chain uses a DIFFERENT fresh ratchet key.
+    # Base private is deliberately absent from the returned retained state.
+    result=dh(base,sint(9))+ratchet_bits+dh(ratchet,sint(9))+dh(own,sint(9))
+    result+=dh(own,signed)+dh(base,identity)+dh(base,signed)+dh(base,one_time)+dh(ratchet,signed)
+    binary_io.write_bits(outputs,result)
+prepare.__name__='signal_private_bootstrap_dh_with_one_time'
+function=export(prepare);Array=sbitvec.get_type(1).Array
+function(Array(128*8),Array(288*8))
