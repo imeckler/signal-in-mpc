@@ -1,0 +1,437 @@
+native app operation 9, public bytes 13
+TLS_METRIC {"party":0,"stage":"rpc.9","success":true,"elapsed_ns":1575750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 1, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.1","success":true,"elapsed_ns":621351709,"counters_monotone":true,"worker_payload_bytes":15055024,"host_payload_bytes":17280,"communication_operations":2162,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 182
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1225334,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":1289917,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":768,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 2, public bytes 64
+TLS_METRIC {"party":0,"stage":"rpc.2","success":true,"elapsed_ns":43419830000,"counters_monotone":true,"worker_payload_bytes":501242608,"host_payload_bytes":768,"communication_operations":54911,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":2123541,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":412,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":1311333,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":560,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 3, public bytes 51
+TLS_METRIC {"party":0,"stage":"rpc.3","success":true,"elapsed_ns":5939943209,"counters_monotone":true,"worker_payload_bytes":26800320,"host_payload_bytes":13952,"communication_operations":581,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":2047208,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":2704,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 3, public bytes 587
+TLS_METRIC {"party":0,"stage":"rpc.3","success":true,"elapsed_ns":64557230750,"counters_monotone":true,"worker_payload_bytes":284593664,"host_payload_bytes":288384,"communication_operations":5011,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":1357417,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":764,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 3, public bytes 102
+TLS_METRIC {"party":0,"stage":"rpc.3","success":true,"elapsed_ns":884784625,"counters_monotone":true,"worker_payload_bytes":50308528,"host_payload_bytes":39808,"communication_operations":986,"external_tls_sent":0,"external_tls_received":0}
+native app operation 4, public bytes 667
+TLS_METRIC {"party":0,"stage":"rpc.4","success":true,"elapsed_ns":884875,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":256,"communication_operations":2,"external_tls_sent":0,"external_tls_received":0}
+native app operation 11, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.11","success":true,"elapsed_ns":1215792,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":620,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 3, public bytes 66
+TLS_METRIC {"party":0,"stage":"rpc.3","success":true,"elapsed_ns":2300933333,"counters_monotone":true,"worker_payload_bytes":34179664,"host_payload_bytes":21376,"communication_operations":737,"external_tls_sent":0,"external_tls_received":0}
+native app operation 5, public bytes 68
+TLS_METRIC {"party":0,"stage":"rpc.5","success":true,"elapsed_ns":14942248000,"counters_monotone":true,"worker_payload_bytes":155028736,"host_payload_bytes":896,"communication_operations":21716,"external_tls_sent":0,"external_tls_received":0}
+native app operation 6, public bytes 64
+TLS_METRIC {"party":0,"stage":"rpc.6","success":true,"elapsed_ns":45780456042,"counters_monotone":true,"worker_payload_bytes":525484864,"host_payload_bytes":30592,"communication_operations":56725,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 58
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1439500,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 7, public bytes 0
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":23375750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":500925250,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":492065875,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":487005417,"counters_monotone":true,"worker_payload_bytes":24733792,"host_payload_bytes":128,"communication_operations":741,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":491054583,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":485238875,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":502245292,"counters_monotone":true,"worker_payload_bytes":24733792,"host_payload_bytes":128,"communication_operations":741,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":503246334,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":489717708,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":485322500,"counters_monotone":true,"worker_payload_bytes":24733792,"host_payload_bytes":128,"communication_operations":741,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":492651959,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":491985541,"counters_monotone":true,"worker_payload_bytes":24958000,"host_payload_bytes":128,"communication_operations":747,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"content.builder","success":true,"elapsed_ns":784987292,"counters_monotone":true,"worker_payload_bytes":24733792,"host_payload_bytes":128,"communication_operations":741,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":37628541,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.7","success":true,"elapsed_ns":6442837417,"counters_monotone":true,"worker_payload_bytes":299702752,"host_payload_bytes":7116,"communication_operations":9254,"external_tls_sent":0,"external_tls_received":0}
+native app operation 22, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.22","success":true,"elapsed_ns":2734542,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":256,"communication_operations":2,"external_tls_sent":0,"external_tls_received":0}
+native app operation 23, public bytes 0
+TLS_METRIC {"party":0,"stage":"upgrade.builder","success":true,"elapsed_ns":205695125,"counters_monotone":true,"worker_payload_bytes":3764912,"host_payload_bytes":128,"communication_operations":77,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":24905334,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.23","success":true,"elapsed_ns":238020208,"counters_monotone":true,"worker_payload_bytes":3764912,"host_payload_bytes":384,"communication_operations":79,"external_tls_sent":0,"external_tls_received":0}
+native app operation 13, public bytes 20
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":20146084,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+record epoch policy every-record renewals 1 nanoseconds 20144459
+TLS_METRIC {"party":0,"stage":"rpc.13","success":true,"elapsed_ns":3884837583,"counters_monotone":true,"worker_payload_bytes":171112736,"host_payload_bytes":188800,"communication_operations":3299,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 367
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1868667,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1502792,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1555750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":984,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 12, public bytes 157
+TLS_METRIC {"party":0,"stage":"rpc.12","success":true,"elapsed_ns":18639494417,"counters_monotone":true,"worker_payload_bytes":74477888,"host_payload_bytes":2048,"communication_operations":1474,"external_tls_sent":0,"external_tls_received":0}
+native app operation 25, public bytes 8
+TLS_METRIC {"party":0,"stage":"receive.response","success":true,"elapsed_ns":34955498584,"counters_monotone":true,"worker_payload_bytes":1131719712,"host_payload_bytes":54400,"communication_operations":73605,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":19646292,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.25","success":true,"elapsed_ns":34977552500,"counters_monotone":true,"worker_payload_bytes":1131719712,"host_payload_bytes":54656,"communication_operations":73607,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1369084,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":500,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 12, public bytes 36
+TLS_METRIC {"party":0,"stage":"rpc.12","success":true,"elapsed_ns":5024593250,"counters_monotone":true,"worker_payload_bytes":19564128,"host_payload_bytes":2048,"communication_operations":529,"external_tls_sent":0,"external_tls_received":0}
+native app operation 25, public bytes 8
+TLS_METRIC {"party":0,"stage":"receive.response","success":true,"elapsed_ns":1978429042,"counters_monotone":true,"worker_payload_bytes":64145568,"host_payload_bytes":8064,"communication_operations":4226,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":17009583,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.25","success":true,"elapsed_ns":1997067000,"counters_monotone":true,"worker_payload_bytes":64145568,"host_payload_bytes":8320,"communication_operations":4228,"external_tls_sent":0,"external_tls_received":0}
+native app operation 13, public bytes 20
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":20013750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+record epoch policy every-record renewals 1 nanoseconds 20013042
+TLS_METRIC {"party":0,"stage":"rpc.13","success":true,"elapsed_ns":1246325667,"counters_monotone":true,"worker_payload_bytes":75699696,"host_payload_bytes":79232,"communication_operations":1446,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 153
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1539417,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 26, public bytes 33
+TLS_METRIC {"party":0,"stage":"request.id","success":true,"elapsed_ns":133194250,"counters_monotone":true,"worker_payload_bytes":976368,"host_payload_bytes":128,"communication_operations":147,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"request.id","success":true,"elapsed_ns":47207166,"counters_monotone":true,"worker_payload_bytes":976368,"host_payload_bytes":128,"communication_operations":147,"external_tls_sent":0,"external_tls_received":0}
+SHARDED_CHECKPOINT phase=reserve sequence=1 changed_shards=3 directory_read_bytes=31242 directory_write_bytes=24150 changed_ciphertext_bytes=4292376
+TLS_METRIC {"party":0,"stage":"provider.crypto.batch","success":true,"elapsed_ns":157451303458,"counters_monotone":true,"worker_payload_bytes":4355814464,"host_payload_bytes":128,"communication_operations":204183,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"provider.bind","success":true,"elapsed_ns":1851503209,"counters_monotone":true,"worker_payload_bytes":63984864,"host_payload_bytes":128,"communication_operations":1171,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"provider.bind","success":true,"elapsed_ns":1693259959,"counters_monotone":true,"worker_payload_bytes":63760656,"host_payload_bytes":128,"communication_operations":1165,"external_tls_sent":0,"external_tls_received":0}
+SHARDED_CHECKPOINT phase=commit sequence=1 changed_shards=2 directory_read_bytes=47944 directory_write_bytes=16100 changed_ciphertext_bytes=3228944
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":51603458,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.26","success":true,"elapsed_ns":208002062917,"counters_monotone":true,"worker_payload_bytes":5943311088,"host_payload_bytes":14528,"communication_operations":275759,"external_tls_sent":0,"external_tls_received":0}
+native app operation 13, public bytes 20
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":21731709,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+record epoch policy every-record renewals 1 nanoseconds 21730875
+TLS_METRIC {"party":0,"stage":"rpc.13","success":true,"elapsed_ns":10157301875,"counters_monotone":true,"worker_payload_bytes":603264528,"host_payload_bytes":672640,"communication_operations":11665,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 1312
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1606208,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 13, public bytes 20
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":22776583,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+record epoch policy every-record renewals 1 nanoseconds 22775916
+TLS_METRIC {"party":0,"stage":"rpc.13","success":true,"elapsed_ns":10172557833,"counters_monotone":true,"worker_payload_bytes":603264528,"host_payload_bytes":672640,"communication_operations":11665,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 1312
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1459208,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1544334,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1432000,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1203709,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":512,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 12, public bytes 39
+TLS_METRIC {"party":0,"stage":"rpc.12","success":true,"elapsed_ns":4928677750,"counters_monotone":true,"worker_payload_bytes":19604608,"host_payload_bytes":2048,"communication_operations":529,"external_tls_sent":0,"external_tls_received":0}
+native app operation 25, public bytes 8
+TLS_METRIC {"party":0,"stage":"receive.response","success":true,"elapsed_ns":7200312375,"counters_monotone":true,"worker_payload_bytes":295941968,"host_payload_bytes":11264,"communication_operations":11038,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":17455083,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.25","success":true,"elapsed_ns":7219578250,"counters_monotone":true,"worker_payload_bytes":295941968,"host_payload_bytes":11520,"communication_operations":11040,"external_tls_sent":0,"external_tls_received":0}
+native app operation 13, public bytes 20
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":18019667,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+record epoch policy every-record renewals 1 nanoseconds 18019083
+TLS_METRIC {"party":0,"stage":"rpc.13","success":true,"elapsed_ns":1287216916,"counters_monotone":true,"worker_payload_bytes":75699696,"host_payload_bytes":79232,"communication_operations":1446,"external_tls_sent":0,"external_tls_received":0}
+native app operation 10, public bytes 153
+TLS_METRIC {"party":0,"stage":"rpc.10","success":true,"elapsed_ns":1386541,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":388,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 17, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.17","success":true,"elapsed_ns":1604750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":704,"communication_operations":4,"external_tls_sent":0,"external_tls_received":0}
+native app operation 12, public bytes 87
+TLS_METRIC {"party":0,"stage":"rpc.12","success":true,"elapsed_ns":9694680250,"counters_monotone":true,"worker_payload_bytes":42898944,"host_payload_bytes":2048,"communication_operations":932,"external_tls_sent":0,"external_tls_received":0}
+native app operation 25, public bytes 8
+TLS_METRIC {"party":0,"stage":"receive.response","success":true,"elapsed_ns":40634231583,"counters_monotone":true,"worker_payload_bytes":1703120976,"host_payload_bytes":29568,"communication_operations":62834,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":17710166,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.25","success":true,"elapsed_ns":40653890917,"counters_monotone":true,"worker_payload_bytes":1703120976,"host_payload_bytes":29824,"communication_operations":62836,"external_tls_sent":0,"external_tls_received":0}
+native app operation 28, public bytes 0
+SHARDED_OUTCOME sequence=2 cursor_advanced=0 producer_evaluated=0 conversation_commit_changes=0
+TLS_METRIC {"party":0,"stage":"epoch.renew","success":true,"elapsed_ns":36866458,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.28","success":true,"elapsed_ns":12675906250,"counters_monotone":true,"worker_payload_bytes":384547200,"host_payload_bytes":4408,"communication_operations":23049,"external_tls_sent":0,"external_tls_received":0}
+native app operation 8, public bytes 0
+TLS_METRIC {"party":0,"stage":"epoch.abort","success":true,"elapsed_ns":1921583,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_METRIC {"party":0,"stage":"rpc.8","success":true,"elapsed_ns":17158750,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":256,"communication_operations":2,"external_tls_sent":0,"external_tls_received":0}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_private_text_notification_48_80-sbv:[472x1]-sbv:[720x1]","calls":12,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":847416}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":847416}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-sbv:[9776x1]-sbv:[21968x1]","calls":1,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":40808}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":3574}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":2048}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":16}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":12233204}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":2,"count":64}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8240}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":40808}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":3574}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":2048}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":12233204}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":2,"count":64}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_relay_upgrade_22-sbv:[432x1]-sbv:[2760x1]","calls":1,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":10144}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":10144}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_agreement-s:[256]-s:1-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":1143458,"machine_run_ns":556754625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":5102}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":255}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":257}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":3}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1788}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":5102}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":255}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":257}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1788}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_begin-s:[256]-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":1319875,"machine_run_ns":617259333,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":5101}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":511}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":256}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":2}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1788}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":5101}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":511}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":256}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1788}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_application_secrets-sbv:[512x1]-sbv:[512x1]","calls":1,"timed_calls":1,"verification_ns":95582959,"machine_run_ns":10023234958,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":340428}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":340428}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_chat_mux_admit_4-sbv:[7936x1]-sbv:[7856x1]","calls":2,"timed_calls":2,"verification_ns":2076666,"machine_run_ns":71131751,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2554}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2554}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_chat_mux_byte_4096_4-sbv:[7888x1]-sbv:[7880x1]","calls":68,"timed_calls":68,"verification_ns":245682542,"machine_run_ns":34674897294,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":4499968}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":4499968}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_finished-sbv:[512x1]-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":122254416,"machine_run_ns":13788355209,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":440159}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":440159}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_handshake_secrets-sbv:[512x1]-sbv:[1024x1]","calls":1,"timed_calls":1,"verification_ns":120592625,"machine_run_ns":23252146125,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":763185}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":763185}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_43-sbv:[632x1]-sbv:[208x1]","calls":1,"timed_calls":1,"verification_ns":5964667,"machine_run_ns":480312083,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":76253}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":76253}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_579-sbv:[4920x1]-sbv:[4496x1]","calls":1,"timed_calls":1,"verification_ns":58596500,"machine_run_ns":4795568291,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":808074}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":808074}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_58-sbv:[752x1]-sbv:[328x1]","calls":1,"timed_calls":1,"verification_ns":13162083,"machine_run_ns":2261161792,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":97120}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":97120}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_94-sbv:[1040x1]-sbv:[616x1]","calls":1,"timed_calls":1,"verification_ns":11660750,"machine_run_ns":851132959,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":142552}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":142552}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_149-sbv:[1480x1]-sbv:[1056x1]","calls":1,"timed_calls":1,"verification_ns":17991292,"machine_run_ns":1332738375,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":208586}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":208586}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_28-sbv:[512x1]-sbv:[88x1]","calls":1,"timed_calls":1,"verification_ns":4195625,"machine_run_ns":354921500,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":54414}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":54414}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_31-sbv:[536x1]-sbv:[112x1]","calls":1,"timed_calls":1,"verification_ns":4510791,"machine_run_ns":342065125,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":54711}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":54711}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_79-sbv:[920x1]-sbv:[496x1]","calls":1,"timed_calls":1,"verification_ns":9120875,"machine_run_ns":771083667,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":120171}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":120171}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_private_request_id_next-sbv:[64x1]-sbv:[72x1]","calls":3,"timed_calls":3,"verification_ns":3266583,"machine_run_ns":250492208,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":8313}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":8313}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_provider_validity-sbv:[16x1]-sbv:[8x1]","calls":35,"timed_calls":35,"verification_ns":7703915,"machine_run_ns":153396164,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1890}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1890}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_10-sbv:[200x1]-sbv:[200x1]","calls":1,"timed_calls":1,"verification_ns":216625,"machine_run_ns":27057708,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":766}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":766}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_128-sbv:[1144x1]-sbv:[1144x1]","calls":1,"timed_calls":1,"verification_ns":631917,"machine_run_ns":107197667,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2608}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2608}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_58-sbv:[584x1]-sbv:[584x1]","calls":1,"timed_calls":1,"verification_ns":237125,"machine_run_ns":30939000,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1614}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1614}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_7-sbv:[176x1]-sbv:[176x1]","calls":1,"timed_calls":1,"verification_ns":191416,"machine_run_ns":26314042,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":759}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":759}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_1290-sbv:[10632x1]-sbv:[10504x1]","calls":2,"timed_calls":2,"verification_ns":252481376,"machine_run_ns":19650308625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":3424938}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":3424938}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_131-sbv:[1360x1]-sbv:[1232x1]","calls":2,"timed_calls":2,"verification_ns":33608500,"machine_run_ns":2394855625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":429606}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":429606}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_345-sbv:[3072x1]-sbv:[2944x1]","calls":1,"timed_calls":1,"verification_ns":46747000,"machine_run_ns":3742566583,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":485527}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":485527}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_record_22_36_0-sbv:[576x1]-sbv:[464x1]","calls":1,"timed_calls":1,"verification_ns":24716083,"machine_run_ns":1940210625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":89234}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":89234}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_traffic_keys-sbv:[256x1]-sbv:[224x1]","calls":4,"timed_calls":4,"verification_ns":272025625,"machine_run_ns":38998283417,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1244200}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1244200}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_verify_finished-sbv:[800x1]-sbv:[8x1]","calls":1,"timed_calls":1,"verification_ns":123345292,"machine_run_ns":14817404083,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":440446}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":440446}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_10-sbv:[24x1]-sbv:[88x1]","calls":1,"timed_calls":1,"verification_ns":1187792,"machine_run_ns":9512167,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":542}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":542}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_128-sbv:[24x1]-sbv:[1032x1]","calls":1,"timed_calls":1,"verification_ns":2938709,"machine_run_ns":295146291,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":5851}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":5851}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_58-sbv:[24x1]-sbv:[472x1]","calls":1,"timed_calls":1,"verification_ns":1675750,"machine_run_ns":30962041,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2728}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2728}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_7-sbv:[24x1]-sbv:[64x1]","calls":1,"timed_calls":1,"verification_ns":1134458,"machine_run_ns":6000584,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":401}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":401}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_control_collect-sbv:[5120x1]-sbv:[5088x1]","calls":203,"timed_calls":203,"verification_ns":227180004,"machine_run_ns":23019844584,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2526335}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2526335}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_control_encode_125-sbv:[1032x1]-sbv:[1072x1]","calls":2,"timed_calls":2,"verification_ns":4465125,"machine_run_ns":143084583,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":13144}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":2,"count":64}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":13144}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":2,"count":64}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_frame_idle_v2_4096-sbv:[224x1]-sbv:[272x1]","calls":135,"timed_calls":135,"verification_ns":62240623,"machine_run_ns":9781299164,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":642600}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":642600}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_frame_v2_4096-sbv:[224x1]-sbv:[272x1]","calls":68,"timed_calls":68,"verification_ns":28833125,"machine_run_ns":4942844872,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":319328}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":319328}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_upgrade_byte-sbv:[1680x1]-sbv:[1464x1]","calls":135,"timed_calls":135,"verification_ns":98580702,"machine_run_ns":10881654129,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1060155}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1060155}
+TLS_RESOURCE_COMPLETE {"party":0,"complete":true}
+native app operation 8, public bytes 0
+TLS_METRIC {"party":0,"stage":"rpc.8","success":true,"elapsed_ns":1083125,"counters_monotone":true,"worker_payload_bytes":0,"host_payload_bytes":0,"communication_operations":0,"external_tls_sent":0,"external_tls_received":0}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_private_text_notification_48_80-sbv:[472x1]-sbv:[720x1]","calls":12,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":847416}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":847416}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-sbv:[9776x1]-sbv:[21968x1]","calls":1,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":40808}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":3574}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":2048}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":16}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":12233204}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":2,"count":64}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8240}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":40808}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":3574}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":2048}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":12233204}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":2,"count":64}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/signal_relay_upgrade_22-sbv:[432x1]-sbv:[2760x1]","calls":1,"timed_calls":0,"verification_ns":0,"machine_run_ns":0,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":10144}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":10144}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_agreement-s:[256]-s:1-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":1143458,"machine_run_ns":556754625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":5102}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":255}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":257}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":3}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1788}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":5102}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":255}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":257}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1788}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_begin-s:[256]-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":1319875,"machine_run_ns":617259333,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":0,"count":5101}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":4,"count":511}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":6,"count":256}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":0,"kind":7,"count":2}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1788}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":7,"count":8}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":0,"count":5101}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":4,"count":511}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":0,"kind":6,"count":256}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1788}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_application_secrets-sbv:[512x1]-sbv:[512x1]","calls":1,"timed_calls":1,"verification_ns":95582959,"machine_run_ns":10023234958,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":340428}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":340428}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_chat_mux_admit_4-sbv:[7936x1]-sbv:[7856x1]","calls":2,"timed_calls":2,"verification_ns":2076666,"machine_run_ns":71131751,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2554}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2554}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_chat_mux_byte_4096_4-sbv:[7888x1]-sbv:[7880x1]","calls":68,"timed_calls":68,"verification_ns":245682542,"machine_run_ns":34674897294,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":4499968}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":4499968}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_finished-sbv:[512x1]-sbv:[256x1]","calls":1,"timed_calls":1,"verification_ns":122254416,"machine_run_ns":13788355209,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":440159}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":440159}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_handshake_secrets-sbv:[512x1]-sbv:[1024x1]","calls":1,"timed_calls":1,"verification_ns":120592625,"machine_run_ns":23252146125,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":763185}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":763185}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_43-sbv:[632x1]-sbv:[208x1]","calls":1,"timed_calls":1,"verification_ns":5964667,"machine_run_ns":480312083,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":76253}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":76253}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_579-sbv:[4920x1]-sbv:[4496x1]","calls":1,"timed_calls":1,"verification_ns":58596500,"machine_run_ns":4795568291,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":808074}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":808074}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_58-sbv:[752x1]-sbv:[328x1]","calls":1,"timed_calls":1,"verification_ns":13162083,"machine_run_ns":2261161792,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":97120}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":97120}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_handshake_record_94-sbv:[1040x1]-sbv:[616x1]","calls":1,"timed_calls":1,"verification_ns":11660750,"machine_run_ns":851132959,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":142552}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":142552}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_149-sbv:[1480x1]-sbv:[1056x1]","calls":1,"timed_calls":1,"verification_ns":17991292,"machine_run_ns":1332738375,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":208586}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":208586}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_28-sbv:[512x1]-sbv:[88x1]","calls":1,"timed_calls":1,"verification_ns":4195625,"machine_run_ns":354921500,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":54414}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":54414}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_31-sbv:[536x1]-sbv:[112x1]","calls":1,"timed_calls":1,"verification_ns":4510791,"machine_run_ns":342065125,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":54711}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":54711}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_open_record_79-sbv:[920x1]-sbv:[496x1]","calls":1,"timed_calls":1,"verification_ns":9120875,"machine_run_ns":771083667,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":120171}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":120171}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_private_request_id_next-sbv:[64x1]-sbv:[72x1]","calls":3,"timed_calls":3,"verification_ns":3266583,"machine_run_ns":250492208,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":8313}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":8313}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_provider_validity-sbv:[16x1]-sbv:[8x1]","calls":35,"timed_calls":35,"verification_ns":7703915,"machine_run_ns":153396164,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1890}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1890}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_10-sbv:[200x1]-sbv:[200x1]","calls":1,"timed_calls":1,"verification_ns":216625,"machine_run_ns":27057708,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":766}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":766}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_128-sbv:[1144x1]-sbv:[1144x1]","calls":1,"timed_calls":1,"verification_ns":631917,"machine_run_ns":107197667,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2608}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2608}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_58-sbv:[584x1]-sbv:[584x1]","calls":1,"timed_calls":1,"verification_ns":237125,"machine_run_ns":30939000,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1614}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1614}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_route_application_7-sbv:[176x1]-sbv:[176x1]","calls":1,"timed_calls":1,"verification_ns":191416,"machine_run_ns":26314042,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":759}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":759}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_1290-sbv:[10632x1]-sbv:[10504x1]","calls":2,"timed_calls":2,"verification_ns":252481376,"machine_run_ns":19650308625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":3424938}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":3424938}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_131-sbv:[1360x1]-sbv:[1232x1]","calls":2,"timed_calls":2,"verification_ns":33608500,"machine_run_ns":2394855625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":429606}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":429606}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_private_record_345-sbv:[3072x1]-sbv:[2944x1]","calls":1,"timed_calls":1,"verification_ns":46747000,"machine_run_ns":3742566583,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":485527}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":485527}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_seal_record_22_36_0-sbv:[576x1]-sbv:[464x1]","calls":1,"timed_calls":1,"verification_ns":24716083,"machine_run_ns":1940210625,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":89234}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":89234}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_traffic_keys-sbv:[256x1]-sbv:[224x1]","calls":4,"timed_calls":4,"verification_ns":272025625,"machine_run_ns":38998283417,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1244200}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1244200}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_verify_finished-sbv:[800x1]-sbv:[8x1]","calls":1,"timed_calls":1,"verification_ns":123345292,"machine_run_ns":14817404083,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":440446}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":440446}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_10-sbv:[24x1]-sbv:[88x1]","calls":1,"timed_calls":1,"verification_ns":1187792,"machine_run_ns":9512167,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":542}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":542}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_128-sbv:[24x1]-sbv:[1032x1]","calls":1,"timed_calls":1,"verification_ns":2938709,"machine_run_ns":295146291,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":5851}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":5851}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_58-sbv:[24x1]-sbv:[472x1]","calls":1,"timed_calls":1,"verification_ns":1675750,"machine_run_ns":30962041,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2728}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2728}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_activity_7-sbv:[24x1]-sbv:[64x1]","calls":1,"timed_calls":1,"verification_ns":1134458,"machine_run_ns":6000584,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":401}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":401}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_control_collect-sbv:[5120x1]-sbv:[5088x1]","calls":203,"timed_calls":203,"verification_ns":227180004,"machine_run_ns":23019844584,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":2526335}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":2526335}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_control_encode_125-sbv:[1032x1]-sbv:[1072x1]","calls":2,"timed_calls":2,"verification_ns":4465125,"machine_run_ns":143084583,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":13144}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":2,"count":64}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":13144}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":2,"count":64}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_frame_idle_v2_4096-sbv:[224x1]-sbv:[272x1]","calls":135,"timed_calls":135,"verification_ns":62240623,"machine_run_ns":9781299164,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":642600}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":642600}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_frame_v2_4096-sbv:[224x1]-sbv:[272x1]","calls":68,"timed_calls":68,"verification_ns":28833125,"machine_run_ns":4942844872,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":319328}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":319328}
+TLS_RESOURCE_META {"party":0,"descriptor":"Programs/Functions/tls_binary_tls_websocket_upgrade_byte-sbv:[1680x1]-sbv:[1464x1]","calls":135,"timed_calls":135,"verification_ns":98580702,"machine_run_ns":10881654129,"declared_known":true,"actual_available":true}
+TLS_RESOURCE {"party":0,"source":"compiler_declared_demand","field":2,"kind":0,"count":1060155}
+TLS_RESOURCE {"party":0,"source":"runtime_function_consumed","field":2,"kind":0,"count":1060155}
+TLS_RESOURCE_COMPLETE {"party":0,"complete":true}

@@ -1,0 +1,97 @@
+{
+  "passed": true,
+  "phase": "restored",
+  "logs": "benchmarks/results/raw/tls-sharded-account/eba2a5429624f308/restored",
+  "controllers": [
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "cut": false,
+      "error": "",
+      "outbox_resume": true,
+      "outcome_checkpoint": false,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "cut": false,
+      "error": "",
+      "outbox_resume": true,
+      "outcome_checkpoint": false,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "cut": false,
+      "error": "",
+      "outbox_resume": true,
+      "outcome_checkpoint": false,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "cut": false,
+      "error": "",
+      "outbox_resume": true,
+      "outcome_checkpoint": false,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "cut": false,
+      "error": "",
+      "outbox_resume": true,
+      "outcome_checkpoint": false,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    }
+  ],
+  "peer": {
+    "passed": true,
+    "phase": "restored",
+    "actual_serialized_bob_session": true,
+    "fresh_texts_decrypted": 10,
+    "replays_rejected_state_preserved": 1,
+    "withheld_responses": 0,
+    "response_count": 11,
+    "application_sha256": {
+      "0": "56e5ac46a79d8de89721caaf5f101589192dcdda01779f2eedde55e501f905d5",
+      "1": "5d514c0b909707ba0e5348cc3f4a64140a0248917d9928b4c84a28eb959c528b"
+    },
+    "resume_application_hash_matches": true,
+    "reordered_response_pairs": 2,
+    "pongs_validated": 12,
+    "private_client_IDs_opened": false,
+    "unique_delivery_claim": false,
+    "live_account_effects": false
+  },
+  "error": null,
+  "cleanup": [],
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "seconds": 2271.2293924160767,
+  "endpoint": {
+    "external_received_bytes": 16902,
+    "external_sent_bytes": 2262,
+    "completed": true
+  },
+  "integrity": true
+}
