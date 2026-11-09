@@ -1,0 +1,21 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Actual Core process/event trace agrees under stack-high-half erasure for all private byte/control sequences from initial state, including sticky rejected high tags. Mux trace and byte codec bridge remain OPEN. No runtime promotion or native jobs.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimStack.lean": "ddf6e048660a9f0f2c79f20d11b9ace044873c6f27b63c829a7e508406df6871",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimProcess.lean": "e6b959a2cef4602e50617ce07634a5258c76b03c34c76930cc737c98008592c1",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_trim.py": "904239851db1e4e5559c92b711496ea730fff109e79e99f91d655035cee64825",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/TRIM.md": "25f6636c50f8655103f9947bb1f890b3dc721946553585ae702ddbdca8700958"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/process-audit.json": "b03c39e1010e293b5f3aeffc96eedccd47fb092a289b956cf2d3bbfe9436d25b"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/trim-99deb56be47a-96981.log",
+  "kernel_log_sha256": "4034cd845101b9b5196099bcfa4353fb8b136799dd85d4a8ae9272483832bae7",
+  "kernel_log": "Checking ParserCircuitCandidateV1.TrimStack\n'ChatResponseReference.ParserCircuitCandidateV1.trim_lookup' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_word_identity' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_state_select' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_rejected_step' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_step' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_word_select' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_write_stack' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_stack_narrow' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_finish' depends on axioms: [propext, Quot.sound]\nChecking ParserCircuitCandidateV1.TrimProcess\n'ChatResponseReference.ParserCircuitCandidateV1.trimmed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.fresh_trimmed_trace_eq' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_step_tail' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_process' depends on axioms: [propext, Classical.choice, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trim_process_tail' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/trim-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimStack.olean": "28f0684f2640133dbd3e3cc50b71b614634ee4544b29962009f5edaf58f784f9",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/trim-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/TrimProcess.olean": "c2119c095d0e21459c523323f73a02b0c00592739e62381aab8687cabdfedfab"
+  }
+}

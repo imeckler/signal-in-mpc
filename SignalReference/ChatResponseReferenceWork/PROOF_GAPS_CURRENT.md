@@ -105,3 +105,10 @@ private input/control sequences. Combined process-audit.json exits 0 with only
 foundational axioms. Malformed high tags remain explicitly represented after
 rejection. Codec carry/roundtrip and rejected-state bisimulation remain open;
 no compact whole-stream equivalence or runtime promotion is claimed.
+
+Candidate stack32 trace checkpoint: TrimStack/TrimProcess prove actual Core
+process projected-event equivalence under per-byte high-stack erasure for all
+private controls/input lists from initialization, including malformed keys,
+sticky rejection, reset and finish. Combined trim-audit.json exits0 with only
+foundational axioms. Mux admission/correlation trace and byte codec bridge remain
+open; this is not yet compact exported Mux streaming equivalence.
