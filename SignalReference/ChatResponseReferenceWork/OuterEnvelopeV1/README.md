@@ -25,7 +25,11 @@ DecodeError.push extraction remains OPEN/trusted; warning-log text is excluded
 from the later owned functional observation. Optimized unsafe std UTF8, successful
 bounded allocation, and contiguous content/loan models remain explicit boundaries.
 
-This is not yet the full envelope scan, request-submessage finite derivation,
-HTTP validation or TLS streaming/correlation/compiler theorem. No response validity
+`RequestReference` proves the complete actual request dispatcher and all-wire
+consumption, including malformed/duplicate/unknown/group cases. Generic submessage
+progress is instantiated for both actual request and response dictionaries, with
+no primitive validity/termination/finite-trace premise in those exports.
+
+This is not yet the full envelope scan, HTTP validation or TLS streaming/correlation/compiler theorem. No response validity
 is assumed. Actual parent-tail overrun behavior is retained by the submessage
 bridge; a bounded streaming relation must justify its owned-error projection.
