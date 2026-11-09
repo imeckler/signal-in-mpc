@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "actual_recipient_texts": 12,
+  "actual_replay_rejections": 2,
+  "actual_trusted_peers": 2,
+  "actual_global_codec_reload": true,
+  "selected_SPQR_phase_override": true,
+  "MPC_fresh_bootstrap": false,
+  "private_activation": false,
+  "public_disposable_fixture_only": true,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/prepare.py": "81f1025a7d575211e2ebe8fa455b8c561f2aa7258f16b850343026d7b8fd03d8",
+    "signal_backend/Oracle/src/bin/signal-sharded-session-fixture-oracle.rs": "f5c6df763d7f09b2e08c2c1aee18e136f4d6c535586773d9b3123c64494d9ff8",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/client.json": "1045db4c50fad6a3da0d869b22e1224dec6d1ceec08c626cfea722e66d4caa4a",
+    "signal_backend/RecoveryWork/FreshShardedFixtureWork/recipient.json": "1a8ac79feb2a568ca5cbfb861af68cadd94cd146c7578430a8aaf9b61ba3bb88"
+  },
+  "binary_sha256": {
+    "signal-sharded-session-fixture-oracle": "2c38ffbbf23080db39953cf2a27b52dab2b195d778b2f30dfe119b6058f5a801",
+    "signal-restored-recipient-oracle": "024edf3dd60917184a52a4a2eadaf77a8287ec05ad48d44e23f10cb96c52041f"
+  }
+}
