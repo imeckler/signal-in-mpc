@@ -1,0 +1,36 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "additional_translation_trust_not_mechanized": true,
+  "reversible_metadata_changes": 7,
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_refs_to_removed_opaque_fields": true,
+  "removed_functions": [
+    96,
+    100
+  ],
+  "original_sha256": "62c1715a03127ba74d675a22f3372daf86970cedb283576af01d9212c3e9e3e3",
+  "selected_sha256": "26d1f95cd201d79e6413dc5e3491d43a9dccf036674a99d71242c4324c67a4ec",
+  "changes_sha256": "58f37e1045e17afcd389a9d6ee714898b5815e1cc47a5469353f18f21bc79479",
+  "script_sha256": "ab537eb32c1ec92ea014225b15027fea5da5cbef36bf2f22c781d34065a8872b",
+  "aeneas_exit": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/XorContentV1Work/ArtifactsSelected/selected.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/XorContentV1Work/GeneratedSelected",
+    "-split-files",
+    "-namespace",
+    "ActualXorContent16",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_sha256": {
+    "SignalReference/CtrReferenceV1Work/XorContentV1Work/GeneratedSelected/Funs.lean": "3cabac743accef28dd316694a4686f9f2a1b970af6271c51cf4db7fdcdd2c13f",
+    "SignalReference/CtrReferenceV1Work/XorContentV1Work/GeneratedSelected/Types.lean": "91d94d835fe29c83128c2a14eaa3f375b0f382435247568974e8c523c92f31af"
+  }
+}

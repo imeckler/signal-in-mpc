@@ -1,0 +1,1112 @@
+[
+  {
+    "path": [
+      "translated",
+      "trait_decls",
+      2,
+      "methods",
+      2
+    ],
+    "before": {
+      "params": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "skip_binder": {
+        "name": "forward_overflowing",
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "iter",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Step",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "forward_overflowing",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 11,
+              "beg": {
+                "line": 92,
+                "col": 4
+              },
+              "end": {
+                "line": 92,
+                "col": 70
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": null,
+          "attr_info": {
+            "attributes": [
+              {
+                "DocComment": " Returns the value that would be obtained by taking the *successor*"
+              },
+              {
+                "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+              },
+              {
+                "DocComment": " occurred."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " If this would overflow the range of values supported by `Self`, the"
+              },
+              {
+                "DocComment": " value returned is unspecified and should not be relied on, though"
+              },
+              {
+                "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+              },
+              {
+                "DocComment": " implementation to enable optimizations."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " # Invariants"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::forward_overflowing(Step::forward_overflowing(a, n).0, m) == Step::forward_overflowing(a, n + m)`"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a` and `n`, where no overflow occurs:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::forward_overflowing(a, n) == (Step::forward_checked(a, n).unwrap(), false)`"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a` and `n`:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::forward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::forward_overflowing(x, 1); (s, y || o) })`"
+              },
+              {
+                "DocComment": "   * Corollary: `Step::forward_overflowing(a, 0) == (a, false)`"
+              }
+            ],
+            "inline": null,
+            "rename": null,
+            "public": true
+          },
+          "is_local": false,
+          "opacity": "Foreign",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "TypeVar": {
+                  "Free": 0
+                }
+              }
+            },
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Adt": {
+                "id": {
+                  "Builtin": "Tuple"
+                },
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "TypeVar": {
+                          "Free": 0
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": "Bool"
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              }
+            }
+          }
+        },
+        "default": null
+      },
+      "kind": {
+        "TraitMethod": [
+          2,
+          2
+        ]
+      }
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "trait_impls",
+      4,
+      "methods",
+      2
+    ],
+    "before": {
+      "params": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "skip_binder": {
+        "id": 96,
+        "generics": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_refs": []
+        }
+      },
+      "kind": {
+        "TraitMethod": [
+          2,
+          2
+        ]
+      }
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "fun_decls",
+      96
+    ],
+    "before": {
+      "def_id": 96,
+      "item_meta": {
+        "name": [
+          {
+            "Ident": [
+              "core",
+              0
+            ]
+          },
+          {
+            "Ident": [
+              "iter",
+              0
+            ]
+          },
+          {
+            "Ident": [
+              "range",
+              0
+            ]
+          },
+          {
+            "Impl": {
+              "Trait": 4
+            }
+          },
+          {
+            "Ident": [
+              "forward_overflowing",
+              0
+            ]
+          }
+        ],
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 348,
+              "col": 16
+            },
+            "end": {
+              "line": 348,
+              "col": 77
+            }
+          },
+          "generated_from_span": null
+        },
+        "source_text": null,
+        "attr_info": {
+          "attributes": [],
+          "inline": "Hint",
+          "rename": null,
+          "public": true
+        },
+        "is_local": false,
+        "opacity": "Foreign",
+        "lang_item": null,
+        "diagnostic_item": null
+      },
+      "generics": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "signature": {
+        "is_unsafe": false,
+        "abi": "Rust",
+        "is_variadic": false,
+        "inputs": [
+          {
+            "Untagged": {
+              "Literal": {
+                "UInt": "Usize"
+              }
+            }
+          },
+          {
+            "Untagged": {
+              "Literal": {
+                "UInt": "Usize"
+              }
+            }
+          }
+        ],
+        "output": {
+          "Untagged": {
+            "Adt": {
+              "id": {
+                "Builtin": "Tuple"
+              },
+              "generics": {
+                "regions": [],
+                "types": [
+                  {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "Usize"
+                      }
+                    }
+                  },
+                  {
+                    "Untagged": {
+                      "Literal": "Bool"
+                    }
+                  }
+                ],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            }
+          }
+        }
+      },
+      "src": {
+        "TraitImpl": {
+          "impl_ref": {
+            "id": 4,
+            "generics": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "trait_ref": {
+            "id": 2,
+            "generics": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "item_id": 2,
+          "reuses_default": true
+        }
+      },
+      "body": "Opaque"
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "trait_decls",
+      2,
+      "methods",
+      6
+    ],
+    "before": {
+      "params": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "skip_binder": {
+        "name": "backward_overflowing",
+        "item_meta": {
+          "name": [
+            {
+              "Ident": [
+                "core",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "iter",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "range",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "Step",
+                0
+              ]
+            },
+            {
+              "Ident": [
+                "backward_overflowing",
+                0
+              ]
+            }
+          ],
+          "span": {
+            "data": {
+              "file_id": 11,
+              "beg": {
+                "line": 187,
+                "col": 4
+              },
+              "end": {
+                "line": 187,
+                "col": 71
+              }
+            },
+            "generated_from_span": null
+          },
+          "source_text": null,
+          "attr_info": {
+            "attributes": [
+              {
+                "DocComment": " Returns the value that would be obtained by taking the *successor*"
+              },
+              {
+                "DocComment": " of `self` `count` times along with a boolean tracking whether overflow"
+              },
+              {
+                "DocComment": " occurred."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " If this would overflow the range of values supported by `Self`, the"
+              },
+              {
+                "DocComment": " value returned is unspecified and should not be relied on, though"
+              },
+              {
+                "DocComment": " typically wrapping (modular arithmetic) is the most effective"
+              },
+              {
+                "DocComment": " implementation to enable optimizations."
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " # Invariants"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a`, `n`, and `m`, where no overflow occurs:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::backward_overflowing(Step::backward_overflowing(a, n).0, m) == Step::backward_overflowing(a, n + m)`"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a` and `n`, where no overflow occurs:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::backward_overflowing(a, n) == (Step::backward_checked(a, n).unwrap(), false)`"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " For any `a` and `n`:"
+              },
+              {
+                "DocComment": ""
+              },
+              {
+                "DocComment": " * `Step::backward_overflowing(a, n) == (0..n).fold((a, false), |(x, y), _| { let (s, o) = Step::backward_overflowing(x, 1); (s, y || o) })`"
+              },
+              {
+                "DocComment": "   * Corollary: `Step::backward_overflowing(a, 0) == (a, false)`"
+              }
+            ],
+            "inline": null,
+            "rename": null,
+            "public": true
+          },
+          "is_local": false,
+          "opacity": "Foreign",
+          "lang_item": null,
+          "diagnostic_item": null
+        },
+        "signature": {
+          "is_unsafe": false,
+          "abi": "Rust",
+          "is_variadic": false,
+          "inputs": [
+            {
+              "Untagged": {
+                "TypeVar": {
+                  "Free": 0
+                }
+              }
+            },
+            {
+              "Untagged": {
+                "Literal": {
+                  "UInt": "Usize"
+                }
+              }
+            }
+          ],
+          "output": {
+            "Untagged": {
+              "Adt": {
+                "id": {
+                  "Builtin": "Tuple"
+                },
+                "generics": {
+                  "regions": [],
+                  "types": [
+                    {
+                      "Untagged": {
+                        "TypeVar": {
+                          "Free": 0
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": "Bool"
+                      }
+                    }
+                  ],
+                  "const_generics": [],
+                  "trait_refs": []
+                }
+              }
+            }
+          }
+        },
+        "default": null
+      },
+      "kind": {
+        "TraitMethod": [
+          2,
+          6
+        ]
+      }
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "trait_impls",
+      4,
+      "methods",
+      6
+    ],
+    "before": {
+      "params": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "skip_binder": {
+        "id": 100,
+        "generics": {
+          "regions": [],
+          "types": [],
+          "const_generics": [],
+          "trait_refs": []
+        }
+      },
+      "kind": {
+        "TraitMethod": [
+          2,
+          6
+        ]
+      }
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "fun_decls",
+      100
+    ],
+    "before": {
+      "def_id": 100,
+      "item_meta": {
+        "name": [
+          {
+            "Ident": [
+              "core",
+              0
+            ]
+          },
+          {
+            "Ident": [
+              "iter",
+              0
+            ]
+          },
+          {
+            "Ident": [
+              "range",
+              0
+            ]
+          },
+          {
+            "Impl": {
+              "Trait": 4
+            }
+          },
+          {
+            "Ident": [
+              "backward_overflowing",
+              0
+            ]
+          }
+        ],
+        "span": {
+          "data": {
+            "file_id": 11,
+            "beg": {
+              "line": 357,
+              "col": 16
+            },
+            "end": {
+              "line": 357,
+              "col": 78
+            }
+          },
+          "generated_from_span": null
+        },
+        "source_text": null,
+        "attr_info": {
+          "attributes": [],
+          "inline": "Hint",
+          "rename": null,
+          "public": true
+        },
+        "is_local": false,
+        "opacity": "Foreign",
+        "lang_item": null,
+        "diagnostic_item": null
+      },
+      "generics": {
+        "regions": [],
+        "types": [],
+        "const_generics": [],
+        "trait_clauses": [],
+        "regions_outlive": [],
+        "types_outlive": [],
+        "trait_type_constraints": []
+      },
+      "signature": {
+        "is_unsafe": false,
+        "abi": "Rust",
+        "is_variadic": false,
+        "inputs": [
+          {
+            "Untagged": {
+              "Literal": {
+                "UInt": "Usize"
+              }
+            }
+          },
+          {
+            "Untagged": {
+              "Literal": {
+                "UInt": "Usize"
+              }
+            }
+          }
+        ],
+        "output": {
+          "Untagged": {
+            "Adt": {
+              "id": {
+                "Builtin": "Tuple"
+              },
+              "generics": {
+                "regions": [],
+                "types": [
+                  {
+                    "Untagged": {
+                      "Literal": {
+                        "UInt": "Usize"
+                      }
+                    }
+                  },
+                  {
+                    "Untagged": {
+                      "Literal": "Bool"
+                    }
+                  }
+                ],
+                "const_generics": [],
+                "trait_refs": []
+              }
+            }
+          }
+        }
+      },
+      "src": {
+        "TraitImpl": {
+          "impl_ref": {
+            "id": 4,
+            "generics": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "trait_ref": {
+            "id": 2,
+            "generics": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            }
+          },
+          "item_id": 6,
+          "reuses_default": true
+        }
+      },
+      "body": "Opaque"
+    },
+    "after": null
+  },
+  {
+    "path": [
+      "translated",
+      "ordered_decls"
+    ],
+    "before": [
+      {
+        "TraitDecl": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 1
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 6
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 128
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 6
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 20
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 29
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 3
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 19
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 140
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 10
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 129
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 7
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 4
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 100
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 96
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 99
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 95
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 94
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 2
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 3
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 3
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 0
+        }
+      }
+    ],
+    "after": [
+      {
+        "TraitDecl": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 1
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 6
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 128
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 6
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 20
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 29
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 3
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 19
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 140
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 10
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 129
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 7
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 4
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 99
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 95
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 94
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 4
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 2
+        }
+      },
+      {
+        "TraitDecl": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 3
+        }
+      },
+      {
+        "TraitImpl": {
+          "NonRec": 3
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 2
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 0
+        }
+      },
+      {
+        "Type": {
+          "NonRec": 1
+        }
+      },
+      {
+        "Fun": {
+          "NonRec": 0
+        }
+      }
+    ]
+  }
+]
