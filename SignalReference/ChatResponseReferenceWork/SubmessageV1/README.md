@@ -32,3 +32,10 @@ fields/groups, malformed strings, existing values, child lengths and parent tail
 They supplement the kernel facts; complete submessage scan/outer envelope and
 streaming/compiler composition remain open. The std UTF8/content and diagnostic
 static-push model boundaries inherited by the inner schema remain explicit.
+
+`InnerScan` instantiates the actual closure with the actual generated response
+dispatcher. Successful callbacks strictly consume input, from actual key and
+all-wire field bounds. `actual_delimited_scan_finite` derives finite execution of
+the real parent-limit loop on every contiguous slice/limit/initial message,
+including errors and outer fail/div. No assumption of child-boundary compliance
+or primitive termination is introduced. The outer/streaming relation remains open.
