@@ -1,0 +1,64 @@
+{
+  "mp_spdz_commit": "113c4e47dd94bca9ecab029d2f0abe649bea5c52",
+  "archive_sha256": "53cb2822dce57379f1c66647511b866e3e5db3e2f32b530a13e0c872a418ab78",
+  "dependency_pins": [
+    {
+      "name": "coproto",
+      "commit": "8dce3918b06c80dbcd65baeb899f1a694433f926"
+    },
+    {
+      "name": "function2",
+      "commit": "02ca99831de59c7c3a4b834789260253cace0ced"
+    },
+    {
+      "name": "libdivide",
+      "commit": "66190e9daa603cabe95d99f09fb79b5c186d0417"
+    },
+    {
+      "name": "macoro",
+      "commit": "ee5fa61a9bc2e4cd4cdddea8d4a6485332e8d58e"
+    },
+    {
+      "archive": "libote.tar.gz",
+      "sha256": "f057ae31d5a28f1946fda6d002620af996cefa1e904d3abf98e789393cd31578"
+    },
+    {
+      "archive": "cryptotools.tar.gz",
+      "sha256": "cac991e7317db7287b924f66c3ff041b9f3533e44e11c4d1f3f02ff56863495c"
+    },
+    {
+      "archive": "simde.tar.gz",
+      "sha256": "b0f32e5167f8cbba4fa5dcc24e9394bed9406146b961cfce15deaf703a16c6d6"
+    },
+    {
+      "archive": "sse2neon.tar.gz",
+      "sha256": "b3bb5c07dee12ce4ca60359e2db17994447f3539721d9ba161b890c4c0db0815"
+    },
+    {
+      "archive": "mp-sse2neon.tar.gz",
+      "sha256": "ee6af363655d54d5a6df25fe5a2894e81d0a3f5ffa6a8ad964005542efa9d43a"
+    },
+    {
+      "archive": "simplestot.tar.gz",
+      "sha256": "e2001b6fa78ca0f51777050642bd86103e68473c5b75e1ab5f2cccac492251ec"
+    }
+  ],
+  "config": "ROOT = .\n\nOPTIM= -O3\n#PROF = -pg\n#DEBUG = -DDEBUG\nGDEBUG = -g\nERROR = -Werror\n\n# set this to your preferred local storage directory\nPREP_DIR = '-DPREP_DIR=\"Player-Data/\"'\n\n# directory to store SSL keys\nSSL_DIR = '-DSSL_DIR=\"Player-Data/\"'\n\n# set for SHE preprocessing (SPDZ and Overdrive)\nUSE_NTL = 0\n\n# set for using GF(2^128)\n# unset for GF(2^40)\nUSE_GF2N_LONG = 1\n\n# libOTe 2 is faster but requires GCC 11 or clang 15\nUSE_LIBOTE2 = 1\n\n# set to -march=<architecture> for optimization\n# SSE4.2 is required homomorphic encryption in GF(2^n) when compiling with clang\n# AES-NI and PCLMUL are not required\n# AVX is required for oblivious transfer (OT)\n# AVX2 support (Haswell or later) is used to optimize OT\n# AVX/AVX2 is required for replicated binary secret sharing\n# BMI2 is used to optimize multiplication modulo a prime\n# ADX is used to optimize big integer additions\n# delete the second line to compile for a platform that supports everything\nARCH = -mtune=native -msse4.1 -msse4.2 -maes -mpclmul -mavx -mavx2 -mbmi2 -madx\nARCH = -march=native\n\nMACHINE := $(shell uname -m)\nARM := $(shell uname -m | grep x86; echo $$?)\nOS := $(shell uname -s)\nifeq ($(MACHINE), x86_64)\nifeq ($(OS), Linux)\nifeq ($(shell cat /proc/cpuinfo | grep -q avx2; echo $$?), 0)\nAVX_OT = 1\nelse\nAVX_OT = 0\nendif\nelse\nAVX_OT = 0\nendif\nelse\nARCH =\nAVX_OT = 0\nendif\n\nifeq ($(OS), Darwin)\nBREW_CFLAGS += -I/usr/local/opt/openssl/include -I`brew --prefix`/opt/openssl/include -I`brew --prefix`/include\nBREW_LDLIBS += -L/usr/local/opt/openssl/lib -L`brew --prefix`/lib -L`brew --prefix`/opt/openssl/lib\nendif\n\nifeq ($(OS), Linux)\nifeq ($(ARM), 1)\nARCH = -mcpu=native\nendif\nendif\n\nUSE_KOS = 0\n\n# allow to set compiler in CONFIG.mine\nCXX = clang++\n\n# use CONFIG.mine to overwrite DIR settings\n-include CONFIG.mine\n\nOLD := $(shell $(CXX) --version | egrep -q \" (10|[7-9])\\.\"; echo $$?)\nifeq ($(OLD), 0)\n$(error compiler too old: $(shell $(CXX) --version | head -n 1))\nendif\n\n# switch to libOTe 1 if clang is too old\nOLD := $(shell $(CXX) --version | grep -q \"clang version 1[0-4]\"; echo $$?)\nifeq ($(OLD), 0)\n$(info defaulting to libOTe 1 due to clang version)\nUSE_LIBOTE2 = 0\nendif\n\nAVX_SIMPLEOT := $(AVX_OT)\n\nifeq ($(USE_GF2N_LONG),1)\nGF2N_LONG = -DUSE_GF2N_LONG\nendif\n\nifeq ($(AVX_SIMPLEOT), 0)\nCFLAGS += -DNO_AVX_OT\nendif\n\n# MAX_MOD_SZ (for FHE) must be least and GFP_MOD_SZ (for computation)\n# must be exactly ceil(len(p)/len(word)) for the relevant prime p\n# GFP_MOD_SZ only needs to be set for primes of bit length more that 256.\n# Default for MAX_MOD_SZ is 10, which suffices for all Overdrive protocols\n# MOD = -DMAX_MOD_SZ=10 -DGFP_MOD_SZ=5\n\nLDLIBS = -lgmpxx -lgmp -lsodium $(MY_LDLIBS)\nLDLIBS += $(BREW_LDLIBS)\nLDLIBS +=  -Wl,-rpath -Wl,$(CURDIR)/local/lib -L$(CURDIR)/local/lib\nLDLIBS += -lssl -lcrypto\nLDLIBS += -lboost_filesystem -lboost_iostreams\n\nCFLAGS += -I./local/include\n\nifeq ($(USE_TUNGSTEN), 1)\nCFLAGS += -I./local/include/secureJoin\nendif\n\nifeq ($(USE_NTL),1)\nCFLAGS += -DUSE_NTL\nLDLIBS := -lntl $(LDLIBS)\nendif\n\nifeq ($(OS), Linux)\nLDLIBS += -lrt\nLDLIBS += -z noexecstack\nendif\n\nBOOST = -lboost_thread $(MY_BOOST)\n\nCFLAGS += $(ARCH) $(MY_CFLAGS) $(GDEBUG) -Wextra -Wall $(OPTIM) -I$(ROOT) -I$(ROOT)/deps -pthread $(PROF) $(DEBUG) $(MOD) $(GF2N_LONG) $(PREP_DIR) $(SSL_DIR) $(SECURE) -std=c++20 $(ERROR) -Wno-overloaded-virtual\nCFLAGS += $(BREW_CFLAGS)\nCPPFLAGS = $(CFLAGS)\nLD = $(CXX)\n\nifndef OTE_CXX\nOTE_CXX = $(CXX)\nendif\n\nifeq ($(OS), Darwin)\n# for boost with OpenSSL 3\nCFLAGS += -Wno-error=deprecated-declarations\nifeq ($(USE_NTL),1)\nCFLAGS += -Wno-error=unused-parameter -Wno-error=deprecated-copy\nendif\nendif\n\nifeq ($(USE_KOS),1)\nCFLAGS += -DUSE_KOS\nendif\n\n# Isolated two-party comparison, secure SoftSpoken path.\nARCH = -mcpu=native\nAVX_OT = 0\nUSE_KOS = 0\nUSE_LIBOTE2 = 1\nGDEBUG =\n\nMY_CFLAGS += -I/opt/homebrew/opt/openssl@3.5/include\nMY_LDLIBS += -L/opt/homebrew/opt/openssl@3.5/lib\n\nMY_CFLAGS += -Wno-error=deprecated-literal-operator\n",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "security_guard_disabled": false,
+  "source_edits": "socket diagnostic overlay only; CONFIG architecture/include/warning flags",
+  "products": {
+    "tinier-party.x": "635d5d4049e875ec39d223c6248452fba28de0ca27aec9109cdf8dd8647581b0",
+    "mascot-party.x": "824dda6e17eb65ffa205e1681b2beddddc814698c376475fdf8b8abb7d315894",
+    "libSPDZ.so": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614"
+  },
+  "config_sha256": "40439381f3dbe2299c07fda95499fa28ead16b1dee0e64a563812d5c2defb3d6",
+  "active_ot_source_sha256": "229e22315d8e002e9ce2fb216e8318e9e447fd5908ce32d7d51986a71979ce44",
+  "direct_dependency_gitlinks": {
+    "libOTe2": "fe6b2ff82a976a5332b3a2efe325831588b1324a",
+    "cryptoTools": "f70175e0cbd36b808475c0c1bbf585304e43d3d0",
+    "SimplestOT_C": "7ef7666909e493a18c99efe56f97cc4d13723005",
+    "simde": "0ba20859e9f557cee161d2cab2728b56dca7ec38",
+    "sse2neon": "ddca67108e3e96a288e9aa7e31bfacca2309f624"
+  }
+}

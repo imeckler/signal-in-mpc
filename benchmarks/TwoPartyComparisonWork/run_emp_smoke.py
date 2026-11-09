@@ -79,7 +79,7 @@ if __name__=='__main__':
              run_case('sha256-empty',sha,initial+block,hashlib.sha256(b'').digest(),31310),
              run_case('reject-output-key',aes,key+plain,ciphertext,31320,True)]
     report={'passed':all(r['passed'] for r in results),'scope':'loopback component smoke; not full Signal/TLS throughput',
-            'security':'legacy AG2PC nominal40-bit statistical profile; full parameter composition unvalidated; failclosed overlay6branches',
+            'security':'legacy AG2PC nominal40-bit statistical profile; local40-bit comparison-mask correction; full parameter composition unvalidated; failclosed overlay6branches',
             'build':json.loads((BASE/'emp-build.json').read_text()),'results':results}
     target=ROOT/'benchmarks/TwoPartyComparisonWork/emp-smoke-report.json'
     target.write_text(json.dumps(report,indent=2)+'\n')

@@ -35,3 +35,33 @@ Official EMP archive URLs are https://codeload.github.com/emp-toolkit/REPOSITORY
 ## Interruption inventory
 
 No own live bootstrap processes found by approved direct process inventory. Prior bootstrap compiler handles are terminal with preserved reports. No new native groups started at this checkpoint. Other agents may continue independent proof work; immutable graph snapshots will bind benchmark inputs.
+
+## Executed component checkpoint
+Both graphs have identical logical bits/gates across backends. Inputs are supplied as XOR shares; outputs agree with OpenSSL AES256 and hashlib SHA256-empty compression. EMP receives padded outputs only at Bob. The MP component entry opens padded public-known fixture outputs; it is **not** the retained-secret continuation entry. MASCOT-wrapper rows execute Tinier Boolean instructions and zero application Fp multiplications.
+These are cold loopback smoke runs, not sustained throughput or a fully validated common malicious-security profile. EMP uses the explicit40-bit comparison-mask correction plus six fail-closed rejection branches; stock-mask results are historical. MP uses fresh per-case MAC/OT directories, checked SoftSpoken, S40 and batch-size option10000. Generated/discarded batches differ; no consumed preprocessing is reused.
+| graph | backend | controller wall (s) | global payload bytes sent | max party RSS (MiB) |
+|---|---|---:|---:|---:|
+| aes256 | EMP legacy+overlay | 0.0815 | 5,638,006 | 19.0 |
+| sha256-empty | EMP legacy+overlay | 0.0904 | 37,748,706 | 71.8 |
+| aes256 | tinier | 0.2139 | 19,130,414 | 86.4 |
+| aes256 | mascot | 0.2595 | 25,397,438 | 103.2 |
+| sha256-empty | tinier | 0.7115 | 112,955,758 | 103.4 |
+| sha256-empty | mascot | 0.7490 | 113,018,738 | 109.2 |
+
+Byte counters exclude TCP/IP headers/retransmissions. MP counters include socket framing/startup and reconcile total sends/receives; EMP counts all protocol/subchannel payload. CPU and phase details are in reports; MP printed phase CPU values overlap and must not be summed. No WAN emulator used.
+
+Reproduce on the recorded Apple Silicon/Homebrew environment:
+
+```sh
+python3 benchmarks/TwoPartyComparisonWork/prepare_emp.py
+python3 benchmarks/TwoPartyComparisonWork/check_adapter.py
+python3 benchmarks/TwoPartyComparisonWork/run_emp_smoke.py
+python3 benchmarks/TwoPartyComparisonWork/prepare_mp.py
+python3 benchmarks/TwoPartyComparisonWork/run_mp_smoke.py
+```
+
+The original numeric graphs are retained under the paths/hash identities in the reports. A clean checkout must provision those exact public graph artifacts before running; these scripts do not silently regenerate from changing sources. `prepare_mp.py` is syntax-checked; the current binaries were built through its equivalent recorded commands, not by a clean-room replay of the completed script.
+
+Remaining acceptance: full parameter/theorem mapping and adversarial MP controls; immutable closure replay; representative producer component; actual EMP curve/conversion implementation; authenticated private state continuation; full logical Signal/TLS/response/state-update workload; warm/batch sustained rates and epoch/checkpoint costs. Existing X25519 field DAG has4589 multiplications/curve; pure Boolean figures cannot omit this. S128 remains unvalidated for these comparison candidates. Production5party/t2/S128 remains unchanged.
+
+Primary protocol: [Wang–Ranellucci–Katz2017](https://obj.umiacs.umd.edu/papers_for_stories/KatzWangRanellucciBestPaperACMCCS2017.pdf), AppendixA.4 discusses rho-bit transmitted checks; this motivates retaining all40 transmitted bits but does not replace complete implementation validation.

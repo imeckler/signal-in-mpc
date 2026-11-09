@@ -52,7 +52,7 @@ int main(int argc,char**argv) {
         double dependent_seconds=seconds(dependent);
         uint64_t offline_sent=MeasuredIO::sent,offline_received=MeasuredIO::received;
         // Deterministic negative control: Delta has low bit1, so toggling bit2
-        // produces neither valid output-key candidate under the20-bit check.
+        // produces neither valid output-key candidate under the40-bit check.
         if(party==emp::BOB && std::getenv("EMP_TEST_CORRUPT_OUTPUT_KEY"))
             protocol.key[circuit.num_wire-circuit.n3] = protocol.key[circuit.num_wire-circuit.n3] ^ emp::makeBlock(0,4);
         auto online=Clock::now();

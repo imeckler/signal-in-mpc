@@ -53,11 +53,17 @@ def prepare():
   count+=source.count(old)
   source=source.replace(old,new)
  if count!=6:raise ValueError('overlay count mismatch')
+ # SSP sends5bytes but upstream comparison mask retained only20bits.
+ # Retain all40 transmitted bits; this is a labeled local parameter correction,
+ # not a claim of a complete end-to-end security audit.
+ old='const block MASK = makeBlock(0x0ULL, 0xFFFFFULL);'
+ if source.count(old)!=1:raise ValueError('mask source drift')
+ source=source.replace(old,'const block MASK = makeBlock(0x0ULL, 0xFFFFFFFFFFULL);')
  path.write_text(source)
  run(['clang++','-std=c++17','-O3','-march=armv8-a+simd+crypto+crc','-I',prefix/'include','-I',overlay,
       '-I','/opt/homebrew/opt/openssl@3.5/include',ROOT/'benchmarks/TwoPartyComparisonWork/emp_worker.cpp',
       '-L',prefix/'lib','-lemp-tool','-L','/opt/homebrew/opt/openssl@3.5/lib','-lcrypto','-o',BASE/'emp-worker'], 'emp-worker-build.log')
- receipt={'pins':PINS,'overlay_replaced_branches':count,
+ receipt={'pins':PINS,'overlay_replaced_branches':count,'comparison_mask_bits':40,'transmitted_check_bits':40,
           'original_2pc_sha256':hashlib.sha256((original/'emp-ag2pc/2pc.h').read_bytes()).hexdigest(),
           'overlay_2pc_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
           'worker_sha256':hashlib.sha256((BASE/'emp-worker').read_bytes()).hexdigest(),

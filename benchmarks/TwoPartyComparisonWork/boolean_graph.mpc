@@ -1,0 +1,29 @@
+# Component-only comparison compiler entry. This consumes exactly the Bristol
+# gate stream emitted for EMP, including input-share XOR and output-pad gates.
+# Final padded fixture outputs are public solely in this smoke entry; retained
+# private state needs a separate runtime-owned continuation, not this reveal.
+import os
+from Compiler.GC.types import sbit, sbits
+from Compiler.library import print_ln
+
+path = os.environ['TWO_PARTY_BRISTOL']
+with open(path) as f:
+    gate_count, wire_count = map(int, f.readline().split())
+    bob, alice, output = map(int, f.readline().split())
+    f.readline()
+    wires = [sbit.get_input_from(0) for _ in range(bob)]
+    wires += [sbit.get_input_from(1) for _ in range(alice)]
+    wires += [None] * (wire_count-len(wires))
+    for _ in range(gate_count):
+        row = f.readline().split()
+        if row[-1] == 'INV':
+            a, out = map(int, row[2:4])
+            wires[out] = ~wires[a]
+        else:
+            a, b, out = map(int, row[2:5])
+            wires[out] = wires[a] ^ wires[b] if row[-1] == 'XOR' else wires[a] & wires[b]
+    if f.read().strip():
+        raise ValueError('unexpected trailing circuit gates')
+for i in range(0, output, 32):
+    chunk = wires[wire_count-output+i:wire_count-output+min(i+32, output)]
+    print_ln('FIXTURE_CHUNK %s', sbits.get_type(len(chunk)).bit_compose(chunk).reveal())

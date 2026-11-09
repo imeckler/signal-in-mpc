@@ -1,0 +1,11 @@
+{
+  "before": {
+    "Networking/sockets.h": "afb4c971c34eed4ad3dc3480ab2694c692100ce5e7b78db79bb5473b618546e7",
+    "Networking/sockets.cpp": "0607d472de1d69ea1365c173683b94f863600d079f45e9059ac854c6d0417fd2"
+  },
+  "after": {
+    "Networking/sockets.h": "8f1810a871d7920f96e0d1b35d26c4dbbbab13891738f3b4d5b88167bfb8ee54",
+    "Networking/sockets.cpp": "2d99f72c5cb5e8dfe936fd13e066b802a52f873244ae897b6416888d08d42a9c"
+  },
+  "scope": "successful unencrypted socket payload bytes; no TCP headers/retransmissions; no encrypted-channel coverage claim"
+}

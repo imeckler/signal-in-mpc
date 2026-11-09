@@ -1,0 +1,168 @@
+{
+  "passed": true,
+  "scope": "loopback component smoke; not full Signal/TLS throughput",
+  "security": "legacy AG2PC nominal40-bit statistical profile; full parameter composition unvalidated; failclosed overlay6branches",
+  "build": {
+    "pins": {
+      "emp-tool": [
+        "11093a7d2160e7e7a4dcae3ffd9e6935bf2b8c1c",
+        "efa46fccf39643461078b88b82d797e7ce9f1b9357010611045b1afd0254a277"
+      ],
+      "emp-ot": [
+        "52b32c8371c09c1567e3d650c0f0adfbb229a270",
+        "a625ad596ec2bc3b6ba989a632407823a90b2efc2c527e64b315f89d71aac6ce"
+      ],
+      "emp-ag2pc": [
+        "356cfd824772af9334ac9a994d1eec17ab5f565a",
+        "2e6073489eab9a318d63ed1e2c4b7d96b843d3a82fade5413a7be4fe79a9e9b6"
+      ]
+    },
+    "overlay_replaced_branches": 6,
+    "original_2pc_sha256": "f773a3934437acbc1818d58a63d37507fc0619ce0cbd419ef9ede4b690e1f7fd",
+    "overlay_2pc_sha256": "cf645835b4c77265c5d334ac1a146ebd73b34aaf73e659d48aa5584a978f3440",
+    "worker_sha256": "2411b6de9ae41cb81724727f111c1f025f5e34ff0671bf5051a6f057e6abc4ed",
+    "worker_source_sha256": "88c946b10de1f77e5802ed74c42145a7fdc7e23d58596c0efbc5e67ec6d09316"
+  },
+  "results": [
+    {
+      "name": "aes256",
+      "passed": true,
+      "corruption_control": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.043239583959802985,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/aes256-9o9xamhl",
+      "logical_input_bits": 384,
+      "output_bits": 128,
+      "source_sha256": "41a836935d61f1f01ad07aff51648964a69a4dc8d6bf20f462115747998ffbba",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "and_gates": 8832,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.0059055,
+          "setup_seconds": 0.0168996,
+          "independent_seconds": 0.0044885,
+          "dependent_seconds": 0.00359363,
+          "online_seconds": 2.6833e-05,
+          "wall_seconds": 0.0313699,
+          "cpu_seconds": 0.028241,
+          "peak_rss_bytes": 19431424,
+          "sent_bytes": 3197203,
+          "received_bytes": 2440803,
+          "offline_sent_bytes": 3181715,
+          "offline_received_bytes": 2440419,
+          "generated_triples": 8832,
+          "consumed_ands": 8832
+        },
+        {
+          "party": 2,
+          "load_seconds": 0.00596642,
+          "setup_seconds": 0.0174224,
+          "independent_seconds": 0.00408271,
+          "dependent_seconds": 0.00343683,
+          "online_seconds": 0.000397083,
+          "wall_seconds": 0.0317293,
+          "cpu_seconds": 0.028663,
+          "peak_rss_bytes": 19267584,
+          "sent_bytes": 2440803,
+          "received_bytes": 3197203,
+          "offline_sent_bytes": 2440419,
+          "offline_received_bytes": 3181715,
+          "generated_triples": 8832,
+          "consumed_ands": 8832
+        }
+      ]
+    },
+    {
+      "name": "sha256-empty",
+      "passed": true,
+      "corruption_control": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.08729041600599885,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/sha256-empty-iwux6h6p",
+      "logical_input_bits": 768,
+      "output_bits": 256,
+      "source_sha256": "d6b3e242c595f37ec5d12779ee923878b8dfd77d1fc8bacefa806581026864f6",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "and_gates": 59759,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.0214301,
+          "setup_seconds": 0.0166025,
+          "independent_seconds": 0.0232499,
+          "dependent_seconds": 0.0147532,
+          "online_seconds": 4.875e-05,
+          "wall_seconds": 0.077568,
+          "cpu_seconds": 0.07858,
+          "peak_rss_bytes": 68468736,
+          "sent_bytes": 21398719,
+          "received_bytes": 16349987,
+          "offline_sent_bytes": 21367743,
+          "offline_received_bytes": 16349219,
+          "generated_triples": 59760,
+          "consumed_ands": 59759
+        },
+        {
+          "party": 2,
+          "load_seconds": 0.0215865,
+          "setup_seconds": 0.0171563,
+          "independent_seconds": 0.0232486,
+          "dependent_seconds": 0.0141702,
+          "online_seconds": 0.00167608,
+          "wall_seconds": 0.07827,
+          "cpu_seconds": 0.078464,
+          "peak_rss_bytes": 75890688,
+          "sent_bytes": 16349987,
+          "received_bytes": 21398719,
+          "offline_sent_bytes": 16349219,
+          "offline_received_bytes": 21367743,
+          "generated_triples": 59760,
+          "consumed_ands": 59759
+        }
+      ]
+    },
+    {
+      "name": "reject-output-key",
+      "passed": true,
+      "corruption_control": true,
+      "exit_codes": [
+        0,
+        4
+      ],
+      "controller_wall_seconds": 0.03896349994465709,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/reject-output-key-mapaj9dl",
+      "logical_input_bits": 384,
+      "output_bits": 128,
+      "source_sha256": "41a836935d61f1f01ad07aff51648964a69a4dc8d6bf20f462115747998ffbba",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "and_gates": 8832,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.00589821,
+          "setup_seconds": 0.0139445,
+          "independent_seconds": 0.00440037,
+          "dependent_seconds": 0.00464942,
+          "online_seconds": 4.4416e-05,
+          "wall_seconds": 0.0305588,
+          "cpu_seconds": 0.027575,
+          "peak_rss_bytes": 19300352,
+          "sent_bytes": 3197203,
+          "received_bytes": 2440803,
+          "offline_sent_bytes": 3181715,
+          "offline_received_bytes": 2440419,
+          "generated_triples": 8832,
+          "consumed_ands": 8832
+        },
+        null
+      ]
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "passed": true,
+  "scope": "same-graph loopback component smoke, not full Signal/TLS throughput",
+  "security": {
+    "parties": 2,
+    "corruptions": 1,
+    "statistical_parameter": 40,
+    "computational_target": 128,
+    "ot": "checked SoftSpoken; no KOS/insecure fallback",
+    "mascot_prime": "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+    "full_parameter_composition_validated": false
+  },
+  "compiler_source_sha256": "cd8b2317fb6ec335c75db98f9ce956eab02f29807467b2ff1798b024113b71e2",
+  "instrumentation": {
+    "before": {
+      "Networking/sockets.h": "afb4c971c34eed4ad3dc3480ab2694c692100ce5e7b78db79bb5473b618546e7",
+      "Networking/sockets.cpp": "0607d472de1d69ea1365c173683b94f863600d079f45e9059ac854c6d0417fd2"
+    },
+    "after": {
+      "Networking/sockets.h": "8f1810a871d7920f96e0d1b35d26c4dbbbab13891738f3b4d5b88167bfb8ee54",
+      "Networking/sockets.cpp": "2d99f72c5cb5e8dfe936fd13e066b802a52f873244ae897b6416888d08d42a9c"
+    },
+    "scope": "successful unencrypted socket payload bytes; no TCP headers/retransmissions; no encrypted-channel coverage claim"
+  },
+  "results": [
+    {
+      "passed": true,
+      "backend": "tinier",
+      "name": "aes256",
+      "and_gates": 8832,
+      "controller_wall_seconds": 0.21039537503384054,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.180122,
+          "peak_rss_bytes": 32964608,
+          "socket_sent_bytes": 13177196,
+          "socket_received_bytes": 13177244,
+          "phase_report": "Spent 0.006267 seconds (0.00236 MB, 180 rounds, 0.078151 CPU seconds, 0.004958 communication seconds) on the online phase and 0.078532 seconds (13.1718 MB, 276 rounds, 0.078165 CPU seconds, 0.014403 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "402 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.178356,
+          "peak_rss_bytes": 32686080,
+          "socket_sent_bytes": 13177159,
+          "socket_received_bytes": 13177111,
+          "phase_report": "Spent 0.006256 seconds (0.002376 MB, 180 rounds, 0.077854 CPU seconds, 0.005133 communication seconds) on the online phase and 0.078569 seconds (13.1718 MB, 276 rounds, 0.077868 CPU seconds, 0.013508 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "402 triples of Tinier left"
+          ]
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tinier-66qqfiwz",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "logical_input_bits": 384,
+      "worker_sha256": "635d5d4049e875ec39d223c6248452fba28de0ca27aec9109cdf8dd8647581b0",
+      "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614"
+    },
+    {
+      "passed": true,
+      "backend": "mascot",
+      "name": "aes256",
+      "and_gates": 8832,
+      "controller_wall_seconds": 0.2540567920077592,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.225965,
+          "peak_rss_bytes": 36765696,
+          "socket_sent_bytes": 13212972,
+          "socket_received_bytes": 13213077,
+          "phase_report": "Spent 0.006269 seconds (0.002392 MB, 181 rounds, 0.077175 CPU seconds, 0.004931 communication seconds) on the online phase and 0.077121 seconds (13.1675 MB, 274 rounds, 0.077373 CPU seconds, 0.012944 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "402 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.22435699999999997,
+          "peak_rss_bytes": 37289984,
+          "socket_sent_bytes": 13212992,
+          "socket_received_bytes": 13212887,
+          "phase_report": "Spent 0.006135 seconds (0.002408 MB, 181 rounds, 0.077441 CPU seconds, 0.004957 communication seconds) on the online phase and 0.077216 seconds (13.1675 MB, 274 rounds, 0.077607 CPU seconds, 0.012353 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "402 triples of Tinier left"
+          ]
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/mascot-atrrjbyc",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "logical_input_bits": 384,
+      "worker_sha256": "824dda6e17eb65ffa205e1681b2beddddc814698c376475fdf8b8abb7d315894",
+      "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614"
+    },
+    {
+      "passed": true,
+      "backend": "tinier",
+      "name": "sha256-empty",
+      "and_gates": 59759,
+      "controller_wall_seconds": 0.9512302499497309,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.8082499999999999,
+          "peak_rss_bytes": 45809664,
+          "socket_sent_bytes": 86264702,
+          "socket_received_bytes": 86283202,
+          "phase_report": "Spent 0.177657 seconds (0.016347 MB, 6436 rounds, 0.541091 CPU seconds, 0.170365 communication seconds) on the online phase and 0.491311 seconds (86.2213 MB, 1686 rounds, 0.541101 CPU seconds, 0.073224 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "775 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.8069729999999999,
+          "peak_rss_bytes": 45744128,
+          "socket_sent_bytes": 86283117,
+          "socket_received_bytes": 86264617,
+          "phase_report": "Spent 0.17775 seconds (0.016379 MB, 6436 rounds, 0.540717 CPU seconds, 0.171255 communication seconds) on the online phase and 0.491348 seconds (86.2398 MB, 1686 rounds, 0.540733 CPU seconds, 0.07281 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "775 triples of Tinier left"
+          ]
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tinier-y2wj7q6b",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "logical_input_bits": 768,
+      "worker_sha256": "635d5d4049e875ec39d223c6248452fba28de0ca27aec9109cdf8dd8647581b0",
+      "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614"
+    },
+    {
+      "passed": true,
+      "backend": "mascot",
+      "name": "sha256-empty",
+      "and_gates": 59759,
+      "controller_wall_seconds": 0.6892792080761865,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.584009,
+          "peak_rss_bytes": 110788608,
+          "socket_sent_bytes": 56316586,
+          "socket_received_bytes": 56335125,
+          "phase_report": "Spent 0.126012 seconds (0.016379 MB, 6437 rounds, 0.312643 CPU seconds, 0.117032 communication seconds) on the online phase and 0.279705 seconds (56.2807 MB, 200 rounds, 0.312834 CPU seconds, 0.029769 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "2467 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.583343,
+          "peak_rss_bytes": 111722496,
+          "socket_sent_bytes": 56335040,
+          "socket_received_bytes": 56316501,
+          "phase_report": "Spent 0.125945 seconds (0.016411 MB, 6437 rounds, 0.313027 CPU seconds, 0.117936 communication seconds) on the online phase and 0.279726 seconds (56.2991 MB, 200 rounds, 0.313176 CPU seconds, 0.027428 communication seconds) on the preprocessing/offline phase.",
+          "leftover_report": [
+            "2467 triples of Tinier left"
+          ]
+        }
+      ],
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/mascot-i7i9muay",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "logical_input_bits": 768,
+      "worker_sha256": "824dda6e17eb65ffa205e1681b2beddddc814698c376475fdf8b8abb7d315894",
+      "runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614"
+    }
+  ]
+}
