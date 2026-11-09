@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "actual_pinned_libsignal": true,
+  "actual_PQXDH_DR": true,
+  "selected_established_SPQR_override": true,
+  "SS_fixture_identities_bound": true,
+  "actual_peer_decrypt_with_external_wires": 2,
+  "actual_whole_record_reprojection": true,
+  "native_MPC": false,
+  "recovery": false,
+  "provider_admission": false,
+  "oracle_binary_sha256": "3a27cea769c60de0a9289fa6bd8ca160835e967caae2bf05cfdc9702ea58887b",
+  "source_sha256": {
+    "signal_backend/Oracle/src/bin/signal-canonical-owner-oracle.rs": "4e91cc405cf448af26a43912fa72f3110bbc92ebf0e7489e279637b799d6a1bb",
+    "signal_backend/Oracle/src/session_projection.rs": "c1d865ab673cb2be3d0046ca42434e844a061ba2c5ff04b9b69703a8a22d6c42",
+    "signal_backend/Oracle/src/session_send_projection.rs": "c6c8d9351da72bf451d257a5b16c413cb71fd3be5379d53e60709729522e3150",
+    "signal_backend/RecoveryWork/check_canonical_oracle.py": "7feeee3b1d3f59df9116feb3e5b3e3fcd5b59d374b85fdf4052f044026d07b89"
+  }
+}
