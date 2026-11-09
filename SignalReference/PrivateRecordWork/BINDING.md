@@ -23,7 +23,7 @@ public and disposable.
 
 Profile selection by the first canonical V1State key is not a complete parser or
 proof of arbitrary serialized KEM validity. Full bootstrap/schema validation,
-actual source and Hom/compiler theorem, full SPQR/skipped/prekey transitions,
+actual source refinement, snapshot roundtrip/canonical-schema semantic proof, full SPQR/skipped/prekey transitions,
 native bound owner, durable callbacks/import and retirement remain required.
 Normal recovery/provider admission stays closed.
 
@@ -54,3 +54,11 @@ in reserve/commit borrows. Its replacement comes from the same private binding
 output as the canonical snapshot, rather than leaving a stale receive overlay.
 Initial record/selected/service coherence must be established by the future
 checked bootstrap resolver; constructor dimension checks do not establish it.
+
+`PrivateRecordBindingV1Proofs` now proves complete generic Hom transport of
+computed coherence and `bind`, plus byte-circuit agreement for prefix, selected
+projection and canonical snapshot together. The 23-endpoint model proof audit
+also covers restore, projection and sender update; only foundational axioms are
+permitted. This does not establish that the canonical capacity schema describes
+all Rust states, prove snapshot roundtrip normalization, or replace actual-source
+refinement and native artifact/runtime tests.
