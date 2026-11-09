@@ -119,3 +119,10 @@ erasure from initialization, for arbitrary private input/control/admission lists
 Correlation/queue consumption/reset/non2xx abort and malformed rejection remain
 exact. mux-trim-audit.json exits0/foundational-only. Byte codec carry and exported
 compact recurrence/compiler join remain open; no runtime promotion.
+
+Candidate stack32 byte/word checkpoint: CodecIndices proves public inverse
+index maps and arbitrary-list exact non-high-stack byte/event preservation;
+WordCodec proves actual BE pack/bytes roundtrip and exact four-zero/high-half
+projection. codec-audit.json aggregate0/foundational-only (finite maps axiom-free).
+Whole-state shape/readState serialization and compact endpoint stream/compiler
+composition remain open. No native/profile/runtime change.

@@ -1,0 +1,21 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Kernel index inverse and serialized byte projection for measured codec, arbitrary byte element type; word pack/unpack roundtrip and exact trim-word BE serialization. Whole state codec and exported recurrence composition OPEN.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CodecIndices.lean": "31358adb3c39fc80634862861468294f6aaf1609b00caace5abe0797249250f1",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/WordCodec.lean": "439b1cd380f6051ef50ed4875d3e9ddb9b1fc87cfc64e02a81f5fd2b22443646",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_codec.py": "d765b6210ec2944072f852e3fc61cfbd6e683b1453e3838ad9960a7ba98795c1",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/CODEC.md": "4a18f42bd4d08d4ad8a34b2ab7d3e0aa4eac398413619002212b80a1e1f86dde"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/mux-trim-audit.json": "9bb1194fcf2880205111448eead798938e405e4f7d6be9ca8f41f579f30c3cba"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/codec-a93be34d5622-97452.log",
+  "kernel_log_sha256": "70ab7a337bec8483d23e26d07572654c69ec6a821975e8fa345c18cb72c8958b",
+  "kernel_log": "Checking ParserCircuitCandidateV1.CodecIndices\n'ChatResponseReference.ParserCircuitCandidateV1.retained_inverse' does not depend on any axioms\n'ChatResponseReference.ParserCircuitCandidateV1.expanded_inverse' does not depend on any axioms\n'ChatResponseReference.ParserCircuitCandidateV1.compact_expand' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.expand_compact_get' depends on axioms: [propext, Quot.sound]\nChecking ParserCircuitCandidateV1.WordCodec\n'ChatResponseReference.ParserCircuitCandidateV1.pack_word_bytes' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.trimmed_word_bytes' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/codec-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/CodecIndices.olean": "91a7eb9037f6bddb018d0be68839c3f6089b8585ccc28865d8aefd47f7b7ebc7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/codec-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/WordCodec.olean": "7e9eeabdca14ba76dc2f263d2cdf4a6ae9a9fae3fb429bf4d4f5fdbb9301f94a"
+  }
+}
