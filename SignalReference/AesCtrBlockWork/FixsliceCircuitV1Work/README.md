@@ -1,0 +1,7 @@
+# Reference-backed fixslice circuit candidate
+
+check.py audits35 foundational endpoints, including compiled_actual64: the exported four-block circuit agrees with the complete translated aes256_encrypt entry for arbitrary64-byte plaintext and arbitrary fifteen8-word expanded keys. Core's generic algebra hom is instantiated by proved symbolic evaluation operations; concrete_matches connects it to the already proved actual source entry. No whole-crypto correctness premise or validity flag is supplied.
+
+Layout's input and output are public bit permutations. The output decoder is proved by the source layout's inverse relation, not assumed AES independence. Actual generated Rust/Lean computations remain unchanged; pinned translation, official Std content models and the explicitly scoped trusted indexed Zip/borrow model remain the existing boundaries. Kernel audits reject native reflection and nonfoundational axioms. Production files, existing artifacts and runtime admission are unchanged.
+
+Required next stages are actual32-byte-key schedule composition, the exact single-block wrapper profile (zero other lanes, select output0), a proved reduced one-block core, resource comparison and targeted pinned Rust ciphertext tests. Expanded-key reuse must be measured separately from cold key setup. No cost, interop, native MPC or production-readiness result is claimed by this checkpoint. The round core expresses rotations/shifts in public units of four, enabling a future proved64→16 lane projection rather than silently charging four encryption lanes for one block.

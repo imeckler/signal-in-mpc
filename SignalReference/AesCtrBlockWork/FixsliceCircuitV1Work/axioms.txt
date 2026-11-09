@@ -1,0 +1,51 @@
+'LibSignalReference.Candidate.FixsliceCircuitV1.map_list' does not depend on any axioms
+'LibSignalReference.Candidate.FixsliceCircuitV1.fromList_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.substitute_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.addKey_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.first_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.second_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.mix_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.shift2_map' depends on axioms: [propext]
+'LibSignalReference.Candidate.FixsliceCircuitV1.round_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.four_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.rounds_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.encrypt_map' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_substitute' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_add' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_mix0' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_mix1' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_mix2' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_mix3' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_shift' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.concrete_matches' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.evaluationHom64' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.symbolic_state_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.at_map' does not depend on any axioms
+'LibSignalReference.Candidate.FixsliceCircuitV1.packed_plane' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.planeExpr64_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.inputWords64_at' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.inputWords64_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.decode64_bit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.network_decode64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.inverse_decode64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.decodeExpr64_correct' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.expression64_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.encode_original' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.actual_model' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixsliceCircuitV1.compiled_actual64' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
