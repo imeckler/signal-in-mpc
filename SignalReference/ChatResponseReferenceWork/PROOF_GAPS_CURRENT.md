@@ -146,3 +146,10 @@ private inputs including rejected intermediate states. Whole Core/Mux codec
 roundtrips now apply throughout reachable sequences. codec-shape-audit.json
 aggregate0/foundational-only. Compressed serialized trim and exported compact
 recurrence/compiler join remain open; semantic trace equality already closed.
+
+Candidate serialized projection checkpoint: SerializedTrim proves measured
+compact event-output expansion (985B) equals actual serialized trimMuxState
+plus all3 exact event bytes, arbitrary state values under reachable ABI shape.
+serialized-trim-audit.json aggregate0/foundational-only. Explicit next4-control
+input encoding and exported compact recurrence/compiler trace join remain open;
+no valid/success premise or runtime promotion.

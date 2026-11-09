@@ -1,0 +1,19 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Measured compact event-output expansion equals complete actual Mux trim-state serialization plus all3 unchanged event bytes, for arbitrary state contents under reachable ABI shape. No validity/success premise. Input-control encoding and exported recurrence/compiler joins OPEN.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/SerializedTrim.lean": "3a1e36d0bd1eeb1abd5563d299a9e8d459144391c292f0f715f8e7df3bb370ad",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_serialized_trim.py": "6615442e586bce75ff03fe1644df8e59d6b105832054490cd672ef1143a272b4",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/SERIALIZED_TRIM.md": "0328b3bec0107505a300090a5e77d683833ca05540929b0d9b5f1c50cbfb240d"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/codec-shape-audit.json": "417b94f2da1e21221edc0c08fc7ef733e8ba3faf448c6c7c49ad89b749141bc9"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/serialized-trim-753632f9642b-99368.log",
+  "kernel_log_sha256": "171ab7b4f70cd74d6a82ce0abc72084e521dc3a597bebbc4a759cb069e6bf8cc",
+  "kernel_log": "Checking ParserCircuitCandidateV1.SerializedTrim\n'ChatResponseReference.ParserCircuitCandidateV1.mux_bytes_layout' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.serialized_mux_trim_get' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.expanded_compact_event_output' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.serialized_layout_trim' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.get_word_chunk' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.get_trimmed_word_byte' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.get_trimmed_word_chunk' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/serialized-trim-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/SerializedTrim.olean": "975ba571492ec39537c4407537d9a3ff27abab2bd8cbee5c1ef2d243a4e42a79"
+  }
+}
