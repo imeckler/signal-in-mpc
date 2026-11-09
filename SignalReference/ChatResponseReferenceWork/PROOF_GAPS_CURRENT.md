@@ -65,3 +65,9 @@ validation and the generated driver's adapter (all key-validation errors retaine
 Actual Core invalidity is sticky under arbitrary byte tails and finish; the bad
 tenth-byte theorem composes through complete remaining input. Common key checks
 and field transitions still need connection to Core guards in the schema invariant.
+
+Key transition checkpoint: `StreamingV1/key-transition-audit.json` records a
+clean kernel exit0. Native successful key validation supplies the exact tag and
+wire-kind equalities for actual Core stored-tag and next-lane transitions across
+all six wire kinds; actual terminal value reset is proved. The common key guard,
+known-field wire/depth guards and full schema/private-end induction remain open.
