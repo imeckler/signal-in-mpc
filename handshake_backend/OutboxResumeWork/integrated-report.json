@@ -1,6 +1,6 @@
 {
-  "passed": false,
-  "native_mpc_executed": false,
+  "passed": true,
+  "native_mpc_executed": true,
   "production_gate_enabled": false,
   "full_system_complete": false,
   "scope": "Actual linked authorized account engine + freshTLS/HTTP101 + retained-outbox remask/replay + nextproducer + actualrecipient; no capability manufactured by runner. Positive claims require all controller/endpoint/integrity/cleanup checks below.",
@@ -8,7 +8,7 @@
   "source_product_sha256": {
     "/Users/izzy/repos/tls-mpc/.deps/tls-authorized-account-native/v1-candidate-2/programs.manifest": "a41455546132840185159061c880095c3ac2111b55d6862afe0419091e74e006",
     "/Users/izzy/repos/tls-mpc/.deps/tls-caught-failure-runtime/MP-SPDZ/libSPDZ.so": "4694791edfbcda8aa84cd16be66f5a825dfb6e471fa313b4f04af37409a75ecb",
-    "/Users/izzy/repos/tls-mpc/.deps/tls-authorized-account-native/v1-candidate-2/tls-restored-mux-worker": "37211aa48f5cf45a266c4f1955d8257e5b6cba9fcdd0a27c5ca747ed9e5d40b8",
+    "/Users/izzy/repos/tls-mpc/.deps/tls-authorized-account-native/v1-candidate-2/tls-restored-mux-worker": "9397b44b9004928884ab5cb3fd640722b31806bac81cc5a0dc21259817f6c0b5",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/restored-recipient-fixture.json": "8c5c3b4aec2fbdeed2cf8d47ba600d13bd65bfd6c626ec95611c45d1a14eacad",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountCaptureWork/RecoveryFixtureFactory.cpp": "a6b862d9d78400176b8a823daff8588a944775a947454ddf9fcc389933132a23",
     "/Users/izzy/repos/tls-mpc/.deps/tls-authorized-account-native/v1-candidate-2/Programs/Bytecode/signal_account_admission_v2-_Users_izzy_repos_tls-mpc_.deps_private-account-admission-native_v2-candidate-1_admit.json-0.bc": "25b9d5b3b3650f7e6bff7efa40d328c44353a1df1ca89f3913aee860e8ca140a",
@@ -722,9 +722,9 @@
     "/Users/izzy/repos/tls-mpc/handshake_backend/LongFieldBit.h": "b5e7595fc1ed82ff78bb2c8f2b1b2db7f24c42e50d175d40927c2264c4673c37",
     "/Users/izzy/repos/tls-mpc/handshake_backend/NativeCollective.h": "a9877dd61dac2e0b6ed2303e85b753fe19686a3e9f822c3381f60b823f89688b",
     "/Users/izzy/repos/tls-mpc/handshake_backend/NativeDispatch.h": "fef34490c9aa1fa2a0761ca836a59f948d5fa14543d646bdd46e8a324b3c9e71",
-    "/Users/izzy/repos/tls-mpc/handshake_backend/NativeSession.h": "0242dc601fb14c28382bed845461ee20733d3fa8eb6892856edd55f6c9c805d6",
-    "/Users/izzy/repos/tls-mpc/handshake_backend/NativeWorker.h": "40a8deb132b14e8a419aa201a551769a9a40172d34c271fe71183a98d2afe1f3",
-    "/Users/izzy/repos/tls-mpc/handshake_backend/OwnedSecrets.h": "201eb0f7830d676d24f94ca242d4bed6fdcb01f88146c0e8833f9e9af0b4f54b",
+    "/Users/izzy/repos/tls-mpc/handshake_backend/NativeSession.h": "32701ea1d4446846657c7d417ef36497f18738055eeecc91b0223b766f3b9b9d",
+    "/Users/izzy/repos/tls-mpc/handshake_backend/NativeWorker.h": "6d69a72b6b5535025b241774409e6e90a24a1e8bf32b8b754bc745743a76f3eb",
+    "/Users/izzy/repos/tls-mpc/handshake_backend/OwnedSecrets.h": "a696e773e52aa6e811787064cb28805ec3becdebb70adb8aaa5ade4afd517f7e",
     "/Users/izzy/repos/tls-mpc/handshake_backend/PinnedPrograms.h": "ae53128cbdf533568d5f44694d8e548bfb741d001c1481833ba755afc758ca36",
     "/Users/izzy/repos/tls-mpc/handshake_backend/PublicMetrics.h": "4124ac7edcf304c98cb58896bf38b964440f1b3f7bf72afc0fdbadeff32b9543",
     "/Users/izzy/repos/tls-mpc/handshake_backend/PublicPipe.h": "0ac5483b47085993c64646c36e12fc3a07b80c7e05d9df6af4fce0f8c2b91a0a",
@@ -753,7 +753,7 @@
     "/Users/izzy/repos/tls-mpc/handshake_backend/WebSocketWork/ProviderCoordinator.h": "228a9ca3765d11463c37a8dffd8a6df4a3ede60a3c5a22f40a89dcf237155fca",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountAdmission.h": "6b62b7fd93e4c42031369cfe657cf42ec5788457072c35f528989e92c0e497c6",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountCheckpointCoordinator.h": "c497a98410ab56aa547fa98c19890581d2be86ee6985f54f10ec204d20277f90",
-    "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountDurableOwnerV1.h": "72c67d0560848855686a205a45dd0bdb6d40509f41a37ad7ad69022af8ee9b24",
+    "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountDurableOwnerV1.h": "8a9d3ea3de219f5dec2d77ca7bef533c54157ad3d4b18196c1eb7579f784d8fb",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountLayoutV2.h": "442abd2c4d9ddf8259cf6c71b7c12c223825fd2411ed009aad8862d702ac005f",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountRecoveryEngineV1.h": "be77201fd7ad6425fd8fd64cc408baa8bd34aae07d1beed48b34973d22383a7d",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/AccountSchemaV1.h": "40e7abe8d40cb02942f6fcf32ea298e76befe5af7018a6df93045a13473281e2",
@@ -777,21 +777,87 @@
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/PublicCheckpointStore.h": "dba44b069c5a38adc91ddc2486aa066ee1520b2ba802f2933fcfcb35c50339bf",
     "/Users/izzy/repos/tls-mpc/signal_backend/RecoveryWork/RawFieldReadmit.h": "4ed99744d620f005232124a8c6390fe336d59b6d3b4abc6e97fc4543f459ae9d"
   },
-  "logs": "benchmarks/results/raw/tls-authorized-account-restore/4b3d06ccfedd90a4",
-  "controller_error": "integration-failure",
+  "logs": "benchmarks/results/raw/tls-authorized-account-restore/19ccc57d3b64c8d6",
+  "controllers": [
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "error": "",
+      "outbox_resume": true,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "error": "",
+      "outbox_resume": true,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "error": "",
+      "outbox_resume": true,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "error": "",
+      "outbox_resume": true,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    },
+    {
+      "authenticated_server_responses": true,
+      "certificate_verified": true,
+      "error": "",
+      "outbox_resume": true,
+      "passed": true,
+      "recipient_delivery_claimed": false,
+      "send_update": true
+    }
+  ],
+  "peer": {
+    "tls13_h1": true,
+    "upgrade_authenticated": true,
+    "actual_serialized_bob_session": true,
+    "actual_recipient_replay_rejections": 1,
+    "duplicate_state_preserved": true,
+    "fresh_texts_decrypted": 1,
+    "service_acceptance_for_duplicate": true,
+    "unique_recipient_delivery_for_resumed": false,
+    "response_ids_copied": true,
+    "response_fragmented_with_control_ping": true,
+    "interleaved_pongs_validated": 3,
+    "client_plaintext_opened": false,
+    "receiver_only_disposable_state": true,
+    "native_MPC_executed_here": false,
+    "authorized_account_restore_executed_here": false,
+    "live_account_side_effects": false
+  },
+  "authorized_restore_fresh_session_markers": true,
+  "controller_error": null,
   "cleanup": [],
   "controller_exit_codes": [
-    1,
-    1,
-    1,
-    1,
-    -15
+    0,
+    0,
+    0,
+    0,
+    0
   ],
   "endpoint_transport": {
-    "external_received_bytes": 2225,
-    "external_sent_bytes": 1162,
-    "error": "endpoint-transport-failure"
+    "external_received_bytes": 3717,
+    "external_sent_bytes": 1272,
+    "completed": true
   },
   "source_integrity": true,
-  "seconds": 309.37549274996854
+  "seconds": 396.9518377499189
 }
