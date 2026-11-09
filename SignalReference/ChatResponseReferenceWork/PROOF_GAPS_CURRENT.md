@@ -78,3 +78,10 @@ modules. Native key-validation Err now implies zero actual Core validity and
 sticky rejection through arbitrary tails/finalization. The original range/
 wire/tag diagnostic ordering/suffix remains in the native bridge. Known-field
 wire/depth conditions and whole schema/private-end induction remain open.
+
+All-input attempted-key-error branch: `StreamingV1/any-key-error-audit.json`
+records clean two-module aggregate0. Exhaustive lexer classification removes
+supplied-prefix/table premises: every nonempty input whose actual generated
+schema driver key decoder errors is rejected by the actual Core fold/finish.
+Native error contents/cursor remain exact in the source key reference. The
+successful field/group/schema/private-end induction remains open.
