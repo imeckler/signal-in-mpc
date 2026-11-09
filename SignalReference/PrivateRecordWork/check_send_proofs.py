@@ -2,13 +2,13 @@
 """Kernel/axiom audit for model-relative private record send compilation."""
 import hashlib,json,pathlib,re,subprocess
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-SOURCES=['TlsMpc/Signal/PrivateRecordBindingV1Proofs.lean','TlsMpc/Signal/PrivateRecordRestoreV1Proofs.lean','TlsMpc/Signal/PrivateRecordProjectionV1Proofs.lean','TlsMpc/Signal/PrivateRecordOperationsV1Proofs.lean','TlsMpc/Signal/PrivateRecordSendV1Proofs.lean','TlsMpc/Signal/PrivateRecordSnapshotV1Proofs.lean','SignalReference/PrivateRecordWork/SendChecks.lean']
+SOURCES=['TlsMpc/Signal/PrivateRecordAdmissionV1Proofs.lean','TlsMpc/Signal/PrivateRecordBindingV1Proofs.lean','TlsMpc/Signal/PrivateRecordRestoreV1Proofs.lean','TlsMpc/Signal/PrivateRecordProjectionV1Proofs.lean','TlsMpc/Signal/PrivateRecordOperationsV1Proofs.lean','TlsMpc/Signal/PrivateRecordSendV1Proofs.lean','TlsMpc/Signal/PrivateRecordSnapshotV1Proofs.lean','SignalReference/PrivateRecordWork/SendChecks.lean']
 def main():
-    subprocess.run(['lake','build','TlsMpc.Signal.PrivateRecordBindingV1Proofs'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
+    subprocess.run(['lake','build','TlsMpc.Signal.PrivateRecordAdmissionV1Proofs'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
     run=subprocess.run(['lake','env','lean',SOURCES[-1]],cwd=ROOT,text=True,capture_output=True,check=True)
     audit=run.stdout
     entries=re.findall(r"'([^']+)' depends on axioms: \[(.*?)\]",audit,re.S)
-    assert len(entries)==23,(audit,entries)
+    assert len(entries)==26,(audit,entries)
     for name,axioms in entries:
         assert set(x.strip() for x in axioms.split(',')) <= {'propext','Classical.choice','Quot.sound'},(name,axioms)
     pending=[ROOT/s for s in SOURCES]; closure={}
@@ -23,5 +23,5 @@ def main():
                     if target.is_file(): pending.append(target)
     report={'passed':True,'endpoints':len(entries),'scope':'Generic model-relative send-update/restore/projection/flatten and computed record-service binding Hom, with symbolic byte-circuit agreement. Does not prove actual Rust SessionRecord/service refinement, snapshot roundtrip/canonical schema semantic coherence, native execution, durable recovery or admission.','axiom_audit':audit,'source_sha256':closure}
     (ROOT/'SignalReference/PrivateRecordWork/send-proof-report.json').write_text(json.dumps(report,indent=2)+'\n')
-    print('PASS: 23 foundation-only private record send/flatten proof endpoints')
+    print('PASS: 26 foundation-only private record send/flatten proof endpoints')
 if __name__=='__main__': main()

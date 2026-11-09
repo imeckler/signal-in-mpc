@@ -1,5 +1,6 @@
 // Compile-only candidate API coverage. No runtime admission claim.
 #include "NativeCanonicalSendOwner.h"
+#include "NativeRecordAdmission.h"
 using namespace signal_mpc;
 using namespace signal_mpc::recovery;
 using Owned=tls_mpc_worker::Bits;

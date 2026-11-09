@@ -1,4 +1,4 @@
-import TlsMpc.Signal.PrivateRecordBindingV1Proofs
+import TlsMpc.Signal.PrivateRecordAdmissionV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fold_map
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.update_scalarValue_map
 #print axioms TlsMpc.Signal.PrivateRecordOperationsV1Proofs.fieldPresence_map
@@ -22,3 +22,6 @@ import TlsMpc.Signal.PrivateRecordBindingV1Proofs
 #print axioms TlsMpc.Signal.PrivateRecordBindingV1.coherence_map
 #print axioms TlsMpc.Signal.PrivateRecordBindingV1.bind_map
 #print axioms TlsMpc.Signal.PrivateRecordBindingV1.compiled_bind_correct
+#print axioms TlsMpc.Signal.PrivateRecordAdmissionV1.schema_map
+#print axioms TlsMpc.Signal.PrivateRecordAdmissionV1.validate_map
+#print axioms TlsMpc.Signal.PrivateRecordAdmissionV1.compiled_validate_correct

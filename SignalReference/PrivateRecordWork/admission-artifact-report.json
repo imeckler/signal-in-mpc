@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "cases": 14,
+  "actual_Rust_record_projection_fixtures": true,
+  "native_MPC": false,
+  "full_account_or_SPQR_validation": false,
+  "private_public_DH_agreement_not_checked_here": true,
+  "provider_admission": false,
+  "seconds": 3.7140203749295324,
+  "artifact_sha256": "70ef073a843ec8031a3cd8daddd42e10c3804e1b7b2f9519566d0f7c82d539a7",
+  "oracle_binary_sha256": "160e1dba17a0ba7d1796d340bc51077ced1ea762ed4e47093e58c50a79591b7b",
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_admission_artifact.py": "503590698f78e68b938a1b41c777c144934d34f4aac5d5afe47ce7fe31fe602b",
+    "SignalReference/PrivateRecordWork/check_admission.py": "ae715d44d4f20b819155d5b7bcbf59a538748a0e49a44934a47f0f77b09c82a0",
+    "SignalReference/PrivateRecordWork/admission-native-compile-report.json": "8b6f9161117a37106f8493d02b7ecfbb0b50e37202e3cd1beee390e8385b139f"
+  }
+}

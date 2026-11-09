@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "cases": 16,
+  "actual_Rust_records_and_selected_state": true,
+  "computed_record_service_selected_consistency": true,
+  "private_public_DH_agreement_not_checked_here": true,
+  "full_account_or_SPQR_validation": false,
+  "native_MPC": false,
+  "provider_admission": false,
+  "oracle_binary_sha256": "160e1dba17a0ba7d1796d340bc51077ced1ea762ed4e47093e58c50a79591b7b",
+  "source_sha256": {
+    "SignalReference/PrivateRecordWork/check_admission.py": "ae715d44d4f20b819155d5b7bcbf59a538748a0e49a44934a47f0f77b09c82a0",
+    "SignalReference/PrivateRecordWork/EvaluateAdmission.lean": "cbb55222733969ad45d741584f686e7ad692ad40d73829886eac962052d57c91",
+    "TlsMpc/Signal/PrivateRecordAdmissionV1.lean": "b533220bacf9102b65ea1a57b71a692a547890c3aad8a56edaf096ab6d36403d"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "scope": "C++20 forced template instantiation for candidate B1/batch canonical owner and Lean binding exporter typecheck only. No pinned binding artifact, native evaluation, transaction execution, recovery or admission evidence.",
+  "scope": "C++20 forced template instantiation for candidate B1/batch canonical owner, private admission adapter and Lean binding exporter typecheck only. No pinned binding artifact, native evaluation, transaction execution, recovery or admission evidence.",
   "command": [
     "clang++",
     "-std=c++20",
@@ -18,8 +18,10 @@
   "source_sha256": {
     "signal_backend/RecoveryWork/NativeRecordBinding.h": "edf6a779846a69859aad1d28e96747e599251b7908765bda11b090ed94d4b815",
     "signal_backend/RecoveryWork/NativeCanonicalSendOwner.h": "f9cf127504d7b8867f926b2eee408fb6551bd8109f11275a73d7e901884ef59c",
-    "signal_backend/RecoveryWork/canonical_owner_compile.cpp": "e7164943460cacd9e3a1b85266259d583204d54c356a669564381324d54732b9",
+    "signal_backend/RecoveryWork/canonical_owner_compile.cpp": "7763f5208b82b763f6409d9521507bcde514e86dfc4f2ceafcc62a483d9415bd",
     "SignalReference/PrivateRecordWork/ExportBinding.lean": "770f586ef56a1a66c2a977e596c6ac493c75bdadc9cc3a5e93592bf59d45dbf2",
+    "signal_backend/RecoveryWork/NativeRecordAdmission.h": "ec3a3aec6a9a1452f30b35fc7b276d9641e136c22b5bbeecaefcb33371df4d61",
+    "signal_backend/RecoveryWork/NativeOwnShareArchive.h": "7b054fcbc4c07bf1dcee6632b13d3b74a1725d3dc0cc3970d67d8016f9e7f901",
     "signal_backend/VariableServiceWork/VariableShape.h": "8a1d70f593e7cad02c25281b4ace1ed933948bee041cfb20c9e1ca53b2836cd3",
     "signal_backend/VariableServiceWork/VariableSendStore.h": "761e335c4a55a53c7915a4ba45a43b366a63ad37478d8f8b07f15f927b2ad0e7",
     "signal_backend/VariableServiceWork/VariableSendBatch.h": "aadba8adb4d57d2b94bd5d56f5865c151fb327da2b1bf25d69929480155c9bc7",
