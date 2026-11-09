@@ -1,0 +1,19 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Actual Core readState(stateBytes(state)) equals state under explicit list-shape lengths; complete 100-word stack table is derived from actual slices/pack. Mux wrapper and compact projected state serialization/export recurrence OPEN.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/StateCodec.lean": "c4ed5201b41dc7233790695cc400e7ba5199db41be938653e10ffd95ee235991",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_state_codec.py": "63600820b5631907674103c9eaecdadb5a3367586d90cc467edd6f57fe28163f",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/STATE_CODEC.md": "f2d62039f549cb73fe5bd867c93f5962b1021d6e5ebd6911a2885b7e85d4d203"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/codec-audit.json": "9b495f67aa2b1801b2ef27aade89e371c77e4449538b8b18b122176fa7a73e07"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/state-codec-6d25cd395e12-98174.log",
+  "kernel_log_sha256": "590b45e2401cd6755a9ac8dc3f0b1bf76b0367f2c9485a3f4df7c041abac652f",
+  "kernel_log": "Checking ParserCircuitCandidateV1.StateCodec\n/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/StateCodec.lean:151:37: warning: This simp argument is unused:\n  List.getElem?_cons_succ\n\nHint: Omit it from the simp argument list.\n  simp only [\u0335L\u0335i\u0335s\u0335t\u0335.\u0335g\u0335e\u0335t\u0335E\u0335l\u0335e\u0335m\u0335?\u0335_\u0335c\u0335o\u0335n\u0335s\u0335_\u0335z\u0335e\u0335r\u0335o\u0335,\u0335L\u0335i\u0335s\u0335t\u0335.\u0335g\u0335e\u0335t\u0335E\u0335l\u0335e\u0335m\u0335?\u0335_\u0335c\u0335o\u0335n\u0335s\u0335_\u0335s\u0335u\u0335c\u0335c\u0335,\u0335O\u0335p\u0335t\u0335i\u0335o\u0335n\u0335.\u0335g\u0335e\u0335t\u0335D\u0335_\u0335s\u0335o\u0335m\u0335e\u0335]\u0335[\u0332L\u0332i\u0332s\u0332t\u0332.\u0332g\u0332e\u0332t\u0332E\u0332l\u0332e\u0332m\u0332?\u0332_\u0332c\u0332o\u0332n\u0332s\u0332_\u0332z\u0332e\u0332r\u0332o\u0332,\u0332 \u0332O\u0332p\u0332t\u0332i\u0332o\u0332n\u0332.\u0332g\u0332e\u0332t\u0332D\u0332_\u0332s\u0332o\u0332m\u0332e\u0332]\u0332\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`\n'ChatResponseReference.ParserCircuitCandidateV1.read_encoded_state' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.decoded_state_stack' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.state_bytes_split' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.state_prefix_length' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.word_chunk_suffix' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.word_chunk_prefix_suffix' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.decode_word_table' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.word_chunk' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.pack_word_chunk' depends on axioms: [propext, Quot.sound]\n'ChatResponseReference.ParserCircuitCandidateV1.state_bytes_length' depends on axioms: [propext, Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/state-codec-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/StateCodec.olean": "d8a32c17aa309a3c5492453563e716994d94355d19fce6dcb09865b32b65e6cb"
+  }
+}

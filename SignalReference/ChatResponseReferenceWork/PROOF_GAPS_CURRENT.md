@@ -126,3 +126,10 @@ WordCodec proves actual BE pack/bytes roundtrip and exact four-zero/high-half
 projection. codec-audit.json aggregate0/foundational-only (finite maps axiom-free).
 Whole-state shape/readState serialization and compact endpoint stream/compiler
 composition remain open. No native/profile/runtime change.
+
+Candidate whole Core codec checkpoint: StateCodec proves actual
+readState(stateBytes(state))=state under modes4/positions10/kinds4/stack100/utf8
+shape alone, including the complete actual100-word pack/slice table and header.
+state-codec-audit.json aggregate0/foundational-only. Mux slots/rows wrapper,
+compressed serialized trim equality, reachable shape and exported compact
+recurrence/compiler join remain open. No promotion/native/profile job.
