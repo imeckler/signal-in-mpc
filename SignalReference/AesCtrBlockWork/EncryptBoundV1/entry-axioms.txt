@@ -1,0 +1,6 @@
+'LibSignalReference.Candidate.AesEntryReference.default_state' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.AesEntryReference.first_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.AesEntryReference.last_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.AesEntryReference.actual_entry' depends on axioms: [propext, Classical.choice, Quot.sound]

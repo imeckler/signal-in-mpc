@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 4,
+  "foundation_axioms_only": true,
+  "actual_complete_AES256_entry_numeric_model_agreement": true,
+  "actual_initial_layout_rounds_final_round_and_inverse": true,
+  "all_sixtyfour_input_bytes_unrestricted": true,
+  "arbitrary_fifteen_eight_word_keys": true,
+  "actual_generated_computational_bodies_unchanged": true,
+  "whole_crypto_value_model_assumed": false,
+  "Std_content_and_trusted_indexed_Zip_boundary_retained": true,
+  "model": "EntryReference.finalWords with exact actual raw substitution and fixslice phases",
+  "actual_key_schedule_composition": false,
+  "model_to_compiled_encryption_circuit": false,
+  "full_CTR_stream_wrapper": false,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/check_entry.py": "8d619f2b0f0f2de973961d1b515a2a4d243b5390918c04276a5657d4c9389d4f",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/EntryReference.lean": "5f2da744fd55acecd72ddd77515d678fab24150a54083117bcc6619eaa46236c",
+    "SignalReference/AesCtrBlockWork/EncryptBoundV1/rounds-report.json": "1f734f0ef7c31804b6c63343b6a2d0941bb31c1228b3373d066f44e6a87ba7b8",
+    "SignalReference/AesCtrBlockWork/inverse-layout-report.json": "ff421ed959d728f8af5a589ebf9ceb24ab8c716e03c060c5eccbcaaf6b93a735"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/EntryReference.olean": "c93fa968124e485d18b947e711441a564ed23e7d7c5225df2eabfc638128f304",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/LoopReference.olean": "4e38b17487fb05b9858c7860669cf0ce92d31d656fe1dd81dc3fb7f5c3bc02f5",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/InverseLayoutCircuit.olean": "216eb0bfd9d3dd7f6c2b41c900961fb6c28068371a77de7d01827c8de85ab6d1",
+    "SignalReference/CtrReferenceV1Work/Build/AesCtrBlockWork/EncryptBoundV1/Funs.olean": "f0c87be9912152e2dc4b2b3fc9bcb027574b67e5babd357e5def769515b62ade"
+  }
+}
