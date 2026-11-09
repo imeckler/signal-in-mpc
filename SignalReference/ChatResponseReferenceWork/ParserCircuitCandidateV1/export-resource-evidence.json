@@ -1,0 +1,34 @@
+{
+  "scope": "Resource observations, not proof or performance acceptance of failed attempts",
+  "smoke": {
+    "command": "lean -M256 --run /tmp/chat-admit-minimal-smoke.lean",
+    "source": "import Lean\nimport ChatResponseReferenceWork.ParserCircuitCandidateV1.AdmissionProgram\ndef main : IO Unit := pure ()\n",
+    "source_sha256": "8fab3ee44cbcf72300a985dbd848fe83c4257eee66f05299c3c329c465e179f9",
+    "exit_code": 0,
+    "peak_rss_bytes": 1266171904,
+    "tool_handle": 69924,
+    "terminal": true
+  },
+  "failed_export_handles": [
+    {
+      "handle": 27465,
+      "exit_code": 1,
+      "reason": "Lean-M256 excessive memory at CandidateImage metadata kernel checking"
+    },
+    {
+      "handle": 49227,
+      "exit_code": 1,
+      "reason": "Minimal import Lean-M256 same metadata kernel memory failure"
+    }
+  ],
+  "released_window": {
+    "tls_handle": 60288,
+    "tls_terminal": "PASS, communicated by tls_sol",
+    "export_handle": 66051,
+    "export_exit_code": 0,
+    "peak_rss_bytes": 1333100544,
+    "lean_memory_limit_mb": 2048,
+    "rss_acceptance_ceiling_bytes": 2147483648
+  },
+  "live_parser_handles": []
+}

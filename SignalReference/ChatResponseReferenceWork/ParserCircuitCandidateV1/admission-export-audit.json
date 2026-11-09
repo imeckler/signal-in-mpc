@@ -1,0 +1,23 @@
+{
+  "candidate_only": true,
+  "aggregate_exit_code": 0,
+  "scope": "Minimal admission computational export has exact kernel program equality and heterogeneous compiled-circuit equality to proved compact admission; resource-limited measurement runner only. No runtime promotion/native job. Counts pending separate resource receipt.",
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionProgram.lean": "4a736749df64fa86c707d95496da0ca5ea93bac439a0e99f56ffd1b05784aa9b",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionExportBridge.lean": "3082acbfb1dcc9c14b3c9223c7a74d848fda4c58b8b4a906d5e34f8589508384",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/check_admission_export.py": "b6ebebabe4ade0527d00eb01f145c781f3827794932627d2c37927dacb855871",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/ADMISSION_EXPORT.md": "a83864f155058b2878e8b396186ca009fdcef69ec15ec888aea87974ca739fc2",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/EmitAdmission.lean": "fbd4753b65c2c7a56bfa05fae43bc9682854bd92f43eec1bfe8a713a8e1027f2",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile_admission.py": "dd4f100a1839874d45be2a340c51eec19ab6d3f10683b2f6aed7152d087c7847"
+  },
+  "inherited_receipt_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/mixed-feed-audit.json": "cd0f319753b5716df5519aa11ed47b0dcd1ac77f57e0db3b25226d796fe7310c"
+  },
+  "kernel_log_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/admission-export-163cedee1fcc-5204.log",
+  "kernel_log_sha256": "d3d8bc49c80cbca6bdb576735a201d5e06f50173c98b2a471380dccb85100c7c",
+  "kernel_log": "Checking ParserCircuitCandidateV1.AdmissionProgram\nChecking ParserCircuitCandidateV1.AdmissionExportBridge\n'ChatResponseReference.ParserCircuitCandidateV1.admission_export_same_program' depends on axioms: [propext]\n'ChatResponseReference.ParserCircuitCandidateV1.admission_export_same_circuit' depends on axioms: [propext,\n Classical.choice,\n Quot.sound]\n",
+  "objects_sha256": {
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/admission-export-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionProgram.olean": "cea5b0801c79d337a4539f2a1b6af38eb412b42166ba8650bab6dabfee331ad7",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/admission-export-v1-final/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionExportBridge.olean": "0fe1f0540b857206bc126e361214cde094b00880ffea58d5bbfa20a332c551e4"
+  }
+}

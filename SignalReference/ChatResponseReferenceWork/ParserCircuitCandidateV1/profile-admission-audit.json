@@ -1,0 +1,48 @@
+{
+  "candidate_only": true,
+  "runtime_promoted": false,
+  "native_mpc_executed": false,
+  "scope": "Admission-only exact exported AIG resource counts for original992B\u2192982B versus compact592B\u2192582B. Mixed admit/feed exported correctness proved separately. No byte re-export, native execution, timing comparison or runtime promotion.",
+  "lean_memory_limit_mb": 2048,
+  "cases": [
+    {
+      "mode": "baseline-admit",
+      "artifact_sha256": "e5ac084c589a5fe19af3ffb58f66eb3a5d000d9efad1c0e6936c0cf56b8fe854",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-admission-released-v1/baseline-admit.json",
+      "input_bits": 7936,
+      "output_bits": 7856,
+      "raw_and_gates": 2867,
+      "executed_and_gates": 1043,
+      "executed_xor_gates": 608,
+      "unreachable_nodes": 1217,
+      "and_dependency_depth": 25,
+      "export_seconds": 1.0844496249919757
+    },
+    {
+      "mode": "candidate-admit",
+      "artifact_sha256": "21438a6f3da3be3f3be315ab79023e97d7fb7dae83aac7afe6da8242b30f073f",
+      "artifact_path": "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Build/profile-admission-released-v1/candidate-admit.json",
+      "input_bits": 4736,
+      "output_bits": 4656,
+      "raw_and_gates": 2867,
+      "executed_and_gates": 1043,
+      "executed_xor_gates": 608,
+      "unreachable_nodes": 1217,
+      "and_dependency_depth": 25,
+      "export_seconds": 1.0012395000085235
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/Stack32Codec.lean": "c46d9398521dcc5b622eabaec059991aeb6f78e19bff60fd33e7ed73e6e709d0",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionProgram.lean": "4a736749df64fa86c707d95496da0ca5ea93bac439a0e99f56ffd1b05784aa9b",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/AdmissionExportBridge.lean": "3082acbfb1dcc9c14b3c9223c7a74d848fda4c58b8b4a906d5e34f8589508384",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/EmitAdmission.lean": "fbd4753b65c2c7a56bfa05fae43bc9682854bd92f43eec1bfe8a713a8e1027f2",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/profile_admission.py": "dd4f100a1839874d45be2a340c51eec19ab6d3f10683b2f6aed7152d087c7847",
+    "SignalReference/ChatResponseReferenceWork/ParserCircuitCandidateV1/mixed-feed-audit.json": "cd0f319753b5716df5519aa11ed47b0dcd1ac77f57e0db3b25226d796fe7310c",
+    "TlsMpc/TlsChatResponse.lean": "ccc81593bedd88dc8d1da748a78e34a4d5e331285b521fc75350565adfb78fc2",
+    "TlsMpc/TlsChatResponseMux.lean": "0a37aa6fc4eb65f87d760dfdabf01212b8cd9a742b5412defbda794ac242e02e",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2"
+  },
+  "child_peak_rss": 1333100544
+}

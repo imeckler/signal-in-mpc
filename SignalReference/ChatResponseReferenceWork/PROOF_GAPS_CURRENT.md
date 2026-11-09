@@ -171,3 +171,11 @@ traces, every exported AIG bit after arbitrary prefixes included. No canonical
 private-payload/success assumption. Public operation schedule, private fields and
 controls. mixed-feed-audit.json aggregate0/foundational-only. Admission gate/depth
 measurement next; no runtime/native promotion, full Rust-response still open.
+
+Candidate admission export measured after TLS resource release: kernel-checked
+minimal program/circuit bridge; exact original/compact costs both1,043AND/608XOR,
+ANDdepth25 (raw2,867). Bits7936/7856→4736/4656. peakRSS1,333,100,544B, no native
+job/runtime promotion; byte38.4% checkpoint unchanged. Earlier256MB metadata
+failures and empty-importRSS evidence are terminal/unaccepted and recorded.
+Mixed admit/feed compiler relation closed; next bounded counter/opaque assessment
+and remaining actual Rust response schema/HTTP/correlation composition.
