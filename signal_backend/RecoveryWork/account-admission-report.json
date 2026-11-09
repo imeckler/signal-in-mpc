@@ -1,0 +1,116 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 5,
+  "foundational_axioms_only": true,
+  "cases": [
+    {
+      "name": "initial",
+      "expected": 255
+    },
+    {
+      "name": "reserve",
+      "expected": 255
+    },
+    {
+      "name": "committed",
+      "expected": 255
+    },
+    {
+      "name": "second_reserve",
+      "expected": 255
+    },
+    {
+      "name": "second_commit",
+      "expected": 255
+    },
+    {
+      "name": "identity",
+      "expected": 0
+    },
+    {
+      "name": "identity_type",
+      "expected": 0
+    },
+    {
+      "name": "global_status",
+      "expected": 0
+    },
+    {
+      "name": "cursor_domain",
+      "expected": 0
+    },
+    {
+      "name": "recipient_uuid",
+      "expected": 0
+    },
+    {
+      "name": "registration",
+      "expected": 0
+    },
+    {
+      "name": "remote_type",
+      "expected": 0
+    },
+    {
+      "name": "remote_identity",
+      "expected": 0
+    },
+    {
+      "name": "access_key",
+      "expected": 0
+    },
+    {
+      "name": "device",
+      "expected": 0
+    },
+    {
+      "name": "selected",
+      "expected": 0
+    },
+    {
+      "name": "intent_presence",
+      "expected": 0
+    },
+    {
+      "name": "outbox_presence",
+      "expected": 0
+    },
+    {
+      "name": "outbox_status",
+      "expected": 0
+    },
+    {
+      "name": "disposition",
+      "expected": 0
+    },
+    {
+      "name": "absent_outbox_data",
+      "expected": 0
+    },
+    {
+      "name": "cursor_exhausted",
+      "expected": 0
+    },
+    {
+      "name": "truncated",
+      "expected": 0
+    }
+  ],
+  "conversations": 2,
+  "logical_bytes": 33464,
+  "actual_record_and_global_store_fixtures": true,
+  "structural_outboxes_synthetic": true,
+  "full_global_store_semantic_validation": false,
+  "private_public_DH_binding": false,
+  "native_MPC": false,
+  "whole_account_activation": false,
+  "source_sha256": {
+    "signal_backend/RecoveryWork/check_account_admission.py": "72c049735ab3d21b0998e5cea3bd637e3b6ca82d91db10b98e7af2661e72f6b0",
+    "signal_backend/RecoveryWork/account_fixture.py": "c806cfc412f98150c848958e2121c9f9ca24d47459308288656cf2d4565d7ea1",
+    "signal_backend/RecoveryWork/AccountAdmissionAudit.lean": "7b1ad739268b192b2d05d0a8b851a6d16414b512001d41044000e584976b1a64",
+    "TlsMpc/Signal/PrivateAccountAdmissionV2.lean": "bfb5d5dc743d5a2ec2464f3db6f536b5e5d45ce81e4795b0e2e019ec2e46b509",
+    "TlsMpc/Signal/PrivateAccountAdmissionV2Proofs.lean": "3737061068790c8222de57aa53f1671080f45c5e26a473a2ae7058d3d372a655",
+    "SignalReference/PrivateRecordWork/EvaluateAccount.lean": "2f52b834fd13f39029fee9129a0682c27de3a4be29f76d2ce7a8aafa47bf5915"
+  }
+}

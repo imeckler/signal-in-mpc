@@ -1,0 +1,6 @@
+import TlsMpc.Signal.PrivateAccountAdmissionV2Proofs
+#print axioms TlsMpc.Signal.PrivateAccountAdmissionV2.all_map
+#print axioms TlsMpc.Signal.PrivateAccountAdmissionV2.oneOf_map
+#print axioms TlsMpc.Signal.PrivateAccountAdmissionV2.canonicalPayload_map
+#print axioms TlsMpc.Signal.PrivateAccountAdmissionV2.validate_map
+#print axioms TlsMpc.Signal.PrivateAccountAdmissionV2.compiled_validate_correct
