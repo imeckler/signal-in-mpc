@@ -1,0 +1,34 @@
+# Matched two-send core verification. Return only an equality predicate, never
+# final sender chain/state. Same AIG, input-share XOR and selected-state routing
+# as the emitted EMP Bristol graph; packing is an execution representation.
+import json
+import os
+from Compiler.GC.types import sbit
+from Compiler.library import print_ln
+from backend_adapter.aig_packed import execute_mpc
+
+program.set_security(40)
+program.unlimited_compilation()
+with open(os.environ['TWO_PARTY_CORE_IMAGE']) as f:image=json.load(f)
+with open(os.environ['TWO_PARTY_CORE_EXPECTED']) as f:expected=json.load(f)
+if image['input_bits']!=1456 or len(image['outputs'])!=1160:raise ValueError('core profile mismatch')
+n=1464
+left=[sbit.get_input_from(0) for _ in range(n)]
+right=[sbit.get_input_from(1) for _ in range(n)]
+raw=[a^b for a,b in zip(left,right)]
+state=raw[:117*8]+raw[118*8:182*8]
+outputs=[]
+def part(seq,start,end):return seq[start*8:end*8]
+for i in range(2):
+    payload=part(raw,117,118) if i==0 else part(raw,182,183)
+    result=execute_mpc(image,part(state,0,117)+payload+part(state,117,181))
+    outputs+=part(result,0,1)+part(result,73,145)
+    state=(part(state,0,1)+part(result,33,37)+part(state,5,41)+part(result,1,33)
+           +part(result,37,69)+part(result,69,73)+part(state,109,181))
+outputs+=state
+if len(outputs)!=len(expected):raise ValueError('fused verification dimensions')
+matches=[bit if wanted else ~bit for bit,wanted in zip(outputs,expected)]
+while len(matches)>1:
+    matches=[matches[i]&matches[i+1] if i+1<len(matches) else matches[i]
+             for i in range(0,len(matches),2)]
+print_ln('SIGNAL_CORE_MATCH %s',matches[0].reveal())

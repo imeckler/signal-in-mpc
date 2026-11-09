@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "exit_code": 0,
+  "wall_seconds": 446.9909190410981,
+  "peak_rss_bytes": null,
+  "peak_rss_note": "not captured for this public compile; no invented metric",
+  "logical_and_gates": 3650587,
+  "vm_rounds": 133120,
+  "bytecode_sha256": "8ce34e21cab033677d9b91419d9c7dcf88ec1ffc5c2bc0397badbbd02919686b",
+  "compiler_log_sha256": "e6a057125b0282b733987ef75ee54529212be57238b3ca5ab7a240487259071a"
+}

@@ -1,0 +1,156 @@
+{
+  "scope": "matched two-send zero-plaintext Signal core and balanced equality only; not full Signal/TLS or sustained throughput",
+  "prepared": {
+    "scope": "same fused Signal core; balanced public-known fixture equality only; no sender state disclosure",
+    "input_bits": 1464,
+    "alice_input_bits": 1464,
+    "output_bits": 1,
+    "counts": {
+      "AND": 3650587,
+      "XOR": 3432040,
+      "INV": 3201148
+    },
+    "wires": 10286703,
+    "core_and_gates": 3647972,
+    "verification_and_gates": 2615,
+    "bristol_sha256": "a2f2be3174c9ce76ea05d2db9646544b85e5e6d8794fba0e690bc5c5d4f45a5a",
+    "source_fused_sha256": "229f12a561dd419f1e3955ec80c8d973891b3ee0b52ab18916fdd1622c4ba9b7",
+    "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/signal-core-2-check"
+  },
+  "security": "declared S40/t1 two-party candidates; legacy EMP local mask/failclosed overlay, no S128 validation",
+  "shared_state": "private returned chain/counter routed internally; only aggregate equality opens; no durable or inter-session handoff claim",
+  "compile_scope": "MP packed execution preserves exact core and verification AND count; no application field work in these rows",
+  "bytecode_sha256": "8ce34e21cab033677d9b91419d9c7dcf88ec1ffc5c2bc0397badbbd02919686b",
+  "emp_worker_sha256": "ba5044daf8e5396ea82d4f7460dc62aef4679b6bb94a56642d3f952e23fd5209",
+  "tinier_worker_sha256": "635d5d4049e875ec39d223c6248452fba28de0ca27aec9109cdf8dd8647581b0",
+  "mascot_worker_sha256": "824dda6e17eb65ffa205e1681b2beddddc814698c376475fdf8b8abb7d315894",
+  "mp_runtime_sha256": "60fb79c1aec23e867ba56c72da89f85bb686cb72463069a48c6354669a9e3614",
+  "source_sha256": "9afc0dd3eff72d90af67fab9106e38b691d0ba4a9b0d9586cc77633822dc921c",
+  "expected_fixture_sha256": "0b8b5f5e67d27849c204190b45c25a3042983c026ab9158bcca9fbc3da05d7df",
+  "results": [
+    {
+      "passed": true,
+      "backend": "emp",
+      "controller_wall_seconds": 4.153717375011183,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 4.312272,
+          "peak_rss_bytes": 3532111872,
+          "backend_metrics": {
+            "party": 2,
+            "load_seconds": 1.59242,
+            "setup_seconds": 0.0285818,
+            "independent_seconds": 1.17059,
+            "dependent_seconds": 1.11839,
+            "online_seconds": 0.123355,
+            "wall_seconds": 4.05335,
+            "cpu_seconds": 4.25175,
+            "peak_rss_bytes": 3532111872,
+            "sent_bytes": 761779527,
+            "received_bytes": 1068475736,
+            "offline_sent_bytes": 761778063,
+            "offline_received_bytes": 1068427419,
+            "generated_triples": 3650588,
+            "consumed_ands": 3650587
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 4.242736,
+          "peak_rss_bytes": 3064840192,
+          "backend_metrics": {
+            "party": 1,
+            "load_seconds": 1.61137,
+            "setup_seconds": 0.0281362,
+            "independent_seconds": 1.17102,
+            "dependent_seconds": 1.11844,
+            "online_seconds": 0.000783458,
+            "wall_seconds": 3.93072,
+            "cpu_seconds": 4.18957,
+            "peak_rss_bytes": 3064840192,
+            "sent_bytes": 1068475736,
+            "received_bytes": 761779527,
+            "offline_sent_bytes": 1068427419,
+            "offline_received_bytes": 761778063,
+            "generated_triples": 3650588,
+            "consumed_ands": 3650587
+          }
+        }
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/core-emp-_sc1vrcn"
+    },
+    {
+      "passed": true,
+      "backend": "tinier",
+      "controller_wall_seconds": 40.44491341698449,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 35.566030999999995,
+          "peak_rss_bytes": 1205075968,
+          "socket_sent_bytes": 3302466557,
+          "socket_received_bytes": 3302466610,
+          "phase_report": [
+            "Spent 5.69372 seconds (0.962783 MB, 266248 rounds, 18.1354 CPU seconds, 5.16815 communication seconds) on the online phase and 17.0196 seconds (3300.87 MB, 9880 rounds, 18.1354 CPU seconds, 1.8193 communication seconds) on the preprocessing/offline phase."
+          ],
+          "leftover_report": [
+            "5 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 35.37723,
+          "peak_rss_bytes": 1205616640,
+          "socket_sent_bytes": 3302466525,
+          "socket_received_bytes": 3302466472,
+          "phase_report": [
+            "Spent 5.67424 seconds (0.962783 MB, 266248 rounds, 17.937 CPU seconds, 5.17376 communication seconds) on the online phase and 17.039 seconds (3300.87 MB, 9880 rounds, 17.9371 CPU seconds, 2.04114 communication seconds) on the preprocessing/offline phase."
+          ],
+          "leftover_report": [
+            "5 triples of Tinier left"
+          ]
+        }
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/core-tinier-jdx05i9f"
+    },
+    {
+      "passed": true,
+      "backend": "mascot",
+      "controller_wall_seconds": 45.94877887505572,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 39.618802,
+          "peak_rss_bytes": 1117585408,
+          "socket_sent_bytes": 3302499759,
+          "socket_received_bytes": 3302499848,
+          "phase_report": [
+            "Spent 6.13864 seconds (0.962815 MB, 266249 rounds, 20.3492 CPU seconds, 5.44588 communication seconds) on the online phase and 19.8503 seconds (3300.87 MB, 9878 rounds, 20.3496 CPU seconds, 2.43589 communication seconds) on the preprocessing/offline phase."
+          ],
+          "leftover_report": [
+            "5 triples of Tinier left"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 39.648326,
+          "peak_rss_bytes": 1117749248,
+          "socket_sent_bytes": 3302499763,
+          "socket_received_bytes": 3302499674,
+          "phase_report": [
+            "Spent 6.10951 seconds (0.962815 MB, 266249 rounds, 20.399 CPU seconds, 5.44503 communication seconds) on the online phase and 19.8795 seconds (3300.87 MB, 9878 rounds, 20.3995 CPU seconds, 2.38246 communication seconds) on the preprocessing/offline phase."
+          ],
+          "leftover_report": [
+            "5 triples of Tinier left"
+          ]
+        }
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/core-mascot-zo5zyr6i"
+    }
+  ],
+  "passed": true
+}

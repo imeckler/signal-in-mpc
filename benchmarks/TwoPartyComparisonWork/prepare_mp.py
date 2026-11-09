@@ -20,6 +20,10 @@ DEPS={
  'SimplestOT_C':('mkskeller/SimplestOT_C','7ef7666909e493a18c99efe56f97cc4d13723005'),
  'simde':('simd-everywhere/simde','0ba20859e9f557cee161d2cab2728b56dca7ec38'),
  'sse2neon':('DLTcollab/sse2neon','ddca67108e3e96a288e9aa7e31bfacca2309f624')}
+ARCHIVE_PINS={
+ 'SimplestOT_C':'e2001b6fa78ca0f51777050642bd86103e68473c5b75e1ab5f2cccac492251ec',
+ 'simde':'b0f32e5167f8cbba4fa5dcc24e9394bed9406146b961cfce15deaf703a16c6d6',
+ 'sse2neon':'ee6af363655d54d5a6df25fe5a2894e81d0a3f5ffa6a8ad964005542efa9d43a'}
 
 def run(args,cwd=ROOT):
  with open(BASE/'prepare-mp.log','a') as log:
@@ -27,10 +31,26 @@ def run(args,cwd=ROOT):
 
 def checkout(path,repo,commit,recursive=False):
  if not (path/'.git').exists():
+  if path.exists() and any(path.iterdir()):
+   # Existing extracted trees have no repository identity. Verify source bytes
+   # against the authoritative pinned archive; never inherit root git HEAD.
+   name=path.name
+   if name not in ARCHIVE_PINS:raise ValueError('unidentified non-git dependency tree')
+   archive=BASE/f'{name}-{commit}.tar.gz'
+   if not archive.exists():urllib.request.urlretrieve(f'https://codeload.github.com/{repo}/tar.gz/{commit}',archive)
+   if hashlib.sha256(archive.read_bytes()).hexdigest()!=ARCHIVE_PINS[name]:raise ValueError('dependency archive mismatch')
+   with tarfile.open(archive) as t:
+    for member in t:
+     if member.isfile():
+      relative=pathlib.PurePosixPath(member.name).parts[1:]
+      if not relative or '..' in relative:raise ValueError('dependency path mismatch')
+      if (path/pathlib.Path(*relative)).read_bytes()!=t.extractfile(member).read():raise ValueError('dependency source byte drift')
+   return
   if path.exists() and not any(path.iterdir()):path.rmdir()
   run(['git','clone','--no-checkout',f'https://github.com/{repo}.git',path])
  top=subprocess.check_output(['git','-C',str(path),'rev-parse','--show-toplevel'],text=True).strip()
  if pathlib.Path(top)!=path.resolve():raise ValueError('dependency repository root mismatch')
+ if subprocess.run(['git','diff','--quiet'],cwd=path).returncode:raise ValueError('modified dependency source')
  run(['git','checkout','--detach',commit],path)
  if recursive:run(['git','submodule','update','--init','--recursive'],path)
  actual=subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],text=True).strip()

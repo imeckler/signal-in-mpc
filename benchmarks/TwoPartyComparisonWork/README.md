@@ -74,4 +74,18 @@ Primary protocol: [Wang–Ranellucci–Katz2017](https://obj.umiacs.umd.edu/pape
 
 `prepare_signal_core.py --steps 2` and `run_emp_signal_core.py` passed two consecutive fixed-width zero-plaintext Signal/SPQR core sends inside one AG2PC execution. The first returned chain/counters feed the second graph internally; final state is padded with fresh Alice-only random pads and delivered only to Bob. No independent-session authentication/durability claim follows from XOR sharing. The301MB Bristol graph has3,647,972ANDs; measured cold total3.624s, global payload1,829,102,274B, peak party RSS3,530,227,712B. Loading alone took1.43–1.45s; this is not a sustained-rate estimate. Expected wires/state come from the historical coupled public fixture, not a new full recipient/TLS run.
 
-A matched equality-only wrapper (`prepare_core_check.py`, `signal_core_check.mpc`) is a **pending** comparison entry: it preserves the two-send state evolution but opens only a balanced equality predicate against the public-known fixture, avoiding sender-state reconstruction in a binary runtime without private reveal. Its MP-SPDZ compile/native results are not yet accepted.
+A matched equality-only wrapper (`prepare_core_check.py`, `signal_core_check.mpc`) is now a **passed component** comparison entry: it preserves the two-send state evolution but opens only a balanced equality predicate against the public-known fixture, avoiding sender-state reconstruction in a binary runtime without private reveal. Its MP-SPDZ compile and all three native groups passed; this remains an intermediate component.
+
+## Matched core comparison (cold, two internal sends)
+
+All three entries execute3,650,587 logical ANDs:3,647,972 core plus2,615 balanced verification gates. MP packing changes register execution, not logical work. Both input shares have1464bits. Only the final equality bit opens; no final sender chain is reconstructed.
+
+| backend | wall seconds | global socket/protocol payload sent | max party RSS MiB |
+|---|---:|---:|---:|
+| emp | 4.154 | 1,830,255,263 | 3368.5 |
+| tinier | 40.445 | 6,604,933,082 | 1149.8 |
+| mascot | 45.949 | 6,604,999,522 | 1066.0 |
+
+EMP generated3,650,588 authenticated triples for3,650,587 consumed ANDs; Tinier entries report5unused logical triples. This removes the tiny-AES overshoot explanation for most of this component difference. MP uses stock bucket4; a supported bucket3/bulk-preprocessing control remains warranted before calling this an optimized Tinier result. Cold loading is included: EMP reports1.59–1.61s loading, while MP loader time is not yet separately instrumented. Phase details are in the report; no warm/sustained-rate or full-message inference follows.
+
+The MP compile took446.99s and produced133,120VM rounds; compilation is public offline work, excluded from native run totals. Source adapter and public artifacts are frozen by the report hashes. The historical numeric Signal fixture has zero plaintext; actual nonempty Content/sealed-sender/TLS/recipient response semantics remain required for the final benchmark.
