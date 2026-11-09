@@ -1,0 +1,85 @@
+{
+  "scope": "Exact executable diagnostic stack model; static-reference source bridge remains open. Literal frame bytes are ASCII from actual inspected callbacks, with no native_decide proof.",
+  "native_original_llbc_sha256": "7a01206f2c40d02d147fa1f5c045976a20357c1fa99c5178652ae61dda9b138b",
+  "generator_sha256": "0bd08600134849916d1787221c33aaf7d1b629e123a7a1944b5d9f53a72f4815",
+  "callbacks": [
+    {
+      "source_caller": 169,
+      "index": 0,
+      "message": "WebSocketMessage",
+      "field": "r#type"
+    },
+    {
+      "source_caller": 170,
+      "index": 1,
+      "message": "WebSocketMessage",
+      "field": "request"
+    },
+    {
+      "source_caller": 171,
+      "index": 2,
+      "message": "WebSocketMessage",
+      "field": "response"
+    },
+    {
+      "source_caller": 193,
+      "index": 0,
+      "message": "WebSocketResponseMessage",
+      "field": "id"
+    },
+    {
+      "source_caller": 194,
+      "index": 1,
+      "message": "WebSocketResponseMessage",
+      "field": "status"
+    },
+    {
+      "source_caller": 195,
+      "index": 2,
+      "message": "WebSocketResponseMessage",
+      "field": "message"
+    },
+    {
+      "source_caller": 196,
+      "index": 3,
+      "message": "WebSocketResponseMessage",
+      "field": "body"
+    },
+    {
+      "source_caller": 197,
+      "index": 4,
+      "message": "WebSocketResponseMessage",
+      "field": "headers"
+    },
+    {
+      "source_caller": 236,
+      "index": 0,
+      "message": "WebSocketRequestMessage",
+      "field": "verb"
+    },
+    {
+      "source_caller": 237,
+      "index": 1,
+      "message": "WebSocketRequestMessage",
+      "field": "path"
+    },
+    {
+      "source_caller": 238,
+      "index": 2,
+      "message": "WebSocketRequestMessage",
+      "field": "body"
+    },
+    {
+      "source_caller": 239,
+      "index": 3,
+      "message": "WebSocketRequestMessage",
+      "field": "id"
+    },
+    {
+      "source_caller": 240,
+      "index": 4,
+      "message": "WebSocketRequestMessage",
+      "field": "headers"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "scope": "Identical pinned primitive type/constructor aliases, established String byte-content interpretation, and import paths only in computational Funs. No computational body edits.",
+  "script_sha256": "61faa496a54e66fdfe7c21ac3c0069bc27de5dd2fea6df9098e4751c338b0b69",
+  "original_types_sha256": "2d8e8bb13a66b2b30f4ee88629b907eb97fda5945e660b7a2df6fd5bff92933f",
+  "original_funs_sha256": "8a887c808cf08cdb9350f7a397378293f2cfed056eb34cb16a5a4f173e4844bb",
+  "replayed_types_sha256": "66457e56eb4eb14f5959f816fd7fa0e01e0aea7cd5895e77d4c51acc9fcf0193",
+  "replayed_funs_sha256": "e9d95d9ad90108f024047171d513ad97ac18347b2af1e93de62c7f3568bf833e",
+  "aliases": [
+    "alloc.borrow.Cow",
+    "bytes.buf.buf_impl.Buf",
+    "bytes.buf.buf_mut.BufMut",
+    "prost.encoding.wire_type.WireType",
+    "prost.error.DecodeErrorKind",
+    "prost.error.Inner",
+    "prost.error.DecodeError",
+    "prost.encoding.DecodeContext",
+    "prost.message.Message",
+    "chat_websocket.WebSocketResponseMessage"
+  ]
+}
