@@ -65,4 +65,11 @@ impl Peer{
   json!({"fixture":self.fixture,"initial_sender_record":hex(&initial),"rows":rows,"actual_Rust_reference_only":true,"native_MPC":false,"phase_override":false})
  }
 }
-fn main(){let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();let mut peer=None;for line in io::stdin().lock().lines(){let value:Value=serde_json::from_str(&line.unwrap()).unwrap();let response=match value["mode"].as_str().unwrap(){"init"=>{let p=rt.block_on(Peer::new(value["seed"].as_u64().unwrap()));let response=p.fixture.clone();peer=Some(p);response},"check"=>rt.block_on(peer.as_mut().unwrap().check(&raw(&value,"wire"))),"reference"=>{let mut p=rt.block_on(Peer::new(value["seed"].as_u64().unwrap()));rt.block_on(p.reference())},_=>panic!("unsupported fixture mode")};println!("{}",response);}}
+fn construct(v:&Value)->Value{
+ let wire=raw(v,"wire");let old=PreKeySignalMessage::try_from(wire.as_slice()).unwrap();
+ let reg=u32::try_from(v["registration"].as_u64().unwrap()).unwrap();let otp=u32::try_from(v["one_time_id"].as_u64().unwrap()).unwrap();let signed=u32::try_from(v["signed_id"].as_u64().unwrap()).unwrap();let kid=u32::try_from(v["kyber_id"].as_u64().unwrap()).unwrap();
+ let ct=old.kyber_ciphertext().unwrap().clone();
+ let new=PreKeySignalMessage::new(old.message_version(),reg,Some(otp.into()),signed.into(),Some(KyberPayload::new(kid.into(),ct)),*old.base_key(),*old.identity_key(),SignalMessage::try_from(old.message().serialized()).unwrap()).unwrap();
+ json!({"wire":hex(new.serialized()),"base":hex(&old.base_key().serialize()[1..]),"identity":hex(&old.identity_key().serialize()[1..]),"ciphertext":hex(old.kyber_ciphertext().unwrap()),"signal":hex(old.message().serialized()),"version":old.message_version(),"registration":reg,"one_time_id":otp,"signed_id":signed,"kyber_id":kid})
+}
+fn main(){let rt=tokio::runtime::Builder::new_current_thread().build().unwrap();let mut peer=None;for line in io::stdin().lock().lines(){let value:Value=serde_json::from_str(&line.unwrap()).unwrap();let response=match value["mode"].as_str().unwrap(){"init"=>{let p=rt.block_on(Peer::new(value["seed"].as_u64().unwrap()));let response=p.fixture.clone();peer=Some(p);response},"construct"=>construct(&value),"check"=>rt.block_on(peer.as_mut().unwrap().check(&raw(&value,"wire"))),"reference"=>{let mut p=rt.block_on(Peer::new(value["seed"].as_u64().unwrap()));rt.block_on(p.reference())},_=>panic!("unsupported fixture mode")};println!("{}",response);}}

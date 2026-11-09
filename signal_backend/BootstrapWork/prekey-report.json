@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "actual_constructor_cases": [
+    {
+      "word": 0,
+      "private_ids": [
+        0,
+        127,
+        128,
+        1
+      ],
+      "actual_wire_bytes": 1878,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 1,
+      "private_ids": [
+        1,
+        128,
+        129,
+        2
+      ],
+      "actual_wire_bytes": 1879,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 127,
+      "private_ids": [
+        127,
+        254,
+        255,
+        128
+      ],
+      "actual_wire_bytes": 1880,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 128,
+      "private_ids": [
+        128,
+        255,
+        256,
+        129
+      ],
+      "actual_wire_bytes": 1881,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 255,
+      "private_ids": [
+        255,
+        382,
+        383,
+        256
+      ],
+      "actual_wire_bytes": 1881,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 256,
+      "private_ids": [
+        256,
+        383,
+        384,
+        257
+      ],
+      "actual_wire_bytes": 1881,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 2147483647,
+      "private_ids": [
+        2147483647,
+        2147483774,
+        2147483775,
+        2147483648
+      ],
+      "actual_wire_bytes": 1893,
+      "canonical_exact_match": true
+    },
+    {
+      "word": 4294967295,
+      "private_ids": [
+        4294967295,
+        126,
+        127,
+        0
+      ],
+      "actual_wire_bytes": 1881,
+      "canonical_exact_match": true
+    }
+  ],
+  "foundation_endpoints": 2,
+  "capacity": 1956,
+  "private_canonical_uint32_ID_widths": true,
+  "upstream_KEM_tag_rejection_profiles": 3,
+  "native_MPC": false,
+  "whole_bootstrap": false,
+  "source_sha256": {
+    "signal_backend/BootstrapWork/check_prekey.py": "f6f221e4641f06b3c19c54a485ad0a11079078bc231d5fb38a5ec9b17f68470a",
+    "signal_backend/BootstrapWork/PreKeyChecks.lean": "43a4c9fedba456b403046ed7fdef475b8dd8f5becb4431567013e916c621ce1c",
+    "signal_backend/BootstrapWork/PreKeyAudit.lean": "5c28d0b9f680fbd4fdb54b51a20ff847ea2d3fbc4334b70163ad4a327f43ae6d",
+    "TlsMpc/Signal/PrivatePreKeyMessageV1.lean": "06901c46ac9e865be36bd29b227a595976719b51521d58321d7dc9cb741e5f1a",
+    "signal_backend/Oracle/src/bin/signal-bootstrap-peer-oracle.rs": "395ff84659cea9897b28806c29b820ff75c44f7acdf15f2a113040a33bad6831",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/wire.proto": "fc5facac43008a127a60caf792d248983cf32665fccf2de850ac4a852a93aad5"
+  },
+  "oracle_sha256": "d49ba45f214e32785375376f7313d38c65c1f9a71bc521d68705ed8d43b52587"
+}

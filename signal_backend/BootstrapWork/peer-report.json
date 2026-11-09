@@ -71,12 +71,12 @@
   ],
   "source_sha256": {
     "signal_backend/BootstrapWork/check_peer.py": "9d1e6e20c539b8f6f0f12808cf9564b364314e960835f2e67b9417ba2c7b7462",
-    "signal_backend/Oracle/src/bin/signal-bootstrap-peer-oracle.rs": "e8c18224062e410644bd148da082d38ee38e70378034ec5121a1fd28aca8af8b",
+    "signal_backend/Oracle/src/bin/signal-bootstrap-peer-oracle.rs": "395ff84659cea9897b28806c29b820ff75c44f7acdf15f2a113040a33bad6831",
     "signal_backend/Oracle/Cargo.lock": "c9804860aa6cf73a78ba995a5f172c6751f5aedd129d4bebac8eae4f9661842a",
     ".deps/libsignal-v0.106.1/rust/protocol/src/session.rs": "05fc5c028aa708862e634c8fa47356babcf9fe1c84b4e1cadeb19abc37cba842",
     ".deps/libsignal-v0.106.1/rust/protocol/src/ratchet.rs": "4078f9f1f938d767ebed95d7628069bb957a32801f22c93f4fd36fe3cb722032",
     ".deps/libsignal-v0.106.1/rust/protocol/src/session_management.rs": "1a0af91526c1f3131a8ee8abfa21b45c27ce8556e334d3d82af9448d7506b5e6",
     ".deps/libsignal-v0.106.1/rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547"
   },
-  "oracle_sha256": "8d42de2517d701ffd0b73eae8556663d9a90111820b8415ca47ece1f102ad8d7"
+  "oracle_sha256": "d49ba45f214e32785375376f7313d38c65c1f9a71bc521d68705ed8d43b52587"
 }
