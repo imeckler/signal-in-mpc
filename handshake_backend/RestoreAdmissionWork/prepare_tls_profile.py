@@ -2,18 +2,20 @@
 """Freeze PUBLIC complete worker closure before any account certification.
 Never copy Player-Data, local archives, journals, secret shares or runtime state.
 """
-import hashlib,json,pathlib,shutil
+import argparse,hashlib,json,pathlib,shutil
 ROOT=pathlib.Path(__file__).resolve().parents[2];HERE=pathlib.Path(__file__).resolve().parent
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
- stage=ROOT/'.deps/tls-authorized-account-native/v1-candidate-1';assert not stage.exists(),'preserve existing candidate'
+ parser=argparse.ArgumentParser();parser.add_argument('--policy-manifest',type=pathlib.Path,required=True);args=parser.parse_args()
+ stage=ROOT/'.deps/tls-authorized-account-native/v1-candidate-2';assert not stage.exists(),'preserve existing candidate'
  old=ROOT/'benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9'
  receipt=json.loads((ROOT/'benchmarks/results/tls-native-text-throughput-batch.json').read_text());boot=old/'programs.manifest';assert sha(boot)==receipt['source_and_product_sha256'][str(boot.relative_to(ROOT))]
  manifests=[(old/'working',boot),
   (ROOT/'.deps/private-variable-conversation-native/260-80-0-0/batch-2-sha-gate-efficient',ROOT/'.deps/private-variable-conversation-native/260-80-0-0/batch-2-sha-gate-efficient/service.manifest'),
   (ROOT/'.deps/private-record-binding-native/v1-candidate-1',ROOT/'.deps/private-record-binding-native/v1-candidate-1/binding.manifest'),
   (ROOT/'.deps/private-account-admission-native/v2-candidate-1',ROOT/'.deps/private-account-admission-native/v2-candidate-1/account.manifest'),
-  (ROOT/'.deps/tls-outbox-remask-native/v1-candidate-1',ROOT/'.deps/tls-outbox-remask-native/v1-candidate-1/remask.manifest')]
+  (ROOT/'.deps/tls-outbox-remask-native/v1-candidate-1',ROOT/'.deps/tls-outbox-remask-native/v1-candidate-1/remask.manifest'),
+  (args.policy_manifest.resolve().parent,args.policy_manifest.resolve())]
  # Validate every input before publishing a new stage/manifest.
  files={};source_pins={}
  for source,manifest in manifests:
@@ -37,8 +39,8 @@ def main():
  manifest=stage/'programs.manifest';manifest.write_text('tls-mpc-pinned-files-v1\n'+''.join(digest+' '+name+'\n'for name,(digest,_)in sorted(files.items())))
  assert not(stage/'Player-Data').exists()
  functions=[p for p in files if p.startswith('Programs/Functions/')]
- required=['signal_private_account_admit_v2_c1-','signal_private_record_bind_v1-','signal_private_variable_conversation_260_80_0_0-','signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-','tls_binary_tls_websocket_remask_1290-','signal_relay_upgrade_22-']
+ required=['signal_private_account_admit_v2_c1-','signal_private_record_bind_v1-','signal_private_variable_conversation_260_80_0_0-','signal_private_variable_batch_2_signal_private_variable_conversation_260_80_0_0-','tls_binary_tls_websocket_remask_1290-','signal_relay_upgrade_22-','signal_private_account_outbox_v1_o1-']
  assert all(any(pathlib.Path(p).name.startswith(prefix)for p in functions)for prefix in required)
- report={'prepared':True,'native_MPC_executed':False,'account_certificate_created':False,'stage':str(stage.relative_to(ROOT)),'manifest':str(manifest.relative_to(ROOT)),'manifest_sha256':sha(manifest),'input_manifest_sha256':source_pins,'pinned_files':len(files),'functions':len(functions),'archived_toolchain_files':len(toolchain),'copied_secret_state':False,'includes_historical_unused_public_functions':True,'scope':'Frozen public complete TLS/parser/upgrade/requestID/text/single+B2service/binding/c1accountvalidator/remask closure. Account genesis/head must certify THIS digest before any account import/provider capability. Runtime/worker source pins are a separate required execution receipt.'}
- (HERE/'tls-profile-report.json').write_text(json.dumps(report,indent=2)+'\n');(stage/'public-profile-receipt.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'manifest':str(manifest),'sha256':sha(manifest),'files':len(files),'functions':len(functions)}))
+ report={'prepared':True,'native_MPC_executed':False,'account_certificate_created':False,'stage':str(stage.relative_to(ROOT)),'manifest':str(manifest.relative_to(ROOT)),'manifest_sha256':sha(manifest),'input_manifest_sha256':source_pins,'pinned_files':len(files),'functions':len(functions),'archived_toolchain_files':len(toolchain),'copied_secret_state':False,'includes_historical_unused_public_functions':True,'supersedes_uncertified_candidate1':True,'scope':'Frozen public complete TLS/parser/upgrade/requestID/text/single+B2service/binding/c1accountvalidator/computedoutboxpolicy/remask closure. Account genesis/head must certify THIS digest before any account import/provider capability. Runtime/worker source pins are a separate required execution receipt.'}
+ (HERE/'tls-profile-v2-report.json').write_text(json.dumps(report,indent=2)+'\n');(stage/'public-profile-receipt.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'manifest':str(manifest),'sha256':sha(manifest),'files':len(files),'functions':len(functions)}))
 if __name__=='__main__':main()

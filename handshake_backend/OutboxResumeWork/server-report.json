@@ -21,8 +21,8 @@
   "source_sha256": {
     "handshake_backend/OutboxResumeWork/check_server.py": "dabdebb64bd1dabeca070989ee44c13bbcc54d6d0fd7453cf5a57ba721172a64",
     "handshake_backend/OutboxResumeWork/fixture_server.py": "ebe4183199f4851da691f5b4ad2c49338fbef435599b26dc869b969646097a0e",
-    "signal_backend/RecoveryWork/restored-recipient-fixture.json": "82bf99133a085e6d8c0a8caf2c68114fa0d815061f7678da1952403bc8fa2895",
-    ".deps/signal-established-send-oracle-target/debug/signal-restored-recipient-oracle": "d5bd35a9b9c3154dcf111f48911152110631f01eee14679d39b1973b90295779",
+    "signal_backend/RecoveryWork/restored-recipient-fixture.json": "8c5c3b4aec2fbdeed2cf8d47ba600d13bd65bfd6c626ec95611c45d1a14eacad",
+    ".deps/signal-established-send-oracle-target/debug/signal-restored-recipient-oracle": "024edf3dd60917184a52a4a2eadaf77a8287ec05ad48d44e23f10cb96c52041f",
     "signal_backend/VariableServiceWork/fixture_server.py": "dd1f3d39edb4815cf1d066620fbdb4004038d68bbc882ce79f3e8f16e23bbf12",
     "signal_backend/VariableServiceWork/check_fixture_server.py": "ce1a44943cb03dfca5a1343d1701bc615ecbe39e6cc0aa0879d954bf75bbbe62"
   }

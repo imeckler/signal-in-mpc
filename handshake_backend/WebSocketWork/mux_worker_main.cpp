@@ -120,13 +120,15 @@ int main(int argc,char** argv) {
             PublicBytes binding(head.begin(),head.end());binding.insert(binding.end(),boot.begin(),boot.end());
             PublicBytes binding_digest(32);SHA256(binding.data(),binding.size(),binding_digest.data());
             state->collective->agree_program("restored-account-admission-v1",binding_digest);
+            std::cerr<<"RESTORE_EVIDENCE authorized_capability_and_barriers=1\n";
             PublicBytes restored_nonce(boot.begin(),boot.begin()+16);
             state->session=std::make_unique<Session>(*state->machine,*state->pinned,state->shapes.get(),state->lifecycle.get(),state->metrics.get());
             state->dispatcher=std::make_unique<Dispatch>(*state->session,*state->collective,state->shapes.get());
+            std::cerr<<"RESTORE_EVIDENCE fresh_session_created=1\n";
             MuxProviderFactory admitted=[pointer=state](Session& session,Collective& collective,unsigned selected_party){
                 public_require(bool(pointer->restored_account),"restored account capability consumed");
                 auto result=pointer->restored_account->consume(session,collective,selected_party);
-                pointer->restored_account.reset();return result;
+                pointer->restored_account.reset();std::cerr<<"RESTORE_EVIDENCE one_shot_provider_consumed=1\n";return result;
             };
             state->providers=std::make_unique<MuxProviderCoordinator>(*state->session,*state->collective,std::move(admitted),std::move(restored_nonce));
         }),"restored fresh TLS bootstrap failed");

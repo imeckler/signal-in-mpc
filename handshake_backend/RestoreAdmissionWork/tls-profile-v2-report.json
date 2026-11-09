@@ -1,0 +1,23 @@
+{
+  "prepared": true,
+  "native_MPC_executed": false,
+  "account_certificate_created": false,
+  "stage": ".deps/tls-authorized-account-native/v1-candidate-2",
+  "manifest": ".deps/tls-authorized-account-native/v1-candidate-2/programs.manifest",
+  "manifest_sha256": "a41455546132840185159061c880095c3ac2111b55d6862afe0419091e74e006",
+  "input_manifest_sha256": {
+    "benchmarks/results/raw/tls-native-text-throughput-batch/dab1d7d574ab28f9/programs.manifest": "0814661630d25d9763ed7d3f74d57686ad145a06796a13727af8ae7f0241e63c",
+    ".deps/private-variable-conversation-native/260-80-0-0/batch-2-sha-gate-efficient/service.manifest": "d4b21771a7f53504949e48c3b0b2c845278d337f11c179b8e533919efe3379c1",
+    ".deps/private-record-binding-native/v1-candidate-1/binding.manifest": "1fc55d7f356971ed28b309a2a571359dc74c74a2dd4690ba3746aab51606cb18",
+    ".deps/private-account-admission-native/v2-candidate-1/account.manifest": "9b6cfadc6227bc5469c1b4d5d728131caebb0d05207c268c7232e777ac1b848c",
+    ".deps/tls-outbox-remask-native/v1-candidate-1/remask.manifest": "762587e96f803d8a3d4fd14b5ff7d99b71f300403e626360b4ef031f4b20d3b3",
+    ".deps/private-account-outbox-native/v1-candidate-1/outbox.manifest": "77732d14570f0200b71141ef601697fd942952fed93e22891e39da6daa16874a"
+  },
+  "pinned_files": 701,
+  "functions": 173,
+  "archived_toolchain_files": 57,
+  "copied_secret_state": false,
+  "includes_historical_unused_public_functions": true,
+  "supersedes_uncertified_candidate1": true,
+  "scope": "Frozen public complete TLS/parser/upgrade/requestID/text/single+B2service/binding/c1accountvalidator/computedoutboxpolicy/remask closure. Account genesis/head must certify THIS digest before any account import/provider capability. Runtime/worker source pins are a separate required execution receipt."
+}

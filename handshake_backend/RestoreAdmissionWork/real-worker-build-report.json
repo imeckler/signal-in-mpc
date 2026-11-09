@@ -1,0 +1,15 @@
+{
+  "compiled_linked": true,
+  "positive_native_executed": false,
+  "source_sha256": {
+    "handshake_backend/WebSocketWork/mux_worker_main.cpp": "4fa9772833784b826b113067ef85c5fb5803e210bb5f4d2229f021ba9318af08",
+    "signal_backend/RecoveryWork/AccountCaptureWork/RecoveryFixtureFactory.cpp": "a6b862d9d78400176b8a823daff8588a944775a947454ddf9fcc389933132a23",
+    "signal_backend/RecoveryWork/AccountRecoveryEngineV1.h": "be77201fd7ad6425fd8fd64cc408baa8bd34aae07d1beed48b34973d22383a7d",
+    "signal_backend/RecoveryWork/NativeAccountReadmit.h": "880887e94f3b84bf840ba289fc433d53510c61c1272ef091b99b9234f84d0999",
+    "signal_backend/RecoveryWork/AccountAdmission.h": "6b62b7fd93e4c42031369cfe657cf42ec5788457072c35f528989e92c0e497c6",
+    "handshake_backend/NativeSession.h": "0242dc601fb14c28382bed845461ee20733d3fa8eb6892856edd55f6c9c805d6"
+  },
+  "binary_sha256": "37211aa48f5cf45a266c4f1955d8257e5b6cba9fcdd0a27c5ca747ed9e5d40b8",
+  "factory_configuration": "public TLS_ACCOUNT_ARCHIVE_ROOT with perparty local directories; actual private Config creation in EHC",
+  "scope": "Actual real AccountRecoveryEngineV1 linked worker; no capability manufactured and positive runtime result pending."
+}
