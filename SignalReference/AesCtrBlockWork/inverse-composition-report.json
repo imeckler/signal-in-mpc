@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "kernel_endpoints": 13,
+  "foundation_axioms_only": true,
+  "actual_complete_inverse_equality": true,
+  "actual_generated_body_edits": false,
+  "official_Std_content_bindings": 6,
+  "public_actual_Rust_differential_cases": 592,
+  "whole_AES_CTR_refinement": false,
+  "model": "AesLayout.transpose + exact inverse byte writeback",
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/check_inverse_composition.py": "8d94370153baf04b320ab557477d0a2870490d3e9f35e798418c3f0b3c60d6de",
+    "SignalReference/AesCtrBlockWork/InverseWritebackLemmas.lean": "70a06bc92173e2186163bf789846d8d6a99d3035be16dd6a53444c1f04b19430",
+    "SignalReference/AesCtrBlockWork/FactoredInverse.lean": "e52c92d6f2d475b9e76c06461641223a3f79cb2f66de70a4a89b9281df1744c7",
+    "SignalReference/AesCtrBlockWork/InverseEvaluate.lean": "16cd182e9da212d860c93876596456ee0b68aef2c41ae84348f40b23b1d80e33",
+    "SignalReference/AesCtrBlockWork/inverse-source-report.json": "e826443c133438452307d1093c256862283c4b285730f4371df8b2aa4bafd246",
+    "SignalReference/AesCtrBlockWork/ZipModelV1/oracle-build-report.json": "c168f66931ff7cda8c14978a139e42b65442380f4b7b88c26f1265cda895f180"
+  },
+  "oracle_binary_sha256": "12b4caae1fb3163f9bf2e3552b8a79a0f03e44c14f1c9df9786b274ee82b99b3"
+}
