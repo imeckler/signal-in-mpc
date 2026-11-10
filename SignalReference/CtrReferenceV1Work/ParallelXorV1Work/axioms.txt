@@ -1,0 +1,23 @@
+'LibSignalReference.Candidate.ParallelXor4.batch_index' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.inner_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.batch_set' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.progress_row' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.inner_progress' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.inner_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.inner_all' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.progress_start' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.progress_finish' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.outer_range_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.outer_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.outer_range_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.outer_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.outer_all' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.batch_complete' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.initial_batch' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.source_xor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.expression_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelXor4.compiled_source_xor' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

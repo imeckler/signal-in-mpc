@@ -1,0 +1,36 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "additional_translation_trust_not_mechanized": true,
+  "reversible_metadata_changes": 7,
+  "all_retained_computational_bodies_identical": true,
+  "no_retained_semantic_refs_to_removed_opaque_fields": true,
+  "removed_functions": [
+    97,
+    101
+  ],
+  "original_sha256": "7ea6a1ac89cf93c2ec69c253533f662c2933b89e76330fc4b03fa39bba01ccb1",
+  "selected_sha256": "e636598d1a5fc14f80a0d5afc77ab1721800d05a606282788014bb24e5bc75c4",
+  "changes_sha256": "b8531180c31bb63d07a4ae29422da23bcec0dbc72a116754a2300568af8e5dab",
+  "script_sha256": "2954c1466836976a23a908f0507d1522c6bf4d7c838400ef40e88a1bcbaab497",
+  "aeneas_exit": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ParallelXorV1Work/ArtifactsSelected/selected.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/ParallelXorV1Work/GeneratedSelected",
+    "-split-files",
+    "-namespace",
+    "ActualParallelXor4",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_sha256": {
+    "SignalReference/CtrReferenceV1Work/ParallelXorV1Work/GeneratedSelected/Funs.lean": "8acaeec33bcecda34599b5f2d4e9fbba8fcc355b1a8965664702672c493dfe0c",
+    "SignalReference/CtrReferenceV1Work/ParallelXorV1Work/GeneratedSelected/Types.lean": "3fd24b219750afb7aef7e1d69f08bc08c50dcac626284f8cbabd649ff1fc9360"
+  }
+}
