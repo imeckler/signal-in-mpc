@@ -18,7 +18,14 @@
 //!                                  (PublicRequest.build) on FROM's AUTHENTICATED socket; saves
 //!                                  request/response bytes to ../state/transcripts/
 //!   receive   NAME [SECONDS]       authenticated socket; decrypt and print every delivered message
-//!   provision                      register sender + recipient, establish, send + receive one text
+//!   provision                      register sender + recipient + recipient2, establish both,
+//!                                  send + receive one text
+//!   export-mpc [SENDER CONTACT..]  write ../state/mpc-export.json: everything the MPC client needs
+//!                                  (credentials, identity secret, conversation records); see mpc.rs
+//!   ref-send  TEXT                 reference sender reading ONLY the export: one MPC-shaped send per
+//!                                  contact on an UNAUTHENTICATED socket; writes the advanced records back
+//!   probe-sockets DIR [IDLE_SECS]  unauthenticated vs authenticated socket: queue/empty, keepalive
+//!                                  request/response bytes (saved to DIR), idle close behaviour
 //!   show      NAME                 print the public parts of an account (aci, device, registration id, ...)
 use base64::Engine;
 use base64::engine::general_purpose::{STANDARD, STANDARD_NO_PAD};
@@ -35,6 +42,17 @@ use tungstenite::client::IntoClientRequest;
 mod wsproto {
     include!(concat!(env!("OUT_DIR"), "/signal.proto.chat_websocket.rs"));
 }
+/// libsignal storage.proto (SessionRecord); same module name as in signal_backend/Oracle.
+#[allow(dead_code, clippy::all)]
+mod storage {
+    include!(concat!(env!("OUT_DIR"), "/signal.proto.storage.rs"));
+}
+/// SPQR pq_ratchet.proto; same module name as in signal_backend/Oracle.
+#[allow(dead_code, clippy::all)]
+mod pqr {
+    include!(concat!(env!("OUT_DIR"), "/signal.proto.pq_ratchet.rs"));
+}
+mod mpc;
 use wsproto::{WebSocketMessage, WebSocketRequestMessage, WebSocketResponseMessage, web_socket_message};
 
 type R<T> = Result<T, Box<dyn std::error::Error>>;
@@ -79,8 +97,35 @@ struct Pushed {
     body: Vec<u8>,
 }
 
+/// TCP stream that records every byte in each direction (for byte-exact samples in testdata/).
+struct Tee {
+    inner: TcpStream,
+    rx: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
+    tx: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
+}
+impl std::io::Read for Tee {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        self.rx.borrow_mut().extend_from_slice(&buf[..n]);
+        Ok(n)
+    }
+}
+impl std::io::Write for Tee {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let n = self.inner.write(buf)?;
+        self.tx.borrow_mut().extend_from_slice(&buf[..n]);
+        Ok(n)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner.flush()
+    }
+}
+
 struct Chat {
-    ws: tungstenite::WebSocket<TcpStream>,
+    ws: tungstenite::WebSocket<Tee>,
+    /// Raw bytes received from / sent to the server on this connection (HTTP head + frames).
+    server_bytes: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
+    client_bytes: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
     next_id: u64,
     inbox: Vec<Pushed>,
     queue_empty: bool,
@@ -101,11 +146,14 @@ impl Chat {
         if let Some((u, p)) = auth {
             h.insert("Authorization", format!("Basic {}", b64(format!("{u}:{p}").as_bytes())).parse()?);
         }
-        let (ws, resp) = tungstenite::client::client(req, stream).map_err(|e| format!("websocket upgrade failed: {e}"))?;
+        let rx = std::rc::Rc::new(std::cell::RefCell::new(vec![]));
+        let tx = std::rc::Rc::new(std::cell::RefCell::new(vec![]));
+        let tee = Tee { inner: stream, rx: rx.clone(), tx: tx.clone() };
+        let (ws, resp) = tungstenite::client::client(req, tee).map_err(|e| format!("websocket upgrade failed: {e}"))?;
         if resp.status().as_u16() != 101 {
             return Err(format!("upgrade status {}", resp.status()).into());
         }
-        Ok(Chat { ws, next_id: 1, inbox: vec![], queue_empty: false, last_response_raw: vec![] })
+        Ok(Chat { ws, server_bytes: rx, client_bytes: tx, next_id: 1, inbox: vec![], queue_empty: false, last_response_raw: vec![] })
     }
 
     fn send_frame(&mut self, m: WebSocketMessage) -> R<()> {
@@ -559,6 +607,12 @@ async fn sealed_send(from: &mut Account, to: &Account, text: &str) -> R<u64> {
 
 /// Receive and decrypt sealed-sender messages for `me` on its authenticated socket.
 async fn receive(me: &mut Account, expect: usize, timeout: Duration) -> R<Vec<(String, String, u64)>> {
+    Ok(receive_envelopes(me, expect, timeout).await?.into_iter().map(|(f, t, ts, _)| (f, t, ts)).collect())
+}
+
+/// Like `receive`, also returning each envelope's source fields as JSON (they must be absent for
+/// a sealed-sender message; present means the server treated the send as identified).
+async fn receive_envelopes(me: &mut Account, expect: usize, timeout: Duration) -> R<Vec<(String, String, u64, Value)>> {
     let mut chat = Chat::connect(Some((&me.aci.clone(), &me.password.clone())))?;
     let pushed = chat.wait_messages(expect, timeout)?;
     chat.close();
@@ -582,7 +636,9 @@ async fn receive(me: &mut Account, expect: usize, timeout: Duration) -> R<Vec<(S
         eprintln!("  {} received from {}: {:?} (timestamp {ts}, server {:?})", me.name, r.sender_uuid, text, env.server_timestamp);
         let sender = r.sender_uuid.clone();
         me.add_peer(&sender);
-        out.push((sender, text, ts));
+        let envelope = json!({"type": env.r#type, "source_service_id": env.source_service_id,
+            "source_device": env.source_device, "server_timestamp": env.server_timestamp});
+        out.push((sender, text, ts, envelope));
     }
     me.save().await?;
     Ok(out)
@@ -745,12 +801,20 @@ async fn run(args: &[String]) -> R<()> {
             Ok(())
         }
         ["mpc-send", from, to, text] => mpc_send(from, to, text).await,
+        ["export-mpc"] => mpc::export_mpc("sender", &["recipient", "recipient2"]).await,
+        ["export-mpc", sender, contacts @ ..] => mpc::export_mpc(sender, contacts).await,
+        ["ref-send", text] => mpc::ref_send(text, None).await,
+        ["ref-send", text, dir] => mpc::ref_send(text, Some(dir)).await,
+        ["probe-sockets", dir, rest @ ..] => {
+            let idle = rest.first().map(|s| s.parse()).transpose()?.unwrap_or(5);
+            mpc::probe_sockets(dir, idle).await
+        }
         ["receive", name, rest @ ..] => {
             let secs = rest.first().map(|s| s.parse()).transpose()?.unwrap_or(10);
             let mut me = Account::load(name).await?;
-            let got = receive(&mut me, usize::MAX, Duration::from_secs(secs)).await?;
-            for (from, text, ts) in got {
-                println!("{}", json!({"from": from, "text": text, "timestamp": ts}));
+            let got = receive_envelopes(&mut me, usize::MAX, Duration::from_secs(secs)).await?;
+            for (from, text, ts, envelope) in got {
+                println!("{}", json!({"from": from, "text": text, "timestamp": ts, "envelope": envelope}));
             }
             Ok(())
         }
@@ -765,7 +829,9 @@ async fn run(args: &[String]) -> R<()> {
             // Fictional NANP numbers (555-01xx); the local stub registration service sends nothing.
             register("sender", "+12025550101").await?;
             register("recipient", "+12025550102").await?;
+            register("recipient2", "+12025550103").await?;
             establish("sender", "recipient").await?;
+            establish("sender", "recipient2").await?;
             let mut s = Account::load("sender").await?;
             let r = Account::load("recipient").await?;
             let ts = sealed_send(&mut s, &r, "lss provision: established send").await?;
@@ -775,10 +841,11 @@ async fn run(args: &[String]) -> R<()> {
             if got.len() != 1 || got[0].1 != "lss provision: established send" || got[0].2 != ts {
                 return Err("established send was not received intact".into());
             }
-            println!("{}", json!({"provisioned": true, "sender": s.aci, "recipient": r.aci}));
+            let r2 = Account::load("recipient2").await?;
+            println!("{}", json!({"provisioned": true, "sender": s.aci, "recipient": r.aci, "recipient2": r2.aci}));
             Ok(())
         }
-        _ => Err("usage: lss-provision register NAME NUMBER | establish FROM TO | send FROM TO TEXT | receive NAME [SECONDS] | show NAME | provision".into()),
+        _ => Err("usage: lss-provision register NAME NUMBER | establish FROM TO | send FROM TO TEXT | mpc-send FROM TO TEXT | receive NAME [SECONDS] | show NAME | provision | export-mpc [SENDER CONTACT..] | ref-send TEXT | probe-sockets DIR [IDLE_SECS]".into()),
     }
 }
 

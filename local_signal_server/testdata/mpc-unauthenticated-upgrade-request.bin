@@ -1,0 +1,10 @@
+GET /v1/websocket/ HTTP/1.1
+Host: chat.signal.org
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: ztc3jtCjMjZJp/9tRJ/1Tw==
+Sec-WebSocket-Version: 13
+X-Signal-Receive-Stories: false
+Accept-Language: en
+User-Agent: tls-mpc
+

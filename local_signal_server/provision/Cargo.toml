@@ -7,6 +7,7 @@ description = "Conventional (non-MPC) Signal client that provisions accounts on 
 
 # Same libsignal source and crate versions as signal_backend/Oracle (offline, vendored; see .cargo/config.toml).
 [dependencies]
+spqr = {git="https://github.com/signalapp/SparsePostQuantumRatchet.git",tag="v1.6.0"}
 libsignal-protocol = {path="../../.deps/libsignal-v0.106.1/rust/protocol"}
 libsignal-core = {path="../../.deps/libsignal-v0.106.1/rust/core"}
 signal-crypto = {path="../../.deps/libsignal-v0.106.1/rust/crypto"}

@@ -1,0 +1,8 @@
+HTTP/1.1 101 Switching Protocols
+Date: Tue, 10 Nov 2026 22:19:10 GMT
+Vary: Accept-Encoding
+X-Signal-Timestamp: 1794349150882
+Upgrade: websocket
+Sec-WebSocket-Accept: 9nd0vX77lkbYgxQ8qpBP63SYB6I=
+Connection: Upgrade
+

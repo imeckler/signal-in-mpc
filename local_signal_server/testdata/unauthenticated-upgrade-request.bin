@@ -1,0 +1,10 @@
+GET /v1/websocket/ HTTP/1.1
+Host: 127.0.0.1:18080
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: riNwxEv3Ef5lZSxQA7hpBQ==
+accept-language: en
+x-signal-receive-stories: false
+user-agent: lss-provision
+
