@@ -1,5 +1,7 @@
 import TlsMpc.HybridKdf
 import TlsMpc.HybridService
+import TlsMpc.Signal.PrivateService
+import TlsMpc.Signal.PrivateDecimal
 
 /-!
 Worker kernels: one circuit per worker operation, with NAMED input and output
@@ -295,6 +297,82 @@ def signalSend (cert : Nat) (openRequestId : Bool := false) : Kernel :=
       priv "valid" status, priv "length" (sl out 81 2), priv "content" (out.drop 83)] ++
       (if openRequestId then [pub "requestIdUsed" (get "requestId")] else []) }
 
+/-! ### Open-envelope send (privacy policy: only contacts and client keys are secret)
+
+The sealed-sender envelope is what the Signal server receives; it does not
+identify the recipient to anyone without the recipient's key, so it may be
+opened to the parties. The request around it is then assembled in the clear by
+the controllers, and only the fields that identify the contact are formatted
+and inserted inside the engines. -/
+
+/-- Session encryption with SPQR and sealed sender, without the relay request.
+Opened: the gated status, the envelope with its length (zero unless the status
+is 255), and the message timestamp. The next conversation record is selected
+inside the circuit. -/
+def signalSeal (cert : Nat) : Kernel :=
+  let size := 80
+  let a := ByteAuth.symbolic
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes 59),
+    ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word)]
+  let get := lookup inputs
+  let record := get "conversation"
+  let certificate := sl record 0 cert
+  let session := sl record cert (182 + size)
+  let metadata := sl record (cert + 182 + size) 57
+  let text := PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
+  let staged := sl session 0 117 ++ sl text 1 1 ++ sl session 118 64 ++ sl text 2 size
+  let i : SpqrSend.Input (BVExpr 8) := {
+    version := HybridService.at' staged 0, counter := sl staged 1 4, previous := sl staged 5 4, ratchet := sl staged 9 32,
+    chainKey := sl staged 41 32, pqChainKey := sl staged 73 32, pqCounter := sl staged 105 4, epoch := sl staged 109 8,
+    kind := HybridService.at' staged 117, chunkIndex := [], chunkData := [], sender := sl staged 118 32,
+    receiver := sl staged 150 32, plaintext := sl staged 182 size, addresses := [] }
+  let inner := PrivateSpqrSend.prepare Aes.symbolic Varint64.symbolic Sha256.symbolic a false false i
+  let envelope := PrivateSealedSender.boundSeal Aes.symbolic Sha256.symbolic a i.receiver (get "ephemeralPublic")
+    (get "senderPublic") (get "ephemeralAgreement") (get "staticAgreement") certificate i.sender inner.wire
+  -- status, selected state (chain 32, counter 4, pq chain 32, pq counter 4), length 2, data
+  let out := PrivateSpqrSend.output a (PrivateSpqrSend.oldState i) ⟨inner.candidateState, envelope⟩
+  let status := TlsProviderGate.gate a (HybridService.at' out 0) (HybridService.at' text 0)
+  let released := ByteAuth.release a status (out.drop 73)
+  let next := sl staged 0 1 ++ sl out 33 4 ++ sl staged 5 36 ++ sl out 1 32 ++ sl out 37 32 ++ sl out 69 4 ++ staged.drop 109
+  { name := "signal-seal", inputs, outputs := [
+      pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
+      pub "timestamp" (sl text 82 8), pub "length" (sl released 0 2), pub "envelope" (released.drop 2)] }
+
+/-- A decimal number in a fixed-width slot, padded with spaces (valid JSON
+whitespace), so that its digit count stays private. -/
+def paddedDecimal (number : BVExpr 64) (width : Nat) : BVExpr 8 × List (BVExpr 8) :=
+  let a := ByteAuth.symbolic
+  let buffer := PrivateDecimal.encode RelayEncoding.decimalSymbolic a number
+  (a.and buffer.valid (ByteAuth.zeroMask a (HybridService.at' buffer.data width)),
+   (buffer.data.take width).map (fun byte => TlsInner.select a (ByteAuth.zeroMask a byte) (a.const 32) byte))
+
+/-- Seal the relay request. `frame` is the complete masked WebSocket frame built
+in the clear, with zero bytes in four slots; this kernel formats the recipient
+UUID (36), the access key in base64 (24), the device id (3) and the
+registration id (10) from the private conversation record, applies the public
+WebSocket mask, inserts them at the given offsets, and seals the TLS record. -/
+def signalRequestSeal (cert size uuidAt keyAt deviceAt registrationAt : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8),
+    ("conversation", .bytes (conversationBytes cert 80)), ("frame", .bytes size), ("mask", .bytes 4)]
+  let get := lookup inputs
+  let metadata := sl (get "conversation") (cert + 262) 57
+  let device := paddedDecimal (RelayRequest.word Varint64.symbolic a metadata 48 1) 3
+  let registration := paddedDecimal (RelayRequest.word Varint64.symbolic a metadata 49 4) 10
+  let slots : List (Nat × List (BVExpr 8)) := [(uuidAt, RelayEncoding.uuid a (sl metadata 0 16)),
+    (keyAt, RelayEncoding.base64 a (sl metadata 16 16)), (deviceAt, device.2), (registrationAt, registration.2)]
+  let secretAt (index : Nat) : Option (BVExpr 8) := slots.findSome? (fun slot =>
+    if slot.1 ≤ index && index < slot.1 + slot.2.length then some (HybridService.at' slot.2 (index - slot.1)) else none)
+  let plaintext := (get "frame").zipIdx.map (fun pair => match secretAt pair.2 with
+    | some secret => a.xor pair.1 (a.xor secret (HybridService.at' (get "mask") ((pair.2 - 8) % 4)))
+    | none => pair.1)
+  let valid := a.and device.1 registration.1
+  let block := get "clientApplication"
+  { name := "signal-request-seal", inputs, outputs := [
+      pub "accepted" [valid],
+      pub "record" (ByteAuth.release a valid
+        (TlsRecord.sealCore Gcm.symbolic (blockKey block) (blockIv block) (get "sequence") plaintext 23 0))] }
+
 /-- Kernel named on the command line, with its public shape parameters. -/
 def find : List String → Option Kernel
   | ["tls-derive"] => some tlsDerive
@@ -318,6 +396,7 @@ def find : List String → Option Kernel
       | "signal-conversation-view", some n => if n ≤ 1024 then some (signalConversationView n 80) else none
       | "signal-send", some n => if n ≤ 1024 then some (signalSend n) else none
       | "signal-send-open", some n => if n ≤ 1024 then some (signalSend n true) else none
+      | "signal-seal", some n => if n ≤ 1024 then some (signalSeal n) else none
       | "tls-reveal", some n => if 0 < n && n ≤ 16385 then some (tlsReveal n) else none
       | _, _ => none
   | [name, a, b] =>
@@ -326,6 +405,13 @@ def find : List String → Option Kernel
       | "tls-seal-control", some kind, some n =>
           if (kind == 21 && n == 2) || (kind == 22 && n == 5) then some (tlsSealControl kind n) else none
       | _, _, _ => none
+  | ["signal-request-seal", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
+      match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with
+      | some cert, some size, some u, some k, some d, some r =>
+          if cert ≤ 1024 && 0 < size && size ≤ 16384 && 8 ≤ u && u + 36 ≤ size && 8 ≤ k && k + 24 ≤ size &&
+              8 ≤ d && d + 3 ≤ size && 8 ≤ r && r + 10 ≤ size then
+            some (signalRequestSeal cert size u k d r) else none
+      | _, _, _, _, _, _ => none
   | _ => none
 
 end TlsMpc.HybridKernel

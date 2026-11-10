@@ -19,6 +19,7 @@ inductive Operation where
   /- Public-receive profile: only contacts and client keys are secret, so the
   contents of authenticated server records may be revealed to the controllers. -/
   | revealApplication | publicBuffer | providerProduceOpen | providerUpgradeOpen | publicRandom
+  | providerSealOpen | providerRequest
   deriving Repr, BEq
 
 structure Rpc where

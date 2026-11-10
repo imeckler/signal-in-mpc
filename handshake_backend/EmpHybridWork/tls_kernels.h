@@ -99,7 +99,9 @@ public:   // engine references and shared resources are also used by service_ker
     // ---- Application phase. Plaintext lives only in private buffers named by public handles.
     // `length` empty: the whole content is the payload (public size). `length` present: private
     // length within the public capacity, with `valid` the buffer's computed validity byte.
-    struct PrivateBuffer {Wires length,content,valid;};
+    // `sealer` set: the buffer is sealed by that kernel instead, with `content` bound to its
+    // `frame` input and `extra` bound by name (a request assembled in the clear around private slots).
+    struct PrivateBuffer {Wires length,content,valid;std::string sealer;Values extra;};
     std::map<uint64_t,PrivateBuffer>buffers;uint64_t next_buffer=1;
     uint64_t retain(PrivateBuffer buffer){if(next_buffer==0)throw std::runtime_error("handle space");buffers[next_buffer]=std::move(buffer);return next_buffer++;}
     // Authenticate, decrypt and classify one record; only the event bytes are opened.
@@ -117,6 +119,14 @@ public:   // engine references and shared resources are also used by service_ker
     std::vector<uint8_t> seal_application(const std::vector<uint8_t>&sequence,uint64_t id,size_t size,size_t padding){
         auto it=buffers.find(id);if(it==buffers.end()||8*size!=it->second.content.size())throw std::runtime_error("application seal request");
         auto seq=constant(sequence);auto&buffer=it->second;
+        if(!buffer.sealer.empty()){
+            if(padding)throw std::runtime_error("request padding");
+            auto&kernel=cache.get(buffer.sealer);Binding bound{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"frame",&buffer.content}};
+            for(auto&entry:buffer.extra)bound.push_back({entry.first,&entry.second});
+            auto out=kernel.run(s,bound);
+            if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("private request rejected");
+            return kernel.open(s,out,"record");
+        }
         if(buffer.length.size()){
             if(padding)throw std::runtime_error("private buffer padding");
             auto&kernel=cache.get("tls-seal-private "+std::to_string(size));auto valid=buffer.valid.size()?buffer.valid:constant({255});

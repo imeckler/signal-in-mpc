@@ -78,6 +78,13 @@ struct Worker {
         // Public-receive profile (PublicServiceController.lean).
         case 29:{need(phase==Phase::retired&&service&&service->public_receive&&p.size()==10,"reveal");return kernels.reveal_byte(big(p.data(),8),big(p.data()+8,2));}
         case 30:{need(phase==Phase::retired&&service&&service->public_receive&&!p.empty(),"public buffer");Bytes out;uint64_t id=kernels.public_buffer(p);for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;}
+        case 34:{need(phase==Phase::retired&&service&&p.size()==16&&big(p.data(),8)==1,"seal envelope");return service->seal_open(big(p.data()+8,8));}
+        case 35:{
+            need(phase==Phase::retired&&service&&p.size()>20&&p.size()<=20+16384,"request frame");
+            std::vector<size_t>offsets;for(int i=0;i<4;i++)offsets.push_back(big(p.data()+8+2*i,2));
+            uint64_t id=service->request(big(p.data(),8),offsets,Bytes(p.begin()+16,p.begin()+20),Bytes(p.begin()+20,p.end()));
+            Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
+        }
         case 33:{need(phase==Phase::retired&&p.empty(),"public random");return joint_random();}   // commit-then-open, 32 public bytes
         case 31:{
             need(phase==Phase::retired&&service&&service->public_receive&&p.size()==16&&big(p.data(),8)==1,"provider produce");

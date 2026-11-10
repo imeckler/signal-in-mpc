@@ -110,6 +110,30 @@ run: 42.6 M ANDs (was 67.6 M); malicious 19.9 GB Boolean + 5.6 GB field in
 With this profile: malicious ≈ 94 messages/hour on 1 Gbit/s and ≈ 940 on
 10 Gbit/s; semi-honest ≈ 940 and ≈ 9,400. The send now dominates.
 
+### Open-envelope send (same profile, current default of the public controller)
+
+The sealed-sender envelope (what the Signal server receives) is opened after
+the gated status; the controllers assemble JSON, base64, protobuf and the
+WebSocket frame in the clear with a public request id and a joint public mask;
+a small kernel (`signal-request-seal`) formats the recipient UUID, access key,
+device id and registration id from the private record into four fixed-width
+slots and seals the TLS record. Device and registration ids are space-padded
+so their digit counts stay private (not yet checked against the real service).
+Both modes pass. Whole run: 34.5 M ANDs; malicious 16.3 GB + 5.6 GB in 52 s.
+
+| Per message, steady state | ANDs |
+|---|---:|
+| Session encryption + SPQR + sealed sender (`signal-seal`) | 4.97 M |
+| Request record seal with private slots (≈ 1,260 bytes) | 1.41 M |
+| Two response record opens | 0.29 M |
+| Pong seal | 0.11 M |
+| Response byte reveals | 0.06 M |
+| **Round trip** | **≈ 6.9 M** (+ 6,348 field products) |
+
+≈ 3.9 GB and ≈ 7 s per message malicious; ≈ 0.42 GB semi-honest. Remaining
+levers, unmeasured: a public-length message profile and the gate-efficient
+SHA-256 backend for `signal-seal`; local GHASH shares for record sealing.
+
 ## Throughput estimates (private-receive profile)
 
 Arithmetic on the full-path measurements, not load tests.

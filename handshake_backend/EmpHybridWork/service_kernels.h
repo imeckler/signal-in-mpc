@@ -97,6 +97,37 @@ public:
         const size_t capacity=out.at("content").size()/8;
         return {k.retain({std::move(out.at("length")),std::move(out.at("content")),std::move(out.at("valid"))}),capacity};
     }
+    // Open-envelope send, step 1: session encryption and sealed sender. Opens the gated status,
+    // then the timestamp and the envelope (what the Signal server will receive).
+    // Reply: timestamp8, length2, envelope bytes (public capacity).
+    std::vector<uint8_t> seal_open(uint64_t input){
+        need(public_receive&&started&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
+        auto&c=conversations.at(inputs[input-1].first);
+        if(!c.ready){
+            auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
+            c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
+        }
+        std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
+        auto ephemeral=k.shared_scalar(seed);
+        auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient);
+        auto&kernel=k.cache.get("signal-seal "+std::to_string(CERT));
+        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"ephemeralPublic",&ephemeral_public},
+            {"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
+        need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
+        c.record=std::move(out.at("conversation"));
+        auto reply=kernel.open(s,out,"timestamp");
+        for(auto name:{"length","envelope"}){auto part=kernel.open(s,out,name);reply.insert(reply.end(),part.begin(),part.end());}
+        return reply;
+    }
+    // Step 2: a request frame assembled in the clear, to be sealed with this conversation's
+    // private recipient fields inserted at the given public offsets.
+    uint64_t request(uint64_t input,const std::vector<size_t>&offsets,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
+        need(public_receive&&!closed&&input>=1&&input<=inputs.size()&&consumed[input-1]&&offsets.size()==4&&mask.size()==4&&!frame.empty(),"request unavailable");
+        TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
+        buffer.sealer="signal-request-seal "+std::to_string(CERT)+" "+std::to_string(frame.size());for(auto at:offsets)buffer.sealer+=" "+std::to_string(at);
+        buffer.extra["conversation"]=conversations.at(inputs[input-1].first).record;buffer.extra["mask"]=k.constant(mask);
+        return k.retain(std::move(buffer));
+    }
     // One received application chunk through the parsers.
     // Reply: upgraded, response complete, n, n x (kind, handle8, capacity2).
     std::vector<uint8_t> process(uint64_t handle){

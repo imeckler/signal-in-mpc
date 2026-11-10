@@ -5,6 +5,7 @@ import TlsMpc.TlsWebSocketFrame
 import TlsMpc.TlsWebSocketIdle
 import TlsMpc.TlsWebSocketControl
 import TlsMpc.TlsChatResponse
+import TlsMpc.Signal.RelayEncoding
 
 /-!
 Service controller for the public-receive profile.
@@ -108,6 +109,65 @@ def replies (s : State) (mask : List Byte) : Except String (State × List (Nat �
 
 end PublicReceive
 
+/-! The relay request around an opened sealed-sender envelope, assembled in the
+clear. Four fixed-width slots are left as zero bytes for the engines to fill:
+recipient UUID text (36), access key in base64 (24), device id (3, space
+padded) and registration id (10, space padded). Everything else, including the
+request id, timestamp and WebSocket mask, is public. -/
+namespace PublicRequest
+abbrev Byte := BitVec 8
+
+inductive Piece where
+  | bytes (value : List Byte)
+  | slot (index width : Nat)
+
+def Piece.width : Piece → Nat
+  | .bytes value => value.length
+  | .slot _ width => width
+
+def total (pieces : List Piece) : Nat := (pieces.map Piece.width).foldl (· + ·) 0
+def text (s : String) : List Byte := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
+
+def varint (n : Nat) : List Byte :=
+  (List.range 10).filterMap fun i =>
+    let rest := n / 128 ^ i
+    if i > 0 && rest == 0 then none
+    else some (BitVec.ofNat 8 (rest % 128 + (if rest / 128 == 0 then 0 else 128)))
+
+def field (tag : Nat) (pieces : List Piece) : List Piece :=
+  .bytes (BitVec.ofNat 8 tag :: varint (total pieces)) :: pieces
+
+/-- The masked WebSocket frame with zeroed slots, and the frame offsets of the
+UUID, access-key, device and registration slots. -/
+def build (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) : Except String (List Byte × List Nat) := do
+  let json : List Piece := [
+    .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 ByteAuth.concrete envelope ++
+      text "\",\"destinationDeviceId\":"), .slot 2 3,
+    .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
+    .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
+  let request := field 10 [.bytes (text "PUT")] ++
+    field 18 [.bytes (text "/v1/messages/"), .slot 0 36, .bytes (text "?story=false")] ++
+    field 26 json ++ [.bytes (32 :: varint id)] ++
+    field 42 [.bytes (text "content-type: application/json")] ++
+    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
+  let message := Piece.bytes [8, 1] :: field 18 request
+  let size := total message
+  unless 126 ≤ size && size < 65536 && mask.length == 4 do throw "request size"
+  let header : List Byte := [130, 254, BitVec.ofNat 8 (size / 256), BitVec.ofNat 8 size] ++ mask
+  let mut frame := header
+  let mut offsets := #[0, 0, 0, 0]
+  for piece in message do
+    match piece with
+    | .bytes value =>
+      for byte in value do
+        frame := frame ++ [byte ^^^ mask.getD ((frame.length - 8) % 4) 0]
+    | .slot index width =>
+      offsets := offsets.set! index frame.length
+      frame := frame ++ List.replicate width 0
+  return (frame, offsets.toList)
+
+end PublicRequest
+
 private def natural (s : String) : IO Nat :=
   match s.toNat? with | some n => pure n | none => throw (IO.userError "invalid fixture integer")
 private def sessionBytes (text : String) : IO Bytes := do
@@ -181,6 +241,20 @@ def main (args : List String) : IO Unit := do
             complete := complete || done
           offset := offset + 1
         return (s, complete)
+      -- One send: the engines produce and open the sealed-sender envelope; the request
+      -- is assembled here; the engines insert the contact's fields and seal the record.
+      let sendMessage (input id : Nat) : M Unit := do
+        let sealed ← rpc.call .providerSealOpen (uint 8 state ++ uint 8 input)
+        insist (sealed.length ≥ 10) "invalid sealed envelope reply"
+        let timestamp := number (sealed.take 8)
+        let length := number ((sealed.drop 8).take 2)
+        insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
+        let handle ← rpc.call .providerRequest (uint 8 input ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
+        insist (handle.length == 8 && number handle != 0) "invalid request handle"
+        TlsApplication.send app ⟨number handle⟩ frame.length
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List Nat) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
@@ -205,10 +279,10 @@ def main (args : List String) : IO Unit := do
               match inputs with
               | [] => insist (finished > 0) "private provider supplied no requests"; return finished
               | input::tail =>
-                let receipt ← rpc.call .providerProduceOpen (uint 8 state ++ uint 8 input)
-                insist (receipt.length == 18) "invalid private send receipt"
-                TlsApplication.send app ⟨number (receipt.take 8)⟩ (number ((receipt.drop 8).take 2))
-                loop fuel (PublicReceive.expect s (number (receipt.drop 10))) tail finished
+                -- Request ids are public: a counter from 2^63, as the service expects.
+                let id := 2 ^ 63 + finished
+                sendMessage input id
+                loop fuel (PublicReceive.expect s id) tail finished
             else loop fuel s inputs finished
           | .control => loop fuel s inputs completed
           | .closed => throw "TLS closed before private responses"
@@ -221,7 +295,7 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 31 && !codes.contains 18
+    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 34 && codes.contains 35 && !codes.contains 18
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
