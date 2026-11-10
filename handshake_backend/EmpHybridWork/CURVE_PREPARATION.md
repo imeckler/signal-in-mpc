@@ -1,0 +1,11 @@
+# Native X25519 preparation (compiled only)
+
+`prepare_curve.py` pins the existing FieldDag JSON SHA256a5a2d584… and produces a107562-byte flat public program with an exact compiled pin. The native loader reads once into bounded memory, verifies those bytes, enforces exact p/input/node/opcode/dependency/resource profile, then evaluates the same9437 nodes. Linear nodes retain topological order within multiplicative levels;4589 multiplications are batched over1531 levels. No Boolean X25519 graph or supplied DH agreement is used.
+
+`checked_converter.h` implements both published checked-mask directions over the concrete generated pool; the curve fixture converts511 private scalar/coordinate bits into native field values, applies the original scalar-clamping FieldDag, and returns32 canonical private byte wires. The coordinate's high bit is ignored within MPC. Only fixture equality and nonzero status may open. Its two party inputs are XOR shares, not the scalar/point reconstructed at a host.
+
+`curve-build-report.json` is **compiled-only evidence**. No native curve run has launched. Source review found that the current EMP PUBLIC opening does not authenticate the evaluator's plaintext forwarded to the garbler; this invalidates an active-MPC assumption needed by checked conversions. That output-binding blocker must be addressed before a malicious hybrid claim. Existing bridge controls remain functional/adversarial-case evidence only, not a security proof.
+
+The planned bounded control uses1024 verified pairs (public exact S40 bound in `curve-parameters.json`), consumes766, and performs9216 native multiplication steps for coin checking plus4589 for X25519 (13805 total). Based on the measured512-pair control (~882MB/party), the conservative planning limit is2GiB/party and120s/case; protocol traffic may approach1GB/party with live/unused preprocessing. These are estimates, not measured curve performance or full Signal throughput.
+
+Native instrumentation now samples protocol traffic after preprocessing/protocol owner teardown and records completed logical products/local inputs, with stock verbose leftover counts. It still does not measure encrypted OpenSSL BIO wire bytes or prove erasure/cancellation. No parameter/check/default/runtime promotion has occurred.

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "source_sha256": "a5a2d584d694adb5c0fae84192f393fbb7d207353f1a5e2e7584e9860168ee59",
+  "flat_sha256": "866306008439c93eb6236ebd7ae051b41932c3582c16cbe0c12fe575dcde8a47",
+  "flat_bytes": 107562,
+  "nodes": 9437,
+  "counts": {
+    "const": 4,
+    "add": 2296,
+    "mul": 4589,
+    "sub": 2296,
+    "input": 252
+  },
+  "multiplicative_depth": 1531,
+  "scope": "Same pinned FieldDag reserialization, not a new X25519 implementation/proof."
+}
