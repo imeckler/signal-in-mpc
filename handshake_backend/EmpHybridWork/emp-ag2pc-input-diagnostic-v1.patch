@@ -1,0 +1,60 @@
+--- a/emp-ag2pc/backend/engine.h
++++ b/emp-ag2pc/backend/engine.h
+@@ -267,7 +267,11 @@
+   void evaluator_path_(AG2PCRunState& st, Source& source, AG2PCProtocol* mpc) {
+     { AG2PCEvaluatePass ep(st, mpc->recv_io, mpc->pool); ag2pc_detail::run_pass(ep, source); }
+     if (st.num_ands > 0) {
+-      mpc->io->send_bool((const bool*)st.Lambda_AND.data(), st.num_ands);
++      auto reported=st.Lambda_AND;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      if(mpc->party==BOB&&std::getenv("EMP_TEST_FALSE_GAMMA")&&!reported.empty())reported[0]^=1;
++#endif
++      mpc->io->send_bool(reported.data(), st.num_ands);
+       mpc->io->flush();
+       char D1[Hash::DIGEST_SIZE], D2[Hash::DIGEST_SIZE];
+       Hash::hash_once(D1, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
+--- a/emp-ag2pc/backend/protocol.h
++++ b/emp-ag2pc/backend/protocol.h
+@@ -1,3 +1,4 @@
++#include <climits>
+ #ifndef EMP_AG2PC_PROTOCOL_H__
+ #define EMP_AG2PC_PROTOCOL_H__
+ #include "emp-ag2pc/backend/triple_pool.h"
+@@ -143,6 +144,17 @@
+ // Implementation
+ // ==========================================================================
+ 
++
++#ifdef EMP_HYBRID_INPUT_OBSERVER
++inline void hybrid_observe_input(const std::vector<uint8_t>&bytes) {
++  const char* target=std::getenv("EMP_HYBRID_OBSERVE_INPUT_HASH");
++  if(!target||bytes.size()!=256)return;
++  char digest[Hash::DIGEST_SIZE];Hash::hash_once(digest,bytes.data(),bytes.size());
++  const char* h="0123456789abcdef";std::string encoded;
++  for(unsigned char b:std::string(digest,Hash::DIGEST_SIZE)){encoded+=h[b>>4];encoded+=h[b&15];}
++  std::cout<<"input_observer recovered_peer_input="<<(encoded==target?1:0)<<"\n";
++}
++#endif
+ std::vector<SecureWires> AG2PCProtocol::process_inputs(
+     const std::vector<int> &owners,
+     const std::vector<std::vector<uint8_t>> &bits_per_owner) {
+@@ -247,6 +259,9 @@
+     ::joinNclean(res);
+   }
+ 
++#ifdef EMP_HYBRID_INPUT_OBSERVER
++  if(party==BOB)hybrid_observe_input(peer_x_packed);
++#endif
+   // Verify peer's MAC hash before using their share.
+   BlockVec exp_macs(n_total);
+   for (int i = 0; i < n_total; ++i)
+@@ -298,6 +313,9 @@
+     std::vector<unsigned char> buf(n);
+     if (party != 1) {
+       for (int i = 0; i < n; ++i) buf[i] = v[i];
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      if(party==BOB&&std::getenv("EMP_TEST_PUBLIC_LIE")&&n)buf[0]^=1;
++#endif
+       io->send_data(buf.data(), n);
+       io->flush();
+       return v;

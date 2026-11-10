@@ -1,0 +1,242 @@
+--- a/emp-ag2pc/backend/protocol.h
++++ b/emp-ag2pc/backend/protocol.h
+@@ -1,3 +1,4 @@
++#include <climits>
+ #ifndef EMP_AG2PC_PROTOCOL_H__
+ #define EMP_AG2PC_PROTOCOL_H__
+ #include "emp-ag2pc/backend/triple_pool.h"
+@@ -143,147 +144,86 @@
+ // Implementation
+ // ==========================================================================
+ 
++
++#ifdef EMP_HYBRID_INPUT_OBSERVER
++inline void hybrid_observe_input(const std::vector<uint8_t>&bytes) {
++  const char* target=std::getenv("EMP_HYBRID_OBSERVE_INPUT_HASH");
++  if(!target||bytes.size()!=256)return;
++  char digest[Hash::DIGEST_SIZE];Hash::hash_once(digest,bytes.data(),bytes.size());
++  const char* h="0123456789abcdef";std::string encoded;
++  for(unsigned char b:std::string(digest,Hash::DIGEST_SIZE)){encoded+=h[b>>4];encoded+=h[b&15];}
++  std::cout<<"input_observer recovered_peer_input="<<(encoded==target?1:0)<<"\n";
++}
++#endif
++// KRRW18 Fig.3 input steps: reveal non-owner mask share TO OWNER only;
++// then the owner broadcasts Gamma=x XOR lambda. Never send raw x.
+ std::vector<SecureWires> AG2PCProtocol::process_inputs(
+-    const std::vector<int> &owners,
+-    const std::vector<std::vector<uint8_t>> &bits_per_owner) {
+-  AG2PC_PHASE_BEGIN();
+-  ++process_input_calls;
+-  // Validate the request before any communication: a count mismatch or an owner
+-  // that is neither ALICE nor BOB would desync the two parties (each side waits
+-  // for peer-owned bits nobody sends → hang). PUBLIC inputs do not go through the
+-  // OT input phase — build them with public_wires() instead.
+-  if (owners.size() != bits_per_owner.size())
+-    error("process_inputs: owners.size() != bits_per_owner.size()");
+-  for (int o : owners)
+-    if (o != ALICE && o != BOB)
+-      error("process_inputs: owner must be ALICE or BOB (use public_wires for PUBLIC)");
+-  const int K = (int)owners.size();
+-  int n_total = 0;
+-  std::vector<int> off_per_owner(K);
+-  for (int k = 0; k < K; ++k) {
+-    off_per_owner[k] = n_total;
+-    n_total += (int)bits_per_owner[k].size();
+-  }
+-  if (n_total == 0) {
+-    AG2PC_PHASE("process_inputs");
+-    return std::vector<SecureWires>(K);
+-  }
+-
+-  // Combined bundle for every input wire across all owners.
+-  SecureWires sw;
+-  sw.Lambda.resize(n_total);
+-  sw.wire_bundle.resize(n_total);
+-  if (party == 1) sw.label0.resize(n_total);          // garbler
+-  else            sw.eval_label.resize(n_total);      // evaluator
+-
+-  // Step 3 (Π_aShare): n_total authenticated λ-shares from the open COT
+-  // session. One draw covers both owners.
+-  fpre->draw(n_total, sw.wire_bundle);
+-
+-  // Step 3 (cont.): the garbler samples m_{w,0} for every wire.
+-  if (party == 1) prg.random_block(sw.label0.data(), n_total);
+-
+-  // Per-wire metadata: which owner, and the x_w bit for wires this party owns
+-  // (zero for wires this party doesn't own — those x's are folded in by the
+-  // peer in their own message below).
+-  std::vector<int> owner_of_wire(n_total);
+-  std::vector<unsigned char> own_x_bits(n_total, 0);
+-  for (int k = 0; k < K; ++k) {
+-    int o = owners[k];
+-    bool i_own = (o == party);
+-    for (size_t i = 0; i < bits_per_owner[k].size(); ++i) {
+-      int idx = off_per_owner[k] + (int)i;
+-      owner_of_wire[idx] = o;
+-      if (i_own) own_x_bits[idx] = (unsigned char)bits_per_owner[k][i];
+-    }
+-  }
+-
+-  // KRRW Fig.3 authenticated share open + (folded into the same message) the
+-  // owner's x_w bits, both directions in parallel on the duplex pair.
+-  //
+-  // Each party ships:
+-  //   (a) λ^self bits for ALL wires (n_total bytes) — the raw share open
+-  //   (b) Hash of the matching MACs (DIGEST_SIZE bytes) — authenticates (a);
+-  //       peer recomputes expected MAC = K_peer ⊕ bit · Δ_peer from its own
+-  //       wire_bundle.key + Delta, hashes those, compares — abort on mismatch.
+-  //   (c) own_x_bits packed for wires this party owns (n_owned bytes) — the
+-  //       unauthenticated owner contribution Γ_w := x_w ⊕ λ_w gets folded in
+-  //       by the recipient using (a) + own λ^self below. Γ_w itself is bound
+-  //       downstream by the c_γ check that runs at chunk end.
+-  std::vector<unsigned char> share_msg(n_total);
+-  BlockVec my_macs(n_total);
+-  for (int i = 0; i < n_total; ++i) {
+-    share_msg[i] = (unsigned char)LSB(sw.wire_bundle[i].mac);
+-    my_macs[i]   = sw.wire_bundle[i].mac;
+-  }
+-  char D_me[Hash::DIGEST_SIZE];
+-  Hash::hash_once(D_me, my_macs.data(), (size_t)n_total * sizeof(block));
+-
+-  std::vector<unsigned char> own_x_packed;
+-  std::vector<int> peer_idx_list;             // wire indices peer owns
+-  for (int i = 0; i < n_total; ++i) {
+-    if (owner_of_wire[i] == party) own_x_packed.push_back(own_x_bits[i]);
+-    else                            peer_idx_list.push_back(i);
+-  }
+-
+-  std::vector<unsigned char> peer_share(n_total);
+-  char D_peer[Hash::DIGEST_SIZE];
+-  std::vector<unsigned char> peer_x_packed(peer_idx_list.size());
+-  {
+-    std::vector<std::future<void>> res;
+-    res.push_back(pool->enqueue([&]() {
+-      send_io->send_data(share_msg.data(), n_total);
+-      send_io->send_data(D_me, Hash::DIGEST_SIZE);
+-      if (!own_x_packed.empty())
+-        send_io->send_data(own_x_packed.data(), own_x_packed.size());
+-      send_io->flush();
+-    }));
+-    res.push_back(pool->enqueue([&]() {
+-      recv_io->recv_data(peer_share.data(), n_total);
+-      recv_io->recv_data(D_peer, Hash::DIGEST_SIZE);
+-      if (!peer_x_packed.empty())
+-        recv_io->recv_data(peer_x_packed.data(), peer_x_packed.size());
+-    }));
+-    ::joinNclean(res);
+-  }
+-
+-  // Verify peer's MAC hash before using their share.
+-  BlockVec exp_macs(n_total);
+-  for (int i = 0; i < n_total; ++i)
+-    exp_macs[i] = sw.wire_bundle[i].key ^ (select_mask[peer_share[i]] & Delta);
+-  char D_exp[Hash::DIGEST_SIZE];
+-  Hash::hash_once(D_exp, exp_macs.data(), (size_t)n_total * sizeof(block));
+-  if (memcmp(D_exp, D_peer, Hash::DIGEST_SIZE) != 0)
+-    error("process_inputs: peer share-MAC hash mismatch");
+-
+-  // Reconstruct Γ_w = λ_w ⊕ x_w = (λ^self ⊕ λ^peer) ⊕ x_w for every wire.
+-  // own_x_bits is 0 for peer-owned, so this folds in my own x only.
+-  for (int i = 0; i < n_total; ++i)
+-    sw.Lambda[i] = (unsigned char)(share_msg[i] ^ peer_share[i] ^ own_x_bits[i]);
+-  // Add peer's x bits for the wires they own.
+-  for (size_t i = 0; i < peer_idx_list.size(); ++i)
+-    sw.Lambda[peer_idx_list[i]] ^= peer_x_packed[i];
+-
+-  // Garbler ships m_{w,Γ_w} for every input wire.
+-  if (party == 1) {
+-    BlockVec labels(n_total);
+-    for (int i = 0; i < n_total; ++i)
+-      labels[i] = sw.label0[i] ^ (select_mask[sw.Lambda[i]] & Delta);
+-    io->send_data(labels.data(), (size_t)n_total * sizeof(block));
+-    io->flush();
+-  } else {
+-    io->recv_data(sw.eval_label.data(), (size_t)n_total * sizeof(block));
+-  }
+-  AG2PC_PHASE("process_inputs");
+-
+-  // Slice the combined bundle back into per-owner SecureWires.
+-  std::vector<SecureWires> result(K);
+-  for (int k = 0; k < K; ++k) {
+-    int off = off_per_owner[k];
+-    int n = (int)bits_per_owner[k].size();
+-    result[k] = sw.slice((size_t)off, (size_t)(off + n));
+-  }
+-  return result;
++    const std::vector<int>& owners,
++    const std::vector<std::vector<uint8_t>>& bits_per_owner) {
++  AG2PC_PHASE_BEGIN(); ++process_input_calls;
++  if(owners.size()!=bits_per_owner.size())error("process_inputs: owner dimensions");
++  const int K=(int)owners.size();int n_total=0;std::vector<int> offsets(K);
++  for(int k=0;k<K;k++){
++    if(owners[k]!=ALICE&&owners[k]!=BOB)error("process_inputs: invalid owner");
++    if(bits_per_owner[k].size()>size_t(INT_MAX-n_total))error("process_inputs: width overflow");
++    offsets[k]=n_total;n_total+=(int)bits_per_owner[k].size();
++    for(auto bit:bits_per_owner[k])if(bit>1)error("process_inputs: noncanonical local input");
++  }
++  if(!n_total)return std::vector<SecureWires>(K);
++  SecureWires sw;sw.Lambda.resize(n_total);sw.wire_bundle.resize(n_total);
++  if(party==ALICE)sw.label0.resize(n_total);else sw.eval_label.resize(n_total);
++  fpre->draw(n_total,sw.wire_bundle);
++  if(party==ALICE)prg.random_block(sw.label0.data(),n_total);
++  std::vector<int> mine,theirs;std::vector<uint8_t> own_x(n_total,0);
++  for(int k=0;k<K;k++)for(size_t j=0;j<bits_per_owner[k].size();j++){
++    int id=offsets[k]+(int)j;
++    if(owners[k]==party){mine.push_back(id);own_x[id]=bits_per_owner[k][j];}
++    else theirs.push_back(id);
++  }
++  // Send only mask shares belonging to PEER-owned wires. Never reveal my
++  // mask share for a peer's view of a wire that I own.
++  std::vector<uint8_t> send_share;BlockVec send_mac;
++  for(int id:theirs){send_share.push_back(LSB(sw.wire_bundle[id].mac));send_mac.push_back(sw.wire_bundle[id].mac);}
++#ifdef EMP_HYBRID_TEST_ATTACKS
++  if(party==BOB&&std::getenv("EMP_TEST_NONCANONICAL_SHARE")&&!send_share.empty())send_share[0]=2;
++#endif
++  char send_digest[Hash::DIGEST_SIZE],peer_digest[Hash::DIGEST_SIZE];
++  if(!theirs.empty())Hash::hash_once(send_digest,send_mac.data(),send_mac.size()*sizeof(block));
++  std::vector<uint8_t> peer_share(mine.size());
++  std::vector<std::future<void>> jobs;
++  jobs.push_back(pool->enqueue([&]{if(!theirs.empty()){send_io->send_data(send_share.data(),send_share.size());send_io->send_data(send_digest,Hash::DIGEST_SIZE);send_io->flush();}}));
++  jobs.push_back(pool->enqueue([&]{if(!mine.empty()){recv_io->recv_data(peer_share.data(),peer_share.size());recv_io->recv_data(peer_digest,Hash::DIGEST_SIZE);}}));
++  ::joinNclean(jobs);
++  for(auto bit:peer_share)if(bit>1)error("process_inputs: noncanonical peer share");
++  if(!mine.empty()){
++    BlockVec expected(mine.size());for(size_t j=0;j<mine.size();j++)expected[j]=sw.wire_bundle[mine[j]].key^(select_mask[peer_share[j]]&Delta);
++    char digest[Hash::DIGEST_SIZE];Hash::hash_once(digest,expected.data(),expected.size()*sizeof(block));
++    if(memcmp(digest,peer_digest,Hash::DIGEST_SIZE))error("process_inputs: peer share-MAC hash mismatch");
++  }
++  std::vector<uint8_t> own_gamma(mine.size()),peer_gamma(theirs.size());
++  for(size_t j=0;j<mine.size();j++){
++    int id=mine[j];own_gamma[j]=LSB(sw.wire_bundle[id].mac)^peer_share[j]^own_x[id];sw.Lambda[id]=own_gamma[j];
++  }
++#ifdef EMP_HYBRID_TEST_ATTACKS
++  if(party==BOB&&std::getenv("EMP_TEST_NONCANONICAL_INPUT")&&!own_gamma.empty())own_gamma[0]=2;
++#endif
++  jobs.push_back(pool->enqueue([&]{if(!mine.empty()){send_io->send_data(own_gamma.data(),own_gamma.size());send_io->flush();}}));
++  jobs.push_back(pool->enqueue([&]{if(!theirs.empty())recv_io->recv_data(peer_gamma.data(),peer_gamma.size());}));
++  ::joinNclean(jobs);
++  for(auto bit:peer_gamma)if(bit>1)error("process_inputs: noncanonical peer Gamma");
++#ifdef EMP_HYBRID_INPUT_OBSERVER
++  if(party==BOB)hybrid_observe_input(peer_gamma);
++#endif
++  for(size_t j=0;j<theirs.size();j++)sw.Lambda[theirs[j]]=peer_gamma[j];
++  if(party==ALICE){BlockVec labels(n_total);for(int i=0;i<n_total;i++)labels[i]=sw.label0[i]^(select_mask[sw.Lambda[i]]&Delta);io->send_data(labels.data(),labels.size()*sizeof(block));io->flush();}
++  else io->recv_data(sw.eval_label.data(),sw.eval_label.size()*sizeof(block));
++  std::vector<SecureWires>result(K);
++  for(int k=0;k<K;k++){
++    int off=offsets[k],n=bits_per_owner[k].size();auto&sub=result[k];
++    sub.Lambda.assign(sw.Lambda.begin()+off,sw.Lambda.begin()+off+n);sub.wire_bundle.assign(sw.wire_bundle.begin()+off,sw.wire_bundle.begin()+off+n);
++    if(party==ALICE)sub.label0.assign(sw.label0.begin()+off,sw.label0.begin()+off+n);else sub.eval_label.assign(sw.eval_label.begin()+off,sw.eval_label.begin()+off+n);
++  }
++  AG2PC_PHASE("process_inputs");return result;
+ }
+ 
+ std::vector<uint8_t> AG2PCProtocol::decode(const SecureWires &wires,
+@@ -293,6 +233,7 @@
+   AG2PC_PHASE_BEGIN();
+   // Reveal to ALL parties: reconstruct at the evaluator (P2), then P2 broadcasts.
+   // Needed for reactive host branching — every party must learn the same value.
++  if(recipient==PUBLIC||recipient==ALICE)error("decode: two-sided opening gated pending validation review");
+   if (recipient == PUBLIC) {
+     std::vector<uint8_t> v = decode(wires, 2);  // only P2 holds it after this
+     std::vector<unsigned char> buf(n);

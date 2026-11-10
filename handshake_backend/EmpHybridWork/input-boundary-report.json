@@ -1,0 +1,401 @@
+{
+  "diagnostics_completed": true,
+  "secure_hybrid_backend": false,
+  "assertions": {
+    "stock_clear_input_leak_reproduced": true,
+    "stock_public_plaintext_lie_accepted": true,
+    "stock_honest_A_output_correct": true,
+    "stock_false_Gamma_accepted": true,
+    "owner_only_input_regression": true,
+    "unsupported_public_failclosed": true,
+    "malformed_mask_share_rejected": true,
+    "malformed_Gamma_rejected": true
+  },
+  "results": [
+    {
+      "variant": "input-diagnostic-v1",
+      "mode": "input",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.037979334010742605,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-u6zdif09",
+      "binary_sha256": "b9d597aa4db7a8fb7fe285fc620fe0af96c9ca6beae7a2598ff3e93c2c53344f",
+      "log_sha256": [
+        "a3fae63276d24df6decbcc7cbc73265299071894fa1a2fcf835caad0ab8681fc",
+        "8cb94e62477d84e213722926cd16ce019389228d703b1d9e02750fa0ec9dca1e"
+      ],
+      "observed_peer_clear_match": true,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": true
+    },
+    {
+      "variant": "input-diagnostic-v1",
+      "mode": "public",
+      "fault": "EMP_TEST_PUBLIC_LIE",
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.015762916998937726,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-l_95bo14",
+      "binary_sha256": "b9d597aa4db7a8fb7fe285fc620fe0af96c9ca6beae7a2598ff3e93c2c53344f",
+      "log_sha256": [
+        "c90b0c54bf021c316f86b13d01a2a4b56bd741bbda2d0bbff94cdfb5cb601c4b",
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [
+          "0"
+        ],
+        [
+          "1"
+        ]
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "input-diagnostic-v1",
+      "mode": "gamma",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.019169083097949624,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-0uakkt4r",
+      "binary_sha256": "b9d597aa4db7a8fb7fe285fc620fe0af96c9ca6beae7a2598ff3e93c2c53344f",
+      "log_sha256": [
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [
+          "1"
+        ],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "input-diagnostic-v1",
+      "mode": "gamma",
+      "fault": "EMP_TEST_FALSE_GAMMA",
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.019170125015079975,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-l36e8gw2",
+      "binary_sha256": "b9d597aa4db7a8fb7fe285fc620fe0af96c9ca6beae7a2598ff3e93c2c53344f",
+      "log_sha256": [
+        "c90b0c54bf021c316f86b13d01a2a4b56bd741bbda2d0bbff94cdfb5cb601c4b",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [
+          "0"
+        ],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "private-input-v2",
+      "mode": "input",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.018297916976734996,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-t6ae_4fh",
+      "binary_sha256": "2f1ac05943f3f122ed4a89d16e5e9cf6d1a9a8ae04f76742c0b6cf38b302309b",
+      "log_sha256": [
+        "a3fae63276d24df6decbcc7cbc73265299071894fa1a2fcf835caad0ab8681fc",
+        "4bcf3e69021e1fb0ee3f71c64875db61533857ed0da3cd51671312e86ff120b8"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": true,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": true
+    },
+    {
+      "variant": "private-input-v2",
+      "mode": "public",
+      "fault": null,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.015613542054779828,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-5amrsuxm",
+      "binary_sha256": "2f1ac05943f3f122ed4a89d16e5e9cf6d1a9a8ae04f76742c0b6cf38b302309b",
+      "log_sha256": [
+        "209ac498f8b380b5cb1b7a171a2668c5d89bb820e7084816a3bad265705db2ee",
+        "209ac498f8b380b5cb1b7a171a2668c5d89bb820e7084816a3bad265705db2ee"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": true,
+      "canonical_rejection": false,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "private-input-v2",
+      "mode": "input",
+      "fault": "EMP_TEST_NONCANONICAL_SHARE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.016428250004537404,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-yduo0tpr",
+      "binary_sha256": "2f1ac05943f3f122ed4a89d16e5e9cf6d1a9a8ae04f76742c0b6cf38b302309b",
+      "log_sha256": [
+        "007e3e233fa6274ceeca01c0ce788c87096ad0df15b987c047521d5d8bf12bbb",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": true,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "private-input-v2",
+      "mode": "bob-input",
+      "fault": "EMP_TEST_NONCANONICAL_INPUT",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.015813917038030922,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-xuvu8lw3",
+      "binary_sha256": "2f1ac05943f3f122ed4a89d16e5e9cf6d1a9a8ae04f76742c0b6cf38b302309b",
+      "log_sha256": [
+        "7e9b2daac45a7c2541855cad5a24801ac4fab346ba3891d2cd5b60cbe8fd6346",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": true,
+      "all_inputs_settled": false
+    }
+  ],
+  "components": [
+    {
+      "passed": true,
+      "name": "aes256",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.044632375007495284,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-opeiis1o",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0193252,
+          "setup_seconds": 0.00992754,
+          "input_seconds": 0.000585125,
+          "run_seconds": 0.00677896,
+          "reveal_seconds": 7.041e-06,
+          "close_seconds": 0.000309125,
+          "wall_seconds": 0.0383068,
+          "cpu_seconds": 0.037639,
+          "peak_rss_bytes": 12091392,
+          "and_gates": 8832,
+          "sent_bytes": 1582549,
+          "received_bytes": 1277621
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0189997,
+          "setup_seconds": 0.00990783,
+          "input_seconds": 0.0006255,
+          "run_seconds": 0.00676854,
+          "reveal_seconds": 8.583e-06,
+          "close_seconds": 8.8292e-05,
+          "wall_seconds": 0.0377333,
+          "cpu_seconds": 0.03806,
+          "peak_rss_bytes": 12566528,
+          "and_gates": 8832,
+          "sent_bytes": 1277621,
+          "received_bytes": 1582549
+        }
+      ]
+    },
+    {
+      "passed": true,
+      "name": "sha256-empty",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.11292304203379899,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-lcom68i0",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0657387,
+          "setup_seconds": 0.00946125,
+          "input_seconds": 0.000549875,
+          "run_seconds": 0.0301225,
+          "reveal_seconds": 9.375e-06,
+          "close_seconds": 0.000435334,
+          "wall_seconds": 0.107357,
+          "cpu_seconds": 0.105101,
+          "peak_rss_bytes": 41172992,
+          "and_gates": 59759,
+          "sent_bytes": 8514962,
+          "received_bytes": 6521345
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0652103,
+          "setup_seconds": 0.00943175,
+          "input_seconds": 0.000599625,
+          "run_seconds": 0.030082,
+          "reveal_seconds": 4.4333e-05,
+          "close_seconds": 0.000105209,
+          "wall_seconds": 0.106149,
+          "cpu_seconds": 0.10495,
+          "peak_rss_bytes": 41107456,
+          "and_gates": 59759,
+          "sent_bytes": 6521345,
+          "received_bytes": 8514962
+        }
+      ]
+    }
+  ],
+  "source_variants": {
+    "base_revision": "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+    "base_overlay": {
+      "source_revision": "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+      "archive_sha256": "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde",
+      "original_engine_sha256": "b1ba32e46d4bb0f222ea1fc7a0f92a8939c833fb19e38cbe6393c71b956a8a16",
+      "candidate_engine_sha256": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+      "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-linear-mask-v1",
+      "files": {
+        "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+        "emp-ag2pc/backend/engine.h": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+        "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+        "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+        "emp-ag2pc/backend/pass_ctx.h": "2e70978962bb94fd47a71cfe7b0c06eb117bf0bc88ebff50db3cafa9761071cf",
+        "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+        "emp-ag2pc/backend/protocol.h": "26ca350dcd72c9a8a2a082e14ee5dee052fc86d8e801f34f886bef2c1e1f99ed",
+        "emp-ag2pc/backend/run_state.h": "5b0e513669d04fafbe8d634129a1921bdd162df3d917ce4153b1d5dd6aee4032",
+        "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+        "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+        "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+        "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+        "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+      },
+      "scope": "Always propagate garbler masks after zero-AND chunks. Nonlinear c_gamma digest, Lambda receipt and COT checks remain unchanged. Unvalidated candidate until native regression."
+    },
+    "variants": {
+      "emp-ag2pc-input-diagnostic-v1": {
+        "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-input-diagnostic-v1",
+        "repair_input_only": false,
+        "files": {
+          "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+          "emp-ag2pc/backend/engine.h": "e4e1c395838d5975714a7fbda0a5113bc4bf4f4da942a811d1d1dde572cb0cfe",
+          "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+          "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+          "emp-ag2pc/backend/pass_ctx.h": "2e70978962bb94fd47a71cfe7b0c06eb117bf0bc88ebff50db3cafa9761071cf",
+          "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+          "emp-ag2pc/backend/protocol.h": "0df8ab60757104e9211162b7f905c339ad5da2016ea32796234dc05a4fffa716",
+          "emp-ag2pc/backend/run_state.h": "5b0e513669d04fafbe8d634129a1921bdd162df3d917ce4153b1d5dd6aee4032",
+          "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+          "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+          "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+          "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+          "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+        }
+      },
+      "emp-ag2pc-private-input-v2": {
+        "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-private-input-v2",
+        "repair_input_only": true,
+        "files": {
+          "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+          "emp-ag2pc/backend/engine.h": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+          "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+          "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+          "emp-ag2pc/backend/pass_ctx.h": "2e70978962bb94fd47a71cfe7b0c06eb117bf0bc88ebff50db3cafa9761071cf",
+          "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+          "emp-ag2pc/backend/protocol.h": "50709ebfd80f1d259efe7f8337aa4366fa654a987d0242b54eeffa84d6ac3786",
+          "emp-ag2pc/backend/run_state.h": "5b0e513669d04fafbe8d634129a1921bdd162df3d917ce4153b1d5dd6aee4032",
+          "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+          "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+          "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+          "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+          "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+        }
+      }
+    },
+    "scope": "Input privacy/correctness diagnostics and source-backed owner-only input phase. PUBLIC/ALICE outputs explicitly gated in repair; active validation remains unreviewed."
+  },
+  "probe_source_sha256": "35386334928a8bbf23871a7358284601a5dd521391df1b0bac3a75155307c3bf",
+  "scope": "Known vulnerabilities reproduced in pinned unaudited EMP rewrite. Input-only repair removes direct raw-input transmission and rejects unsupported PUBLIC/A outputs; full validation/security/bridge acceptance remains blocked. No private input bytes are logged; receiver reports only match against a public256-bit commitment."
+}
