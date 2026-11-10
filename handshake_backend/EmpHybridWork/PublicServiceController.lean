@@ -7,6 +7,7 @@ import TlsMpc.TlsWebSocketControl
 import TlsMpc.TlsChatResponse
 import TlsMpc.Signal.RelayEncoding
 import TlsMpc.Signal.PrivateTextNotification
+import TlsMpc.Signal.RelayUpgrade
 
 /-!
 Service controller for the public-receive profile.
@@ -337,6 +338,37 @@ private def sessionBytes (text : String) : IO Bytes := do
 private def toBits (bytes : Bytes) : List (BitVec 8) := bytes.map (fun b => BitVec.ofNat 8 b.toNat)
 private def toBytes (bits : List (BitVec 8)) : Bytes := bits.map (fun b => UInt8.ofNat b.toNat)
 
+private def fromHex (text : String) : Except String Bytes := do
+  let chars := text.toList
+  unless chars.length % 2 == 0 do throw "odd-length hex string"
+  let digit (c : Char) : Except String Nat :=
+    if c.isDigit then pure (c.toNat - 48)
+    else if 'a' ≤ c && c ≤ 'f' then pure (c.toNat - 87)
+    else if 'A' ≤ c && c ≤ 'F' then pure (c.toNat - 55)
+    else throw "invalid hex digit"
+  (List.range (chars.length / 2)).mapM (fun i => do
+    pure (UInt8.ofNat (16 * (← digit (chars.getD (2 * i) '0')) + (← digit (chars.getD (2 * i + 1) '0')))))
+
+/-- TEST state for a run against the local Signal server: the file written by
+`lss-provision export-mpc` (local_signal_server/). Returns the sender's
+certificate and identity key and, per contact, its id and record without the
+certificate (session block ++ metadata). -/
+private def readExport (text : String) : Except String (Bytes × Bytes × List (Nat × Bytes)) := do
+  let json ← Lean.Json.parse text
+  let sender ← json.getObjVal? "sender"
+  let certificate ← fromHex (← sender.getObjValAs? String "certificate_hex")
+  let identity ← fromHex (← sender.getObjValAs? String "identity_private_hex")
+  let contacts ← json.getObjValAs? (Array Lean.Json) "contacts"
+  let records ← contacts.toList.mapM (fun contact => do
+    let id ← fromHex (← contact.getObjValAs? String "contact_id_u128_hex")
+    let session ← fromHex (← contact.getObjValAs? String "session_block_hex")
+    let metadata ← fromHex (← contact.getObjValAs? String "metadata_hex")
+    unless id.length == 16 && session.length == 262 && metadata.length == 57 do throw "export contact shape"
+    pure (number id, session ++ metadata))
+  unless identity.length == 32 && 0 < certificate.length && certificate.length ≤ 1024 && !records.isEmpty do
+    throw "export shape"
+  pure (certificate, identity, records)
+
 def main (args : List String) : IO Unit := do
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
@@ -362,20 +394,36 @@ def main (args : List String) : IO Unit := do
       let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) {hostname,alpn := ["http/1.1"]}
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
       let app ← liftM (TlsWorker.applicationSession rpc handshake)
-      let catalogue ← rpc.call .providerCatalogue []
-      insist (catalogue.length ≥ 10) "invalid provider catalogue"
-      let state := number (catalogue.take 8)
-      let count := number ((catalogue.drop 8).take 2)
-      insist (state != 0 && count > 0 && count ≤ 64 && catalogue.length == 10+8*count) "no admitted private provider/inputs"
-      let inputs := (List.range count).map (fun i => number ((catalogue.drop (10+8*i)).take 8))
-      -- Private upgrade request; the expected accept value is public.
-      let upgrade ← rpc.call .providerUpgradeOpen (uint 8 state)
-      insist (upgrade.length == 38) "invalid upgrade receipt"
-      TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
       let sendPublic (bytes : Bytes) : M Unit := do
         let handle ← rpc.call .publicBuffer bytes
         insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
         TlsApplication.send app ⟨number handle⟩ bytes.length
+      -- Two ways to start. Fixture: state admitted by the worker, authenticated upgrade
+      -- with private credentials. Local Signal server (SIGNAL_LOCAL_EXPORT): contacts
+      -- admitted from the export, and the UNAUTHENTICATED socket, whose upgrade request is
+      -- public (sealed-sender sends must not go on an authenticated socket).
+      let exportPath ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPORT" : IO (Option String))
+      let (accept, contacts) ← match exportPath with
+        | none => do
+          let catalogue ← rpc.call .providerCatalogue []
+          insist (catalogue.length ≥ 10) "invalid provider catalogue"
+          let state := number (catalogue.take 8)
+          let count := number ((catalogue.drop 8).take 2)
+          insist (state != 0 && count == 4 && catalogue.length == 10+8*count) "fixture catalogue changed"
+          -- Private upgrade request; the expected accept value is public.
+          let upgrade ← rpc.call .providerUpgradeOpen (uint 8 state)
+          insist (upgrade.length == 38) "invalid upgrade receipt"
+          TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
+          pure (upgrade.drop 10, [1, 2])
+        | some path => do
+          let text ← liftM (IO.FS.readFile path : IO String)
+          let (certificate, identity, records) ← liftResult (readExport text)
+          for (contact, record) in records do
+            let _ ← rpc.call .contactAdmit (uint 16 contact ++ uint 2 certificate.length ++ identity ++ certificate ++ record)
+          let upgrade ← rpc.call .publicUpgrade []
+          insist (upgrade.length == 44) "invalid public upgrade receipt"
+          sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
+          pure (upgrade.drop 16, records.map (·.1))
       -- Reveal and parse one authenticated record, byte by byte.
       let record (handle : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Bool) := do
         let mut s := start
@@ -429,7 +477,6 @@ def main (args : List String) : IO Unit := do
       -- nodes would deliver). After one send to each contact the state is sealed,
       -- evicted and reloaded from the ciphertext, so the remaining sends prove the
       -- round trip preserved it.
-      let contacts : List Nat := [1, 2]
       let shares ← contacts.mapM (fun _ => do
         let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
         -- below 2^254, so below the share modulus
@@ -459,11 +506,18 @@ def main (args : List String) : IO Unit := do
           let built := PrivateTextNotification.build Sha256.concrete Varint64.concrete ByteAuth.concrete (toBits input)
           insist (built.length == 90 && built.head? == some 255) "message text rejected"
           pure (contact, toBytes built))
-      -- TEST: the fixture recipient compares each envelope with pre-computed ciphertext for
-      -- these exact texts and timestamps, so each call names one contact here.
-      insist (inputs.length == 4) "fixture catalogue changed"
-      let inputs := (← notify [1] "Hello, Signal! ☕" 0x1ba60d33800) ++ (← notify [2] "你好，世界" 0x1ba60d33801)
-        ++ (← notify [1] "Second private notification" 0x1ba60d33802) ++ (← notify [2] "Delivery ready 😀" 0x1ba60d33803)
+      let inputs ← match exportPath with
+        | none => do
+          -- TEST: the fixture recipient compares each envelope with pre-computed ciphertext
+          -- for these exact texts and timestamps, so each call names one contact here.
+          pure ((← notify [1] "Hello, Signal! ☕" 0x1ba60d33800) ++ (← notify [2] "你好，世界" 0x1ba60d33801)
+            ++ (← notify [1] "Second private notification" 0x1ba60d33802) ++ (← notify [2] "Delivery ready 😀" 0x1ba60d33803))
+        | some _ => do
+          -- Two broadcasts to every contact. The timestamp is public and must be the same
+          -- for both controllers, so the harness supplies it.
+          let stamp ← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))
+          let some base := stamp.bind String.toNat? | throw "SIGNAL_LOCAL_TIMESTAMP (milliseconds) is required"
+          pure ((← notify contacts "MPC broadcast one" base) ++ (← notify contacts "MPC broadcast two ☕" (base + 1000)))
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List (Nat × Bytes)) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
@@ -505,7 +559,7 @@ def main (args : List String) : IO Unit := do
             else loop fuel s inputs finished
           | .control => loop fuel s inputs completed
           | .closed => throw "TLS closed before private responses"
-      let finished ← loop 256 (PublicReceive.start (toBits (upgrade.drop 10))) inputs 0
+      let finished ← loop 256 (PublicReceive.start (toBits accept)) inputs 0
       TlsApplication.abort app
       return finished
     let outcome ← action.run

@@ -79,7 +79,72 @@ def run_mpc(export, mode, texts):
       7. State write-back: after each send the new conversation record must replace the exported one
          (the reference sender writes it back into the export; the MPC client would reseal it).
     """
-    raise NotImplementedError('MPC run against the local server needs the client changes listed in run_mpc.__doc__')
+    # The client now has what the list above asks for, for the send path: contacts are admitted from
+    # the export at the certificate's exact length (SIGNAL_LOCAL_EXPORT), sends go on the
+    # unauthenticated socket (so items 1 and 4 do not apply to this run), and the controller issues
+    # two broadcasts to every contact. Not done: keepalive (5) and state write-back (7).
+    import hashlib, re, secrets
+    base = ROOT / '.deps/two-party-comparison'
+    here = ROOT / 'handshake_backend/EmpHybridWork'
+    sys.path.insert(0, str(ROOT / 'scripts'))
+    from check_full_handshake import OPENSSL
+    sh = mode == 'semi-honest'
+    output = base / 'signal-service-local-run' / secrets.token_hex(8)
+    output.mkdir(parents=True)
+    run(['lake', 'build', 'public_service_controller', 'hybrid_kdf_emitter'], cwd=ROOT, capture_output=True)
+    run(['c++', '-std=c++20', '-O2', '-I' + str(OPENSSL / 'include'), ROOT / 'handshake_backend/public_auth.cpp',
+         '-L' + str(OPENSSL / 'lib'), '-lssl', '-lcrypto', '-o', output / 'public_auth'])
+    mp = base / 'data61-MP-SPDZ-113c4e4'
+    work = output / 'work'
+    work.mkdir()
+    with open(output / 'ssl-setup.log', 'w') as log:
+        subprocess.run(['bash', str(mp / 'Scripts/setup-ssl.sh'), '2'], cwd=work, stdout=log, stderr=subprocess.STDOUT, check=True)
+    stamp = int(time.time() * 1000)
+    env = dict(os.environ, DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000',
+               SIGNAL_LOCAL_EXPORT=str(EXPORT), SIGNAL_LOCAL_TIMESTAMP=str(stamp))
+    hosts = output / 'hosts'
+    hosts.write_text('127.0.0.1\n' * 2)
+    session = secrets.token_hex(32)
+    worker = base / ('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3')
+    controller = ROOT / '.lake/build/bin/public_service_controller'
+    trust = STATE / 'tls' / 'ca.pem'
+    port = 22300 if sh else 22200
+    processes, logs, cases = [], [], []
+    started = time.monotonic()
+    try:
+        for party in range(2):
+            log = open(output / f'party-{party}.log', 'w')
+            logs.append(log)
+            command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
+                       session, '127.0.0.1', '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
+            processes.append(subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=log, text=True))
+        for party, p in enumerate(processes):
+            stdout, _ = p.communicate(timeout=7200)
+            (output / f'party-{party}.json').write_text(stdout)
+            if stdout.strip():
+                cases.append(json.loads(stdout.strip().splitlines()[0]))
+    finally:
+        for p in processes:
+            if p.poll() is None:
+                p.terminate()
+        for p in processes:
+            p.wait()
+        for log in logs:
+            log.close()
+    totals, rejections = [], []
+    for party in range(2):
+        text = (output / f'party-{party}.log').read_text()
+        rows = re.findall(r'operation (\d+) ok seconds=([\d.e+-]+) and_gates=(\d+) emp_sent_bytes=(\d+) field_sent_bytes=(\d+) field_products=(\d+)', text)
+        if rows:
+            last = rows[-1]
+            totals.append(dict(operation=int(last[0]), seconds=float(last[1]), and_gates=int(last[2]), emp_sent_bytes=int(last[3]),
+                               field_sent_bytes=int(last[4]), field_products=int(last[5])))
+        rejections += re.findall(r'operation \d+ rejected[^\n]*', text) + re.findall(r'tls-worker-v3 aborted[^\n]*', text)
+    result = dict(logs=str(output), timestamp=stamp, controllers=cases, worker_totals=totals, rejections=rejections,
+                  elapsed_seconds=time.monotonic() - started, exit_codes=[p.returncode for p in processes])
+    if any(p.returncode for p in processes) or len(cases) != 2 or not all(c['passed'] for c in cases):
+        raise RuntimeError('MPC controllers failed: ' + json.dumps(result))
+    return result
 
 
 def verify(expected):
@@ -120,9 +185,10 @@ def main():
             report['self_check'] = dict(passed=ok, recipients=result)
             if not ok:
                 raise RuntimeError('reference sender from the export was not received intact')
-        texts = {CONTACTS[0]: ['First broadcast', 'Second broadcast ☕'],
-                 CONTACTS[1]: ['First broadcast', 'Second broadcast ☕']}
-        run_mpc(export, a.mode, texts)
+        # The texts PublicServiceController.lean broadcasts in its local-server mode.
+        texts = {CONTACTS[0]: ['MPC broadcast one', 'MPC broadcast two ☕'],
+                 CONTACTS[1]: ['MPC broadcast one', 'MPC broadcast two ☕']}
+        report['mpc_run'] = run_mpc(export, a.mode, texts)
         ok, result = verify(texts)
         report['mpc'] = dict(passed=ok, recipients=result)
         report['passed'] = ok

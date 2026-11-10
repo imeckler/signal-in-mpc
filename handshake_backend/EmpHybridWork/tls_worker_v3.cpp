@@ -209,7 +209,11 @@ static int run(int argc,char**argv){
         if(route&&!ladder&&std::string(route)!="split")return 2;
         const char*fixture=std::getenv("TLS_WORKER_SERVICE_FIXTURE");if(fixture&&std::string(fixture)!="text")return 2;
         // Sealed sender needs thousands of field products per send (ladder on a private point).
-        DynSession mpc(&io,&threads,party,128);FE field(party-1,port+10,(ladder||fixture)?3000:16);
+        // Field preprocessing batch: large when the Signal service path will run (fixture, or
+        // TLS_WORKER_FIELD_BATCH for contacts admitted at run time).
+        unsigned batch=(ladder||fixture)?3000:16;
+        if(const char*requested=std::getenv("TLS_WORKER_FIELD_BATCH")){batch=std::stoul(requested);if(batch<1||batch>100000)return 2;}
+        DynSession mpc(&io,&threads,party,128);FE field(party-1,port+10,batch);
         Challenge channel{io,party,"tls-worker-v3:session="+session};
         TlsKernels kernels(mpc,field,channel,party,argv[4]);kernels.prepare();
         Worker worker{party,io,channel,kernels,session};
