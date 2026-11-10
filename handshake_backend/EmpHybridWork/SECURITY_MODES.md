@@ -169,8 +169,8 @@ gates, three quarters of it the GHASH tag (proposal: `GHASH_SHARES.md`).
 ### Latest: verified adder and shared-GHASH tags
 
 - `TlsMpc/Sha256Ripple.lean`: a SHA-256 backend with a one-AND-per-bit adder
-  proved equal to addition in Lean (one `bv_decide` native axiom, to be
-  replaced by a structural proof). Used by `signal-seal-fixed`: 2.72 M → 2.26 M.
+  proved equal to addition in Lean (structural proof, standard axioms only).
+  Used by `signal-seal-fixed`: 2.72 M → 2.26 M.
 - GCM tags from local shares of the GHASH key powers (`GHASH_SHARES.md`,
   `TlsMpc/GhashShares.lean`), for request seals and application-record opens.
 

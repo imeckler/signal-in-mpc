@@ -10,7 +10,8 @@ adder with ONE AND gate per bit:
 
 The default backend uses the bit-vector `add` node, which the AIG compiler
 expands to about three AND nodes per bit. Here the adder is written out bit by
-bit, proved equal to bit-vector addition (`addValue_eq`, by `bv_decide`), and
+bit, proved equal to bit-vector addition (`addValue_eq`, by induction against
+the library's carry function; standard axioms only), and
 packaged as a `Sha256.Ops` with a homomorphism to the concrete operations, so
 every existing refinement theorem that is generic in the operations applies.
 -/
@@ -32,11 +33,50 @@ def rippleValue : (n : Nat) → BitVec 32 → BitVec 32 → BitVec n × BitVec 1
 
 def addValue (x y : BitVec 32) : BitVec 32 := (rippleValue 32 x y).1
 
-set_option maxRecDepth 100000 in
-set_option maxHeartbeats 4000000 in
+/-! Structural proof against the library's carry function (no SAT certificate). -/
+
+theorem carryValue_ofBool (a b c : Bool) :
+    carryValue (BitVec.ofBool a) (BitVec.ofBool b) (BitVec.ofBool c) =
+      BitVec.ofBool (Bool.atLeastTwo a b c) := by
+  cases a <;> cases b <;> cases c <;> rfl
+
+theorem sumBit_ofBool (a b c : Bool) :
+    BitVec.ofBool a ^^^ BitVec.ofBool b ^^^ BitVec.ofBool c = BitVec.ofBool (a ^^ (b ^^ c)) := by
+  cases a <;> cases b <;> cases c <;> rfl
+
+theorem bit_ofBool (x : BitVec 32) (n : Nat) : x.extractLsb' n 1 = BitVec.ofBool (x.getLsbD n) := by
+  ext i hi
+  have zero : i = 0 := by omega
+  subst zero
+  simp
+
+/-- After `n` steps: the low `n` bits of the sum, and the library's carry into bit `n`. -/
+theorem rippleValue_spec (x y : BitVec 32) (n : Nat) (bound : n ≤ 32) :
+    (rippleValue n x y).1 = (x + y).extractLsb' 0 n ∧
+      (rippleValue n x y).2 = BitVec.ofBool (BitVec.carry n x y false) := by
+  induction n with
+  | zero =>
+      constructor
+      · ext i hi
+        omega
+      · simp [rippleValue, BitVec.carry_zero]
+  | succ n ih =>
+      obtain ⟨low, carry⟩ := ih (by omega)
+      simp only [rippleValue]
+      rw [low, carry, bit_ofBool, bit_ofBool, carryValue_ofBool, sumBit_ofBool]
+      constructor
+      · ext i hi
+        by_cases below : i < n
+        · simp [BitVec.getElem_append, below]
+        · have last : i = n := by omega
+          subst last
+          simp [BitVec.getElem_append, BitVec.getLsbD_add (show i < 32 by omega)]
+      · rw [BitVec.carry_succ]
+
 theorem addValue_eq (x y : BitVec 32) : addValue x y = x + y := by
-  simp only [addValue, rippleValue, carryValue]
-  bv_decide
+  rw [addValue, (rippleValue_spec x y 32 (by omega)).1]
+  ext i hi
+  simp
 
 /-! ### The same adder as a circuit expression -/
 
