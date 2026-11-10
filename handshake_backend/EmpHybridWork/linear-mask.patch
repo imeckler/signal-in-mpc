@@ -1,0 +1,17 @@
+--- a/emp-ag2pc/backend/engine.h
++++ b/emp-ag2pc/backend/engine.h
+@@ -248,8 +248,12 @@
+     { AG2PCGarblePass gp(st, mpc->send_io, mpc->pool); ag2pc_detail::run_pass(gp, source); }
+     if (st.num_ands > 0) {
+       mpc->io->recv_bool((bool*)st.Lambda_AND.data(), st.num_ands);
+-      AG2PCGammaCheckPass pp(st);
+-      ag2pc_detail::run_pass(pp, source);
++    }
++    // Gamma pass also propagates masked-bit Lambda through XOR/NOT. A
++    // zero-AND chunk still needs that state for subsequent nonlinear calls.
++    AG2PCGammaCheckPass pp(st);
++    ag2pc_detail::run_pass(pp, source);
++    if (st.num_ands > 0) {
+       char D2[Hash::DIGEST_SIZE];
+       Hash::hash_once(D2, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
+       mpc->io->send_data(D2, Hash::DIGEST_SIZE);

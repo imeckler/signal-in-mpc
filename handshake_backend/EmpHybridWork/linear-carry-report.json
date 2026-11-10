@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "stock": {
+    "passed": false,
+    "corrupt_retained_delta": false,
+    "exit_codes": [
+      1,
+      1
+    ],
+    "failure_category": null,
+    "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-qn7lnc8k",
+    "controller_seconds": 0.05528141697868705,
+    "parties": [
+      null,
+      null
+    ],
+    "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+    "expected_failure_observed": true,
+    "binary_sha256": "2c9f94b9e4b5bdc69862bb90c3fa7eda3dc3c19359c02f9ef4a180aad40e73c5"
+  },
+  "candidate": {
+    "passed": true,
+    "corrupt_retained_delta": false,
+    "exit_codes": [
+      0,
+      0
+    ],
+    "failure_category": null,
+    "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-pl7rltd7",
+    "controller_seconds": 0.04846295795869082,
+    "parties": [
+      {
+        "party": 1,
+        "load_seconds": 0.0174917,
+        "setup_seconds": 0.00993946,
+        "input_seconds": 0.000496292,
+        "first_seconds": 0.00708621,
+        "second_seconds": 0.00668446,
+        "close_seconds": 0.000369042,
+        "first_sent_bytes": 1520784,
+        "first_received_bytes": 1230352,
+        "second_sent_bytes": 1550448,
+        "second_received_bytes": 1260016,
+        "and_gates": 17664,
+        "sent_bytes": 3135877,
+        "received_bytes": 2538213,
+        "wall_seconds": 0.0427128,
+        "cpu_seconds": 0.043941,
+        "peak_rss_bytes": 13352960
+      },
+      {
+        "party": 2,
+        "load_seconds": 0.0168442,
+        "setup_seconds": 0.00994717,
+        "input_seconds": 0.000483625,
+        "first_seconds": 0.00708529,
+        "second_seconds": 0.00666296,
+        "close_seconds": 3.3458e-05,
+        "first_sent_bytes": 1230352,
+        "first_received_bytes": 1520784,
+        "second_sent_bytes": 1260016,
+        "second_received_bytes": 1550448,
+        "and_gates": 17664,
+        "sent_bytes": 2538213,
+        "received_bytes": 3135877,
+        "wall_seconds": 0.0418635,
+        "cpu_seconds": 0.042852,
+        "peak_rss_bytes": 13434880
+      }
+    ],
+    "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+  },
+  "retained_delta_fault": {
+    "passed": true,
+    "corrupt_retained_delta": true,
+    "exit_codes": [
+      1,
+      1
+    ],
+    "failure_category": null,
+    "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-d2qzr391",
+    "controller_seconds": 0.04828791704494506,
+    "parties": [
+      null,
+      null
+    ],
+    "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+  },
+  "source_sha256": "8e8176e656fb87063f4d447319d9e5b90be7121bb39a3ecc5b2251756ddd6399",
+  "candidate_binary_sha256": "fd0227a7092e3b1e10051953d1434a712f4b9d16d01e4396d0020e9dce40e426",
+  "overlay": {
+    "source_revision": "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+    "archive_sha256": "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde",
+    "original_engine_sha256": "b1ba32e46d4bb0f222ea1fc7a0f92a8939c833fb19e38cbe6393c71b956a8a16",
+    "candidate_engine_sha256": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+    "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-linear-mask-v1",
+    "files": {
+      "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+      "emp-ag2pc/backend/engine.h": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+      "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+      "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+      "emp-ag2pc/backend/pass_ctx.h": "2e70978962bb94fd47a71cfe7b0c06eb117bf0bc88ebff50db3cafa9761071cf",
+      "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+      "emp-ag2pc/backend/protocol.h": "26ca350dcd72c9a8a2a082e14ee5dee052fc86d8e801f34f886bef2c1e1f99ed",
+      "emp-ag2pc/backend/run_state.h": "5b0e513669d04fafbe8d634129a1921bdd162df3d917ce4153b1d5dd6aee4032",
+      "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+      "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+      "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+      "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+      "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+    },
+    "scope": "Always propagate garbler masks after zero-AND chunks. Nonlinear c_gamma digest, Lambda receipt and COT checks remain unchanged. Unvalidated candidate until native regression."
+  },
+  "scope": "Same imported AES\u2192zero-AND two-NOT identity\u2192AES, original first result remains private; output matches independent double-AES fixture only on corrected candidate. Retained Delta corruption still rejects. No backend security proof or erasure claim."
+}
