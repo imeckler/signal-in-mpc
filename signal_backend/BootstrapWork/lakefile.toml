@@ -1,0 +1,9 @@
+name = "signal-bootstrap-export"
+version = "0.1.0"
+defaultTargets = ["emit_bootstrap"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_bootstrap"
+root = "Export"

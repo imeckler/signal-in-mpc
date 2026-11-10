@@ -7,12 +7,12 @@ import hashlib,json,pathlib,re
 from backend_adapter.boolean import load
 
 class PinnedStages:
-    def __init__(self,path):
+    def __init__(self,path,expected_variant="kyber1024"):
         self.path=pathlib.Path(path).resolve()
         self.entries=json.loads(self.path.read_text())
-        if self.entries.get('format')!='signal-bootstrap-kem-stages-v1':
+        if self.entries.get('format') not in ('signal-bootstrap-kem-stages-v1','signal-bootstrap-stages-v1'):
             raise ValueError('KEM component manifest format')
-        if self.entries.get('variant')!='kyber1024':raise ValueError('KEM variant')
+        if expected_variant not in ('kyber1024','mlkem768','xeddsa-prekey') or self.entries.get('variant')!=expected_variant:raise ValueError('KEM variant')
         self.table={}
         for item in self.entries['stages']:
             key=tuple(item['key']);relative=pathlib.PurePosixPath(item['path'])

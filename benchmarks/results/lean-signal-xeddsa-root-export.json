@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "scope": "Root CLI byte-identical to frozen standalone XEdDSA stage exports; no mixed-runtime or actual Rust refinement claim.",
+  "completion_sha256": "352b001526f35f40e9789f116b2902469b22292cda37734ec8a1b196f758cb9a",
+  "emitter_sha256": "a889c56fe8e07b706a3f34f9d427c5e210b8cadc6ecba46d53abf66690146d59",
+  "sources": {
+    "Main.lean": "e0268cf65c1bd5cea472b60651f4c1075cce8a54b2eef091e51fe0f79108f45c",
+    "TlsMpc.lean": "4d150d32d435713f9254a92ba0fd68e75e591efea5741c4bdcffa507896d1776",
+    "TlsMpc/Signal/XEdDsaExport.lean": "4b1a330a37abe38d22e9f94790cdd70abbec8a242ef2ac973751ce2e86c726a2",
+    "SignalReference/XEdDsaExport.lean": "8f752ca711fac8dbd611ab9584d41229410f6724351e980e410cd57104e65a5d",
+    "scripts/check_signal_xeddsa_root_export.py": "1768adb4e5d33e8a6d6c0475c6186a68981bf79284c68021421b711da6ac59a5"
+  },
+  "all_equal": true,
+  "profile_count": 33,
+  "profiles": [
+    {
+      "profile": "signal-xeddsa-field-recover-0",
+      "sha256": "be09991be850dad768e06b25bac9624f96f0e3e017ed54e5a21e0f6d11279dba",
+      "bytes": 95435
+    },
+    {
+      "profile": "signal-xeddsa-field-recover-1",
+      "sha256": "223c0de677911903219932b977a6d5b86dd6f725d3351090ed908f33671f0fa3",
+      "bytes": 75659
+    },
+    {
+      "profile": "signal-xeddsa-field-recover-2",
+      "sha256": "7cbb63707db3cff544ea8e98aaa2aeb48ba4cbb73ead1dc97ea8598dafe0391d",
+      "bytes": 18317
+    },
+    {
+      "profile": "signal-xeddsa-field-double-0",
+      "sha256": "a747705a719e85dd65162e6f58cb154961a4c2b8e9012de3f34e6b2e8bfdb2b4",
+      "bytes": 900504
+    },
+    {
+      "profile": "signal-xeddsa-field-double-1",
+      "sha256": "872185a372b898cf446d429b8fe13bbbb7175a2d85e831e588b1401a7a512e2a",
+      "bytes": 900504
+    },
+    {
+      "profile": "signal-xeddsa-decode-0",
+      "sha256": "72e85fbf331975cc139a1e1395c6a8170ceb37ded48fe77de7d2a03fcdcc1ed8",
+      "bytes": 3386
+    },
+    {
+      "profile": "signal-xeddsa-decode-63",
+      "sha256": "985d413498dd66eebda7bc6ff88b1cfc681d976b415450f29d8b6676e92a04f3",
+      "bytes": 3514
+    },
+    {
+      "profile": "signal-xeddsa-decode-64",
+      "sha256": "39374e1c0e7e1db3ffb677a2363de8bb7f815ee85db5ee2b5eb224424a0fa149",
+      "bytes": 17192
+    },
+    {
+      "profile": "signal-xeddsa-decode-65",
+      "sha256": "58bb285221554eb7f52315b9b54572b04c9ed81b93369ba7ffb8afee0d57aa73",
+      "bytes": 3518
+    },
+    {
+      "profile": "signal-xeddsa-decode-128",
+      "sha256": "daa77ef615d42bf29dbe17623aff2473cff45c55cbe274508533611b3802520d",
+      "bytes": 3646
+    },
+    {
+      "profile": "signal-xeddsa-match",
+      "sha256": "54a1bfd22d2c2aa45700a2a317b4b76cb639cdae524cec9692c826cbfb003c0b",
+      "bytes": 23487
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-0",
+      "sha256": "88830a20d77eca1e45aa0c492f8703d67697e55b93247ae4e3c9b152f8cdc89e",
+      "bytes": 3288
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-1",
+      "sha256": "ff9aba55f1e7505832bf53c742373dab7a837b1ebf2dbd0761d01d0ae2550e31",
+      "bytes": 9384506
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-3",
+      "sha256": "db036100e38726cf7a3d923dd8b60dfa30829f50a20837262e63eb0dc30bf9d9",
+      "bytes": 9556647
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-64",
+      "sha256": "18e08115946f983184a736016a7538381d7cb5bdea372d88f2d1bd36ea37dd93",
+      "bytes": 10075508
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-65",
+      "sha256": "48a2c005eebb6e65a58a0534081e5c1f7ff34fbc08f70aaaaa41bbf5f9efe09d",
+      "bytes": 10081760
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-78",
+      "sha256": "5d82362dd5887f7fd829c67d821ffe004a98d692d3f037fc7bff039b25d65d97",
+      "bytes": 10151844
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-95",
+      "sha256": "2a88b65725ee54c2390564256fd9c73a796c32d79288d382881749221f8bb7c6",
+      "bytes": 10252421
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-97",
+      "sha256": "59f222b19d103ededc60253ba78ce1a1cd09df38d546dec3f180433676b8fb7d",
+      "bytes": 10262984
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-111",
+      "sha256": "36a798396585b09fa3616dfbe3ccee64e452d4c7bbcfa53c23c304315cb631ab",
+      "bytes": 10348426
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-112",
+      "sha256": "091f17bd58af1870786e1459ab18b4ea52a84762cea8fe1b871eb405124983d9",
+      "bytes": 17808373
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-127",
+      "sha256": "1ed01c1f042c7190cc45610fae30532431845dd388578ede7e1cbfec8f5292a1",
+      "bytes": 17931002
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-128",
+      "sha256": "9fb5897c746010015f16e6499102da2d10e6771e1af7d37c2bb7d7cc3c2cb03a",
+      "bytes": 17940667
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-192",
+      "sha256": "2a68793b04562bedaaf81a01f67b92c4fce9ac678d1e40f2aed6cd06c81539d7",
+      "bytes": 20951831
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-239",
+      "sha256": "8c0b73d19d83306ad801bc5df0c783527fc298190fabc41e409d86e2eec0c3da",
+      "bytes": 21226091
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-240",
+      "sha256": "bdb6b541e5af4a1d1ca65c48a8fc8bdd4c312fce88acb98fbf7646a437a54cb7",
+      "bytes": 29313615
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-1633",
+      "sha256": "be7710d0395c794d59cfa033ce70ba320258e626e9784724fcd2b07f8ed2eaa0",
+      "bytes": 151629087
+    },
+    {
+      "profile": "signal-xeddsa-boolean-reduce-64",
+      "sha256": "ef45d0d201fc72a83e6a76ded050fa0d1780b939599f399278f178f0dba34959",
+      "bytes": 19150093
+    },
+    {
+      "profile": "signal-xeddsa-boolean-challenge-33",
+      "sha256": "8bf2080450f967ffeeb18c0399490951a87bb9c778a822f2fa027922c4499c78",
+      "bytes": 30588355
+    },
+    {
+      "profile": "signal-xeddsa-field-signed-0",
+      "sha256": "bb5c6b193d259bbcd7c93f8dbda668d9f3b2b773c52fe411a42621083d676ef7",
+      "bytes": 900709
+    },
+    {
+      "profile": "signal-xeddsa-field-signed-1",
+      "sha256": "12bbd87a2ac99005f40e799b39ab92990caf3db4c8dbb2016a61ab9397b1084e",
+      "bytes": 900709
+    },
+    {
+      "profile": "signal-xeddsa-boolean-binding-128",
+      "sha256": "8fe43756e41a4d6e150eeacb334e6dc59564df853a622ecf0e5f09e4c5a32e1e",
+      "bytes": 12561
+    },
+    {
+      "profile": "signal-xeddsa-boolean-finish-160",
+      "sha256": "5a0970795dd80aaeb528a76ed405f6aadfd7430a7fd31cd942b1f830418b00cb",
+      "bytes": 31202
+    }
+  ],
+  "tls_nonce_dispatch": true
+}

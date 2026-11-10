@@ -74,3 +74,10 @@ import TlsMpc.TlsApplicationRoute
 
 import TlsMpc.Signal.KemWire
 import TlsMpc.Signal.MlKemPoly
+
+import TlsMpc.Signal.XEdDsa
+import TlsMpc.Signal.XEdDsaField
+import TlsMpc.Signal.XEdDsaSha512
+import TlsMpc.Signal.XEdDsaScalar
+import TlsMpc.Signal.XEdDsaChallenge
+import TlsMpc.Signal.XEdDsaBinding

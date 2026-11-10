@@ -6,6 +6,8 @@ use libsignal_protocol::*;
 use rand::{SeedableRng,rngs::StdRng};
 use serde_json::{Value,json};
 use prost::Message;
+#[allow(dead_code)]mod storage {include!(concat!(env!("OUT_DIR"),"/signal.proto.storage.rs"));}
+#[allow(dead_code)]mod pqr {include!(concat!(env!("OUT_DIR"),"/signal.proto.pq_ratchet.rs"));}
 #[allow(dead_code)]mod service {include!(concat!(env!("OUT_DIR"),"/signalservice.rs"));}
 #[derive(Clone,PartialEq,Message)]
 struct DataMessage {
@@ -15,6 +17,18 @@ struct DataMessage {
 }
 fn hex(x:&[u8])->String{x.iter().map(|b|format!("{b:02x}")).collect()}
 fn raw(v:&Value,k:&str)->Vec<u8>{let s=v[k].as_str().unwrap();assert_eq!(s.len()%2,0);(0..s.len()).step_by(2).map(|i|u8::from_str_radix(&s[i..i+2],16).unwrap()).collect()}
+fn session(raw:&[u8])->storage::SessionStructure{storage::RecordStructure::decode(raw).unwrap().current_session.unwrap()}
+fn sender(s:&storage::SessionStructure)->Vec<u8>{let c=s.sender_chain.as_ref().unwrap();let k=c.chain_key.as_ref().unwrap();[s.root_key.clone(),c.sender_ratchet_key_private.clone(),c.sender_ratchet_key[1..].to_vec(),k.key.clone(),k.index.to_be_bytes().to_vec(),s.previous_counter.to_be_bytes().to_vec()].concat()}
+fn receivers(s:&storage::SessionStructure)->Vec<u8>{assert!(s.receiver_chains.len()<=5);let mut out=vec![0;(5-s.receiver_chains.len())*69];for c in &s.receiver_chains{assert!(c.message_keys.is_empty());let k=c.chain_key.as_ref().unwrap();out.push(255);out.extend(&c.sender_ratchet_key[1..]);out.extend(&k.key);out.extend(k.index.to_be_bytes());}out}
+fn spqr_typed(s:&storage::SessionStructure)->Vec<u8>{
+ let p=pqr::PqRatchetState::decode(s.pq_ratchet_state.as_slice()).unwrap();let v=match p.inner.unwrap(){pqr::pq_ratchet_state::Inner::V1(v)=>v};let sample=match v.inner_state.unwrap(){pqr::v1_state::InnerState::KeysSampled(s)=>s,_=>panic!("reference initial phase")};let uc=sample.uc.unwrap();let auth=uc.auth.unwrap();let encoder=sample.sending_hdr.unwrap();assert_eq!(encoder.pts.len(),16);assert!(encoder.polys.is_empty());
+ let mut hdr=vec![];for row in 0..3{for pt in &encoder.pts{assert_eq!(pt.len(),6);hdr.extend(&pt[2*row..2*row+2]);}}
+ let chain=p.chain.unwrap();assert_eq!(chain.links.len(),1);let link=&chain.links[0];let send=link.send.as_ref().unwrap();let receive=link.recv.as_ref().unwrap();assert_eq!(encoder.idx,send.ctr);assert!(send.prev.is_empty()&&receive.prev.is_empty());
+ let result=[p.version_negotiation.unwrap().auth_key,auth.root_key,auth.mac_key,uc.ek,uc.dk,hdr,chain.next_root,send.next.clone(),receive.next.clone(),vec![u8::try_from(send.ctr).unwrap()]].concat();assert_eq!(result.len(),3841);result
+}
+fn initial_key_record(s:&storage::SessionStructure)->Vec<u8>{let p=pqr::PqRatchetState::decode(s.pq_ratchet_state.as_slice()).unwrap();let result=[vec![255],s.alice_base_key[1..].to_vec(),sender(s),receivers(s),p.version_negotiation.unwrap().auth_key].concat();assert_eq!(result.len(),546);result}
+fn keygen_record(s:&storage::SessionStructure)->Vec<u8>{let state=spqr_typed(s);let sk=&state[1248..3648];[vec![255],sk.to_vec(),sk[1152..2336].to_vec()].concat()}
+fn model_context(s:&storage::SessionStructure,addresses:&[u8])->Vec<u8>{let pending=s.pending_pre_key.as_ref().unwrap();let pq=s.pending_kyber_pre_key.as_ref().unwrap();[s.local_identity_public[1..].to_vec(),s.remote_identity_public[1..].to_vec(),s.alice_base_key[1..].to_vec(),pq.ciphertext.clone(),s.local_registration_id.to_be_bytes().to_vec(),pending.pre_key_id.unwrap().to_be_bytes().to_vec(),pending.signed_pre_key_id.to_be_bytes().to_vec(),pq.pre_key_id.to_be_bytes().to_vec(),addresses.to_vec()].concat()}
 struct Peer{
  alice:IdentityKeyPair,bob:IdentityKeyPair,bundle:PreKeyBundle,
  alice_address:ProtocolAddress,bob_address:ProtocolAddress,
@@ -50,7 +64,9 @@ impl Peer{
   let mut sessions=InMemSessionStore::new();let mut identities=InMemIdentityKeyStore::new(self.alice.clone(),1);identities.save_identity(&self.bob_address,self.bob.identity_key()).await.unwrap();
   let mut rng=StdRng::seed_from_u64(0x42534f4f54535452);let time=std::time::SystemTime::UNIX_EPOCH+std::time::Duration::from_secs(1900000000);
   process_prekey_bundle(&self.bob_address,&self.alice_address,&mut sessions,&mut identities,&self.bundle,time,&mut rng).await.unwrap();
-  let initial=sessions.load_session(&self.bob_address).await.unwrap().unwrap().serialize().unwrap();let mut rows=vec![];
+  let initial=sessions.load_session(&self.bob_address).await.unwrap().unwrap().serialize().unwrap();let initial_session=session(&initial);
+  let addresses=[libsignal_core::ServiceId::parse_from_service_id_string(self.alice_address.name()).unwrap().service_id_fixed_width_binary().to_vec(),vec![u8::from(self.alice_address.device_id())],libsignal_core::ServiceId::parse_from_service_id_string(self.bob_address.name()).unwrap().service_id_fixed_width_binary().to_vec(),vec![u8::from(self.bob_address.device_id())]].concat();assert_eq!(addresses.len(),36);
+  let mut rows=vec![];
   for round in 0..2u8{
    let data=DataMessage{body:Some(format!("Actual fresh bootstrap {round}")),timestamp:Some(1900000000000+round as u64),profile_key:None}.encode_to_vec();
    let mut plaintext=service::Content{data_message:Some(data),..Default::default()}.encode_to_vec();assert!(plaintext.len()<80);plaintext.push(128);plaintext.resize(80,0);
@@ -60,9 +76,10 @@ impl Peer{
    let mut bad=wire.clone();bad[locations[0]+inner.len()-1]^=1;let rejected=self.check(&bad).await;assert_eq!(rejected["accepted"],false);assert_eq!(rejected["session_record_preserved"],true);assert_eq!(rejected["one_time_presence_preserved"],true);assert_eq!(rejected["trusted_identity_preserved"],true);
    let result=self.check(&wire).await;assert_eq!(result["accepted"],true);assert_eq!(result["plaintext"],hex(&plaintext));assert_eq!(result["one_time_consumed"],true);assert_eq!(result["sender_identity_matches"],true);
    let replay=self.check(&wire).await;assert_eq!(replay["accepted"],false);assert_eq!(replay["error"],"duplicate");assert_eq!(replay["session_record_preserved"],true);assert_eq!(replay["one_time_presence_preserved"],true);assert_eq!(replay["trusted_identity_preserved"],true);
-   rows.push(json!({"wire":hex(&wire),"plaintext":hex(&plaintext),"sender_record":hex(&sessions.load_session(&self.bob_address).await.unwrap().unwrap().serialize().unwrap()),"recipient":result,"tamper_rejected_preserved":true,"replay_rejected_preserved":true}));
+   let after=sessions.load_session(&self.bob_address).await.unwrap().unwrap().serialize().unwrap();let after_session=session(&after);let expected_state=[model_context(&after_session,&addresses),sender(&after_session),receivers(&after_session),spqr_typed(&after_session)].concat();assert_eq!(expected_state.len(),6039);
+   rows.push(json!({"model_expected_state":hex(&expected_state),"model_generated_mlkem768":hex(&keygen_record(&after_session)),"wire":hex(&wire),"plaintext":hex(&plaintext),"sender_record":hex(&sessions.load_session(&self.bob_address).await.unwrap().unwrap().serialize().unwrap()),"recipient":result,"tamper_rejected_preserved":true,"replay_rejected_preserved":true}));
   }
-  json!({"fixture":self.fixture,"initial_sender_record":hex(&initial),"rows":rows,"actual_Rust_reference_only":true,"native_MPC":false,"phase_override":false})
+  json!({"fixture":self.fixture,"initial_sender_record":hex(&initial),"model_initial_keys":hex(&initial_key_record(&initial_session)),"model_context":hex(&model_context(&initial_session,&addresses)),"rows":rows,"actual_Rust_reference_only":true,"native_MPC":false,"phase_override":false})
  }
 }
 fn construct(v:&Value)->Value{

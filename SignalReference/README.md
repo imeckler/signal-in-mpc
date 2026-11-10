@@ -890,8 +890,39 @@ The full actual Prost varint wrapper has separate scoped root acceptance in
 contiguous-slice Buf models and exact unused-Step metadata selection; it does not
 accept arbitrary Buf implementations or the whole protobuf parser. The decode_key
 wrapper has its own scoped acceptance in `ProtoParseWork/KeyReferenceWork/root-review.json`.
-Actual skip_field remains outside that claim; `SkipTranslatorWork` is a separate
-unaccepted pass-order experiment.
+Actual `skip_field` now has its own scoped acceptance in
+`ProtoParseWork/SkipTranslatorWork/root-review.json`: every finite recursive
+skip-grammar derivation agrees with the actual translated function, including
+exact buffer/error/recursion behavior. The three-line translator pass insertion,
+capture-free Result::map model and inherited slice models remain explicit trust
+boundaries. Its 27 audited endpoints use only foundational axioms. This does not
+prove totality or whole-parser agreement.
+
+`ProtoParseWork/SkipPlanWork/proof-report.json` adds 36 kernel-checked endpoints:
+existing numeric parser bounds, masks and cursors for fixed32/fixed64, varint and
+length-delimited fields inside groups, plus actual skip outcomes and recursion
+limit rejection. Group masks, depth/cursor updates, stack lookup/write and the
+no-overwrite invariant compile. Closing-tag decisions agree with actual Rust
+under decoded-key and stack-content correspondence. Establishing these premises
+across the complete decoder table/cursor/scan remains required; this is not an
+unconditional whole numeric parser refinement.
+
+Actual uint32 field merging has separate scoped acceptance in
+`ProtoParseWork/FieldReferenceWork/uint32-root-review.json`: wire-type-first
+rejection, exact varint suffix/error behavior, u32 truncation and duplicate
+replacement. Byte-field merging and actual Vec replacement are accepted in
+`ProtoParseWork/BytesReferenceWork/root-review.json` for valid contiguous U8
+buffers under successful bounded allocation below isize::MAX. Its 92 audited
+endpoints (26 new), 20 rebuilt modules and 5,638 pinned native cases pass. Bytes
+content and Vec clear/reserve models do not establish allocator failure, generic
+Drop, arbitrary Buf, erasure or whole-parser equivalence.
+
+The frozen `ProtoParseWork/TopFieldWork/proof-report.json` adds 38 endpoints for
+top-level masks/metadata overwrite, bounded shared decoder-table and payload
+window agreement with actual varint/key calls, positive key consumption, and
+inactive/failed scan preservation. Root review is pending. Complete logical
+field/group trace, cursor/stack invariant preservation, scalar/bytes metadata
+composition and successful whole-parser/AIG reference remain outstanding.
 
 Remaining transport composition must follow the pinned client/server evidence in
 `../handshake_backend/SIGNAL_SERVER_REVIEW.txt`: current main chat is TLS1.3 with
@@ -907,7 +938,22 @@ whole composed compiler theorem. The new KEM-producing PQXDH adapter handles
 both initiator and recipient handoffs;12 paired cases and84 numeric X25519 DAG
 evaluations pass, with actual numeric wire/KDF stages and a native-Rust fixture
 at the KEM boundary. Its identity/prekey validation status remains an explicit
-shared input; signature verification is not claimed implemented.
+shared input in that adapter. Separately, the six `XEdDsa*` Lean modules now
+provide shared decode, field recovery/double-scalar, SHA512, challenge reduction
+and binding stages, with a branch-free abstract shared composition. The frozen
+`XEdDsaWork/completion.json` records 62 proof endpoints and actual pinned native
+oracle agreement; this is not actual Aeneas crypto refinement or native mixed
+MPC execution. Root CLI `signal-xeddsa` reproduces all 33 stage artifacts exactly
+(`lean-signal-xeddsa-root-export.json`). Private field/Boolean conversion and
+production PQXDH wiring remain open.
+
+The frozen `PreKeyWork/completion.json` adds typed EC/KEM/device normalization,
+actual required-field/optional-zip policy and ordered trust/two-signature
+composition. Its 28 proof endpoints, 9,480 numeric lanes, 36 actual
+`process_prekey_bundle` validation-prefix cases and 18 complete numeric
+two-signature cases pass. Trust-store results remain external shared inputs;
+there are no store writes, native MPC or actual Aeneas prekey claims. XEdDSA
+and prekey scoped root reviews are pending.
 
 The root CLI now exposes all completed KEM components. The55-profile exact
 numeric comparison is `lean-signal-kem-root-export-checks.json`;10 malformed
@@ -930,8 +976,13 @@ the separate root review `lean-signal-throughput-root-review.json`.
 Realistic established SPQR payloads of256 and1024 bytes pass independent
 HMAC/OpenSSL fixtures and cost2,184,573 and3,251,891 optimized ANDs respectively.
 Those profiles have no native timings yet. Current circuits already reuse
-prepared HMAC states within chain derivation and HKDF expansion. An isolated
-Tinier128 comparison is being built; no production protocol change is made.
+prepared HMAC states within chain derivation and HKDF expansion. The isolated
+Tinier128 candidate exposed three 64-bit MAC truncations, repaired by an explicit
+field-width-preserving patch with 4,352 local correlation checks. Native input
+authentication then advanced, but the first AND failed because upstream shuffle
+sacrifice rejects security parameters above 40. No 128-bit Tinier throughput or
+production protocol change is claimed; the guard remains intact. See
+`TinierWork/security128-assessment.json`.
 Per-device fanout, private H2 framing, TLS sealing, new-session/epoch work and
 mobile refresh remain additional costs. Compiler VM rounds and runtime
 communication counters are not measured WAN round trips. Persistent-runtime

@@ -876,14 +876,18 @@
     "explicit_trust": [
       "scoped valid-usize unsafe-index model",
       "reviewed Buf wrappers",
-      "reversible unused Step dictionary metadata selection"
+      "reversible unused Step dictionary metadata selection",
+      "reviewed extra existing remove_useless_joins invocation before update_loops",
+      "Result::map for actual capture-free Unit closure"
     ],
     "not_accepted": [
       "arbitrary Buf",
       "whole successful parser",
-      "skip_field",
-      "SkipTranslatorWork pass-order candidate"
-    ]
+      "totality of recursive skip grammar",
+      "unconditional numeric skip/parser refinement"
+    ],
+    "skip_review": "ProtoParseWork/SkipTranslatorWork/root-review.json",
+    "skip_scope": "Every finite recursive SkipSemantics derivation, exact buffer/error/recursion behavior; explicit decoder premises, not totality or whole parser."
   },
   "lean_mlkem_scope": {
     "modules": [
@@ -970,6 +974,12 @@
     "measured_baseline_meets_target": false,
     "analysis_report": "benchmarks/results/lean-signal-throughput-baseline.json",
     "root_review": "benchmarks/results/lean-signal-throughput-root-review.json",
-    "candidate_comparison": "Tinier128 isolated build pending pinned OT dependency closure; no backend migration"
+    "candidate_comparison": "Tinier128 rebuilt with explicit three-site MAC-width fix; localtests pass, native inputauthentication advances, but firstAND rejects because upstream shuffle sacrifice onlysupports\u226440-bit security. No128-bit throughput result. See SignalReference/TinierWork/security128-assessment.json."
+  },
+  "numeric_skip_plan_bridge": {
+    "report": "ProtoParseWork/SkipPlanWork/proof-report.json",
+    "kernel_endpoints": 36,
+    "scope": "Fixed32/fixed64/varint/length plan masks and cursors inside groups, bounded arithmetic, exact actual skip outcomes, recursion-limit rejection; group masks/depth/cursor, exact stack lookup/write, nested fields unchanged, actual end-tag agreement",
+    "premises": "Accepted decoder results correspond to key/payload fields; slice lengths match bounded parser cursors; valid group depth and stack contents. Whole table/cursor/scan invariant remains pending."
   }
 }

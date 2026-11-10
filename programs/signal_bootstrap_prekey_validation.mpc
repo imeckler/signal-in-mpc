@@ -1,0 +1,19 @@
+# Fixed all-present one-time-prekey / Kyber1024 profile. Identity, both signed
+# messages, signatures and metadata remain shared. No supplied verification bit.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from signal_backend.BootstrapWork.pinned_xeddsa import PrivateStages,PrivateConversions,as_bytes,flatten
+from SignalReference.XEdDsaWork.adapter import verify
+from signal_backend.BootstrapWork.prekey_profile import validate_profile
+stages=PrivateStages(program.args[1]);conversion=PrivateConversions()
+Array=sbitvec.get_type(1).Array
+
+def validation(inputs,outputs):
+    accepted=validate_profile(as_bytes(binary_io.read_bits(inputs)),
+        lambda key,signature,message: verify(stages,conversion,key,signature,message),sbit(1))
+    binary_io.write_bits(outputs,[accepted]*8)
+validation.__name__='signal_private_bootstrap_prekey_all_present'
+function=export(validation);function(Array(1857*8),Array(8))

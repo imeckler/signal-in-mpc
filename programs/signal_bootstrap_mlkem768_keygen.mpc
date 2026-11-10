@@ -1,0 +1,22 @@
+# Actual initial SPQR dependency: joint ML-KEM768 seed, full standard keypair.
+# No host entropy or preselected KEM/phase state enters this function.
+program.set_security(128)
+program.unlimited_compilation()
+from Compiler.library import export
+from Compiler.GC.types import sbit,sbitvec
+from handshake_backend import binary_io
+from signal_backend.BootstrapWork.pinned_stages import PinnedStages
+from SignalReference.MlKemWork.adapter import MlKem
+stages=PinnedStages(program.args[1],expected_variant='mlkem768')
+execute=stages.compiler_executor()
+Array=sbitvec.get_type(1).Array
+
+def generate(reserved,outputs):
+    # Reserved one-byte memory argument avoids a zero-sized transfer interface;
+    # it is not entropy, a validity assertion or an authorization input.
+    seed=[sbit.get_random_bit()for _ in range(512)]
+    kem=MlKem('mlkem768',execute,sbit(0),sbit(1))
+    binary_io.write_bits(outputs,kem.keygen(seed))
+generate.__name__='signal_private_bootstrap_mlkem768_keygen'
+function=export(generate)
+function(Array(8),Array(3585*8))
