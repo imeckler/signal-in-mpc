@@ -1,0 +1,41 @@
+{
+  "malicious": {
+    "exit_codes": [
+      0,
+      0
+    ],
+    "seconds": 0.1,
+    "lines": [
+      "FIELD_IMPORT party=0 tamper=0 with_key=1 rejected=0 ok=1",
+      "FIELD_IMPORT party=1 tamper=0 with_key=1 rejected=0 ok=1"
+    ],
+    "work": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/field-import-1ldz79qq"
+  },
+  "malicious-tamper": {
+    "exit_codes": [
+      0,
+      0
+    ],
+    "seconds": 0.1,
+    "lines": [
+      "FIELD_IMPORT rejected: MacCheck Failure",
+      "FIELD_IMPORT party=0 tamper=1 with_key=1 rejected=1 ok=1",
+      "FIELD_IMPORT rejected: MacCheck Failure",
+      "FIELD_IMPORT party=1 tamper=1 with_key=1 rejected=1 ok=1"
+    ],
+    "work": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/field-import-nwwmpf5x"
+  },
+  "semi-honest": {
+    "exit_codes": [
+      0,
+      0
+    ],
+    "seconds": 0.1,
+    "lines": [
+      "FIELD_IMPORT party=0 tamper=0 with_key=0 rejected=0 ok=1",
+      "FIELD_IMPORT party=1 tamper=0 with_key=0 rejected=0 ok=1"
+    ],
+    "work": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/field-import-wu9t3rtt"
+  },
+  "passed": true
+}

@@ -25,6 +25,9 @@ inductive Operation where
   `exchange` sends this party's private bytes to the other party and returns
   theirs (for values that are safe to reveal, such as parity shares). -/
   | contactKey | contactOpen | contactSeal | exchange | contactEvict
+  /- Notify path: one sealed-sender send to a contact id with a public text,
+  and its request frame. -/
+  | contactSend | contactRequest
   deriving Repr, BEq
 
 structure Rpc where

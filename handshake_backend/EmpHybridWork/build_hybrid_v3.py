@@ -26,7 +26,10 @@ FIXTURES={'word-roundtrip':('word_roundtrip_fixture',[]),'curve':('curve_fixture
     # Explicit honest-but-curious builds (names end in -sh): same sources, the
     # semi-honest Boolean session and the semi-honest field engine object.
     'tls-worker-sh':('tls_worker_v3',WORD+['-DEMP_HYBRID_SEMI_HONEST=1']),
-    'dyn-run-sh':('dyn_run_fixture',WORD+['-DEMP_HYBRID_SEMI_HONEST=1'])}
+    'dyn-run-sh':('dyn_run_fixture',WORD+['-DEMP_HYBRID_SEMI_HONEST=1']),
+    # Field engine with a supplied MAC key share and imported authenticated shares.
+    'field-import':('field_import_fixture',[]),
+    'field-import-sh':('field_import_fixture',['-DEMP_HYBRID_SEMI_HONEST=1'])}
 # Generic Lean-circuit runner: one binary per pinned circuit profile, since
 # the typed wire values need their widths at compile time.
 for profile in sorted(WORDS.glob('*.json')):

@@ -17,8 +17,17 @@ public:
     };
     // `batch`: preprocessing batch size (triples produced per refill). A caller
     // that needs only a handful of products should ask for a small batch.
-    FieldEngine(unsigned party,unsigned port,unsigned batch=10000);
+    // `mac_key_share` (malicious build only): this party's additive share of the MAC key,
+    // as delivered by the share database, instead of a freshly sampled one. Stored values
+    // authenticated under that key can then be imported and exported as shares.
+    FieldEngine(unsigned party,unsigned port,unsigned batch=10000,const std::array<uint8_t,32>*mac_key_share=nullptr);
     ~FieldEngine();
+    // This party's share of a stored value and of its MAC (value times the MAC key), both
+    // canonical. Nothing is checked here: a wrong share or MAC makes any later opening that
+    // depends on it fail its MAC check. The semi-honest build ignores the MAC share.
+    Handle import_share(const std::array<uint8_t,32>&value_share,const std::array<uint8_t,32>&mac_share);
+    // The reverse, for storing a value: (value share, MAC share).
+    std::pair<std::array<uint8_t,32>,std::array<uint8_t,32>> export_share(Handle a);
     FieldEngine(const FieldEngine&)=delete;FieldEngine&operator=(const FieldEngine&)=delete;
     // Both contributions are fixed by one native input exchange. Local uint64
     // is for bounded preprocessing coins/fixture data, not imported shares.

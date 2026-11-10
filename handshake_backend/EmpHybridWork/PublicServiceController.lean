@@ -243,8 +243,8 @@ def main (args : List String) : IO Unit := do
         return (s, complete)
       -- One send: the engines produce and open the sealed-sender envelope; the request
       -- is assembled here; the engines insert the contact's fields and seal the record.
-      let sendMessage (input id : Nat) : M Unit := do
-        let sealed ← rpc.call .providerSealOpen (uint 8 state ++ uint 8 input)
+      let sendMessage (send : Nat × Bytes) (id : Nat) : M Unit := do
+        let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
         insist (sealed.length ≥ 10) "invalid sealed envelope reply"
         let timestamp := number (sealed.take 8)
         let length := number ((sealed.drop 8).take 2)
@@ -252,7 +252,7 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
-        let handle ← rpc.call .providerRequest (uint 8 input ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
+        let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send app ⟨number handle⟩ frame.length
       -- Contact state at rest (TEST: the two fixture contacts have ids 1 and 2, and each
@@ -276,7 +276,21 @@ def main (args : List String) : IO Unit := do
           let _ ← rpc.call .contactEvict (uint 16 contact)
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
           let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
-      let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List Nat) (completed : Nat) : M Nat := do
+      -- The application's request: `notify(ids, message)`. Ids and text are public to both
+      -- parties; it expands to one send per contact. The text input of the send kernels is
+      -- a validity byte, a two-byte length, 48 bytes of UTF-8 and an 8-byte timestamp.
+      let notify (ids : List Nat) (message : String) (timestamp : Nat) : M (List (Nat × Bytes)) := do
+        let body := message.toUTF8.data.toList
+        insist (0 < body.length && body.length ≤ 48) "notify message must be 1..48 bytes"
+        insist (ids.all (· < 2 ^ 128)) "contact ids are u128"
+        pure (ids.zipIdx.map (fun (contact, index) =>
+          (contact, [255] ++ uint 2 body.length ++ body ++ List.replicate (48 - body.length) 0 ++ uint 8 (timestamp + index))))
+      -- TEST: the fixture recipient compares each envelope with pre-computed ciphertext for
+      -- these exact texts and timestamps, so each call names one contact here.
+      insist (inputs.length == 4) "fixture catalogue changed"
+      let inputs := (← notify [1] "Hello, Signal! ☕" 0x1ba60d33800) ++ (← notify [2] "你好，世界" 0x1ba60d33801)
+        ++ (← notify [1] "Second private notification" 0x1ba60d33802) ++ (← notify [2] "Delivery ready 😀" 0x1ba60d33803)
+      let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List (Nat × Bytes)) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
         | fuel+1 =>
@@ -318,7 +332,7 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 34 && codes.contains 35 && codes.contains 37 && codes.contains 38 && !codes.contains 18
+    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38 && !codes.contains 18
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("private_receive_parsing_used",toJson (codes.contains 18)),

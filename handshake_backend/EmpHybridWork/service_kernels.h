@@ -144,7 +144,16 @@ public:
     // Reply: timestamp8, length2, envelope bytes (public capacity).
     std::vector<uint8_t> seal_open(uint64_t input){
         need(public_receive&&started&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
-        auto&c=conversations.at(inputs[input-1].first);need(c.record.size()!=0,"contact state not loaded");
+        return seal_open(inputs[input-1].first,inputs[input-1].second);
+    }
+    // The same for a contact by id and a PUBLIC text (the notify path): `text` is the 59-byte
+    // text input of the send kernels, built by the controllers.
+    std::vector<uint8_t> seal_open(const ContactId&id,const std::vector<uint8_t>&text){
+        need(public_receive&&started&&!closed&&text.size()==59&&conversations.count(id),"send unavailable");
+        return seal_open(id,k.constant(text));
+    }
+    std::vector<uint8_t> seal_open(const ContactId&id,const Wires&text){
+        auto&c=conversations.at(id);need(c.record.size()!=0,"contact state not loaded");
         if(!c.ready){
             auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
             c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
@@ -171,7 +180,8 @@ public:
             name+=" "+std::to_string(width);
         }
         auto&kernel=k.cache.get(name);
-        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"ephemeralPublic",&ephemeral_public},
+        Wires body=text;
+        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&body},{"ephemeralPublic",&ephemeral_public},
             {"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
         need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
         c.record=std::move(out.at("conversation"));
@@ -182,10 +192,15 @@ public:
     // Step 2: a request frame assembled in the clear, to be sealed with this conversation's
     // private recipient fields inserted at the given public offsets.
     uint64_t request(uint64_t input,const std::vector<size_t>&offsets,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
-        need(public_receive&&!closed&&input>=1&&input<=inputs.size()&&consumed[input-1]&&offsets.size()==4&&mask.size()==4&&!frame.empty(),"request unavailable");
+        need(input>=1&&input<=inputs.size()&&consumed[input-1],"request unavailable");
+        return request(inputs[input-1].first,offsets,mask,frame);
+    }
+    uint64_t request(const ContactId&id,const std::vector<size_t>&offsets,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
+        auto it=conversations.find(id);
+        need(public_receive&&!closed&&it!=conversations.end()&&it->second.record.size()!=0&&offsets.size()==4&&mask.size()==4&&!frame.empty(),"request unavailable");
         TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
         buffer.sealer="signal-request-ctr "+std::to_string(CERT)+" "+std::to_string(frame.size());for(auto at:offsets)buffer.sealer+=" "+std::to_string(at);
-        buffer.extra["conversation"]=conversations.at(inputs[input-1].first).record;buffer.extra["mask"]=k.constant(mask);
+        buffer.extra["conversation"]=it->second.record;buffer.extra["mask"]=k.constant(mask);
         return k.retain(std::move(buffer));
     }
     // One received application chunk through the parsers.

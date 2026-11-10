@@ -11,6 +11,8 @@
 #include "Protocols/ProtocolSetup.h"
 #include "field_engine.h"
 #include <atomic>
+#include <filesystem>
+#include <fstream>
 namespace emp_hybrid {
 using F=gfp_<17,4>;
 #ifdef EMP_HYBRID_SEMI_HONEST
@@ -20,17 +22,71 @@ using S=SemiShare<F>;
 using S=Share<F>;
 #endif
 static std::atomic<uint64_t> next_owner{1};
+static F canonical_element(const std::array<uint8_t,32>&bytes){
+    bigint n;mpz_import(n.get_mpz_t(),32,-1,1,0,0,bytes.data());
+    if(n>=(bigint(1)<<255)-19)throw std::invalid_argument("noncanonical field element");
+    return F(n);
+}
+static std::array<uint8_t,32> element_bytes(const F&x){
+    bigint n;to_bigint(n,x);std::array<uint8_t,32>bytes{};for(auto&b:bytes){b=mpz_get_ui(n.get_mpz_t())&255;n>>=8;}return bytes;
+}
+// The library samples the MAC key share and builds the OT setup whose receiver choice bits
+// are that share's bits (OT/MascotMacKey.hpp, `read_or_generate`). This does the same for a
+// SUPPLIED share, and writes nothing to disk. The library then finds the key already set.
+static std::unique_ptr<ProtocolSetup<S>> make_setup(Player&P,const std::array<uint8_t,32>*key_share){
+    const bigint prime=(bigint(1)<<255)-19;
+    if(key_share){
+#ifdef EMP_HYBRID_SEMI_HONEST
+        throw std::invalid_argument("the semi-honest field engine has no MAC key");
+#else
+        F::init_field(prime);F::next::init_field(prime,false);
+        // The triple generator works on the library's preprocessing share type, whose key
+        // type is a second instance of the same field.
+        using X=S::prep_type;using K=X::mac_key_type;
+        bigint n;to_bigint(n,canonical_element(*key_share));K value(n);if(value.is_zero())throw std::invalid_argument("zero MAC key share");
+        auto&key=S::TripleGenerator::get_mac_key();
+        static_cast<K&>(key)=value;
+        key.ot=OTTripleSetup(P,true);key.ot.base_receiver_inputs.set(key);
+        auto ot_setup=BaseMachine::fresh_ot_setup(P);
+        if(not OTExtensionWithMatrix(0).use_kos())P.fork("soft");
+        for(int i:P.balanced_others())OTMultiplierBase::init(key,P,i,ot_setup);
+        X::set_mac_key(key);
+        // On a failed MAC check the library deletes its key-material file and asserts that
+        // the deletion worked. Nothing is stored here, so give it an empty file to delete.
+        auto filename=get_ot_secrets_filename<X>(P);X::set_secrets_filename(filename);
+        std::filesystem::create_directories(std::filesystem::path(filename).parent_path());
+        std::ofstream placeholder(filename,std::ios::trunc);if(!placeholder)throw std::runtime_error("field engine working directory");
+#endif
+    }
+    return std::make_unique<ProtocolSetup<S>>(prime,P);
+}
 struct FieldEngine::Impl {
     // Destruction order: values, protocol owners, setup, transport, names.
     Names names;CryptoPlayer player;std::unique_ptr<ProtocolSetup<S>> setup;std::unique_ptr<ProtocolSet<S>> set;
     std::vector<S> values;uint64_t products=0,local_inputs=0;bool failed=false;const uint64_t owner=next_owner.fetch_add(1);
-    Impl(unsigned p,unsigned port):names(p,2,"127.0.0.1",port),player(names),
-        setup(std::make_unique<ProtocolSetup<S>>((bigint(1)<<255)-19,player)),set(std::make_unique<ProtocolSet<S>>(player,*setup)){}
+    Impl(unsigned p,unsigned port,const std::array<uint8_t,32>*key_share):names(p,2,"127.0.0.1",port),player(names),
+        setup(make_setup(player,key_share)),set(std::make_unique<ProtocolSet<S>>(player,*setup)){}
     void require(){if(failed)throw std::runtime_error("native engine poisoned");}
     const S&get(Handle h){require();if(!owner||h.owner!=owner||!h.index||h.index>values.size())throw std::invalid_argument("native handle owner/range");return values[h.index-1];}
     Handle put(S x){values.push_back(std::move(x));return Handle(owner,values.size());}
 };
-FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch){
+FieldEngine::Handle FieldEngine::import_share(const std::array<uint8_t,32>&value_share,const std::array<uint8_t,32>&mac_share){
+    auto&p=*impl;p.require();
+#ifdef EMP_HYBRID_SEMI_HONEST
+    (void)mac_share;return p.put(S(canonical_element(value_share)));
+#else
+    return p.put(S(canonical_element(value_share),canonical_element(mac_share)));
+#endif
+}
+std::pair<std::array<uint8_t,32>,std::array<uint8_t,32>> FieldEngine::export_share(Handle a){
+    auto&p=*impl;const S&x=p.get(a);
+#ifdef EMP_HYBRID_SEMI_HONEST
+    return {element_bytes(F(x)),std::array<uint8_t,32>{}};
+#else
+    return {element_bytes(x.get_share()),element_bytes(x.get_mac())};
+#endif
+}
+FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::array<uint8_t,32>*mac_key_share){
     if(party>1||port>65000||batch<1||batch>1000000)throw std::invalid_argument("native identity/port");
     // Exact p, checked OT, no online/preprocessing reuse across owners.
     // In the MASCOT/Fp path MP-SPDZ reads this only as a minimum field-size
@@ -42,7 +98,7 @@ FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch){
     OnlineOptions::singleton.use_security_parameter=true;
     OnlineOptions::singleton.verbose=true;
     ProtocolSetup<S>::set_batch_size(batch);
-    impl=std::make_unique<Impl>(party,port);
+    impl=std::make_unique<Impl>(party,port,mac_key_share);
 }
 FieldEngine::~FieldEngine(){if(impl){
     // Finish protocol/preprocessing owners before sampling protocol traffic.
@@ -70,11 +126,6 @@ std::vector<FieldEngine::Handle> FieldEngine::mul(const std::vector<Handle>&a,co
 FieldEngine::Handle FieldEngine::add(Handle a,Handle b){auto&p=*impl;return p.put(p.get(a)+p.get(b));}
 FieldEngine::Handle FieldEngine::sub(Handle a,Handle b){auto&p=*impl;return p.put(p.get(a)-p.get(b));}
 FieldEngine::Handle FieldEngine::constant(uint64_t v){auto&p=*impl;p.require();return p.put(S::constant(F(bigint(static_cast<unsigned long>(v))),p.player.my_num(),p.setup->get_mac_key()));}
-static F canonical_element(const std::array<uint8_t,32>&bytes){
-    bigint n;mpz_import(n.get_mpz_t(),32,-1,1,0,0,bytes.data());
-    if(n>=(bigint(1)<<255)-19)throw std::invalid_argument("noncanonical field element");
-    return F(n);
-}
 FieldEngine::Handle FieldEngine::scale(Handle a,uint64_t c){auto&p=*impl;return p.put(p.get(a)*F(bigint(static_cast<unsigned long>(c))));}
 FieldEngine::Handle FieldEngine::divide_public(Handle a,const std::array<uint8_t,32>&c){
     auto&p=*impl;F value=canonical_element(c);if(value.is_zero())throw std::invalid_argument("division by zero");

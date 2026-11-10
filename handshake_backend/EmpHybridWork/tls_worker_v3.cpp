@@ -66,6 +66,14 @@ struct Worker {
         case 36:{need(phase==Phase::retired&&service&&p.size()==48,"contact key");std::array<uint8_t,32>share{};std::copy_n(p.begin()+16,32,share.begin());service->contact_key(contact(p),share);return {};}
         case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));return {};}
         case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
+        // Notify path: a send to a contact by id with a public text, then its request frame.
+        case 41:{need(phase==Phase::retired&&service&&p.size()==16+59,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 42:{
+            need(phase==Phase::retired&&service&&p.size()>28&&p.size()<=28+16384,"contact request");
+            std::vector<size_t>offsets;for(int i=0;i<4;i++)offsets.push_back(big(p.data()+16+2*i,2));
+            uint64_t id=service->request(contact(p),offsets,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+28,p.end()));
+            Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
+        }
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}
         // Each party sends its private bytes and receives the other's (for values that are safe
         // to reveal, such as parity shares of a consistency check).
