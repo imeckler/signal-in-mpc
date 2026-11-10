@@ -54,6 +54,11 @@ public:
     Wires run(const LeanCircuit&circuit,const Wires&input){return run(circuit.parallel(1),input);}
     // Open to both parties (two directed authenticated openings).
     std::vector<uint8_t> open(const Wires&w){return proto.decode(w,emp::PUBLIC);}
+    // Open to one party only (one directed authenticated opening).
+    std::vector<uint8_t> open_to(const Wires&w,int recipient){
+        if(recipient!=emp::ALICE&&recipient!=emp::BOB)throw std::invalid_argument("opening recipient");
+        auto out=proto.decode(w,recipient);if(proto.party!=recipient)out.assign(w.size(),0);return out;
+    }
     static Wires concat(const std::vector<const Wires*>&parts){
         Wires out;for(auto*p:parts)emp::ag2pc_detail::append_bundle(out,*p);return out;
     }

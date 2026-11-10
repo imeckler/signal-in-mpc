@@ -48,7 +48,8 @@ structure KernelImage where
   nodes : Array (List Nat)
   outputs : Array (Nat × Nat)
   input_fields : Array (String × Nat)
-  output_fields : Array (String × Nat × Bool)
+  /-- name, bits, and 0 private / 1 public / 2 garbling party only / 3 evaluating party only -/
+  output_fields : Array (String × Nat × Nat)
   deriving Lean.ToJson
 
 def kernelImage (k : HybridKernel.Kernel) : Except String KernelImage := do
@@ -75,7 +76,8 @@ def kernelImage (k : HybridKernel.Kernel) : Except String KernelImage := do
          nodes := AigExport.exportNodes circuit.aig
          outputs := refs
          input_fields := (k.inputs.map (fun f => (f.1, f.2.bits))).toArray
-         output_fields := (k.outputs.map (fun f => (f.name, f.bits, f.opened))).toArray }
+         output_fields := (k.outputs.map (fun f =>
+           (f.name, f.bits, if f.audience == 1 then 2 else if f.audience == 2 then 3 else if f.opened then 1 else 0))).toArray }
 
 def main (args : List String) : IO Unit := do
   if let "kernel" :: rest := args then

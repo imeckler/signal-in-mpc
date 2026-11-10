@@ -1,6 +1,16 @@
 # Proposal: AES-GCM tags from local GHASH shares
 
-Status: **design for review, not implemented.**
+Status: **implemented** for request sealing (`signal-request-ctr`) and for
+opening application records (`tls-open-application-ctr`); other seals (upgrade
+request, pongs, control records, the private-receive profile) still compute the
+tag in the engines. Kernels in `TlsMpc/HybridKernels.lean`, local arithmetic in
+`gcm_shares.h`, security theorems in `TlsMpc/GhashShares.lean`. Both security
+modes pass end to end against the fixture server (whose TLS stack verifies the
+tags) with the libsignal recipient. Even powers are obtained by squaring
+shares locally, which relies on commutativity of the field multiplication
+(assumed, `GhashShares.Laws`). Measured: request seal 1.41 M → 0.32 M ANDs,
+response record opens 0.29 M → 0.12 M, plus ≈ 0.55 M once per traffic key.
+The remainder of this note is the design as reviewed.
 
 ## Why
 

@@ -20,7 +20,8 @@ using Binding=std::vector<std::pair<std::string,const Wires*>>;
 inline std::vector<uint8_t> byte_bits(const std::vector<uint8_t>&bytes){std::vector<uint8_t>out;out.reserve(8*bytes.size());for(auto b:bytes)for(unsigned i=0;i<8;i++)out.push_back((b>>i)&1);return out;}
 inline std::vector<uint8_t> bits_bytes(const std::vector<uint8_t>&bits){if(bits.size()%8)throw std::runtime_error("whole bytes expected");std::vector<uint8_t>out(bits.size()/8);for(size_t i=0;i<bits.size();i++)if(bits[i])out[i/8]|=uint8_t(1u<<(i%8));return out;}
 class Kernel {
-    struct Field {std::string name;size_t bits;bool opened;};
+    // opened: 0 private, 1 public, 2 garbling party only, 3 evaluating party only (as marked in Lean).
+    struct Field {std::string name;size_t bits;int opened;};
     LeanCircuit circuit;std::vector<Field>inputs,outputs;
 public:
     Kernel(const std::string&path,const std::string&sha,const std::string&layout_path,const std::string&layout_sha):circuit(path,sha.c_str()){
@@ -33,8 +34,8 @@ public:
         while(std::getline(rows,line)){
             std::istringstream row(line);std::string kind,name;size_t bits=0;int opened=0;
             if(!(row>>kind>>name>>bits))throw std::runtime_error("kernel layout row");   // an input may be empty (e.g. no client certificate)
-            if(kind=="I"){inputs.push_back({name,bits,false});in_bits+=bits;}
-            else if(kind=="O"&&(row>>opened)&&(opened==0||opened==1)){outputs.push_back({name,bits,opened==1});out_bits+=bits;}
+            if(kind=="I"){inputs.push_back({name,bits,0});in_bits+=bits;}
+            else if(kind=="O"&&(row>>opened)&&opened>=0&&opened<=3){outputs.push_back({name,bits,opened});out_bits+=bits;}
             else throw std::runtime_error("kernel layout row");
         }
         if(in_bits!=circuit.input_bits()||out_bits!=circuit.output_bits())throw std::runtime_error("kernel layout shape");
@@ -56,8 +57,17 @@ public:
     // Opens an output only if Lean marked it as one that may be opened.
     std::vector<uint8_t> open(DynSession&s,const Values&out,const std::string&name)const{
         for(auto&field:outputs)if(field.name==name){
-            if(!field.opened)throw std::runtime_error("kernel output "+name+" is private");
+            if(field.opened!=1)throw std::runtime_error("kernel output "+name+" is not public");
             return bits_bytes(s.open(out.at(name)));
+        }
+        throw std::runtime_error("kernel output "+name);
+    }
+    // Opens an output to one party only, and only if Lean marked it for that party.
+    // The other party's return value carries no information.
+    std::vector<uint8_t> open_to(DynSession&s,const Values&out,const std::string&name,int party)const{
+        for(auto&field:outputs)if(field.name==name){
+            if(field.opened!=(party==emp::ALICE?2:3))throw std::runtime_error("kernel output "+name+" is not for that party");
+            return bits_bytes(s.open_to(out.at(name),party));
         }
         throw std::runtime_error("kernel output "+name);
     }

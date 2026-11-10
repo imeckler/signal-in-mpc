@@ -132,7 +132,7 @@ public:
     uint64_t request(uint64_t input,const std::vector<size_t>&offsets,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
         need(public_receive&&!closed&&input>=1&&input<=inputs.size()&&consumed[input-1]&&offsets.size()==4&&mask.size()==4&&!frame.empty(),"request unavailable");
         TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
-        buffer.sealer="signal-request-seal "+std::to_string(CERT)+" "+std::to_string(frame.size());for(auto at:offsets)buffer.sealer+=" "+std::to_string(at);
+        buffer.sealer="signal-request-ctr "+std::to_string(CERT)+" "+std::to_string(frame.size());for(auto at:offsets)buffer.sealer+=" "+std::to_string(at);
         buffer.extra["conversation"]=conversations.at(inputs[input-1].first).record;buffer.extra["mask"]=k.constant(mask);
         return k.retain(std::move(buffer));
     }

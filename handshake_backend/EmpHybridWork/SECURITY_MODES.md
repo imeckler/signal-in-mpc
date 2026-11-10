@@ -166,6 +166,32 @@ semi-honest. On a 10 Gbit/s link that is ≈ 1,500 messages/hour malicious and
 message are now 28 % of the malicious bytes; record sealing is 31 % of the
 gates, three quarters of it the GHASH tag (proposal: `GHASH_SHARES.md`).
 
+### Latest: verified adder and shared-GHASH tags
+
+- `TlsMpc/Sha256Ripple.lean`: a SHA-256 backend with a one-AND-per-bit adder
+  proved equal to addition in Lean (one `bv_decide` native axiom, to be
+  replaced by a structural proof). Used by `signal-seal-fixed`: 2.72 M → 2.26 M.
+- GCM tags from local shares of the GHASH key powers (`GHASH_SHARES.md`,
+  `TlsMpc/GhashShares.lean`), for request seals and application-record opens.
+
+Both modes pass end to end. Whole service run: 17.9 M ANDs; malicious 9.6 GB
+Boolean + 5.6 GB field in 55 s.
+
+| Per message, steady state | ANDs |
+|---|---:|
+| Session encryption + SPQR + sealed sender | 2.26 M |
+| Request record seal | 0.32 M |
+| Two response record opens | 0.12 M |
+| Pong seal and byte reveals | ≈ 0.11 M |
+| **Round trip** | **≈ 2.8 M** (+ 6,348 field products) |
+
+≈ 2.3 GB per message malicious (1.5 GB Boolean + 0.8 GB field), ≈ 0.29 GB
+semi-honest (0.09 + 0.20). The two X25519 ladders are now 36 % of the
+malicious bytes and about two thirds of the semi-honest bytes; the proposal in
+`SEALED_SENDER_AGREEMENT.md` would replace them with about 50 field products.
+On a 10 Gbit/s link: ≈ 1,950 messages/hour malicious, ≈ 15,500 semi-honest
+(arithmetic, not a load test).
+
 ## Throughput estimates (private-receive profile)
 
 Arithmetic on the full-path measurements, not load tests.

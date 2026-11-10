@@ -5,6 +5,7 @@ import TlsMpc.Signal.PrivateDecimal
 import TlsMpc.Signal.SpqrSend
 import TlsMpc.Signal.SealedSenderV1
 import TlsMpc.Sha256Backend
+import TlsMpc.Sha256Ripple
 
 /-!
 Worker kernels: one circuit per worker operation, with NAMED input and output
@@ -45,6 +46,9 @@ structure Output where
   bits : Nat
   opened : Bool
   value : List (BVExpr 8)
+  /-- 0: `opened` decides (public or private). 1 or 2: may be opened to that
+  party only (1 = the garbling party, 2 = the evaluating party). -/
+  audience : Nat := 0
 
 structure Kernel where
   name : String
@@ -62,8 +66,13 @@ def lookupFrom (name : String) : List (String × Shape) → Nat → List (BVExpr
 
 def lookup (inputs : List (String × Shape)) (name : String) : List (BVExpr 8) := lookupFrom name inputs 0
 
-def priv (name : String) (value : List (BVExpr 8)) : Output := ⟨name, 8 * value.length, false, value⟩
-def pub (name : String) (value : List (BVExpr 8)) : Output := ⟨name, 8 * value.length, true, value⟩
+def priv (name : String) (value : List (BVExpr 8)) : Output :=
+  { name, bits := 8 * value.length, opened := false, value }
+def pub (name : String) (value : List (BVExpr 8)) : Output :=
+  { name, bits := 8 * value.length, opened := true, value }
+/-- Opened to one party only. -/
+def toParty (party : Nat) (name : String) (value : List (BVExpr 8)) : Output :=
+  { name, bits := 8 * value.length, opened := false, value, audience := party }
 def sl (bytes : List (BVExpr 8)) (start count : Nat) : List (BVExpr 8) := (bytes.drop start).take count
 def const (n : Nat) : BVExpr 8 := .const (BitVec.ofNat 8 n)
 def zeros (count : Nat) : List (BVExpr 8) := List.replicate count (const 0)
@@ -259,7 +268,7 @@ def signalConversationView (cert size : Nat) : Kernel :=
   let inputs := [("conversation", Shape.bytes (conversationBytes cert size))]
   let record := lookup inputs "conversation"
   { name := "signal-conversation-view", inputs, outputs := [
-      ⟨"recipient", 255, false, sl record (cert + 150) 32⟩,
+      { name := "recipient", bits := 255, opened := false, value := sl record (cert + 150) 32 },
       priv "requestId" (sl record (cert + 182 + size + 40) 8)] }
 
 /-- One established sealed-sender text send: text content, message encryption
@@ -389,8 +398,8 @@ def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat
     chainKey := sl staged 41 32, pqChainKey := sl staged 73 32, pqCounter := sl staged 105 4, epoch := sl staged 109 8,
     kind := HybridService.at' staged 117, chunkIndex := [], chunkData := [], sender := sl staged 118 32,
     receiver := sl staged 150 32, plaintext := sl staged 182 size, addresses := [] }
-  -- Gate-efficient SHA-256 backend; proved to compute the same function (Sha256Backend.select_concrete).
-  let sha := Sha256Backend.select .gateEfficient Sha256.symbolic
+  -- SHA-256 backend with a one-AND-per-bit adder, proved equal to addition (TlsMpc/Sha256Ripple.lean).
+  let sha := Sha256Ripple.ops
   let accepted := SpqrSend.acceptedMask Varint64.symbolic sha a shape pqShape i
   let p := SpqrSend.prepare Aes.symbolic Varint64.symbolic sha a shape pqShape i
   let sealed := SealedSenderV1.boundSeal Aes.symbolic sha a i.receiver (get "ephemeralPublic")
@@ -438,6 +447,100 @@ def signalRequestSeal (cert size uuidAt keyAt deviceAt registrationAt : Nat) : K
       pub "record" (ByteAuth.release a valid
         (TlsRecord.sealCore Gcm.symbolic (blockKey block) (blockIv block) (get "sequence") plaintext 23 0))] }
 
+/-! ### AES-GCM with shared GHASH key powers
+
+Design and security argument: `handshake_backend/EmpHybridWork/GHASH_SHARES.md`
+and `TlsMpc/GhashShares.lean`. The engines compute only AES (the CTR keystream
+and the per-record pad) and combine or check the two parties' locally computed
+halves of the tag polynomial. -/
+
+def xorBytes (x y : List (BVExpr 8)) : List (BVExpr 8) := Aes.addRoundKey Gcm.symbolic.aes x y
+
+def gcmExpanded (traffic : List (BVExpr 8)) : List (BVExpr 8) :=
+  Aes.expandKey Gcm.symbolic.aes 4 10 (blockKey traffic)
+
+/-- The per-record pad `AES_K(J0)`. -/
+def gcmPad (traffic sequence : List (BVExpr 8)) : List (BVExpr 8) :=
+  Aes.encryptExpanded Gcm.symbolic.aes 10 (gcmExpanded traffic)
+    (TlsRecord.nonce Gcm.symbolic (blockIv traffic) sequence ++ Gcm.encodeNat Gcm.symbolic 4 1)
+
+/-- Shares of `H = AES_K(0)`: the garbling party supplies a private mask and
+keeps it as its share; `H ⊕ mask` is opened to the evaluating party only. -/
+def gcmKeyShare : Kernel :=
+  let inputs := [("traffic", Shape.bytes 60), ("mask", .bytes 16)]
+  let get := lookup inputs
+  let h := Aes.encryptExpanded Gcm.symbolic.aes 10 (gcmExpanded (get "traffic")) (Gcm.zeros Gcm.symbolic 16)
+  { name := "gcm-key-share", inputs, outputs := [toParty 2 "masked" (xorBytes h (get "mask"))] }
+
+/-- Product of two shared field elements, re-shared the same way. -/
+def gcmMultiply : Kernel :=
+  let inputs := [("leftA", Shape.bytes 16), ("leftB", .bytes 16), ("rightA", .bytes 16), ("rightB", .bytes 16),
+    ("mask", .bytes 16)]
+  let get := lookup inputs
+  let g := Gcm.symbolic
+  let product := Ghash.multiply g.field (g.pack (xorBytes (get "leftA") (get "leftB")))
+    (g.pack (xorBytes (get "rightA") (get "rightB")))
+  { name := "gcm-multiply", inputs, outputs := [toParty 2 "masked" (xorBytes (g.unpack product) (get "mask"))] }
+
+/-- The tag of a record being sealed: pad ⊕ both halves. -/
+def gcmTag : Kernel :=
+  let inputs := [("pad", Shape.bytes 16), ("halfA", .bytes 16), ("halfB", .bytes 16)]
+  let get := lookup inputs
+  { name := "gcm-tag", inputs, outputs := [pub "tag" (xorBytes (xorBytes (get "pad") (get "halfA")) (get "halfB"))] }
+
+/-- The private acceptance mask of a received record: 255 exactly when
+pad ⊕ both halves equals the received tag. -/
+def gcmCheck : Kernel :=
+  let inputs := [("traffic", Shape.bytes 60), ("sequence", .bytes 8), ("halfA", .bytes 16), ("halfB", .bytes 16),
+    ("tag", .bytes 16)]
+  let get := lookup inputs
+  let expected := xorBytes (xorBytes (gcmPad (get "traffic") (get "sequence")) (get "halfA")) (get "halfB")
+  { name := "gcm-check", inputs, outputs := [priv "accepted" [ByteAuth.equalMask ByteAuth.symbolic expected (get "tag")]] }
+
+/-- `signalRequestSeal` without the tag: the record header and ciphertext are
+opened and the pad stays private for `gcmTag`. -/
+def signalRequestCtr (cert size uuidAt keyAt deviceAt registrationAt : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let g := Gcm.symbolic
+  let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8),
+    ("conversation", .bytes (conversationBytes cert 80)), ("frame", .bytes size), ("mask", .bytes 4)]
+  let get := lookup inputs
+  let metadata := sl (get "conversation") (cert + 262) 57
+  let device := paddedDecimal (RelayRequest.word Varint64.symbolic a metadata 48 1) 3
+  let registration := paddedDecimal (RelayRequest.word Varint64.symbolic a metadata 49 4) 10
+  let slots : List (Nat × List (BVExpr 8)) := [(uuidAt, RelayEncoding.uuid a (sl metadata 0 16)),
+    (keyAt, RelayEncoding.base64 a (sl metadata 16 16)), (deviceAt, device.2), (registrationAt, registration.2)]
+  let secretAt (index : Nat) : Option (BVExpr 8) := slots.findSome? (fun slot =>
+    if slot.1 ≤ index && index < slot.1 + slot.2.length then some (HybridService.at' slot.2 (index - slot.1)) else none)
+  let plaintext := (get "frame").zipIdx.map (fun pair => match secretAt pair.2 with
+    | some secret => a.xor pair.1 (a.xor secret (HybridService.at' (get "mask") ((pair.2 - 8) % 4)))
+    | none => pair.1)
+  let valid := a.and device.1 registration.1
+  let block := get "clientApplication"
+  let inner := TlsRecord.inner g plaintext 23 0
+  let ciphertext := Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "sequence")) inner
+  { name := "signal-request-ctr", inputs, outputs := [
+      pub "accepted" [valid], pub "header" (TlsRecord.header g (inner.length + 16)),
+      pub "ciphertext" (ByteAuth.release a valid ciphertext), priv "pad" (gcmPad block (get "sequence"))] }
+
+/-- `tlsOpenApplication` with the tag check supplied as the private mask from
+`gcmCheck`: CTR decryption, header check, inner parsing and classification. -/
+def tlsOpenApplicationCtr (size : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let g := Gcm.symbolic
+  let inputs := [("parser", Shape.bytes 11), ("serverApplication", .bytes 60), ("sequence", .bytes 8),
+    ("record", .bytes size), ("accepted", .bytes 1)]
+  let get := lookup inputs
+  let block := get "serverApplication"
+  let wire := get "record"
+  let ciphertext := TlsReceive.ciphertext wire
+  let plaintext := Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "sequence")) ciphertext
+  let headerValid := ByteAuth.equalMask a (wire.take 5) (TlsRecord.header g (ciphertext.length + 16))
+  let parsed := TlsReceive.releaseOpened a headerValid ⟨HybridService.at' (get "accepted") 0, plaintext⟩
+  let out := TlsPostHandshake.core Word64.symbolic a (get "parser") parsed
+  { name := "tls-open-application-ctr", inputs, outputs := [
+      pub "event" (sl out 0 2), priv "parser" (sl out 2 11), priv "length" (sl out 13 2), priv "content" (out.drop 15)] }
+
 /-- Kernel named on the command line, with its public shape parameters. -/
 def find : List String → Option Kernel
   | ["tls-derive"] => some tlsDerive
@@ -449,6 +552,10 @@ def find : List String → Option Kernel
   | ["ws-idle-byte"] => some wsIdleByte
   | ["ws-response-byte"] => some wsResponseByte
   | ["ws-control-status"] => some wsControlStatus
+  | ["gcm-key-share"] => some gcmKeyShare
+  | ["gcm-multiply"] => some gcmMultiply
+  | ["gcm-tag"] => some gcmTag
+  | ["gcm-check"] => some gcmCheck
   | [name, a] =>
       match name, a.toNat? with
       | "tls-open-handshake", some n => if 22 ≤ n && n ≤ 16645 then some (tlsOpenHandshake n) else none
@@ -464,6 +571,7 @@ def find : List String → Option Kernel
       | "signal-seal", some n => if n ≤ 1024 then some (signalSeal n) else none
       | "signal-widths", some n => if n ≤ 1024 then some (signalWidths n) else none
       | "tls-reveal", some n => if 0 < n && n ≤ 16385 then some (tlsReveal n) else none
+      | "tls-open-application-ctr", some n => if 22 ≤ n && n ≤ 16406 then some (tlsOpenApplicationCtr n) else none
       | _, _ => none
   | [name, a, b] =>
       match name, a.toNat?, b.toNat? with
@@ -483,6 +591,13 @@ def find : List String → Option Kernel
           if cert ≤ 1024 && 0 < size && size ≤ 16384 && 8 ≤ u && u + 36 ≤ size && 8 ≤ k && k + 24 ≤ size &&
               8 ≤ d && d + 3 ≤ size && 8 ≤ r && r + 10 ≤ size then
             some (signalRequestSeal cert size u k d r) else none
+      | _, _, _, _, _, _ => none
+  | ["signal-request-ctr", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
+      match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with
+      | some cert, some size, some u, some k, some d, some r =>
+          if cert ≤ 1024 && 0 < size && size ≤ 16384 && 8 ≤ u && u + 36 ≤ size && 8 ≤ k && k + 24 ≤ size &&
+              8 ≤ d && d + 3 ≤ size && 8 ≤ r && r + 10 ≤ size then
+            some (signalRequestCtr cert size u k d r) else none
       | _, _, _, _, _, _ => none
   | _ => none
 

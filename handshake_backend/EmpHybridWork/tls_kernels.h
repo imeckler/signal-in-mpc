@@ -6,6 +6,7 @@
 // circuit layout: it never slices a key out of a block or assembles an input.
 // Only outputs Lean marks as openable are opened.
 #include "kernel.h"
+#include "gcm_shares.h"
 #include "dyn_word_mask.h"
 #include "x25519_fast.h"
 #include "split_ecdh.h"
@@ -95,7 +96,8 @@ public:   // engine references and shared resources are also used by service_ker
     }
     // Drop the handshake-phase wire handles (not an erasure receipt).
     void retire(){state.erase("clientHandshake");state.erase("serverHandshake");state.erase("mainSecret");swaps.clear();}
-    void abort(){state.clear();swaps.clear();buffers.clear();}
+    void abort(){state.clear();swaps.clear();buffers.clear();send_shares.clear();receive_shares.clear();}
+    GcmShares send_shares,receive_shares;   // this party's shares of the GHASH key powers, per direction
     // ---- Application phase. Plaintext lives only in private buffers named by public handles.
     // `length` empty: the whole content is the payload (public size). `length` present: private
     // length within the public capacity, with `valid` the buffer's computed validity byte.
@@ -107,8 +109,15 @@ public:   // engine references and shared resources are also used by service_ker
     // Authenticate, decrypt and classify one record; only the event bytes are opened.
     std::vector<uint8_t> open_application(const std::vector<uint8_t>&sequence,const std::vector<uint8_t>&wire){
         if(!state.count("parser")){auto unused=constant({0});auto initial=cache.get("tls-parser-initial").run(s,{{"unused",&unused}});keep(initial,"parser");}
-        auto&kernel=cache.get("tls-open-application "+std::to_string(wire.size()));auto seq=constant(sequence),record=constant(wire);
-        auto out=kernel.run(s,{{"parser",&held("parser")},{"serverApplication",&held("serverApplication")},{"sequence",&seq},{"record",&record}});
+        if(wire.size()<22)throw std::runtime_error("application record size");
+        auto seq=constant(sequence),record=constant(wire);
+        // Tag check from the parties' local halves over the public ciphertext; the result is a private mask.
+        const std::vector<uint8_t>header(wire.begin(),wire.begin()+5),ciphertext(wire.begin()+5,wire.end()-16);
+        receive_shares.ensure(s,cache,party,held("serverApplication"),GcmShares::blocks(header.size(),ciphertext.size()));
+        auto halves=receive_shares.supply(s,party,header,ciphertext);auto tag=constant(std::vector<uint8_t>(wire.end()-16,wire.end()));
+        auto check=cache.get("gcm-check").run(s,{{"traffic",&held("serverApplication")},{"sequence",&seq},{"halfA",&halves.first},{"halfB",&halves.second},{"tag",&tag}});
+        auto&kernel=cache.get("tls-open-application-ctr "+std::to_string(wire.size()));
+        auto out=kernel.run(s,{{"parser",&held("parser")},{"serverApplication",&held("serverApplication")},{"sequence",&seq},{"record",&record},{"accepted",&check.at("accepted")}});
         auto event=kernel.open(s,out,"event");keep(out,"parser");
         if(event.size()!=2||event[0]>4||event[1]>1)throw std::runtime_error("application event");
         if(event[0]!=1)return event;
@@ -125,7 +134,13 @@ public:   // engine references and shared resources are also used by service_ker
             for(auto&entry:buffer.extra)bound.push_back({entry.first,&entry.second});
             auto out=kernel.run(s,bound);
             if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("private request rejected");
-            return kernel.open(s,out,"record");
+            // The ciphertext is public; the tag comes from the parties' local halves (gcm_shares.h).
+            auto record=kernel.open(s,out,"header"),ciphertext=kernel.open(s,out,"ciphertext");
+            send_shares.ensure(s,cache,party,held("clientApplication"),GcmShares::blocks(record.size(),ciphertext.size()));
+            auto halves=send_shares.supply(s,party,record,ciphertext);auto&tagger=cache.get("gcm-tag");
+            auto tag=tagger.open(s,tagger.run(s,{{"pad",&out.at("pad")},{"halfA",&halves.first},{"halfB",&halves.second}}),"tag");
+            record.insert(record.end(),ciphertext.begin(),ciphertext.end());record.insert(record.end(),tag.begin(),tag.end());
+            return record;
         }
         if(buffer.length.size()){
             if(padding)throw std::runtime_error("private buffer padding");
@@ -161,6 +176,7 @@ public:   // engine references and shared resources are also used by service_ker
     void rotate(bool sending){
         const std::string name=sending?"clientApplication":"serverApplication";
         auto out=cache.get("tls-update").run(s,{{"traffic",&held(name)}});keep(out,"traffic",name);
+        (sending?send_shares:receive_shares).clear();   // key power shares belong to the old key
     }
     // Bytes neither party knows: XOR of both parties' random contributions.
     Wires fresh(size_t bytes){

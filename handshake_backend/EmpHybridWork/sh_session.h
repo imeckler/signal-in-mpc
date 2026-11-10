@@ -99,6 +99,14 @@ public:
         }
         return out;
     }
+    // Open to one party only: the other party sends its half of the decoding information.
+    std::vector<uint8_t> open_to(const ShWires&w,int recipient){
+        const size_t n=w.size();std::vector<uint8_t>out(n,0);if(!n)return out;std::unique_ptr<bool[]>bits(new bool[n]);
+        if(recipient!=emp::ALICE&&recipient!=emp::BOB)throw std::invalid_argument("opening recipient");
+        if(me!=recipient){for(size_t i=0;i<n;i++)bits[i]=emp::getLSB(w.label[i]);io->send_bool(bits.get(),n);io->flush();}
+        else{io->recv_bool(bits.get(),n);for(size_t i=0;i<n;i++)out[i]=uint8_t(bits[i]^emp::getLSB(w.label[i]));}
+        return out;
+    }
     static ShWires concat(const std::vector<const ShWires*>&parts){ShWires out;for(auto*p:parts)out.label.insert(out.label.end(),p->label.begin(),p->label.end());return out;}
     static ShWires pick(const ShWires&w,const std::vector<size_t>&indices){
         ShWires out;out.label.reserve(indices.size());for(auto i:indices){if(i>=w.size())throw std::out_of_range("wire index");out.label.push_back(w.label[i]);}return out;
