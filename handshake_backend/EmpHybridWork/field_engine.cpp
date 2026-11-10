@@ -49,6 +49,7 @@ std::vector<FieldEngine::Handle> FieldEngine::mul(const std::vector<Handle>&a,co
 FieldEngine::Handle FieldEngine::add(Handle a,Handle b){auto&p=*impl;return p.put(p.get(a)+p.get(b));}
 FieldEngine::Handle FieldEngine::sub(Handle a,Handle b){auto&p=*impl;return p.put(p.get(a)-p.get(b));}
 FieldEngine::Handle FieldEngine::constant(uint64_t v){auto&p=*impl;p.require();return p.put(S::constant(F(bigint(static_cast<unsigned long>(v))),p.player.my_num(),p.setup.get_mac_key()));}
+unsigned FieldEngine::party_id()const{return impl->player.my_num();}
 void FieldEngine::check(){auto&p=*impl;p.require();try{p.set.check();}catch(...){p.failed=true;throw;}}
 std::vector<std::array<uint8_t,32>> FieldEngine::checked_open(const std::vector<Handle>&a){
     auto&p=*impl;p.require();try{

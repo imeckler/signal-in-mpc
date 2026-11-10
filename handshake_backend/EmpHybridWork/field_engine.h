@@ -29,5 +29,6 @@ public:
     // internal candidate, not a generic host/RPC secret opening capability.
     std::vector<std::array<uint8_t,32>> checked_open(const std::vector<Handle>&a);
     void check();
+    unsigned party_id()const;
 };
 }
