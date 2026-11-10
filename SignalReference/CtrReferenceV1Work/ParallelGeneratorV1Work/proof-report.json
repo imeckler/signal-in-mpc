@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 7,
+  "endpoints": [
+    "actual_next",
+    "parallel_AES",
+    "body_step",
+    "body_done",
+    "loop_four",
+    "restored_array",
+    "generator_actual"
+  ],
+  "foundation_axioms_only": true,
+  "actual_parallel_loop_retained": true,
+  "owned_layout_and_fixed_content_dispatch_trusted": true,
+  "actual_counter_and_AES_links_are_definitions": true,
+  "iterator_owner_writeback_proved": true,
+  "unchecked_parallel_core_only": true,
+  "full_buffered_wrapper_HMAC_KDF_open": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/check.py": "33161e27835c7eb97491674ae9921cf453f3a8298f027697cb35f196eba4a919",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/extract_value.py": "a4bdc2873809d5ec8d6150134a2ad07b2518b8baac8dccc893c998380ed0c5d8",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/value-extraction-report.json": "8f1ad7f2d98a42827c83f5c12f3107ea800a642b29eab1f75a3656e554b23d13",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/ArtifactsValue/model.rs": "1405ef2c9c5f90d14b59b5526eea4a8e9c166de66c08b25f368a9e5e59e9f538",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/ArtifactsValue/selected-method.rs": "0cb6a9b7565bdcbf8f139158c5cf64d409626d4f2a10d3460759cb3efabdab35",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/proof-report.json": "32392bdf2a9b4b26bbd235492100baea5840aea6fa808d8e99ce79fc3ca5e55a",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/GeneratedValue/Types.lean": "f19b320da5a4931386902504b79886c3f6917de7478626a83283e73c00d02b89",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/GeneratedValue/FunsExternal.lean": "793e0a8da0f9336e2fada4dc52a0576ede350374f8cf53b56accc901707bd734",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/GeneratedValue/Funs.lean": "7100441e42583bb4ef466142cf52fdff52c99b8cd9fc7ad5cf604dbbac62122a",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/Reference.lean": "47bd8db7add60862f85209a4ef5034f4c06163e51bcbcd38eb79bf37afdd5dad"
+  }
+}

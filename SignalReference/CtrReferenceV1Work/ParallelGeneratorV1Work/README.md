@@ -1,0 +1,7 @@
+This candidate composes the pinned `ctr-0.10.1` parallel-four generator loop with actual translated Ctr32BE counter stepping and the proved Rust AES-256 fixslice entry. `generator_actual` proves complete output and counter/key/nonce owner writeback, including u32 wrapping at this unchecked core boundary. Checked remaining/exhaustion authorization belongs to the caller and is not established here.
+
+The fully owned CtrBackend/Backend layout and fixed array/InOut content dispatch are explicit trusted library/representation boundaries. The actual parallel loop statements, counter operations and AES call are retained; argument reborrowing and constructor dispatch are instantiated in the extraction script. Primitive slots are definitions forwarding to proved actual source, not assumed ciphertext results. Official Aeneas slice iterator content and borrow continuations are used. Address, allocation, Drop and erasure behavior are outside this functional content claim.
+
+The earlier nested borrowed and partially owned extraction failures are retained in separate receipts/artifacts. They fail shared-borrow loop matching; no translator sanity check was disabled. Generated computational Lean bodies remain unchanged.
+
+Run `python3 SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/check.py` for source hash checks and foundational-axiom-only kernel audit. This is not the complete StreamCipherCoreWrapper buffering/parallel-tail/caller proof, nor HMAC/KDF composition. Production artifacts are unchanged.

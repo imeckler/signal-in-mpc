@@ -1,0 +1,23 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/Artifacts/parallel.llbc
+[[91mError[39m] Internal error, please file an issue
+Source: 'src/lib.rs', lines 49:8-51:9
+[[91mError[39m] Could not translate the body of function 'fixed_ctr_parallel_generator_reference::{fixed_ctr_parallel_generator_reference::CtrBackend<'_0, '_1>}::gen_par_ks_blocks because of previous error
+Name pattern: 'fixed_ctr_parallel_generator_reference::{fixed_ctr_parallel_generator_reference::CtrBackend<'0, '1>}::gen_par_ks_blocks'
+Definition span: 'src/lib.rs', lines 47:4-53:5
+Source: 'src/lib.rs', lines 49:8-51:9
+[[91mError[39m] Could not translate the function 'fixed_ctr_parallel_generator_reference::{fixed_ctr_parallel_generator_reference::CtrBackend<'_0, '_1>}::gen_par_ks_blocks because of previous error.
+Name pattern: 'fixed_ctr_parallel_generator_reference::{fixed_ctr_parallel_generator_reference::CtrBackend<'0, '1>}::gen_par_ks_blocks'
+Definition span: 'src/lib.rs', lines 47:4-53:5
+Source: 'src/lib.rs', lines 49:8-51:9
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37
