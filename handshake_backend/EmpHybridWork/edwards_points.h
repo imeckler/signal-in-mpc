@@ -9,16 +9,16 @@
 #include <sodium.h>
 namespace emp_hybrid {
 struct OffsetPrograms {
-    static constexpr unsigned WINDOWS=63,DIGITS=15,BITS=252,CHECKS=1+2*BITS;
+    static constexpr unsigned WINDOWS=64,DIGITS=8,BITS=252,CHECKS=1+2*BITS;
     FieldProgram prepare{std::string(EMP_WORD_CIRCUIT_DIR)+"/edwards-prepare.flat",EDWARDS_PREPARE_SHA};
     FieldProgram sum{std::string(EMP_WORD_CIRCUIT_DIR)+"/edwards-offset-sum.flat",EDWARDS_OFFSET_SUM_SHA};
     OffsetPrograms(){
-        if(prepare.input_count()!=2+2*BITS||prepare.output_count()!=CHECKS+2+2*WINDOWS*DIGITS||sum.input_count()!=2+2*WINDOWS||sum.output_count()!=1)throw std::runtime_error("offset agreement program shape");
+        if(prepare.input_count()!=2+2*BITS||prepare.output_count()!=CHECKS+2+2*WINDOWS*DIGITS||sum.input_count()!=2+3*WINDOWS||sum.output_count()!=1)throw std::runtime_error("offset agreement program shape");
     }
 };
 class OffsetAgreement {
     using P=OffsetPrograms;
-    std::vector<H>table;   // entry 15*w + (j-1) = (j·16^w)·R, as x then y
+    std::vector<H>table;   // entry 8*w + (j-1) = (j·16^w)·R for j = 1..8, as x then y
     std::vector<H>initial;std::array<uint8_t,32>initial_public{};bool ready=false;
     static void need(bool ok,const char*what){if(!ok)throw std::runtime_error(what);}
 public:
@@ -60,12 +60,16 @@ public:
         std::array<uint8_t,32>shift{},key{},u{};
         need(crypto_scalarmult_ed25519_base_noclamp(shift.data(),offset.data())==0&&crypto_core_ed25519_add(key.data(),initial_public.data(),shift.data())==0
             &&crypto_core_ed25519_is_valid_point(key.data())==1&&crypto_sign_ed25519_pk_to_curve25519(u.data(),key.data())==0,"ephemeral public key");
-        std::vector<H>inputs=initial;
+        // The public offset in signed base-16 digits -8..8; the program applies each sign.
+        std::array<uint8_t,32>minus_one{};minus_one.fill(0xff);minus_one[0]=0xec;minus_one[31]=0x7f;
+        std::vector<H>inputs=initial;int carry=0;
         for(unsigned w=0;w<P::WINDOWS;w++){
-            unsigned digit=(offset[w/2]>>(4*(w%2)))&15;
-            if(digit){inputs.push_back(table[2*(P::DIGITS*w+digit-1)]);inputs.push_back(table[2*(P::DIGITS*w+digit-1)+1]);}
-            else{inputs.push_back(f.constant(0));inputs.push_back(f.constant(1));}   // the neutral element
+            int digit=int((offset[w/2]>>(4*(w%2)))&15)+carry;carry=digit>8;digit-=16*carry;
+            const unsigned at=2*(P::DIGITS*w+unsigned(digit<0?-digit:digit)-1);
+            if(digit){inputs.push_back(table.at(at));inputs.push_back(table.at(at+1));inputs.push_back(digit>0?f.constant(1):f.public_element(minus_one));}
+            else{inputs.push_back(f.constant(0));inputs.push_back(f.constant(1));inputs.push_back(f.constant(1));}   // the neutral element
         }
+        need(!carry,"offset recoding");
         return {u,programs.sum.evaluate_all(f,{inputs}).at(0).at(0)};
     }
 };

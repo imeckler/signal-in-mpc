@@ -105,8 +105,11 @@ def inputPoint (index : Nat) : Point := (.input index, .input (index + 1))
 
 /-! ### Programs -/
 
-def windows : Nat := 63
-def digits : Nat := 15
+/-! The public offset is written in signed base-16 digits `−8 … 8`, one per
+window (64 windows cover a 252-bit offset and the final carry). Negating a
+point is free (`−(x, y) = (−x, y)`), so only the multiples `1 … 8` are stored. -/
+def windows : Nat := 64
+def digits : Nat := 8
 def scalarBits : Nat := 252
 
 /-- A square root of −1: `2^((p−1)/4)`. -/
@@ -136,15 +139,16 @@ def recipient (u : Expr) : Point × Expr :=
 /-- Zero exactly on bits. -/
 def bitCheck (b : Expr) : Expr := mul b (sub b (.const 1))
 
-/-- One window: `base, 2·base, …, 15·base` and `16·base`, each multiple the
+/-- One window: `base, 2·base, …, 8·base` and `16·base`, each multiple the
 sum of its two halves (`j = ⌈j/2⌉ + ⌊j/2⌋`), so four additions deep. -/
 def window (base : Point) : List Point × Point :=
-  let multiples := (List.range digits).foldl (fun acc i =>
+  let multiples := (List.range (digits - 1)).foldl (fun acc i =>
     let j := i + 2
     acc ++ [pointAdd (acc.getD ((j + 1) / 2 - 1) base) (acc.getD (j / 2 - 1) base)]) [base]
-  (multiples.take digits, multiples.getD digits base)
+  let top := multiples.getD (digits - 1) base
+  (multiples, pointAdd top top)
 
-/-- All windows: entry `15·w + (j − 1)` is `(j·16^w)·R`. -/
+/-- All windows: entry `8·w + (j − 1)` is `(j·16^w)·R`. -/
 def table (base : Point) : List Point :=
   ((List.range windows).foldl (fun state _ =>
     let next := window state.2
@@ -171,18 +175,22 @@ def prepare : List Expr :=
   let initial := sumTree chosen
   [mul valid (.input 1)] ++ bits.map bitCheck ++ [initial.1, initial.2] ++ entries.flatMap (fun p => [p.1, p.2])
 
-/-- Per message. Inputs: the initial point (0, 1), then one table entry (or the
-neutral element) per window. Output: the Montgomery `u = (1 + y)/(1 − y)` of
-their sum. -/
+/-- A table entry with a public sign (`1` or `−1`) applied: inputs `x`, `y`, sign. -/
+def signedPoint (index : Nat) : Point := (mul (.input (index + 2)) (.input index), .input (index + 1))
+
+/-- Per message. Inputs: the initial point (0, 1), then per window a table
+entry (or the neutral element) and its sign. Output: the Montgomery
+`u = (1 + y)/(1 − y)` of their sum. -/
 def offsetSum : List Expr :=
-  let sum := sumTree (inputPoint 0 :: (List.range windows).map (fun w => inputPoint (2 + 2 * w)))
+  let sum := sumTree (inputPoint 0 :: (List.range windows).map (fun w => signedPoint (2 + 3 * w)))
   [div (add (.const 1) sum.2) (sub (.const 1) sum.2)]
 
 theorem offsetSum_eval (input : Nat → F) :
     offsetSum.map (Expr.eval input) =
-      (let sum := sumTreeValue ((input 0, input 1) :: (List.range windows).map (fun w => (input (2 + 2 * w), input (2 + 2 * w + 1))))
+      (let sum := sumTreeValue ((input 0, input 1) :: (List.range windows).map
+          (fun w => (input (2 + 3 * w + 2) * input (2 + 3 * w), input (2 + 3 * w + 1))))
        [(ofNat 1 + sum.2) * inverse (ofNat 1 - sum.2)]) := by
-  have h := sumTree_eval input (inputPoint 0 :: (List.range windows).map (fun w => inputPoint (2 + 2 * w)))
+  have h := sumTree_eval input (inputPoint 0 :: (List.range windows).map (fun w => signedPoint (2 + 3 * w)))
   simp only [List.map_cons, List.map_map] at h
   show [((add (.const 1) (sumTree _).2).eval input) * inverse ((sub (.const 1) (sumTree _).2).eval input)] = _
   have second := congrArg Prod.snd h

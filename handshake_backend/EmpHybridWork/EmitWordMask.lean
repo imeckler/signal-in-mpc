@@ -120,7 +120,7 @@ def main (args : List String) : IO Unit := do
     | "edwards-on-curve" => pure (renderField 2 EdwardsShare.onCurve)
     | "edwards-add-u" => pure (renderFieldAll 4 EdwardsShare.addU)
     | "edwards-prepare" => pure (renderFieldAll (2 + 2 * EdwardsAffine.scalarBits) EdwardsAffine.prepare)
-    | "edwards-offset-sum" => pure (renderFieldAll (2 + 2 * EdwardsAffine.windows) EdwardsAffine.offsetSum)
+    | "edwards-offset-sum" => pure (renderFieldAll (2 + 3 * EdwardsAffine.windows) EdwardsAffine.offsetSum)
     | "swap-bits" => pure (render X25519SwapBits.circuit 256)
     | _ => throw (IO.userError "unknown circuit")
   match rendered with

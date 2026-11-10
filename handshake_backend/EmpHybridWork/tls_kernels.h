@@ -134,28 +134,32 @@ public:   // engine references and shared resources are also used by service_ker
             for(auto&entry:buffer.extra)bound.push_back({entry.first,&entry.second});
             auto out=kernel.run(s,bound);
             if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("private request rejected");
-            // The ciphertext is public; the tag comes from the parties' local halves (gcm_shares.h).
-            auto record=kernel.open(s,out,"header"),ciphertext=kernel.open(s,out,"ciphertext");
-            send_shares.ensure(s,cache,party,held("clientApplication"),GcmShares::blocks(record.size(),ciphertext.size()));
-            auto halves=send_shares.supply(s,party,record,ciphertext);auto&tagger=cache.get("gcm-tag");
-            auto tag=tagger.open(s,tagger.run(s,{{"pad",&out.at("pad")},{"halfA",&halves.first},{"halfB",&halves.second}}),"tag");
-            record.insert(record.end(),ciphertext.begin(),ciphertext.end());record.insert(record.end(),tag.begin(),tag.end());
-            return record;
+            return tagged(kernel,out);
         }
         if(buffer.length.size()){
             if(padding)throw std::runtime_error("private buffer padding");
-            auto&kernel=cache.get("tls-seal-private "+std::to_string(size));auto valid=buffer.valid.size()?buffer.valid:constant({255});
+            auto&kernel=cache.get("tls-seal-private-ctr "+std::to_string(size));auto valid=buffer.valid.size()?buffer.valid:constant({255});
             auto out=kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"valid",&valid},{"length",&buffer.length},{"content",&buffer.content}});
             if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("private payload rejected");
-            return kernel.open(s,out,"record");
+            return tagged(kernel,out);
         }
-        auto&kernel=cache.get("tls-seal "+std::to_string(size)+" "+std::to_string(padding));
-        return kernel.open(s,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&buffer.content}}),"record");
+        auto&kernel=cache.get("tls-seal-ctr 23 "+std::to_string(size)+" "+std::to_string(padding));
+        return tagged(kernel,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&buffer.content}}));
+    }
+    // Finish a record from a CTR kernel's outputs: the header and ciphertext are public; the
+    // tag is the private pad combined with the parties' local halves (gcm_shares.h).
+    std::vector<uint8_t> tagged(const Kernel&kernel,Values out){
+        auto record=kernel.open(s,out,"header"),ciphertext=kernel.open(s,out,"ciphertext");
+        send_shares.ensure(s,cache,party,held("clientApplication"),GcmShares::blocks(record.size(),ciphertext.size()));
+        auto halves=send_shares.supply(s,party,record,ciphertext);auto&tagger=cache.get("gcm-tag");
+        auto tag=tagger.open(s,tagger.run(s,{{"pad",&out.at("pad")},{"halfA",&halves.first},{"halfB",&halves.second}}),"tag");
+        record.insert(record.end(),ciphertext.begin(),ciphertext.end());record.insert(record.end(),tag.begin(),tag.end());
+        return record;
     }
     // Public TLS control content (KeyUpdate or close_notify) under the private keys.
     std::vector<uint8_t> seal_control(const std::vector<uint8_t>&sequence,unsigned kind,const std::vector<uint8_t>&content){
-        auto&kernel=cache.get("tls-seal-control "+std::to_string(kind)+" "+std::to_string(content.size()));auto seq=constant(sequence),body=constant(content);
-        return kernel.open(s,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&body}}),"record");
+        auto&kernel=cache.get("tls-seal-ctr "+std::to_string(kind)+" "+std::to_string(content.size())+" 0");auto seq=constant(sequence),body=constant(content);
+        return tagged(kernel,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&body}}));
     }
     // Public-receive profile: the length of an authenticated received buffer, and the
     // byte at `offset` if it lies within that length. Nothing else of the buffer is opened.

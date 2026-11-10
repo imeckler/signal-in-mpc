@@ -96,16 +96,16 @@
       "outputs": 2
     },
     "edwards-prepare": {
-      "flat_sha256": "e138cb182733d1fd9b52fd102266a1a63646dfbf91e4bf3785819ed568116333",
-      "products": 15046,
-      "divisions": 2897,
+      "flat_sha256": "0e738628f85aa5bc04e09d3917a003ed5668831c17c6d951b6f713568a302698",
+      "products": 11149,
+      "divisions": 2031,
       "cases_checked": 4,
       "reference": "independent Edwards arithmetic and Montgomery ladder"
     },
     "edwards-offset-sum": {
-      "flat_sha256": "73495b9ec869666c50aa55ee5ae149824fe34840015d65db1cac9b63bf5dcd9a",
-      "products": 565,
-      "divisions": 126,
+      "flat_sha256": "634ef89b98cfc05896261646748302ae3a52b107ca20e914bf3d4f17c38aaab0",
+      "products": 638,
+      "divisions": 128,
       "cases_checked": 4,
       "reference": "independent Edwards arithmetic and Montgomery ladder"
     },
@@ -125,7 +125,7 @@
     "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
     "TlsMpc/X25519Fast.lean": "1027abc173c0a0669833384b6970b572097500adc44c313f7209e92df24fd769",
     "TlsMpc/X25519SwapBits.lean": "99f67472f228979f7d5956e7eb9aee634eeabfb185837dd1f2434b98b0654e6e",
-    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "44dc7cd6feadfa013c03f07b543ed7d5c7026c6c6d981bb7700377d3a8e4b55c"
+    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "dc2439d8292beb3bf6e30a7dcb7e94037184b45d748d94d4de1f57575e3e60c6"
   },
   "scope": "Conversion circuits defined and proved in Lean (TlsMpc/WordMask.lean), compiled by the validated gate-level compiler (TlsMpc/BoolDag.lean) and printed from Lean. Checked here against integer arithmetic on boundary and random inputs. The printer, this parser and the C++ loader are outside the Lean theorems."
 }

@@ -62,9 +62,11 @@ Once per conversation, inside the engines:
    exchanged commit-then-open. No ladder is involved.
 
 As implemented, steps 1–3 are one Lean field program
-(`TlsMpc/EdwardsAffine.lean`, `prepare`: 15,051 products, once per
-conversation) and step 6 below is another (`offsetSum`: 565 products per
-message). The programs use a division operation that the runtime evaluates by
+(`TlsMpc/EdwardsAffine.lean`, `prepare`: 11,149 products, once per
+conversation) and step 6 below is another (`offsetSum`: 638 products per
+message). The offset is written in signed base-16 digits, so the table holds
+only the multiples 1–8 for each of 64 windows (512 points, 1,024 shared field
+elements per conversation); the program applies the signs. The programs use a division operation that the runtime evaluates by
 masked inversion; the C++ (`edwards_points.h`) only supplies inputs, opens the
 values the program marks as must-be-zero, and does the public-point arithmetic.
 A party that publishes a half of `K₀` inconsistent with its scalar input makes
@@ -72,8 +74,11 @@ the recipient unable to decrypt; the agreement inside the engines does not
 depend on the published halves.
 
 Measured, whole Signal service run (handshake, upgrade, four sends in two
-conversations): malicious 5.1 GB Boolean + 3.4 GB field in 53 s (9.6 GB +
-5.6 GB with per-message ladders); semi-honest 0.56 GB + 0.49 GB in 20 s.
+conversations, warm circuit cache): malicious 4.9 GB Boolean + 2.8 GB field in
+56 s (9.6 GB + 5.6 GB with per-message ladders); semi-honest 0.54 GB + 0.40 GB
+in 20 s. These are whole-run figures, not per-message ones. A run after the
+Lean emitter is rebuilt re-lowers every kernel and takes several minutes
+longer.
 
 Per message:
 

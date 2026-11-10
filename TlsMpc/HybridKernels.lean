@@ -523,6 +523,35 @@ def signalRequestCtr (cert size uuidAt keyAt deviceAt registrationAt : Nat) : Ke
       pub "accepted" [valid], pub "header" (TlsRecord.header g (inner.length + 16)),
       pub "ciphertext" (ByteAuth.release a valid ciphertext), priv "pad" (gcmPad block (get "sequence"))] }
 
+/-- `tlsSeal` / `tlsSealControl` without the tag: header and ciphertext are
+opened, the pad stays private for `gcmTag`. -/
+def tlsSealCtr (kind size padding : Nat) : Kernel :=
+  let g := Gcm.symbolic
+  let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8), ("content", .bytes size)]
+  let get := lookup inputs
+  let block := get "clientApplication"
+  let inner := TlsRecord.inner g (get "content") kind padding
+  { name := "tls-seal-ctr", inputs, outputs := [
+      pub "header" (TlsRecord.header g (inner.length + 16)),
+      pub "ciphertext" (Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "sequence")) inner),
+      priv "pad" (gcmPad block (get "sequence"))] }
+
+/-- `tlsSealPrivate` without the tag. The ciphertext is released only when the
+buffer is accepted. -/
+def tlsSealPrivateCtr (size : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let g := Gcm.symbolic
+  let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8), ("valid", .bytes 1),
+    ("length", .bytes 2), ("content", .bytes size)]
+  let get := lookup inputs
+  let block := get "clientApplication"
+  let built := TlsPrivateSeal.build a (HybridService.at' (get "length") 0) (HybridService.at' (get "length") 1) 0 (get "content")
+  let accepted := a.and (ByteAuth.eqMask a (HybridService.at' (get "valid") 0) (a.const 255)) built.valid
+  let ciphertext := Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "sequence")) built.bytes
+  { name := "tls-seal-private-ctr", inputs, outputs := [
+      pub "accepted" [accepted], pub "header" (TlsRecord.header g (size + 17)),
+      pub "ciphertext" (ByteAuth.release a accepted ciphertext), priv "pad" (gcmPad block (get "sequence"))] }
+
 /-- `tlsOpenApplication` with the tag check supplied as the private mask from
 `gcmCheck`: CTR decryption, header check, inner parsing and classification. -/
 def tlsOpenApplicationCtr (size : Nat) : Kernel :=
@@ -562,6 +591,7 @@ def find : List String → Option Kernel
       | "tls-finish", some n => if n ≤ 64 then some (tlsFinish n) else none
       | "tls-open-application", some n => if 22 ≤ n && n ≤ 16406 then some (tlsOpenApplication n) else none
       | "tls-seal-private", some n => if 0 < n && n ≤ 16384 then some (tlsSealPrivate n) else none
+      | "tls-seal-private-ctr", some n => if 0 < n && n ≤ 16384 then some (tlsSealPrivateCtr n) else none
       | "ws-activity", some n => if 0 < n && n ≤ 16385 then some (wsActivity n) else none
       | "ws-control-reply", some n => if n < 4 then some (wsControlReply n) else none
       | "signal-upgrade", some n => if n ≤ 256 then some (signalUpgrade n) else none
@@ -578,6 +608,12 @@ def find : List String → Option Kernel
       | "tls-seal", some n, some pad => if 0 < n && n + 1 + pad ≤ 16385 then some (tlsSeal n pad) else none
       | "tls-seal-control", some kind, some n =>
           if (kind == 21 && n == 2) || (kind == 22 && n == 5) then some (tlsSealControl kind n) else none
+      | _, _, _ => none
+  | ["tls-seal-ctr", kind, size, padding] =>
+      match kind.toNat?, size.toNat?, padding.toNat? with
+      | some kind, some n, some pad =>
+          if (kind == 23 && 0 < n && n + 1 + pad ≤ 16385) || (pad == 0 && ((kind == 21 && n == 2) || (kind == 22 && n == 5)))
+          then some (tlsSealCtr kind n pad) else none
       | _, _, _ => none
   | ["signal-seal-fixed", cert, counterWidth, previousWidth, epochWidth, indexWidth] =>
       match cert.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with

@@ -167,7 +167,7 @@ def field_sqrt(a):
     if x*x%P!=a%P:x=x*SQRT_M1%P
     return x if x*x%P==a%P else None
 texts={name:subprocess.run(['lake','exe','word_mask_emitter',name],cwd=ROOT,check=True,capture_output=True).stdout.decode() for name in ('edwards-prepare','edwards-offset-sum')}
-WINDOWS,DIGITS,BITS=63,15,252;CHECKS=1+2*BITS
+WINDOWS,DIGITS,BITS=64,8,252;CHECKS=1+2*BITS
 def montgomery_u(point):return (1+point[1])*pow(1-point[1],P-2,P)%P
 edwards_products={}
 for case in range(4):
@@ -182,16 +182,18 @@ for case in range(4):
     root=table[0]   # either of the two points with this u
     if root[1]!=base[1] or root[0] not in (base[0],P-base[0]) or field_eval(curve_text,list(root))[0]!=0:raise AssertionError('edwards-prepare recipient')
     if initial!=ed_mul(ka+kb,root):raise AssertionError('edwards-prepare initial point')
-    for w in ((0,1,2,31,62) if case else range(WINDOWS)):
+    for w in ((0,1,2,31,63) if case else range(WINDOWS)):
         for j in range(1,DIGITS+1):
             if table[DIGITS*w+j-1]!=ed_mul(j*16**w,root):raise AssertionError('edwards-prepare table')
     # A flipped scalar bit input that is not a bit must fail its check; a twist u must fail the curve check.
     bad=list(bits);bad[5]=2
     if field_eval_all(texts['edwards-prepare'],[u,1,*bad])[0][1+5]==0:raise AssertionError('edwards-prepare bit check')
     for _ in range(3):
-        offset=rng.randrange(2**BITS);chosen=[]
-        for w in range(WINDOWS):
-            digit=(offset>>(4*w))&15;chosen+=list(table[DIGITS*w+digit-1]) if digit else [0,1]
+        offset=(2**BITS-1,rng.randrange(2**BITS),rng.randrange(2**BITS))[_];chosen=[];carry=0
+        for w in range(WINDOWS):   # signed digits -8..8, as the runtime recodes the public offset
+            digit=((offset>>(4*w))&15)+carry;carry=int(digit>8);digit-=16*carry
+            chosen+=[*table[DIGITS*w+abs(digit)-1],1 if digit>0 else P-1] if digit else [0,1,1]
+        if carry:raise AssertionError('offset recoding')
         (got,),edwards_products['edwards-offset-sum']=field_eval_all(texts['edwards-offset-sum'],[*initial,*chosen])
         if got!=montgomery_u(ed_mul(ka+kb+offset,root)) or got!=ladder(ka+kb+offset,u):raise AssertionError('edwards-offset-sum')
 twists=0
