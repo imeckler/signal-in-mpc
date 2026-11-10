@@ -19,8 +19,9 @@ the full record seal `TlsRecord.sealCore`.
   parties' local tags (`GhashShares.localTag`) over GCM's authenticated blocks
   with honest shares of the descending key powers. This inherits the hypothesis
   of `GhashShares.halves_are_ghash`: commutativity and associativity of the
-  repository's GF(2^128) multiplication (`GhashShares.Laws`), which is not
-  proved in this development.
+  repository's GF(2^128) multiplication (`GhashShares.Laws`). That hypothesis is
+  discharged in `TlsMpc/GcmShareKernelsProofs.lean`
+  (`shared_halves_are_ghash_proved`, `scheduled_halves_are_ghash`).
 
 Not covered: that the engines' halves are computed as `localTag` in this byte
 order from honestly produced shares (that code is outside Lean).
@@ -175,8 +176,9 @@ theorem unpack_xor (x y : BitVec 128) :
   simp
 
 /-- With honest shares of the descending key powers, the bytes of the two
-parties' local tags XOR to GCM's GHASH value. Assumes the field laws for the
-repository's multiplication, exactly as `GhashShares.halves_are_ghash` does. -/
+parties' local tags XOR to GCM's GHASH value. Takes the field laws for the
+repository's multiplication as a hypothesis, as `GhashShares.halves_are_ghash`
+does; `GcmShareKernelsProofs.shared_halves_are_ghash_proved` removes it. -/
 theorem shared_halves_are_ghash (laws : GhashShares.Laws (Ghash.multiply Ghash.concrete))
     (traffic aad ciphertext : List (BitVec 8)) (first second : List (BitVec 128))
     (same : first.length = second.length)

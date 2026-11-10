@@ -31,8 +31,9 @@ unique nonces) is a cryptographic assumption outside Lean; with it,
 Proved for the repository's GHASH multiplication: it is additive in the key
 (`multiply_key_additive`), which is what the split needs.
 
-Assumed, as explicit hypotheses where used (`Laws`): commutativity and
-associativity of GF(2^128) multiplication. Commutativity justifies squaring
+Taken as explicit hypotheses where used (`Laws`): commutativity and
+associativity of GF(2^128) multiplication. Both are proved for the concrete
+multiplication in `TlsMpc/GhashField.lean` (`GhashField.laws`). Commutativity justifies squaring
 shares locally (`square_additive`). Both laws give correctness: with honest
 shares of the key powers the two local halves XOR to GHASH in the standard's
 Horner form (`halves_are_ghash`), which for the repository's multiplication is
@@ -206,8 +207,8 @@ theorem multiply_key_additive : KeyAdditive (Ghash.multiply Ghash.concrete) := b
 
 /-! ### What needs the field laws -/
 
-/-- Commutativity and associativity of GF(2^128) multiplication, assumed (not
-proved in this development) where the statements below need them. -/
+/-- Commutativity and associativity of GF(2^128) multiplication, as a hypothesis
+of the statements below. `GhashField.laws` proves it for the concrete multiply. -/
 structure Laws (mul : W → W → W) : Prop where
   comm : ∀ x y, mul x y = mul y x
   assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)
