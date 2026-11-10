@@ -132,6 +132,22 @@ public:   // engine references and shared resources are also used by service_ker
         auto&kernel=cache.get("tls-seal-control "+std::to_string(kind)+" "+std::to_string(content.size()));auto seq=constant(sequence),body=constant(content);
         return kernel.open(s,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&body}}),"record");
     }
+    // Public-receive profile: the length of an authenticated received buffer, and the
+    // byte at `offset` if it lies within that length. Nothing else of the buffer is opened.
+    std::vector<uint8_t> reveal_byte(uint64_t id,size_t offset){
+        auto it=buffers.find(id);if(it==buffers.end()||it->second.length.size()==0)throw std::runtime_error("reveal handle");
+        const size_t capacity=it->second.content.size()/8;std::vector<uint8_t>select(capacity,0);if(offset<capacity)select[offset]=255;
+        auto&kernel=cache.get("tls-reveal "+std::to_string(capacity));auto chosen=constant(select);
+        auto out=kernel.run(s,{{"length",&it->second.length},{"content",&it->second.content},{"select",&chosen}});
+        auto reply=kernel.open(s,out,"length");const size_t length=size_t(reply.at(0))*256+reply.at(1);if(length>capacity)throw std::runtime_error("revealed length");
+        if(offset<length)reply.push_back(kernel.open(s,out,"byte").at(0));
+        return reply;
+    }
+    // Public bytes as a sendable buffer (control replies in the public-receive profile).
+    uint64_t public_buffer(const std::vector<uint8_t>&bytes){
+        if(bytes.empty()||bytes.size()>16384)throw std::runtime_error("public buffer size");
+        return retain({Wires{},constant(bytes),Wires{}});
+    }
     void rotate(bool sending){
         const std::string name=sending?"clientApplication":"serverApplication";
         auto out=cache.get("tls-update").run(s,{{"traffic",&held(name)}});keep(out,"traffic",name);

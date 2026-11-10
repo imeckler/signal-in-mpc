@@ -47,9 +47,13 @@ def bridge(listener,server,result):
 def main():
     mode=sys.argv[1] if len(sys.argv)>1 else 'malicious'
     if mode not in ('malicious','semi-honest'):raise SystemExit('malicious|semi-honest')
-    sh=mode=='semi-honest';port=22100 if sh else 22000;timeout=7200
+    # Receive profile: "private" parses server records inside the engines; "public" reveals
+    # authenticated server records to the controllers (PublicServiceController.lean).
+    profile=sys.argv[2] if len(sys.argv)>2 else 'private'
+    if profile not in ('private','public'):raise SystemExit('private|public')
+    sh=mode=='semi-honest';port=(22100 if sh else 22000)+(40 if profile=='public' else 0);timeout=7200
     output=BASE/'signal-service-v3-run'/secrets.token_hex(8);output.mkdir(parents=True)
-    subprocess.run(['lake','build','provider_controller_fixture','hybrid_kdf_emitter'],cwd=ROOT,check=True,capture_output=True)
+    subprocess.run(['lake','build','provider_controller_fixture','public_service_controller','hybrid_kdf_emitter'],cwd=ROOT,check=True,capture_output=True)
     subprocess.run(['c++','-std=c++20','-O2','-I'+str(OPENSSL/'include'),str(ROOT/'handshake_backend/public_auth.cpp'),'-L'+str(OPENSSL/'lib'),'-lssl','-lcrypto','-o',str(output/'public_auth')],check=True)
     MP=BASE/'data61-MP-SPDZ-113c4e4';work=output/'work';work.mkdir()
     with open(output/'ssl-setup.log','w') as log:subprocess.run(['bash',str(MP/'Scripts/setup-ssl.sh'),'2'],cwd=work,stdout=log,stderr=subprocess.STDOUT,check=True)
@@ -62,9 +66,9 @@ def main():
         stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=server_log,text=True)
     bridged={'client_records':0}
     thread=threading.Thread(target=bridge,args=(listener,server,bridged),daemon=True);thread.start()
-    worker=BASE/('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3');controller=ROOT/'.lake/build/bin/provider_controller_fixture'
+    worker=BASE/('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3');controller=ROOT/'.lake/build/bin'/('public_service_controller' if profile=='public' else 'provider_controller_fixture')
     sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
-    report=dict(passed=False,parties=2,security_mode=mode,logs=str(output),fixture_state_admission='public disposable test fixture, not authenticated provisioning',
+    report=dict(passed=False,parties=2,security_mode=mode,receive_profile=profile,logs=str(output),fixture_state_admission='public disposable test fixture, not authenticated provisioning',
         sha256={str(p.relative_to(ROOT)):sha(p) for p in (worker,controller,HERE/'tls_worker_v3.cpp',HERE/'tls_kernels.h',HERE/'service_kernels.h',HERE/'kernel.h',ROOT/'TlsMpc/HybridKernels.lean',ROOT/'TlsMpc/HybridService.lean')})
     processes,logs=[],[];started=time.monotonic()
     try:
@@ -103,7 +107,7 @@ def main():
             totals.append(rows[-1] if rows else None);report.setdefault('operations',[]).append(rows)
             report.setdefault('rejections',[]).extend(re.findall(r'operation \d+ rejected[^\n]*',text)+re.findall(r'tls-worker-v3 aborted[^\n]*',text))
         report.update(bridge=bridged,server_diagnostic=(output/'server.log').read_text()[-300:],elapsed_seconds=time.monotonic()-started,worker_totals=totals,controller_exit_codes=[p.returncode for p in processes])
-        (output/'report.json').write_text(json.dumps(report,indent=2)+'\n');(HERE/('signal-service-sh-report.json' if sh else 'signal-service-v3-report.json')).write_text(json.dumps(report,indent=2)+'\n')
-        print(json.dumps({k:report.get(k) for k in ('passed','security_mode','elapsed_seconds','controllers','server','worker_totals','rejections','bridge','server_diagnostic','error')}),flush=True)
+        (output/'report.json').write_text(json.dumps(report,indent=2)+'\n');(HERE/(('signal-service-sh' if sh else 'signal-service-v3')+('-public' if profile=='public' else '')+'-report.json')).write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps({k:report.get(k) for k in ('passed','security_mode','receive_profile','elapsed_seconds','controllers','server','worker_totals','rejections','bridge','server_diagnostic','error')}),flush=True)
     if not report['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

@@ -130,6 +130,17 @@ def tlsOpenApplication (size : Nat) : Kernel :=
   { name := "tls-open-application", inputs, outputs := [
       pub "event" (sl out 0 2), priv "parser" (sl out 2 11), priv "length" (sl out 13 2), priv "content" (out.drop 15)] }
 
+/-- Reveal one byte of an authenticated received buffer, chosen by a public
+one-hot mask, together with the buffer's length. Policy (which positions may be
+asked for) is enforced by each party's public controller; this kernel only
+guarantees that nothing but the selected byte and the length is opened. -/
+def tlsReveal (size : Nat) : Kernel :=
+  let inputs := [("length", Shape.bytes 2), ("content", .bytes size), ("select", .bytes size)]
+  let get := lookup inputs
+  let picked := ((get "content").zip (get "select")).foldl
+    (fun acc pair => ByteAuth.symbolic.xor acc (ByteAuth.symbolic.and pair.1 pair.2)) (const 0)
+  { name := "tls-reveal", inputs, outputs := [pub "length" (get "length"), pub "byte" [picked]] }
+
 /-- Seal a private payload of public size. -/
 def tlsSeal (size padding : Nat) : Kernel :=
   let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8), ("content", .bytes size)]
@@ -251,7 +262,7 @@ with SPQR, sealed sender, relay request and masked WebSocket frame, with the
 producer status gated by the text's validity. The next conversation record and
 request id are selected inside the circuit (unchanged on rejection). `response`
 is the response parser state expecting this request's id. -/
-def signalSend (cert : Nat) : Kernel :=
+def signalSend (cert : Nat) (openRequestId : Bool := false) : Kernel :=
   let size := 80
   let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes 59), ("requestId", .bytes 8),
     ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word),
@@ -276,10 +287,13 @@ def signalSend (cert : Nat) : Kernel :=
   let status := [TlsProviderGate.gate ByteAuth.symbolic (HybridService.at' out 0) (HybridService.at' text 0)]
   let next := sl staged 0 1 ++ sl out 33 4 ++ sl staged 5 36 ++ sl out 1 32 ++ sl out 37 32 ++ sl out 69 4 ++ staged.drop 109
   let template := get "responseTemplate"
-  { name := "signal-send", inputs, outputs := [
+  -- With `openRequestId` the id used by this request may be opened, so that the
+  -- public controllers can correlate the server's response in the clear.
+  { name := if openRequestId then "signal-send-open" else "signal-send", inputs, outputs := [
       pub "status" status, priv "conversation" (certificate ++ next ++ metadata), priv "requestId" (sl out 73 8),
       priv "response" (sl template 0 891 ++ get "requestId" ++ template.drop 899),
-      priv "valid" status, priv "length" (sl out 81 2), priv "content" (out.drop 83)] }
+      priv "valid" status, priv "length" (sl out 81 2), priv "content" (out.drop 83)] ++
+      (if openRequestId then [pub "requestIdUsed" (get "requestId")] else []) }
 
 /-- Kernel named on the command line, with its public shape parameters. -/
 def find : List String → Option Kernel
@@ -303,6 +317,8 @@ def find : List String → Option Kernel
       | "signal-upgrade", some n => if n ≤ 256 then some (signalUpgrade n) else none
       | "signal-conversation-view", some n => if n ≤ 1024 then some (signalConversationView n 80) else none
       | "signal-send", some n => if n ≤ 1024 then some (signalSend n) else none
+      | "signal-send-open", some n => if n ≤ 1024 then some (signalSend n true) else none
+      | "tls-reveal", some n => if 0 < n && n ≤ 16385 then some (tlsReveal n) else none
       | _, _ => none
   | [name, a, b] =>
       match name, a.toNat?, b.toNat? with

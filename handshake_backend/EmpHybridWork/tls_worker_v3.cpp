@@ -74,7 +74,19 @@ struct Worker {
             auto nonce=joint_random();nonce.resize(16);return receipt(service->upgrade(nonce));
         }
         case 21:{need(phase==Phase::retired&&service&&p.size()==16&&big(p.data(),8)==1,"provider produce");return receipt(service->produce(big(p.data()+8,8)));}
-        case 18:{need(phase==Phase::retired&&service&&p.size()==8,"process WebSocket");return service->process(big(p.data(),8));}
+        case 18:{need(phase==Phase::retired&&service&&!service->public_receive&&p.size()==8,"process WebSocket");return service->process(big(p.data(),8));}
+        // Public-receive profile (PublicServiceController.lean).
+        case 29:{need(phase==Phase::retired&&service&&service->public_receive&&p.size()==10,"reveal");return kernels.reveal_byte(big(p.data(),8),big(p.data()+8,2));}
+        case 30:{need(phase==Phase::retired&&service&&service->public_receive&&!p.empty(),"public buffer");Bytes out;uint64_t id=kernels.public_buffer(p);for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;}
+        case 33:{need(phase==Phase::retired&&p.empty(),"public random");return joint_random();}   // commit-then-open, 32 public bytes
+        case 31:{
+            need(phase==Phase::retired&&service&&service->public_receive&&p.size()==16&&big(p.data(),8)==1,"provider produce");
+            auto out=receipt(service->produce(big(p.data()+8,8)));out.insert(out.end(),service->last_request_id.begin(),service->last_request_id.end());return out;
+        }
+        case 32:{
+            need(phase==Phase::retired&&service&&p.size()==8&&big(p.data(),8)==1,"provider upgrade");service->public_receive=true;
+            auto nonce=joint_random();nonce.resize(16);auto out=receipt(service->upgrade(nonce));out.insert(out.end(),service->accept_bytes.begin(),service->accept_bytes.end());return out;
+        }
         case 12:{
             need(phase==Phase::retired&&p.size()>=30&&p.size()<=8+16406,"open application");
             auto out=kernels.open_application(Bytes(p.begin(),p.begin()+8),Bytes(p.begin()+8,p.end()));

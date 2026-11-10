@@ -92,3 +92,7 @@ root = "handshake_backend.SessionWork.NativeApplicationFixture"
 [[lean_exe]]
 name = "provider_controller_fixture"
 root = "handshake_backend.WebSocketWork.ProviderController"
+
+[[lean_exe]]
+name = "public_service_controller"
+root = "handshake_backend.EmpHybridWork.PublicServiceController"

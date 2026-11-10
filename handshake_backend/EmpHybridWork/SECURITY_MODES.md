@@ -86,7 +86,31 @@ sender needs two X25519 ladders per message on the private recipient key, and
 the response parsers run a full state-machine step for every byte slot of
 every received record.
 
-## Throughput estimates
+## Public-receive profile (privacy policy of 2026-11-10)
+
+Policy: only the contact list and the client's own keys must stay hidden from
+the parties. Under it, authenticated server records are revealed to the two
+controllers and parsed in the clear by the same Lean parsers
+(`PublicServiceController.lean`; `check_signal_service_v3.py MODE public`).
+Server-initiated messages are never revealed beyond their first two bytes,
+because an unsealed incoming envelope names a contact; they abort the session
+(receiving is not built on this path). Request ids and WebSocket masks are
+public. The send side is unchanged and fully private.
+
+Both modes pass with a libsignal recipient decrypting all four messages. Whole
+run: 42.6 M ANDs (was 67.6 M); malicious 19.9 GB Boolean + 5.6 GB field in
+61 s (was 33.4 + 5.6 GB in 98 s).
+
+| Per message, steady state | ANDs | malicious bytes | semi-honest bytes |
+|---|---:|---:|---:|
+| Send (unchanged) | 6.7 M | ≈ 3.7 GB | ≈ 0.41 GB |
+| Receive (record decryption in the engines, public parsing) | 2.0 M | ≈ 1.1 GB | ≈ 0.07 GB |
+| **Round trip** | **8.7 M** | **≈ 4.8 GB, ≈ 8 s** | **≈ 0.48 GB** |
+
+With this profile: malicious ≈ 94 messages/hour on 1 Gbit/s and ≈ 940 on
+10 Gbit/s; semi-honest ≈ 940 and ≈ 9,400. The send now dominates.
+
+## Throughput estimates (private-receive profile)
 
 Arithmetic on the full-path measurements, not load tests.
 

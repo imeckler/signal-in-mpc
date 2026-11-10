@@ -34,6 +34,9 @@ class ServiceKernels {
     const Kernel&view(){return k.cache.get("signal-conversation-view "+std::to_string(CERT));}
 public:
     explicit ServiceKernels(TlsKernels&kernels):k(kernels),s(kernels.s),f(kernels.f){}
+    // Public-receive profile: server records are parsed in the clear by the controllers,
+    // which then also track upgrade completion and pending responses. Set before `upgrade`.
+    bool public_receive=false;std::vector<uint8_t>accept_bytes,last_request_id;
     // TEST FIXTURE admission: two conversations, two texts each.
     void admit_fixture(){
         need(!admitted,"service admission repeated");admitted=true;
@@ -64,7 +67,7 @@ public:
         unsigned char key[25]={},digest[20],encoded[29]={};EVP_EncodeBlock(key,nonce.data(),16);
         std::string material(reinterpret_cast<char*>(key),24);material+="258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
         SHA1(reinterpret_cast<const unsigned char*>(material.data()),material.size(),digest);EVP_EncodeBlock(encoded,digest,20);
-        ws["accept"]=k.constant(std::vector<uint8_t>(encoded,encoded+28));
+        accept_bytes.assign(encoded,encoded+28);ws["accept"]=k.constant(accept_bytes);
         auto unused=k.constant({0});auto initial=k.cache.get("ws-initial").run(s,{{"unused",&unused}});
         for(auto name:{"upgrade","frame","control","responseTemplate"})ws[name]=std::move(initial.at(name));
         const size_t bytes=request.at("content").size()/8;
@@ -73,7 +76,7 @@ public:
     // One established sealed-sender text send. Returns the handle of the masked
     // WebSocket frame (private length within a public capacity) and that capacity.
     std::pair<uint64_t,size_t> produce(uint64_t input){
-        need(upgraded&&!pending&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
+        need((public_receive?started:(upgraded&&!pending))&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
         auto&c=conversations.at(inputs[input-1].first);
         if(!c.ready){
             auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
@@ -82,13 +85,15 @@ public:
         std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
         auto ephemeral=k.shared_scalar(seed);
         auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient),mask=k.fresh(4);
-        auto&kernel=k.cache.get("signal-send "+std::to_string(CERT));
+        auto&kernel=k.cache.get(std::string(public_receive?"signal-send-open ":"signal-send ")+std::to_string(CERT));
         auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"requestId",&ws.at("requestId")},
             {"ephemeralPublic",&ephemeral_public},{"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},
             {"staticAgreement",&c.static_agreement},{"mask",&mask},{"responseTemplate",&ws.at("responseTemplate")}});
         // Nothing is retained or sealed unless the gated status opens to 255.
         need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
-        c.record=std::move(out.at("conversation"));ws["requestId"]=std::move(out.at("requestId"));ws["response"]=std::move(out.at("response"));pending=true;
+        c.record=std::move(out.at("conversation"));ws["requestId"]=std::move(out.at("requestId"));
+        if(public_receive)last_request_id=kernel.open(s,out,"requestIdUsed");   // correlated in the clear by the controllers
+        else{ws["response"]=std::move(out.at("response"));pending=true;}
         const size_t capacity=out.at("content").size()/8;
         return {k.retain({std::move(out.at("length")),std::move(out.at("content")),std::move(out.at("valid"))}),capacity};
     }

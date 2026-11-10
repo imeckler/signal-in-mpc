@@ -16,6 +16,9 @@ inductive Operation where
   | openApplication | sealApplication | sealControl | rotateSend | rotateReceive
   | pollRecord | processWebSocket | providerCatalogue | providerUpgrade | providerProduce
   | muxCatalogue | muxUpgrade | muxProduce | muxProcess | muxProduceBatch | muxResumeOutbox | muxCheckpointOutcomes
+  /- Public-receive profile: only contacts and client keys are secret, so the
+  contents of authenticated server records may be revealed to the controllers. -/
+  | revealApplication | publicBuffer | providerProduceOpen | providerUpgradeOpen | publicRandom
   deriving Repr, BEq
 
 structure Rpc where
