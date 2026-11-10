@@ -1,0 +1,22 @@
+'LibSignalReference.Candidate.CtrTail16.actual_generator' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.body_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.body_done' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.tail_unfold' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.loop_0' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.loop_1' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.loop_2' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.loop_3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.tail_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.blocks_represents' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.tail_actual_arbitrary' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.tail_counter_no_wrap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.tail_rejects_oversize' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.checked_tail_no_wrap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.written_matches_driver' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CtrTail16.compiled_fresh_tail' depends on axioms: [propext, Classical.choice, Quot.sound]
