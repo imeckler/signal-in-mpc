@@ -36,6 +36,7 @@ struct Worker {
     size_t test_bytes=0;uint64_t produced_handle=0;unsigned produced=0;bool sealed_pending=false;std::deque<uint64_t>awaiting_echo;
     ~Worker(){if(server>=0)::close(server);}
     void need(bool ok,const char*what){if(!ok)throw std::runtime_error(what);}
+    static ServiceKernels::ContactId contact(const Bytes&p){ServiceKernels::ContactId id{};std::copy_n(p.begin(),16,id.begin());return id;}
     // Both workers must have been handed the same request.
     void agree(uint8_t code,uint64_t sequence,const Bytes&payload){
         std::string head="tls-worker-v3:"+session;Bytes frame(head.begin(),head.end());frame.push_back(code);
@@ -53,8 +54,22 @@ struct Worker {
         Bytes out(32);for(unsigned i=0;i<32;i++)out[i]=mine[i]^peer[i];return out;
     }
     Bytes call(uint8_t code,uint64_t sequence,const Bytes&p){
-        agree(code,sequence,p);
+        // Operations 36 and 39 carry this party's PRIVATE bytes after a public prefix; only the
+        // prefix and the total size are agreed.
+        if(code==36||code==39){
+            const size_t open=code==36?16:0;need(p.size()>=open,"private request shape");
+            Bytes agreed(p.begin(),p.begin()+open);for(int i=3;i>=0;i--)agreed.push_back(uint8_t(uint64_t(p.size())>>(8*i)));
+            agree(code,sequence,agreed);
+        }else agree(code,sequence,p);
         switch(code){
+        // Contact state at rest (service_kernels.h). Ids are u128, big-endian.
+        case 36:{need(phase==Phase::retired&&service&&p.size()==48,"contact key");std::array<uint8_t,32>share{};std::copy_n(p.begin()+16,32,share.begin());service->contact_key(contact(p),share);return {};}
+        case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));return {};}
+        case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}
+        // Each party sends its private bytes and receives the other's (for values that are safe
+        // to reveal, such as parity shares of a consistency check).
+        case 39:{need(!p.empty()&&p.size()<=65536,"exchange");Bytes mine=p,peer(p.size());channel.transfer(mine.data(),peer.data(),mine.size());return peer;}
         case 1:{need(phase==Phase::fresh&&p.empty(),"begin");auto key=kernels.begin();Bytes out(key.begin(),key.end());auto random=joint_random();out.insert(out.end(),random.begin(),random.end());phase=Phase::begun;return out;}
         case 2:{need(phase==Phase::begun&&p.size()==64,"derive");std::array<uint8_t,32>peer{};std::copy_n(p.begin(),32,peer.begin());kernels.derive(peer,Bytes(p.begin()+32,p.end()));phase=Phase::derived;return {};}
         case 3:{need(phase==Phase::derived&&p.size()>=30&&p.size()<=8+16645,"open handshake");return kernels.open_handshake(Bytes(p.begin(),p.begin()+8),Bytes(p.begin()+8,p.end()));}

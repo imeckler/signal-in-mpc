@@ -26,9 +26,15 @@ namespace emp_hybrid {
 class ServiceKernels {
     TlsKernels&k;DynSession&s;FE&f;
     static constexpr size_t CERT=260,PASSWORD=22;
-    struct Conversation {Wires record,sender_public,static_agreement;std::vector<H>identity;H recipient;bool ready=false;OffsetAgreement offset;};
+public:
+    using ContactId=std::array<uint8_t,16>;   // u128, big-endian
+private:
+    // `record` is the contact's private state (empty while not loaded); `key` is its storage key
+    // (contact-key kernel). The derived values and the offset table are an in-memory cache only.
+    struct Conversation {Wires record,sender_public,static_agreement,key;std::vector<H>identity;H recipient;bool ready=false;OffsetAgreement offset;};
     OffsetPrograms offset_programs;
-    std::vector<Conversation>conversations;std::vector<std::pair<unsigned,Wires>>inputs;std::vector<bool>consumed;
+    std::map<ContactId,Conversation>conversations;std::vector<std::pair<ContactId,Wires>>inputs;std::vector<bool>consumed;
+    static ContactId fixture_id(unsigned slot){ContactId id{};id[15]=uint8_t(slot+1);return id;}
     Values ws;   // upgrade, accept, frame, control, responseTemplate, response, requestId
     bool admitted=false,started=false,upgraded=false,pending=false,closed=false;
     Wires entered(const std::vector<uint8_t>&bytes){return s.input_private(emp::ALICE,byte_bits(bytes));}   // one party supplies; private from then on
@@ -47,10 +53,44 @@ public:
             Conversation c;std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(native.begin(),32,secret.begin());
             c.identity=k.shared_scalar(secret);c.record=entered({native.begin()+32,native.end()});
             if(slot==0){auto out=view().run(s,{{"conversation",&c.record}});ws["requestId"]=std::move(out.at("requestId"));}   // one request-id sequence per connection
-            conversations.push_back(std::move(c));
+            conversations[fixture_id(slot)]=std::move(c);
         }
-        for(unsigned round=0;round<2;round++)for(unsigned slot=0;slot<2;slot++)inputs.push_back({slot,entered(signal_mpc::PublicTextFixture::text_input(slot,round))});
+        for(unsigned round=0;round<2;round++)for(unsigned slot=0;slot<2;slot++)inputs.push_back({fixture_id(slot),entered(signal_mpc::PublicTextFixture::text_input(slot,round))});
         consumed.assign(inputs.size(),false);
+    }
+    // ---- Contact state at rest (kernels contact-key, contact-seal, contact-open).
+    // The storage key from the two parties' additive shares (mod 2^255-19) of the contact's
+    // stored scalar. Each party's share is its own private input.
+    void contact_key(const ContactId&id,const std::array<uint8_t,32>&share){
+        need(!closed,"contact key unavailable");
+        const std::vector<uint8_t>mine(share.begin(),share.end()),none(32,0);
+        auto a=s.input_private(emp::ALICE,byte_bits(k.party==emp::ALICE?mine:none)),b=s.input_private(emp::BOB,byte_bits(k.party==emp::BOB?mine:none));
+        auto out=k.cache.get("contact-key").run(s,{{"shareA",&a},{"shareB",&b}});conversations[id].key=std::move(out.at("traffic"));
+    }
+    static void version_ok(const std::vector<uint8_t>&version){
+        if(version.size()!=8||version==std::vector<uint8_t>(8,255))throw std::runtime_error("contact version");
+    }
+    // Encrypt the contact's current state for storage. Reply: check16, ciphertext.
+    std::vector<uint8_t> contact_seal(const ContactId&id,const std::vector<uint8_t>&version){
+        auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size(),"contact seal unavailable");version_ok(version);
+        auto&c=it->second;auto&kernel=k.cache.get("contact-seal "+std::to_string(c.record.size()/8));auto v=k.constant(version);
+        auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"content",&c.record}});
+        auto reply=kernel.open(s,out,"check");auto ciphertext=kernel.open(s,out,"ciphertext");reply.insert(reply.end(),ciphertext.begin(),ciphertext.end());return reply;
+    }
+    // Load a contact's state from its stored ciphertext. A wrong key (bad or stale share from
+    // either side) fails the public check value and aborts without revealing anything else.
+    void contact_open(const ContactId&id,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
+        auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&!ciphertext.empty()&&ciphertext.size()<=16384,"contact open unavailable");version_ok(version);
+        auto&c=it->second;auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
+        auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"ciphertext",&body},{"check",&sum}});
+        need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
+        c.record=std::move(out.at("content"));c.ready=false;c.offset=OffsetAgreement{};
+    }
+    // Drop a contact's loaded state, key and cached derived values.
+    // TEST FIXTURE: the sender identity admitted with the fixture stays (it is the client's own key, not contact state).
+    void contact_evict(const ContactId&id){
+        auto it=conversations.find(id);need(it!=conversations.end(),"contact evict unavailable");
+        auto&c=it->second;c.record=Wires{};c.key=Wires{};c.sender_public=Wires{};c.static_agreement=Wires{};c.ready=false;c.offset=OffsetAgreement{};
     }
     std::vector<uint8_t> catalogue()const{
         if(!admitted||closed)throw std::runtime_error("no admitted provider");
@@ -104,7 +144,7 @@ public:
     // Reply: timestamp8, length2, envelope bytes (public capacity).
     std::vector<uint8_t> seal_open(uint64_t input){
         need(public_receive&&started&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
-        auto&c=conversations.at(inputs[input-1].first);
+        auto&c=conversations.at(inputs[input-1].first);need(c.record.size()!=0,"contact state not loaded");
         if(!c.ready){
             auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
             c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;

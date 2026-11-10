@@ -255,6 +255,27 @@ def main (args : List String) : IO Unit := do
         let handle ← rpc.call .providerRequest (uint 8 input ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send app ⟨number handle⟩ frame.length
+      -- Contact state at rest (TEST: the two fixture contacts have ids 1 and 2, and each
+      -- controller's key share is local randomness standing in for what the database
+      -- nodes would deliver). After one send to each contact the state is sealed,
+      -- evicted and reloaded from the ciphertext, so the remaining sends prove the
+      -- round trip preserved it.
+      let contacts : List Nat := [1, 2]
+      let shares ← contacts.mapM (fun _ => do
+        let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
+        -- below 2^254, so below the share modulus
+        pure (random.data.toList.take 31 ++ [(random.data.toList.getD 31 0) &&& 0x3f]))
+      let keyContacts : M Unit := do
+        for (contact, share) in contacts.zip shares do
+          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+      let reloadContacts : M Unit := do
+        for (contact, share) in contacts.zip shares do
+          let version := uint 8 1
+          let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
+          insist (stored.length > 16) "invalid stored contact state"
+          let _ ← rpc.call .contactEvict (uint 16 contact)
+          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+          let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List Nat) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
@@ -281,6 +302,8 @@ def main (args : List String) : IO Unit := do
               | input::tail =>
                 -- Request ids are public: a counter from 2^63, as the service expects.
                 let id := 2 ^ 63 + finished
+                if finished == 0 then keyContacts
+                if finished == 2 then reloadContacts
                 sendMessage input id
                 loop fuel (PublicReceive.expect s id) tail finished
             else loop fuel s inputs finished
@@ -295,7 +318,7 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 34 && codes.contains 35 && !codes.contains 18
+    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 34 && codes.contains 35 && codes.contains 37 && codes.contains 38 && !codes.contains 18
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("private_receive_parsing_used",toJson (codes.contains 18)),

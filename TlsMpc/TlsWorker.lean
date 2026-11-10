@@ -20,6 +20,11 @@ inductive Operation where
   contents of authenticated server records may be revealed to the controllers. -/
   | revealApplication | publicBuffer | providerProduceOpen | providerUpgradeOpen | publicRandom
   | providerSealOpen | providerRequest
+  /- Contact state at rest, keyed by a u128 id. `contactKey` carries this party's
+  private additive share of the contact's stored scalar after the public id;
+  `exchange` sends this party's private bytes to the other party and returns
+  theirs (for values that are safe to reveal, such as parity shares). -/
+  | contactKey | contactOpen | contactSeal | exchange | contactEvict
   deriving Repr, BEq
 
 structure Rpc where
