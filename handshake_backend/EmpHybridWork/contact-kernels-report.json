@@ -1,0 +1,24 @@
+{
+  "contact-key": {
+    "and_gates": 24904,
+    "cases_checked": 45
+  },
+  "contact-seal 1": {
+    "and_gates": 10330
+  },
+  "contact-open 1": {
+    "and_gates": 10465
+  },
+  "contact-seal 16": {
+    "and_gates": 11194
+  },
+  "contact-open 16": {
+    "and_gates": 11449
+  },
+  "contact-seal 97": {
+    "and_gates": 35840
+  },
+  "contact-open 97": {
+    "and_gates": 36743
+  }
+}

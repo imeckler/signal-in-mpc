@@ -6,6 +6,7 @@ import TlsMpc.Signal.SpqrSend
 import TlsMpc.Signal.SealedSenderV1
 import TlsMpc.Sha256Backend
 import TlsMpc.Sha256Ripple
+import TlsMpc.ModAdd
 
 /-!
 Worker kernels: one circuit per worker operation, with NAMED input and output
@@ -552,6 +553,56 @@ def tlsSealPrivateCtr (size : Nat) : Kernel :=
       pub "accepted" [accepted], pub "header" (TlsRecord.header g (size + 17)),
       pub "ciphertext" (ByteAuth.release a accepted ciphertext), priv "pad" (gcmPad block (get "sequence"))] }
 
+/-! ### Per-contact state at rest
+
+A contact's record is stored as ciphertext held by both computation nodes
+(each uses its own copy, so one node cannot substitute or roll it back). The
+key exists only as a secret-shared scalar on the database nodes, delivered to
+the two computation nodes as additive shares modulo the Pallas scalar order.
+The public check value (one AES block under the key) detects a wrong key,
+whether from a bad database share or a party altering its own share. -/
+
+/-- Order of the Pallas scalar field, the field of the stored per-contact scalars. -/
+def pallasOrder : Nat := 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001
+
+/-- The record key from the two parties' additive shares of the stored scalar:
+`SHA-256("CONTACT_STATE_KEY_V1" ‖ scalar)`, laid out as a traffic block. -/
+def contactKey : Kernel :=
+  let inputs := [("shareA", Shape.bytes 32), ("shareB", .bytes 32)]
+  let get := lookup inputs
+  let scalar := ModAdd.modAddBytes pallasOrder (get "shareA") (get "shareB")
+  let label := "CONTACT_STATE_KEY_V1".toUTF8.toList.map (fun byte => const byte.toNat)
+  let digest := Sha256.hash Sha256Ripple.ops (label ++ scalar)
+  { name := "contact-key", inputs, outputs := [priv "traffic" (zeros 32 ++ sl digest 0 28)] }
+
+/-- The key check value: the pad for the reserved version `2^64 − 1`. -/
+def contactCheck (traffic : List (BVExpr 8)) : List (BVExpr 8) :=
+  gcmPad traffic (List.replicate 8 (const 255))
+
+/-- Encrypt a record under its key for a public version number (never reused,
+never `2^64 − 1`). Opens the ciphertext and the key check value. -/
+def contactSeal (size : Nat) : Kernel :=
+  let g := Gcm.symbolic
+  let inputs := [("traffic", Shape.bytes 60), ("version", .bytes 8), ("content", .bytes size)]
+  let get := lookup inputs
+  let block := get "traffic"
+  { name := "contact-seal", inputs, outputs := [
+      pub "ciphertext" (Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "version")) (get "content")),
+      pub "check" (contactCheck block)] }
+
+/-- Decrypt a stored record. `accepted` is 255 exactly when the key matches the
+stored check value; the content is zero otherwise. -/
+def contactOpen (size : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let g := Gcm.symbolic
+  let inputs := [("traffic", Shape.bytes 60), ("version", .bytes 8), ("ciphertext", .bytes size), ("check", .bytes 16)]
+  let get := lookup inputs
+  let block := get "traffic"
+  let accepted := ByteAuth.equalMask a (contactCheck block) (get "check")
+  let content := Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "version")) (get "ciphertext")
+  { name := "contact-open", inputs, outputs := [
+      pub "accepted" [accepted], priv "content" (ByteAuth.release a accepted content)] }
+
 /-- `tlsOpenApplication` with the tag check supplied as the private mask from
 `gcmCheck`: CTR decryption, header check, inner parsing and classification. -/
 def tlsOpenApplicationCtr (size : Nat) : Kernel :=
@@ -585,12 +636,15 @@ def find : List String → Option Kernel
   | ["gcm-multiply"] => some gcmMultiply
   | ["gcm-tag"] => some gcmTag
   | ["gcm-check"] => some gcmCheck
+  | ["contact-key"] => some contactKey
   | [name, a] =>
       match name, a.toNat? with
       | "tls-open-handshake", some n => if 22 ≤ n && n ≤ 16645 then some (tlsOpenHandshake n) else none
       | "tls-finish", some n => if n ≤ 64 then some (tlsFinish n) else none
       | "tls-open-application", some n => if 22 ≤ n && n ≤ 16406 then some (tlsOpenApplication n) else none
       | "tls-seal-private", some n => if 0 < n && n ≤ 16384 then some (tlsSealPrivate n) else none
+      | "contact-seal", some n => if 0 < n && n ≤ 16384 then some (contactSeal n) else none
+      | "contact-open", some n => if 0 < n && n ≤ 16384 then some (contactOpen n) else none
       | "tls-seal-private-ctr", some n => if 0 < n && n ≤ 16384 then some (tlsSealPrivateCtr n) else none
       | "ws-activity", some n => if 0 < n && n ≤ 16385 then some (wsActivity n) else none
       | "ws-control-reply", some n => if n < 4 then some (wsControlReply n) else none
