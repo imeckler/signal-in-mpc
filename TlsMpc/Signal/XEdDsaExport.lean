@@ -19,7 +19,7 @@ structure XEdDsaBooleanImage where
 def xFieldNode : FieldDag.Node → Lean.Json
   | .input i => Lean.Json.mkObj [("op",Lean.toJson "input"),("index",Lean.toJson i)]
   | .const n => Lean.Json.mkObj [("op",Lean.toJson "const"),("value",Lean.toJson (toString n))]
-  | .bin op a b => Lean.Json.mkObj [("op",Lean.toJson (match op with | .add => "add" | .sub => "sub" | .mul => "mul")),
+  | .bin op a b => Lean.Json.mkObj [("op",Lean.toJson (match op with | .add => "add" | .sub => "sub" | .mul => "mul" | .div => "div")),
       ("left",Lean.toJson a),("right",Lean.toJson b)]
 structure XEdDsaFieldImage where
   format : String := "tls-mpc-field-dag-v1"

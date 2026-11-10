@@ -91,8 +91,10 @@ def field_eval_all(text,inputs):
         if f[0]=='C':values.append(int(f[1])%P);secret.append(False)
         elif f[0]=='I':values.append(inputs[int(f[1])]);secret.append(True)
         else:
-            i,j=int(f[1]),int(f[2]);a,b=values[i],values[j];values.append((a+b if f[0]=='A' else a-b if f[0]=='S' else a*b)%P)
-            secret.append(secret[i] or secret[j]);products+=f[0]=='M' and secret[i] and secret[j]
+            i,j=int(f[1]),int(f[2]);a,b=values[i],values[j]
+            if f[0]=='D' and b==0:raise ZeroDivisionError('field program division by zero')
+            values.append((a+b if f[0]=='A' else a-b if f[0]=='S' else a*pow(b,P-2,P) if f[0]=='D' else a*b)%P)
+            secret.append(secret[i] or secret[j]);products+=2 if f[0]=='D' else (f[0]=='M' and secret[i] and secret[j])
     tail=lines[3+count].split()
     if tail[0]!='O' or len(tail)!=width+1:raise ValueError('field outputs')
     return [values[int(w)] for w in tail[1:]],products
@@ -158,6 +160,51 @@ while checked<20:
 for name,text,key,extra in (('edwards-on-curve',curve_text,'EDWARDS_ON_CURVE_SHA',dict(multiplication_nodes=field_eval(curve_text,[0,1])[1],inputs=2)),('edwards-add-u',add_text,'EDWARDS_ADD_U_SHA',dict(secret_products=add_products,inputs=4,outputs=2))):
     (OUT/(name+'.flat')).write_text(text);digest=hashlib.sha256(text.encode()).hexdigest();pins.append('inline constexpr const char* %s="%s";'%(key,digest))
     report[name]=dict(flat_sha256=digest,cases_checked=20,reference='independent Montgomery ladder on the summed scalar',**extra)
+# Affine Edwards programs (TlsMpc/EdwardsAffine.lean), checked against the same reference.
+SQRT_M1=pow(2,(P-1)//4,P)
+def field_sqrt(a):
+    x=pow(a,(P+3)//8,P)
+    if x*x%P!=a%P:x=x*SQRT_M1%P
+    return x if x*x%P==a%P else None
+texts={name:subprocess.run(['lake','exe','word_mask_emitter',name],cwd=ROOT,check=True,capture_output=True).stdout.decode() for name in ('edwards-prepare','edwards-offset-sum')}
+WINDOWS,DIGITS,BITS=63,15,252;CHECKS=1+2*BITS
+def montgomery_u(point):return (1+point[1])*pow(1-point[1],P-2,P)%P
+edwards_products={}
+for case in range(4):
+    base=None
+    while base is None:
+        u=ladder(8*rng.randrange(1,2**250),9);base=lift(u)
+    ka,kb=rng.randrange(2**BITS),rng.randrange(2**BITS)
+    bits=[(ka>>i)&1 for i in range(BITS)]+[(kb>>i)&1 for i in range(BITS)]
+    out,edwards_products['edwards-prepare']=field_eval_all(texts['edwards-prepare'],[u,rng.randrange(1,P),*bits])
+    if len(out)!=CHECKS+2+2*WINDOWS*DIGITS or any(out[:CHECKS]):raise AssertionError('edwards-prepare checks')
+    initial=tuple(out[CHECKS:CHECKS+2]);table=[tuple(out[CHECKS+2+2*i:CHECKS+4+2*i]) for i in range(WINDOWS*DIGITS)]
+    root=table[0]   # either of the two points with this u
+    if root[1]!=base[1] or root[0] not in (base[0],P-base[0]) or field_eval(curve_text,list(root))[0]!=0:raise AssertionError('edwards-prepare recipient')
+    if initial!=ed_mul(ka+kb,root):raise AssertionError('edwards-prepare initial point')
+    for w in ((0,1,2,31,62) if case else range(WINDOWS)):
+        for j in range(1,DIGITS+1):
+            if table[DIGITS*w+j-1]!=ed_mul(j*16**w,root):raise AssertionError('edwards-prepare table')
+    # A flipped scalar bit input that is not a bit must fail its check; a twist u must fail the curve check.
+    bad=list(bits);bad[5]=2
+    if field_eval_all(texts['edwards-prepare'],[u,1,*bad])[0][1+5]==0:raise AssertionError('edwards-prepare bit check')
+    for _ in range(3):
+        offset=rng.randrange(2**BITS);chosen=[]
+        for w in range(WINDOWS):
+            digit=(offset>>(4*w))&15;chosen+=list(table[DIGITS*w+digit-1]) if digit else [0,1]
+        (got,),edwards_products['edwards-offset-sum']=field_eval_all(texts['edwards-offset-sum'],[*initial,*chosen])
+        if got!=montgomery_u(ed_mul(ka+kb+offset,root)) or got!=ladder(ka+kb+offset,u):raise AssertionError('edwards-offset-sum')
+twists=0
+while twists<3:
+    u=rng.randrange(2,P)
+    if pow((u*u*u+486662*u*u+u)%P,(P-1)//2,P)==1:continue
+    twists+=1
+    try:
+        if field_eval_all(texts['edwards-prepare'],[u,1,*([0]*(2*BITS))])[0][0]==0:raise AssertionError('edwards-prepare accepted a twist point')
+    except ZeroDivisionError:pass
+for name,text in texts.items():
+    (OUT/(name+'.flat')).write_text(text);digest=hashlib.sha256(text.encode()).hexdigest();pins.append('inline constexpr const char* %s_SHA="%s";'%(name.replace('-','_').upper(),digest))
+    report[name]=dict(flat_sha256=digest,products=edwards_products[name],divisions=sum(row.startswith('D') for row in text.split('\n')[3:]),cases_checked=4,reference='independent Edwards arithmetic and Montgomery ladder')
 # Swap-bit derivation from scalar bits (no AND gates).
 text=subprocess.run(['lake','exe','word_mask_emitter','swap-bits'],cwd=ROOT,check=True,capture_output=True).stdout.decode()
 gates,outputs=parse(text,256)

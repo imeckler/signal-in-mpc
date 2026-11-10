@@ -2,6 +2,7 @@ import TlsMpc.WordMask
 import TlsMpc.FieldBits
 import TlsMpc.X25519SwapBits
 import TlsMpc.EdwardsShare
+import TlsMpc.EdwardsAffine
 open TlsMpc TlsMpc.WordMask TlsMpc.BoolDag
 
 /-! Export the conversion-mask circuits as flat gate lists.
@@ -69,15 +70,16 @@ def render (es : List Expr) (inputs : Nat := 510) : Except String String := do
   pure (header ++ body ++ "O " ++ " ".intercalate (outputs.map toString) ++ "\n")
 
 /-- Field programs in the flat format the native loader reads. Constants are
-restricted to what the loader accepts as machine words. -/
+canonical field elements. -/
 def renderField (inputs : Nat) (e : FieldDag.Expr) : Except String String := do
   let some artifact := FieldDag.compile e | throw "field program failed its translation validator"
   let rows ← artifact.nodes.mapM (fun node => match node with
-    | FieldDag.Node.const n => if n < 2 ^ 63 then pure s!"C {n}" else throw "field constant too large"
+    | FieldDag.Node.const n => if n < FieldDag.modulus then pure s!"C {n}" else throw "field constant too large"
     | .input i => if i < inputs then pure s!"I {i}" else throw "field input out of range"
     | .bin .add a b => pure s!"A {a} {b}"
     | .bin .sub a b => pure s!"S {a} {b}"
-    | .bin .mul a b => pure s!"M {a} {b}")
+    | .bin .mul a b => pure s!"M {a} {b}"
+    | .bin .div a b => pure s!"D {a} {b}")
   let header := s!"EMP_HYBRID_FIELD_DAG_V1\n{inputs} {rows.length} {artifact.output}\n{FieldDag.modulus}\n"
   pure (header ++ rows.foldl (fun acc row => acc ++ row ++ "\n") "")
 
@@ -85,11 +87,12 @@ def renderField (inputs : Nat) (e : FieldDag.Expr) : Except String String := do
 def renderFieldAll (inputs : Nat) (es : List FieldDag.Expr) : Except String String := do
   let some artifact := FieldDag.compileAll es | throw "field program failed its translation validator"
   let rows ← artifact.nodes.mapM (fun node => match node with
-    | FieldDag.Node.const n => if n < 2 ^ 63 then pure s!"C {n}" else throw "field constant too large"
+    | FieldDag.Node.const n => if n < FieldDag.modulus then pure s!"C {n}" else throw "field constant too large"
     | .input i => if i < inputs then pure s!"I {i}" else throw "field input out of range"
     | .bin .add a b => pure s!"A {a} {b}"
     | .bin .sub a b => pure s!"S {a} {b}"
-    | .bin .mul a b => pure s!"M {a} {b}")
+    | .bin .mul a b => pure s!"M {a} {b}"
+    | .bin .div a b => pure s!"D {a} {b}")
   let header := s!"EMP_HYBRID_FIELD_DAG_V2\n{inputs} {rows.length} {artifact.outputs.length}\n{FieldDag.modulus}\n"
   pure (header ++ rows.foldl (fun acc row => acc ++ row ++ "\n") "" ++
     "O " ++ " ".intercalate (artifact.outputs.map toString) ++ "\n")
@@ -116,6 +119,8 @@ def main (args : List String) : IO Unit := do
     | "x25519-fast" => pure (renderFieldAll 257 X25519Fast.exprs)
     | "edwards-on-curve" => pure (renderField 2 EdwardsShare.onCurve)
     | "edwards-add-u" => pure (renderFieldAll 4 EdwardsShare.addU)
+    | "edwards-prepare" => pure (renderFieldAll (2 + 2 * EdwardsAffine.scalarBits) EdwardsAffine.prepare)
+    | "edwards-offset-sum" => pure (renderFieldAll (2 + 2 * EdwardsAffine.windows) EdwardsAffine.offsetSum)
     | "swap-bits" => pure (render X25519SwapBits.circuit 256)
     | _ => throw (IO.userError "unknown circuit")
   match rendered with

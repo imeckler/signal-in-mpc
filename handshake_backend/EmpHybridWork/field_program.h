@@ -5,6 +5,8 @@
 // instances together so their multiplications share rounds. A product with a
 // public constant operand is linear and uses no triple.
 #include "field_engine.h"
+#include <openssl/bn.h>
+#include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <array>
 #include <fstream>
@@ -14,9 +16,21 @@
 #include <vector>
 namespace emp_hybrid {
 class FieldProgram {
-    struct Node {char op;unsigned a=0,b=0,depth=0;uint64_t constant=0;};
-    std::vector<Node>nodes;std::vector<std::vector<unsigned>>linear,multiplications;unsigned inputs=0;std::vector<unsigned>outputs;
+    struct Node {char op;unsigned a=0,b=0,depth=0;uint64_t constant=0;std::array<uint8_t,32>wide{};};
+    std::vector<Node>nodes;std::vector<std::vector<unsigned>>linear,multiplications,divisions;unsigned inputs=0,division_count=0;std::vector<unsigned>outputs;
 public:
+    // Uniform shared field elements nobody knows: the sum of both parties' private inputs.
+    static std::vector<FieldEngine::Handle> masks(FieldEngine&f,size_t count){
+        std::vector<FieldEngine::Handle>out;if(!count)return out;
+        std::vector<std::array<uint8_t,32>>mine(count);
+        for(auto&m:mine)for(;;){
+            if(RAND_bytes(m.data(),32)!=1)throw std::runtime_error("field mask randomness");
+            m[31]&=127;bool top=m[31]==127&&m[0]>=0xed;for(unsigned i=1;i<31&&top;i++)top=m[i]==0xff;
+            if(!top)break;   // below 2^255-19
+        }
+        auto shares=f.input_elements(mine);f.check();
+        for(size_t i=0;i<count;i++)out.push_back(f.add(shares[0][i],shares[1][i]));return out;
+    }
     FieldProgram(const std::string&path,const char*expected_sha){
         std::ifstream file(path,std::ios::binary);std::string bytes(4000001,'\0');file.read(bytes.data(),bytes.size());auto size=file.gcount();
         if(size<=0||size>4000000)throw std::runtime_error("field program size");bytes.resize(size);
@@ -32,8 +46,21 @@ public:
         nodes.reserve(count);unsigned maximum=0;
         for(unsigned i=0;i<count;i++){
             Node n;if(!(in>>n.op))throw std::runtime_error("field program row");
-            if(n.op=='C'){if(!(in>>n.constant))throw std::runtime_error("field constant");}
+            if(n.op=='C'){
+                // Machine-word constants scale linearly; wider ones become public elements ('P').
+                std::string digits;if(!(in>>digits)||digits.empty()||digits.size()>77||digits.find_first_not_of("0123456789")!=std::string::npos)throw std::runtime_error("field constant");
+                if(digits.size()<=18)n.constant=std::stoull(digits);
+                else{
+                    BIGNUM*value=nullptr,*p=BN_new();bool ok=p&&BN_dec2bn(&value,digits.c_str())&&BN_dec2bn(&p,prime.c_str())&&BN_cmp(value,p)<0&&BN_bn2lebinpad(value,n.wide.data(),32)==32;
+                    BN_free(value);BN_free(p);if(!ok)throw std::runtime_error("field constant");n.op='P';
+                }
+            }
             else if(n.op=='I'){if(!(in>>n.a)||n.a>=inputs)throw std::runtime_error("field input");}
+            else if(n.op=='D'){
+                // a / b by masked inversion: one round of two products, then an opening.
+                if(!(in>>n.a>>n.b)||n.a>=i||n.b>=i)throw std::runtime_error("field dependency");
+                n.depth=std::max(nodes[n.a].depth,nodes[n.b].depth)+1;division_count++;
+            }
             else if(n.op=='A'||n.op=='S'||n.op=='M'){
                 if(!(in>>n.a>>n.b)||n.a>=i||n.b>=i)throw std::runtime_error("field dependency");
                 bool secret=n.op=='M'&&nodes[n.a].op!='C'&&nodes[n.b].op!='C';
@@ -47,8 +74,8 @@ public:
             for(unsigned i=0;i<third;i++){unsigned w;if(!(in>>w)||w>=count)throw std::runtime_error("field program output");outputs.push_back(w);}
         }
         std::string trailing;if(in>>trailing)throw std::runtime_error("field program trailing data");
-        linear.resize(maximum+1);multiplications.resize(maximum+1);
-        for(unsigned i=0;i<nodes.size();i++)(nodes[i].op=='M'?multiplications:linear)[nodes[i].depth].push_back(i);
+        linear.resize(maximum+1);multiplications.resize(maximum+1);divisions.resize(maximum+1);
+        for(unsigned i=0;i<nodes.size();i++)(nodes[i].op=='M'?multiplications:nodes[i].op=='D'?divisions:linear)[nodes[i].depth].push_back(i);
     }
     unsigned input_count()const{return inputs;}
     unsigned output_count()const{return outputs.size();}
@@ -62,14 +89,29 @@ public:
         using H=FieldEngine::Handle;
         for(auto&v:instances)if(v.size()!=inputs)throw std::runtime_error("field program arity");
         std::vector<std::vector<H>>values(instances.size(),std::vector<H>(nodes.size()));
+        auto mask=masks(f,size_t(division_count)*instances.size());size_t next_mask=0;
         for(unsigned level=0;level<linear.size();level++){
             if(level){
                 std::vector<H>a,b;
                 for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level]){a.push_back(values[k][nodes[id].a]);b.push_back(values[k][nodes[id].b]);}
-                if(!a.empty()){auto out=f.mul(a,b);size_t q=0;for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level])values[k][id]=out[q++];}
+                // Division a/b: with a uniform shared mask r, open b·r and return (a·r)/(b·r).
+                // The opening is uniform for nonzero b; a zero denominator aborts.
+                for(size_t k=0;k<instances.size();k++)for(auto id:divisions[level]){H r=mask.at(next_mask++);a.push_back(values[k][nodes[id].a]);b.push_back(r);a.push_back(values[k][nodes[id].b]);b.push_back(r);}
+                if(!a.empty()){
+                    auto out=f.mul(a,b);size_t q=0;for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level])values[k][id]=out[q++];
+                    std::vector<H>denominators;for(size_t j=q+1;j<out.size();j+=2)denominators.push_back(out[j]);
+                    if(!denominators.empty()){
+                        auto opened=f.checked_open(denominators);size_t j=0;
+                        for(size_t k=0;k<instances.size();k++)for(auto id:divisions[level]){
+                            bool zero=true;for(auto byte:opened[j])if(byte)zero=false;
+                            if(zero)throw std::runtime_error("field program division by zero");
+                            values[k][id]=f.divide_public(out[q+2*j],opened[j]);j++;
+                        }
+                    }
+                }
             }
             for(size_t k=0;k<instances.size();k++)for(auto id:linear[level]){const auto&n=nodes[id];auto&v=values[k];
-                if(n.op=='C')v[id]=f.constant(n.constant);else if(n.op=='I')v[id]=instances[k][n.a];
+                if(n.op=='C')v[id]=f.constant(n.constant);else if(n.op=='P')v[id]=f.public_element(n.wide);else if(n.op=='I')v[id]=instances[k][n.a];
                 else if(n.op=='A')v[id]=f.add(v[n.a],v[n.b]);else if(n.op=='S')v[id]=f.sub(v[n.a],v[n.b]);
                 else if(n.op=='L')v[id]=f.scale(v[n.b],nodes[n.a].constant);else v[id]=f.scale(v[n.a],nodes[n.b].constant);
             }

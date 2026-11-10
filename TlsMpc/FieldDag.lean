@@ -16,12 +16,25 @@ def ofNat (n : Nat) : F := Fin.ofNat modulus n
 
 inductive Bin where
   | add | sub | mul
+  /-- Division: `a / b = a · b^(p-2)`. The runtime evaluates it by a masked
+  inversion (multiply the denominator by a uniform shared mask, open the
+  product, divide in the clear). A zero denominator makes the runtime abort
+  rather than use this definition's value (`a · 0 = 0`). -/
+  | div
   deriving DecidableEq, BEq, Hashable, Repr
+
+def power (x : F) : Nat → F
+  | 0 => ofNat 1
+  | n + 1 => x * power x n
+
+/-- The field inverse by Fermat's little theorem (zero for zero). -/
+def inverse (x : F) : F := power x (modulus - 2)
 
 def Bin.eval : Bin → F → F → F
   | .add => (· + ·)
   | .sub => (· - ·)
   | .mul => (· * ·)
+  | .div => fun a b => a * inverse b
 
 inductive Expr where
   | input : Nat → Expr

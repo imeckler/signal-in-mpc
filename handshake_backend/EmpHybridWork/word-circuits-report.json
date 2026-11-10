@@ -95,6 +95,20 @@
       "inputs": 4,
       "outputs": 2
     },
+    "edwards-prepare": {
+      "flat_sha256": "e138cb182733d1fd9b52fd102266a1a63646dfbf91e4bf3785819ed568116333",
+      "products": 15046,
+      "divisions": 2897,
+      "cases_checked": 4,
+      "reference": "independent Edwards arithmetic and Montgomery ladder"
+    },
+    "edwards-offset-sum": {
+      "flat_sha256": "73495b9ec869666c50aa55ee5ae149824fe34840015d65db1cac9b63bf5dcd9a",
+      "products": 565,
+      "divisions": 126,
+      "cases_checked": 4,
+      "reference": "independent Edwards arithmetic and Montgomery ladder"
+    },
     "swap-bits": {
       "flat_sha256": "6c981ca7f9e63f434d28338d89e1e5768dbc4e9578a05d1956ab6e152fbd60a7",
       "and_gates": 0,
@@ -106,12 +120,12 @@
     "TlsMpc/BoolDag.lean": "1758d0237b717f320d9bb3bc3169c579b90276e219df1f8db7d29d263db1a280",
     "TlsMpc/WordMask.lean": "f3a396651ef8778c2ec507af86c9dfd0dab65c310220a7e89fe8cf4a54e61098",
     "TlsMpc/FieldBits.lean": "c677a97e04f041219eabb7cf05e1963ef862bd8c4c1e7bc8cc42785567c14808",
-    "TlsMpc/FieldDag.lean": "52988ebf6dbdc27231cd53e9780bc9cb92e51ca4693e413ba20df841ec64037e",
+    "TlsMpc/FieldDag.lean": "c15622014c0deeb8f35248f4410a59d9cd886597cd1fc25ccf9f3ca10880df11",
     "TlsMpc/FieldDagMulti.lean": "32a4aa54f6f5c244c0084d0428e18475488a10e4b21c0d46eee04842221803f6",
     "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
     "TlsMpc/X25519Fast.lean": "1027abc173c0a0669833384b6970b572097500adc44c313f7209e92df24fd769",
     "TlsMpc/X25519SwapBits.lean": "99f67472f228979f7d5956e7eb9aee634eeabfb185837dd1f2434b98b0654e6e",
-    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "a0eed52f68b945e11c5585b132cc863006ce5af7490d7557611ca45c851b2966"
+    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "44dc7cd6feadfa013c03f07b543ed7d5c7026c6c6d981bb7700377d3a8e4b55c"
   },
   "scope": "Conversion circuits defined and proved in Lean (TlsMpc/WordMask.lean), compiled by the validated gate-level compiler (TlsMpc/BoolDag.lean) and printed from Lean. Checked here against integer arithmetic on boundary and random inputs. The printer, this parser and the C++ loader are outside the Lean theorems."
 }

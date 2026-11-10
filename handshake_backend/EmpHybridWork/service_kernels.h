@@ -18,6 +18,7 @@
 // from signal_backend/TextNotificationWork are entered as private wires by one
 // party. It is not authenticated provisioning and not durable.
 #include "tls_kernels.h"
+#include "edwards_points.h"
 #include "../../signal_backend/TextNotificationWork/PublicTextFixture.h"
 #include <openssl/evp.h>
 #include <openssl/sha.h>
@@ -25,7 +26,8 @@ namespace emp_hybrid {
 class ServiceKernels {
     TlsKernels&k;DynSession&s;FE&f;
     static constexpr size_t CERT=260,PASSWORD=22;
-    struct Conversation {Wires record,sender_public,static_agreement;std::vector<H>identity;H recipient;bool ready=false;};
+    struct Conversation {Wires record,sender_public,static_agreement;std::vector<H>identity;H recipient;bool ready=false;OffsetAgreement offset;};
+    OffsetPrograms offset_programs;
     std::vector<Conversation>conversations;std::vector<std::pair<unsigned,Wires>>inputs;std::vector<bool>consumed;
     Values ws;   // upgrade, accept, frame, control, responseTemplate, response, requestId
     bool admitted=false,started=false,upgraded=false,pending=false,closed=false;
@@ -107,9 +109,19 @@ public:
             auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
             c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
         }
-        std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
-        auto ephemeral=k.shared_scalar(seed);
-        auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient);
+        // Ephemeral pair by the offset agreement (edwards_points.h): no ladder per message.
+        if(!c.offset.prepared())c.offset.prepare(offset_programs,f,k.channel,k.party,c.recipient);
+        std::array<uint8_t,32>offset{};{
+            // Joint public offset: commit, then open, then XOR.
+            std::array<uint8_t,32>mine{},peer{},commit{},peer_commit{},check{};{emp::PRG prg;prg.random_data_unaligned(mine.data(),32);}
+            SHA256(mine.data(),32,commit.data());k.channel.transfer(commit.data(),peer_commit.data(),32);k.channel.transfer(mine.data(),peer.data(),32);
+            SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
+            for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
+        }
+        auto pair=c.offset.step(offset_programs,f,offset);
+        std::vector<uint8_t>public_bits(255);for(unsigned i=0;i<255;i++)public_bits[i]=(pair.first[i/8]>>(i%8))&1;
+        auto ephemeral_public=s.public_bits(public_bits);
+        auto ephemeral_agreement=field_to_word(s,f,k.channel,k.circuits,k.take_mask(),pair.second);
         // Lengths are public under the policy: open the counters' varint widths and use the
         // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
         auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&c.record}});

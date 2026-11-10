@@ -52,11 +52,28 @@ per message, which is the cost being avoided.
 
 Once per conversation, inside the engines:
 
-1. A ladder pair for a secret scalar `k₀` known to nobody: `K₀ = k₀·B`
-   (opened) and the shared point `k₀·R`.
-2. R as a shared affine Edwards point (a masked square root and a division).
-3. A table of shared multiples `(j·16^w)·R` for every 4-bit window `w` and
-   digit `j`, built with point additions and doublings only.
+1. R as a shared affine Edwards point, derived from its stored Montgomery
+   coordinate by field arithmetic alone (the square root is a power chain).
+2. A table of shared multiples `(j·16^w)·R` for every 4-bit window `w` and
+   digit `j`, built with point additions only.
+3. A secret scalar `k₀ = k_A + k_B`, each summand one party's private input
+   (bit-checked): the shared point `k₀·R` is a sum of table entries selected
+   by the scalar bits, and `K₀ = k_A·B + k_B·B` is public, its two halves
+   exchanged commit-then-open. No ladder is involved.
+
+As implemented, steps 1–3 are one Lean field program
+(`TlsMpc/EdwardsAffine.lean`, `prepare`: 15,051 products, once per
+conversation) and step 6 below is another (`offsetSum`: 565 products per
+message). The programs use a division operation that the runtime evaluates by
+masked inversion; the C++ (`edwards_points.h`) only supplies inputs, opens the
+values the program marks as must-be-zero, and does the public-point arithmetic.
+A party that publishes a half of `K₀` inconsistent with its scalar input makes
+the recipient unable to decrypt; the agreement inside the engines does not
+depend on the published halves.
+
+Measured, whole Signal service run (handshake, upgrade, four sends in two
+conversations): malicious 5.1 GB Boolean + 3.4 GB field in 53 s (9.6 GB +
+5.6 GB with per-message ladders); semi-honest 0.56 GB + 0.49 GB in 20 s.
 
 Per message:
 
