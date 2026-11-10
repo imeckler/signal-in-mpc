@@ -3,13 +3,13 @@
   "parties": 2,
   "security_mode": "malicious",
   "payload_bytes": 64,
-  "logs": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tls-application-v3-run/28a6b8c4c3d3bfc7",
+  "logs": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tls-application-v3-run/ff84b258a991410b",
   "test_only_private_producer": true,
   "sha256": {
-    ".deps/two-party-comparison/tls-worker-fixture-v3": "adfb23d110f14ff82931ddf6c708476f52960f9a2ae60d3f51e2403f7ed11c9d",
+    ".deps/two-party-comparison/tls-worker-fixture-v3": "8e21375c66e2b984c7dec151397ef2687d8831323abf0ed49448e7d1d8f0880f",
     ".lake/build/bin/session_application_fixture": "e07b15d4c68b8825ea88781e76f421309f0bed43e1b1669659b9bfcbf9a8a586",
     "handshake_backend/EmpHybridWork/tls_worker_v3.cpp": "cce9edd87fc1475f9969589caa8689ba5739b1de31239f7f5ada68286082103c",
-    "handshake_backend/EmpHybridWork/tls_kernels.h": "d5cfb0c5ac7537db63fdbbd71e3f10507bbe62919026bf0f90d4c22adf13156f",
+    "handshake_backend/EmpHybridWork/tls_kernels.h": "eb8d86cc61d4341b12aa24214efff288b7295ea309303f2f5581d122cd862487",
     "TlsMpc/HybridKdf.lean": "a7a04db9635a59026e51f598249d1ceb58da90c9ab222b3ea68f9f3159636648",
     "TlsMpc/TlsApplication.lean": "93df65cb258b157e824e1a755c871f7d85c7f322e9cead3be0245e566608703d",
     "TlsMpc/TlsPostHandshake.lean": "66f1156849f793b7c5f61b804d3a417b7adf9eb593331e1c3388285f7d1a6b77"
@@ -42,7 +42,7 @@
     [
       {
         "operation": 0,
-        "seconds": 0.55414,
+        "seconds": 2.63982,
         "and_gates": 534464,
         "emp_sent_bytes": 148422877,
         "field_sent_bytes": 6210225,
@@ -50,7 +50,7 @@
       },
       {
         "operation": 9,
-        "seconds": 0.554426,
+        "seconds": 2.64236,
         "and_gates": 534464,
         "emp_sent_bytes": 148422909,
         "field_sent_bytes": 6210225,
@@ -58,7 +58,7 @@
       },
       {
         "operation": 1,
-        "seconds": 0.554874,
+        "seconds": 2.64888,
         "and_gates": 534464,
         "emp_sent_bytes": 148423101,
         "field_sent_bytes": 6210225,
@@ -66,7 +66,7 @@
       },
       {
         "operation": 10,
-        "seconds": 0.555081,
+        "seconds": 2.65675,
         "and_gates": 534464,
         "emp_sent_bytes": 148423133,
         "field_sent_bytes": 6210225,
@@ -74,7 +74,7 @@
       },
       {
         "operation": 11,
-        "seconds": 0.556123,
+        "seconds": 2.65934,
         "and_gates": 534464,
         "emp_sent_bytes": 148423264,
         "field_sent_bytes": 6210225,
@@ -82,7 +82,7 @@
       },
       {
         "operation": 2,
-        "seconds": 1.82898,
+        "seconds": 6.18924,
         "and_gates": 1214280,
         "emp_sent_bytes": 325861833,
         "field_sent_bytes": 7504314,
@@ -90,7 +90,7 @@
       },
       {
         "operation": 11,
-        "seconds": 1.82918,
+        "seconds": 6.19041,
         "and_gates": 1214280,
         "emp_sent_bytes": 325861875,
         "field_sent_bytes": 7504314,
@@ -98,7 +98,7 @@
       },
       {
         "operation": 11,
-        "seconds": 1.82933,
+        "seconds": 6.19101,
         "and_gates": 1214280,
         "emp_sent_bytes": 325861948,
         "field_sent_bytes": 7504314,
@@ -106,7 +106,7 @@
       },
       {
         "operation": 3,
-        "seconds": 2.96,
+        "seconds": 6.77424,
         "and_gates": 1269084,
         "emp_sent_bytes": 343510542,
         "field_sent_bytes": 7504314,
@@ -114,7 +114,7 @@
       },
       {
         "operation": 11,
-        "seconds": 2.96021,
+        "seconds": 6.77467,
         "and_gates": 1269084,
         "emp_sent_bytes": 343511112,
         "field_sent_bytes": 7504314,
@@ -122,7 +122,7 @@
       },
       {
         "operation": 3,
-        "seconds": 16.4396,
+        "seconds": 9.45172,
         "and_gates": 2029916,
         "emp_sent_bytes": 541468304,
         "field_sent_bytes": 7504314,
@@ -130,7 +130,7 @@
       },
       {
         "operation": 11,
-        "seconds": 16.4397,
+        "seconds": 9.45225,
         "and_gates": 2029916,
         "emp_sent_bytes": 541468874,
         "field_sent_bytes": 7504314,
@@ -138,7 +138,7 @@
       },
       {
         "operation": 3,
-        "seconds": 16.9623,
+        "seconds": 11.4947,
         "and_gates": 2790748,
         "emp_sent_bytes": 739425938,
         "field_sent_bytes": 7504314,
@@ -146,7 +146,7 @@
       },
       {
         "operation": 11,
-        "seconds": 16.9624,
+        "seconds": 11.506,
         "and_gates": 2790748,
         "emp_sent_bytes": 739426290,
         "field_sent_bytes": 7504314,
@@ -154,7 +154,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.0785,
+        "seconds": 13.9383,
         "and_gates": 3242020,
         "emp_sent_bytes": 856981915,
         "field_sent_bytes": 7504314,
@@ -162,7 +162,7 @@
       },
       {
         "operation": 11,
-        "seconds": 25.0787,
+        "seconds": 13.9511,
         "and_gates": 3242020,
         "emp_sent_bytes": 856982045,
         "field_sent_bytes": 7504314,
@@ -170,7 +170,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.3861,
+        "seconds": 15.522,
         "and_gates": 3383948,
         "emp_sent_bytes": 897875076,
         "field_sent_bytes": 7504314,
@@ -178,7 +178,7 @@
       },
       {
         "operation": 4,
-        "seconds": 25.3994,
+        "seconds": 15.6226,
         "and_gates": 3383948,
         "emp_sent_bytes": 897875108,
         "field_sent_bytes": 7504314,
@@ -186,7 +186,7 @@
       },
       {
         "operation": 11,
-        "seconds": 25.3999,
+        "seconds": 15.6247,
         "and_gates": 3383948,
         "emp_sent_bytes": 897875202,
         "field_sent_bytes": 7504314,
@@ -194,7 +194,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.6391,
+        "seconds": 16.5524,
         "and_gates": 3481382,
         "emp_sent_bytes": 926025247,
         "field_sent_bytes": 7504314,
@@ -202,7 +202,7 @@
       },
       {
         "operation": 5,
-        "seconds": 26.1377,
+        "seconds": 18.5695,
         "and_gates": 3695936,
         "emp_sent_bytes": 987976204,
         "field_sent_bytes": 7504314,
@@ -210,7 +210,7 @@
       },
       {
         "operation": 6,
-        "seconds": 27.5543,
+        "seconds": 27.6635,
         "and_gates": 4470729,
         "emp_sent_bytes": 1189540374,
         "field_sent_bytes": 7504314,
@@ -218,7 +218,7 @@
       },
       {
         "operation": 10,
-        "seconds": 27.5545,
+        "seconds": 27.666,
         "and_gates": 4470729,
         "emp_sent_bytes": 1189540406,
         "field_sent_bytes": 7504314,
@@ -226,7 +226,7 @@
       },
       {
         "operation": 7,
-        "seconds": 27.5551,
+        "seconds": 27.711,
         "and_gates": 4470729,
         "emp_sent_bytes": 1189590150,
         "field_sent_bytes": 7504314,
@@ -234,201 +234,201 @@
       },
       {
         "operation": 13,
-        "seconds": 30.1162,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1227136156,
+        "seconds": 31.1522,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1218301888,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 30.117,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1227185900,
+        "seconds": 31.1956,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1218351632,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 30.1172,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1227185984,
+        "seconds": 31.202,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1218351716,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 31.3553,
-        "and_gates": 4673226,
-        "emp_sent_bytes": 1252197487,
+        "seconds": 33.904,
+        "and_gates": 4625354,
+        "emp_sent_bytes": 1243362963,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 31.3555,
-        "and_gates": 4673226,
-        "emp_sent_bytes": 1252197614,
+        "seconds": 33.9263,
+        "and_gates": 4625354,
+        "emp_sent_bytes": 1243363090,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 33.1655,
-        "and_gates": 4821360,
-        "emp_sent_bytes": 1297987916,
+        "seconds": 36.057,
+        "and_gates": 4773488,
+        "emp_sent_bytes": 1289153392,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 14,
-        "seconds": 33.3523,
-        "and_gates": 4869354,
-        "emp_sent_bytes": 1313288557,
+        "seconds": 36.6189,
+        "and_gates": 4783722,
+        "emp_sent_bytes": 1292859073,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 33.3524,
-        "and_gates": 4869354,
-        "emp_sent_bytes": 1313288589,
+        "seconds": 36.6193,
+        "and_gates": 4783722,
+        "emp_sent_bytes": 1292859105,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 15,
-        "seconds": 33.9034,
-        "and_gates": 5129404,
-        "emp_sent_bytes": 1388384159,
+        "seconds": 38.9629,
+        "and_gates": 5043772,
+        "emp_sent_bytes": 1367954675,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 13,
-        "seconds": 34.024,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1425930037,
+        "seconds": 41.0521,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1396665901,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 34.0246,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1425979781,
+        "seconds": 41.0573,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1396715645,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 34.0247,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1425979844,
+        "seconds": 41.0602,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1396715708,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 34.4412,
-        "and_gates": 5279173,
-        "emp_sent_bytes": 1433375274,
+        "seconds": 41.6912,
+        "and_gates": 5145669,
+        "emp_sent_bytes": 1404111138,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 16,
-        "seconds": 34.6654,
-        "and_gates": 5539223,
-        "emp_sent_bytes": 1508470716,
+        "seconds": 41.996,
+        "and_gates": 5405719,
+        "emp_sent_bytes": 1479206580,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 34.6656,
-        "and_gates": 5539223,
-        "emp_sent_bytes": 1508470843,
+        "seconds": 41.9963,
+        "and_gates": 5405719,
+        "emp_sent_bytes": 1479206707,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.0069,
-        "and_gates": 5710013,
-        "emp_sent_bytes": 1562751241,
+        "seconds": 42.2576,
+        "and_gates": 5576509,
+        "emp_sent_bytes": 1533487105,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 14,
-        "seconds": 35.0654,
-        "and_gates": 5758007,
-        "emp_sent_bytes": 1578051754,
+        "seconds": 42.2814,
+        "and_gates": 5586743,
+        "emp_sent_bytes": 1537192658,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 35.0656,
-        "and_gates": 5758007,
-        "emp_sent_bytes": 1578051786,
+        "seconds": 42.2816,
+        "and_gates": 5586743,
+        "emp_sent_bytes": 1537192690,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 15,
-        "seconds": 35.2899,
-        "and_gates": 6018057,
-        "emp_sent_bytes": 1653147228,
+        "seconds": 42.57,
+        "and_gates": 5846793,
+        "emp_sent_bytes": 1612288132,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 13,
-        "seconds": 35.4145,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1690693106,
+        "seconds": 42.7209,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1640999358,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 35.4147,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1690693138,
+        "seconds": 42.7211,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1640999390,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 35.4149,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1690693265,
+        "seconds": 42.7339,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1640999553,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.5347,
-        "and_gates": 6263416,
-        "emp_sent_bytes": 1724863183,
+        "seconds": 42.8816,
+        "and_gates": 6044280,
+        "emp_sent_bytes": 1675169471,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 35.5349,
-        "and_gates": 6263416,
-        "emp_sent_bytes": 1724863310,
+        "seconds": 42.8817,
+        "and_gates": 6044280,
+        "emp_sent_bytes": 1675169598,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.6542,
-        "and_gates": 6378782,
-        "emp_sent_bytes": 1759032636,
+        "seconds": 43.0366,
+        "and_gates": 6159646,
+        "emp_sent_bytes": 1709338924,
         "field_sent_bytes": 7504314,
         "field_products": 11
       }
@@ -436,7 +436,7 @@
     [
       {
         "operation": 0,
-        "seconds": 0.554136,
+        "seconds": 2.63673,
         "and_gates": 534464,
         "emp_sent_bytes": 125106101,
         "field_sent_bytes": 6210225,
@@ -444,7 +444,7 @@
       },
       {
         "operation": 9,
-        "seconds": 0.554239,
+        "seconds": 2.64141,
         "and_gates": 534464,
         "emp_sent_bytes": 125106133,
         "field_sent_bytes": 6210225,
@@ -452,7 +452,7 @@
       },
       {
         "operation": 1,
-        "seconds": 0.554838,
+        "seconds": 2.64899,
         "and_gates": 534464,
         "emp_sent_bytes": 125106325,
         "field_sent_bytes": 6210225,
@@ -460,7 +460,7 @@
       },
       {
         "operation": 10,
-        "seconds": 0.555052,
+        "seconds": 2.6508,
         "and_gates": 534464,
         "emp_sent_bytes": 125106357,
         "field_sent_bytes": 6210225,
@@ -468,7 +468,7 @@
       },
       {
         "operation": 11,
-        "seconds": 0.556148,
+        "seconds": 2.66021,
         "and_gates": 534464,
         "emp_sent_bytes": 125106389,
         "field_sent_bytes": 6210225,
@@ -476,7 +476,7 @@
       },
       {
         "operation": 2,
-        "seconds": 1.82905,
+        "seconds": 6.19009,
         "and_gates": 1214280,
         "emp_sent_bytes": 280193896,
         "field_sent_bytes": 7504314,
@@ -484,7 +484,7 @@
       },
       {
         "operation": 11,
-        "seconds": 1.82921,
+        "seconds": 6.19116,
         "and_gates": 1214280,
         "emp_sent_bytes": 280193928,
         "field_sent_bytes": 7504314,
@@ -492,7 +492,7 @@
       },
       {
         "operation": 11,
-        "seconds": 1.82936,
+        "seconds": 6.19231,
         "and_gates": 1214280,
         "emp_sent_bytes": 280193960,
         "field_sent_bytes": 7504314,
@@ -500,7 +500,7 @@
       },
       {
         "operation": 3,
-        "seconds": 2.95998,
+        "seconds": 6.77495,
         "and_gates": 1269084,
         "emp_sent_bytes": 296039961,
         "field_sent_bytes": 7504314,
@@ -508,7 +508,7 @@
       },
       {
         "operation": 11,
-        "seconds": 2.96024,
+        "seconds": 6.77544,
         "and_gates": 1269084,
         "emp_sent_bytes": 296039993,
         "field_sent_bytes": 7504314,
@@ -516,7 +516,7 @@
       },
       {
         "operation": 3,
-        "seconds": 16.4395,
+        "seconds": 9.45232,
         "and_gates": 2029916,
         "emp_sent_bytes": 468984113,
         "field_sent_bytes": 7504314,
@@ -524,7 +524,7 @@
       },
       {
         "operation": 11,
-        "seconds": 16.4397,
+        "seconds": 9.45295,
         "and_gates": 2029916,
         "emp_sent_bytes": 468984145,
         "field_sent_bytes": 7504314,
@@ -532,7 +532,7 @@
       },
       {
         "operation": 3,
-        "seconds": 16.9622,
+        "seconds": 11.4919,
         "and_gates": 2790748,
         "emp_sent_bytes": 641928137,
         "field_sent_bytes": 7504314,
@@ -540,7 +540,7 @@
       },
       {
         "operation": 11,
-        "seconds": 16.9625,
+        "seconds": 11.5105,
         "and_gates": 2790748,
         "emp_sent_bytes": 641928169,
         "field_sent_bytes": 7504314,
@@ -548,7 +548,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.0785,
+        "seconds": 13.9387,
         "and_gates": 3242020,
         "emp_sent_bytes": 744647507,
         "field_sent_bytes": 7504314,
@@ -556,7 +556,7 @@
       },
       {
         "operation": 11,
-        "seconds": 25.0788,
+        "seconds": 13.9534,
         "and_gates": 3242020,
         "emp_sent_bytes": 744647539,
         "field_sent_bytes": 7504314,
@@ -564,7 +564,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.3861,
+        "seconds": 15.5198,
         "and_gates": 3383948,
         "emp_sent_bytes": 780873871,
         "field_sent_bytes": 7504314,
@@ -572,7 +572,7 @@
       },
       {
         "operation": 4,
-        "seconds": 25.3993,
+        "seconds": 15.6231,
         "and_gates": 3383948,
         "emp_sent_bytes": 780873903,
         "field_sent_bytes": 7504314,
@@ -580,7 +580,7 @@
       },
       {
         "operation": 11,
-        "seconds": 25.3999,
+        "seconds": 15.6255,
         "and_gates": 3383948,
         "emp_sent_bytes": 780873935,
         "field_sent_bytes": 7504314,
@@ -588,7 +588,7 @@
       },
       {
         "operation": 3,
-        "seconds": 25.6391,
+        "seconds": 16.5531,
         "and_gates": 3481382,
         "emp_sent_bytes": 805820022,
         "field_sent_bytes": 7504314,
@@ -596,7 +596,7 @@
       },
       {
         "operation": 5,
-        "seconds": 26.1376,
+        "seconds": 18.5701,
         "and_gates": 3695936,
         "emp_sent_bytes": 860716701,
         "field_sent_bytes": 7504314,
@@ -604,7 +604,7 @@
       },
       {
         "operation": 6,
-        "seconds": 27.5543,
+        "seconds": 27.6639,
         "and_gates": 4470729,
         "emp_sent_bytes": 1036808832,
         "field_sent_bytes": 7504314,
@@ -612,7 +612,7 @@
       },
       {
         "operation": 10,
-        "seconds": 27.5545,
+        "seconds": 27.6666,
         "and_gates": 4470729,
         "emp_sent_bytes": 1036808864,
         "field_sent_bytes": 7504314,
@@ -620,7 +620,7 @@
       },
       {
         "operation": 7,
-        "seconds": 27.5551,
+        "seconds": 27.7262,
         "and_gates": 4470729,
         "emp_sent_bytes": 1036842224,
         "field_sent_bytes": 7504314,
@@ -628,201 +628,201 @@
       },
       {
         "operation": 13,
-        "seconds": 30.1162,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1070113895,
+        "seconds": 31.1528,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1062811819,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 30.117,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1070147255,
+        "seconds": 31.1983,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1062845179,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 30.1172,
-        "and_gates": 4600722,
-        "emp_sent_bytes": 1070147287,
+        "seconds": 31.2027,
+        "and_gates": 4552850,
+        "emp_sent_bytes": 1062845211,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 31.3553,
-        "and_gates": 4673226,
-        "emp_sent_bytes": 1092754454,
+        "seconds": 33.9018,
+        "and_gates": 4625354,
+        "emp_sent_bytes": 1085452122,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 31.3555,
-        "and_gates": 4673226,
-        "emp_sent_bytes": 1092754486,
+        "seconds": 33.9275,
+        "and_gates": 4625354,
+        "emp_sent_bytes": 1085452154,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 33.1655,
-        "and_gates": 4821360,
-        "emp_sent_bytes": 1133646116,
+        "seconds": 36.0435,
+        "and_gates": 4773488,
+        "emp_sent_bytes": 1126343784,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 14,
-        "seconds": 33.3523,
-        "and_gates": 4869354,
-        "emp_sent_bytes": 1147368043,
+        "seconds": 36.6196,
+        "and_gates": 4783722,
+        "emp_sent_bytes": 1129707919,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 33.3524,
-        "and_gates": 4869354,
-        "emp_sent_bytes": 1147368075,
+        "seconds": 36.6199,
+        "and_gates": 4783722,
+        "emp_sent_bytes": 1129707951,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 15,
-        "seconds": 33.9035,
-        "and_gates": 5129404,
-        "emp_sent_bytes": 1213913686,
+        "seconds": 38.9639,
+        "and_gates": 5043772,
+        "emp_sent_bytes": 1196253562,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 13,
-        "seconds": 34.024,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1247185229,
+        "seconds": 41.0527,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1222222645,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 34.0246,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1247218589,
+        "seconds": 41.0581,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1222256005,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 34.0248,
-        "and_gates": 5259397,
-        "emp_sent_bytes": 1247218621,
+        "seconds": 41.0651,
+        "and_gates": 5125893,
+        "emp_sent_bytes": 1222256037,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 34.4412,
-        "and_gates": 5279173,
-        "emp_sent_bytes": 1253957708,
+        "seconds": 41.6918,
+        "and_gates": 5145669,
+        "emp_sent_bytes": 1228995124,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 16,
-        "seconds": 34.6655,
-        "and_gates": 5539223,
-        "emp_sent_bytes": 1320503191,
+        "seconds": 41.9967,
+        "and_gates": 5405719,
+        "emp_sent_bytes": 1295540607,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 34.6657,
-        "and_gates": 5539223,
-        "emp_sent_bytes": 1320503223,
+        "seconds": 41.997,
+        "and_gates": 5405719,
+        "emp_sent_bytes": 1295540639,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.0069,
-        "and_gates": 5710013,
-        "emp_sent_bytes": 1369125477,
+        "seconds": 42.2583,
+        "and_gates": 5576509,
+        "emp_sent_bytes": 1344162893,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 14,
-        "seconds": 35.0654,
-        "and_gates": 5758007,
-        "emp_sent_bytes": 1382847276,
+        "seconds": 42.2821,
+        "and_gates": 5586743,
+        "emp_sent_bytes": 1347526900,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 35.0656,
-        "and_gates": 5758007,
-        "emp_sent_bytes": 1382847308,
+        "seconds": 42.2823,
+        "and_gates": 5586743,
+        "emp_sent_bytes": 1347526932,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 15,
-        "seconds": 35.29,
-        "and_gates": 6018057,
-        "emp_sent_bytes": 1449392791,
+        "seconds": 42.5707,
+        "and_gates": 5846793,
+        "emp_sent_bytes": 1414072415,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 13,
-        "seconds": 35.4145,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1482664334,
+        "seconds": 42.7216,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1440041498,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 10,
-        "seconds": 35.4146,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1482664366,
+        "seconds": 42.7218,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1440041530,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 35.4149,
-        "and_gates": 6148050,
-        "emp_sent_bytes": 1482664398,
+        "seconds": 42.7347,
+        "and_gates": 5928914,
+        "emp_sent_bytes": 1440041594,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.5347,
-        "and_gates": 6263416,
-        "emp_sent_bytes": 1513035644,
+        "seconds": 42.8822,
+        "and_gates": 6044280,
+        "emp_sent_bytes": 1470412840,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 17,
-        "seconds": 35.5349,
-        "and_gates": 6263416,
-        "emp_sent_bytes": 1513035676,
+        "seconds": 42.8824,
+        "and_gates": 6044280,
+        "emp_sent_bytes": 1470412872,
         "field_sent_bytes": 7504314,
         "field_products": 11
       },
       {
         "operation": 12,
-        "seconds": 35.6542,
-        "and_gates": 6378782,
-        "emp_sent_bytes": 1543406330,
+        "seconds": 43.0373,
+        "and_gates": 6159646,
+        "emp_sent_bytes": 1500783526,
         "field_sent_bytes": 7504314,
         "field_products": 11
       }
@@ -836,21 +836,21 @@
     "replay_sent": true,
     "closed_after_replay": true
   },
-  "elapsed_seconds": 35.76045854203403,
+  "elapsed_seconds": 43.11519404093269,
   "worker_totals": [
     {
       "operation": 12,
-      "seconds": 35.6542,
-      "and_gates": 6378782,
-      "emp_sent_bytes": 1759032636,
+      "seconds": 43.0366,
+      "and_gates": 6159646,
+      "emp_sent_bytes": 1709338924,
       "field_sent_bytes": 7504314,
       "field_products": 11
     },
     {
       "operation": 12,
-      "seconds": 35.6542,
-      "and_gates": 6378782,
-      "emp_sent_bytes": 1543406330,
+      "seconds": 43.0373,
+      "and_gates": 6159646,
+      "emp_sent_bytes": 1500783526,
       "field_sent_bytes": 7504314,
       "field_products": 11
     }

@@ -13,6 +13,15 @@ def request (a : ByteAuth.Ops B) (passwordBytes : Nat) (raw : List B) : List B :
   base64 a (uuid a (raw.take 16) ++ literal a ":" ++ (raw.drop 16).take passwordBytes) ++
   literal a "\r\nX-Signal-Receive-Stories: false\r\nAccept-Language: en\r\nUser-Agent: tls-mpc\r\n\r\n"
 
+/-- The upgrade request for an UNAUTHENTICATED chat socket: the same request
+with no `Authorization` header. It contains no secret; the only input is the
+public WebSocket nonce. Sealed-sender sends go on this socket, because on an
+authenticated socket the server treats every send as identified. -/
+def anonymousRequest (a : ByteAuth.Ops B) (nonce : List B) : List B :=
+  literal a "GET /v1/websocket/ HTTP/1.1\r\nHost: chat.signal.org\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: " ++
+  base64 a (nonce.take 16) ++
+  literal a "\r\nSec-WebSocket-Version: 13\r\nX-Signal-Receive-Stories: false\r\nAccept-Language: en\r\nUser-Agent: tls-mpc\r\n\r\n"
+
 theorem request_map {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'}
     (ha : ByteAuth.Hom a a' f) (passwordBytes : Nat) (raw : List B) :
     (request a passwordBytes raw).map f = request a' passwordBytes (raw.map f) := by

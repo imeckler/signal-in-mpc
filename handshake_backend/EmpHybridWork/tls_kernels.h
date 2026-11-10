@@ -103,7 +103,8 @@ public:   // engine references and shared resources are also used by service_ker
     // length within the public capacity, with `valid` the buffer's computed validity byte.
     // `sealer` set: the buffer is sealed by that kernel instead, with `content` bound to its
     // `frame` input and `extra` bound by name (a request assembled in the clear around private slots).
-    struct PrivateBuffer {Wires length,content,valid;std::string sealer;Values extra;};
+    // `revealable`: the length-masked content from tls-reveal-masked, computed on first reveal.
+    struct PrivateBuffer {Wires length,content,valid;std::string sealer;Values extra;Wires revealable;size_t revealed_length=0;};
     std::map<uint64_t,PrivateBuffer>buffers;uint64_t next_buffer=1;
     uint64_t retain(PrivateBuffer buffer){if(next_buffer==0)throw std::runtime_error("handle space");buffers[next_buffer]=std::move(buffer);return next_buffer++;}
     // Authenticate, decrypt and classify one record; only the event bytes are opened.
@@ -170,6 +171,25 @@ public:   // engine references and shared resources are also used by service_ker
         auto out=kernel.run(s,{{"length",&it->second.length},{"content",&it->second.content},{"select",&chosen}});
         auto reply=kernel.open(s,out,"length");const size_t length=size_t(reply.at(0))*256+reply.at(1);if(length>capacity)throw std::runtime_error("revealed length");
         if(offset<length)reply.push_back(kernel.open(s,out,"byte").at(0));
+        return reply;
+    }
+    // The same for a range: the length, then the bytes at [offset, offset+count) that lie within
+    // it. The masked content is computed once per buffer; each call only opens wires.
+    std::vector<uint8_t> reveal_range(uint64_t id,size_t offset,size_t count){
+        auto it=buffers.find(id);if(it==buffers.end()||it->second.length.size()==0||count==0)throw std::runtime_error("reveal handle");
+        auto&buffer=it->second;const size_t capacity=buffer.content.size()/8;
+        if(buffer.revealable.size()==0){
+            auto&kernel=cache.get("tls-reveal-masked "+std::to_string(capacity));
+            auto out=kernel.run(s,{{"length",&buffer.length},{"content",&buffer.content}});
+            auto opened=kernel.open(s,out,"length");buffer.revealed_length=size_t(opened.at(0))*256+opened.at(1);
+            if(buffer.revealed_length>capacity)throw std::runtime_error("revealed length");
+            buffer.revealable=std::move(out.at("bytes"));
+        }
+        const size_t length=buffer.revealed_length;std::vector<uint8_t>reply{uint8_t(length>>8),uint8_t(length)};
+        if(offset<length){
+            const size_t end=std::min(length,offset+count);
+            auto bytes=bits_bytes(s.open(buffer.revealable.slice(8*offset,8*end)));reply.insert(reply.end(),bytes.begin(),bytes.end());
+        }
         return reply;
     }
     // Public bytes as a sendable buffer (control replies in the public-receive profile).

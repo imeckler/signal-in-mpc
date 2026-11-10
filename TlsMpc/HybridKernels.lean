@@ -156,6 +156,21 @@ def tlsReveal (size : Nat) : Kernel :=
     (fun acc pair => ByteAuth.symbolic.xor acc (ByteAuth.symbolic.and pair.1 pair.2)) (const 0)
   { name := "tls-reveal", inputs, outputs := [pub "length" (get "length"), pub "byte" [picked]] }
 
+/-- Public-receive profile, whole buffer at once: the length, and every content
+byte below that length (bytes at or beyond it are zero). The runtime opens the
+length and then only the byte ranges the controllers ask for; which ranges may
+be asked for is the controllers' policy. No selection circuit is needed because
+the positions are public. -/
+def tlsRevealMasked (size : Nat) : Kernel :=
+  let a := ByteAuth.symbolic
+  let inputs := [("length", Shape.bytes 2), ("content", .bytes size)]
+  let get := lookup inputs
+  let masks := (TlsWebSocketActivity.run a size (const 255)
+    (HybridService.at' (get "length") 0) (HybridService.at' (get "length") 1)).drop 1
+  { name := "tls-reveal-masked", inputs, outputs := [
+      pub "length" (get "length"),
+      pub "bytes" (((get "content").zip masks).map (fun pair => a.and pair.1 pair.2))] }
+
 /-- Seal a private payload of public size. -/
 def tlsSeal (size padding : Nat) : Kernel :=
   let inputs := [("clientApplication", Shape.bytes 60), ("sequence", .bytes 8), ("content", .bytes size)]
@@ -380,19 +395,23 @@ def signalWidths (cert : Nat) : Kernel :=
 /-- `signalSeal` with public varint widths: the fixed-width message and
 sealed-sender definitions. The status additionally requires the counters to
 have exactly the stated widths. The envelope has a public length. -/
-def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) : Kernel :=
+def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) (builtText : Bool := false) : Kernel :=
   let size := 80
   let a := ByteAuth.symbolic
   let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
   let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
-  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes 59),
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes (if builtText then 90 else 59)),
     ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word)]
   let get := lookup inputs
   let record := get "conversation"
   let certificate := sl record 0 cert
   let session := sl record cert (182 + size)
   let metadata := sl record (cert + 182 + size) 57
-  let text := PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
+  -- `builtText`: the caller supplies the output of `PrivateTextNotification.build` (validity
+  -- byte, kind, 80 padded content bytes, timestamp). Used when the message text is public and
+  -- the controllers build the content in the clear with the same definition.
+  let text := if builtText then get "text"
+    else PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
   let staged := sl session 0 117 ++ sl text 1 1 ++ sl session 118 64 ++ sl text 2 size
   let i : SpqrSend.Input (BVExpr 8) := {
     version := HybridService.at' staged 0, counter := sl staged 1 4, previous := sl staged 5 4, ratchet := sl staged 9 32,
@@ -409,9 +428,37 @@ def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat
   let choose := fun next old => ChainSend.selectState a status next old
   let next := sl staged 0 1 ++ choose p.nextCounter i.counter ++ sl staged 5 36 ++ choose p.nextChainKey i.chainKey ++
     choose p.nextPqChainKey i.pqChainKey ++ choose p.nextPqCounter i.pqCounter ++ staged.drop 109
-  { name := "signal-seal-fixed", inputs, outputs := [
+  { name := if builtText then "signal-seal-built" else "signal-seal-fixed", inputs, outputs := [
       pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
       pub "timestamp" (sl text 82 8), pub "envelope" (ByteAuth.release a status (sealed.drop 1))] }
+
+/-- MEASUREMENT ONLY, never run by the worker: prefixes of `signalSealFixed`, to
+count gates per stage. Stage 0 outputs the built text content; stage 1 also the
+session-encrypted message and next state; stage 2 the acceptance mask as well.
+The full kernel adds sealed sender on top of stage 1. -/
+def signalSealProbe (stage cert counterWidth previousWidth epochWidth indexWidth : Nat) : Kernel :=
+  let size := 80
+  let a := ByteAuth.symbolic
+  let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
+  let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes 59)]
+  let get := lookup inputs
+  let record := get "conversation"
+  let session := sl record cert (182 + size)
+  let text := PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
+  let staged := sl session 0 117 ++ sl text 1 1 ++ sl session 118 64 ++ sl text 2 size
+  let i : SpqrSend.Input (BVExpr 8) := {
+    version := HybridService.at' staged 0, counter := sl staged 1 4, previous := sl staged 5 4, ratchet := sl staged 9 32,
+    chainKey := sl staged 41 32, pqChainKey := sl staged 73 32, pqCounter := sl staged 105 4, epoch := sl staged 109 8,
+    kind := HybridService.at' staged 117, chunkIndex := [], chunkData := [], sender := sl staged 118 32,
+    receiver := sl staged 150 32, plaintext := sl staged 182 size, addresses := [] }
+  let sha := Sha256Ripple.ops
+  let p := SpqrSend.prepare Aes.symbolic Varint64.symbolic sha a shape pqShape i
+  let accepted := SpqrSend.acceptedMask Varint64.symbolic sha a shape pqShape i
+  { name := "signal-seal-probe", inputs, outputs :=
+      [pub "text" text] ++
+      (if stage ≥ 1 then [pub "wire" p.wire, pub "state" (p.nextCounter ++ p.nextChainKey ++ p.nextPqChainKey ++ p.nextPqCounter)] else []) ++
+      (if stage ≥ 2 then [pub "accepted" [accepted]] else []) }
 
 /-- A decimal number in a fixed-width slot, padded with spaces (valid JSON
 whitespace), so that its digit count stays private. -/
@@ -656,11 +703,14 @@ def find : List String → Option Kernel
       | "signal-seal", some n => if n ≤ 1024 then some (signalSeal n) else none
       | "signal-widths", some n => if n ≤ 1024 then some (signalWidths n) else none
       | "tls-reveal", some n => if 0 < n && n ≤ 16385 then some (tlsReveal n) else none
+      | "tls-reveal-masked", some n => if 0 < n && n ≤ 16385 then some (tlsRevealMasked n) else none
       | "tls-open-application-ctr", some n => if 22 ≤ n && n ≤ 16406 then some (tlsOpenApplicationCtr n) else none
       | _, _ => none
   | [name, a, b] =>
       match name, a.toNat?, b.toNat? with
       | "tls-seal", some n, some pad => if 0 < n && n + 1 + pad ≤ 16385 then some (tlsSeal n pad) else none
+      | "signal-seal-probe", some stage, some cert =>
+          if stage ≤ 2 && cert ≤ 1024 then some (signalSealProbe stage cert 1 1 1 1) else none
       | "tls-seal-control", some kind, some n =>
           if (kind == 21 && n == 2) || (kind == 22 && n == 5) then some (tlsSealControl kind n) else none
       | _, _, _ => none
@@ -675,6 +725,12 @@ def find : List String → Option Kernel
       | some cert, some cw, some pw, some ew, some iw =>
           if cert ≤ 1024 && 1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
             some (signalSealFixed cert cw pw ew iw) else none
+      | _, _, _, _, _ => none
+  | ["signal-seal-built", cert, counterWidth, previousWidth, epochWidth, indexWidth] =>
+      match cert.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with
+      | some cert, some cw, some pw, some ew, some iw =>
+          if cert ≤ 1024 && 1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
+            some (signalSealFixed cert cw pw ew iw true) else none
       | _, _, _, _, _ => none
   | ["signal-request-seal", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
       match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with

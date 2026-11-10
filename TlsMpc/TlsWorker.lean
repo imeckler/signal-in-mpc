@@ -28,6 +28,11 @@ inductive Operation where
   /- Notify path: one sealed-sender send to a contact id with a public text,
   and its request frame. -/
   | contactSend | contactRequest
+  /- Public-receive profile: a range of an authenticated record at once. -/
+  | revealRange
+  /- Local-server testing: admit a contact from an export; open an
+  unauthenticated chat socket (the upgrade request itself is public). -/
+  | contactAdmit | publicUpgrade
   deriving Repr, BEq
 
 structure Rpc where

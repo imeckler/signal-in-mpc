@@ -25,7 +25,8 @@
 namespace emp_hybrid {
 class ServiceKernels {
     TlsKernels&k;DynSession&s;FE&f;
-    static constexpr size_t CERT=260,PASSWORD=22;
+    static constexpr size_t PASSWORD=22;
+    size_t CERT=260;   // sender certificate bytes at the start of every contact record (the fixture's; set by admission)
 public:
     using ContactId=std::array<uint8_t,16>;   // u128, big-endian
 private:
@@ -57,6 +58,26 @@ public:
         }
         for(unsigned round=0;round<2;round++)for(unsigned slot=0;slot<2;slot++)inputs.push_back({fixture_id(slot),entered(signal_mpc::PublicTextFixture::text_input(slot,round))});
         consumed.assign(inputs.size(),false);
+    }
+    // TEST admission of one contact from a local-server export: both controllers hold the same
+    // disposable test state and one party enters it as private wires, as for the fixture. The
+    // certificate is the sender's own, at its exact length (the same for every contact).
+    void admit_contact(const ContactId&id,size_t certificate_bytes,const std::vector<uint8_t>&identity,const std::vector<uint8_t>&record){
+        need(!closed&&!started&&identity.size()==32&&certificate_bytes>0&&certificate_bytes<=1024&&record.size()==certificate_bytes+319
+            &&(conversations.empty()||certificate_bytes==CERT)&&!conversations.count(id),"contact admission");
+        CERT=certificate_bytes;admitted=true;
+        Conversation c;std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(identity.begin(),32,secret.begin());
+        c.identity=k.shared_scalar(secret);c.record=entered(record);conversations[id]=std::move(c);
+    }
+    // Unauthenticated chat socket: the upgrade request has no secrets and is built by the
+    // controllers; this only fixes the expected Sec-WebSocket-Accept for the public nonce.
+    std::vector<uint8_t> upgrade_public(const std::vector<uint8_t>&nonce){
+        need(!started&&!closed&&nonce.size()==16,"upgrade unavailable");started=true;public_receive=true;
+        unsigned char key[25]={},digest[20],encoded[29]={};EVP_EncodeBlock(key,nonce.data(),16);
+        std::string material(reinterpret_cast<char*>(key),24);material+="258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        SHA1(reinterpret_cast<const unsigned char*>(material.data()),material.size(),digest);EVP_EncodeBlock(encoded,digest,20);
+        accept_bytes.assign(encoded,encoded+28);
+        std::vector<uint8_t>out=nonce;out.insert(out.end(),accept_bytes.begin(),accept_bytes.end());return out;
     }
     // ---- Contact state at rest (kernels contact-key, contact-seal, contact-open).
     // The storage key from the two parties' additive shares (mod 2^255-19) of the contact's
@@ -146,10 +167,10 @@ public:
         need(public_receive&&started&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
         return seal_open(inputs[input-1].first,inputs[input-1].second);
     }
-    // The same for a contact by id and a PUBLIC text (the notify path): `text` is the 59-byte
-    // text input of the send kernels, built by the controllers.
+    // The same for a contact by id and a PUBLIC text (the notify path): `text` is the 90-byte
+    // message content the controllers built in the clear (the kernel named signal-seal-built).
     std::vector<uint8_t> seal_open(const ContactId&id,const std::vector<uint8_t>&text){
-        need(public_receive&&started&&!closed&&text.size()==59&&conversations.count(id),"send unavailable");
+        need(public_receive&&started&&!closed&&text.size()==90&&conversations.count(id),"send unavailable");
         return seal_open(id,k.constant(text));
     }
     std::vector<uint8_t> seal_open(const ContactId&id,const Wires&text){
@@ -174,7 +195,7 @@ public:
         // Lengths are public under the policy: open the counters' varint widths and use the
         // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
         auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&c.record}});
-        std::string name="signal-seal-fixed "+std::to_string(CERT);
+        std::string name=std::string(text.size()==8*90?"signal-seal-built ":"signal-seal-fixed ")+std::to_string(CERT);
         for(auto field:{"counter","previous","epoch","index"}){
             unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
             name+=" "+std::to_string(width);

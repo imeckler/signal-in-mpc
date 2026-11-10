@@ -6,6 +6,7 @@ import TlsMpc.TlsWebSocketIdle
 import TlsMpc.TlsWebSocketControl
 import TlsMpc.TlsChatResponse
 import TlsMpc.Signal.RelayEncoding
+import TlsMpc.Signal.PrivateTextNotification
 
 /-!
 Service controller for the public-receive profile.
@@ -47,6 +48,17 @@ structure State where
   pending : Bool := false
   /-- First payload bytes of the binary message in progress (at most two). -/
   message : List Byte := []
+  /-- The first payload byte of a message whose kind is not known yet, with its
+  frame flags, held back from the response parser until the second byte. -/
+  held : Option (List Byte × Byte) := none
+  /-- Revealed payload of the server request in progress; its body is never
+  revealed and is absent here. -/
+  request : List Byte := []
+  bodySkipped : Bool := false
+  /-- Body bytes of the request in progress still to pass over unrevealed. -/
+  skip : Nat := 0
+  /-- Completed server requests awaiting a reply. -/
+  requests : List (List Byte) := []
 
 def start (accept : List Byte) : State :=
   { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start ByteAuth.concrete)
@@ -62,9 +74,84 @@ def expect (s : State) (id : Nat) : State :=
 
 def get (bytes : List Byte) (index : Nat) : Byte := bytes.getD index 0
 
+/-! ### Server requests
+
+A server-initiated message is a request (`08 01`): `12 len { verb (0a), path
+(12), body (1a), id (20), headers (2a) }`. Its verb, path, id and headers are
+revealed; its BODY never is, because the body of a delivered message can name
+its sender. The scanner below walks the revealed bytes (which omit the body's
+content) and says what to do next. -/
+
+/-- A protobuf varint at `index`: its value and the index after it. -/
+def varintAt (bytes : List Byte) (index : Nat) : Option (Nat × Nat) :=
+  let rec go (fuel pos shift acc : Nat) : Option (Nat × Nat) :=
+    match fuel with
+    | 0 => none
+    | fuel + 1 =>
+      if pos ≥ bytes.length then none else
+      let b := (get bytes pos).toNat
+      let acc := acc + (b % 128) * 2 ^ shift
+      if b < 128 then some (acc, pos + 1) else go fuel (pos + 1) (shift + 7) acc
+  go 10 index 0 0
+
+inductive Need where
+  | more                 -- reveal the next byte
+  | skip (count : Nat)   -- pass over this many body bytes without revealing them
+  | malformed
+  deriving BEq
+
+structure Fields where
+  verb : List Byte := []
+  path : List Byte := []
+  id : Option Nat := none
+  body : Option Nat := none   -- body length, if a body field was present
+
+/-- Walk the fields of a request from the revealed bytes. `bodySkipped` says
+whether the body's content has already been passed over. -/
+def scan (bytes : List Byte) (bodySkipped : Bool) : Need × Fields := Id.run do
+  if bytes.length < 3 then return (.more, {})
+  unless bytes.take 2 == [8, 1] && get bytes 2 == 0x12 do return (.malformed, {})
+  let some (_, first) := varintAt bytes 3 | return (.more, {})
+  let mut pos := first
+  let mut fields : Fields := {}
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return (.more, fields)
+    let tag := (get bytes pos).toNat
+    if tag == 0x20 then
+      let some (value, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      fields := { fields with id := some value }
+      pos := next
+    else if tag == 0x0a || tag == 0x12 || tag == 0x2a then
+      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      if next + count > bytes.length then return (.more, fields)
+      let value := (bytes.drop next).take count
+      if tag == 0x0a then fields := { fields with verb := value }
+      if tag == 0x12 then fields := { fields with path := value }
+      pos := next + count
+    else if tag == 0x1a then
+      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      if fields.body.isSome then return (.malformed, fields)
+      fields := { fields with body := some count }
+      if next == bytes.length && !bodySkipped && count > 0 then return (.skip count, fields)
+      pos := next
+    else return (.malformed, fields)
+  return (.more, fields)
+
 /-- Whether another byte of the current record may be revealed: never a third
-payload byte of a message that did not start as a response. -/
-def mayReveal (s : State) : Bool := s.message.length < 2 || s.message == [8, 2]
+payload byte of a message that is neither a response nor a request, and never
+a request's body. -/
+def mayReveal (s : State) : Bool :=
+  s.skip == 0 && (s.message.length < 2 || s.message == [8, 2] || s.message == [8, 1])
+
+/-- How many bytes may be revealed in one step. Inside the payload of a message
+already confirmed as a response (`08 02`), all but the last remaining byte of
+the current frame; otherwise one. Staying one short of the frame's end means a
+chunk never reaches into a following frame, whose payload must not be revealed
+beyond two bytes. The caller additionally checks that a chunk stays inside one
+message. (Frame state: phase flags at 0..4, remaining payload at 10..11.) -/
+def budget (s : State) : Nat :=
+  let remaining := (get s.frame 10).toNat * 256 + (get s.frame 11).toNat
+  if s.upgraded && s.message == [8, 2] && get s.frame 4 == on && remaining ≥ 2 then remaining - 1 else 1
 
 /-- Consume one revealed byte. Returns the new state and whether a successful
 response to the pending request completed at this byte. -/
@@ -73,25 +160,92 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     let out := TlsWebSocketUpgrade.runByte ByteAuth.concrete (s.upgrade ++ s.accept ++ [on, byte])
     unless get out 0 == on do throw "WebSocket upgrade response rejected"
     pure (get out 2, { s with upgrade := out.drop 3, upgraded := get out 1 == on })
-  let frame := if s.pending then TlsWebSocketFrame.runByte ByteAuth.concrete capacity (s.frame ++ [activity, byte])
-    else TlsWebSocketIdle.run ByteAuth.concrete capacity (s.frame ++ [activity, byte])
+  unless s.skip == 0 do throw "a request body byte was revealed"
+  -- The general frame parser: server requests are data frames too.
+  let frame := TlsWebSocketFrame.runByte ByteAuth.concrete capacity (s.frame ++ [activity, byte])
   unless get frame 0 == on do throw "WebSocket frame rejected"
   let control := TlsWebSocketControl.run ByteAuth.concrete (s.control ++ [get frame 2, get frame 6, get frame 7, byte])
-  let message := if get frame 1 == on && s.message.length < 2 then s.message ++ [byte] else s.message
-  unless message.length < 2 || message == [8, 2] do
-    throw "server-initiated message: not revealed and not handled on this path"
-  let mut s := { s with frame := frame.drop 8, control, message := if get frame 5 == on then [] else message }
+  let data := get frame 1 == on
+  let done := get frame 5 == on
+  let first := data && s.message.length == 0
+  let message := if data && s.message.length < 2 then s.message ++ [byte] else s.message
+  unless message.length < 2 || message == [8, 2] || message == [8, 1] do
+    throw "server-initiated message of an unknown kind: not revealed further"
+  if first && done then throw "one-byte message"
+  let flags := [get frame 1, get frame 3, get frame 5]
+  -- What the response parser sees: everything except the payload of a request. The first
+  -- payload byte waits until the second shows which kind of message this is.
+  let feed : List (List Byte × Byte) :=
+    if !data then [(flags, byte)]
+    else if first then []
+    else if message == [8, 2] then (if s.message.length == 1 then s.held.toList else []) ++ [(flags, byte)]
+    else []
+  let mut s := { s with frame := frame.drop 8, control, message,
+                        held := if first then some (flags, byte) else if message.length ≥ 2 then none else s.held }
   let mut complete := false
   if s.pending then
-    let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete ByteAuth.concrete capacity
-      (s.response ++ [get frame 1, get frame 3, get frame 5, byte])
-    unless get out 0 == on do throw "service response rejected or not correlated"
-    s := { s with response := out.drop 6 }
-    if get out 1 == on then
-      unless get out 2 == on do throw "service response was not a success"
-      complete := true
-      s := { s with pending := false, response := [] }
+    for (entry, value) in feed do
+      if s.pending then
+        let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete ByteAuth.concrete capacity
+          (s.response ++ entry ++ [value])
+        unless get out 0 == on do throw "service response rejected or not correlated"
+        s := { s with response := out.drop 6 }
+        if get out 1 == on then
+          unless get out 2 == on do throw "service response was not a success"
+          complete := true
+          s := { s with pending := false, response := [] }
+  if data && message == [8, 1] then
+    let request := if s.request.isEmpty then [8, 1] else s.request ++ [byte]
+    s := { s with request }
+    match (scan request s.bodySkipped).1 with
+    | .malformed => throw "malformed server request"
+    | .skip count => s := { s with skip := count, bodySkipped := true }
+    | .more => pure ()
+  if done then
+    unless s.skip == 0 do throw "server request ended inside its body"
+    if message == [8, 1] then s := { s with requests := s.requests ++ [s.request] }
+    s := { s with message := [], held := none, request := [], bodySkipped := false }
   return (s, complete)
+
+/-- Pass over one unrevealed body byte of a server request: only the frame
+parser advances (it does not look at the payload of a binary frame). -/
+def stepSkipped (s : State) : Except String State := do
+  unless s.upgraded && s.skip > 0 && s.message == [8, 1] do throw "nothing to skip"
+  let frame := TlsWebSocketFrame.runByte ByteAuth.concrete capacity (s.frame ++ [on, 0])
+  unless get frame 0 == on && get frame 1 == on do throw "request body left its frame"
+  let control := TlsWebSocketControl.run ByteAuth.concrete (s.control ++ [get frame 2, get frame 6, get frame 7, 0])
+  let mut s := { s with frame := frame.drop 8, control, skip := s.skip - 1 }
+  if get frame 5 == on then
+    unless s.skip == 0 do throw "server request ended inside its body"
+    s := { s with requests := s.requests ++ [s.request], message := [], held := none, request := [], bodySkipped := false }
+  return s
+
+/-- A masked client frame carrying a binary message shorter than 126 bytes. -/
+def clientFrame (mask payload : List Byte) : List Byte :=
+  [0x82, BitVec.ofNat 8 (128 + payload.length)] ++ mask ++
+    payload.zipIdx.map (fun (byte, index) => byte ^^^ get mask (index % 4))
+
+def varint (n : Nat) : List Byte :=
+  (List.range 10).filterMap fun i =>
+    let rest := n / 128 ^ i
+    if i > 0 && rest == 0 then none
+    else some (BitVec.ofNat 8 (rest % 128 + (if rest / 128 == 0 then 0 else 128)))
+
+/-- The reply to a completed server request, if one is due: `200 OK` for
+`queue/empty`. A delivered message is NOT acknowledged (receiving is not
+supported here, and only an acknowledgement removes it from the server's
+queue). Anything else is an error. -/
+def reply (request mask : List Byte) : Except String (Option (List Byte)) := do
+  let (_, fields) := scan request true
+  let some id := fields.id | throw "server request without an id"
+  let path := String.fromUTF8! ⟨(fields.path.map (fun b => UInt8.ofNat b.toNat)).toArray⟩
+  if path == "/api/v1/queue/empty" then
+    let response := [0x08] ++ varint id ++ [0x10, 0xc8, 0x01, 0x1a, 0x02, 0x4f, 0x4b]
+    let message := [0x08, 0x02, 0x1a] ++ varint response.length ++ response
+    unless message.length < 126 && mask.length == 4 do throw "server request reply shape"
+    return some (clientFrame mask message)
+  else if path == "/api/v1/message" then return none
+  else throw s!"unsupported server request {path}"
 
 /-- Queued control replies as (kind, masked frame bytes); the queue is cleared. -/
 def replies (s : State) (mask : List Byte) : Except String (State × List (Nat × List Byte)) := do
@@ -227,19 +381,34 @@ def main (args : List String) : IO Unit := do
         let mut s := start
         let mut complete := false
         let mut offset := 0
-        let mut length := 1
+        -- The length alone (an offset past any record reveals no byte).
+        let probe ← rpc.call .revealRange (uint 8 handle ++ uint 2 65535 ++ uint 2 1)
+        insist (probe.length == 2) "invalid reveal reply"
+        let mut length := number probe
         while offset < length do
+          if s.skip > 0 then
+            -- A server request's body: passed over, never revealed.
+            let count := min s.skip (length - offset)
+            for _ in [0:count] do
+              s ← liftResult (PublicReceive.stepSkipped s)
+            offset := offset + count
+            continue
           insist (PublicReceive.mayReveal s) "refusing to reveal a server-initiated message"
-          let out ← rpc.call .revealApplication (uint 8 handle ++ uint 2 offset)
-          insist (out.length == 2 || out.length == 3) "invalid reveal reply"
+          let count := PublicReceive.budget s
+          let out ← rpc.call .revealRange (uint 8 handle ++ uint 2 offset ++ uint 2 count)
+          insist (out.length ≥ 2 && out.length ≤ 2 + count) "invalid reveal reply"
           length := number (out.take 2)
+          let bytes := out.drop 2
           if offset < length then
-            insist (out.length == 3) "missing revealed byte"
-            liftM (revealed.modify (· + 1) : IO Unit)
-            let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 (out[2]?.getD 0).toNat))
-            s := next
-            complete := complete || done
-          offset := offset + 1
+            insist (!bytes.isEmpty) "missing revealed bytes"
+            liftM (revealed.modify (· + bytes.length) : IO Unit)
+            for (byte, index) in bytes.zipIdx do
+              let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 byte.toNat))
+              -- A chunk must stay inside the response it was granted for.
+              insist (index + 1 == bytes.length || next.message == [8, 2]) "revealed range crossed a message boundary"
+              s := next
+              complete := complete || done
+          offset := offset + (if bytes.isEmpty then 1 else bytes.length)
         return (s, complete)
       -- One send: the engines produce and open the sealed-sender envelope; the request
       -- is assembled here; the engines insert the contact's fields and seal the record.
@@ -283,8 +452,13 @@ def main (args : List String) : IO Unit := do
         let body := message.toUTF8.data.toList
         insist (0 < body.length && body.length ≤ 48) "notify message must be 1..48 bytes"
         insist (ids.all (· < 2 ^ 128)) "contact ids are u128"
-        pure (ids.zipIdx.map (fun (contact, index) =>
-          (contact, [255] ++ uint 2 body.length ++ body ++ List.replicate (48 - body.length) 0 ++ uint 8 (timestamp + index))))
+        -- The text is public, so the message content (protobuf, padding) is built here
+        -- with the same definition the private path compiles to a circuit.
+        ids.zipIdx.mapM (fun (contact, index) => do
+          let input := [255] ++ uint 2 body.length ++ body ++ List.replicate (48 - body.length) 0 ++ uint 8 (timestamp + index)
+          let built := PrivateTextNotification.build Sha256.concrete Varint64.concrete ByteAuth.concrete (toBits input)
+          insist (built.length == 90 && built.head? == some 255) "message text rejected"
+          pure (contact, toBytes built))
       -- TEST: the fixture recipient compares each envelope with pre-computed ciphertext for
       -- these exact texts and timestamps, so each call names one contact here.
       insist (inputs.length == 4) "fixture catalogue changed"
@@ -307,6 +481,14 @@ def main (args : List String) : IO Unit := do
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
+            -- Replies to completed server requests (each with its own joint mask).
+            for request in s.requests do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              match ← liftResult (PublicReceive.reply request (toBits (random.take 4))) with
+              | some frame => sendPublic (toBytes frame)
+              | none => pure ()
+            let s := { s with requests := [] }
             insist (!complete || wasPending) "unsolicited service response"
             let finished := completed + (if complete then 1 else 0)
             if complete && finished == 1 then TlsApplication.keyUpdate app false
@@ -332,7 +514,7 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 29 && codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38 && !codes.contains 18
+    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38 && !codes.contains 18
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("private_receive_parsing_used",toJson (codes.contains 18)),

@@ -67,13 +67,20 @@ struct Worker {
         case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));return {};}
         case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
         // Notify path: a send to a contact by id with a public text, then its request frame.
-        case 41:{need(phase==Phase::retired&&service&&p.size()==16+59,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 41:{need(phase==Phase::retired&&service&&p.size()==16+90,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
         case 42:{
             need(phase==Phase::retired&&service&&p.size()>28&&p.size()<=28+16384,"contact request");
             std::vector<size_t>offsets;for(int i=0;i<4;i++)offsets.push_back(big(p.data()+16+2*i,2));
             uint64_t id=service->request(contact(p),offsets,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+28,p.end()));
             Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
         }
+        // Local-server testing: admit a contact from an export (id16, certificate length 2,
+        // identity 32, record), and open an unauthenticated chat socket (reply: nonce16, accept28).
+        case 44:{
+            need(phase==Phase::retired&&service&&p.size()>50,"contact admit");
+            service->admit_contact(contact(p),big(p.data()+16,2),Bytes(p.begin()+18,p.begin()+50),Bytes(p.begin()+50,p.end()));return {};
+        }
+        case 45:{need(phase==Phase::retired&&service&&p.empty(),"public upgrade");auto nonce=joint_random();nonce.resize(16);return service->upgrade_public(nonce);}
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}
         // Each party sends its private bytes and receives the other's (for values that are safe
         // to reveal, such as parity shares of a consistency check).
@@ -100,6 +107,7 @@ struct Worker {
         case 18:{need(phase==Phase::retired&&service&&!service->public_receive&&p.size()==8,"process WebSocket");return service->process(big(p.data(),8));}
         // Public-receive profile (PublicServiceController.lean).
         case 29:{need(phase==Phase::retired&&service&&service->public_receive&&p.size()==10,"reveal");return kernels.reveal_byte(big(p.data(),8),big(p.data()+8,2));}
+        case 43:{need(phase==Phase::retired&&service&&service->public_receive&&p.size()==12,"reveal range");return kernels.reveal_range(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
         case 30:{need(phase==Phase::retired&&service&&service->public_receive&&!p.empty(),"public buffer");Bytes out;uint64_t id=kernels.public_buffer(p);for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;}
         case 34:{need(phase==Phase::retired&&service&&p.size()==16&&big(p.data(),8)==1,"seal envelope");return service->seal_open(big(p.data()+8,8));}
         case 35:{
