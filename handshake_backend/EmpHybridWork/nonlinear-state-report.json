@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "scope": "Two nonlinear imported AES calls in one authenticated EMP session. Private first result and key carried through checkpoints; only final padded result revealed to Bob. Not field conversion, Signal or erasure evidence.",
+  "security": "Current unaudited EMP rewrite; declared S40; implementation/theorem composition unvalidated.",
+  "source_sha256": "02191c74471822a3b3818c397e61b959537e54df7380c41173831c97ae7c9658",
+  "binary_sha256": "33c6a58b5abba290f0e3fffefd996dd620c907f4b21e2a027ef4e408c09301fd",
+  "build": {
+    "unaudited_rewrite_warning": true,
+    "pins": {
+      "emp-tool": [
+        "339bde8479842c88d115cec16ffca90a4c050c3f",
+        "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04"
+      ],
+      "emp-ot": [
+        "5072bdab546c89a24be3368a7ce2bab1cdefec1f",
+        "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f"
+      ],
+      "emp-ag2pc": [
+        "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+        "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+      ]
+    },
+    "archive_sha256": {
+      "emp-tool": "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04",
+      "emp-ot": "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f",
+      "emp-ag2pc": "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+    },
+    "counter_original_sha256": "efe2f8401fef3fd0cf42188c942e7008d968a96613a27e2998e737a7b38527e3",
+    "counter_overlay_sha256": "5831c6dea86342185516b26306a458caf7aa7f5dba8f1d340acd7ddf0ecf6315",
+    "compatibility_namespace_qualification": {
+      "backend/triple_pool.h": {
+        "original_sha256": "5aaea6736e1a8cdda63f5c733c3d0dd87e72d80ada9284c767e35ca45b869077",
+        "overlay_sha256": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7"
+      },
+      "backend/protocol.h": {
+        "original_sha256": "de69d98323920d10781fed0ffc26bbddb1d5a6d7ac17e5d3085eef11ee7a460f",
+        "overlay_sha256": "26ca350dcd72c9a8a2a082e14ee5dee052fc86d8e801f34f886bef2c1e1f99ed"
+      }
+    },
+    "worker_sha256": "9daa84d03f8c9676b359b785ff5adbc2c1506a0f028afebe98020632cd8c6c29",
+    "worker_source_sha256": "b7e9eb5ffdfcc3ec7b736ea7a1f4683ffa2fbcf5e8afc7985cc1223211e65ab3",
+    "ssp": 40,
+    "tiny_nonzero_chunks_below1024": "rejected by adapter before protocol execution",
+    "worker_build_type": "Release",
+    "context_checks_enabled": true,
+    "security_validation": "pending native replay and adversarial controls; no production promotion"
+  },
+  "results": [
+    {
+      "passed": true,
+      "corrupt_retained_delta": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-m2x_9woc",
+      "controller_seconds": 0.0677922919858247,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.0191682,
+          "setup_seconds": 0.0134758,
+          "input_seconds": 0.0007895,
+          "first_seconds": 0.00709221,
+          "second_seconds": 0.00731262,
+          "close_seconds": 0.000320334,
+          "first_sent_bytes": 1520784,
+          "first_received_bytes": 1230352,
+          "second_sent_bytes": 1550448,
+          "second_received_bytes": 1260016,
+          "and_gates": 17664,
+          "sent_bytes": 3135877,
+          "received_bytes": 2538213,
+          "wall_seconds": 0.0491777,
+          "cpu_seconds": 0.050136,
+          "peak_rss_bytes": 14942208
+        },
+        {
+          "party": 2,
+          "load_seconds": 0.0191073,
+          "setup_seconds": 0.0133488,
+          "input_seconds": 0.000917,
+          "first_seconds": 0.00710058,
+          "second_seconds": 0.00723737,
+          "close_seconds": 7.2708e-05,
+          "first_sent_bytes": 1230352,
+          "first_received_bytes": 1520784,
+          "second_sent_bytes": 1260016,
+          "second_received_bytes": 1550448,
+          "and_gates": 17664,
+          "sent_bytes": 2538213,
+          "received_bytes": 3135877,
+          "wall_seconds": 0.0491259,
+          "cpu_seconds": 0.04785,
+          "peak_rss_bytes": 15253504
+        }
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    },
+    {
+      "passed": true,
+      "corrupt_retained_delta": true,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-yzseht3t",
+      "controller_seconds": 0.05038954201154411,
+      "parties": [
+        null,
+        null
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    }
+  ]
+}

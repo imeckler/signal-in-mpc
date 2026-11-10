@@ -15,7 +15,7 @@ Status: implementation plan and checked public parameter model. **No EMP↔field
 
 Archive hashes, dependency closure, diagnostic overlays and environment are recorded in [the comparison work](../../../benchmarks/TwoPartyComparisonWork/README.md). Current EMP explicitly warns of an **unaudited AI-assisted rewrite**. Our current build has namespace-only compatibility qualification and byte counters, not a security audit. SoftSpoken<4> malicious mode is the EMP default; native MASCOT uses its checked SoftSpoken path. No KOS/insecure fallback or guard deletion.
 
-`4d2d329` demonstrates imported AES/SHA gates, authenticated-result checkpoint retention, Bob-only output and actual c_gamma rejection after local key corruption. It does not yet demonstrate two nonlinear replays consuming returned state. `0e15ff1` demonstrates actual native X25519 and MASCOT↔Tinier conversion controls; **those daBits are not an EMP bridge**. Pure Boolean X25519 optimization is superseded; no such implementation/export was started.
+`4d2d329` demonstrates imported AES/SHA gates, authenticated-result checkpoint retention, Bob-only output and actual c_gamma rejection after local key corruption. The subsequent `nonlinear-state-report.json` demonstrates two nonlinear replays consuming returned private state and retained-key corruption rejection; no first-result opening occurs. `0e15ff1` demonstrates actual native X25519 and MASCOT↔Tinier conversion controls; **those daBits are not an EMP bridge**. Pure Boolean X25519 optimization is superseded; no such implementation/export was started.
 
 ## Selected bridge route
 
