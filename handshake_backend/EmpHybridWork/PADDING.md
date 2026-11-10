@@ -1,0 +1,9 @@
+# Checked tiny-kernel padding
+
+`pad_program.h` leaves zero-AND and >=1024-AND programs unchanged. For 1..1023 original ANDs, it inserts two fresh secret inputs per missing AND, shifts all original non-input wire IDs, appends independent AND gates and appends their outputs. These outputs must remain live through the backend's complete checking stage; the native fixture then prunes them without opening. Neither statistical parameters nor backend sizing/check code changes.
+
+Original-output preservation follows the dense-SSA induction: original input i retains i; original gate wire w maps to w+2d. Each original gate keeps its opcode and remapped operands, so computes the same Boolean value. Constants have no operands. Original output order, duplicates and input outputs are preserved. Added gates reference only appended independent inputs and cannot affect any original gate. This is an informal argument and executable regression, **not a Lean/compiler theorem**.
+
+`check_padding.py` tests 448 interpretations, including boundary counts 0/1/2/15/1023/1024/1025, constants, negation and duplicate/input outputs. The actual EMP fixture executes a one-AND function with 1023 fresh independent dummy ANDs, verifies the engine consumed1024 ANDs, prunes dummy results privately, then reveals only its one original fixture predicate. Retained key corruption triggers actual c_gamma rejection with no fixture success. This is functional/check-path evidence for the current unaudited S40 EMP candidate; it does not validate a cross-domain bridge or retirement/erasure.
+
+Callers must supply fresh secret dummy inputs on every execution and retain the returned `original_outputs` boundary. The helper is public-code transformation only and owns no secret inputs/state. No bridge caller has been enabled yet.

@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "semantic": {
+    "passed": true,
+    "equivalence_cases": 448,
+    "malformed_rejected": true
+  },
+  "results": [
+    {
+      "passed": true,
+      "corrupt_delta": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/padded-kernel-0it3w4wg"
+    },
+    {
+      "passed": true,
+      "corrupt_delta": true,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/padded-kernel-t91fhybn"
+    }
+  ],
+  "security": "Unaudited current EMP, configured S40. Actual checked 1024-AND kernel, no parameter bypass. Backend/theorem composition remains unvalidated.",
+  "scope": "Original-output equivalence tested at0/1/2/15/1023/1024/1025 ANDs with constants, inversions, duplicate/input outputs; real one-AND native kernel pads with1023 independent secret ANDs, keeps dummy outputs through checking, prunes without opening.",
+  "pins": {
+    "pad_program.h": "660e129078483fbd4eefb4ddba582c62abd4518481a896a550609d88e1407218",
+    "padded_kernel_fixture.cpp": "577a65a80c20f8300f9ebc1b371097218cf81037cf411a10ab4d328fa20898a8",
+    "emp-padded-kernel": "e451f8ec20900260b4f012f66d8eac3184eb7483d424121c62a23bc296d8f617"
+  },
+  "build": {
+    "unaudited_rewrite_warning": true,
+    "pins": {
+      "emp-tool": [
+        "339bde8479842c88d115cec16ffca90a4c050c3f",
+        "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04"
+      ],
+      "emp-ot": [
+        "5072bdab546c89a24be3368a7ce2bab1cdefec1f",
+        "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f"
+      ],
+      "emp-ag2pc": [
+        "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+        "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+      ]
+    },
+    "archive_sha256": {
+      "emp-tool": "66630108ca22744838c472d92ad41efcfcb3d0ad3217aad20fefdf6118f18d04",
+      "emp-ot": "22289325bd3a3ab1de50b52f90221142b9cc68ff379f9ec1a5d979795dd3548f",
+      "emp-ag2pc": "1ebb7286c42799d28b6a3eb3fe4f65a7660c43b6eb6694674cfb45cc0a886bde"
+    },
+    "counter_original_sha256": "efe2f8401fef3fd0cf42188c942e7008d968a96613a27e2998e737a7b38527e3",
+    "counter_overlay_sha256": "5831c6dea86342185516b26306a458caf7aa7f5dba8f1d340acd7ddf0ecf6315",
+    "compatibility_namespace_qualification": {
+      "backend/triple_pool.h": {
+        "original_sha256": "5aaea6736e1a8cdda63f5c733c3d0dd87e72d80ada9284c767e35ca45b869077",
+        "overlay_sha256": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7"
+      },
+      "backend/protocol.h": {
+        "original_sha256": "de69d98323920d10781fed0ffc26bbddb1d5a6d7ac17e5d3085eef11ee7a460f",
+        "overlay_sha256": "26ca350dcd72c9a8a2a082e14ee5dee052fc86d8e801f34f886bef2c1e1f99ed"
+      }
+    },
+    "worker_sha256": "9daa84d03f8c9676b359b785ff5adbc2c1506a0f028afebe98020632cd8c6c29",
+    "worker_source_sha256": "b7e9eb5ffdfcc3ec7b736ea7a1f4683ffa2fbcf5e8afc7985cc1223211e65ab3",
+    "ssp": 40,
+    "tiny_nonzero_chunks_below1024": "rejected by adapter before protocol execution",
+    "worker_build_type": "Release",
+    "context_checks_enabled": true,
+    "security_validation": "pending native replay and adversarial controls; no production promotion"
+  }
+}
