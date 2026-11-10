@@ -1,0 +1,38 @@
+{
+  "candidate_only": true,
+  "whole_callback_proved": false,
+  "passed_expected_rejection": true,
+  "generated_computational_bodies_unchanged": true,
+  "primitive_adapter_module_typechecked": true,
+  "whole_callback_generated_graph_does_not_typecheck": true,
+  "reason": "mutable Iterator/IntoIterator trait signatures and higher-order loop owner-exit continuation mismatch",
+  "results": [
+    {
+      "module": "CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Types",
+      "exit": 0
+    },
+    {
+      "module": "CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/FunsExternal",
+      "exit": 0
+    },
+    {
+      "module": "CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Funs",
+      "exit": 1
+    }
+  ],
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/check_rejection.py": "69a37be5cd6448642a3fa61ccaf9520560d72d0de0ca7b7a1d08ff60af1914a8",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/extract.py": "3364162ce94d03015c7a0c65834277e3baf0c452c1e6f543991a4395810f4244",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/extract_opaque_get.py": "5276f738f7d3c24a06e145bf31fc034fb9b77f3cc6dff4c996ca538b54db2f65",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/select_metadata.py": "7928d684363e84f6c7929bc1042268877ca76622c4e81b6146ec67c4787f19c2",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/select_get_metadata.py": "63656e978064f6f240e7967db992219228b20e20baddbb4929f08310440d48ed",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/get-extraction-report.json": "fe7642a9107e3341f8e262bb746e45520c6655ce17082b314c2035228ac58c69",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/get-selection-report.json": "db3d804d4a5c41e2292e2012c0347ac10595cb48aa38c013280892227f4b4ce3",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/ArtifactsGet/model.rs": "0d2f14b961a07431dda6d99b2fccdacb78208082eed90a61d3a72941b886ae0b",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/ArtifactsGet/selected-method.rs": "824207a2ca94fce5b061d7ac06eb89ce2e236aad26700fbb48718658c0c24618",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Types.lean": "ab3154c132565bc03bbd87d123bcfb67c28fe0a86dddcc6213761efecc4e51e4",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/FunsExternal.lean": "1d2c0e4f2f96a4399d91a8bb3f2b0815c5c3a3be333c4905a196031c6490e7f6",
+    "SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Funs.lean": "2be5d2c9184ff2893fa138ffa56e385bc8c5f96ac96ee904723fcae06c8e3a83"
+  },
+  "rejection_log_sha256": "d3992b597a143710c3ea70202d4dcdfd23327067d19468a02339693a03b2278d"
+}

@@ -1,0 +1,7 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/BlocksCallbackV1Work/ArtifactsSelected/selected.llbc
+[[91mError[39m] Could not find var for symbolic value: 9
+Source: 'src/lib.rs', lines 21:1-21:72
+[[92mInfo[39m ] Generated the partial file (because of 1 errors, including 1 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedSelected/Types.lean
+[[92mInfo[39m ] Generated the partial file (because of 1 errors, including 1 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedSelected/FunsExternal_Template.lean
+[[92mInfo[39m ] Generated the partial file (because of 1 errors, including 1 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedSelected/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.517420 seconds

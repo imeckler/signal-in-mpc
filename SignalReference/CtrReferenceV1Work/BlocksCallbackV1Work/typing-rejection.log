@@ -1,0 +1,27 @@
+CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Funs.lean:29:10: error: Type mismatch
+  core.slice.iter.IteratorIterMut.next
+has type
+  core.slice.iter.IterMut ?m.3 →
+    Result
+      (Option ?m.3 ×
+        core.slice.iter.IterMut ?m.3 × (core.slice.iter.IterMut ?m.3 → Option ?m.3 → core.slice.iter.IterMut ?m.3))
+but is expected to have type
+  core.slice.iter.IterMut T → Result (Option T × core.slice.iter.IterMut T)
+CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Funs.lean:74:4: error: Type mismatch
+  CoreIterTraitsCollectIntoIteratorMutAInOutArrayU816IterMutAInOutArrayU816.into_iter
+has type
+  InOutBuf →
+    Result
+      (core.slice.iter.IterMut (InOut (Std.Array U8 16#usize)) ×
+        (core.slice.iter.IterMut (InOut (Std.Array U8 16#usize)) → InOutBuf))
+but is expected to have type
+  InOutBuf → Result (core.slice.iter.IterMut (InOut (Std.Array U8 16#usize)))
+CtrReferenceV1Work/BlocksCallbackV1Work/GeneratedGetSelected/Funs.lean:235:34: error: Application type mismatch: The argument
+  back
+has type
+  core.slice.iter.IterMut (InOut (Std.Array (Std.Array U8 16#usize) 4#usize)) →
+    core.slice.iter.IterMut (InOut (Std.Array (Std.Array U8 16#usize) 4#usize))
+but is expected to have type
+  core.slice.iter.IterMut (InOut (Std.Array (Std.Array U8 16#usize) 4#usize))
+in the application
+  into_iter_back back
