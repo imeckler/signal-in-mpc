@@ -1,0 +1,9 @@
+# Complete actual inner-group state refinement candidate
+
+`actual_inner_group_refinement` establishes an actual extracted Prost group-loop result and the complete all-outcome numeric state/cache/frame relation. The proof uses strong induction on the actual contiguous source slice length. All six wire kinds are covered, including nested groups, matching/mismatching end tags, arbitrary inner tags (including schema-looking tags), malformed keys/varints/lengths, physical underflow and the actual recursion limit. The final theorem has no assumed recursive correctness or primitive-termination premise.
+
+A compatible native success must restore the witnessed enclosing frame or ordinary response boundary with exact consumed prefix/cache/private counters. Native errors reject. Native success outside the private child domain also rejects; actual native error/status/suffix remain distinct from earlier numeric rejection. Nested groups recurse on their physical key suffix and then the strictly shorter actual returned suffix; restored source context is fixed by the witnessed ancestor stack.
+
+Domain: live bounded inner response frame, actual source recursion context plus active stack length equals100, depth1..99, valid private child/budget and cache invariants. Initial response dispatcher entry and outer groups context100/depth100 are not included in this theorem. Neither group event traces nor whole schema/HTTP/private correlation/compiler endpoint are claimed. Existing bounded content/allocation, UTF8 std-body and static diagnostic-push boundaries remain explicit and unchanged.
+
+Run `python3 SignalReference/ChatResponseReferenceWork/StreamingUnknownV1/check_group_refinement.py`. The checker inherits source/object-bound receipts, checks both new modules in a fresh output directory, rejects sorry/native axioms, and records immutable aggregate logs.
