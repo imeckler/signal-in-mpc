@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "scope": "exact public combinatorics and small ideal checker model only; no native bridge/security composition claim",
+  "bad_count_cases": 9,
+  "challenges_per_case": 1680,
+  "profiles": [
+    {
+      "outputs": 1,
+      "bucket": 41,
+      "cut_factor": 2,
+      "candidates_per_party": 82,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "424784580848791721628840",
+      "approx_bound_bits": 78.49107758146874,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 16,
+      "bucket": 8,
+      "cut_factor": 2,
+      "candidates_per_party": 256,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "25603980954750",
+      "approx_bound_bits": 44.54143337411891,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 64,
+      "bucket": 6,
+      "cut_factor": 2,
+      "candidates_per_party": 768,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "4366688524926",
+      "approx_bound_bits": 41.98967676626967,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 256,
+      "bucket": 5,
+      "cut_factor": 2,
+      "candidates_per_party": 2560,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "3565177504002",
+      "approx_bound_bits": 41.69711104638857,
+      "backend_security_proved": false
+    }
+  ],
+  "native_bridge_implemented": false
+}
