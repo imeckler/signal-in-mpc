@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings for the local Signal-Server build.
+
+  Signal-Server's root pom declares a repository `signal-build-artifacts`
+  (build-artifacts.signal.org), a Signal-operated host. We never contact Signal
+  hosts, so that repository id is mirrored to Maven Central. Any artifact that
+  only exists there will fail to resolve instead of being fetched; see
+  patches/0001-libsignal-0.86.5-from-maven-central.patch for the one known case.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>no-signal-hosts</id>
+      <name>Redirect Signal-operated repository to Maven Central</name>
+      <mirrorOf>signal-build-artifacts</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </mirror>
+  </mirrors>
+</settings>

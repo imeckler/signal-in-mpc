@@ -1,0 +1,13 @@
+diff --git a/pom.xml b/pom.xml
+index da43a9463..71a33c2dc 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -287,7 +287,7 @@
+       <dependency>
+         <groupId>org.signal</groupId>
+         <artifactId>libsignal-server</artifactId>
+-        <version>0.86.6</version>
++        <version>0.86.5</version>
+       </dependency>
+       <dependency>
+         <groupId>org.signal</groupId>

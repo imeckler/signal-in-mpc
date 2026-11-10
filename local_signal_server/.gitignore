@@ -1,0 +1,9 @@
+# Third-party checkouts, toolchains, Maven cache and build output
+third_party/
+# Generated configuration, secrets, keys, accounts, certificates
+state/
+# Logs and transcripts
+logs/
+*.log
+# Rust build output of the provisioning tool
+provision/target/

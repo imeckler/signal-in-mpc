@@ -1,0 +1,21 @@
+[package]
+name = "lss-provision"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Conventional (non-MPC) Signal client that provisions accounts on the LOCAL Signal-Server only"
+
+# Same libsignal source and crate versions as signal_backend/Oracle (offline, vendored; see .cargo/config.toml).
+[dependencies]
+libsignal-protocol = {path="../../.deps/libsignal-v0.106.1/rust/protocol"}
+libsignal-core = {path="../../.deps/libsignal-v0.106.1/rust/core"}
+signal-crypto = {path="../../.deps/libsignal-v0.106.1/rust/crypto"}
+rand = "=0.9.4"
+serde_json = "=1.0.150"
+tokio = {version="=1.54.1",features=["rt"]}
+prost = "=0.14.4"
+base64 = "=0.22.1"
+tungstenite = "=0.29.0"
+[build-dependencies]
+prost-build = "=0.14.4"
+[workspace]
