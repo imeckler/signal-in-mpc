@@ -558,19 +558,20 @@ def tlsSealPrivateCtr (size : Nat) : Kernel :=
 A contact's record is stored as ciphertext held by both computation nodes
 (each uses its own copy, so one node cannot substitute or roll it back). The
 key exists only as a secret-shared scalar on the database nodes, delivered to
-the two computation nodes as additive shares modulo the Pallas scalar order.
+the two computation nodes as additive shares modulo `2^255 − 19` (the share
+field of the database and the field of the field engine).
 The public check value (one AES block under the key) detects a wrong key,
 whether from a bad database share or a party altering its own share. -/
 
-/-- Order of the Pallas scalar field, the field of the stored per-contact scalars. -/
-def pallasOrder : Nat := 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001
+/-- The field of the stored per-contact scalars. -/
+def shareModulus : Nat := 2 ^ 255 - 19
 
 /-- The record key from the two parties' additive shares of the stored scalar:
 `SHA-256("CONTACT_STATE_KEY_V1" ‖ scalar)`, laid out as a traffic block. -/
 def contactKey : Kernel :=
   let inputs := [("shareA", Shape.bytes 32), ("shareB", .bytes 32)]
   let get := lookup inputs
-  let scalar := ModAdd.modAddBytes pallasOrder (get "shareA") (get "shareB")
+  let scalar := ModAdd.modAddBytes shareModulus (get "shareA") (get "shareB")
   let label := "CONTACT_STATE_KEY_V1".toUTF8.toList.map (fun byte => const byte.toNat)
   let digest := Sha256.hash Sha256Ripple.ops (label ++ scalar)
   { name := "contact-key", inputs, outputs := [priv "traffic" (zeros 32 ++ sl digest 0 28)] }

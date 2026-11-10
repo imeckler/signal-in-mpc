@@ -2,7 +2,7 @@
 """Check the per-contact state kernels against independent references.
 
 contact-key: SHA-256("CONTACT_STATE_KEY_V1" || ((a + b) mod r) as 32 LE bytes),
-with r the Pallas scalar order, on random and boundary share pairs.
+with r = 2^255 - 19, on random and boundary share pairs.
 contact-seal / contact-open: AES-128-CTR as GCM lays out its counters, the key
 check value, round trip, and rejection under a wrong key.
 """
@@ -10,7 +10,7 @@ import hashlib,json,random,subprocess,sys
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers import Cipher,algorithms,modes
 HERE=Path(__file__).resolve().parent
-R=0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001
+R=2**255-19
 def kernel(*args):
     out=subprocess.run([sys.executable,str(HERE/'circuit_cache.py'),'kernel',*map(str,args)],check=True,capture_output=True).stdout.decode().split()
     lines=Path(out[0]).read_text().split('\n');n,count,width=map(int,lines[1].split())
