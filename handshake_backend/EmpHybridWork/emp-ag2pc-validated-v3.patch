@@ -1,0 +1,571 @@
+--- a/emp-ag2pc/backend/engine.h
++++ b/emp-ag2pc/backend/engine.h
+@@ -26,7 +26,10 @@
+ #include <array>
+ #include <cstddef>
+ #include <cstdint>
++#include <cstdio>
++#include <cstdlib>
+ #include <cstring>
++#include <iostream>
+ #include <span>
+ #include <tuple>
+ #include <type_traits>
+@@ -170,10 +173,21 @@
+     // c_gamma witness buffers.
+     st.M1_t.resize(std::max(1, st.num_ands));
+     st.Lambda_AND.assign(std::max(1, st.num_ands), 0);
++    st.Lbl_t.resize(std::max(1, st.num_ands));
++#ifdef EMP_HYBRID_TEST_ATTACKS
++    st.atk_in1_key.resize(std::max(1, st.num_ands));
++    st.atk_in1_pub.assign(std::max(1, st.num_ands), 0);
++    st.atk_in1_share.assign(std::max(1, st.num_ands), 0);
++#endif
+ 
+     // Function-dependent leaky-AND shares.
+     mpc->fpre->compute_inplace(st.rep_a, st.rep_b, st.num_ands, st.sigma);
+     AG2PC_PHASE("inplace_triples[step5b]");
++
++    // v3: validate every COT minted for this chunk before any garbled material,
++    // masked value or check digest derived from it is exchanged. The stock
++    // call after c_gamma is kept and becomes a no-op.
++    mpc->flush_cot_check();
+ 
+     // Half-gate tweak seed from the transcript.
+     st.mitc.setS(RO("AG2PC half-gate", zero_block)
+@@ -245,17 +259,32 @@
+   // c_gamma re-check pass, and send back the M1_t digest.
+   template <class Source>
+   void garbler_path_(AG2PCRunState& st, Source& source, AG2PCProtocol* mpc) {
++    const uint64_t chk_ctr = mpc->fpre->tag_ctr++;
+     { AG2PCGarblePass gp(st, mpc->send_io, mpc->pool); ag2pc_detail::run_pass(gp, source); }
++    char D_lbl[Hash::DIGEST_SIZE];
+     if (st.num_ands > 0) {
+       mpc->io->recv_bool((bool*)st.Lambda_AND.data(), st.num_ands);
++      mpc->io->recv_data(D_lbl, Hash::DIGEST_SIZE);
++      for (int i = 0; i < st.num_ands; ++i)
++        if (st.Lambda_AND[i] > 1) error("noncanonical Lambda_AND");
+     }
+     // Gamma pass also propagates masked-bit Lambda through XOR/NOT. A
+     // zero-AND chunk still needs that state for subsequent nonlinear calls.
+     AG2PCGammaCheckPass pp(st);
+     ag2pc_detail::run_pass(pp, source);
+     if (st.num_ands > 0) {
++      // v3: Open([Lambda]_B) with the garbled label as the MAC tag. The
++      // evaluator can hold L_{gamma,Lambda} only for the masked value its
++      // evaluation actually produced; it cannot shift by Delta_A. This check
++      // MUST pass before the M1_t digest below is released: that digest is a
++      // function of the garbler's secret mask shares whenever a reported
++      // Lambda is false.
++      char D_lbl_exp[Hash::DIGEST_SIZE];
++      tagged_digest(D_lbl_exp, "AG2PC label", BOB, chk_ctr, st.Lbl_t.data(), (size_t)st.num_ands * sizeof(block));
++      if (memcmp(D_lbl_exp, D_lbl, Hash::DIGEST_SIZE) != 0)
++        error("evaluator masked-value label check failed");
+       char D2[Hash::DIGEST_SIZE];
+-      Hash::hash_once(D2, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
++      tagged_digest(D2, "AG2PC cgamma", ALICE, chk_ctr, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
+       mpc->io->send_data(D2, Hash::DIGEST_SIZE);
+       mpc->io->flush();
+     }
+@@ -265,13 +294,48 @@
+   // garbler's c_gamma digest against our own M1_t.
+   template <class Source>
+   void evaluator_path_(AG2PCRunState& st, Source& source, AG2PCProtocol* mpc) {
++    const uint64_t chk_ctr = mpc->fpre->tag_ctr++;
+     { AG2PCEvaluatePass ep(st, mpc->recv_io, mpc->pool); ag2pc_detail::run_pass(ep, source); }
+     if (st.num_ands > 0) {
+-      mpc->io->send_bool((const bool*)st.Lambda_AND.data(), st.num_ands);
++      auto reported = st.Lambda_AND;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      int atk_flip = -1, atk_target = -1;
++      if (const char* spec = std::getenv("EMP_TEST_LAMBDA_LEAK")) {
++        if (std::sscanf(spec, "%d,%d", &atk_flip, &atk_target) != 2 || atk_flip < 0 ||
++            atk_target < 0 || atk_flip >= st.num_ands || atk_target >= st.num_ands)
++          error("EMP_TEST_LAMBDA_LEAK: bad spec");
++        reported[atk_flip] ^= 1;
++      }
++      if (std::getenv("EMP_TEST_FALSE_GAMMA")) reported[0] ^= 1;
++#endif
++      // v3: authenticate the reported masked values with the labels we hold.
++      char D_lbl[Hash::DIGEST_SIZE];
++      tagged_digest(D_lbl, "AG2PC label", BOB, chk_ctr, st.Lbl_t.data(), (size_t)st.num_ands * sizeof(block));
++      mpc->io->send_bool((const bool*)reported.data(), st.num_ands);
++      mpc->io->send_data(D_lbl, Hash::DIGEST_SIZE);
+       mpc->io->flush();
+       char D1[Hash::DIGEST_SIZE], D2[Hash::DIGEST_SIZE];
+-      Hash::hash_once(D1, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
++      tagged_digest(D1, "AG2PC cgamma", ALICE, chk_ctr, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
+       mpc->io->recv_data(D2, Hash::DIGEST_SIZE);
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      if (atk_target >= 0) {
++        // The garbler computed M1_t[target] with operand-0 mask flipped, i.e.
++        // shifted by ITS MAC on its share r of operand 1: K_B[r] xor r*Delta_B.
++        // We hold K_B[r] and Delta_B, so the digest is a one-bit oracle for r.
++        int found = -1;
++        for (int g = 0; g < 2; ++g) {
++          BlockVec c = st.M1_t;
++          c[atk_target] = c[atk_target] ^ st.atk_in1_key[atk_target] ^ (select_mask[g] & st.Delta);
++          char Dg[Hash::DIGEST_SIZE];
++          Hash::hash_once(Dg, c.data(), (size_t)st.num_ands * sizeof(block));
++          if (memcmp(Dg, D2, Hash::DIGEST_SIZE) == 0) found = g;
++        }
++        if (found < 0) std::cout << "lambda_leak recovered_wire_value=none\n";
++        else std::cout << "lambda_leak recovered_wire_value="
++                       << int(found ^ st.atk_in1_pub[atk_target] ^ st.atk_in1_share[atk_target]) << "\n";
++        return;   // the attacker does not run its own abort check
++      }
++#endif
+       if (memcmp(D1, D2, Hash::DIGEST_SIZE) != 0)
+         error("lambda c_gamma check failed");
+     }
+--- a/emp-ag2pc/backend/helper.h
++++ b/emp-ag2pc/backend/helper.h
+@@ -4,6 +4,7 @@
+ #include "emp-tool/runtime/crypto/ro.h"
+ #include "emp-tool/runtime/crypto/prg.h"
+ #include <condition_variable>
++#include <cstring>
+ #include <future>
+ #include <memory>
+ #include <mutex>
+@@ -146,4 +147,16 @@
+     error(fail_msg);
+ }
+ 
++// v3: every check digest is bound to its purpose, its sender and a per-session
++// counter that both parties advance in lockstep.
++inline void tagged_digest(char *out, const char *tag, int sender, uint64_t ctr,
++                          const void *data, size_t len) {
++  Hash h;
++  h.put(tag, (int64_t)strlen(tag) + 1);
++  uint64_t hdr[2] = {(uint64_t)sender, ctr};
++  h.put(hdr, sizeof(hdr));
++  h.put(data, (int64_t)len);
++  h.digest(out);
++}
++
+ #endif // __HELPER
+--- a/emp-ag2pc/backend/pass_ctx.h
++++ b/emp-ag2pc/backend/pass_ctx.h
+@@ -451,6 +451,12 @@
+       m = m ^ (select_mask[Lb] & wb_in0.key);
+       m = m ^ sb.key ^ wb_out.key;
+       s.M1_t[my_ai] = m;
++      s.Lbl_t[my_ai] = t;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      s.atk_in1_key[my_ai] = wb_in1.key;
++      s.atk_in1_pub[my_ai] = (unsigned char)Lb;
++      s.atk_in1_share[my_ai] = (unsigned char)v_in1;
++#endif
+     }
+     ++loc;
+     return id;
+@@ -507,6 +513,7 @@
+     m = m ^ (select_mask[La] & s.wslot(in1).mac);
+     m = m ^ (select_mask[Lb] & s.wslot(in0).mac);
+     s.M1_t[my_ai] = m;
++    s.Lbl_t[my_ai] = s.lbl(id) ^ (select_mask[s.Lambda_AND[my_ai] & 1] & s.Delta);
+     return id;
+   }
+ };
+--- a/emp-ag2pc/backend/protocol.h
++++ b/emp-ag2pc/backend/protocol.h
+@@ -173,6 +173,9 @@
+   SecureWires sw;sw.Lambda.resize(n_total);sw.wire_bundle.resize(n_total);
+   if(party==ALICE)sw.label0.resize(n_total);else sw.eval_label.resize(n_total);
+   fpre->draw(n_total,sw.wire_bundle);
++  // v3: input mask shares are opened to their owner below; validate the COTs first.
++  fpre->maybe_flush_cot_check();
++  const uint64_t in_ctr=fpre->tag_ctr++;
+   if(party==ALICE)prg.random_block(sw.label0.data(),n_total);
+   std::vector<int> mine,theirs;std::vector<uint8_t> own_x(n_total,0);
+   for(int k=0;k<K;k++)for(size_t j=0;j<bits_per_owner[k].size();j++){
+@@ -188,7 +191,7 @@
+   if(party==BOB&&std::getenv("EMP_TEST_NONCANONICAL_SHARE")&&!send_share.empty())send_share[0]=2;
+ #endif
+   char send_digest[Hash::DIGEST_SIZE],peer_digest[Hash::DIGEST_SIZE];
+-  if(!theirs.empty())Hash::hash_once(send_digest,send_mac.data(),send_mac.size()*sizeof(block));
++  if(!theirs.empty())tagged_digest(send_digest,"AG2PC input",party,in_ctr,send_mac.data(),send_mac.size()*sizeof(block));
+   std::vector<uint8_t> peer_share(mine.size());
+   std::vector<std::future<void>> jobs;
+   jobs.push_back(pool->enqueue([&]{if(!theirs.empty()){send_io->send_data(send_share.data(),send_share.size());send_io->send_data(send_digest,Hash::DIGEST_SIZE);send_io->flush();}}));
+@@ -197,7 +200,7 @@
+   for(auto bit:peer_share)if(bit>1)error("process_inputs: noncanonical peer share");
+   if(!mine.empty()){
+     BlockVec expected(mine.size());for(size_t j=0;j<mine.size();j++)expected[j]=sw.wire_bundle[mine[j]].key^(select_mask[peer_share[j]]&Delta);
+-    char digest[Hash::DIGEST_SIZE];Hash::hash_once(digest,expected.data(),expected.size()*sizeof(block));
++    char digest[Hash::DIGEST_SIZE];tagged_digest(digest,"AG2PC input",3-party,in_ctr,expected.data(),expected.size()*sizeof(block));
+     if(memcmp(digest,peer_digest,Hash::DIGEST_SIZE))error("process_inputs: peer share-MAC hash mismatch");
+   }
+   std::vector<uint8_t> own_gamma(mine.size()),peer_gamma(theirs.size());
+@@ -226,69 +229,65 @@
+   AG2PC_PHASE("process_inputs");return result;
+ }
+ 
++// v3 output phase (replaces the stock decode). Every opening is an IT-MAC
++// Open of the non-recipient's mask share to the recipient, who combines it
++// with its OWN masked value Lambda. No plaintext is ever forwarded: PUBLIC is
++// two independent directed openings. Soundness for recipient ALICE relies on
++// the engine's v3 label check, which authenticates every Lambda the garbler
++// holds; without that check ALICE's Lambda would be evaluator-chosen.
+ std::vector<uint8_t> AG2PCProtocol::decode(const SecureWires &wires,
+                                         int recipient) {
+   check_secure_wires(wires, party, "decode");   // reject malformed bundles before OOB access
+-  int n = (int)wires.size();
++  if (recipient != ALICE && recipient != BOB && recipient != PUBLIC)
++    error("decode: invalid recipient");
++  const int n = (int)wires.size();
++  for (int i = 0; i < n; ++i)
++    if (wires.Lambda[i] > 1) error("decode: noncanonical local Lambda");
+   AG2PC_PHASE_BEGIN();
+-  // Reveal to ALL parties: reconstruct at the evaluator (P2), then P2 broadcasts.
+-  // Needed for reactive host branching — every party must learn the same value.
+-  if(recipient==PUBLIC||recipient==ALICE)error("decode: two-sided opening gated pending validation review");
+-  if (recipient == PUBLIC) {
+-    std::vector<uint8_t> v = decode(wires, 2);  // only P2 holds it after this
+-    std::vector<unsigned char> buf(n);
+-    if (party != 1) {
+-      for (int i = 0; i < n; ++i) buf[i] = v[i];
+-      io->send_data(buf.data(), n);
+-      io->flush();
+-      return v;
+-    }
+-    io->recv_data(buf.data(), n);
+-    std::vector<uint8_t> out(n);
+-    for (int i = 0; i < n; ++i) out[i] = (buf[i] & 1);
+-    return out;
+-  }
+-  std::vector<uint8_t> result;
+-  // Authenticated open of each party's λ-share to the recipient (KRRW Fig.3
+-  // open). The non-recipient ships (n share bits, Hash(n MACs)); the recipient
+-  // recomputes the expected MAC for each bit as KEY ⊕ bit·Δ — using its own
+-  // wire_bundle[i].key plus Delta — hashes those, and compares the digest to
+-  // the one shipped. A flipped bit forces a flipped MAC (by Δ_peer, which the
+-  // sender doesn't know), so the digest mismatch aborts here before the secret
+-  // is consumed. The chunk-level c_γ and COT-correlation checks (run in the
+-  // engine) gate this in turn: any tampered MAC structure has aborted
+-  // already, so the only thing the per-reveal hash needs to catch is a sender
+-  // flipping a bit at decode-time.
++  // Every COT minted since the last consistency check (e.g. input masks drawn
++  // with no nonlinear chunk in between) is validated before any share opens.
++  fpre->maybe_flush_cot_check();
++
+   std::vector<unsigned char> my_share(n);
+   BlockVec my_macs(n);
+   for (int i = 0; i < n; ++i) {
+     my_share[i] = (unsigned char)LSB(wires.wire_bundle[i].mac);
+     my_macs[i]  = wires.wire_bundle[i].mac;
+   }
+-  if (party != recipient) {
+-    char D[Hash::DIGEST_SIZE];
+-    Hash::hash_once(D, my_macs.data(), (size_t)n * sizeof(block));
+-    io->send_data(my_share.data(), n);
+-    io->send_data(D, Hash::DIGEST_SIZE);
+-    io->flush();
+-  } else {
+-    result.resize(n);
+-    std::vector<unsigned char> tmp(n);
++  std::vector<uint8_t> result;
++  auto open_to = [&](int to) {
++    const uint64_t ctr = fpre->tag_ctr++;
++    if (party != to) {
++      std::vector<unsigned char> sent = my_share;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      if (party == BOB && to == ALICE && std::getenv("EMP_TEST_OUTPUT_SHARE_LIE") && n) sent[0] ^= 1;
++#endif
++      char D[Hash::DIGEST_SIZE];
++      tagged_digest(D, "AG2PC decode", party, ctr, my_macs.data(), (size_t)n * sizeof(block));
++      io->send_data(sent.data(), n);
++      io->send_data(D, Hash::DIGEST_SIZE);
++      io->flush();
++      return;
++    }
++    std::vector<unsigned char> peer(n);
+     char D_peer[Hash::DIGEST_SIZE];
+-    io->recv_data(tmp.data(), n);
++    io->recv_data(peer.data(), n);
+     io->recv_data(D_peer, Hash::DIGEST_SIZE);
++    for (int i = 0; i < n; ++i)
++      if (peer[i] > 1) error("decode: noncanonical peer share");
+     BlockVec exp_macs(n);
+     for (int i = 0; i < n; ++i)
+-      exp_macs[i] = wires.wire_bundle[i].key ^ (select_mask[tmp[i]] & Delta);
++      exp_macs[i] = wires.wire_bundle[i].key ^ (select_mask[peer[i]] & Delta);
+     char D_exp[Hash::DIGEST_SIZE];
+-    Hash::hash_once(D_exp, exp_macs.data(), (size_t)n * sizeof(block));
++    tagged_digest(D_exp, "AG2PC decode", 3 - party, ctr, exp_macs.data(), (size_t)n * sizeof(block));
+     if (memcmp(D_exp, D_peer, Hash::DIGEST_SIZE) != 0)
+       error("decode: peer share-MAC hash mismatch");
+-    for (int i = 0; i < n; ++i) {
+-      unsigned char v = my_share[i] ^ wires.Lambda[i] ^ tmp[i];
+-      result[i] = (v & 1);
+-    }
+-  }
++    result.resize(n);
++    for (int i = 0; i < n; ++i)
++      result[i] = (uint8_t)((my_share[i] ^ wires.Lambda[i] ^ peer[i]) & 1);
++  };
++  if (recipient == PUBLIC) { open_to(BOB); open_to(ALICE); }
++  else open_to(recipient);
+   AG2PC_PHASE("decode[step14]");
+   return result;
+ }
+--- a/emp-ag2pc/backend/run_state.h
++++ b/emp-ag2pc/backend/run_state.h
+@@ -42,6 +42,15 @@
+   // c_gamma check state.
+   BlockVec M1_t;
+   std::vector<unsigned char> Lambda_AND;
++  // Per-AND output label. Evaluator: the label it holds, L_{gamma,Lambda}.
++  // Garbler: L_{gamma,0} xor Lambda*Delta for the Lambda the evaluator reported.
++  BlockVec Lbl_t;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++  // Evaluator-local values a malicious evaluator already holds (recorded for
++  // the lambda-leak probe only): key/public mask/own share of AND operand 1.
++  BlockVec atk_in1_key;
++  std::vector<unsigned char> atk_in1_pub, atk_in1_share;
++#endif
+ 
+   MITCCRH<8> mitc;
+ 
+--- a/emp-ag2pc/backend/triple_pool.h
++++ b/emp-ag2pc/backend/triple_pool.h
+@@ -11,6 +11,8 @@
+ #include "emp-ot/ot_extension/softspoken/softspoken.h"
+ #include <atomic>
+ #include <cmath>
++#include <cstdlib>
++#include <cstring>
+ #include <memory>
+ #include <thread>
+ 
+@@ -26,6 +28,10 @@
+ // k=4 sits at the COT-compute floor on a fast/local link while staying well
+ // below k=2's bandwidth; raise toward k=8 on a bandwidth-tight link.
+ using OTExt = emp::SoftSpoken<4>;
++
++#ifndef EMP_HYBRID_MIN_SSP
++#define EMP_HYBRID_MIN_SSP 128
++#endif
+ 
+ // Leaky-AND (eprint 2018/578, Fig. 5) followed by Π_aAND bucketing: per-candidate
+ // half-gate garbled-AND with an F_eq consistency check, then circular-shift
+@@ -80,7 +86,7 @@
+   // The caller owns both io and the paired sib channel and threads them in;
+   // AG2PCProtocol spawns the sib and passes it along (see backend/protocol.h).
+   TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40)
+-      : pool(pool), party(party), ssp(ssp), io(io), sib(sib),
++      : pool(pool), party(party), ssp(std::max(ssp, EMP_HYBRID_MIN_SSP)), io(io), sib(sib),
+         send_io(party == 1 ? io : sib), recv_io(party == 1 ? sib : io) {
+     init_abit_();
+   }
+@@ -206,8 +212,9 @@
+   // strictly below the statistical-security target 2^{-ssp}. Floor L at 1024 so
+   // tiny calls still pick a safe (B, L) pair.
+   int get_bucket_size(int size) const {
+-    size = std::max(size, 1024);
+-    const double log2_L = std::log2((double)size);
++    // v3: size from the ACTUAL layer length (no 1024 floor), clamped so that a
++    // tiny layer gets a large bucket instead of a bound it does not meet.
++    const double log2_L = std::max(1.0, std::log2((double)std::max(size, 1)));
+     int B = 2;
+     while (log2_L * (B - 1) <= (double)ssp) ++B;
+     return B;
+@@ -352,15 +359,16 @@
+       ak[2 * L + i] = ak[2 * L + i] ^ lk[2 * L + src];
+       d_me[i] = LSB(am[L + i]) ^ LSB(lm[L + src]);          // b-share diff (bit0 of b-region mac)
+     }
+-    std::vector<future<void>> res;
+-    res.push_back(pool->enqueue([&, this]() {
+-      send_io->send_bool((const bool *)d_me.data(), L);
+-      send_io->flush();
+-    }));
+-    res.push_back(pool->enqueue([&, this]() {
+-      recv_io->recv_bool((bool *)d_peer.data(), L);
+-    }));
+-    ::joinNclean(res);
++    // v3: d is an authenticated open (Fig. 5.5 step 6b), not a raw bit exchange.
++    {
++      BlockVec dm(L), dk(L);
++      for (int i = 0; i < L; ++i) {
++        int src = (i < cut) ? i + r : i + r - L;
++        dm[i] = am[L + i] ^ lm[L + src];
++        dk[i] = ak[L + i] ^ lk[L + src];
++      }
++      auth_open_(dm.data(), dk.data(), L, d_peer);
++    }
+     for (int i = 0; i < L; ++i) {
+       int src = (i < cut) ? i + r : i + r - L;
+       block m = select_mask[(unsigned char)(d_me[i] ^ d_peer[i])];
+@@ -370,6 +378,80 @@
+ #ifdef AG2PC_PROFILE
+     g_tp_bkt_ns += tp_now_ns() - _b0;
+ #endif
++  }
++
++  // v3: lockstep counter for digest tags and per-call hash seeds.
++  uint64_t tag_ctr = 0;
++
++  // v3: authenticated open of L shared bits to both parties at once. Each side
++  // sends its share bits and a tagged hash of its MACs; the receiver recomputes
++  // the MACs from its keys. A wrong bit needs the peer's Delta.
++  void auth_open_(const block *mac, const block *key, int L,
++                  std::vector<unsigned char> &peer_bits) {
++    const uint64_t ctr = tag_ctr++;
++    std::vector<unsigned char> mine(L);
++    peer_bits.assign(L, 0);
++    for (int i = 0; i < L; ++i) mine[i] = LSB(mac[i]);
++#ifdef EMP_HYBRID_TEST_ATTACKS
++    if (party == 2 && std::getenv("EMP_TEST_OPEN_LIE") && L) mine[0] ^= 1;
++#endif
++    char Dme[Hash::DIGEST_SIZE], Dpeer[Hash::DIGEST_SIZE], Dexp[Hash::DIGEST_SIZE];
++    tagged_digest(Dme, "AG2PC open", party, ctr, mac, (size_t)L * sizeof(block));
++    std::vector<future<void>> res;
++    res.push_back(pool->enqueue([&, this]() {
++      send_io->send_bool((const bool *)mine.data(), L);
++      send_io->send_data(Dme, Hash::DIGEST_SIZE);
++      send_io->flush();
++    }));
++    res.push_back(pool->enqueue([&, this]() {
++      recv_io->recv_bool((bool *)peer_bits.data(), L);
++      recv_io->recv_data(Dpeer, Hash::DIGEST_SIZE);
++    }));
++    ::joinNclean(res);
++    BlockVec expect(L);
++    for (int i = 0; i < L; ++i)
++      expect[i] = key[i] ^ (select_mask[peer_bits[i] & 1] & Delta);
++    tagged_digest(Dexp, "AG2PC open", 3 - party, ctr, expect.data(), (size_t)L * sizeof(block));
++    if (memcmp(Dexp, Dpeer, Hash::DIGEST_SIZE) != 0)
++      error("authenticated open: peer MAC digest mismatch");
++  }
++
++  // v3: jointly sampled public coin. P1 commits to its seed, P2 replies with its
++  // seed, P1 opens. Neither party can choose the result after seeing the other's.
++  block joint_coin_() {
++    block mine, theirs, nonce;
++    prg.random_block(&mine, 1);
++    char com[Hash::DIGEST_SIZE], chk[Hash::DIGEST_SIZE];
++    if (party == 1) {
++      prg.random_block(&nonce, 1);
++      { Hash h; h.put(&mine, sizeof(block)); h.put(&nonce, sizeof(block)); h.digest(com); }
++      io->send_data(com, Hash::DIGEST_SIZE); io->flush();
++      io->recv_data(&theirs, sizeof(block));
++      io->send_data(&mine, sizeof(block)); io->send_data(&nonce, sizeof(block)); io->flush();
++    } else {
++      io->recv_data(com, Hash::DIGEST_SIZE);
++      io->send_data(&mine, sizeof(block)); io->flush();
++      io->recv_data(&theirs, sizeof(block)); io->recv_data(&nonce, sizeof(block));
++      { Hash h; h.put(&theirs, sizeof(block)); h.put(&nonce, sizeof(block)); h.digest(chk); }
++      if (memcmp(chk, com, Hash::DIGEST_SIZE) != 0) error("joint coin: commit-open mismatch");
++    }
++    block pair[2];
++    pair[0] = party == 1 ? mine : theirs;
++    pair[1] = party == 1 ? theirs : mine;
++    char out[Hash::DIGEST_SIZE];
++    Hash::hash_once(out, pair, sizeof(pair));
++    block coin; memcpy(&coin, out, sizeof(block));
++    return coin;
++  }
++  // v3: check one leaky-AND layer (COTs first, then the layer's own F_eq)
++  // before anything derived from it is combined or opened.
++  void checked_leaky_layer_(block *mac, block *key, int L,
++                            MITCCRH<8> &gmitc, MITCCRH<8> &emitc) {
++    flush_cot_check();
++    Hash layer;
++    leaky_and_halfgate(mac, key, L, gmitc, emitc, layer);
++    char D[Hash::DIGEST_SIZE]; layer.digest(D);
++    feq_check(io, party, D, "LaAND F_eq: leaky-AND check failed");
+   }
+ 
+   // Fold B-1 sacrifice layers into acc, one layer at a time and reusing a single
+@@ -394,13 +476,12 @@
+     BlockVec sac_mac((size_t)3 * L), sac_key((size_t)3 * L);
+     for (int k = 0; k < B - 1; ++k) {
+       gen_cot_shares(sac_mac.data(), sac_key.data(), 3 * L);
+-      leaky_and_halfgate(sac_mac.data(), sac_key.data(), L, gmitc, emitc, feq);
+-      // Per-layer public coin: same labeled (io, sib) digests on both ends → same S.
+-      block S = RO("AG2PC RO", zero_block)
+-                    .absorb(io->get_digest()).absorb(sib->get_digest()).squeeze_block();
+-      uint32_t raw;
+-      { PRG prg2(&S); prg2.random_data_unaligned(&raw, sizeof(uint32_t)); }
+-      int r_k = (int)(raw % (uint32_t)L);
++      checked_leaky_layer_(sac_mac.data(), sac_key.data(), L, gmitc, emitc);
++      // v3: the shift is a joint coin drawn only after this layer passed its checks.
++      block S = joint_coin_();
++      uint64_t raw;
++      memcpy(&raw, &S, sizeof(uint64_t));
++      int r_k = (int)(raw % (uint64_t)L);
+       bucket_one_layer(am, ak, sac_mac.data(), sac_key.data(), L, r_k);
+     }
+   }
+@@ -421,8 +502,8 @@
+     if (num_ands == 0) return;   // AND-free chunk (e.g. an output-only checkpoint)
+     const int B = get_bucket_size(num_ands);
+     const int L = num_ands;
+-    const block pair_seed = makeBlock((uint64_t)std::min(party, 3 - party),
+-                                      (uint64_t)std::max(party, 3 - party));
++    // v3: a distinct hash-tweak seed per call, so tweaks never repeat under one Delta.
++    const block pair_seed = makeBlock(tag_ctr++, 0x4c61414e44ULL);
+     MITCCRH<8> gmitc, emitc;
+     gmitc.setS(pair_seed);
+     emitc.setS(pair_seed);
+@@ -434,14 +515,13 @@
+     // layer 0 (acc): region a = λ_α, b = λ_β (copied wire masks, no COT); region r
+     // = fresh COT (the representative's only minted share).
+     BlockVec acc_mac((size_t)3 * L), acc_key((size_t)3 * L);
+-    for (int i = 0; i < L; ++i) {
+-      acc_mac[i]     = rep_a[i].mac;  acc_key[i]     = rep_a[i].key;
+-      acc_mac[L + i] = rep_b[i].mac;  acc_key[L + i] = rep_b[i].key;
+-    }
++    // v3: function-independent form. Layer 0 is a FRESH random triple like every
++    // other layer; the gate's own masks never enter a leaky AND. They are joined
++    // to the finished triple only by the authenticated Beaver openings below.
+     // One running F_eq hash over every layer's L-vector; checked once below.
+     Hash feq;
+-    gen_cot_shares(acc_mac.data() + 2 * L, acc_key.data() + 2 * L, L);   // region r
+-    leaky_and_halfgate(acc_mac.data(), acc_key.data(), L, gmitc, emitc, feq);
++    gen_cot_shares(acc_mac.data(), acc_key.data(), 3 * L);   // fresh a, b, r
++    checked_leaky_layer_(acc_mac.data(), acc_key.data(), L, gmitc, emitc);
+     AG2PC_TP("in-place layer 0 (rep + r + leaky)");
+     layered_bucket_into_acc(acc_mac.data(), acc_key.data(), B, L, gmitc, emitc, feq);
+     AG2PC_TP("sacrifice layers + bucket");
+@@ -451,8 +531,8 @@
+ #ifdef AG2PC_PROFILE
+       uint64_t _fq = tp_now_ns();
+ #endif
+-      char Dme[Hash::DIGEST_SIZE]; feq.digest(Dme);
+-      feq_check(io, party, Dme, "LaAND F_eq: leaky-AND check failed");
++      // v3: every layer was already F_eq-checked individually before combining.
++      (void)feq;
+ #ifdef AG2PC_PROFILE
+       g_tp_feq_ns += tp_now_ns() - _fq;
+ #endif
+@@ -471,17 +551,17 @@
+       yb_me[i] = (unsigned char)(LSB(rep_b[i].mac) ^ LSB(acc_mac[L + i]));
+     }
+     {
+-      std::vector<future<void>> res;
+-      res.push_back(pool->enqueue([&, this]() {
+-        send_io->send_bool((const bool *)xb_me.data(), L);
+-        send_io->send_bool((const bool *)yb_me.data(), L);
+-        send_io->flush();
+-      }));
+-      res.push_back(pool->enqueue([&, this]() {
+-        recv_io->recv_bool((bool *)xb_pe.data(), L);
+-        recv_io->recv_bool((bool *)yb_pe.data(), L);
+-      }));
+-      ::joinNclean(res);
++      // v3: authenticated opens of e = lambda_alpha xor X and f = lambda_beta xor Y.
++      // X is the XOR of B independent leaky x-values and Y is never queried, so
++      // both differences are masked by the finished triple.
++      BlockVec em((size_t)2 * L), ek((size_t)2 * L);
++      for (int i = 0; i < L; ++i) {
++        em[i]     = rep_a[i].mac ^ acc_mac[i];      ek[i]     = rep_a[i].key ^ acc_key[i];
++        em[L + i] = rep_b[i].mac ^ acc_mac[L + i];  ek[L + i] = rep_b[i].key ^ acc_key[L + i];
++      }
++      std::vector<unsigned char> pe;
++      auth_open_(em.data(), ek.data(), 2 * L, pe);
++      for (int i = 0; i < L; ++i) { xb_pe[i] = pe[i]; yb_pe[i] = pe[L + i]; }
+     }
+     out_sigma.resize(L);
+     {

@@ -22,6 +22,10 @@ The full active masked-wire validation, its ordering/privacy argument, and authe
 
 The EMP↔MASCOT value algebra, pool bookkeeping, and roundtrip vectors remain useful tests, but their cryptographic guarantees depended on the invalid EMP black-box assumption. Statistical40/computational128 configuration does not cure this issue. No production, threshold, or statistical-security setting has changed.
 
+## Update: evaluator masked-value leak and candidate v3
+
+The input-only repair is also **not private against a malicious evaluator**: by misreporting one masked AND output, B uses A's c_gamma digest as an oracle for A's mask shares and recovers actual wire values without any abort. `check_validation.py` reproduces this and exercises candidate v3 (label check on reported masked values before the digest, directed authenticated A/B/PUBLIC outputs, earlier COT checks), which rejects it. The route decision, sources, evidence and the remaining review items are in [VALIDATION_ROUTE.md](VALIDATION_ROUTE.md). v3 is an unaudited candidate; the acceptance field remains `secure_hybrid_backend: false`.
+
 ## Reproduction
 
 Build the `emp-input-boundary-probe` and `modern-worker` CMake targets separately with each generated tree, as recorded in `.deps/two-party-comparison/input-fix-build-source.json`, then run:

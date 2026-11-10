@@ -72,3 +72,23 @@ root = "handshake_backend.WebSocketWork.EmitMux"
 [[lean_exe]]
 name = "request_id_emitter"
 root = "handshake_backend.WebSocketWork.EmitRequestId"
+
+[[lean_exe]]
+name = "word_mask_emitter"
+root = "handshake_backend.EmpHybridWork.EmitWordMask"
+
+[[lean_exe]]
+name = "hybrid_kdf_emitter"
+root = "handshake_backend.EmpHybridWork.EmitHybridKdf"
+
+[[lean_exe]]
+name = "session_handshake_fixture"
+root = "handshake_backend.SessionWork.NativeHandshakeFixture"
+
+[[lean_exe]]
+name = "session_application_fixture"
+root = "handshake_backend.SessionWork.NativeApplicationFixture"
+
+[[lean_exe]]
+name = "provider_controller_fixture"
+root = "handshake_backend.WebSocketWork.ProviderController"

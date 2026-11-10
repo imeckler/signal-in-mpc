@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "signal-spqr-send-256": {
+      "description": "Steady-state send with SPQR, 256-byte plaintext",
+      "artifact": ".deps/signal-steady-send-artifacts/signal-spqr-send-256-3-3-3-3-0-none-present.json",
+      "artifact_sha256": "056822448477adacb0f670a823a43c0ab6f5d19309cb5380a050ad5c37f4bdc8",
+      "fixtures_sha256": "b3bd1adf383dc369b46a27ddf0e616faf812e15de434d0ca90af87fc6a01b6c7",
+      "flat_sha256": "886bafab15889f84143911a6bbefcd69f6f721cf941d703cbd6342a1b3ea515d",
+      "and_gates": 2184573,
+      "input_bits": 3792,
+      "output_bits": 3584,
+      "lanes": 2
+    },
+    "signal-new-ratchet-receive": {
+      "description": "Receive that starts a new DH ratchet chain",
+      "artifact": ".deps/signal-new-ratchet-receive-artifacts/signal-new-ratchet-receive-2-2-96.json",
+      "artifact_sha256": "d2849dc9bb239817d9e33f51b719d29e61bafafdde7b3c38d2deeb2ff2c0e7ca",
+      "fixtures_sha256": "f1c849fdf01a3fc2139fe9142fb9073260d76ae860a9fc8864be9aebeea887d9",
+      "flat_sha256": "b32ac551c6a5dc82a8be0c3cf8bd9765664a5394c25e4e50355b4f1906cbfa86",
+      "and_gates": 5473355,
+      "input_bits": 4200,
+      "output_bits": 3448,
+      "lanes": 2
+    }
+  },
+  "passed": true,
+  "scope": "Existing exported Lean circuits lowered with the standard bit order and re-checked against their existing fixture lanes in the clear. Expected outputs are those of the earlier fixture work, not recomputed here."
+}

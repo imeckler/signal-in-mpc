@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdfinfo *)",
+      "Bash(git ls-tree *)",
+      "Bash(git merge-base *)",
+      "Bash(mdfind *)",
+      "Bash(sysctl -n *)"
+    ]
+  }
+}

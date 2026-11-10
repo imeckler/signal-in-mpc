@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "endpoints": {
+    "pad_original_outputs": "[propext, Quot.sound]",
+    "pad_zero": "[propext, Quot.sound]"
+  },
+  "source_sha256": "5cfbfb5044025c4b8107a94f18bf6a17b58964f9b218fca72cbaad66cc20d956",
+  "pad_program_sha256": "24e9062fc1493ee5fd0fea8ba7df41a436b86e2904570489046902a962ece00b",
+  "scope": "Value semantics of a hand-written Lean model of pad_program.h (dense SSA, And/Xor/Not/Const, any dummy count): the first original_outputs outputs of the padded program equal the original outputs for every dummy-input assignment. The model mirrors the C++ by inspection, not extraction. No statement about backend checks, dummy-input secrecy or pruning."
+}

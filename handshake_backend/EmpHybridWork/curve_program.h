@@ -47,8 +47,15 @@ public:
             }
             if(level+1<multiplications.size()){
                 const auto&ids=multiplications[level+1];std::vector<FieldEngine::Handle>a,b;
-                for(auto id:ids){a.push_back(values[nodes[id].a]);b.push_back(values[nodes[id].b]);}
-                if(!ids.empty()){auto out=f.mul(a,b);for(size_t i=0;i<ids.size();i++)values[ids[i]]=out[i];}
+                // A product with a PUBLIC constant operand is linear: same value,
+                // no triple. The pinned program and its node count are unchanged.
+                std::vector<unsigned>secret;
+                for(auto id:ids){const auto&n=nodes[id];
+                    if(nodes[n.a].op=='C')values[id]=f.scale(values[n.b],nodes[n.a].constant);
+                    else if(nodes[n.b].op=='C')values[id]=f.scale(values[n.a],nodes[n.b].constant);
+                    else{secret.push_back(id);a.push_back(values[n.a]);b.push_back(values[n.b]);}
+                }
+                if(!secret.empty()){auto out=f.mul(a,b);for(size_t i=0;i<secret.size();i++)values[secret[i]]=out[i];}
             }
         }
         f.check();return values.at(9436);

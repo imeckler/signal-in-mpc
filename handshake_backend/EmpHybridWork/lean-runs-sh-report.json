@@ -1,0 +1,596 @@
+{
+  "passed": true,
+  "secure_hybrid_backend": false,
+  "security_mode": "semi-honest",
+  "results": [
+    {
+      "passed": true,
+      "profile": "signal-new-ratchet-receive",
+      "lane": "counter-0",
+      "wrong_expectation": false,
+      "seconds": 2.883425166946836,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-wshtxlxy",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 2.771381,
+          "peak_rss_bytes": 899497984,
+          "metrics": {
+            "load_seconds": 2.58709,
+            "setup_seconds": 0.00219496,
+            "circuit_seconds": 0.24072,
+            "wall_seconds": 2.84685,
+            "boolean_and_gates": 5476802,
+            "emp_sent_bytes": 175468092,
+            "emp_received_bytes": 104243
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 2.723513,
+          "peak_rss_bytes": 897908736,
+          "metrics": {
+            "load_seconds": 2.59234,
+            "setup_seconds": 0.00224979,
+            "circuit_seconds": 0.240976,
+            "wall_seconds": 2.84664,
+            "boolean_and_gates": 5476802,
+            "emp_sent_bytes": 104243,
+            "emp_received_bytes": 175468092
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-new-ratchet-receive",
+      "lane": "counter-1",
+      "wrong_expectation": false,
+      "seconds": 2.6888235000660643,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-ezb2wwhx",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 2.6286349999999996,
+          "peak_rss_bytes": 898646016,
+          "metrics": {
+            "load_seconds": 2.48288,
+            "setup_seconds": 0.000233084,
+            "circuit_seconds": 0.133155,
+            "wall_seconds": 2.62761,
+            "boolean_and_gates": 5476802,
+            "emp_sent_bytes": 175468092,
+            "emp_received_bytes": 104243
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 2.5237979999999998,
+          "peak_rss_bytes": 897646592,
+          "metrics": {
+            "load_seconds": 2.39201,
+            "setup_seconds": 0.000230959,
+            "circuit_seconds": 0.133539,
+            "wall_seconds": 2.62719,
+            "boolean_and_gates": 5476802,
+            "emp_sent_bytes": 104243,
+            "emp_received_bytes": 175468092
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-new-ratchet-receive",
+      "lane": "counter-0",
+      "wrong_expectation": true,
+      "seconds": 2.7151754579972476,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-5ovy8p3f",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 4,
+          "cpu_seconds": 2.637377,
+          "peak_rss_bytes": 898662400
+        },
+        {
+          "exit_code": 4,
+          "cpu_seconds": 2.548752,
+          "peak_rss_bytes": 897794048
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-spqr-send-256",
+      "lane": "lane-0",
+      "wrong_expectation": false,
+      "seconds": 1.2423807089217007,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-iillio0u",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.162938,
+          "peak_rss_bytes": 554778624,
+          "metrics": {
+            "load_seconds": 1.07995,
+            "setup_seconds": 0.000240459,
+            "circuit_seconds": 0.0632525,
+            "wall_seconds": 1.18313,
+            "boolean_and_gates": 2188156,
+            "emp_sent_bytes": 70211836,
+            "emp_received_bytes": 71680
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.182226,
+          "peak_rss_bytes": 553811968,
+          "metrics": {
+            "load_seconds": 1.10851,
+            "setup_seconds": 0.000247333,
+            "circuit_seconds": 0.063614,
+            "wall_seconds": 1.18167,
+            "boolean_and_gates": 2188156,
+            "emp_sent_bytes": 71680,
+            "emp_received_bytes": 70211836
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-spqr-send-256",
+      "lane": "lane-1",
+      "wrong_expectation": false,
+      "seconds": 1.3603555409936234,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-j5ou_gw8",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.311151,
+          "peak_rss_bytes": 555368448,
+          "metrics": {
+            "load_seconds": 1.18066,
+            "setup_seconds": 0.000386375,
+            "circuit_seconds": 0.114991,
+            "wall_seconds": 1.32413,
+            "boolean_and_gates": 2188156,
+            "emp_sent_bytes": 70211836,
+            "emp_received_bytes": 71680
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.31078,
+          "peak_rss_bytes": 554827776,
+          "metrics": {
+            "load_seconds": 1.19529,
+            "setup_seconds": 0.000543375,
+            "circuit_seconds": 0.115395,
+            "wall_seconds": 1.32482,
+            "boolean_and_gates": 2188156,
+            "emp_sent_bytes": 71680,
+            "emp_received_bytes": 70211836
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-spqr-send-256",
+      "lane": "lane-0",
+      "wrong_expectation": true,
+      "seconds": 1.4472332909936085,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-4teuxpg0",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 4,
+          "cpu_seconds": 1.394204,
+          "peak_rss_bytes": 554811392
+        },
+        {
+          "exit_code": 4,
+          "cpu_seconds": 1.392326,
+          "peak_rss_bytes": 553811968
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-two-sends",
+      "lane": "two-accepted-sends",
+      "wrong_expectation": false,
+      "seconds": 1.6154237920418382,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-m_gcagcs",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.5493919999999999,
+          "peak_rss_bytes": 633733120,
+          "metrics": {
+            "load_seconds": 1.48802,
+            "setup_seconds": 0.000245709,
+            "circuit_seconds": 0.0781928,
+            "wall_seconds": 1.57966,
+            "boolean_and_gates": 2648613,
+            "emp_sent_bytes": 84858524,
+            "emp_received_bytes": 38939
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.540969,
+          "peak_rss_bytes": 632602624,
+          "metrics": {
+            "load_seconds": 1.4876,
+            "setup_seconds": 0.000279292,
+            "circuit_seconds": 0.0785133,
+            "wall_seconds": 1.57609,
+            "boolean_and_gates": 2648613,
+            "emp_sent_bytes": 38939,
+            "emp_received_bytes": 84858524
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-two-sends",
+      "lane": "invalid-pq-flag-preserves-state",
+      "wrong_expectation": false,
+      "seconds": 1.511096041998826,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-lq07a8z4",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.417133,
+          "peak_rss_bytes": 634585088,
+          "metrics": {
+            "load_seconds": 1.31314,
+            "setup_seconds": 0.000235708,
+            "circuit_seconds": 0.0746193,
+            "wall_seconds": 1.47235,
+            "boolean_and_gates": 2648613,
+            "emp_sent_bytes": 84858524,
+            "emp_received_bytes": 38939
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 1.472154,
+          "peak_rss_bytes": 632684544,
+          "metrics": {
+            "load_seconds": 1.38557,
+            "setup_seconds": 0.00023575,
+            "circuit_seconds": 0.0749507,
+            "wall_seconds": 1.47011,
+            "boolean_and_gates": 2648613,
+            "emp_sent_bytes": 38939,
+            "emp_received_bytes": 84858524
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "signal-two-sends",
+      "lane": "two-accepted-sends",
+      "wrong_expectation": true,
+      "seconds": 1.5189088330371305,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-j0gnpykk",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 4,
+          "cpu_seconds": 1.4527480000000002,
+          "peak_rss_bytes": 633815040
+        },
+        {
+          "exit_code": 4,
+          "cpu_seconds": 1.4349299999999998,
+          "peak_rss_bytes": 632782848
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-open-record",
+      "lane": "valid-record",
+      "wrong_expectation": false,
+      "seconds": 0.16795237502083182,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-ze1_wkjs",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.11167099999999999,
+          "peak_rss_bytes": 40271872,
+          "metrics": {
+            "load_seconds": 0.0807337,
+            "setup_seconds": 0.000228666,
+            "circuit_seconds": 0.00401583,
+            "wall_seconds": 0.0946608,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 4554780,
+            "emp_received_bytes": 38816
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.108146,
+          "peak_rss_bytes": 39223296,
+          "metrics": {
+            "load_seconds": 0.0795456,
+            "setup_seconds": 0.000235667,
+            "circuit_seconds": 0.00456292,
+            "wall_seconds": 0.0946925,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 38816,
+            "emp_received_bytes": 4554780
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-open-record",
+      "lane": "forged-tag-zeroes-output",
+      "wrong_expectation": false,
+      "seconds": 0.17565441690385342,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-chgcfxvh",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.119503,
+          "peak_rss_bytes": 40239104,
+          "metrics": {
+            "load_seconds": 0.0822088,
+            "setup_seconds": 0.000230125,
+            "circuit_seconds": 0.00404175,
+            "wall_seconds": 0.0965758,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 4554780,
+            "emp_received_bytes": 38816
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.111598,
+          "peak_rss_bytes": 39223296,
+          "metrics": {
+            "load_seconds": 0.0809623,
+            "setup_seconds": 0.000214875,
+            "circuit_seconds": 0.00462463,
+            "wall_seconds": 0.0949492,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 38816,
+            "emp_received_bytes": 4554780
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-open-record",
+      "lane": "wrong-sequence-zeroes-output",
+      "wrong_expectation": false,
+      "seconds": 0.17268645903095603,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-pf5krb_e",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.117142,
+          "peak_rss_bytes": 40271872,
+          "metrics": {
+            "load_seconds": 0.0827278,
+            "setup_seconds": 0.000232,
+            "circuit_seconds": 0.00406625,
+            "wall_seconds": 0.0967816,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 4554780,
+            "emp_received_bytes": 38816
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.113851,
+          "peak_rss_bytes": 39206912,
+          "metrics": {
+            "load_seconds": 0.0828049,
+            "setup_seconds": 0.000215625,
+            "circuit_seconds": 0.00463663,
+            "wall_seconds": 0.096683,
+            "boolean_and_gates": 140597,
+            "emp_sent_bytes": 38816,
+            "emp_received_bytes": 4554780
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-open-record",
+      "lane": "valid-record",
+      "wrong_expectation": true,
+      "seconds": 0.16833975003100932,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-md_3vino",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 4,
+          "cpu_seconds": 0.135216,
+          "peak_rss_bytes": 40402944
+        },
+        {
+          "exit_code": 4,
+          "cpu_seconds": 0.122004,
+          "peak_rss_bytes": 39403520
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-seal-record",
+      "lane": "sequence-0",
+      "wrong_expectation": false,
+      "seconds": 0.15876204194501042,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-3qjb673t",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.099183,
+          "peak_rss_bytes": 39223296,
+          "metrics": {
+            "load_seconds": 0.074422,
+            "setup_seconds": 0.000228917,
+            "circuit_seconds": 0.00409758,
+            "wall_seconds": 0.0887675,
+            "boolean_and_gates": 130680,
+            "emp_sent_bytes": 4228988,
+            "emp_received_bytes": 38794
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.095999,
+          "peak_rss_bytes": 38125568,
+          "metrics": {
+            "load_seconds": 0.0742124,
+            "setup_seconds": 0.000245167,
+            "circuit_seconds": 0.00453908,
+            "wall_seconds": 0.0882521,
+            "boolean_and_gates": 130680,
+            "emp_sent_bytes": 38794,
+            "emp_received_bytes": 4228988
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-seal-record",
+      "lane": "sequence-large",
+      "wrong_expectation": false,
+      "seconds": 0.11534066696185619,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-54ji0cnp",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.099276,
+          "peak_rss_bytes": 39141376,
+          "metrics": {
+            "load_seconds": 0.0726879,
+            "setup_seconds": 0.000250541,
+            "circuit_seconds": 0.00470971,
+            "wall_seconds": 0.09195,
+            "boolean_and_gates": 130680,
+            "emp_sent_bytes": 4228988,
+            "emp_received_bytes": 38794
+          }
+        },
+        {
+          "exit_code": 0,
+          "cpu_seconds": 0.09978999999999999,
+          "peak_rss_bytes": 38109184,
+          "metrics": {
+            "load_seconds": 0.0755056,
+            "setup_seconds": 0.000271958,
+            "circuit_seconds": 0.00504104,
+            "wall_seconds": 0.0918573,
+            "boolean_and_gates": 130680,
+            "emp_sent_bytes": 38794,
+            "emp_received_bytes": 4228988
+          }
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    },
+    {
+      "passed": true,
+      "profile": "tls-seal-record",
+      "lane": "sequence-0",
+      "wrong_expectation": true,
+      "seconds": 0.11084308300632983,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/lean-run-xddu3hjx",
+      "failure_category": null,
+      "parties": [
+        {
+          "exit_code": 4,
+          "cpu_seconds": 0.094175,
+          "peak_rss_bytes": 39272448
+        },
+        {
+          "exit_code": 4,
+          "cpu_seconds": 0.09576499999999999,
+          "peak_rss_bytes": 38273024
+        }
+      ],
+      "os_buffer_exhausted": false,
+      "os_buffer_retries": []
+    }
+  ],
+  "binaries": {
+    "dyn-run-sh": "8d28176c741fccd4c2cca7a64ab6e50c8ce1f1c299327e4bbf307e74954a34bd"
+  },
+  "emp_source": {
+    "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-validated-v3",
+    "validated_output": true,
+    "files": {
+      "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+      "emp-ag2pc/backend/engine.h": "7dddf8f979c6d1a09129e8a255baef9b0db77a7c82e2a2b837dc14f3a6e0d6d4",
+      "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+      "emp-ag2pc/backend/helper.h": "56636bd0a2264fd1c0cef4b26f83df2a471610cbddd1346b6230be1985a3de42",
+      "emp-ag2pc/backend/pass_ctx.h": "1ef97ccac4bbd8a51081c9048b3dceefb541ac04ebdb72cb300930e0bcda793b",
+      "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+      "emp-ag2pc/backend/protocol.h": "730a2a28ea6f4c5349947cc9cd2ffad5c0e2cc2dc5b5af4c600bc689781890d1",
+      "emp-ag2pc/backend/run_state.h": "dadfcd6169348a7991b8aac989781990b4ec6d9a075d27f8f851d3ab28d30907",
+      "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+      "emp-ag2pc/backend/triple_pool.h": "ac37e5106c7c0c18de16080ef0fe3655821aacb48c0186df656e0aad9233c15c",
+      "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+      "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+      "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+    }
+  },
+  "scope": "Pinned Lean circuits executed with plain half-gates garbling (honest-but-curious only, no protection against deviation) with XOR-shared private inputs and private outputs; one equality bit opened against an independent expectation; a wrong expectation is rejected. Local loopback fixture secrets only."
+}

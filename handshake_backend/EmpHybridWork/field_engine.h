@@ -15,7 +15,9 @@ public:
     public:
         Handle()=default;
     };
-    FieldEngine(unsigned party,unsigned port);
+    // `batch`: preprocessing batch size (triples produced per refill). A caller
+    // that needs only a handful of products should ask for a small batch.
+    FieldEngine(unsigned party,unsigned port,unsigned batch=10000);
     ~FieldEngine();
     FieldEngine(const FieldEngine&)=delete;FieldEngine&operator=(const FieldEngine&)=delete;
     // Both contributions are fixed by one native input exchange. Local uint64
@@ -25,10 +27,23 @@ public:
     Handle add(Handle a,Handle b);
     Handle sub(Handle a,Handle b);
     Handle constant(uint64_t value);
+    // Multiplication by a PUBLIC constant is linear: no triple, no interaction.
+    Handle scale(Handle a,uint64_t constant);
+    // Public canonical field element (32 little-endian bytes, value < p).
+    Handle public_element(const std::array<uint8_t,32>&canonical);
+    // a / c for a PUBLIC nonzero canonical c (already opened and MAC-checked
+    // by the caller). Linear: no triple, no interaction.
+    Handle divide_public(Handle a,const std::array<uint8_t,32>&c);
+    // Private full-width inputs: each party contributes local.size() canonical
+    // field elements in one native input exchange (candidate masks only).
+    std::array<std::vector<Handle>,2> input_elements(const std::vector<std::array<uint8_t,32>>&local);
     // Restricted bridge use: sacrificed coins/uniform masks only. This API is
     // internal candidate, not a generic host/RPC secret opening capability.
     std::vector<std::array<uint8_t,32>> checked_open(const std::vector<Handle>&a);
     void check();
     unsigned party_id()const;
+    // Public cost counters: bytes this party has sent, products completed.
+    uint64_t sent_bytes()const;
+    uint64_t products()const;
 };
 }

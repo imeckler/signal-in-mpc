@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "circuits": {
+    "tls-handshake-secrets": {
+      "lean_image_sha256": "d3f58968675fb96a36e27a37123c6e3285a670790feec9f41c0360e116f9d43f",
+      "flat_sha256": "6009cbb993ce9d1115858d47df8cf659f3bae825727242b505f75e9b38c36272",
+      "and_gates": 763181,
+      "input_bits": 511,
+      "output_bytes": 128,
+      "cases_checked": 4
+    },
+    "signal-dh-ratchet": {
+      "lean_image_sha256": "d9fe8f87821689eff62b72dd7e69a251825326c7ba81d4c076959adc2e0fe937",
+      "flat_sha256": "be5e544a4080d905f9b2ff0cba84a46292676435135280eced6f9e8adb12c50f",
+      "and_gates": 554325,
+      "input_bits": 511,
+      "output_bytes": 69,
+      "cases_checked": 4
+    },
+    "equal-1024": {
+      "flat_sha256": "69dfb585d065de77f7fce2e976192063da53d5d408d89c044f9562241bae5f54",
+      "and_gates": 1023
+    },
+    "equal-552": {
+      "flat_sha256": "35a91e5f5ba5e55aa731b2ab47d17347380000bbbe735a37998ef94fe82f735c",
+      "and_gates": 551
+    }
+  },
+  "lean_sources": {
+    "TlsMpc/HybridKdf.lean": "9bd1f10215ffa1643066d531ac77e9322dc3f5146dc25a7ad4766c7e999cecea",
+    "TlsMpc/TlsKdf.lean": "fcc69c0446bb946afbb69a8707a417fc79febf0af95882d9ed7b2938393346f3",
+    "TlsMpc/Signal/DhRatchet.lean": "d112b192d30754632d5f29e4159b9111957ed9e27a104274a430c4f8345a4951",
+    "handshake_backend/EmpHybridWork/EmitHybridKdf.lean": "34b2a88fa6eb5b84b438ecc8ab2c633926467ecd3545b5779cd38efe9dbc8a70"
+  },
+  "reference": "hashlib HMAC/HKDF-SHA256: RFC 8446 handshake key schedule; Signal WhisperRatchet with all-zero agreement keeping the old root",
+  "scope": "Lean key-derivation circuits taking the X25519 word directly, lowered by the shared unverified adapter with one fixed bit order and checked against an independent implementation. The Lean theorems cover the bit-vector expressions and their compiled graphs; the lowering and loader are outside them."
+}

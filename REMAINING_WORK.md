@@ -59,6 +59,20 @@ AES/SHA execution do not establish confidentiality or malicious security. Keep
 `secure_hybrid_backend=false`; all previous EMP/hybrid performance and conversion
 results are functional evidence only.
 
+Progress 2026-11-09 (later): step 1 has a recorded recommendation — complete the
+modern engine — with an implemented candidate `validated-v3` and attack
+regressions; see [route record](handshake_backend/EmpHybridWork/VALIDATION_ROUTE.md).
+A fourth failure was reproduced: with only the input repair, a malicious
+evaluator recovers garbler wire values by misreporting masked AND outputs. v3
+rejects it, and the earlier input, padding, zero-AND carry and state-continuation
+regressions pass on it. Triple generation was compared with the published
+figures ([audit](handshake_backend/EmpHybridWork/TRIPLE_POOL_AUDIT.md)). The
+stock in-place construction and its unauthenticated correction bits were judged
+unsound for malicious security; v3 now uses fresh triples per bucket layer with
+per-layer checks, a joint coin and authenticated openings. Step 4's padding original-output equivalence is kernel-checked
+for a hand-written Lean model (`PaddingSemantics.lean`); joining it to the C++
+and compiler is open. v3 is unreviewed, so the acceptance flag is unchanged.
+
 Remaining steps:
 
 1. Choose between completing the exact revised KRRW active-validation/output
@@ -94,6 +108,26 @@ bidirectional conversion algebra, canonical modular addition, session-bound
 one-use pools, full private word roundtrip and compiled X25519 FieldDag adapter.
 Their security depended on the invalid EMP black-box assumption and must be
 re-established after section 3.
+
+Progress 2026-11-09 (later): decisions — malicious security retained; statistical
+128 is the production profile for Boolean buckets, bridge pools and the native
+engine. On candidate v3 at that profile the full-word roundtrip and its
+wrong-counter fault pass, and the native X25519 candidate **executed for the
+first time**: private scalar/point, result checked in MPC against an independent
+library, low-order and mismatch cases rejected
+([results and cost](handshake_backend/EmpHybridWork/HYBRID_V3.md)). One X25519
+costs about 2.3 GB of native traffic per party at this profile. A candidate
+cheaper path (scalar swap bits kept in the field, full-width masks checked in
+the Boolean engine, a leaner Lean ladder with masked inversion; every circuit on
+it compiled from Lean) measures 0.29 GB and passes the same checks plus five
+fault cases
+([levers](handshake_backend/EmpHybridWork/CONVERSION_COST_LEVERS.md)); its
+construction needs review. Step 6 is exercised for TLS: the private X25519
+result feeds the Lean handshake-secrets circuit unopened and the derived secrets
+match an independent implementation. Rule adopted 2026-11-10: every circuit is
+compiled from Lean; `TlsMpc/BoolDag.lean` is the gate-level compiler for circuits
+that need exact gate structure. Steps 3, 5 and 6 are exercised but not accepted;
+steps 1, 2, 4 and 7 remain, as do the Signal-side producers for step 6.
 
 1. Map the MArBled Circuits daBit construction to the accepted Boolean and MASCOT
    interfaces. Review input fixation, fresh joint challenges, cut/bucket checks,
@@ -193,6 +227,16 @@ Evidence: [current proof ledger](SignalReference/ChatResponseReferenceWork/PROOF
 
 ## 7. Complete Signal sessions and service compatibility
 
+Progress 2026-11-10: two chained nonempty established sends run as one Lean
+circuit (`TlsMpc/HybridSend.lean`) on candidate v3 at statistical 128 with
+private inputs, outputs and retained state, matching an independent reference
+([results](handshake_backend/EmpHybridWork/ESTABLISHED_SEND_V3.md)). Signal's
+DH ratchet runs on a private X25519 result. The same generic runner executes the
+existing steady SPQR send and new-ratchet receive exports and the TLS record
+seal/open circuits with private inputs (16 runs pass). Measured cost is about 1.32 million
+AND gates and 0.57 GB of traffic per send, which puts the 100,000 sends/hour
+target at about 16 GB/s; see that note before planning section 10.
+
 1. Integrate nonempty established sends into the accepted hybrid backend:
    message Content/padding, ratchet/KDF, SPQR, per-device encryption, sealed sender,
    private recipient/device/access-key data and exact request serialization.
@@ -274,6 +318,63 @@ Exit: repeated private service sends, authenticated responses, safe durable
 restart and scalable state ownership in the selected backend, with negative
 cases and lifecycle assumptions documented and tested.
 
+Progress 2026-11-10 (unreviewed; `secure_hybrid_backend` stays false): step 1's
+handshake part runs on the two-party hybrid. `tls_worker_v3.cpp` speaks the
+existing `TlsWorkerPipe` RPC; each party runs the unchanged Lean controller
+(`handshake_backend/SessionWork/NativeHandshakeFixture.lean`) with its own
+worker, the workers agree on every request before acting, and party 0 owns the
+socket. X25519 key generation and agreement (native field, masked inversion),
+the handshake key schedule on the unopened shared secret, handshake record
+opening behind the Lean type gate, server Finished verification, application
+key derivation and the sealed client Finished all run inside the engines from
+Lean exports (`TlsMpc/HybridKdf.lean`, sizes on demand via `circuit_cache.py`).
+OpenSSL accepts the client Finished; both controllers report an authenticated,
+retired session ([report](handshake_backend/EmpHybridWork/tls-worker-v3-report.json)).
+The application phase runs too (`check_tls_application_v3.py`, unchanged Lean
+`NativeApplicationFixture`): private buffers behind public handles, sealing of
+private payloads, authenticated receive through the Lean post-handshake parser
+(`TlsPostHandshake.openCore`; only the event and request bytes are opened),
+client and server-requested KeyUpdate with key rotation in both directions,
+rejection of a replayed record and terminal abort. Three payloads that neither
+party knows are sent; OpenSSL echoes them and the workers verify the echo
+against the sent payload inside the engines
+([report](handshake_backend/EmpHybridWork/tls-application-v3-report.json)).
+The payload source in that test is a test-only producer, not the Signal path.
+
+Worker operations are now Lean kernels with named fields
+(`TlsMpc/HybridKernels.lean`): key/IV positions inside traffic blocks, the
+assembly of a send from retained state, next-state selection, control-queue
+slots and the open/private marking of every output are defined in Lean. The
+emitter writes the field layout beside each circuit, both parties pin circuit
+and layout, and the C++ (`kernel.h`, `tls_kernels.h`, `service_kernels.h`)
+binds wires by name, sequences kernels and runs the field-engine agreements.
+`TlsMpc/HybridKernelsProofs.lean` proves, for every kernel, that the exported
+gates compute its Lean definition, and gives functional statements for
+KeyUpdate and application receive (including that the opened event bytes of an
+application record do not depend on its content). The other kernels have no
+functional theorem as wholes yet.
+
+The service path runs on this worker (operations 18–21, unchanged Lean
+`ProviderController`; `check_signal_service_v3.py`): authenticated WebSocket
+upgrade with private credentials, private parsing of the 101 response, frames,
+pings and correlated responses, masked pongs, and four established
+sealed-sender text sends with SPQR over two conversations. The local fixture
+server's retained libsignal recipient sessions decrypt all four messages and
+check body and timestamp
+([malicious report](handshake_backend/EmpHybridWork/signal-service-v3-report.json),
+[semi-honest report](handshake_backend/EmpHybridWork/signal-service-sh-report.json)).
+Measured full-path cost per message round trip is about 14.4 M ANDs and 6,348
+field products: ≈ 7.8 GB malicious, ≈ 0.66 GB semi-honest. This supersedes the
+session-encryption-only figure in section 7 and the estimate in section 10;
+see [SECURITY_MODES.md](handshake_backend/EmpHybridWork/SECURITY_MODES.md).
+Sender state enters through the public disposable test fixture, not
+authenticated provisioning. Not yet on this worker: the multiplexed operations
+(22–28), outbox/durable state, bootstrap/PQXDH, receive-side Signal sessions,
+HelloRetryRequest and fragmentation negative cases, erasure (retire/abort only
+drop handles), remote deployment identity. Request forwarding of received
+records from the socket owner to the other party treats the socket owner as the
+network, which TLS already assumes hostile.
+
 Evidence: [integrated restore receipt](signal_backend/RecoveryWork/ShardedAccountWork/integrated-report.json),
 [account work](signal_backend/RecoveryWork/ShardedAccountWork/README.md),
 [TLS security notes](handshake_backend/SECURITY.txt).
@@ -345,6 +446,18 @@ models do not transfer directly to authenticated garbling.
    delivery claims, plus full wire bytes and actual WAN conditions. If the target
    is missed, provide measured bottlenecks and resource estimates, not a
    microbenchmark extrapolation presented as achieved throughput.
+
+Decision 2026-11-10: reduced throughput is accepted in the malicious setting;
+malicious/statistical-128 remains the default. A semi-honest mode is kept as an
+explicit build-time alternative (`-DEMP_HYBRID_SEMI_HONEST=1`: half-gates
+garbling and MAC-free field shares behind the same two engine interfaces) so
+both can be costed on identical circuits. Measured side by side in
+[SECURITY_MODES.md](handshake_backend/EmpHybridWork/SECURITY_MODES.md): one
+established send is ≈ 0.57 GB malicious vs ≈ 42 MB semi-honest; a full TLS
+handshake ≈ 4.2 GB / 10 s vs ≈ 0.38 GB / 3.4 s. The 100k/hour target is out of
+reach in malicious mode with current constructions (≈ 136 Gbit/s) and at the
+edge of a 10 Gbit/s link in semi-honest mode. These are per-stage loopback
+measurements and arithmetic, not the sustained run step 6 requires.
 
 Evidence: [historical throughput review](throughput-research/signal-mpc-throughput-review.md),
 [benchmark comparison](benchmarks/TwoPartyComparisonWork/README.md).

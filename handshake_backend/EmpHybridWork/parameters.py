@@ -35,7 +35,8 @@ class Parameters:
     def validate(self):
         if self.outputs<1 or self.outputs>4096 or self.bucket<2 or self.cut_factor<2:
             raise ValueError('unsupported bounded parameter profile')
-        if self.statistical_target!=40:raise ValueError('backend S128 not validated')
+        # 128 is the production profile (2026-11-09); 40 is retained for earlier receipts.
+        if self.statistical_target not in (40,128):raise ValueError('unsupported statistical target')
         target=Fraction(1,1<<self.statistical_target)
         worst,_=self.exact_worst_bound()
         if worst>=target or self.conservative_bound()>=target:raise ValueError('insufficient checked bound')
@@ -50,7 +51,7 @@ class Parameters:
                 'backend_security_proved':False}
 
 def choose(outputs,statistical_target=40):
-    if outputs<1 or outputs>4096 or statistical_target!=40:raise ValueError('unsupported profile')
+    if outputs<1 or outputs>4096 or statistical_target not in (40,128):raise ValueError('unsupported profile')
     for bucket in range(2,statistical_target+2):
         p=Parameters(outputs,bucket,2,statistical_target)
         try:return p.validate()

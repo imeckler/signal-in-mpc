@@ -1,0 +1,110 @@
+--- a/emp-ag2pc/backend/engine.h
++++ b/emp-ag2pc/backend/engine.h
+@@ -26,7 +26,10 @@
+ #include <array>
+ #include <cstddef>
+ #include <cstdint>
++#include <cstdio>
++#include <cstdlib>
+ #include <cstring>
++#include <iostream>
+ #include <span>
+ #include <tuple>
+ #include <type_traits>
+@@ -170,6 +173,12 @@
+     // c_gamma witness buffers.
+     st.M1_t.resize(std::max(1, st.num_ands));
+     st.Lambda_AND.assign(std::max(1, st.num_ands), 0);
++    st.Lbl_t.resize(std::max(1, st.num_ands));
++#ifdef EMP_HYBRID_TEST_ATTACKS
++    st.atk_in1_key.resize(std::max(1, st.num_ands));
++    st.atk_in1_pub.assign(std::max(1, st.num_ands), 0);
++    st.atk_in1_share.assign(std::max(1, st.num_ands), 0);
++#endif
+ 
+     // Function-dependent leaky-AND shares.
+     mpc->fpre->compute_inplace(st.rep_a, st.rep_b, st.num_ands, st.sigma);
+@@ -267,11 +276,41 @@
+   void evaluator_path_(AG2PCRunState& st, Source& source, AG2PCProtocol* mpc) {
+     { AG2PCEvaluatePass ep(st, mpc->recv_io, mpc->pool); ag2pc_detail::run_pass(ep, source); }
+     if (st.num_ands > 0) {
+-      mpc->io->send_bool((const bool*)st.Lambda_AND.data(), st.num_ands);
++      auto reported = st.Lambda_AND;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      int atk_flip = -1, atk_target = -1;
++      if (const char* spec = std::getenv("EMP_TEST_LAMBDA_LEAK")) {
++        if (std::sscanf(spec, "%d,%d", &atk_flip, &atk_target) != 2 || atk_flip < 0 ||
++            atk_target < 0 || atk_flip >= st.num_ands || atk_target >= st.num_ands)
++          error("EMP_TEST_LAMBDA_LEAK: bad spec");
++        reported[atk_flip] ^= 1;
++      }
++      if (std::getenv("EMP_TEST_FALSE_GAMMA")) reported[0] ^= 1;
++#endif
++      mpc->io->send_bool((const bool*)reported.data(), st.num_ands);
+       mpc->io->flush();
+       char D1[Hash::DIGEST_SIZE], D2[Hash::DIGEST_SIZE];
+       Hash::hash_once(D1, st.M1_t.data(), (size_t)st.num_ands * sizeof(block));
+       mpc->io->recv_data(D2, Hash::DIGEST_SIZE);
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      if (atk_target >= 0) {
++        // The garbler computed M1_t[target] with operand-0 mask flipped, i.e.
++        // shifted by ITS MAC on its share r of operand 1: K_B[r] xor r*Delta_B.
++        // We hold K_B[r] and Delta_B, so the digest is a one-bit oracle for r.
++        int found = -1;
++        for (int g = 0; g < 2; ++g) {
++          BlockVec c = st.M1_t;
++          c[atk_target] = c[atk_target] ^ st.atk_in1_key[atk_target] ^ (select_mask[g] & st.Delta);
++          char Dg[Hash::DIGEST_SIZE];
++          Hash::hash_once(Dg, c.data(), (size_t)st.num_ands * sizeof(block));
++          if (memcmp(Dg, D2, Hash::DIGEST_SIZE) == 0) found = g;
++        }
++        if (found < 0) std::cout << "lambda_leak recovered_wire_value=none\n";
++        else std::cout << "lambda_leak recovered_wire_value="
++                       << int(found ^ st.atk_in1_pub[atk_target] ^ st.atk_in1_share[atk_target]) << "\n";
++        return;   // the attacker does not run its own abort check
++      }
++#endif
+       if (memcmp(D1, D2, Hash::DIGEST_SIZE) != 0)
+         error("lambda c_gamma check failed");
+     }
+--- a/emp-ag2pc/backend/pass_ctx.h
++++ b/emp-ag2pc/backend/pass_ctx.h
+@@ -451,6 +451,12 @@
+       m = m ^ (select_mask[Lb] & wb_in0.key);
+       m = m ^ sb.key ^ wb_out.key;
+       s.M1_t[my_ai] = m;
++      s.Lbl_t[my_ai] = t;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++      s.atk_in1_key[my_ai] = wb_in1.key;
++      s.atk_in1_pub[my_ai] = (unsigned char)Lb;
++      s.atk_in1_share[my_ai] = (unsigned char)v_in1;
++#endif
+     }
+     ++loc;
+     return id;
+@@ -507,6 +513,7 @@
+     m = m ^ (select_mask[La] & s.wslot(in1).mac);
+     m = m ^ (select_mask[Lb] & s.wslot(in0).mac);
+     s.M1_t[my_ai] = m;
++    s.Lbl_t[my_ai] = s.lbl(id) ^ (select_mask[s.Lambda_AND[my_ai] & 1] & s.Delta);
+     return id;
+   }
+ };
+--- a/emp-ag2pc/backend/run_state.h
++++ b/emp-ag2pc/backend/run_state.h
+@@ -42,6 +42,15 @@
+   // c_gamma check state.
+   BlockVec M1_t;
+   std::vector<unsigned char> Lambda_AND;
++  // Per-AND output label. Evaluator: the label it holds, L_{gamma,Lambda}.
++  // Garbler: L_{gamma,0} xor Lambda*Delta for the Lambda the evaluator reported.
++  BlockVec Lbl_t;
++#ifdef EMP_HYBRID_TEST_ATTACKS
++  // Evaluator-local values a malicious evaluator already holds (recorded for
++  // the lambda-leak probe only): key/public mask/own share of AND operand 1.
++  BlockVec atk_in1_key;
++  std::vector<unsigned char> atk_in1_pub, atk_in1_share;
++#endif
+ 
+   MITCCRH<8> mitc;
+ 

@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "arguments": [
+    "signal-two-sends",
+    17,
+    5,
+    5,
+    2,
+    "present"
+  ],
+  "lean_image_sha256": "76b2309eef6c21a3ccc2d454aa78b96b75eab9419589a800b9f6d673825e449e",
+  "flat_sha256": "76fd7420160cda395330314f852bc2c1a95aa63c041e838b9433ac0ef77758a1",
+  "and_gates": 2645910,
+  "input_bits": 1960,
+  "output_bits": 2704,
+  "lanes": [
+    "two-accepted-sends",
+    "invalid-pq-flag-preserves-state"
+  ],
+  "reference": "hashlib HMAC/HKDF, openssl AES-256-CBC, serialization helpers from scripts/check_lean_signal_send.py",
+  "scope": "Two chained established sends as one Lean circuit; second send consumes the first send's returned chain key and counter. Checked against an independent reference on an accepted and a rejected lane. Lowered by the shared unverified adapter. Not a recipient-decryption test and not a session-state commit."
+}

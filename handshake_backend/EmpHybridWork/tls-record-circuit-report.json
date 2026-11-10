@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "circuits": {
+    "tls-seal-record": {
+      "arguments": [
+        "tls-seal-record",
+        "64",
+        "0"
+      ],
+      "lean_image_sha256": "e415a668570a5dd2587e113dc113d8563807f5adba7e97048d81e217d04a32c2",
+      "flat_sha256": "5b28c8a87f36b025d9457fdb686872c772a6d41c47b92eed7fc11cf96b0e940c",
+      "and_gates": 129993,
+      "input_bits": 800,
+      "output_bits": 688,
+      "lanes": [
+        "sequence-0",
+        "sequence-large"
+      ]
+    },
+    "tls-open-record": {
+      "arguments": [
+        "tls-open-record",
+        "86"
+      ],
+      "lean_image_sha256": "61b586fd16a65bb7d159e10773f9ade1efd018f3e37f47c5a74ab7a5901bb45f",
+      "flat_sha256": "b09e49e46fa7ae558a62ca841014db4ab019e02ccf041c0ac627a291e1669ec1",
+      "and_gates": 140046,
+      "input_bits": 976,
+      "output_bits": 552,
+      "lanes": [
+        "valid-record",
+        "forged-tag-zeroes-output",
+        "wrong-sequence-zeroes-output"
+      ]
+    }
+  },
+  "reference": "cryptography AESGCM, RFC 8446 section 5.2/5.3 nonce and additional data",
+  "scope": "TLS 1.3 application-data record seal and open as Lean circuits, checked against an independent AES-GCM on valid, forged-tag and wrong-sequence lanes. Lowered by the shared unverified adapter. Connection state policy (sequence reservation, key update) is outside these circuits."
+}

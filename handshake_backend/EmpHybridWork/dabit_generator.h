@@ -6,6 +6,14 @@
 #include <array>
 #include <numeric>
 #include <stdexcept>
+// Statistical profile of the cut/bucket check: 40 (earlier receipts) or 128
+// (production). Chosen at build time so the exact bucket table is fixed.
+#ifndef EMP_HYBRID_STATISTICAL
+#define EMP_HYBRID_STATISTICAL 40
+#endif
+#if EMP_HYBRID_STATISTICAL!=40 && EMP_HYBRID_STATISTICAL!=128
+#error "unsupported statistical profile"
+#endif
 namespace emp_hybrid {
 using namespace emp;
 using FE=emp_hybrid::FieldEngine;
@@ -65,9 +73,16 @@ public:
     template<unsigned Ell>static Generation<Ell> generate(AG2PCSession&session,FE&field,Challenge&challenge,int party){
         static_assert(Ell==256||Ell==512||Ell==1024);
         if(session.protocol().party!=party||field.party_id()!=unsigned(party-1))throw std::runtime_error("engine party mapping");
-        constexpr unsigned B=5,K=B*Ell,M=2*K,D=K-Ell;
+        // Bucket sizes are the exact receipts in parameter-report.json /
+        // curve-parameters.json (S40) and parameters-128-report.json (S128).
+#if EMP_HYBRID_STATISTICAL==128
+        constexpr unsigned B=Ell==256?14:Ell==512?13:12;
+#else
+        constexpr unsigned B=5;
+#endif
+        constexpr unsigned K=B*Ell,M=2*K,D=K-Ell;
         if(challenge.phase!=0)throw std::runtime_error("generator challenge reuse");
-        challenge.domain="RW2019-v1:p25519:ell"+std::to_string(Ell)+":B5:C2:S40:local-AB:"+challenge.domain;
+        challenge.domain="RW2019-v1:p25519:ell"+std::to_string(Ell)+":B"+std::to_string(B)+":C2:S"+std::to_string(EMP_HYBRID_STATISTICAL)+":local-AB:"+challenge.domain;
         auto mine=fresh<M>();std::vector<uint64_t>local;for(auto b:mine)local.push_back(b);
         if(party==BOB&&std::getenv("EMP_TEST_BAD_NATIVE_COINS"))std::fill(local.begin(),local.end(),2);
         auto a=session.input<V<M>>(ALICE,mine),b=session.input<V<M>>(BOB,mine);session.checkpoint(a,b);

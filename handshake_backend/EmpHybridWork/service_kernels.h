@@ -1,0 +1,141 @@
+#pragma once
+// Signal service path on the two engines: authenticated WebSocket upgrade,
+// private receive parsing and the established sealed-sender text send.
+//
+// Every circuit is a Lean kernel (TlsMpc/HybridKernels.lean) bound by field
+// name. This file holds named private state, sequences kernels, and runs the
+// X25519 agreements in the field engine. It has no knowledge of any record or
+// state layout, and opens only what Lean marks as openable:
+//   - send: the gated producer status (must be 255 before the frame is retained);
+//   - receive: chunk acceptance, parser status flags at the end of a chunk, the
+//     control queue's validity, count and reply kinds.
+//
+// X25519 for sealed sender uses the shared-scalar ladder on a PRIVATE recipient
+// point. The sender's long-term results (its public key and the static
+// agreement with the recipient) are computed once per conversation.
+//
+// State admission is the TEST FIXTURE only: public disposable sender states
+// from signal_backend/TextNotificationWork are entered as private wires by one
+// party. It is not authenticated provisioning and not durable.
+#include "tls_kernels.h"
+#include "../../signal_backend/TextNotificationWork/PublicTextFixture.h"
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+namespace emp_hybrid {
+class ServiceKernels {
+    TlsKernels&k;DynSession&s;FE&f;
+    static constexpr size_t CERT=260,PASSWORD=22;
+    struct Conversation {Wires record,sender_public,static_agreement;std::vector<H>identity;H recipient;bool ready=false;};
+    std::vector<Conversation>conversations;std::vector<std::pair<unsigned,Wires>>inputs;std::vector<bool>consumed;
+    Values ws;   // upgrade, accept, frame, control, responseTemplate, response, requestId
+    bool admitted=false,started=false,upgraded=false,pending=false,closed=false;
+    Wires entered(const std::vector<uint8_t>&bytes){return s.input_private(emp::ALICE,byte_bits(bytes));}   // one party supplies; private from then on
+    void need(bool ok,const char*what){if(!ok){closed=true;throw std::runtime_error(what);}}
+    const Kernel&view(){return k.cache.get("signal-conversation-view "+std::to_string(CERT));}
+public:
+    explicit ServiceKernels(TlsKernels&kernels):k(kernels),s(kernels.s),f(kernels.f){}
+    // TEST FIXTURE admission: two conversations, two texts each.
+    void admit_fixture(){
+        need(!admitted,"service admission repeated");admitted=true;
+        for(unsigned slot=0;slot<2;slot++){
+            auto native=signal_mpc::PublicTextFixture::initial(slot);need(native.size()>32,"fixture state shape");
+            Conversation c;std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(native.begin(),32,secret.begin());
+            c.identity=k.shared_scalar(secret);c.record=entered({native.begin()+32,native.end()});
+            if(slot==0){auto out=view().run(s,{{"conversation",&c.record}});ws["requestId"]=std::move(out.at("requestId"));}   // one request-id sequence per connection
+            conversations.push_back(std::move(c));
+        }
+        for(unsigned round=0;round<2;round++)for(unsigned slot=0;slot<2;slot++)inputs.push_back({slot,entered(signal_mpc::PublicTextFixture::text_input(slot,round))});
+        consumed.assign(inputs.size(),false);
+    }
+    std::vector<uint8_t> catalogue()const{
+        if(!admitted||closed)throw std::runtime_error("no admitted provider");
+        std::vector<uint8_t>out{0,0,0,0,0,0,0,1,0,uint8_t(inputs.size())};
+        for(size_t i=0;i<inputs.size();i++){for(int b=0;b<7;b++)out.push_back(0);out.push_back(uint8_t(i+1));}
+        return out;
+    }
+    // Authenticated upgrade request with private credentials and a public nonce.
+    // Returns the request's handle and its public size.
+    std::pair<uint64_t,size_t> upgrade(const std::vector<uint8_t>&nonce){
+        need(admitted&&!started&&!closed&&nonce.size()==16,"upgrade unavailable");started=true;
+        std::vector<uint8_t>credentials{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff};credentials.insert(credentials.end(),PASSWORD,'x');
+        auto secret=entered(credentials),open_nonce=k.constant(nonce);
+        auto request=k.cache.get("signal-upgrade "+std::to_string(PASSWORD)).run(s,{{"credentials",&secret},{"nonce",&open_nonce}});
+        // Expected Sec-WebSocket-Accept: a public function of the public nonce.
+        unsigned char key[25]={},digest[20],encoded[29]={};EVP_EncodeBlock(key,nonce.data(),16);
+        std::string material(reinterpret_cast<char*>(key),24);material+="258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        SHA1(reinterpret_cast<const unsigned char*>(material.data()),material.size(),digest);EVP_EncodeBlock(encoded,digest,20);
+        ws["accept"]=k.constant(std::vector<uint8_t>(encoded,encoded+28));
+        auto unused=k.constant({0});auto initial=k.cache.get("ws-initial").run(s,{{"unused",&unused}});
+        for(auto name:{"upgrade","frame","control","responseTemplate"})ws[name]=std::move(initial.at(name));
+        const size_t bytes=request.at("content").size()/8;
+        return {k.retain({Wires{},std::move(request.at("content")),Wires{}}),bytes};
+    }
+    // One established sealed-sender text send. Returns the handle of the masked
+    // WebSocket frame (private length within a public capacity) and that capacity.
+    std::pair<uint64_t,size_t> produce(uint64_t input){
+        need(upgraded&&!pending&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
+        auto&c=conversations.at(inputs[input-1].first);
+        if(!c.ready){
+            auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
+            c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
+        }
+        std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
+        auto ephemeral=k.shared_scalar(seed);
+        auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient),mask=k.fresh(4);
+        auto&kernel=k.cache.get("signal-send "+std::to_string(CERT));
+        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"requestId",&ws.at("requestId")},
+            {"ephemeralPublic",&ephemeral_public},{"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},
+            {"staticAgreement",&c.static_agreement},{"mask",&mask},{"responseTemplate",&ws.at("responseTemplate")}});
+        // Nothing is retained or sealed unless the gated status opens to 255.
+        need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
+        c.record=std::move(out.at("conversation"));ws["requestId"]=std::move(out.at("requestId"));ws["response"]=std::move(out.at("response"));pending=true;
+        const size_t capacity=out.at("content").size()/8;
+        return {k.retain({std::move(out.at("length")),std::move(out.at("content")),std::move(out.at("valid"))}),capacity};
+    }
+    // One received application chunk through the parsers.
+    // Reply: upgraded, response complete, n, n x (kind, handle8, capacity2).
+    std::vector<uint8_t> process(uint64_t handle){
+        need(started&&!closed,"WebSocket unavailable");
+        auto it=k.buffers.find(handle);need(it!=k.buffers.end()&&it->second.length.size()!=0,"receive handle");
+        auto chunk=std::move(it->second);k.buffers.erase(it);const size_t capacity=chunk.content.size()/8;need(capacity>=1&&capacity<=128,"receive profile");
+        auto&activity=k.cache.get("ws-activity "+std::to_string(capacity));auto valid=k.constant({255});
+        auto masks=activity.run(s,{{"valid",&valid},{"length",&chunk.length}});
+        need(activity.open(s,masks,"accepted")==std::vector<uint8_t>{255},"invalid private receive chunk");
+        const bool upgrading=!upgraded,responding=pending;
+        auto&step=k.cache.get(upgrading?"ws-upgrade-byte":responding?"ws-response-byte":"ws-idle-byte");Values out;
+        for(size_t i=0;i<capacity;i++){
+            auto active=masks.at("masks").slice(8*i,8*i+8),byte=chunk.content.slice(8*i,8*i+8);   // i-th element of each array
+            Binding bound{{"frame",&ws.at("frame")},{"control",&ws.at("control")},{"active",&active},{"byte",&byte}};
+            if(upgrading){bound.push_back({"upgrade",&ws.at("upgrade")});bound.push_back({"accept",&ws.at("accept")});}
+            else if(responding)bound.push_back({"response",&ws.at("response")});
+            out=step.run(s,bound);
+            ws["frame"]=std::move(out.at("frame"));ws["control"]=std::move(out.at("control"));
+            if(upgrading)ws["upgrade"]=std::move(out.at("upgrade"));else if(responding)ws["response"]=std::move(out.at("response"));
+        }
+        auto flags=step.open(s,out,"status");bool complete=false;
+        if(upgrading){
+            need(flags.size()==3&&flags[0]==255&&(flags[1]==0||flags[1]==255)&&flags[2]==255,"WebSocket upgrade rejected");
+            if(flags[1]==255){upgraded=true;ws.erase("upgrade");}
+        }else if(responding){
+            need(flags.size()==4&&flags[0]==255&&flags[1]==255&&(flags[2]==0||flags[2]==255)&&(flags[3]==0||flags[3]==255)&&(flags[2]==255||flags[3]==0),"private response rejected");
+            if(flags[2]==255){need(flags[3]==255,"service response was not a success");complete=true;pending=false;ws.erase("response");}
+        }else need(flags.size()==1&&flags[0]==255,"WebSocket frame rejected");
+        // Control queue: validity, then count and kinds; lengths and payloads stay private.
+        auto&status=k.cache.get("ws-control-status");auto queue_out=status.run(s,{{"control",&ws.at("control")}});
+        need(status.open(s,queue_out,"valid")==std::vector<uint8_t>{255},"private controls rejected");
+        auto queue=status.open(s,queue_out,"queue");need(queue.size()==5&&queue[0]<=4,"control queue");
+        for(unsigned i=0;i<4;i++)need(i<queue[0]?(queue[i+1]==8||queue[i+1]==10):queue[i+1]==0,"control kind");
+        std::vector<uint8_t>reply{uint8_t(upgraded),uint8_t(complete),queue[0]};
+        for(unsigned i=0;i<queue[0];i++){
+            auto mask=k.fresh(4);auto frame=k.cache.get("ws-control-reply "+std::to_string(i)).run(s,{{"control",&ws.at("control")},{"mask",&mask}});
+            const size_t bytes=frame.at("content").size()/8;
+            auto id=k.retain({std::move(frame.at("length")),std::move(frame.at("content")),std::move(frame.at("valid"))});
+            reply.push_back(queue[i+1]);for(int b=7;b>=0;b--)reply.push_back(uint8_t(id>>(8*b)));reply.push_back(uint8_t(bytes>>8));reply.push_back(uint8_t(bytes));
+            if(queue[i+1]==8)closed=true;
+        }
+        ws["control"]=std::move(queue_out.at("control"));
+        return reply;
+    }
+    void close(){closed=true;conversations.clear();inputs.clear();ws.clear();}
+};
+}

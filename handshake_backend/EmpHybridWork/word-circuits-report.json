@@ -1,0 +1,117 @@
+{
+  "passed": true,
+  "circuits": {
+    "modadd": {
+      "flat_sha256": "20ab904cf9a10d7cfd0ee45af4e77eb78fa3551ff1e0f657f9121e7ce6baea04",
+      "and_gates": 765,
+      "xor_gates": 2294,
+      "not_gates": 7,
+      "outputs": 255,
+      "cases_checked": 596
+    },
+    "finalize-mask": {
+      "flat_sha256": "a75d51c2a8bb91340ce67e862c40004f5ed82c54d4bf2d382184a17b1085f78b",
+      "and_gates": 1274,
+      "xor_gates": 3310,
+      "not_gates": 13,
+      "outputs": 256,
+      "cases_checked": 596
+    },
+    "finalize-bits": {
+      "flat_sha256": "acf15435c59a090ab66ae2808db5ddc8ded70d25364cdd65e54aa5b24cbb2060",
+      "and_gates": 1009,
+      "xor_gates": 2268,
+      "not_gates": 505,
+      "outputs": 256,
+      "cases_checked": 596
+    },
+    "into-field": {
+      "flat_sha256": "d4888fa12489dadd4aa4937d613c78b36736fad61e30c6f2e21c02d283f22c70",
+      "and_gates": 1275,
+      "xor_gates": 3315,
+      "not_gates": 13,
+      "outputs": 255,
+      "cases_checked": 596
+    },
+    "status": {
+      "flat_sha256": "47a9976ca3c13a1f3fa0e4e60ea6361475fccd6080a73612350f0f9a1e9344b5",
+      "and_gates": 508,
+      "xor_gates": 1272,
+      "not_gates": 512,
+      "outputs": 2,
+      "cases_checked": 596
+    },
+    "xor-bit": {
+      "flat_sha256": "6495137f2dc968d4553b3560a5e09d4a1cdc182503460dbb0773783f35feadac",
+      "and_gates": 0,
+      "outputs": 1,
+      "cases_checked": 4
+    },
+    "field-bit-check": {
+      "flat_sha256": "806ac79111b3e52da5c3239c1711faf00aab6133c5bff61c092d918bf9a99d01",
+      "multiplication_nodes": 1,
+      "inputs": 1,
+      "cases_checked": 50
+    },
+    "field-bit-xor": {
+      "flat_sha256": "417ebd3237cfad6e5be940d43d1067daddbe97149017cbbf4ff3194c896be7b0",
+      "multiplication_nodes": 2,
+      "inputs": 2,
+      "cases_checked": 50
+    },
+    "field-recompose": {
+      "flat_sha256": "b7eafdc36ad3795decea521172d237d6afb1619b7f8b7fad3614d73d138d71a9",
+      "multiplication_nodes": 255,
+      "inputs": 256,
+      "cases_checked": 50
+    },
+    "x25519-fast": {
+      "flat_sha256": "6f7217dee61334d4dc64ff9539d89465f014112362a48a1bd39c42feb30d704b",
+      "secret_products": 2794,
+      "inputs": 257,
+      "outputs": 2,
+      "cases_checked": 20,
+      "reference": "cryptography X25519"
+    },
+    "field-mask-pair": {
+      "flat_sha256": "0b180c8113069e1f0dbd078c9a6e5a0c5c62c5b78b96ddbe8463db008d15831b",
+      "secret_products": 2,
+      "inputs": 3,
+      "outputs": 2,
+      "cases_checked": 20
+    },
+    "edwards-on-curve": {
+      "flat_sha256": "4f8c23e39a23313c05018bb7185159910c19b5c35038284cfca8d07b0a5e46cd",
+      "cases_checked": 20,
+      "reference": "independent Montgomery ladder on the summed scalar",
+      "multiplication_nodes": 5,
+      "inputs": 2
+    },
+    "edwards-add-u": {
+      "flat_sha256": "2b1b00a231e0d2c87c61df545456bf1ca7bc850053f4a1141df53800b05a0197",
+      "cases_checked": 20,
+      "reference": "independent Montgomery ladder on the summed scalar",
+      "secret_products": 3,
+      "inputs": 4,
+      "outputs": 2
+    },
+    "swap-bits": {
+      "flat_sha256": "6c981ca7f9e63f434d28338d89e1e5768dbc4e9578a05d1956ab6e152fbd60a7",
+      "and_gates": 0,
+      "outputs": 252,
+      "cases_checked": 50
+    }
+  },
+  "lean_sources": {
+    "TlsMpc/BoolDag.lean": "1758d0237b717f320d9bb3bc3169c579b90276e219df1f8db7d29d263db1a280",
+    "TlsMpc/WordMask.lean": "f3a396651ef8778c2ec507af86c9dfd0dab65c310220a7e89fe8cf4a54e61098",
+    "TlsMpc/FieldBits.lean": "c677a97e04f041219eabb7cf05e1963ef862bd8c4c1e7bc8cc42785567c14808",
+    "TlsMpc/FieldDag.lean": "52988ebf6dbdc27231cd53e9780bc9cb92e51ca4693e413ba20df841ec64037e",
+    "TlsMpc/FieldDagMulti.lean": "32a4aa54f6f5c244c0084d0428e18475488a10e4b21c0d46eee04842221803f6",
+    "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
+    "TlsMpc/X25519Fast.lean": "1027abc173c0a0669833384b6970b572097500adc44c313f7209e92df24fd769",
+    "TlsMpc/X25519SwapBits.lean": "99f67472f228979f7d5956e7eb9aee634eeabfb185837dd1f2434b98b0654e6e",
+    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "a0eed52f68b945e11c5585b132cc863006ce5af7490d7557611ca45c851b2966"
+  },
+  "scope": "Conversion circuits defined and proved in Lean (TlsMpc/WordMask.lean), compiled by the validated gate-level compiler (TlsMpc/BoolDag.lean) and printed from Lean. Checked here against integer arithmetic on boundary and random inputs. The printer, this parser and the C++ loader are outside the Lean theorems."
+}

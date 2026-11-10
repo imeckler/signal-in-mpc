@@ -1,0 +1,398 @@
+{
+  "passed": true,
+  "parties": 2,
+  "security_mode": "malicious",
+  "engine": "validated-v3 + native field (MASCOT)",
+  "statistical_security": 128,
+  "logs": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tls-worker-v3-run/65a583e46e39f490",
+  "sha256": {
+    ".deps/two-party-comparison/tls-worker-fixture-v3": "50d2a0ff0710f1f106f6e4a9ba918d1362336cc99ff1417b6a7900f70b6ea8c5",
+    ".lake/build/bin/session_handshake_fixture": "6f01e03d6370a2f4031b0859e8b8ffc38f9e153a1e83bd79ea38cbbbbcfc30fb",
+    "handshake_backend/EmpHybridWork/tls_worker_v3.cpp": "c3c53810c34ac55d3e6c81a0a49c36bebbfe10b9d45c9f18efb54ce46f60b8c6",
+    "handshake_backend/EmpHybridWork/tls_kernels.h": "149c42aee6b1f40e0ec6fc29c46036fdbb56ccde1d09b76506854b93572d8d39",
+    "handshake_backend/EmpHybridWork/dyn_word_mask.h": "53c7d37f5b712d0d1a1306247f3b310826fefd62c7a2c21fa0842325c11693a7",
+    "handshake_backend/EmpHybridWork/circuit_cache.py": "4bb98a08048cf8e7d077fe01d735b3e15c9a8566644d17d1fdf1b65af5f37827",
+    "TlsMpc/HybridKdf.lean": "a7a04db9635a59026e51f598249d1ceb58da90c9ab222b3ea68f9f3159636648",
+    "TlsMpc/TlsClient.lean": "d059c3360d4f46c1e38f5f045685db9b7f14130aa3c1f621c9888844d4fbf456"
+  },
+  "case": "untrusted",
+  "controllers": [
+    {
+      "application_session_accepted": false,
+      "certificate_verified": false,
+      "client_finished_sent": false,
+      "error": "native worker rejected the operation",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94
+      ],
+      "passed": false,
+      "retirement_requested": false,
+      "retirement_succeeded": false,
+      "server_finished_verified": false
+    },
+    {
+      "application_session_accepted": false,
+      "certificate_verified": false,
+      "client_finished_sent": false,
+      "error": "native worker rejected the operation",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94
+      ],
+      "passed": false,
+      "retirement_requested": false,
+      "retirement_succeeded": false,
+      "server_finished_verified": false
+    }
+  ],
+  "operations": [
+    [
+      {
+        "operation": 0,
+        "seconds": 0.703664,
+        "and_gates": 534464,
+        "emp_sent_bytes": 148422877,
+        "field_sent_bytes": 15836425,
+        "field_products": 0
+      },
+      {
+        "operation": 9,
+        "seconds": 0.704344,
+        "and_gates": 534464,
+        "emp_sent_bytes": 148422909,
+        "field_sent_bytes": 15836425,
+        "field_products": 0
+      },
+      {
+        "operation": 1,
+        "seconds": 1.6324,
+        "and_gates": 534464,
+        "emp_sent_bytes": 148423037,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 10,
+        "seconds": 1.63263,
+        "and_gates": 534464,
+        "emp_sent_bytes": 148423069,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 11,
+        "seconds": 1.63325,
+        "and_gates": 534464,
+        "emp_sent_bytes": 148423200,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 2,
+        "seconds": 4.07675,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 509569030,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.07694,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 509569072,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.07707,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 509569145,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 4.22284,
+        "and_gates": 1975314,
+        "emp_sent_bytes": 527217675,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.22303,
+        "and_gates": 1975314,
+        "emp_sent_bytes": 527218245,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 5.24439,
+        "and_gates": 2736146,
+        "emp_sent_bytes": 725175373,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 5.24459,
+        "and_gates": 2736146,
+        "emp_sent_bytes": 725175943,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 5.76458,
+        "and_gates": 3496978,
+        "emp_sent_bytes": 923133007,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 5.76474,
+        "and_gates": 3496978,
+        "emp_sent_bytes": 923133359,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 6.36596,
+        "and_gates": 3948250,
+        "emp_sent_bytes": 1040688920,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 6.36658,
+        "and_gates": 3948250,
+        "emp_sent_bytes": 1040689050,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 6.62211,
+        "and_gates": 4090178,
+        "emp_sent_bytes": 1081582017,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      }
+    ],
+    [
+      {
+        "operation": 0,
+        "seconds": 0.703623,
+        "and_gates": 534464,
+        "emp_sent_bytes": 125106101,
+        "field_sent_bytes": 15836425,
+        "field_products": 0
+      },
+      {
+        "operation": 9,
+        "seconds": 0.703722,
+        "and_gates": 534464,
+        "emp_sent_bytes": 125106133,
+        "field_sent_bytes": 15836425,
+        "field_products": 0
+      },
+      {
+        "operation": 1,
+        "seconds": 1.63237,
+        "and_gates": 534464,
+        "emp_sent_bytes": 125106261,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 10,
+        "seconds": 1.63259,
+        "and_gates": 534464,
+        "emp_sent_bytes": 125106293,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 11,
+        "seconds": 1.63322,
+        "and_gates": 534464,
+        "emp_sent_bytes": 125106325,
+        "field_sent_bytes": 291785979,
+        "field_products": 3552
+      },
+      {
+        "operation": 2,
+        "seconds": 4.07679,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 440683782,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.07695,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 440683814,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.07708,
+        "and_gates": 1920510,
+        "emp_sent_bytes": 440683846,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 4.22275,
+        "and_gates": 1975314,
+        "emp_sent_bytes": 456529783,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 4.22303,
+        "and_gates": 1975314,
+        "emp_sent_bytes": 456529815,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 5.24438,
+        "and_gates": 2736146,
+        "emp_sent_bytes": 629473871,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 5.24459,
+        "and_gates": 2736146,
+        "emp_sent_bytes": 629473903,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 5.76448,
+        "and_gates": 3496978,
+        "emp_sent_bytes": 802417895,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 5.76475,
+        "and_gates": 3496978,
+        "emp_sent_bytes": 802417927,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 6.36588,
+        "and_gates": 3948250,
+        "emp_sent_bytes": 905137201,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 11,
+        "seconds": 6.3666,
+        "and_gates": 3948250,
+        "emp_sent_bytes": 905137233,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      },
+      {
+        "operation": 3,
+        "seconds": 6.62201,
+        "and_gates": 4090178,
+        "emp_sent_bytes": 941363501,
+        "field_sent_bytes": 567662685,
+        "field_products": 6348
+      }
+    ]
+  ],
+  "rejections": [
+    "operation 4 rejected: authentication rejected",
+    "operation 4 rejected: authentication rejected"
+  ],
+  "server": {
+    "client_finished_accepted": false,
+    "outgoing_records": [
+      {
+        "type": 22,
+        "wire_bytes": 95
+      },
+      {
+        "type": 20,
+        "wire_bytes": 6
+      },
+      {
+        "type": 23,
+        "wire_bytes": 37
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 316
+      },
+      {
+        "type": 23,
+        "wire_bytes": 94
+      },
+      {
+        "type": 23,
+        "wire_bytes": 58
+      }
+    ],
+    "error": "[Errno 54] Connection reset by peer"
+  },
+  "elapsed_seconds": 6.825399750028737,
+  "worker_totals": [
+    {
+      "operation": 3,
+      "seconds": 6.62211,
+      "and_gates": 4090178,
+      "emp_sent_bytes": 1081582017,
+      "field_sent_bytes": 567662685,
+      "field_products": 6348
+    },
+    {
+      "operation": 3,
+      "seconds": 6.62201,
+      "and_gates": 4090178,
+      "emp_sent_bytes": 941363501,
+      "field_sent_bytes": 567662685,
+      "field_products": 6348
+    }
+  ],
+  "controller_exit_codes": [
+    1,
+    1
+  ]
+}

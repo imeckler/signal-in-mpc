@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "profiles": [
+    {
+      "outputs": 256,
+      "bucket": 14,
+      "cut_factor": 2,
+      "candidates_per_party": 7168,
+      "statistical_target": 128,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "41822180015666858388671856828228002669310",
+      "approx_bound_bits": 134.9413920610523,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 512,
+      "bucket": 13,
+      "cut_factor": 2,
+      "candidates_per_party": 13312,
+      "statistical_target": 128,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "128548569413706540853359342585073632610050",
+      "approx_bound_bits": 136.5613654452346,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 1024,
+      "bucket": 12,
+      "cut_factor": 2,
+      "candidates_per_party": 24576,
+      "statistical_target": 128,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "98703137825444279053654687041223868721150",
+      "approx_bound_bits": 136.18021974495073,
+      "backend_security_proved": false
+    }
+  ],
+  "scope": "Public combinatorial bound only; backend/security composition unvalidated."
+}

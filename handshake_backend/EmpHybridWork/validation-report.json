@@ -1,0 +1,1171 @@
+{
+  "regressions_passed": true,
+  "secure_hybrid_backend": false,
+  "assertions": {
+    "input_repair_only_leaks_garbler_wire_value": true,
+    "v3_false_masked_value_rejected_before_digest": true,
+    "v3_honest_two_gate_chunk_passes": true,
+    "v3_false_gamma_rejected": true,
+    "v3_triple_generation_false_opening_rejected": true,
+    "v3_honest_A_output": true,
+    "v3_honest_B_output": true,
+    "v3_honest_PUBLIC_output": true,
+    "v3_A_output_share_lie_rejected": true,
+    "v3_PUBLIC_share_lie_rejected_at_A": true,
+    "v3_honest_PUBLIC_without_nonlinear_chunk": true,
+    "v3_PUBLIC_input_share_lie_rejected_at_A": true,
+    "v3_owner_only_input_regression": true,
+    "v3_malformed_mask_share_rejected": true,
+    "v3_malformed_Gamma_rejected": true,
+    "v3_boundary_probe_honest_A_output": true
+  },
+  "results": {
+    "leaks": [
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.02601891604717821,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-rggtd9ux",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "0f7ef7fb8c09dc9af72bde32a6ec1368830295240ccce1f2bafc8b7cf711b03e"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.0208262080559507,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-ncf21rn7",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "07e5d6377e50f10aaa38f3d3f0822db10cfb39a4e61d1a05e7e01d262bfad4d4"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.02241475007031113,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-26qwpwi1",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "07e5d6377e50f10aaa38f3d3f0822db10cfb39a4e61d1a05e7e01d262bfad4d4"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.02186070801690221,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-c7xa6gj0",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "0f7ef7fb8c09dc9af72bde32a6ec1368830295240ccce1f2bafc8b7cf711b03e"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.024841708946041763,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-9wpfhrsn",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "0f7ef7fb8c09dc9af72bde32a6ec1368830295240ccce1f2bafc8b7cf711b03e"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.021569082979112864,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-z2vqombn",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "0f7ef7fb8c09dc9af72bde32a6ec1368830295240ccce1f2bafc8b7cf711b03e"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.022608041996136308,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-o5af2veg",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "0f7ef7fb8c09dc9af72bde32a6ec1368830295240ccce1f2bafc8b7cf711b03e"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      },
+      {
+        "variant": "lambda-diagnostic-v2",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          0,
+          0
+        ],
+        "failure_category": null,
+        "seconds": 0.024416500004008412,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-zmnajohk",
+        "binary_sha256": "2b415033bfd1dc9560b2c5d57a2f3b18dcdb499b7ba351b7333c1799439c6b08",
+        "log_sha256": [
+          "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+          "07e5d6377e50f10aaa38f3d3f0822db10cfb39a4e61d1a05e7e01d262bfad4d4"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": true,
+        "leak_matches_private_bit": true,
+        "label_check_rejection": false,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": true
+      }
+    ],
+    "blocked": [
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.032788541982881725,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-1v3azt4z",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.034573417040519416,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-8t29b82b",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.03187120798975229,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-ldi8okim",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.029270041966810822,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-4ae906m9",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.03033612493891269,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-pr360wak",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.02831737499218434,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-g72prefs",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.02879062492866069,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-a9ujl6bd",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      },
+      {
+        "variant": "validated-v3",
+        "mode": "leak",
+        "fault": "EMP_TEST_LAMBDA_LEAK",
+        "exit_codes": [
+          1,
+          1
+        ],
+        "failure_category": null,
+        "seconds": 0.030463665956631303,
+        "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-bhnpdzyp",
+        "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+        "log_sha256": [
+          "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+          "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+        ],
+        "accepted": [
+          [],
+          []
+        ],
+        "leak_attempted": false,
+        "leak_matches_private_bit": false,
+        "label_check_rejection": true,
+        "share_mac_rejection": false,
+        "open_mac_rejection": false,
+        "settled": false
+      }
+    ],
+    "honest_leak": {
+      "variant": "validated-v3",
+      "mode": "leak",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.02854900003876537,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-aa65ftsd",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf",
+        "29b461daf84cacc2d0b6cb96e892416f43df8edd1585ea6c1f18911a83a2cadf"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": true
+    },
+    "false_gamma": {
+      "variant": "validated-v3",
+      "mode": "and-A",
+      "fault": "EMP_TEST_FALSE_GAMMA",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.028483917005360126,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-4lbc36o7",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "4ce0f57bcdce5f7d22b6d436d0e9814f48119d1455894d4e39a719b77652ff88",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": true,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "open_lie": {
+      "variant": "validated-v3",
+      "mode": "and-A",
+      "fault": "EMP_TEST_OPEN_LIE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.022638708003796637,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-_pckdxse",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "45bfd6b6755f7836133f00fd60510adac6f6b1793b269b13979d18ea2cbd738a",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": true,
+      "settled": false
+    },
+    "and_A": {
+      "variant": "validated-v3",
+      "mode": "and-A",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.02838837495073676,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-bl_idwv_",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ],
+      "accepted": [
+        [
+          "1"
+        ],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "and_B": {
+      "variant": "validated-v3",
+      "mode": "and-B",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.02867362496908754,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-aoyeanlq",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32"
+      ],
+      "accepted": [
+        [],
+        [
+          "1"
+        ]
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "and_P": {
+      "variant": "validated-v3",
+      "mode": "and-P",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.030343999969772995,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-wz40931r",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32",
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32"
+      ],
+      "accepted": [
+        [
+          "1"
+        ],
+        [
+          "1"
+        ]
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "share_lie_A": {
+      "variant": "validated-v3",
+      "mode": "and-A",
+      "fault": "EMP_TEST_OUTPUT_SHARE_LIE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.03133450006134808,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-c8fcyc80",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "17a2a4e4b5c5fdc58f6767bfdefe6cb06924d9906804aa889578c548a8c3d3ba",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": true,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "share_lie_P": {
+      "variant": "validated-v3",
+      "mode": "and-P",
+      "fault": "EMP_TEST_OUTPUT_SHARE_LIE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.029135582968592644,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-j4ecnccn",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "17a2a4e4b5c5fdc58f6767bfdefe6cb06924d9906804aa889578c548a8c3d3ba",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": true,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "public": {
+      "variant": "validated-v3",
+      "mode": "public",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.020989167038351297,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-k_tpkorg",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32",
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32"
+      ],
+      "accepted": [
+        [
+          "1"
+        ],
+        [
+          "1"
+        ]
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": false,
+      "open_mac_rejection": false,
+      "settled": false
+    },
+    "public_lie": {
+      "variant": "validated-v3",
+      "mode": "public",
+      "fault": "EMP_TEST_OUTPUT_SHARE_LIE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.021721041994169354,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/validation-e8x0tisc",
+      "binary_sha256": "7b8e13a50686711d850ac3eeaad357459c7dadf126a45e73591cc79f1240cf04",
+      "log_sha256": [
+        "17a2a4e4b5c5fdc58f6767bfdefe6cb06924d9906804aa889578c548a8c3d3ba",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "accepted": [
+        [],
+        []
+      ],
+      "leak_attempted": false,
+      "leak_matches_private_bit": false,
+      "label_check_rejection": false,
+      "share_mac_rejection": true,
+      "open_mac_rejection": false,
+      "settled": false
+    }
+  },
+  "components": [
+    {
+      "passed": true,
+      "name": "aes256",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.062141166999936104,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-ogpv7wpo",
+      "bristol_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.022451,
+          "setup_seconds": 0.00939175,
+          "input_seconds": 0.000778167,
+          "run_seconds": 0.0188559,
+          "reveal_seconds": 8.792e-06,
+          "close_seconds": 0.000440125,
+          "wall_seconds": 0.0525145,
+          "cpu_seconds": 0.051648,
+          "peak_rss_bytes": 12107776,
+          "and_gates": 8832,
+          "sent_bytes": 3435861,
+          "received_bytes": 3130005
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0206148,
+          "setup_seconds": 0.0093675,
+          "input_seconds": 0.000799667,
+          "run_seconds": 0.018865,
+          "reveal_seconds": 1.2458e-05,
+          "close_seconds": 0.000123292,
+          "wall_seconds": 0.05074,
+          "cpu_seconds": 0.050457,
+          "peak_rss_bytes": 12222464,
+          "and_gates": 8832,
+          "sent_bytes": 3130005,
+          "received_bytes": 3435861
+        }
+      ]
+    },
+    {
+      "passed": true,
+      "name": "sha256-empty",
+      "corrupt_delta_control": false,
+      "failure_category": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "controller_wall_seconds": 0.18747279199305922,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/modern-smoke-rrfs912n",
+      "bristol_sha256": "8c07e0d8b947646161c30876208b27b25e1e93585d58e36b7cb51d8d521f0c97",
+      "parties": [
+        {
+          "party": 1,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0811537,
+          "setup_seconds": 0.0107056,
+          "input_seconds": 0.0010125,
+          "run_seconds": 0.0809498,
+          "reveal_seconds": 9.208e-06,
+          "close_seconds": 0.000357375,
+          "wall_seconds": 0.176893,
+          "cpu_seconds": 0.170224,
+          "peak_rss_bytes": 45056000,
+          "and_gates": 59759,
+          "sent_bytes": 19047002,
+          "received_bytes": 17052553
+        },
+        {
+          "party": 2,
+          "unaudited_rewrite": true,
+          "ssp": 40,
+          "load_seconds": 0.0793823,
+          "setup_seconds": 0.0101225,
+          "input_seconds": 0.00160775,
+          "run_seconds": 0.0809463,
+          "reveal_seconds": 1.4166e-05,
+          "close_seconds": 0.000106583,
+          "wall_seconds": 0.17516,
+          "cpu_seconds": 0.168704,
+          "peak_rss_bytes": 42893312,
+          "and_gates": 59759,
+          "sent_bytes": 17052553,
+          "received_bytes": 19047002
+        }
+      ]
+    },
+    {
+      "passed": true,
+      "corrupt_retained_delta": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-2vr15ezn",
+      "controller_seconds": 0.07894504093565047,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.0194374,
+          "setup_seconds": 0.0111877,
+          "input_seconds": 0.00153521,
+          "first_seconds": 0.0191366,
+          "second_seconds": 0.0166147,
+          "close_seconds": 0.000393625,
+          "first_sent_bytes": 3339216,
+          "first_received_bytes": 3047856,
+          "second_sent_bytes": 3339216,
+          "second_received_bytes": 3047856,
+          "and_gates": 17664,
+          "sent_bytes": 6809525,
+          "received_bytes": 6210293,
+          "wall_seconds": 0.0694714,
+          "cpu_seconds": 0.068117,
+          "peak_rss_bytes": 15286272
+        },
+        {
+          "party": 2,
+          "load_seconds": 0.0190784,
+          "setup_seconds": 0.0111805,
+          "input_seconds": 0.00156271,
+          "first_seconds": 0.0191187,
+          "second_seconds": 0.0166183,
+          "close_seconds": 4.2125e-05,
+          "first_sent_bytes": 3047856,
+          "first_received_bytes": 3339216,
+          "second_sent_bytes": 3047856,
+          "second_received_bytes": 3339216,
+          "and_gates": 17664,
+          "sent_bytes": 6210293,
+          "received_bytes": 6809525,
+          "wall_seconds": 0.0684006,
+          "cpu_seconds": 0.066638,
+          "peak_rss_bytes": 14385152
+        }
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    },
+    {
+      "passed": true,
+      "corrupt_retained_delta": true,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-teagfxxb",
+      "controller_seconds": 0.08404400001745671,
+      "parties": [
+        null,
+        null
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    },
+    {
+      "passed": true,
+      "corrupt_retained_delta": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-o2sv0t_i",
+      "controller_seconds": 0.07908112497534603,
+      "parties": [
+        {
+          "party": 1,
+          "load_seconds": 0.0163396,
+          "setup_seconds": 0.00958842,
+          "input_seconds": 0.00125142,
+          "first_seconds": 0.0173786,
+          "second_seconds": 0.0172035,
+          "close_seconds": 0.000319125,
+          "first_sent_bytes": 3339216,
+          "first_received_bytes": 3047856,
+          "second_sent_bytes": 3339216,
+          "second_received_bytes": 3047856,
+          "and_gates": 17664,
+          "sent_bytes": 6809525,
+          "received_bytes": 6210293,
+          "wall_seconds": 0.0646514,
+          "cpu_seconds": 0.060158,
+          "peak_rss_bytes": 12451840
+        },
+        {
+          "party": 2,
+          "load_seconds": 0.0167025,
+          "setup_seconds": 0.00958771,
+          "input_seconds": 0.00127162,
+          "first_seconds": 0.0174042,
+          "second_seconds": 0.0171784,
+          "close_seconds": 5.575e-05,
+          "first_sent_bytes": 3047856,
+          "first_received_bytes": 3339216,
+          "second_sent_bytes": 3047856,
+          "second_received_bytes": 3339216,
+          "and_gates": 17664,
+          "sent_bytes": 6210293,
+          "received_bytes": 6809525,
+          "wall_seconds": 0.0629487,
+          "cpu_seconds": 0.059813,
+          "peak_rss_bytes": 12648448
+        }
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    },
+    {
+      "passed": true,
+      "corrupt_retained_delta": true,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/nonlinear-state-pcoswmu1",
+      "controller_seconds": 0.1886524169240147,
+      "parties": [
+        null,
+        null
+      ],
+      "circuit_sha256": "b53393d31a3f1a733364719f88ac6a2602a394a15cea820d3ce7fcd49b2d83e4"
+    },
+    {
+      "passed": true,
+      "corrupt_delta": false,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/padded-kernel-q1xatf8s"
+    },
+    {
+      "passed": true,
+      "corrupt_delta": true,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/padded-kernel-tdjn8sjw"
+    }
+  ],
+  "boundary_results": [
+    {
+      "variant": "validated-v3",
+      "mode": "input",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.03084783407393843,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-k0w6eu7w",
+      "binary_sha256": "01cff2d32f71fc2c6f7e4495f208878d365edddae1bd0f55a75891574dcc7a70",
+      "log_sha256": [
+        "a3fae63276d24df6decbcc7cbc73265299071894fa1a2fcf835caad0ab8681fc",
+        "4bcf3e69021e1fb0ee3f71c64875db61533857ed0da3cd51671312e86ff120b8"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": true,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": true
+    },
+    {
+      "variant": "validated-v3",
+      "mode": "input",
+      "fault": "EMP_TEST_NONCANONICAL_SHARE",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.04205316700972617,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-5kx9w6rf",
+      "binary_sha256": "01cff2d32f71fc2c6f7e4495f208878d365edddae1bd0f55a75891574dcc7a70",
+      "log_sha256": [
+        "7e23b5ac1dbb2b2b51daa6273b5eb412b88bc4445c005261efe073e984c752b8",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": true,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "validated-v3",
+      "mode": "bob-input",
+      "fault": "EMP_TEST_NONCANONICAL_INPUT",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "failure_category": null,
+      "seconds": 0.030623833066783845,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-nlsqw_7b",
+      "binary_sha256": "01cff2d32f71fc2c6f7e4495f208878d365edddae1bd0f55a75891574dcc7a70",
+      "log_sha256": [
+        "1951e2a9136493676768594f26779ba4e73acf36bd82cd93be9ed52276d99b67",
+        "d863c118a59685609b349d7cbc179972245bf3f5fa6f7e3194fb308fbf8d4573"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": true,
+      "all_inputs_settled": false
+    },
+    {
+      "variant": "validated-v3",
+      "mode": "gamma",
+      "fault": null,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "failure_category": null,
+      "seconds": 0.04849079204723239,
+      "directory": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/input-boundary-fjevw403",
+      "binary_sha256": "01cff2d32f71fc2c6f7e4495f208878d365edddae1bd0f55a75891574dcc7a70",
+      "log_sha256": [
+        "23af94137a87c56254373e2569be11e8e89ec0794fe0e9326a7e07789a288c32",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ],
+      "observed_peer_clear_match": false,
+      "observed_peer_masked_nonmatch": false,
+      "accepted": [
+        [
+          "1"
+        ],
+        []
+      ],
+      "public_gate": false,
+      "canonical_rejection": false,
+      "all_inputs_settled": false
+    }
+  ],
+  "source_variants": {
+    "base_revision": "a245ca0f67abaf2d48c711e3c050ce961e60ad29",
+    "base_variant": {
+      "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-private-input-v2",
+      "repair_input_only": true,
+      "files": {
+        "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+        "emp-ag2pc/backend/engine.h": "c02b95a362d92b3744dbf858ca23e0370a1b8dfac70210e73d4b202d0fca5974",
+        "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+        "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+        "emp-ag2pc/backend/pass_ctx.h": "2e70978962bb94fd47a71cfe7b0c06eb117bf0bc88ebff50db3cafa9761071cf",
+        "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+        "emp-ag2pc/backend/protocol.h": "50709ebfd80f1d259efe7f8337aa4366fa654a987d0242b54eeffa84d6ac3786",
+        "emp-ag2pc/backend/run_state.h": "5b0e513669d04fafbe8d634129a1921bdd162df3d917ce4153b1d5dd6aee4032",
+        "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+        "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+        "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+        "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+        "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+      }
+    },
+    "variants": {
+      "emp-ag2pc-lambda-diagnostic-v2": {
+        "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-lambda-diagnostic-v2",
+        "validated_output": false,
+        "files": {
+          "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+          "emp-ag2pc/backend/engine.h": "99a5dcbbc3531b0538fd4da876d4320b2778ebdab95cf3fea461a5eb1c106e33",
+          "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+          "emp-ag2pc/backend/helper.h": "e128e7883a85aafdfa5d7c91890757b3eeb9934d06834cb9cd1f612dfbc550b7",
+          "emp-ag2pc/backend/pass_ctx.h": "1ef97ccac4bbd8a51081c9048b3dceefb541ac04ebdb72cb300930e0bcda793b",
+          "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+          "emp-ag2pc/backend/protocol.h": "50709ebfd80f1d259efe7f8337aa4366fa654a987d0242b54eeffa84d6ac3786",
+          "emp-ag2pc/backend/run_state.h": "dadfcd6169348a7991b8aac989781990b4ec6d9a075d27f8f851d3ab28d30907",
+          "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+          "emp-ag2pc/backend/triple_pool.h": "7d538ebce7acf733ef514495acb5ab79fca4c31d1b3bb5f11cf707bd3e7f69b7",
+          "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+          "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+          "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+        }
+      },
+      "emp-ag2pc-validated-v3": {
+        "target": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/emp-ag2pc-validated-v3",
+        "validated_output": true,
+        "files": {
+          "emp-ag2pc/backend/canonical.h": "ab45481d06fe16976356065926b3b0eed3fc9954d44f89b9d0ddc736e30bcc3e",
+          "emp-ag2pc/backend/engine.h": "7dddf8f979c6d1a09129e8a255baef9b0db77a7c82e2a2b837dc14f3a6e0d6d4",
+          "emp-ag2pc/backend/flush_plan.h": "c343b9e52fe0469c33f87e1d826436dc0f67dbfc7f23b46fa74c20fa0ba0d249",
+          "emp-ag2pc/backend/helper.h": "56636bd0a2264fd1c0cef4b26f83df2a471610cbddd1346b6230be1985a3de42",
+          "emp-ag2pc/backend/pass_ctx.h": "1ef97ccac4bbd8a51081c9048b3dceefb541ac04ebdb72cb300930e0bcda793b",
+          "emp-ag2pc/backend/profiling.h": "c5334747c1c0143a461ec1e1c3be80a44c99ae19c920a36eb9f50b1385b7c436",
+          "emp-ag2pc/backend/protocol.h": "730a2a28ea6f4c5349947cc9cd2ffad5c0e2cc2dc5b5af4c600bc689781890d1",
+          "emp-ag2pc/backend/run_state.h": "dadfcd6169348a7991b8aac989781990b4ec6d9a075d27f8f851d3ab28d30907",
+          "emp-ag2pc/backend/secure_wires.h": "c17b4f61ffaa453d85e4a6988666c3af3537466301b9e0b6d018016910389110",
+          "emp-ag2pc/backend/triple_pool.h": "ac37e5106c7c0c18de16080ef0fe3655821aacb48c0186df656e0aad9233c15c",
+          "emp-ag2pc/emp-ag2pc.h": "b03e8f799587de649bb74741e1161e49c309460ceea2b127c285d13c3b36d860",
+          "emp-ag2pc/session/ag2pc_ctx.h": "39bafa6710f92d5eedbac22b4d12d9c014e89108a47f6edb1a758e1c23d86351",
+          "emp-ag2pc/session/ag2pc_session.h": "8c43619746516bfb66f47fece4aff8965ffa0c3e854aedec4f636cf9acfcb561"
+        }
+      }
+    },
+    "scope": "Diagnostic: attacker hooks only over private-input-v2. v3: evaluator masked-value label check before the garbler digest, directed authenticated A/B/PUBLIC openings, COT check before every opening. Unaudited candidate; preprocessing (TriplePool) not reviewed here."
+  },
+  "probe_source_sha256": "893c72dcd30e72722d7f7859ed1f487e04db1aca921756f7860311981126ec92",
+  "scope": "Reproduces a malicious-evaluator wire-value leak that survives the input-only repair, and exercises the v3 label check and directed outputs. Regression evidence for an unaudited candidate; not a security proof. Preprocessing, parameters and lifecycle remain unreviewed."
+}

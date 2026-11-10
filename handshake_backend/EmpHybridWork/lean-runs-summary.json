@@ -1,0 +1,66 @@
+{
+  "signal-new-ratchet-receive:counter-0": [
+    true,
+    6.8
+  ],
+  "signal-new-ratchet-receive:counter-1": [
+    true,
+    6.3
+  ],
+  "signal-new-ratchet-receive:counter-0:wrong-expectation": [
+    true,
+    6.9
+  ],
+  "signal-spqr-send-256:lane-0": [
+    true,
+    3.5
+  ],
+  "signal-spqr-send-256:lane-1": [
+    true,
+    3.7
+  ],
+  "signal-spqr-send-256:lane-0:wrong-expectation": [
+    true,
+    3.6
+  ],
+  "signal-two-sends:two-accepted-sends": [
+    true,
+    4.8
+  ],
+  "signal-two-sends:invalid-pq-flag-preserves-state": [
+    true,
+    4.4
+  ],
+  "signal-two-sends:two-accepted-sends:wrong-expectation": [
+    true,
+    3.4
+  ],
+  "tls-open-record:valid-record": [
+    true,
+    0.3
+  ],
+  "tls-open-record:forged-tag-zeroes-output": [
+    true,
+    0.4
+  ],
+  "tls-open-record:wrong-sequence-zeroes-output": [
+    true,
+    0.3
+  ],
+  "tls-open-record:valid-record:wrong-expectation": [
+    true,
+    0.3
+  ],
+  "tls-seal-record:sequence-0": [
+    true,
+    0.3
+  ],
+  "tls-seal-record:sequence-large": [
+    true,
+    0.3
+  ],
+  "tls-seal-record:sequence-0:wrong-expectation": [
+    true,
+    0.3
+  ]
+}

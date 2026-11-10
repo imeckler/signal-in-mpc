@@ -1,0 +1,512 @@
+{
+  "passed": true,
+  "parties": 2,
+  "security_mode": "semi-honest",
+  "engine": "half-gates garbling + semi-honest field shares (no protection against deviation)",
+  "statistical_security": null,
+  "logs": "/Users/izzy/repos/tls-mpc/.deps/two-party-comparison/tls-worker-v3-run/bddd1d10b66243e3",
+  "sha256": {
+    ".deps/two-party-comparison/tls-worker-sh-fixture-v3": "09efb675ca729335eb8afaff7f04294c4b530f3a31fde57848fcd0b14d2e7361",
+    ".lake/build/bin/session_handshake_fixture": "6f01e03d6370a2f4031b0859e8b8ffc38f9e153a1e83bd79ea38cbbbbcfc30fb",
+    "handshake_backend/EmpHybridWork/tls_worker_v3.cpp": "d5602df165f89e7bb382e73385dc6bdff401152469694be2ee0f61603a27e668",
+    "handshake_backend/EmpHybridWork/tls_kernels.h": "8cd0f5bc372f6254234ee854ba832f7233d2e238093390c44ec6c2426f81b6fe",
+    "handshake_backend/EmpHybridWork/dyn_word_mask.h": "53c7d37f5b712d0d1a1306247f3b310826fefd62c7a2c21fa0842325c11693a7",
+    "handshake_backend/EmpHybridWork/circuit_cache.py": "4bb98a08048cf8e7d077fe01d735b3e15c9a8566644d17d1fdf1b65af5f37827",
+    "TlsMpc/HybridKdf.lean": "a7a04db9635a59026e51f598249d1ceb58da90c9ab222b3ea68f9f3159636648",
+    "TlsMpc/TlsClient.lean": "d059c3360d4f46c1e38f5f045685db9b7f14130aa3c1f621c9888844d4fbf456"
+  },
+  "case": "ok",
+  "controllers": [
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    },
+    {
+      "application_session_accepted": true,
+      "certificate_verified": true,
+      "client_finished_sent": true,
+      "error": "",
+      "opened_record_sizes": [
+        37,
+        534,
+        534,
+        316,
+        94,
+        58
+      ],
+      "passed": true,
+      "retirement_requested": true,
+      "retirement_succeeded": true,
+      "server_finished_verified": true
+    }
+  ],
+  "operations": [
+    [
+      {
+        "operation": 0,
+        "seconds": 0.0351738,
+        "and_gates": 20384,
+        "emp_sent_bytes": 856955,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 9,
+        "seconds": 0.035434,
+        "and_gates": 20384,
+        "emp_sent_bytes": 856987,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 1,
+        "seconds": 0.0359161,
+        "and_gates": 20384,
+        "emp_sent_bytes": 857179,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 10,
+        "seconds": 0.036053,
+        "and_gates": 20384,
+        "emp_sent_bytes": 857211,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 11,
+        "seconds": 0.0364902,
+        "and_gates": 20384,
+        "emp_sent_bytes": 857342,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 2,
+        "seconds": 0.861286,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 45210974,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.861809,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 45211016,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.861916,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 45211089,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 0.938051,
+        "and_gates": 1461234,
+        "emp_sent_bytes": 46964933,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.938232,
+        "and_gates": 1461234,
+        "emp_sent_bytes": 46965503,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.41732,
+        "and_gates": 2222066,
+        "emp_sent_bytes": 71312740,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.41752,
+        "and_gates": 2222066,
+        "emp_sent_bytes": 71313310,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.43812,
+        "and_gates": 2982898,
+        "emp_sent_bytes": 95660483,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.43834,
+        "and_gates": 2982898,
+        "emp_sent_bytes": 95660835,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.74269,
+        "and_gates": 3434170,
+        "emp_sent_bytes": 110101934,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.74291,
+        "and_gates": 3434170,
+        "emp_sent_bytes": 110102064,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.86511,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 114643933,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 4,
+        "seconds": 1.87835,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 114643965,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.8785,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 114644059,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.97613,
+        "and_gates": 3673532,
+        "emp_sent_bytes": 117762084,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 5,
+        "seconds": 2.27684,
+        "and_gates": 4113978,
+        "emp_sent_bytes": 131856453,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 6,
+        "seconds": 3.1392,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 179598079,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 10,
+        "seconds": 3.13937,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 179598111,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 7,
+        "seconds": 3.13948,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 179598143,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      }
+    ],
+    [
+      {
+        "operation": 0,
+        "seconds": 0.0352057,
+        "and_gates": 20384,
+        "emp_sent_bytes": 71715,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 9,
+        "seconds": 0.0352704,
+        "and_gates": 20384,
+        "emp_sent_bytes": 71747,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 1,
+        "seconds": 0.0358856,
+        "and_gates": 20384,
+        "emp_sent_bytes": 71939,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 10,
+        "seconds": 0.0360084,
+        "and_gates": 20384,
+        "emp_sent_bytes": 71971,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 11,
+        "seconds": 0.0364904,
+        "and_gates": 20384,
+        "emp_sent_bytes": 72003,
+        "field_sent_bytes": 4276,
+        "field_products": 0
+      },
+      {
+        "operation": 2,
+        "seconds": 0.861678,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 72163,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.861815,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 72195,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.861924,
+        "and_gates": 1406430,
+        "emp_sent_bytes": 72227,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 0.938034,
+        "and_gates": 1461234,
+        "emp_sent_bytes": 72343,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 0.938242,
+        "and_gates": 1461234,
+        "emp_sent_bytes": 72375,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.41729,
+        "and_gates": 2222066,
+        "emp_sent_bytes": 72988,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.41753,
+        "and_gates": 2222066,
+        "emp_sent_bytes": 73020,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.43808,
+        "and_gates": 2982898,
+        "emp_sent_bytes": 73569,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.43834,
+        "and_gates": 2982898,
+        "emp_sent_bytes": 73601,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.74266,
+        "and_gates": 3434170,
+        "emp_sent_bytes": 73996,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.74292,
+        "and_gates": 3434170,
+        "emp_sent_bytes": 74028,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.86507,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 74201,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 4,
+        "seconds": 1.87829,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 74233,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 11,
+        "seconds": 1.87852,
+        "and_gates": 3576098,
+        "emp_sent_bytes": 74265,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 3,
+        "seconds": 1.97611,
+        "and_gates": 3673532,
+        "emp_sent_bytes": 74402,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 5,
+        "seconds": 2.27682,
+        "and_gates": 4113978,
+        "emp_sent_bytes": 74499,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 6,
+        "seconds": 3.13917,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 74653,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 10,
+        "seconds": 3.13932,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 74685,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      },
+      {
+        "operation": 7,
+        "seconds": 3.13943,
+        "and_gates": 5605899,
+        "emp_sent_bytes": 74717,
+        "field_sent_bytes": 172708,
+        "field_products": 11
+      }
+    ]
+  ],
+  "rejections": [],
+  "server": {
+    "client_finished_accepted": true,
+    "outgoing_records": [
+      {
+        "type": 22,
+        "wire_bytes": 95
+      },
+      {
+        "type": 20,
+        "wire_bytes": 6
+      },
+      {
+        "type": 23,
+        "wire_bytes": 37
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 534
+      },
+      {
+        "type": 23,
+        "wire_bytes": 316
+      },
+      {
+        "type": 23,
+        "wire_bytes": 94
+      },
+      {
+        "type": 23,
+        "wire_bytes": 58
+      },
+      {
+        "type": 23,
+        "wire_bytes": 48
+      }
+    ]
+  },
+  "elapsed_seconds": 3.182708290987648,
+  "worker_totals": [
+    {
+      "operation": 7,
+      "seconds": 3.13948,
+      "and_gates": 5605899,
+      "emp_sent_bytes": 179598143,
+      "field_sent_bytes": 172708,
+      "field_products": 11
+    },
+    {
+      "operation": 7,
+      "seconds": 3.13943,
+      "and_gates": 5605899,
+      "emp_sent_bytes": 74717,
+      "field_sent_bytes": 172708,
+      "field_products": 11
+    }
+  ],
+  "controller_exit_codes": [
+    0,
+    0
+  ]
+}
