@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 6,
+  "endpoints": [
+    "setter",
+    "reset",
+    "drop_resets",
+    "write_zero",
+    "write_success",
+    "write_oversized"
+  ],
+  "foundation_axioms_only": true,
+  "actual_write_block_setter_reset_and_drop_statements_retained": true,
+  "scoped_mutable_callback_and_Drop_owner_signature_models_trusted": true,
+  "fixed_ResetGuard_forget_returns_unchanged_content_owner_trusted": true,
+  "normal_return_callback_trace_composition": true,
+  "zero_and_oversize_decisions_proved": true,
+  "actual_Drop_reset_body_proved": true,
+  "panic_unwind_not_mechanized": true,
+  "actual_pinned_library_observations": 11328,
+  "captured_cipher_state_owner_and_whole_wrapper_composition_open": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/check.py": "4aae8d3efb127889b9323fe4adc76a313b19007d24a4f28cdc39bfd9dc634431",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/extract.py": "55b2b333ab998a6f5985d97fb2ae3c114409adb54be2871626dfd3d4a4b283a7",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/extraction-report.json": "62b5d64812e091a2fe62d5ec39f7b2a9547a92f492c99e8d850930db65df2015",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Artifacts/model.rs": "6d5b99118e302ddc303706f60e46f64b45203e31bf517f7e5ab7b3a727e9dd4d",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Artifacts/selected.json": "9e8df0cb400731a67edbf4c2f11815180dc682b3230fe0045ae7550415eeef03",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/library-report.json": "243f9ee474c5997753dc860586a9f10ada252812eb5c6985f4990de5d0b5fdfb",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/proof-report.json": "124001330338a955ed4e1e907ceebaf9da734dc192673b3cbeebb7e614fdae37",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Generated/Types.lean": "2eee43e9c335174b5058251b29327553de44b2ea772ce915e2e51f46dfe44070",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Generated/FunsExternal.lean": "1f2d3a9ed59040ea1ba545473023a3c71b6a88fe4287aa275f1b37e02cca63b4",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Generated/Funs.lean": "6ac78274168b4596f11b5687020114730a28f95c0e8413ab60250a4f2d8a502c",
+    "SignalReference/CtrReferenceV1Work/WriteBufferV1Work/Reference.lean": "d0fb5cebc8e15d4e41a3b3f88308983a5990c58ff74fe16b0d1dda11b1f043c5"
+  }
+}

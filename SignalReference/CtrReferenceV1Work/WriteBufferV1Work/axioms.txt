@@ -1,0 +1,6 @@
+'LibSignalReference.Candidate.WriteBuffer16.setter' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.WriteBuffer16.reset' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.WriteBuffer16.drop_resets' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.WriteBuffer16.write_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.WriteBuffer16.write_success' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.WriteBuffer16.write_oversized' depends on axioms: [propext, Classical.choice, Quot.sound]

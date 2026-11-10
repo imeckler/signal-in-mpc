@@ -1,0 +1,7 @@
+[package]
+name="read-buffer-write-content-oracle"
+version="0.1.0"
+edition="2024"
+publish=false
+[dependencies]
+block-buffer="=0.12.1"

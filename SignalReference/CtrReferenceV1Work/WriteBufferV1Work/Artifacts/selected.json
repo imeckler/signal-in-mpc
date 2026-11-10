@@ -1,0 +1,5 @@
+{
+  "write_block": "    pub fn write_block(\n        &mut self,\n        read_len: usize,\n        gen_block: impl FnOnce(&mut Array<u8, BS>),\n        read_fn: impl FnOnce(&[u8]),\n    ) {\n        if read_len == 0 {\n            return;\n        }\n        assert!(read_len < BS::USIZE);\n\n        let g = ResetGuard(self);\n        let buf = &mut g.0.buffer;\n\n        // Note that generated block is likely to break the `ReadBuffer` invariant.\n        // We restore it using `set_pos_unchecked` below and in case if one of the closures\n        // panic the buffer gets reset by the guard.\n        gen_block(buf);\n        read_fn(&buf[..read_len]);\n\n        core::mem::forget(g);\n\n        // We checked that `read_len` satisfies the `set_pos_unchecked` safety contract\n        unsafe { self.set_pos_unchecked(read_len) };\n    }",
+  "set_pos_unchecked": "    unsafe fn set_pos_unchecked(&mut self, pos: usize) {\n        debug_assert!(pos != 0 && pos <= BS::USIZE);\n        self.buffer[0] = pos as u8;\n    }",
+  "reset": "    pub fn reset(&mut self) {\n        self.buffer[0] = BS::U8;\n    }"
+}
