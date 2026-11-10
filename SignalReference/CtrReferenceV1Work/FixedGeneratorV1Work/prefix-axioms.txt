@@ -1,0 +1,14 @@
+'LibSignalReference.Candidate.FixedCtr.stream_expression_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.keystream_expression_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.keystream_append' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.keystream_take_blocks' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.keystream_take_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.zip_take_right' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.fresh_prefix' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.FixedCtr.fresh_prefix_evaluation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -1,0 +1,315 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "charon_exit": 0,
+  "actual_callback_body_text_unchanged": true,
+  "selected_fixed_dispatch_content_layout_trusted": true,
+  "gen_and_XOR_slots_require_actual_source_DEF_links": true,
+  "whole_crypto_result_assumed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/extract.py": "c16a36cc92362f4bbb7a26e697b8edf47466951a6b2f755f708d3b6a63e35ea6",
+    ".deps/libsignal-vendor/cipher-0.5.2/src/stream/core_api.rs": "b79ca50449712d6aae8bc98447f80194217ff34572a225efd0d802cc475f4640",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/model.rs": "9fedfb7afae39dd5e4240a0cf254849f96a874afa5bc34e6be3511c1074a81e6",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/selected-method.rs": "011acd41c58854831fd8ed258ae32a0a4334aaea447d82451ffb7c17ecc80a8b"
+  },
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/apply.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "llbc_sha256": "43a10aac0f414663afb169aaf88b25a6577e679596313cebf3974e6442e3abac",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 4,
+    "fun_decls": 5,
+    "global_decls": 0,
+    "trait_decls": 1,
+    "trait_impls": 2,
+    "ordered_decls": 11
+  },
+  "body_kinds": {
+    "Opaque": 4,
+    "Structured": 1
+  },
+  "external_functions": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_apply_block_reference::{impl}::gen_ks_block",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 8,
+            "col": 1
+          },
+          "end": {
+            "line": 8,
+            "col": 85
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "fixed_ctr_apply_block_reference::{impl}::xor_in2out",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 12,
+            "col": 1
+          },
+          "end": {
+            "line": 12,
+            "col": 78
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_apply_block_reference::Block",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 3,
+            "col": 0
+          },
+          "end": {
+            "line": 3,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "fixed_ctr_apply_block_reference"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_apply_block_reference::{impl}::gen_ks_block",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 8,
+            "col": 1
+          },
+          "end": {
+            "line": 8,
+            "col": 85
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "fixed_ctr_apply_block_reference::{impl}::xor_in2out",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 12,
+            "col": 1
+          },
+          "end": {
+            "line": 12,
+            "col": 78
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "fixed_ctr_apply_block_reference::{impl}::call",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 4
+          },
+          "end": {
+            "line": 20,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/apply.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/ApplyBlockV1Work/Generated",
+    "-split-files",
+    "-namespace",
+    "ActualApplyBlock16",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}

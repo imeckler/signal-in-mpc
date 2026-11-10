@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 8,
+  "endpoints": [
+    "stream_expression_length",
+    "keystream_expression_length",
+    "keystream_append",
+    "keystream_take_blocks",
+    "keystream_take_bytes",
+    "zip_take_right",
+    "fresh_prefix",
+    "fresh_prefix_evaluation"
+  ],
+  "foundation_axioms_only": true,
+  "capacity_ciphertext_prefix_equals_true_length_ciphertext_expression": true,
+  "all_secret_key_plaintext_and_padding_bits_unrestricted": true,
+  "no_crypto_replication_per_private_length": true,
+  "counter_profile_public_deterministic_index": true,
+  "private_length_runtime_release_adapter_not_proved": true,
+  "full_generic_Rust_stream_wrapper_still_open": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/check_prefix.py": "16a0e0662ef0426e592c05af581a1301dcc165bbea7f982f7add539df2ef0d1e",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/PrefixSemantics.lean": "8a3504dd7b1d14d37540a175f8ddd739d205f86726e3021627675b5e047cfec8",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/proof-report.json": "32392bdf2a9b4b26bbd235492100baea5840aea6fa808d8e99ce79fc3ca5e55a"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/FixedGeneratorV1Work/PrefixSemantics.olean": "bd342367e960fca9e1ad30b10a2a7b8545d92ee754b68dcb3c4210416db57020"
+  }
+}

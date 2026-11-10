@@ -1,0 +1,7 @@
+# Actual one-block core callback composition
+
+check.py audits8 foundation-only endpoints through compiled_actual_apply. It connects the actual Rust AES-256 key schedule, actual counter/AES generator, retained source XOR loop, unchanged ApplyBlockCtx::call statement body and generic BVExpr/AIG compiler. The result includes exact output, counter successor, nonce-prefix retention and unchanged expanded-key owner. Every key/plaintext/previous-output bit is unrestricted.
+
+The explicit trusted dispatch/content layout selects fixed16-byte blocks and flattens Backend counter/nonce/key fields. Adapters have roundtrip theorems. Both primitive slots are Lean DEFs calling previously proved actual-source functions and preserving their owner continuations; neither is an assumed cryptographic result. Original generated callback computations are unchanged. No runtime backend/security profile or production artifact is modified.
+
+This is the unchecked one-block StreamCipherCore API callback. The expression's counter is a PUBLIC deterministic profile index, appropriate to fresh zero-IV CTR; it is not an API for reconstructing a secret counter. The source generator retains exact32-bit wrap behavior, while checked callers must prove remaining-block authorization before invocation. The full pinned Vec caller also uses ApplyBlocksCtx's parallel4/tail dispatch, which is not yet connected here. Full buffering/write_block/ResetGuard, generic head/tail InOutBuf XOR, private-length runtime release, caller error packaging and HMAC/KDF remain required.

@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 8,
+  "endpoints": [
+    "backend_roundtrip",
+    "inout_roundtrip",
+    "actual_generator",
+    "actual_xor",
+    "actual_apply",
+    "zip_same",
+    "expression_correct",
+    "compiled_actual_apply"
+  ],
+  "foundation_axioms_only": true,
+  "actual_callback_statement_body_unchanged": true,
+  "dispatch_and_flattened_content_layout_trusted": true,
+  "primitive_slots_are_DEF_links_to_proved_source": true,
+  "actual_key_schedule_counter_AES_XOR_callback_compiler_composed": true,
+  "key_owner_and_nonce_prefix_preserved": true,
+  "counter_profile_public_deterministic_index": true,
+  "unchecked_core_API": true,
+  "remaining_preflight_in_full_wrapper_still_required": true,
+  "full_StreamCipherCoreWrapper_parallel_tail_HMAC_KDF_not_proved": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/check.py": "b28c7828f1779246999ab53c91d03faa1e59b4209bff58bd03502d6d08e3d45f",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/extract.py": "c16a36cc92362f4bbb7a26e697b8edf47466951a6b2f755f708d3b6a63e35ea6",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/extraction-report.json": "72a68215a88a7671e07a1fafc23bb80feeaea24fcc54d0d21b937803f1e9346c",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/model.rs": "9fedfb7afae39dd5e4240a0cf254849f96a874afa5bc34e6be3511c1074a81e6",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Artifacts/selected-method.rs": "011acd41c58854831fd8ed258ae32a0a4334aaea447d82451ffb7c17ecc80a8b",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/proof-report.json": "32392bdf2a9b4b26bbd235492100baea5840aea6fa808d8e99ce79fc3ca5e55a",
+    "SignalReference/CtrReferenceV1Work/XorContentV1Work/proof-report.json": "64ef5efa7ce2e68956f6262f2d961d600a9eb6de2c2b5bb8384b79a9aa8641de",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Generated/Types.lean": "80272fcfc322f9e9842f7044ca6fa07ee93c4c6f1bb8d2c54892c9238853072c",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Generated/FunsExternal.lean": "1dfbc6439235a899db97138f83a25e00fc0ce9cce65e649d685c0ca4e8e0022a",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Generated/Funs.lean": "ace7fbc834254947fafff10bdd5ceea834fc97ceb839c49464c7d699aa6cc60b",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Reference.lean": "f1e47de9400d809e456c76afb1961753c0c647a97f63f72ec46d3ec0e25647fa",
+    "SignalReference/CtrReferenceV1Work/ApplyBlockV1Work/Circuit.lean": "1c5974bb6ba04d479cb09c53b0015925aa2a87b8bc317c2b882d77dbbbdff370"
+  },
+  "object_sha256": {
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ApplyBlockV1Work/Generated/Types.olean": "3bdf8adff5f608ec69222524078023e1eacd0348f6527cb165d14f219cee6bf1",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ApplyBlockV1Work/Generated/FunsExternal.olean": "219ba263bed1c29cfba104ed415f8e25c1a8fb512eb296c00337ed909f36ce41",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ApplyBlockV1Work/Generated/Funs.olean": "fdbd3cfd11efd9fa0093bf3a8baa208eb43847161856226085bb98c5fa45aadd",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ApplyBlockV1Work/Reference.olean": "acc82dfbc6eb52ec12292adfa265e0126fdbaa7244e4b254e8e155c597a668ca",
+    "SignalReference/CtrReferenceV1Work/Build/CtrReferenceV1Work/ApplyBlockV1Work/Circuit.olean": "e27e52afa80fbd9e1a07c49757de3a7514e626b4db27872341de394db659ffbf"
+  }
+}
