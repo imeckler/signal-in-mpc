@@ -33,11 +33,10 @@ Proved for the repository's GHASH multiplication: it is additive in the key
 
 Assumed, as explicit hypotheses where used (`Laws`): commutativity and
 associativity of GF(2^128) multiplication. Commutativity justifies squaring
-shares locally (`square_additive`). Identifying the polynomial in the key
-powers with the standard's Horner form also needs both laws; that identity is
-NOT yet proved here, so the statement "the combined tag is the GCM tag" is
-established by interoperation tests, not by a theorem. No security statement
-uses the laws.
+shares locally (`square_additive`). Both laws give correctness: with honest
+shares of the key powers the two local halves XOR to GHASH in the standard's
+Horner form (`halves_are_ghash`), which for the repository's multiplication is
+its `Ghash.fold` (`horner_eq_hash`). No security statement uses the laws.
 -/
 namespace TlsMpc.GhashShares
 
@@ -227,6 +226,70 @@ theorem square_additive (mul : W → W → W) (laws : Laws mul) (additive : KeyA
   rw [left, additive, additive, laws.comm b a]
   exact cancel_middle _ _ _
 
+/-! ### The split computes the standard's GHASH (given the field laws) -/
+
+/-- GHASH in the standard's Horner form: `y ← (y ⊕ block) · h`. -/
+def horner (mul : W → W → W) (h : W) : List W → W → W
+  | [], y => y
+  | block :: rest, y => horner mul h rest (mul (y ^^^ block) h)
+
+/-- `power n = h^(n+1)`. -/
+def power (mul : W → W → W) (h : W) : Nat → W
+  | 0 => h
+  | n + 1 => mul (power mul h n) h
+
+/-- `[h^m, …, h^1]`: the powers matched with the blocks, first block first. -/
+def descending (mul : W → W → W) (h : W) : Nat → List W
+  | 0 => []
+  | n + 1 => power mul h n :: descending mul h n
+
+theorem left_additive (mul : W → W → W) (laws : Laws mul) (additive : KeyAdditive mul) (a b c : W) :
+    mul (a ^^^ b) c = mul a c ^^^ mul b c := by
+  rw [laws.comm, additive, laws.comm c a, laws.comm c b]
+
+theorem zero_mul (mul : W → W → W) (laws : Laws mul) (additive : KeyAdditive mul) (c : W) : mul 0 c = 0 := by
+  have h := left_additive mul laws additive 0 0 c
+  rw [BitVec.xor_self] at h
+  have : mul 0 c ^^^ mul 0 c = mul 0 c := h.symm
+  rw [BitVec.xor_self] at this
+  exact this.symm
+
+theorem horner_nonempty (mul : W → W → W) (laws : Laws mul) (additive : KeyAdditive mul) (h : W)
+    (rest : List W) (block y : W) :
+    horner mul h (block :: rest) y =
+      mul y (power mul h rest.length) ^^^ localTag mul (block :: rest) (descending mul h (rest.length + 1)) := by
+  induction rest generalizing block y with
+  | nil =>
+      simp only [horner, List.length_nil, power, descending, localTag]
+      rw [left_additive mul laws additive]
+      simp
+  | cons next rest ih =>
+      have step := ih next (mul (y ^^^ block) h)
+      simp only [horner] at step ⊢
+      rw [step, laws.assoc, laws.comm h, left_additive mul laws additive]
+      simp only [List.length_cons, power, descending, localTag, BitVec.xor_assoc]
+
+/-- With honest shares of the key powers, the two local halves XOR to GHASH. -/
+theorem halves_are_ghash (mul : W → W → W) (laws : Laws mul) (additive : KeyAdditive mul) (h : W)
+    (blocks first second : List W) (same : first.length = second.length)
+    (shares : List.zipWith (· ^^^ ·) first second = descending mul h blocks.length) :
+    localTag mul blocks first ^^^ localTag mul blocks second = horner mul h blocks 0 := by
+  rw [localTag_shares mul additive blocks first second same, shares]
+  cases blocks with
+  | nil => rfl
+  | cons block rest =>
+      rw [horner_nonempty mul laws additive, zero_mul mul laws additive]
+      simp
+
+/-- `horner` with the repository's multiplication is its `Ghash.hash`. -/
+theorem horner_eq_hash (h : W) (blocks : List W) (y : W) :
+    horner (Ghash.multiply Ghash.concrete) h blocks y = Ghash.fold Ghash.concrete h blocks y := by
+  induction blocks generalizing y with
+  | nil => rfl
+  | cons block rest ih => simp only [horner, Ghash.fold, ih]; rfl
+
+#print axioms halves_are_ghash
+#print axioms horner_eq_hash
 #print axioms localTag_shares
 #print axioms share_hides
 #print axioms seal_deviation
