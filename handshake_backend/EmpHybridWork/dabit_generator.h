@@ -63,7 +63,7 @@ public:
     // Only these exact public profiles are admitted by this implementation.
     // Parameter receipts must cover each before native use; no user sizing.
     template<unsigned Ell>static Generation<Ell> generate(AG2PCSession&session,FE&field,Challenge&challenge,int party){
-        static_assert(Ell==256||Ell==1024);
+        static_assert(Ell==256||Ell==512||Ell==1024);
         if(session.protocol().party!=party||field.party_id()!=unsigned(party-1))throw std::runtime_error("engine party mapping");
         constexpr unsigned B=5,K=B*Ell,M=2*K,D=K-Ell;
         if(challenge.phase!=0)throw std::runtime_error("generator challenge reuse");

@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "profiles": [
+    {
+      "outputs": 512,
+      "bucket": 5,
+      "cut_factor": 2,
+      "candidates_per_party": 5120,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "57154458944002",
+      "approx_bound_bits": 45.69993128920135,
+      "backend_security_proved": false
+    },
+    {
+      "outputs": 1024,
+      "bucket": 5,
+      "cut_factor": 2,
+      "candidates_per_party": 10240,
+      "statistical_target": 40,
+      "worst_bad_bucket_count": 1,
+      "exact_bound_numerator": 1,
+      "exact_bound_denominator": "915365210752002",
+      "approx_bound_bits": 49.70134079052845,
+      "backend_security_proved": false
+    }
+  ],
+  "seconds": 1.469869791995734,
+  "scope": "Public combinatorial bound only; backend/security composition unvalidated."
+}
