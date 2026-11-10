@@ -110,13 +110,21 @@ public:
         std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
         auto ephemeral=k.shared_scalar(seed);
         auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient);
-        auto&kernel=k.cache.get("signal-seal "+std::to_string(CERT));
+        // Lengths are public under the policy: open the counters' varint widths and use the
+        // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
+        auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&c.record}});
+        std::string name="signal-seal-fixed "+std::to_string(CERT);
+        for(auto field:{"counter","previous","epoch","index"}){
+            unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
+            name+=" "+std::to_string(width);
+        }
+        auto&kernel=k.cache.get(name);
         auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"ephemeralPublic",&ephemeral_public},
             {"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
         need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
         c.record=std::move(out.at("conversation"));
-        auto reply=kernel.open(s,out,"timestamp");
-        for(auto name:{"length","envelope"}){auto part=kernel.open(s,out,name);reply.insert(reply.end(),part.begin(),part.end());}
+        auto reply=kernel.open(s,out,"timestamp");auto envelope=kernel.open(s,out,"envelope");
+        reply.push_back(uint8_t(envelope.size()>>8));reply.push_back(uint8_t(envelope.size()));reply.insert(reply.end(),envelope.begin(),envelope.end());
         return reply;
     }
     // Step 2: a request frame assembled in the clear, to be sealed with this conversation's

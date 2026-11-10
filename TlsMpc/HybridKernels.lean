@@ -2,6 +2,9 @@ import TlsMpc.HybridKdf
 import TlsMpc.HybridService
 import TlsMpc.Signal.PrivateService
 import TlsMpc.Signal.PrivateDecimal
+import TlsMpc.Signal.SpqrSend
+import TlsMpc.Signal.SealedSenderV1
+import TlsMpc.Sha256Backend
 
 /-!
 Worker kernels: one circuit per worker operation, with NAMED input and output
@@ -338,6 +341,68 @@ def signalSeal (cert : Nat) : Kernel :=
       pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
       pub "timestamp" (sl text 82 8), pub "length" (sl released 0 2), pub "envelope" (released.drop 2)] }
 
+/-! Public-length variant. Lengths are public under the policy, and the opened
+envelope's length already determines the varint widths of the message
+counters, so those widths are opened first and the message is built with the
+fixed-width definitions (no private-length buffers). -/
+
+def orMask (x y : BVExpr 8) : BVExpr 8 :=
+  ByteAuth.symbolic.not (ByteAuth.symbolic.and (ByteAuth.symbolic.not x) (ByteAuth.symbolic.not y))
+
+/-- Flags `value ≥ 2^(7k)` for `k = 1..groups`, as 0/255 bytes, for a big-endian
+value: the varint width is one plus the number of set flags. -/
+def widthFlags (bigEndian : List (BVExpr 8)) (groups : Nat) : List (BVExpr 8) :=
+  let n := bigEndian.length
+  let bit (j : Nat) : BVExpr 8 := ByteAuth.symbolic.maskBit (HybridService.at' bigEndian (n - 1 - j / 8)) (j % 8)
+  (List.range groups).map (fun k =>
+    (List.range (8 * n)).foldl (fun acc j => if 7 * (k + 1) ≤ j then orMask acc (bit j) else acc) (const 0))
+
+/-- Opens the varint widths of the message counter, previous counter, SPQR
+epoch and next SPQR counter (as width flags). -/
+def signalWidths (cert : Nat) : Kernel :=
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert 80))]
+  let session := sl (lookup inputs "conversation") cert 262
+  { name := "signal-widths", inputs, outputs := [
+      pub "counter" (widthFlags (sl session 1 4) 4), pub "previous" (widthFlags (sl session 5 4) 4),
+      pub "epoch" (widthFlags (sl session 109 8) 9),
+      pub "index" (widthFlags (ChainSend.nextCounter Sha256.symbolic ByteAuth.symbolic (sl session 105 4)) 4)] }
+
+/-- `signalSeal` with public varint widths: the fixed-width message and
+sealed-sender definitions. The status additionally requires the counters to
+have exactly the stated widths. The envelope has a public length. -/
+def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) : Kernel :=
+  let size := 80
+  let a := ByteAuth.symbolic
+  let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
+  let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes 59),
+    ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word)]
+  let get := lookup inputs
+  let record := get "conversation"
+  let certificate := sl record 0 cert
+  let session := sl record cert (182 + size)
+  let metadata := sl record (cert + 182 + size) 57
+  let text := PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
+  let staged := sl session 0 117 ++ sl text 1 1 ++ sl session 118 64 ++ sl text 2 size
+  let i : SpqrSend.Input (BVExpr 8) := {
+    version := HybridService.at' staged 0, counter := sl staged 1 4, previous := sl staged 5 4, ratchet := sl staged 9 32,
+    chainKey := sl staged 41 32, pqChainKey := sl staged 73 32, pqCounter := sl staged 105 4, epoch := sl staged 109 8,
+    kind := HybridService.at' staged 117, chunkIndex := [], chunkData := [], sender := sl staged 118 32,
+    receiver := sl staged 150 32, plaintext := sl staged 182 size, addresses := [] }
+  -- Gate-efficient SHA-256 backend; proved to compute the same function (Sha256Backend.select_concrete).
+  let sha := Sha256Backend.select .gateEfficient Sha256.symbolic
+  let accepted := SpqrSend.acceptedMask Varint64.symbolic sha a shape pqShape i
+  let p := SpqrSend.prepare Aes.symbolic Varint64.symbolic sha a shape pqShape i
+  let sealed := SealedSenderV1.boundSeal Aes.symbolic sha a i.receiver (get "ephemeralPublic")
+    (get "senderPublic") (get "ephemeralAgreement") (get "staticAgreement") certificate p.wire i.sender
+  let status := TlsProviderGate.gate a (TlsProviderGate.gate a accepted (HybridService.at' sealed 0)) (HybridService.at' text 0)
+  let choose := fun next old => ChainSend.selectState a status next old
+  let next := sl staged 0 1 ++ choose p.nextCounter i.counter ++ sl staged 5 36 ++ choose p.nextChainKey i.chainKey ++
+    choose p.nextPqChainKey i.pqChainKey ++ choose p.nextPqCounter i.pqCounter ++ staged.drop 109
+  { name := "signal-seal-fixed", inputs, outputs := [
+      pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
+      pub "timestamp" (sl text 82 8), pub "envelope" (ByteAuth.release a status (sealed.drop 1))] }
+
 /-- A decimal number in a fixed-width slot, padded with spaces (valid JSON
 whitespace), so that its digit count stays private. -/
 def paddedDecimal (number : BVExpr 64) (width : Nat) : BVExpr 8 × List (BVExpr 8) :=
@@ -397,6 +462,7 @@ def find : List String → Option Kernel
       | "signal-send", some n => if n ≤ 1024 then some (signalSend n) else none
       | "signal-send-open", some n => if n ≤ 1024 then some (signalSend n true) else none
       | "signal-seal", some n => if n ≤ 1024 then some (signalSeal n) else none
+      | "signal-widths", some n => if n ≤ 1024 then some (signalWidths n) else none
       | "tls-reveal", some n => if 0 < n && n ≤ 16385 then some (tlsReveal n) else none
       | _, _ => none
   | [name, a, b] =>
@@ -405,6 +471,12 @@ def find : List String → Option Kernel
       | "tls-seal-control", some kind, some n =>
           if (kind == 21 && n == 2) || (kind == 22 && n == 5) then some (tlsSealControl kind n) else none
       | _, _, _ => none
+  | ["signal-seal-fixed", cert, counterWidth, previousWidth, epochWidth, indexWidth] =>
+      match cert.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with
+      | some cert, some cw, some pw, some ew, some iw =>
+          if cert ≤ 1024 && 1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
+            some (signalSealFixed cert cw pw ew iw) else none
+      | _, _, _, _, _ => none
   | ["signal-request-seal", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
       match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with
       | some cert, some size, some u, some k, some d, some r =>

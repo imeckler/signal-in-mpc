@@ -130,9 +130,41 @@ Both modes pass. Whole run: 34.5 M ANDs; malicious 16.3 GB + 5.6 GB in 52 s.
 | Response byte reveals | 0.06 M |
 | **Round trip** | **≈ 6.9 M** (+ 6,348 field products) |
 
-≈ 3.9 GB and ≈ 7 s per message malicious; ≈ 0.42 GB semi-honest. Remaining
-levers, unmeasured: a public-length message profile and the gate-efficient
-SHA-256 backend for `signal-seal`; local GHASH shares for record sealing.
+≈ 3.9 GB and ≈ 7 s per message malicious; ≈ 0.42 GB semi-honest.
+
+### Current state: public-length send and one-AND adder carries
+
+Two further changes, both passing end to end in both modes:
+
+- **Public-length send** (`signal-widths`, `signal-seal-fixed`): the varint
+  widths of the message counters are opened (the envelope length reveals them
+  anyway) and the fixed-width message and sealed-sender definitions are used,
+  with the gate-efficient SHA-256 backend. 4.97 M → 4.07 M ANDs.
+- **Adder carries in the lowering** (`hybrid_lowering.py`): the bit-vector
+  compiler emits each full-adder carry as three AND nodes; the lowering now
+  emits the one-AND form. A SHA-256 compression falls from ≈ 52 k to ≈ 26 k
+  ANDs in every kernel. This rewrite is in the unverified lowering step, like
+  the XOR recognition beside it; every export is checked against the plain
+  lowering on random inputs, and the kernel cache is keyed by the emitter
+  binary and the lowering code.
+
+Whole service run: 23.6 M ANDs; malicious 11.6 GB Boolean + 5.6 GB field in
+53 s. TLS handshake key derivation 1.39 M → 0.68 M, client Finished
+1.49 M → 0.77 M.
+
+| Per message, steady state | ANDs |
+|---|---:|
+| Session encryption + SPQR + sealed sender | 2.72 M |
+| Request record seal with private slots | 1.41 M |
+| Two response record opens | 0.29 M |
+| Pong seal and byte reveals | 0.17 M |
+| **Round trip** | **≈ 4.6 M** (+ 6,348 field products) |
+
+≈ 3.0 GB per message malicious (2.1 GB Boolean + 0.8 GB field), ≈ 0.35 GB
+semi-honest. On a 10 Gbit/s link that is ≈ 1,500 messages/hour malicious and
+≈ 12,900 semi-honest (arithmetic, not a load test). The two X25519 ladders per
+message are now 28 % of the malicious bytes; record sealing is 31 % of the
+gates, three quarters of it the GHASH tag (proposal: `GHASH_SHARES.md`).
 
 ## Throughput estimates (private-receive profile)
 

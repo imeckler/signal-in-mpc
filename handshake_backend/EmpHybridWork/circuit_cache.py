@@ -11,19 +11,30 @@ Concurrent callers are safe: the file is written to a temporary name and
 renamed into place.
 """
 import fcntl,hashlib,json,os,pathlib,subprocess,sys,tempfile
-ROOT=pathlib.Path(__file__).resolve().parents[2];HERE=pathlib.Path(__file__).resolve().parent;CACHE=ROOT/'.deps/emp-hybrid-word-v1/cache'
+ROOT=pathlib.Path(__file__).resolve().parents[2];HERE=pathlib.Path(__file__).resolve().parent;BASE=ROOT/'.deps/emp-hybrid-word-v1/cache'
 sys.path.insert(0,str(HERE))
-from hybrid_lowering import lower,flat_text
+import random
+from hybrid_lowering import lower,flat_text,evaluate_bits
 def ensure(args):
     if not args or any(not a or not all(c.isalnum() or c=='-' for c in a) for a in args):raise ValueError('circuit arguments')
+    # The cache is keyed by the emitter binary as well as the arguments, so a changed Lean
+    # definition can never be served from an older export under the same name.
+    binary=ROOT/'.lake/build/bin/hybrid_kdf_emitter'
+    if not binary.exists():subprocess.run(['lake','build','hybrid_kdf_emitter'],cwd=ROOT,check=True,capture_output=True)
+    key=hashlib.sha256(binary.read_bytes())
+    for source in (HERE/'hybrid_lowering.py',ROOT/'backend_adapter/aig.py'):key.update(source.read_bytes())   # the lowering is part of the key too
+    CACHE=BASE/key.hexdigest()[:16]
     CACHE.mkdir(parents=True,exist_ok=True);path=CACHE/('-'.join(args)+'.flat');meta=path.with_suffix('.json')
     # One producer at a time: the second caller waits and reuses the result.
-    lock=open(CACHE/'.lock','w');fcntl.flock(lock,fcntl.LOCK_EX)
+    lock=open(CACHE/('.lock-'+'-'.join(args)),'w');fcntl.flock(lock,fcntl.LOCK_EX)   # per kernel, so different kernels export in parallel
     if not (path.exists() and meta.exists()):
-        binary=ROOT/'.lake/build/bin/hybrid_kdf_emitter'
-        command=[str(binary)] if binary.exists() else ['lake','exe','hybrid_kdf_emitter']
-        raw=subprocess.run([*command,*args],cwd=ROOT,check=True,capture_output=True).stdout
+        raw=subprocess.run([str(binary),*args],cwd=ROOT,check=True,capture_output=True).stdout
         image=json.loads(raw);n,gates,outputs=lower(image);text=flat_text(n,gates,outputs).encode()
+        # Self-check of the unverified carry rewrite: same outputs as the plain lowering on random inputs.
+        plain=lower(image,majority=False);rng=random.Random(hashlib.sha256(raw).digest())
+        for _ in range(2):
+            bits=[rng.getrandbits(1) for _ in range(n)]
+            if evaluate_bits(gates,outputs,bits)!=evaluate_bits(plain[1],plain[2],bits):raise ValueError('carry rewrite changed the circuit')
         info=dict(arguments=list(args),sha256=hashlib.sha256(text).hexdigest(),input_bits=n,output_bits=len(outputs),and_gates=sum(g[0]=='A' for g in gates),lean_image_sha256=hashlib.sha256(raw).hexdigest())
         writes=[(path,text)]
         if 'input_fields' in image:
