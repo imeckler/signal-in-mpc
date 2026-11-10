@@ -1,0 +1,52 @@
+{
+  "kernels": {
+    "establish-challenges": {
+      "and_gates": 1940431
+    },
+    "establish-verified": {
+      "and_gates": 771
+    },
+    "establish-points 1": {
+      "and_gates": 0
+    },
+    "establish-session 40 1": {
+      "and_gates": 940793
+    },
+    "establish-seal 40 1 1 1 1 1": {
+      "and_gates": 3491525
+    },
+    "establish-points 0": {
+      "and_gates": 0
+    },
+    "establish-session 40 0": {
+      "and_gates": 918035
+    },
+    "establish-seal 40 0 1 1 1 1": {
+      "and_gates": 3485454
+    }
+  },
+  "seed 3027": {
+    "one_time_prekey": true,
+    "bundle_signatures_verified": true,
+    "tampered_or_invalid_rejected": 4,
+    "session_records_match_reference": true,
+    "failed_checks_release_nothing": 4,
+    "messages_decrypted_by_libsignal_recipient": 2,
+    "envelope_bytes": [
+      2001,
+      2001
+    ]
+  },
+  "seed 3031": {
+    "one_time_prekey": false,
+    "bundle_signatures_verified": true,
+    "tampered_or_invalid_rejected": 4,
+    "session_records_match_reference": true,
+    "failed_checks_release_nothing": 4,
+    "messages_decrypted_by_libsignal_recipient": 2,
+    "envelope_bytes": [
+      1995,
+      1995
+    ]
+  }
+}
