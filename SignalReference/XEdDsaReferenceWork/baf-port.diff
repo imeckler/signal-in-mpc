@@ -1,0 +1,80 @@
+--- BAF/FromBytes.lean
++++ candidate/FieldDecodeProof.lean
+@@ -1,24 +1,12 @@
+ /-
+ Copyright 2025 The Beneficial AI Foundation. All rights reserved.
+-Released under Apache 2.0 license as described in the file LICENSE.
++Released under Apache 2.0 license as described in SignalReference/licenses/baf-apache-2.0.txt.
+ Authors: Oliver Butterley, Hoang Le Truong
++Selected proof adaptations for pinned dalek source; see baf-provenance.json.
+ -/
+-module
+-public import Curve25519Dalek.Funs
+-public import Defs.FieldElement51
+-import Proofs.Helpers.AsNat
+-import Proofs.Helpers.Limbs
+-public import Curve25519.Basic
+-import Subtle
+-import Proofs.Helpers.StepSpecs
+-import Mathlib.Tactic.ReduceModChar
+-import Proofs.Helpers.Array
+-import Proofs.Helpers.Bitwise
+-public section
+-
+-open Aeneas Aeneas.Std Result Aeneas.Std.WP curve25519
+-open Curve25519Dalek.backend.serial.u64.field (FieldElement51)
+-
++import XEdDsaReferenceWork.BafSupport
++open Aeneas Aeneas.Std Result Aeneas.Std.WP
++open XEdDsaReference.backend.serial.u64.field (FieldElement51)
+ namespace Aeneas.Std.Array
+ 
+ /-- The `w` bytes of `a` from offset `o` form bytes `o, …, o + w - 1` of `a.asNat 8`. -/
+@@ -32,7 +20,7 @@
+   have hM : M < 2 ^ (8 * w) := Nat.sum_pow_mul_lt 8 w (fun j => a[o + j]!.val) fun j _ => hbyte _
+   have hsplit : a.asNat 8 = ∑ k ∈ Finset.range o, 2 ^ (8 * k) * a[k]!.val
+       + 2 ^ (8 * o) * (M + 2 ^ (8 * w) * U) := by
+-    rw [Array.asNat_eq_sum, show n.val = o + w + (n.val - (o + w)) by agrind,
++    rw [Array.asNat_eq_sum, show Finset.range n.val = Finset.range (o + w + (n.val - (o + w))) from congrArg Finset.range (by omega),
+       Finset.sum_range_add, Finset.sum_range_add]
+     simp only [M, U, Finset.mul_sum, Nat.mul_add, Nat.pow_add, Nat.add_assoc]
+     ring_nf
+@@ -99,9 +87,9 @@
+     Nat.or_byte_shiftLeft_eq_add (by omega) h6 (by norm_num),
+     Nat.or_byte_shiftLeft_eq_add (by omega) h7 (by norm_num)]
+ 
+-namespace Curve25519Dalek.backend.serial.u64.field.FieldElement51.from_bytes
++namespace XEdDsaReference.backend.serial.u64.field.FieldElement51.from_bytes
+ 
+-open scoped Helpers.IndexStep Helpers.UpdateStep
++open scoped Helpers.IndexStep
+ 
+ @[step]
+ theorem load8_at_spec (input : Slice U8) (i : Usize) (hi : i.val + 8 ≤ input.length) :
+@@ -115,9 +103,9 @@
+     (UScalar.hBounds _) (UScalar.hBounds _) (UScalar.hBounds _) (UScalar.hBounds _)
+     (UScalar.hBounds _)]
+   ring
+-end Curve25519Dalek.backend.serial.u64.field.FieldElement51.from_bytes
++end XEdDsaReference.backend.serial.u64.field.FieldElement51.from_bytes
+ 
+-namespace Curve25519Dalek.backend.serial.u64.field.FieldElement51
++namespace XEdDsaReference.backend.serial.u64.field.FieldElement51
+ 
+ open scoped Helpers.MaskStep
+ 
+@@ -132,7 +120,7 @@
+   step*
+   unfold FieldElement51.LimbsLt
+   rw [FieldElement51.asNat_eq, Nat.forall_lt_five]
+-  simp only [Array.getElem!_Nat_eq, Array.make_val, List.getElem!_cons_zero,
++  simp only [Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
+     List.getElem!_cons_succ]
+   simp only [*, Nat.shiftRight_eq_div_pow, Array.getElem!_to_slice]
+   rw [Array.limb_of_window_zero bytes 0 (by simp),
+@@ -143,4 +131,4 @@
+   simp only [Nat.reduceMul, Nat.reduceAdd, pow_zero, Nat.div_one]
+   exact ⟨Nat.limbs51_eq_mod _, Nat.mod_lt _ (by positivity), Nat.mod_lt _ (by positivity),
+     Nat.mod_lt _ (by positivity), Nat.mod_lt _ (by positivity), Nat.mod_lt _ (by positivity)⟩
+-end Curve25519Dalek.backend.serial.u64.field.FieldElement51
++end XEdDsaReference.backend.serial.u64.field.FieldElement51

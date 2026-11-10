@@ -1,0 +1,177 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "source_patches": [],
+  "source_sha256": {
+    ".deps/libsignal-vendor/curve25519-dalek-5.0.0/src/backend/serial/u64/field.rs": "7ea95907cb3bd79c41fd552b61dad1bd9ad3d9112406b21f999e8f6a8c6cf963",
+    ".deps/libsignal-vendor/curve25519-dalek-5.0.0/src/montgomery.rs": "cb8a878d1af5e46d99210e15577aad8aa3f551284e376a46a7f08a126df1d9b2",
+    ".deps/libsignal-v0.106.1/rust/core/src/curve/curve25519.rs": "2c0fa74767854680aaa598bccd1fbfbe6e9789dc7b7cad029d920d2a596f437d",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::backend::serial::u64::field::*::from_bytes",
+    "--dest-file=$WORKSPACE/SignalReference/XEdDsaReferenceWork/Artifacts/FieldDecode/field_decode.llbc",
+    "--",
+    "--package",
+    "curve25519-dalek@5.0.0",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 0,
+  "script_sha256": "9ac97427db98ff256693b503661fa037abf5faf94a3439e3c781e1d58d661e89",
+  "llbc_sha256": "fede4099ee42e34dd14ebaf37f0d5dcbe9ac430840fe449bf3c8331d4bba5dee",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 1,
+    "fun_decls": 2,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 3
+  },
+  "body_kinds": {
+    "Structured": 2
+  },
+  "external_functions": [],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/backend/serial/u64/field.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/backend/serial/u64.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/backend/serial.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "src/backend.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "curve25519_dalek"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::backend::serial::u64::field::*::from_bytes"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "curve25519_dalek::backend::serial::u64::field::{impl}::from_bytes",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 338,
+            "col": 4
+          },
+          "end": {
+            "line": 363,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "curve25519_dalek::backend::serial::u64::field::{impl}::from_bytes::load8_at",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 339,
+            "col": 8
+          },
+          "end": {
+            "line": 348,
+            "col": 9
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/XEdDsaReferenceWork/Artifacts/FieldDecode/field_decode.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/XEdDsaReferenceWork/Generated/FieldDecode",
+    "-split-files",
+    "-namespace",
+    "XEdDsaReference",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-all-computable"
+  ],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "XEdDsaReferenceWork/Generated/FieldDecode/Funs.lean": "89cabe70601d4f0b701ddf8c85f2f5ffc40e8a2007bbdc2e6f1f59c749ee8e06",
+    "XEdDsaReferenceWork/Generated/FieldDecode/Types.lean": "08ce514cbd5a18f4bc6c85550b7da9ce24b63b8470c008710b6c1e0bfbaef3dc"
+  },
+  "remaining_external_templates": []
+}

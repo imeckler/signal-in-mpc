@@ -1,0 +1,14 @@
+'LibSignalReference.Candidate.ProstTopField.select_decoded_full' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.select_decoded_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.lookup_decoded_get' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_get' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.payload_window_get' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

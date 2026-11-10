@@ -1,0 +1,56 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/PreKeyReferenceWork/Artifacts/Construct/prekey.llbc
+[[91mError[39m] Internal error: please file an issue
+Source: 'rust/protocol/src/state/bundle.rs', lines 0:0-0:0
+[[91mError[39m] Ignoring the body of 'libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::generate' because of previous error
+Source: 'rust/protocol/src/kem/kyber1024.rs', lines 23:4-29:5
+[[91mError[39m] Internal error: please file an issue
+Source: 'rust/protocol/src/state/bundle.rs', lines 0:0-0:0
+[[91mError[39m] Ignoring the body of 'libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::encapsulate' because of previous error
+Source: 'rust/protocol/src/kem/kyber1024.rs', lines 31:4-40:5
+[[91mError[39m] Detected groups of mixed mutually recursive definitions (such as a type mutually recursive with a function, or a function mutually recursive with a trait implementation):
+
+# Group 1:
+- trait impl(Source: 'rust/protocol/src/kem/kyber1024.rs', lines 16:0-55:1): libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}
+- fun decl(Source: 'rust/protocol/src/kem/kyber1024.rs', lines 23:4-29:5): libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::generate
+- fun decl(Source: 'rust/protocol/src/kem/kyber1024.rs', lines 31:4-40:5): libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::encapsulate
+- fun decl(Source: 'rust/protocol/src/kem/kyber1024.rs', lines 42:4-54:5): libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::decapsulate
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 128:0-173:1): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}
+- (Generated_Meta.IdFun 28)
+- (Generated_Meta.IdGlobal 1)
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 149:4-157:5): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::encapsulate
+- (Generated_Meta.IdFun 59)
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 154:51-156:9): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::encapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::BadKEMKeyLength,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::encapsulate::closure<'_0, T>}
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 154:51-156:9): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::encapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::BadKEMKeyLength,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::encapsulate::closure<'_0, T>}::call_once
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 159:4-172:5): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::decapsulate
+- (Generated_Meta.IdFun 60)
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 164:58-171:9): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::decapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::DecapsulateError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::decapsulate::closure<'_0, '_1, T>}
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 164:58-171:9): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::decapsulate::{impl core::ops::function::FnOnce<(libsignal_protocol::kem::DecapsulateError,), libsignal_protocol::error::SignalProtocolError> for libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}::decapsulate::closure<'_0, '_1, T>}::call_once
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 226:4-234:5): libsignal_protocol::kem::{libsignal_protocol::kem::KeyType}::parameters
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 258:0-262:1): libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 259:4-261:5): libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Public}::key_length
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 266:0-270:1): libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Secret}
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 267:4-269:5): libsignal_protocol::kem::{impl libsignal_protocol::kem::KeyKind for libsignal_protocol::kem::Secret}::key_length
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 290:4-292:5): libsignal_protocol::kem::{impl core::convert::From<libcrux_ml_kem::types::MlKemPublicKey<SIZE>> for libsignal_protocol::kem::KeyMaterial<libsignal_protocol::kem::Public>}::from
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 296:4-298:5): libsignal_protocol::kem::{impl core::convert::From<libcrux_ml_kem::types::MlKemPrivateKey<SIZE>> for libsignal_protocol::kem::KeyMaterial<libsignal_protocol::kem::Secret>}::from
+
+The declarations in this group are (transitively) used at the following location(s):
+- trait impl(Source: 'rust/protocol/src/kem.rs', lines 128:0-173:1): libsignal_protocol::kem::{impl libsignal_protocol::kem::DynParameters for T}: Source: 'rust/protocol/src/kem.rs', lines 128:0-173:1
+- fun decl(Source: 'rust/protocol/src/kem.rs', lines 226:4-234:5): libsignal_protocol::kem::{libsignal_protocol::kem::KeyType}::parameters: Source: 'rust/protocol/src/kem.rs', lines 230:34-230:56
+
+[[91mError[39m] Mixed declaration groups (which contain both type and function declarations or functions and traits, for instance) are not supported yet: [9, 25, 26, 27, 8, 28, 1, 23, 59, 11, 62, 24, 60, 14, 65, 9, 1, 4, 7, 16, 39, 40]
+[[91mError[39m] Dynamic trait types are not supported yet
+Source: 'rust/protocol/src/error.rs', lines 19:0-107:1
+[[91mError[39m] Could not translate type decl 'libsignal_protocol::error::SignalProtocolError because of previous error
+Name pattern: 'libsignal_protocol::error::SignalProtocolError'
+Source: 'rust/protocol/src/error.rs', lines 19:0-107:1
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__SymbolicToPure.translate_type_decls.(fun) in file "symbolic/SymbolicToPure.ml", lines 146-149, characters 8-76
+Called from Stdlib__List.filter_map in file "list.ml", line 280, characters 12-15
+Called from Stdlib__List.filter_map in file "list.ml", line 282, characters 23-37
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 326, characters 19-64
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

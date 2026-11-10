@@ -1,0 +1,13 @@
+{
+  "candidate_only": true,
+  "generated_source_sha256": "79119dd30b17e0d3508fb04271ed4069b63400e94540ba31c1eb63ffa5bd6897",
+  "translation_receipt_sha256": "6793cc8cb1e6616be8cb88ec206be4b2573ca3fc8d307ee12df09c84087b9018",
+  "output_sha256": "7b79c4cae44b88641b2568a229809c2387f87b69c7d2d77851b3db214ae27e8b",
+  "native_declarations_unchanged": true,
+  "fragment_sha256": [
+    "b24c385907cfcd9a41166b02b3610d4d4a18579adbbb1e03226ade620be9eef8",
+    "3259ed3c311f71abce7a558b80ca4e171eb3020ab6fc17bcdea716c856fc64a8"
+  ],
+  "merge_correctness_assumed": false,
+  "scope": "Owned decode wrapper only; universal over dictionary-supplied merge/default/buffer operations"
+}

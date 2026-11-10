@@ -1,0 +1,2148 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/default.llbc
+[[36mTrace[39m] Aeneas__SymbolicToPureExpressions.translate_intro_symbolic, line 1545:
+- value aggregate: (SymbolicAst.VaFnDef
+   { Generated_Types.kind =
+     (Generated_Types.FunId (Generated_Types.FRegular 2));
+     generics =
+     { Generated_Types.regions = []; types = []; const_generics = [];
+       trait_refs = [] }
+     })
+
+[[36mTrace[39m] Aeneas__SymbolicToPureExpressions.translate_function_call, line 331:
+- call.call_id:(SymbolicAst.Fun ((Generated_Types.FunId (Generated_Types.FRegular 1)), 1))
+
+- call.generics:
+<core::default::{impl core::default::Default for u32}::default>[core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}]
+
+- call.inst_sg:
+Some ((core::default::{impl core::default::Default for u32}::default) -> u32
+- regions_hierarchy:
+
+- abs_regions_hierarchy:
+)
+
+[[36mTrace[39m] Aeneas__SymbolicToPureExpressions.translate_function_call_aux, line 391:
+back_tys:
+ 
+
+[[36mTrace[39m] Aeneas__SymbolicToPureExpressions.translate_function_call, line 331:
+- call.call_id:(SymbolicAst.Fun (
+   (Generated_Types.TraitMethod (
+      { Generated_Types.kind =
+        (Generated_Types.Clause (Generated_Types.Free 0));
+        trait_decl_ref =
+        { Generated_Types.binder_regions = [];
+          binder_value =
+          { Generated_Types.id = 0;
+            generics =
+            { Generated_Types.regions = [];
+              types =
+              [(Generated_Types.TVar (Generated_Types.Free 0));
+                (Generated_Types.TAdt
+                   { Generated_Types.id =
+                     (Generated_Types.TBuiltin Generated_Types.TTuple);
+                     generics =
+                     { Generated_Types.regions = []; types = [];
+                       const_generics = []; trait_refs = [] }
+                     });
+                (Generated_Types.TLiteral
+                   (Generated_Values.TUInt Generated_Values.U32))
+                ];
+              const_generics = []; trait_refs = [] }
+            }
+          }
+        },
+      0)),
+   1))
+
+- call.generics:
+
+
+- call.inst_sg:
+Some ((F, ()) -> u32
+- regions_hierarchy:
+
+- abs_regions_hierarchy:
+)
+
+[[36mTrace[39m] Aeneas__SymbolicToPureExpressions.translate_function_call_aux, line 391:
+back_tys:
+ 
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'compute_pretty_names'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'compute_pretty_names'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'remove_meta_def'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'remove_meta_def'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring intro_target_feature_asserts due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'unit_vars_to_unit'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'unit_vars_to_unit'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_massert'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_massert'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_decompose_struct'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_decompose_struct'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_struct_updates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'eliminate_box_functions'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'eliminate_box_functions'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_trait_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_trait_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_duplicate_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_duplicate_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'merge_let_app_then_decompose_tuple'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'merge_let_app_then_decompose_tuple'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_branching'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_branching'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'decompose_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'decompose_loop_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_loop_output_conts'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_loop_output_conts'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_loop_useless_inputs_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_loop_useless_inputs_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'loops_to_recursive'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'loops_to_recursive'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_inputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_inputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'let_to_match'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'let_to_match'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'flatten_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'flatten_struct_updates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates_unchanged_fields'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates_unchanged_fields'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 4)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 4)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_binop_panic_then_wrapping'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_binop_panic_then_wrapping'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_array_slice_update'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_array_slice_update'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_nested_let_patterns due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring unfold_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'lift_pure_function_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'lift_pure_function_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'update_match_over_isize_usize'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'update_match_over_isize_usize'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 364:
+About to apply: 'decompose_loops':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 371:
+After applying: 'decompose_loops':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 379:
+About to apply: 'filter_loop_useless_inputs':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 384:
+After applying 'filter_loop_useless_inputs':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 404:
+After applying: 'decompose_loop_bodies':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 412:
+About to apply: 'loops_to_fixed_points'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 415:
+After applying 'loops_to_fixed_points':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 432:
+About to apply: 'simplify_let_then_ok (final pass)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 435:
+After applying 'simplify_let_then_ok (final pass)':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 455:
+About to apply: 'intro_massert (post-loop pass)':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 460:
+After applying 'intro_massert (post-loop pass)':
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 474:
+After decomposing loops:
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'compute_pretty_names'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'compute_pretty_names'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'remove_meta_def'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'remove_meta_def'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring intro_target_feature_asserts due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'unit_vars_to_unit'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'unit_vars_to_unit'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_massert'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_massert'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_decompose_struct'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_decompose_struct'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_struct_updates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'eliminate_box_functions'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'eliminate_box_functions'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_trait_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_trait_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_duplicate_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_duplicate_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'merge_let_app_then_decompose_tuple'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'merge_let_app_then_decompose_tuple'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_branching'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_branching'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'decompose_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'decompose_loop_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_loop_output_conts'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_loop_output_conts'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_loop_useless_inputs_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_loop_useless_inputs_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_outputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'loops_to_recursive'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'loops_to_recursive'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_inputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_inputs'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'let_to_match'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'let_to_match'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'flatten_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'flatten_struct_updates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates_unchanged_fields'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates_unchanged_fields'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 4)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 4)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 2)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_binop_panic_then_wrapping'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_binop_panic_then_wrapping'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_array_slice_update'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_array_slice_update'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 3)'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_nested_let_patterns due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring unfold_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'lift_pure_function_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'lift_pure_function_calls'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'update_match_over_isize_usize'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'update_match_over_isize_usize'(updated:false):
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 364:
+About to apply: 'decompose_loops':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 371:
+After applying: 'decompose_loops':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 379:
+About to apply: 'filter_loop_useless_inputs':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 384:
+After applying 'filter_loop_useless_inputs':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 404:
+After applying: 'decompose_loop_bodies':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 412:
+About to apply: 'loops_to_fixed_points'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 415:
+After applying 'loops_to_fixed_points':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 432:
+About to apply: 'simplify_let_then_ok (final pass)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 435:
+After applying 'simplify_let_then_ok (final pass)':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 455:
+About to apply: 'intro_massert (post-loop pass)':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 460:
+After applying 'intro_massert (post-loop pass)':
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 474:
+After decomposing loops:
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'compute_pretty_names'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'compute_pretty_names'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'remove_meta_def'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'remove_meta_def'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring intro_target_feature_asserts due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'unit_vars_to_unit'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'unit_vars_to_unit'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_massert'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_massert'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_decompose_struct'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_decompose_struct'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_struct_updates'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = Mk@Result::Ok core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings'(updated:true):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  let (@0 : Result u32) = core::default::{impl core::default::Default for u32}::default in
+  (@1 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} @0^(0,0);
+  let (@2 : u32) = @1^(0,0) in
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments'(updated:true):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'eliminate_box_functions'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'eliminate_box_functions'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_trait_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_trait_calls'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_duplicate_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_duplicate_calls'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'merge_let_app_then_decompose_tuple'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'merge_let_app_then_decompose_tuple'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_branching'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_branching'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  (@0 [@mplace=^0llbc] : u32) <-- fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default;
+  Mk@Result::Ok @0^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok'(updated:true):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'decompose_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'decompose_loop_outputs'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_loop_output_conts'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_loop_output_conts'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_loop_useless_inputs_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_loop_useless_inputs_outputs'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_outputs'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'loops_to_recursive'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'loops_to_recursive'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_inputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_inputs'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'let_to_match'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'let_to_match'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'flatten_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'flatten_struct_updates'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates_unchanged_fields'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates_unchanged_fields'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 4)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 4)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_binop_panic_then_wrapping'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_binop_panic_then_wrapping'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_array_slice_update'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_array_slice_update'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_nested_let_patterns due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring unfold_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'lift_pure_function_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'lift_pure_function_calls'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'update_match_over_isize_usize'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'update_match_over_isize_usize'(updated:false):
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 364:
+About to apply: 'decompose_loops':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 371:
+After applying: 'decompose_loops':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 379:
+About to apply: 'filter_loop_useless_inputs':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 384:
+After applying 'filter_loop_useless_inputs':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 404:
+After applying: 'decompose_loop_bodies':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 412:
+About to apply: 'loops_to_fixed_points'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 415:
+After applying 'loops_to_fixed_points':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 432:
+About to apply: 'simplify_let_then_ok (final pass)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 435:
+After applying 'simplify_let_then_ok (final pass)':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 455:
+About to apply: 'intro_massert (post-loop pass)':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 460:
+After applying 'intro_massert (post-loop pass)':
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 474:
+After decomposing loops:
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'compute_pretty_names'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'compute_pretty_names'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  @span[@symb_places(f@0^(0,0) == "f")]
+  @span[@assign(^2llbc := f@0^(0,0) [@src=f^1llbc])]
+  @span[@assign(^3llbc := MkTuple)]
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once (@span[@mplace=^2llbc] f@0^(0,0)) (@span[@mplace=^3llbc] MkTuple);
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'remove_meta_def'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'remove_meta_def'(updated:true):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring intro_target_feature_asserts due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'unit_vars_to_unit'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'unit_vars_to_unit'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_massert'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_massert'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_decompose_struct'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_decompose_struct'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'intro_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'intro_struct_updates'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  (@2 : u32) <-- Mk@Result::Ok @1^(0,0);
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings'(updated:true):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  let (@2 : u32) = @1^(0,0) in
+  Mk@Result::Ok @2^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments'(updated:true):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'eliminate_box_functions'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'eliminate_box_functions'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_trait_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_trait_calls'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_duplicate_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_duplicate_calls'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'merge_let_app_then_decompose_tuple'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'merge_let_app_then_decompose_tuple'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_branching'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_branching'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  (@1 [@mplace=^0llbc] : u32) <-- TraitClause0.call_once f@0^(0,0) MkTuple;
+  Mk@Result::Ok @1^(0,0)
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok'(updated:true):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'decompose_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'decompose_loop_outputs'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_loop_output_conts'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_loop_output_conts'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_loop_useless_inputs_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_loop_useless_inputs_outputs'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'apply_beta_reduction (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'apply_beta_reduction (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_outputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_outputs'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'loops_to_recursive'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'loops_to_recursive'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'reorder_loop_inputs'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'reorder_loop_inputs'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'let_to_match'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'let_to_match'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'flatten_struct_updates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'flatten_struct_updates'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_aggregates_unchanged_fields'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_aggregates_unchanged_fields'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_lambdas (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_lambdas (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_bindings (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_bindings (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'inline_useless_var_assignments (pass 4)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'inline_useless_var_assignments (pass 4)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'filter_useless (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'filter_useless (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 2)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 2)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_binop_panic_then_wrapping'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_binop_panic_then_wrapping'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_array_slice_update'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_array_slice_update'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'simplify_let_then_ok (pass 3)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'simplify_let_then_ok (pass 3)'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring decompose_nested_let_patterns due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 253:
+Ignoring unfold_monadic_let_bindings due to the configuration
+
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'lift_pure_function_calls'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'lift_pure_function_calls'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 241:
+About to apply: 'update_match_over_isize_usize'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_def.(fun), line 247:
+After applying 'update_match_over_isize_usize'(updated:false):
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 364:
+About to apply: 'decompose_loops':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 371:
+After applying: 'decompose_loops':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 379:
+About to apply: 'filter_loop_useless_inputs':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 384:
+After applying 'filter_loop_useless_inputs':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 404:
+After applying: 'decompose_loop_bodies':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 412:
+About to apply: 'loops_to_fixed_points'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.update, line 415:
+After applying 'loops_to_fixed_points':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 432:
+About to apply: 'simplify_let_then_ok (final pass)'
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.simplify, line 435:
+After applying 'simplify_let_then_ok (final pass)':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 455:
+About to apply: 'intro_massert (post-loop pass)':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply.intro_massert, line 460:
+After applying 'intro_massert (post-loop pass)':
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPasses.apply_passes_to_pure_fun_translations.apply, line 474:
+After decomposing loops:
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 412:
+About to add type annotations to:
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 420:
+After adding type annotations:
+
+val core::default::{impl core::default::Default for u32}::default :
+  u32
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 412:
+About to add type annotations to:
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 420:
+After adding type annotations:
+
+val core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once :
+  Result u32 -> () -> Result u32
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 412:
+About to add type annotations to:
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 420:
+After adding type annotations:
+
+let fnitem_lift_regressions::default_item :
+  Result u32 =
+  fnitem_lift_regressions::apply (Result u32) core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default} core::default::{impl core::default::Default for u32}::default
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 412:
+About to add type annotations to:
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[36mTrace[39m] Aeneas__PureMicroPassesAnnots.add_type_annotations.add_annot, line 420:
+After adding type annotations:
+
+let fnitem_lift_regressions::apply :
+  (F: Type) -> core::ops::function::FnOnce F () u32 -> F -> Result u32 =
+  fun (f@0 : F) ->
+  TraitClause0.call_once f@0^(0,0) MkTuple
+
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Types.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/FunsExternal_Template.lean
+[[92mInfo[39m ] Generated: /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.147285 seconds

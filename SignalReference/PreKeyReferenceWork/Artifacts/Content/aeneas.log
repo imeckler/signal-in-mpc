@@ -1,0 +1,12 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/PreKeyReferenceWork/Artifacts/Content/prekey.llbc
+[[91mError[39m] Internal error: please file an issue
+Source: 'rust/protocol/src/state/bundle.rs', lines 0:0-0:0
+[[91mError[39m] Ignoring the body of 'libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::generate' because of previous error
+Source: 'rust/protocol/src/kem/kyber1024.rs', lines 23:4-29:5
+[[91mError[39m] Internal error: please file an issue
+Source: 'rust/protocol/src/state/bundle.rs', lines 0:0-0:0
+[[91mError[39m] Ignoring the body of 'libsignal_protocol::kem::kyber1024::{impl libsignal_protocol::kem::Parameters for libsignal_protocol::kem::kyber1024::Parameters}::encapsulate' because of previous error
+Source: 'rust/protocol/src/kem/kyber1024.rs', lines 31:4-40:5
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//PreKeyReferenceWork/Generated/Content/Types.lean
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//PreKeyReferenceWork/Generated/Content/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.179032 seconds

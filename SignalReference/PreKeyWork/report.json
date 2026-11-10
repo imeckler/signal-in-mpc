@@ -1,0 +1,362 @@
+{
+  "checked_at_utc": "2026-11-08T02:52:16.585831+00:00",
+  "proof_endpoints": 28,
+  "custom_axioms": [],
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    ".deps/libsignal-v0.106.1/rust/core/src/address.rs": "8413cccfd7721e316cda5f9809ba9182eec1d606104923aa767159979d4ae5c9",
+    ".deps/libsignal-v0.106.1/rust/core/src/curve/curve25519.rs": "2c0fa74767854680aaa598bccd1fbfbe6e9789dc7b7cad029d920d2a596f437d",
+    ".deps/libsignal-v0.106.1/rust/core/src/curve.rs": "f2caf4b089de96d517a4e0cd372b79c478e10d075590477cfeb80186f767d314",
+    ".deps/libsignal-v0.106.1/rust/core/src/e164.rs": "74e04134e102726dc6c62b41d5bb7c5b44a94d17a5a399187c43f2de164be33f",
+    ".deps/libsignal-v0.106.1/rust/core/src/lib.rs": "3745943476d6eb7b14b97c224e75b062a8f2f82b8334a7f9ef9f15d787a7f2e5",
+    ".deps/libsignal-v0.106.1/rust/core/src/version.rs": "b9ef81a7a882bd579e68818dc4e42ff308e0d883de37636c5ebbab68c8f96ee3",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/aes_cbc.rs": "163d132f27b4d5afdf0e87d56601cc9fba34e645a7cdb24df0492097671938bb",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/aes_ctr.rs": "24a55c40b0a83be5dde2799d0498e30a966e633ae95fac9df76381222e58b0d8",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/aes_gcm.rs": "82ee1c9dd618f2b4d9063b2f310294c82ea8ede463c6fd919ff88beba19cceed",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/error.rs": "156d4aa014460f067f1adc4463dc794f2212a829de4605d5edc1f96bbe314491",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/hash.rs": "85ba54a3c906e08878c3f334358b5e3c29165d08a51f40abd0e20855c7378844",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/hpke/provider.rs": "223655706fb2854d880056bbc34c9e1ca188e8c2b7e749ed32bb31d5ca7f7036",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/hpke.rs": "0789e807908f3a133eb5246478879f168e67692d5c4a1b7737671661b610d5bb",
+    ".deps/libsignal-v0.106.1/rust/crypto/src/lib.rs": "b5fc8524e4318ac99858a835336039c2c9c083b47f3fada82175e883201ac967",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/consts.rs": "29616bfbbecc1bc9ff17ae9f2787843d20fc4c7409d13572ec251c9080384f29",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/double_ratchet.rs": "b3be5c8ae7a2333178f393b4aa74f6d33880f70f91d075e79459be0859c2eb2f",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/error.rs": "6c25426e3a8b9c4cdea4cae3f9036eff1a37a35f3a32af2fa5c19aa1149ef099",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/fingerprint.rs": "65341e810bd7736e26467d8b0479934484d04d78c19d02675057650310d07302",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/group_cipher.rs": "26e5329af7bf4b9649e69bbf0dc1ab3471e9d37cf8306bb5a427f53223e6f208",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/handshake.rs": "89b6aee6e5a9f2ccffe9169bc8ea90fb3b3cfb06be5b625da01ec779fa266484",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/identity_key.rs": "15b5b612aae8e3bee4937d7a8f1fadd016cd208eaee6373168b12037532ac129",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/incremental_mac.rs": "70affe1af36c7f21842174f962e6e812dd537e4763dccfd445a1645fb6f5c5dc",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem/kyber1024.rs": "da6095ff7950bdb0645eb8f199b13c94a5abaa52a517c9de7f30ddf73cb2025d",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem/kyber768.rs": "6890a7dfd44c28ebd14c432391ccf2481cb94f7a19aec5bf62994908cac6c2a5",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem/mlkem1024.rs": "ec20291e9e68063099a7d00f39cbef2a3a054b7e6a05be50e0953c71338550d2",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/kem.rs": "01cce9761ca2f2f3e86cc98bc1bc4d321dd190460826f4e8fd427081d30ce853",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/lib.rs": "d4ffd91716e00a89e668e144f54b6375e31326c809d8d93678539f5a8c1aece1",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/pqxdh.rs": "876dc87bc7503b7c7e7e8643dd7dc4931113e0224dbaf65e9dfbf8b2045ae6a7",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/fingerprint.rs": "091f5ec64ca5b9d143c5bf838130fadb6a5eed8b0ac9e551d318d677699e0d99",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/sealed_sender.rs": "c28a74bf813808ba92d3fb7029069b8f515bb302591680f821de2a649ffcc838",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/service.rs": "d05ba074d94d4cbe6f90109dc9a9856a9ea744b51e7720c52f77381cecf08443",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/storage.rs": "be1cc45e44ec2ed7c3a11d9e6d32e3c333035aec32cf5b5ccf2d3da8010af4a0",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto/wire.rs": "e16a9fb626d2aebf81cec15bf1e9f7a7d06a72f95d3d7f948fef179fd03f501d",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/proto.rs": "9f0456ffff28f14f0e3fac51825d916abb785f8cf45a29b867aa17ae20a3f084",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/protocol.rs": "6ee4c8fde02c96e7eca5db90272d4cad7d6bcb75d8a818aec656a5b540988547",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/ratchet/keys.rs": "427f147ba73edd0f84ccbc8c7437069dee18cc7456fe1031061deb6f6b76e750",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/ratchet.rs": "4078f9f1f938d767ebed95d7628069bb957a32801f22c93f4fd36fe3cb722032",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/sealed_sender.rs": "aa6f5dd7865bb38d3ef9dc9ae849d58157e21dbd796e4c5bca241d0fa39f6916",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/sender_keys.rs": "2a223a3973551f9f20682122c72132b3a31396fc7cb69dac3c63cf85249ebcb6",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/session.rs": "05fc5c028aa708862e634c8fa47356babcf9fe1c84b4e1cadeb19abc37cba842",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/session_management/tests.rs": "12aaeb46caf6d37f283306a9ae009ab2be03bce3543c3b73b2d92b8590b3db75",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/session_management.rs": "1a0af91526c1f3131a8ee8abfa21b45c27ce8556e334d3d82af9448d7506b5e6",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/bundle.rs": "e79e0225e4c1fee4072ca3ca398a5404e879b1f2186cb6a31cdc01a8038abea1",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/kyber_prekey.rs": "5ed361fffbb9c231dff7aadb1a52e9f082091e746b58c0e9c6e93b2c9d89ca52",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/prekey.rs": "c14ce3fd9271049b8f0ff0db6bafef0bbf4b93595486186a50d560c3833120af",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/session.rs": "8c022fd9bee3f4bff1c22f4573d255d692ae059af5b45833da74b63718500759",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/signed_prekey.rs": "859e5a85873d68de2c75a9e4f5a30bbb7a53839b5d3fef9a5f9d5e78be57e42e",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state.rs": "357ab1fce888a21776f9e7d215f829d8ff968ae42fd04dd2a04d4f7fdae585f4",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/storage/inmem.rs": "6df27352c6398ffef000594d23bbf01eb4c603842f570b8c78026b28367a6ea0",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/storage/traits.rs": "aba26594b7cf68126847d47e29f9498baf9a269bb8c52d64aa161285bf08ea84",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/storage.rs": "1fe2f4852822b058af9554d2b42e8cf187d1b7811d30b6750a34a203dac28d55",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/tahini.rs": "a6c4e3fea22a7184a6c1aa6896878d679146714680c2528152fb4b5463e580a0",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/timestamp.rs": "536dd6627ed47c4cf83c32ccb737b70b7a2a93d63dcc79e6c543d7965c6c0956",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/triple_ratchet.rs": "5823f5010c18ad21104caffedd32f18ac1f5c4662bc294656631962ef1fe5dfa",
+    "SignalReference/PreKeyWork/Checks.lean": "84233157752dae7e9ed62713d347ea81eb2006153a7d2427fcb2bcccc4966f2e",
+    "SignalReference/PreKeyWork/Export.lean": "a5999a5ee5142a1946268c1e93da6797e1e1d447243f58eb8ee2d456565ece32",
+    "SignalReference/PreKeyWork/Oracle/.cargo/config.toml": "aaa77459e5d4210fc33863c80b6ad49c3d41df124d0c37ecf1d34f5d89de993b",
+    "SignalReference/PreKeyWork/Oracle/Cargo.lock": "91eda0152914f9f40cba9e6d437fa198454d0ddfa863a8aefcf1afa2024eba35",
+    "SignalReference/PreKeyWork/Oracle/Cargo.toml": "389a607951c986f7af2a88be1c1af5e41e38a10e3ca23fb58f43c4b7e707e5d8",
+    "SignalReference/PreKeyWork/Oracle/src/main.rs": "2921b93c150f0f36dc2517e3d61d1a1944cc6bc231ffcfe25bd8a5fad73bdd16",
+    "SignalReference/PreKeyWork/check.py": "47f96c6cd2850ab344d84134364b2e620a7160b6a2f242cf4d94bc77f57e1cd6",
+    "SignalReference/PreKeyWork/lakefile.toml": "01a8a98dbfda7b62fe4b58f4933e804db8a13dd202d22a30644a159b13919d4a",
+    "SignalReference/XEdDsaWork/completion.json": "352b001526f35f40e9789f116b2902469b22292cda37734ec8a1b196f758cb9a",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/PreKeyBundle.lean": "5b3f6ed79cf74df50ce49a1e4dbeb5877209055caf55d46f15c90c224b915bce",
+    "TlsMpc/Signal/PreKeyValidation.lean": "1a2723714e34888ee6c6e78a5362a188c8295859666c6bacd2b7da079c9a09fd",
+    "TlsMpc/Signal/PreKeyWire.lean": "8633464c5177415c30418f21400edf5c649885fe8bff18ef977165bf17c5eab9",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "profiles": [
+    {
+      "profile": "signal-prekey-ec-0-all",
+      "sha256": "b49520a68026ab8822ac649eb019e3c7f3121f15ee0b67791e49a778c766e019",
+      "lanes": 1,
+      "statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-1-all",
+      "sha256": "67a2869785941644d9bfde297be6d5ea76b5c4aa77d316095fa6e95534daebd3",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 7,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-32-all",
+      "sha256": "960d58b091f88f6a816076f4a06cbb446fd70c00922d419d832893a3420bbe95",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 7,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 248
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-33-all",
+      "sha256": "46dbb4fc99d43d3dc40864b2ddebef06696c5689718096941fe640b47256e80a",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 263,
+        "executed_and_gates": 263,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-35-all",
+      "sha256": "26a0ffd1353093d2f1d1dd3f1604150a3fb2b1e3a39ad88424f7042a8c690814",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 263,
+        "executed_and_gates": 263,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-0-base",
+      "sha256": "bac53994d328d300082791bd38922e418bf4650c0614e6967faea518cbd34b8f",
+      "lanes": 1,
+      "statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1-base",
+      "sha256": "cb6e230d361577148668902858e53aab9e6fdc250120b78e3d0899e85d51ee0d",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 14,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 7
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1185-base",
+      "sha256": "7ca5f4cb511673439accb64c38fa540e58108f2d11082de94dcd4d36a58a480c",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 9497,
+        "executed_and_gates": 9497,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1186-base",
+      "sha256": "e093e21d4ff241171c86a840ee5fdc1ab149553de0908cbd89aa4a82dd761b08",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 14,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 9487
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1568-base",
+      "sha256": "ca1794b29aa0a7e2f6f4dfa1de585e5cc8d688cd10d3419ac6e7af76196ba9f5",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 14,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 12543
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1569-base",
+      "sha256": "59acf3bc36f1db28b143f4925cbaaae37b04ad91ee5718763ab0fa6a6d6ae557",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 12569,
+        "executed_and_gates": 12569,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1570-base",
+      "sha256": "e68a9818c585a2ac38937067ef0d36c354075a53ea57041ea0d4aee1bd64901d",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 14,
+        "executed_and_gates": 7,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 12559
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-0-all",
+      "sha256": "9eaef53b037dfac7074d1353b2b3f36dad8d98545146b348be6230c567e4be3a",
+      "lanes": 1,
+      "statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1-all",
+      "sha256": "e8e9708ccc303a9a9525a40b59463460f71b71940e83b941a3fa330fb01892a2",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 33,
+        "executed_and_gates": 23,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 6
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1185-all",
+      "sha256": "d1486cc25648515d44d4d8cfa31bb576939ec52275b42a65a9931fdeed7cb354",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 9516,
+        "executed_and_gates": 9506,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 6
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1186-all",
+      "sha256": "8d70012cbdafa389a669e13fc129fe0439e09543e0431bd6e2a73c1139f136ae",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 33,
+        "executed_and_gates": 23,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 9486
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1568-all",
+      "sha256": "e7e548a343670f9be2545a31e332b07433f2f12a321dc8480701f0139eb1a54f",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 33,
+        "executed_and_gates": 23,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 12542
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1569-all",
+      "sha256": "b70299862f6abebdbaeb978f1c9e77520324d18948f9e2e2286949269e284d56",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 12588,
+        "executed_and_gates": 12578,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 6
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1570-all",
+      "sha256": "176ea493119009bbfc6de7f9b0bd97fc12c295098ee9714a2bf7a2c3a365c838",
+      "lanes": 256,
+      "statistics": {
+        "raw_and_gates": 33,
+        "executed_and_gates": 23,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 12558
+      }
+    },
+    {
+      "profile": "signal-prekey-device-4-all",
+      "sha256": "c42853dfd69510c7fe26dedc8b8e1413c314d1e6881bdd51ebe7054dffd55756",
+      "lanes": 261,
+      "statistics": {
+        "raw_and_gates": 40,
+        "executed_and_gates": 40,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      }
+    },
+    {
+      "profile": "signal-prekey-optional-2-all",
+      "sha256": "aa5ad39184ffcb2563d45360804ab8f147fff3b795ff0e12098b95c5467eaa93",
+      "lanes": 768,
+      "statistics": {
+        "raw_and_gates": 15,
+        "executed_and_gates": 15,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      }
+    },
+    {
+      "profile": "signal-prekey-construct-28-all",
+      "sha256": "0d8ac424845aa0307c43bb6bd489b0fcca1242aec7b0c0c9bd6a2721ad6c4cb8",
+      "lanes": 2048,
+      "statistics": {
+        "raw_and_gates": 277,
+        "executed_and_gates": 277,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-finish-23-all",
+      "sha256": "1578c10680c29741df042d3090271e0dd9f007a7f57ae39431114c0e8925be79",
+      "lanes": 2304,
+      "statistics": {
+        "raw_and_gates": 234,
+        "executed_and_gates": 198,
+        "executed_xor_gates": 12,
+        "unreachable_nodes": 25
+      }
+    }
+  ],
+  "lanes": {
+    "ec": 1025,
+    "kem": 3074,
+    "device": 261,
+    "optional": 768,
+    "construct": 2048,
+    "finish": 2304
+  },
+  "actual_constructor_presence_combinations": 2048,
+  "actual_process_validation_prefix_cases": 36,
+  "actual_rust_store_trace_checked": true,
+  "oracle_binary_sha256": {
+    "base": "c7510f854edd170706c1a030e2b6e34d13929eb6133fa405eb2cf2bc26d06626",
+    "all": "7ffd83dbbebad2de9f440bdfffe962ad082286b5c04a8212fd74467f0c4550b1"
+  },
+  "export_binary_sha256": "e3114d38bc8287e189a16fed3341ef7acd0e988541b5cbc802bf31eb4e59d2f4",
+  "fixtures_sha256": "7bb41e4350c94c3dd7a6ea88f487682fc89b060805a75d6ae9f2821c167f3648",
+  "frozen_xeddsa_completion_sha256": "352b001526f35f40e9789f116b2902469b22292cda37734ec8a1b196f758cb9a",
+  "actual_aeneas_refinement": false,
+  "native_mpc_executed": false,
+  "full_process_prekey_bundle_success_claimed": false,
+  "scope": "Typed key/device leaves, actual constructor optional/presence order, ordered validation-prefix result. Actual process function stops at intentional load_session sentinel after signature verification; no session/KEM initialization or writes."
+}

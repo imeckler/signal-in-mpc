@@ -1,0 +1,20 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/negative.llbc
+[[91mError[39m] Arrow types are not supported yet
+Source: 'src/lib.rs', lines 9:0-9:54
+Compiler source: symbolic/SymbolicToPureTypes.ml, line 421
+[[91mError[39m] Could not translate the function signature of 'fnitem_lift_regressions::function_pointer because of previous error
+Name pattern: 'fnitem_lift_regressions::function_pointer'
+Definition span: 'src/lib.rs', lines 9:0-9:54
+Source: 'src/lib.rs', lines 9:0-9:54
+Compiler source: Translate.ml, line 392
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_crate_to_pure.(fun) in file "Translate.ml", lines 392-397, characters 12-79
+Called from Stdlib__List.filter_map in file "list.ml", line 280, characters 12-15
+Called from Stdlib__List.filter_map in file "list.ml", line 282, characters 23-37
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", lines 374-399, characters 6-59
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

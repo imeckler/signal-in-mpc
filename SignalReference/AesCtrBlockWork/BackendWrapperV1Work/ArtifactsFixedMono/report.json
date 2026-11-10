@@ -1,0 +1,108 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "source_patches": [],
+  "generated_body_edits": false,
+  "charon_exit": 0,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--monomorphize",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={impl cipher::block::backends::BlockCipherEncBackend for crate::soft::Aes256BackEnc}::encrypt_block",
+    "--start-from-if-exists={impl cipher::block::backends::BlockCipherEncBackend for crate::soft::Aes256BackEnc}::encrypt_par_blocks",
+    "--opaque=crate::soft::fixslice::*",
+    "--exclude=hybrid_array::traits::ArraySize",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsFixedMono/backend.llbc",
+    "--",
+    "--verbose",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "actual_fixslice_link_not_yet_proved": true,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/extract_fixed_mono.py": "e30b5cc9024d6f57c919edff55f39856133156b31b33d944c3b28df26b621c92",
+    ".deps/libsignal-vendor/aes-0.9.1/src/soft.rs": "fd83353ad38832a4224f501793d41bec85f1f439dc8872e0ba3dff5c74ab9095",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "llbc_sha256": "fb795a6a54cdfc378bf58138b813efe687f7004b5b57d8843e6cf293778e745d",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 0,
+    "fun_decls": 0,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 0
+  },
+  "body_kinds": {},
+  "external_functions": [],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/soft.rs"
+      },
+      "crate_name": "aes"
+    }
+  ],
+  "explicit_exclusions": [
+    "hybrid_array::traits::ArraySize"
+  ],
+  "explicit_opaque_patterns": [
+    "crate::soft::fixslice::*"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": true,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{impl cipher::block::backends::BlockCipherEncBackend for crate::soft::Aes256BackEnc}::encrypt_block"
+  ],
+  "selected_functions": [],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsFixedMono/backend.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/AesCtrBlockWork/BackendWrapperV1Work/GeneratedFixedMono",
+    "-split-files",
+    "-namespace",
+    "ActualAesBackendWrapper",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}

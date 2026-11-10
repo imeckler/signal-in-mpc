@@ -1,0 +1,12 @@
+'LibSignalReference.Candidate.ProstTopField.decode_prefix_drop' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.contents_drop' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.done_index_positive' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.prefix_count_positive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_actual_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_actual_error' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

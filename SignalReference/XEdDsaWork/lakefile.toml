@@ -1,0 +1,9 @@
+name = "xeddsa-export"
+version = "0.1.0"
+defaultTargets = ["emit_xeddsa"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_xeddsa"
+root = "Export"

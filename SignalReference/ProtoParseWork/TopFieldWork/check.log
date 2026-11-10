@@ -1,0 +1,179 @@
+'LibSignalReference.Candidate.ProstTopField.select_field_full' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.write_fields_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.write_fields_get' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.duplicate_last_value' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:21:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:21:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:36:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:36:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:51:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:51:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:66:44: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:66:63: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+      show (255#8) = BitVec.allOnes 8 by rfl, BitVec.and_allOnes, ̲BitVec.a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:103:45: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+        show (255#8) = BitVec.allOnes 8 by rfl, ̲BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:103:64: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [̵W̵o̵r̵d̵6̵4̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵B̵y̵t̵e̵A̵u̵t̵h̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵W̵o̵r̵d̵6̵4̵.̵b̵o̵r̵,̵U̵n̵p̵a̵d̵.̵c̵h̵o̵o̵s̵e̵B̵y̵t̵e̵,̵[̲W̲o̲r̲d̲6̲4̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲ ̲B̲y̲t̲e̲A̲u̲t̲h̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲ ̲W̲o̲r̲d̲6̲4̲.̲b̲o̲r̲,̲ ̲U̲n̲p̲a̲d̲.̲c̲h̲o̲o̲s̲e̲B̲y̲t̲e̲,̲
+        show (255#8) = BitVec.allOnes 8 by r̵f̵l̵,̵B̵i̵t̵V̵e̵c̵.̵a̵n̵d̵_̵a̵l̵l̵O̵n̵e̵s̵,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵x̵o̵r̵_̵a̵s̵s̵o̵c̵]̵r̲f̲l̲,̲ ̲B̲i̲t̲V̲e̲c̲.̲a̲n̲d̲_̲a̲l̲l̲O̲n̲e̲s̲,̲ ̲B̲i̲t̲V̲e̲c̲.̲x̲o̲r̲_̲a̲s̲s̲o̲c̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:103:83: warning: This simp argument is unused:
+  BitVec.xor_assoc
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+        show (255#8) = BitVec.allOnes 8 by rfl, ̲BitVec.and_allOnes, ̲BitVec.allOnes_and,̵B̵i̵t̵V̵e̵c̵.̵x̵o̵r̵_̵a̵s̵s̵o̵c̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:117:45: warning: This simp argument is unused:
+  BitVec.and_allOnes
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+        show (255#8) = BitVec.allOnes 8 by rfl, ̲BitVec.an̵d̵_̵a̵llOnes,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_and, ̲BitVec.xor_assoc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:117:64: warning: This simp argument is unused:
+  BitVec.allOnes_and
+
+Hint: Omit it from the simp argument list.
+  simp_all [̵W̵o̵r̵d̵6̵4̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵B̵y̵t̵e̵A̵u̵t̵h̵.̵c̵o̵n̵c̵r̵e̵t̵e̵,̵W̵o̵r̵d̵6̵4̵.̵b̵o̵r̵,̵U̵n̵p̵a̵d̵.̵c̵h̵o̵o̵s̵e̵B̵y̵t̵e̵,̵[̲W̲o̲r̲d̲6̲4̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲ ̲B̲y̲t̲e̲A̲u̲t̲h̲.̲c̲o̲n̲c̲r̲e̲t̲e̲,̲ ̲W̲o̲r̲d̲6̲4̲.̲b̲o̲r̲,̲ ̲U̲n̲p̲a̲d̲.̲c̲h̲o̲o̲s̲e̲B̲y̲t̲e̲,̲
+        show (255#8) = BitVec.allOnes 8 by r̵f̵l̵,̵B̵i̵t̵V̵e̵c̵.̵a̵n̵d̵_̵a̵l̵l̵O̵n̵e̵s̵,̵B̵i̵t̵V̵e̵c̵.̵a̵l̵l̵O̵n̵e̵s̵_̵a̵n̵d̵,̵B̵i̵t̵V̵e̵c̵.̵x̵o̵r̵_̵a̵s̵s̵o̵c̵]̵r̲f̲l̲,̲ ̲B̲i̲t̲V̲e̲c̲.̲a̲n̲d̲_̲a̲l̲l̲O̲n̲e̲s̲,̲ ̲B̲i̲t̲V̲e̲c̲.̲x̲o̲r̲_̲a̲s̲s̲o̲c̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean:117:83: warning: This simp argument is unused:
+  BitVec.xor_assoc
+
+Hint: Omit it from the simp argument list.
+  simp_all [Word64.concrete, ̲ByteAuth.concrete, ̲Word64.bor, ̲Unpad.chooseByte,
+        show (255#8) = BitVec.allOnes 8 by rfl, ̲BitVec.and_allOnes, ̲BitVec.allOnes_and,̵B̵i̵t̵V̵e̵c̵.̵x̵o̵r̵_̵a̵s̵s̵o̵c̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+'LibSignalReference.Candidate.ProstTopField.fixed64_unknown_top' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.fixed32_unknown_top' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.length_unknown_top' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.varint_unknown_top' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scalar_wire_reject' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.bytes_wire_reject' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scalar_top_mask' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.bytes_top_mask' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.top_end_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.select_decoded_full' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.select_decoded_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.lookup_decoded_get' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_length' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_get' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.payload_window_get' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.write_stack_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.step_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.step_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scan_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scan_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_actual_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.payload_actual_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.decode_prefix_drop' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.contents_drop' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.done_index_positive' depends on axioms: [propext, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.prefix_count_positive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_actual_success' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.table_actual_error' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

@@ -23,3 +23,22 @@ SignalReference/ProtoParseWork/SkipTranslatorWork/Source/
 SignalReference/**/Artifacts/signal-*.json
 SignalReference/**/Artifacts/parser-*.json
 SignalReference/**/Artifacts/Export/
+# Scratch downloads
+/tmp/
+# Transient process records from candidate build scripts
+SignalReference/ChatResponseReferenceWork/SchemaV1/*/process.json
+# Run/check logs with no receipt (pinned or tracked logs elsewhere stay tracked)
+SignalReference/**/*-run.log
+SignalReference/ProtoParseWork/BytesReferenceWork/*-check.log
+SignalReference/ProtoParseWork/BytesReferenceWork/check.log
+SignalReference/ProtoParseWork/BytesReferenceWork/*-extract.log
+SignalReference/ProtoParseWork/DispatcherIntegrationWork/check.log
+SignalReference/ProtoParseWork/DispatcherIntegrationWork/translate.log
+SignalReference/ProtoParseWork/ParserErrorStateV2Work/build-export.log
+SignalReference/**/Generated/*/translation.log
+# Translator candidate build trees and binaries (FnItemRound2 has its own rules)
+SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Source/
+SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/
+SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/
+SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate
+SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-*

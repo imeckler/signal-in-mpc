@@ -1,0 +1,5953 @@
+{
+  "actual_zeroize_feature_enabled": false,
+  "candidate_only": true,
+  "accepted_reference": false,
+  "profile": "remaining",
+  "source_patches": [],
+  "manual_generated_body_edits": false,
+  "custom_models": [],
+  "opaque_unread_nonce_array_type": true,
+  "ctr_version": "0.10.1",
+  "selected_shared_borrow_flavor_function_has_no_feature_conditionals": true,
+  "zeroize_Drop_or_stream_wrapper_refinement": false,
+  "ctr_package_sha256": "baaca1c4b237092596f64d571e9db6ce4109c4ef9742e27590f1709594461f21",
+  "protocol_caller_zero_nonce16_ctr32be_aes256": true,
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e",
+    ".deps/libsignal-vendor/ctr-0.10.1/Cargo.toml": "b778af44205c3650154c6373e02d71d8d5f9acaa4c4544dbfbf3211e3f755391",
+    ".deps/libsignal-vendor/ctr-0.10.1/LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+    ".deps/libsignal-vendor/ctr-0.10.1/CHANGELOG.md": "f12380dc69c96f2262d2bf8d01cd0a1dc2a43e3ccaa2cf08646a256fdb200abe",
+    ".deps/libsignal-vendor/ctr-0.10.1/Cargo.lock": "2d9bb992781a245d6c811072795551ea9cfd82d2612da9135e62edf07efb28b3",
+    ".deps/libsignal-vendor/ctr-0.10.1/README.md": "b71f33a787134e533be256d0629e1ed4672135f22562451356e9836cfc9906ce",
+    ".deps/libsignal-vendor/ctr-0.10.1/.cargo_vcs_info.json": "d07b7ac097036f7bc65d3fa876afc66b16009bd6cc86ac14c34ea0463565d6e7",
+    ".deps/libsignal-vendor/ctr-0.10.1/Cargo.toml.orig": "ccd10992003e33ab9bd3ed7005bab367f2fdf563a3a38c8569ae2c39bfa79697",
+    ".deps/libsignal-vendor/ctr-0.10.1/LICENSE-MIT": "63af4bea227c94d021e99427f6ca3a4b8efddadcca93ab6130f708cf6138cf68",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/mod.rs": "7ad05b663e5d8a1be10de069cf2f3424c5c5552be1716cc7c1bbe940605d3656",
+    ".deps/libsignal-vendor/ctr-0.10.1/benches/aes128.rs": "538e359f5d0725889b3816d0d1ddf4f682ab20a3e8a513d2839b9736f856d1e8",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/lib.rs": "34b36a5cc0442da383ab01cc991337baf82dfa4443dc2202c8e0e0e6eaf7ae12",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/ctr_core.rs": "af6d926a10da7abfd058bafad5d598458cfbaf811a047f9e36a7cfe963055443",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/flavors.rs": "e5a26d15e3fc9203b53832c1db0b13f67b2c1dafc11fb86e4885a4996e8a148d",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/flavors/ctr64.rs": "c3e1242ec4b7108c92c68041c2c608f9b7e6faa748b99f4e87426002f12f77ab",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/flavors/ctr32.rs": "8d648bdd7638b272e961ae10b0abcf28033fa5ece720d90aad11361fffe437c6",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/flavors/ctr128.rs": "bc4c1f944519eedcb4c144f8fe8358e3e09d919a2b43d8933d0d04c2f94687be",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/gost/mod.rs": "3525e7df4724f6026f946d86202051271e052da0b2d6b5225c856d490456a229",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr128/mod.rs": "15f8825a10f5effaa1451247a070e44c766d1a1a154e6ad6fc20bf05eb64e004",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr32/le.rs": "a21d9c6a12934bd14766ed0a170f21606e2cc40fdbff92944d39f57d46bf1161",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr32/mod.rs": "b99d6c66e80c01daecf359e7ef091522557a24e2d483964b963224a265640679",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr32/be.rs": "31e9efc94f07275e681288cef83403518cb353382b03b8b42faa70f14d29ce90",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr128/data/aes256-ctr.blb": "2584876bb40ec18c7b634e369c521e540e65fa150dfe910cd26dd72b004b8240",
+    ".deps/libsignal-vendor/ctr-0.10.1/tests/ctr128/data/aes128-ctr.blb": "aae9e4d8faa1ae8017437baf1a12cbb3a0368d4df314aed5487a52c821a114a9",
+    ".deps/libsignal-v0.106.1/Cargo.toml": "5b9eacceb070d14bbfbb6b2ae295fc3b2a4756a4128c7df72efc6c9482bdcf84",
+    ".deps/libsignal-v0.106.1/rust/protocol/Cargo.toml": "9f7b7159489b3ab163d2ac18846b48ecb8975f25e70082e608ccc32a3e4bc17d",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/crypto.rs": "37d7b6c4ba0c2fc57f6a9db20139bac6c0f6669d95deea3fbb8538071e77a430"
+  },
+  "script_sha256": "4717c52a9be0e9e68f8940b9fd332465288294c3688a1a41df9d0c4ca9660ee7",
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={impl crate::flavors::CtrFlavor for crate::flavors::ctr32::Ctr32BE}::remaining",
+    "--start-from-if-exists=crate::flavors::ctr32::*::remaining",
+    "--exclude=hybrid_array::traits::ArraySize",
+    "--dest-file=$WORKSPACE/SignalReference/CtrReferenceV1Work/Artifacts/remaining_closed_v1/ctr.llbc",
+    "--include=core::convert",
+    "--include=core::result",
+    "--opaque=hybrid_array::Array",
+    "--",
+    "--package",
+    "ctr@0.10.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "charon_exit_code": 0,
+  "full_CTR_AES_HMAC_wrapper_agreement": false,
+  "llbc_sha256": "0618426b13b125b6894e6f228cf21d60647704f813ed659d8605829381f5df82",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 50,
+    "fun_decls": 134,
+    "global_decls": 27,
+    "trait_decls": 38,
+    "trait_impls": 65,
+    "ordered_decls": 22
+  },
+  "body_kinds": {
+    "Structured": 24,
+    "Opaque": 109,
+    "Missing": 1
+  },
+  "external_functions": [
+    {
+      "id": 10,
+      "name": "cipher::stream::core_api::{impl}::is_max",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 13,
+          "beg": {
+            "line": 193,
+            "col": 16
+          },
+          "end": {
+            "line": 193,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::num::{impl}::wrapping_add",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 2651,
+            "col": 8
+          },
+          "end": {
+            "line": 2651,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "hybrid_array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 713,
+            "col": 4
+          },
+          "end": {
+            "line": 713,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::iter::traits::collect::{impl}::into_iter",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 322,
+            "col": 4
+          },
+          "end": {
+            "line": 322,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::iter::range::{impl}::next",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 1184,
+            "col": 4
+          },
+          "end": {
+            "line": 1184,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 16,
+      "name": "hybrid_array::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 872,
+            "col": 4
+          },
+          "end": {
+            "line": 872,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::num::{impl}::to_ne_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4055,
+            "col": 8
+          },
+          "end": {
+            "line": 4055,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::num::{impl}::to_be_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 3998,
+            "col": 8
+          },
+          "end": {
+            "line": 3998,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "hybrid_array::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 883,
+            "col": 4
+          },
+          "end": {
+            "line": 883,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::slice::{impl}::copy_from_slice",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 33,
+          "beg": {
+            "line": 4339,
+            "col": 4
+          },
+          "end": {
+            "line": 4341,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "core::num::{impl}::from_be_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4086,
+            "col": 8
+          },
+          "end": {
+            "line": 4086,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::num::{impl}::from_ne_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4158,
+            "col": 8
+          },
+          "end": {
+            "line": 4158,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "core::num::{impl}::MAX",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 51,
+            "col": 8
+          },
+          "end": {
+            "line": 51,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::num::error::TryFromIntError::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 18,
+          "beg": {
+            "line": 10,
+            "col": 0
+          },
+          "end": {
+            "line": 10,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 29,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "hybrid_array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 684,
+            "col": 4
+          },
+          "end": {
+            "line": 684,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "hybrid_array::Array::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 132,
+      "name": "core::iter::range::{impl}::steps_between",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 321,
+            "col": 16
+          },
+          "end": {
+            "line": 321,
+            "col": 84
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 133,
+      "name": "core::iter::range::{impl}::forward_checked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 332,
+            "col": 16
+          },
+          "end": {
+            "line": 332,
+            "col": 73
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 134,
+      "name": "core::iter::range::{impl}::forward_overflowing",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 348,
+            "col": 16
+          },
+          "end": {
+            "line": 348,
+            "col": 77
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 137,
+      "name": "core::iter::range::{impl}::backward_checked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 340,
+            "col": 16
+          },
+          "end": {
+            "line": 340,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 138,
+      "name": "core::iter::range::{impl}::backward_overflowing",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 357,
+            "col": 16
+          },
+          "end": {
+            "line": 357,
+            "col": 78
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 141,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 183,
+            "col": 4
+          },
+          "end": {
+            "line": 183,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 142,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 194,
+            "col": 4
+          },
+          "end": {
+            "line": 194,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 143,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 205,
+            "col": 4
+          },
+          "end": {
+            "line": 205,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 144,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 225,
+            "col": 4
+          },
+          "end": {
+            "line": 225,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 145,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 236,
+            "col": 4
+          },
+          "end": {
+            "line": 236,
+            "col": 37
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 146,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 243,
+            "col": 4
+          },
+          "end": {
+            "line": 243,
+            "col": 49
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 148,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 520,
+            "col": 4
+          },
+          "end": {
+            "line": 520,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 149,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 526,
+            "col": 4
+          },
+          "end": {
+            "line": 526,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 150,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 531,
+            "col": 4
+          },
+          "end": {
+            "line": 531,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 151,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 537,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 152,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 543,
+            "col": 4
+          },
+          "end": {
+            "line": 543,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 153,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 556,
+            "col": 4
+          },
+          "end": {
+            "line": 556,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 154,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 479,
+            "col": 4
+          },
+          "end": {
+            "line": 479,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 155,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 485,
+            "col": 4
+          },
+          "end": {
+            "line": 485,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 156,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 490,
+            "col": 4
+          },
+          "end": {
+            "line": 490,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 157,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 496,
+            "col": 4
+          },
+          "end": {
+            "line": 496,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 158,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 502,
+            "col": 4
+          },
+          "end": {
+            "line": 502,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 159,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 508,
+            "col": 4
+          },
+          "end": {
+            "line": 508,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 160,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 161,
+      "name": "core::array::{impl}::try_from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 259,
+            "col": 4
+          },
+          "end": {
+            "line": 259,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 162,
+      "name": "core::result::unwrap_failed",
+      "body_kind": "Missing",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 1870,
+            "col": 0
+          },
+          "end": {
+            "line": 1870,
+            "col": 56
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 163,
+      "name": "core::array::{impl}::fmt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 182,
+            "col": 9
+          },
+          "end": {
+            "line": 182,
+            "col": 14
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 189,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 190,
+      "name": "core::cmp::impls::{impl}::partial_cmp",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 62,
+          "beg": {
+            "line": 2275,
+            "col": 16
+          },
+          "end": {
+            "line": 2275,
+            "col": 71
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 199,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 202,
+      "name": "core::cmp::impls::{impl}::eq",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 62,
+          "beg": {
+            "line": 2153,
+            "col": 16
+          },
+          "end": {
+            "line": 2153,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 204,
+      "name": "typenum::uint::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 181,
+            "col": 4
+          },
+          "end": {
+            "line": 181,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 205,
+      "name": "typenum::uint::{impl}::to_u16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 185,
+            "col": 4
+          },
+          "end": {
+            "line": 185,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 206,
+      "name": "typenum::uint::{impl}::to_u32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 189,
+            "col": 4
+          },
+          "end": {
+            "line": 189,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 207,
+      "name": "typenum::uint::{impl}::to_u64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 193,
+            "col": 4
+          },
+          "end": {
+            "line": 193,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 208,
+      "name": "typenum::uint::{impl}::to_usize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 202,
+            "col": 4
+          },
+          "end": {
+            "line": 202,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 209,
+      "name": "typenum::uint::{impl}::to_i8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 207,
+            "col": 4
+          },
+          "end": {
+            "line": 207,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 210,
+      "name": "typenum::uint::{impl}::to_i16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 211,
+            "col": 4
+          },
+          "end": {
+            "line": 211,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 211,
+      "name": "typenum::uint::{impl}::to_i32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 215,
+            "col": 4
+          },
+          "end": {
+            "line": 215,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 212,
+      "name": "typenum::uint::{impl}::to_i64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 219,
+            "col": 4
+          },
+          "end": {
+            "line": 219,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 213,
+      "name": "typenum::uint::{impl}::to_isize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 228,
+            "col": 4
+          },
+          "end": {
+            "line": 228,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 214,
+      "name": "typenum::uint::{impl}::USIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 215,
+      "name": "typenum::uint::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 78,
+            "col": 4
+          },
+          "end": {
+            "line": 78,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 216,
+      "name": "typenum::uint::{impl}::to_u16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 82,
+            "col": 4
+          },
+          "end": {
+            "line": 82,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 217,
+      "name": "typenum::uint::{impl}::to_u32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 86,
+            "col": 4
+          },
+          "end": {
+            "line": 86,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 218,
+      "name": "typenum::uint::{impl}::to_u64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 90,
+            "col": 4
+          },
+          "end": {
+            "line": 90,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 219,
+      "name": "typenum::uint::{impl}::to_usize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 99,
+            "col": 4
+          },
+          "end": {
+            "line": 99,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 220,
+      "name": "typenum::uint::{impl}::to_i8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 104,
+            "col": 4
+          },
+          "end": {
+            "line": 104,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 221,
+      "name": "typenum::uint::{impl}::to_i16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 108,
+            "col": 4
+          },
+          "end": {
+            "line": 108,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 222,
+      "name": "typenum::uint::{impl}::to_i32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 112,
+            "col": 4
+          },
+          "end": {
+            "line": 112,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 223,
+      "name": "typenum::uint::{impl}::to_i64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 224,
+      "name": "typenum::uint::{impl}::to_isize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 125,
+            "col": 4
+          },
+          "end": {
+            "line": 125,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 225,
+      "name": "typenum::bit::{impl}::new",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 66,
+            "col": 4
+          },
+          "end": {
+            "line": 66,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 226,
+      "name": "typenum::bit::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 70,
+            "col": 4
+          },
+          "end": {
+            "line": 70,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 227,
+      "name": "typenum::bit::{impl}::to_bool",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 74,
+            "col": 4
+          },
+          "end": {
+            "line": 74,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 228,
+      "name": "typenum::bit::{impl}::new",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 48,
+            "col": 4
+          },
+          "end": {
+            "line": 48,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 229,
+      "name": "typenum::bit::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 52,
+            "col": 4
+          },
+          "end": {
+            "line": 52,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 230,
+      "name": "typenum::bit::{impl}::to_bool",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 56,
+            "col": 4
+          },
+          "end": {
+            "line": 56,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 231,
+      "name": "core::num::niche_types::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 69,
+          "beg": {
+            "line": 17,
+            "col": 17
+          },
+          "end": {
+            "line": 17,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 232,
+      "name": "typenum::uint::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 146,
+            "col": 67
+          },
+          "end": {
+            "line": 146,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 233,
+      "name": "typenum::uint::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 164,
+            "col": 4
+          },
+          "end": {
+            "line": 164,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 234,
+      "name": "typenum::uint::{impl}::U16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 165,
+            "col": 4
+          },
+          "end": {
+            "line": 165,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 235,
+      "name": "typenum::uint::{impl}::U32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 166,
+            "col": 4
+          },
+          "end": {
+            "line": 166,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 236,
+      "name": "typenum::uint::{impl}::U64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 167,
+            "col": 4
+          },
+          "end": {
+            "line": 167,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 237,
+      "name": "typenum::uint::{impl}::I8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 172,
+            "col": 4
+          },
+          "end": {
+            "line": 172,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 238,
+      "name": "typenum::uint::{impl}::I16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 173,
+            "col": 4
+          },
+          "end": {
+            "line": 173,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 239,
+      "name": "typenum::uint::{impl}::I32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 174,
+            "col": 4
+          },
+          "end": {
+            "line": 174,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 240,
+      "name": "typenum::uint::{impl}::I64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 175,
+            "col": 4
+          },
+          "end": {
+            "line": 175,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 241,
+      "name": "typenum::uint::{impl}::ISIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 178,
+            "col": 4
+          },
+          "end": {
+            "line": 178,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 242,
+      "name": "typenum::uint::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 48,
+            "col": 67
+          },
+          "end": {
+            "line": 48,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 243,
+      "name": "typenum::uint::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 61,
+            "col": 4
+          },
+          "end": {
+            "line": 61,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 244,
+      "name": "typenum::uint::{impl}::U16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 62,
+            "col": 4
+          },
+          "end": {
+            "line": 62,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 245,
+      "name": "typenum::uint::{impl}::U32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 63,
+            "col": 4
+          },
+          "end": {
+            "line": 63,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 246,
+      "name": "typenum::uint::{impl}::U64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 64,
+            "col": 4
+          },
+          "end": {
+            "line": 64,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 247,
+      "name": "typenum::uint::{impl}::USIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 67,
+            "col": 4
+          },
+          "end": {
+            "line": 67,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 248,
+      "name": "typenum::uint::{impl}::I8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 69,
+            "col": 4
+          },
+          "end": {
+            "line": 69,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 249,
+      "name": "typenum::uint::{impl}::I16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 70,
+            "col": 4
+          },
+          "end": {
+            "line": 70,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 250,
+      "name": "typenum::uint::{impl}::I32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 71,
+            "col": 4
+          },
+          "end": {
+            "line": 71,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 251,
+      "name": "typenum::uint::{impl}::I64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 72,
+            "col": 4
+          },
+          "end": {
+            "line": 72,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 252,
+      "name": "typenum::uint::{impl}::ISIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 75,
+            "col": 4
+          },
+          "end": {
+            "line": 75,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 253,
+      "name": "typenum::bit::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 31,
+            "col": 67
+          },
+          "end": {
+            "line": 31,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 254,
+      "name": "typenum::bit::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 62,
+            "col": 4
+          },
+          "end": {
+            "line": 62,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 255,
+      "name": "typenum::bit::{impl}::BOOL",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 63,
+            "col": 4
+          },
+          "end": {
+            "line": 63,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 256,
+      "name": "typenum::bit::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 18,
+            "col": 67
+          },
+          "end": {
+            "line": 18,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 257,
+      "name": "typenum::bit::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 44,
+            "col": 4
+          },
+          "end": {
+            "line": 44,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 258,
+      "name": "typenum::bit::{impl}::BOOL",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 45,
+            "col": 4
+          },
+          "end": {
+            "line": 45,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 259,
+      "name": "typenum::uint::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 146,
+            "col": 41
+          },
+          "end": {
+            "line": 146,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 260,
+      "name": "typenum::uint::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 48,
+            "col": 41
+          },
+          "end": {
+            "line": 48,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 261,
+      "name": "typenum::bit::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 31,
+            "col": 41
+          },
+          "end": {
+            "line": 31,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 262,
+      "name": "typenum::bit::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 18,
+            "col": 41
+          },
+          "end": {
+            "line": 18,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "typenum::uint::UInt",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 148,
+            "col": 0
+          },
+          "end": {
+            "line": 148,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "core::num::error::TryFromIntError",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 18,
+          "beg": {
+            "line": 10,
+            "col": 0
+          },
+          "end": {
+            "line": 10,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "hybrid_array::Array",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::array::TryFromSliceError",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 183,
+            "col": 0
+          },
+          "end": {
+            "line": 183,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::array::iter::IntoIter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 36,
+          "beg": {
+            "line": 20,
+            "col": 0
+          },
+          "end": {
+            "line": 20,
+            "col": 38
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "core::num::nonzero::NonZero",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 37,
+          "beg": {
+            "line": 112,
+            "col": 0
+          },
+          "end": {
+            "line": 112,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "core::iter::adapters::step_by::StepBy",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 38,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::iter::adapters::chain::Chain",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 40,
+          "beg": {
+            "line": 23,
+            "col": 0
+          },
+          "end": {
+            "line": 23,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::iter::adapters::zip::Zip",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 41,
+          "beg": {
+            "line": 13,
+            "col": 0
+          },
+          "end": {
+            "line": 13,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "core::iter::adapters::intersperse::Intersperse",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 42,
+          "beg": {
+            "line": 9,
+            "col": 0
+          },
+          "end": {
+            "line": 9,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "core::iter::adapters::intersperse::IntersperseWith",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 42,
+          "beg": {
+            "line": 83,
+            "col": 0
+          },
+          "end": {
+            "line": 83,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::iter::adapters::map::Map",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 44,
+          "beg": {
+            "line": 61,
+            "col": 0
+          },
+          "end": {
+            "line": 61,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "core::iter::adapters::filter::Filter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 45,
+          "beg": {
+            "line": 21,
+            "col": 0
+          },
+          "end": {
+            "line": 21,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 27,
+      "name": "core::iter::adapters::filter_map::FilterMap",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 46,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::iter::adapters::enumerate::Enumerate",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 47,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 23
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 29,
+      "name": "core::iter::adapters::peekable::Peekable",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 48,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 32
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "core::iter::adapters::skip_while::SkipWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 49,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::iter::adapters::take_while::TakeWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 50,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::iter::adapters::map_while::MapWhile",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 51,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::iter::adapters::skip::Skip",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 52,
+          "beg": {
+            "line": 21,
+            "col": 0
+          },
+          "end": {
+            "line": 21,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "core::iter::adapters::take::Take",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 53,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::iter::adapters::scan::Scan",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 54,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 25
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::iter::adapters::flatten::FlatMap",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 55,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 41
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::iter::adapters::flatten::Flatten",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 55,
+          "beg": {
+            "line": 184,
+            "col": 0
+          },
+          "end": {
+            "line": 184,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::iter::adapters::map_windows::MapWindows",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 56,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 11,
+            "col": 53
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "core::iter::adapters::fuse::Fuse",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 57,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::iter::adapters::inspect::Inspect",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 58,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "core::iter::adapters::rev::Rev",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 63,
+          "beg": {
+            "line": 15,
+            "col": 0
+          },
+          "end": {
+            "line": 15,
+            "col": 17
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 43,
+      "name": "core::iter::adapters::copied::Copied",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 64,
+          "beg": {
+            "line": 19,
+            "col": 0
+          },
+          "end": {
+            "line": 19,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 44,
+      "name": "core::iter::adapters::cloned::Cloned",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 65,
+          "beg": {
+            "line": 18,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 45,
+      "name": "core::iter::adapters::cycle::Cycle",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 66,
+          "beg": {
+            "line": 15,
+            "col": 0
+          },
+          "end": {
+            "line": 15,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 46,
+      "name": "core::iter::adapters::array_chunks::ArrayChunks",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 67,
+          "beg": {
+            "line": 17,
+            "col": 0
+          },
+          "end": {
+            "line": 17,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 50,
+      "name": "core::fmt::Debug::{vtable}",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 1053,
+            "col": 0
+          },
+          "end": {
+            "line": 1053,
+            "col": 29
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 51,
+      "name": "core::fmt::Formatter",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 35,
+          "beg": {
+            "line": 561,
+            "col": 0
+          },
+          "end": {
+            "line": 561,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 55,
+      "name": "core::num::niche_types::NonZeroUsizeInner",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 69,
+          "beg": {
+            "line": 20,
+            "col": 8
+          },
+          "end": {
+            "line": 20,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/flavors/ctr32.rs"
+      },
+      "crate_name": "ctr"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "src/flavors.rs"
+      },
+      "crate_name": "ctr"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "ctr"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/traits.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs"
+      },
+      "crate_name": "hybrid_array"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/type_operators.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/lib.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/uint.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/bit.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/typenum-1.20.1/src/marker_traits.rs"
+      },
+      "crate_name": "typenum"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/stream/core_api.rs"
+      },
+      "crate_name": "cipher"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/stream.rs"
+      },
+      "crate_name": "cipher"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/lib.rs"
+      },
+      "crate_name": "cipher"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "/rustc/library/core/src/num/error.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 21,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 22,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/num.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 23,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 24,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 25,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 26,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/collect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 27,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 28,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 29,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/iterator.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 30,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/range.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 31,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 32,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/index.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 33,
+      "name": {
+        "Local": "/rustc/library/core/src/slice/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 34,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 35,
+      "name": {
+        "Local": "/rustc/library/core/src/fmt/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 36,
+      "name": {
+        "Local": "/rustc/library/core/src/array/iter.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 37,
+      "name": {
+        "Local": "/rustc/library/core/src/num/nonzero.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 38,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/step_by.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 39,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 40,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/chain.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 41,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/zip.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 42,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/intersperse.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 43,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/function.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 44,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 45,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/filter.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 46,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/filter_map.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 47,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/enumerate.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 48,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/peekable.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 49,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/skip_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 50,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/take_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 51,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map_while.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 52,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/skip.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 53,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/take.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 54,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/scan.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 55,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/flatten.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 56,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/map_windows.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 57,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/fuse.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 58,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/inspect.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 59,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/try_trait.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 60,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/double_ended.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 61,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/exact_size.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 62,
+      "name": {
+        "Local": "/rustc/library/core/src/cmp.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 63,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/rev.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 64,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/copied.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 65,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/cloned.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 66,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/cycle.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 67,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/adapters/array_chunks.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 68,
+      "name": {
+        "Local": "/rustc/library/core/src/iter/traits/accum.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 69,
+      "name": {
+        "Local": "/rustc/library/core/src/num/niche_types.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 70,
+      "name": {
+        "Local": "/rustc/library/core/src/ops/control_flow.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 71,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [
+    "hybrid_array::traits::ArraySize"
+  ],
+  "explicit_opaque_patterns": [
+    "hybrid_array::Array"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "{impl crate::flavors::CtrFlavor for crate::flavors::ctr32::Ctr32BE}::remaining"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "ctr::flavors::ctr32::{impl}::remaining",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 54,
+            "col": 4
+          },
+          "end": {
+            "line": 56,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "ctr::flavors::ctr32::{impl}::next_block",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 73,
+            "col": 4
+          },
+          "end": {
+            "line": 77,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "ctr::flavors::ctr32::{impl}::current_block",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 59,
+            "col": 4
+          },
+          "end": {
+            "line": 70,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "ctr::flavors::ctr32::{impl}::from_nonce",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 80,
+            "col": 4
+          },
+          "end": {
+            "line": 94,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "ctr::flavors::ctr32::{impl}::set_from_backend",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 102,
+            "col": 4
+          },
+          "end": {
+            "line": 104,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "ctr::flavors::ctr32::{impl}::as_backend",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 97,
+            "col": 4
+          },
+          "end": {
+            "line": 99,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "core::convert::{impl}::try_into",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 821,
+            "col": 4
+          },
+          "end": {
+            "line": 821,
+            "col": 44
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "core::result::{impl}::ok",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 709,
+            "col": 4
+          },
+          "end": {
+            "line": 712,
+            "col": 28
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "ctr::flavors::ctr32::{impl}::clone",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 13,
+            "col": 9
+          },
+          "end": {
+            "line": 13,
+            "col": 14
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "cipher::stream::core_api::{impl}::is_max",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 13,
+          "beg": {
+            "line": 193,
+            "col": 16
+          },
+          "end": {
+            "line": 193,
+            "col": 40
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 11,
+      "name": "ctr::flavors::ctr32::{impl}::NAME",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 51,
+            "col": 4
+          },
+          "end": {
+            "line": 51,
+            "col": 38
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::num::{impl}::wrapping_add",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 2651,
+            "col": 8
+          },
+          "end": {
+            "line": 2651,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "hybrid_array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 713,
+            "col": 4
+          },
+          "end": {
+            "line": 713,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::iter::traits::collect::{impl}::into_iter",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 26,
+          "beg": {
+            "line": 322,
+            "col": 4
+          },
+          "end": {
+            "line": 322,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::iter::range::{impl}::next",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 1184,
+            "col": 4
+          },
+          "end": {
+            "line": 1184,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 16,
+      "name": "hybrid_array::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 872,
+            "col": 4
+          },
+          "end": {
+            "line": 872,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::num::{impl}::to_ne_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4055,
+            "col": 8
+          },
+          "end": {
+            "line": 4055,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 18,
+      "name": "core::num::{impl}::to_be_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 3998,
+            "col": 8
+          },
+          "end": {
+            "line": 3998,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 19,
+      "name": "hybrid_array::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 883,
+            "col": 4
+          },
+          "end": {
+            "line": 883,
+            "col": 58
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 20,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 31,
+            "col": 4
+          },
+          "end": {
+            "line": 31,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 21,
+      "name": "core::slice::{impl}::copy_from_slice",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 33,
+          "beg": {
+            "line": 4339,
+            "col": 4
+          },
+          "end": {
+            "line": 4341,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 22,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 18,
+            "col": 4
+          },
+          "end": {
+            "line": 18,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 23,
+      "name": "core::result::{impl}::expect",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 1178,
+            "col": 4
+          },
+          "end": {
+            "line": 1180,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 24,
+      "name": "core::num::{impl}::from_be_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4086,
+            "col": 8
+          },
+          "end": {
+            "line": 4086,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 25,
+      "name": "core::num::{impl}::from_ne_bytes",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 4158,
+            "col": 8
+          },
+          "end": {
+            "line": 4158,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 26,
+      "name": "core::num::{impl}::MAX",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 20,
+          "beg": {
+            "line": 51,
+            "col": 8
+          },
+          "end": {
+            "line": 51,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 27,
+      "name": "core::convert::num::ptr_try_from_impls::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 260,
+            "col": 12
+          },
+          "end": {
+            "line": 260,
+            "col": 68
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 28,
+      "name": "core::num::error::TryFromIntError::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 18,
+          "beg": {
+            "line": 10,
+            "col": 0
+          },
+          "end": {
+            "line": 10,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 29,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 30,
+      "name": "hybrid_array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 684,
+            "col": 4
+          },
+          "end": {
+            "line": 684,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 31,
+      "name": "core::convert::num::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 279,
+            "col": 12
+          },
+          "end": {
+            "line": 279,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 32,
+      "name": "core::convert::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 837,
+            "col": 4
+          },
+          "end": {
+            "line": 837,
+            "col": 54
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 33,
+      "name": "core::convert::{impl}::into",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 34,
+      "name": "core::convert::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 21,
+          "beg": {
+            "line": 791,
+            "col": 4
+          },
+          "end": {
+            "line": 791,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 35,
+      "name": "core::convert::num::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 302,
+            "col": 12
+          },
+          "end": {
+            "line": 302,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 36,
+      "name": "core::convert::num::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 302,
+            "col": 12
+          },
+          "end": {
+            "line": 302,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 37,
+      "name": "core::convert::num::ptr_try_from_impls::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 302,
+            "col": 12
+          },
+          "end": {
+            "line": 302,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 38,
+      "name": "core::convert::num::{impl}::try_from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 302,
+            "col": 12
+          },
+          "end": {
+            "line": 302,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 39,
+      "name": "core::convert::num::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 69,
+            "col": 12
+          },
+          "end": {
+            "line": 69,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 40,
+      "name": "core::convert::num::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 22,
+          "beg": {
+            "line": 69,
+            "col": 12
+          },
+          "end": {
+            "line": 69,
+            "col": 42
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 41,
+      "name": "hybrid_array::Array::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 165,
+            "col": 0
+          },
+          "end": {
+            "line": 165,
+            "col": 33
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 42,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 132,
+      "name": "core::iter::range::{impl}::steps_between",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 321,
+            "col": 16
+          },
+          "end": {
+            "line": 321,
+            "col": 84
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 133,
+      "name": "core::iter::range::{impl}::forward_checked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 332,
+            "col": 16
+          },
+          "end": {
+            "line": 332,
+            "col": 73
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 134,
+      "name": "core::iter::range::{impl}::forward_overflowing",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 348,
+            "col": 16
+          },
+          "end": {
+            "line": 348,
+            "col": 77
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 137,
+      "name": "core::iter::range::{impl}::backward_checked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 340,
+            "col": 16
+          },
+          "end": {
+            "line": 340,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 138,
+      "name": "core::iter::range::{impl}::backward_overflowing",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 30,
+          "beg": {
+            "line": 357,
+            "col": 16
+          },
+          "end": {
+            "line": 357,
+            "col": 78
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 141,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 183,
+            "col": 4
+          },
+          "end": {
+            "line": 183,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 142,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 194,
+            "col": 4
+          },
+          "end": {
+            "line": 194,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 143,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 205,
+            "col": 4
+          },
+          "end": {
+            "line": 205,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 144,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 225,
+            "col": 4
+          },
+          "end": {
+            "line": 225,
+            "col": 64
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 145,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 236,
+            "col": 4
+          },
+          "end": {
+            "line": 236,
+            "col": 37
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 146,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 243,
+            "col": 4
+          },
+          "end": {
+            "line": 243,
+            "col": 49
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 147,
+      "name": "ctr::flavors::ctr32::CS",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 11,
+            "col": 0
+          },
+          "end": {
+            "line": 11,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 148,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 520,
+            "col": 4
+          },
+          "end": {
+            "line": 520,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 149,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 526,
+            "col": 4
+          },
+          "end": {
+            "line": 526,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 150,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 531,
+            "col": 4
+          },
+          "end": {
+            "line": 531,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 151,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 537,
+            "col": 4
+          },
+          "end": {
+            "line": 537,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 152,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 543,
+            "col": 4
+          },
+          "end": {
+            "line": 543,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 153,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 556,
+            "col": 4
+          },
+          "end": {
+            "line": 556,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 154,
+      "name": "core::slice::index::{impl}::get",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 479,
+            "col": 4
+          },
+          "end": {
+            "line": 479,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 155,
+      "name": "core::slice::index::{impl}::get_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 485,
+            "col": 4
+          },
+          "end": {
+            "line": 485,
+            "col": 57
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 156,
+      "name": "core::slice::index::{impl}::get_unchecked",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 490,
+            "col": 4
+          },
+          "end": {
+            "line": 490,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 157,
+      "name": "core::slice::index::{impl}::get_unchecked_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 496,
+            "col": 4
+          },
+          "end": {
+            "line": 496,
+            "col": 66
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 158,
+      "name": "core::slice::index::{impl}::index",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 502,
+            "col": 4
+          },
+          "end": {
+            "line": 502,
+            "col": 39
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 159,
+      "name": "core::slice::index::{impl}::index_mut",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 32,
+          "beg": {
+            "line": 508,
+            "col": 4
+          },
+          "end": {
+            "line": 508,
+            "col": 51
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 160,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 23,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 161,
+      "name": "core::array::{impl}::try_from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 259,
+            "col": 4
+          },
+          "end": {
+            "line": 259,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 162,
+      "name": "core::result::unwrap_failed",
+      "body_kind": "Missing",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 1870,
+            "col": 0
+          },
+          "end": {
+            "line": 1870,
+            "col": 56
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 163,
+      "name": "core::array::{impl}::fmt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 34,
+          "beg": {
+            "line": 182,
+            "col": 9
+          },
+          "end": {
+            "line": 182,
+            "col": 14
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 164,
+      "name": "core::result::Result::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 17,
+          "beg": {
+            "line": 558,
+            "col": 0
+          },
+          "end": {
+            "line": 558,
+            "col": 21
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 189,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 190,
+      "name": "core::cmp::impls::{impl}::partial_cmp",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 62,
+          "beg": {
+            "line": 2275,
+            "col": 16
+          },
+          "end": {
+            "line": 2275,
+            "col": 71
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 199,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 9,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 202,
+      "name": "core::cmp::impls::{impl}::eq",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 62,
+          "beg": {
+            "line": 2153,
+            "col": 16
+          },
+          "end": {
+            "line": 2153,
+            "col": 50
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 204,
+      "name": "typenum::uint::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 181,
+            "col": 4
+          },
+          "end": {
+            "line": 181,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 205,
+      "name": "typenum::uint::{impl}::to_u16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 185,
+            "col": 4
+          },
+          "end": {
+            "line": 185,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 206,
+      "name": "typenum::uint::{impl}::to_u32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 189,
+            "col": 4
+          },
+          "end": {
+            "line": 189,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 207,
+      "name": "typenum::uint::{impl}::to_u64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 193,
+            "col": 4
+          },
+          "end": {
+            "line": 193,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 208,
+      "name": "typenum::uint::{impl}::to_usize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 202,
+            "col": 4
+          },
+          "end": {
+            "line": 202,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 209,
+      "name": "typenum::uint::{impl}::to_i8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 207,
+            "col": 4
+          },
+          "end": {
+            "line": 207,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 210,
+      "name": "typenum::uint::{impl}::to_i16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 211,
+            "col": 4
+          },
+          "end": {
+            "line": 211,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 211,
+      "name": "typenum::uint::{impl}::to_i32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 215,
+            "col": 4
+          },
+          "end": {
+            "line": 215,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 212,
+      "name": "typenum::uint::{impl}::to_i64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 219,
+            "col": 4
+          },
+          "end": {
+            "line": 219,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 213,
+      "name": "typenum::uint::{impl}::to_isize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 228,
+            "col": 4
+          },
+          "end": {
+            "line": 228,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 214,
+      "name": "typenum::uint::{impl}::USIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 170,
+            "col": 4
+          },
+          "end": {
+            "line": 170,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 215,
+      "name": "typenum::uint::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 78,
+            "col": 4
+          },
+          "end": {
+            "line": 78,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 216,
+      "name": "typenum::uint::{impl}::to_u16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 82,
+            "col": 4
+          },
+          "end": {
+            "line": 82,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 217,
+      "name": "typenum::uint::{impl}::to_u32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 86,
+            "col": 4
+          },
+          "end": {
+            "line": 86,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 218,
+      "name": "typenum::uint::{impl}::to_u64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 90,
+            "col": 4
+          },
+          "end": {
+            "line": 90,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 219,
+      "name": "typenum::uint::{impl}::to_usize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 99,
+            "col": 4
+          },
+          "end": {
+            "line": 99,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 220,
+      "name": "typenum::uint::{impl}::to_i8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 104,
+            "col": 4
+          },
+          "end": {
+            "line": 104,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 221,
+      "name": "typenum::uint::{impl}::to_i16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 108,
+            "col": 4
+          },
+          "end": {
+            "line": 108,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 222,
+      "name": "typenum::uint::{impl}::to_i32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 112,
+            "col": 4
+          },
+          "end": {
+            "line": 112,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 223,
+      "name": "typenum::uint::{impl}::to_i64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 116,
+            "col": 4
+          },
+          "end": {
+            "line": 116,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 224,
+      "name": "typenum::uint::{impl}::to_isize",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 125,
+            "col": 4
+          },
+          "end": {
+            "line": 125,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 225,
+      "name": "typenum::bit::{impl}::new",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 66,
+            "col": 4
+          },
+          "end": {
+            "line": 66,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 226,
+      "name": "typenum::bit::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 70,
+            "col": 4
+          },
+          "end": {
+            "line": 70,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 227,
+      "name": "typenum::bit::{impl}::to_bool",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 74,
+            "col": 4
+          },
+          "end": {
+            "line": 74,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 228,
+      "name": "typenum::bit::{impl}::new",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 48,
+            "col": 4
+          },
+          "end": {
+            "line": 48,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 229,
+      "name": "typenum::bit::{impl}::to_u8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 52,
+            "col": 4
+          },
+          "end": {
+            "line": 52,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 230,
+      "name": "typenum::bit::{impl}::to_bool",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 56,
+            "col": 4
+          },
+          "end": {
+            "line": 56,
+            "col": 24
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 231,
+      "name": "core::num::niche_types::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 69,
+          "beg": {
+            "line": 17,
+            "col": 17
+          },
+          "end": {
+            "line": 17,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 232,
+      "name": "typenum::uint::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 146,
+            "col": 67
+          },
+          "end": {
+            "line": 146,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 233,
+      "name": "typenum::uint::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 164,
+            "col": 4
+          },
+          "end": {
+            "line": 164,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 234,
+      "name": "typenum::uint::{impl}::U16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 165,
+            "col": 4
+          },
+          "end": {
+            "line": 165,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 235,
+      "name": "typenum::uint::{impl}::U32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 166,
+            "col": 4
+          },
+          "end": {
+            "line": 166,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 236,
+      "name": "typenum::uint::{impl}::U64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 167,
+            "col": 4
+          },
+          "end": {
+            "line": 167,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 237,
+      "name": "typenum::uint::{impl}::I8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 172,
+            "col": 4
+          },
+          "end": {
+            "line": 172,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 238,
+      "name": "typenum::uint::{impl}::I16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 173,
+            "col": 4
+          },
+          "end": {
+            "line": 173,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 239,
+      "name": "typenum::uint::{impl}::I32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 174,
+            "col": 4
+          },
+          "end": {
+            "line": 174,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 240,
+      "name": "typenum::uint::{impl}::I64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 175,
+            "col": 4
+          },
+          "end": {
+            "line": 175,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 241,
+      "name": "typenum::uint::{impl}::ISIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 178,
+            "col": 4
+          },
+          "end": {
+            "line": 178,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 242,
+      "name": "typenum::uint::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 48,
+            "col": 67
+          },
+          "end": {
+            "line": 48,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 243,
+      "name": "typenum::uint::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 61,
+            "col": 4
+          },
+          "end": {
+            "line": 61,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 244,
+      "name": "typenum::uint::{impl}::U16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 62,
+            "col": 4
+          },
+          "end": {
+            "line": 62,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 245,
+      "name": "typenum::uint::{impl}::U32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 63,
+            "col": 4
+          },
+          "end": {
+            "line": 63,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 246,
+      "name": "typenum::uint::{impl}::U64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 64,
+            "col": 4
+          },
+          "end": {
+            "line": 64,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 247,
+      "name": "typenum::uint::{impl}::USIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 67,
+            "col": 4
+          },
+          "end": {
+            "line": 67,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 248,
+      "name": "typenum::uint::{impl}::I8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 69,
+            "col": 4
+          },
+          "end": {
+            "line": 69,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 249,
+      "name": "typenum::uint::{impl}::I16",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 70,
+            "col": 4
+          },
+          "end": {
+            "line": 70,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 250,
+      "name": "typenum::uint::{impl}::I32",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 71,
+            "col": 4
+          },
+          "end": {
+            "line": 71,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 251,
+      "name": "typenum::uint::{impl}::I64",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 72,
+            "col": 4
+          },
+          "end": {
+            "line": 72,
+            "col": 18
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 252,
+      "name": "typenum::uint::{impl}::ISIZE",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 75,
+            "col": 4
+          },
+          "end": {
+            "line": 75,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 253,
+      "name": "typenum::bit::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 31,
+            "col": 67
+          },
+          "end": {
+            "line": 31,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 254,
+      "name": "typenum::bit::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 62,
+            "col": 4
+          },
+          "end": {
+            "line": 62,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 255,
+      "name": "typenum::bit::{impl}::BOOL",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 63,
+            "col": 4
+          },
+          "end": {
+            "line": 63,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 256,
+      "name": "typenum::bit::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 18,
+            "col": 67
+          },
+          "end": {
+            "line": 18,
+            "col": 74
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 257,
+      "name": "typenum::bit::{impl}::U8",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 44,
+            "col": 4
+          },
+          "end": {
+            "line": 44,
+            "col": 16
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 258,
+      "name": "typenum::bit::{impl}::BOOL",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 45,
+            "col": 4
+          },
+          "end": {
+            "line": 45,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 259,
+      "name": "typenum::uint::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 146,
+            "col": 41
+          },
+          "end": {
+            "line": 146,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 260,
+      "name": "typenum::uint::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 7,
+          "beg": {
+            "line": 48,
+            "col": 41
+          },
+          "end": {
+            "line": 48,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 261,
+      "name": "typenum::bit::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 31,
+            "col": 41
+          },
+          "end": {
+            "line": 31,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 262,
+      "name": "typenum::bit::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 8,
+          "beg": {
+            "line": 18,
+            "col": 41
+          },
+          "end": {
+            "line": 18,
+            "col": 46
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit_code": 2,
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/CtrReferenceV1Work/Artifacts/remaining_closed_v1/ctr.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/Generated/remaining_closed_v1",
+    "-split-files",
+    "-namespace",
+    "CtrReferenceV1",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "generated_files": {}
+}

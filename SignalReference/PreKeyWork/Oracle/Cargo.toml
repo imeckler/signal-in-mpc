@@ -1,0 +1,13 @@
+[package]
+name = "signal-prekey-oracle"
+version = "0.1.0"
+edition = "2024"
+[dependencies]
+libsignal-protocol = {path="../../../.deps/libsignal-v0.106.1/rust/protocol"}
+libsignal-core = {path="../../../.deps/libsignal-v0.106.1/rust/core"}
+rand = "=0.9.4"
+async-trait = "=0.1.89"
+serde_json = "=1.0.150"
+
+[features]
+all-kems = ["libsignal-protocol/kyber768","libsignal-protocol/mlkem1024"]

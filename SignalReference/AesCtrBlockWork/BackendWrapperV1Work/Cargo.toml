@@ -1,0 +1,10 @@
+# Charon configuration carrier only; actual Cargo --manifest-path points at pinned libsignal.
+[package]
+name = "aes-backend-reference-options"
+version = "0.0.0"
+edition = "2024"
+[package.metadata.charon]
+start_from_if_exists = [
+ "{impl cipher::block::backends::BlockCipherEncBackend<_, _> for crate::soft::Aes256BackEnc}::encrypt_block",
+ "{impl cipher::block::backends::BlockCipherEncBackend<_, _> for crate::soft::Aes256BackEnc}::encrypt_par_blocks"
+]

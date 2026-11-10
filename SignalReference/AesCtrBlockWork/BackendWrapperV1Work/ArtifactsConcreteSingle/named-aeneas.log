@@ -1,0 +1,95 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConcreteSingle/named.llbc
+[[91mError[39m] Internal error, please file an issue
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Could not translate the body of function 'cipher::block::ctx::{impl cipher::block::backends::BlockCipherEncClosure for cipher::block::ctx::BlockCtx::partial_Type_13}::call::partial_Fun_11 because of previous error
+Name pattern: 'cipher::block::ctx::{cipher::block::backends::BlockCipherEncClosure<cipher::block::ctx::BlockCtx::partial_Type_13>}::call::partial_Fun_11'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block/ctx.rs', lines 20:4-20:72
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Could not translate the function 'cipher::block::ctx::{impl cipher::block::backends::BlockCipherEncClosure for cipher::block::ctx::BlockCtx::partial_Type_13}::call::partial_Fun_11 because of previous error.
+Name pattern: 'cipher::block::ctx::{cipher::block::backends::BlockCipherEncClosure<cipher::block::ctx::BlockCtx::partial_Type_13>}::call::partial_Fun_11'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block/ctx.rs', lines 20:4-20:72
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Internal error, please file an issue
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Could not translate the body of function 'aes::soft::{impl cipher::block::backends::BlockCipherEncBackend for aes::soft::Aes256BackEnc::partial_Type_14}::encrypt_block::partial_Fun_13 because of previous error
+Name pattern: 'aes::soft::{cipher::block::backends::BlockCipherEncBackend<aes::soft::Aes256BackEnc::partial_Type_14>}::encrypt_block::partial_Fun_13'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/aes-0.9.1/src/soft.rs', lines 236:12-236:68
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Could not translate the function 'aes::soft::{impl cipher::block::backends::BlockCipherEncBackend for aes::soft::Aes256BackEnc::partial_Type_14}::encrypt_block::partial_Fun_13 because of previous error.
+Name pattern: 'aes::soft::{cipher::block::backends::BlockCipherEncBackend<aes::soft::Aes256BackEnc::partial_Type_14>}::encrypt_block::partial_Fun_13'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/aes-0.9.1/src/soft.rs', lines 236:12-236:68
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: 'src/lib.rs', lines 0:0-0:0
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Could not translate the body of function 'reference_aes_backend_harness::encrypt_one because of previous error
+Name pattern: 'reference_aes_backend_harness::encrypt_one'
+Definition span: 'src/lib.rs', lines 3:0-6:1
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Could not translate the function 'reference_aes_backend_harness::encrypt_one because of previous error.
+Name pattern: 'reference_aes_backend_harness::encrypt_one'
+Definition span: 'src/lib.rs', lines 3:0-6:1
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Internal error, please file an issue
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Could not translate the body of function 'aes::soft::{impl crypto_common::KeyInit for aes::soft::Aes256}::new because of previous error
+Name pattern: 'aes::soft::{crypto_common::KeyInit<aes::soft::Aes256>}::new'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/aes-0.9.1/src/soft.rs', lines 60:12-60:43
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 4:17-4:45
+
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Could not translate the function 'aes::soft::{impl crypto_common::KeyInit for aes::soft::Aes256}::new because of previous error.
+Name pattern: 'aes::soft::{crypto_common::KeyInit<aes::soft::Aes256>}::new'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/aes-0.9.1/src/soft.rs', lines 60:12-60:43
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 4:17-4:45
+
+Source: '/rustc/library/core/src/convert/mod.rs', lines 780:4-780:22
+[[91mError[39m] Internal error, please file an issue
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs', lines 52:4-52:52
+[[91mError[39m] Could not translate the body of function 'cipher::block::BlockCipherEncrypt::encrypt_block::partial_Fun_4 because of previous error
+Name pattern: 'cipher::block::BlockCipherEncrypt::encrypt_block::partial_Fun_4'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs', lines 52:4-52:52
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs', lines 52:4-52:52
+[[91mError[39m] Could not translate the function 'cipher::block::BlockCipherEncrypt::encrypt_block::partial_Fun_4 because of previous error.
+Name pattern: 'cipher::block::BlockCipherEncrypt::encrypt_block::partial_Fun_4'
+Definition span: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs', lines 52:4-52:52
+
+This definition is (transitively) used at the following locations:
+Source: 'src/lib.rs', lines 5:4-5:38
+
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/cipher-0.5.2/src/block.rs', lines 52:4-52:52
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

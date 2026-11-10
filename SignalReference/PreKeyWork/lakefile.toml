@@ -1,0 +1,9 @@
+name = "prekey-export"
+version = "0.1.0"
+defaultTargets = ["emit_prekey"]
+[[require]]
+name = "tls-mpc"
+path = "../.."
+[[lean_exe]]
+name = "emit_prekey"
+root = "Export"

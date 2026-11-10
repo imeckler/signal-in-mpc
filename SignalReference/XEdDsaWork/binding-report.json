@@ -1,0 +1,210 @@
+{
+  "checked_at_utc": "2026-11-08T02:35:26.579402+00:00",
+  "proof_endpoints": 11,
+  "custom_axioms": [],
+  "source_sha256": {
+    "SignalReference/XEdDsaBindingChecks.lean": "6500ada8b9ecb0c76f5fede18a55f992ce83eb3f88872f05fe94b7b9e4ef024e",
+    "SignalReference/XEdDsaExport.lean": "8f752ca711fac8dbd611ab9584d41229410f6724351e980e410cd57104e65a5d",
+    "SignalReference/XEdDsaWork/Export.lean": "8f752ca711fac8dbd611ab9584d41229410f6724351e980e410cd57104e65a5d",
+    "SignalReference/XEdDsaWork/adapter.py": "2a20ccaab14aa91470295d4827ee6a3fa9639f5da80353659ba5c673cd4bcd4c",
+    "SignalReference/XEdDsaWork/challenge-report.json": "35b1867fe293f145f7cd5d80d800f894a561a9fb2596a524659e8602756bfe7b",
+    "SignalReference/XEdDsaWork/check_binding.py": "6ad5c8542073d99aafeded8fc301aa0b4a29f7ab011d65c199185c64a250f6ab",
+    "SignalReference/XEdDsaWork/fixtures.json": "a5dc8b39cf39a32f185caa496e05003947661f9b319364825767809e5b468937",
+    "SignalReference/XEdDsaWork/report.json": "19c173179399730fcbd181c03249620c1e201cfe68ce86a95c775e799b8f078f",
+    "TlsMpc/Signal/XEdDsaBinding.lean": "46c9ed8b4770a5413c674ec500a5d8d68f3e60ca2f26c01e8a66d1768145cdad",
+    "TlsMpc/Signal/XEdDsaField.lean": "7a5b66cbc7847b842089e35d774460074c27d5072ece6e5794ba9c62185c4831"
+  },
+  "profiles": [
+    {
+      "profile": "signal-xeddsa-field-signed-0",
+      "sha256": "bb5c6b193d259bbcd7c93f8dbda668d9f3b2b773c52fe411a42621083d676ef7",
+      "nodes": 23428,
+      "field_multiplications": 12723
+    },
+    {
+      "profile": "signal-xeddsa-field-signed-1",
+      "sha256": "12bbd87a2ac99005f40e799b39ab92990caf3db4c8dbb2016a61ab9397b1084e",
+      "nodes": 23428,
+      "field_multiplications": 12723
+    },
+    {
+      "profile": "signal-xeddsa-boolean-binding-128",
+      "sha256": "8fe43756e41a4d6e150eeacb334e6dc59564df853a622ecf0e5f09e4c5a32e1e",
+      "statistics": {
+        "raw_and_gates": 259,
+        "executed_and_gates": 256,
+        "executed_xor_gates": 1,
+        "unreachable_nodes": 10
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-finish-160",
+      "sha256": "5a0970795dd80aaeb528a76ed405f6aadfd7430a7fd31cd942b1f830418b00cb",
+      "statistics": {
+        "raw_and_gates": 1281,
+        "executed_and_gates": 513,
+        "executed_xor_gates": 256,
+        "unreachable_nodes": 527
+      }
+    }
+  ],
+  "full_adapter_cases": 28,
+  "numeric_stage_calls": 252,
+  "cases": [
+    {
+      "label": "generated-0",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "generated-1",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "low-order-1-0",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "low-order-1-1",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "low-order-57896044618658097711785492504343953926634992332820282019728792003956564819950-0",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "low-order-57896044618658097711785492504343953926634992332820282019728792003956564819950-1",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "generated-2",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "pinned",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "mutated-0",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "mutated-63",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "generated-3",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "generated-7",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "pinned-S-plus-ell",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "special-u-0",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-1",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-2",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-57896044618658097711785492504343953926634992332820282019728792003956564819948",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-57896044618658097711785492504343953926634992332820282019728792003956564819949",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-57896044618658097711785492504343953926634992332820282019728792003956564819950",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-57896044618658097711785492504343953926634992332820282019728792003956564819951",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "special-u-57896044618658097711785492504343953926634992332820282019728792003956564819967",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "high-bits-32",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "high-bits-64",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "high-bits-96",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "high-bits-128",
+      "accepted": false,
+      "output": "00"
+    },
+    {
+      "label": "generated-4",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "generated-5",
+      "accepted": true,
+      "output": "ff"
+    },
+    {
+      "label": "generated-6",
+      "accepted": true,
+      "output": "ff"
+    }
+  ],
+  "native_hash_boundary": false,
+  "trusted_validation_boolean_input": false,
+  "secret_dependent_host_branches": false,
+  "native_mpc_executed": false,
+  "actual_aeneas_refinement": false,
+  "pqxdh_wired": false,
+  "conversion_boundary": "Abstract shared conversion interface, instantiated only with public canonical arithmetic in tests. Private conversion fidelity/security and composed compiler theorem are not established.",
+  "scope": "All cryptographic computation, sign binding and final conjunction executed by numeric Lean artifacts; adapter routes only shared registers and public lengths. Exact pinned libsignal fixture outcomes including small-order and noncanonical acceptance.",
+  "security_required": {
+    "parties": 5,
+    "malicious": 2,
+    "statistical_security": 128,
+    "abort_allowed": true,
+    "runtime_validated": false
+  }
+}

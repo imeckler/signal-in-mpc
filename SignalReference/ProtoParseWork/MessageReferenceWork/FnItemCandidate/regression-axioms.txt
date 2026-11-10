@@ -1,0 +1,5 @@
+'FnItemLiftProof.call_lift' does not depend on any axioms
+'FnItemLiftProof.actual_default_item' depends on axioms: [propext, Classical.choice, Quot.sound]
+'FnItemLiftProof.call_result' does not depend on any axioms
+'FnItemLiteralProof.actual_literal_item' depends on axioms: [propext, Classical.choice, Quot.sound]
+'FnItemLiteralProof.actual_seven' depends on axioms: [propext, Classical.choice, Quot.sound]

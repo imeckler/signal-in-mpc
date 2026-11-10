@@ -1,0 +1,26 @@
+{
+  "candidate_only": true,
+  "accepted_translator": false,
+  "checked_endpoints": 5,
+  "all_compile": true,
+  "axiom_log_sha256": "ada17233a08a982199259698c3dad55a8eb33756b1b4145ff063efe72b444515",
+  "sources": {
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Modules/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/FunsExternal.lean": "9727f8bb3837067b1f98ea6005955193975d799e1df5ec0455e25684e5813fba",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Funs.lean": "a8ff2b03d779db8d5d807a36588e271bed5bdbeb1879f2775685b2078e409fb0",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Modules/DefaultProof.lean": "f51b92730822152ef99558bdb4dd565c9fa1ecd6a67e0f7c671676794abd55f0",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Funs.lean": "2900ff558e21a8c7bf153ec3bb02329e50d760acaea9c8b0b125c2e3d2a1c9bc",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Modules/LiteralProof.lean": "2c3883432c487d87a4cdfd52d00321c7297db5a9d265a700a9b03cc031ca3667"
+  },
+  "objects": {
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/DefaultProof.olean": "994005dd4966c9c63a72f38d0e36898f1f5ab1ab26f2be2b7d55cfddf0506dd4",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/LiteralProof.olean": "bf00dbe4016c5d3df840edcafdd72146f00b8aed2a16a3833bc7b5b04071b6dd",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Funs.olean": "ae95a5b09451800498a5cf1e3cb29acfa565b3dacfaa8aeed772581385fa3915",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/FunsExternal.olean": "08c3be563880dd080e4be341a8844a9a64eea2ca4506c273fb814db3277c8e05",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Types.olean": "c2782be33a0e9b106e6299d034700ed15efdf39453b432ef942767d84105c041",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Funs.olean": "04dc2292690b573b066de7c28faa5e71bd9367b933e857708f9a5b57bf458198",
+    "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Build/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Types.olean": "1cdb13d41644118cbab0546dc17f90ae4b72b9fde52d037339c605ed10bf286c"
+  },
+  "scope": "Actual synthetic zero-input default function item and unchanged literal-item path; local default FnOnce result model. Not a whole translator correctness proof."
+}

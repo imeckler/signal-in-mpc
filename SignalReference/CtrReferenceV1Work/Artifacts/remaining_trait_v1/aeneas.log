@@ -1,0 +1,27 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/Artifacts/remaining_trait_v1/ctr.llbc
+[[91mError[39m] Found an unexpected trait impl associated type which was not inlined while analyzing a type. This is a case we currently do not handle in all generality. As a result,the consumed/given back values computed for the generated backward functions may be incorrect.
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+hybrid_array::Array (Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33)
+Source: '/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor/hybrid-array-0.4.13/src/lib.rs', lines 165:0-165:33
+[[91mError[39m] Internal error: please file an issue
+Source: 'src/flavors/ctr32.rs', lines 14:0-17:1
+[[91mError[39m] Encountered an error when analyzing the following type declarations group:
+ctr::flavors::ctr32::CtrNonce32 (Source: 'src/flavors/ctr32.rs', lines 14:0-17:1)
+Source: 'src/flavors/ctr32.rs', lines 14:0-17:1
+[[91mError[39m] Internal error: please file an issue
+Source: 'src/flavors/ctr32.rs', lines 14:0-17:1
+[[91mError[39m] Could not translate type decl 'ctr::flavors::ctr32::CtrNonce32 because of previous error
+Name pattern: 'ctr::flavors::ctr32::CtrNonce32'
+Source: 'src/flavors/ctr32.rs', lines 14:0-17:1
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__SymbolicToPure.translate_type_decls.(fun) in file "symbolic/SymbolicToPure.ml", lines 146-149, characters 8-76
+Called from Stdlib__List.filter_map in file "list.ml", line 280, characters 12-15
+Called from Stdlib__List.filter_map in file "list.ml", line 282, characters 23-37
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 326, characters 19-64
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

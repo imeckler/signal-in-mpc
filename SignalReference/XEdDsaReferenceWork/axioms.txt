@@ -1,0 +1,23 @@
+'Aeneas.Std.Array.asNat_eq_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Aeneas.Std.Array.index_usize_getElem!_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Aeneas.Std.Slice.index_usize_getElem!_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Nat.forall_lt_five' depends on axioms: [propext]
+'Nat.sum_pow_mul_lt' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Aeneas.Std.UScalar.and_two_pow_sub_one_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Nat.or_shiftLeft_eq_add_pow_mul' depends on axioms: [propext, Quot.sound]
+'XEdDsaReference.backend.serial.u64.field.FieldElement51.asNat_eq' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'XEdDsaReference.backend.serial.u64.field.FieldElement51.from_bytes.load8_at_spec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'XEdDsaReference.backend.serial.u64.field.FieldElement51.from_bytes_spec' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'XEdDsaReference.RecoveryInput.actual_decode_normalizes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'XEdDsaReference.RecoveryInput.decode_nat_value' depends on axioms: [propext]
+'XEdDsaReference.RecoveryInput.high_bit_ignored' depends on axioms: [propext]
+'XEdDsaReference.RecoveryInput.noncanonical_reduction' depends on axioms: [propext, Quot.sound]
+'XEdDsaReference.RecoveryInput.compiled_recovery_input' depends on axioms: [propext, Classical.choice, Quot.sound]
+'XEdDsaReference.RecoveryInput.actual_decode_field_alias' depends on axioms: [propext, Classical.choice, Quot.sound]
+'XEdDsaReference.RecoveryInput.compiled_recovery_field_alias' depends on axioms: [propext, Classical.choice, Quot.sound]

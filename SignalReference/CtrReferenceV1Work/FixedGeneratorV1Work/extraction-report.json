@@ -1,0 +1,665 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "charon_exit": 0,
+  "actual_generator_statement_text_preserved": true,
+  "selected_F_next_block_and_Block16_types_explicitly_instantiated": true,
+  "dispatch_content_model_trusted": true,
+  "crypto_and_counter_slots_not_bound_yet": true,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate",
+    "--opaque=crate::aes256_encrypt",
+    "--opaque=crate::next_block",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/Artifacts/generator.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/extract.py": "5e594051db61b33f91fd4d5a1f2169ce7b70655c248f90bd4270200438a5d30f",
+    ".deps/libsignal-vendor/ctr-0.10.1/src/ctr_core.rs": "af6d926a10da7abfd058bafad5d598458cfbaf811a047f9e36a7cfe963055443",
+    "SignalReference/AesCtrBlockWork/FixedDispatchV1Work/proof-report.json": "8316823ce18d90b40cf692da84d974200924ef7a6ae63a0460bc2002310299da",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/Artifacts/model.rs": "d15724ff3c9a0cc6dafc7b744cfa16804f3dde635e16853634efc60e86cef153",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/Artifacts/selected-method.rs": "733d56e2c1d409bfe2a48c6c01e96bb57d4f3757d0d7fa88f0fcb24940455fce"
+  },
+  "llbc_sha256": "bc4209245c69124960676230d641847340ffc300e3f2354594f515036b687679",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 7,
+    "fun_decls": 16,
+    "global_decls": 0,
+    "trait_decls": 6,
+    "trait_impls": 10,
+    "ordered_decls": 35
+  },
+  "body_kinds": {
+    "Opaque": 9,
+    "Structured": 7
+  },
+  "external_functions": [
+    {
+      "id": 0,
+      "name": "ctr_fixed_generator_content_model::aes256_encrypt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "ctr_fixed_generator_content_model::next_block",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 37,
+            "col": 0
+          },
+          "end": {
+            "line": 37,
+            "col": 80
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::convert::{impl}::into",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::convert::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 791,
+            "col": 4
+          },
+          "end": {
+            "line": 791,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 467,
+            "col": 4
+          },
+          "end": {
+            "line": 467,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "ctr_fixed_generator_content_model::Block",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 4,
+            "col": 0
+          },
+          "end": {
+            "line": 4,
+            "col": 26
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "ctr_fixed_generator_content_model::BatchBlocks",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 5,
+            "col": 0
+          },
+          "end": {
+            "line": 5,
+            "col": 34
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "ctr_fixed_generator_content_model"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/convert/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/clone.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [
+    "crate::aes256_encrypt",
+    "crate::next_block"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "ctr_fixed_generator_content_model::aes256_encrypt",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 16,
+            "col": 0
+          },
+          "end": {
+            "line": 18,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "ctr_fixed_generator_content_model::next_block",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 37,
+            "col": 0
+          },
+          "end": {
+            "line": 37,
+            "col": 80
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "ctr_fixed_generator_content_model::{impl}::clone_in",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 10,
+            "col": 4
+          },
+          "end": {
+            "line": 10,
+            "col": 47
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "ctr_fixed_generator_content_model::{impl}::get_in",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 11,
+            "col": 4
+          },
+          "end": {
+            "line": 11,
+            "col": 45
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "ctr_fixed_generator_content_model::{impl}::get_out",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 12,
+            "col": 4
+          },
+          "end": {
+            "line": 12,
+            "col": 55
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "ctr_fixed_generator_content_model::{impl}::encrypt_block",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 20,
+            "col": 12
+          },
+          "end": {
+            "line": 25,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "ctr_fixed_generator_content_model::{impl}::encrypt_par_blocks",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 26,
+            "col": 12
+          },
+          "end": {
+            "line": 29,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "ctr_fixed_generator_content_model::{impl}::from",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 33,
+            "col": 1
+          },
+          "end": {
+            "line": 33,
+            "col": 84
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "ctr_fixed_generator_content_model::{impl}::gen_ks_block",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 40,
+            "col": 4
+          },
+          "end": {
+            "line": 43,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "core::convert::{impl}::into",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 780,
+            "col": 4
+          },
+          "end": {
+            "line": 780,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 12,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 13,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 14,
+      "name": "core::convert::{impl}::from",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 791,
+            "col": 4
+          },
+          "end": {
+            "line": 791,
+            "col": 22
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "core::array::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 5,
+          "beg": {
+            "line": 467,
+            "col": 4
+          },
+          "end": {
+            "line": 467,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 17,
+      "name": "core::clone::impls::{impl}::clone",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 715,
+            "col": 20
+          },
+          "end": {
+            "line": 715,
+            "col": 43
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/Artifacts/generator.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/FixedGeneratorV1Work/Generated",
+    "-split-files",
+    "-namespace",
+    "FixedCtrGenerator",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}

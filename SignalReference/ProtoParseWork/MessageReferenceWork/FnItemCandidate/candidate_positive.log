@@ -1,0 +1,61 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/regressions.llbc
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "P.Insts.CoreOpsFunctionFnOnceTupleU32.call_once" (the generated code will be incorrect):
+- core::default::{impl core::default::Default for u32}::{impl core::ops::function::FnOnce<(), u32> for core::default::{impl core::default::Default for u32}::default}::call_once
+  Source: '/rustc/library/core/src/default.rs', lines 157:12-157:30
+- fnitem_lift_regressions::{impl core::ops::function::FnOnce<(), u32> for fnitem_lift_regressions::seven}::call_once
+  Source: 'src/lib.rs', lines 3:0-3:27
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: fnitem_lift_regressions::{impl core::ops::function::FnOnce<(), u32> for fnitem_lift_regressions::seven}::call_once:
+The chosen name is already in the names set: P.Insts.CoreOpsFunctionFnOnceTupleU32.call_once
+Source: 'src/lib.rs', lines 3:0-3:27
+Compiler source: extract/ExtractBase.ml, line 303
+[[91mError[39m] Name clash detected: the following identifiers are bound to the same name "P.Insts.CoreOpsFunctionFnOnceTupleU32" (the generated code will be incorrect):
+- trait_impl_id: 1
+  Source: '/rustc/library/core/src/default.rs', lines 157:12-157:30
+- trait_impl_id: 2
+  Source: 'src/lib.rs', lines 3:0-3:27
+
+You may want to rename some of your definitions, or report an issue.
+Note that you can change the name used in the generated code by using the attribute #[aeneas::rename("NAME")] or #[charon::rename("NAME")]. For instance:
+
+```
+#![feature(register_tool)]
+#![register_tool(aeneas)]
+
+#[aeneas::rename("Bar")]
+type Foo = i32;
+```
+
+Those attributes can be applied to type definitions, functions, methods, trait
+declarations or trait implementations. For more examples, see:
+https://github.com/AeneasVerif/aeneas/blob/main/tests/src/rename_attribute.rs
+
+
+
+Compiler source: extract/ExtractBase.ml, line 269
+[[91mError[39m] Error when registering the name for id: trait_impl_id: 2:
+The chosen name is already in the names set: P.Insts.CoreOpsFunctionFnOnceTupleU32
+Source: 'src/lib.rs', lines 3:0-3:27
+Compiler source: extract/ExtractBase.ml, line 303
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_positive/Types.lean
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_positive/FunsExternal_Template.lean
+[[92mInfo[39m ] Generated the partial file (because of 4 errors, including 2 unique errors): /Users/izzy/repos/tls-mpc/SignalReference//ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_positive/Funs.lean
+[[92mInfo[39m ] Total execution time: 0.151619 seconds

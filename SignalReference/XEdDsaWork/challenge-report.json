@@ -1,0 +1,252 @@
+{
+  "checked_at_utc": "2026-11-08T02:34:54.582740+00:00",
+  "proof_endpoints": 29,
+  "custom_axioms": [],
+  "source_sha256": {
+    "SignalReference/XEdDsaChallengeChecks.lean": "bec74f8cfb59c11f5c9bfb1a482c9eeed97434c45458f4fe9d6f6fbc84a1e9fb",
+    "SignalReference/XEdDsaExport.lean": "8f752ca711fac8dbd611ab9584d41229410f6724351e980e410cd57104e65a5d",
+    "SignalReference/XEdDsaWork/Export.lean": "8f752ca711fac8dbd611ab9584d41229410f6724351e980e410cd57104e65a5d",
+    "SignalReference/XEdDsaWork/Oracle/Cargo.lock": "0aaca5e2abf8ce5d1f795301c70c76a10dc4a0c0940330425d6935b7bfd19c0f",
+    "SignalReference/XEdDsaWork/Oracle/src/main.rs": "4b7ab6ab0e6ed005ceb94c3c0ea4ce45b240d1ac5ea5affb8cba40f49d3bae7d",
+    "SignalReference/XEdDsaWork/check.py": "d53d0c8bdcfc62e90dd983d73d18e7752d536bf8da0e34fd595fadecd032c390",
+    "SignalReference/XEdDsaWork/check_challenge.py": "efa9ec76640b5ea4ec1eab94e772453f27d6027019d363e91b4913984bec075c",
+    "SignalReference/XEdDsaWork/fixtures.json": "a5dc8b39cf39a32f185caa496e05003947661f9b319364825767809e5b468937",
+    "SignalReference/XEdDsaWork/report.json": "19c173179399730fcbd181c03249620c1e201cfe68ce86a95c775e799b8f078f",
+    "TlsMpc/AigExport.lean": "39f5373ba5693ff8807d504260fe6ed710edc01c570318e4485036599ae86434",
+    "TlsMpc/BvConstruct.lean": "e297a4666e995b7ba041f433e0c28a41adee4106602254b6cd5b4fe1baba9f94",
+    "TlsMpc/ByteAuth.lean": "1fb45f2e39bed7c6efc058e359e2596978e1688937daa5a5632990fd24c5768e",
+    "TlsMpc/ByteCircuit.lean": "d583e98a73618f3113b8eaa11217a7151ec941808c563a4ab3066e00f6865aa1",
+    "TlsMpc/FieldDag.lean": "52988ebf6dbdc27231cd53e9780bc9cb92e51ca4693e413ba20df841ec64037e",
+    "TlsMpc/Sha256.lean": "857165748efce6ac0052a86cd39c0b092d2fe74fa50d25136361b5e05026901b",
+    "TlsMpc/Signal/OpenResult.lean": "aa240ce16bfbaaa2b90a1a52169b4ec479e300cc8eec153a199ad6579f425dc1",
+    "TlsMpc/Signal/Unpad.lean": "241a860bd72ed68e0a407408a7b8c160f9a56af9dad56caa4497570384422c9b",
+    "TlsMpc/Signal/XEdDsa.lean": "5e46013599de4b526cdd65b58081324a30d7898e8205d9aa3fae1d748163fa3f",
+    "TlsMpc/Signal/XEdDsaChallenge.lean": "60f60121cf4907a6448b14af5ae191eb6c4c916b3bfa89bb41586fbbf7692db6",
+    "TlsMpc/Signal/XEdDsaField.lean": "7a5b66cbc7847b842089e35d774460074c27d5072ece6e5794ba9c62185c4831",
+    "TlsMpc/Signal/XEdDsaScalar.lean": "6b768397e63acfcbc8e850ad9111f2521f182524ff02aa29bea7dbaba21056e5",
+    "TlsMpc/Signal/XEdDsaSha512.lean": "00ab9104b98b37b11bb05ace1f66b624131c050e7c2c91c6033d935853393bf9",
+    "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
+    "backend_adapter/aig.py": "90720b6a601203080259d1dd62dd0bdd6771427c88646668198454f982f0ecc2",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "oracle_binary_sha256": "80d42c1d3d693ccc9c88274045abbb4832ad5b2b1385daaf0d3bd60e9d2df2e1",
+  "export_binary_sha256": "0e2afd7bea6f5a25f97d28ed54dee36ad9d000ab03f22101a8b1da58a8167bbe",
+  "fixtures_sha256": "84bb93cacf1cefa0bbf64f561ab0819ecc21e222e1d90339ba21a9637f79048d",
+  "profiles": [
+    {
+      "profile": "signal-xeddsa-boolean-hash-0",
+      "sha256": "88830a20d77eca1e45aa0c492f8703d67697e55b93247ae4e3c9b152f8cdc89e",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-1",
+      "sha256": "ff9aba55f1e7505832bf53c742373dab7a837b1ebf2dbd0761d01d0ae2550e31",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 436969,
+        "executed_and_gates": 137050,
+        "executed_xor_gates": 126059,
+        "unreachable_nodes": 173861
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-3",
+      "sha256": "db036100e38726cf7a3d923dd8b60dfa30829f50a20837262e63eb0dc30bf9d9",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 444766,
+        "executed_and_gates": 139121,
+        "executed_xor_gates": 128363,
+        "unreachable_nodes": 177283
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-64",
+      "sha256": "18e08115946f983184a736016a7538381d7cb5bdea372d88f2d1bd36ea37dd93",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 468081,
+        "executed_and_gates": 146111,
+        "executed_xor_gates": 135251,
+        "unreachable_nodes": 186720
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-65",
+      "sha256": "48a2c005eebb6e65a58a0534081e5c1f7ff34fbc08f70aaaaa41bbf5f9efe09d",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 468361,
+        "executed_and_gates": 146212,
+        "executed_xor_gates": 135333,
+        "unreachable_nodes": 186817
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-78",
+      "sha256": "5d82362dd5887f7fd829c67d821ffe004a98d692d3f037fc7bff039b25d65d97",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 471489,
+        "executed_and_gates": 147291,
+        "executed_xor_gates": 136251,
+        "unreachable_nodes": 187948
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-95",
+      "sha256": "2a88b65725ee54c2390564256fd9c73a796c32d79288d382881749221f8bb7c6",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 476062,
+        "executed_and_gates": 148898,
+        "executed_xor_gates": 137592,
+        "unreachable_nodes": 189573
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-97",
+      "sha256": "59f222b19d103ededc60253ba78ce1a1cd09df38d546dec3f180433676b8fb7d",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 476542,
+        "executed_and_gates": 149047,
+        "executed_xor_gates": 137740,
+        "unreachable_nodes": 189756
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-111",
+      "sha256": "36a798396585b09fa3616dfbe3ccee64e452d4c7bbcfa53c23c304315cb631ab",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 480338,
+        "executed_and_gates": 150393,
+        "executed_xor_gates": 138850,
+        "unreachable_nodes": 191096
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-112",
+      "sha256": "091f17bd58af1870786e1459ab18b4ea52a84762cea8fe1b871eb405124983d9",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 819420,
+        "executed_and_gates": 259753,
+        "executed_xor_gates": 235071,
+        "unreachable_nodes": 324597
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-127",
+      "sha256": "1ed01c1f042c7190cc45610fae30532431845dd388578ede7e1cbfec8f5292a1",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 825017,
+        "executed_and_gates": 261609,
+        "executed_xor_gates": 236702,
+        "unreachable_nodes": 326707
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-128",
+      "sha256": "9fb5897c746010015f16e6499102da2d10e6771e1af7d37c2bb7d7cc3c2cb03a",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 825456,
+        "executed_and_gates": 261640,
+        "executed_xor_gates": 236885,
+        "unreachable_nodes": 326932
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-192",
+      "sha256": "2a68793b04562bedaaf81a01f67b92c4fce9ac678d1e40f2aed6cd06c81539d7",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 962042,
+        "executed_and_gates": 301127,
+        "executed_xor_gates": 277950,
+        "unreachable_nodes": 382966
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-239",
+      "sha256": "8c0b73d19d83306ad801bc5df0c783527fc298190fabc41e409d86e2eec0c3da",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 974299,
+        "executed_and_gates": 305409,
+        "executed_xor_gates": 281549,
+        "unreachable_nodes": 387342
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-240",
+      "sha256": "bdb6b541e5af4a1d1ca65c48a8fc8bdd4c312fce88acb98fbf7646a437a54cb7",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 1313353,
+        "executed_and_gates": 414741,
+        "executed_xor_gates": 377766,
+        "unreachable_nodes": 520847
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-hash-1633",
+      "sha256": "be7710d0395c794d59cfa033ce70ba320258e626e9784724fcd2b07f8ed2eaa0",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 6404004,
+        "executed_and_gates": 2009169,
+        "executed_xor_gates": 1850128,
+        "unreachable_nodes": 2544708
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-reduce-64",
+      "sha256": "ef45d0d201fc72a83e6a76ded050fa0d1780b939599f399278f178f0dba34959",
+      "numeric_lanes": 56,
+      "statistics": {
+        "raw_and_gates": 890577,
+        "executed_and_gates": 476462,
+        "executed_xor_gates": 99194,
+        "unreachable_nodes": 314922
+      }
+    },
+    {
+      "profile": "signal-xeddsa-boolean-challenge-33",
+      "sha256": "8bf2080450f967ffeeb18c0399490951a87bb9c778a822f2fa027922c4499c78",
+      "numeric_lanes": 4,
+      "statistics": {
+        "raw_and_gates": 1367119,
+        "executed_and_gates": 625509,
+        "executed_xor_gates": 236934,
+        "unreachable_nodes": 504685
+      }
+    }
+  ],
+  "sha512_numeric_lanes": 64,
+  "scalar_reduction_numeric_lanes": 56,
+  "complete_staged_numeric_cases": 103,
+  "full_numeric_crypto_paths": 92,
+  "native_hash_input_boundary": false,
+  "native_mpc_executed": false,
+  "actual_aeneas_refinement": false,
+  "pqxdh_validation_status_produced": false,
+  "scope": "Numeric SHA512/remainder/recovery/double-scalar/compressed-R checks agree with actual unchanged libsignal/dalek on public fixtures. Per-stage compiler proofs; exact 512-bit little-endian modulo-ell input and output byte specification. Stage conversion/binding remains clear Python, not an MPC runtime proof.",
+  "remaining": [
+    "proved and shared canonical field/byte conversion plus sign binding composition",
+    "actual libsignal/dalek/RustCrypto Aeneas refinement",
+    "prekey trust policy",
+    "native five-party malicious statistical128 runtime"
+  ]
+}

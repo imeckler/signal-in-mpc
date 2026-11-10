@@ -1,0 +1,300 @@
+{
+  "checked_at_utc": "2026-11-08T02:55:41.615519+00:00",
+  "source_sha256": {
+    "SignalReference/PreKeyWork/Export.lean": "a5999a5ee5142a1946268c1e93da6797e1e1d447243f58eb8ee2d456565ece32",
+    "SignalReference/PreKeyWork/adapter.py": "83459fc742f0d47eb79d6b10c1c7d6e15ff468ed8dd84d830916dfb0052088ab",
+    "SignalReference/PreKeyWork/check_composition.py": "565686312146581e7c64754b79367df0213a350f25cadbdb39e8d92a1e863907",
+    "SignalReference/PreKeyWork/fixtures.json": "7bb41e4350c94c3dd7a6ea88f487682fc89b060805a75d6ae9f2821c167f3648",
+    "SignalReference/PreKeyWork/report.json": "7cc63a966a55604e6a01f51d46cc276b5a4a449c0ea5ce636baa4f5437ed2590",
+    "SignalReference/XEdDsaWork/adapter.py": "2a20ccaab14aa91470295d4827ee6a3fa9639f5da80353659ba5c673cd4bcd4c",
+    "SignalReference/XEdDsaWork/completion.json": "352b001526f35f40e9789f116b2902469b22292cda37734ec8a1b196f758cb9a",
+    "backend_adapter/boolean.py": "c55993c641753f8b56def9e9f1c4f5d70f2b2f13991726162f012e1e73934431",
+    "handshake_backend/field_dag.py": "07ef9c7794be16e3e470fe0f7653304902d5f7d2b72bf8bda61e2011439f7850",
+    "scripts/check_lean_crypto.py": "82e8f9b8373a800b9c1bdf5af78bc45eec304233c651b4585919126a6dc13583"
+  },
+  "profiles": [
+    {
+      "profile": "signal-prekey-construct-28-all",
+      "sha256": "0d8ac424845aa0307c43bb6bd489b0fcca1242aec7b0c0c9bd6a2721ad6c4cb8",
+      "statistics": {
+        "raw_and_gates": 277,
+        "executed_and_gates": 277,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-device-4-all",
+      "sha256": "c42853dfd69510c7fe26dedc8b8e1413c314d1e6881bdd51ebe7054dffd55756",
+      "statistics": {
+        "raw_and_gates": 40,
+        "executed_and_gates": 40,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-0-all",
+      "sha256": "b49520a68026ab8822ac649eb019e3c7f3121f15ee0b67791e49a778c766e019",
+      "statistics": {
+        "raw_and_gates": 0,
+        "executed_and_gates": 0,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-33-all",
+      "sha256": "46dbb4fc99d43d3dc40864b2ddebef06696c5689718096941fe640b47256e80a",
+      "statistics": {
+        "raw_and_gates": 263,
+        "executed_and_gates": 263,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-34-all",
+      "sha256": "d94a5f61d84ea42d2a852867e78f5ba565bb3409213903bbe2a9c3fe3c43c524",
+      "statistics": {
+        "raw_and_gates": 263,
+        "executed_and_gates": 263,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-ec-36-all",
+      "sha256": "3afa8fd5b28f6aa37c541f1f362d1b1136706c331f080de2e84865c36025bc76",
+      "statistics": {
+        "raw_and_gates": 263,
+        "executed_and_gates": 263,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 0
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1185-all",
+      "sha256": "d1486cc25648515d44d4d8cfa31bb576939ec52275b42a65a9931fdeed7cb354",
+      "statistics": {
+        "raw_and_gates": 9516,
+        "executed_and_gates": 9506,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 6
+      }
+    },
+    {
+      "profile": "signal-prekey-kem-1569-all",
+      "sha256": "b70299862f6abebdbaeb978f1c9e77520324d18948f9e2e2286949269e284d56",
+      "statistics": {
+        "raw_and_gates": 12588,
+        "executed_and_gates": 12578,
+        "executed_xor_gates": 4,
+        "unreachable_nodes": 6
+      }
+    },
+    {
+      "profile": "signal-prekey-optional-2-all",
+      "sha256": "aa5ad39184ffcb2563d45360804ab8f147fff3b795ff0e12098b95c5467eaa93",
+      "statistics": {
+        "raw_and_gates": 15,
+        "executed_and_gates": 15,
+        "executed_xor_gates": 0,
+        "unreachable_nodes": 1
+      }
+    },
+    {
+      "profile": "signal-prekey-typed-finish-28-all",
+      "sha256": "6753bfe71f47229446e8c657ded89d885056a664b292e187b89af997a92f4029",
+      "statistics": {
+        "raw_and_gates": 426,
+        "executed_and_gates": 390,
+        "executed_xor_gates": 12,
+        "unreachable_nodes": 25
+      }
+    }
+  ],
+  "xeddsa_artifact_sha256": {
+    "SignalReference/PreKeyWork/Artifacts/signal-xeddsa-boolean-hash-1249.json": "6517484481bfbf12ea7e4b6b9adca5d4cc23cd06180164db1e4185111fd7ff03",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-boolean-binding-128.json": "8fe43756e41a4d6e150eeacb334e6dc59564df853a622ecf0e5f09e4c5a32e1e",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-boolean-finish-160.json": "5a0970795dd80aaeb528a76ed405f6aadfd7430a7fd31cd942b1f830418b00cb",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-boolean-hash-1633.json": "be7710d0395c794d59cfa033ce70ba320258e626e9784724fcd2b07f8ed2eaa0",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-boolean-hash-97.json": "59f222b19d103ededc60253ba78ce1a1cd09df38d546dec3f180433676b8fb7d",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-boolean-reduce-64.json": "ef45d0d201fc72a83e6a76ded050fa0d1780b939599f399278f178f0dba34959",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-decode-0.json": "72e85fbf331975cc139a1e1395c6a8170ceb37ded48fe77de7d2a03fcdcc1ed8",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-decode-63.json": "985d413498dd66eebda7bc6ff88b1cfc681d976b415450f29d8b6676e92a04f3",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-field-recover-0.json": "be09991be850dad768e06b25bac9624f96f0e3e017ed54e5a21e0f6d11279dba",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-field-recover-1.json": "223c0de677911903219932b977a6d5b86dd6f725d3351090ed908f33671f0fa3",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-field-recover-2.json": "7cbb63707db3cff544ea8e98aaa2aeb48ba4cbb73ead1dc97ea8598dafe0391d",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-field-signed-0.json": "bb5c6b193d259bbcd7c93f8dbda668d9f3b2b773c52fe411a42621083d676ef7",
+    "SignalReference/XEdDsaWork/Artifacts/signal-xeddsa-field-signed-1.json": "12bbd87a2ac99005f40e799b39ab92990caf3db4c8dbb2016a61ab9397b1084e"
+  },
+  "cases": [
+    {
+      "label": "trust0-ecTrue-pqFalse",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "trust0-ecFalse-pqTrue",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "trust1-ecTrue-pqTrue",
+      "prefix_code": 16,
+      "result": "0010000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "trust2-ecTrue-pqTrue",
+      "prefix_code": 17,
+      "result": "0011000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "absent-6",
+      "prefix_code": 5,
+      "result": "0005000000000000000000000000000000000000",
+      "actual_trace": []
+    },
+    {
+      "label": "ec-trailing",
+      "prefix_code": 0,
+      "result": "ff0001ffffffff7fffffffffffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "identity-trailing",
+      "prefix_code": 0,
+      "result": "ff0001ffffffff7fffffffffffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "untagged-ec-signature",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "untagged-pq-signature",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "zero-ids",
+      "prefix_code": 0,
+      "result": "ff0001000000007f000000000000000000000000",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "empty-ec-signature",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "short-pq-signature",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "changed-pq-tag",
+      "prefix_code": 18,
+      "result": "0012000000000000000000000000000000000000",
+      "actual_trace": [
+        "trust_sending"
+      ]
+    },
+    {
+      "label": "absent-identity-garbage",
+      "prefix_code": 9,
+      "result": "0009000000000000000000000000000000000000",
+      "actual_trace": []
+    },
+    {
+      "label": "absent-optional-garbage",
+      "prefix_code": 0,
+      "result": "ff0000ffffffff7f00000000ffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "valid-tag7",
+      "prefix_code": 0,
+      "result": "ff0001ffffffff7fffffffffffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "valid-tag8",
+      "prefix_code": 0,
+      "result": "ff0001ffffffff7fffffffffffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    },
+    {
+      "label": "valid-tag10",
+      "prefix_code": 0,
+      "result": "ff0001ffffffff7fffffffffffffffffffffffff",
+      "actual_trace": [
+        "trust_sending",
+        "load_session_boundary"
+      ]
+    }
+  ],
+  "actual_prefix_composition_cases": 18,
+  "additional_typed_boundary_cases": 1,
+  "prekey_numeric_stage_calls": 228,
+  "xeddsa_numeric_stage_calls": 326,
+  "signature_validity_is_computed": true,
+  "independent_trust_result_boundary": true,
+  "trust_policy_implemented": false,
+  "frozen_xeddsa_completion_sha256": "352b001526f35f40e9789f116b2902469b22292cda37734ec8a1b196f758cb9a",
+  "native_mpc_executed": false,
+  "actual_aeneas_refinement": false,
+  "pqxdh_production_wired": false,
+  "scope": "Both signatures execute through frozen shared verifier. Canonical typed bytes from same supplied keys form both signature messages. Constructor/identity Sending trust/signature error precedence matches actual protocol prefix. External trust decision and private conversions remain explicit boundaries; no callbacks or stores invoked by adapter.",
+  "security_required": {
+    "parties": 5,
+    "malicious": 2,
+    "statistical_security": 128,
+    "abort_allowed": true,
+    "runtime_validated": false
+  }
+}

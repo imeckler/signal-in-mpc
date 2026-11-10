@@ -1,0 +1,37 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "source_patches": [],
+  "generated_body_edits": false,
+  "charon_exit": 101,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--monomorphize",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from={impl cipher::block::backends::BlockCipherEncBackend for crate::soft::Aes256BackEnc}::encrypt_block",
+    "--start-from-if-exists={impl cipher::block::backends::BlockCipherEncBackend for crate::soft::Aes256BackEnc}::encrypt_par_blocks",
+    "--opaque=crate::soft::fixslice::*",
+    "--exclude=hybrid_array::traits::ArraySize",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/AesCtrBlockWork/BackendWrapperV1Work/ArtifactsConfiguredRoots/backend.llbc",
+    "--",
+    "--verbose",
+    "--package",
+    "aes@0.9.1",
+    "--lib",
+    "--locked",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin",
+    "--manifest-path=/Users/izzy/repos/tls-mpc/.deps/libsignal-v0.106.1/Cargo.toml"
+  ],
+  "actual_fixslice_link_not_yet_proved": true,
+  "source_sha256": {
+    "SignalReference/AesCtrBlockWork/BackendWrapperV1Work/extract_configured.py": "992cdf9d25752b0aeec14d60ccdd8316650463577aac99bc302091a059bc9a3a",
+    ".deps/libsignal-vendor/aes-0.9.1/src/soft.rs": "fd83353ad38832a4224f501793d41bec85f1f439dc8872e0ba3dff5c74ab9095",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  }
+}

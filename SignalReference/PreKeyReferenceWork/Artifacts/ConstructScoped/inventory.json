@@ -1,0 +1,604 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "versions": {
+    "charon": "0.1.245 (4ad295c1bf982b5533ce7d85f4ddc889ff3127f8)",
+    "aeneas": "aeneas nightly-2026.08.27-5b9dcf3",
+    "rustc": "rustc 1.100.0-nightly (8fa1c96cf 2026-08-17)"
+  },
+  "source_patches": [],
+  "source_sha256": {
+    ".deps/libsignal-v0.106.1/rust/protocol/src/state/bundle.rs": "e79e0225e4c1fee4072ca3ca398a5404e879b1f2186cb6a31cdc01a8038abea1",
+    ".deps/libsignal-v0.106.1/rust/protocol/src/error.rs": "6c25426e3a8b9c4cdea4cae3f9036eff1a37a35f3a32af2fa5c19aa1149ef099",
+    ".deps/libsignal-v0.106.1/Cargo.lock": "5a8597e00b115284fa2fadd622ad7340bcb1e135ee435530f075d66b576a620e"
+  },
+  "charon_command": [
+    "$WORKSPACE/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate::state::bundle::*::new",
+    "--opaque=crate::kem::*::key_length",
+    "--opaque=crate::error::SignalProtocolError",
+    "--dest-file=$WORKSPACE/SignalReference/PreKeyReferenceWork/Artifacts/ConstructScoped/prekey.llbc",
+    "--",
+    "--package",
+    "libsignal-protocol",
+    "--lib",
+    "--locked",
+    "--offline"
+  ],
+  "charon_exit_code": 0,
+  "script_sha256": "d62e5ccaa5ecdf2defb5c850f4e180718e3c0007b44e1b9e60f80c5ee346691a",
+  "llbc_sha256": "3ac6edc6436ed5fd69286c35de27f6cd6f45e348ea2bc0174f0ea0288673dc2d",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 19,
+    "fun_decls": 11,
+    "global_decls": 0,
+    "trait_decls": 2,
+    "trait_impls": 8,
+    "ordered_decls": 32
+  },
+  "body_kinds": {
+    "Structured": 8,
+    "Opaque": 3
+  },
+  "external_functions": [
+    {
+      "id": 3,
+      "name": "alloc::vec::Vec::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "libsignal_protocol::kem::{impl}::key_length",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 259,
+            "col": 4
+          },
+          "end": {
+            "line": 261,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "alloc::boxed::Box::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 19,
+          "beg": {
+            "line": 236,
+            "col": 0
+          },
+          "end": {
+            "line": 239,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 4,
+      "name": "libsignal_core::curve::PublicKey",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 64,
+            "col": 0
+          },
+          "end": {
+            "line": 64,
+            "col": 20
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "alloc::vec::Vec",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "libsignal_core::address::DeviceId",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 13,
+          "beg": {
+            "line": 678,
+            "col": 0
+          },
+          "end": {
+            "line": 678,
+            "col": 19
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 15,
+      "name": "libsignal_protocol::error::SignalProtocolError",
+      "kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 18,
+          "beg": {
+            "line": 19,
+            "col": 0
+          },
+          "end": {
+            "line": 107,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "rust/protocol/src/state/bundle.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "rust/protocol/src/state.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "rust/protocol/src/lib.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "rust/protocol/src/state/signed_prekey.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "rust/core/src/curve.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "rust/core/src/lib.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 6,
+      "name": {
+        "Local": "/rustc/library/alloc/src/vec/mod.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 7,
+      "name": {
+        "Local": "/rustc/library/alloc/src/lib.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 8,
+      "name": {
+        "Local": "/rustc/library/alloc/src/alloc.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 9,
+      "name": {
+        "Local": "/rustc/library/core/src/marker.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 10,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 11,
+      "name": {
+        "Local": "rust/protocol/src/state/kyber_prekey.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 12,
+      "name": {
+        "Local": "rust/protocol/src/kem.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 13,
+      "name": {
+        "Local": "rust/core/src/address.rs"
+      },
+      "crate_name": "libsignal_core"
+    },
+    {
+      "id": 14,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 15,
+      "name": {
+        "Local": "rust/protocol/src/state/prekey.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 16,
+      "name": {
+        "Local": "rust/protocol/src/identity_key.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 17,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 18,
+      "name": {
+        "Local": "rust/protocol/src/error.rs"
+      },
+      "crate_name": "libsignal_protocol"
+    },
+    {
+      "id": 19,
+      "name": {
+        "Local": "/rustc/library/alloc/src/boxed.rs"
+      },
+      "crate_name": "alloc"
+    },
+    {
+      "id": 20,
+      "name": {
+        "Local": "/rustc/library/core/src/ptr/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [
+    "crate::kem::*::key_length",
+    "crate::error::SignalProtocolError"
+  ],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate::state::bundle::*::new"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "libsignal_protocol::state::bundle::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 19,
+            "col": 4
+          },
+          "end": {
+            "line": 25,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "libsignal_protocol::state::bundle::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 36,
+            "col": 4
+          },
+          "end": {
+            "line": 42,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "libsignal_protocol::state::bundle::{impl}::new",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 137,
+            "col": 4
+          },
+          "end": {
+            "line": 175,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "alloc::vec::Vec::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 6,
+          "beg": {
+            "line": 436,
+            "col": 0
+          },
+          "end": {
+            "line": 436,
+            "col": 96
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "libsignal_protocol::kem::{impl}::key_length",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 259,
+            "col": 4
+          },
+          "end": {
+            "line": 261,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "libsignal_protocol::kem::Key::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 302,
+            "col": 0
+          },
+          "end": {
+            "line": 305,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 6,
+      "name": "libsignal_protocol::state::bundle::KyberPreKey::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 29,
+            "col": 0
+          },
+          "end": {
+            "line": 33,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 7,
+      "name": "libsignal_protocol::state::bundle::SignedPreKey::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 12,
+            "col": 0
+          },
+          "end": {
+            "line": 16,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 8,
+      "name": "libsignal_protocol::state::bundle::PreKeyBundle::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 125,
+            "col": 0
+          },
+          "end": {
+            "line": 133,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 9,
+      "name": "libsignal_protocol::kem::KeyMaterial::{impl}::drop_glue",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 12,
+          "beg": {
+            "line": 274,
+            "col": 0
+          },
+          "end": {
+            "line": 278,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 10,
+      "name": "alloc::boxed::Box::{impl}::drop_glue",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 19,
+          "beg": {
+            "line": 236,
+            "col": 0
+          },
+          "end": {
+            "line": 239,
+            "col": 1
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_command": [
+    "$WORKSPACE/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "$WORKSPACE/SignalReference/PreKeyReferenceWork/Artifacts/ConstructScoped/prekey.llbc",
+    "-dest",
+    "$WORKSPACE/SignalReference",
+    "-subdir",
+    "/PreKeyReferenceWork/Generated/ConstructScoped",
+    "-split-files",
+    "-namespace",
+    "PreKeyReference",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ],
+  "aeneas_exit_code": 0,
+  "generated_files": {
+    "PreKeyReferenceWork/Generated/ConstructScoped/Funs.lean": "0d8bcc428787f1097b25645d963b8620be64c3d0553346a57df9b9c272b5f204",
+    "PreKeyReferenceWork/Generated/ConstructScoped/FunsExternal_Template.lean": "6ac071b175722670298e1c001ff5539de0d15eb7fbaef013ce9df0229cb338d3",
+    "PreKeyReferenceWork/Generated/ConstructScoped/Types.lean": "f4598e832131d9c81fe4defec5cf30c927a303e30faf53960a4758024c4dddaa",
+    "PreKeyReferenceWork/Generated/ConstructScoped/TypesExternal_Template.lean": "0038b2ae71ce931ebe012a436ab155709318ab355078f77dd5665ca6cfbf0279"
+  },
+  "remaining_external_templates": [
+    "FunsExternal_Template.lean",
+    "TypesExternal_Template.lean"
+  ]
+}

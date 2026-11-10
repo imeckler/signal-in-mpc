@@ -1,0 +1,8 @@
+'LibSignalReference.Candidate.ProstTopField.write_stack_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.step_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.step_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scan_inactive' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.scan_failed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ProstTopField.apply_reject' depends on axioms: [propext, Classical.choice, Quot.sound]

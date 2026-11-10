@@ -1,0 +1,179 @@
+{
+  "candidate_only": true,
+  "accepted_translator": false,
+  "script_sha256": "8bce3c09b0e04abc90a4571b599df9884030d042522f914cc260cfb768606b8d",
+  "rows": [
+    {
+      "profile": "default",
+      "translator": "baseline",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "ead351664ad8925a6acf41b96c81839ac42339f81155b82ad394d251737a3c22",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "96ac6a9911ee8ed36a65548a2703e0faab37ffc815048d6d237974fdec567ae3",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/default.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/baseline_default",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "default",
+      "translator": "candidate",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "ead351664ad8925a6acf41b96c81839ac42339f81155b82ad394d251737a3c22",
+      "binary_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+      "log_sha256": "29b946a11f13727b0c39b40438460dac4618929e1516b64526ca86b018654e34",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Funs.lean": "a8ff2b03d779db8d5d807a36588e271bed5bdbeb1879f2775685b2078e409fb0",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/FunsExternal_Template.lean": "15cf57445dfb9d7e589b4a34a3be9433e395cb00aa77f984dfb3bc65d95cc0d8",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-dbae191bb9f72719",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/default.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_default",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "literal",
+      "translator": "baseline",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "38e0ae0bd92638a48e78ca3b24516b3e44f54c9d2d44f9c5b562da4a537400a1",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "6519515b374c7eec4f2ba26eb70d80246cd8cddad094b2c86fde18f6a326f834",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/baseline_literal/Funs.lean": "e8ed76a288c7c0923a331fcfd401636da82286172fda5fbe7d749bb2559c14d7",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/baseline_literal/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/literal.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/baseline_literal",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "literal",
+      "translator": "candidate",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "llbc_sha256": "38e0ae0bd92638a48e78ca3b24516b3e44f54c9d2d44f9c5b562da4a537400a1",
+      "binary_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+      "log_sha256": "331f0ea5b74f24d0c29489d33d73c546b278a7c9b27530e1dd427c76b3679920",
+      "generated_sha256": {
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Funs.lean": "2900ff558e21a8c7bf153ec3bb02329e50d760acaea9c8b0b125c2e3d2a1c9bc",
+        "SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal/Types.lean": "45424589a91a3eade6c006b534e39e312e98fb2542a8ca006ffbcd8ac6027826"
+      },
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-dbae191bb9f72719",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/literal.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_literal",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "negative",
+      "translator": "baseline",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "c2d4f5cc15cea4ced9cae8a520159ca84142cbd7e3a943a6e5ad1a338374f415",
+      "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+      "log_sha256": "c7f77bb573ca1d5618f9e0b927867030c43b25a16a2630c83336ea0c6ac505dc",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/negative.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/baseline_negative",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    },
+    {
+      "profile": "negative",
+      "translator": "candidate",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "llbc_sha256": "c2d4f5cc15cea4ced9cae8a520159ca84142cbd7e3a943a6e5ad1a338374f415",
+      "binary_sha256": "dbae191bb9f7271935b70966ead68296d4d5f5369a16b70e6c4450f188a2a164",
+      "log_sha256": "9497cc90a6959711b5a3600c5901370ea55ff9921f5c937fa09a4abd8cb68ce0",
+      "generated_sha256": {},
+      "command": [
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/candidate-dbae191bb9f72719",
+        "-backend",
+        "lean",
+        "/Users/izzy/repos/tls-mpc/SignalReference/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Regressions/negative.llbc",
+        "-dest",
+        "/Users/izzy/repos/tls-mpc/SignalReference",
+        "-subdir",
+        "/ProtoParseWork/MessageReferenceWork/FnItemCandidate/Generated/candidate_negative",
+        "-split-files",
+        "-namespace",
+        "FnItemRegression",
+        "-warnings-as-errors",
+        "-no-progress-bar",
+        "-print-error-emitters",
+        "-sequential"
+      ]
+    }
+  ]
+}

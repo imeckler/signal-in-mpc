@@ -1,0 +1,2908 @@
+{
+  "scope": "Declaration names only; no computational/type/region changes",
+  "input_sha256": "27c6ae2cf1b7caee3fa5e8f0a89ec702dd355a8d29ae92796860da95541e239b",
+  "output_sha256": "01bf1f04bd8cf9ecb64c107416848e1852e93ba7e8f36531f989a267888007ad",
+  "script_sha256": "84f423bdc9da07ca494c855de0dd4d83247106b93d2613b89712443cced75c1a",
+  "changes": [
+    {
+      "kind": "Type",
+      "id": 1,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 2
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_1",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 2,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 3
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 10
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_2",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 3,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 4
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 10
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_3",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 4,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 10
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_4",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 5,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 6
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 10
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_5",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 6,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 7
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 10
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_6",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 7,
+      "original_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 8
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 9
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "typenum",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "uint",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "UInt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_7",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 11,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U8"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 3
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_11",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 12,
+      "original_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "InOut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased",
+                "Erased"
+              ],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "InOut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_12",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 13,
+      "original_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ctx",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "BlockCtx",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased",
+                "Erased"
+              ],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 3
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ctx",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "BlockCtx",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_13",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 14,
+      "original_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Aes256BackEnc",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased"
+              ],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Aes256BackEnc",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_14",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Type",
+      "id": 16,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "Array",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Type_16",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 1,
+      "original_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 0
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Array": [
+                            {
+                              "Untagged": {
+                                "Literal": {
+                                  "UInt": "U8"
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": [
+                                {
+                                  "Literal": {
+                                    "Scalar": {
+                                      "Unsigned": [
+                                        "Usize",
+                                        "32"
+                                      ]
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "Usize"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "Shared"
+                    ]
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 1
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      "Shared"
+                    ]
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 0
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_1",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 3,
+      "original_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 2
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Array": [
+                            {
+                              "Untagged": {
+                                "Literal": {
+                                  "UInt": "U8"
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": [
+                                {
+                                  "Literal": {
+                                    "Scalar": {
+                                      "Unsigned": [
+                                        "Usize",
+                                        "16"
+                                      ]
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "Usize"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "Mut"
+                    ]
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 11
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      "Mut"
+                    ]
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 2
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_3",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 4,
+      "original_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "BlockCipherEncrypt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "encrypt_block",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 0
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "BlockCipherEncrypt",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "encrypt_block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_4",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 5,
+      "original_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 5
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 1
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      "Shared"
+                    ]
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Array": [
+                            {
+                              "Untagged": {
+                                "Literal": {
+                                  "UInt": "U8"
+                                }
+                              }
+                            },
+                            {
+                              "Untagged": [
+                                {
+                                  "Literal": {
+                                    "Scalar": {
+                                      "Unsigned": [
+                                        "Usize",
+                                        "32"
+                                      ]
+                                    }
+                                  }
+                                },
+                                {
+                                  "Untagged": {
+                                    "Literal": {
+                                      "UInt": "Usize"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "Shared"
+                    ]
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 5
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_5",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 8,
+      "original_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 6
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Ref": [
+                      "Erased",
+                      {
+                        "Untagged": {
+                          "Adt": {
+                            "id": {
+                              "Adt": 11
+                            },
+                            "generics": {
+                              "regions": [],
+                              "types": [],
+                              "const_generics": [],
+                              "trait_refs": []
+                            }
+                          }
+                        }
+                      },
+                      "Mut"
+                    ]
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 12
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 6
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_8",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 9,
+      "original_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 7
+          }
+        },
+        {
+          "Ident": [
+            "encrypt_with_backend",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 13
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 7
+          }
+        },
+        {
+          "Ident": [
+            "encrypt_with_backend",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_9",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 11,
+      "original_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ctx",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 10
+          }
+        },
+        {
+          "Ident": [
+            "call",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased",
+                "Erased"
+              ],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 3
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 14
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "cipher",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "ctx",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 10
+          }
+        },
+        {
+          "Ident": [
+            "call",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_11",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 12,
+      "original_name": [
+        {
+          "Ident": [
+            "zeroize",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 11
+          }
+        },
+        {
+          "Ident": [
+            "zeroize",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "U64"
+                    }
+                  }
+                }
+              ],
+              "const_generics": [
+                {
+                  "Untagged": [
+                    {
+                      "Literal": {
+                        "Scalar": {
+                          "Unsigned": [
+                            "Usize",
+                            "120"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "Untagged": {
+                        "Literal": {
+                          "UInt": "Usize"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "zeroize",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 11
+          }
+        },
+        {
+          "Ident": [
+            "zeroize",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_12",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 13,
+      "original_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 13
+          }
+        },
+        {
+          "Ident": [
+            "encrypt_block",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased"
+              ],
+              "types": [],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "aes",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "soft",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 13
+          }
+        },
+        {
+          "Ident": [
+            "encrypt_block",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_13",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 14,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 15
+          }
+        },
+        {
+          "Ident": [
+            "default",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 15
+          }
+        },
+        {
+          "Ident": [
+            "default",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_14",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 15,
+      "original_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 12
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "clone_in",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased",
+                "Erased"
+              ],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 12
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "clone_in",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_15",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 16,
+      "original_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 16
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "core",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "convert",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 16
+          }
+        },
+        {
+          "Ident": [
+            "into",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_16",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 17,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 17
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 17
+          }
+        },
+        {
+          "Ident": [
+            "index_mut",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_17",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 19,
+      "original_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 18
+          }
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Literal": {
+                      "UInt": "Usize"
+                    }
+                  }
+                },
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 5
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "hybrid_array",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Trait": 18
+          }
+        },
+        {
+          "Ident": [
+            "index",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_19",
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "Fun",
+      "id": 20,
+      "original_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 12
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "get_out",
+            0
+          ]
+        },
+        {
+          "Instantiated": {
+            "params": {
+              "regions": [],
+              "types": [],
+              "const_generics": [],
+              "trait_clauses": [],
+              "regions_outlive": [],
+              "types_outlive": [],
+              "trait_type_constraints": []
+            },
+            "skip_binder": {
+              "regions": [
+                "Erased",
+                "Erased"
+              ],
+              "types": [
+                {
+                  "Untagged": {
+                    "Adt": {
+                      "id": {
+                        "Adt": 11
+                      },
+                      "generics": {
+                        "regions": [],
+                        "types": [],
+                        "const_generics": [],
+                        "trait_refs": []
+                      }
+                    }
+                  }
+                }
+              ],
+              "const_generics": [],
+              "trait_refs": []
+            },
+            "kind": "Other"
+          }
+        }
+      ],
+      "new_name": [
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "inout",
+            0
+          ]
+        },
+        {
+          "Impl": {
+            "Ty": {
+              "params": {
+                "regions": [],
+                "types": [],
+                "const_generics": [],
+                "trait_clauses": [],
+                "regions_outlive": [],
+                "types_outlive": [],
+                "trait_type_constraints": []
+              },
+              "skip_binder": {
+                "Untagged": {
+                  "Adt": {
+                    "id": {
+                      "Adt": 12
+                    },
+                    "generics": {
+                      "regions": [],
+                      "types": [],
+                      "const_generics": [],
+                      "trait_refs": []
+                    }
+                  }
+                }
+              },
+              "kind": "InherentImplBlock"
+            }
+          }
+        },
+        {
+          "Ident": [
+            "get_out",
+            0
+          ]
+        },
+        {
+          "Ident": [
+            "partial_Fun_20",
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "candidate_only": true,
+  "accepted_reference": false,
+  "checked_endpoints": 38,
+  "rebuilt_modules": 5,
+  "source_sha256": {
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Fixed.lean": "57aee8eb0645b0a9288d7feab1262179620dd5e4a26c34aabeaa10cb10bd4256",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Group.lean": "9e656d7da9139b4832dd7b808137ef4adace250346ac9b56de53573c3dd643bd",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/GroupReference.lean": "c96ee410ff62a1c9ae98f89fcecf8631988b3e09a75fad3346745d785a691bb3",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/KeyCircuit.lean": "710042b1290c21b94e2429b3ff47ea3b35af25c67d406ae5b61dc9be8d8c7d5d",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Reference.lean": "541168416a2eb355f45b2f237a503bfff73818bb1c3fb86310e4d635c7174d61",
+    "SignalReference/ProtoParseWork/SkipPlanWork/Modules/SkipPlanWork/Stack.lean": "3bf6bbc04da50daaf409c922f1ffda0335488b0ca7bf6a76f18e0267a33f6225",
+    "SignalReference/ProtoParseWork/SkipPlanWork/check.py": "b45a88b4c09998f4043842d181b1d1c336507430be8acaf131960c7c9548930b",
+    "SignalReference/ProtoParseWork/SkipPlanWork/audit.py": "c8d57d6c71ee873d01eafd7337bffcd048479e6e4c6e498ace296c7061f6c27a",
+    "SignalReference/ProtoParseWork/SkipPlanWork/key-replay.json": "576cd45461e7d0a0e5cf97ed8c5a5cfd7b5d22712f9f7346c89b6712e6ba3cfa",
+    "TlsMpc/Signal/ProtoParse.lean": "4a266ae4d734e3513592fde2d77a6c64e13b9a89ee92146cc5852d72db59345c",
+    "TlsMpc/Signal/Word64.lean": "79be34b2b664d809831f4fe9bc356b29e1dedb37b5e34dc6ec88cbf7bebe36f7",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/freeze-manifest.json": "1ab987f7bd4cfb8ec504de3f3edafb204b69ebc2a499d1e5f7cc4603c3e48415",
+    "SignalReference/ProtoParseWork/SkipTranslatorWork/root-review.json": "be711a73bead1f874d3bbcfd321aa43fce904618cac4f22c4ad4b6ddb2ed6f52",
+    "SignalReference/ProtoParseWork/KeyReferenceWork/root-review.json": "477c5363d81ca4c62116bf9b61006a9e792e524a300be8a7f5245be44a8e10d0",
+    "SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/DecoderTable.lean": "5554adf4d85f7d2003b71780bc838c2508265fb089d959739b37b58a5a13bb08",
+    "SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/Fields.lean": "5de4fd377aa05e1a04c057f3b3828f25efaa8227fc8ad5fe5ecb0db22f08464c",
+    "SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/Scan.lean": "bd4a714d5d97821691dc9fe8f846ac816d695f8d54755cece7e921fe2c15252b",
+    "SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/Table.lean": "8ce8faae282c89dca38ae6ac12ea4c501a972a94cd2054355397c6624a0991fe",
+    "SignalReference/ProtoParseWork/TopFieldWork/Modules/TopFieldWork/TopPlan.lean": "3b61e0492dbc3937b94d8af89b8eb2d40937ecc2990daa4650624a9be4df2552",
+    "SignalReference/ProtoParseWork/TopFieldWork/check.py": "2a2184084bb452260d21eb693f62e73a45175b05de60747af0023178bc223ee3",
+    "SignalReference/ProtoParseWork/TopFieldWork/audit.py": "4db2cb5237998b6a3418c5759ceb63a8ebe9370533ddae28be7aa9d5c0ca243d",
+    "SignalReference/ProtoParseWork/TopFieldWork/README.txt": "7b95e58e3548e7359c64dcf6a551f156ee64aae6e3a2ec6af91fb4b129da1411",
+    "SignalReference/ProtoParseWork/SkipPlanWork/proof-report.json": "0185153f8d4c4cb9a112d3ef391cfc39e7c259a7ee1891645452b636d7aff2b8",
+    "SignalReference/ProtoParseWork/SkipPlanWork/root-review.json": "2ec548a54c5fa4cce5349fd40d3d165d82425fe53a085eab5a2e074de6738bcc"
+  },
+  "rebuilt_olean_sha256": {
+    "SignalReference/ProtoParseWork/TopFieldWork/Build/TopFieldWork/DecoderTable.olean": "3d2969eda89b22cb094fe92252388b38b9ef05cc445d8bacdfff4019d0bc3952",
+    "SignalReference/ProtoParseWork/TopFieldWork/Build/TopFieldWork/Fields.olean": "4108a82ac572a20ca880d115db49382ee364080270a1d931760d5696cd0d7d3c",
+    "SignalReference/ProtoParseWork/TopFieldWork/Build/TopFieldWork/Scan.olean": "ce4196011c8595c823a8999f242a3abdc38f12dab033c1fd5764220af54ede6c",
+    "SignalReference/ProtoParseWork/TopFieldWork/Build/TopFieldWork/Table.olean": "ea9bb7855794ac6d03086acda4fb0583bd039235df3d78d62215a41c6f3c3ba0",
+    "SignalReference/ProtoParseWork/TopFieldWork/Build/TopFieldWork/TopPlan.olean": "bf51d306e771f87295c0655e0c7e0aa51928b035d8f0fc42678d735376c42228"
+  },
+  "audit_log_sha256": "44f9d86700720e99f662c6f4c90e15952ef315faca9314fd2d7d02c8cc8ab702",
+  "allowed_foundational_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "new_external_models": [],
+  "scope": "Top-level field masks/overwrite; bounded shared decoder table and payload-window correspondence to actual accepted varint/key calls; inactive and rejected scan-state preservation.",
+  "not_established": [
+    "Whole parser/group trace",
+    "Complete cursor/group stack preservation",
+    "Numeric metadata composition with actual scalar/bytes field mergers",
+    "Whole successful SignalMessage/AIG parser agreement"
+  ]
+}

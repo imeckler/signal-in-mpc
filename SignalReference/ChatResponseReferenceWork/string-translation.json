@@ -1,0 +1,32 @@
+{
+  "candidate_only": true,
+  "profile": "string",
+  "exit_code": 0,
+  "binary_sha256": "323e2e1ce117cccf866c9e1fb9925671ec25312006f6d51da72ef95638612ed7",
+  "llbc_sha256": "99305808dd139faf9c5910626e0d2a9840d70b1395980ae2b29d46aa9079286e",
+  "manual_generated_body_edits": false,
+  "translator_candidate_unaccepted": false,
+  "translator_receipt_sha256": "aaed813ffdd5f57329298e0bcbb5cf300af4cc92538dc4be37bde6655ba1e712",
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/Artifacts/string/chat.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/ChatResponseReferenceWork/GeneratedString",
+    "-namespace",
+    "ActualChatResponseString",
+    "-split-files",
+    "-warnings-as-errors",
+    "-no-progress-bar",
+    "-sequential"
+  ],
+  "generated_sha256": {
+    "Funs.lean": "68fde4f831937d593be67eadf9aa33fd8e281b57b8aa8d6f98f1532c30dc84b6",
+    "FunsExternal_Template.lean": "c90606ed91e334d16e79d4eeb42dcd13c16813815cdce5f778ddb7c22969d8b3",
+    "Types.lean": "c0da49348027598464afb4fa50402fc00fbdbe3b3db4e5f7decffe6d0c33208f",
+    "TypesExternal_Template.lean": "0a4e873763e0740afcb0e0e477506ac0d3a2dd497d5665464cb19bd32fb6bdd9"
+  }
+}

@@ -1,0 +1,8 @@
+'PreKeyReference.Proofs.constructor_exact' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PreKeyReference.Proofs.try_from_present' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PreKeyReference.Proofs.optional_pair_present' depends on axioms: [propext]
+'PreKeyReference.Proofs.optional_mask_refines' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PreKeyReference.Proofs.try_from_source_spec' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PreKeyReference.Proofs.first_missing_refines' depends on axioms: [propext, Classical.choice, Quot.sound]
+'PreKeyReference.Proofs.option_some_no_callback' does not depend on any axioms
+'PreKeyReference.Proofs.option_zip_model_exact' depends on axioms: [propext]

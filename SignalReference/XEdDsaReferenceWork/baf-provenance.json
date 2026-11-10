@@ -1,0 +1,26 @@
+{
+  "baf_commit": "95b5831c63ff1c5f6287bd3a77569412a9afdbfb",
+  "baf_archive_sha256": "0016fe95195f846dd6cfdf5a9384a785a3deb35c727b55c6792bf63029987f5f",
+  "archive_files_verified": {
+    "curve25519-dalek/lean/Proofs/Backend/Serial/U64/Field/FromBytes.lean": "facdf0c9d2700381cb78ffd58c40ffb519afd6259a44e175f45b0cb85cb77745",
+    "curve25519-dalek/lean/Proofs/Helpers/Array.lean": "4ca933ec78af71443261d38c1c085ccb66bcbd0567a06318f2807f79e0f862a2",
+    "curve25519-dalek/lean/Proofs/Helpers/Bitwise.lean": "b45efeadd36aaa0fe2c885eba45f5df051b60521ea631170989b894a44b15109",
+    "curve25519-dalek/lean/Proofs/Helpers/AsNat.lean": "39aaf5c8dc92490bf700adc0db402794ecd4cc826c8592293b7fdbf028550fa7",
+    "curve25519-dalek/lean/Proofs/Helpers/Limbs.lean": "f1edb9167d186ec2aaa202ac79a252f66d95e8d868835b3d6b01304eb9f72279",
+    "curve25519-dalek/lean/Proofs/Helpers/StepSpecs.lean": "d8e8de9e64ad1026b9977c81fe36ff715de82c732d12a588fecb25d465f8d107",
+    "curve25519-dalek/lean/Defs/FieldElement51.lean": "b0d2b47c7653d947e0339d0e52c2a7e15ee7c4cbda523f3ae12edb7a97a30b29",
+    "curve25519-dalek/src/backend/serial/u64/field.rs": "c0a773dd8e67311679c341f2d3296cfdd7d087a302f356c4ff436a5c17860385"
+  },
+  "selected_rust_function_body_identical": true,
+  "selected_body_sha256": "58eab4e522cb8c16605c1b0e06cd234127537ed4c7f3d4216ad22398cd9a3863",
+  "whole_rust_file_identical": false,
+  "full_baf_build_claimed": false,
+  "imported_baf_module_dependencies": [],
+  "baf_model_axioms_imported": [],
+  "adaptation": "Selected arithmetic/index/mask lemmas compiled locally against our actual generated decoder. Namespace/import adaptation, local finite-sum Array.asNat definition and five-limb interpretation, dependent rewrite compatibility and Array.make simplification for pinned Lean4.31/Aeneas; all adaptations kernel checked.",
+  "local_port_sha256": {
+    "BafSupport.lean": "c28f8d220d4a47990086297a0991e99ce01468cf78a084a66faf356a03b87c55",
+    "FieldDecodeProof.lean": "e9d26c54abc7986e3a1a812f551eaeabac1008c9f4d5fb5151c9d3837a8d2c6e",
+    "baf-port.diff": "4380d71b25b8401b32be55486948f6ec5b62abb404e2265bdf88bb599ba2a77d"
+  }
+}

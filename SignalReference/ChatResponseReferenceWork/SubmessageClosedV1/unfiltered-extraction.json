@@ -1,0 +1,30 @@
+{
+  "candidate_only": true,
+  "exit_code": 0,
+  "has_errors": false,
+  "command": [
+    "/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/PartialMonoCandidate/Build/tool/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--no-dedup-serialized-ast",
+    "--monomorphize-mut=all",
+    "--start-from=crate::merge_response_submessage",
+    "--include=prost::encoding::message::merge",
+    "--include=prost::encoding::merge_loop",
+    "--include=prost::encoding::*::enter_recursion",
+    "--include=prost::encoding::*::limit_reached",
+    "--include=prost::error::DecodeError",
+    "--include=prost::error::Inner",
+    "--include=prost::error::*::from",
+    "--include=prost::encoding::DecodeContext",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/ChatResponseReferenceWork/SubmessageClosedV1/Artifacts/schema.llbc",
+    "--",
+    "--lib",
+    "--offline"
+  ],
+  "script_sha256": "08c67ed203e0cd2e2b389040f1a3a76ed901071a2620d20cbed3dbeef05f684c",
+  "llbc_sha256": "8a23f9eb18666d0674e271d07ddd99e1d142c0e85a5626d4a260821c74ea308d",
+  "charon_sha256": "be2834d61da5d8b73ee155ce879d7a747fde4ab338462f24a66c412457df96c3"
+}

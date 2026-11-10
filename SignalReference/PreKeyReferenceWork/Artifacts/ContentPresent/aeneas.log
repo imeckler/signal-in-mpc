@@ -1,0 +1,57 @@
+[[92mInfo[39m ] Imported: /Users/izzy/repos/tls-mpc/SignalReference/PreKeyReferenceWork/Artifacts/ContentPresent/prekey.llbc
+[[91mError[39m] Found unexpected constant: ()
+Source: '/rustc/library/core/src/ops/function.rs', lines 250:4-250:70
+[[91mError[39m] Could not translate the body of function 'core::option::{core::option::Option<T>}::ok_or_else because of previous error
+Name pattern: 'core::option::{core::option::Option<@T>}::ok_or_else'
+Definition span: '/rustc/library/core/src/option.rs', lines 1359:4-1361:52
+
+This definition is (transitively) used at the following locations:
+Source: 'rust/protocol/src/state/bundle.rs', lines 86:12-88:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 89:12-91:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 93:12-95:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 96:12-100:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 101:12-105:14
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/rustc/library/core/src/ops/function.rs', lines 250:4-250:70
+[[91mError[39m] Could not translate the function 'core::option::{core::option::Option<T>}::ok_or_else because of previous error.
+Name pattern: 'core::option::{core::option::Option<@T>}::ok_or_else'
+Definition span: '/rustc/library/core/src/option.rs', lines 1359:4-1361:52
+
+This definition is (transitively) used at the following locations:
+Source: 'rust/protocol/src/state/bundle.rs', lines 86:12-88:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 89:12-91:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 93:12-95:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 96:12-100:14
+Source: 'rust/protocol/src/state/bundle.rs', lines 101:12-105:14
+… (omitted - change the number of displayed spans with -max-error-spans)
+Source: '/rustc/library/core/src/ops/function.rs', lines 250:4-250:70
+[[91mError[39m] There should be no bottoms in the value
+Source: '/rustc/library/core/src/option.rs', lines 1987:8-1988:5
+[[91mError[39m] Could not translate the body of function 'core::option::{core::option::Option<T>}::zip because of previous error
+Name pattern: 'core::option::{core::option::Option<@T>}::zip'
+Definition span: '/rustc/library/core/src/option.rs', lines 1979:4-1982:28
+
+This definition is (transitively) used at the following locations:
+Source: 'rust/protocol/src/state/bundle.rs', lines 92:12-92:58
+
+Source: '/rustc/library/core/src/option.rs', lines 1987:8-1988:5
+[[91mError[39m] Could not translate the function 'core::option::{core::option::Option<T>}::zip because of previous error.
+Name pattern: 'core::option::{core::option::Option<@T>}::zip'
+Definition span: '/rustc/library/core/src/option.rs', lines 1979:4-1982:28
+
+This definition is (transitively) used at the following locations:
+Source: 'rust/protocol/src/state/bundle.rs', lines 92:12-92:58
+
+Source: '/rustc/library/core/src/option.rs', lines 1987:8-1988:5
+Uncaught exception:
+  
+  Aeneas.Errors.CFailure(_)
+
+Raised at Aeneas__Errors.craise_opt_span in file "Errors.ml", line 123, characters 4-46
+Called from Aeneas__Translate.translate_function_to_pure in file "Translate.ml", lines 299-304, characters 4-71
+Called from Aeneas__Translate.translate_crate_to_pure.process.(fun) in file "Translate.ml", lines 501-502, characters 16-45
+Called from Aeneas__Parallel.run_with_backtrace in file "Parallel.ml", line 14, characters 6-9
+Re-raised at Aeneas__Parallel.catch_reraise in file "Parallel.ml", line 17, characters 31-65
+Called from Aeneas__Translate.translate_crate_to_pure in file "Translate.ml", line 519, characters 22-62
+Called from Aeneas__Translate.translate_crate in file "Translate.ml", line 2200, characters 31-71
+Called from Dune__exe__Main in file "Main.ml", lines 754-755, characters 8-37

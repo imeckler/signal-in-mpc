@@ -1,0 +1,7 @@
+error: failed to load source for dependency `boring`
+
+Caused by:
+  unable to update https://github.com/signalapp/boring?tag=signal-v5.3.0#b518db81
+
+Caused by:
+  can't checkout from 'https://github.com/signalapp/boring': you are in the offline mode (--offline)
