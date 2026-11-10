@@ -1,0 +1,11 @@
+'LibSignalReference.Candidate.CheckedCtr16.ceil16' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.actual_core_remaining' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.actual_buffer_remaining' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.check_actual' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.required_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.check_exhausted' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.CheckedCtr16.accepted_no_wrap' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 7,
+  "endpoints": [
+    "ceil16",
+    "actual_core_remaining",
+    "actual_buffer_remaining",
+    "check_actual",
+    "required_zero",
+    "check_exhausted",
+    "accepted_no_wrap"
+  ],
+  "foundation_axioms_only": true,
+  "actual_check_remaining_body_unchanged_except_fixed_BS16": true,
+  "remaining_slots_are_DEF_links_to_proved_actual_source": true,
+  "pinned_div_ceil_Std_arithmetic_content_model_trusted": true,
+  "all_Usize_request_lengths_and_valid_buffer_cursors": true,
+  "exhausted_counter_permits_only_cached_bytes": true,
+  "accepted_requests_cannot_counter_wrap": true,
+  "whole_buffered_CTR_HMAC_KDF_open": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/check.py": "21bd87cab89b13a442f67e84c31612c120972c8b2a2c8a5ea38e9a173dbb4bf2",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/extract.py": "fe8d0d08965f1d7f2d2965ecd730e34bcb918c773776f0bed36b6b88c07b96a4",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/extraction-report.json": "7c410263736e205057b993a0a3e66a7b480e2a07c9a44bf63f3edd0728190d16",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/model.rs": "f1c9fef13ca90dcae94855d6181bd7b8035d7f166e2c2be0fbeb85995d23c9bd",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/selected-method.rs": "69dd0974912eb3a17027dc238019bf1141265c44ba1cce63200af4ca77af523f",
+    ".deps/rust-nightly-2026-08-18/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs": "caad28bef2017170cabd6f5edc34b775a66914fc36cbfaff6529c8f2d2a672aa",
+    "SignalReference/CtrReferenceV1Work/FixedGeneratorV1Work/proof-report.json": "32392bdf2a9b4b26bbd235492100baea5840aea6fa808d8e99ce79fc3ca5e55a",
+    "SignalReference/CtrReferenceV1Work/ReadBufferV1Work/proof-report.json": "124001330338a955ed4e1e907ceebaf9da734dc192673b3cbeebb7e614fdae37",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Generated/Types.lean": "3deb74d51323f9253db8b907315520f77b2622c795139830a8aa036c72842219",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Generated/FunsExternal.lean": "2c2db1a7793afec54d19bee859cc0e1ac6974be806d891b2c98ed7d2c175263c",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Generated/Funs.lean": "466087b6dabc9380b9c999cd86b66efa3f4c88fc1b739d3cdd6a823f360b9a26",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Reference.lean": "3306e68e18e71d303e67684a94752a88c3cdf6ae4d99d54132e3ca226d319d30"
+  }
+}

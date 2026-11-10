@@ -1,0 +1,309 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "charon_exit": 0,
+  "actual_check_body_text_unchanged": true,
+  "selected_fixed_dispatch_content_layout_trusted": true,
+  "remaining_slots_require_actual_source_DEF_links": true,
+  "whole_crypto_result_assumed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/extract.py": "fe8d0d08965f1d7f2d2965ecd730e34bcb918c773776f0bed36b6b88c07b96a4",
+    ".deps/libsignal-vendor/cipher-0.5.2/src/stream/wrapper.rs": "6fcf34c8511f80d46f0c48d5e52e3502641cd3ac8047fcb72336b0ac597e335b",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/model.rs": "f1c9fef13ca90dcae94855d6181bd7b8035d7f166e2c2be0fbeb85995d23c9bd",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/selected-method.rs": "69dd0974912eb3a17027dc238019bf1141265c44ba1cce63200af4ca77af523f"
+  },
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/apply.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "llbc_sha256": "0fa3d97178941ae4e28ddfcb2224035b8c8862c41aa7cce95f49e1d858f631c0",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 6,
+    "fun_decls": 5,
+    "global_decls": 0,
+    "trait_decls": 0,
+    "trait_impls": 0,
+    "ordered_decls": 11
+  },
+  "body_kinds": {
+    "Opaque": 4,
+    "Structured": 1
+  },
+  "external_functions": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_checked_remaining_reference::{impl}::remaining_blocks",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 7,
+            "col": 30
+          },
+          "end": {
+            "line": 7,
+            "col": 103
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "fixed_ctr_checked_remaining_reference::{impl}::remaining",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 8,
+            "col": 36
+          },
+          "end": {
+            "line": 8,
+            "col": 94
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::num::{impl}::checked_sub",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 1086,
+            "col": 8
+          },
+          "end": {
+            "line": 1086,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::num::{impl}::div_ceil",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 3787,
+            "col": 8
+          },
+          "end": {
+            "line": 3787,
+            "col": 54
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "fixed_ctr_checked_remaining_reference"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/option.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/result.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 4,
+      "name": {
+        "Local": "/rustc/library/core/src/num/uint_macros.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 5,
+      "name": {
+        "Local": "/rustc/library/core/src/num/mod.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_checked_remaining_reference::{impl}::remaining_blocks",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 7,
+            "col": 30
+          },
+          "end": {
+            "line": 7,
+            "col": 103
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "fixed_ctr_checked_remaining_reference::{impl}::remaining",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 8,
+            "col": 36
+          },
+          "end": {
+            "line": 8,
+            "col": 94
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "fixed_ctr_checked_remaining_reference::{impl}::check_remaining",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 10,
+            "col": 4
+          },
+          "end": {
+            "line": 23,
+            "col": 5
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::num::{impl}::checked_sub",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 1086,
+            "col": 8
+          },
+          "end": {
+            "line": 1086,
+            "col": 65
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::num::{impl}::div_ceil",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 4,
+          "beg": {
+            "line": 3787,
+            "col": 8
+          },
+          "end": {
+            "line": 3787,
+            "col": 54
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/Artifacts/apply.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/CheckedRemainingV1Work/Generated",
+    "-split-files",
+    "-namespace",
+    "ActualCheckedCtr16",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}
