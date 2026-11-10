@@ -1,0 +1,23 @@
+'LibSignalReference.Candidate.ParallelCallback4.backend_roundtrip' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.owner_roundtrip' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.actual_generator' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.actual_xor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.actual_chunk' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.checked_chunk_no_wrap' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.expression_correct' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.expression_length' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+'LibSignalReference.Candidate.ParallelCallback4.compiled_actual_chunk' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]

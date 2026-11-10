@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "candidate_only": true,
+  "backend_independent": true,
+  "kernel_endpoints": 9,
+  "endpoints": [
+    "backend_roundtrip",
+    "owner_roundtrip",
+    "actual_generator",
+    "actual_xor",
+    "actual_chunk",
+    "checked_chunk_no_wrap",
+    "expression_correct",
+    "expression_length",
+    "compiled_actual_chunk"
+  ],
+  "foundation_axioms_only": true,
+  "actual_selected_parallel_chunk_statement_block_unchanged": true,
+  "source_block_factoring_and_fixed_content_dispatch_trusted": true,
+  "primitive_slots_DEF_link_proved_actual_source": true,
+  "computed_key_schedule_counter_parallel_AES_nested_XOR_and_compiler_composed": true,
+  "key_nonce_and_complete_output_owner_preserved": true,
+  "checked_wrapper_acceptance_implies_no_counter_wrap": true,
+  "counter_is_public_profile_parameter": true,
+  "full_ApplyBlocksCtx_loop_and_byte_chunk_view_not_yet_proved": true,
+  "full_buffered_wrapper_HMAC_KDF_open": true,
+  "production_changed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/check.py": "0f64644c774b744c6081cd5c66b695263be9accee199e74dd72c9a9618327f7b",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/extract.py": "67a28456e7e0c06728f36ce6d0810aba79e29f8821b628757ca2dd71ca056750",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/extraction-report.json": "234d3a3875bb10ce5bacd1b569eaff8ce913580b2898941ed1b6ec3d45264ea7",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/model.rs": "9ebd282ade18e594a47afd343117b5a30cbd4b85e6dcc08b604f4da4bced83c0",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/selected-method.rs": "c3066b446de4fe1933da8573f15c9fc72e89f645fcb0d0b60885bb5b2d5378f5",
+    "SignalReference/CtrReferenceV1Work/ParallelGeneratorV1Work/proof-report.json": "28b49ccb0a44a70a29e49a8e95a19eaac264a9a547d4252beade35bd9e9401ec",
+    "SignalReference/CtrReferenceV1Work/ParallelXorV1Work/proof-report.json": "0cdd7324698aa31d272d71c7eb9d44087f468c5b3ad85613321e7ae4d6af206c",
+    "SignalReference/CtrReferenceV1Work/CheckedRemainingV1Work/proof-report.json": "6c8621ef5959132134b4eff3e36d2d6bc529d9a917e35f4fabd4c0471b2a90e1",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Generated/Types.lean": "dac61674cdb661dce1a2bb7f19f0c17ae95c5ae1bf9c8e80f8edee82d1d3588d",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Generated/FunsExternal.lean": "3bf794ae5d7f993dae93455bd2f80336f1fee4dbc6037f60ae1038bb1dc65767",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Generated/Funs.lean": "f0dc8f195ae4cd93d271fcb4279928346f26915edbfb74efb81061a0f65fbfb2",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Reference.lean": "f6190feec493787049a3190776038bd76de5e654c6805d2e8ac0f3d06f444f8b",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Circuit.lean": "44fecfa8a718d82f5ea215701244beda60c887ad4bd4a3a0f940fe48d580559b"
+  }
+}

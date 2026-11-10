@@ -1,0 +1,353 @@
+{
+  "candidate_only": true,
+  "accepted": false,
+  "charon_exit": 0,
+  "actual_selected_parallel_chunk_body_unchanged": true,
+  "selected_fixed_dispatch_content_layout_trusted": true,
+  "parallel_gen_and_XOR_slots_require_actual_source_DEF_links": true,
+  "whole_crypto_result_assumed": false,
+  "source_sha256": {
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/extract.py": "67a28456e7e0c06728f36ce6d0810aba79e29f8821b628757ca2dd71ca056750",
+    ".deps/libsignal-vendor/cipher-0.5.2/src/stream/core_api.rs": "b79ca50449712d6aae8bc98447f80194217ff34572a225efd0d802cc475f4640",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/model.rs": "9ebd282ade18e594a47afd343117b5a30cbd4b85e6dcc08b604f4da4bced83c0",
+    "SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/selected-method.rs": "c3066b446de4fe1933da8573f15c9fc72e89f645fcb0d0b60885bb5b2d5378f5"
+  },
+  "command": [
+    "/Users/izzy/repos/tls-mpc/.deps/charon-4ad295c1bf982b5533ce7d85f4ddc889ff3127f8/charon/target/release/charon",
+    "cargo",
+    "--preset=aeneas",
+    "--no-dedup-serialized-ast",
+    "--sysroot=default",
+    "--error-on-warnings",
+    "--start-from=crate",
+    "--dest-file=/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/apply.llbc",
+    "--",
+    "--lib",
+    "--offline",
+    "--target",
+    "aarch64-apple-darwin"
+  ],
+  "llbc_sha256": "acd07970e9da54b98beb1fc63241bf23894d2b3c118d965734393bf785e1c699",
+  "charon_version": "0.1.245",
+  "has_errors": false,
+  "counts": {
+    "type_decls": 3,
+    "fun_decls": 6,
+    "global_decls": 0,
+    "trait_decls": 1,
+    "trait_impls": 3,
+    "ordered_decls": 12
+  },
+  "body_kinds": {
+    "Structured": 1,
+    "Opaque": 5
+  },
+  "external_functions": [
+    {
+      "id": 1,
+      "name": "fixed_ctr_parallel_callback_reference::{impl}::gen_par_ks_blocks",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 6,
+            "col": 33
+          },
+          "end": {
+            "line": 6,
+            "col": 118
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "fixed_ctr_parallel_callback_reference::{impl}::xor_in2out",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 7,
+            "col": 38
+          },
+          "end": {
+            "line": 7,
+            "col": 113
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "external_or_union_types": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_parallel_callback_reference::Batch",
+      "kind": "Alias",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 3,
+            "col": 0
+          },
+          "end": {
+            "line": 3,
+            "col": 27
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "id": 0,
+      "name": {
+        "Local": "src/lib.rs"
+      },
+      "crate_name": "fixed_ctr_parallel_callback_reference"
+    },
+    {
+      "id": 1,
+      "name": {
+        "Local": "/rustc/library/core/src/array/mod.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 2,
+      "name": {
+        "Local": "/rustc/library/core/src/lib.rs"
+      },
+      "crate_name": "core"
+    },
+    {
+      "id": 3,
+      "name": {
+        "Local": "/rustc/library/core/src/default.rs"
+      },
+      "crate_name": "core"
+    }
+  ],
+  "explicit_exclusions": [],
+  "explicit_opaque_patterns": [],
+  "preset_hidden_traits": [
+    "core::marker::Sized",
+    "core::marker::MetaSized",
+    "core::marker::PointeeSized",
+    "core::marker::Tuple",
+    "core::clone::TrivialClone",
+    "core::alloc::Allocator"
+  ],
+  "translation_options": {
+    "preset": "Aeneas",
+    "sysroot": "default",
+    "monomorphize": false,
+    "monomorphize_mut": null,
+    "extract_opaque_bodies": false,
+    "precise_drops": false,
+    "desugar_drops": false,
+    "skip_borrowck": false,
+    "no_typecheck": false,
+    "lift_associated_types": [
+      "*"
+    ]
+  },
+  "entry_patterns": [
+    "crate"
+  ],
+  "selected_functions": [
+    {
+      "id": 0,
+      "name": "fixed_ctr_parallel_callback_reference::apply_parallel_chunk",
+      "body_kind": "Structured",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 8,
+            "col": 0
+          },
+          "end": {
+            "line": 12,
+            "col": 13
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 1,
+      "name": "fixed_ctr_parallel_callback_reference::{impl}::gen_par_ks_blocks",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 6,
+            "col": 33
+          },
+          "end": {
+            "line": 6,
+            "col": 118
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 2,
+      "name": "fixed_ctr_parallel_callback_reference::{impl}::xor_in2out",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 0,
+          "beg": {
+            "line": 7,
+            "col": 38
+          },
+          "end": {
+            "line": 7,
+            "col": 113
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 3,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 4,
+      "name": "core::array::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 1,
+          "beg": {
+            "line": 522,
+            "col": 12
+          },
+          "end": {
+            "line": 522,
+            "col": 35
+          }
+        },
+        "generated_from_span": null
+      }
+    },
+    {
+      "id": 5,
+      "name": "core::default::{impl}::default",
+      "body_kind": "Opaque",
+      "span": {
+        "data": {
+          "file_id": 3,
+          "beg": {
+            "line": 157,
+            "col": 12
+          },
+          "end": {
+            "line": 157,
+            "col": 30
+          }
+        },
+        "generated_from_span": null
+      }
+    }
+  ],
+  "proof_status": "not established by extraction; run the Lean proof checks",
+  "aeneas_exit": 0,
+  "aeneas_command": [
+    "/Users/izzy/repos/tls-mpc/.deps/aeneas-2026-08-27/aeneas",
+    "-backend",
+    "lean",
+    "/Users/izzy/repos/tls-mpc/SignalReference/CtrReferenceV1Work/ParallelCallbackV1Work/Artifacts/apply.llbc",
+    "-dest",
+    "/Users/izzy/repos/tls-mpc/SignalReference",
+    "-subdir",
+    "/CtrReferenceV1Work/ParallelCallbackV1Work/Generated",
+    "-split-files",
+    "-namespace",
+    "ActualParallelCallback4",
+    "-warnings-as-errors",
+    "-no-progress-bar"
+  ]
+}

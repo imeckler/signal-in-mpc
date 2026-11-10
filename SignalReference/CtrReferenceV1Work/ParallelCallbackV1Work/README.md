@@ -1,0 +1,7 @@
+The exact pinned `ApplyBlocksCtx::call` parallel-chunk statement block is factored into a fixed-content helper with the same `backend` and `chunk` variables. Its statements are copied unchanged: default batch, actual parallel generator, actual nested XOR. This is a source-block factoring boundary, not a claim that the enclosing full generic callback has been extracted/proved.
+
+Both primitive slots are DEF adapters to proved actual translated implementations. `actual_chunk` preserves expanded-key/nonce owners and completes input/output writeback. `compiled_actual_chunk` computes the actual key schedule and connects the source counter→parallel AES→nested XOR sequence to backend-independent BVExpr/AIG evaluation for64 bytes. One schedule feeds the four-block core. `checked_chunk_no_wrap` composes actual wrapper acceptance with the exact counter advance; unchecked core wrapping remains unchanged.
+
+The counter argument to the exported expression is a public deterministic profile parameter. It must not be obtained by opening a private counter. Key/plaintext are symbolic. Source/Std/fixed-content/borrow boundaries remain inherited and explicit; no whole-AES/CTR result or supplied crypto validity flag is assumed.
+
+Run check.py for exact selected-block/source hashes, inherited receipts and foundation-only kernel audit. Remaining layers include the actual enclosing chunks/tail control flow, byte-view coherence, captured closure owners, full buffered head/partial-tail/error path and HMAC/KDF. Production/runtime/artifacts are unchanged.
