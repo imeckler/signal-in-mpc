@@ -1,7 +1,7 @@
 """Build opaque native-field TU against already pinned secure-OT candidate."""
 import hashlib,json,pathlib,subprocess,time
 ROOT=pathlib.Path(__file__).resolve().parents[2];BASE=ROOT/'.deps/two-party-comparison';MP=BASE/'data61-MP-SPDZ-113c4e4';HERE=pathlib.Path(__file__).resolve().parent
-flags=['-std=c++20','-O2','-DNO_AVX_OT','-DUSE_GF2N_LONG',*['-I'+str(p) for p in [MP,MP/'deps',MP/'local/include',pathlib.Path('/opt/homebrew/include'),pathlib.Path('/opt/homebrew/opt/openssl@3.5/include')]],'-Wno-deprecated-literal-operator','-Wno-deprecated-declarations']
+flags=['-std=c++20','-O3','-mcpu=native','-DNO_AVX_OT','-DUSE_GF2N_LONG','-DEMP_HYBRID_TEST_FAULTS=1',*['-I'+str(p) for p in [MP,MP/'deps',MP/'local/include',pathlib.Path('/opt/homebrew/include'),pathlib.Path('/opt/homebrew/opt/openssl@3.5/include')]],'-Wno-deprecated-literal-operator','-Wno-deprecated-declarations']
 commands=[];start=time.monotonic()
 with open(BASE/'field-engine-build.log','w') as log:
     for name in ['field_engine','field_engine_fixture']:

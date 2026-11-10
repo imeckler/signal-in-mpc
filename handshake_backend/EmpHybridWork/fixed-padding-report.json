@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "equivalence_cases": 896,
+  "malformed_rejected": true,
+  "sources": {
+    "pad_program.h": "24e9062fc1493ee5fd0fea8ba7df41a436b86e2904570489046902a962ece00b",
+    "pad_program_test.cpp": "7e03cd99876ac2fb084eec0b8010c1d9ff4efe27db420779f61ef294f821adac"
+  }
+}

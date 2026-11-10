@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "endpoints": {
+    "masked_range": "[propext, Quot.sound]",
+    "recovered_range": "[propext, Quot.sound]",
+    "masked_recovered": "[propext, Quot.sound]",
+    "masked_injective": "[propext, Quot.sound]",
+    "bit_mask_decode": "[]"
+  },
+  "source_sha256": "3d82d365ec4e1bcecca617c9cb4f89cc52e0be10668f125132e12d9cb607529d",
+  "scope": "Nat/Bool value semantics only:canonical masks/range,recovery,injectivity,bit decoding. No gate/compiler or malicious backend security/uniform sampling theorem."
+}

@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "cases": 160,
+  "scope": "Actual C++ range/modp gate builder versus Python bigints. No Lean theorem or native field conversion claim.",
+  "sources": {
+    "modp_program_test.cpp": "075efb67827116b1682ca69b42d35df264f9112952a7e9f81675b19112a1c32d",
+    "modp_program.h": "fadc53cabb359115ea30b9a87a45e3c86a3717839282a5a623a8732ea097f2bd"
+  }
+}

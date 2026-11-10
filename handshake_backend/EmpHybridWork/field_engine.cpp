@@ -52,7 +52,16 @@ FieldEngine::Handle FieldEngine::constant(uint64_t v){auto&p=*impl;p.require();r
 void FieldEngine::check(){auto&p=*impl;p.require();try{p.set.check();}catch(...){p.failed=true;throw;}}
 std::vector<std::array<uint8_t,32>> FieldEngine::checked_open(const std::vector<Handle>&a){
     auto&p=*impl;p.require();try{
-        p.set.check();auto&o=p.set.output;o.init_open(p.player);for(auto h:a)o.prepare_open(p.get(h));o.exchange(p.player);
+        p.set.check();auto&o=p.set.output;o.init_open(p.player);
+        for(size_t i=0;i<a.size();i++) {
+#ifdef EMP_HYBRID_TEST_FAULTS
+            if(i==0&&p.player.my_num()==1&&std::getenv("EMP_TEST_NATIVE_OPEN_MAC")) {
+                auto bad=p.get(a[i]);bad=S(bad.get_share(),bad.get_mac()+F(1));o.prepare_open(bad);
+            }else
+#endif
+                o.prepare_open(p.get(a[i]));
+        }
+        o.exchange(p.player);
         std::vector<F> quarantine;for(size_t i=0;i<a.size();i++)quarantine.push_back(o.finalize_open());
         o.Check(p.player); // Never serialize/use an unchecked field opening.
         std::vector<std::array<uint8_t,32>>out;

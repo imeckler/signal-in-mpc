@@ -1,6 +1,6 @@
 # EMP authenticated Boolean + native field candidate
 
-Status: implementation plan and checked public parameter model. **No EMP↔field bridge has executed yet. No deployment/production gate is enabled.** The user selected two computing parties A/B, tolerating one malicious party with abort. The same A/B identities own both engines; a storage quorum does not restore compute t2. Sharing refresh remains paused. Existing MP/legacy receipts and historical account heads remain immutable references.
+Status: bounded actual cross-engine coin and conversion controls have executed; see `CONVERSION_CHECKPOINT.md`. **No reusable admitted bridge, full application or deployment/production gate is enabled.** The user selected two computing parties A/B, tolerating one malicious party with abort. The same A/B identities own both engines; a storage quorum does not restore compute t2. Sharing refresh remains paused. Existing MP/legacy receipts and historical account heads remain immutable references.
 
 ## Pins and current evidence
 

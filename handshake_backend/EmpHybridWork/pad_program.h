@@ -13,7 +13,7 @@ struct PaddedProgram {
     emp::circuit::BooleanProgram program;
     uint32_t original_inputs, original_outputs, dummy_inputs, dummy_outputs;
 };
-inline PaddedProgram pad_program(const emp::circuit::BooleanProgram& source) {
+inline PaddedProgram pad_program(const emp::circuit::BooleanProgram& source,uint32_t fixed_dummy=0) {
     using namespace emp::circuit;
     if(source.num_wires!=source.num_inputs+source.gates.size())throw std::invalid_argument("dense SSA required");
     uint32_t real=0;
@@ -26,7 +26,8 @@ inline PaddedProgram pad_program(const emp::circuit::BooleanProgram& source) {
         else if(g.op!=Op::Xor&&!unary&&!constant)throw std::invalid_argument("unknown gate");
     }
     for(auto w:source.outputs)if(w>=source.num_wires)throw std::invalid_argument("output range");
-    uint32_t d=real&&real<1024?1024-real:0;
+    if(fixed_dummy>1024)throw std::invalid_argument("dummy budget");
+    uint32_t d=std::max(real&&real<1024?1024-real:0,fixed_dummy);
     if(source.num_wires>std::numeric_limits<uint32_t>::max()-3*d)throw std::overflow_error("padded wire count");
     PaddedProgram result{source,source.num_inputs,uint32_t(source.outputs.size()),2*d,d};
     if(!d)return result;

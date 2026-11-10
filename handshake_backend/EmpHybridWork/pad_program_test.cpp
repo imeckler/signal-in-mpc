@@ -16,17 +16,17 @@ static std::vector<bool> eval(const BooleanProgram&p,const std::vector<bool>&inp
 }
 int main(){
     std::mt19937 gen(991);unsigned checks=0;
-    for(unsigned n:{0,1,2,15,1023,1024,1025}) {
+    for(unsigned n:{0,1,2,15,1023,1024,1025}) for(unsigned fixed:{0,1024}) {
         BooleanProgram p;p.num_inputs=4;p.num_wires=4;
         auto gate=[&](Op op,unsigned a,unsigned b=0){auto out=p.num_wires++;p.gates.push_back({a,b,out,op});return out;};
         auto z=gate(Op::Const0,0),one=gate(Op::Const1,0);
         auto w=gate(Op::Xor,0,1);
         for(unsigned i=0;i<n;i++)w=gate(Op::And,w,2+i%2);
         auto v=gate(Op::Not,w);p.outputs={w,v,0,z,one,w};
-        auto padded=emp_hybrid::pad_program(p);
-        assert(padded.dummy_outputs==(n&&n<1024?1024-n:0));
+        auto padded=emp_hybrid::pad_program(p,fixed);
+        assert(padded.dummy_outputs==std::max(n&&n<1024?1024-n:0,fixed));
         unsigned ands=0;for(auto g:padded.program.gates)ands+=g.op==Op::And;
-        assert(ands==(n&&n<1024?1024:n));
+        assert(ands==n+padded.dummy_outputs);
         for(unsigned input=0;input<16;input++)for(unsigned trial=0;trial<4;trial++){
             std::vector<bool>in;for(unsigned i=0;i<4;i++)in.push_back((input>>i)&1);
             auto expected=eval(p,in);
