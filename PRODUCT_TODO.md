@@ -145,7 +145,15 @@ session by one party (test admission). For the product no one may ever hold the 
 ## 6. Database nodes (`secret-shared-db`, branch `two-party-handoff`)
 
 Done: the controllers run `handoff_client` for read / parity / combine / deal / write-blob, checked
-with five in-memory test nodes.
+with five in-memory test nodes. Also done and checked the same way (node changes are on branch
+`two-party-handoff-signup-tool` of `secret-shared-db`): a read's request authorises the later
+write-back; the application's signed delete request, submitted by both parties; the fixed-width
+signup token (108 characters of base64) naming the contact's id; "dealt but not yet readable"
+reported separately from "missing"; and the account's own row (identity key, password,
+certificate) under a reserved id that the two parties may read and write without an application
+request, loaded by send and receive sessions. A first Postgres test of the compute path passes
+(one node). Decided there, for the owner to confirm: a deleted id cannot be dealt again; one
+party can block a delete by not forwarding it.
 
 - [ ] **(blocker)** Run against the real node binary with Postgres. The compute path's Postgres
       code has never been run against a database; the checked-in configs lack the compute
