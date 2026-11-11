@@ -1,0 +1,20 @@
+{
+  "description": "The LOCAL test deployment of check_signal_service_local.py (--strict): what its sessions can ask for. See handshake_backend/EmpHybridWork/CIRCUIT_SHAPES.md for each setting.",
+  "settings": {
+    "certificate": 244,
+    "password": 22,
+    "client_certificate": 0,
+    "handshake": [43, 58, 94, 922],
+    "record_max": 6144,
+    "typed_records": 1,
+    "seal_max": 384,
+    "sends": ["1:1:1:1:1"],
+    "devices": 2,
+    "bundle_items": "1/3.4.5/1/0.3/1+1/3.4.5/7.8/0.4/7.8",
+    "signup_certificates": ["244:0:0"],
+    "signup_one_time": [0, 1],
+    "signup_registration": [1, 2],
+    "signup_ciphertext": [176],
+    "signup_text": 108
+  }
+}

@@ -47,6 +47,10 @@ public:
         need(!carry,"offset recoding");
         return inputs;
     }
+    // Everything a later session would need (SEALED_SENDER_AGREEMENT.md, "Keeping the table across
+    // sessions"; used by rounds_fixture.cpp only): the initial point, then the table; and K0.
+    std::vector<H> state()const{need(ready,"offset agreement not prepared");std::vector<H>out=initial;out.insert(out.end(),table.begin(),table.end());return out;}
+    const std::array<uint8_t,32>&public_key()const{return initial_public;}
     // The entries 2^i·R, i = 3..254 (x then y): the points an agreement with R sums by scalar bits.
     std::vector<H> powers()const{
         need(ready,"offset agreement not prepared");std::vector<H>out;

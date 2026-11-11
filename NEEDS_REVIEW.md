@@ -224,6 +224,116 @@ message (no security role found; please confirm it was only exercising the key-u
 the 25 s `/v1/keepalive` request on the receive socket (now a WebSocket ping after 31 s; the pong
 is not checked, so a dead connection is noticed only by the next read or by the closing keepalive).
 
+## 3b. Constant-depth curve programs: masked openings and hints (2026-11-11, uncommitted; OFF by default)
+
+Switch: `TLS_WORKER_HINTED=1` on both workers (part of every agreed request; the harness's
+`--hinted`). Default 0: the ladders and chains as before, nothing below applies. It is off
+because it opens values that were not opened before and differs from the earlier programs on
+malformed keys; the owner should decide after review. Numbers: `PERFORMANCE.md`, "Rounds".
+
+**What changed.** Over a link between the nodes every multiplication level of a field program is
+a round trip, and the curve programs were long chains: a square root by a 250-step power chain,
+a table by 256 successive doublings, a 255-step ladder per key agreement, a 509-step
+double-and-add per signature, a 253-step multiplication by the group order. New field programs
+(`TlsMpc/EdwardsHinted.lean`; runtime `hinted_points.h`; used by `service_kernels.h` when the
+switch is on) compute the same results in a few dozen levels. Two techniques carry the risk:
+
+1. **A square root from an opened masked value** (`liftOpen`, `liftPoint`). For a Montgomery
+   coordinate `u`, `q = u(u² + 486662u + 1)`; with a uniform shared `r` (sum of both parties'
+   inputs) and a uniform shared bit `b` (XOR of one checked private bit from each party), the
+   workers open `w = q·r²·2^b`, take a public root, and get the Edwards point without a power
+   chain. Validity of `u` stays a private bit (`sel xor b` for the public "is `w` a square").
+2. **Hints, checked.** To get the multiples `16^w·P` of a private point without successive
+   doublings, the workers open `Z = P + M_A + M_B` for private uniform points `M_A`, `M_B`, one
+   entered by each party; party A then enters `16^w·(Z − M_A)` and party B `16^w·M_B` as private
+   inputs (computed locally with libsodium), and the program takes their differences as the
+   window bases. It does not trust them: every window computes `16·base_w` itself and the
+   workers open (masked) `16·base_w − base_(w+1)`, which must be zero.
+
+**Every value newly opened.** Per lifted point (a contact's stored identity key when it is
+prepared; for a first message received: the envelope's ephemeral key, the sender's identity
+key, the base key, the ratchet key; for a device refresh: the bundle's identity key, signed
+prekey, one-time prekey):
+
+| Opened | When honest | Otherwise |
+|---|---|---|
+| two bit checks, two curve checks of the parties' own mask contributions | 0 | a party entered a non-bit or a point off the curve: each value is a function of its owner's inputs only; the session stops |
+| `w = q·r²·2^b`, after those checks | uniform over the nonzero field elements for every `q ≠ 0`, curve or twist (2 is a non-square, `r²` is a uniform nonzero square) | **0 exactly when `u = 0`** (or `r = 0`): see below |
+| `Z = P + M_A + M_B` (`P` is the base point when `u` is invalid) | a uniform point of the curve's whole group (each mask is uniform over the prime-order part and the 8 torsion points: `Ed::random`) | — |
+| masked denominators of the additions (`b·r`, as `FieldProgram` already opens) | uniform: the complete addition law has nonzero denominators on curve points, and the lift's `y` denominator is `1 + valid·u` | 0 only if a hint is off the curve: a party's deviation, the session stops |
+| the masked links, per table (126 values) | 0 | a wrong hint: uniform nonzero values (each difference times its own mask), the session stops |
+| per agreement, the masked denominator of the final quotient | uniform | 0 when the result is the neutral element (a low-order point): as the ladder's quotient already opened |
+| a contact's `valid` when it is prepared for sending | 1 | 0: the stored key is not a curve point. The earlier program opened the same fact (its curve check) and ended the session; now it is that contact's status (operation 66 replies 0, a send to it replies 0) |
+
+No longer opened: the server key's Edwards coordinates (they were computed in the engine from a
+public value and opened; now each party evaluates the same pinned Lean program in the clear,
+`FieldProgram::evaluate_clear`).
+
+**`u = 0`.** The opening is zero exactly for the coordinate 0 (the point of order 2). The
+ladder already told both nodes that such a key is of low order (its quotient opens zero for
+the five low-order coordinates); this narrows it to `u = 0`. It concerns only a key that a
+remote party chose to be 0.
+
+**Where the results differ from the earlier programs** (only on keys no honest client has):
+- *Twist points.* The ladder computes RFC 7748's X25519 for any `u`, also one on the twist. The
+  new programs work on the curve: for a twist `u`, `valid` is privately 0 and the agreement is
+  replaced by a uniform value (so the message or bundle fails its MAC and is refused like any
+  other invalid one). libsignal accepts a first message whose ephemeral, identity or ratchet key
+  is a twist point (it validates only the base key). **A sender of crafted messages can tell this
+  client from libsignal by that.**
+- *`u = 0` as a signing key.* The earlier lift called the order-2 point valid; now it is
+  invalid, so a bundle under identity key 0 is refused where the signature equation might
+  have held. As an agreement input the result is 0, as before.
+
+**Why a hint cannot change a result or leak.** `EdwardsHinted.entries_sound` (Lean, no `sorry`,
+axioms `propext` only): if every link holds, the table is the chain computed from `P` alone,
+whatever the hints were. Whether a link holds depends only on the hint and on values its
+author knows (`Z`, its own mask): A's hint is right exactly when it equals `16^w·(Z − M_A)`;
+it cannot be made to pass or fail depending on `P`. The torsion check (`torsionHinted`) opens
+nothing: its two outputs go to the receive kernel as before and are zero only if the hinted `Q`
+is a curve point with `8Q = P` (the curve check of `Q` is folded in under a uniform mask), which
+exists exactly for `P` in the prime-order subgroup.
+
+**To check.**
+1. The uniformity claims in the table, in particular that `w` is opened only after the bit and
+   curve checks, and that `Z` hides `P` when one party's mask is uniform (including a `P` with a
+   torsion component).
+2. That every opening is still preceded by the engine's MAC check of what came before
+   (`FieldEngine::checked_open`, unchanged), so a tampered earlier value cannot be probed
+   through a masked denominator.
+3. The public and local arithmetic in C++ (`LocalField`, `Ed` in `hinted_points.h`): conversions
+   between libsodium's encoding and affine coordinates, the public square root of `w`, each
+   party's own multiples. It touches no shared value.
+4. That replacing an invalid point by the base point and carrying `valid` privately leaves no
+   path where an invalid key's agreement is used unmasked (`bitSum`: numerator `mask +
+   valid·(… − mask)`).
+5. The two behaviour differences above: acceptable, or to be removed (a twist-capable program).
+
+**Proved** (`TlsMpc/EdwardsHinted.lean`): the step functions and sums evaluate to the stated
+value functions; `entries_sound`, `prepareTable_sound`, `bitTable_sound`; every accepted
+compilation computes its program (`compiled_correct`, from `compileAll_correct`). **Not proved**
+(as for the earlier programs): that the formulas are the group law, the Montgomery/Edwards map,
+the uniformity statements. **Tested:** `hinted_program_checks.py` (every program against
+independent Edwards arithmetic, a Montgomery ladder and `cryptography`'s X25519; wrong hints,
+non-bits, twist points, `u ∈ {0, 1, −1}`, points with torsion); `rounds_fixture.cpp` (the old
+and new programs on the same shared inputs in the two engines, results opened and compared:
+nine agreements, a signature point, torsion, tables, an invalid key in a batch); the local
+flow with `--hinted`. No cheating-party test in the engines.
+
+**Also new, same date.**
+- *Operation 66* (`contactsPrepare`): several contacts' tables in the same field rounds. Its
+  reply is one public status per contact (255, 0 = key refused as above, 1 = not loaded).
+- *`TLS_WORKER_FIELD_DIRECT=1`* (default 0): the field engine's openings by the library's direct
+  protocol (`Direct_MAC_Check`: each party sends its shares to the other at once) instead of the
+  indirect one (party 1 to party 0, sums back). One message delay per multiplication round
+  instead of two. The opened values and the MAC check are the library's own in both; a reviewer
+  should confirm that for two parties the two are equivalent for a deviating party.
+- *`TLS_WORKER_TEST_LINK_SHIFT`* (test only): the connecting worker dials other ports, where
+  `scripts/delay_relay.cpp` adds latency. Not for deployment.
+- *Proposed, not implemented:* keeping a contact's table with its stored state
+  (`SEALED_SENDER_AGREEMENT.md`, "Keeping the table across sessions"). The cheapest form needs
+  a field-engine MAC key that persists across sessions; that is the owner's decision.
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer

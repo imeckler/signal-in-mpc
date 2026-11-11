@@ -572,7 +572,7 @@ def run_app(export, mode):
                                     application=report)
             ok = result['delete']['passed']
         # F.
-        ok = ok and notify('notify_after_delete', everyone, text('three'), dict({c: delivered for c in ids}, **{new: 'unknown contact'}),
+        ok = ok and notify('notify_after_delete', everyone, text('three'), {c: 'unknown contact' if c == new else delivered for c in everyone},
                            CONTACTS, absent=['newuser'])
         good, status, _ = app('status')
         result['daemons'] = status

@@ -1,0 +1,1328 @@
+{
+ "passed": true,
+ "cases": 118,
+ "tampered": 56,
+ "bit_set": 21,
+ "forced_input_runs": 36,
+ "and_gates": {
+  "150": {
+   "tls-open-application-class": 131780,
+   "tls-open-typed": 52961,
+   "tls-frame": 82437,
+   "capacity": 160,
+   "existing_per_byte": 878.5,
+   "typed_per_byte": 353.1,
+   "handshake_record_per_byte": 902.7
+  },
+  "2700": {
+   "tls-open-application-class": 2865341,
+   "tls-open-typed": 1136486,
+   "tls-frame": 1777958,
+   "capacity": 3072,
+   "existing_per_byte": 1061.2,
+   "typed_per_byte": 420.9,
+   "handshake_record_per_byte": 1079.4
+  }
+ },
+ "failures": [],
+ "rows": [
+  {
+   "case": "application data 0 bytes, padding 0",
+   "size": 22,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 0 bytes, padding 7",
+   "size": 29,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 1 bytes, padding 0",
+   "size": 23,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 1 bytes, padding 7",
+   "size": 30,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0 / ciphertext bit flipped",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0 / type byte flipped to the other type",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0 / tag bit flipped",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0 / truncated",
+   "size": 25,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 0 / wrong sequence number",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 10 bytes, padding 7",
+   "size": 39,
+   "capacity": 40,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 100 bytes, padding 0",
+   "size": 122,
+   "capacity": 128,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 100 bytes, padding 7",
+   "size": 129,
+   "capacity": 160,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0",
+   "size": 151,
+   "capacity": 160,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0 / ciphertext bit flipped",
+   "size": 151,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0 / type byte flipped to the other type",
+   "size": 151,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0 / tag bit flipped",
+   "size": 151,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0 / truncated",
+   "size": 144,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 0 / wrong sequence number",
+   "size": 151,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 129 bytes, padding 7",
+   "size": 158,
+   "capacity": 160,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 300 bytes, padding 0",
+   "size": 322,
+   "capacity": 384,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 300 bytes, padding 7",
+   "size": 329,
+   "capacity": 384,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0",
+   "size": 2702,
+   "capacity": 3072,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0 / ciphertext bit flipped",
+   "size": 2702,
+   "capacity": 3072,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0 / type byte flipped to the other type",
+   "size": 2702,
+   "capacity": 3072,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0 / tag bit flipped",
+   "size": 2702,
+   "capacity": 3072,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0 / truncated",
+   "size": 2695,
+   "capacity": 3072,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "application data 2680 bytes, padding 0 / wrong sequence number",
+   "size": 2702,
+   "capacity": 3072,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 0",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    4,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 0 / ciphertext bit flipped",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 0 / type byte flipped to the other type",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 0 / tag bit flipped",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 0 / wrong sequence number",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 2 description 0",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    4,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 90",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 90 / ciphertext bit flipped",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 90 / type byte flipped to the other type",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 90 / tag bit flipped",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 90 / wrong sequence number",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 2 description 90",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 40",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 2 description 40",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 1 description 10",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert level 2 description 10",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "alert of three bytes",
+   "size": 25,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "empty alert",
+   "size": 22,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "unknown inner type 24",
+   "size": 25,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "all-zero inner plaintext",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 0",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    3,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 0 / ciphertext bit flipped",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 0 / type byte flipped to the other type",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 0 / tag bit flipped",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 0 / wrong sequence number",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 0, padding 5",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    3,
+    0
+   ]
+  },
+  {
+   "case": "key update request 1, padding 0",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    3,
+    1
+   ]
+  },
+  {
+   "case": "key update request 1, padding 0 / ciphertext bit flipped",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 1, padding 0 / type byte flipped to the other type",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 1, padding 0 / tag bit flipped",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 1, padding 0 / wrong sequence number",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update request 1, padding 5",
+   "size": 32,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    3,
+    1
+   ]
+  },
+  {
+   "case": "key update with a bad body",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "key update followed by more",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "empty handshake record",
+   "size": 22,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "handshake message of another type",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 40 bytes",
+   "size": 66,
+   "capacity": 80,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes",
+   "size": 246,
+   "capacity": 256,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes / ciphertext bit flipped",
+   "size": 246,
+   "capacity": 256,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes / type byte flipped to the other type",
+   "size": 246,
+   "capacity": 256,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes / tag bit flipped",
+   "size": 246,
+   "capacity": 256,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes / truncated",
+   "size": 239,
+   "capacity": 256,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 220 bytes / wrong sequence number",
+   "size": 246,
+   "capacity": 256,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "session ticket 2600 bytes",
+   "size": 2626,
+   "capacity": 3072,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "two tickets in one record",
+   "size": 111,
+   "capacity": 112,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket then key update in one record",
+   "size": 61,
+   "capacity": 64,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    3,
+    1
+   ]
+  },
+  {
+   "case": "ticket split at 2 / first part",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / application data inside the message",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / close_notify inside the message",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part / ciphertext bit flipped",
+   "size": 224,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part / type byte flipped to the other type",
+   "size": 224,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part / tag bit flipped",
+   "size": 224,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part / truncated",
+   "size": 217,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part / wrong sequence number",
+   "size": 224,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / second part",
+   "size": 227,
+   "capacity": 256,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 2 / application data after it",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / first part",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / application data inside the message",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / close_notify inside the message",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part / ciphertext bit flipped",
+   "size": 222,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part / type byte flipped to the other type",
+   "size": 222,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part / tag bit flipped",
+   "size": 222,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part / truncated",
+   "size": 215,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part / wrong sequence number",
+   "size": 222,
+   "capacity": 224,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / second part",
+   "size": 225,
+   "capacity": 256,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 4 / application data after it",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / first part",
+   "size": 82,
+   "capacity": 96,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / application data inside the message",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / close_notify inside the message",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part / ciphertext bit flipped",
+   "size": 166,
+   "capacity": 192,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part / type byte flipped to the other type",
+   "size": 166,
+   "capacity": 192,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part / tag bit flipped",
+   "size": 166,
+   "capacity": 192,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part / truncated",
+   "size": 159,
+   "capacity": 160,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part / wrong sequence number",
+   "size": 166,
+   "capacity": 192,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / second part",
+   "size": 169,
+   "capacity": 192,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 60 / application data after it",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / first part",
+   "size": 172,
+   "capacity": 192,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / application data inside the message",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / close_notify inside the message",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part / ciphertext bit flipped",
+   "size": 76,
+   "capacity": 80,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part / type byte flipped to the other type",
+   "size": 76,
+   "capacity": 80,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part / tag bit flipped",
+   "size": 76,
+   "capacity": 80,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part / truncated",
+   "size": 69,
+   "capacity": 80,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part / wrong sequence number",
+   "size": 76,
+   "capacity": 80,
+   "accepted": 0,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / second part",
+   "size": 79,
+   "capacity": 80,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    2,
+    0
+   ]
+  },
+  {
+   "case": "ticket split at 150 / application data after it",
+   "size": 31,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    1,
+    0
+   ]
+  },
+  {
+   "case": "fatal alert",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "after an error: application data",
+   "size": 26,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "after an error: key update",
+   "size": 27,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 255,
+   "event": [
+    0,
+    0
+   ]
+  },
+  {
+   "case": "after an error: close_notify",
+   "size": 24,
+   "capacity": 32,
+   "accepted": 255,
+   "bit": 0,
+   "event": [
+    0,
+    0
+   ]
+  }
+ ]
+}
