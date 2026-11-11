@@ -383,6 +383,7 @@ static int run(int argc,char**argv){
         // The other worker's address (TLS_WORKER_PEER, default 127.0.0.1) and the address this one
         // listens on (TLS_WORKER_LISTEN, default all interfaces): peer_link.h.
         const PeerLink link=PeerLink::from_environment();
+        if(link.remote()||!link.listen.empty())std::cerr<<"tls-worker-v3 peer="<<link.peer<<" listen="<<(link.listen.empty()?"any":link.listen)<<"\n";
         const auto io_owner=link.open(party==ALICE,port+link_shift);NetIO&io=*io_owner;ThreadPool threads(4);
         // The split agreement needs about a dozen field products; the ladder thousands.
         const char*route=std::getenv("TLS_WORKER_KEY_AGREEMENT");const bool ladder=route&&std::string(route)=="ladder";

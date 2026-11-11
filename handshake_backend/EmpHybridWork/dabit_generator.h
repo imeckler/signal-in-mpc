@@ -23,8 +23,14 @@ template<size_t N>using V=BitVec_T<C,N>;
 struct Challenge {
     NetIO&io;int party;uint64_t phase=0;std::array<uint8_t,32> joint_session{};std::string domain;
     Challenge(NetIO&i,int p,std::string d):io(i),party(p),domain(std::move(d)){}
+    // Each party sends n bytes and receives the other's n bytes. Short messages cross on the
+    // wire (both send, then both receive: one message delay over a link, not a round trip); what
+    // each party sends never depends on what it receives in the same call, so the bytes and
+    // their order in each direction are the same either way. Long ones go one after the other,
+    // so that neither party can block writing while the other is not yet reading.
     void transfer(const uint8_t*send,uint8_t*receive,size_t n){
-        if(party==ALICE){io.send_data(send,n);io.flush();io.recv_data(receive,n);}
+        if(n<=4096){io.send_data(send,n);io.flush();io.recv_data(receive,n);}
+        else if(party==ALICE){io.send_data(send,n);io.flush();io.recv_data(receive,n);}
         else{io.recv_data(receive,n);io.send_data(send,n);io.flush();}
     }
     std::vector<unsigned> permutation(unsigned n){

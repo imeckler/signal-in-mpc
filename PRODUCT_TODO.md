@@ -199,10 +199,12 @@ session by one party (test admission). For the product no one may ever hold the 
         once, duplicates possible, never a message key used twice.
   - [ ] A handshake or proxy connect that fails while a connection is being replaced still ends
         the session (the next session resumes). So does a server that sends nothing for 30 s.
-  - [ ] The journal is a file per node named by the test harness; the daemon (section 7) must
-        own it, bound its size, and take the notify's id from the application's signed request.
-  - [ ] A contact that is not on the database nodes, or not readable until their next epoch,
-        still ends the session at load; it should be that id's result.
+  - [x] The journal belongs to the daemon (section 7): one file per notify, named by the signed
+        request's digest, removed when the notify completes (leftovers after a day).
+  - [x] Through the daemon, a requested id that is not on the database nodes, or not readable
+        until their next epoch, is that id's result ("unknown contact" / "retry later"), agreed
+        by both parties. (The harness's own sessions, which take their contacts from the export,
+        still end there. The "not readable yet" case is not exercised by a test.)
   - [ ] No test with a cheating party.
 - [ ] Keepalives while a long engine operation is running (sent between the steps of a
       refresh; not inside one send to many devices, and not on connections that wait while
@@ -279,13 +281,39 @@ party can block a delete by not forwarding it.
 
 ## 7. The application-facing service
 
-- [ ] **(blocker)** A daemon on each computation node that accepts the application's signed
-      `notify(ids, message)` request (today: environment variables and a test harness), checks
-      the signature, and drives a session.
-- [ ] Batching and scheduling for thousands of ids; progress and per-id results back to the
-      application (delivered / unknown contact / failed), without revealing more than agreed.
-- [ ] Signup results back to the application (which id signed up), and the reply to the user
-      that the existing relay design sends.
+- [x] A daemon on each computation node (2026-11-11; `node_daemon/`, protocol and formats in its
+      README). It accepts the application's signed `notify(ids, message)` and `delete(ids)`,
+      checks the signature, freshness and message hash itself (the bytes the database nodes
+      verify), confirms with the other daemon that both hold the same request, runs the session
+      (one send or delete at a time, queued; a receive session always running beside it),
+      supervises it, and returns per-id results (the controller's, plus "unknown contact" and
+      "not readable yet") or, for a delete, the database nodes' signatures. Signups come back as
+      events (the id), from both nodes. `notify-app` stands in for the application server.
+      Checked end to end in both modes: `check_signal_service_local.py --runs 0 --app` (signup,
+      notify, notify again, delete, notify with the deleted id reported unknown).
+- Still test scaffolding in that flow, to be replaced for a deployment:
+  - [ ] **(blocker)** The export file: every session still reads our prekey private keys, our
+        address and the sealed-sender server certificate from it, and the two pre-provisioned
+        test contacts are created on the database nodes from it (section 2).
+  - [ ] **(blocker)** Account creation: a conventional client registers the account, and a
+        harness-run session given the credentials in two shares stores its row. The daemons
+        cannot create an account (section 2).
+  - [ ] **(blocker)** Links: the application's connection to a daemon is plaintext and replies
+        are unsigned; the daemons' link is HMAC over plaintext under a shared key; the workers'
+        TLS material comes from one `setup-ssl.sh` run for both parties; everything is on
+        127.0.0.1. Needs mutually authenticated TLS and per-node keys.
+  - [ ] The application stand-in (keys in files, signatures by `handoff_client`, no persistence
+        or retry policy) is a reference, not a server.
+- [ ] Batching and scheduling for thousands of ids: one request is one session and must start
+      within the request's lifetime (120 s); no progress during a session; a failed notify
+      reports no per-id results (resubmitting the same request resumes from the journals).
+- [ ] The daemon keeps requests and results in memory only (signup events are on disk); decide
+      what must survive a restart.
+- [ ] One node holding "completed" and the other "failed" for the same notify cannot be resumed
+      under the same request.
+- [ ] The receive session ends after its step budget (hours) and is restarted; there is no
+      scheduled restart and no check that an idle one is still alive beyond its keepalives.
+- [ ] The reply to the user who signed up that the existing relay design sends.
 
 ## 8. Privacy: the proxy
 

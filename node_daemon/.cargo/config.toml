@@ -1,0 +1,5 @@
+# Offline build from the vendored crate set that local_signal_server/provision already uses.
+[source.crates-io]
+replace-with = "vendored-sources"
+[source.vendored-sources]
+directory = "/Users/izzy/repos/tls-mpc/.deps/libsignal-vendor"

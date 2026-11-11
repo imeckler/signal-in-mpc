@@ -131,7 +131,7 @@ static int run(int argc,char**argv){
         }catch(const std::exception&e){
             if(!tamper)throw;
             std::cout<<"tampered table stopped the first message: "<<e.what()<<"\nrounds fixture passed"<<std::endl;
-            return 0;
+            std::_Exit(0);   // a failed engine does not shut its background lines down in step with the peer's
         }
         need(!tamper,"a tampered table was not detected");
         stage.end("load: messages on the imported table (with the fixture's opening)",n);

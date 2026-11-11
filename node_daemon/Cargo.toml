@@ -1,0 +1,29 @@
+[package]
+name = "node-daemon"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Per-node daemon that turns the application's signed notify/delete requests into two-party sessions, and a stand-in application server"
+
+# Offline, from the vendored crate set the other tools use (see .cargo/config.toml and build.sh).
+[dependencies]
+serde_json = "=1.0.150"
+ed25519-dalek = "=3.0.0"
+sha2 = "=0.11.0"
+hex = "=0.4.3"
+base64 = "=0.22.1"
+libc = "=0.2.186"
+
+[lib]
+name = "node_daemon"
+path = "src/lib.rs"
+
+[[bin]]
+name = "node-daemon"
+path = "src/bin/node-daemon.rs"
+
+[[bin]]
+name = "notify-app"
+path = "src/bin/notify-app.rs"
+
+[workspace]
