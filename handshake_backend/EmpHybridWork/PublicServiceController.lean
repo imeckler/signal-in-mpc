@@ -115,6 +115,10 @@ structure State where
   envelopes : List (Nat × Nat) := []
   /-- Completed server requests awaiting a reply. -/
   requests : List (List Byte) := []
+  /-- The response parser's state at the start of the frame in progress. A frame's header
+  bytes reach that parser before its payload shows whether the message is a response; if it
+  turns out to be a server request, the parser is put back to this state. -/
+  rollback : List Byte := []
   /-- Before the upgrade completes: how many bytes of the header terminator
   CR LF CR LF the revealed bytes currently end with (0..3). -/
   terminator : Nat := 0
@@ -326,6 +330,8 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     unless (get out 1 == on) == (terminator == 4) do throw "upgrade response headers ended unexpectedly"
     pure (get out 2, { s with upgrade := out.drop 3, upgraded := get out 1 == on, terminator })
   unless s.skip == 0 do throw "a request body byte was revealed"
+  let s := if s.pending && s.message.isEmpty && get s.frame 0 == on then { s with rollback := s.response } else s
+  let wasFirst := s.message.length == 1
   -- The general frame parser: server requests are data frames too.
   let frame := TlsWebSocketFrame.runByte PublicReceive.fast capacity (s.frame ++ [activity, byte])
   unless get frame 0 == on do throw "WebSocket frame rejected"
@@ -348,6 +354,9 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
   let mut s := { s with frame := frame.drop 8, control, message,
                         held := if first then some (flags, byte) else if message.length ≥ 2 then none else s.held }
   let mut complete := false
+  -- A server request arriving while a response is awaited: its header bytes were not the
+  -- response's.
+  if s.pending && wasFirst && message == [8, 1] then s := { s with response := s.rollback }
   if s.pending then
     for (entry, value) in feed do
       if s.pending then
@@ -614,6 +623,26 @@ def main (args : List String) : IO Unit := do
   if args == ["parse-bench"] then
     parseBench
     return
+  if let ["db-delete", party, request] := args then
+    -- The application's signed delete request: this party submits it to the database nodes,
+    -- which act once both parties have. Repeated until all but one node has confirmed.
+    let setting (name : String) : IO String := do
+      match ← IO.getEnv name with
+      | some value => pure value
+      | none => throw (IO.userError s!"{name} is required")
+    let out := s!"{← setting "SIGNAL_DB_WORK"}/delete.json"
+    for _ in [0:40] do
+      let run ← IO.Process.output { cmd := ← setting "SIGNAL_DB_CLIENT", args := #["delete", "--network", ← setting "SIGNAL_DB_NETWORK",
+        "--key", ← setting "SIGNAL_DB_KEY", "--party", party, "--request", request, "--out", out] }
+      unless run.exitCode == 0 do throw (IO.userError s!"database client delete: {run.stderr}")
+      let done := match Lean.Json.parse (← IO.FS.readFile out) with
+        | .ok json => (json.getObjValAs? Bool "acknowledged").toOption.getD false
+        | .error _ => false
+      if done then
+        IO.println "{\"deleted\":true}"
+        return
+      IO.sleep 500
+    throw (IO.userError "the database nodes did not confirm the delete")
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
   let certificate ← IO.mkRef false
@@ -621,7 +650,12 @@ def main (args : List String) : IO Unit := do
   let revealed ← IO.mkRef 0
   -- Authenticated-socket session (SIGNAL_LOCAL_CREDENTIALS: this party's XOR share of the
   -- account id and password, hex): wait for delivered messages instead of sending.
-  let credentials ← IO.getEnv "SIGNAL_LOCAL_CREDENTIALS"
+  -- SIGNAL_LOCAL_RECEIVE without credentials: the same session with the account (identity key,
+  -- password) loaded from the database nodes; the share is then empty.
+  let credentials ← do
+    match ← IO.getEnv "SIGNAL_LOCAL_CREDENTIALS" with
+    | some share => pure (some share)
+    | none => pure ((← IO.getEnv "SIGNAL_LOCAL_RECEIVE").map (fun _ => ""))
   let delivered ← IO.mkRef 0
   let keepalives ← IO.mkRef 0
   let envelopes ← IO.mkRef ([] : List (Nat × Nat))
@@ -715,18 +749,51 @@ def main (args : List String) : IO Unit := do
         insist (random.length == 32 && random.take 8 != List.replicate 8 255) "invalid joint randomness"
         pure (random.take 8)
       -- Store a contact's sealed state as blob `version`. Counts once all but one node committed it.
+      let dbSubmit (name : String) (authority : List String) (version : Nat) (blob : Bytes) : M Bool := do
+        let file ← dbWork s!"blob-{name}"
+        liftM (IO.FS.writeBinFile file ⟨blob.toArray⟩ : IO Unit)
+        let arguments := ["write-blob"] ++ (← dbParty) ++ authority ++ ["--version", toString version,
+          "--blob-file", file, "--out", ← dbWork s!"write-{name}.json"]
+        db arguments
+        let _ ← swap [1]   -- both parties have submitted
+        db arguments       -- repeating it reports the commit to whichever party was first
+        pure (((← dbJson s!"write-{name}.json").getObjValAs? Bool "acknowledged").toOption.getD false)
       let dbWrite (contact version : Nat) (authority : List String) : M Bool := do
         let fresh ← nonce
         let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
         insist (stored.length > 16) "invalid stored contact state"
-        let file ← dbWork s!"blob-{contact}"
-        liftM (IO.FS.writeBinFile file ⟨(fresh ++ stored).toArray⟩ : IO Unit)
-        let arguments := ["write-blob"] ++ (← dbParty) ++ authority ++ ["--id", toString contact, "--version", toString version,
-          "--blob-file", file, "--out", ← dbWork s!"write-{contact}.json"]
-        db arguments
-        let _ ← swap [1]   -- both parties have submitted
-        db arguments       -- repeating it reports the commit to whichever party was first
-        pure (((← dbJson s!"write-{contact}.json").getObjValAs? Bool "acknowledged").toOption.getD false)
+        dbSubmit (toString contact) (authority ++ ["--id", toString contact]) version (fresh ++ stored)
+      -- Read this party's shares (under the application's request, or of the account's own
+      -- row), check them against the other party's with the parity shares, and combine.
+      -- Returns the read output and the combined shares.
+      let dbRead (source : List String) (name : String) : M (Lean.Json × Lean.Json) := do
+        let read ← dbWork s!"{name}-read.json"
+        let mine ← dbWork s!"{name}-parity-mine.json"
+        let theirs ← dbWork s!"{name}-parity-theirs.json"
+        let sums ← dbWork s!"{name}-sums.json"
+        let shares ← dbWork s!"{name}-shares.json"
+        db (["read"] ++ (← dbParty) ++ source ++ ["--out", read])
+        db ["parity", "--summands", read, "--out", mine]
+        let received ← swap (← liftM (IO.FS.readBinFile mine : IO ByteArray)).data.toList
+        liftM (IO.FS.writeBinFile theirs ⟨received.toArray⟩ : IO Unit)
+        db ["verify-signatures", "--network", ← dbEnv "SIGNAL_DB_NETWORK", "--reports", theirs]
+        db ["parity-sum", "--mine", mine, "--theirs", theirs, "--out", sums]
+        db ["combine", "--summands", read, "--parity-sums", sums, "--out", shares]
+        pure (← dbJson s!"{name}-read.json", ← dbJson s!"{name}-shares.json")
+      -- From a read: an id's combined share, and its blob (version, bytes in hex).
+      let dbEntry (json : Lean.Json) (contact : Nat) : Option Lean.Json :=
+        (((json.getObjValAs? (Array Lean.Json) "ids").toOption.getD #[]).toList).find?
+          (fun e => (e.getObjValAs? String "id").toOption == some (toString contact))
+      let dbShare (shares : Lean.Json) (contact : Nat) : Option String :=
+        (dbEntry shares contact).bind (fun e => (e.getObjValAs? String "share").toOption)
+      let dbBlob (read : Lean.Json) (contact : Nat) : Option (Nat × String) :=
+        ((dbEntry read contact).bind (fun e => (e.getObjVal? "blob").toOption)).bind (fun b =>
+          match b.getObjValAs? Nat "version", b.getObjValAs? String "hex" with
+          | .ok version, .ok hex => some (version, hex)
+          | _, _ => none)
+      -- The account's own row on the database nodes (identity key, password, certificate): a
+      -- reserved id that the two parties may read and write without an application request.
+      let accountId := 2 ^ 128 - 2
       -- Deal this party's half of a new contact's key under the application's signup token
       -- for that id. The dealt summand is this party's share of the key.
       let dbDeal (contact : Nat) (token : String) : M (Option Bytes) := do
@@ -765,36 +832,31 @@ def main (args : List String) : IO Unit := do
         | some path => do
           let text ← liftM (IO.FS.readFile path : IO String)
           let (certificate, identity, records) ← liftResult (readExport text)
-          let _ ← rpc.call .accountAdmit (identity ++ certificate)
+          let accountStored ← if dbClient.isSome then do
+              let (accountRead, accountShares) ← dbRead ["--account"] "account"
+              match dbShare accountShares accountId, dbBlob accountRead accountId with
+              | some share, some (_, blob) =>
+                let _ ← rpc.call .accountKey (← liftResult (fromHex share))
+                let _ ← rpc.call .accountOpen (← liftResult (fromHex blob))
+                pure true
+              | _, _ => pure false
+            else pure false
+          -- TEST: until the account's row exists it is admitted from the export.
+          unless accountStored do
+            let _ ← rpc.call .accountAdmit (identity ++ certificate)
           -- Contacts that exist only in the store (received in an earlier session).
           let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
             |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
           let wanted := if credentials.isSome then [] else records ++ extra
           let known ← if dbClient.isSome && !wanted.isEmpty then do
             -- From the database nodes, under the application's signed request for these ids.
-            let read ← dbWork "read.json"
-            let mine ← dbWork "parity-mine.json"
-            let theirs ← dbWork "parity-theirs.json"
-            let sums ← dbWork "sums.json"
-            let shares ← dbWork "shares.json"
-            db (["read"] ++ (← dbParty) ++ ["--request", ← dbEnv "SIGNAL_DB_REQUEST", "--out", read])
-            db ["parity", "--summands", read, "--out", mine]
-            let received ← swap (← liftM (IO.FS.readBinFile mine : IO ByteArray)).data.toList
-            liftM (IO.FS.writeBinFile theirs ⟨received.toArray⟩ : IO Unit)
-            db ["verify-signatures", "--network", ← dbEnv "SIGNAL_DB_NETWORK", "--reports", theirs]
-            db ["parity-sum", "--mine", mine, "--theirs", theirs, "--out", sums]
-            db ["combine", "--summands", read, "--parity-sums", sums, "--out", shares]
-            let entries (json : Lean.Json) : List Lean.Json := ((json.getObjValAs? (Array Lean.Json) "ids").toOption.getD #[]).toList
-            let entry (json : Lean.Json) (contact : Nat) : Option Lean.Json :=
-              (entries json).find? (fun e => (e.getObjValAs? String "id").toOption == some (toString contact))
-            let readJson ← dbJson "read.json"
-            let sharesJson ← dbJson "shares.json"
+            let (readJson, sharesJson) ← dbRead ["--request", ← dbEnv "SIGNAL_DB_REQUEST"] "contacts"
+            -- A contact created moments ago is not served until the nodes' next epoch.
+            let waiting := ((readJson.getObjValAs? (Array String) "not_yet_readable").toOption.getD #[]).toList
+            insist (wanted.all (fun (contact, _) => !waiting.contains (toString contact))) "a contact is not readable until the database's next epoch"
             wanted.mapM (fun (contact, record) => do
-              let share := (entry sharesJson contact).bind (fun e => (e.getObjValAs? String "share").toOption)
-              let blob := ((entry readJson contact).bind (fun e => (e.getObjVal? "blob").toOption)).bind (fun b =>
-                match b.getObjValAs? Nat "version", b.getObjValAs? String "hex" with
-                | .ok version, .ok hex => some (version, hex)
-                | _, _ => none)
+              let share := dbShare sharesJson contact
+              let blob := dbBlob readJson contact
               match share, blob with
               | some share, some (version, blob) =>
                 let share ← liftResult (fromHex share)
@@ -835,7 +897,18 @@ def main (args : List String) : IO Unit := do
           match credentials with
           | some share =>
             -- The password is shared: neither party can open this socket alone.
-            let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+            if share.isEmpty then insist accountStored "no credentials: the account is not stored and none were given"
+            else
+              let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+              if dbClient.isSome && !accountStored then
+                -- TEST: the first session that has the account's key and credentials creates its
+                -- row on the database nodes (key dealt under a token for the reserved id).
+                let some keyShare ← dbDeal accountId s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{accountId}.json" | throw "dealing the account key failed"
+                let _ ← rpc.call .accountKey keyShare
+                let fresh ← nonce
+                let stored ← rpc.call .accountSeal fresh
+                insist (stored.length > 16) "invalid stored account state"
+                insist (← dbSubmit "account" ["--account"] 1 (fresh ++ stored)) "the database did not acknowledge the account's state"
             let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
             insist (upgrade.length == 38) "invalid upgrade receipt"
             TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
@@ -889,15 +962,20 @@ def main (args : List String) : IO Unit := do
             -- The text is the application's signup token (JSON: id, signature). It names the
             -- contact's id and is what authorises the database nodes to create it. A token the
             -- nodes do not accept (forged, or already used) refuses the message.
-            let named := (Lean.Json.parse text).toOption.bind (fun json => (json.getObjValAs? Nat "id").toOption)
             let refuse (contact : Nat) : M (Option (Nat × String)) := do
               let _ ← rpc.call .contactEvict (uint 16 contact)
               return none
+            -- Fixed width: base64 of the id (16 bytes) and the application's signature (64).
+            let pasted ← dbWork "token-received"
+            liftM (IO.FS.writeFile pasted text : IO Unit)
+            let some tool := dbClient | throw "no database client"
+            let parsed ← liftM (IO.Process.output { cmd := tool, args := #["token-id", "--signup-token", pasted, "--require-fixed"] })
+            let named := if parsed.exitCode == 0 then parsed.stdout.trimAscii.toString.toNat? else none
             match named with
             | none => refuse provisional
             | some id =>
-              if id ≥ provisional then return ← refuse provisional
-              let token ← dbWork s!"token-{id}.json"
+              if id ≥ accountId then return ← refuse provisional
+              let token ← dbWork s!"token-{id}"
               liftM (IO.FS.writeFile token text : IO Unit)
               if (← rpc.call .contactAssign (uint 16 provisional ++ uint 16 id)) != [255] then return none
               match ← dbDeal id token with
@@ -1119,11 +1197,26 @@ def main (args : List String) : IO Unit := do
       -- The authenticated socket: answer the server's requests, keep the connection alive
       -- while nothing arrives, and stop after the expected number of delivered messages.
       -- A delivered message's body stays unrevealed and is not acknowledged yet.
+      let closing ← liftM (IO.mkRef false : IO (IO.Ref Bool))
       let rec waiting (fuel : Nat) (s : PublicReceive.State) (pings : Nat) (expected : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
         | fuel+1 =>
-          if (← liftM (delivered.get : IO Nat)) ≥ expected then return pings
+          if (← liftM (delivered.get : IO Nat)) ≥ expected then
+            -- Before leaving: one keepalive, answered. The server answers in order, so its
+            -- reply shows it has read everything sent before it, the acknowledgements included;
+            -- closing straight after an acknowledgement could lose it, and the message would be
+            -- delivered again.
+            if ← liftM (closing.get : IO Bool) then
+              if !s.pending then return pings
+            else
+              liftM (closing.set true : IO Unit)
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              let id := 2 ^ 63 + pings
+              sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+              liftM (keepalives.modify (· + 1) : IO Unit)
+              return ← waiting fuel (PublicReceive.expect s id) (pings + 1) expected
           -- 25 seconds of agreed silence, then a keepalive.
           if s.upgraded && !(← TlsWorker.awaitRecord rpc kept 100 250) then
             insist (!s.pending) "keepalive was not answered"

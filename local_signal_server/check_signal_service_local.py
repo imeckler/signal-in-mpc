@@ -199,6 +199,9 @@ def run_signup(export, mode, texts):
     return result
 
 
+ACCOUNT = 2 ** 128 - 2   # the reserved id of the account's own row on the database nodes
+
+
 class Cluster:
     """Five database nodes of secret-shared-db (its in-memory test node: no Postgres, no epochs;
     `refresh` stands for an epoch passing), plus the application server's keys. The binaries are
@@ -218,8 +221,8 @@ class Cluster:
         network['compute_addresses'] = ['127.0.0.1:%d' % s.getsockname()[1] for s in sockets]
         for s in sockets:
             s.close()
-        # A session outlasts the default 120 s for which a signed request is accepted.
-        network['notify_max_age_secs'] = 7200
+        # A signed request is accepted for 120 s; a session that read under it while it was fresh
+        # may still write its contacts' state back later (the nodes remember the read).
         self.network = self.dir / 'network.json'
         self.network.write_text(json.dumps(network))
         (self.dir / 'tokens').mkdir()
@@ -286,7 +289,7 @@ def run_db(export, mode, texts):
     result = {}
     try:
         ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
-        for contact in ids:
+        for contact in ids + [ACCOUNT]:
             cluster.token(contact)
         steps = [('created', ids, {}), ('reloaded', ids, {})]
         ok = True
@@ -298,7 +301,7 @@ def run_db(export, mode, texts):
             cluster.refresh()
             ok = ok and good
         new = secrets.randbits(100)
-        token = cluster.token(new).read_text()
+        token = cluster.token(new).read_text().strip()   # fixed width: 108 characters of base64
         lss('signup', 'newuser', '+12025550104', 'sender', token)
         credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
         share = secrets.token_bytes(len(credentials))
@@ -316,6 +319,31 @@ def run_db(export, mode, texts):
             good, recipients = verify(dict(texts, newuser=texts[CONTACTS[0]]))
             result['all'] = dict(run=run, recipients=recipients, passed=good)
             ok = ok and good
+            cluster.refresh()
+            # E. A second new user, received by a session that has NO credentials of its own:
+            # the account (identity key, password) comes from the database nodes.
+            second = secrets.randbits(100)
+            token = cluster.token(second).read_text().strip()
+            lss('signup', 'newuser2', '+12025550105', 'sender', token)
+            receive = run_mpc(export, mode, {}, party_env=lambda party: dict(
+                cluster.env(party), SIGNAL_LOCAL_RECEIVE='1', SIGNAL_LOCAL_EXPECT='1', SIGNAL_LOCAL_KEM=str(tool)))
+            stored_account = all(c.get('received') == [[str(second), token]] for c in receive['controllers'])
+            result['account_from_database'] = dict(run=receive, contact=str(second), passed=stored_account)
+            ok = ok and stored_account
+            # F. The application deletes a contact: both parties submit its signed request.
+            request = cluster.dir / 'delete.json'
+            cluster.client('sign-delete', '--key', cluster.dir / 'app-server/notify-key.json', '--ids', new, '--out', request)
+            controller = ROOT / '.lake/build/bin/public_service_controller'
+            parties = [subprocess.Popen([str(controller), 'db-delete', str(party), str(request)], env=dict(os.environ, **cluster.env(party)),
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for party in range(2)]
+            outputs = [p.communicate(timeout=120) for p in parties]
+            check = cluster.request([new], 'after delete')
+            cluster.client('read', '--network', cluster.network, '--key', cluster.dir / 'compute-nodes/0/key.json', '--party', 0,
+                           '--request', check, '--out', cluster.dir / 'read-after-delete.json')
+            after = json.loads((cluster.dir / 'read-after-delete.json').read_text())
+            deleted = all(p.returncode == 0 for p in parties) and str(new) in after.get('missing', []) and not after.get('ids')
+            result['delete'] = dict(passed=deleted, errors=[e[-300:] for _, e in outputs if e], missing=after.get('missing'))
+            ok = ok and deleted
         result['passed'] = ok
     finally:
         cluster.stop()
@@ -348,7 +376,10 @@ def main():
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
     p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
+    p.add_argument('--trace', action='store_true', help='controllers log the server bytes they reveal (public) to their logs')
     a = p.parse_args()
+    if a.trace:
+        os.environ['SIGNAL_LOCAL_TRACE'] = '1'
     os.environ['SIGNAL_LOCAL_BROADCASTS'] = str(max(2, a.broadcasts))
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:

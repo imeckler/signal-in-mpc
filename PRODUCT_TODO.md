@@ -80,10 +80,24 @@ session by one party (test admission). For the product no one may ever hold the 
         arithmetic for the Kyber modulus is estimated at 15-20M (not measured). Needs building.
   - [ ] **Sessions we start stay unacknowledged** until that device replies, and we ignore
         replies: every message to a linked device is then a first-message-style message (about
-        3.5M AND, 1,935 bytes of stored state). Decide: accept that cost, or process just enough
-        of a device's first reply to mark the session acknowledged.
+        3.5M AND, 1,935 bytes of stored state). Working assumption: accept that cost. Processing
+        a reply would need to find the sender's state, and state is keyed by the application's
+        u128 id while a sealed message names its sender only by Signal identity, inside the
+        encryption. That lookup needs either an index that tells both nodes which id replied and
+        when, or an oblivious search over every contact; neither is worth it for this.
   - [ ] Stored state becomes one record per device; the store format and the send request
         (one message per device) change accordingly.
+- [ ] **What the missing Signal-identity → id mapping rules out.** Each contact's state holds
+      its Signal id (so id → identity works and device or identity changes are found when a send
+      to that id is rejected), but an incoming message cannot be matched to an id. Consequences
+      to handle or document for the application:
+  - [ ] A contact who rotates their profile key (Signal clients do on blocking): sealed sends
+        fail with 401 and cannot be repaired; report the id as needing to sign up again. Never
+        fall back to unsealed sends (the server would learn who the account messages).
+  - [ ] Nothing a user sends after signup can be acted on ("stop", replies): unsubscribing goes
+        through the application, which sends the delete request.
+  - [ ] Report per id to the application: delivered, device list refreshed, unreachable (404),
+        needs re-signup (401).
 - [x] **Crash safety of contact state.** With the database, a contact's advanced state is stored
       and acknowledged before its message leaves.
   - [ ] The recovery path itself (restart, reload, resume the broadcast) is section 4.
