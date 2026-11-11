@@ -58,6 +58,14 @@ structure State where
   bodySkipped : Bool := false
   /-- Body bytes of the request in progress still to pass over unrevealed. -/
   skip : Nat := 0
+  /-- The bytes being passed over are a delivered envelope's sealed content, to be
+  kept (still unrevealed) for the engines. -/
+  capture : Bool := false
+  /-- A delivered envelope being walked: its revealed bytes (field payloads
+  omitted), how many payloads have been passed, and the body bytes left. -/
+  inner : Option (List Byte × Nat × Nat) := none
+  /-- Completed envelopes: (type, sealed content length). -/
+  envelopes : List (Nat × Nat) := []
   /-- Completed server requests awaiting a reply. -/
   requests : List (List Byte) := []
 
@@ -138,6 +146,68 @@ def scan (bytes : List Byte) (bodySkipped : Bool) : Need × Fields := Id.run do
     else return (.malformed, fields)
   return (.more, fields)
 
+/-! ### Delivered envelopes
+
+The body of a `PUT /api/v1/message` request is an `Envelope`. Its sealed
+`content` (field 8) is what identifies the sender once opened, so it is never
+revealed: it is passed to the engines as it is. Every other length-delimited
+or fixed-width field is passed over unrevealed and unused (some of them name
+the sender when a message is not sealed). Only field keys, lengths and varint
+values are revealed: the envelope type, timestamps and flags. -/
+
+inductive EnvelopeNeed where
+  | more (boundary : Bool)             -- reveal the next byte; `boundary`: at the end of a field
+  | pass (count : Nat) (content : Bool) -- pass over a payload; `content`: keep it for the engines
+  | malformed
+  deriving BEq
+
+/-- Walk an envelope's revealed bytes; `passed` payloads have been passed over
+already. Also returns the type (field 1) and the content length seen so far. -/
+def envelopeScan (bytes : List Byte) (passed : Nat) : EnvelopeNeed × Nat × Nat := Id.run do
+  let mut pos := 0
+  let mut seen := 0
+  let mut kind := 0
+  let mut content := 0
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return (.more true, kind, content)
+    let some (key, next) := varintAt bytes pos | return (.more false, kind, content)
+    let wire := key % 8
+    if wire == 0 then
+      let some (value, after) := varintAt bytes next | return (.more false, kind, content)
+      if key / 8 == 1 then kind := value
+      pos := after
+    else if wire == 1 || wire == 2 || wire == 5 then
+      let (count, after) ← if wire == 2 then
+          match varintAt bytes next with
+          | some found => pure found
+          | none => return (.more false, kind, content)
+        else pure ((if wire == 1 then 8 else 4), next)
+      if wire == 2 && key / 8 == 8 then
+        if content != 0 then return (.malformed, kind, content)
+        content := count
+      if count == 0 then pos := after
+      else if seen < passed then
+        seen := seen + 1
+        pos := after
+      else if after == bytes.length then return (.pass count (wire == 2 && key / 8 == 8), kind, content)
+      else return (.malformed, kind, content)
+    else return (.malformed, kind, content)
+  return (.more false, kind, content)
+
+/-- After a revealed byte or a passed payload of the envelope being walked. -/
+def envelopeAdvance (s : State) (header : List Byte) (passed remaining : Nat) : Except String State := do
+  let (need, kind, content) := envelopeScan header passed
+  match need with
+  | .malformed => throw "malformed envelope"
+  | .more boundary =>
+    if remaining == 0 then
+      unless boundary do throw "envelope ended inside a field"
+      return { s with inner := none, envelopes := s.envelopes ++ [(kind, content)] }
+    else return { s with inner := some (header, passed, remaining) }
+  | .pass count capture =>
+    unless count ≤ remaining do throw "envelope field runs past the body"
+    return { s with inner := some (header, passed, remaining), skip := count, capture }
+
 /-- Whether another byte of the current record may be revealed: never a third
 payload byte of a message that is neither a response nor a request, and never
 a request's body. -/
@@ -196,14 +266,23 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
           complete := true
           s := { s with pending := false, response := [] }
   if data && message == [8, 1] then
-    let request := if s.request.isEmpty then [8, 1] else s.request ++ [byte]
-    s := { s with request }
-    match (scan request s.bodySkipped).1 with
-    | .malformed => throw "malformed server request"
-    | .skip count => s := { s with skip := count, bodySkipped := true }
-    | .more => pure ()
+    match s.inner with
+    | some (header, passed, remaining) =>
+      unless remaining > 0 do throw "envelope state"
+      s ← envelopeAdvance s (header ++ [byte]) passed (remaining - 1)
+    | none =>
+      let request := if s.request.isEmpty then [8, 1] else s.request ++ [byte]
+      s := { s with request }
+      match scan request s.bodySkipped with
+      | (.malformed, _) => throw "malformed server request"
+      | (.skip count, fields) =>
+        -- A delivered message's body is walked; any other body is passed over whole.
+        if fields.path == "/api/v1/message".toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat) then
+          s ← envelopeAdvance { s with bodySkipped := true } [] 0 count
+        else s := { s with skip := count, capture := false, bodySkipped := true }
+      | (.more, _) => pure ()
   if done then
-    unless s.skip == 0 do throw "server request ended inside its body"
+    unless s.skip == 0 && s.inner.isNone do throw "server request ended inside its body"
     if message == [8, 1] then s := { s with requests := s.requests ++ [s.request] }
     s := { s with message := [], held := none, request := [], bodySkipped := false }
   return (s, complete)
@@ -216,8 +295,12 @@ def stepSkipped (s : State) : Except String State := do
   unless get frame 0 == on && get frame 1 == on do throw "request body left its frame"
   let control := TlsWebSocketControl.run ByteAuth.concrete (s.control ++ [get frame 2, get frame 6, get frame 7, 0])
   let mut s := { s with frame := frame.drop 8, control, skip := s.skip - 1 }
+  if let some (header, passed, remaining) := s.inner then
+    unless remaining > 0 do throw "envelope state"
+    if s.skip == 0 then s ← envelopeAdvance { s with capture := false } header (passed + 1) (remaining - 1)
+    else s := { s with inner := some (header, passed, remaining - 1) }
   if get frame 5 == on then
-    unless s.skip == 0 do throw "server request ended inside its body"
+    unless s.skip == 0 && s.inner.isNone do throw "server request ended inside its body"
     s := { s with requests := s.requests ++ [s.request], message := [], held := none, request := [], bodySkipped := false }
   return s
 
@@ -389,6 +472,7 @@ def main (args : List String) : IO Unit := do
   let credentials ← IO.getEnv "SIGNAL_LOCAL_CREDENTIALS"
   let delivered ← IO.mkRef 0
   let keepalives ← IO.mkRef 0
+  let envelopes ← IO.mkRef ([] : List (Nat × Nat))
   let kept ← IO.mkRef (none : Option Bytes)
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
@@ -490,6 +574,10 @@ def main (args : List String) : IO Unit := do
           if s.skip > 0 then
             -- A server request's body: passed over, never revealed.
             let count := min s.skip (length - offset)
+            if s.capture then
+              -- A delivered envelope's sealed content goes to the engines as it is.
+              let held ← rpc.call .envelopeTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
+              insist (held.length == 4) "invalid envelope reply"
             for _ in [0:count] do
               s ← liftResult (PublicReceive.stepSkipped s)
             offset := offset + count
@@ -656,7 +744,12 @@ def main (args : List String) : IO Unit := do
               match ← liftResult (PublicReceive.reply request (toBits (random.take 4))) with
               | some frame => sendPublic (toBytes frame)
               | none => liftM (delivered.modify (· + 1) : IO Unit)
-            waiting fuel { s with requests := [] } pings expected
+            -- Each delivered envelope: its type and the size of the sealed content now held by
+            -- the engines. (Opening it there is the next step; until then it is dropped.)
+            for (kind, size) in s.envelopes do
+              liftM (envelopes.modify (· ++ [(kind, size)]) : IO Unit)
+              TlsWorker.emptyReply rpc .envelopeDrop []
+            waiting fuel { s with requests := [], envelopes := [] } pings expected
           | .control => waiting fuel s pings expected
           | .closed => throw "TLS closed while waiting for messages"
       match credentials with
@@ -680,7 +773,8 @@ def main (args : List String) : IO Unit := do
       (codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
-      ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
+      ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),
+      ("envelopes",toJson ((← envelopes.get).map (fun (kind, size) => [kind, size]))),("private_receive_parsing_used",toJson (codes.contains 18)),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop

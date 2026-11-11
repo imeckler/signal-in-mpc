@@ -41,7 +41,7 @@ private:
     // followed by the contact record as one `conversation` value; `whole` only joins the wires and
     // `keep` takes the contact part back.
     // TEST FIXTURE: its two conversations have different senders, so each carries its own account.
-    Account account;std::deque<Account>fixture_accounts;Wires credentials_a,credentials_b;
+    Account account;std::deque<Account>fixture_accounts;Wires credentials_a,credentials_b,envelope;
     Account&of(const Conversation&c){return c.fixture?*c.fixture:account;}
     Wires whole(const Conversation&c){return DynSession::concat({&of(c).certificate,&c.record});}
     void keep(Conversation&c,const Wires&conversation){need(conversation.size()==8*(CERT+CONTACT),"conversation shape");c.record=conversation.slice(8*CERT,8*(CERT+CONTACT));}
@@ -101,6 +101,14 @@ public:
         credentials_a=s.input_private(emp::ALICE,byte_bits(k.party==emp::ALICE?share:none));
         credentials_b=s.input_private(emp::BOB,byte_bits(k.party==emp::BOB?share:none));
     }
+    // A delivered envelope's sealed content, collected unopened from the records that carried it.
+    // Reply: the number of bytes held so far (4).
+    std::vector<uint8_t> envelope_take(uint64_t handle,size_t offset,size_t count){
+        need(public_receive&&!closed&&envelope.size()/8+count<=16384,"envelope take");
+        auto part=k.take_range(handle,offset,count);envelope=envelope.size()?DynSession::concat({&envelope,&part}):part;
+        const size_t n=envelope.size()/8;return {uint8_t(n>>24),uint8_t(n>>16),uint8_t(n>>8),uint8_t(n)};
+    }
+    void envelope_drop(){envelope=Wires{};}
     // Unauthenticated chat socket: the upgrade request has no secrets and is built by the
     // controllers; this only fixes the expected Sec-WebSocket-Accept for the public nonce.
     std::vector<uint8_t> upgrade_public(const std::vector<uint8_t>&nonce){

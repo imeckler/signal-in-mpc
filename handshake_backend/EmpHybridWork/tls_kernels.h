@@ -192,6 +192,13 @@ public:   // engine references and shared resources are also used by service_ker
         }
         return reply;
     }
+    // A range of an authenticated record as private wires, nothing opened (the record's length
+    // was opened by an earlier reveal_range call, which every caller makes first).
+    Wires take_range(uint64_t id,size_t offset,size_t count){
+        auto it=buffers.find(id);
+        if(it==buffers.end()||it->second.revealable.size()==0||count==0||offset+count>it->second.revealed_length)throw std::runtime_error("take range");
+        return it->second.revealable.slice(8*offset,8*(offset+count));
+    }
     // Public bytes as a sendable buffer (control replies in the public-receive profile).
     uint64_t public_buffer(const std::vector<uint8_t>&bytes){
         if(bytes.empty()||bytes.size()>16384)throw std::runtime_error("public buffer size");

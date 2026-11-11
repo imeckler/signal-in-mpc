@@ -78,6 +78,9 @@ struct Worker {
         // (id16, record) from an export, and open an unauthenticated chat socket (reply: nonce16, accept28).
         case 46:{need(phase==Phase::retired&&service&&p.size()>32,"account admit");service->admit_account(Bytes(p.begin(),p.begin()+32),Bytes(p.begin()+32,p.end()));return {};}
         case 47:{need(phase==Phase::retired&&service&&!p.empty()&&p.size()<=512,"account credentials");service->account_credentials(p);return {};}
+        // A delivered envelope's sealed content: take a range of a record (handle8, offset2, count2), or drop what is held.
+        case 48:{need(phase==Phase::retired&&service&&p.size()==12,"envelope take");return service->envelope_take(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
+        case 49:{need(phase==Phase::retired&&service&&p.empty(),"envelope drop");service->envelope_drop();return {};}
         case 44:{need(phase==Phase::retired&&service&&p.size()>16,"contact admit");service->admit_contact(contact(p),Bytes(p.begin()+16,p.end()));return {};}
         case 45:{need(phase==Phase::retired&&service&&p.empty(),"public upgrade");auto nonce=joint_random();nonce.resize(16);return service->upgrade_public(nonce);}
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}

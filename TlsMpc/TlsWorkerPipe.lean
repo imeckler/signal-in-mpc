@@ -22,7 +22,7 @@ def code : Operation → Nat
   | .publicRandom => 33 | .providerSealOpen => 34 | .providerRequest => 35
   | .contactKey => 36 | .contactOpen => 37 | .contactSeal => 38 | .exchange => 39 | .contactEvict => 40
   | .contactSend => 41 | .contactRequest => 42 | .revealRange => 43
-  | .contactAdmit => 44 | .publicUpgrade => 45 | .accountAdmit => 46 | .accountCredentials => 47
+  | .contactAdmit => 44 | .publicUpgrade => 45 | .accountAdmit => 46 | .accountCredentials => 47 | .envelopeTake => 48 | .envelopeDrop => 49
 
 def maxPayload : Nat := 2 * 1024 * 1024
 
