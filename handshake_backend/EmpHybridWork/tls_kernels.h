@@ -48,6 +48,7 @@ public:   // engine references and shared resources are also used by service_ker
     // pair: open bit xor rho, then select rho or 1-rho.
     std::vector<DynBitPair>pairs;size_t next_pair=0;
     std::vector<H> bits_to_field(const Wires&bits){
+        ProfileScope scope("conversion: boolean bits to field bits");
         const size_t n=bits.size();if(!n||n>16*255)throw std::runtime_error("bit conversion size");
         if(pairs.size()-next_pair<n){
             const unsigned blocks=unsigned((n-(pairs.size()-next_pair)+254)/255);std::vector<DynBitPair>more;
@@ -71,6 +72,7 @@ public:   // engine references and shared resources are also used by service_ker
     }
     // Private 255-bit word (value reduced mod p) -> one field share, consuming one mask.
     H word_to_field(const Wires&value){
+        ProfileScope scope("conversion: boolean word to field value");
         if(value.size()!=255)throw std::runtime_error("word width");
         auto&mask=take_mask();if(mask.used)throw std::runtime_error("word mask reuse");mask.used=true;
         auto opened=bits_to_bytes(s.open(s.run(circuits.into_field,DynSession::concat({&value,&mask.bits}))),0);   // ((u mod p)+r) mod p
@@ -210,6 +212,7 @@ public:   // engine references and shared resources are also used by service_ker
             if(buffer.revealed_length>capacity)throw std::runtime_error("revealed length");
             buffer.revealable=std::move(out.at("bytes"));
         }
+        ProfileScope scope("open revealed server bytes");
         const size_t length=buffer.revealed_length;std::vector<uint8_t>reply{uint8_t(length>>8),uint8_t(length)};
         if(offset<length){
             const size_t end=std::min(length,offset+count);

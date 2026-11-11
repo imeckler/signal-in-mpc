@@ -9,6 +9,7 @@
 // file or its callers knows where a field sits inside a circuit.
 #include "dyn_session.h"
 #include "dabit_generator.h"
+#include "profile.h"
 #include <cstdio>
 #include <fstream>
 #include <map>
@@ -24,6 +25,7 @@ class Kernel {
     struct Field {std::string name;size_t bits;int opened;};
     LeanCircuit circuit;std::vector<Field>inputs,outputs;
 public:
+    std::string label;   // for the profile only
     Kernel(const std::string&path,const std::string&sha,const std::string&layout_path,const std::string&layout_sha):circuit(path,sha.c_str()){
         std::ifstream in(layout_path,std::ios::binary);std::string text((std::istreambuf_iterator<char>(in)),{});
         std::array<uint8_t,32>digest{};SHA256(reinterpret_cast<const uint8_t*>(text.data()),text.size(),digest.data());
@@ -44,6 +46,7 @@ public:
     size_t input_bits(const std::string&name)const{for(auto&field:inputs)if(field.name==name)return field.bits;throw std::runtime_error("kernel input "+name);}
     // Every input field exactly once, by name, with the width Lean declared.
     Values run(DynSession&s,const Binding&bound)const{
+        ProfileScope scope("boolean circuit: "+label);
         if(bound.size()!=inputs.size())throw std::runtime_error("kernel binding count");
         std::vector<const Wires*>ordered;
         for(auto&field:inputs){
@@ -58,6 +61,7 @@ public:
     }
     // Opens an output only if Lean marked it as one that may be opened.
     std::vector<uint8_t> open(DynSession&s,const Values&out,const std::string&name)const{
+        ProfileScope scope("open boolean outputs");
         for(auto&field:outputs)if(field.name==name){
             if(field.opened!=1)throw std::runtime_error("kernel output "+name+" is not public");
             return bits_bytes(s.open(out.at(name)));
@@ -82,6 +86,7 @@ public:
     KernelCache(std::string s,Challenge&c):script(std::move(s)),channel(c){}
     const Kernel&get(const std::string&arguments){
         auto it=loaded.find(arguments);if(it!=loaded.end())return *it->second;
+        ProfileScope scope("circuit load (cache lookup, read, pin comparison)");
         for(char ch:arguments)if(!(std::isalnum(static_cast<unsigned char>(ch))||ch=='-'||ch==' '))throw std::runtime_error("kernel arguments");
         std::string command="python3 '"+script+"' kernel "+arguments;FILE*pipe=popen(command.c_str(),"r");if(!pipe)throw std::runtime_error("kernel cache launch");
         char buffer[4096];std::string line;while(fgets(buffer,sizeof buffer,pipe))line+=buffer;if(pclose(pipe)!=0)throw std::runtime_error("kernel cache failed");
@@ -89,7 +94,8 @@ public:
         if(!(in>>path>>sha>>inputs>>outputs>>layout>>layout_sha)||sha.size()!=64||layout_sha.size()!=64)throw std::runtime_error("kernel cache reply");
         std::array<uint8_t,128>mine{},peer{};std::copy(sha.begin(),sha.end(),mine.begin());std::copy(layout_sha.begin(),layout_sha.end(),mine.begin()+64);
         channel.transfer(mine.data(),peer.data(),128);if(mine!=peer)throw std::runtime_error("kernel pin disagreement");
-        return *(loaded[arguments]=std::make_unique<Kernel>(path,sha,layout,layout_sha));
+        auto&kernel=*(loaded[arguments]=std::make_unique<Kernel>(path,sha,layout,layout_sha));
+        kernel.label=arguments.substr(0,arguments.find(' '));return kernel;
     }
 };
 }

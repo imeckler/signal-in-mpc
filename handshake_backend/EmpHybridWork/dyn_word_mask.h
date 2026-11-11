@@ -18,6 +18,7 @@ inline std::array<uint8_t,32> bits_to_bytes(const std::vector<uint8_t>&bits,size
 // Semi-honest mode: parties follow the protocol, so a mask is r = rA + rB with
 // each party supplying its own canonical r to both engines. No cut, no buckets.
 inline std::vector<DynMask> generate_masks(DynSession&s,FE&field,Challenge&,int party,const WordCircuits&circuits,unsigned N,unsigned bit_blocks=0,std::vector<DynBitPair>*pairs=nullptr){
+    ProfileScope scope("conversion masks: generate");
     if(s.party()!=party||field.party_id()!=unsigned(party-1))throw std::runtime_error("engine party mapping");
     if(bit_blocks){
         // Bit pairs: each party supplies its own random bits to both engines; the pair is their XOR.
@@ -44,6 +45,7 @@ inline std::vector<DynMask> generate_masks(DynSession&s,FE&field,Challenge&,int 
 // The first `bit_blocks` kept references become 255 single-bit pairs each (appended to `pairs`),
 // by the construction of word_mask.h (lever 3c); the rest become full-width masks.
 inline std::vector<DynMask> generate_masks(DynSession&s,FE&field,Challenge&challenge,int party,const WordCircuits&circuits,unsigned N,unsigned bit_blocks=0,std::vector<DynBitPair>*pairs=nullptr){
+    ProfileScope scope("conversion masks: generate");
     if(s.party()!=party||field.party_id()!=unsigned(party-1))throw std::runtime_error("engine party mapping");
     if(bit_blocks>N||(bit_blocks&&!pairs))throw std::runtime_error("bit block count");
     const unsigned B=word_bucket_for(N),K=B*N,M=2*K,W=255;
@@ -119,6 +121,7 @@ inline std::vector<DynMask> generate_masks(DynSession&s,FE&field,Challenge&chall
 #endif
 // One field share -> 255 private Boolean bits (numeric order), consuming one mask.
 inline Wires field_to_word(DynSession&s,FE&f,Challenge&channel,const WordCircuits&circuits,DynMask&mask,H value){
+    ProfileScope scope("conversion: field value to boolean word");
     if(mask.used)throw std::runtime_error("word mask reuse");mask.used=true;
     auto c=f.checked_open({f.sub(value,mask.field)}).at(0);if(!canonical(c))throw std::runtime_error("noncanonical public field mask");
     std::array<uint8_t,32>peer{};channel.transfer(c.data(),peer.data(),32);if(c!=peer)throw std::runtime_error("public masked value disagreement");

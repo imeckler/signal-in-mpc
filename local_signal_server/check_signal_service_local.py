@@ -61,7 +61,7 @@ def kernel_lines(path):
 def warm():
     """Produce every circuit a run is known to ask for before any connection.
     A name the emitter no longer knows is skipped: the run asks for what it needs anyway."""
-    run(['lake', 'build', 'hybrid_kdf_emitter'], cwd=ROOT, capture_output=True)
+    run(['lake', 'build', 'flat_kernel_emitter'], cwd=ROOT, capture_output=True)
     names = sorted(set(kernel_lines(KERNELS) + kernel_lines(KERNEL_LOG)))
     started = time.monotonic()
     def one(name):
@@ -85,7 +85,7 @@ def run_mpc(export, mode, texts, party_env=None, during=None):
     sh = mode == 'semi-honest'
     output = base / 'signal-service-local-run' / secrets.token_hex(8)
     output.mkdir(parents=True)
-    run(['lake', 'build', 'public_service_controller', 'hybrid_kdf_emitter'], cwd=ROOT, capture_output=True)
+    run(['lake', 'build', 'public_service_controller', 'flat_kernel_emitter'], cwd=ROOT, capture_output=True)
     run(['c++', '-std=c++20', '-O2', '-I' + str(OPENSSL / 'include'), ROOT / 'handshake_backend/public_auth.cpp',
          '-L' + str(OPENSSL / 'lib'), '-lssl', '-lcrypto', '-o', output / 'public_auth'])
     mp = base / 'data61-MP-SPDZ-113c4e4'
@@ -347,7 +347,9 @@ def main():
     p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
+    p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
     a = p.parse_args()
+    os.environ['SIGNAL_LOCAL_BROADCASTS'] = str(max(2, a.broadcasts))
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:
         if not a.skip_build and not (STATE / 'classpath.txt').exists():

@@ -5,6 +5,7 @@
 // instances together so their multiplications share rounds. A product with a
 // public constant operand is linear and uses no triple.
 #include "field_engine.h"
+#include "profile.h"
 #include <openssl/bn.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
@@ -18,6 +19,7 @@ namespace emp_hybrid {
 class FieldProgram {
     struct Node {char op;unsigned a=0,b=0,depth=0;uint64_t constant=0;std::array<uint8_t,32>wide{};};
     std::vector<Node>nodes;std::vector<std::vector<unsigned>>linear,multiplications,divisions;unsigned inputs=0,division_count=0;std::vector<unsigned>outputs;
+    std::string label;   // for the profile only
 public:
     // Uniform shared field elements nobody knows: the sum of both parties' private inputs.
     static std::vector<FieldEngine::Handle> masks(FieldEngine&f,size_t count){
@@ -32,6 +34,7 @@ public:
         for(size_t i=0;i<count;i++)out.push_back(f.add(shares[0][i],shares[1][i]));return out;
     }
     FieldProgram(const std::string&path,const char*expected_sha){
+        label=path.substr(path.find_last_of('/')+1);label=label.substr(0,label.find('.'));
         std::ifstream file(path,std::ios::binary);std::string bytes(4000001,'\0');file.read(bytes.data(),bytes.size());auto size=file.gcount();
         if(size<=0||size>4000000)throw std::runtime_error("field program size");bytes.resize(size);
         std::array<uint8_t,32>digest{};SHA256(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size(),digest.data());
@@ -87,6 +90,7 @@ public:
     // All outputs per instance; instance k reads instances[k][0..inputs).
     std::vector<std::vector<FieldEngine::Handle>> evaluate_all(FieldEngine&f,const std::vector<std::vector<FieldEngine::Handle>>&instances)const{
         using H=FieldEngine::Handle;
+        ProfileScope scope("field program (local work): "+label);
         for(auto&v:instances)if(v.size()!=inputs)throw std::runtime_error("field program arity");
         std::vector<std::vector<H>>values(instances.size(),std::vector<H>(nodes.size()));
         auto mask=masks(f,size_t(division_count)*instances.size());size_t next_mask=0;
@@ -98,7 +102,12 @@ public:
                 // The opening is uniform for nonzero b; a zero denominator aborts.
                 for(size_t k=0;k<instances.size();k++)for(auto id:divisions[level]){H r=mask.at(next_mask++);a.push_back(values[k][nodes[id].a]);b.push_back(r);a.push_back(values[k][nodes[id].b]);b.push_back(r);}
                 if(!a.empty()){
-                    auto out=f.mul(a,b);size_t q=0;for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level])values[k][id]=out[q++];
+                    // A multiplication round. The engine makes triples in batches when it runs out,
+                    // inside this call: a round that sent far more than its openings made a batch.
+                    Profile::get().enter();const uint64_t before=f.sent_bytes();
+                    auto out=f.mul(a,b);
+                    Profile::get().leave(f.sent_bytes()-before>4096+512*a.size()?"field triples: generation (with the round that needed them): "+label:"field multiplication rounds (triples in stock): "+label);
+                    size_t q=0;for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level])values[k][id]=out[q++];
                     std::vector<H>denominators;for(size_t j=q+1;j<out.size();j+=2)denominators.push_back(out[j]);
                     if(!denominators.empty()){
                         auto opened=f.checked_open(denominators);size_t j=0;
