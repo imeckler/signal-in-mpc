@@ -488,7 +488,11 @@ party can block a delete by not forwarding it.
 - [ ] Thousands of contacts; hours-long sessions; reconnects; database node faults.
 - [ ] Then the real service, with one test account, at low volume.
 
-## 12a. Less C++, more Lean (queued: starts when the current work in the worker files lands)
+## 12a. Less C++, more Lean (queued: starts only after the application works end to end)
+
+Order set by the owner on 2026-11-11: first finish the orchestration blockers (sections 4, 6
+and 7: recovery, the node daemons and the application's requests, the real database nodes) so
+there is a functioning application end to end including the database nodes; then this.
 
 The C++ is dense and hard to audit. Decided by the owner on 2026-11-11: move what can move
 into Lean and prove what is useful about it.
