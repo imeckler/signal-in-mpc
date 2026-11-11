@@ -373,6 +373,9 @@ def main():
         # The texts PublicServiceController.lean broadcasts in its local-server mode.
         texts = {CONTACTS[0]: ['MPC broadcast one', 'MPC broadcast two ☕'],
                  CONTACTS[1]: ['MPC broadcast one', 'MPC broadcast two ☕']}
+        if a.broadcasts >= 3:
+            for name in CONTACTS:
+                texts[name] = texts[name] + ['MPC broadcast 3 ' + 'x' * 184]   # 200 bytes: a larger size class
         report['mpc_runs'], report['mpc'] = [], []
         ok = True
         for index in range(a.runs):

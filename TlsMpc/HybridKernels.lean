@@ -404,22 +404,36 @@ def signalWidths (cert : Nat) : Kernel :=
 
 /-- `signalSeal` with public varint widths: the fixed-width message and
 sealed-sender definitions. The status additionally requires the counters to
-have exactly the stated widths. The envelope has a public length. -/
-def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) (builtText : Bool := false) : Kernel :=
+have exactly the stated widths. The envelope has a public length.
+
+`classes` (built text only) is the message's size class: its padded content is
+`PrivateTextNotification.paddedBytes classes` bytes (80 per class, as Signal
+pads), and the text input is the `builtBytes classes` bytes that
+`PrivateTextNotification.buildSized _ classes` returns. The envelope's length
+is a function of the certificate size, the four widths and the class alone, so
+an observer of the envelope size learns the class (the length of the message's
+Content plus terminator rounded up to a multiple of 80 bytes) and nothing finer
+about the text. Class 1 is the circuit this kernel was before it had classes.
+The conversation record keeps its layout: its 80-byte plaintext slot holds the
+first block of the content. -/
+def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) (builtText : Bool := false)
+    (classes : Nat := 1) : Kernel :=
   let size := 80
+  let content := if builtText then PrivateTextNotification.paddedBytes classes else size
   let a := ByteAuth.symbolic
   let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
   let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
-  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)), ("text", .bytes (if builtText then 90 else 59)),
+  let inputs := [("conversation", Shape.bytes (conversationBytes cert size)),
+    ("text", .bytes (if builtText then PrivateTextNotification.builtBytes classes else 59)),
     ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word)]
   let get := lookup inputs
   let record := get "conversation"
   let certificate := sl record 0 cert
   let session := sl record cert (182 + size)
   let metadata := sl record (cert + 182 + size) 57
-  -- `builtText`: the caller supplies the output of `PrivateTextNotification.build` (validity
-  -- byte, kind, 80 padded content bytes, timestamp). Used when the message text is public and
-  -- the controllers build the content in the clear with the same definition.
+  -- `builtText`: the caller supplies the output of `PrivateTextNotification.buildSized` for
+  -- this class (validity byte, kind, `content` padded content bytes, timestamp). Used when the
+  -- message text is public and the controllers build the content in the clear with that definition.
   let text := if builtText then get "text"
     else PrivateTextNotification.build Sha256.symbolic Varint64.symbolic a (get "text")
   let staged := sl session 0 117 ++ sl text 1 1 ++ sl session 118 64 ++ sl text 2 size
@@ -427,7 +441,7 @@ def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat
     version := HybridService.at' staged 0, counter := sl staged 1 4, previous := sl staged 5 4, ratchet := sl staged 9 32,
     chainKey := sl staged 41 32, pqChainKey := sl staged 73 32, pqCounter := sl staged 105 4, epoch := sl staged 109 8,
     kind := HybridService.at' staged 117, chunkIndex := [], chunkData := [], sender := sl staged 118 32,
-    receiver := sl staged 150 32, plaintext := sl staged 182 size, addresses := [] }
+    receiver := sl staged 150 32, plaintext := sl text 2 content, addresses := [] }
   -- SHA-256 backend with a one-AND-per-bit adder, proved equal to addition (TlsMpc/Sha256Ripple.lean).
   let sha := Sha256Ripple.ops
   let accepted := SpqrSend.acceptedMask Varint64.symbolic sha a shape pqShape i
@@ -440,7 +454,7 @@ def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat
     choose p.nextPqChainKey i.pqChainKey ++ choose p.nextPqCounter i.pqCounter ++ staged.drop 109
   { name := if builtText then "signal-seal-built" else "signal-seal-fixed", inputs, outputs := [
       pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
-      pub "timestamp" (sl text 82 8), pub "envelope" (ByteAuth.release a status (sealed.drop 1))] }
+      pub "timestamp" (sl text (2 + content) 8), pub "envelope" (ByteAuth.release a status (sealed.drop 1))] }
 
 /-- MEASUREMENT ONLY, never run by the worker: prefixes of `signalSealFixed`, to
 count gates per stage. Stage 0 outputs the built text content; stage 1 also the
@@ -737,12 +751,14 @@ def find : List String → Option Kernel
           if cert ≤ 1024 && 1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
             some (signalSealFixed cert cw pw ew iw) else none
       | _, _, _, _, _ => none
-  | ["signal-seal-built", cert, counterWidth, previousWidth, epochWidth, indexWidth] =>
-      match cert.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with
-      | some cert, some cw, some pw, some ew, some iw =>
-          if cert ≤ 1024 && 1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
-            some (signalSealFixed cert cw pw ew iw true) else none
-      | _, _, _, _, _ => none
+  -- Built public text: the second parameter is the size class (80 padded content bytes each).
+  | ["signal-seal-built", cert, classes, counterWidth, previousWidth, epochWidth, indexWidth] =>
+      match cert.toNat?, classes.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with
+      | some cert, some classes, some cw, some pw, some ew, some iw =>
+          if cert ≤ 1024 && 1 ≤ classes && classes ≤ 4 &&
+              1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
+            some (signalSealFixed cert cw pw ew iw true classes) else none
+      | _, _, _, _, _, _ => none
   | ["signal-request-seal", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
       match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with
       | some cert, some size, some u, some k, some d, some r =>

@@ -43,6 +43,47 @@ namespace PublicReceive
 
 abbrev Byte := BitVec 8
 def capacity : Nat := 4096
+
+/-- The byte operations the parsers below run on, for values in the clear. Equal to
+`ByteAuth.concrete` (`fast_eq`); the differences are in how three operations are computed at
+run time. `ByteAuth.concrete` builds the mask of one bit with `BitVec.replicate`, and its
+constants and complements go through `2 ^ 8` as an arbitrary-precision power each time; together
+that made every parsed byte cost milliseconds. -/
+def fastConst (n : Nat) : BitVec 8 := BitVec.ofFin ⟨n % 256, Nat.mod_lt n (by decide)⟩
+theorem fastConst_eq (n : Nat) : fastConst n = BitVec.ofNat 8 n := by
+  apply BitVec.eq_of_toNat_eq
+  simp [fastConst]
+
+def fastNot (x : BitVec 8) : BitVec 8 := x ^^^ 255#8
+theorem fastNot_eq : ∀ x : BitVec 8, fastNot x = ~~~x := by decide
+
+def fastMask (x : BitVec 8) (i : Nat) : BitVec 8 := if x.getLsbD i then 255#8 else 0#8
+
+theorem fastMask_eq (x : BitVec 8) (i : Nat) : fastMask x i = BitVec.replicate 8 (x.extractLsb' i 1) := by
+  have h : x.extractLsb' i 1 = BitVec.ofBool (x.getLsbD i) := by
+    apply BitVec.eq_of_getLsbD_eq
+    intro j hj
+    have hz : j = 0 := by omega
+    subst hz
+    simp
+  rw [h]
+  unfold fastMask
+  cases x.getLsbD i <;> decide
+
+def fast : ByteAuth.Ops (BitVec 8) where
+  const := fastConst
+  xor := (· ^^^ ·)
+  and := (· &&& ·)
+  not := fastNot
+  maskBit := fastMask
+
+theorem fast_eq : fast = ByteAuth.concrete := by
+  have hc : fastConst = BitVec.ofNat 8 := funext fastConst_eq
+  have hn : fastNot = (fun x : BitVec 8 => ~~~x) := funext fastNot_eq
+  have hm : fastMask = (fun (x : BitVec 8) (i : Nat) => BitVec.replicate 8 (x.extractLsb' i 1)) :=
+    funext fun x => funext fun i => fastMask_eq x i
+  unfold fast ByteAuth.concrete
+  rw [hc, hn, hm]
 def on : Byte := 255
 
 structure State where
@@ -74,18 +115,21 @@ structure State where
   envelopes : List (Nat × Nat) := []
   /-- Completed server requests awaiting a reply. -/
   requests : List (List Byte) := []
+  /-- Before the upgrade completes: how many bytes of the header terminator
+  CR LF CR LF the revealed bytes currently end with (0..3). -/
+  terminator : Nat := 0
 
 def start (accept : List Byte) : State :=
-  { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start ByteAuth.concrete)
-    frame := TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.start ByteAuth.concrete capacity)
-    control := TlsWebSocketControl.stateBytes (TlsWebSocketControl.initial ByteAuth.concrete)
+  { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
+    frame := TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.start PublicReceive.fast capacity)
+    control := TlsWebSocketControl.stateBytes (TlsWebSocketControl.initial PublicReceive.fast)
     accept }
 
 /-- Expect the response to the request with this id. -/
 def expect (s : State) (id : Nat) : State :=
   { s with pending := true
            response := TlsChatResponse.stateBytes Word64.concrete
-             (TlsChatResponse.initial Word64.concrete ByteAuth.concrete capacity (BitVec.ofNat 64 id)) }
+             (TlsChatResponse.initial Word64.concrete PublicReceive.fast capacity (BitVec.ofNat 64 id)) }
 
 def get (bytes : List Byte) (index : Nat) : Byte := bytes.getD index 0
 
@@ -220,28 +264,72 @@ a request's body. -/
 def mayReveal (s : State) : Bool :=
   s.skip == 0 && (s.message.length < 2 || s.message == [8, 2] || s.message == [8, 1])
 
-/-- How many bytes may be revealed in one step. Inside the payload of a message
-already confirmed as a response (`08 02`), all but the last remaining byte of
-the current frame; otherwise one. Staying one short of the frame's end means a
-chunk never reaches into a following frame, whose payload must not be revealed
-beyond two bytes. The caller additionally checks that a chunk stays inside one
-message. (Frame state: phase flags at 0..4, remaining payload at 10..11.) -/
+/-- Bytes still unrevealed of the field a request's revealed bytes end in, when
+that field is its verb, path or a header (never its body). -/
+def fieldMissing (bytes : List Byte) : Nat := Id.run do
+  if bytes.length < 3 then return 0
+  let some (_, first) := varintAt bytes 3 | return 0
+  let mut pos := first
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return 0
+    let tag := (get bytes pos).toNat
+    if tag == 0x0a || tag == 0x12 || tag == 0x2a then
+      let some (count, next) := varintAt bytes (pos + 1) | return 0
+      if next + count > bytes.length then return next + count - bytes.length
+      pos := next + count
+    else if tag == 0x20 || tag == 0x1a then
+      -- the id's value; or the body's length (its content is not among these bytes)
+      let some (_, next) := varintAt bytes (pos + 1) | return 0
+      pos := next
+    else return 0
+  return 0
+
+/-- How many bytes may be revealed in one step: as many as are certain to be
+bytes this controller may see, given what has been revealed so far. Each step
+is a round trip between the parties, so longer steps matter.
+
+* Before the upgrade completes, the response headers end at the first
+  CR LF CR LF: with `k` of its bytes just seen, the next `4 - k` bytes cannot
+  reach past it.
+* A frame's header is at least two bytes, and an extended length is two.
+* A control frame's payload, and the payload of a message confirmed as a
+  response (`08 02`), to the end of the frame.
+* The first two payload bytes of a message say what it is.
+* In a server request (`08 01`): the rest of its verb, path or header field,
+  once that field's length has been revealed. Never its body.
+
+The caller checks, byte by byte, that what is left of a step is still within
+this bound. (Frame state: which byte is expected next at 0..4 — first header,
+second header, extended length high, low, payload — the opcode at 7, and the
+payload bytes left at 10..11.) -/
 def budget (s : State) : Nat :=
+  if !s.upgraded then 4 - min s.terminator 3 else
+  let expects := fun i => get s.frame i == on
   let remaining := (get s.frame 10).toNat * 256 + (get s.frame 11).toNat
-  if s.upgraded && s.message == [8, 2] && get s.frame 4 == on && remaining ≥ 2 then remaining - 1 else 1
+  if expects 0 || expects 2 then 2
+  else if !expects 4 || remaining == 0 then 1
+  else if (get s.frame 7).toNat ≥ 8 then remaining
+  else if s.message == [8, 2] then remaining
+  else if s.message == [8, 1] then max 1 (min remaining (fieldMissing s.request))
+  else if s.message.isEmpty then min 2 remaining
+  else 1
 
 /-- Consume one revealed byte. Returns the new state and whether a successful
 response to the pending request completed at this byte. -/
 def step (s : State) (byte : Byte) : Except String (State × Bool) := do
   let (activity, s) ← if s.upgraded then pure (on, s) else do
-    let out := TlsWebSocketUpgrade.runByte ByteAuth.concrete (s.upgrade ++ s.accept ++ [on, byte])
+    let out := TlsWebSocketUpgrade.runByte PublicReceive.fast (s.upgrade ++ s.accept ++ [on, byte])
     unless get out 0 == on do throw "WebSocket upgrade response rejected"
-    pure (get out 2, { s with upgrade := out.drop 3, upgraded := get out 1 == on })
+    let expected : Byte := if s.terminator % 2 == 0 then 13 else 10
+    let terminator := if byte == expected then s.terminator + 1 else if byte == 13 then 1 else 0
+    -- The upgrade parser and this count must agree on where the headers end.
+    unless (get out 1 == on) == (terminator == 4) do throw "upgrade response headers ended unexpectedly"
+    pure (get out 2, { s with upgrade := out.drop 3, upgraded := get out 1 == on, terminator })
   unless s.skip == 0 do throw "a request body byte was revealed"
   -- The general frame parser: server requests are data frames too.
-  let frame := TlsWebSocketFrame.runByte ByteAuth.concrete capacity (s.frame ++ [activity, byte])
+  let frame := TlsWebSocketFrame.runByte PublicReceive.fast capacity (s.frame ++ [activity, byte])
   unless get frame 0 == on do throw "WebSocket frame rejected"
-  let control := TlsWebSocketControl.run ByteAuth.concrete (s.control ++ [get frame 2, get frame 6, get frame 7, byte])
+  let control := TlsWebSocketControl.run PublicReceive.fast (s.control ++ [get frame 2, get frame 6, get frame 7, byte])
   let data := get frame 1 == on
   let done := get frame 5 == on
   let first := data && s.message.length == 0
@@ -263,7 +351,7 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
   if s.pending then
     for (entry, value) in feed do
       if s.pending then
-        let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete ByteAuth.concrete capacity
+        let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast capacity
           (s.response ++ entry ++ [value])
         unless get out 0 == on do throw "service response rejected or not correlated"
         s := { s with response := out.drop 6 }
@@ -297,9 +385,9 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
 parser advances (it does not look at the payload of a binary frame). -/
 def stepSkipped (s : State) : Except String State := do
   unless s.upgraded && s.skip > 0 && s.message == [8, 1] do throw "nothing to skip"
-  let frame := TlsWebSocketFrame.runByte ByteAuth.concrete capacity (s.frame ++ [on, 0])
+  let frame := TlsWebSocketFrame.runByte PublicReceive.fast capacity (s.frame ++ [on, 0])
   unless get frame 0 == on && get frame 1 == on do throw "request body left its frame"
-  let control := TlsWebSocketControl.run ByteAuth.concrete (s.control ++ [get frame 2, get frame 6, get frame 7, 0])
+  let control := TlsWebSocketControl.run PublicReceive.fast (s.control ++ [get frame 2, get frame 6, get frame 7, 0])
   let mut s := { s with frame := frame.drop 8, control, skip := s.skip - 1 }
   if let some (header, passed, remaining) := s.inner then
     unless remaining > 0 do throw "envelope state"
@@ -354,7 +442,7 @@ def replies (s : State) (mask : List Byte) : Except String (State × List (Nat �
   let frames ← (List.range count).mapM fun i => do
     let kind := get s.control (128 + i)
     unless kind == 8 || kind == 10 do throw "control kind"
-    let out := TlsWebSocketControl.encode ByteAuth.concrete
+    let out := TlsWebSocketControl.encode PublicReceive.fast
       ([get s.control 0, 0, get s.control (132 + i), kind] ++ mask ++ (s.control.drop (136 + 125 * i)).take 125)
     unless get out 0 == on && get out 1 == 0 do throw "control reply rejected"
     pure (kind.toNat, (out.drop 3).take (get out 2).toNat)
@@ -394,7 +482,7 @@ def field (tag : Nat) (pieces : List Piece) : List Piece :=
 UUID, access-key, device and registration slots. -/
 def build (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) : Except String (List Byte × List Nat) := do
   let json : List Piece := [
-    .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 ByteAuth.concrete envelope ++
+    .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 PublicReceive.fast envelope ++
       text "\",\"destinationDeviceId\":"), .slot 2 3,
     .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
     .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
@@ -499,7 +587,33 @@ private def readReceive (text : String) : Except String ReceiveKeys := do
          serverCertificate := ← fromHex (← server.getObjValAs? String "certificate_hex")
          serverId := ← server.getObjValAs? Nat "key_id", oneTime, signed, kyber := ← keys "kyber_prekeys" }
 
+/-- Measurement only (`public_service_controller parse-bench`): the cost per byte of the
+parsers this controller runs on revealed bytes. -/
+def parseBench : IO Unit := do
+  let zero ← IO.rand 0 0   -- not a compile-time constant, so nothing is evaluated ahead
+  let frame := TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.start PublicReceive.fast PublicReceive.capacity)
+  let control := TlsWebSocketControl.stateBytes (TlsWebSocketControl.initial PublicReceive.fast)
+  let response := TlsChatResponse.stateBytes Word64.concrete
+    (TlsChatResponse.initial Word64.concrete PublicReceive.fast PublicReceive.capacity (BitVec.ofNat 64 5))
+  let upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
+  let time (name : String) (rounds : Nat) (run : Nat → Nat) : IO Unit := do
+    let start ← IO.monoNanosNow
+    let mut sum := 0
+    for i in [0:rounds] do sum := sum + run (i + zero)
+    let stop ← IO.monoNanosNow
+    IO.println s!"{name}: {(stop - start) / rounds / 1000} microseconds per byte (checksum {sum})"
+  time "frame parser" 200 (fun i => (TlsWebSocketFrame.runByte PublicReceive.fast PublicReceive.capacity
+    (frame ++ [255, BitVec.ofNat 8 (0x82 + i % 2 * 0)])).length)
+  time "control queue" 200 (fun i => (TlsWebSocketControl.run PublicReceive.fast (control ++ [0, 0, 0, BitVec.ofNat 8 i])).length)
+  time "response parser" 200 (fun i => (TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast PublicReceive.capacity
+    (response ++ [255, 255, 0] ++ [BitVec.ofNat 8 i])).length)
+  time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
+  IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
+
 def main (args : List String) : IO Unit := do
+  if args == ["parse-bench"] then
+    parseBench
+    return
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
   let certificate ← IO.mkRef false
@@ -729,7 +843,7 @@ def main (args : List String) : IO Unit := do
           | none =>
             let upgrade ← rpc.call .publicUpgrade []
             insist (upgrade.length == 44) "invalid public upgrade receipt"
-            sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
+            sendPublic (toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16))))
             pure (upgrade.drop 16, known, true)
       let contacts := known.map (·.1)
       -- Receiving (authenticated socket with an export): a delivered sealed-sender envelope is
@@ -861,8 +975,9 @@ def main (args : List String) : IO Unit := do
               liftM (IO.eprintln s!"revealed {TlsWorkerProcess.hex bytes}" : IO Unit)
             for (byte, index) in bytes.zipIdx do
               let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 byte.toNat))
-              -- A chunk must stay inside the response it was granted for.
-              insist (index + 1 == bytes.length || next.message == [8, 2]) "revealed range crossed a message boundary"
+              -- What is left of this step must still be within what may be revealed.
+              insist (bytes.length - (index + 1) == 0 || (PublicReceive.mayReveal next && bytes.length - (index + 1) ≤ PublicReceive.budget next))
+                "revealed range went past what may be revealed"
               s := next
               complete := complete || done
           offset := offset + (if bytes.isEmpty then 1 else bytes.length)
@@ -871,9 +986,20 @@ def main (args : List String) : IO Unit := do
         return (s, complete)
       -- One send: the engines produce and open the sealed-sender envelope; the request
       -- is assembled here; the engines insert the contact's fields and seal the record.
+      -- With the database: the contact's advanced state is stored (and acknowledged by the
+      -- nodes) BEFORE its message leaves. If the session dies afterwards the stored state is
+      -- never behind what was sent, so no message key or counter can be used twice; at worst
+      -- a message that was stored for but never sent leaves a gap in the counter.
+      let versions ← liftM (IO.mkRef (known.map (fun (contact, _, version) => (contact, version))) : IO (IO.Ref (List (Nat × Nat))))
+      let storeAdvanced (contact : Nat) : M Unit := do
+        if dbClient.isSome then
+          let version := ((← liftM (versions.get : IO (List (Nat × Nat)))).find? (·.1 == contact)).map (·.2) |>.getD 0
+          insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
+          liftM (versions.modify (fun all => all.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v))) : IO Unit)
       let sendMessage (send : Nat × Bytes) (id : Nat) : M Unit := do
         let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
         insist (sealed.length ≥ 10) "invalid sealed envelope reply"
+        storeAdvanced send.1
         let timestamp := number (sealed.take 8)
         let length := number ((sealed.drop 8).take 2)
         insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
@@ -903,10 +1029,7 @@ def main (args : List String) : IO Unit := do
           let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
-        if dbClient.isSome then
-          -- The next blob version of each contact, under the application's request.
-          for (contact, _, version) in known do
-            insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
+        if dbClient.isSome then pure ()   -- stored before each send (storeAdvanced)
         else
         match storeDirectory with
         | none => pure ()
@@ -918,18 +1041,23 @@ def main (args : List String) : IO Unit := do
             liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
               (TlsWorkerProcess.hex (share ++ version ++ stored) ++ "\n") : IO Unit)
       -- The application's request: `notify(ids, message)`. Ids and text are public to both
-      -- parties; it expands to one send per contact. The text input of the send kernels is
-      -- a validity byte, a two-byte length, 48 bytes of UTF-8 and an 8-byte timestamp.
-      let notify (ids : List Nat) (message : String) (timestamp : Nat) : M (List (Nat × Bytes)) := do
+      -- parties; it expands to one send per contact. The text is 1..256 bytes of UTF-8. What
+      -- goes to the engines is the built message of its size class c in 1..4: a validity byte,
+      -- a kind byte, 80c bytes of padded content (Content, 0x80, zeros: Signal's padding in
+      -- 80-byte blocks) and the 8-byte timestamp. The envelope's size depends on c alone, so
+      -- its observer learns c: the Content's length rounded up to 80 bytes (with today's
+      -- timestamps, text of 1..68, 69..146, 147..226 or 227..256 bytes), not the exact length.
+      let notify(ids : List Nat) (message : String) (timestamp : Nat) : M (List (Nat × Bytes)) := do
         let body := message.toUTF8.data.toList
-        insist (0 < body.length && body.length ≤ 48) "notify message must be 1..48 bytes"
+        insist (0 < body.length && body.length ≤ 256) "notify message must be 1..256 bytes"
         insist (ids.all (· < 2 ^ 128)) "contact ids are u128"
         -- The text is public, so the message content (protobuf, padding) is built here
-        -- with the same definition the private path compiles to a circuit.
+        -- with the same definition the private path compiles to a circuit
+        -- (`PrivateTextNotification.buildPublic`: the smallest of the four size classes that
+        -- holds the content; texts of at most 48 bytes get exactly what `build` gave them).
         ids.zipIdx.mapM (fun (contact, index) => do
-          let input := [255] ++ uint 2 body.length ++ body ++ List.replicate (48 - body.length) 0 ++ uint 8 (timestamp + index)
-          let built := PrivateTextNotification.build Sha256.concrete Varint64.concrete ByteAuth.concrete (toBits input)
-          insist (built.length == 90 && built.head? == some 255) "message text rejected"
+          let (classes, built) := (PrivateTextNotification.buildPublic 4 (toBits body) (toBits (uint 8 (timestamp + index)))).getD (0, [])
+          insist (1 ≤ classes && classes ≤ 4 && built.length == 10 + 80 * classes && built.head? == some 255) "message text rejected"
           pure (contact, toBytes built))
       let inputs ← match exportPath with
         | none => do
@@ -941,7 +1069,12 @@ def main (args : List String) : IO Unit := do
           -- Two broadcasts to every contact. The timestamp is public and must be the same
           -- for both controllers, so the harness supplies it.
           let base ← agreedNow
-          pure ((← notify contacts "MPC broadcast one" base) ++ (← notify contacts "MPC broadcast two ☕" (base + 1000)))
+          -- Further broadcasts on request (SIGNAL_LOCAL_BROADCASTS, for measuring the cost per message).
+          let count := ((← liftM (IO.getEnv "SIGNAL_LOCAL_BROADCASTS" : IO (Option String))).bind String.toNat?).getD 2
+          let more ← ((List.range (count - 2)).mapM (fun k => notify contacts
+            -- the third broadcast is 200 bytes long (a larger size class)
+            (if k == 0 then "MPC broadcast 3 " ++ String.ofList (List.replicate 184 'x') else s!"MPC broadcast {k + 3}") (base + 1000 * (k + 2))))
+          pure ((← notify contacts "MPC broadcast one" base) ++ (← notify contacts "MPC broadcast two ☕" (base + 1000)) ++ more.flatten)
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List (Nat × Bytes)) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
@@ -1030,7 +1163,7 @@ def main (args : List String) : IO Unit := do
         TlsApplication.abort app
         return pings
       | none =>
-        let finished ← loop 256 (PublicReceive.start (toBits accept)) inputs 0
+        let finished ← loop (256 + 16 * inputs.length) (PublicReceive.start (toBits accept)) inputs 0
         writeBack
         TlsApplication.abort app
         return finished

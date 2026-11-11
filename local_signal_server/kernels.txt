@@ -5,7 +5,10 @@ kernel gcm-check
 kernel gcm-key-share
 kernel gcm-multiply
 kernel gcm-tag
+kernel receive-access-key 244 336 278
+kernel receive-access-key 244 416 280
 kernel receive-access-key 244 416 281
+kernel receive-access-key 244 416 282
 kernel receive-access-key 244 416 283
 kernel receive-access-key 244 416 285
 kernel receive-access-key 244 416 286
@@ -15,28 +18,41 @@ kernel receive-access-key 244 96 25
 kernel receive-certificate 244 1 0 0
 kernel receive-certificate-verified
 kernel receive-content 2130 244 1 0
+kernel receive-content 2371 244 1 0
 kernel receive-content 2451 244 1 0
 kernel receive-content-shape 2130 244 1
+kernel receive-content-shape 2371 244 1
 kernel receive-content-shape 2451 244 1
 kernel receive-envelope-point 2224
+kernel receive-envelope-point 2465
 kernel receive-envelope-point 2545
 kernel receive-prekey-open 1878 1 2 1 1
+kernel receive-prekey-open 2119 1 2 1 1
 kernel receive-prekey-open 2199 1 2 1 1
 kernel receive-prekey-shape 1878
+kernel receive-prekey-shape 2119
 kernel receive-prekey-shape 2199
 kernel receive-session 244 1878 1 2 1 1 1 1 96 0 1 0
+kernel receive-session 244 2119 1 2 1 1 1 1 208 2 1 0
 kernel receive-session 244 2199 1 2 1 1 1 1 160 3 1 0
 kernel receive-signal-shape 1878 1 2 1 1
+kernel receive-signal-shape 2119 1 2 1 1
 kernel receive-signal-shape 2199 1 2 1 1
+kernel receive-text 336 330
 kernel receive-text 416 410
 kernel receive-text 96 90
 kernel receive-unseal-message 2224
+kernel receive-unseal-message 2465
 kernel receive-unseal-message 2545
 kernel receive-unseal-static 2224
+kernel receive-unseal-static 2465
 kernel receive-unseal-static 2545
 kernel signal-conversation-view 244
 kernel signal-request-ctr 244 1000 33 976 797 829
+kernel signal-request-ctr 244 1216 33 1192 1013 1045
 kernel signal-seal-built 244 1 1 1 1
+kernel signal-seal-built 244 1 1 1 1 1
+kernel signal-seal-built 244 3 1 1 1 1
 kernel signal-upgrade-shared 22
 kernel signal-widths 244
 kernel tls-derive
@@ -45,6 +61,7 @@ kernel tls-open-application-ctr 153
 kernel tls-open-application-ctr 222
 kernel tls-open-application-ctr 2421
 kernel tls-open-application-ctr 246
+kernel tls-open-application-ctr 2662
 kernel tls-open-application-ctr 2742
 kernel tls-open-application-ctr 695
 kernel tls-open-application-ctr 98
@@ -57,6 +74,7 @@ kernel tls-reveal-masked 132
 kernel tls-reveal-masked 201
 kernel tls-reveal-masked 225
 kernel tls-reveal-masked 2400
+kernel tls-reveal-masked 2641
 kernel tls-reveal-masked 2721
 kernel tls-reveal-masked 674
 kernel tls-reveal-masked 77

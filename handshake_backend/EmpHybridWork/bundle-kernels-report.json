@@ -1,0 +1,58 @@
+{
+  "kernels": {
+    "bundle-shape 2632": {
+      "and_gates": 118440
+    },
+    "bundle-device 2632 73 1 5 8 7 10": {
+      "and_gates": 104098
+    },
+    "bundle-shape 7572": {
+      "and_gates": 340740
+    },
+    "bundle-device 7572 73 1 1 1 0 1": {
+      "and_gates": 100308
+    },
+    "bundle-device 7572 2539 2 3 6 2 4": {
+      "and_gates": 102871
+    },
+    "bundle-device 7572 5083 3 5 10 0 8": {
+      "and_gates": 101783
+    },
+    "bundle-bind": {
+      "and_gates": 535
+    },
+    "bundle-fetch-ctr 164 8 29 95": {
+      "and_gates": 57549
+    },
+    "bundle-request-ctr 482 8 33 427 117 149 246 278": {
+      "and_gates": 201771
+    }
+  },
+  "cases": {
+    "one device with a one-time prekey": {
+      "body_bytes": 2632,
+      "devices": 1,
+      "fields_match_reference": true,
+      "rejected_bodies_release_nothing": 13,
+      "layout_from_lean": true
+    },
+    "three devices, mixed": {
+      "body_bytes": 7572,
+      "devices": 3,
+      "fields_match_reference": true,
+      "rejected_bodies_release_nothing": 19,
+      "layout_from_lean": true
+    },
+    "bind": {
+      "matches_reference": true,
+      "rejected_release_nothing": 6
+    },
+    "requests": {
+      "fetch_frame_bytes": 164,
+      "send_frame_bytes": 482,
+      "send_devices": 2,
+      "records_are_tls_encryptions_of_real_frames": true,
+      "dead_record_seals_nothing": 2
+    }
+  }
+}

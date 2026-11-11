@@ -54,9 +54,13 @@ struct Worker {
         Bytes out(32);for(unsigned i=0;i<32;i++)out[i]=mine[i]^peer[i];return out;
     }
     Bytes call(uint8_t code,uint64_t sequence,const Bytes&p){
+        ProfileScope scope("operation "+std::to_string(code)+": request agreement and everything not listed separately");
+        return dispatch(code,sequence,p);
+    }
+    Bytes dispatch(uint8_t code,uint64_t sequence,const Bytes&p){
         // Operations 36, 39 and 47 carry this party's PRIVATE bytes after a public prefix; only the
         // prefix and the total size are agreed.
-        if(code==36||code==39||code==47){
+        if(code==36||code==39||code==47||code==53){
             const size_t open=code==36?16:0;need(p.size()>=open,"private request shape");
             Bytes agreed(p.begin(),p.begin()+open);for(int i=3;i>=0;i--)agreed.push_back(uint8_t(uint64_t(p.size())>>(8*i)));
             agree(code,sequence,agreed);
@@ -67,7 +71,7 @@ struct Worker {
         case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));return {};}
         case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
         // Notify path: a send to a contact by id with a public text, then its request frame.
-        case 41:{need(phase==Phase::retired&&service&&p.size()==16+90,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 41:{need(phase==Phase::retired&&service&&p.size()>=16+90&&p.size()<=16+330&&(p.size()-26)%80==0,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
         case 42:{
             need(phase==Phase::retired&&service&&p.size()>28&&p.size()<=28+16384,"contact request");
             std::vector<size_t>offsets;for(int i=0;i<4;i++)offsets.push_back(big(p.data()+16+2*i,2));
@@ -81,6 +85,10 @@ struct Worker {
         // A delivered envelope's sealed content: take a range of a record (handle8, offset2, count2), or drop what is held.
         case 48:{need(phase==Phase::retired&&service&&p.size()==12,"envelope take");return service->envelope_take(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
         case 49:{need(phase==Phase::retired&&service&&p.empty(),"envelope drop");service->envelope_drop();return {};}
+        // The account's own record at rest: this party's key share (private), seal (version 8), open (version 8, check 16, ciphertext).
+        case 53:{need(phase==Phase::retired&&service&&p.size()==32,"account key");std::array<uint8_t,32>share{};std::copy_n(p.begin(),32,share.begin());service->account_key(share);return {};}
+        case 54:{need(phase==Phase::retired&&service&&p.size()==8,"account seal");return service->account_seal(p);}
+        case 55:{need(phase==Phase::retired&&service&&p.size()>24&&p.size()<=24+2048,"account open");service->account_open(Bytes(p.begin(),p.begin()+8),Bytes(p.begin()+8,p.begin()+24),Bytes(p.begin()+24,p.end()));return {};}
         case 52:{
             need(phase==Phase::retired&&service&&p.size()==32,"contact assign");ServiceKernels::ContactId to{};std::copy_n(p.begin()+16,16,to.begin());
             return service->contact_assign(contact(p),to);
@@ -235,6 +243,9 @@ static int run(int argc,char**argv){
         if(const char*requested=std::getenv("TLS_WORKER_FIELD_BATCH")){batch=std::stoul(requested);if(batch<1||batch>100000)return 2;}
         DynSession mpc(&io,&threads,party,128);FE field(party-1,port+10,batch);
         Challenge channel{io,party,"tls-worker-v3:session="+session};
+        auto&profile=Profile::get();
+        profile.gates=[&]{return mpc.and_gates();};profile.products=[&]{return field.products();};
+        profile.boolean_bytes=[&]{return uint64_t(mpc.sent_bytes());};profile.field_bytes=[&]{return field.sent_bytes();};
         TlsKernels kernels(mpc,field,channel,party,argv[4]);kernels.prepare();
         Worker worker{party,io,channel,kernels,session};
         if(const char*test=std::getenv("TLS_WORKER_TEST_PRODUCER")){worker.test_bytes=std::stoul(test);if(!worker.test_bytes||worker.test_bytes>16384)return 2;std::cerr<<"tls-worker-v3 TEST producer enabled bytes="<<worker.test_bytes<<"\n";}
@@ -245,19 +256,25 @@ static int run(int argc,char**argv){
         worker.session+=kernels.ladder_agreement?":ladder":":split";
         std::cerr<<"tls-worker-v3 security_mode="<<SECURITY_MODE<<" key_agreement="<<(kernels.ladder_agreement?"ladder":"split")<<"\n";
         std::cerr<<"tls-worker-v3 operation 0 ok seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<" and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<" field_sent_bytes="<<field.sent_bytes()<<" field_products="<<field.products()<<"\n";
-        bool failed=false;uint64_t expected=0;
+        bool failed=false;uint64_t expected=0;double busy=0;
         for(;;){
             uint8_t head[13];if(!read_exact(STDIN_FILENO,head,13))break;
             uint64_t sequence=big(head+1,8);size_t size=big(head+9,4);if(size>2*1024*1024)throw std::runtime_error("request bound");
             Bytes payload(size);if(size&&!read_exact(STDIN_FILENO,payload.data(),size))break;
-            if(head[0]==8){kernels.abort();failed=true;std::cerr<<"tls-worker-v3 operation 8 ok (local abort)\n";reply(true,{});continue;}   // local, idempotent; not an erasure receipt
+            if(head[0]==8){profile.report(std::cerr,"tls-worker-v3 profile");kernels.abort();failed=true;std::cerr<<"tls-worker-v3 operation 8 ok (local abort)\n";reply(true,{});continue;}   // local, idempotent; not an erasure receipt
             if(failed||sequence!=expected++){failed=true;reply(false,{});continue;}
             try{
+                // `busy`: time inside the worker since the last line (this call and any empty polls);
+                // the rest of the interval was spent outside it (controller, server, waiting).
+                const auto entered=std::chrono::steady_clock::now();
                 auto out=worker.call(head[0],sequence,payload);
-                if(!(head[0]==17&&out.empty()))std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" ok seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<" and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<" field_sent_bytes="<<field.sent_bytes()<<" field_products="<<field.products()<<"\n";
+                busy+=std::chrono::duration<double>(std::chrono::steady_clock::now()-entered).count();
+                const double spent=busy;if(!(head[0]==17&&out.empty()))busy=0;
+                if(!(head[0]==17&&out.empty()))std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" ok seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<" and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<" field_sent_bytes="<<field.sent_bytes()<<" field_products="<<field.products()<<" busy="<<spent<<"\n";
                 reply(true,out);
             }catch(const std::exception&e){std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" rejected: "<<e.what()<<"\n";failed=true;kernels.abort();reply(false,{});}
         }
+        profile.report(std::cerr,"tls-worker-v3 profile");
         std::cerr<<"tls-worker-v3 totals and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<""<<"\n";
         return 0;
     }catch(const std::exception&e){std::cerr<<"tls-worker-v3 aborted: "<<e.what()<<"\n";try{reply(false,{});}catch(...){}return 1;}

@@ -97,4 +97,173 @@ theorem compiled_build_correct (input : List (BVExpr 8)) (assign : BVExpr.Assign
   intro index hi
   rw [ByteCircuit.compile_bytes_correct,build_map (Sha256.evaluationHom assign)
     (Varint64.evaluationHom assign) (ByteAuth.evaluationHom assign)]
+
+/-! ### Size classes
+
+Signal pads the serialized Content with a 0x80 terminator and zeros up to a
+whole number of 80-byte blocks. `buildSized` is `build` with the text capacity
+and the number of blocks (the size class) as public parameters; `build` is its
+instance with 48 bytes of text and one block (`buildSized_base`).
+
+Layout, all public: the text input is `inputBytes capacity` bytes (validity8,
+BE16 text length, `capacity` text bytes, timestampBE8); the built message is
+`builtBytes classes` bytes (validity8, kind0, `paddedBytes classes` padded
+content bytes, timestampBE8). A text whose Content and terminator do not fit
+`paddedBytes classes` is rejected (canonical zeros), like invalid UTF-8.
+
+What a size class reveals: the padded plaintext, and with it the session
+ciphertext and the sealed-sender envelope, has a length fixed by the class, so
+an observer of the envelope size learns the class and nothing finer: the
+length of Content plus terminator rounded up to a multiple of 80. With today's
+six-byte timestamp varints that is the text length in one of the ranges 1..68,
+69..146, 147..226, 227..306 (classes 1..4; the public path below takes at most
+256 bytes of text). -/
+
+/-- Padded content bytes of a size class. -/
+def paddedBytes (classes : Nat) : Nat := 80 * classes
+/-- Bytes of a built message: validity, kind, padded content, timestamp. -/
+def builtBytes (classes : Nat) : Nat := paddedBytes classes + 10
+/-- Bytes of the text input: validity, BE16 length, `capacity` text bytes, timestamp. -/
+def inputBytes (capacity : Nat) : Nat := capacity + 11
+
+def buildSized (s : Sha256.Ops B W) (v : Varint64.Ops B V) (a : ByteAuth.Ops B)
+    (capacity classes : Nat) (input : List B) : List B :=
+  if input.length != inputBytes capacity then List.replicate (builtBytes classes) (a.const 0) else
+  let body := PrivateBuffer.fromWire a capacity (input.take (capacity + 3))
+  let timestamp := (input.drop (capacity + 3)).take 8
+  let utf := utfLoop a body.data body.lengthBits (List.range capacity) (TlsWebSocketUpgrade.initial a 7)
+  let bodyField := PrivateProtobuf.bytesField s a 10 body
+  let timeField := PrivateSend.join a 11 [PrivateSend.literal a 11 [a.const 56],
+    PrivateVarint.uint64 v a (Varint64.pack v a timestamp)]
+  let dm := PrivateSend.join a (capacity + 15) [bodyField,timeField]
+  let content := PrivateProtobuf.bytesField s a 10 dm
+  let padded := PrivateSend.join a (paddedBytes classes)
+    [content,PrivateSend.literal a (paddedBytes classes) [a.const 128]]
+  let valid := a.and padded.valid (ByteAuth.eqMask a (OpenResult.get a utf 0) (a.const 255))
+  valid :: ByteAuth.release a valid (a.const 0 :: padded.data ++ timestamp)
+
+/-- The 48-byte, one-block instance is `build` itself, so everything stated
+about `build` is a statement about `buildSized 48 1`. -/
+theorem buildSized_base (s : Sha256.Ops B W) (v : Varint64.Ops B V) (a : ByteAuth.Ops B)
+    (input : List B) : buildSized s v a 48 1 input = build s v a input := rfl
+
+theorem buildSized_length (s : Sha256.Ops B W) (v : Varint64.Ops B V) (a : ByteAuth.Ops B)
+    (capacity classes : Nat) (input : List B) :
+    (buildSized s v a capacity classes input).length = builtBytes classes := by
+  unfold buildSized
+  split
+  · simp only [List.length_replicate]
+  · rename_i h
+    have hi : input.length = capacity + 11 := by simpa [inputBytes] using h
+    simp only [List.length_cons,ByteAuth.release,List.length_map,List.length_append,
+      PrivateProtobuf.join_data_length,List.length_take,List.length_drop,hi,builtBytes]
+    omega
+
+section SizedRefinement
+variable {s : Sha256.Ops B W} {s' : Sha256.Ops B' W'}
+  {v : Varint64.Ops B V} {v' : Varint64.Ops B' V'}
+  {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'} {fw : W → W'} {fv : V → V'}
+  (hs : Sha256.Hom s s' f fw) (hv : Varint64.Hom v v' f fv) (ha : ByteAuth.Hom a a' f)
+include hs hv ha
+
+theorem buildSized_map (capacity classes : Nat) (input : List B) :
+    (buildSized s v a capacity classes input).map f =
+      buildSized s' v' a' capacity classes (input.map f) := by
+  simp only [buildSized,List.length_map]
+  split
+  · simp only [List.map_replicate,ha.const]
+  · simp only [List.map_cons,List.map_append,ByteAuth.release_map ha,ha.and,ha.const,
+      ByteAuth.eqMask_map ha,OpenResult.get_map ha,utfLoop_map ha,TlsWebSocketUpgrade.initial_map ha,
+      PrivateSend.join_map ha,List.map_cons,List.map_nil,PrivateSend.literal_map ha,
+      PrivateProtobuf.bytesField_map hs ha,PrivateVarint.uint64_map hv ha,Varint64.pack_map hv ha,
+      PrivateBuffer.fromWire_map ha,List.map_take,List.map_drop,fromWire_data_map ha,fromWire_bits_map ha,join_valid_map ha,join_data_map ha]
+end SizedRefinement
+
+theorem compiled_buildSized_correct (capacity classes : Nat) (input : List (BVExpr 8))
+    (assign : BVExpr.Assignment) :
+    PrivateProtobuf.CircuitAgreement
+      (buildSized Sha256.symbolic Varint64.symbolic ByteAuth.symbolic capacity classes input)
+      (buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity classes
+        (input.map (BVExpr.eval assign))) assign := by
+  intro index hi
+  rw [ByteCircuit.compile_bytes_correct,buildSized_map (Sha256.evaluationHom assign)
+    (Varint64.evaluationHom assign) (ByteAuth.evaluationHom assign)]
+
+/-! ### Public text (the notify path)
+
+The text is public there, so the controllers evaluate `buildSized` in the
+clear and hand the built message to the send kernel of its size class. The
+class is the smallest one whose padded content holds the Content and its
+terminator: exactly the block count a Signal client's padding gives (in 80-byte
+blocks), so it depends on nothing but the lengths of the text and of the
+timestamp's varint. -/
+
+/-- The first class from `first`, trying `fuel` classes, that accepts the input,
+with the message built for it. -/
+def firstFit (capacity : Nat) (input : List (BitVec 8)) : Nat → Nat → Option (Nat × List (BitVec 8))
+  | 0, _ => none
+  | fuel + 1, classes =>
+    if (buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity classes input).head? = some 255 then
+      some (classes, buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity classes input)
+    else firstFit capacity input fuel (classes + 1)
+
+/-- Text capacity of the public input: 48 (the input of `build`) for texts that
+fit it, 256 otherwise. -/
+def publicCapacity (length : Nat) : Nat := if length ≤ 48 then 48 else 256
+
+/-- The text input for a public text and an 8-byte big-endian timestamp. -/
+def publicInput (text timestamp : List (BitVec 8)) : List (BitVec 8) :=
+  [255, BitVec.ofNat 8 (text.length / 256), BitVec.ofNat 8 text.length] ++ text ++
+    List.replicate (publicCapacity text.length - text.length) 0 ++ timestamp
+
+/-- Size class (1..`limit`) and built message for a public text; `none` if the
+text is rejected (not UTF-8, empty input shape, or too long for `limit` blocks). -/
+def buildPublic (limit : Nat) (text timestamp : List (BitVec 8)) : Option (Nat × List (BitVec 8)) :=
+  firstFit (publicCapacity text.length) (publicInput text timestamp) limit 1
+
+/-- What `firstFit` returns is the accepted message of the chosen class, of
+that class's length, and every smaller class tried rejects the input. -/
+theorem firstFit_spec (capacity : Nat) (input : List (BitVec 8)) (fuel first chosen : Nat)
+    (built : List (BitVec 8)) (h : firstFit capacity input fuel first = some (chosen, built)) :
+    first ≤ chosen ∧ chosen < first + fuel ∧
+    built = buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity chosen input ∧
+    built.head? = some 255 ∧ built.length = builtBytes chosen ∧
+    ∀ smaller, first ≤ smaller → smaller < chosen →
+      (buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity smaller input).head? ≠ some 255 := by
+  induction fuel generalizing first with
+  | zero => simp [firstFit] at h
+  | succ fuel ih =>
+    by_cases hc : (buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete capacity first input).head? = some 255
+    · rw [firstFit, if_pos hc] at h
+      cases h
+      exact ⟨Nat.le_refl _, by omega, rfl, hc, buildSized_length _ _ _ _ _ _, fun _ _ _ => by omega⟩
+    · rw [firstFit, if_neg hc] at h
+      obtain ⟨h1, h2, h3, h4, h5, h6⟩ := ih (first + 1) h
+      refine ⟨by omega, by omega, h3, h4, h5, fun smaller low high => ?_⟩
+      by_cases same : smaller = first
+      · rw [same]; exact hc
+      · exact h6 smaller (by omega) high
+
+theorem buildPublic_spec (limit : Nat) (text timestamp : List (BitVec 8)) (chosen : Nat)
+    (built : List (BitVec 8)) (h : buildPublic limit text timestamp = some (chosen, built)) :
+    1 ≤ chosen ∧ chosen ≤ limit ∧
+    built = buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete
+      (publicCapacity text.length) chosen (publicInput text timestamp) ∧
+    built.head? = some 255 ∧ built.length = builtBytes chosen ∧
+    ∀ smaller, 1 ≤ smaller → smaller < chosen →
+      (buildSized Sha256.concrete Varint64.concrete ByteAuth.concrete
+        (publicCapacity text.length) smaller (publicInput text timestamp)).head? ≠ some 255 := by
+  obtain ⟨h1, h2, h3, h4, h5, h6⟩ := firstFit_spec _ _ _ _ _ _ h
+  exact ⟨h1, by omega, h3, h4, h5, h6⟩
+
+/-- Texts of at most 48 bytes that `build` accepts get class 1 and exactly the
+message `build` gives: the 48-byte path is unchanged. -/
+theorem buildPublic_short (limit : Nat) (text timestamp : List (BitVec 8)) (short : text.length ≤ 48)
+    (valid : (build Sha256.concrete Varint64.concrete ByteAuth.concrete
+      (publicInput text timestamp)).head? = some 255) :
+    buildPublic (limit + 1) text timestamp =
+      some (1, build Sha256.concrete Varint64.concrete ByteAuth.concrete (publicInput text timestamp)) := by
+  have capacity : publicCapacity text.length = 48 := by simp [publicCapacity, short]
+  unfold buildPublic
+  rw [capacity, firstFit, buildSized_base, if_pos valid]
 end TlsMpc.Signal.PrivateTextNotification

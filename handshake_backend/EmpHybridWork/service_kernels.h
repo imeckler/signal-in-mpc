@@ -34,7 +34,9 @@ public:
 private:
     // `record` is the contact's private state (empty while not loaded); `key` is its storage key
     // (contact-key kernel). The derived values and the offset table are an in-memory cache only.
-    struct Account {std::vector<H>identity;Wires certificate,sender_public;};
+    // `scalar`: the identity key's 256 bits as private wires (what is stored); `identity`: its
+    // ladder swap bits in the field engine (what the agreements use).
+    struct Account {std::vector<H>identity;Wires certificate,sender_public,scalar;};
     struct Conversation {Wires record,static_agreement,key;H recipient;bool ready=false;OffsetAgreement offset;Account*fixture=nullptr;};
     // The account: our identity key (shared scalar) and sender certificate, the same for every
     // contact and never part of a contact's stored record. The Lean kernels take the certificate
@@ -122,6 +124,38 @@ public:
         CERT=sender_certificate.size();admitted=true;
         std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(secret_key.begin(),32,secret.begin());
         account.identity=k.shared_scalar(secret);account.certificate=entered(sender_certificate);
+        account.scalar=entered(std::vector<uint8_t>(secret.begin(),secret.end()));
+    }
+    // ---- The account's own record at rest: identity key (32), socket credentials (account id
+    // 16, password), sender certificate. Sealed and opened by the same kernels as a contact's
+    // state, under a key from the two parties' shares of the account's stored scalar.
+    Wires account_traffic,credentials;
+    void account_key(const std::array<uint8_t,32>&share){
+        need(!closed,"account key unavailable");
+        const std::vector<uint8_t>mine(share.begin(),share.end()),none(32,0);
+        auto a=s.input_private(emp::ALICE,byte_bits(k.party==emp::ALICE?mine:none)),b=s.input_private(emp::BOB,byte_bits(k.party==emp::BOB?mine:none));
+        auto out=k.cache.get("contact-key").run(s,{{"shareA",&a},{"shareB",&b}});account_traffic=std::move(out.at("traffic"));
+    }
+    // Reply: check16, ciphertext. Needs the admitted account and its credentials (both shares).
+    std::vector<uint8_t> account_seal(const std::vector<uint8_t>&version){
+        need(!closed&&account_traffic.size()&&account.scalar.size()==256&&account.certificate.size()&&(credentials.size()||credentials_a.size()),"account seal unavailable");version_ok(version);
+        if(!credentials.size())credentials=s.run(k.circuits.xor_bit.parallel(uint32_t(credentials_a.size())),DynSession::interleave(credentials_a,credentials_b));
+        auto content=DynSession::concat({&account.scalar,&credentials,&account.certificate});
+        auto&kernel=k.cache.get("contact-seal "+std::to_string(content.size()/8));auto v=k.constant(version);
+        auto out=kernel.run(s,{{"traffic",&account_traffic},{"version",&v},{"content",&content}});
+        auto reply=kernel.open(s,out,"check");auto ciphertext=kernel.open(s,out,"ciphertext");reply.insert(reply.end(),ciphertext.begin(),ciphertext.end());return reply;
+    }
+    // Load the account from its stored ciphertext: nothing is opened but the key check.
+    void account_open(const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
+        const size_t fixed=32+16+PASSWORD;
+        need(!closed&&!started&&!admitted&&account_traffic.size()&&check.size()==16&&ciphertext.size()>fixed&&ciphertext.size()<=fixed+1024,"account open unavailable");version_ok(version);
+        auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
+        auto out=kernel.run(s,{{"traffic",&account_traffic},{"version",&v},{"ciphertext",&body},{"check",&sum}});
+        need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"account key does not match the stored state");
+        const auto&content=out.at("content");CERT=ciphertext.size()-fixed;admitted=true;
+        account.scalar=content.slice(0,256);credentials=content.slice(256,8*fixed);account.certificate=content.slice(8*fixed,content.size());
+        // The ladder's swap bits from the scalar's bits (Lean circuit), then into the field engine.
+        account.identity=k.bits_to_field(s.run(k.curve.swap_bits,account.scalar));
     }
     // TEST admission of one contact's record (session block and metadata) in the clear, the same way.
     // Stored contacts are loaded with contact_key and contact_open instead.
@@ -318,7 +352,8 @@ public:
     std::pair<uint64_t,size_t> upgrade(const std::vector<uint8_t>&nonce){
         need((admitted||credentials_a.size())&&!started&&!closed&&nonce.size()==16,"upgrade unavailable");started=true;
         auto open_nonce=k.constant(nonce);Values request;
-        if(credentials_a.size())request=k.cache.get("signal-upgrade-shared "+std::to_string(PASSWORD)).run(s,{{"credentialsA",&credentials_a},{"credentialsB",&credentials_b},{"nonce",&open_nonce}});
+        if(credentials.size())request=k.cache.get("signal-upgrade "+std::to_string(PASSWORD)).run(s,{{"credentials",&credentials},{"nonce",&open_nonce}});
+        else if(credentials_a.size())request=k.cache.get("signal-upgrade-shared "+std::to_string(PASSWORD)).run(s,{{"credentialsA",&credentials_a},{"credentialsB",&credentials_b},{"nonce",&open_nonce}});
         else{
             // TEST FIXTURE credentials.
             std::vector<uint8_t>credentials{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff};credentials.insert(credentials.end(),PASSWORD,'x');
@@ -367,7 +402,8 @@ public:
     // The same for a contact by id and a PUBLIC text (the notify path): `text` is the 90-byte
     // message content the controllers built in the clear (the kernel named signal-seal-built).
     std::vector<uint8_t> seal_open(const ContactId&id,const std::vector<uint8_t>&text){
-        need(public_receive&&started&&!closed&&text.size()==90&&conversations.count(id),"send unavailable");
+        // Size class c in 1..4: validity, kind, 80c padded content bytes, timestamp8 (10+80c bytes).
+        need(public_receive&&started&&!closed&&text.size()>=90&&text.size()<=330&&(text.size()-10)%80==0&&conversations.count(id),"send unavailable");
         return seal_open(id,k.constant(text));
     }
     std::vector<uint8_t> seal_open(const ContactId&id,const Wires&text){
@@ -389,7 +425,8 @@ public:
         // Lengths are public under the policy: open the counters' varint widths and use the
         // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
         auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto w=whole(c);auto flags=widths.run(s,{{"conversation",&w}});
-        std::string name=std::string(text.size()==8*90?"signal-seal-built ":"signal-seal-fixed ")+std::to_string(CERT);
+        // A private text input is 59 bytes (signal-seal-fixed); built public content is 10+80c bytes and names its size class c.
+        std::string name=text.size()>=8*90&&(text.size()-8*10)%(8*80)==0?"signal-seal-built "+std::to_string(CERT)+" "+std::to_string((text.size()-8*10)/(8*80)):"signal-seal-fixed "+std::to_string(CERT);
         for(auto field:{"counter","previous","epoch","index"}){
             unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
             name+=" "+std::to_string(width);

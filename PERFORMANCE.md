@@ -107,6 +107,20 @@ The controllers now use operations proved equal to the originals (`PublicReceive
 response parser is still slow because request ids are above 2^63 and its 64-bit arithmetic falls
 back to big numbers; that is the next thing to fix there.
 
+### After the fixes (same machine, 2 contacts, 4 messages each, one of them 200 bytes)
+
+With the faster controller parsing, multi-byte reveal steps, and each contact's state stored on
+the database nodes before its message leaves:
+
+| | Before | After |
+|---|---|---|
+| Time outside the workers per session | 24.5 s (12 sends) | 6.2 s (8 sends), half of it waiting for the server's replies |
+| A later send to a contact, start to start | 3.05 s | 1.75–1.95 s (short text) |
+| The controller's share of a send | 1.2–1.6 s | about 0.15 s |
+
+A 200-byte text (size class 3) costs about 0.25M more AND gates than a short one (2.43M against
+2.18M) and a larger request frame.
+
 ## Receiving one new contact's first message: 48 s
 
 | Where | Time | Notes |

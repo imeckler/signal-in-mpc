@@ -1,0 +1,91 @@
+{
+  "class 1": {
+    "and_gates": 2183965,
+    "envelope_bytes": 498,
+    "envelopes_and_records_equal_reference": 3,
+    "invalid_or_zero_record_open_nothing": 2,
+    "kernel": "signal-seal-built 244 1 1 1 1 1",
+    "messages_decrypted_by_libsignal_recipient": 3,
+    "padded_content_bytes": 80,
+    "text_and_timestamp_read_back": 3,
+    "text_bytes_sent": [
+      1,
+      48,
+      68
+    ]
+  },
+  "class 2": {
+    "and_gates": 2306830,
+    "envelope_bytes": 579,
+    "envelopes_and_records_equal_reference": 2,
+    "invalid_or_zero_record_open_nothing": 2,
+    "kernel": "signal-seal-built 244 2 1 1 1 1",
+    "messages_decrypted_by_libsignal_recipient": 2,
+    "padded_content_bytes": 160,
+    "text_and_timestamp_read_back": 2,
+    "text_bytes_sent": [
+      69,
+      146
+    ]
+  },
+  "class 3": {
+    "and_gates": 2429820,
+    "envelope_bytes": 659,
+    "envelopes_and_records_equal_reference": 3,
+    "invalid_or_zero_record_open_nothing": 2,
+    "kernel": "signal-seal-built 244 3 1 1 1 1",
+    "messages_decrypted_by_libsignal_recipient": 3,
+    "padded_content_bytes": 240,
+    "text_and_timestamp_read_back": 3,
+    "text_bytes_sent": [
+      147,
+      200,
+      226
+    ]
+  },
+  "class 4": {
+    "and_gates": 2602718,
+    "envelope_bytes": 739,
+    "envelopes_and_records_equal_reference": 2,
+    "invalid_or_zero_record_open_nothing": 2,
+    "kernel": "signal-seal-built 244 4 1 1 1 1",
+    "messages_decrypted_by_libsignal_recipient": 2,
+    "padded_content_bytes": 320,
+    "text_and_timestamp_read_back": 2,
+    "text_bytes_sent": [
+      227,
+      256
+    ]
+  },
+  "reference": {
+    "envelope_bytes_per_class": {
+      "1": 498,
+      "2": 579,
+      "3": 659,
+      "4": 739
+    },
+    "reference_messages_decrypted_by_libsignal_recipient": 10
+  },
+  "texts": {
+    "built_messages_equal_reference": 58,
+    "rejected_invalid_utf8_or_over_256_bytes": 6,
+    "text_bytes_per_class_with_current_timestamps": {
+      "1": [
+        1,
+        68
+      ],
+      "2": [
+        69,
+        146
+      ],
+      "3": [
+        147,
+        226
+      ],
+      "4": [
+        227,
+        256
+      ]
+    }
+  }
+}
