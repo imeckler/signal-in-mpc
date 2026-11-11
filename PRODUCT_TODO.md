@@ -311,8 +311,52 @@ party can block a delete by not forwarding it.
 
 ## 9. Deployment
 
-- [ ] **(blocker)** The two computation nodes on separate machines with an authenticated,
-      encrypted channel between them. The Boolean engine's link is plain TCP to 127.0.0.1 today.
+- [ ] **(blocker) Deployment design** (decided by the owner on 2026-11-11: WireGuard between
+      nodes; each computation node with a different cloud provider; the database nodes split
+      across several providers):
+  - [ ] **WireGuard between the two computation nodes**, and from each computation node to the
+        database nodes. The engines' links (plain TCP to 127.0.0.1 today, on several ports per
+        worker) then run inside the tunnel; the workers need to take the peer's address from
+        configuration instead of assuming localhost. Decide whether WireGuard alone is the
+        authentication between the nodes or the engines also authenticate each other.
+  - [ ] **Choosing the two providers for the computation nodes.** What matters, from the
+        measurements in `PERFORMANCE.md`:
+    - [ ] *Round-trip time.* A contact's first send is about 2,800 sequential rounds and a
+          first message received about 11,500; each round is one round trip between the nodes.
+          At 1 ms that is 3 s and 12 s; at 10 ms it is 28 s and 2 minutes, past the Signal
+          server's 90 s idle limit. The two providers need data centres in the same metro area
+          with a short path between them (ideally 1-2 ms). Measure before committing.
+    - [ ] *Traffic price.* Malicious mode sends on the order of 1 GB between the nodes per
+          message (about 270 bytes per AND gate and 72 KB per field triple; a 12-send session
+          was about 15 GB). At typical cloud egress prices that is cents per message, so
+          providers with free or very cheap egress, or a private interconnect between the two,
+          are worth more than cheap compute. Semi-honest mode sends far less.
+    - [ ] *Bandwidth.* At 1 GB per message, a 1 Gbit/s link caps throughput near one message
+          per 8 s per pair of nodes regardless of CPU; 10 Gbit/s links matter.
+    - [ ] Shortlist candidate pairs, measure RTT, throughput and price between them, and record
+          the result.
+  - [ ] **Splitting the five database nodes across providers.** Three shares reconstruct a
+        contact's key, so no single provider (and no realistic pair) should host three nodes;
+        and since each computation node already holds one additive share of what it reads,
+        decide whether a computation node's provider may also host database nodes, and how
+        many. Their traffic is small; latency between them matters only for their own epochs.
+  - [ ] Where the application server sits, and how it reaches both computation nodes and the
+        database nodes.
+- [ ] **(blocker) Automated deployment.**
+  - [ ] Infrastructure as code for all seven machines across the providers: instances,
+        firewalls (only WireGuard and the outbound Signal/proxy connections), WireGuard keys
+        and peers, time synchronisation.
+  - [ ] Reproducible builds of the workers, controllers and database nodes, with the pinned
+        circuit manifest (section 5) and its hash compared between the nodes at start.
+  - [ ] A key ceremony that generates each machine's keys on that machine (WireGuard, database
+        client and node signing keys, the application's notify and signup keys) and assembles
+        the shared network configuration, with no party ever holding another's private key.
+  - [ ] Account creation as part of deployment (section 2), then the account row on the
+        database nodes.
+  - [ ] Rolling upgrades: both computation nodes must run the same build and manifest;
+        database protocol version changes need all nodes together.
+  - [ ] Monitoring and alerts that never log shares or revealed tags beyond what is public;
+        backups of the database nodes; a runbook for losing one node of each kind.
 - [ ] Production security parameters: the field engine is built with a statistical parameter of
       40 unless overridden (`EMP_HYBRID_NATIVE_SECURITY`); the product profile is 128. Confirm
       every build flag for the malicious/128 profile.
