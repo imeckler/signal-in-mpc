@@ -95,7 +95,7 @@ def run_mpc(export, mode, texts, party_env=None, during=None):
         subprocess.run(['bash', str(mp / 'Scripts/setup-ssl.sh'), '2'], cwd=work, stdout=log, stderr=subprocess.STDOUT, check=True)
     stamp = int(time.time() * 1000)
     env = dict(os.environ, DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG),
-               SIGNAL_LOCAL_EXPORT=str(EXPORT), SIGNAL_LOCAL_TIMESTAMP=str(stamp))
+               SIGNAL_LOCAL_EXPORT=str(EXPORT))
     stored_before = sorted(p.name for p in (STORE / 'party-0').glob('*')) if (STORE / 'party-0').exists() else []
     hosts = output / 'hosts'
     hosts.write_text('127.0.0.1\n' * 2)
@@ -387,6 +387,12 @@ def main():
             report['signup'] = run_signup(export, a.mode, texts)
             ok = report['signup']['passed']
         if ok and a.db:
+            if a.runs or a.signup:
+                # The sessions above advanced the contacts' state past the export, and the database
+                # flow starts from an export: new accounts and a new export for it.
+                lss('provision')
+                lss('export-mpc')
+                export = json.loads(EXPORT.read_text())
             report['db'] = run_db(export, a.mode, texts)
             ok = report['db']['passed']
         report['passed'] = ok

@@ -1,4 +1,5 @@
 import Lean
+import Std.Time
 import TlsMpc.TlsWorkerProcess
 import TlsMpc.TlsWebSocketUpgrade
 import TlsMpc.TlsWebSocketFrame
@@ -583,6 +584,17 @@ def main (args : List String) : IO Unit := do
           theirs := theirs ++ (← rpc.call .exchange (rest.take 60000))
           rest := rest.drop 60000
         pure (theirs.take (number size))
+      -- The current time (milliseconds), agreed: each controller reads its own clock, they tell
+      -- each other, and both use the later one if the two are within two minutes. (A test may
+      -- fix it with SIGNAL_LOCAL_TIMESTAMP, the same for both.)
+      let agreedNow : M Nat := do
+        match (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).bind String.toNat? with
+        | some fixed => pure fixed
+        | none =>
+          let mine := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
+          let theirs := number (← swap (uint 8 mine))
+          insist (mine ≤ theirs + 120000 && theirs ≤ mine + 120000) "the two parties' clocks differ by more than two minutes"
+          pure (max mine theirs)
       -- A new nonce for each seal of a contact's state: joint randomness.
       let nonce : M Bytes := do
         let random ← rpc.call .publicRandom []
@@ -739,8 +751,7 @@ def main (args : List String) : IO Unit := do
         pure secret
       let receiveFirst (keys : ReceiveKeys) : M (Option (Nat × String)) := do
         -- The certificate's expiry is checked against a time both controllers agree on.
-        let some now := (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).bind String.toNat? |
-          throw "SIGNAL_LOCAL_TIMESTAMP (milliseconds) is required"
+        let now ← agreedNow
         let signerId := toBytes (PublicReceive.varint keys.serverId)
         let opened ← rpc.call .envelopeOpen (keys.identityPublic ++ uint 8 now ++ keys.serverKey ++
           uint 2 keys.serverCertificate.length ++ keys.serverCertificate ++ uint 2 signerId.length ++ signerId)
@@ -929,8 +940,7 @@ def main (args : List String) : IO Unit := do
         | some _ => do
           -- Two broadcasts to every contact. The timestamp is public and must be the same
           -- for both controllers, so the harness supplies it.
-          let stamp ← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))
-          let some base := stamp.bind String.toNat? | throw "SIGNAL_LOCAL_TIMESTAMP (milliseconds) is required"
+          let base ← agreedNow
           pure ((← notify contacts "MPC broadcast one" base) ++ (← notify contacts "MPC broadcast two ☕" (base + 1000)))
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List (Nat × Bytes)) (completed : Nat) : M Nat := do
         match fuel with

@@ -488,6 +488,12 @@ fn kem_signed_json(r: &KyberPreKeyRecord) -> R<Value> {
 // Commands
 
 async fn register(name: &str, number: &str) -> R<()> {
+    register_with(name, number, false).await
+}
+/// `unrestricted`: the account accepts sealed-sender messages from anyone, without its access
+/// key. An account that strangers sign up to (the MPC client's) needs this: a new user does not
+/// know its profile key, and without sealed sender the server would learn who signs up.
+async fn register_with(name: &str, number: &str, unrestricted: bool) -> R<()> {
     eprintln!("register {name} ({number})");
     let mut rng = rand::rng();
     let aci_identity = IdentityKeyPair::generate(&mut rng);
@@ -534,7 +540,7 @@ async fn register(name: &str, number: &str) -> R<()> {
             "pniRegistrationId": pni_registration_id,
             "capabilities": {"spqr": true},
             "unidentifiedAccessKey": b64(&access_key(&profile_key)),
-            "unrestrictedUnidentifiedAccess": false,
+            "unrestrictedUnidentifiedAccess": unrestricted,
             "discoverableByPhoneNumber": false,
             "recoveryPassword": b64(&recovery_password),
         },
@@ -610,7 +616,7 @@ async fn sealed_send_content(from: &mut Account, to: &Account, text: &str, with_
         "online": false, "urgent": true, "timestamp": ts,
     });
     chat.expect("PUT", &format!("/v1/messages/{}?story=false", to.aci),
-        &[("unidentified-access-key", b64(&to.access_key()))], Some(body), &[200])?;
+        &[("unidentified-access-key", header_key(to))], Some(body), &[200])?;
     chat.close();
     Ok(ts)
 }
@@ -746,10 +752,22 @@ async fn mpc_send(from_name: &str, to_name: &str, text: &str) -> R<()> {
 /// A NEW user's first contact with `to`: register if needed, fetch `to`'s prekey bundle, and send
 /// one sealed-sender PreKey message carrying `text` and the new user's profile key. Nothing is
 /// received here: `to` is expected to be the MPC client.
+static STRANGER: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+/// The Unidentified-Access-Key header for a send to `to`: its access key, or, from a stranger
+/// that cannot know it, random bytes (accepted only if `to` allows unrestricted access).
+fn header_key(to: &Account) -> String {
+    if STRANGER.load(std::sync::atomic::Ordering::Relaxed) {
+        b64(&rand::rng().random::<[u8; 16]>())
+    } else {
+        b64(&to.access_key())
+    }
+}
 async fn signup(name: &str, number: &str, to_name: &str, text: &str) -> R<()> {
     // Always a fresh registration: an account file from an earlier server instance names an
     // account this server does not have.
     register(name, number).await?;
+    // A stranger: it does not know the recipient's access key.
+    STRANGER.store(true, std::sync::atomic::Ordering::Relaxed);
     let mut from = Account::load(name).await?;
     let to = Account::load(to_name).await?;
     start_session(&mut from, &to).await?;
@@ -791,7 +809,7 @@ async fn start_session(from: &mut Account, to: &Account) -> R<()> {
 
     // Fetch TO's prekey bundle with TO's access key (unauthenticated socket, like a sealed-sender client).
     let mut chat = Chat::connect(None)?;
-    let keys = chat.expect("GET", &format!("/v2/keys/{}/1", to.aci), &[("unidentified-access-key", b64(&to.access_key()))], None, &[200])?;
+    let keys = chat.expect("GET", &format!("/v2/keys/{}/1", to.aci), &[("unidentified-access-key", header_key(to))], None, &[200])?;
     chat.close();
     let d = &keys["devices"][0];
     let pre = &d["preKey"];
@@ -862,7 +880,7 @@ async fn run(args: &[String]) -> R<()> {
         }
         ["provision"] => {
             // Fictional NANP numbers (555-01xx); the local stub registration service sends nothing.
-            register("sender", "+12025550101").await?;
+            register_with("sender", "+12025550101", true).await?;
             register("recipient", "+12025550102").await?;
             register("recipient2", "+12025550103").await?;
             establish("sender", "recipient").await?;
