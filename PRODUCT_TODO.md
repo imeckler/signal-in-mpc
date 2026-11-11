@@ -68,14 +68,28 @@ session by one party (test admission). For the product no one may ever hold the 
 ## 3. Signal protocol coverage
 
 - [ ] **(blocker) Contacts with more than one device.** Sends go to device 1 only. A real user
-      with linked devices makes the server answer 409 (missing devices). Needed: handle 409/410,
-      fetch prekey bundles, and establish outbound sessions per device (the establish kernels
-      exist but are not connected, and the ML-KEM encapsulation circuit is about 190M AND gates:
-      decide whether encapsulation may happen outside the engines).
-- [ ] **(blocker) Crash safety of contact state.** State is written back once, at the end of a
-      session. If a session dies after sending, the stored state is stale and the next session
-      reuses message keys and counters. Needed: write the advanced state (or reserve a range of
-      counters) before messages go out, and a recovery path that reloads from the nodes.
+      with linked devices makes the server answer 409 (missing devices). Designed, with circuits
+      written, proved and checked offline (`handshake_backend/EmpHybridWork/MULTI_DEVICE.md`,
+      `TlsMpc/BundleKernels.lean`): fetch the contact's whole prekey bundle, parse it privately,
+      establish a session per device, send one message per device. Still to do:
+  - [ ] Bind it into the worker and controller (the list is in MULTI_DEVICE.md, section 7), and
+        confirm the bundle response's exact JSON against the local server.
+  - [ ] **Post-quantum encapsulation inside the engines.** It cannot be done in the clear (the
+        contact's Kyber key is the same for every caller, so a node could test who is a
+        contact). The existing circuit is about 190M AND gates per new device; a version with
+        arithmetic for the Kyber modulus is estimated at 15-20M (not measured). Needs building.
+  - [ ] **Sessions we start stay unacknowledged** until that device replies, and we ignore
+        replies: every message to a linked device is then a first-message-style message (about
+        3.5M AND, 1,935 bytes of stored state). Decide: accept that cost, or process just enough
+        of a device's first reply to mark the session acknowledged.
+  - [ ] Stored state becomes one record per device; the store format and the send request
+        (one message per device) change accordingly.
+- [x] **Crash safety of contact state.** With the database, a contact's advanced state is stored
+      and acknowledged before its message leaves.
+  - [ ] The recovery path itself (restart, reload, resume the broadcast) is section 4.
+- [x] Message text up to 256 bytes, in four padded size classes.
+  - [ ] Signal's own clients may pad content to 160-byte blocks, not 80: check against the
+        client source and match it ("send what a normal client sends").
 - [ ] Messages from existing contacts: delivery receipts, replies, repeated first messages
       until we reply, session resets. Today anything that is not a new contact's first message
       is refused and acknowledged. The `receiver` record the receive circuits produce is dropped.
@@ -186,6 +200,9 @@ with five in-memory test nodes.
 ## 11. Performance work (see `PERFORMANCE.md` for the numbers)
 
 - [x] Reveal server bytes in multi-byte steps (was one round trip per byte).
+- [x] Controller parsing of revealed bytes about 6.5x faster (it was a third of a session).
+  - [ ] The response parser's 64-bit arithmetic still falls back to big numbers (request ids are
+        above 2^63): 1.4 ms per byte.
 - [ ] Produce field triples and conversion masks ahead of time (idle time, or a pool), so sends
       use stock.
 - [ ] Keep a contact's per-session setup across sessions (it is recomputed at each load).
