@@ -85,6 +85,12 @@ public:   // engine references and shared resources are also used by service_ker
         bool zero=false;auto result=curve.evaluate(f,channel,scalar,point,zero);
         return field_to_word(s,f,channel,circuits,take_mask(),result);
     }
+    // Several independent agreements (scalar, point) in the same field rounds.
+    std::vector<Wires> agreement_words(const std::vector<std::pair<const std::vector<H>*,H>>&jobs){
+        std::vector<bool>zero;auto results=curve.evaluate_many(f,channel,jobs,zero);
+        std::vector<Wires>out;for(auto result:results)out.push_back(field_to_word(s,f,channel,circuits,take_mask(),result));
+        return out;
+    }
     // Client key share. Split route: public sum of two locally computed shares.
     // Ladder route: X25519 of a shared scalar with the base point, then opened.
     std::array<uint8_t,32> begin(){
@@ -125,6 +131,16 @@ public:   // engine references and shared resources are also used by service_ker
     void retire(){state.erase("clientHandshake");state.erase("serverHandshake");state.erase("mainSecret");swaps.clear();}
     void abort(){state.clear();swaps.clear();buffers.clear();send_shares.clear();receive_shares.clear();}
     GcmShares send_shares,receive_shares;   // this party's shares of the GHASH key powers, per direction
+    // ---- Several TLS connections in one worker (tls_worker_v3.cpp, operation 90, one per Tor
+    // circuit). What belongs to ONE connection: the named TLS secrets in `state` (handshake and
+    // traffic keys, the record parser), the key-agreement scalar between begin and derive, and the
+    // GHASH key-power shares. `exchange` swaps them with a parked copy. Engines, circuits,
+    // conversion masks and private buffers (public handles) are shared by every connection.
+    struct Parked {Values state;std::vector<H>swaps;std::array<uint8_t,32>split_scalar{};bool split_ready=false;GcmShares send_shares,receive_shares;};
+    void exchange(Parked&other){
+        std::swap(state,other.state);std::swap(swaps,other.swaps);std::swap(split.scalar,other.split_scalar);std::swap(split.ready,other.split_ready);
+        std::swap(send_shares,other.send_shares);std::swap(receive_shares,other.receive_shares);
+    }
     // ---- Application phase. Plaintext lives only in private buffers named by public handles.
     // `length` empty: the whole content is the payload (public size). `length` present: private
     // length within the public capacity, with `valid` the buffer's computed validity byte.

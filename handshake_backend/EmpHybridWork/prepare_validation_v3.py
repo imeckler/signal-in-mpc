@@ -329,6 +329,81 @@ TP_BATCH_ANCHOR='''      char Dme[Hash::DIGEST_SIZE]; feq.digest(Dme);
 TP_BATCH_V3='''      // v3: every layer was already F_eq-checked individually before combining.
       (void)feq;
 '''
+# --- Triples ahead of use (applied to the v3 text). Since v3 the triple generation is
+# function-independent: steps 1-2 of TRIPLE_POOL_AUDIT.md produce L finished triples and only
+# step 3 (the authenticated Beaver openings) touches a circuit's masks. `mint` is steps 1-2,
+# moved out of compute_inplace without change; compute_inplace takes its triples from `stock`
+# when one is installed (dyn_session.h: a second pool of the same session, same Delta, on its
+# own channels and counters, minting in batches whose own length fixes the bucket size) and
+# mints them itself otherwise. No check, opening or parameter changes.
+TP_MINT='''  // Steps 1-2 of the construction: L finished triples (a, b, c = a AND b) in region-major
+  // layout, stride L. Function-independent. Every COT is checked before its layer is used and
+  // every layer is F_eq-checked before it is combined, so nothing unchecked is left behind.
+  uint64_t mint_ns = 0, minted = 0;
+  void mint(int L, block *acc_mac_p, block *acc_key_p) {
+    const auto mint_start = std::chrono::steady_clock::now();
+    const int B = get_bucket_size(L);
+    // v3: a distinct hash-tweak seed per call, so tweaks never repeat under one Delta.
+    const block pair_seed = makeBlock(tag_ctr++, 0x4c61414e44ULL);
+    MITCCRH<8> gmitc, emitc;
+    gmitc.setS(pair_seed);
+    emitc.setS(pair_seed);
+#ifdef AG2PC_PROFILE
+    g_tp_cot_ns = g_tp_hg_ns = 0;
+    g_tp_sopen_ns = g_tp_feq_ns = g_tp_bkt_ns = 0;
+#endif
+    // v3: function-independent form. Layer 0 is a FRESH random triple like every
+    // other layer; the gate's own masks never enter a leaky AND. They are joined
+    // to the finished triple only by the authenticated Beaver openings in compute_inplace.
+    Hash feq;
+    gen_cot_shares(acc_mac_p, acc_key_p, 3 * L);   // fresh a, b, r
+    checked_leaky_layer_(acc_mac_p, acc_key_p, L, gmitc, emitc);
+    layered_bucket_into_acc(acc_mac_p, acc_key_p, B, L, gmitc, emitc, feq);
+    // v3: every layer was already F_eq-checked individually before combining.
+    (void)feq;
+    mint_ns += (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - mint_start).count();
+    minted += (uint64_t)L;
+  }
+  // Optional source of triples minted ahead of use: fills the two 3L-block region-major
+  // buffers with L finished triples under THIS pool's Delta and returns true, or returns
+  // false (then they are minted here). Both parties must install the same kind of source.
+  std::function<bool(int, block *, block *)> stock;
+
+'''
+TP_INPLACE_BODY='''    const int B = get_bucket_size(num_ands);
+    (void)B;
+    const int L = num_ands;
+    AG2PC_TP_BEGIN();
+    BlockVec acc_mac((size_t)3 * L), acc_key((size_t)3 * L);
+    if (!(stock && stock(L, acc_mac.data(), acc_key.data())))
+      mint(L, acc_mac.data(), acc_key.data());
+    AG2PC_TP("triples (stock or mint)");
+'''
+TP_FIXED_DELTA='''    tmp[1] = (party == 1);    // garbler pins bit1(Δ) = 1; evaluator pins 0
+    if (fixed_delta) {
+      // A further pool of the same session (triples minted ahead of use): the same Delta.
+      uint64_t words[2];
+      memcpy(words, fixed_delta, sizeof(words));
+      for (int i = 0; i < 128; ++i) tmp[i] = (words[i / 64] >> (i % 64)) & 1;
+      if (!tmp[0] || tmp[1] != (party == 1)) error("fixed Delta: pinned bits");
+    }
+'''
+def stock_patch(data):
+    data=once(data,'#include <atomic>\n','#include <atomic>\n#include <chrono>\n#include <functional>\n','stock includes')
+    data=once(data,'  TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40)\n',
+        '  // fixed_delta / first_tag: for a further pool of the same session (see `stock`): the\n  // session\'s Delta, and a counter range of its own for digest tags and hash-tweak seeds.\n'
+        '  TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40,\n             const block *fixed_delta = nullptr, uint64_t first_tag = 0)\n','stock constructor')
+    data=once(data,'    init_abit_();\n  }\n','    tag_ctr = first_tag;\n    init_abit_(fixed_delta);\n  }\n','stock constructor body')
+    data=once(data,'  void init_abit_() {\n','  void init_abit_(const block *fixed_delta = nullptr) {\n','fixed delta parameter')
+    data=once(data,'    tmp[1] = (party == 1);    // garbler pins bit1(Δ) = 1; evaluator pins 0\n',TP_FIXED_DELTA,'fixed delta bits')
+    data=once(data,'    Delta = abit1->Delta;\n','    Delta = abit1->Delta;\n    if (fixed_delta && memcmp(&Delta, fixed_delta, sizeof(block)) != 0) error("fixed Delta: encoding");\n','fixed delta check')
+    if data.count('    const int B = get_bucket_size(num_ands);\n')!=1 or data.count('    AG2PC_TP("F_eq (batched)");\n')!=1:raise ValueError('patch anchor stock body')
+    start=data.index('    const int B = get_bucket_size(num_ands);\n');end=data.index('    AG2PC_TP("F_eq (batched)");\n')+len('    AG2PC_TP("F_eq (batched)");\n')
+    data=data[:start]+TP_INPLACE_BODY+data[end:]
+    data=once(data,'  // In-place (function-dependent) AND-share generation (KRRW §5.2 bucket-saving).\n',TP_MINT+'  // In-place (function-dependent) AND-share generation (KRRW §5.2 bucket-saving).\n','mint')
+    return data
+
 reports={}
 for name,fix in [('emp-ag2pc-lambda-diagnostic-v2',False),('emp-ag2pc-validated-v3',True)]:
     target=BASE/name;files={};diffs=[]
@@ -364,6 +439,7 @@ for name,fix in [('emp-ag2pc-lambda-diagnostic-v2',False),('emp-ag2pc-validated-
             data=once(data,TP_DOPEN_ANCHOR,TP_DOPEN_V3,'authenticated d');data=once(data,TP_SEED_ANCHOR,TP_SEED_V3,'tweak seed')
             data=once(data,TP_REPCOPY_ANCHOR,TP_REPCOPY_V3,'fresh layer 0');data=once(data,TP_REPGEN_ANCHOR,TP_REPGEN_V3,'fresh layer 0 mint')
             data=once(data,TP_BEAVER_ANCHOR,TP_BEAVER_V3,'authenticated Beaver');data=once(data,TP_BUCKET_ANCHOR,TP_BUCKET_V3,'bucket size')
+            data=stock_patch(data)
         if rel=='emp-ag2pc/backend/helper.h' and fix:
             data=once(data,'#include <condition_variable>\n','#include <condition_variable>\n#include <cstring>\n','helper includes')
             data=once(data,HELPER_ANCHOR,HELPER_ADD,'tagged digest')

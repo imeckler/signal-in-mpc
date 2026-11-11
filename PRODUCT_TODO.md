@@ -71,13 +71,31 @@ session by one party (test admission). For the product no one may ever hold the 
       with linked devices makes the server answer 409 (missing devices). Designed, with circuits
       written, proved and checked offline (`handshake_backend/EmpHybridWork/MULTI_DEVICE.md`,
       `TlsMpc/BundleKernels.lean`): fetch the contact's whole prekey bundle, parse it privately,
-      establish a session per device, send one message per device. Still to do:
-  - [ ] Bind it into the worker and controller (the list is in MULTI_DEVICE.md, section 7), and
-        confirm the bundle response's exact JSON against the local server.
-  - [ ] **Post-quantum encapsulation inside the engines.** It cannot be done in the clear (the
-        contact's Kyber key is the same for every caller, so a node could test who is a
-        contact). The existing circuit is about 190M AND gates per new device; a version with
-        arithmetic for the Kyber modulus is estimated at 15-20M (not measured). Needs building.
+      establish a session per device, send one message per device.
+      **Live against the local server since 2026-11-11** (`check_signal_service_local.py
+      --multi-device`, semi-honest and malicious): a recipient links a second device, the next
+      send is answered 409, the client refreshes and resends, both devices decrypt, and again in
+      the next session with the device list read from the database nodes. Measured: 15.6M AND
+      gates and about 45k field products per new device (2–3 s semi-honest, 8–10 s malicious),
+      and per message about 6.3M AND gates per unanswered device (MULTI_DEVICE.md, section 6).
+  - [x] Bound into the worker (operations 56–63) and the controller; the bundle response's JSON
+        confirmed against the local server (no change needed; devices are not in id order, and
+        the response needed the controllers' message limit raised from 4,096 to 16,384 bytes).
+  - [x] **Post-quantum encapsulation inside the engines**: twelve kernels, 12.5M AND gates per
+        new device (`ML_KEM_ENCAPSULATION.md`), run live.
+  - [x] No response body is revealed any more (prekey bundles; the device ids in a 409/410).
+  - [ ] Failure handling: a refresh that fails (second 409, 401/404 on the fetch, a bad bundle,
+        a changed identity key) ends the session. It should mark the contact failed, keep its
+        old state and carry on; the design's two retries are not built.
+  - [ ] Not run: three or more devices, 410 (stale registration id), a removed device. More than
+        about five unanswered devices do not fit the one-record request and are refused; a send
+        to more than about four is silent for over 90 s in malicious mode (no keepalive inside it).
+  - [ ] The device kinds stored next to a contact's ciphertext are not authenticated. Harmless
+        while every entry is an unanswered session (same size); must be fixed before established
+        and unanswered entries are mixed (MULTI_DEVICE.md, section 4).
+  - [ ] Circuits whose shape depends on the response (its record size, the request size, the
+        stored state size) are produced during the session: about 85 s in the session with the
+        refresh. They need producing ahead (section 5 below) or size classes.
   - [ ] **Sessions we start stay unacknowledged** until that device replies, and we ignore
         replies: every message to a linked device is then a first-message-style message (about
         3.5M AND, 1,935 bytes of stored state). Working assumption: accept that cost. Processing
@@ -85,8 +103,8 @@ session by one party (test admission). For the product no one may ever hold the 
         u128 id while a sealed message names its sender only by Signal identity, inside the
         encryption. That lookup needs either an index that tells both nodes which id replied and
         when, or an oblivious search over every contact; neither is worth it for this.
-  - [ ] Stored state becomes one record per device; the store format and the send request
-        (one message per device) change accordingly.
+  - [x] Stored state is one entry per device (the kinds in the clear after the ciphertext; a
+        one-record contact is stored as before); the send request carries one message per device.
 - [ ] **What the missing Signal-identity → id mapping rules out.** Each contact's state holds
       its Signal id (so id → identity works and device or identity changes are found when a send
       to that id is rejected), but an incoming message cannot be matched to an id. Consequences
@@ -150,7 +168,8 @@ session by one party (test admission). For the product no one may ever hold the 
       socket; handle server-initiated closes and HTTP error statuses (401, 404, 409, 410, 413,
       428, 429 with back-off).
 - [ ] Do not wait for each response before the next send (pipelining), and allow several
-      connections.
+      connections. (Several connections: done, one per Tor circuit, section 8; sends still wait
+      for each response, one connection at a time.)
 - [ ] Agreed time is the later of the two clocks if within two minutes; decide the production
       rule (NTP assumptions, what happens on disagreement).
 
@@ -247,6 +266,48 @@ party can block a delete by not forwarding it.
       burst timing of a broadcast (needs delays and shuffling) or which account the receive
       socket belongs to. Unknown until tried on the real service: how Signal treats Tor exits
       for this traffic.
+  - [x] SOCKS5 in the leader (`tls_worker_v3.cpp`, `socks_connect`): username/password only,
+        the server asked for by hostname (address type 3), so no node resolves it; the proxy's
+        own address must be numeric. The credentials choose the circuit (Tor's default
+        `IsolateSOCKSAuth`): username `tls-mpc-<first 16 hex of the session id>` (fresh per
+        session), password `send-<i>-of-<N>` or `receive`. The other node opens nothing. The
+        proxy, credentials and count are in the agreed connect request, so a node configured
+        without the proxy or with another count aborts the session.
+  - [x] Configuration: `SIGNAL_TOR_SOCKS=IP:PORT` and `SIGNAL_TOR_CIRCUITS=N`, the same on both
+        nodes (top of `PublicServiceController.lean`). N = 0 (default): one direct connection,
+        as before. N ≥ 1 (at most 16): N send connections, each its own TLS session and
+        unauthenticated WebSocket on its own circuit, opened up front; the receive socket is one
+        connection on a circuit of its own.
+  - [x] Several connections in one worker: a connection table selected by a public index
+        (operation 90, `TlsWorker.onConnection`; 0 when never selected, so existing callers are
+        unchanged). Per connection in the worker: socket, handshake phase, TLS secrets, record
+        parser, GHASH key-power shares, WebSocket state; in the controller: the TLS session
+        (record sequence numbers), the response parser and the request-id counter. Shared:
+        engines, circuits, conversion masks, private buffers, contacts, the account.
+  - [x] Assignment (`Circuits.assign`): the session's distinct ids in ascending order, rank r on
+        connection r mod N. A contact stays on one connection for the session; the same set of
+        ids is split the same way in every session. The state is still stored before each send.
+  - [x] A dropped circuit ends the session cleanly in both parties (the leader tells the other
+        node, so neither waits); the next session carries on from the stored state.
+  - [x] Tested locally only, never with Tor: `local_signal_server/scripts/socks5_test_proxy.py`
+        and `check_signal_service_local.py --circuits 1,3` (with and without `--db`; the drop
+        test needs `--db`). Costs: `PERFORMANCE.md`, "Tor circuits".
+  - [ ] What the server can still link: recipients on one connection; the whole broadcast by
+        timing (N handshakes together, then sends alternating one response at a time, no delay
+        or shuffling); the request-id scheme (each connection counts from 2^63, so nothing
+        interleaves, but every connection starts the same way; a device refresh's own requests
+        use one session-wide counter); and the receive socket names the account.
+  - [ ] Idle connections: each connection waits while the others handshake and send, and the
+        server drops a socket silent for 90 s. Fine for a few circuits; one circuit per recipient
+        of a large broadcast needs keepalives on idle connections, pipelining (section 4), or
+        opening connections in batches.
+  - [ ] Recovery instead of ending the session on a dropped circuit (section 4): reconnect that
+        circuit and resend what was not answered, keeping the other connections.
+  - [ ] A Tor client on the leader node (deployment, section 9): its SOCKS port only on
+        localhost, no DNS for the Signal host on the node.
+  - [ ] Only a run against the real service can show (needs the owner's explicit go-ahead):
+        whether Signal blocks or rate-limits (429, challenges) Tor exits for these requests,
+        circuit build times and failures, and the real latency per circuit.
 
 ## 9. Deployment
 

@@ -12,7 +12,10 @@ import collections, pathlib, re, sys
 RUNS = pathlib.Path(__file__).resolve().parents[1] / '.deps/two-party-comparison/signal-service-local-run'
 GROUPS = [
     ('Boolean circuits (garbling and evaluation)', lambda l: l.startswith('boolean circuit:')),
+    ('Boolean triples minted inside circuit runs (no stock)', lambda l: l.startswith('boolean triples: minted')),
+    ('Boolean circuits waiting for triple stock', lambda l: l.startswith('boolean triples: circuit waiting')),
     ('Field triples: generation', lambda l: l.startswith('field triples: generation')),
+    ('Field rounds waiting for triple stock', lambda l: l.startswith('field triples: waiting')),
     ('Field multiplication rounds, triples in stock', lambda l: l.startswith('field multiplication rounds')),
     ('Field programs: local work', lambda l: l.startswith('field program (local work)')),
     ('Conversion masks: generation', lambda l: l.startswith('conversion masks: generate')),
@@ -101,6 +104,22 @@ def show(directory):
                 print('    %-44s %d calls, %.1f s in all, %.0f ms each' % (label, len(values), sum(values), 1000 * sum(values) / len(values)))
             else:
                 print('    %-44s %s' % (label, ' '.join('%.2f' % v for v in values)))
+    # Several connections (Tor circuits): each connection after the first, from the operation
+    # before its connect (9) to the operation before the next connect or the first send after it:
+    # its handshake, WebSocket upgrade and reading the 101.
+    connects = [i for i, row in enumerate(rows) if row[0] == '9']
+    if len(connects) > 1:
+        print('  connections opened after the first (handshake, upgrade, its 101):')
+        for k, at in enumerate(connects[1:], 1):
+            end = connects[k + 1] if k + 1 < len(connects) else next((i for i in range(at, len(rows)) if rows[i][0] in ('41', '61')), len(rows))
+            print('    connection %d: %.2f s, AND %.2fM' % (k, float(rows[end - 1][1]) - float(rows[at - 1][1]), (int(rows[end - 1][2]) - int(rows[at - 1][2])) / 1e6))
+    # One whole message, from the end of one send's sealing (41) to the end of the next: storing the
+    # state, the request, sealing the record, the response and switching connections.
+    sends = [i for i, row in enumerate(rows) if row[0] == '41']
+    if len(sends) > 2:
+        cycles = [(float(rows[b][1]) - float(rows[a][1]), (int(rows[b][2]) - int(rows[a][2])) / 1e6) for a, b in zip(sends, sends[1:])]
+        middle = sorted(cycles)[len(cycles) // 2]
+        print('  send to send: median %.2f s, AND %.2fM; each: %s' % (middle[0], middle[1], ' '.join('%.2f' % c[0] for c in cycles)))
 
 
 for argument in sys.argv[1:]:

@@ -104,9 +104,11 @@ public:
                 if(!a.empty()){
                     // A multiplication round. The engine makes triples in batches when it runs out,
                     // inside this call: a round that sent far more than its openings made a batch.
-                    Profile::get().enter();const uint64_t before=f.sent_bytes();
+                    // With a triple stock (field_engine.h) a round only waits when the stock is behind.
+                    Profile::get().enter();const uint64_t before=f.sent_bytes();const double waited=f.stock_waited();
                     auto out=f.mul(a,b);
-                    Profile::get().leave(f.sent_bytes()-before>4096+512*a.size()?"field triples: generation (with the round that needed them): "+label:"field multiplication rounds (triples in stock): "+label);
+                    Profile::get().credit("field triples: waiting for stock: "+label,f.stock_waited()-waited);
+                    Profile::get().leave(!f.stocked()&&f.sent_bytes()-before>4096+512*a.size()?"field triples: generation (with the round that needed them): "+label:"field multiplication rounds (triples in stock): "+label);
                     size_t q=0;for(size_t k=0;k<instances.size();k++)for(auto id:multiplications[level])values[k][id]=out[q++];
                     std::vector<H>denominators;for(size_t j=q+1;j<out.size();j+=2)denominators.push_back(out[j]);
                     if(!denominators.empty()){

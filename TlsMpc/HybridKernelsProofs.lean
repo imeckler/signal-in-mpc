@@ -109,6 +109,16 @@ theorem tlsOpenApplication_event_private (parser : TlsPostHandshake.State (BitVe
     (TlsPostHandshake.process Word64.concrete ByteAuth.concrete parser (status :: 23 :: high :: low :: ys)).take 2 :=
   TlsPostHandshake.process_application_event_independent parser status high low xs ys h
 
+/-- The parser inside `tlsOpenApplicationCtr` is compiled from `TlsPostHandshake.Fast.core`
+(selects merged per field) over `Word64.symbolicMux` (one AND per selected bit). On values it
+is `TlsPostHandshake.core`, the function `tlsOpenApplication` is specified with above, so the
+event-privacy statement applies to it as well. -/
+theorem tlsOpenApplicationCtr_parser (state parsed : List (BVExpr 8)) (assign : BVExpr.Assignment) :
+    (TlsPostHandshake.Fast.core Word64.symbolicMux ByteAuth.symbolic state parsed).map (BVExpr.eval assign) =
+      TlsPostHandshake.core Word64.concrete ByteAuth.concrete
+        (state.map (BVExpr.eval assign)) (parsed.map (BVExpr.eval assign)) :=
+  TlsPostHandshake.Fast.core_refines (Word64.evaluationHomMux assign) (ByteAuth.evaluationHom assign) state parsed
+
 #print axioms compiled_correct
 #print axioms tlsUpdate_spec
 #print axioms tlsOpenApplication_spec

@@ -18,6 +18,11 @@
 //!                                  (PublicRequest.build) on FROM's AUTHENTICATED socket; saves
 //!                                  request/response bytes to ../state/transcripts/
 //!   receive   NAME [SECONDS]       authenticated socket; decrypt and print every delivered message
+//!                                  (NAME.2 receives as the device that `link NAME` added)
+//!   link      NAME [ONE_TIME]      link a further device to NAME's account (provisioning code from the
+//!                                  primary, PUT /v1/devices/link), with ONE_TIME one-time prekeys
+//!                                  (default 0); saved as account NAME.<device id>
+//!   keys-dump NAME OUT             raw body of GET /v2/keys/{aci}/* (every device's prekey bundle)
 //!   provision                      register sender + recipient + recipient2, establish both,
 //!                                  send + receive one text
 //!   export-mpc [SENDER CONTACT..]  write ../state/mpc-export.json: everything the MPC client needs
@@ -350,6 +355,8 @@ struct Account {
     store: InMemSignalProtocolStore,
     sender_certificate: Option<Vec<u8>>,
     peers: Vec<String>,
+    /// 1 for the primary device; a linked device (`link`) has its own file `<name>.<id>.json`.
+    device_id: u8,
 }
 
 fn state_dir() -> PathBuf {
@@ -361,7 +368,11 @@ impl Account {
         state_dir().join(format!("{name}.json"))
     }
     fn address(&self) -> ProtocolAddress {
-        ProtocolAddress::new(self.aci.clone(), device1())
+        ProtocolAddress::new(self.aci.clone(), DeviceId::new(self.device_id).unwrap())
+    }
+    /// The chat socket's user name: the account id, with `.DEVICE` for a linked device.
+    fn login(&self) -> String {
+        if self.device_id == 1 { self.aci.clone() } else { format!("{}.{}", self.aci, self.device_id) }
     }
     fn access_key(&self) -> [u8; 16] {
         access_key(&self.profile_key)
@@ -394,7 +405,7 @@ impl Account {
         }
         let v = json!({
             "WARNING": "LOCAL TEST ACCOUNT on the local Signal-Server only; never use against Signal's service",
-            "name": self.name, "number": self.number, "aci": self.aci, "pni": self.pni, "device_id": 1,
+            "name": self.name, "number": self.number, "aci": self.aci, "pni": self.pni, "device_id": self.device_id,
             "password": self.password, "registration_id": self.registration_id,
             "pni_registration_id": self.pni_registration_id,
             "profile_key": b64(&self.profile_key), "access_key": b64(&self.access_key()),
@@ -456,6 +467,7 @@ impl Account {
             store,
             sender_certificate: v["sender_certificate"].as_str().map(unb64).transpose()?,
             peers,
+            device_id: v["device_id"].as_u64().unwrap_or(1) as u8,
         })
     }
 
@@ -591,7 +603,7 @@ async fn register_with(name: &str, number: &str, unrestricted: bool) -> R<()> {
 
     Account {
         name: name.into(), number: number.into(), aci, pni, password, registration_id, pni_registration_id,
-        profile_key, pni_identity, store, sender_certificate: Some(cert), peers: vec![],
+        profile_key, pni_identity, store, sender_certificate: Some(cert), peers: vec![], device_id: 1,
     }
     .save()
     .await?;
@@ -629,7 +641,7 @@ async fn receive(me: &mut Account, expect: usize, timeout: Duration) -> R<Vec<(S
 /// Like `receive`, also returning each envelope's source fields as JSON (they must be absent for
 /// a sealed-sender message; present means the server treated the send as identified).
 async fn receive_envelopes(me: &mut Account, expect: usize, timeout: Duration) -> R<Vec<(String, String, u64, Value)>> {
-    let mut chat = Chat::connect(Some((&me.aci.clone(), &me.password.clone())))?;
+    let mut chat = Chat::connect(Some((&me.login(), &me.password.clone())))?;
     let pushed = chat.wait_messages(expect, timeout)?;
     chat.close();
     let root = PublicKey::deserialize(&unb64(TEST_TRUST_ROOT)?)?;
@@ -646,7 +658,7 @@ async fn receive_envelopes(me: &mut Account, expect: usize, timeout: Duration) -
         }
         let s = &mut me.store;
         let r = sealed_sender_decrypt(env.content.as_deref().unwrap_or_default(), &root, Timestamp::from_epoch_millis(now_ms()),
-            None, me.aci.clone(), device1(), &mut s.identity_store, &mut s.session_store, &mut s.pre_key_store,
+            None, me.aci.clone(), DeviceId::new(me.device_id)?, &mut s.identity_store, &mut s.session_store, &mut s.pre_key_store,
             &s.signed_pre_key_store, &mut s.kyber_pre_key_store).await?;
         let (text, ts) = parse_content(&r.message)?;
         eprintln!("  {} received from {}: {:?} (timestamp {ts}, server {:?})", me.name, r.sender_uuid, text, env.server_timestamp);
@@ -838,9 +850,101 @@ async fn start_session(from: &mut Account, to: &Account) -> R<()> {
     Ok(())
 }
 
+/// Link a further device to `name`'s account, as a new client does after scanning the primary's
+/// code: the primary asks the server for a linking token (`GET /v1/devices/provisioning/code`),
+/// and the new device registers itself (`PUT /v1/devices/link`) with its own password,
+/// registration ids, signed prekey and Kyber last-resort key, signed with the account's identity
+/// keys (which a real primary sends it in the provisioning message). `one_time` one-time EC
+/// prekeys are uploaded for it (0: its bundle then has `"preKey":null`).
+/// The device is saved as account `<name>.<device id>` and receives with `receive <name>.<id>`.
+async fn link(name: &str, one_time: u32) -> R<()> {
+    let primary = Account::load(name).await?;
+    let mut rng = rand::rng();
+    let identity = primary.store.get_identity_key_pair().await?;
+    let registration_id = rng.random_range(1..=0x3fff_u32);
+    let pni_registration_id = rng.random_range(1..=0x3fff_u32);
+    const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let password: String = (0..PASSWORD_LEN).map(|_| ALPHABET[rng.random_range(0..ALPHABET.len())] as char).collect();
+    let key_id = rng.random_range(2..0x00ff_ffff_u32);
+    let aci_spk = signed_prekey(&identity, key_id, &mut rng)?;
+    let pni_spk = signed_prekey(&primary.pni_identity, key_id, &mut rng)?;
+    let aci_kyber = kyber_prekey(&identity, key_id)?;
+    let pni_kyber = kyber_prekey(&primary.pni_identity, key_id)?;
+
+    let mut chat = Chat::connect(Some((&primary.login(), &primary.password)))?;
+    let token = chat.expect("GET", "/v1/devices/provisioning/code", &[], None, &[200])?;
+    chat.close();
+    let code = token["verificationCode"].as_str().ok_or("no linking token")?.to_string();
+    let auth = format!("Basic {}", b64(format!("{}:{password}", primary.number).as_bytes()));
+    let body = json!({
+        "verificationCode": code,
+        "accountAttributes": {
+            "fetchesMessages": true,
+            "registrationId": registration_id,
+            "pniRegistrationId": pni_registration_id,
+            "capabilities": {"spqr": true},
+        },
+        "aciSignedPreKey": ec_signed_json(&aci_spk)?,
+        "pniSignedPreKey": ec_signed_json(&pni_spk)?,
+        "aciPqLastResortPreKey": kem_signed_json(&aci_kyber)?,
+        "pniPqLastResortPreKey": kem_signed_json(&pni_kyber)?,
+    });
+    let mut chat = Chat::connect(None)?;
+    let linked = chat.expect("PUT", "/v1/devices/link", &[("authorization", auth)], Some(body), &[200])?;
+    chat.close();
+    let device_id = linked["deviceId"].as_u64().ok_or("no device id")? as u8;
+
+    let mut store = InMemSignalProtocolStore::new(identity, registration_id)?;
+    store.save_signed_pre_key(key_id.into(), &aci_spk).await?;
+    store.save_kyber_pre_key(key_id.into(), &aci_kyber).await?;
+    let device = Account {
+        name: format!("{name}.{device_id}"), number: primary.number.clone(), aci: primary.aci.clone(), pni: primary.pni.clone(),
+        password, registration_id, pni_registration_id, profile_key: primary.profile_key, pni_identity: primary.pni_identity,
+        store, sender_certificate: None, peers: vec![], device_id,
+    };
+    let mut device = device;
+    if one_time > 0 {
+        let mut prekeys = vec![];
+        for i in 0..one_time {
+            let pid = 1000 * device_id as u32 + i;
+            let pair = KeyPair::generate(&mut rng);
+            device.store.save_pre_key(pid.into(), &PreKeyRecord::new(pid.into(), &pair)).await?;
+            prekeys.push(json!({"keyId": pid, "publicKey": b64(&pair.public_key.serialize())}));
+        }
+        let mut chat = Chat::connect(Some((&device.login(), &device.password)))?;
+        chat.expect("PUT", "/v2/keys?identity=aci", &[], Some(json!({"preKeys": prekeys, "pqPreKeys": []})), &[200, 204])?;
+        chat.close();
+    }
+    device.save().await?;
+    println!("{}", json!({"linked": device.name, "aci": device.aci, "device_id": device_id, "registration_id": registration_id,
+        "signed_prekey_id": key_id, "one_time_prekeys": one_time}));
+    Ok(())
+}
+
+/// The raw body of `GET /v2/keys/{aci}/*` for `name`'s account (every device's bundle), fetched
+/// as a sealed-sender client does: unauthenticated socket, the account's access key. Written to
+/// `out` exactly as the server sent it. (Each fetch uses up one one-time prekey per device.)
+async fn keys_dump(name: &str, out: &str) -> R<()> {
+    let to = Account::load(name).await?;
+    let mut chat = Chat::connect(None)?;
+    let (status, body) = chat.request("GET", &format!("/v2/keys/{}/*", to.aci), &[("unidentified-access-key", b64(&to.access_key()))], None)?;
+    let raw = chat.last_response_raw.clone();
+    chat.close();
+    if status != 200 {
+        return Err(format!("GET /v2/keys: status {status}").into());
+    }
+    std::fs::write(out, &body)?;
+    std::fs::write(format!("{out}.message"), &raw)?;
+    println!("{}", json!({"status": status, "body_bytes": body.len(), "message_bytes": raw.len(), "out": out}));
+    Ok(())
+}
+
 async fn run(args: &[String]) -> R<()> {
     let a: Vec<&str> = args.iter().map(String::as_str).collect();
     match a.as_slice() {
+        ["link", name] => link(name, 0).await,
+        ["link", name, count] => link(name, count.parse()?).await,
+        ["keys-dump", name, out] => keys_dump(name, out).await,
         ["register", name, number] => register(name, number).await,
         ["establish", from, to] => establish(from, to).await,
         ["send", from, to, text] => {
@@ -898,7 +1002,7 @@ async fn run(args: &[String]) -> R<()> {
             println!("{}", json!({"provisioned": true, "sender": s.aci, "recipient": r.aci, "recipient2": r2.aci}));
             Ok(())
         }
-        _ => Err("usage: lss-provision register NAME NUMBER | establish FROM TO | send FROM TO TEXT | mpc-send FROM TO TEXT | receive NAME [SECONDS] | show NAME | provision | export-mpc [SENDER CONTACT..] | ref-send TEXT | probe-sockets DIR [IDLE_SECS]".into()),
+        _ => Err("usage: lss-provision register NAME NUMBER | establish FROM TO | send FROM TO TEXT | mpc-send FROM TO TEXT | receive NAME [SECONDS] | link NAME [ONE_TIME] | keys-dump NAME OUT | show NAME | provision | export-mpc [SENDER CONTACT..] | ref-send TEXT | probe-sockets DIR [IDLE_SECS]".into()),
     }
 }
 

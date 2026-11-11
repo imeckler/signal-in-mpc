@@ -7,6 +7,7 @@ import TlsMpc.Signal.SealedSenderV1
 import TlsMpc.Sha256Backend
 import TlsMpc.Sha256Ripple
 import TlsMpc.ModAdd
+import TlsMpc.TlsPostHandshakeFast
 
 /-!
 Worker kernels: one circuit per worker operation, with NAMED input and output
@@ -689,7 +690,9 @@ def tlsOpenApplicationCtr (size : Nat) : Kernel :=
   let plaintext := Gcm.ctr g (gcmExpanded block) (TlsRecord.nonce g (blockIv block) (get "sequence")) ciphertext
   let headerValid := ByteAuth.equalMask a (wire.take 5) (TlsRecord.header g (ciphertext.length + 16))
   let parsed := TlsReceive.releaseOpened a headerValid ⟨HybridService.at' (get "accepted") 0, plaintext⟩
-  let out := TlsPostHandshake.core Word64.symbolic a (get "parser") parsed
+  -- The same function as `TlsPostHandshake.core Word64.symbolic` in fewer gates
+  -- (`HybridKernelsProofs.tlsOpenApplicationCtr_parser`).
+  let out := TlsPostHandshake.Fast.core Word64.symbolicMux a (get "parser") parsed
   { name := "tls-open-application-ctr", inputs, outputs := [
       pub "event" (sl out 0 2), priv "parser" (sl out 2 11), priv "length" (sl out 13 2), priv "content" (out.drop 15)] }
 

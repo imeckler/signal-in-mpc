@@ -9,6 +9,7 @@ import TlsMpc.TlsChatResponse
 import TlsMpc.Signal.RelayEncoding
 import TlsMpc.Signal.PrivateTextNotification
 import TlsMpc.Signal.RelayUpgrade
+import TlsMpc.Signal.BundleResponse
 
 /-!
 Service controller for the public-receive profile.
@@ -35,6 +36,16 @@ supported yet (they are refused and acknowledged).
 Public here: record lengths and contents of responses and control frames,
 request ids, the WebSocket nonce and masks. Private: credentials, every
 request the client sends, all session and identity state.
+
+Tor (PRODUCT_TODO.md section 8). `SIGNAL_TOR_SOCKS=IP:PORT` (a local Tor client's SOCKS port,
+numeric) and `SIGNAL_TOR_CIRCUITS=N`, the same for both parties (the proxy, credentials and
+count are part of the agreed connect requests; a party configured differently aborts the
+session). N = 0 (default, and no SOCKS address): one direct connection, as before. N ≥ 1: every
+connection goes through the proxy, the server asked for by hostname; the leader's SOCKS5
+username/password picks a Tor circuit per connection (`Circuits.labels`). A send session opens N
+connections up front, each with its own TLS session and unauthenticated WebSocket, and sends
+each contact's messages on the connection `Circuits.assign` gives it; a receive session uses one
+connection with a circuit of its own. What the server can still link: see `Circuits`.
 -/
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Signal
 open Lean (toJson)
@@ -42,7 +53,9 @@ open Lean (toJson)
 namespace PublicReceive
 
 abbrev Byte := BitVec 8
-def capacity : Nat := 4096
+/-- Largest WebSocket message accepted from the server. A prekey response for six devices (the
+server's limit) is under 15,000 bytes; it was 4096 before such responses were read. -/
+def capacity : Nat := 16384
 
 /-- The byte operations the parsers below run on, for values in the clear. Equal to
 `ByteAuth.concrete` (`fast_eq`); the differences are in how three operations are computed at
@@ -122,6 +135,22 @@ structure State where
   /-- Before the upgrade completes: how many bytes of the header terminator
   CR LF CR LF the revealed bytes currently end with (0..3). -/
   terminator : Nat := 0
+  /-- Revealed payload of the response in progress; its body is never revealed and is
+  absent here. -/
+  reply : List Byte := []
+  replySkipped : Bool := false
+  /-- The request id of a pending prekey fetch. Only the body of a `200` response with this
+  id is kept (still unrevealed) for the engines; every other response body is passed over. -/
+  fetch : Option Nat := none
+  /-- The bytes being passed over are such a body. -/
+  collect : Bool := false
+  /-- Length of the prekey response body handed to the engines. -/
+  bundle : Option Nat := none
+  /-- A response that is not a success ends the session (`false`), or is completed like any
+  other and left to the caller, who reads `status` (`true`: a send may be answered 409/410). -/
+  lenient : Bool := false
+  /-- Status of the last completed response. -/
+  status : Nat := 0
 
 def start (accept : List Byte) : State :=
   { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
@@ -262,9 +291,87 @@ def envelopeAdvance (s : State) (header : List Byte) (passed remaining : Nat) : 
     unless count ≤ remaining do throw "envelope field runs past the body"
     return { s with inner := some (header, passed, remaining), skip := count, capture }
 
+/-! ### Responses
+
+A response (`08 02`) is `1a len { id (08), status (10), message (1a), body (22),
+headers (2a) }`; both the server and protobuf libraries write the fields in
+number order, so id and status come before the body. Its id, status, message
+and headers are revealed; its BODY never is: the body of a prekey response is
+the contact's bundle (identity key, prekeys, device and registration ids), and
+the body of a 409/410 to a send lists the contact's device ids
+(MULTI_DEVICE.md, section 1). The body is passed over exactly as a request's
+body is (`skip`), and the one body the engines need, that of a `200` to the
+pending prekey fetch, is handed to them unopened (`collect`). -/
+
+structure ReplyFields where
+  id : Option Nat := none
+  status : Option Nat := none
+  body : Option Nat := none   -- body length, if a body field was present
+
+/-- Walk the fields of a response from the revealed bytes (which omit the
+body's content). `bodySkipped` says whether the body has been passed over. -/
+def replyScan (bytes : List Byte) (bodySkipped : Bool) : Need × ReplyFields := Id.run do
+  if bytes.length < 3 then return (.more, {})
+  unless bytes.take 2 == [8, 2] && get bytes 2 == 0x1a do return (.malformed, {})
+  let some (_, first) := varintAt bytes 3 | return (.more, {})
+  let mut pos := first
+  let mut fields : ReplyFields := {}
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return (.more, fields)
+    let tag := (get bytes pos).toNat
+    if tag == 0x08 || tag == 0x10 then
+      let some (value, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      fields := if tag == 0x08 then { fields with id := some value } else { fields with status := some value }
+      pos := next
+    else if tag == 0x1a || tag == 0x2a then
+      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      if next + count > bytes.length then return (.more, fields)
+      pos := next + count
+    else if tag == 0x22 then
+      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      if fields.body.isSome then return (.malformed, fields)
+      fields := { fields with body := some count }
+      if next == bytes.length && !bodySkipped && count > 0 then return (.skip count, fields)
+      pos := next
+    else return (.malformed, fields)
+  return (.more, fields)
+
+/-- How many further bytes of a response are certain not to be body content, given its
+revealed bytes. A body byte can only follow the body's key (`22`) and its complete length, so:
+
+* at the end of a field (or before the first): the next key and the byte after it (2);
+* inside the id or the status (a varint whose last revealed byte says it continues): the next
+  three bytes are the varint's, or its end and then a key, and then at most the first byte
+  after that key (3);
+* after a key, or inside a length: one byte (the length of the body may end there);
+* inside the message or a header whose length is known: the rest of it.
+
+Anything unexpected gives 1, and `step` then refuses the byte that does not parse. -/
+def replyBudget (bytes : List Byte) : Nat := Id.run do
+  if bytes.length < 3 then return 2
+  let some (_, first) := varintAt bytes 3 | return 1
+  let mut pos := first
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return 2
+    let tag := (get bytes pos).toNat
+    if tag == 0x08 || tag == 0x10 then
+      match varintAt bytes (pos + 1) with
+      | some (_, next) => pos := next
+      | none => return (if pos + 1 ≥ bytes.length then 1 else 3)
+    else if tag == 0x1a || tag == 0x2a then
+      let some (count, next) := varintAt bytes (pos + 1) | return 1
+      if next + count > bytes.length then return next + count - bytes.length
+      pos := next + count
+    else if tag == 0x22 then
+      -- the body's length; its content is not among these bytes
+      let some (_, next) := varintAt bytes (pos + 1) | return 1
+      pos := next
+    else return 1
+  return 1
+
 /-- Whether another byte of the current record may be revealed: never a third
 payload byte of a message that is neither a response nor a request, and never
-a request's body. -/
+a request's body or a response's body (both are counted down in `skip`). -/
 def mayReveal (s : State) : Bool :=
   s.skip == 0 && (s.message.length < 2 || s.message == [8, 2] || s.message == [8, 1])
 
@@ -296,8 +403,8 @@ is a round trip between the parties, so longer steps matter.
   CR LF CR LF: with `k` of its bytes just seen, the next `4 - k` bytes cannot
   reach past it.
 * A frame's header is at least two bytes, and an extended length is two.
-* A control frame's payload, and the payload of a message confirmed as a
-  response (`08 02`), to the end of the frame.
+* A control frame's payload, to the end of the frame.
+* In a response (`08 02`): what `replyBudget` allows. Never its body.
 * The first two payload bytes of a message say what it is.
 * In a server request (`08 01`): the rest of its verb, path or header field,
   once that field's length has been revealed. Never its body.
@@ -313,7 +420,9 @@ def budget (s : State) : Nat :=
   if expects 0 || expects 2 then 2
   else if !expects 4 || remaining == 0 then 1
   else if (get s.frame 7).toNat ≥ 8 then remaining
-  else if s.message == [8, 2] then remaining
+  -- A response used to be revealed to the end of its frame. Its body must stay unrevealed
+  -- (a prekey bundle; the device ids of a 409/410), so it is now walked field by field.
+  else if s.message == [8, 2] then max 1 (min remaining (replyBudget s.reply))
   else if s.message == [8, 1] then max 1 (min remaining (fieldMissing s.request))
   else if s.message.isEmpty then min 2 remaining
   else 1
@@ -365,9 +474,22 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
         unless get out 0 == on do throw "service response rejected or not correlated"
         s := { s with response := out.drop 6 }
         if get out 1 == on then
-          unless get out 2 == on do throw "service response was not a success"
+          unless get out 2 == on || s.lenient do throw "service response was not a success"
           complete := true
           s := { s with pending := false, response := [] }
+  if data && message == [8, 2] then
+    -- The response's own fields, walked in the clear: its body is passed over, never revealed.
+    let reply := if s.reply.isEmpty then [8, 2] else s.reply ++ [byte]
+    s := { s with reply }
+    match replyScan reply s.replySkipped with
+    | (.malformed, _) => throw "malformed service response"
+    | (.skip count, fields) =>
+      -- Kept for the engines only if this is the 200 to the pending prekey fetch.
+      let wanted := s.fetch.isSome && fields.id == s.fetch && fields.status == some 200
+      s := { s with skip := count, capture := false, collect := wanted, replySkipped := true,
+                    bundle := if wanted then some count else s.bundle }
+    | (.more, _) => pure ()
+    if complete then s := { s with status := ((replyScan s.reply true).2.status).getD 0 }
   if data && message == [8, 1] then
     match s.inner with
     | some (header, passed, remaining) =>
@@ -387,7 +509,32 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
   if done then
     unless s.skip == 0 && s.inner.isNone do throw "server request ended inside its body"
     if message == [8, 1] then s := { s with requests := s.requests ++ [s.request] }
-    s := { s with message := [], held := none, request := [], bodySkipped := false }
+    s := { s with message := [], held := none, request := [], bodySkipped := false, reply := [], replySkipped := false }
+  return (s, complete)
+
+/-- Pass over one unrevealed body byte of a response: the frame parser advances, and the
+response parser is given a zero byte in its place (it only counts a body's bytes). Returns
+the new state and whether the pending response completed at this byte. -/
+def stepPassed (s : State) : Except String (State × Bool) := do
+  unless s.upgraded && s.skip > 0 && s.message == [8, 2] do throw "nothing to pass over"
+  let frame := TlsWebSocketFrame.runByte PublicReceive.fast capacity (s.frame ++ [on, 0])
+  unless get frame 0 == on && get frame 1 == on do throw "response body left its frame"
+  let control := TlsWebSocketControl.run PublicReceive.fast (s.control ++ [get frame 2, get frame 6, get frame 7, 0])
+  let mut s := { s with frame := frame.drop 8, control, skip := s.skip - 1 }
+  let mut complete := false
+  if s.skip == 0 then s := { s with collect := false }
+  if s.pending then
+    let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast capacity
+      (s.response ++ [get frame 1, get frame 3, get frame 5] ++ [0])
+    unless get out 0 == on do throw "service response rejected or not correlated"
+    s := { s with response := out.drop 6 }
+    if get out 1 == on then
+      unless get out 2 == on || s.lenient do throw "service response was not a success"
+      complete := true
+      s := { s with pending := false, response := [], status := ((replyScan s.reply true).2.status).getD 0 }
+  if get frame 5 == on then
+    unless s.skip == 0 do throw "service response ended inside its body"
+    s := { s with message := [], held := none, reply := [], replySkipped := false }
   return (s, complete)
 
 /-- Pass over one unrevealed body byte of a server request: only the frame
@@ -516,7 +663,88 @@ def build (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) : Excep
       frame := frame ++ List.replicate width 0
   return (frame, offsets.toList)
 
+/-! Requests for a contact with several devices (MULTI_DEVICE.md). As above, every private
+value is a slot of zero bytes that the engines fill (`bundle-fetch-ctr`,
+`bundle-request-ctr`); slot 0 is the UUID, slot 1 the access key, and slots `2 + 2i`,
+`3 + 2i` the device id and registration id of device `i`. -/
+
+/-- The masked WebSocket frame of a message with zeroed slots, where its payload starts, and
+the frame offset of each of the `slots` slots. -/
+def assemble (message : List Piece) (mask : List Byte) (slots : Nat) : Except String (List Byte × Nat × List Nat) := do
+  let size := total message
+  unless 0 < size && size < 65536 && mask.length == 4 do throw "request size"
+  let header : List Byte := (if size < 126 then [130, BitVec.ofNat 8 (128 + size)]
+    else [130, 254, BitVec.ofNat 8 (size / 256), BitVec.ofNat 8 size]) ++ mask
+  let mut frame := header.toArray
+  let mut offsets := Array.replicate slots 0
+  for piece in message do
+    match piece with
+    | .bytes value =>
+      for byte in value do
+        frame := frame.push (byte ^^^ mask.getD ((frame.size - header.length) % 4) 0)
+    | .slot index width =>
+      offsets := offsets.set! index frame.size
+      frame := frame ++ Array.replicate width 0
+  return (frame.toList, header.length, offsets.toList)
+
+/-- `GET /v2/keys/{uuid}/*` with the contact's access key: every device's prekey bundle. -/
+def buildFetch (id : Nat) (mask : List Byte) : Except String (List Byte × Nat × List Nat) := do
+  let request := field 10 [.bytes (text "GET")] ++
+    field 18 [.bytes (text "/v2/keys/"), .slot 0 36, .bytes (text "/*")] ++ [.bytes (32 :: varint id)] ++
+    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
+  assemble (Piece.bytes [8, 1] :: field 18 request) mask 2
+
+/-- `PUT /v1/messages/{uuid}` with one message per device, in the contact's device order. -/
+def buildDevices (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte) :
+    Except String (List Byte × Nat × List Nat) := do
+  unless !envelopes.isEmpty do throw "no devices"
+  let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
+    [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"content\":\"") ++ RelayEncoding.base64 PublicReceive.fast envelope ++
+      text "\",\"destinationDeviceId\":"), .slot (2 + 2 * index) 3,
+     .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10, .bytes (text ",\"type\":6}")]).flatten
+  let json : List Piece := [.bytes (text "{\"messages\":[")] ++ messages ++
+    [.bytes (text ("],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
+  let request := field 10 [.bytes (text "PUT")] ++
+    field 18 [.bytes (text "/v1/messages/"), .slot 0 36, .bytes (text "?story=false")] ++
+    field 26 json ++ [.bytes (32 :: varint id)] ++
+    field 42 [.bytes (text "content-type: application/json")] ++
+    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
+  assemble (Piece.bytes [8, 1] :: field 18 request) mask (2 + 2 * envelopes.length)
+
 end PublicRequest
+
+/-! ---- Several Tor circuits in one send session (PRODUCT_TODO.md section 8).
+
+Assignment: the session's distinct contact ids in ascending order; the contact of rank r is sent
+on connection r mod N. Public, and computed identically by both controllers. A contact keeps its
+connection for the whole session (every broadcast in it), and the connections' contact counts
+differ by at most one. It depends only on the set of ids, so a broadcast to the same set is split
+the same way in every session: across sessions the server sees the same groups again (through
+other exits), not new pairs that would eventually join everyone.
+
+What the server can still link: the recipients on one connection (one TLS session, one circuit);
+and by timing, the whole broadcast: the N connections are opened together, each with a full
+handshake, and the sends alternate between them one response at a time, with no delay or
+shuffling. Request ids count per connection (from 2^63, as on a single connection), so they do
+not interleave across connections; ids of a device refresh's own requests are still one counter
+for the session. The receive socket is a connection of its own, on its own circuit, but it is
+authenticated and names the account. -/
+namespace Circuits
+
+def assign (contacts : List Nat) (count : Nat) (contact : Nat) : Nat :=
+  let sorted := contacts.eraseDups.mergeSort (fun a b => decide (a ≤ b))
+  ((sorted.findIdx? (· == contact)).getD 0) % max count 1
+
+/-- SOCKS5 credentials of connection `index` (`none`: the receive socket). The username is fresh
+per session (from its id), so Tor never reuses a circuit of another session for it; the password
+names the connection and the count. Both are agreed between the parties with the connect request. -/
+def labels (session : String) (count : Nat) (index : Option Nat) : String × String :=
+  (s!"tls-mpc-{String.ofList (session.toList.take 16)}",
+    match index with
+    | some i => s!"send-{i}-of-{count}"
+    | none => "receive")
+
+end Circuits
 
 private def natural (s : String) : IO Nat :=
   match s.toNat? with | some n => pure n | none => throw (IO.userError "invalid fixture integer")
@@ -563,6 +791,15 @@ private def readExport (text : String) : Except String (Bytes × Bytes × List (
   unless identity.length == 32 && 0 < certificate.length && certificate.length ≤ 1024 && !records.isEmpty do
     throw "export shape"
   pure (certificate, identity, records)
+
+/-- Our own address (account id, device id 1) and registration id, for sessions the client
+starts itself (a contact's new device). Both are public to the two parties. -/
+private def readSelf (text : String) : Except String (Bytes × Nat) := do
+  let json ← Lean.Json.parse text
+  let sender ← json.getObjVal? "sender"
+  let account ← fromHex (← sender.getObjValAs? String "aci_hex")
+  unless account.length == 16 do throw "export sender shape"
+  pure (account ++ [1], (sender.getObjValAs? Nat "registration_id").toOption.getD 0)
 
 /-- What receiving a new contact's first message needs besides the shared
 identity key: our public identity key and address, OUR prekey private keys by
@@ -663,6 +900,28 @@ def main (args : List String) : IO Unit := do
   let received ← IO.mkRef ([] : List (Nat × String))
   let refused ← IO.mkRef 0
   let kept ← IO.mkRef (none : Option Bytes)
+  -- Tor (the top of this file): SIGNAL_TOR_SOCKS=IP:PORT and SIGNAL_TOR_CIRCUITS=N.
+  let circuitCount ← match ← IO.getEnv "SIGNAL_TOR_CIRCUITS" with
+    | none => pure none
+    | some text => match text.toNat? with
+      | some n => pure (some n)
+      | none => throw (IO.userError "SIGNAL_TOR_CIRCUITS must be a number")
+  let socks ← match ← IO.getEnv "SIGNAL_TOR_SOCKS" with
+    | none => pure none
+    | some text => match text.splitOn ":" with
+      | [host, number] => match number.toNat? with
+        | some p => pure (some (host, p))
+        | none => throw (IO.userError "SIGNAL_TOR_SOCKS must be IP:PORT")
+      | _ => throw (IO.userError "SIGNAL_TOR_SOCKS must be IP:PORT")
+  let circuits := circuitCount.getD (if socks.isSome then 1 else 0)
+  unless (circuits == 0) == socks.isNone && circuits ≤ 16 do
+    throw (IO.userError "SIGNAL_TOR_CIRCUITS of 1..16 needs SIGNAL_TOR_SOCKS, and SIGNAL_TOR_SOCKS at least one circuit")
+  -- The proxy and credentials of a connection (`none`: the receive socket); none without Tor.
+  let proxyFor (index : Option Nat) : Option TlsWorker.Proxy := socks.map (fun (host, p) =>
+    let (username, password) := Circuits.labels session circuits index
+    { host, port := p, username, password })
+  -- (contact, connection) of every send, in order (public; reported).
+  let circuitSends ← IO.mkRef ([] : List (Nat × Nat))
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
     hostsFile := hosts,port := ← natural basePort,manifestFile := manifest,sessionId := ← sessionBytes session }
@@ -678,14 +937,22 @@ def main (args : List String) : IO Unit := do
       liftM (operations.modify (fun codes => if codes.contains (TlsWorkerPipe.code op) then codes else codes ++ [TlsWorkerPipe.code op]) : IO Unit)
       running.rpc.call op input}
     let action : M Nat := do
-      TlsWorker.connect rpc endpoint (← liftM (natural port))
+      TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if credentials.isSome then none else some 0))
       let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) {hostname,alpn := ["http/1.1"]}
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
-      let app ← liftM (TlsWorker.applicationSession rpc handshake (some (TlsWorker.waitingTransport rpc kept)))
+      -- The worker's selected connection (`active`) and the one this controller is using
+      -- (`current`, its TLS session in `apps`). Connection 0 never selects unless there are more.
+      let active ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
+      let app ← liftM (TlsWorker.applicationSession (TlsWorker.onConnection rpc active 0) handshake
+        (some (TlsWorker.waitingTransport (TlsWorker.onConnection rpc active 0) kept)))
+      let apps ← liftM (IO.mkRef #[app] : IO (IO.Ref (Array (TlsApplication.Session TlsWorker.BufferHandle))))
+      let current ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
+      let appNow : M (TlsApplication.Session TlsWorker.BufferHandle) := do
+        pure ((← liftM (apps.get : IO (Array (TlsApplication.Session TlsWorker.BufferHandle)))).getD (← liftM (current.get : IO Nat)) app)
       let sendPublic (bytes : Bytes) : M Unit := do
         let handle ← rpc.call .publicBuffer bytes
         insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
-        TlsApplication.send app ⟨number handle⟩ bytes.length
+        TlsApplication.send (← appNow) ⟨number handle⟩ bytes.length
       -- Two ways to start. Fixture: state admitted by the worker, authenticated upgrade
       -- with private credentials. Local Signal server (SIGNAL_LOCAL_EXPORT): contacts
       -- admitted from the export, and the UNAUTHENTICATED socket, whose upgrade request is
@@ -748,6 +1015,35 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32 && random.take 8 != List.replicate 8 255) "invalid joint randomness"
         pure (random.take 8)
+      -- A contact with a device list (MULTI_DEVICE.md, section 4): the kinds of its devices'
+      -- entries, in order (0: a 319-byte record; 1, 2: record and pending, 1935 bytes). They are
+      -- public (every send's length shows them) and are stored in the clear after the
+      -- ciphertext, as `kinds ‖ count`. A contact that is one established record has kinds [0]
+      -- and is stored as before, without them.
+      let deviceKinds ← liftM (IO.mkRef ([] : List (Nat × List Nat)) : IO (IO.Ref (List (Nat × List Nat))))
+      let kindsOf (contact : Nat) : M (List Nat) := do
+        pure ((((← liftM (deviceKinds.get : IO (List (Nat × List Nat)))).find? (·.1 == contact)).map (·.2)).getD [0])
+      let setKinds (contact : Nat) (kinds : List Nat) : M Unit :=
+        liftM (deviceKinds.modify (fun all => all.filter (·.1 != contact) ++ [(contact, kinds)]) : IO Unit)
+      -- Load a contact's stored state `version ‖ check ‖ ciphertext (‖ kinds ‖ count)`.
+      let openState (contact : Nat) (stored : Bytes) : M Unit := do
+        if stored.length == 24 + 319 then
+          let _ ← rpc.call .contactOpen (uint 16 contact ++ stored)
+        else
+          let count := (stored.getLast?.getD 0).toNat
+          insist (1 ≤ count && count ≤ 6 && stored.length > 24 + count + 1) "stored contact shape"
+          let body := stored.take (stored.length - 1 - count)
+          let kinds := ((stored.drop body.length).take count).map (·.toNat)
+          insist (kinds.all (· ≤ 2) && body.length == 24 + (kinds.map (fun k => if k == 0 then 319 else 1935)).foldl (· + ·) 0)
+            "stored contact shape"
+          let _ ← rpc.call .devicesOpen (uint 16 contact ++ [UInt8.ofNat count] ++ kinds.map UInt8.ofNat ++ body)
+          setKinds contact kinds
+      -- Seal a contact's current state under a new nonce: `check ‖ ciphertext (‖ kinds ‖ count)`.
+      let sealState (contact : Nat) (fresh : Bytes) : M Bytes := do
+        let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
+        insist (stored.length > 16) "invalid stored contact state"
+        let kinds ← kindsOf contact
+        pure (if kinds == [0] then stored else stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
       -- Store a contact's sealed state as blob `version`. Counts once all but one node committed it.
       let dbSubmit (name : String) (authority : List String) (version : Nat) (blob : Bytes) : M Bool := do
         let file ← dbWork s!"blob-{name}"
@@ -760,7 +1056,7 @@ def main (args : List String) : IO Unit := do
         pure (((← dbJson s!"write-{name}.json").getObjValAs? Bool "acknowledged").toOption.getD false)
       let dbWrite (contact version : Nat) (authority : List String) : M Bool := do
         let fresh ← nonce
-        let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
+        let stored ← sealState contact fresh
         insist (stored.length > 16) "invalid stored contact state"
         dbSubmit (toString contact) (authority ++ ["--id", toString contact]) version (fresh ++ stored)
       -- Read this party's shares (under the application's request, or of the account's own
@@ -862,7 +1158,7 @@ def main (args : List String) : IO Unit := do
                 let share ← liftResult (fromHex share)
                 let _ ← rpc.call .contactKey (uint 16 contact ++ share)
                 -- Both parties must have been given the same blob: the request is agreed.
-                let _ ← rpc.call .contactOpen (uint 16 contact ++ (← liftResult (fromHex blob)))
+                openState contact (← liftResult (fromHex blob))
                 pure (contact, share, version)
               | _, _ =>
                 -- TEST: a contact of the export that the database does not have yet is created
@@ -886,7 +1182,7 @@ def main (args : List String) : IO Unit := do
               insist (bytes.length > 56) "stored contact shape"
               let share := bytes.take 32
               let _ ← rpc.call .contactKey (uint 16 contact ++ share)
-              let _ ← rpc.call .contactOpen (uint 16 contact ++ bytes.drop 32)
+              openState contact (bytes.drop 32)
               pure (contact, share, number ((bytes.drop 32).take 8))
             | none =>
               insist (!record.isEmpty) "contact has no stored state"
@@ -1032,8 +1328,18 @@ def main (args : List String) : IO Unit := do
               -- A delivered envelope's sealed content goes to the engines as it is.
               let held ← rpc.call .envelopeTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
               insist (held.length == 4) "invalid envelope reply"
+            if s.collect then
+              -- The body of the 200 to the pending prekey fetch goes to the engines as it is.
+              let held ← rpc.call .bundleTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
+              insist (held.length == 4) "invalid bundle reply"
             for _ in [0:count] do
-              s ← liftResult (PublicReceive.stepSkipped s)
+              if s.message == [8, 2] then
+                -- A response's body (never revealed either): the response may complete in it.
+                let (next, done) ← liftResult (PublicReceive.stepPassed s)
+                s := next
+                complete := complete || done
+              else
+                s ← liftResult (PublicReceive.stepSkipped s)
             offset := offset + count
             -- A completed envelope is dealt with before anything further is read.
             for (kind, size) in s.envelopes do handleEnvelope kind size
@@ -1074,7 +1380,41 @@ def main (args : List String) : IO Unit := do
           let version := ((← liftM (versions.get : IO (List (Nat × Nat)))).find? (·.1 == contact)).map (·.2) |>.getD 0
           insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
           liftM (versions.modify (fun all => all.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v))) : IO Unit)
+      -- Our own address and registration id, for sessions the client starts (a contact's new device).
+      let self ← match exportPath with
+        | some path => do pure (some (← liftResult (readSelf (← liftM (IO.FS.readFile path : IO String)))))
+        | none => pure none
+      let lastSent ← liftM (IO.mkRef (none : Option (Nat × Bytes)) : IO (IO.Ref (Option (Nat × Bytes))))
+      -- One send to a contact with a device list (MULTI_DEVICE.md, section 5): the engines
+      -- produce one envelope per device, all for the same built text; the state is stored
+      -- before anything leaves, as for one device; then one request carries all of them.
+      let sendDevices (send : Nat × Bytes) (id : Nat) : M Unit := do
+        let some (address, _) := self | throw "no account address for a device list"
+        let sealed ← rpc.call .devicesSend (uint 16 send.1 ++ address ++ send.2)
+        insist (sealed.length ≥ 10) "invalid sealed envelopes reply"
+        storeAdvanced send.1
+        let timestamp := number (sealed.take 8)
+        let count := (← kindsOf send.1).length
+        let mut rest := sealed.drop 8
+        let mut envelopes : List (List (BitVec 8)) := []
+        for _ in [0:count] do
+          let length := number (rest.take 2)
+          insist (0 < length && length + 2 ≤ rest.length) "invalid sealed envelope length"
+          envelopes := envelopes ++ [toBits ((rest.drop 2).take length)]
+          rest := rest.drop (2 + length)
+        insist rest.isEmpty "invalid sealed envelopes reply"
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)))
+        -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
+        insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
+        let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
+          [UInt8.ofNat count] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
+        insist (handle.length == 8 && number handle != 0) "invalid request handle"
+        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
       let sendMessage (send : Nat × Bytes) (id : Nat) : M Unit := do
+        liftM (lastSent.set (some send) : IO Unit)
+        if (← kindsOf send.1) != [0] then return ← sendDevices send id
         let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
         insist (sealed.length ≥ 10) "invalid sealed envelope reply"
         storeAdvanced send.1
@@ -1086,7 +1426,105 @@ def main (args : List String) : IO Unit := do
         let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
         let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send app ⟨number handle⟩ frame.length
+        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+      /- ---- A contact whose device list changed (MULTI_DEVICE.md, sections 3 and 5). ----
+      The server answers a send 409 (devices missing or extra) or 410 (stale registration
+      ids). Its body lists device ids and is not read. Instead every session of the contact is
+      replaced: fetch all its devices' prekey bundles, establish a session per device in the
+      engines, store the new device list, send the message again. -/
+      -- Wait for the pending response; records are read and answered as in the main loop.
+      let rec awaitReply (fuel : Nat) (s : PublicReceive.State) : M PublicReceive.State := do
+        match fuel with
+        | 0 => throw "receive budget exhausted"
+        | fuel+1 =>
+          match ← TlsApplication.receive (← appNow) with
+          | .application handle =>
+            let (s, complete) ← record handle.id s
+            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              pure (random.take 4)
+            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            for (kind, frame) in frames do
+              sendPublic (toBytes frame)
+              insist (kind != 8) "WebSocket peer closed before completion"
+            for request in s.requests do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+              unless message do sendPublic (toBytes frame)
+            let s := { s with requests := [] }
+            if complete then return s
+            awaitReply fuel s
+          | .control => awaitReply fuel s
+          | .closed => throw "TLS closed before a response"
+      -- Request ids of the refresh's own requests, apart from the sends' counter from 2^63.
+      let extraIds ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
+      let nextId : M Nat := liftM (extraIds.modifyGet (fun n => (2 ^ 63 + 2 ^ 32 + n, n + 1)) : IO Nat)
+      -- A clock both controllers use: each reads its own, they tell each other, the later one counts.
+      let agreedClock : M Nat := do
+        let mine := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
+        pure (max mine (number (← swap (uint 8 mine))))
+      -- The server drops a socket that is silent for 90 seconds, and establishing one device's
+      -- session takes about that long. Before each step: if 20 seconds have passed on the agreed
+      -- clock since the last exchange, a keepalive is sent and its answer awaited.
+      let quiet ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
+      let touch : M Unit := do
+        let now ← agreedClock
+        liftM (quiet.set now : IO Unit)
+      let keepAlive (s : PublicReceive.State) : M PublicReceive.State := do
+        let now ← agreedClock
+        if now < (← liftM (quiet.get : IO Nat)) + 20000 then return s
+        let id ← nextId
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+        liftM (quiet.set now : IO Unit)   -- the time it was sent: reading its answer may itself take long
+        let s ← awaitReply 64 (PublicReceive.expect s id)
+        insist (s.status == 200) "keepalive was refused"
+        pure s
+      let refreshContact (contact : Nat) (start : PublicReceive.State) : M PublicReceive.State := do
+        let some (_, registration) := self | throw "no account for a device refresh"
+        insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
+        -- The fetch names the contact: its UUID and access key are inserted by the engines.
+        let fetchId ← nextId
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+        let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
+          random.take 4 ++ toBytes frame)
+        insist (handle.length == 8 && number handle != 0) "invalid request handle"
+        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        touch
+        -- Its body is collected unrevealed (`PublicReceive.step`: only a 200 with this id).
+        let fetched ← awaitReply 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
+        let mut s := { fetched with fetch := none }
+        -- 404: the account is gone; 401: the access key no longer matches. Neither is retried.
+        insist (s.status == 200) s!"the prekey fetch was answered {s.status}"
+        let some size := s.bundle | throw "prekey response without a body"
+        insist (2540 ≤ size && size ≤ 65536) "prekey response size"
+        s ← keepAlive s
+        -- The one thing opened about the body: which of its bytes are JSON punctuation.
+        let flags ← rpc.call .bundleShape []
+        insist (flags.length == size && flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
+        -- In the clear, by both controllers: the devices' layout, if the flags are exactly a response's.
+        let some widths := BundleResponse.layout? (flags.map (· == 255)) | throw "prekey response layout refused"
+        let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
+        insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
+        for ((at_, w), index) in rows.zipIdx do
+          for step in [0:9] do
+            s ← keepAlive s
+            let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
+              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++
+              [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat)
+            -- One status byte per device and not the reason: bad JSON, a bad signature, a changed
+            -- identity key and a failed encapsulation look the same. The contact keeps its old state.
+            insist (out == [255]) "a device's session could not be established"
+        liftM (IO.eprintln s!"device refresh: {rows.length} sessions established" : IO Unit)
+        setKinds contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2))
+        -- The new device list is stored before any message to it leaves.
+        storeAdvanced contact
+        keepAlive s
       -- Contact state at rest (TEST: the two fixture contacts have ids 1 and 2, and each
       -- controller's key share is local randomness standing in for what the database
       -- nodes would deliver). After one send to each contact the state is sealed,
@@ -1100,11 +1538,11 @@ def main (args : List String) : IO Unit := do
       let reloadContacts : M Unit := do
         for (contact, share, _) in known do
           let version ← nonce
-          let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
+          let stored ← sealState contact version
           insist (stored.length > 16) "invalid stored contact state"
           let _ ← rpc.call .contactEvict (uint 16 contact)
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
-          let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
+          openState contact (version ++ stored)
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
         if dbClient.isSome then pure ()   -- stored before each send (storeAdvanced)
@@ -1114,7 +1552,7 @@ def main (args : List String) : IO Unit := do
         | some directory =>
           for (contact, share, _) in known do
             let version ← nonce
-            let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
+            let stored ← sealState contact version
             insist (stored.length > 16) "invalid stored contact state"
             liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
               (TlsWorkerProcess.hex (share ++ version ++ stored) ++ "\n") : IO Unit)
@@ -1153,11 +1591,76 @@ def main (args : List String) : IO Unit := do
             -- the third broadcast is 200 bytes long (a larger size class)
             (if k == 0 then "MPC broadcast 3 " ++ String.ofList (List.replicate 184 'x') else s!"MPC broadcast {k + 3}") (base + 1000 * (k + 2))))
           pure ((← notify contacts "MPC broadcast one" base) ++ (← notify contacts "MPC broadcast two ☕" (base + 1000)) ++ more.flatten)
+      /- ---- Several circuits (SIGNAL_TOR_CIRCUITS = N ≥ 2, a send session). Connections 1..N-1
+      are opened before the first send, each with its own handshake, TLS session (`apps`) and
+      unauthenticated WebSocket, whose 101 is read at once. Per connection the controller keeps
+      the response parser's state and the request-id counter (`parkedStates`, `counters`); the
+      worker keeps its TLS and WebSocket state. Established up front rather than lazily: the
+      handshakes then cost nothing on the way to a send, and a proxy or circuit that does not
+      work fails the session before any contact's state has advanced. -/
+      let sendCircuits := if credentials.isSome then 0 else circuits
+      let recipients := inputs.map (·.1)
+      let parkedStates ← liftM (IO.mkRef (#[] : Array PublicReceive.State) : IO (IO.Ref (Array PublicReceive.State)))
+      let counters ← liftM (IO.mkRef (Array.replicate (max sendCircuits 1) 0) : IO (IO.Ref (Array Nat)))
+      let openCircuits : M Unit := do
+        -- parkedStates[i]: connection i's state while another is in use (0's is the loop's until then).
+        liftM (parkedStates.set #[PublicReceive.start []] : IO Unit)
+        for index in [1:sendCircuits] do
+          let on := TlsWorker.onConnection rpc active index
+          TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
+          let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) {hostname,alpn := ["http/1.1"]}
+          insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
+          let waitingFor ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
+          let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on waitingFor)))
+          let sendOn (bytes : Bytes) : M Unit := do
+            let handle ← on.call .publicBuffer bytes
+            insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
+            TlsApplication.send session ⟨number handle⟩ bytes.length
+          let upgrade ← on.call .publicUpgrade []
+          insist (upgrade.length == 44) "invalid public upgrade receipt"
+          sendOn (toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16))))
+          let mut s : PublicReceive.State := { PublicReceive.start (toBits (upgrade.drop 16)) with lenient := exportPath.isSome }
+          let mut fuel := 64
+          while !s.upgraded do
+            insist (fuel > 0) "receive budget exhausted"
+            fuel := fuel - 1
+            match ← TlsApplication.receive session with
+            | .application handle =>
+              let (next, complete) ← record handle.id s
+              insist (!complete && next.requests.isEmpty) "unexpected server traffic during the upgrade"
+              let mask ← if (PublicReceive.get next.control 127) == 0 then pure [0, 0, 0, 0] else do
+                let random ← on.call .publicRandom []
+                insist (random.length == 32) "invalid joint randomness"
+                pure (random.take 4)
+              let (next, frames) ← liftResult (PublicReceive.replies next (toBits mask))
+              for (kind, frame) in frames do
+                sendOn (toBytes frame)
+                insist (kind != 8) "WebSocket peer closed before completion"
+              s := next
+            | .control => pure ()
+            | .closed => throw "TLS closed before the upgrade"
+          liftM (apps.modify (·.push session) : IO Unit)
+          liftM (parkedStates.modify (·.push s) : IO Unit)
+      -- Before each send: move to the contact's connection. Returns that connection's parser
+      -- state and the send's request id (2^63 + the sends so far on that connection). One
+      -- connection (N ≤ 1): the state and id the loop gave, exactly as without Tor.
+      let toCircuit (s : PublicReceive.State) (contact id : Nat) : M (PublicReceive.State × Nat) := do
+        let target := Circuits.assign recipients (max sendCircuits 1) contact
+        liftM (circuitSends.modify (· ++ [(contact, target)]) : IO Unit)
+        if sendCircuits ≤ 1 then return (s, id)
+        let here ← liftM (current.get : IO Nat)
+        let sent := (← liftM (counters.get : IO (Array Nat))).getD target 0
+        liftM (counters.modify (·.set! target (sent + 1)) : IO Unit)
+        if target == here then return (s, 2 ^ 63 + sent)
+        -- The connection in use parks its state; the target's is taken up.
+        liftM (parkedStates.modify (·.set! here s) : IO Unit)
+        liftM (current.set target : IO Unit)
+        return ((← liftM (parkedStates.get : IO (Array PublicReceive.State))).getD target s, 2 ^ 63 + sent)
       let rec loop (fuel : Nat) (s : PublicReceive.State) (inputs : List (Nat × Bytes)) (completed : Nat) : M Nat := do
         match fuel with
         | 0 => throw "receive budget exhausted"
         | fuel+1 =>
-          match ← TlsApplication.receive app with
+          match ← TlsApplication.receive (← appNow) with
           | .application handle =>
             let wasPending := s.pending
             let (s, complete) ← record handle.id s
@@ -1179,8 +1682,23 @@ def main (args : List String) : IO Unit := do
               unless message do sendPublic (toBytes frame)
             let s := { s with requests := [] }
             insist (!complete || wasPending) "unsolicited service response"
+            -- A send refused for the contact's device list (409, 410): the contact's sessions are
+            -- replaced and the message is sent again. Bounded: one refresh and one resend per
+            -- message; a second refusal ends the session.
+            let s ← if complete && s.lenient && (s.status == 409 || s.status == 410) then do
+                let some input ← liftM (lastSent.get : IO (Option (Nat × Bytes))) | throw "no send to repeat"
+                let refreshed ← refreshContact input.1 s
+                let id ← nextId
+                sendMessage input id
+                let answered ← awaitReply 64 (PublicReceive.expect refreshed id)
+                insist (200 ≤ answered.status && answered.status < 300) s!"the resend after a device refresh was answered {answered.status}"
+                pure answered
+              else do
+                -- (Without `lenient` the parser has already refused anything but a success.)
+                insist (!complete || !s.lenient || (200 ≤ s.status && s.status < 300)) s!"service response was not a success: {s.status}"
+                pure s
             let finished := completed + (if complete then 1 else 0)
-            if complete && finished == 1 then TlsApplication.keyUpdate app false
+            if complete && finished == 1 then TlsApplication.keyUpdate (← appNow) false
             if s.upgraded && !s.pending then
               match inputs with
               | [] => insist (finished > 0) "private provider supplied no requests"; return finished
@@ -1189,6 +1707,8 @@ def main (args : List String) : IO Unit := do
                 let id := 2 ^ 63 + finished
                 if finished == 0 then keyContacts
                 if finished == 2 then reloadContacts
+                -- Several circuits: the contact's connection, its parser state and request id.
+                let (s, id) ← toCircuit s input.1 id
                 sendMessage input id
                 loop fuel (PublicReceive.expect s id) tail finished
             else loop fuel s inputs finished
@@ -1256,7 +1776,10 @@ def main (args : List String) : IO Unit := do
         TlsApplication.abort app
         return pings
       | none =>
-        let finished ← loop (256 + 16 * inputs.length) (PublicReceive.start (toBits accept)) inputs 0
+        -- Against a Signal server a send may be answered 409/410 (the contact's devices changed):
+        -- such a response is completed and handled in the loop instead of ending the session.
+        openCircuits   -- connections 1..N-1 with several Tor circuits; nothing otherwise
+        let finished ← loop (256 + 16 * inputs.length) { PublicReceive.start (toBits accept) with lenient := exportPath.isSome } inputs 0
         writeBack
         TlsApplication.abort app
         return finished
@@ -1273,6 +1796,8 @@ def main (args : List String) : IO Unit := do
       ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),
       ("envelopes",toJson ((← envelopes.get).map (fun (kind, size) => [kind, size]))),
       ("received",toJson ((← received.get).map (fun (contact, text) => [toString contact, text]))),("refused",toJson (← refused.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
+      ("circuits",toJson circuits),("circuit_sends",toJson ((← circuitSends.get).map (fun (contact, index) => [toString contact, toString index]))),
+      ("circuit_labels",toJson ((List.range circuits).map (fun i => [(Circuits.labels session circuits (some i)).1, (Circuits.labels session circuits (some i)).2]))),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop

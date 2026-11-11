@@ -330,16 +330,19 @@
  
 --- a/emp-ag2pc/backend/triple_pool.h
 +++ b/emp-ag2pc/backend/triple_pool.h
-@@ -11,6 +11,8 @@
+@@ -10,7 +10,11 @@
+ #include "emp-ot/ot_extension/ferret/ferret.h"
  #include "emp-ot/ot_extension/softspoken/softspoken.h"
  #include <atomic>
++#include <chrono>
++#include <functional>
  #include <cmath>
 +#include <cstdlib>
 +#include <cstring>
  #include <memory>
  #include <thread>
  
-@@ -26,6 +28,10 @@
+@@ -26,6 +30,10 @@
  // k=4 sits at the COT-compute floor on a fast/local link while staying well
  // below k=2's bandwidth; raise toward k=8 on a bandwidth-tight link.
  using OTExt = emp::SoftSpoken<4>;
@@ -350,16 +353,55 @@
  
  // Leaky-AND (eprint 2018/578, Fig. 5) followed by Π_aAND bucketing: per-candidate
  // half-gate garbled-AND with an F_eq consistency check, then circular-shift
-@@ -80,7 +86,7 @@
+@@ -79,10 +87,14 @@
+ 
    // The caller owns both io and the paired sib channel and threads them in;
    // AG2PCProtocol spawns the sib and passes it along (see backend/protocol.h).
-   TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40)
+-  TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40)
 -      : pool(pool), party(party), ssp(ssp), io(io), sib(sib),
++  // fixed_delta / first_tag: for a further pool of the same session (see `stock`): the
++  // session's Delta, and a counter range of its own for digest tags and hash-tweak seeds.
++  TriplePool(NetIO *io, NetIO *sib, ThreadPool *pool, int party, int ssp = 40,
++             const block *fixed_delta = nullptr, uint64_t first_tag = 0)
 +      : pool(pool), party(party), ssp(std::max(ssp, EMP_HYBRID_MIN_SSP)), io(io), sib(sib),
          send_io(party == 1 ? io : sib), recv_io(party == 1 ? sib : io) {
-     init_abit_();
+-    init_abit_();
++    tag_ctr = first_tag;
++    init_abit_(fixed_delta);
    }
-@@ -206,8 +212,9 @@
+ 
+   // Close the COT sessions opened in init_abit_ (and reopened after the last
+@@ -111,7 +123,7 @@
+   // Δ pinning + adaptive abit→socket wiring so the COT's send-dominant role (per
+   // OTExt::kSenderSendsOnExtend) sits on send_io, matching the half-gate
+   // (garbler sends on send_io, eval recvs on recv_io) — no socket direction flip.
+-  void init_abit_() {
++  void init_abit_(const block *fixed_delta = nullptr) {
+     if (!io->fs_enabled())  io->enable_fs(/*send_first=*/party == 1);
+     if (!sib->fs_enabled()) sib->enable_fs(/*send_first=*/party == 1);
+     // Δ_me with two pinned bits: bit0=1 (share-value encoding; bit0(M) carries
+@@ -120,12 +132,20 @@
+     prg.random_bool(tmp, 128);
+     tmp[0] = true;
+     tmp[1] = (party == 1);    // garbler pins bit1(Δ) = 1; evaluator pins 0
++    if (fixed_delta) {
++      // A further pool of the same session (triples minted ahead of use): the same Delta.
++      uint64_t words[2];
++      memcpy(words, fixed_delta, sizeof(words));
++      for (int i = 0; i < 128; ++i) tmp[i] = (words[i / 64] >> (i % 64)) & 1;
++      if (!tmp[0] || tmp[1] != (party == 1)) error("fixed Delta: pinned bits");
++    }
+     io_abit1 = OTExt::kSenderSendsOnExtend ? send_io : recv_io;  // ALICE (KEY)
+     io_abit2 = OTExt::kSenderSendsOnExtend ? recv_io : send_io;  // BOB   (MAC)
+     abit1 = std::make_unique<OTExt>(ALICE, io_abit1);
+     abit2 = std::make_unique<OTExt>(BOB,   io_abit2);
+     abit1->set_delta(tmp);
+     Delta = abit1->Delta;
++    if (fixed_delta && memcmp(&Delta, fixed_delta, sizeof(block)) != 0) error("fixed Delta: encoding");
+     // Open the COT sessions: begin() does the base-OT bootstrap (first call) and
+     // starts a session; gen_cot_shares then draws via next_n. The session stays
+     // open across compute() calls and is closed (subspace-VOLE check) + reopened
+@@ -206,8 +226,9 @@
    // strictly below the statistical-security target 2^{-ssp}. Floor L at 1024 so
    // tiny calls still pick a safe (B, L) pair.
    int get_bucket_size(int size) const {
@@ -371,7 +413,7 @@
      int B = 2;
      while (log2_L * (B - 1) <= (double)ssp) ++B;
      return B;
-@@ -352,15 +359,16 @@
+@@ -352,15 +373,16 @@
        ak[2 * L + i] = ak[2 * L + i] ^ lk[2 * L + src];
        d_me[i] = LSB(am[L + i]) ^ LSB(lm[L + src]);          // b-share diff (bit0 of b-region mac)
      }
@@ -397,7 +439,7 @@
      for (int i = 0; i < L; ++i) {
        int src = (i < cut) ? i + r : i + r - L;
        block m = select_mask[(unsigned char)(d_me[i] ^ d_peer[i])];
-@@ -370,6 +378,80 @@
+@@ -370,6 +392,80 @@
  #ifdef AG2PC_PROFILE
      g_tp_bkt_ns += tp_now_ns() - _b0;
  #endif
@@ -478,7 +520,7 @@
    }
  
    // Fold B-1 sacrifice layers into acc, one layer at a time and reusing a single
-@@ -394,13 +476,12 @@
+@@ -394,16 +490,49 @@
      BlockVec sac_mac((size_t)3 * L), sac_key((size_t)3 * L);
      for (int k = 0; k < B - 1; ++k) {
        gen_cot_shares(sac_mac.data(), sac_key.data(), 3 * L);
@@ -498,49 +540,93 @@
        bucket_one_layer(am, ak, sac_mac.data(), sac_key.data(), L, r_k);
      }
    }
-@@ -421,8 +502,8 @@
++
++  // Steps 1-2 of the construction: L finished triples (a, b, c = a AND b) in region-major
++  // layout, stride L. Function-independent. Every COT is checked before its layer is used and
++  // every layer is F_eq-checked before it is combined, so nothing unchecked is left behind.
++  uint64_t mint_ns = 0, minted = 0;
++  void mint(int L, block *acc_mac_p, block *acc_key_p) {
++    const auto mint_start = std::chrono::steady_clock::now();
++    const int B = get_bucket_size(L);
++    // v3: a distinct hash-tweak seed per call, so tweaks never repeat under one Delta.
++    const block pair_seed = makeBlock(tag_ctr++, 0x4c61414e44ULL);
++    MITCCRH<8> gmitc, emitc;
++    gmitc.setS(pair_seed);
++    emitc.setS(pair_seed);
++#ifdef AG2PC_PROFILE
++    g_tp_cot_ns = g_tp_hg_ns = 0;
++    g_tp_sopen_ns = g_tp_feq_ns = g_tp_bkt_ns = 0;
++#endif
++    // v3: function-independent form. Layer 0 is a FRESH random triple like every
++    // other layer; the gate's own masks never enter a leaky AND. They are joined
++    // to the finished triple only by the authenticated Beaver openings in compute_inplace.
++    Hash feq;
++    gen_cot_shares(acc_mac_p, acc_key_p, 3 * L);   // fresh a, b, r
++    checked_leaky_layer_(acc_mac_p, acc_key_p, L, gmitc, emitc);
++    layered_bucket_into_acc(acc_mac_p, acc_key_p, B, L, gmitc, emitc, feq);
++    // v3: every layer was already F_eq-checked individually before combining.
++    (void)feq;
++    mint_ns += (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
++        std::chrono::steady_clock::now() - mint_start).count();
++    minted += (uint64_t)L;
++  }
++  // Optional source of triples minted ahead of use: fills the two 3L-block region-major
++  // buffers with L finished triples under THIS pool's Delta and returns true, or returns
++  // false (then they are minted here). Both parties must install the same kind of source.
++  std::function<bool(int, block *, block *)> stock;
+ 
+   // In-place (function-dependent) AND-share generation (KRRW §5.2 bucket-saving).
+   // For each AND gate the bucket's representative (layer 0) is the leaky-AND of the
+@@ -420,44 +549,13 @@
+     out_sigma.clear();
      if (num_ands == 0) return;   // AND-free chunk (e.g. an output-only checkpoint)
      const int B = get_bucket_size(num_ands);
++    (void)B;
      const int L = num_ands;
 -    const block pair_seed = makeBlock((uint64_t)std::min(party, 3 - party),
 -                                      (uint64_t)std::max(party, 3 - party));
-+    // v3: a distinct hash-tweak seed per call, so tweaks never repeat under one Delta.
-+    const block pair_seed = makeBlock(tag_ctr++, 0x4c61414e44ULL);
-     MITCCRH<8> gmitc, emitc;
-     gmitc.setS(pair_seed);
-     emitc.setS(pair_seed);
-@@ -434,14 +515,13 @@
-     // layer 0 (acc): region a = λ_α, b = λ_β (copied wire masks, no COT); region r
-     // = fresh COT (the representative's only minted share).
+-    MITCCRH<8> gmitc, emitc;
+-    gmitc.setS(pair_seed);
+-    emitc.setS(pair_seed);
+     AG2PC_TP_BEGIN();
+-#ifdef AG2PC_PROFILE
+-    g_tp_cot_ns = g_tp_hg_ns = 0;
+-    g_tp_sopen_ns = g_tp_feq_ns = g_tp_bkt_ns = 0;
+-#endif
+-    // layer 0 (acc): region a = λ_α, b = λ_β (copied wire masks, no COT); region r
+-    // = fresh COT (the representative's only minted share).
      BlockVec acc_mac((size_t)3 * L), acc_key((size_t)3 * L);
 -    for (int i = 0; i < L; ++i) {
 -      acc_mac[i]     = rep_a[i].mac;  acc_key[i]     = rep_a[i].key;
 -      acc_mac[L + i] = rep_b[i].mac;  acc_key[L + i] = rep_b[i].key;
 -    }
-+    // v3: function-independent form. Layer 0 is a FRESH random triple like every
-+    // other layer; the gate's own masks never enter a leaky AND. They are joined
-+    // to the finished triple only by the authenticated Beaver openings below.
-     // One running F_eq hash over every layer's L-vector; checked once below.
-     Hash feq;
+-    // One running F_eq hash over every layer's L-vector; checked once below.
+-    Hash feq;
 -    gen_cot_shares(acc_mac.data() + 2 * L, acc_key.data() + 2 * L, L);   // region r
 -    leaky_and_halfgate(acc_mac.data(), acc_key.data(), L, gmitc, emitc, feq);
-+    gen_cot_shares(acc_mac.data(), acc_key.data(), 3 * L);   // fresh a, b, r
-+    checked_leaky_layer_(acc_mac.data(), acc_key.data(), L, gmitc, emitc);
-     AG2PC_TP("in-place layer 0 (rep + r + leaky)");
-     layered_bucket_into_acc(acc_mac.data(), acc_key.data(), B, L, gmitc, emitc, feq);
-     AG2PC_TP("sacrifice layers + bucket");
-@@ -451,8 +531,8 @@
- #ifdef AG2PC_PROFILE
-       uint64_t _fq = tp_now_ns();
- #endif
+-    AG2PC_TP("in-place layer 0 (rep + r + leaky)");
+-    layered_bucket_into_acc(acc_mac.data(), acc_key.data(), B, L, gmitc, emitc, feq);
+-    AG2PC_TP("sacrifice layers + bucket");
+-    // Single batched F_eq for the whole bucket: any one inconsistent layer changes
+-    // the combined digest, so this one commit-open replaces the per-layer checks.
+-    {
+-#ifdef AG2PC_PROFILE
+-      uint64_t _fq = tp_now_ns();
+-#endif
 -      char Dme[Hash::DIGEST_SIZE]; feq.digest(Dme);
 -      feq_check(io, party, Dme, "LaAND F_eq: leaky-AND check failed");
-+      // v3: every layer was already F_eq-checked individually before combining.
-+      (void)feq;
- #ifdef AG2PC_PROFILE
-       g_tp_feq_ns += tp_now_ns() - _fq;
- #endif
-@@ -471,17 +551,17 @@
+-#ifdef AG2PC_PROFILE
+-      g_tp_feq_ns += tp_now_ns() - _fq;
+-#endif
+-    }
+-    AG2PC_TP("F_eq (batched)");
++    if (!(stock && stock(L, acc_mac.data(), acc_key.data())))
++      mint(L, acc_mac.data(), acc_key.data());
++    AG2PC_TP("triples (stock or mint)");
+     // The bucketing combines the a-inputs, so acc now holds a valid triple
+     // (X, Y, Z=X∧Y) with X = λ_α ⊕ Σ(sacrifice a) and Y = λ_β (the b-region is
+     // kept, not combined). Reconcile (X,Y) back to (λ_α,λ_β) with the Beaver
+@@ -471,17 +569,17 @@
        yb_me[i] = (unsigned char)(LSB(rep_b[i].mac) ^ LSB(acc_mac[L + i]));
      }
      {

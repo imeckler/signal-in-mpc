@@ -20,7 +20,11 @@ public:
     // `mac_key_share` (malicious build only): this party's additive share of the MAC key,
     // as delivered by the share database, instead of a freshly sampled one. Stored values
     // authenticated under that key can then be imported and exported as shares.
-    FieldEngine(unsigned party,unsigned port,unsigned batch=10000,const std::array<uint8_t,32>*mac_key_share=nullptr);
+    // `stock_reserve` (0: off): triples are generated ahead of use by a second protocol
+    // instance of this engine in a background thread (`stock_lines` of them), in batches of
+    // `batch`, keeping up to this many beyond what has been asked for. Both parties must pass
+    // the same values.
+    FieldEngine(unsigned party,unsigned port,unsigned batch=10000,const std::array<uint8_t,32>*mac_key_share=nullptr,unsigned stock_reserve=0,unsigned stock_lines=1);
     ~FieldEngine();
     // This party's share of a stored value and of its MAC (value times the MAC key), both
     // canonical. Nothing is checked here: a wrong share or MAC makes any later opening that
@@ -54,5 +58,8 @@ public:
     // Public cost counters: bytes this party has sent, products completed.
     uint64_t sent_bytes()const;
     uint64_t products()const;
+    // Seconds multiplications have spent waiting for the triple stock (profile only).
+    double stock_waited()const;
+    bool stocked()const;
 };
 }

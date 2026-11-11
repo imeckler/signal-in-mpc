@@ -25,6 +25,9 @@ def code : Operation → Nat
   | .contactAdmit => 44 | .publicUpgrade => 45 | .accountAdmit => 46 | .accountCredentials => 47 | .envelopeTake => 48 | .envelopeDrop => 49
   | .envelopeOpen => 50 | .envelopeSession => 51 | .contactAssign => 52
   | .accountKey => 53 | .accountSeal => 54 | .accountOpen => 55
+  | .bundleFetch => 56 | .bundleTake => 57 | .bundleDrop => 58 | .bundleShape => 59 | .bundleEstablish => 60
+  | .devicesSend => 61 | .devicesRequest => 62 | .devicesOpen => 63
+  | .useConnection => 90
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

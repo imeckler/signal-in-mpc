@@ -269,6 +269,7 @@ pub async fn export_mpc(sender_name: &str, contact_names: &[&str]) -> R<()> {
             "initial": "identity_private[32] || conversation_record"},
         "sender": {
             "name": sender_name, "aci": sender.aci, "aci_hex": hex(&uuid_bytes(&sender.aci)?), "device_id": 1,
+            "registration_id": sender.registration_id,
             "password": password, "password_hex": hex(password.as_bytes()), "password_bytes": password.len(),
             "upgrade_credentials_hex": hex(&[uuid_bytes(&sender.aci)?.to_vec(), password.as_bytes().to_vec()].concat()),
             "identity_private_hex": hex(&identity.private_key().serialize()),

@@ -37,7 +37,13 @@ private:
     // `scalar`: the identity key's 256 bits as private wires (what is stored); `identity`: its
     // ladder swap bits in the field engine (what the agreements use).
     struct Account {std::vector<H>identity;Wires certificate,sender_public,scalar;};
-    struct Conversation {Wires record,static_agreement,key;H recipient;bool ready=false;OffsetAgreement offset;Account*fixture=nullptr;};
+    // A contact with a device LIST (MULTI_DEVICE.md) holds one entry per device: its record and,
+    // for a session we started that the device has not answered, the `pending` record its
+    // messages are built from (kind 1: no one-time prekey was used; 2: one was; 0: established).
+    // `devices` empty: the contact is the single record below. Otherwise `record` is a copy of the
+    // first device's (the contact's identity key, UUID and access key are the same in every one).
+    struct Device {Wires record,pending;unsigned kind=0;};
+    struct Conversation {Wires record,static_agreement,key;H recipient;bool ready=false;OffsetAgreement offset;Account*fixture=nullptr;std::vector<Device>devices;};
     // The account: our identity key (shared scalar) and sender certificate, the same for every
     // contact and never part of a contact's stored record. The Lean kernels take the certificate
     // followed by the contact record as one `conversation` value; `whole` only joins the wires and
@@ -102,6 +108,14 @@ public:
     // Public-receive profile: server records are parsed in the clear by the controllers,
     // which then also track upgrade completion and pending responses. Set before `upgrade`.
     bool public_receive=false;std::vector<uint8_t>accept_bytes,last_request_id;
+    // Several connections in one worker (tls_worker_v3.cpp, operation 90): the WebSocket state of
+    // ONE connection, swapped with a parked copy when the worker switches connections. Contacts,
+    // the account and the envelope or bundle being collected are shared by every connection.
+    struct Socket {Values ws;bool started=false,upgraded=false,pending=false,closed=false,public_receive=false;std::vector<uint8_t>accept_bytes,last_request_id;};
+    void exchange(Socket&other){
+        std::swap(ws,other.ws);std::swap(started,other.started);std::swap(upgraded,other.upgraded);std::swap(pending,other.pending);std::swap(closed,other.closed);
+        std::swap(public_receive,other.public_receive);std::swap(accept_bytes,other.accept_bytes);std::swap(last_request_id,other.last_request_id);
+    }
     // TEST FIXTURE admission: two conversations, two texts each.
     void admit_fixture(){
         need(!admitted,"service admission repeated");admitted=true;
@@ -253,13 +267,17 @@ public:
             auto order=programs.torsion.evaluate_all(f,{{lifted.at(1),lifted.at(2)}}).at(0);
             auto base_valid=word(lifted.at(0)),torsion_x=word(order.at(0)),torsion_y=word(order.at(1));
             auto ours=k.public_scalar(signed_prekey);
-            auto dh1=k.agreement_word(ours,a.sender_point),dh2=k.agreement_word(account.identity,a.base),dh3=k.agreement_word(ours,a.base);
-            Wires dh4;if(a.one_time)dh4=k.agreement_word(k.public_scalar(one_time_prekey),a.base);
-            auto receiving=k.agreement_word(ours,a.ratchet);
             // Our new ratchet key: a scalar neither party knows.
             std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
             auto ratchet=k.shared_scalar(seed);
-            auto sending=k.agreement_word(ratchet,a.ratchet),ratchet_public=k.agreement_word(ratchet,f.constant(9));
+            // The agreements do not depend on one another: they run in the same field rounds.
+            const auto one_time=a.one_time?k.public_scalar(one_time_prekey):std::vector<H>{};
+            std::vector<std::pair<const std::vector<H>*,H>>jobs{{&ours,a.sender_point},{&account.identity,a.base},{&ours,a.base},{&ours,a.ratchet},
+                {&ratchet,a.ratchet},{&ratchet,f.constant(9)}};
+            if(a.one_time)jobs.push_back({&one_time,a.base});
+            auto agreed=k.agreement_words(jobs);
+            auto&dh1=agreed[0],&dh2=agreed[1],&dh3=agreed[2],&receiving=agreed[3],&sending=agreed[4],&ratchet_public=agreed[5];
+            Wires dh4;if(a.one_time)dh4=agreed[6];
             auto&layout=shaped("receive-signal-shape "+a.widths);
             auto shape=layout.open(s,layout.run(s,{{"message",&a.message},{"valid",&a.prekey_valid}}),"shape");if(shape.size()!=13)throw Rejected{};
             auto&session=shaped("receive-session "+std::to_string(CERT)+" "+a.widths+" "+std::to_string(width(shape,0))+" "+std::to_string(width(shape,5))+" "+
@@ -314,8 +332,11 @@ public:
     // Encrypt the contact's current state for storage. Reply: check16, ciphertext.
     std::vector<uint8_t> contact_seal(const ContactId&id,const std::vector<uint8_t>&version){
         auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size(),"contact seal unavailable");version_ok(version);
-        auto&c=it->second;auto&kernel=k.cache.get("contact-seal "+std::to_string(c.record.size()/8));auto v=k.constant(version);
-        auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"content",&c.record}});
+        auto&c=it->second;
+        // A device list is stored as its entries one after the other (record, then pending if any).
+        const Wires joined=c.devices.empty()?Wires{}:entries(c);const Wires&content=c.devices.empty()?c.record:joined;
+        auto&kernel=k.cache.get("contact-seal "+std::to_string(content.size()/8));auto v=k.constant(version);
+        auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"content",&content}});
         auto reply=kernel.open(s,out,"check");auto ciphertext=kernel.open(s,out,"ciphertext");reply.insert(reply.end(),ciphertext.begin(),ciphertext.end());return reply;
     }
     // Load a contact's state from its stored ciphertext. A wrong key (bad or stale share from
@@ -339,7 +360,7 @@ public:
     // TEST FIXTURE: the sender identity admitted with the fixture stays (it is the client's own key, not contact state).
     void contact_evict(const ContactId&id){
         auto it=conversations.find(id);need(it!=conversations.end(),"contact evict unavailable");
-        auto&c=it->second;c.record=Wires{};c.key=Wires{};c.static_agreement=Wires{};c.ready=false;c.offset=OffsetAgreement{};
+        auto&c=it->second;c.record=Wires{};c.key=Wires{};c.static_agreement=Wires{};c.ready=false;c.offset=OffsetAgreement{};c.devices.clear();
     }
     std::vector<uint8_t> catalogue()const{
         if(!admitted||closed)throw std::runtime_error("no admitted provider");
@@ -498,6 +519,241 @@ public:
         }
         ws["control"]=std::move(queue_out.at("control"));
         return reply;
+    }
+    // ---- A contact with several devices (MULTI_DEVICE.md; kernels in TlsMpc/BundleKernels.lean,
+    // EstablishKernels.lean and MlKemFastKernels.lean). As everywhere in this file: kernels are
+    // sequenced and their named fields bound; nothing is parsed or computed here. Opened: the
+    // prekey response's punctuation shape, one status byte per device, and per send what a
+    // single-device send opens (status, timestamp, envelope). The response body, every bundle
+    // field, the device ids and why an establishment failed stay private.
+private:
+    static constexpr size_t PENDING=1616;   // EstablishKernel.pendingBytes
+    Wires bundle;   // a prekey response's body, collected unopened
+    // One device's establishment in progress, between its steps; `done` and `statuses` over the devices so far.
+    struct Establishing {
+        size_t index=0;unsigned step=0;bool one_time=false;
+        Values fields,bound,hash,ntt,parts,kem;std::vector<Wires>agreements;
+        H identity_point,signed_point,one_time_point;std::vector<H>lifted;Wires identity_valid,identity_x,identity_y;
+        std::vector<Device>done;std::vector<uint8_t>statuses;
+    };
+    Establishing establishing;
+    Wires entries(const Conversation&c){
+        std::vector<const Wires*>parts;for(auto&d:c.devices){parts.push_back(&d.record);if(d.kind)parts.push_back(&d.pending);}
+        return DynSession::concat(parts);
+    }
+    // A new ephemeral pair for a message to this contact (public key word, agreement word), by the
+    // offset agreement with a joint public offset, exactly as in seal_open.
+    std::pair<Wires,Wires> ephemeral(Conversation&c){
+        if(!c.offset.prepared())c.offset.prepare(offset_programs,f,k.channel,k.party,c.recipient);
+        std::array<uint8_t,32>offset{},mine{},peer{},commit{},peer_commit{},check{};{emp::PRG prg;prg.random_data_unaligned(mine.data(),32);}
+        SHA256(mine.data(),32,commit.data());k.channel.transfer(commit.data(),peer_commit.data(),32);k.channel.transfer(mine.data(),peer.data(),32);
+        SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
+        for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
+        auto pair=c.offset.step(offset_programs,f,offset);
+        std::vector<uint8_t>public_bits(255);for(unsigned i=0;i<255;i++)public_bits[i]=(pair.first[i/8]>>(i%8))&1;
+        return {s.public_bits(public_bits),field_to_word(s,f,k.channel,k.circuits,k.take_mask(),pair.second)};
+    }
+public:
+    // The prekey fetch for a contact: a frame built in the clear; the sealer inserts the contact's
+    // UUID and access key from its record. Returns the handle of the request to seal.
+    uint64_t bundle_fetch(const ContactId&id,size_t payload_at,size_t uuid_at,size_t key_at,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
+        auto it=conversations.find(id);
+        need(public_receive&&!closed&&it!=conversations.end()&&it->second.record.size()!=0&&mask.size()==4&&!frame.empty(),"bundle fetch unavailable");
+        TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
+        buffer.sealer="bundle-fetch-ctr "+std::to_string(frame.size())+" "+std::to_string(payload_at)+" "+std::to_string(uuid_at)+" "+std::to_string(key_at);
+        buffer.extra["record"]=it->second.record;buffer.extra["mask"]=k.constant(mask);
+        return k.retain(std::move(buffer));
+    }
+    // The response body, collected unopened from the records that carried it. Reply: bytes held (4).
+    std::vector<uint8_t> bundle_take(uint64_t handle,size_t offset,size_t count){
+        need(public_receive&&!closed&&bundle.size()/8+count<=65536,"bundle take");
+        auto part=k.take_range(handle,offset,count);bundle=bundle.size()?DynSession::concat({&bundle,&part}):part;
+        const size_t n=bundle.size()/8;return {uint8_t(n>>24),uint8_t(n>>16),uint8_t(n>>8),uint8_t(n)};
+    }
+    void bundle_drop(){bundle=Wires{};establishing=Establishing{};}
+    // Opens one flag per body byte: whether it is JSON punctuation (the output Lean marks public).
+    std::vector<uint8_t> bundle_shape(){
+        need(public_receive&&!closed&&bundle.size()>=8*2540,"bundle shape");
+        auto&kernel=k.cache.get("bundle-shape "+std::to_string(bundle.size()/8));
+        return kernel.open(s,kernel.run(s,{{"body",&bundle}}),"shape");
+    }
+    // One step (0..8) of one device's establishment from the held body. The controllers call the
+    // steps of device 0, then of device 1, ... in order (and may keep the connection alive in
+    // between; a step is at most a few million gates or two dozen thousand field products).
+    //   0: the device's fields, its signatures (identity key lifted once per response), binding to the contact
+    //   1: the key agreements, with a new base scalar and a new ratchet scalar neither party knows
+    //   2..7: Kyber-1024 encapsulation to the device's Kyber prekey (each party supplies 32 private bytes)
+    //   8: the session; opens its one status byte
+    // `layout`: the item's offset and digit counts, from Lean's `layout?` on the opened shape.
+    // Reply: 255 after steps 0..7, the status after step 8; 0 if Lean refuses the layout. When
+    // the last device's status and all before it are 255 the contact's device list is replaced
+    // by the new one; otherwise it is left as it was.
+    std::vector<uint8_t> bundle_establish(const ContactId&id,size_t index,size_t count,unsigned step,const std::array<size_t,6>&layout,
+            const std::vector<uint8_t>&local_registration,const std::vector<uint8_t>&request_id){
+        auto it=conversations.find(id);
+        need(public_receive&&!closed&&it!=conversations.end()&&it->second.record.size()!=0&&bundle.size()&&count>=1&&count<=6&&index<count&&step<=8&&
+            local_registration.size()==4&&request_id.size()==8,"bundle establish");
+        if(index==0&&step==0)establishing=Establishing{};
+        auto&e=establishing;need(e.index==index&&e.step==step,"bundle establish order");
+        auto&c=it->second;auto&a=of(c);const std::string flag=layout[4]?"1":"0";
+        try{
+            switch(step){
+            case 0:{
+                prepare(c);
+                std::string name="bundle-device "+std::to_string(bundle.size()/8);for(auto v:layout)name+=" "+std::to_string(v);
+                e.fields=shaped(name).run(s,{{"body",&bundle}});e.one_time=layout[4]!=0;
+                Binding keys{{"identityKey",&e.fields.at("identityKey")},{"signedPrekey",&e.fields.at("signedPrekey")}};
+                if(e.one_time)keys.push_back({"oneTimePrekey",&e.fields.at("oneTimePrekey")});
+                auto points=k.cache.get("establish-points "+flag).run(s,keys);
+                if(index==0){
+                    // The identity key is the same bytes for every device of a response.
+                    e.identity_point=k.word_to_field(points.at("identityPoint"));
+                    e.lifted=programs.recover.evaluate_all(f,{{e.identity_point}}).at(0);
+                    e.identity_valid=word(e.lifted.at(0));e.identity_x=word(e.lifted.at(1));e.identity_y=word(e.lifted.at(2));
+                }
+                e.signed_point=k.word_to_field(points.at("signedPrekeyPoint"));
+                if(e.one_time)e.one_time_point=k.word_to_field(points.at("oneTimePrekeyPoint"));
+                auto challenges=k.cache.get("establish-challenges").run(s,{{"identityX",&e.identity_x},{"identityY",&e.identity_y},{"signedPrekey",&e.fields.at("signedPrekey")},
+                    {"signedPrekeySignature",&e.fields.at("signedPrekeySignature")},{"kyberPrekey",&e.fields.at("kyberPrekey")},{"kyberPrekeySignature",&e.fields.at("kyberPrekeySignature")}});
+                auto instance=[&](const char*flip,const char*challenge,const char*scalar){
+                    std::vector<H>in{e.lifted.at(1),e.lifted.at(2)};
+                    for(auto h:k.bits_to_field(DynSession::concat({&challenges.at(flip),&challenges.at(challenge),&challenges.at(scalar)})))in.push_back(h);
+                    return in;
+                };
+                auto ec=instance("ecFlip","ecChallenge","ecScalar"),pq=instance("pqFlip","pqChallenge","pqScalar");
+                auto r=programs.check.evaluate_all(f,{ec,pq});   // both signatures in the same rounds
+                auto ec_rx=word(r.at(0).at(0)),ec_ry=word(r.at(0).at(1)),pq_rx=word(r.at(1).at(0)),pq_ry=word(r.at(1).at(1));
+                auto verified=k.cache.get("establish-verified").run(s,{{"identityValid",&e.identity_valid},{"ecRx",&ec_rx},{"ecRy",&ec_ry},{"pqRx",&pq_rx},{"pqRy",&pq_ry},
+                    {"signedPrekeySignature",&e.fields.at("signedPrekeySignature")},{"kyberPrekeySignature",&e.fields.at("kyberPrekeySignature")}});
+                e.bound=k.cache.get("bundle-bind").run(s,{{"record",&c.record},{"valid",&e.fields.at("valid")},{"verified",&verified.at("verified")},{"identityKey",&e.fields.at("identityKey")}});
+                break;
+            }
+            case 1:{
+                std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
+                auto base=k.shared_scalar(seed);{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
+                auto ratchet=k.shared_scalar(seed);
+                // dh1, dh2, dh3, ratchetAgreement, basePublic, ratchetPublic, (dh4): EstablishKernels.lean, step 6.
+                std::vector<std::pair<const std::vector<H>*,H>>jobs{{&a.identity,e.signed_point},{&base,e.identity_point},{&base,e.signed_point},{&ratchet,e.signed_point},
+                    {&base,f.constant(9)},{&ratchet,f.constant(9)}};
+                if(e.one_time)jobs.push_back({&base,e.one_time_point});
+                e.agreements=k.agreement_words(jobs);
+                break;
+            }
+            case 2:{
+                auto entropy=[&](int owner){std::vector<uint8_t>mine(32,0);if(k.party==owner){emp::PRG prg;prg.random_data_unaligned(mine.data(),32);}return s.input_private(owner,byte_bits(mine));};
+                auto mine=entropy(emp::ALICE),theirs=entropy(emp::BOB);
+                e.hash=k.cache.get("kem-hash kyber").run(s,{{"kyberPrekey",&e.fields.at("kyberPrekey")},{"entropyA",&mine},{"entropyB",&theirs}});
+                e.ntt=k.cache.get("kem-ntt").run(s,{{"coins",&e.hash.at("coins")}});
+                break;
+            }
+            case 3:case 4:case 5:case 6:{
+                const std::string row=std::to_string(step-3);
+                auto matrix=k.cache.get("kem-matrix "+row).run(s,{{"kyberPrekey",&e.fields.at("kyberPrekey")}});
+                auto u=k.cache.get("kem-u "+row).run(s,{{"row"+row,&matrix.at("row"+row)},{"rhat",&e.ntt.at("rhat")},{"coins",&e.hash.at("coins")}});
+                e.parts["u"+row]=std::move(u.at("u"+row));e.parts["ok"+row]=std::move(matrix.at("ok"+row));
+                break;
+            }
+            case 7:{
+                auto v=k.cache.get("kem-v").run(s,{{"kyberPrekey",&e.fields.at("kyberPrekey")},{"rhat",&e.ntt.at("rhat")},{"coins",&e.hash.at("coins")},{"message",&e.hash.at("message")}});
+                Binding bound{{"v",&v.at("v")},{"kbar",&e.hash.at("kbar")},{"keyValid",&e.hash.at("keyValid")}};
+                for(auto&part:e.parts)bound.push_back({part.first,&part.second});
+                e.kem=k.cache.get("kem-finish kyber").run(s,bound);
+                break;
+            }
+            default:{
+                need(e.agreements.size()==(e.one_time?7u:6u),"bundle establish agreements");
+                auto&session=k.cache.get("establish-session "+std::to_string(CERT)+" "+flag);
+                auto request=k.constant(request_id),local=k.constant(local_registration);
+                Binding bound{{"verified",&e.bound.at("verified")},{"kemStatus",&e.kem.at("kemStatus")},{"dh1",&e.agreements[0]},{"dh2",&e.agreements[1]},{"dh3",&e.agreements[2]},
+                    {"ratchetAgreement",&e.agreements[3]},{"kemSecret",&e.kem.at("kemSecret")},{"kemCiphertext",&e.kem.at("kemCiphertext")},
+                    {"basePublic",&e.agreements[4]},{"ratchetPublic",&e.agreements[5]},{"senderPublic",&a.sender_public},
+                    {"identityKey",&e.fields.at("identityKey")},{"signedPrekey",&e.fields.at("signedPrekey")},{"certificate",&a.certificate},
+                    {"uuid",&e.bound.at("uuid")},{"accessKey",&e.bound.at("accessKey")},{"requestId",&request},{"deviceId",&e.fields.at("deviceId")},
+                    {"registrationId",&e.fields.at("registrationId")},{"localRegistrationId",&local},
+                    {"signedPrekeyId",&e.fields.at("signedPrekeyId")},{"kyberPrekeyId",&e.fields.at("kyberPrekeyId")}};
+                if(e.one_time){bound.push_back({"dh4",&e.agreements[6]});bound.push_back({"oneTimePrekeyId",&e.fields.at("oneTimePrekeyId")});}
+                auto out=session.run(s,bound);auto status=session.open(s,out,"status");need(status.size()==1,"establish status");
+                need(out.at("conversation").size()==8*(CERT+CONTACT)&&out.at("pending").size()==8*PENDING,"establish shape");
+                Device device;device.record=out.at("conversation").slice(8*CERT,8*(CERT+CONTACT));device.pending=std::move(out.at("pending"));device.kind=e.one_time?2:1;
+                e.done.push_back(std::move(device));e.statuses.push_back(status[0]);
+                e.fields.clear();e.bound.clear();e.hash.clear();e.ntt.clear();e.parts.clear();e.kem.clear();e.agreements.clear();
+                if(index+1==count){
+                    bool all=true;for(auto value:e.statuses)all=all&&value==255;
+                    if(all){c.devices=std::move(e.done);c.record=c.devices[0].record;}
+                    bundle_drop();
+                }else{e.index=index+1;e.step=0;}
+                return {status[0]};
+            }
+            }
+        }catch(const Rejected&){bundle_drop();return {0};}
+        e.step=step+1;return {255};
+    }
+    // One send to every device of a contact with a device list: per device a new ephemeral pair
+    // and the kernel for its kind (0: signal-seal-built, as a single-device send; 1, 2:
+    // bundle-seal, a PreKey message built from `pending`). All devices get the same built text.
+    // The new records are kept only when every status opened to 255.
+    // Reply: timestamp8, then per device length2 and its envelope.
+    std::vector<uint8_t> seal_devices(const ContactId&id,const std::vector<uint8_t>&local_address,const std::vector<uint8_t>&text){
+        auto it=conversations.find(id);
+        need(public_receive&&started&&!closed&&it!=conversations.end()&&!it->second.devices.empty()&&local_address.size()==17&&
+            text.size()>=90&&text.size()<=330&&(text.size()-10)%80==0,"send unavailable");
+        auto&c=it->second;prepare(c);
+        auto body=k.constant(text),address=k.constant(local_address);const size_t classes=(text.size()-10)/80;
+        std::vector<Wires>next;std::vector<uint8_t>reply;
+        for(auto&d:c.devices){
+            auto pair=ephemeral(c);
+            auto w=DynSession::concat({&of(c).certificate,&d.record});
+            auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&w}});
+            std::string name=d.kind==0?"signal-seal-built "+std::to_string(CERT)+" "+std::to_string(classes)
+                :"bundle-seal "+std::to_string(CERT)+(d.kind==2?" 1 ":" 0 ")+std::to_string(80*classes);
+            for(auto field:{"counter","previous","epoch","index"}){
+                unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
+                name+=" "+std::to_string(width);
+            }
+            auto&kernel=k.cache.get(name);
+            Binding bound{{"conversation",&w},{"text",&body},{"ephemeralPublic",&pair.first},{"senderPublic",&of(c).sender_public},
+                {"ephemeralAgreement",&pair.second},{"staticAgreement",&c.static_agreement}};
+            if(d.kind!=0){bound.push_back({"pending",&d.pending});bound.push_back({"localAddress",&address});}
+            auto out=kernel.run(s,bound);
+            need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
+            need(out.at("conversation").size()==8*(CERT+CONTACT),"conversation shape");
+            if(reply.empty())reply=kernel.open(s,out,"timestamp");
+            auto envelope=kernel.open(s,out,"envelope");
+            reply.push_back(uint8_t(envelope.size()>>8));reply.push_back(uint8_t(envelope.size()));reply.insert(reply.end(),envelope.begin(),envelope.end());
+            next.push_back(out.at("conversation").slice(8*CERT,8*(CERT+CONTACT)));
+        }
+        for(size_t i=0;i<next.size();i++)c.devices[i].record=std::move(next[i]);
+        c.record=c.devices[0].record;
+        return reply;
+    }
+    // Its request frame: one message per device, assembled in the clear; the sealer inserts the
+    // contact's UUID and access key and each device's id and registration id from the records.
+    uint64_t request_devices(const ContactId&id,size_t payload_at,size_t uuid_at,size_t key_at,const std::vector<std::pair<size_t,size_t>>&slots,
+            const std::vector<uint8_t>&mask,const std::vector<uint8_t>&frame){
+        auto it=conversations.find(id);
+        need(public_receive&&!closed&&it!=conversations.end()&&!it->second.devices.empty()&&slots.size()==it->second.devices.size()&&mask.size()==4&&!frame.empty(),"request unavailable");
+        TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
+        buffer.sealer="bundle-request-ctr "+std::to_string(frame.size())+" "+std::to_string(payload_at)+" "+std::to_string(uuid_at)+" "+std::to_string(key_at);
+        for(auto&slot:slots)buffer.sealer+=" "+std::to_string(slot.first)+" "+std::to_string(slot.second);
+        std::vector<const Wires*>records;for(auto&d:it->second.devices)records.push_back(&d.record);
+        buffer.extra["records"]=DynSession::concat(records);buffer.extra["mask"]=k.constant(mask);
+        return k.retain(std::move(buffer));
+    }
+    // Load a contact's device list from its stored ciphertext. `kinds` are public (stored next to
+    // the ciphertext) and say how the content splits into entries; a wrong key fails as in contact_open.
+    void contact_open_devices(const ContactId&id,const std::vector<uint8_t>&kinds,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
+        auto it=conversations.find(id);size_t total=0;for(auto kind:kinds){need(kind<=2,"device kind");total+=CONTACT+(kind?PENDING:0);}
+        need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&!kinds.empty()&&kinds.size()<=6&&ciphertext.size()==total,"contact open unavailable");version_ok(version);
+        auto&c=it->second;auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
+        auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"ciphertext",&body},{"check",&sum}});
+        need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
+        const auto&content=out.at("content");c.devices.clear();size_t at=0;
+        for(auto kind:kinds){
+            Device device;device.kind=kind;device.record=content.slice(8*at,8*(at+CONTACT));at+=CONTACT;
+            if(kind){device.pending=content.slice(8*at,8*(at+PENDING));at+=PENDING;}
+            c.devices.push_back(std::move(device));
+        }
+        c.record=c.devices[0].record;c.ready=false;c.offset=OffsetAgreement{};
     }
     void close(){closed=true;conversations.clear();inputs.clear();ws.clear();}
 };

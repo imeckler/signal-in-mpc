@@ -1,7 +1,7 @@
 # Kyber-1024 / ML-KEM-1024 encapsulation to a private key
 
-Status 2026-11-11: Lean definitions, kernels, theorems and a kernel check exist and pass. Nothing is
-bound into the worker (section 8). Measured: **12,521,696 AND gates** for the variant PQXDH uses
+Status 2026-11-11: Lean definitions, kernels, theorems and a kernel check exist and pass, and the
+kernels run in the worker when a contact's device gets a new session (section 8). Measured: **12,521,696 AND gates** for the variant PQXDH uses
 (11,988,128 for FIPS 203), in twelve kernel runs of at most 1.4M each, against about 190–210M for
 `establish-kem`. Nothing is opened.
 
@@ -210,7 +210,13 @@ is built at program start. `establish-kem` was never lowered or built. Largest k
 
 ## 8. What to change elsewhere
 
-Nothing below was done (only `lakefile.toml` got the `kem_kernel_emitter` block).
+**Done on 2026-11-11** (the live binding of `MULTI_DEVICE.md`, section 7): `MlKemFastKernel.find` is
+registered in both emitters, `establish-kem` is no longer offered by `EstablishKernel.find`, and the
+worker runs the twelve kernels (variant `kyber`) in steps 2–7 of `bundleEstablish`
+(`service_kernels.h`). Measured in the engines: 12.52M AND gates per device, about 0.4 s in
+semi-honest and 4–6 s in malicious mode. Two libsignal devices decapsulated the result and decrypted
+the messages built on it. `check_kem_kernels.py` still uses `kem_kernel_emitter`. The list as it
+was written:
 
 **Emitters** (`EmitFlatKernel.lean`, `EmitHybridKdf.lean`), one import and one alternative each:
 

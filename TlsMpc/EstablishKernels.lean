@@ -43,8 +43,11 @@ XEdDSA point arithmetic runs there with the two programs of
 
    The base and ratchet private keys are fresh uniform scalars that neither
    party knows.
-7. `establish-kem` (Kyber-1024 encapsulation to the recipient's Kyber prekey)
-   gives `kemStatus`, `kemCiphertext`, `kemSecret`.
+7. Kyber-1024 encapsulation to the recipient's Kyber prekey gives `kemStatus`,
+   `kemCiphertext`, `kemSecret`: the six `kem-*` steps of
+   `TlsMpc/MlKemFastKernels.lean` (twelve kernel runs, variant `kyber`).
+   (`establishKem` below is the specification's single kernel, about 190M AND
+   gates; it is not offered by `find`.)
 8. `establish-session` gives the opened `status` and the private records
    `conversation`, `pending` and `receiver`.
 9. `establish-seal` sends a message. Every message until the recipient answers
@@ -200,13 +203,12 @@ def flag : String → Option Bool
 set_option compiler.extract_closed false in   -- or `establishKem ()` would still be built at program start
 /-- Kernel named on the command line, with its public shape parameters:
 `establish-points ONETIME`, `establish-challenges`, `establish-verified`,
-`establish-kem`, `establish-session CERT ONETIME`,
+`establish-session CERT ONETIME`,
 `establish-seal CERT ONETIME COUNTER PREVIOUS EPOCH INDEX` (`ONETIME` is 0 or 1;
 the last four are varint widths as in `signal-seal-fixed`). -/
 def find : List String → Option Kernel
   | ["establish-challenges"] => some establishChallenges
   | ["establish-verified"] => some establishVerified
-  | ["establish-kem"] => some (establishKem ())
   | ["establish-points", oneTime] => (flag oneTime).map establishPoints
   | ["establish-session", cert, oneTime] =>
       match cert.toNat?, flag oneTime with

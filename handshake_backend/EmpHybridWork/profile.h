@@ -34,6 +34,12 @@ struct Profile {
         if(!stack.empty())stack.back().children+=whole;
         return whole;
     }
+    // Time measured elsewhere (inside an engine call) charged to `label` instead of to the open scope.
+    void credit(const std::string&label,double seconds){
+        if(seconds<=0)return;
+        auto&row=rows[label];row.total.seconds+=seconds;row.calls++;
+        if(!stack.empty())stack.back().children.seconds+=seconds;
+    }
     void report(std::ostream&out,const char*prefix)const{
         for(auto&entry:rows)out<<prefix<<" seconds="<<entry.second.total.seconds<<" calls="<<entry.second.calls<<" and_gates="<<entry.second.total.gates
             <<" field_products="<<entry.second.total.products<<" boolean_bytes="<<entry.second.total.boolean_bytes<<" field_bytes="<<entry.second.total.field_bytes

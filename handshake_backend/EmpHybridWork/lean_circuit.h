@@ -26,20 +26,33 @@ public:
         std::array<uint8_t,32>digest{};SHA256(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size(),digest.data());
         const char*hex="0123456789abcdef";std::string encoded;for(auto b:digest){encoded+=hex[b>>4];encoded+=hex[b&15];}
         if(encoded!=expected_sha)throw std::runtime_error("lean circuit identity");
-        std::istringstream in(bytes);std::string magic;uint32_t count,width;
-        if(!(in>>magic>>inputs>>count>>width)||magic!="EMP_HYBRID_BOOL_V1"||!inputs||!width)throw std::runtime_error("lean circuit profile");
+        // Whitespace-separated tokens, read directly from the hashed bytes (the stream
+        // extractors took most of a worker's start-up time on the 100 MB circuits). Stricter
+        // than the extractors: a number is decimal digits only and must fit 32 bits.
+        const char*at=bytes.data(),*const end=at+bytes.size();
+        auto skip=[&]{while(at<end&&(*at==' '||*at=='\n'||*at=='\r'||*at=='\t'))at++;};
+        auto number=[&](uint32_t&out){
+            skip();if(at>=end||*at<'0'||*at>'9')return false;
+            uint64_t v=0;while(at<end&&*at>='0'&&*at<='9'){v=v*10+uint64_t(*at-'0');if(v>0xffffffffull)return false;at++;}
+            out=uint32_t(v);return true;
+        };
+        auto word=[&]{skip();const char*start=at;while(at<end&&!(*at==' '||*at=='\n'||*at=='\r'||*at=='\t'))at++;return std::string(start,at);};
+        uint32_t count=0,width=0;
+        if(word()!="EMP_HYBRID_BOOL_V1"||!number(inputs)||!number(count)||!number(width)||!inputs||!width)throw std::runtime_error("lean circuit profile");
+        if(uint64_t(inputs)+count>0xffffffffull)throw std::runtime_error("lean circuit profile");
         gates.reserve(count);
         for(uint32_t i=0;i<count;i++){
-            Gate g{};if(!(in>>g.op))throw std::runtime_error("lean circuit row");
-            if(g.op=='N'){if(!(in>>g.a))throw std::runtime_error("lean circuit operand");g.b=0;}
-            else if(g.op=='A'||g.op=='X'){if(!(in>>g.a>>g.b))throw std::runtime_error("lean circuit operand");}
+            Gate g{};skip();if(at>=end)throw std::runtime_error("lean circuit row");g.op=*at++;
+            if(g.op=='N'){if(!number(g.a))throw std::runtime_error("lean circuit operand");g.b=0;}
+            else if(g.op=='A'||g.op=='X'){if(!number(g.a)||!number(g.b))throw std::runtime_error("lean circuit operand");}
             else throw std::runtime_error("lean circuit opcode");
             if(g.a>=inputs+i||g.b>=inputs+i)throw std::runtime_error("lean circuit dependency");
             gates.push_back(g);
         }
-        std::string tag;if(!(in>>tag)||tag!="O")throw std::runtime_error("lean circuit outputs");
-        for(uint32_t i=0;i<width;i++){uint32_t w;if(!(in>>w)||w>=inputs+count)throw std::runtime_error("lean circuit output");outputs.push_back(w);}
-        std::string trailing;if(in>>trailing)throw std::runtime_error("lean circuit trailing data");
+        if(word()!="O")throw std::runtime_error("lean circuit outputs");
+        outputs.reserve(width);
+        for(uint32_t i=0;i<width;i++){uint32_t w;if(!number(w)||w>=inputs+count)throw std::runtime_error("lean circuit output");outputs.push_back(w);}
+        skip();if(at!=end)throw std::runtime_error("lean circuit trailing data");
     }
     uint32_t input_bits()const{return inputs;}
     uint32_t output_bits()const{return outputs.size();}

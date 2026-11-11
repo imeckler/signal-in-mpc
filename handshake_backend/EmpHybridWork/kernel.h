@@ -11,6 +11,7 @@
 #include "dabit_generator.h"
 #include "profile.h"
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <memory>
@@ -84,14 +85,50 @@ class KernelCache {
     std::string script;Challenge&channel;std::map<std::string,std::unique_ptr<Kernel>>loaded;
 public:
     KernelCache(std::string s,Challenge&c):script(std::move(s)),channel(c){}
+    // A kernel that is already in the cache, found the way circuit_cache.py finds it (the
+    // directory named by the emitter binary's hash, the files named by the arguments, the
+    // pins from the record written with them) without starting an interpreter, which cost
+    // about 90 ms per kernel. Anything missing or unexpected returns false and the script is
+    // asked instead. Nothing is trusted here: Kernel checks both files against the pins, and
+    // the parties compare the pins, exactly as for the script's reply.
+    bool cached(const std::string&arguments,std::string&path,std::string&sha,std::string&layout,std::string&layout_sha)const{
+        namespace fs=std::filesystem;
+        try{
+            const fs::path root=fs::path(script).parent_path().parent_path().parent_path();
+            std::ifstream binary(root/".lake/build/bin/flat_kernel_emitter",std::ios::binary);if(!binary)return false;
+            const std::string bytes((std::istreambuf_iterator<char>(binary)),{});if(bytes.empty())return false;
+            std::array<uint8_t,32>digest{};SHA256(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size(),digest.data());
+            std::string hex;const char*digits="0123456789abcdef";for(unsigned i=0;i<8;i++){hex+=digits[digest[i]>>4];hex+=digits[digest[i]&15];}
+            std::string name="kernel-"+arguments;for(auto&ch:name)if(ch==' ')ch='-';
+            const fs::path directory=root/".deps/emp-hybrid-word-v1/cache"/("lean-"+hex);
+            std::ifstream record(directory/(name+".json"),std::ios::binary);if(!record)return false;
+            const std::string text((std::istreambuf_iterator<char>(record)),{});
+            auto field=[&](const std::string&key,std::string&out){
+                const std::string start="\""+key+"\": \"";const auto at=text.find(start);if(at==std::string::npos||text.size()<at+start.size()+65)return false;
+                out=text.substr(at+start.size(),64);
+                return text[at+start.size()+64]=='"'&&out.find_first_not_of("0123456789abcdef")==std::string::npos&&text.find(start,at+1)==std::string::npos;
+            };
+            if(!field("sha256",sha)||!field("layout_sha256",layout_sha))return false;
+            const fs::path flat=directory/(name+".flat"),fields=directory/(name+".layout");
+            if(!fs::is_regular_file(flat)||!fs::is_regular_file(fields))return false;
+            path=flat.string();layout=fields.string();
+            // The record of what was asked for, as the script keeps it (a harness produces these ahead of the next run).
+            if(const char*log=std::getenv("CIRCUIT_CACHE_LOG")){std::ofstream out(log,std::ios::app);out<<"kernel "<<arguments<<"\n";}
+            return true;
+        }catch(...){return false;}
+    }
     const Kernel&get(const std::string&arguments){
         auto it=loaded.find(arguments);if(it!=loaded.end())return *it->second;
         ProfileScope scope("circuit load (cache lookup, read, pin comparison)");
         for(char ch:arguments)if(!(std::isalnum(static_cast<unsigned char>(ch))||ch=='-'||ch==' '))throw std::runtime_error("kernel arguments");
-        std::string command="python3 '"+script+"' kernel "+arguments;FILE*pipe=popen(command.c_str(),"r");if(!pipe)throw std::runtime_error("kernel cache launch");
-        char buffer[4096];std::string line;while(fgets(buffer,sizeof buffer,pipe))line+=buffer;if(pclose(pipe)!=0)throw std::runtime_error("kernel cache failed");
-        std::istringstream in(line);std::string path,sha,layout,layout_sha;size_t inputs,outputs;
-        if(!(in>>path>>sha>>inputs>>outputs>>layout>>layout_sha)||sha.size()!=64||layout_sha.size()!=64)throw std::runtime_error("kernel cache reply");
+        std::string path,sha,layout,layout_sha;
+        if(!cached(arguments,path,sha,layout,layout_sha)){
+            std::string command="python3 '"+script+"' kernel "+arguments;FILE*pipe=popen(command.c_str(),"r");if(!pipe)throw std::runtime_error("kernel cache launch");
+            char buffer[4096];std::string line;while(fgets(buffer,sizeof buffer,pipe))line+=buffer;if(pclose(pipe)!=0)throw std::runtime_error("kernel cache failed");
+            std::istringstream in(line);size_t inputs,outputs;
+            if(!(in>>path>>sha>>inputs>>outputs>>layout>>layout_sha))throw std::runtime_error("kernel cache reply");
+        }
+        if(sha.size()!=64||layout_sha.size()!=64)throw std::runtime_error("kernel cache reply");
         std::array<uint8_t,128>mine{},peer{};std::copy(sha.begin(),sha.end(),mine.begin());std::copy(layout_sha.begin(),layout_sha.end(),mine.begin()+64);
         channel.transfer(mine.data(),peer.data(),128);if(mine!=peer)throw std::runtime_error("kernel pin disagreement");
         auto&kernel=*(loaded[arguments]=std::make_unique<Kernel>(path,sha,layout,layout_sha));

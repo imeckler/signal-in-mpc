@@ -24,6 +24,33 @@ struct X25519Fast {
         auto xz=ladder.evaluate_all(f,{input}).at(0);
         return quotient(f,channel,xz[0],xz[1],zero_result);
     }
+    // Several independent agreements together: the same programs on several instances, so the
+    // ladders share their rounds (about 255 rounds in all instead of 255 each) and the masked
+    // inversions share one. Each instance has its own mask; `zero[i]` as in `evaluate`.
+    std::vector<H> evaluate_many(FE&f,Challenge&channel,const std::vector<std::pair<const std::vector<H>*,H>>&jobs,std::vector<bool>&zero)const{
+        const size_t n=jobs.size();zero.assign(n,false);if(!n)return {};
+        std::vector<std::vector<H>>inputs;
+        for(auto&job:jobs){
+            if(job.first->size()!=252)throw std::runtime_error("swap bit count");
+            std::vector<H>input(257,f.constant(0));for(unsigned k=0;k<252;k++)input[k+2]=(*job.first)[k];input[256]=job.second;inputs.push_back(std::move(input));
+        }
+        auto xz=ladder.evaluate_all(f,inputs);
+        std::vector<std::array<uint8_t,32>>mine(n);
+        {PRG prg;for(auto&m:mine)do{prg.random_data_unaligned(m.data(),32);m[31]&=127;}while(!canonical(m));}
+        auto contributions=f.input_elements(mine);f.check();
+        std::vector<std::vector<H>>pairs;for(size_t i=0;i<n;i++)pairs.push_back({xz[i][0],xz[i][1],f.add(contributions[0][i],contributions[1][i])});
+        auto masked=mask_pair.evaluate_all(f,pairs);
+        std::vector<H>denominators;for(auto&m:masked)denominators.push_back(m[1]);
+        auto opened=f.checked_open(denominators);
+        std::vector<uint8_t>flat(32*n),peer(32*n);for(size_t i=0;i<n;i++)std::copy(opened[i].begin(),opened[i].end(),flat.begin()+32*i);
+        channel.transfer(flat.data(),peer.data(),flat.size());if(flat!=peer)throw std::runtime_error("masked denominator disagreement");
+        std::vector<H>out;
+        for(size_t i=0;i<n;i++){
+            bool none=true;for(auto byte:opened[i])if(byte)none=false;
+            zero[i]=none;out.push_back(none?f.constant(0):f.divide_public(masked[i][0],opened[i]));
+        }
+        return out;
+    }
     // x/z by masked inversion (see the note at the top of this file).
     H quotient(FE&f,Challenge&channel,H x,H z,bool&zero_result)const{
         std::array<H,2>xz{x,z};

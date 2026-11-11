@@ -34,7 +34,15 @@ int main(int argc,char**argv){
         {
             NetIO io(party==ALICE?nullptr:"127.0.0.1",port,true);ThreadPool threads(4);t=Clock::now();
             {
-                DynSession session(&io,&threads,party,128);setup=elapsed(t);
+                DynSession session(&io,&threads,party,128);
+                // EMP_TEST_TRIPLE_STOCK=FACTORIES,BATCH,RESERVE (both parties alike): AND triples
+                // minted ahead of use by background pools, as the worker runs (dyn_session.h).
+                if(const char*stock=std::getenv("EMP_TEST_TRIPLE_STOCK")){
+                    unsigned long long factories=0,batch=0,reserve=0;
+                    if(std::sscanf(stock,"%llu,%llu,%llu",&factories,&batch,&reserve)!=3)throw std::runtime_error("triple stock setting");
+                    session.start_stock(unsigned(factories),size_t(batch),size_t(reserve));
+                }
+                setup=elapsed(t);
                 stage="inputs";auto shares=session.input_both(mine);
                 auto input=session.run(xor_bit.parallel(in_bits),DynSession::interleave(shares.first,shares.second));
                 stage="circuit";t=Clock::now();auto output=session.run(circuit,input);run_time=elapsed(t);

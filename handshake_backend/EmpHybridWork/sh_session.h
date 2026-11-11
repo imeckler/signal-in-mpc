@@ -37,6 +37,10 @@ public:
     }
     ShSession(const ShSession&)=delete;ShSession&operator=(const ShSession&)=delete;
     int party()const{return me;}
+    // Plain garbling has no triples: nothing to mint ahead (same surface as the malicious session).
+    void start_stock(unsigned,size_t,size_t){}
+    uint64_t stock_minted()const{return 0;}
+    double stock_seconds()const{return 0;}
     uint64_t and_gates()const{return ands;}
     uint64_t sent_bytes()const{return io->send_counter;}
     // One owner's private bits; the other party passes a same-length placeholder.

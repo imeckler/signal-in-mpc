@@ -38,6 +38,15 @@ inductive Operation where
   | envelopeOpen | envelopeSession | contactAssign
   /- The account's own record at rest (identity key, credentials, certificate). -/
   | accountKey | accountSeal | accountOpen
+  /- A contact with several devices (handshake_backend/EmpHybridWork/MULTI_DEVICE.md): the
+  prekey fetch that names the contact; its response body, collected unopened; the opened
+  punctuation shape; one step of one device's session establishment; a send with one
+  envelope per device and its request frame; loading a stored device list. -/
+  | bundleFetch | bundleTake | bundleDrop | bundleShape | bundleEstablish
+  | devicesSend | devicesRequest | devicesOpen
+  /- Several connections (one per Tor circuit): select the worker's connection by its public
+  index; every operation that touches a connection acts on the selected one (0 by default). -/
+  | useConnection
   deriving Repr, BEq
 
 structure Rpc where
@@ -108,6 +117,41 @@ def connect (rpc : Rpc) (hostname : String) (port : Nat := 443) : M Unit := do
   let host := hostname.toUTF8.data.toList
   insist (!host.isEmpty && host.length ≤ 253 && 0 < port && port < 65536) "invalid public TLS endpoint"
   emptyReply rpc .connect (uint 2 host.length ++ host ++ uint 2 port)
+
+/-- A SOCKS5 proxy for the leader's TCP connection (a local Tor client; a numeric address). The
+username and password choose the Tor circuit (Tor's `IsolateSOCKSAuth`). -/
+structure Proxy where
+  host : String
+  port : Nat
+  username : String
+  password : String
+
+/-- `connect`, through `proxy` when there is one: the server is asked for BY HOSTNAME, so no
+node resolves it. The proxy part is in the agreed request, so both parties must have been
+configured with the same proxy and credentials; only the leader opens anything. -/
+def connectVia (rpc : Rpc) (hostname : String) (port : Nat) : Option Proxy → M Unit
+  | none => connect rpc hostname port
+  | some proxy => do
+    let host := hostname.toUTF8.data.toList
+    let via := proxy.host.toUTF8.data.toList
+    let user := proxy.username.toUTF8.data.toList
+    let pass := proxy.password.toUTF8.data.toList
+    insist (!host.isEmpty && host.length ≤ 253 && 0 < port && port < 65536 && !via.isEmpty && via.length ≤ 253 &&
+      0 < proxy.port && proxy.port < 65536 && 0 < user.length && user.length < 256 && 0 < pass.length && pass.length < 256)
+      "invalid proxied TLS endpoint"
+    emptyReply rpc .connect (uint 2 host.length ++ host ++ uint 2 port ++ uint 2 via.length ++ via ++ uint 2 proxy.port ++
+      uint 1 user.length ++ user ++ uint 1 pass.length ++ pass)
+
+/-- The same RPC, with every call made on the worker's connection `index`: the connection is
+selected first whenever another one is active (`active` tracks it; all controllers select at
+the same points, as every request is agreed). With one connection it never selects. -/
+def onConnection (rpc : Rpc) (active : IO.Ref Nat) (index : Nat) : Rpc :=
+  { rpc with call := fun operation input => do
+      if (← liftM (active.get : IO Nat)) != index then
+        insist (index < 64) "connection index"
+        emptyReply rpc .useConnection [UInt8.ofNat index]
+        liftM (active.set index : IO Unit)
+      rpc.call operation input }
 
 def transport (rpc : Rpc) : Transport where
   send wire := emptyReply rpc .sendRecord wire

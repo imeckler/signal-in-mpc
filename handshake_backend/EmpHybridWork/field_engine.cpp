@@ -11,8 +11,14 @@
 #include "Protocols/ProtocolSetup.h"
 #include "field_engine.h"
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <deque>
 #include <filesystem>
 #include <fstream>
+#include <map>
+#include <mutex>
+#include <thread>
 namespace emp_hybrid {
 using F=gfp_<17,4>;
 #ifdef EMP_HYBRID_SEMI_HONEST
@@ -60,12 +66,90 @@ static std::unique_ptr<ProtocolSetup<S>> make_setup(Player&P,const std::array<ui
     }
     return std::make_unique<ProtocolSetup<S>>(prime,P);
 }
+// Triples generated ahead of use. Triple generation does not depend on what is multiplied, so
+// a second protocol instance of the SAME engine (same MAC key, its own connection between the
+// same two parties) generates them in a background thread with the library's own generator
+// and checks, and the engine's multiplication takes them from here instead of generating
+// them when it runs out. Triples are used in the order they were made, each once, only by
+// this engine, and are gone with it.
+//
+// Both parties must generate the same batches. Batch k is started when
+// k*batch < requested + reserve, where `requested` counts the products asked for so far: the
+// same number on both sides, reached at different moments. Each side announces a batch on
+// the stock's connection when its own count allows it and the batch starts when both have;
+// on shutdown a side announces the end instead, and both stop.
+// With several generator lines, line j makes the batches k with k mod lines = j, each on its
+// own connection, and batches are used in the order of k whichever finishes first.
+// (The name is distinct from dyn_session.h's TripleStock on purpose: both end up in one program.)
+struct FieldTripleStock {
+    struct Line {
+        CryptoPlayer player;ProtocolSet<S>set;std::thread thread;
+        Line(const Names&names,const ProtocolSetup<S>&setup,unsigned index):player(names,"stock"+std::to_string(index)),set(player,setup){}
+    };
+    std::mutex m;std::condition_variable changed;std::deque<std::array<S,3>>ready;std::map<uint64_t,std::vector<std::array<S,3>>>finished;
+    uint64_t requested=0,next=0;bool stopping=false,broken=false;size_t batch=0,reserve=0;double waited=0;
+    DataPositions usage;std::vector<std::unique_ptr<Line>>lines;
+    // What the multiplication protocol asks for triples.
+    struct Source:Preprocessing<S>{
+        FieldTripleStock&stock;
+        Source(FieldTripleStock&s):Preprocessing<S>(s.usage),stock(s){}
+        std::array<S,3> get_triple(int)override{
+            std::lock_guard<std::mutex>lock(stock.m);
+            if(stock.ready.empty())throw std::runtime_error("triple stock empty");   // `need` runs first
+            auto triple=stock.ready.front();stock.ready.pop_front();return triple;
+        }
+    };
+    Source source;
+    FieldTripleStock(const Names&names,const ProtocolSetup<S>&setup,size_t batch_,size_t reserve_,unsigned count):batch(batch_),reserve(reserve_),usage(2),source(*this){
+        // Connections are made here, in the same order by both parties.
+        for(unsigned j=0;j<count;j++)lines.push_back(std::make_unique<Line>(names,setup,j));
+        // A failure in the background (a failed check, a lost connection) fails the next multiplication.
+        for(unsigned j=0;j<count;j++)lines[j]->thread=std::thread([this,j]{try{work(*lines[j],j);}catch(...){{std::lock_guard<std::mutex>lock(m);broken=true;}changed.notify_all();}});
+    }
+    void work(Line&line,uint64_t first){
+        auto&player=line.player;const int me=player.my_num();
+        for(uint64_t k=first;;k+=lines.size()){
+            octet mine=0,peer=0;
+            {std::unique_lock<std::mutex>lock(m);changed.wait(lock,[&]{return stopping||k*batch<requested+reserve;});mine=stopping?0:1;}
+            octetStream out,in;out.append(&mine,1);
+            if(me==0){player.send_to(1,out);player.receive_player(1,in);}
+            else{player.receive_player(0,in);player.send_to(0,out);}
+            if(in.get_length()!=1)throw std::runtime_error("triple stock announcement");
+            in.consume(&peer,1);
+            if(!mine||!peer)return;
+            std::vector<std::array<S,3>>made(batch);
+            for(auto&t:made)line.set.preprocessing.get_three(DATA_TRIPLE,t[0],t[1],t[2]);
+            {
+                std::lock_guard<std::mutex>lock(m);finished[k]=std::move(made);
+                for(auto it=finished.find(next);it!=finished.end();it=finished.find(next)){for(auto&t:it->second)ready.push_back(t);finished.erase(it);next++;}
+            }
+            changed.notify_all();
+        }
+    }
+    // Before a multiplication round of n products: count them, and wait until n triples are ready.
+    void need(size_t n){
+        const auto started=std::chrono::steady_clock::now();
+        std::unique_lock<std::mutex>lock(m);requested+=n;changed.notify_all();
+        changed.wait(lock,[&]{return ready.size()>=n||broken;});
+        if(broken)throw std::runtime_error("triple stock failed");
+        waited+=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
+    }
+    ~FieldTripleStock(){
+        {std::lock_guard<std::mutex>lock(m);stopping=true;}
+        changed.notify_all();
+        for(auto&line:lines)if(line->thread.joinable())line->thread.join();
+        lines.clear();
+    }
+    uint64_t sent()const{uint64_t n=0;for(auto&line:lines)n+=line->player.total_comm().sent;return n;}
+};
 struct FieldEngine::Impl {
     // Destruction order: values, protocol owners, setup, transport, names.
-    Names names;CryptoPlayer player;std::unique_ptr<ProtocolSetup<S>> setup;std::unique_ptr<ProtocolSet<S>> set;
+    Names names;CryptoPlayer player;std::unique_ptr<ProtocolSetup<S>> setup;std::unique_ptr<ProtocolSet<S>> set;std::unique_ptr<FieldTripleStock>stock;
     std::vector<S> values;uint64_t products=0,local_inputs=0;bool failed=false;const uint64_t owner=next_owner.fetch_add(1);
-    Impl(unsigned p,unsigned port,const std::array<uint8_t,32>*key_share):names(p,2,"127.0.0.1",port),player(names),
-        setup(make_setup(player,key_share)),set(std::make_unique<ProtocolSet<S>>(player,*setup)){}
+    Impl(unsigned p,unsigned port,const std::array<uint8_t,32>*key_share,unsigned batch,unsigned reserve,unsigned lines):names(p,2,"127.0.0.1",port),player(names),
+        setup(make_setup(player,key_share)),set(std::make_unique<ProtocolSet<S>>(player,*setup)){
+        if(reserve){stock=std::make_unique<FieldTripleStock>(names,*setup,batch,reserve,lines);set->protocol.init(stock->source,set->output);}
+    }
     void require(){if(failed)throw std::runtime_error("native engine poisoned");}
     const S&get(Handle h){require();if(!owner||h.owner!=owner||!h.index||h.index>values.size())throw std::invalid_argument("native handle owner/range");return values[h.index-1];}
     Handle put(S x){values.push_back(std::move(x));return Handle(owner,values.size());}
@@ -86,7 +170,7 @@ std::pair<std::array<uint8_t,32>,std::array<uint8_t,32>> FieldEngine::export_sha
     return {element_bytes(x.get_share()),element_bytes(x.get_mac())};
 #endif
 }
-FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::array<uint8_t,32>*mac_key_share){
+FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::array<uint8_t,32>*mac_key_share,unsigned stock_reserve,unsigned stock_lines){
     if(party>1||port>65000||batch<1||batch>1000000)throw std::invalid_argument("native identity/port");
     // Exact p, checked OT, no online/preprocessing reuse across owners.
     // In the MASCOT/Fp path MP-SPDZ reads this only as a minimum field-size
@@ -98,11 +182,12 @@ FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::
     OnlineOptions::singleton.use_security_parameter=true;
     OnlineOptions::singleton.verbose=true;
     ProtocolSetup<S>::set_batch_size(batch);
-    impl=std::make_unique<Impl>(party,port,mac_key_share);
+    if(stock_reserve>10000000||stock_lines<1||stock_lines>8)throw std::invalid_argument("triple stock reserve");
+    impl=std::make_unique<Impl>(party,port,mac_key_share,batch,stock_reserve,stock_lines);
 }
 FieldEngine::~FieldEngine(){if(impl){
     // Finish protocol/preprocessing owners before sampling protocol traffic.
-    impl->set.reset();impl->setup.reset();
+    impl->stock.reset();impl->set.reset();impl->setup.reset();
     std::cout<<"NATIVE_PROTOCOL_SENT bytes="<<impl->player.total_comm().sent<<"\n";
     std::cout<<"NATIVE_LOGICAL completed_products="<<impl->products<<" local_inputs="<<impl->local_inputs<<"\n";
 }}
@@ -118,6 +203,7 @@ std::array<std::vector<FieldEngine::Handle>,2> FieldEngine::input_coins(const st
 std::vector<FieldEngine::Handle> FieldEngine::mul(const std::vector<Handle>&a,const std::vector<Handle>&b){
     auto&p=*impl;p.require();if(a.size()!=b.size())throw std::invalid_argument("native multiply shape");
     try{
+        if(p.stock)p.stock->need(a.size());
         auto &m=p.set->protocol;m.init_mul();
         for(size_t i=0;i<a.size();i++)m.prepare_mul(p.get(a[i]),p.get(b[i]));m.exchange();
         std::vector<Handle>out;for(size_t i=0;i<a.size();i++)out.push_back(p.put(m.finalize_mul()));p.products+=a.size();return out;
@@ -142,7 +228,9 @@ std::array<std::vector<FieldEngine::Handle>,2> FieldEngine::input_elements(const
     }catch(...){p.failed=true;throw;}
 }
 unsigned FieldEngine::party_id()const{return impl->player.my_num();}
-uint64_t FieldEngine::sent_bytes()const{return impl->player.total_comm().sent;}
+uint64_t FieldEngine::sent_bytes()const{return impl->player.total_comm().sent+(impl->stock?impl->stock->sent():0);}
+double FieldEngine::stock_waited()const{return impl->stock?impl->stock->waited:0;}
+bool FieldEngine::stocked()const{return bool(impl->stock);}
 uint64_t FieldEngine::products()const{return impl->products;}
 void FieldEngine::check(){auto&p=*impl;p.require();try{p.set->check();}catch(...){p.failed=true;throw;}}
 std::vector<std::array<uint8_t,32>> FieldEngine::checked_open(const std::vector<Handle>&a){

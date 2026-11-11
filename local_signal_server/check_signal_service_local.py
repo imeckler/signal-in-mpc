@@ -22,6 +22,9 @@ without traffic, and producing a large circuit for the first time takes longer):
 lists what a run asks for and is rewritten after a passing run.
 
 Usage: check_signal_service_local.py [malicious|semi-honest] [--self-check] [--keep-server] [--skip-build] [--runs N]
+
+--circuits 1,3: broadcasts through scripts/socks5_test_proxy.py (a stand-in for a local Tor client)
+with N Tor circuits each, checked from the proxy's log (run_circuits). Never uses Tor.
 """
 import argparse, json, os, subprocess, sys, time
 from pathlib import Path
@@ -72,7 +75,7 @@ def warm():
     return dict(kernels=len(names), skipped=[n for n, good in zip(names, ok) if not good], seconds=time.monotonic() - started)
 
 
-def run_mpc(export, mode, texts, party_env=None, during=None):
+def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.1'):
     """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
     socket, two broadcasts to every contact, contact state written back to the store.
     Controller argv: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED.
@@ -111,7 +114,7 @@ def run_mpc(export, mode, texts, party_env=None, during=None):
             log = open(output / f'party-{party}.log', 'w')
             logs.append(log)
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
-                       session, '127.0.0.1', '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
+                       session, endpoint, '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
             (STORE / f'party-{party}').mkdir(parents=True, exist_ok=True)
             processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}'),
                                                                         **(party_env(party) if party_env else {})),
@@ -350,6 +353,216 @@ def run_db(export, mode, texts):
     return result
 
 
+def run_multi_device(export, mode, texts):
+    """A contact gets a second device after its state exists (contact keys and state on the
+    database nodes, as in run_db):
+      A. broadcast; the export's two contacts are created in the database, one device each;
+      B. the first recipient links a second device (`lss-provision link`). Broadcast: the server
+         answers the send to that contact 409. The session fetches the contact's prekey bundles
+         (the response body is never revealed), establishes a session per device in the engines,
+         stores the device list, and sends again with one message per device. BOTH devices must
+         decrypt both broadcasts (the second one goes to the two devices directly);
+      C. broadcast again in a new session, the device list read back from the database nodes.
+         Both devices must decrypt again."""
+    cluster = Cluster()
+    result = {}
+    try:
+        ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
+        for contact in ids + [ACCOUNT]:
+            cluster.token(contact)
+
+        def step(label, expected):
+            request = cluster.request(ids, 'broadcast')
+            run = run_mpc(export, mode, texts, party_env=lambda party: cluster.env(party, request))
+            good, recipients = verify(expected)
+            result[label] = dict(run=run, recipients=recipients, passed=good)
+            cluster.refresh()
+            return good
+
+        ok = step('created', texts)
+        if ok:
+            linked = json.loads(lss('link', CONTACTS[0], capture=True).strip().splitlines()[-1])
+            result['linked'] = linked
+            both = dict(texts, **{linked['linked']: texts[CONTACTS[0]]})
+            ok = step('refreshed', both) and step('reloaded', both)
+        result['passed'] = ok
+    finally:
+        cluster.stop()
+    return result
+
+
+# ---- Tor circuits (--circuits): the leader connects through a SOCKS5 proxy, one TLS connection
+# per circuit. The proxy is scripts/socks5_test_proxy.py, never Tor. The controllers are given the
+# server as SIGNAL_HOST, a reserved name (RFC 2606) that resolves nowhere: only the proxy can
+# reach the server by it, so a session that passes made no direct connection and no lookup.
+CIRCUIT_CONTACTS = ['recipient', 'recipient2', 'recipient3', 'recipient4']
+SOCKS_PORT = 19050
+SIGNAL_HOST = 'server.example'
+
+
+class SocksProxy:
+    def __init__(self):
+        self.log = STATE / 'socks-proxy.jsonl'
+        self.log.write_text('')
+        self.process = subprocess.Popen([sys.executable, str(SCRIPTS / 'socks5_test_proxy.py'), str(SOCKS_PORT), str(self.log),
+                                         f'{SIGNAL_HOST}:18443=127.0.0.1:18443'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        if not self.process.stdout.readline().startswith('listening'):
+            raise RuntimeError('SOCKS test proxy did not start')
+
+    @staticmethod
+    def env(circuits):
+        return dict(SIGNAL_TOR_SOCKS=f'127.0.0.1:{SOCKS_PORT}', SIGNAL_TOR_CIRCUITS=str(circuits))
+
+    def command(self, line):
+        self.process.stdin.write(line + '\n')
+        self.process.stdin.flush()
+        self.process.stdout.readline()
+
+    def rows(self):
+        return [json.loads(line) for line in self.log.read_text().splitlines() if line.strip()]
+
+    def session(self, username):
+        """This session's opened connections, each with its close record (waits for them)."""
+        for _ in range(40):
+            rows = [r for r in self.rows() if r.get('username') == username]
+            opened = [r for r in rows if r['event'] == 'open']
+            closed = {r['id']: r for r in rows if r['event'] == 'close'}
+            if all(r['id'] in closed for r in opened):
+                break
+            time.sleep(0.5)
+        return [dict(r, close=closed.get(r['id'], {})) for r in opened]
+
+    def stop(self):
+        self.process.kill()
+        self.process.wait()
+
+
+def check_circuits(proxy, run, circuits, contacts):
+    """What the proxy saw of one send session, against the controllers' public report."""
+    import collections
+    cases = run['controllers']
+    labels = cases[0].get('circuit_labels') or [[None, None]]
+    connections = proxy.session(labels[0][0])
+    sends = [(contact, int(index)) for contact, index in cases[0].get('circuit_sends', [])]
+    by_contact = collections.defaultdict(set)
+    for contact, index in sends:
+        by_contact[contact].add(index)
+    expected = [password for _, password in labels]
+    per_circuit = collections.Counter(index for _, index in sends)
+    records = {c['password']: c['close'].get('up_records', {}).get('23', 0) for c in connections}
+    checks = dict(
+        both_controllers_agree=all(c.get('circuit_sends') == cases[0].get('circuit_sends') and c.get('circuit_labels') == labels for c in cases),
+        every_connection_through_the_proxy_by_hostname=len(connections) == circuits and all(
+            c['atyp'] == 3 and c['host'] == SIGNAL_HOST and c['port'] == 18443 for c in connections),
+        nothing_refused=not [r for r in proxy.rows() if r['event'] == 'refused'],
+        distinct_credentials=len(set(expected)) == circuits and sorted(c['password'] for c in connections) == sorted(expected),
+        each_contact_on_one_circuit=len(by_contact) == contacts and all(len(v) == 1 for v in by_contact.values()),
+        circuits_carrying_sends=len(per_circuit) == min(circuits, contacts),
+        # Each send is one client record; besides them each connection carries its Finished and upgrade request.
+        records_cover_sends=all(records.get(expected[index], 0) >= 2 + count for index, count in per_circuit.items()),
+    )
+    return dict(passed=all(checks.values()), checks=checks, sends_per_circuit=dict(per_circuit),
+                connections=[dict(password=c['password'], application_records=records.get(c['password']), up_bytes=c['close'].get('up_bytes'),
+                                  down_bytes=c['close'].get('down_bytes')) for c in connections])
+
+
+def circuit_export():
+    """New accounts and four contacts, so that three circuits each carry a contact and one carries two."""
+    lss('provision')
+    for name, number in [('recipient3', '+12025550106'), ('recipient4', '+12025550107')]:
+        lss('register', name, number)
+        lss('establish', 'sender', name)
+    lss('export-mpc', 'sender', *CIRCUIT_CONTACTS)
+    return json.loads(EXPORT.read_text())
+
+
+def run_circuits(mode, texts, counts, db):
+    """Broadcast sessions through the SOCKS test proxy with N circuits for each N in `counts`,
+    contact state in the store (or on the database nodes with `db`). Each must pass
+    `check_circuits`, and every recipient must decrypt everything. Without `db` also a receive
+    session through the proxy (its own single circuit). With `db` also a dropped circuit: the
+    proxy closes a send connection mid-broadcast; the session must fail cleanly in both parties,
+    and a new session must then deliver everything (each contact's state was stored before its
+    message left, so nothing is sent twice under the same key)."""
+    import shutil, secrets
+    export = circuit_export()
+    texts = {name: texts[CONTACTS[0]] for name in CIRCUIT_CONTACTS}
+    shutil.rmtree(STORE, ignore_errors=True)
+    proxy = SocksProxy()
+    cluster = Cluster() if db else None
+    result, ok = dict(database=db), True
+    try:
+        ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
+        if cluster:
+            for contact in ids + [ACCOUNT]:
+                cluster.token(contact)
+
+        def session(circuits, during=None, extra=None):
+            request = cluster.request(ids, 'broadcast') if cluster else None
+            return run_mpc(export, mode, texts, during=during, endpoint=SIGNAL_HOST, party_env=lambda party: dict(
+                cluster.env(party, request) if cluster else {}, **SocksProxy.env(circuits), **(extra or {})))
+
+        for circuits in counts:
+            run = session(circuits)
+            good, recipients = verify(texts)
+            seen = check_circuits(proxy, run, circuits, len(ids))
+            result[f'circuits_{circuits}'] = dict(run=run, recipients=recipients, proxy=seen, passed=good and seen['passed'])
+            ok = ok and good and seen['passed']
+            if cluster:
+                cluster.refresh()
+        if ok and not db:
+            # The authenticated socket: one connection, on a circuit of its own.
+            credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
+            share = secrets.token_bytes(len(credentials))
+            shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
+
+            def during(processes):
+                deadline = time.monotonic() + 8
+                while time.monotonic() < deadline and all(p.poll() is None for p in processes):
+                    time.sleep(1)
+                if all(p.poll() is None for p in processes):
+                    lss('send', CONTACTS[0], 'sender', 'to the MPC client through the proxy')
+            circuits = max(counts)
+            run = run_mpc(export, mode, {}, during=during, endpoint=SIGNAL_HOST, party_env=lambda party: dict(
+                SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1', **SocksProxy.env(circuits)))
+            username = (run['controllers'][0].get('circuit_labels') or [[None]])[0][0]
+            connections = proxy.session(username)
+            good = all(c.get('messages_delivered') == 1 for c in run['controllers']) and len(connections) == 1 and \
+                connections[0]['password'] == 'receive' and connections[0]['host'] == SIGNAL_HOST and connections[0]['atyp'] == 3
+            result['receive'] = dict(run=run, connections=[dict(password=c['password'], host=c['host']) for c in connections], passed=good)
+            ok = ok and good
+        if ok and db:
+            circuits = max(counts)
+            dropped = f'send-{min(1, circuits - 1)}-of-{circuits}'
+            # Its Finished, its upgrade request, then the first send on it: dropped right after that.
+            proxy.command(f'drop-after {dropped} 3')
+            started = time.monotonic()
+            try:
+                failed = session(circuits)
+                failed_cleanly = False   # it should not have passed
+            except RuntimeError as e:
+                failed = json.loads(str(e).split(': ', 1)[1])
+                failed_cleanly = all(code != 0 for code in failed['exit_codes']) and len(failed['controllers']) == 2 and \
+                    all(not c['passed'] and c['error'] for c in failed['controllers'])
+            elapsed = time.monotonic() - started
+            username = ((failed.get('controllers') or [{}])[0].get('circuit_labels') or [[None]])[0][0]
+            was_dropped = any(c['close'].get('dropped') for c in proxy.session(username))
+            cluster.refresh()
+            run = session(circuits)
+            good, recipients = verify(texts)
+            seen = check_circuits(proxy, run, circuits, len(ids))
+            result['dropped_circuit'] = dict(failed_run=failed, failed_cleanly=failed_cleanly, dropped=was_dropped, failure_seconds=elapsed,
+                                             errors=[c.get('error') for c in failed.get('controllers', [])], rerun=run, recipients=recipients,
+                                             proxy=seen, passed=failed_cleanly and was_dropped and good and seen['passed'])
+            ok = ok and result['dropped_circuit']['passed']
+        result['passed'] = ok
+    finally:
+        proxy.stop()
+        if cluster:
+            cluster.stop()
+    return result
+
+
 def verify(expected):
     """expected: {recipient name: [texts]}. Every delivered envelope must be sealed (no source fields)."""
     result = {}
@@ -375,8 +588,11 @@ def main():
     p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
+    p.add_argument('--multi-device', action='store_true', help='also link a second device to a contact and require both devices to decrypt (database nodes)')
     p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
     p.add_argument('--trace', action='store_true', help='controllers log the server bytes they reveal (public) to their logs')
+    p.add_argument('--circuits', default='', help='also broadcast through the SOCKS test proxy with N Tor circuits, for each N of a '
+                   'comma-separated list (e.g. 1,3); with --db the contacts are on the database nodes and a dropped circuit is tested')
     a = p.parse_args()
     if a.trace:
         os.environ['SIGNAL_LOCAL_TRACE'] = '1'
@@ -431,6 +647,18 @@ def main():
                 export = json.loads(EXPORT.read_text())
             report['db'] = run_db(export, a.mode, texts)
             ok = report['db']['passed']
+        if ok and a.multi_device:
+            if a.runs or a.signup or a.db:
+                # As for --db: this flow starts from an export, with one device per contact.
+                lss('provision')
+                lss('export-mpc')
+                export = json.loads(EXPORT.read_text())
+            report['multi_device'] = run_multi_device(export, a.mode, texts)
+            ok = report['multi_device']['passed']
+        if ok and a.circuits:
+            # Its own accounts and export (four contacts); runs last.
+            report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db)
+            ok = report['tor_circuits']['passed']
         report['passed'] = ok
         if ok:
             KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))

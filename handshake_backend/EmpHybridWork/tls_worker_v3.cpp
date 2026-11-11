@@ -18,6 +18,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 using namespace emp;
 using namespace emp_hybrid;
@@ -25,6 +26,51 @@ using Bytes=std::vector<uint8_t>;
 static bool read_exact(int fd,uint8_t*out,size_t n){while(n){auto r=::read(fd,out,n);if(r<0&&errno==EINTR)continue;if(r<=0)return false;out+=r;n-=size_t(r);}return true;}
 static void write_all(int fd,const uint8_t*data,size_t n){while(n){auto r=::write(fd,data,n);if(r<0&&errno==EINTR)continue;if(r<=0)throw std::runtime_error("pipe write");data+=r;n-=size_t(r);}}
 static uint64_t big(const uint8_t*p,unsigned n){uint64_t v=0;for(unsigned i=0;i<n;i++)v=v<<8|p[i];return v;}
+// ---- SOCKS5 (RFC 1928) with username/password (RFC 1929), for the leader's connection to the
+// server through a local Tor client. The server is named by HOSTNAME (address type 3), so this
+// process never resolves it; the proxy's own address must be numeric. Tor puts streams with
+// different credentials on different circuits (IsolateSOCKSAuth, on by default), so the
+// credentials choose the circuit. Tor is outside the MPC: it only ever sees TLS ciphertext.
+struct Socks{std::string host,user,pass;unsigned port=0;};
+// Proxy part of a connect request from `at`: host length 2, host, port 2, username length 1,
+// username, password length 1, password.
+static bool socks_request(const std::vector<uint8_t>&p,size_t at,Socks&out){
+    auto take=[&](unsigned width,std::string&s){
+        if(at+width>p.size())return false;const size_t n=big(p.data()+at,width);at+=width;
+        if(n==0||at+n>p.size())return false;s.assign(p.begin()+at,p.begin()+at+n);at+=n;return true;
+    };
+    if(!take(2,out.host)||out.host.size()>253||at+2>p.size())return false;
+    out.port=unsigned(big(p.data()+at,2));at+=2;
+    return take(1,out.user)&&take(1,out.pass)&&at==p.size()&&out.port>0;
+}
+static int socks_connect(const Socks&via,const std::string&host,unsigned port){
+    if(host.empty()||host.size()>255||port==0||port>65535)throw std::runtime_error("proxied endpoint");
+    addrinfo hints{},*list=nullptr;hints.ai_socktype=SOCK_STREAM;hints.ai_flags=AI_NUMERICHOST|AI_NUMERICSERV;
+    if(getaddrinfo(via.host.c_str(),std::to_string(via.port).c_str(),&hints,&list)!=0||!list)throw std::runtime_error("proxy address (numeric only)");
+    int fd=::socket(list->ai_family,list->ai_socktype,list->ai_protocol);bool ok=fd>=0&&::connect(fd,list->ai_addr,list->ai_addrlen)==0;freeaddrinfo(list);
+    if(!ok){if(fd>=0)::close(fd);throw std::runtime_error("proxy connect");}
+    try{
+#ifdef SO_NOSIGPIPE
+        {int one=1;::setsockopt(fd,SOL_SOCKET,SO_NOSIGPIPE,&one,sizeof one);}   // a dropped circuit fails the write instead of killing the worker
+#endif
+        timeval limit{120,0};::setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&limit,sizeof limit);   // building a circuit can take a while
+        auto put=[&](const std::vector<uint8_t>&b){write_all(fd,b.data(),b.size());};
+        auto get=[&](size_t n){std::vector<uint8_t>b(n);if(!read_exact(fd,b.data(),n))throw std::runtime_error("proxy closed");return b;};
+        put({5,1,2});   // the only method offered is username/password: the circuit is always chosen by the credentials
+        if(get(2)!=std::vector<uint8_t>{5,2})throw std::runtime_error("proxy refused username/password authentication");
+        std::vector<uint8_t>auth{1,uint8_t(via.user.size())};auth.insert(auth.end(),via.user.begin(),via.user.end());
+        auth.push_back(uint8_t(via.pass.size()));auth.insert(auth.end(),via.pass.begin(),via.pass.end());put(auth);
+        if(get(2)!=std::vector<uint8_t>{1,0})throw std::runtime_error("proxy rejected the credentials");
+        std::vector<uint8_t>ask{5,1,0,3,uint8_t(host.size())};ask.insert(ask.end(),host.begin(),host.end());ask.push_back(uint8_t(port>>8));ask.push_back(uint8_t(port));put(ask);
+        auto head=get(4);
+        if(head[0]!=5||head[1]!=0||head[2]!=0)throw std::runtime_error("proxy could not reach the server (SOCKS reply "+std::to_string(head[1])+")");
+        const size_t bound=head[3]==1?4:head[3]==4?16:head[3]==3?size_t(get(1)[0]):0;
+        if(!bound)throw std::runtime_error("proxy reply address");
+        get(bound+2);
+        timeval none{0,0};::setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&none,sizeof none);
+    }catch(...){::close(fd);throw;}
+    return fd;
+}
 struct Worker {
     int party;NetIO&io;Challenge&channel;TlsKernels&kernels;std::string session;int server=-1;
     enum class Phase{fresh,begun,derived,finished,retired}phase=Phase::fresh;
@@ -34,8 +80,34 @@ struct Worker {
     ServiceKernels*service=nullptr;bool service_fixture=false;   // TLS_WORKER_SERVICE_FIXTURE=text: admit the public text fixture at retirement
     static Bytes receipt(std::pair<uint64_t,size_t>r){Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(r.first>>(8*i)));out.push_back(uint8_t(r.second>>8));out.push_back(uint8_t(r.second));return out;}
     size_t test_bytes=0;uint64_t produced_handle=0;unsigned produced=0;bool sealed_pending=false;std::deque<uint64_t>awaiting_echo;
-    ~Worker(){if(server>=0)::close(server);}
+    ~Worker(){if(server>=0)::close(server);drop_connections();}
     void need(bool ok,const char*what){if(!ok)throw std::runtime_error(what);}
+    // ---- Connection table (operation 90; one TLS connection per Tor circuit). One connection is
+    // active: `server`, `phase`, the TLS secrets in `kernels` and the WebSocket state in `service`
+    // are its own. The others are parked here with theirs; the active one's slot holds an empty
+    // state. Every operation that touches a connection acts on the active one, so a controller that
+    // never selects uses connection 0 exactly as before. Shared by all: the engines, circuits,
+    // conversion masks, private buffers, contacts and the account.
+    struct Connection{int server=-1;Phase phase=Phase::fresh;TlsKernels::Parked tls;ServiceKernels::Socket socket;};
+    std::vector<Connection>parked=std::vector<Connection>(1);size_t active=0;
+    int proxied=-1;   // -1 before the first connect; then whether it went through a proxy, the same for every connection
+    void exchange(Connection&c){std::swap(server,c.server);std::swap(phase,c.phase);kernels.exchange(c.tls);service->exchange(c.socket);}
+    void select(size_t to){
+        need(service&&to<64&&to<=parked.size(),"connection index");
+        if(to==parked.size())parked.emplace_back();   // a new connection is the next index, fresh
+        if(to==active)return;
+        exchange(parked[active]);exchange(parked[to]);active=to;
+    }
+    void drop_connections(){for(auto&c:parked){if(party==ALICE&&c.server>=0)::close(c.server);c=Connection{};}}
+    // Leader: one whole record from the server. When the server or the proxy has closed the
+    // connection, the other party is told (a size no record has) before this fails, so both
+    // workers stop at the same operation instead of one waiting for the other.
+    Bytes server_record(){
+        Bytes record(5);bool ok=read_exact(server,record.data(),5);const size_t n=ok?big(record.data()+3,2):0;
+        if(ok&&n<=16640){record.resize(5+n);ok=read_exact(server,record.data()+5,n);}
+        if(!ok||n>16640){uint8_t gone[4]={255,255,255,255};io.send_data(gone,4);io.flush();throw std::runtime_error(ok?"record bound":"server closed");}
+        return record;
+    }
     static ServiceKernels::ContactId contact(const Bytes&p){ServiceKernels::ContactId id{};std::copy_n(p.begin(),16,id.begin());return id;}
     // Both workers must have been handed the same request.
     void agree(uint8_t code,uint64_t sequence,const Bytes&payload){
@@ -89,6 +161,38 @@ struct Worker {
         case 53:{need(phase==Phase::retired&&service&&p.size()==32,"account key");std::array<uint8_t,32>share{};std::copy_n(p.begin(),32,share.begin());service->account_key(share);return {};}
         case 54:{need(phase==Phase::retired&&service&&p.size()==8,"account seal");return service->account_seal(p);}
         case 55:{need(phase==Phase::retired&&service&&p.size()>24&&p.size()<=24+2048,"account open");service->account_open(Bytes(p.begin(),p.begin()+8),Bytes(p.begin()+8,p.begin()+24),Bytes(p.begin()+24,p.end()));return {};}
+        // A contact with several devices (service_kernels.h, MULTI_DEVICE.md).
+        // 56: contact id 16, payload start 2, UUID slot 2, access-key slot 2, mask 4, the prekey-fetch frame. Reply: handle 8.
+        case 56:{
+            need(phase==Phase::retired&&service&&p.size()>26&&p.size()<=26+16384,"bundle fetch");
+            uint64_t id=service->bundle_fetch(contact(p),big(p.data()+16,2),big(p.data()+18,2),big(p.data()+20,2),Bytes(p.begin()+22,p.begin()+26),Bytes(p.begin()+26,p.end()));
+            Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
+        }
+        // 57: a range of a record (handle 8, offset 2, count 2) joins the held prekey response body; 58 drops it; 59 opens its punctuation shape.
+        case 57:{need(phase==Phase::retired&&service&&p.size()==12,"bundle take");return service->bundle_take(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
+        case 58:{need(phase==Phase::retired&&service&&p.empty(),"bundle drop");service->bundle_drop();return {};}
+        case 59:{need(phase==Phase::retired&&service&&p.empty(),"bundle shape");return service->bundle_shape();}
+        // 60: contact id 16, request id 8, our registration id 4, device index 1, device count 1, step 1,
+        // item offset 4, digit counts 5 (device id, registration id, signed prekey id, one-time prekey id or 0, Kyber prekey id).
+        case 60:{
+            need(phase==Phase::retired&&service&&p.size()==40,"bundle establish");
+            std::array<size_t,6>layout{size_t(big(p.data()+31,4)),p[35],p[36],p[37],p[38],p[39]};
+            return service->bundle_establish(contact(p),p[28],p[29],p[30],layout,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+16,p.begin()+24));
+        }
+        // 61: contact id 16, our address 17 (account id, device id), the built text. Reply: timestamp 8, then per device length 2 and envelope.
+        case 61:{need(phase==Phase::retired&&service&&p.size()>=33+90&&p.size()<=33+330&&(p.size()-43)%80==0,"devices send");return service->seal_devices(contact(p),Bytes(p.begin()+16,p.begin()+33),Bytes(p.begin()+33,p.end()));}
+        // 62: contact id 16, payload start 2, UUID slot 2, access-key slot 2, device count 1, per device its id slot 2 and registration-id slot 2, mask 4, frame.
+        case 62:{
+            need(phase==Phase::retired&&service&&p.size()>23,"devices request");const size_t n=p[22];need(n>=1&&n<=6&&p.size()>27+4*n&&p.size()<=27+4*n+16384,"devices request");
+            std::vector<std::pair<size_t,size_t>>slots;for(size_t i=0;i<n;i++)slots.push_back({big(p.data()+23+4*i,2),big(p.data()+25+4*i,2)});
+            uint64_t id=service->request_devices(contact(p),big(p.data()+16,2),big(p.data()+18,2),big(p.data()+20,2),slots,Bytes(p.begin()+23+4*n,p.begin()+27+4*n),Bytes(p.begin()+27+4*n,p.end()));
+            Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
+        }
+        // 63: contact id 16, device count 1, the devices' kinds, version 8, check 16, ciphertext.
+        case 63:{
+            need(phase==Phase::retired&&service&&p.size()>17,"devices open");const size_t n=p[16];need(n>=1&&n<=6&&p.size()>41+n&&p.size()<=41+n+16384,"devices open");
+            service->contact_open_devices(contact(p),Bytes(p.begin()+17,p.begin()+17+n),Bytes(p.begin()+17+n,p.begin()+25+n),Bytes(p.begin()+25+n,p.begin()+41+n),Bytes(p.begin()+41+n,p.end()));return {};
+        }
         case 52:{
             need(phase==Phase::retired&&service&&p.size()==32,"contact assign");ServiceKernels::ContactId to{};std::copy_n(p.begin()+16,16,to.begin());
             return service->contact_assign(contact(p),to);
@@ -181,10 +285,7 @@ struct Worker {
             need(server>=0&&p.empty(),"poll");uint8_t size[4]={0,0,0,0};Bytes record;
             if(party==ALICE){
                 pollfd watch{server,POLLIN,0};
-                if(::poll(&watch,1,0)>0){
-                    record.resize(5);need(read_exact(server,record.data(),5),"server closed");size_t n=big(record.data()+3,2);need(n<=16640,"record bound");
-                    record.resize(5+n);need(read_exact(server,record.data()+5,n),"server closed");
-                }
+                if(::poll(&watch,1,0)>0)record=server_record();
                 for(int i=0;i<4;i++)size[i]=uint8_t(record.size()>>(8*(3-i)));io.send_data(size,4);if(!record.empty())io.send_data(record.data(),record.size());io.flush();
             }else{
                 io.recv_data(size,4);size_t n=big(size,4);
@@ -192,8 +293,17 @@ struct Worker {
             }
             return record;
         }
+        // 90: select connection p[0] (the next unused index opens a new, fresh one). Public, agreed.
+        case 90:{need(p.size()==1,"use connection");select(p[0]);return {};}
         case 9:{
-            need(server<0&&p.size()>=5,"connect");size_t n=big(p.data(),2);need(p.size()==n+4&&n>0,"connect shape");
+            // Host length 2, host, port 2; through a SOCKS5 proxy, followed by the proxy part
+            // (socks_request). Both parties agree on all of it, so neither can go direct while the
+            // other believes the connection is proxied, or use other credentials (circuit, count).
+            need(server<0&&p.size()>=5,"connect");size_t n=big(p.data(),2);need(p.size()>=n+4&&n>0,"connect shape");
+            Socks via;const bool proxy=p.size()>n+4;
+            need(!proxy||socks_request(p,n+4,via),"proxy shape");
+            need(proxied<0||proxied==int(proxy),"every connection of a worker goes the same way");proxied=int(proxy);
+            if(party==ALICE&&proxy){server=socks_connect(via,std::string(p.begin()+2,p.begin()+2+n),unsigned(big(p.data()+2+n,2)));return {};}
             if(party==ALICE){
                 std::string host(p.begin()+2,p.begin()+2+n),port=std::to_string(big(p.data()+2+n,2));addrinfo hints{},*list=nullptr;hints.ai_socktype=SOCK_STREAM;
                 need(getaddrinfo(host.c_str(),port.c_str(),&hints,&list)==0&&list,"resolve");
@@ -210,8 +320,7 @@ struct Worker {
         case 11:{
             need(server>=0&&p.empty(),"receive");Bytes record(5);uint8_t size[4];
             if(party==ALICE){
-                need(read_exact(server,record.data(),5),"server closed");size_t n=big(record.data()+3,2);need(n<=16640,"record bound");
-                record.resize(5+n);need(read_exact(server,record.data()+5,n),"server closed");
+                record=server_record();
                 for(int i=0;i<4;i++)size[i]=uint8_t(record.size()>>(8*(3-i)));io.send_data(size,4);io.send_data(record.data(),record.size());io.flush();
             }else{
                 io.recv_data(size,4);size_t n=big(size,4);need(n>=5&&n<=5+16640,"record bound");record.resize(n);io.recv_data(record.data(),n);
@@ -241,7 +350,24 @@ static int run(int argc,char**argv){
         // TLS_WORKER_FIELD_BATCH for contacts admitted at run time).
         unsigned batch=(ladder||fixture)?3000:16;
         if(const char*requested=std::getenv("TLS_WORKER_FIELD_BATCH")){batch=std::stoul(requested);if(batch<1||batch>100000)return 2;}
-        DynSession mpc(&io,&threads,party,128);FE field(party-1,port+10,batch);
+        // AND triples minted ahead of use by background pools of this session (dyn_session.h).
+        // TLS_WORKER_TRIPLE_STOCK=FACTORIES[,BATCH[,RESERVE]]; 0 mints inside each circuit run.
+        // Both workers must be configured alike: the setting is part of every agreed request.
+        unsigned factories=2;size_t stock_batch=size_t(1)<<19,stock_reserve=size_t(1)<<22;
+        if(const char*requested=std::getenv("TLS_WORKER_TRIPLE_STOCK")){
+            unsigned long long a=2,b=stock_batch,c=stock_reserve;const int n=std::sscanf(requested,"%llu,%llu,%llu",&a,&b,&c);
+            if(n<1||a>8||b<1024||b>(1ull<<24)||c>(1ull<<28))return 2;
+            factories=unsigned(a);stock_batch=size_t(b);stock_reserve=size_t(c);
+        }
+        DynSession mpc(&io,&threads,party,128);if(factories)mpc.start_stock(factories,stock_batch,stock_reserve);
+        // Field triples generated ahead of use (field_engine.h): TLS_WORKER_FIELD_STOCK=RESERVE[,LINES], 0 for none.
+        unsigned field_reserve=8*batch,field_lines=2;
+        if(const char*requested=std::getenv("TLS_WORKER_FIELD_STOCK")){
+            unsigned long long a=0,b=field_lines;const int n=std::sscanf(requested,"%llu,%llu",&a,&b);
+            if(n<1||a>10000000||b<1||b>8)return 2;
+            field_reserve=unsigned(a);field_lines=unsigned(b);
+        }
+        FE field(party-1,port+10,batch,nullptr,field_reserve,field_lines);
         Challenge channel{io,party,"tls-worker-v3:session="+session};
         auto&profile=Profile::get();
         profile.gates=[&]{return mpc.and_gates();};profile.products=[&]{return field.products();};
@@ -254,6 +380,8 @@ static int run(int argc,char**argv){
         ServiceKernels service(kernels);worker.service=&service;worker.service_fixture=fixture!=nullptr;
         if(fixture)std::cerr<<"tls-worker-v3 TEST service fixture enabled\n";
         worker.session+=kernels.ladder_agreement?":ladder":":split";
+        worker.session+=":stock="+std::to_string(factories)+","+std::to_string(factories?stock_batch:0)+","+std::to_string(factories?stock_reserve:0)
+            +":field="+std::to_string(batch)+","+std::to_string(field_reserve)+","+std::to_string(field_lines);
         std::cerr<<"tls-worker-v3 security_mode="<<SECURITY_MODE<<" key_agreement="<<(kernels.ladder_agreement?"ladder":"split")<<"\n";
         std::cerr<<"tls-worker-v3 operation 0 ok seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<" and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<" field_sent_bytes="<<field.sent_bytes()<<" field_products="<<field.products()<<"\n";
         bool failed=false;uint64_t expected=0;double busy=0;
@@ -261,7 +389,7 @@ static int run(int argc,char**argv){
             uint8_t head[13];if(!read_exact(STDIN_FILENO,head,13))break;
             uint64_t sequence=big(head+1,8);size_t size=big(head+9,4);if(size>2*1024*1024)throw std::runtime_error("request bound");
             Bytes payload(size);if(size&&!read_exact(STDIN_FILENO,payload.data(),size))break;
-            if(head[0]==8){profile.report(std::cerr,"tls-worker-v3 profile");kernels.abort();failed=true;std::cerr<<"tls-worker-v3 operation 8 ok (local abort)\n";reply(true,{});continue;}   // local, idempotent; not an erasure receipt
+            if(head[0]==8){profile.report(std::cerr,"tls-worker-v3 profile");kernels.abort();worker.drop_connections();failed=true;std::cerr<<"tls-worker-v3 operation 8 ok (local abort)\n";reply(true,{});continue;}   // local, idempotent; not an erasure receipt
             if(failed||sequence!=expected++){failed=true;reply(false,{});continue;}
             try{
                 // `busy`: time inside the worker since the last line (this call and any empty polls);
@@ -272,9 +400,10 @@ static int run(int argc,char**argv){
                 const double spent=busy;if(!(head[0]==17&&out.empty()))busy=0;
                 if(!(head[0]==17&&out.empty()))std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" ok seconds="<<std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count()<<" and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<" field_sent_bytes="<<field.sent_bytes()<<" field_products="<<field.products()<<" busy="<<spent<<"\n";
                 reply(true,out);
-            }catch(const std::exception&e){std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" rejected: "<<e.what()<<"\n";failed=true;kernels.abort();reply(false,{});}
+            }catch(const std::exception&e){std::cerr<<"tls-worker-v3 operation "<<unsigned(head[0])<<" rejected: "<<e.what()<<"\n";failed=true;kernels.abort();worker.drop_connections();reply(false,{});}
         }
         profile.report(std::cerr,"tls-worker-v3 profile");
+        std::cerr<<"tls-worker-v3 stock factories="<<factories<<" minted="<<mpc.stock_minted()<<" mint_seconds="<<mpc.stock_seconds()<<"\n";
         std::cerr<<"tls-worker-v3 totals and_gates="<<kernels.and_gates()<<" emp_sent_bytes="<<mpc.sent_bytes()<<""<<"\n";
         return 0;
     }catch(const std::exception&e){std::cerr<<"tls-worker-v3 aborted: "<<e.what()<<"\n";try{reply(false,{});}catch(...){}return 1;}

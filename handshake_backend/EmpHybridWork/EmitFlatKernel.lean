@@ -2,6 +2,8 @@ import TlsMpc.FlatLowering
 import TlsMpc.HybridKernels
 import TlsMpc.EstablishKernels
 import TlsMpc.ReceiveKernels
+import TlsMpc.BundleKernels
+import TlsMpc.MlKemFastKernels
 open TlsMpc Std.Tactic.BVDecide
 
 /-! Worker kernels straight to the flat gate list, without the Python lowering.
@@ -63,9 +65,18 @@ def lowerKernel (k : HybridKernel.Kernel) : Except String FlatLowering.Flat := d
   pure flat
 
 def main (args : List String) : IO Unit := do
+  if let ["layout", maskPath] := args then
+    -- CHECK ONLY: `Signal.BundleResponse.layout?` on opened punctuation flags (a file of `0`/`1`
+    -- characters), printed as the `bundle-device` parameter lists, or `none`.
+    let mask := (← IO.FS.readFile maskPath).trimAscii.toString.toList.map (· == '1')
+    match Signal.BundleResponse.layout? mask with
+    | some ws => for row in BundleKernel.arguments mask.length ws do IO.println (" ".intercalate row)
+    | none => IO.println "none"
+    return
   let flatPath :: layoutPath :: "kernel" :: rest := args
     | throw (IO.userError "flat_kernel_emitter FLAT_PATH LAYOUT_PATH kernel NAME [PARAMETERS]")
   let some kernel := HybridKernel.find rest <|> EstablishKernel.find rest <|> ReceiveKernel.find rest
+      <|> BundleKernel.find rest <|> MlKemFastKernel.find rest
     | throw (IO.userError "unknown kernel or shape")
   match lowerKernel kernel with
   | .error message => throw (IO.userError message)
