@@ -81,6 +81,10 @@ struct Worker {
         // A delivered envelope's sealed content: take a range of a record (handle8, offset2, count2), or drop what is held.
         case 48:{need(phase==Phase::retired&&service&&p.size()==12,"envelope take");return service->envelope_take(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
         case 49:{need(phase==Phase::retired&&service&&p.empty(),"envelope drop");service->envelope_drop();return {};}
+        case 52:{
+            need(phase==Phase::retired&&service&&p.size()==32,"contact assign");ServiceKernels::ContactId to{};std::copy_n(p.begin()+16,16,to.begin());
+            return service->contact_assign(contact(p),to);
+        }
         // Receive the held envelope as a new contact's first message (service_kernels.h).
         // 50: our identity public key 32, time 8, server key 32, then the two forms of the trusted signer, each with a 2-byte length.
         case 50:{

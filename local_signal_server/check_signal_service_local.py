@@ -199,6 +199,129 @@ def run_signup(export, mode, texts):
     return result
 
 
+class Cluster:
+    """Five database nodes of secret-shared-db (its in-memory test node: no Postgres, no epochs;
+    `refresh` stands for an epoch passing), plus the application server's keys. The binaries are
+    built from the `two-party-handoff` branch checked out at .deps/secret-shared-db-handoff."""
+    BIN = ROOT / '.deps/secret-shared-db-handoff/target/debug'
+
+    def __init__(self):
+        import shutil, socket
+        self.dir = STATE / 'db'
+        shutil.rmtree(self.dir, ignore_errors=True)
+        subprocess.run([str(self.BIN / 'pki'), '-n', '5', '-o', str(self.dir), '-d', 'postgresql://unused', '-t', '3', '-l'],
+                       check=True, capture_output=True)
+        network = json.loads((self.dir / 'relay/network-config.json').read_text())
+        sockets = [socket.socket() for _ in range(5)]
+        for s in sockets:
+            s.bind(('127.0.0.1', 0))
+        network['compute_addresses'] = ['127.0.0.1:%d' % s.getsockname()[1] for s in sockets]
+        for s in sockets:
+            s.close()
+        # A session outlasts the default 120 s for which a signed request is accepted.
+        network['notify_max_age_secs'] = 7200
+        self.network = self.dir / 'network.json'
+        self.network.write_text(json.dumps(network))
+        (self.dir / 'tokens').mkdir()
+        self.nodes = []
+        for j in range(5):
+            node = subprocess.Popen([str(self.BIN / 'handoff_test_node'), '--network', str(self.network), '--key',
+                                     str(self.dir / f'share-dbs/{j}/config.json'), '--node', str(j), '--refresh-seed', 'local test',
+                                     '--exit-on-eof'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+            self.nodes.append(node)
+            if not node.stdout.readline().startswith('listening'):
+                raise RuntimeError('database node did not start')
+
+    def refresh(self):
+        for node in self.nodes:
+            node.stdin.write('refresh\n')
+            node.stdin.flush()
+            if not node.stdout.readline().startswith('refreshed'):
+                raise RuntimeError('database node did not refresh')
+
+    def client(self, *args):
+        subprocess.run([str(self.BIN / 'handoff_client'), *map(str, args)], check=True, capture_output=True, text=True)
+
+    def token(self, contact):
+        """The application server's signup token for an id."""
+        path = self.dir / 'tokens' / f'{contact}.json'
+        self.client('sign-signup', '--app-config', self.dir / 'app-server/config.json', '--id', contact, '--out', path)
+        return path
+
+    def request(self, contacts, message):
+        """The application server's signed notify request for these ids."""
+        path = self.dir / 'request.json'
+        (self.dir / 'message.txt').write_text(message)
+        self.client('sign-request', '--key', self.dir / 'app-server/notify-key.json', '--ids', ','.join(str(c) for c in sorted(contacts)),
+                    '--message-file', self.dir / 'message.txt', '--out', path)
+        return path
+
+    def env(self, party, request=None):
+        work = self.dir / f'work-{party}'
+        work.mkdir(exist_ok=True)
+        values = dict(SIGNAL_DB_CLIENT=str(self.BIN / 'handoff_client'), SIGNAL_DB_NETWORK=str(self.network),
+                      SIGNAL_DB_KEY=str(self.dir / f'compute-nodes/{party}/key.json'), SIGNAL_DB_WORK=str(work),
+                      SIGNAL_DB_TOKENS=str(self.dir / 'tokens'))
+        if request:
+            values['SIGNAL_DB_REQUEST'] = str(request)
+        return values
+
+    def stop(self):
+        for node in self.nodes:
+            node.kill()
+            node.wait()
+
+
+def run_db(export, mode, texts):
+    """The whole flow with contact keys and state held by the database nodes:
+      A. broadcast; the export's two contacts are created in the database (key dealt by both
+         parties, state written as blob version 1);
+      B. broadcast again with both contacts read back from the nodes (shares combined after the
+         parity check between the parties; state written as version 2);
+      C. a new user signs up by sending the application's signup token: the session receives it,
+         creates the contact under the id the token names, and acknowledges;
+      D. broadcast to all three, the new contact read from the nodes like the others."""
+    import secrets
+    cluster = Cluster()
+    result = {}
+    try:
+        ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
+        for contact in ids:
+            cluster.token(contact)
+        steps = [('created', ids, {}), ('reloaded', ids, {})]
+        ok = True
+        for label, contacts, extra in steps:
+            request = cluster.request(contacts, 'broadcast')
+            run = run_mpc(export, mode, texts, party_env=lambda party: dict(cluster.env(party, request), **extra))
+            good, recipients = verify(texts)
+            result[label] = dict(run=run, recipients=recipients, passed=good)
+            cluster.refresh()
+            ok = ok and good
+        new = secrets.randbits(100)
+        token = cluster.token(new).read_text()
+        lss('signup', 'newuser', '+12025550104', 'sender', token)
+        credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
+        share = secrets.token_bytes(len(credentials))
+        shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
+        tool = HERE / 'provision/target/debug/lss-provision'
+        receive = run_mpc(export, mode, {}, party_env=lambda party: dict(
+            cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1', SIGNAL_LOCAL_KEM=str(tool)))
+        signed_up = all(c.get('received') == [[str(new), token]] for c in receive['controllers'])
+        result['signup'] = dict(run=receive, contact=str(new), passed=signed_up)
+        ok = ok and signed_up
+        if signed_up:
+            cluster.refresh()
+            request = cluster.request(ids + [new], 'broadcast')
+            run = run_mpc(export, mode, texts, party_env=lambda party: dict(cluster.env(party, request), SIGNAL_LOCAL_EXTRA_CONTACTS=str(new)))
+            good, recipients = verify(dict(texts, newuser=texts[CONTACTS[0]]))
+            result['all'] = dict(run=run, recipients=recipients, passed=good)
+            ok = ok and good
+        result['passed'] = ok
+    finally:
+        cluster.stop()
+    return result
+
+
 def verify(expected):
     """expected: {recipient name: [texts]}. Every delivered envelope must be sealed (no source fields)."""
     result = {}
@@ -223,6 +346,7 @@ def main():
     p.add_argument('--receive', action='store_true', help='also run the authenticated-socket session')
     p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
+    p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
     a = p.parse_args()
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:
@@ -262,6 +386,9 @@ def main():
         if ok and a.signup:
             report['signup'] = run_signup(export, a.mode, texts)
             ok = report['signup']['passed']
+        if ok and a.db:
+            report['db'] = run_db(export, a.mode, texts)
+            ok = report['db']['passed']
         report['passed'] = ok
         if ok:
             KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))

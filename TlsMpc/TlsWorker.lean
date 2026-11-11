@@ -35,7 +35,7 @@ inductive Operation where
   | contactAdmit | publicUpgrade | accountAdmit | accountCredentials | envelopeTake | envelopeDrop
   /- A new contact's first message, from the held envelope: its public part (our prekey ids
   and the Kyber ciphertext), then the session, the text and the contact's record. -/
-  | envelopeOpen | envelopeSession
+  | envelopeOpen | envelopeSession | contactAssign
   deriving Repr, BEq
 
 structure Rpc where

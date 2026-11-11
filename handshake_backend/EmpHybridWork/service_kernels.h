@@ -293,6 +293,14 @@ public:
         need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
         c.record=std::move(out.at("content"));c.ready=false;c.offset=OffsetAgreement{};
     }
+    // Give a contact received under a provisional id its real id (named by the message it
+    // sent). Reply 255, or 0 (and the contact is dropped) if that id is already present.
+    std::vector<uint8_t> contact_assign(const ContactId&from,const ContactId&to){
+        auto it=conversations.find(from);need(!closed&&it!=conversations.end(),"contact assign unavailable");
+        Conversation moved=std::move(it->second);conversations.erase(it);
+        if(conversations.count(to))return {0};
+        conversations[to]=std::move(moved);return {255};
+    }
     // Drop a contact's loaded state, key and cached derived values.
     // TEST FIXTURE: the sender identity admitted with the fixture stays (it is the client's own key, not contact state).
     void contact_evict(const ContactId&id){

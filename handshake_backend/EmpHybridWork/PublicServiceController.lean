@@ -549,6 +549,80 @@ def main (args : List String) : IO Unit := do
         let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
         -- below 2^254, so below the share modulus
         pure (random.data.toList.take 31 ++ [(random.data.toList.getD 31 0) &&& 0x3f])
+      /- The database nodes (SIGNAL_DB_CLIENT: the `handoff_client` of secret-shared-db, with
+      SIGNAL_DB_NETWORK, SIGNAL_DB_KEY and a scratch directory SIGNAL_DB_WORK). Each party
+      runs the client itself: its key shares never leave it. Between the parties go only the
+      parity shares of a read (whose sums must be zero) and small status bytes. A contact's
+      state is one blob, `nonce ‖ check ‖ ciphertext`, which the nodes accept only when both
+      parties submit the same bytes as the next version. -/
+      let dbClient ← liftM (IO.getEnv "SIGNAL_DB_CLIENT" : IO (Option String))
+      let dbEnv (name : String) : M String := do
+        match ← liftM (IO.getEnv name : IO (Option String)) with
+        | some value => pure value
+        | none => throw s!"{name} is required with SIGNAL_DB_CLIENT"
+      let dbWork (name : String) : M String := do pure s!"{← dbEnv "SIGNAL_DB_WORK"}/{name}"
+      let dbTry (arguments : List String) : M Bool := do
+        let some tool := dbClient | throw "no database client"
+        let out ← liftM (IO.Process.output { cmd := tool, args := arguments.toArray })
+        if out.exitCode != 0 then liftM (IO.eprintln s!"database client {arguments.headD ""}: {out.stderr}" : IO Unit)
+        pure (out.exitCode == 0)
+      let db (arguments : List String) : M Unit := do
+        insist (← dbTry arguments) s!"database client failed: {arguments.headD ""}"
+      let dbParty : M (List String) := do
+        pure ["--network", ← dbEnv "SIGNAL_DB_NETWORK", "--key", ← dbEnv "SIGNAL_DB_KEY", "--party", party]
+      let dbJson (name : String) : M Lean.Json := do
+        liftResult (Lean.Json.parse (← liftM (IO.FS.readFile (← dbWork name) : IO String)))
+      -- Each party sends the other its bytes (of any length).
+      let swap (mine : Bytes) : M Bytes := do
+        let size ← rpc.call .exchange (uint 4 mine.length)
+        insist (size.length == 4) "invalid exchange reply"
+        let width := max mine.length (number size)
+        let mut rest := mine ++ List.replicate (width - mine.length) 0
+        let mut theirs : Bytes := []
+        while !rest.isEmpty do
+          theirs := theirs ++ (← rpc.call .exchange (rest.take 60000))
+          rest := rest.drop 60000
+        pure (theirs.take (number size))
+      -- A new nonce for each seal of a contact's state: joint randomness.
+      let nonce : M Bytes := do
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32 && random.take 8 != List.replicate 8 255) "invalid joint randomness"
+        pure (random.take 8)
+      -- Store a contact's sealed state as blob `version`. Counts once all but one node committed it.
+      let dbWrite (contact version : Nat) (authority : List String) : M Bool := do
+        let fresh ← nonce
+        let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
+        insist (stored.length > 16) "invalid stored contact state"
+        let file ← dbWork s!"blob-{contact}"
+        liftM (IO.FS.writeBinFile file ⟨(fresh ++ stored).toArray⟩ : IO Unit)
+        let arguments := ["write-blob"] ++ (← dbParty) ++ authority ++ ["--id", toString contact, "--version", toString version,
+          "--blob-file", file, "--out", ← dbWork s!"write-{contact}.json"]
+        db arguments
+        let _ ← swap [1]   -- both parties have submitted
+        db arguments       -- repeating it reports the commit to whichever party was first
+        pure (((← dbJson s!"write-{contact}.json").getObjValAs? Bool "acknowledged").toOption.getD false)
+      -- Deal this party's half of a new contact's key under the application's signup token
+      -- for that id. The dealt summand is this party's share of the key.
+      let dbDeal (contact : Nat) (token : String) : M (Option Bytes) := do
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let dealt ← dbTry (["deal"] ++ (← dbParty) ++ ["--signup-token", token, "--id", toString contact,
+          "--session", TlsWorkerProcess.hex (random.take 16), "--out", ← dbWork s!"deal-{contact}.json"])
+        let (committed, summand) ← if dealt then do
+            let deal ← dbJson s!"deal-{contact}.json"
+            let nodes := ((deal.getObjValAs? (Array String) "nodes").toOption.getD #[]).toList
+            pure (nodes.map (fun status => if status == "committed" then (1 : UInt8) else 0), (deal.getObjValAs? String "summand").toOption)
+          else pure ([], none)
+        -- A node commits when the second of the two halves reaches it, and tells only that
+        -- party. The parties tell each other which nodes they saw commit; all but one must have.
+        let mine := committed ++ List.replicate (16 - committed.length) 0
+        let theirs ← swap mine
+        let both := (List.zipWith (fun a b => a == 1 || b == 1) mine theirs).filter id
+        match summand with
+        | some summand =>
+          if both.length < 4 then return none
+          return some (← liftResult (fromHex summand))
+        | none => return none
       -- Per contact: id, key share, version of the stored state it was loaded from (0: none).
       let (accept, known, keyed) ← match exportPath with
         | none => do
@@ -569,7 +643,48 @@ def main (args : List String) : IO Unit := do
           -- Contacts that exist only in the store (received in an earlier session).
           let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
             |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
-          let known ← (if credentials.isSome then [] else records ++ extra).mapM (fun (contact, record) => do
+          let wanted := if credentials.isSome then [] else records ++ extra
+          let known ← if dbClient.isSome && !wanted.isEmpty then do
+            -- From the database nodes, under the application's signed request for these ids.
+            let read ← dbWork "read.json"
+            let mine ← dbWork "parity-mine.json"
+            let theirs ← dbWork "parity-theirs.json"
+            let sums ← dbWork "sums.json"
+            let shares ← dbWork "shares.json"
+            db (["read"] ++ (← dbParty) ++ ["--request", ← dbEnv "SIGNAL_DB_REQUEST", "--out", read])
+            db ["parity", "--summands", read, "--out", mine]
+            let received ← swap (← liftM (IO.FS.readBinFile mine : IO ByteArray)).data.toList
+            liftM (IO.FS.writeBinFile theirs ⟨received.toArray⟩ : IO Unit)
+            db ["verify-signatures", "--network", ← dbEnv "SIGNAL_DB_NETWORK", "--reports", theirs]
+            db ["parity-sum", "--mine", mine, "--theirs", theirs, "--out", sums]
+            db ["combine", "--summands", read, "--parity-sums", sums, "--out", shares]
+            let entries (json : Lean.Json) : List Lean.Json := ((json.getObjValAs? (Array Lean.Json) "ids").toOption.getD #[]).toList
+            let entry (json : Lean.Json) (contact : Nat) : Option Lean.Json :=
+              (entries json).find? (fun e => (e.getObjValAs? String "id").toOption == some (toString contact))
+            let readJson ← dbJson "read.json"
+            let sharesJson ← dbJson "shares.json"
+            wanted.mapM (fun (contact, record) => do
+              let share := (entry sharesJson contact).bind (fun e => (e.getObjValAs? String "share").toOption)
+              let blob := ((entry readJson contact).bind (fun e => (e.getObjVal? "blob").toOption)).bind (fun b =>
+                match b.getObjValAs? Nat "version", b.getObjValAs? String "hex" with
+                | .ok version, .ok hex => some (version, hex)
+                | _, _ => none)
+              match share, blob with
+              | some share, some (version, blob) =>
+                let share ← liftResult (fromHex share)
+                let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+                -- Both parties must have been given the same blob: the request is agreed.
+                let _ ← rpc.call .contactOpen (uint 16 contact ++ (← liftResult (fromHex blob)))
+                pure (contact, share, version)
+              | _, _ =>
+                -- TEST: a contact of the export that the database does not have yet is created
+                -- there, under a signup token the harness supplies (SIGNAL_DB_TOKENS/<id>.json).
+                insist (!record.isEmpty) "contact is not in the database"
+                let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
+                let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
+                let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+                pure (contact, share, 0))
+          else wanted.mapM (fun (contact, record) => do
             let file := storeDirectory.map (fun directory => (directory : System.FilePath) / toString contact)
             let saved ← match file with
               | none => pure none
@@ -637,21 +752,49 @@ def main (args : List String) : IO Unit := do
         match oneTime, find keys.signed 6, find keys.kyber 10 with
         | some oneTime, some signed, some kyber =>
           let secret ← decapsulate kyber (opened.drop 14)
-          let contact ← liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
+          -- With the database, the contact's id is named by the message itself; until then
+          -- the contact is held under a provisional id.
+          let provisional := 2 ^ 128 - 1
+          let contact ← if dbClient.isSome then pure provisional else liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
           let result ← rpc.call .envelopeSession (uint 16 contact ++ keys.address ++ signed ++ oneTime ++ secret ++ uint 8 (2 ^ 63))
           if result.head? != some 255 then return none
           insist (result.length ≥ 3 && result.length == 3 + number ((result.drop 1).take 2)) "invalid received text"
+          let text := (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD ""
+          if dbClient.isSome then
+            -- The text is the application's signup token (JSON: id, signature). It names the
+            -- contact's id and is what authorises the database nodes to create it. A token the
+            -- nodes do not accept (forged, or already used) refuses the message.
+            let named := (Lean.Json.parse text).toOption.bind (fun json => (json.getObjValAs? Nat "id").toOption)
+            let refuse (contact : Nat) : M (Option (Nat × String)) := do
+              let _ ← rpc.call .contactEvict (uint 16 contact)
+              return none
+            match named with
+            | none => refuse provisional
+            | some id =>
+              if id ≥ provisional then return ← refuse provisional
+              let token ← dbWork s!"token-{id}.json"
+              liftM (IO.FS.writeFile token text : IO Unit)
+              if (← rpc.call .contactAssign (uint 16 provisional ++ uint 16 id)) != [255] then return none
+              match ← dbDeal id token with
+              | none => refuse id
+              | some share =>
+                let _ ← rpc.call .contactKey (uint 16 id ++ share)
+                -- Stored (acknowledged by the nodes) before the message is acknowledged.
+                if !(← dbWrite id 1 ["--signup-token", token]) then return ← refuse id
+                return some (id, text)
+          else
           -- Stored before it is acknowledged.
           let share ← freshShare
+          let fresh ← nonce
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
-          let stored ← rpc.call .contactSeal (uint 16 contact ++ uint 8 1)
+          let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
           insist (stored.length > 16) "invalid stored contact state"
           match storeDirectory with
           | some directory =>
             liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
-              (TlsWorkerProcess.hex (share ++ uint 8 1 ++ stored) ++ "\n") : IO Unit)
+              (TlsWorkerProcess.hex (share ++ fresh ++ stored) ++ "\n") : IO Unit)
           | none => pure ()
-          return some (contact, (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD "")
+          return some (contact, text)
         | _, _, _ =>
           -- The message names a prekey we do not hold.
           TlsWorker.emptyReply rpc .envelopeDrop []
@@ -740,8 +883,8 @@ def main (args : List String) : IO Unit := do
           for (contact, share, _) in known do
             let _ ← rpc.call .contactKey (uint 16 contact ++ share)
       let reloadContacts : M Unit := do
-        for (contact, share, base) in known do
-          let version := uint 8 (base + 1)
+        for (contact, share, _) in known do
+          let version ← nonce
           let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
           insist (stored.length > 16) "invalid stored contact state"
           let _ ← rpc.call .contactEvict (uint 16 contact)
@@ -749,11 +892,16 @@ def main (args : List String) : IO Unit := do
           let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
+        if dbClient.isSome then
+          -- The next blob version of each contact, under the application's request.
+          for (contact, _, version) in known do
+            insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
+        else
         match storeDirectory with
         | none => pure ()
         | some directory =>
-          for (contact, share, base) in known do
-            let version := uint 8 (base + 2)
+          for (contact, share, _) in known do
+            let version ← nonce
             let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
             insist (stored.length > 16) "invalid stored contact state"
             liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
