@@ -231,6 +231,12 @@ if valid_points<4:raise AssertionError('signature program cases')
 for name,text in texts.items():
     (OUT/(name+'.flat')).write_text(text);digest=hashlib.sha256(text.encode()).hexdigest();pins.append('inline constexpr const char* %s_SHA="%s";'%(name.replace('-','_').upper(),digest))
     report[name]=dict(flat_sha256=digest,products=signature_products[name],cases_checked=valid_points,reference='independent Edwards arithmetic')
+# Constant-depth curve programs (TlsMpc/EdwardsHinted.lean): exported, checked against
+# independent arithmetic and pinned by hinted_program_checks.py.
+import sys;sys.path.insert(0,str(HERE))
+import hinted_program_checks
+hinted_pins,hinted_report=hinted_program_checks.check(lambda name:subprocess.run(['lake','exe','word_mask_emitter',name],cwd=ROOT,check=True,capture_output=True).stdout.decode(),rng)
+pins+=hinted_pins;report.update(hinted_report)
 # Swap-bit derivation from scalar bits (no AND gates).
 text=subprocess.run(['lake','exe','word_mask_emitter','swap-bits'],cwd=ROOT,check=True,capture_output=True).stdout.decode()
 gates,outputs=parse(text,256)

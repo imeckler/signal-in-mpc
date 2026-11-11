@@ -142,12 +142,26 @@ struct FieldTripleStock {
     }
     uint64_t sent()const{uint64_t n=0;for(auto&line:lines)n+=line->player.total_comm().sent;return n;}
 };
+// The library's ProtocolSet (Protocols/ProtocolSet.h) with a choice of its two opening protocols.
+// Indirect (the library's default, and ours): party 1 sends its shares to party 0, which answers
+// with the sums: two message delays per multiplication round or opening. Direct (the library's
+// `--direct`): each party sends its shares to the other at once and adds: one message delay.
+// The values opened and the MAC check on them are the same in both.
+template<class T> struct EngineSet {
+    DataPositions usage;std::unique_ptr<typename T::MAC_Check>owned;typename T::MAC_Check&output;typename T::LivePrep preprocessing;
+    SubProcessor<T>processor;typename T::Protocol&protocol;typename T::Input&input;
+    EngineSet(Player&P,const ProtocolSetup<T>&setup,bool direct):usage(P.num_players()),
+        owned(direct?std::unique_ptr<typename T::MAC_Check>(new typename T::Direct_MC(setup.get_mac_key())):std::make_unique<typename T::MAC_Check>(setup.get_mac_key())),
+        output(*owned),preprocessing(0,usage),processor(output,preprocessing,P),protocol(processor.protocol),input(processor.input){}
+    void check(){protocol.check();output.Check(processor.P);}
+};
 struct FieldEngine::Impl {
     // Destruction order: values, protocol owners, setup, transport, names.
-    Names names;CryptoPlayer player;std::unique_ptr<ProtocolSetup<S>> setup;std::unique_ptr<ProtocolSet<S>> set;std::unique_ptr<FieldTripleStock>stock;
-    std::vector<S> values;uint64_t products=0,local_inputs=0;bool failed=false;const uint64_t owner=next_owner.fetch_add(1);
-    Impl(unsigned p,unsigned port,const std::array<uint8_t,32>*key_share,unsigned batch,unsigned reserve,unsigned lines):names(p,2,"127.0.0.1",port),player(names),
-        setup(make_setup(player,key_share)),set(std::make_unique<ProtocolSet<S>>(player,*setup)){
+    Names names;CryptoPlayer player;std::unique_ptr<ProtocolSetup<S>> setup;std::unique_ptr<EngineSet<S>> set;std::unique_ptr<FieldTripleStock>stock;
+    std::vector<S> values;uint64_t products=0,local_inputs=0,mul_rounds=0,openings=0,input_rounds=0;bool failed=false;const uint64_t owner=next_owner.fetch_add(1);
+    Impl(unsigned p,unsigned port,const std::array<uint8_t,32>*key_share,unsigned batch,unsigned reserve,unsigned lines,const char*peer,bool direct):
+        names(peer?Names(int(p),int(port),std::vector<std::string>{p==0?std::string("127.0.0.1"):std::string(peer),"127.0.0.1"}):Names(p,2,"127.0.0.1",port)),player(names),
+        setup(make_setup(player,key_share)),set(std::make_unique<EngineSet<S>>(player,*setup,direct)){
         if(reserve){stock=std::make_unique<FieldTripleStock>(names,*setup,batch,reserve,lines);set->protocol.init(stock->source,set->output);}
     }
     void require(){if(failed)throw std::runtime_error("native engine poisoned");}
@@ -170,7 +184,7 @@ std::pair<std::array<uint8_t,32>,std::array<uint8_t,32>> FieldEngine::export_sha
     return {element_bytes(x.get_share()),element_bytes(x.get_mac())};
 #endif
 }
-FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::array<uint8_t,32>*mac_key_share,unsigned stock_reserve,unsigned stock_lines){
+FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::array<uint8_t,32>*mac_key_share,unsigned stock_reserve,unsigned stock_lines,const char*peer,bool direct){
     if(party>1||port>65000||batch<1||batch>1000000)throw std::invalid_argument("native identity/port");
     // Exact p, checked OT, no online/preprocessing reuse across owners.
     // In the MASCOT/Fp path MP-SPDZ reads this only as a minimum field-size
@@ -183,7 +197,7 @@ FieldEngine::FieldEngine(unsigned party,unsigned port,unsigned batch,const std::
     OnlineOptions::singleton.verbose=true;
     ProtocolSetup<S>::set_batch_size(batch);
     if(stock_reserve>10000000||stock_lines<1||stock_lines>8)throw std::invalid_argument("triple stock reserve");
-    impl=std::make_unique<Impl>(party,port,mac_key_share,batch,stock_reserve,stock_lines);
+    impl=std::make_unique<Impl>(party,port,mac_key_share,batch,stock_reserve,stock_lines,peer,direct);
 }
 FieldEngine::~FieldEngine(){if(impl){
     // Finish protocol/preprocessing owners before sampling protocol traffic.
@@ -193,6 +207,7 @@ FieldEngine::~FieldEngine(){if(impl){
 }}
 std::array<std::vector<FieldEngine::Handle>,2> FieldEngine::input_coins(const std::vector<uint64_t>&local){
     auto &p=*impl;p.require();try{
+        p.input_rounds++;
         auto &in=p.set->input;in.reset_all(p.player);
         for(auto x:local)in.add_from_all(F(bigint(static_cast<unsigned long>(x))));
         in.exchange();std::array<std::vector<Handle>,2> out;
@@ -204,6 +219,7 @@ std::vector<FieldEngine::Handle> FieldEngine::mul(const std::vector<Handle>&a,co
     auto&p=*impl;p.require();if(a.size()!=b.size())throw std::invalid_argument("native multiply shape");
     try{
         if(p.stock)p.stock->need(a.size());
+        p.mul_rounds++;
         auto &m=p.set->protocol;m.init_mul();
         for(size_t i=0;i<a.size();i++)m.prepare_mul(p.get(a[i]),p.get(b[i]));m.exchange();
         std::vector<Handle>out;for(size_t i=0;i<a.size();i++)out.push_back(p.put(m.finalize_mul()));p.products+=a.size();return out;
@@ -220,6 +236,7 @@ FieldEngine::Handle FieldEngine::divide_public(Handle a,const std::array<uint8_t
 FieldEngine::Handle FieldEngine::public_element(const std::array<uint8_t,32>&v){auto&p=*impl;p.require();return p.put(S::constant(canonical_element(v),p.player.my_num(),p.setup->get_mac_key()));}
 std::array<std::vector<FieldEngine::Handle>,2> FieldEngine::input_elements(const std::vector<std::array<uint8_t,32>>&local){
     auto &p=*impl;p.require();try{
+        p.input_rounds++;
         auto &in=p.set->input;in.reset_all(p.player);
         for(auto&x:local)in.add_from_all(canonical_element(x));
         in.exchange();std::array<std::vector<Handle>,2> out;
@@ -232,9 +249,11 @@ uint64_t FieldEngine::sent_bytes()const{return impl->player.total_comm().sent+(i
 double FieldEngine::stock_waited()const{return impl->stock?impl->stock->waited:0;}
 bool FieldEngine::stocked()const{return bool(impl->stock);}
 uint64_t FieldEngine::products()const{return impl->products;}
+std::array<uint64_t,3> FieldEngine::exchanges()const{return {impl->mul_rounds,impl->openings,impl->input_rounds};}
 void FieldEngine::check(){auto&p=*impl;p.require();try{p.set->check();}catch(...){p.failed=true;throw;}}
 std::vector<std::array<uint8_t,32>> FieldEngine::checked_open(const std::vector<Handle>&a){
     auto&p=*impl;p.require();try{
+        p.openings++;
         p.set->check();auto&o=p.set->output;o.init_open(p.player);
         for(size_t i=0;i<a.size();i++) {
 #ifdef EMP_HYBRID_TEST_FAULTS

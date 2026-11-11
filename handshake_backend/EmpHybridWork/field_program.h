@@ -82,6 +82,27 @@ public:
     }
     unsigned input_count()const{return inputs;}
     unsigned output_count()const{return outputs.size();}
+    // The same program on PUBLIC inputs, evaluated in the clear: no engine and no rounds. For
+    // values both parties know (canonical, little-endian). A division by zero throws.
+    std::vector<std::array<uint8_t,32>> evaluate_clear(const std::vector<std::array<uint8_t,32>>&values)const{
+        if(values.size()!=inputs)throw std::runtime_error("field program arity");
+        BN_CTX*ctx=BN_CTX_new();BIGNUM*p=BN_new();std::vector<BIGNUM*>v(nodes.size(),nullptr);bool ok=ctx&&p&&BN_set_bit(p,255)&&BN_sub_word(p,19);
+        for(unsigned i=0;ok&&i<nodes.size();i++){
+            const auto&n=nodes[i];v[i]=BN_new();ok=v[i]!=nullptr;if(!ok)break;
+            if(n.op=='C')ok=BN_set_word(v[i],n.constant);
+            else if(n.op=='P')ok=BN_lebin2bn(n.wide.data(),32,v[i])!=nullptr;
+            else if(n.op=='I')ok=BN_lebin2bn(values[n.a].data(),32,v[i])!=nullptr&&BN_cmp(v[i],p)<0;
+            else if(n.op=='A')ok=BN_mod_add(v[i],v[n.a],v[n.b],p,ctx);
+            else if(n.op=='S')ok=BN_mod_sub(v[i],v[n.a],v[n.b],p,ctx);
+            else if(n.op=='D')ok=!BN_is_zero(v[n.b])&&BN_mod_inverse(v[i],v[n.b],p,ctx)&&BN_mod_mul(v[i],v[i],v[n.a],p,ctx);
+            else ok=BN_mod_mul(v[i],v[n.a],v[n.b],p,ctx);   // 'M', and 'L'/'R' (a product with a constant)
+        }
+        std::vector<std::array<uint8_t,32>>out;
+        for(auto o:outputs){std::array<uint8_t,32>bytes{};ok=ok&&BN_bn2lebinpad(v[o],bytes.data(),32)==32;out.push_back(bytes);}
+        for(auto x:v)BN_free(x);BN_free(p);BN_CTX_free(ctx);
+        if(!ok)throw std::runtime_error("field program clear evaluation");
+        return out;
+    }
     // Single-output programs: one handle per instance.
     std::vector<FieldEngine::Handle> evaluate(FieldEngine&f,const std::vector<std::vector<FieldEngine::Handle>>&instances)const{
         if(outputs.size()!=1)throw std::runtime_error("field program is multi-output");

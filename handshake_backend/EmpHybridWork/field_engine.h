@@ -24,7 +24,15 @@ public:
     // instance of this engine in a background thread (`stock_lines` of them), in batches of
     // `batch`, keeping up to this many beyond what has been asked for. Both parties must pass
     // the same values.
-    FieldEngine(unsigned party,unsigned port,unsigned batch=10000,const std::array<uint8_t,32>*mac_key_share=nullptr,unsigned stock_reserve=0,unsigned stock_lines=1);
+    // `peer` (null: both parties on this machine, found through the library's coordination
+    // exchange on 127.0.0.1): the address of party 0, which party 1 connects to on `port`
+    // directly; party 0 listens on `port`, party 1 on `port`+1 (for itself only). Both parties
+    // must use the same form.
+    // `direct`: openings (and so multiplication rounds) by each party sending its shares to the
+    // other at once (the library's direct opening), one message delay instead of the two of
+    // the default (party 1 to party 0, and the sums back). Same values, same MAC check. Both
+    // parties must pass the same value.
+    FieldEngine(unsigned party,unsigned port,unsigned batch=10000,const std::array<uint8_t,32>*mac_key_share=nullptr,unsigned stock_reserve=0,unsigned stock_lines=1,const char*peer=nullptr,bool direct=false);
     ~FieldEngine();
     // This party's share of a stored value and of its MAC (value times the MAC key), both
     // canonical. Nothing is checked here: a wrong share or MAC makes any later opening that
@@ -58,6 +66,9 @@ public:
     // Public cost counters: bytes this party has sent, products completed.
     uint64_t sent_bytes()const;
     uint64_t products()const;
+    // Interactive steps so far, each one or more message exchanges with the other party:
+    // multiplication rounds, openings (each with its MAC check), input exchanges.
+    std::array<uint64_t,3> exchanges()const;
     // Seconds multiplications have spent waiting for the triple stock (profile only).
     double stock_waited()const;
     bool stocked()const;

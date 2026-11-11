@@ -418,14 +418,20 @@ about the text. Class 1 is the circuit this kernel was before it had classes.
 The conversation record keeps its layout: its 80-byte plaintext slot holds the
 first block of the content. -/
 def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat) (builtText : Bool := false)
-    (classes : Nat := 1) : Kernel :=
+    (classes : Nat := 1) (official : Bool := false) : Kernel :=
   let size := 80
-  let content := if builtText then PrivateTextNotification.paddedBytes classes else size
+  -- `official` (built text only): the official clients' padding, `80k − 1` padded bytes
+  -- (`PrivateTextNotification.buildOfficial`, CLIENT_FINGERPRINT.md); the kernel is then named
+  -- `signal-seal-official`. The conversation record's 80-byte plaintext slot still takes the
+  -- first 80 bytes after the kind byte.
+  let content := if builtText then (if official then PrivateTextNotification.officialPaddedBytes classes
+    else PrivateTextNotification.paddedBytes classes) else size
   let a := ByteAuth.symbolic
   let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
   let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
   let inputs := [("conversation", Shape.bytes (conversationBytes cert size)),
-    ("text", .bytes (if builtText then PrivateTextNotification.builtBytes classes else 59)),
+    ("text", .bytes (if builtText then (if official then PrivateTextNotification.officialBuiltBytes classes
+      else PrivateTextNotification.builtBytes classes) else 59)),
     ("ephemeralPublic", .word), ("senderPublic", .word), ("ephemeralAgreement", .word), ("staticAgreement", .word)]
   let get := lookup inputs
   let record := get "conversation"
@@ -453,7 +459,7 @@ def signalSealFixed (cert counterWidth previousWidth epochWidth indexWidth : Nat
   let choose := fun next old => ChainSend.selectState a status next old
   let next := sl staged 0 1 ++ choose p.nextCounter i.counter ++ sl staged 5 36 ++ choose p.nextChainKey i.chainKey ++
     choose p.nextPqChainKey i.pqChainKey ++ choose p.nextPqCounter i.pqCounter ++ staged.drop 109
-  { name := if builtText then "signal-seal-built" else "signal-seal-fixed", inputs, outputs := [
+  { name := if builtText then (if official then "signal-seal-official" else "signal-seal-built") else "signal-seal-fixed", inputs, outputs := [
       pub "status" [status], priv "conversation" (certificate ++ next ++ metadata),
       pub "timestamp" (sl text (2 + content) 8), pub "envelope" (ByteAuth.release a status (sealed.drop 1))] }
 
@@ -761,6 +767,14 @@ def find : List String → Option Kernel
           if cert ≤ 1024 && 1 ≤ classes && classes ≤ 4 &&
               1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
             some (signalSealFixed cert cw pw ew iw true classes) else none
+      | _, _, _, _, _, _ => none
+  -- The same with the official padding (`80k − 1` padded content bytes per class k).
+  | ["signal-seal-official", cert, classes, counterWidth, previousWidth, epochWidth, indexWidth] =>
+      match cert.toNat?, classes.toNat?, counterWidth.toNat?, previousWidth.toNat?, epochWidth.toNat?, indexWidth.toNat? with
+      | some cert, some classes, some cw, some pw, some ew, some iw =>
+          if cert ≤ 1024 && 1 ≤ classes && classes ≤ 4 &&
+              1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
+            some (signalSealFixed cert cw pw ew iw true classes true) else none
       | _, _, _, _, _, _ => none
   | ["signal-request-seal", cert, size, uuidAt, keyAt, deviceAt, registrationAt] =>
       match cert.toNat?, size.toNat?, uuidAt.toNat?, keyAt.toNat?, deviceAt.toNat?, registrationAt.toNat? with

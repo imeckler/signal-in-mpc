@@ -127,6 +127,78 @@
       "cases_checked": 8,
       "reference": "independent Edwards arithmetic"
     },
+    "lift-open": {
+      "flat_sha256": "b000958d3b52b076b473882b5b6715a9ac406c39feca53a1c4fd8a38392aec77",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 14,
+      "levels": 5,
+      "opening_levels": 0
+    },
+    "lift-point": {
+      "flat_sha256": "f2d34fef4e9cd79536bd146e03ab19323e16e9116cc5e9148537b8705bbfd6bd",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 26,
+      "levels": 7,
+      "opening_levels": 2
+    },
+    "edwards-prepare-hinted": {
+      "flat_sha256": "d095c5b946a6fabd8368a20e59173f0d41228f65811e9eb6aa128faf1bab4231",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 11083,
+      "levels": 33,
+      "opening_levels": 6
+    },
+    "edwards-offset-sum-fast": {
+      "flat_sha256": "c96f1b02264deccbb72deef9bfcac619ce22c5c74735013e145e68612a702497",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 606,
+      "levels": 16,
+      "opening_levels": 0
+    },
+    "edwards-bit-table": {
+      "flat_sha256": "d28ca741cb4e37a9b0313c61dfe7a99c33d439ff658323860c065ecde37f5837",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 2922,
+      "levels": 14,
+      "opening_levels": 3
+    },
+    "edwards-bit-sum": {
+      "flat_sha256": "c310655ac7f4c20a521d09b5eb1400203591ee37d95e131d8875e1d563b02e9a",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 3011,
+      "levels": 18,
+      "opening_levels": 0
+    },
+    "edwards-affine-bit-sum": {
+      "flat_sha256": "0c9cc5ce5465784e6a1fc46b9767f7da94afca0909f7481869601ece02fb4aea",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 2635,
+      "levels": 19,
+      "opening_levels": 0
+    },
+    "edwards-signature-sum": {
+      "flat_sha256": "d4b7d7e1e7db6e2980221a698383d9f2fb2d7ecb76a95a9962c3da306b47b68f",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 6359,
+      "levels": 21,
+      "opening_levels": 1
+    },
+    "edwards-torsion-hinted": {
+      "flat_sha256": "d6991253a9e1d407dca6d9321468f0932bb1081151b605e550d9fe0af0845376",
+      "cases_checked": 5,
+      "reference": "independent Edwards arithmetic, Montgomery ladder, cryptography X25519",
+      "products": 40,
+      "levels": 11,
+      "opening_levels": 2
+    },
     "swap-bits": {
       "flat_sha256": "6c981ca7f9e63f434d28338d89e1e5768dbc4e9578a05d1956ab6e152fbd60a7",
       "and_gates": 0,
@@ -143,7 +215,7 @@
     "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
     "TlsMpc/X25519Fast.lean": "1027abc173c0a0669833384b6970b572097500adc44c313f7209e92df24fd769",
     "TlsMpc/X25519SwapBits.lean": "99f67472f228979f7d5956e7eb9aee634eeabfb185837dd1f2434b98b0654e6e",
-    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "848c7d78e6829a694afcf4d5dabe34b479c75175b57eb53c5fe2d00c9cf74add"
+    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "e322ce849bee6c2e3b873effdf5f7efdec13eb4fc13184b923946e0004537ade"
   },
   "scope": "Conversion circuits defined and proved in Lean (TlsMpc/WordMask.lean), compiled by the validated gate-level compiler (TlsMpc/BoolDag.lean) and printed from Lean. Checked here against integer arithmetic on boundary and random inputs. The printer, this parser and the C++ loader are outside the Lean theorems."
 }

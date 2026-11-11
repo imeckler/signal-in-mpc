@@ -8,9 +8,10 @@
 //
 // Secret state lives in TlsKernels. This file holds no gate logic: it parses
 // frames, routes public bytes and calls the Lean-exported kernels.
-// Usage: PARTY(0|1) HOSTS(ignored, local) PORT CIRCUIT_CACHE_SCRIPT SESSION_ID_HEX
+// Usage: PARTY(0|1) HOSTS(ignored; the other worker's address is TLS_WORKER_PEER, peer_link.h) PORT CIRCUIT_CACHE_SCRIPT SESSION_ID_HEX
 #include "service_kernels.h"
 #include "big_stack.h"
+#include "peer_link.h"
 #include <cerrno>
 #include <csignal>
 #include <chrono>
@@ -152,7 +153,7 @@ struct Worker {
         case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");return service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));}
         case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
         // Notify path: a send to a contact by id with a public text, then its request frame.
-        case 41:{need(phase==Phase::retired&&service&&p.size()>=16+90&&p.size()<=16+330&&(p.size()-26)%80==0,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 41:{need(phase==Phase::retired&&service&&p.size()>=16+89&&p.size()<=16+330&&((p.size()-26)%80==0||(p.size()-25)%80==0),"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
         case 42:{
             need(phase==Phase::retired&&service&&p.size()>28&&p.size()<=28+16384,"contact request");
             std::vector<size_t>offsets;for(int i=0;i<4;i++)offsets.push_back(big(p.data()+16+2*i,2));
@@ -189,7 +190,7 @@ struct Worker {
             return service->bundle_establish(contact(p),p[28],p[29],p[30],layout,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+16,p.begin()+24));
         }
         // 61: contact id 16, our address 17 (account id, device id), the built text. Reply: timestamp 8, then per device length 2 and envelope.
-        case 61:{need(phase==Phase::retired&&service&&p.size()>=33+90&&p.size()<=33+330&&(p.size()-43)%80==0,"devices send");return service->seal_devices(contact(p),Bytes(p.begin()+16,p.begin()+33),Bytes(p.begin()+33,p.end()));}
+        case 61:{need(phase==Phase::retired&&service&&p.size()>=33+89&&p.size()<=33+330&&((p.size()-43)%80==0||(p.size()-42)%80==0),"devices send");return service->seal_devices(contact(p),Bytes(p.begin()+16,p.begin()+33),Bytes(p.begin()+33,p.end()));}
         // 62: contact id 16, payload start 2, UUID slot 2, access-key slot 2, device count 1, per device its id slot 2 and registration-id slot 2, mask 4, frame.
         case 62:{
             need(phase==Phase::retired&&service&&p.size()>23,"devices request");const size_t n=p[22];need(n>=1&&n<=6&&p.size()>27+4*n&&p.size()<=27+4*n+16384,"devices request");
@@ -207,6 +208,13 @@ struct Worker {
         // 65: contact id 16: the scratch becomes the contact's state. (58 drops it.)
         case 64:{need(phase==Phase::retired&&service&&p.size()==24,"scratch seal");return service->scratch_seal(contact(p),Bytes(p.begin()+16,p.end()));}
         case 65:{need(phase==Phase::retired&&service&&p.size()==16,"scratch commit");service->scratch_commit(contact(p));return {};}
+        // 66: 1 to 64 contact ids (16 each): prepare them for sending, in the same field rounds with
+        // TLS_WORKER_HINTED. Reply: one byte per contact (255 prepared, 0 its key is refused, 1 not loaded).
+        case 66:{
+            need(phase==Phase::retired&&service&&!p.empty()&&p.size()%16==0&&p.size()<=16*64,"contacts prepare");
+            std::vector<ServiceKernels::ContactId>ids;for(size_t i=0;i<p.size();i+=16){ServiceKernels::ContactId id{};std::copy_n(p.begin()+i,16,id.begin());ids.push_back(id);}
+            return service->prepare_batch(ids);
+        }
         case 52:{
             need(phase==Phase::retired&&service&&p.size()==32,"contact assign");ServiceKernels::ContactId to{};std::copy_n(p.begin()+16,16,to.begin());
             return service->contact_assign(contact(p),to);
@@ -372,7 +380,10 @@ static int run(int argc,char**argv){
         // is unchanged. Without the variable nothing changes.
         unsigned link_shift=0;
         if(const char*requested=std::getenv("TLS_WORKER_TEST_LINK_SHIFT")){link_shift=std::stoul(requested);if(link_shift<12||link_shift>1000)return 2;if(party==ALICE)link_shift=0;}
-        NetIO io(party==ALICE?nullptr:"127.0.0.1",port+link_shift,true);ThreadPool threads(4);
+        // The other worker's address (TLS_WORKER_PEER, default 127.0.0.1) and the address this one
+        // listens on (TLS_WORKER_LISTEN, default all interfaces): peer_link.h.
+        const PeerLink link=PeerLink::from_environment();
+        const auto io_owner=link.open(party==ALICE,port+link_shift);NetIO&io=*io_owner;ThreadPool threads(4);
         // The split agreement needs about a dozen field products; the ladder thousands.
         const char*route=std::getenv("TLS_WORKER_KEY_AGREEMENT");const bool ladder=route&&std::string(route)=="ladder";
         if(route&&!ladder&&std::string(route)!="split")return 2;
@@ -399,7 +410,13 @@ static int run(int argc,char**argv){
             if(n<1||a>10000000||b<1||b>8)return 2;
             field_reserve=unsigned(a);field_lines=unsigned(b);
         }
-        FE field(party-1,port+10+link_shift,batch,nullptr,field_reserve,field_lines);
+        // (With the test shift the field engine's parties connect directly, so that its links pass the relay too.)
+        // TLS_WORKER_FIELD_DIRECT=1: the field engine's openings sent by both parties at once (one message
+        // delay per multiplication round instead of two; field_engine.h). 0 (default): as before.
+        // Both workers must be configured alike: the setting is part of every agreed request.
+        bool field_direct=false;
+        if(const char*requested=std::getenv("TLS_WORKER_FIELD_DIRECT")){const std::string value(requested);if(value!="0"&&value!="1")return 2;field_direct=value=="1";}
+        FE field(party-1,port+10+link_shift,batch,nullptr,field_reserve,field_lines,link.remote()?link.field_peer():std::getenv("TLS_WORKER_TEST_LINK_SHIFT")?"127.0.0.1":nullptr,field_direct);
         Challenge channel{io,party,"tls-worker-v3:session="+session};
         auto&profile=Profile::get();
         profile.gates=[&]{return mpc.and_gates();};profile.products=[&]{return field.products();};
@@ -418,6 +435,13 @@ static int run(int argc,char**argv){
         kernels.typed_open=typed_open;
         ServiceKernels service(kernels);worker.service=&service;worker.service_fixture=fixture!=nullptr;
         if(fixture)std::cerr<<"tls-worker-v3 TEST service fixture enabled\n";
+        // TLS_WORKER_HINTED=1: the constant-depth curve programs (TlsMpc/EdwardsHinted.lean, hinted_points.h)
+        // instead of the ladders and chains: a few dozen field rounds where there were thousands. What
+        // they open and where they differ on malformed keys: NEEDS_REVIEW.md. 0 (default): as before.
+        // Both workers must be configured alike: the setting is part of every agreed request.
+        if(const char*requested=std::getenv("TLS_WORKER_HINTED")){const std::string value(requested);if(value!="0"&&value!="1")return 2;service.hinted=value=="1";}
+        if(service.hinted)worker.session+=":hinted";
+        if(field_direct)worker.session+=":field-direct";
         worker.session+=kernels.ladder_agreement?":ladder":":split";
         worker.session+=kernels.typed_open?":typed-open":":scan-open";
         worker.session+=":stock="+std::to_string(factories)+","+std::to_string(factories?stock_batch:0)+","+std::to_string(factories?stock_reserve:0)

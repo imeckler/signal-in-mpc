@@ -23,6 +23,36 @@ class OffsetAgreement {
     static void need(bool ok,const char*what){if(!ok)throw std::runtime_error(what);}
 public:
     bool prepared()const{return ready;}
+    // The same state from the constant-depth preparation (hinted_points.h, EdwardsHinted.prepareHinted):
+    // the table in the same layout, the initial point k0·R and the public K0.
+    void install(std::vector<H>entries,std::vector<H>point,const std::array<uint8_t,32>&key){
+        need(!ready&&entries.size()==2*P::WINDOWS*P::DIGITS&&point.size()==2,"offset agreement state");
+        table=std::move(entries);initial=std::move(point);initial_public=key;ready=true;
+    }
+    // What `step` gives the sum program for a public offset (the initial point, then per window the
+    // entry its signed digit names and the sign), and the ephemeral public key in `u`.
+    std::vector<H> step_inputs(FE&f,std::array<uint8_t,32>offset,std::array<uint8_t,32>&u)const{
+        need(ready,"offset agreement not prepared");offset[31]&=15;
+        std::array<uint8_t,32>shift{},key{};
+        need(crypto_scalarmult_ed25519_base_noclamp(shift.data(),offset.data())==0&&crypto_core_ed25519_add(key.data(),initial_public.data(),shift.data())==0
+            &&crypto_core_ed25519_is_valid_point(key.data())==1&&crypto_sign_ed25519_pk_to_curve25519(u.data(),key.data())==0,"ephemeral public key");
+        std::array<uint8_t,32>minus_one{};minus_one.fill(0xff);minus_one[0]=0xec;minus_one[31]=0x7f;
+        std::vector<H>inputs=initial;int carry=0;
+        for(unsigned w=0;w<P::WINDOWS;w++){
+            int digit=int((offset[w/2]>>(4*(w%2)))&15)+carry;carry=digit>8;digit-=16*carry;
+            const unsigned at=2*(P::DIGITS*w+unsigned(digit<0?-digit:digit)-1);
+            if(digit){inputs.push_back(table.at(at));inputs.push_back(table.at(at+1));inputs.push_back(digit>0?f.constant(1):f.public_element(minus_one));}
+            else{inputs.push_back(f.constant(0));inputs.push_back(f.constant(1));inputs.push_back(f.constant(1));}   // the neutral element
+        }
+        need(!carry,"offset recoding");
+        return inputs;
+    }
+    // The entries 2^i·R, i = 3..254 (x then y): the points an agreement with R sums by scalar bits.
+    std::vector<H> powers()const{
+        need(ready,"offset agreement not prepared");std::vector<H>out;
+        for(unsigned i=3;i<255;i++){const unsigned at=2*(P::DIGITS*(i/4)+(1u<<(i%4))-1);out.push_back(table.at(at));out.push_back(table.at(at+1));}
+        return out;
+    }
     // Once per conversation: each party's private scalar bits go into the `prepare` program
     // with the private recipient key; it returns the table, the shared point k0·R for
     // k0 = kA + kB, and the values that must be zero. The public point K0 = kA·B + kB·B is

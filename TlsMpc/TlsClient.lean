@@ -143,6 +143,7 @@ def processMessage (backend : Backend S) (keys : HandshakeKeys S) (cfg : Config)
   | .certificateVerify =>
       insist (message.kind == 15) "expected CertificateVerify"
       let (scheme, signature) ← liftResult (certificateVerify message.body)
+      insist (cfg.profile == .legacy || libsignalSignatureSchemes.contains scheme) "unoffered CertificateVerify scheme"
       let valid ← backend.authenticate cfg.hostname state.chain scheme (hash state.transcript) signature
       insist valid "server certificate or CertificateVerify validation failed"
       return { state with phase := .finished, transcript := appended, certificateVerified := true }
@@ -193,17 +194,24 @@ structure Session (S : Type) where
 
 def runWithScalar (backend : Backend S) (transport : Transport) (cfg : Config)
     (scalar : S) (share random : Bytes) : M (Session S) := do
-  let firstHello ← liftResult (clientHello cfg random share none cfg.initialKeyShare)
-  transport.send (record 22 firstHello)
+  -- `libsignal` profile: a 32-byte legacy session id as BoringSSL sends (middlebox
+  -- compatibility), and the first record's version TLS 1.0 (BoringSSL's `tls_record_version`
+  -- before the version is known). The client random and the session id are two hashes of the
+  -- joint random value, so neither is a public function of the other.
+  let libsignal := cfg.profile == .libsignal
+  let sessionId := if libsignal then TlsWire.hash (random ++ octets [2]) else []
+  let random := if libsignal then TlsWire.hash (random ++ octets [1]) else random
+  let firstHello ← liftResult (clientHello cfg random share none cfg.initialKeyShare sessionId)
+  transport.send (if libsignal then octets [22, 3, 1] ++ vector 2 firstHello else record 22 firstHello)
   let firstServer ← receiveHello transport cfg cfg.maxRecords []
-  let hello ← liftResult (serverHello firstServer.body)
+  let hello ← liftResult (serverHello firstServer.body sessionId)
   let (hello, transcript) ← if hello.retry then do
       insist (!hello.requestedKey || !cfg.initialKeyShare) "retry requested an already offered key share"
       insist (cfg.initialKeyShare || hello.requestedKey) "retry did not request the missing key share"
-      let secondHello ← liftResult (clientHello cfg random share hello.cookie true)
+      let secondHello ← liftResult (clientHello cfg random share hello.cookie true sessionId)
       transport.send (record 22 secondHello)
       let secondServer ← receiveHello transport cfg cfg.maxRecords []
-      let second ← liftResult (serverHello secondServer.body)
+      let second ← liftResult (serverHello secondServer.body sessionId)
       insist (!second.retry) "second HelloRetryRequest"
       pure (second, handshake 254 (hash firstHello) ++ firstServer.bytes ++ secondHello ++ secondServer.bytes)
     else do

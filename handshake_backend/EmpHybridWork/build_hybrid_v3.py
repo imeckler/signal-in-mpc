@@ -29,7 +29,13 @@ FIXTURES={'word-roundtrip':('word_roundtrip_fixture',[]),'curve':('curve_fixture
     'dyn-run-sh':('dyn_run_fixture',WORD+['-DEMP_HYBRID_SEMI_HONEST=1']),
     # Field engine with a supplied MAC key share and imported authenticated shares.
     'field-import':('field_import_fixture',[]),
-    'field-import-sh':('field_import_fixture',['-DEMP_HYBRID_SEMI_HONEST=1'])}
+    'field-import-sh':('field_import_fixture',['-DEMP_HYBRID_SEMI_HONEST=1']),
+    # The field engine's curve work alone, for measuring rounds over a link with latency.
+    'rounds':('rounds_fixture',WORD),
+    'rounds-sh':('rounds_fixture',WORD+['-DEMP_HYBRID_SEMI_HONEST=1']),
+    # The per-message work of one worker pair between two machines (deployment/vm_pair_test).
+    'pair-bench':('pair_bench_fixture',WORD),
+    'pair-bench-sh':('pair_bench_fixture',WORD+['-DEMP_HYBRID_SEMI_HONEST=1'])}
 # Generic Lean-circuit runner: one binary per pinned circuit profile, since
 # the typed wire values need their widths at compile time.
 for profile in sorted(WORDS.glob('*.json')):

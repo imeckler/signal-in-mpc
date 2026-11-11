@@ -53,6 +53,9 @@ inductive Operation where
   selected connection, after a poll reported it closed (`pollRecord` replies `[0]`), by a fresh
   one to connect and shake hands on again; the other connections are untouched. -/
   | scratchSeal | scratchCommit | resetConnection
+  /- Several loaded contacts prepared for sending in one call (their per-session curve work, in
+  the same field rounds). Payload: the contact ids; reply: one status byte per contact. -/
+  | contactsPrepare
   deriving Repr, BEq
 
 structure Rpc where

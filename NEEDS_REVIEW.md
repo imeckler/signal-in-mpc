@@ -194,6 +194,36 @@ test.
 **Switch.** `SIGNAL_RECOVERY=0` (both nodes) runs the previous send loop, where any such failure
 ends the session. The worker's replies stay as described either way.
 
+## 3a. Client profile `libsignal`: what changes for the server and the nodes (2026-11-11, uncommitted)
+
+Switch: `SIGNAL_CLIENT_PROFILE=libsignal` on both nodes and for circuit production (default
+`legacy`). Comparison and sources: `handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md`.
+
+**What the nodes learn: nothing new.** Every change is to public bytes the controllers already
+build, or to the size of a public length class:
+- The ClientHello's session id and client random are two SHA-256 hashes of the joint random
+  value (`TlsClient.runWithScalar`). Both nodes knew that value already; an outsider sees two
+  unrelated-looking 32-byte values. The ServerHello must now echo the session id.
+- Content padding `80k − 1` (`PrivateTextNotification.buildOfficial`, kernel
+  `signal-seal-official`, `bundle-seal` with `80k − 1`): the envelope still reveals only the size
+  class, now with official boundaries (text length ranges shift down by one byte).
+- Message timestamps from the agreed clock at send time (`restamp` in the controller): public to
+  both nodes, as before.
+
+**What the server learns that it did not:**
+- `psk_key_exchange_modes` is now offered (no PSK is), so a server may send NewSessionTicket; the
+  record parser skips post-handshake handshake messages (section 2), untested with tickets
+  present (the local terminators send none).
+- The authenticated upgrade's username is `uuid.1` (it was `uuid`): the device id, which the
+  server knows anyway.
+- Nothing that weakens a check: the CertificateVerify scheme must now be one the libsignal
+  profile offered (stricter), and no cipher suite or group is offered that we cannot perform.
+
+**Removed under the profile:** the client-initiated TLS KeyUpdate after the first delivered
+message (no security role found; please confirm it was only exercising the key-update path), and
+the 25 s `/v1/keepalive` request on the receive socket (now a WebSocket ping after 31 s; the pong
+is not checked, so a dead connection is noticed only by the next read or by the closing keepalive).
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer

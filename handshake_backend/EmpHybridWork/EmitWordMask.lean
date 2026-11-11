@@ -5,6 +5,7 @@ import TlsMpc.EdwardsShare
 import TlsMpc.EdwardsAffine
 import TlsMpc.EstablishField
 import TlsMpc.ReceiveField
+import TlsMpc.EdwardsHinted
 open TlsMpc TlsMpc.WordMask TlsMpc.BoolDag
 
 /-! Export the conversion-mask circuits as flat gate lists.
@@ -127,7 +128,9 @@ def main (args : List String) : IO Unit := do
     | "xeddsa-check" => pure (renderFieldAll 512 EstablishField.check)
     | "receive-torsion" => pure (renderFieldAll 2 ReceiveField.torsion)
     | "swap-bits" => pure (render X25519SwapBits.circuit 256)
-    | _ => throw (IO.userError "unknown circuit")
+    | other => match EdwardsHinted.find other with   -- the constant-depth curve programs
+      | some (inputs, program) => pure (renderFieldAll inputs program)
+      | none => throw (IO.userError "unknown circuit")
   match rendered with
   | .ok text => (← IO.getStdout).putStr text
   | .error message => throw (IO.userError message)

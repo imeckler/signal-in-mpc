@@ -29,6 +29,7 @@ def code : Operation → Nat
   | .devicesSend => 61 | .devicesRequest => 62 | .devicesOpen => 63
   | .useConnection => 90
   | .scratchSeal => 64 | .scratchCommit => 65 | .resetConnection => 91
+  | .contactsPrepare => 66
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

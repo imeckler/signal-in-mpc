@@ -133,6 +133,14 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
     trust = STATE / 'tls' / 'ca.pem'
     port = 22300 if sh else 22200
     processes, logs, cases = [], [], []
+    # TEST (--link-delay-ms): every link between the two workers through the delay relay. The
+    # connecting worker dials PORT + shift (TLS_WORKER_TEST_LINK_SHIFT), where the relay listens.
+    relay, link_delay = None, float(os.environ.get('SIGNAL_LINK_DELAY_MS', '0'))
+    if link_delay > 0:
+        shift = 40
+        relay = subprocess.Popen([str(base / 'delay-relay'), str(link_delay), f'{port + shift}:{port}', f'{port + 10 + shift}:{port + 10}'],
+                                 stderr=open(output / 'delay-relay.log', 'w'))
+        env['TLS_WORKER_TEST_LINK_SHIFT'] = str(shift)
     started = time.monotonic()
     try:
         for party in range(2):
@@ -161,6 +169,9 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
             p.wait()
         for log in logs:
             log.close()
+        if relay:
+            relay.terminate()   # it writes its connection and byte counts to delay-relay.log
+            relay.wait()
     totals, rejections = [], []
     for party in range(2):
         text = (output / f'party-{party}.log').read_text()
@@ -177,7 +188,7 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
     return result
 
 
-def run_receive(export, mode, delay):
+def run_receive(export, mode, delay, server_port=18443):
     """The authenticated socket in a two-party session. Each controller gets one XOR share of the
     account's socket credentials, so neither could open the socket alone. The controllers answer
     the server's requests and send keepalives; after `delay` seconds (past the server's 90 s idle
@@ -194,11 +205,41 @@ def run_receive(export, mode, delay):
         if all(p.poll() is None for p in processes):
             lss('send', CONTACTS[0], 'sender', 'to the MPC client')
     result = run_mpc(export, mode, {}, party_env=lambda party: dict(SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1'),
-                     during=during)
+                     during=during, server_port=server_port)
     result['delay_seconds'] = delay
     result['passed'] = all(c.get('messages_delivered') == 1 for c in result['controllers']) and (
         delay < 30 or all(c.get('keepalives', 0) >= delay // 30 for c in result['controllers']))
     return result
+
+
+def run_fingerprint(export, mode, texts):
+    """--fingerprint: one send session and one receive session (40 s idle: one keepalive) through
+    scripts/fingerprint_terminator.py on port 18445, which records the raw ClientHello and records
+    and the decrypted upgrade requests and frames; then fingerprint/check_fingerprint.py compares
+    them with the official client's reference (fingerprint/reference/reference.json) and fails on
+    any difference it does not list with a reason (handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md).
+    The transcripts (state/fingerprint/..., local test-account credentials) stay out of the
+    repository; the report holds only redacted shapes."""
+    out = STATE / 'fingerprint' / time.strftime('%Y%m%d-%H%M%S')
+    out.mkdir(parents=True)
+    log = open(out / 'terminator.log', 'w')
+    terminator = subprocess.Popen([sys.executable, '-I', str(SCRIPTS / 'fingerprint_terminator.py'), '--cert', str(STATE / 'tls/server.pem'),
+                                   '--key', str(STATE / 'tls/server.key'), '--listen', '18445', '--out', str(out / 'transcripts')],
+                                  stdout=log, stderr=subprocess.STDOUT)
+    time.sleep(1)
+    try:
+        send = run_mpc(export, mode, texts, server_port=18445)
+        good, recipients = verify(texts)
+        receive = run_receive(export, mode, 40, server_port=18445)
+    finally:
+        terminator.terminate()
+        terminator.wait()
+        log.close()
+    check = subprocess.run([sys.executable, '-I', str(HERE / 'fingerprint/check_fingerprint.py'), str(out / 'transcripts'),
+                            '--out', str(out / 'report.json')], capture_output=True, text=True)
+    fingerprint = json.loads((out / 'report.json').read_text()) if (out / 'report.json').exists() else dict(passed=False, error=check.stderr[-2000:])
+    return dict(capture=str(out), send=send, send_received=dict(passed=good, recipients=recipients), receive=receive,
+                fingerprint=fingerprint, passed=good and receive['passed'] and fingerprint.get('passed', False))
 
 
 def run_signup(export, mode, texts):
@@ -237,11 +278,32 @@ class Cluster:
     `refresh` stands for an epoch passing), plus the application server's keys. The binaries are
     built from the `two-party-handoff` branch checked out at .deps/secret-shared-db-handoff."""
     BIN = ROOT / '.deps/secret-shared-db-handoff/target/debug'
+    # --real-db: the REAL node binary instead (Postgres, peers, consensus, epochs), started by
+    # scripts/start_db_nodes.py; `refresh` then waits for the epoch that makes dealt rows readable.
+    REAL = False
+    REAL_EPOCH_SECS = 20
 
     def __init__(self):
         import shutil, socket
         self.dir = STATE / 'db'
+        self.real = None
+        if (self.dir / 'real').exists():
+            self._nodes_script().stop(self.dir / 'real')   # left over from a run that was killed
         shutil.rmtree(self.dir, ignore_errors=True)
+        self.config = self.dir
+        if self.REAL:
+            script = self._nodes_script()
+            self.BIN = script.DEFAULT_BIN   # pki, server and handoff_client of one revision
+            self.dir.mkdir(parents=True)
+            self.config = self.dir / 'real/config'
+            self.nodes = []
+            started = time.time()
+            state = script.start(self.dir / 'real', self.BIN, 25400, self.REAL_EPOCH_SECS, 1, True, None)
+            self.real = self.dir / 'real'
+            self.network = Path(state['network'])
+            self.waits = dict(start=round(time.time() - started, 1), epochs=[])
+            (self.dir / 'tokens').mkdir()
+            return
         subprocess.run([str(self.BIN / 'pki'), '-n', '5', '-o', str(self.dir), '-d', 'postgresql://unused', '-t', '3', '-l'],
                        check=True, capture_output=True)
         network = json.loads((self.dir / 'relay/network-config.json').read_text())
@@ -265,7 +327,18 @@ class Cluster:
             if not node.stdout.readline().startswith('listening'):
                 raise RuntimeError('database node did not start')
 
+    @staticmethod
+    def _nodes_script():
+        if str(SCRIPTS) not in sys.path:
+            sys.path.insert(0, str(SCRIPTS))
+        import start_db_nodes
+        return start_db_nodes
+
     def refresh(self):
+        if self.real:
+            # Rows dealt so far become readable 1.5 to 2.5 epochs after they were dealt.
+            self.waits['epochs'].append(round(self._nodes_script().wait_epoch(self.real), 1))
+            return
         for node in self.nodes:
             node.stdin.write('refresh\n')
             node.stdin.flush()
@@ -278,14 +351,14 @@ class Cluster:
     def token(self, contact):
         """The application server's signup token for an id."""
         path = self.dir / 'tokens' / f'{contact}.json'
-        self.client('sign-signup', '--app-config', self.dir / 'app-server/config.json', '--id', contact, '--out', path)
+        self.client('sign-signup', '--app-config', self.config / 'app-server/config.json', '--id', contact, '--out', path)
         return path
 
     def request(self, contacts, message):
         """The application server's signed notify request for these ids."""
         path = self.dir / 'request.json'
         (self.dir / 'message.txt').write_text(message)
-        self.client('sign-request', '--key', self.dir / 'app-server/notify-key.json', '--ids', ','.join(str(c) for c in sorted(contacts)),
+        self.client('sign-request', '--key', self.config / 'app-server/notify-key.json', '--ids', ','.join(str(c) for c in sorted(contacts)),
                     '--message-file', self.dir / 'message.txt', '--out', path)
         return path
 
@@ -293,13 +366,15 @@ class Cluster:
         work = self.dir / f'work-{party}'
         work.mkdir(exist_ok=True)
         values = dict(SIGNAL_DB_CLIENT=str(self.BIN / 'handoff_client'), SIGNAL_DB_NETWORK=str(self.network),
-                      SIGNAL_DB_KEY=str(self.dir / f'compute-nodes/{party}/key.json'), SIGNAL_DB_WORK=str(work),
+                      SIGNAL_DB_KEY=str(self.config / f'compute-nodes/{party}/key.json'), SIGNAL_DB_WORK=str(work),
                       SIGNAL_DB_TOKENS=str(self.dir / 'tokens'))
         if request:
             values['SIGNAL_DB_REQUEST'] = str(request)
         return values
 
     def stop(self):
+        if self.real:
+            self._nodes_script().stop(self.real)
         for node in self.nodes:
             node.kill()
             node.wait()
@@ -362,13 +437,13 @@ def run_db(export, mode, texts):
             ok = ok and stored_account
             # F. The application deletes a contact: both parties submit its signed request.
             request = cluster.dir / 'delete.json'
-            cluster.client('sign-delete', '--key', cluster.dir / 'app-server/notify-key.json', '--ids', new, '--out', request)
+            cluster.client('sign-delete', '--key', cluster.config / 'app-server/notify-key.json', '--ids', new, '--out', request)
             controller = ROOT / '.lake/build/bin/public_service_controller'
             parties = [subprocess.Popen([str(controller), 'db-delete', str(party), str(request)], env=dict(os.environ, **cluster.env(party)),
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for party in range(2)]
             outputs = [p.communicate(timeout=120) for p in parties]
             check = cluster.request([new], 'after delete')
-            cluster.client('read', '--network', cluster.network, '--key', cluster.dir / 'compute-nodes/0/key.json', '--party', 0,
+            cluster.client('read', '--network', cluster.network, '--key', cluster.config / 'compute-nodes/0/key.json', '--party', 0,
                            '--request', check, '--out', cluster.dir / 'read-after-delete.json')
             after = json.loads((cluster.dir / 'read-after-delete.json').read_text())
             deleted = all(p.returncode == 0 for p in parties) and str(new) in after.get('missing', []) and not after.get('ids')
@@ -376,6 +451,142 @@ def run_db(export, mode, texts):
             ok = ok and deleted
         result['passed'] = ok
     finally:
+        if cluster.real:
+            result['real_nodes'] = cluster.waits   # seconds: start-up, and each wait for an epoch
+        cluster.stop()
+    return result
+
+
+def run_app(export, mode):
+    """--app: the application end to end, through the two node daemons and the application
+    stand-in only (node_daemon/README.md). After the fixtures below, nothing here starts a
+    controller or signs anything: `notify-app` does what an application server would.
+      A. both daemons start; they keep a receive session running;
+      B. the application issues a signup token for a new id; a new libsignal user sends it to the
+         account; the application learns the id from both daemons;
+      C. notify([the new id, two pre-provisioned contacts], a 200-byte text): all three decrypt
+         it and both daemons report them delivered;
+      D. the same again, every contact's state reloaded from the database nodes;
+      E. delete([the new id]), with the database nodes' signatures checked by the application;
+      F. notify to all three ids: the deleted one is reported unknown, the others are delivered.
+    TEST fixtures (not the daemons' work): the account's row on the database nodes is created by
+    a harness-run session from the export's credentials; the two pre-provisioned contacts are
+    created on the database nodes from the export by the first notify, under tokens issued
+    here; `refresh` stands for a database epoch passing."""
+    import secrets, shutil, signal
+    cluster = Cluster()
+    result, daemons, logs = {}, [], []
+    binaries = ROOT / 'node_daemon/target/debug'
+    directory = STATE / 'app'
+    tool = HERE / 'provision/target/debug/lss-provision'
+    addresses = ['127.0.0.1:19700', '127.0.0.1:19701']
+
+    def app(command, *args):
+        started = time.monotonic()
+        r = subprocess.run([str(binaries / 'notify-app'), command, *map(str, args), '--daemons', ','.join(addresses), '--db-client', cluster.BIN / 'handoff_client',
+                            '--work', directory / 'application', '--key', cluster.config / 'app-server/notify-key.json',
+                            '--app-config', cluster.config / 'app-server/config.json', '--network', cluster.network], capture_output=True, text=True)
+        lines = r.stdout.strip().splitlines()
+        return r.returncode == 0, json.loads(lines[-1]) if lines else {}, round(time.monotonic() - started, 1)
+
+    def notify(label, contacts, text, expected, readers, absent=()):
+        """One notify; `expected`: {id: result}; `readers` must decrypt the text, `absent` must not get it."""
+        (directory / 'message.txt').write_text(text)
+        good, report, seconds = app('notify', '--ids', ','.join(str(c) for c in contacts), '--message-file', directory / 'message.txt', '--timeout', 420)
+        got = {r['id']: r['result'] for r in ((report.get('result') or {}).get('results') or [])}
+        recipients = {}
+        for name in list(readers) + list(absent):
+            seen = receive(name, 4)
+            attributed = [g for g in seen if g['envelope'].get('source_service_id') or g['envelope'].get('source_device')]
+            has = text in [g['text'] for g in seen]
+            recipients[name] = dict(received=len(seen), has_text=has, envelopes_with_source_fields=len(attributed),
+                                    passed=(has == (name in readers)) and not attributed)
+        passed = good and report.get('agreed') and got == {str(c): r for c, r in expected.items()} and all(r['passed'] for r in recipients.values())
+        result[label] = dict(passed=bool(passed), seconds=seconds, results=got, expected={str(c): r for c, r in expected.items()},
+                             agreed=report.get('agreed'), recipients=recipients, application=report)
+        cluster.refresh()
+        return bool(passed)
+
+    try:
+        ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
+        for contact in ids + [ACCOUNT]:
+            cluster.token(contact)
+        # TEST fixture: the account's row. A receive session with the export's credentials, split
+        # between the parties, stores it and ends at once (it expects no message).
+        credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
+        share = secrets.token_bytes(len(credentials))
+        shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
+        fixture = run_mpc(export, mode, {}, party_env=lambda party: dict(
+            cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='0', SIGNAL_LOCAL_KEM=str(tool)))
+        result['account_fixture'] = dict(seconds=round(fixture['elapsed_seconds'], 1), passed=True)
+        cluster.refresh()
+        # A. The daemons. What run_mpc prepared for its session is reused: the certificate checker
+        # and the workers' key material (one directory per kind of session).
+        run(['bash', ROOT / 'node_daemon/build.sh'])
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+        (directory / 'peer.key').write_text(secrets.token_hex(32))
+        prepared = Path(fixture['logs'])
+        for kind in ('send', 'receive'):
+            shutil.copytree(prepared / 'work', directory / f'worker-{kind}')
+        base = ROOT / '.deps/two-party-comparison'
+        for party in range(2):
+            config = dict(
+                party=party, listen=addresses[party], peer=addresses[1 - party], peer_key_file=str(directory / 'peer.key'),
+                state_directory=str(directory / f'node-{party}'), controller=str(ROOT / '.lake/build/bin/public_service_controller'),
+                worker=dict(binary=str(base / ('tls-worker-sh-fixture-v3' if mode == 'semi-honest' else 'tls-worker-fixture-v3')),
+                            send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
+                            hosts=['127.0.0.1', '127.0.0.1'], port_base=23000),
+                circuits=dict(tool=str(CACHE), manifest=os.environ.get('CIRCUIT_MANIFEST')),
+                signal=dict(endpoint='127.0.0.1', port=18443, hostname='server.example', trust_root=str(STATE / 'tls' / 'ca.pem'),
+                            certificate_checker=str(prepared / 'public_auth')),
+                database=dict(client=str(cluster.BIN / 'handoff_client'), network=str(cluster.network),
+                              key=str(cluster.config / f'compute-nodes/{party}/key.json')),
+                test=dict(export=str(EXPORT), tokens=str(cluster.dir / 'tokens'), kem_tool=str(tool)),
+                environment=dict(DYLD_LIBRARY_PATH=str(base / 'data61-MP-SPDZ-113c4e4'), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG)),
+                timeouts=dict(send_seconds=360, send_seconds_per_id=30))
+            (directory / f'node-{party}.json').write_text(json.dumps(config, indent=1))
+            logs.append(open(directory / f'daemon-{party}.log', 'w'))
+            daemons.append(subprocess.Popen([str(binaries / 'node-daemon'), str(directory / f'node-{party}.json')], cwd=ROOT,
+                                            stdout=subprocess.PIPE, stderr=logs[-1], text=True))
+        if not all(d.stdout.readline().startswith('listening') for d in daemons):
+            raise RuntimeError('a node daemon did not start')
+        # B. Signup.
+        new = secrets.randbits(100)
+        good, issued, _ = app('token', '--id', new)
+        lss('signup', 'newuser', '+12025550104', 'sender', issued.get('token', ''))
+        good, events, seconds = app('events', '--wait', 300, '--until-id', new)
+        result['signup'] = dict(passed=good and events.get('signups') == [str(new)] and bool(events.get('agreed')), seconds=seconds, id=str(new),
+                                signups=events.get('signups'))
+        cluster.refresh()
+        ok = result['signup']['passed']
+        everyone, delivered = ids + [new], 'delivered'
+        text = lambda label: (f'Application notify {label}: ' + 'x' * 200)[:200]
+        # C, D.
+        ok = ok and notify('notify', everyone, text('one'), {c: delivered for c in everyone}, CONTACTS + ['newuser'])
+        ok = ok and notify('notify_reloaded', everyone, text('two'), {c: delivered for c in everyone}, CONTACTS + ['newuser'])
+        if ok:
+            # E.
+            good, report, seconds = app('delete', '--ids', new, '--timeout', 120)
+            result['delete'] = dict(passed=good and bool(report.get('agreed')) and report.get('evidence_verified') == [True, True], seconds=seconds,
+                                    application=report)
+            ok = result['delete']['passed']
+        # F.
+        ok = ok and notify('notify_after_delete', everyone, text('three'), dict({c: delivered for c in ids}, **{new: 'unknown contact'}),
+                           CONTACTS, absent=['newuser'])
+        good, status, _ = app('status')
+        result['daemons'] = status
+        result['passed'] = bool(ok)
+    finally:
+        for d in daemons:
+            d.send_signal(signal.SIGTERM)
+        for d in daemons:
+            try:
+                d.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                d.kill()
+        for log in logs:
+            log.close()
         cluster.stop()
     return result
 
@@ -802,23 +1013,23 @@ def stage_identity(mode):
 
 
 def stage_unauthorized(mode):
-    """One contact's profile key changes (its access key with it); another deletes its account.
-    Both sends get 401: with sealed sender the server answers 401, not 404, for an account that
-    no longer exists (OptionalAccess.verify), so both are reported as needing to sign up again."""
-    r, out = Recovery(mode, ('recipient', 'recipient2', 'recipient3')), {}
+    """A contact's profile key changes, and its access key with it: sealed sends get 401 and the
+    contact is reported as needing to sign up again, in that session and in the next.
+    (A deleted account cannot be run here: the local server answers 500 to DELETE /v1/accounts/me,
+    its configuration has no address for a service that deletion calls. By the server's source a
+    sealed send to an account that no longer exists is answered 401 as well, not 404:
+    OptionalAccess.verify. An injected 404 is in the `throttle` stage.)"""
+    r, out = Recovery(mode), {}
 
     def inject(*_):
         r.drain('recipient')
         lss('rotate-access', 'recipient')
-        lss('delete', 'recipient3')
     try:
         every = {name: [D, D] for name in r.names}
         out['created'] = r.check(r.session(), every, {name: TEXTS for name in r.names})
         run = r.session(env=r.pause, during=mid(inject))
-        out['rotated_and_deleted'] = r.check(run, {'recipient': [D, NS], 'recipient2': [D, D], 'recipient3': [D, NS]},
-                                             {'recipient': TEXTS[:1], 'recipient2': TEXTS}, exactly=True)
-        out['after'] = r.check(r.session(), {'recipient': [NS, NS], 'recipient2': [D, D], 'recipient3': [NS, NS]},
-                               {'recipient': [], 'recipient2': TEXTS}, exactly=True)
+        out['rotated'] = r.check(run, {'recipient': [D, NS], 'recipient2': [D, D]}, {'recipient': TEXTS[:1], 'recipient2': TEXTS}, exactly=True)
+        out['after'] = r.check(r.session(), {'recipient': [NS, NS], 'recipient2': [D, D]}, {'recipient': [], 'recipient2': TEXTS}, exactly=True)
     finally:
         r.stop()
     return finish(out)
@@ -849,23 +1060,25 @@ def stage_drop(mode):
 
 
 def stage_throttle(mode):
-    """429 and 503, injected by scripts/fault_proxy.py (the local server has no switch for them):
-    one contact's first send is answered 429 with Retry-After and is delivered on the retry; the
-    other contact's sends are all answered 503 and end as "retry later" after the bounded
-    retries. Then, directly: everyone is delivered (the state stored for the sends that never
-    arrived is consistent)."""
-    r, out = Recovery(mode), {}
+    """429, 503 and 404, injected by scripts/fault_proxy.py (the local server has no switch for
+    them): one contact's first send is answered 429 with Retry-After and is delivered on the
+    retry; another's sends are all answered 503 and end as "retry later" after the bounded
+    retries; a third's are answered 404 and it is reported "gone". Then, directly: everyone is
+    delivered (the state stored for the sends that never arrived is consistent)."""
+    r, out = Recovery(mode, ('recipient', 'recipient2', 'recipient3')), {}
     proxy = FaultProxy()
-    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    every = {name: [D, D] for name in r.names}
     try:
-        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        out['created'] = r.check(r.session(), every, {name: TEXTS for name in r.names})
         proxy.command(f'answer 429 1 0 /v1/messages/{r.aci["recipient"]} 2')
         proxy.command(f'answer 503 99 0 /v1/messages/{r.aci["recipient2"]}')
+        proxy.command(f'answer 404 99 0 /v1/messages/{r.aci["recipient3"]}')
         run = r.session(port=FAULT_TLS)
-        out['throttled'] = r.check(run, {'recipient': [D, D], 'recipient2': [RL, RL]}, {'recipient': TEXTS, 'recipient2': []}, exactly=True,
-                                   events=['answered 429, retry 1 in 2000 ms', 'answered 503, retry 3 in 9000 ms', 'after 3 retries'])
+        out['throttled'] = r.check(run, {'recipient': [D, D], 'recipient2': [RL, RL], 'recipient3': ['gone', 'gone']},
+                                   {'recipient': TEXTS, 'recipient2': [], 'recipient3': []}, exactly=True,
+                                   events=['answered 429, retry 1 in 2000 ms', 'answered 503, retry 3 in 9000 ms', 'after 3 retries', 'answered 404'])
         out['throttled']['injected'] = [row['status'] for row in proxy.rows() if row['action'] == 'answer']
-        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True)
+        out['after'] = r.check(r.session(), every, {name: TEXTS for name in r.names}, exactly=True)
     finally:
         proxy.stop()
         r.stop()
@@ -977,7 +1190,11 @@ def main():
     p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
+    p.add_argument('--real-db', action='store_true', help='the database nodes are the REAL node binary (five `server` processes on a private '
+                   'Postgres instance, with consensus and epochs; scripts/start_db_nodes.py) instead of the in-memory test node')
     p.add_argument('--multi-device', action='store_true', help='also link a second device to a contact and require both devices to decrypt (database nodes)')
+    p.add_argument('--app', action='store_true', help='also the application end to end through the node daemons and the application stand-in '
+                   '(node_daemon/; --runs 0 --app runs only this): signup, notify, notify again, delete, notify')
     p.add_argument('--recovery', default='', help='fault-injection stages, comma separated, each with its own accounts and database nodes '
                    '(--runs 0 --recovery devices runs only that one): ' + ', '.join(RECOVERY_STAGES))
     p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
@@ -990,8 +1207,31 @@ def main():
                    'then run every session in strict mode: only circuits of the manifest, none produced while connected; a refused '
                    'name fails the run (it is a gap in the inventory, CIRCUIT_SHAPES.md)')
     p.add_argument('--strict-produced', action='store_true', help='--strict with the manifest already in state/circuits: nothing is produced')
+    p.add_argument('--profile', choices=['legacy', 'libsignal'], help='SIGNAL_CLIENT_PROFILE for every session (what the server sees; '
+                   'handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md)')
+    p.add_argument('--fingerprint', action='store_true', help='also a send and a receive session through the capturing terminator '
+                   '(scripts/fingerprint_terminator.py, port 18445), checked against the official client\'s reference '
+                   '(fingerprint/check_fingerprint.py); implies --profile libsignal unless --profile is given')
+    p.add_argument('--link-delay-ms', type=float, default=0.0, help='TEST: every link between the two workers goes through '
+                   'scripts/delay_relay.cpp, which delays each direction by this much (round trip = twice this); 1 for a 2 ms round trip')
+    p.add_argument('--hinted', action='store_true', help='TLS_WORKER_HINTED=1 for every session: the constant-depth curve programs, '
+                   'and contacts prepared in batches (PERFORMANCE.md, "Rounds")')
+    p.add_argument('--field-direct', action='store_true', help='TLS_WORKER_FIELD_DIRECT=1 for every session: the field engine\'s '
+                   'openings sent by both workers at once (one message delay per round instead of two)')
     a = p.parse_args()
+    if a.link_delay_ms > 0:
+        run(['c++', '-std=c++17', '-O2', '-pthread', ROOT / 'scripts/delay_relay.cpp', '-o', ROOT / '.deps/two-party-comparison/delay-relay'])
+        os.environ['SIGNAL_LINK_DELAY_MS'] = str(a.link_delay_ms)
+    if a.hinted:
+        os.environ['TLS_WORKER_HINTED'] = '1'
+    if a.field_direct:
+        os.environ['TLS_WORKER_FIELD_DIRECT'] = '1'
+    if a.fingerprint and not a.profile:
+        a.profile = 'libsignal'
+    if a.profile:
+        os.environ['SIGNAL_CLIENT_PROFILE'] = a.profile
     a.strict = a.strict or a.strict_produced
+    Cluster.REAL = a.real_db
     if a.trace:
         os.environ['SIGNAL_LOCAL_TRACE'] = '1'
     os.environ['SIGNAL_LOCAL_BROADCASTS'] = str(max(2, a.broadcasts))
@@ -1036,6 +1276,9 @@ def main():
         if ok and a.receive:
             report['receive'] = run_receive(export, a.mode, a.receive_delay)
             ok = report['receive']['passed']
+        if ok and a.fingerprint:
+            report['fingerprint'] = run_fingerprint(export, a.mode, texts)
+            ok = report['fingerprint']['passed']
         if ok and a.signup:
             report['signup'] = run_signup(export, a.mode, texts)
             ok = report['signup']['passed']
@@ -1056,6 +1299,14 @@ def main():
                 export = json.loads(EXPORT.read_text())
             report['multi_device'] = run_multi_device(export, a.mode, texts)
             ok = report['multi_device']['passed']
+        if ok and a.app:
+            if a.runs or a.signup or a.db or a.multi_device:
+                # As for --db: this flow starts from an export.
+                lss('provision')
+                lss('export-mpc')
+                export = json.loads(EXPORT.read_text())
+            report['app'] = run_app(export, a.mode)
+            ok = report['app']['passed']
         if ok and a.circuits:
             # Its own accounts and export (four contacts); runs last.
             report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db or a.circuits_db)

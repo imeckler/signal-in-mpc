@@ -20,6 +20,7 @@
 #include <deque>
 #include "tls_kernels.h"
 #include "edwards_points.h"
+#include "hinted_points.h"
 #include "../../signal_backend/TextNotificationWork/PublicTextFixture.h"
 #include <openssl/evp.h>
 #include <openssl/sha.h>
@@ -36,7 +37,8 @@ private:
     // (contact-key kernel). The derived values and the offset table are an in-memory cache only.
     // `scalar`: the identity key's 256 bits as private wires (what is stored); `identity`: its
     // ladder swap bits in the field engine (what the agreements use).
-    struct Account {std::vector<H>identity;Wires certificate,sender_public,scalar;};
+    // (`identity_bits`: the same key as field bits 3..253, for the constant-depth programs; `hinted` only.)
+    struct Account {std::vector<H>identity;Wires certificate,sender_public,scalar;std::vector<H>identity_bits;};
     // A contact with a device LIST (MULTI_DEVICE.md) holds one entry per device: its record and,
     // for a session we started that the device has not answered, the `pending` record its
     // messages are built from (kind 1: no one-time prekey was used; 2: one was; 0: established).
@@ -55,13 +57,52 @@ private:
     void keep(Conversation&c,const Wires&conversation){need(conversation.size()==8*(CERT+CONTACT),"conversation shape");c.record=conversation.slice(8*CERT,8*(CERT+CONTACT));}
     void prepare(Conversation&c){
         if(c.ready)return;
+        if(hinted){prepare_hinted({&c});return;}   // constant depth; a key that is not a curve point leaves `ready` false
         auto w=whole(c);auto out=view().run(s,{{"conversation",&w}});c.recipient=k.word_to_field(out.at("recipient"));
         auto&a=of(c);if(!a.sender_public.size())a.sender_public=k.agreement_word(a.identity,f.constant(9));
         c.static_agreement=k.agreement_word(a.identity,c.recipient);c.ready=true;
     }
+    // ---- Constant-depth curve programs (hinted_points.h, TlsMpc/EdwardsHinted.lean), used instead of
+    // the ladders and chains when `hinted` is set (the worker's TLS_WORKER_HINTED; both parties alike).
+    std::unique_ptr<Hinted>fast_;Hinted&fast(){if(!fast_)fast_=std::make_unique<Hinted>();return *fast_;}
+    // A private point lifted from its Montgomery coordinate, with the table of its multiples 2^i·P.
+    struct Curve {Lifted lift;ExtTable table;};
+    std::vector<Curve> curves(const std::vector<H>&us){
+        auto lifted=fast().lift(f,us);std::vector<const Lifted*>list;for(auto&l:lifted)list.push_back(&l);
+        auto tables=fast().tables(f,k.party,list);std::vector<Curve>out;
+        for(size_t i=0;i<lifted.size();i++)out.push_back({lifted[i],std::move(tables[i])});
+        return out;
+    }
+    static Hinted::Job job(const std::vector<H>&bits,const Curve&c){return {&bits,c.lift.zero?nullptr:&c.table,c.lift.valid};}
+    std::vector<Wires> agreed(const std::vector<Hinted::Job>&jobs){
+        std::vector<bool>zero;std::vector<Wires>out;for(auto u:fast().agree(f,k.channel,jobs,zero))out.push_back(word(u));return out;
+    }
+    // A new scalar neither party knows, as field bits.
+    std::vector<H> fresh_bits(){std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}return fast().shared_bits(f,k.circuits,seed);}
+    // Several contacts' per-session values in the same field rounds: the recipient point, the offset
+    // table (EdwardsHinted.prepareHinted) and the long-term agreement, summed from the table.
+    // `false`: that contact's key is not a point of the curve; it stays unprepared, the others are unaffected.
+    std::vector<bool> prepare_hinted(const std::vector<Conversation*>&list){
+        std::vector<OffsetAgreement*>offsets;std::vector<H>recipients;
+        for(auto c:list){
+            auto w=whole(*c);auto out=view().run(s,{{"conversation",&w}});c->recipient=k.word_to_field(out.at("recipient"));
+            c->offset=OffsetAgreement{};offsets.push_back(&c->offset);recipients.push_back(c->recipient);
+        }
+        auto ok=fast().prepare(f,k.channel,k.party,offsets,recipients);
+        std::vector<std::pair<const std::vector<H>*,std::vector<H>>>jobs;std::vector<size_t>live;
+        for(size_t i=0;i<list.size();i++)if(ok[i]){
+            auto&a=of(*list[i]);need(a.identity_bits.size()==Hinted::BITS,"identity key bits");
+            if(!a.sender_public.size()){std::vector<bool>none;a.sender_public=word(fast().agree(f,k.channel,{{&a.identity_bits,&fast().base_table(f),f.constant(1)}},none).at(0));}
+            jobs.push_back({&a.identity_bits,list[i]->offset.powers()});live.push_back(i);
+        }
+        std::vector<bool>zero;auto agreements=fast().agree_affine(f,k.channel,jobs,zero);
+        for(size_t j=0;j<live.size();j++){list[live[j]]->static_agreement=word(agreements[j]);list[live[j]]->ready=true;}
+        return ok;
+    }
     // A message being received: what steps 13-17 need from steps 1-12, all private except the widths.
     struct Rejected {};
-    struct Arrival {Wires message,prekey_valid,verified,sender_identity,uuid,device,ours;H sender_point,base,ratchet;std::string widths;bool one_time=false,held=false;};
+    struct Arrival {Wires message,prekey_valid,verified,sender_identity,uuid,device,ours;H sender_point,base,ratchet;std::string widths;bool one_time=false,held=false;
+        std::vector<Curve>sender_curve;};   // `hinted`: the sender's identity key lifted, with its table (one entry)
     struct ReceivePrograms {
         FieldProgram recover{std::string(EMP_WORD_CIRCUIT_DIR)+"/xeddsa-recover.flat",XEDDSA_RECOVER_SHA};
         FieldProgram check{std::string(EMP_WORD_CIRCUIT_DIR)+"/xeddsa-check.flat",XEDDSA_CHECK_SHA};
@@ -73,12 +114,14 @@ private:
     Arrival arrival;ReceivePrograms programs;
     // The sealed-sender server key as an Edwards point (xeddsa-recover on a public value, so its
     // outputs are public): once per key.
-    std::vector<uint8_t>server_key;H server_x,server_y;Wires server_x_word,server_y_word;
+    std::vector<uint8_t>server_key;H server_x,server_y;Wires server_x_word,server_y_word;ExtTable server_table;
     void server(const std::vector<uint8_t>&key){
         if(key==server_key)return;
         std::array<uint8_t,32>u{};std::copy_n(key.begin(),32,u.begin());u[31]&=127;need(canonical(u),"server key range");
-        auto point=f.checked_open(programs.recover.evaluate_all(f,{{f.public_element(u)}}).at(0));
+        // (`hinted`: the same Lean program on this PUBLIC value evaluated in the clear by each party: no rounds.)
+        auto point=hinted?programs.recover.evaluate_clear({u}):f.checked_open(programs.recover.evaluate_all(f,{{f.public_element(u)}}).at(0));
         std::array<uint8_t,32>one{};one[0]=1;need(point.size()==3&&point[0]==one,"server key is not a curve point");
+        if(hinted)server_table=fast().public_table(f,fast().local.encode(point[1],point[2]));
         server_x=f.public_element(point[1]);server_y=f.public_element(point[2]);
         server_x_word=public_word(point[1]);server_y_word=public_word(point[2]);server_key=key;
     }
@@ -110,6 +153,28 @@ public:
     // Public-receive profile: server records are parsed in the clear by the controllers,
     // which then also track upgrade completion and pending responses. Set before `upgrade`.
     bool public_receive=false;std::vector<uint8_t>accept_bytes,last_request_id;
+    // The constant-depth curve programs instead of the ladders and chains (see `prepare_hinted`). Set by the worker, before any contact or account is admitted.
+    bool hinted=false;
+    // Prepare several loaded contacts for sending (operation 66): with `hinted`, all in the same
+    // field rounds; otherwise one after the other, as their first sends would. Reply: one byte per
+    // contact: 255 prepared, 0 its key is refused (not a point of the curve; `hinted` only: without
+    // it that stops the session, as before), 1 not loaded. A contact not prepared here is prepared
+    // by its first send, as before.
+    std::vector<uint8_t> prepare_batch(const std::vector<ContactId>&ids){
+        need(!closed&&!ids.empty()&&ids.size()<=64,"prepare unavailable");
+        std::vector<uint8_t>reply(ids.size(),1);std::vector<Conversation*>list;std::vector<size_t>at;
+        for(size_t i=0;i<ids.size();i++){
+            auto it=conversations.find(ids[i]);if(it==conversations.end()||it->second.record.size()==0)continue;
+            auto*c=&it->second;
+            if(c->ready&&c->offset.prepared()){reply[i]=255;continue;}
+            if(std::find(list.begin(),list.end(),c)==list.end())list.push_back(c);
+            at.push_back(i);
+        }
+        if(hinted){auto ok=prepare_hinted(list);for(size_t j=0;j<list.size();j++)if(!ok[j])list[j]->ready=false;}
+        else for(auto c:list){prepare(*c);if(!c->offset.prepared())c->offset.prepare(offset_programs,f,k.channel,k.party,c->recipient);}
+        for(auto i:at){auto&c=conversations.at(ids[i]);reply[i]=c.ready&&c.offset.prepared()?255:0;}
+        return reply;
+    }
     // Several connections in one worker (tls_worker_v3.cpp, operation 90): the WebSocket state of
     // ONE connection, swapped with a parked copy when the worker switches connections. Contacts,
     // the account and the envelope or bundle being collected are shared by every connection.
@@ -125,6 +190,7 @@ public:
             auto native=signal_mpc::PublicTextFixture::initial(slot);need(native.size()==32+CERT+CONTACT,"fixture state shape");
             std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(native.begin(),32,secret.begin());
             fixture_accounts.push_back({k.shared_scalar(secret),entered({native.begin()+32,native.begin()+32+CERT}),Wires{}});
+            if(hinted)fixture_accounts.back().identity_bits=fast().shared_bits(f,k.circuits,secret);
             Conversation c;c.fixture=&fixture_accounts.back();c.record=entered({native.begin()+32+CERT,native.end()});
             if(slot==0){auto w=whole(c);auto out=view().run(s,{{"conversation",&w}});ws["requestId"]=std::move(out.at("requestId"));}   // one request-id sequence per connection
             conversations[fixture_id(slot)]=std::move(c);
@@ -140,6 +206,7 @@ public:
         CERT=sender_certificate.size();admitted=true;
         std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(secret_key.begin(),32,secret.begin());
         account.identity=k.shared_scalar(secret);account.certificate=entered(sender_certificate);
+        if(hinted)account.identity_bits=fast().shared_bits(f,k.circuits,secret);
         account.scalar=entered(std::vector<uint8_t>(secret.begin(),secret.end()));
     }
     // ---- The account's own record at rest: identity key (32), socket credentials (account id
@@ -172,6 +239,7 @@ public:
         account.scalar=content.slice(0,256);credentials=content.slice(256,8*fixed);account.certificate=content.slice(8*fixed,content.size());
         // The ladder's swap bits from the scalar's bits (Lean circuit), then into the field engine.
         account.identity=k.bits_to_field(s.run(k.curve.swap_bits,account.scalar));
+        if(hinted)account.identity_bits=k.bits_to_field(account.scalar.slice(3,254));   // scalar bits 3..253, as they are
     }
     // TEST admission of one contact's record (session block and metadata) in the clear, the same way.
     // Stored contacts are loaded with contact_key and contact_open instead.
@@ -211,11 +279,15 @@ public:
             server(server_key);
             const std::string size=std::to_string(sealed.size()/8);
             auto point=shaped("receive-envelope-point "+size).run(s,{{"envelope",&sealed}});
-            auto agreement=k.agreement_word(account.identity,k.word_to_field(point.at("ephemeralPoint")));
+            Wires agreement;
+            if(hinted)agreement=agreed({job(account.identity_bits,curves({k.word_to_field(point.at("ephemeralPoint"))}).at(0))}).at(0);
+            else agreement=k.agreement_word(account.identity,k.word_to_field(point.at("ephemeralPoint")));
             auto ours=k.constant(identity_public);
             auto opened=shaped("receive-unseal-static "+size).run(s,{{"envelope",&sealed},{"ourIdentity",&ours},{"agreement",&agreement}});
             Arrival a;a.sender_point=k.word_to_field(opened.at("senderPoint"));
-            auto second=k.agreement_word(account.identity,a.sender_point);
+            Wires second;
+            if(hinted){a.sender_curve=curves({a.sender_point});second=agreed({job(account.identity_bits,a.sender_curve[0])}).at(0);}
+            else second=k.agreement_word(account.identity,a.sender_point);
             auto&unseal=shaped("receive-unseal-message "+size);
             auto unsealed=unseal.run(s,{{"envelope",&sealed},{"staticValid",&opened.at("staticValid")},{"chain",&opened.at("chain")},{"agreement",&second}});
             auto prefix=unseal.open(s,unsealed,"certificateLength");if(prefix.size()!=2)throw Rejected{};
@@ -234,7 +306,11 @@ public:
                 {"signer",signer},{"now",&time},{"serverX",&server_x_word},{"serverY",&server_y_word}});
             std::vector<H>challenge{server_x,server_y};
             for(auto h:k.bits_to_field(DynSession::concat({&checked.at("flip"),&checked.at("challenge"),&checked.at("scalar")})))challenge.push_back(h);
-            auto r=programs.check.evaluate_all(f,{challenge}).at(0);
+            std::vector<H>r;
+            if(hinted){
+                // The same point as a sum over the public tables of the server key and the base point.
+                const std::vector<H>bits(challenge.begin()+2,challenge.end());auto sum=fast().signatures(f,{{&server_table,&bits}}).at(0);r={sum[0],sum[1]};
+            }else r=programs.check.evaluate_all(f,{challenge}).at(0);
             auto rx=word(r.at(0)),ry=word(r.at(1)),valid=public_word(1);
             auto verified=shaped("receive-certificate-verified").run(s,{{"certificateValid",&checked.at("certificateValid")},{"signature",&checked.at("signature")},
                 {"serverValid",&valid},{"rx",&rx},{"ry",&ry}});
@@ -265,9 +341,23 @@ public:
         Arrival a=std::move(arrival);arrival=Arrival{};
         try{
             // The base key as an Edwards point, and its multiple by the group order (zero when torsion free).
+            Wires base_valid,torsion_x,torsion_y;std::vector<Wires>agreed;
+            if(hinted){
+                // Constant depth (hinted_points.h): the base and ratchet keys lifted, with their tables; the
+                // torsion check by a hint (two private values, zero exactly for a torsion-free point); the
+                // same seven agreements as sums over the tables (the sender key's is held from envelope_open).
+                auto made=curves({a.base,a.ratchet});auto free=fast().torsion(f,k.party,made[0].lift);
+                base_valid=word(made[0].lift.valid);torsion_x=word(free[0]);torsion_y=word(free[1]);
+                const auto ours=fast().public_bits(f,signed_prekey),ratchet=fresh_bits();
+                const auto one_time=a.one_time?fast().public_bits(f,one_time_prekey):std::vector<H>{};
+                std::vector<Hinted::Job>jobs{job(ours,a.sender_curve.at(0)),job(account.identity_bits,made[0]),job(ours,made[0]),job(ours,made[1]),job(ratchet,made[1]),
+                    {&ratchet,&fast().base_table(f),f.constant(1)}};
+                if(a.one_time)jobs.push_back(job(one_time,made[0]));
+                agreed=this->agreed(jobs);
+            }else{
             auto lifted=programs.recover.evaluate_all(f,{{a.base}}).at(0);
             auto order=programs.torsion.evaluate_all(f,{{lifted.at(1),lifted.at(2)}}).at(0);
-            auto base_valid=word(lifted.at(0)),torsion_x=word(order.at(0)),torsion_y=word(order.at(1));
+            base_valid=word(lifted.at(0));torsion_x=word(order.at(0));torsion_y=word(order.at(1));
             auto ours=k.public_scalar(signed_prekey);
             // Our new ratchet key: a scalar neither party knows.
             std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
@@ -277,7 +367,8 @@ public:
             std::vector<std::pair<const std::vector<H>*,H>>jobs{{&ours,a.sender_point},{&account.identity,a.base},{&ours,a.base},{&ours,a.ratchet},
                 {&ratchet,a.ratchet},{&ratchet,f.constant(9)}};
             if(a.one_time)jobs.push_back({&one_time,a.base});
-            auto agreed=k.agreement_words(jobs);
+            agreed=k.agreement_words(jobs);
+            }
             auto&dh1=agreed[0],&dh2=agreed[1],&dh3=agreed[2],&receiving=agreed[3],&sending=agreed[4],&ratchet_public=agreed[5];
             Wires dh4;if(a.one_time)dh4=agreed[6];
             auto&layout=shaped("receive-signal-shape "+a.widths);
@@ -400,7 +491,7 @@ public:
     std::pair<uint64_t,size_t> produce(uint64_t input){
         need((public_receive?started:(upgraded&&!pending))&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
         auto&c=conversations.at(inputs[input-1].first);
-        prepare(c);
+        prepare(c);need(c.ready,"contact key is not a point of the curve");
         std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
         auto ephemeral=k.shared_scalar(seed);
         auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient),mask=k.fresh(4);
@@ -427,13 +518,15 @@ public:
     // The same for a contact by id and a PUBLIC text (the notify path): `text` is the 90-byte
     // message content the controllers built in the clear (the kernel named signal-seal-built).
     std::vector<uint8_t> seal_open(const ContactId&id,const std::vector<uint8_t>&text){
-        // Size class c in 1..4: validity, kind, 80c padded content bytes, timestamp8 (10+80c bytes).
-        need(public_receive&&started&&!closed&&text.size()>=90&&text.size()<=330&&(text.size()-10)%80==0&&conversations.count(id),"send unavailable");
+        // Size class c in 1..4: validity, kind, 80c padded content bytes, timestamp8 (10+80c bytes),
+        // or 80c-1 padded bytes, the official clients' padding (9+80c bytes; CLIENT_FINGERPRINT.md).
+        need(public_receive&&started&&!closed&&text.size()>=89&&text.size()<=330&&((text.size()-10)%80==0||(text.size()-9)%80==0)&&conversations.count(id),"send unavailable");
         return seal_open(id,k.constant(text));
     }
     std::vector<uint8_t> seal_open(const ContactId&id,const Wires&text){
         auto&c=conversations.at(id);need(c.record.size()!=0,"contact state not loaded");
         prepare(c);
+        if(!c.ready)return {0};   // `hinted`: its key is not a point of the curve: this contact's failure, not the session's
         // Ephemeral pair by the offset agreement (edwards_points.h): no ladder per message.
         if(!c.offset.prepared())c.offset.prepare(offset_programs,f,k.channel,k.party,c.recipient);
         std::array<uint8_t,32>offset{};{
@@ -443,7 +536,7 @@ public:
             SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
             for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
         }
-        auto pair=c.offset.step(offset_programs,f,offset);
+        auto pair=hinted?fast().step(c.offset,f,k.channel,offset):c.offset.step(offset_programs,f,offset);
         std::vector<uint8_t>public_bits(255);for(unsigned i=0;i<255;i++)public_bits[i]=(pair.first[i/8]>>(i%8))&1;
         auto ephemeral_public=s.public_bits(public_bits);
         auto ephemeral_agreement=field_to_word(s,f,k.channel,k.circuits,k.take_mask(),pair.second);
@@ -451,7 +544,8 @@ public:
         // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
         auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto w=whole(c);auto flags=widths.run(s,{{"conversation",&w}});
         // A private text input is 59 bytes (signal-seal-fixed); built public content is 10+80c bytes and names its size class c.
-        std::string name=text.size()>=8*90&&(text.size()-8*10)%(8*80)==0?"signal-seal-built "+std::to_string(CERT)+" "+std::to_string((text.size()-8*10)/(8*80)):"signal-seal-fixed "+std::to_string(CERT);
+        std::string name=text.size()>=8*90&&(text.size()-8*10)%(8*80)==0?"signal-seal-built "+std::to_string(CERT)+" "+std::to_string((text.size()-8*10)/(8*80)):
+            text.size()>=8*89&&(text.size()-8*9)%(8*80)==0?"signal-seal-official "+std::to_string(CERT)+" "+std::to_string((text.size()-8*9)/(8*80)):"signal-seal-fixed "+std::to_string(CERT);
         for(auto field:{"counter","previous","epoch","index"}){
             unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
             name+=" "+std::to_string(width);
@@ -542,6 +636,7 @@ private:
         size_t index=0;unsigned step=0;bool one_time=false;
         Values fields,bound,hash,ntt,parts,kem;std::vector<Wires>agreements;
         H identity_point,signed_point,one_time_point;std::vector<H>lifted;Wires identity_valid,identity_x,identity_y;
+        std::vector<Curve>identity_curve;   // `hinted`: the identity key lifted, with its table (one entry)
         std::vector<Device>done;std::vector<uint8_t>statuses;
         // SCRATCH: once every device's status opened to 255 (`ready`), `done` is the contact's new
         // device list, held here and not yet the contact's state. `scratch_seal` seals it for the
@@ -564,7 +659,7 @@ private:
         SHA256(mine.data(),32,commit.data());k.channel.transfer(commit.data(),peer_commit.data(),32);k.channel.transfer(mine.data(),peer.data(),32);
         SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
         for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
-        auto pair=c.offset.step(offset_programs,f,offset);
+        auto pair=hinted?fast().step(c.offset,f,k.channel,offset):c.offset.step(offset_programs,f,offset);
         std::vector<uint8_t>public_bits(255);for(unsigned i=0;i<255;i++)public_bits[i]=(pair.first[i/8]>>(i%8))&1;
         return {s.public_bits(public_bits),field_to_word(s,f,k.channel,k.circuits,k.take_mask(),pair.second)};
     }
@@ -621,7 +716,7 @@ public:
         try{
             switch(step){
             case 0:{
-                prepare(c);
+                prepare(c);if(!c.ready)throw Rejected{};   // `hinted`: the stored key is not a point of the curve
                 // The item and the bytes around it (TlsMpc/BundleItemKernels.lean), cut from the held body at
                 // the item's offset with the widths the kernel declares for its inputs. Its shape depends
                 // on the item alone, not on the size of the body or where the item lies in it.
@@ -642,7 +737,8 @@ public:
                 if(index==0){
                     // The identity key is the same bytes for every device of a response.
                     e.identity_point=k.word_to_field(points.at("identityPoint"));
-                    e.lifted=programs.recover.evaluate_all(f,{{e.identity_point}}).at(0);
+                    if(hinted){e.identity_curve=curves({e.identity_point});auto&l=e.identity_curve[0].lift;e.lifted={l.valid,l.x,l.y};}
+                    else e.lifted=programs.recover.evaluate_all(f,{{e.identity_point}}).at(0);
                     e.identity_valid=word(e.lifted.at(0));e.identity_x=word(e.lifted.at(1));e.identity_y=word(e.lifted.at(2));
                 }
                 e.signed_point=k.word_to_field(points.at("signedPrekeyPoint"));
@@ -655,7 +751,12 @@ public:
                     return in;
                 };
                 auto ec=instance("ecFlip","ecChallenge","ecScalar"),pq=instance("pqFlip","pqChallenge","pqScalar");
-                auto r=programs.check.evaluate_all(f,{ec,pq});   // both signatures in the same rounds
+                std::vector<std::vector<H>>r;   // both signatures in the same rounds
+                if(hinted){
+                    // The same points as sums over the identity key's table (EdwardsHinted.signatureSum).
+                    const std::vector<H>ec_bits(ec.begin()+2,ec.end()),pq_bits(pq.begin()+2,pq.end());const ExtTable&key=e.identity_curve.at(0).table;
+                    for(auto&point:fast().signatures(f,{{&key,&ec_bits},{&key,&pq_bits}}))r.push_back({point[0],point[1]});
+                }else r=programs.check.evaluate_all(f,{ec,pq});
                 auto ec_rx=word(r.at(0).at(0)),ec_ry=word(r.at(0).at(1)),pq_rx=word(r.at(1).at(0)),pq_ry=word(r.at(1).at(1));
                 auto verified=k.cache.get("establish-verified").run(s,{{"identityValid",&e.identity_valid},{"ecRx",&ec_rx},{"ecRy",&ec_ry},{"pqRx",&pq_rx},{"pqRy",&pq_ry},
                     {"signedPrekeySignature",&e.fields.at("signedPrekeySignature")},{"kyberPrekeySignature",&e.fields.at("kyberPrekeySignature")}});
@@ -669,6 +770,16 @@ public:
                 break;
             }
             case 1:{
+                if(hinted){
+                    // The same agreements from tables of the device's keys (the identity key's is held from step 0).
+                    auto base=fresh_bits(),ratchet=fresh_bits();
+                    std::vector<H>us{e.signed_point};if(e.one_time)us.push_back(e.one_time_point);
+                    auto made=curves(us);const Curve&identity=e.identity_curve.at(0);const ExtTable&b=fast().base_table(f);H one=f.constant(1);
+                    std::vector<Hinted::Job>jobs{job(a.identity_bits,made[0]),job(base,identity),job(base,made[0]),job(ratchet,made[0]),{&base,&b,one},{&ratchet,&b,one}};
+                    if(e.one_time)jobs.push_back(job(base,made[1]));
+                    e.agreements=agreed(jobs);
+                    break;
+                }
                 std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
                 auto base=k.shared_scalar(seed);{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
                 auto ratchet=k.shared_scalar(seed);
@@ -757,16 +868,18 @@ public:
     std::vector<uint8_t> seal_devices(const ContactId&id,const std::vector<uint8_t>&local_address,const std::vector<uint8_t>&text){
         auto it=conversations.find(id);
         need(public_receive&&started&&!closed&&it!=conversations.end()&&!it->second.devices.empty()&&local_address.size()==17&&
-            text.size()>=90&&text.size()<=330&&(text.size()-10)%80==0,"send unavailable");
-        auto&c=it->second;prepare(c);
-        auto body=k.constant(text),address=k.constant(local_address);const size_t classes=(text.size()-10)/80;
+            text.size()>=89&&text.size()<=330&&((text.size()-10)%80==0||(text.size()-9)%80==0),"send unavailable");
+        auto&c=it->second;prepare(c);if(!c.ready)return {0};   // `hinted`: as in seal_open
+        // 80c-1 padded bytes: the official clients' padding (CLIENT_FINGERPRINT.md).
+        const bool official=(text.size()-9)%80==0;
+        auto body=k.constant(text),address=k.constant(local_address);const size_t classes=official?(text.size()-9)/80:(text.size()-10)/80;
         std::vector<Wires>next;std::vector<uint8_t>reply;
         for(auto&d:c.devices){
             auto pair=ephemeral(c);
             auto w=DynSession::concat({&of(c).certificate,&d.record});
             auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&w}});
-            std::string name=d.kind==0?"signal-seal-built "+std::to_string(CERT)+" "+std::to_string(classes)
-                :"bundle-seal "+std::to_string(CERT)+(d.kind==2?" 1 ":" 0 ")+std::to_string(80*classes);
+            std::string name=d.kind==0?std::string(official?"signal-seal-official ":"signal-seal-built ")+std::to_string(CERT)+" "+std::to_string(classes)
+                :"bundle-seal "+std::to_string(CERT)+(d.kind==2?" 1 ":" 0 ")+std::to_string(official?80*classes-1:80*classes);
             for(auto field:{"counter","previous","epoch","index"}){
                 unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
                 name+=" "+std::to_string(width);

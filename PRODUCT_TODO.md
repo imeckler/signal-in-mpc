@@ -153,8 +153,9 @@ session by one party (test admission). For the product no one may ever hold the 
       and acknowledged before its message leaves.
   - [x] The recovery path itself (restart, reload, resume the broadcast) is section 4.
 - [x] Message text up to 256 bytes, in four padded size classes.
-  - [ ] Signal's own clients may pad content to 160-byte blocks, not 80: check against the
-        client source and match it ("send what a normal client sends").
+  - [x] Checked against the client source: 80-byte blocks, but padded to `80k − 1` bytes, not
+        `80k` (ours made every envelope 16 bytes longer than any official client's). Matched under
+        `SIGNAL_CLIENT_PROFILE=libsignal` (section 8; CLIENT_FINGERPRINT.md (e)).
 - [ ] Messages from existing contacts: delivery receipts, replies, repeated first messages
       until we reply, session resets. Today anything that is not a new contact's first message
       is refused and acknowledged. The `receiver` record the receive circuits produce is dropped.
@@ -292,28 +293,57 @@ party can block a delete by not forwarding it.
       broadcast's recipients by source address and timing. Decide: who runs it, one connection
       per recipient or per batch, added delay and shuffling. Not started, by instruction.
 - [ ] Review what timing reveals even with a proxy (burst of sends after each notify).
-- [ ] **Being recognisable is separate from being located.** Whatever the exit:
-  - [ ] Compare our TLS ClientHello (cipher and extension lists and their order) and our HTTP
-        and WebSocket headers with what an official Signal client sends, and match them as far
-        as we can honour what we would advertise. A distinctive handshake links every
-        connection we make, through any proxy.
-  - [ ] **Payloads too: the server terminates TLS and sees every request in full.** Capture
-        what an official client sends for the same operations and match it. Known or suspected
-        differences today:
-    - [ ] Request ids count up from 2^63 (links requests within and across connections).
-    - [ ] The send request's JSON pads the device id and registration id with spaces to a fixed
-          width so the engines can fill them in. Needs either a way to insert private values of
-          varying length, or sending the canonical form and revealing those lengths to the nodes.
-    - [ ] Field order in the WebSocket request message; which headers are sent on requests and
-          on the upgrade (user agent and the rest), and in what order. So far only checked
-          against what the local server accepts.
-    - [ ] Content padding block (80 bytes here; official clients may use 160): changes envelope
-          sizes.
-    - [ ] Fields of the data message a real client sets beyond body and timestamp: changes
-          ciphertext length.
-    - [ ] Timestamps within a broadcast are a base plus the recipient's index.
-    - [ ] Behaviour over time: keepalive cadence, replies to the server's own requests, never
-          fetching profiles or syncing, never sending receipts (deliberate, still a pattern).
+- [ ] **Being recognisable is separate from being located.** Whatever the exit. Comparison,
+      reference and ranking: `handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md` (model client
+      Signal-Android; reference derived from libsignal v0.106.1 and BoringSSL source, because
+      libsignal-net cannot be built here: BoringSSL is not vendored). Everything marked done is
+      behind `SIGNAL_CLIENT_PROFILE=libsignal` (the default stays `legacy` until the harness's
+      `--fingerprint` stage passes; then flip `officialProfile`).
+  - [ ] **Regression check:** `check_signal_service_local.py --fingerprint` captures our
+        ClientHello, upgrades and frames (`scripts/fingerprint_terminator.py`) and compares them
+        with `local_signal_server/fingerprint/reference/` (fails on any difference outside its
+        allow-list). Replace the synthetic reference with a real libsignal capture once BoringSSL
+        is vendored (CLIENT_FINGERPRINT.md, first section).
+  - [x] ClientHello: BoringSSL's extension order, 32-byte session id, TLS 1.0 first-record
+        version, libsignal's signature algorithms, `psk_dhe_ke`.
+    - [ ] **Needs new capability:** TLS_AES_256_GCM_SHA384 (SHA-384 key schedule; medium),
+          TLS_CHACHA20_POLY1305_SHA256 (Poly1305 mod 2^130−5; large), P-256/P-384 groups
+          (large). Without them the cipher count and JA3/JA4 still differ.
+  - [ ] **Needs new capability: HTTP/2.** Since libsignal v0.97.1 (2026-07) official clients
+        connect to `grpc.chat.signal.org` with ALPN h2 and run the WebSocket over HTTP/2
+        extended CONNECT; HTTP/1.1 to `chat.signal.org` is now only an out-of-date client's (or
+        a proxied one's) route. Specified in CLIENT_FINGERPRINT.md (c).
+  - [ ] Client Finished seconds after the server's flight (two-party key schedule): visible to
+        the server and any observer; only faster handshake circuits help.
+  - [ ] **Payloads too: the server terminates TLS and sees every request in full.**
+    - [ ] Request ids count up from 2^63 (libsignal: 0 per connection). Not fixed: each id
+          varint width is another request-kernel shape (size classes); specified in
+          CLIENT_FINGERPRINT.md (d).
+    - [ ] The send request's JSON pads the device id and registration id with spaces. Replacement
+          specified, not built (CLIENT_FINGERPRINT.md (d)): canonical digits at a private length
+          inside a fixed-size, TLS-padded record; reveals nothing new to the nodes (revealing the
+          digit counts would leak 1.28 bits of each contact device's registration id).
+    - [x] Field order of the request JSON (libsignal's), no `?story=false`; request protobuf field
+          order and headers already matched.
+    - [x] Upgrade requests: libsignal's header order and case, `uuid.1` username, Signal-Android
+          user agent (`RelayUpgrade.userAgent`, a deployment constant to keep current), no
+          `accept-language`, stories header only on the authenticated socket.
+      - [ ] Owner's decision: `x-signal-receive-stories: false` (most Android users send `true`;
+            `true` makes the server deliver stories, which we would refuse).
+    - [x] Content padding `80k − 1` (it was `80k`: every envelope 16 bytes off). Size classes:
+          `signal-seal-official`, `bundle-seal … 80k−1`; `CircuitInventory` does not list them yet.
+    - [ ] Data-message fields (Android adds expireTimer 0, isViewOnce false, expireTimerVersion,
+          profileKey): not added; the server sees only lengths, and `expireTimer` could reset a
+          recipient's disappearing timer. Owner's decision.
+    - [x] Timestamps: each message stamped from the agreed clock when first sent, increasing,
+          kept on a resend (was base + recipient index, built ahead).
+    - [x] No client-initiated TLS KeyUpdate.
+    - [x] Keepalive on the receive socket: WebSocket ping after 31 s idle, as libsignal.
+      - [ ] The send session's keepalive during a device refresh and the last keepalive of a
+            receive session are still `GET /v1/keepalive` requests; no WebSocket Close at the end.
+    - [ ] Behaviour over time: never fetching profiles or syncing, never sending receipts
+          (deliberate, still a pattern); one session per broadcast. Cheap and allowed: refresh
+          the sender certificate and check prekeys on the authenticated socket periodically.
   - [ ] Few Signal clients arrive from Tor exits, so sealed messages arriving over Tor in one
         window are easy to attribute to one sender even on separate circuits. Exits that
         ordinary users also arrive from would be less conspicuous; the SOCKS mechanism is the

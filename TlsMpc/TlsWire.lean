@@ -56,12 +56,30 @@ def retryRandom : Bytes := octets
   [0xcf,0x21,0xad,0x74,0xe5,0x9a,0x61,0x11,0xbe,0x1d,0x8c,0x02,0x1e,0x65,0xb8,0x91,
    0xc2,0xa2,0x11,0x16,0x7a,0xbb,0x8c,0x5e,0x07,0x9e,0x09,0xe2,0xc8,0xa8,0x33,0x9c]
 
+/-- The verify algorithms libsignal-net sets on BoringSSL (`rust/net/infra/src/tcp_ssl.rs`,
+`set_verify_algorithm_prefs`, libsignal v0.106.1), in its order: Ed25519 first, then
+BoringSSL's default list without SHA-1. Every one is in `signatureSchemes ++ PKCS#1`, so the
+`libsignal` profile offers a subset of what this client verifies. -/
+def libsignalSignatureSchemes : List Nat := [0x0807, 0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
+
+/-- Which ClientHello to send (handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md).
+`legacy`: this client's original minimal hello. `libsignal`: the byte layout of the hello that
+BoringSSL builds for libsignal-net (the official apps' chat connection), restricted to what this
+client can perform: the same record version (TLS 1.0 on the first record), a 32-byte legacy
+session id, BoringSSL's extension order, libsignal's signature algorithms, `psk_dhe_ke` modes;
+but only TLS_AES_128_GCM_SHA256 and X25519 (libsignal also offers AES-256-GCM, ChaCha20-Poly1305,
+P-256 and P-384, which this client cannot perform). -/
+inductive Profile where
+  | legacy | libsignal
+  deriving DecidableEq, BEq, Repr, Inhabited
+
 structure Config where
   hostname : String
   alpn : List String := ["http/1.1"]
   initialKeyShare : Bool := true
   maxHandshakeBytes : Nat := 1048576
   maxRecords : Nat := 4096
+  profile : Profile := .legacy
 
 def Config.valid (c : Config) : Bool :=
   !c.hostname.isEmpty && c.hostname.utf8ByteSize ≤ 253 &&
@@ -69,8 +87,33 @@ def Config.valid (c : Config) : Bool :=
     c.alpn.all (fun name => !name.isEmpty && name.utf8ByteSize < 256) &&
     (c.alpn.map (fun name => name.utf8ByteSize + 1)).sum < 65536
 
+/-- The `libsignal` profile's ClientHello (see `Profile`). Extensions in BoringSSL's
+`kExtensions` order (boringssl 427ec40, the submodule of signalapp/boring signal-v5.3.0,
+`ssl/extensions.cc`) for a TLS-1.3-only client without GREASE, tickets, OCSP or SCT:
+server_name, supported_groups, ALPN, signature_algorithms, key_share, psk_key_exchange_modes,
+supported_versions, then cookie after a HelloRetryRequest. No padding extension (BoringSSL adds
+one only after an empty last extension). -/
+def clientHelloLibsignal (cfg : Config) (random sessionId keyShare : Bytes) (cookie : Option Bytes)
+    (includeKey : Bool) : Except String Bytes := do
+  if !cfg.valid || random.length != 32 || sessionId.length != 32 || keyShare.length != 32 then
+    throw "invalid ClientHello configuration"
+  let host := cfg.hostname.toUTF8.data.toList
+  let sni := extension 0 (vector 2 ([0] ++ vector 2 host))
+  let groups := extension 10 (octets [0,2,0,29])
+  let alpn := if cfg.alpn.isEmpty then [] else extension 16
+    (vector 2 (cfg.alpn.flatMap (fun name => vector 1 name.toUTF8.data.toList)))
+  let sigs := extension 13 (vector 2 (libsignalSignatureSchemes.flatMap (uint 2)))
+  let key := extension 51 (vector 2 (if includeKey then uint 2 29 ++ vector 2 keyShare else []))
+  let modes := extension 45 (octets [1,1])
+  let versions := extension 43 (octets [2,3,4])
+  let cookieExt := match cookie with | none => [] | some b => extension 44 (vector 2 b)
+  let body := octets [3,3] ++ random ++ vector 1 sessionId ++ octets [0,2,0x13,1,1,0] ++
+    vector 2 (sni ++ groups ++ alpn ++ sigs ++ key ++ modes ++ versions ++ cookieExt)
+  return handshake 1 body
+
 def clientHello (cfg : Config) (random keyShare : Bytes) (cookie : Option Bytes := none)
-    (includeKey : Bool := true) : Except String Bytes := do
+    (includeKey : Bool := true) (sessionId : Bytes := []) : Except String Bytes := do
+  if cfg.profile == .libsignal then return ← clientHelloLibsignal cfg random sessionId keyShare cookie includeKey
   if !cfg.valid || random.length != 32 || keyShare.length != 32 then throw "invalid ClientHello configuration"
   let host := cfg.hostname.toUTF8.data.toList
   let sni := extension 0 (vector 2 ([0] ++ vector 2 host))
@@ -91,10 +134,12 @@ structure ServerHello where
   cookie : Option Bytes
   requestedKey : Bool
 
-def serverHello (body : Bytes) : Except String ServerHello := exactly (do
+/-- `sessionId`: the legacy session id the ClientHello sent, which the server must echo
+(empty for the `legacy` profile). -/
+def serverHello (body : Bytes) (sessionId : Bytes := []) : Except String ServerHello := exactly (do
   require ((← readNat 2) == 0x0303) "invalid ServerHello legacy version"
   let random ← read 32
-  require (← readVector 1).isEmpty "ServerHello session ID does not match"
+  require ((← readVector 1) == sessionId) "ServerHello session ID does not match"
   require ((← readNat 2) == 0x1301) "server selected unoffered cipher suite"
   require ((← readNat 1) == 0) "invalid legacy compression"
   let exts ← liftM (extensions (← readVector 2))

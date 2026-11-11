@@ -627,6 +627,11 @@ def keepalive (id : Nat) (mask : List Byte) : Except String (List Byte) := do
   unless message.length < 126 && mask.length == 4 do throw "keepalive shape"
   return clientFrame mask message
 
+/-- A masked WebSocket ping with a one-byte payload, as libsignal-net sends after 31 seconds
+idle (rust/net/infra/src/ws/connection.rs: `Message::Ping(vec![*ping_count])`). -/
+def ping (count : Nat) (mask : List Byte) : List Byte :=
+  [0x89, 0x81] ++ mask ++ [BitVec.ofNat 8 count ^^^ get mask 0]
+
 /-- Queued control replies as (kind, masked frame bytes); the queue is cleared. -/
 def replies (s : State) (mask : List Byte) : Except String (State × List (Nat × List Byte)) := do
   unless get s.control 0 == on do throw "control queue rejected"
@@ -671,16 +676,31 @@ def varint (n : Nat) : List Byte :=
 def field (tag : Nat) (pieces : List Piece) : List Piece :=
   .bytes (BitVec.ofNat 8 tag :: varint (total pieces)) :: pieces
 
+/-- The send body as libsignal-net serializes it (`SendMessageRequest` and
+`SingleOutboundMessageRepresentation` in rust/net/chat/src/ws/messages.rs, serde_json, field
+declaration order): `messages` [`type`, `destinationDeviceId`, `destinationRegistrationId`,
+`content`], `online`, `urgent`, `timestamp`. The device and registration ids are still the
+engines' space-padded slots (3 and 10 bytes), so this is canonical JSON except for those spaces
+(CLIENT_FINGERPRINT.md, section (d)). One entry per envelope, in the contact's device order. -/
+def officialJson (envelopes : List (List Byte)) (timestamp : Nat) : List Piece :=
+  let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
+    [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"type\":6,\"destinationDeviceId\":")), .slot (2 + 2 * index) 3,
+     .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10,
+     .bytes (text ",\"content\":\"" ++ RelayEncoding.base64 PublicReceive.fast envelope ++ text "\"}")]).flatten
+  [.bytes (text "{\"messages\":[")] ++ messages ++
+    [.bytes (text ("],\"online\":false,\"urgent\":true,\"timestamp\":" ++ toString timestamp ++ "}"))]
+
 /-- The masked WebSocket frame with zeroed slots, and the frame offsets of the
 UUID, access-key, device and registration slots. -/
-def build (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) : Except String (List Byte × List Nat) := do
-  let json : List Piece := [
+def build (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) (official : Bool := false) :
+    Except String (List Byte × List Nat) := do
+  let json : List Piece := if official then officialJson [envelope] timestamp else [
     .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 PublicReceive.fast envelope ++
       text "\",\"destinationDeviceId\":"), .slot 2 3,
     .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
     .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
   let request := field 10 [.bytes (text "PUT")] ++
-    field 18 [.bytes (text "/v1/messages/"), .slot 0 36, .bytes (text "?story=false")] ++
+    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
     field 26 json ++ [.bytes (32 :: varint id)] ++
     field 42 [.bytes (text "content-type: application/json")] ++
     field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
@@ -732,17 +752,17 @@ def buildFetch (id : Nat) (mask : List Byte) : Except String (List Byte × Nat �
   assemble (Piece.bytes [8, 1] :: field 18 request) mask 2
 
 /-- `PUT /v1/messages/{uuid}` with one message per device, in the contact's device order. -/
-def buildDevices (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte) :
+def buildDevices (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte) (official : Bool := false) :
     Except String (List Byte × Nat × List Nat) := do
   unless !envelopes.isEmpty do throw "no devices"
   let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
     [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"content\":\"") ++ RelayEncoding.base64 PublicReceive.fast envelope ++
       text "\",\"destinationDeviceId\":"), .slot (2 + 2 * index) 3,
      .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10, .bytes (text ",\"type\":6}")]).flatten
-  let json : List Piece := [.bytes (text "{\"messages\":[")] ++ messages ++
+  let json : List Piece := if official then officialJson envelopes timestamp else [.bytes (text "{\"messages\":[")] ++ messages ++
     [.bytes (text ("],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
   let request := field 10 [.bytes (text "PUT")] ++
-    field 18 [.bytes (text "/v1/messages/"), .slot 0 36, .bytes (text "?story=false")] ++
+    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
     field 26 json ++ [.bytes (32 :: varint id)] ++
     field 42 [.bytes (text "content-type: application/json")] ++
     field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
@@ -1106,6 +1126,19 @@ def parseBench : IO Unit := do
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
   IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
 
+/-- `SIGNAL_CLIENT_PROFILE` (the same on both nodes, and for circuit production):
+`libsignal` makes what the server sees follow the official clients (CLIENT_FINGERPRINT.md):
+libsignal's ClientHello layout, upgrade requests, request JSON, WebSocket pings instead of
+keepalive requests, no client-initiated KeyUpdate, each message's timestamp taken when it is
+sent; `legacy` (the default until the local harness has passed with `libsignal`) keeps the
+original behaviour. -/
+def officialProfile : IO Bool := do
+  match ← IO.getEnv "SIGNAL_CLIENT_PROFILE" with
+  | none => pure false
+  | some "legacy" => pure false
+  | some "libsignal" => pure true
+  | some other => throw (IO.userError s!"SIGNAL_CLIENT_PROFILE must be libsignal or legacy, not {other}")
+
 set_option maxRecDepth 16384 in   -- one long `do` block: the elaborator's default depth is not enough for it
 def main (args : List String) : IO Unit := do
   if args == ["parse-bench"] then
@@ -1127,15 +1160,16 @@ def main (args : List String) : IO Unit := do
     -- The sizes are envelope sizes in bytes. A frame's shape depends on them alone: the timestamp
     -- has 13 digits and request ids count from 2^63 (ten varint bytes).
     let numbers ← sizes.mapM natural
+    let official ← officialProfile
     let mask : List (BitVec 8) := List.replicate 4 0
     let envelope (size : Nat) : List (BitVec 8) := List.replicate size 0
     let parts ← match kind, numbers with
       | "send", [certificate, size] =>
-          match PublicRequest.build (envelope size) 1700000000000 (2 ^ 63) mask with
+          match PublicRequest.build (envelope size) 1700000000000 (2 ^ 63) mask official with
           | .ok (frame, offsets) => pure (["signal-request-ctr", toString certificate, toString frame.length] ++ offsets.map toString)
           | .error e => throw (IO.userError e)
       | "devices", _ :: _ =>
-          match PublicRequest.buildDevices (numbers.map envelope) 1700000000000 (2 ^ 63) mask with
+          match PublicRequest.buildDevices (numbers.map envelope) 1700000000000 (2 ^ 63) mask official with
           | .ok (frame, payloadAt, offsets) =>
               pure (["bundle-request-ctr", toString frame.length, toString payloadAt] ++ offsets.map toString)
           | .error e => throw (IO.userError e)
@@ -1169,6 +1203,12 @@ def main (args : List String) : IO Unit := do
     throw (IO.userError "the database nodes did not confirm the delete")
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
+  -- The client profile (`officialProfile` above): what the server sees.
+  let official ← officialProfile
+  let tlsConfig : TlsWire.Config := { hostname, alpn := ["http/1.1"], profile := if official then .libsignal else .legacy }
+  let anonymousUpgrade (nonce : List (BitVec 8)) : List (BitVec 8) :=
+    if official then RelayUpgrade.anonymousRequest PublicReceive.fast nonce
+    else RelayUpgrade.legacyAnonymousRequest PublicReceive.fast nonce
   let certificate ← IO.mkRef false
   let operations ← IO.mkRef ([] : List Nat)
   let revealed ← IO.mkRef 0
@@ -1214,6 +1254,12 @@ def main (args : List String) : IO Unit := do
   let recoveryUsed ← IO.mkRef false
   let results ← IO.mkRef ([] : List Recovery.Entry)
   let recoveryLog ← IO.mkRef ([] : List String)
+  -- The application's notify through the node daemon (node_daemon/README.md):
+  -- SIGNAL_NOTIFY_MESSAGE_FILE holds the message text, and the session's contacts are the ids of
+  -- the signed request (SIGNAL_DB_REQUEST). A requested id that the database nodes do not hold,
+  -- or do not serve until their next epoch (`true`), is left out of the session and reported.
+  let notifyFile ← IO.getEnv "SIGNAL_NOTIFY_MESSAGE_FILE"
+  let absent ← IO.mkRef ([] : List (Nat × Bool))
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
     hostsFile := hosts,port := ← natural basePort,manifestFile := manifest,sessionId := ← sessionBytes session }
@@ -1230,7 +1276,7 @@ def main (args : List String) : IO Unit := do
       running.rpc.call op input}
     let action : M Nat := do
       TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if credentials.isSome then none else some 0))
-      let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) {hostname,alpn := ["http/1.1"]}
+      let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) tlsConfig
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
       -- The worker's selected connection (`active`) and the one this controller is using
       -- (`current`, its TLS session in `apps`). Connection 0 never selects unless there are more.
@@ -1444,11 +1490,35 @@ def main (args : List String) : IO Unit := do
           let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
             |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
           let wanted := if credentials.isSome then [] else records ++ extra
+          -- Through the daemon: exactly the ids of the application's signed request, whose message
+          -- hash must be the text's. (TEST: an id of the export is still created from it.)
+          let wanted ← match notifyFile, credentials with
+            | some file, none => do
+              let text ← liftM (IO.FS.readFile file : IO String)
+              let request ← liftResult (Lean.Json.parse (← liftM (IO.FS.readFile (← dbEnv "SIGNAL_DB_REQUEST") : IO String)))
+              let ids := ((request.getObjValAs? (Array String) "ids").toOption.getD #[]).toList.filterMap String.toNat?
+              insist (!ids.isEmpty) "the notify request lists no ids"
+              let signedFor ← liftResult (fromHex ((request.getObjValAs? String "message_hash").toOption.getD ""))
+              insist (signedFor == TlsWire.hash text.toUTF8.data.toList) "the message is not the one the notify request was signed for"
+              pure (ids.map (fun id => (id, ((records.find? (·.1 == id)).map (·.2)).getD [])))
+            | _, _ => pure wanted
           let known ← if dbClient.isSome && !wanted.isEmpty then do
             -- From the database nodes, under the application's signed request for these ids.
             let (readJson, sharesJson) ← dbRead ["--request", ← dbEnv "SIGNAL_DB_REQUEST"] "contacts"
             -- A contact created moments ago is not served until the nodes' next epoch.
             let waiting := ((readJson.getObjValAs? (Array String) "not_yet_readable").toOption.getD #[]).toList
+            -- Through the daemon, such an id, and one the nodes do not hold at all (unless the
+            -- TEST export can create it), is that id's result and not the session's end. Both
+            -- parties must have found the same ones.
+            let wanted ← if notifyFile.isNone then pure wanted else do
+              let gone := wanted.filterMap (fun (contact, record) =>
+                if waiting.contains (toString contact) then some (contact, true)
+                else if record.isEmpty && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
+                else none)
+              let mine := TlsWire.hash (gone.flatMap (fun (contact, later) => uint 16 contact ++ [(if later then 1 else 0 : UInt8)]))
+              insist ((← swap mine) == mine) "the two parties' database reads differ"
+              liftM (absent.set gone : IO Unit)
+              pure (wanted.filter (fun (contact, _) => !gone.any (·.1 == contact)))
             insist (wanted.all (fun (contact, _) => !waiting.contains (toString contact))) "a contact is not readable until the database's next epoch"
             wanted.mapM (fun (contact, record) => do
               let share := dbShare sharesJson contact
@@ -1512,7 +1582,7 @@ def main (args : List String) : IO Unit := do
           | none =>
             let upgrade ← rpc.call .publicUpgrade []
             insist (upgrade.length == 44) "invalid public upgrade receipt"
-            sendPublic (toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16))))
+            sendPublic (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
             pure (upgrade.drop 16, known, true)
       let contacts := known.map (·.1)
       -- Receiving (authenticated socket with an export): a delivered sealed-sender envelope is
@@ -1604,7 +1674,12 @@ def main (args : List String) : IO Unit := do
         | some keys =>
           if kind == 6 && size > 0 then
             match ← receiveFirst keys with
-            | some entry => liftM (received.modify (· ++ [entry]) : IO Unit)
+            | some entry =>
+              liftM (received.modify (· ++ [entry]) : IO Unit)
+              -- For the node daemon (SIGNAL_LOCAL_EVENTS): the id that signed up, as soon as it is stored.
+              if (← liftM (IO.getEnv "SIGNAL_LOCAL_EVENTS" : IO (Option String))).isSome then
+                liftM (IO.println (Lean.Json.mkObj [("event", toJson "signup"), ("id", toJson (toString entry.1))]).compress : IO Unit)
+                liftM ((do (← IO.getStdout).flush) : IO Unit)
             | none => liftM (refused.modify (· + 1) : IO Unit)
           else
             -- Not a sealed-sender message: not supported, dropped.
@@ -1734,6 +1809,27 @@ def main (args : List String) : IO Unit := do
         | some path => do pure (some (← liftResult (readSelf (← liftM (IO.FS.readFile path : IO String)))))
         | none => pure none
       let lastSent ← liftM (IO.mkRef (none : Option (Nat × Bytes)) : IO (IO.Ref (Option (Nat × Bytes))))
+      -- libsignal profile: a message's timestamp is the agreed clock when it is first sent (an
+      -- official client stamps each message when it is sent; a broadcast built ahead with
+      -- base + index drifts ever further behind the server's clock), strictly increasing within
+      -- the session, and kept when the same message is sent again (a resend after a device
+      -- refresh). The built content is rebuilt from its text with the new timestamp: the same
+      -- size class, since the timestamp's varint keeps its width. `bodies`: built content → text,
+      -- for the content `notify` built; `stamped`: contents already restamped.
+      let bodies ← liftM (IO.mkRef ([] : List (Bytes × Bytes)) : IO (IO.Ref (List (Bytes × Bytes))))
+      let stamped ← liftM (IO.mkRef ([] : List Bytes) : IO (IO.Ref (List Bytes)))
+      let lastStamp ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
+      let restamp (send : Nat × Bytes) : M (Nat × Bytes) := do
+        if !official then return send
+        if (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).isSome then return send
+        if (← liftM (stamped.get : IO (List Bytes))).contains send.2 then return send
+        let some (_, body) := (← liftM (bodies.get : IO (List (Bytes × Bytes)))).find? (·.1 == send.2) | return send
+        let now := max (← agreedNow) ((← liftM (lastStamp.get : IO Nat)) + 1)
+        liftM (lastStamp.set now : IO Unit)
+        let some (_, built) := PrivateTextNotification.buildPublicOfficial 4 (toBits body) (toBits (uint 8 now)) | throw "message text rejected"
+        insist (built.length == send.2.length) "a new timestamp changed the message's size class"
+        liftM (stamped.modify (fun list => toBytes built :: list) : IO Unit)
+        pure (send.1, toBytes built)
       -- One send to a contact with a device list (MULTI_DEVICE.md, section 5): the engines
       -- produce one envelope per device, all for the same built text; the state is stored
       -- before anything leaves, as for one device; then one request carries all of them.
@@ -1754,7 +1850,7 @@ def main (args : List String) : IO Unit := do
         insist rest.isEmpty "invalid sealed envelopes reply"
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
-        let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)))
+        let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) official)
         -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
         insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
         let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
@@ -1762,6 +1858,7 @@ def main (args : List String) : IO Unit := do
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
       let sendMessage (send : Nat × Bytes) (id : Nat) : M Unit := do
+        let send ← restamp send
         liftM (lastSent.set (some send) : IO Unit)
         if (← kindsOf send.1) != [0] then return ← sendDevices send id
         let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
@@ -1772,7 +1869,7 @@ def main (args : List String) : IO Unit := do
         insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
-        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
         let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
@@ -1894,6 +1991,26 @@ def main (args : List String) : IO Unit := do
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
           openState contact (version ++ stored)
         requireLoaded
+      -- Before a contact's first send of the session: its per-session curve work (the table its
+      -- messages' key agreements are summed from) together with that of the contacts that follow
+      -- it, in one worker call whose field rounds they share: the latency of a few dozen rounds
+      -- once per batch instead of per contact. Only with the workers' constant-depth programs
+      -- (TLS_WORKER_HINTED=1); without them each contact is prepared by its own first send, as
+      -- before. An optimisation, never a decision: a contact the call does not prepare (status
+      -- other than 255: its key is refused, or it is not loaded) is prepared or refused by its
+      -- own send, with that path's per-contact outcome. The contact's state is still stored
+      -- before each of its sends; nothing here changes it.
+      -- SIGNAL_PREPARE_BATCH: contacts per call (default 32, at most 64; 0: never).
+      let preparedContacts ← liftM (IO.mkRef ([] : List Nat) : IO (IO.Ref (List Nat)))
+      let ensurePrepared (contact : Nat) (upcoming : List Nat) : M Unit := do
+        if (← liftM (IO.getEnv "TLS_WORKER_HINTED" : IO (Option String))) != some "1" then return
+        let size := min 64 (((← liftM (IO.getEnv "SIGNAL_PREPARE_BATCH" : IO (Option String))).bind String.toNat?).getD 32)
+        let done ← liftM (preparedContacts.get : IO (List Nat))
+        if size == 0 || done.contains contact then return
+        let batch := ((contact :: upcoming).eraseDups.filter (fun c => !done.contains c)).take size
+        let statuses ← rpc.call .contactsPrepare (batch.flatMap (uint 16))
+        insist (statuses.length == batch.length) "invalid contacts-prepare reply"
+        liftM (preparedContacts.modify (· ++ batch) : IO Unit)
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
         if dbClient.isSome then pure ()   -- stored before each send (storeAdvanced)
@@ -1923,8 +2040,11 @@ def main (args : List String) : IO Unit := do
         -- (`PrivateTextNotification.buildPublic`: the smallest of the four size classes that
         -- holds the content; texts of at most 48 bytes get exactly what `build` gave them).
         ids.zipIdx.mapM (fun (contact, index) => do
-          let (classes, built) := (PrivateTextNotification.buildPublic 4 (toBits body) (toBits (uint 8 (timestamp + index)))).getD (0, [])
-          insist (1 ≤ classes && classes ≤ 4 && built.length == 10 + 80 * classes && built.head? == some 255) "message text rejected"
+          -- (libsignal profile: the official padding, 80c − 1 bytes, `buildPublicOfficial`.)
+          let (classes, built) := ((if official then PrivateTextNotification.buildPublicOfficial else PrivateTextNotification.buildPublic)
+            4 (toBits body) (toBits (uint 8 (timestamp + index)))).getD (0, [])
+          insist (1 ≤ classes && classes ≤ 4 && built.length == (if official then 9 else 10) + 80 * classes && built.head? == some 255) "message text rejected"
+          if official then liftM (bodies.modify (fun list => (toBytes built, body) :: list) : IO Unit)
           pure (contact, toBytes built))
       let inputs ← match exportPath with
         | none => do
@@ -1936,6 +2056,11 @@ def main (args : List String) : IO Unit := do
           -- Two broadcasts to every contact. The timestamp is public and must be the same
           -- for both controllers, so the harness supplies it.
           let base ← agreedNow
+          -- Through the daemon: the application's one message, to the requested ids the database holds.
+          if let some file := notifyFile then
+            let text ← liftM (IO.FS.readFile file : IO String)
+            notify contacts text base
+          else
           -- Further broadcasts on request (SIGNAL_LOCAL_BROADCASTS, for measuring the cost per message).
           let count := ((← liftM (IO.getEnv "SIGNAL_LOCAL_BROADCASTS" : IO (Option String))).bind String.toNat?).getD 2
           let more ← ((List.range (count - 2)).mapM (fun k => notify contacts
@@ -1959,7 +2084,7 @@ def main (args : List String) : IO Unit := do
         for index in [1:sendCircuits] do
           let on := TlsWorker.onConnection rpc active index
           TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
-          let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) {hostname,alpn := ["http/1.1"]}
+          let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) tlsConfig
           insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
           let waitingFor ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
           let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on waitingFor)))
@@ -1969,7 +2094,7 @@ def main (args : List String) : IO Unit := do
             TlsApplication.send session ⟨number handle⟩ bytes.length
           let upgrade ← on.call .publicUpgrade []
           insist (upgrade.length == 44) "invalid public upgrade receipt"
-          sendOn (toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16))))
+          sendOn (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
           let mut s : PublicReceive.State := { PublicReceive.start (toBits (upgrade.drop 16)) with lenient := exportPath.isSome }
           let mut fuel := 64
           while !s.upgraded do
@@ -2049,7 +2174,8 @@ def main (args : List String) : IO Unit := do
                 insist (!complete || !s.lenient || (200 ≤ s.status && s.status < 300)) s!"service response was not a success: {s.status}"
                 pure s
             let finished := completed + (if complete then 1 else 0)
-            if complete && finished == 1 then TlsApplication.keyUpdate (← appNow) false
+            -- (No KeyUpdate of our own under the libsignal profile: BoringSSL never sends one.)
+            if complete && finished == 1 && !official then TlsApplication.keyUpdate (← appNow) false
             if s.upgraded && !s.pending then
               match inputs with
               | [] => insist (finished > 0) "private provider supplied no requests"; return finished
@@ -2058,6 +2184,8 @@ def main (args : List String) : IO Unit := do
                 let id := 2 ^ 63 + finished
                 if finished == 0 then keyContacts
                 if finished == 2 then reloadContacts
+                if finished == 2 then liftM (preparedContacts.set [] : IO Unit)   -- reloaded contacts are unprepared
+                ensurePrepared input.1 (tail.map (·.1))
                 -- Several circuits: the contact's connection, its parser state and request id.
                 let (s, id) ← toCircuit s input.1 id
                 sendMessage input id
@@ -2114,13 +2242,13 @@ def main (args : List String) : IO Unit := do
       let openConnection (index : Nat) : M PublicReceive.State := do
         let on := TlsWorker.onConnection rpc active index
         TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
-        let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) {hostname,alpn := ["http/1.1"]}
+        let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) tlsConfig
         insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
         let slot ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
         let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on slot)))
         let upgrade ← on.call .publicUpgrade []
         insist (upgrade.length == 44) "invalid public upgrade receipt"
-        let request := toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16)))
+        let request := toBytes (anonymousUpgrade (toBits (upgrade.take 16)))
         let handle ← on.call .publicBuffer request
         insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
         TlsApplication.send session ⟨number handle⟩ request.length
@@ -2284,6 +2412,7 @@ def main (args : List String) : IO Unit := do
       -- `sendMessage` with the contact's failures as outcomes. `none`: the request left. Otherwise
       -- nothing was sent: the result, the reason, and whether to stop sending to this contact.
       let sendSoft (send : Nat × Bytes) (id : Nat) : M (Option (Recovery.Result × String × Bool)) := do
+        let send ← restamp send
         let unacknowledged := (Recovery.Result.retryLater, "the database nodes did not acknowledge the contact's state", false)
         let refused := (Recovery.Result.fault, "the contact's stored state cannot produce a message", true)
         let kinds ← kindsOf send.1
@@ -2303,7 +2432,7 @@ def main (args : List String) : IO Unit := do
           insist rest.isEmpty "invalid sealed envelopes reply"
           let random ← rpc.call .publicRandom []
           insist (random.length == 32) "invalid joint randomness"
-          let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)))
+          let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) official)
           -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
           if frame.length > 16384 then
             return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
@@ -2322,7 +2451,7 @@ def main (args : List String) : IO Unit := do
         if !(← storeSoft send.1) then return some unacknowledged
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
-        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
         let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
@@ -2423,6 +2552,7 @@ def main (args : List String) : IO Unit := do
             liftM (counters.modify (·.set! target (sent + 1)) : IO Unit)
             let id := 2 ^ 63 + sent
             let s := (← liftM (states.get : IO (Array PublicReceive.State))).getD target first
+            ensurePrepared contact (queue.map (fun (later, _, _) => contactOf later))   -- with the contacts that follow, in the same field rounds
             match ← sendSoft input id with
             | some (result, reason, stop) =>
               final := some (result, reason)
@@ -2476,7 +2606,8 @@ def main (args : List String) : IO Unit := do
               delivered := delivered + 1
               if !rotated then
                 rotated := true
-                TlsApplication.keyUpdate (← appNow) false
+                -- (Not under the libsignal profile: BoringSSL never sends a KeyUpdate of its own.)
+                unless official do TlsApplication.keyUpdate (← appNow) false
             if result.settled then
               match notifyId, journal with
               | some named, some path =>
@@ -2525,8 +2656,18 @@ def main (args : List String) : IO Unit := do
               sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
               liftM (keepalives.modify (· + 1) : IO Unit)
               return ← waiting fuel (PublicReceive.expect s id) (pings + 1) expected
+          -- libsignal profile: 31 seconds without a record, then a WebSocket ping (libsignal-net
+          -- `WS_KEEP_ALIVE_INTERVAL`; its payload is a one-byte ping counter from 1). The pong
+          -- is a control frame the parser skips.
+          if official && s.upgraded && !(← TlsWorker.awaitRecord rpc kept 124 250) then
+            let random ← rpc.call .publicRandom []
+            insist (random.length == 32) "invalid joint randomness"
+            sendPublic (toBytes (PublicReceive.ping ((pings + 1) % 256) (toBits (random.take 4))))
+            liftM (keepalives.modify (· + 1) : IO Unit)
+            waiting fuel s (pings + 1) expected
+          else
           -- 25 seconds of agreed silence, then a keepalive.
-          if s.upgraded && !(← TlsWorker.awaitRecord rpc kept 100 250) then
+          if !official && s.upgraded && !(← TlsWorker.awaitRecord rpc kept 100 250) then
             insist (!s.pending) "keepalive was not answered"
             let random ← rpc.call .publicRandom []
             insist (random.length == 32) "invalid joint randomness"
@@ -2595,6 +2736,9 @@ def main (args : List String) : IO Unit := do
       ("results",toJson ((← results.get).map (fun (message, contact, result, reason) => Lean.Json.mkObj
         [("message",toJson message),("id",toJson (toString contact)),("result",toJson result.text),("reason",toJson reason)]))),
       ("recovery_used",toJson (← recoveryUsed.get)),("recovery",toJson (← recoveryLog.get)),
+      -- Requested ids (daemon notify) left out of the session: not on the database nodes; not served until their next epoch.
+      ("unknown",toJson (((← absent.get).filter (fun entry => !entry.2)).map (fun entry => toString entry.1))),
+      ("not_yet_readable",toJson (((← absent.get).filter (·.2)).map (fun entry => toString entry.1))),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop

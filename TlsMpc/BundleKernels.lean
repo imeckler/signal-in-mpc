@@ -236,7 +236,8 @@ def find (arguments : List String) : Option Kernel :=
           if w.ok && BundleResponse.firstItem ≤ start && size ≤ 65536 &&
               (stop + 2 == size || stop + 1 + 2465 + 2 ≤ size) then some (bundleDevice size start w) else none
       | "bundle-seal", some [cert, oneTime, content, cw, pw, ew, iw] =>
-          if cert ≤ 1024 && oneTime ≤ 1 && 80 ≤ content && content ≤ 320 && content % 80 == 0 &&
+          -- `content`: 80k padded bytes, or the official clients' 80k − 1 (CLIENT_FINGERPRINT.md).
+          if cert ≤ 1024 && oneTime ≤ 1 && 79 ≤ content && content ≤ 320 && (content % 80 == 0 || content % 80 == 79) &&
               1 ≤ cw && cw ≤ 5 && 1 ≤ pw && pw ≤ 5 && 1 ≤ ew && ew ≤ 10 && 1 ≤ iw && iw ≤ 5 then
             some (bundleSeal cert (oneTime == 1) content cw pw ew iw) else none
       | "bundle-fetch-ctr", some [size, payloadAt, uuidAt, keyAt] =>

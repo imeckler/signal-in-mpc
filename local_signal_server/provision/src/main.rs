@@ -26,7 +26,7 @@
 //!   reregister NAME                register NAME's number again: same account id and profile key,
 //!                                  new identity key (what a contact's reinstall looks like)
 //!   unlink NAME DEVICE             the primary removes linked device DEVICE
-//!   delete NAME                    delete NAME's account on the server
+//!   delete NAME                    delete NAME's account on the server (the local server answers 500)
 //!   rotate-access NAME             new profile key, so the account's access key changes
 //!   provision                      register sender + recipient + recipient2, establish both,
 //!                                  send + receive one text
@@ -966,7 +966,9 @@ async fn unlink(name: &str, device: u8) -> R<()> {
     Ok(())
 }
 
-/// The user deletes the account (`DELETE /v1/accounts/me`).
+/// The user deletes the account (`DELETE /v1/accounts/me`). NOT USABLE on the local server as
+/// configured: it answers 500 (`AccountsManager.delete` calls a service whose address the local
+/// configuration leaves empty: "URI with undefined scheme"), and the account stays.
 async fn delete_account(name: &str) -> R<()> {
     let me = Account::load(name).await?;
     let mut chat = Chat::connect(Some((&me.login(), &me.password)))?;
