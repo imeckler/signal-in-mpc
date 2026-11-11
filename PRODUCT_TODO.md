@@ -333,6 +333,13 @@ party can block a delete by not forwarding it.
           are worth more than cheap compute. Semi-honest mode sends far less.
     - [ ] *Bandwidth.* At 1 GB per message, a 1 Gbit/s link caps throughput near one message
           per 8 s per pair of nodes regardless of CPU; 10 Gbit/s links matter.
+    - [ ] *Jurisdiction* (owner's criterion): the two providers ideally in separate legal
+          jurisdictions, or at least ones that do not comply with extra-legal requests from
+          intelligence services; likewise for how the database nodes are spread. Both the
+          company's place of incorporation and the data centre's location count. This pulls
+          against "same metro": look for providers incorporated in different countries sharing
+          a metro, or cross-border metro pairs a millisecond or two apart, and know what
+          latency full separation costs. Research in progress: `deployment/PROVIDERS.md`.
     - [ ] Shortlist candidate pairs, measure RTT, throughput and price between them, and record
           the result.
   - [ ] **Splitting the five database nodes across providers.** Three shares reconstruct a
