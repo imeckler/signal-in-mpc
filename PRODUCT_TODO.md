@@ -211,6 +211,14 @@ party can block a delete by not forwarding it.
       broadcast's recipients by source address and timing. Decide: who runs it, one connection
       per recipient or per batch, added delay and shuffling. Not started, by instruction.
 - [ ] Review what timing reveals even with a proxy (burst of sends after each notify).
+- [ ] **Tor as the proxy** (concrete option, not started): the node that opens the TCP socket
+      connects through a local Tor client by SOCKS5 with the hostname passed through; the TLS
+      session inside stays end to end, so the exit sees only ciphertext and nothing else in the
+      design changes. To unlink recipients, one circuit (so one TLS connection and handshake,
+      about 5 s and 3M AND gates today) per recipient or per small group. Does not hide the
+      burst timing of a broadcast (needs delays and shuffling) or which account the receive
+      socket belongs to. Unknown until tried on the real service: how Signal treats Tor exits
+      for this traffic.
 
 ## 9. Deployment
 
