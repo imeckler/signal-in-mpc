@@ -8,14 +8,20 @@ against an in-process fake. Stages:
   3. export what the MPC client needs                              lss-provision export-mpc -> state/mpc-export.json
   4. optional --self-check: conventional reference sender using ONLY the export, one send per contact
      on an unauthenticated socket                                  lss-provision ref-send
-  5. the MPC run                                                   run_mpc(): NOT IMPLEMENTED (needs client changes)
+  5. the MPC run, twice: the first admits the contacts from the export and stores each contact's
+     advanced state (sealed) with this party's key share in state/store/party-N; the second loads
+     the contacts from that store only, so it passes only if the stored state is complete
   6. verification: each recipient decrypts the expected texts, and every envelope has NO source
      fields (a sealed-sender message the server could not attribute)  lss-provision receive
   7. stop everything (unless --keep-server)
 
 Talks only to 127.0.0.1. Never point this at Signal's service.
 
-Usage: check_signal_service_local.py [malicious|semi-honest] [--self-check] [--keep-server] [--skip-build]
+Circuits are produced before the server is contacted (the server drops a socket after 90 s
+without traffic, and producing a large circuit for the first time takes longer): kernels.txt
+lists what a run asks for and is rewritten after a passing run.
+
+Usage: check_signal_service_local.py [malicious|semi-honest] [--self-check] [--keep-server] [--skip-build] [--runs N]
 """
 import argparse, json, os, subprocess, sys, time
 from pathlib import Path
@@ -26,6 +32,10 @@ SCRIPTS = HERE / 'scripts'
 STATE = HERE / 'state'
 EXPORT = STATE / 'mpc-export.json'
 CONTACTS = ['recipient', 'recipient2']
+KERNELS = HERE / 'kernels.txt'
+KERNEL_LOG = STATE / 'kernels-requested.txt'
+STORE = STATE / 'store'
+CACHE = ROOT / 'handshake_backend/EmpHybridWork/circuit_cache.py'
 
 
 def run(args, **kw):
@@ -44,45 +54,29 @@ def receive(name, seconds=15):
     return [json.loads(line) for line in out.splitlines() if line.startswith('{')]
 
 
+def kernel_lines(path):
+    return sorted(set(line.strip() for line in path.read_text().splitlines() if line.strip())) if path.exists() else []
+
+
+def warm():
+    """Produce every circuit a run is known to ask for, several at a time, before any connection.
+    A name the emitter no longer knows is skipped: the run asks for what it needs anyway."""
+    from concurrent.futures import ThreadPoolExecutor
+    run(['lake', 'build', 'hybrid_kdf_emitter'], cwd=ROOT, capture_output=True)
+    names = sorted(set(kernel_lines(KERNELS) + kernel_lines(KERNEL_LOG)))
+    started = time.monotonic()
+    def one(name):
+        return subprocess.run([sys.executable, str(CACHE), *name.split()], cwd=ROOT, capture_output=True).returncode == 0
+    with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 4) // 2)) as pool:
+        ok = list(pool.map(one, names))
+    return dict(kernels=len(names), skipped=[n for n, good in zip(names, ok) if not good], seconds=time.monotonic() - started)
+
+
 def run_mpc(export, mode, texts):
-    """The two-party MPC client run against 127.0.0.1:18443. NOT IMPLEMENTED: it depends on client
-    changes listed below; nothing here invents an interface the client does not have.
-
-    What exists today (handshake_backend/EmpHybridWork/check_signal_service_v3.py, read-only):
-      controller argv  WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED
-                       (PublicServiceController.lean `main`), launched once per party (0, 1)
-      worker           .deps/two-party-comparison/tls-worker-fixture-v3 (malicious) or
-                       tls-worker-sh-fixture-v3 (semi-honest), env TLS_WORKER_SERVICE_FIXTURE=text,
-                       DYLD_LIBRARY_PATH=<MP-SPDZ dir>
-      AUTH             public_auth built from handshake_backend/public_auth.cpp
-    For the local server the network arguments become (no bridge, no fixture server):
-      ENDPOINT=127.0.0.1  PORT=18443  HOSTNAME=server.example
-      TRUST=export['server']['tls_trust_root_pem']   (local_signal_server/state/tls/ca.pem)
-
-    Client changes this depends on (none exist yet):
-      1. Credentials: service_kernels.h `upgrade()` hardcodes UUID 00112233-... and 'x'*22; it must take
-         export['sender']['upgrade_credentials_hex'] (16-byte ACI || 22-byte password).
-      2. Conversation admission: `admit_fixture()` reads PublicTextFixture::initial(slot); it must read
-         export['contacts'][slot]['initial_hex'] (identity secret[32] || record[579]) for contact ids
-         export['contacts'][slot]['contact_id_u128_hex'] (00..01, 00..02, as fixture_id() today).
-         CERT stays 260: the export pads the 244-byte local certificate to the slot (unknown protobuf
-         field 15), which a libsignal recipient accepts (verified by ref-send).
-      3. Sealed-sender sends on a SECOND, UNAUTHENTICATED WebSocket (upgrade without Authorization).
-         On the authenticated socket the server attributes the message to the sender (source fields
-         set, delivery receipts to the sender); step 6 below fails such a run on purpose.
-      4. Server requests on the authenticated socket: `PUT /api/v1/queue/empty` arrives right after the
-         upgrade; committed PublicReceive rejects it, the working-tree version replies (replayed in
-         local_signal_server/replay; the reply bytes were accepted by the server).
-      5. Keepalive: the server closes any socket after 90 s without I/O; MPC operations between
-         requests must keep each socket alive (client ping frames or GET /v1/keepalive both work).
-      6. Text inputs: notify(ids, message) as today; `texts` below lists what step 6 expects.
-      7. State write-back: after each send the new conversation record must replace the exported one
-         (the reference sender writes it back into the export; the MPC client would reseal it).
-    """
-    # The client now has what the list above asks for, for the send path: contacts are admitted from
-    # the export at the certificate's exact length (SIGNAL_LOCAL_EXPORT), sends go on the
-    # unauthenticated socket (so items 1 and 4 do not apply to this run), and the controller issues
-    # two broadcasts to every contact. Not done: keepalive (5) and state write-back (7).
+    """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
+    socket, two broadcasts to every contact, contact state written back to the store.
+    Controller argv: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED.
+    Not exercised here: the authenticated socket (credentials, server requests, keepalive)."""
     import hashlib, re, secrets
     base = ROOT / '.deps/two-party-comparison'
     here = ROOT / 'handshake_backend/EmpHybridWork'
@@ -100,8 +94,9 @@ def run_mpc(export, mode, texts):
     with open(output / 'ssl-setup.log', 'w') as log:
         subprocess.run(['bash', str(mp / 'Scripts/setup-ssl.sh'), '2'], cwd=work, stdout=log, stderr=subprocess.STDOUT, check=True)
     stamp = int(time.time() * 1000)
-    env = dict(os.environ, DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000',
+    env = dict(os.environ, DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG),
                SIGNAL_LOCAL_EXPORT=str(EXPORT), SIGNAL_LOCAL_TIMESTAMP=str(stamp))
+    stored_before = sorted(p.name for p in (STORE / 'party-0').glob('*')) if (STORE / 'party-0').exists() else []
     hosts = output / 'hosts'
     hosts.write_text('127.0.0.1\n' * 2)
     session = secrets.token_hex(32)
@@ -117,7 +112,9 @@ def run_mpc(export, mode, texts):
             logs.append(log)
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
                        session, '127.0.0.1', '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
-            processes.append(subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=log, text=True))
+            (STORE / f'party-{party}').mkdir(parents=True, exist_ok=True)
+            processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}')),
+                                              stdout=subprocess.PIPE, stderr=log, text=True))
         for party, p in enumerate(processes):
             stdout, _ = p.communicate(timeout=7200)
             (output / f'party-{party}.json').write_text(stdout)
@@ -140,7 +137,7 @@ def run_mpc(export, mode, texts):
             totals.append(dict(operation=int(last[0]), seconds=float(last[1]), and_gates=int(last[2]), emp_sent_bytes=int(last[3]),
                                field_sent_bytes=int(last[4]), field_products=int(last[5])))
         rejections += re.findall(r'operation \d+ rejected[^\n]*', text) + re.findall(r'tls-worker-v3 aborted[^\n]*', text)
-    result = dict(logs=str(output), timestamp=stamp, controllers=cases, worker_totals=totals, rejections=rejections,
+    result = dict(logs=str(output), timestamp=stamp, contacts_loaded_from_store=stored_before, controllers=cases, worker_totals=totals, rejections=rejections,
                   elapsed_seconds=time.monotonic() - started, exit_codes=[p.returncode for p in processes])
     if any(p.returncode for p in processes) or len(cases) != 2 or not all(c['passed'] for c in cases):
         raise RuntimeError('MPC controllers failed: ' + json.dumps(result))
@@ -167,11 +164,15 @@ def main():
     p.add_argument('--self-check', action='store_true', help='reference sender from the export (no MPC)')
     p.add_argument('--keep-server', action='store_true')
     p.add_argument('--skip-build', action='store_true')
+    p.add_argument('--runs', type=int, default=2, help='MPC sessions; each after the first loads contacts from the store')
     a = p.parse_args()
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:
         if not a.skip_build and not (STATE / 'classpath.txt').exists():
             run(['bash', SCRIPTS / 'build_server.sh'])
+        report['circuits'] = warm()
+        import shutil
+        shutil.rmtree(STORE, ignore_errors=True)   # the accounts below are new: no stored state applies
         run(['bash', SCRIPTS / 'start_server.sh'])
         lss('provision')
         lss('export-mpc')
@@ -188,13 +189,18 @@ def main():
         # The texts PublicServiceController.lean broadcasts in its local-server mode.
         texts = {CONTACTS[0]: ['MPC broadcast one', 'MPC broadcast two ☕'],
                  CONTACTS[1]: ['MPC broadcast one', 'MPC broadcast two ☕']}
-        report['mpc_run'] = run_mpc(export, a.mode, texts)
-        ok, result = verify(texts)
-        report['mpc'] = dict(passed=ok, recipients=result)
+        report['mpc_runs'], report['mpc'] = [], []
+        ok = True
+        for index in range(a.runs):
+            report['mpc_runs'].append(run_mpc(export, a.mode, texts))
+            good, result = verify(texts)
+            report['mpc'].append(dict(passed=good, recipients=result))
+            ok = ok and good
+            if not good:
+                break
         report['passed'] = ok
-    except NotImplementedError as e:
-        # The pipeline up to the MPC run worked; the run itself is not possible yet, so not passed.
-        report['mpc'] = dict(skipped=str(e))
+        if ok:
+            KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))
     except Exception as e:
         report['error'] = f'{type(e).__name__}: {e}'
     finally:

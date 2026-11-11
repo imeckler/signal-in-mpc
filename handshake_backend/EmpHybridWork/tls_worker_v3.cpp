@@ -74,12 +74,10 @@ struct Worker {
             uint64_t id=service->request(contact(p),offsets,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+28,p.end()));
             Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
         }
-        // Local-server testing: admit a contact from an export (id16, certificate length 2,
-        // identity 32, record), and open an unauthenticated chat socket (reply: nonce16, accept28).
-        case 44:{
-            need(phase==Phase::retired&&service&&p.size()>50,"contact admit");
-            service->admit_contact(contact(p),big(p.data()+16,2),Bytes(p.begin()+18,p.begin()+50),Bytes(p.begin()+50,p.end()));return {};
-        }
+        // Local-server testing: admit the account (identity 32, certificate) and a contact's record
+        // (id16, record) from an export, and open an unauthenticated chat socket (reply: nonce16, accept28).
+        case 46:{need(phase==Phase::retired&&service&&p.size()>32,"account admit");service->admit_account(Bytes(p.begin(),p.begin()+32),Bytes(p.begin()+32,p.end()));return {};}
+        case 44:{need(phase==Phase::retired&&service&&p.size()>16,"contact admit");service->admit_contact(contact(p),Bytes(p.begin()+16,p.end()));return {};}
         case 45:{need(phase==Phase::retired&&service&&p.empty(),"public upgrade");auto nonce=joint_random();nonce.resize(16);return service->upgrade_public(nonce);}
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}
         // Each party sends its private bytes and receives the other's (for values that are safe

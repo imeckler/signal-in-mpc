@@ -1,0 +1,26 @@
+kernel contact-key
+kernel contact-open 319
+kernel contact-seal 319
+kernel gcm-check
+kernel gcm-key-share
+kernel gcm-multiply
+kernel gcm-tag
+kernel signal-conversation-view 244
+kernel signal-request-ctr 244 1000 33 976 797 829
+kernel signal-seal-built 244 1 1 1 1
+kernel signal-widths 244
+kernel tls-derive
+kernel tls-finish 0
+kernel tls-open-application-ctr 153
+kernel tls-open-application-ctr 246
+kernel tls-open-handshake 43
+kernel tls-open-handshake 58
+kernel tls-open-handshake 922
+kernel tls-open-handshake 94
+kernel tls-parser-initial
+kernel tls-reveal-masked 132
+kernel tls-reveal-masked 225
+kernel tls-seal-ctr 22 5 0
+kernel tls-seal-ctr 23 242 0
+kernel tls-update
+kernel tls-verify-finished

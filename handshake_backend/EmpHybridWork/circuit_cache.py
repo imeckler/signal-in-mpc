@@ -53,5 +53,8 @@ def ensure(args):
     return path,info
 if __name__=='__main__':
     path,info=ensure(sys.argv[1:])
+    # Optional record of what was asked for, so a harness can produce the same circuits ahead of a run.
+    if os.environ.get('CIRCUIT_CACHE_LOG'):
+        with open(os.environ['CIRCUIT_CACHE_LOG'],'a') as f:f.write(' '.join(sys.argv[1:])+'\n')
     if 'layout_sha256' in info:print(path,info['sha256'],info['input_bits'],info['output_bits'],path.with_suffix('.layout'),info['layout_sha256'])
     else:print(path,info['sha256'],info['input_bits'],info['output_bits'])

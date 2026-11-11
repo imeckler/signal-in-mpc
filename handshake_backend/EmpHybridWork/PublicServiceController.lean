@@ -403,7 +403,15 @@ def main (args : List String) : IO Unit := do
       -- admitted from the export, and the UNAUTHENTICATED socket, whose upgrade request is
       -- public (sealed-sender sends must not go on an authenticated socket).
       let exportPath ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPORT" : IO (Option String))
-      let (accept, contacts) ← match exportPath with
+      -- TEST stand-in for the database nodes (SIGNAL_LOCAL_STORE, one directory per party): per
+      -- contact, this party's key share and the stored state (version, check, ciphertext).
+      let storeDirectory ← liftM (IO.getEnv "SIGNAL_LOCAL_STORE" : IO (Option String))
+      let freshShare : M Bytes := do
+        let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
+        -- below 2^254, so below the share modulus
+        pure (random.data.toList.take 31 ++ [(random.data.toList.getD 31 0) &&& 0x3f])
+      -- Per contact: id, key share, version of the stored state it was loaded from (0: none).
+      let (accept, known, keyed) ← match exportPath with
         | none => do
           let catalogue ← rpc.call .providerCatalogue []
           insist (catalogue.length ≥ 10) "invalid provider catalogue"
@@ -414,16 +422,37 @@ def main (args : List String) : IO Unit := do
           let upgrade ← rpc.call .providerUpgradeOpen (uint 8 state)
           insist (upgrade.length == 38) "invalid upgrade receipt"
           TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
-          pure (upgrade.drop 10, [1, 2])
+          pure (upgrade.drop 10, [(1, ← freshShare, 0), (2, ← freshShare, 0)], false)
         | some path => do
           let text ← liftM (IO.FS.readFile path : IO String)
           let (certificate, identity, records) ← liftResult (readExport text)
-          for (contact, record) in records do
-            let _ ← rpc.call .contactAdmit (uint 16 contact ++ uint 2 certificate.length ++ identity ++ certificate ++ record)
+          let _ ← rpc.call .accountAdmit (identity ++ certificate)
+          let known ← records.mapM (fun (contact, record) => do
+            let file := storeDirectory.map (fun directory => (directory : System.FilePath) / toString contact)
+            let saved ← match file with
+              | none => pure none
+              | some file => do
+                if ← liftM (file.pathExists : IO Bool) then
+                  pure (some (← liftResult (fromHex (← liftM (IO.FS.readFile file : IO String)).trimAscii.toString)))
+                else pure none
+            match saved with
+            | some bytes =>
+              -- A stored contact: key from the shares, then the state from its ciphertext.
+              insist (bytes.length > 56) "stored contact shape"
+              let share := bytes.take 32
+              let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+              let _ ← rpc.call .contactOpen (uint 16 contact ++ bytes.drop 32)
+              pure (contact, share, number ((bytes.drop 32).take 8))
+            | none =>
+              let share ← freshShare
+              let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
+              let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+              pure (contact, share, 0))
           let upgrade ← rpc.call .publicUpgrade []
           insist (upgrade.length == 44) "invalid public upgrade receipt"
           sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
-          pure (upgrade.drop 16, records.map (·.1))
+          pure (upgrade.drop 16, known, true)
+      let contacts := known.map (·.1)
       -- Reveal and parse one authenticated record, byte by byte.
       let record (handle : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Bool) := do
         let mut s := start
@@ -477,21 +506,30 @@ def main (args : List String) : IO Unit := do
       -- nodes would deliver). After one send to each contact the state is sealed,
       -- evicted and reloaded from the ciphertext, so the remaining sends prove the
       -- round trip preserved it.
-      let shares ← contacts.mapM (fun _ => do
-        let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
-        -- below 2^254, so below the share modulus
-        pure (random.data.toList.take 31 ++ [(random.data.toList.getD 31 0) &&& 0x3f]))
+      -- Every seal under a contact's key uses a new version (the version is the cipher's nonce).
       let keyContacts : M Unit := do
-        for (contact, share) in contacts.zip shares do
-          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+        unless keyed do
+          for (contact, share, _) in known do
+            let _ ← rpc.call .contactKey (uint 16 contact ++ share)
       let reloadContacts : M Unit := do
-        for (contact, share) in contacts.zip shares do
-          let version := uint 8 1
+        for (contact, share, base) in known do
+          let version := uint 8 (base + 1)
           let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
           insist (stored.length > 16) "invalid stored contact state"
           let _ ← rpc.call .contactEvict (uint 16 contact)
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
           let _ ← rpc.call .contactOpen (uint 16 contact ++ version ++ stored)
+      -- After the sends: every contact's advanced state goes back to the store.
+      let writeBack : M Unit := do
+        match storeDirectory with
+        | none => pure ()
+        | some directory =>
+          for (contact, share, base) in known do
+            let version := uint 8 (base + 2)
+            let stored ← rpc.call .contactSeal (uint 16 contact ++ version)
+            insist (stored.length > 16) "invalid stored contact state"
+            liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
+              (TlsWorkerProcess.hex (share ++ version ++ stored) ++ "\n") : IO Unit)
       -- The application's request: `notify(ids, message)`. Ids and text are public to both
       -- parties; it expands to one send per contact. The text input of the send kernels is
       -- a validity byte, a two-byte length, 48 bytes of UTF-8 and an 8-byte timestamp.
@@ -560,6 +598,7 @@ def main (args : List String) : IO Unit := do
           | .control => loop fuel s inputs completed
           | .closed => throw "TLS closed before private responses"
       let finished ← loop 256 (PublicReceive.start (toBits accept)) inputs 0
+      writeBack
       TlsApplication.abort app
       return finished
     let outcome ← action.run

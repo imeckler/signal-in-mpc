@@ -17,6 +17,7 @@
 // State admission is the TEST FIXTURE only: public disposable sender states
 // from signal_backend/TextNotificationWork are entered as private wires by one
 // party. It is not authenticated provisioning and not durable.
+#include <deque>
 #include "tls_kernels.h"
 #include "edwards_points.h"
 #include "../../signal_backend/TextNotificationWork/PublicTextFixture.h"
@@ -26,13 +27,30 @@ namespace emp_hybrid {
 class ServiceKernels {
     TlsKernels&k;DynSession&s;FE&f;
     static constexpr size_t PASSWORD=22;
-    size_t CERT=260;   // sender certificate bytes at the start of every contact record (the fixture's; set by admission)
+    static constexpr size_t CONTACT=319;   // one contact's record: session block and metadata
+    size_t CERT=260;   // sender certificate bytes (the fixture's; set by account admission)
 public:
     using ContactId=std::array<uint8_t,16>;   // u128, big-endian
 private:
     // `record` is the contact's private state (empty while not loaded); `key` is its storage key
     // (contact-key kernel). The derived values and the offset table are an in-memory cache only.
-    struct Conversation {Wires record,sender_public,static_agreement,key;std::vector<H>identity;H recipient;bool ready=false;OffsetAgreement offset;};
+    struct Account {std::vector<H>identity;Wires certificate,sender_public;};
+    struct Conversation {Wires record,static_agreement,key;H recipient;bool ready=false;OffsetAgreement offset;Account*fixture=nullptr;};
+    // The account: our identity key (shared scalar) and sender certificate, the same for every
+    // contact and never part of a contact's stored record. The Lean kernels take the certificate
+    // followed by the contact record as one `conversation` value; `whole` only joins the wires and
+    // `keep` takes the contact part back.
+    // TEST FIXTURE: its two conversations have different senders, so each carries its own account.
+    Account account;std::deque<Account>fixture_accounts;
+    Account&of(const Conversation&c){return c.fixture?*c.fixture:account;}
+    Wires whole(const Conversation&c){return DynSession::concat({&of(c).certificate,&c.record});}
+    void keep(Conversation&c,const Wires&conversation){need(conversation.size()==8*(CERT+CONTACT),"conversation shape");c.record=conversation.slice(8*CERT,8*(CERT+CONTACT));}
+    void prepare(Conversation&c){
+        if(c.ready)return;
+        auto w=whole(c);auto out=view().run(s,{{"conversation",&w}});c.recipient=k.word_to_field(out.at("recipient"));
+        auto&a=of(c);if(!a.sender_public.size())a.sender_public=k.agreement_word(a.identity,f.constant(9));
+        c.static_agreement=k.agreement_word(a.identity,c.recipient);c.ready=true;
+    }
     OffsetPrograms offset_programs;
     std::map<ContactId,Conversation>conversations;std::vector<std::pair<ContactId,Wires>>inputs;std::vector<bool>consumed;
     static ContactId fixture_id(unsigned slot){ContactId id{};id[15]=uint8_t(slot+1);return id;}
@@ -50,24 +68,30 @@ public:
     void admit_fixture(){
         need(!admitted,"service admission repeated");admitted=true;
         for(unsigned slot=0;slot<2;slot++){
-            auto native=signal_mpc::PublicTextFixture::initial(slot);need(native.size()>32,"fixture state shape");
-            Conversation c;std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(native.begin(),32,secret.begin());
-            c.identity=k.shared_scalar(secret);c.record=entered({native.begin()+32,native.end()});
-            if(slot==0){auto out=view().run(s,{{"conversation",&c.record}});ws["requestId"]=std::move(out.at("requestId"));}   // one request-id sequence per connection
+            auto native=signal_mpc::PublicTextFixture::initial(slot);need(native.size()==32+CERT+CONTACT,"fixture state shape");
+            std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(native.begin(),32,secret.begin());
+            fixture_accounts.push_back({k.shared_scalar(secret),entered({native.begin()+32,native.begin()+32+CERT}),Wires{}});
+            Conversation c;c.fixture=&fixture_accounts.back();c.record=entered({native.begin()+32+CERT,native.end()});
+            if(slot==0){auto w=whole(c);auto out=view().run(s,{{"conversation",&w}});ws["requestId"]=std::move(out.at("requestId"));}   // one request-id sequence per connection
             conversations[fixture_id(slot)]=std::move(c);
         }
         for(unsigned round=0;round<2;round++)for(unsigned slot=0;slot<2;slot++)inputs.push_back({fixture_id(slot),entered(signal_mpc::PublicTextFixture::text_input(slot,round))});
         consumed.assign(inputs.size(),false);
     }
-    // TEST admission of one contact from a local-server export: both controllers hold the same
+    // TEST admission of the account from a local-server export: both controllers hold the same
     // disposable test state and one party enters it as private wires, as for the fixture. The
-    // certificate is the sender's own, at its exact length (the same for every contact).
-    void admit_contact(const ContactId&id,size_t certificate_bytes,const std::vector<uint8_t>&identity,const std::vector<uint8_t>&record){
-        need(!closed&&!started&&identity.size()==32&&certificate_bytes>0&&certificate_bytes<=1024&&record.size()==certificate_bytes+319
-            &&(conversations.empty()||certificate_bytes==CERT)&&!conversations.count(id),"contact admission");
-        CERT=certificate_bytes;admitted=true;
-        Conversation c;std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(identity.begin(),32,secret.begin());
-        c.identity=k.shared_scalar(secret);c.record=entered(record);conversations[id]=std::move(c);
+    // certificate is the sender's own, at its exact length.
+    void admit_account(const std::vector<uint8_t>&secret_key,const std::vector<uint8_t>&sender_certificate){
+        need(!closed&&!started&&!admitted&&secret_key.size()==32&&!sender_certificate.empty()&&sender_certificate.size()<=1024,"account admission");
+        CERT=sender_certificate.size();admitted=true;
+        std::array<uint8_t,32>secret{};if(k.party==emp::ALICE)std::copy_n(secret_key.begin(),32,secret.begin());
+        account.identity=k.shared_scalar(secret);account.certificate=entered(sender_certificate);
+    }
+    // TEST admission of one contact's record (session block and metadata) in the clear, the same way.
+    // Stored contacts are loaded with contact_key and contact_open instead.
+    void admit_contact(const ContactId&id,const std::vector<uint8_t>&record){
+        need(!closed&&admitted&&account.certificate.size()&&record.size()==CONTACT&&!conversations.count(id),"contact admission");
+        Conversation c;c.record=entered(record);conversations[id]=std::move(c);
     }
     // Unauthenticated chat socket: the upgrade request has no secrets and is built by the
     // controllers; this only fixes the expected Sec-WebSocket-Accept for the public nonce.
@@ -101,7 +125,7 @@ public:
     // Load a contact's state from its stored ciphertext. A wrong key (bad or stale share from
     // either side) fails the public check value and aborts without revealing anything else.
     void contact_open(const ContactId&id,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
-        auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&!ciphertext.empty()&&ciphertext.size()<=16384,"contact open unavailable");version_ok(version);
+        auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&ciphertext.size()==CONTACT,"contact open unavailable");version_ok(version);
         auto&c=it->second;auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
         auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"ciphertext",&body},{"check",&sum}});
         need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
@@ -111,7 +135,7 @@ public:
     // TEST FIXTURE: the sender identity admitted with the fixture stays (it is the client's own key, not contact state).
     void contact_evict(const ContactId&id){
         auto it=conversations.find(id);need(it!=conversations.end(),"contact evict unavailable");
-        auto&c=it->second;c.record=Wires{};c.key=Wires{};c.sender_public=Wires{};c.static_agreement=Wires{};c.ready=false;c.offset=OffsetAgreement{};
+        auto&c=it->second;c.record=Wires{};c.key=Wires{};c.static_agreement=Wires{};c.ready=false;c.offset=OffsetAgreement{};
     }
     std::vector<uint8_t> catalogue()const{
         if(!admitted||closed)throw std::runtime_error("no admitted provider");
@@ -141,20 +165,18 @@ public:
     std::pair<uint64_t,size_t> produce(uint64_t input){
         need((public_receive?started:(upgraded&&!pending))&&!closed&&input>=1&&input<=inputs.size()&&!consumed[input-1],"send unavailable");consumed[input-1]=true;
         auto&c=conversations.at(inputs[input-1].first);
-        if(!c.ready){
-            auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
-            c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
-        }
+        prepare(c);
         std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
         auto ephemeral=k.shared_scalar(seed);
         auto ephemeral_public=k.agreement_word(ephemeral,f.constant(9)),ephemeral_agreement=k.agreement_word(ephemeral,c.recipient),mask=k.fresh(4);
         auto&kernel=k.cache.get(std::string(public_receive?"signal-send-open ":"signal-send ")+std::to_string(CERT));
-        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&inputs[input-1].second},{"requestId",&ws.at("requestId")},
-            {"ephemeralPublic",&ephemeral_public},{"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},
+        auto w=whole(c);
+        auto out=kernel.run(s,{{"conversation",&w},{"text",&inputs[input-1].second},{"requestId",&ws.at("requestId")},
+            {"ephemeralPublic",&ephemeral_public},{"senderPublic",&of(c).sender_public},{"ephemeralAgreement",&ephemeral_agreement},
             {"staticAgreement",&c.static_agreement},{"mask",&mask},{"responseTemplate",&ws.at("responseTemplate")}});
         // Nothing is retained or sealed unless the gated status opens to 255.
         need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
-        c.record=std::move(out.at("conversation"));ws["requestId"]=std::move(out.at("requestId"));
+        keep(c,out.at("conversation"));ws["requestId"]=std::move(out.at("requestId"));
         if(public_receive)last_request_id=kernel.open(s,out,"requestIdUsed");   // correlated in the clear by the controllers
         else{ws["response"]=std::move(out.at("response"));pending=true;}
         const size_t capacity=out.at("content").size()/8;
@@ -175,10 +197,7 @@ public:
     }
     std::vector<uint8_t> seal_open(const ContactId&id,const Wires&text){
         auto&c=conversations.at(id);need(c.record.size()!=0,"contact state not loaded");
-        if(!c.ready){
-            auto out=view().run(s,{{"conversation",&c.record}});c.recipient=k.word_to_field(out.at("recipient"));
-            c.sender_public=k.agreement_word(c.identity,f.constant(9));c.static_agreement=k.agreement_word(c.identity,c.recipient);c.ready=true;
-        }
+        prepare(c);
         // Ephemeral pair by the offset agreement (edwards_points.h): no ladder per message.
         if(!c.offset.prepared())c.offset.prepare(offset_programs,f,k.channel,k.party,c.recipient);
         std::array<uint8_t,32>offset{};{
@@ -194,7 +213,7 @@ public:
         auto ephemeral_agreement=field_to_word(s,f,k.channel,k.circuits,k.take_mask(),pair.second);
         // Lengths are public under the policy: open the counters' varint widths and use the
         // fixed-width kernel for exactly those widths (it rejects if the widths are not exact).
-        auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto flags=widths.run(s,{{"conversation",&c.record}});
+        auto&widths=k.cache.get("signal-widths "+std::to_string(CERT));auto w=whole(c);auto flags=widths.run(s,{{"conversation",&w}});
         std::string name=std::string(text.size()==8*90?"signal-seal-built ":"signal-seal-fixed ")+std::to_string(CERT);
         for(auto field:{"counter","previous","epoch","index"}){
             unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
@@ -202,10 +221,10 @@ public:
         }
         auto&kernel=k.cache.get(name);
         Wires body=text;
-        auto out=kernel.run(s,{{"conversation",&c.record},{"text",&body},{"ephemeralPublic",&ephemeral_public},
-            {"senderPublic",&c.sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
+        auto out=kernel.run(s,{{"conversation",&w},{"text",&body},{"ephemeralPublic",&ephemeral_public},
+            {"senderPublic",&of(c).sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
         need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
-        c.record=std::move(out.at("conversation"));
+        keep(c,out.at("conversation"));
         auto reply=kernel.open(s,out,"timestamp");auto envelope=kernel.open(s,out,"envelope");
         reply.push_back(uint8_t(envelope.size()>>8));reply.push_back(uint8_t(envelope.size()));reply.insert(reply.end(),envelope.begin(),envelope.end());
         return reply;
@@ -221,7 +240,7 @@ public:
         need(public_receive&&!closed&&it!=conversations.end()&&it->second.record.size()!=0&&offsets.size()==4&&mask.size()==4&&!frame.empty(),"request unavailable");
         TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
         buffer.sealer="signal-request-ctr "+std::to_string(CERT)+" "+std::to_string(frame.size());for(auto at:offsets)buffer.sealer+=" "+std::to_string(at);
-        buffer.extra["conversation"]=it->second.record;buffer.extra["mask"]=k.constant(mask);
+        buffer.extra["conversation"]=whole(it->second);buffer.extra["mask"]=k.constant(mask);
         return k.retain(std::move(buffer));
     }
     // One received application chunk through the parsers.

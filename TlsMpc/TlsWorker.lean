@@ -32,7 +32,7 @@ inductive Operation where
   | revealRange
   /- Local-server testing: admit a contact from an export; open an
   unauthenticated chat socket (the upgrade request itself is public). -/
-  | contactAdmit | publicUpgrade
+  | contactAdmit | publicUpgrade | accountAdmit
   deriving Repr, BEq
 
 structure Rpc where
