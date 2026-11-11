@@ -17,6 +17,9 @@ PROVED (standard axioms only; no `sorry`, no `native_decide`):
   kernel's input fields.
 * `device_rejects`, `bind_rejects`: when the validity is 0, every field of the
   stage is zero.
+* `bundleRebind_spec`, `rebind_rejects`: the same two statements for
+  `bundle-rebind` (the binding that accepts a changed identity key); the second
+  covers its one opened byte, `changed`.
 * What the per-character circuits compute, for all 256 bytes:
   `structural_value` (the opened flag is 255 exactly for `" , : [ ] { }`, so
   `shape` reveals nothing else about a byte), `digitValid_value`,
@@ -96,6 +99,16 @@ theorem bundleBind_spec (assign : BVExpr.Assignment) :
   rw [← BundleResponse.bind_map (ByteAuth.evaluationHom assign)]
   rfl
 
+theorem bundleRebind_spec (assign : BVExpr.Assignment) :
+    let get := lookup bindInputs
+    let e := BVExpr.eval assign
+    values (bundleRebind ()) assign =
+      BundleResponse.rebind ByteAuth.concrete ((get "record").map e) ((get "valid").map e) ((get "verified").map e)
+        ((get "identityKey").map e) := by
+  intro get e
+  rw [← BundleResponse.rebind_map (ByteAuth.evaluationHom assign)]
+  rfl
+
 theorem bundleSeal_spec (cert : Nat) (withOneTime : Bool)
     (content counterWidth previousWidth epochWidth indexWidth : Nat) (assign : BVExpr.Assignment) :
     let get := lookup (sealInputs cert content)
@@ -130,6 +143,18 @@ theorem bind_rejects (record valid verified identityKey : List (BitVec 8))
     ∀ field ∈ BundleResponse.bind ByteAuth.concrete record valid verified identityKey, ∀ byte ∈ field, byte = 0 := by
   obtain ⟨status, fields, shape⟩ : ∃ status, ∃ fields : List (List (BitVec 8)),
       BundleResponse.bind ByteAuth.concrete record valid verified identityKey =
+        [status] :: fields.map (ByteAuth.release ByteAuth.concrete status) := ⟨_, _, rfl⟩
+  rw [shape] at failed ⊢
+  exact ReceiveKernel.released_zero status fields (by simpa using failed)
+
+/-- `bundle-rebind`: when its check is 0 — the bundle did not parse, a signature did not verify,
+or the record is not live — every field is zero, the opened `changed` byte among them. So that
+byte says nothing about a bundle that was not accepted. -/
+theorem rebind_rejects (record valid verified identityKey : List (BitVec 8))
+    (failed : (BundleResponse.rebind ByteAuth.concrete record valid verified identityKey).getD 0 [] = [0]) :
+    ∀ field ∈ BundleResponse.rebind ByteAuth.concrete record valid verified identityKey, ∀ byte ∈ field, byte = 0 := by
+  obtain ⟨status, fields, shape⟩ : ∃ status, ∃ fields : List (List (BitVec 8)),
+      BundleResponse.rebind ByteAuth.concrete record valid verified identityKey =
         [status] :: fields.map (ByteAuth.release ByteAuth.concrete status) := ⟨_, _, rfl⟩
   rw [shape] at failed ⊢
   exact ReceiveKernel.released_zero status fields (by simpa using failed)
@@ -243,6 +268,8 @@ theorem layout?_sound (mask : List Bool) (ws : List BundleResponse.Widths)
 #print axioms bundleSeal_spec
 #print axioms device_rejects
 #print axioms bind_rejects
+#print axioms bundleRebind_spec
+#print axioms rebind_rejects
 #print axioms structural_value
 #print axioms digitValid_value
 #print axioms sextetValid_value

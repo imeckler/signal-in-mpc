@@ -23,6 +23,11 @@
 //!                                  primary, PUT /v1/devices/link), with ONE_TIME one-time prekeys
 //!                                  (default 0); saved as account NAME.<device id>
 //!   keys-dump NAME OUT             raw body of GET /v2/keys/{aci}/* (every device's prekey bundle)
+//!   reregister NAME                register NAME's number again: same account id and profile key,
+//!                                  new identity key (what a contact's reinstall looks like)
+//!   unlink NAME DEVICE             the primary removes linked device DEVICE
+//!   delete NAME                    delete NAME's account on the server
+//!   rotate-access NAME             new profile key, so the account's access key changes
 //!   provision                      register sender + recipient + recipient2, establish both,
 //!                                  send + receive one text
 //!   export-mpc [SENDER CONTACT..]  write ../state/mpc-export.json: everything the MPC client needs
@@ -506,6 +511,11 @@ async fn register(name: &str, number: &str) -> R<()> {
 /// key. An account that strangers sign up to (the MPC client's) needs this: a new user does not
 /// know its profile key, and without sealed sender the server would learn who signs up.
 async fn register_with(name: &str, number: &str, unrestricted: bool) -> R<()> {
+    register_full(name, number, unrestricted, None).await
+}
+/// `profile_key`: keep this profile key (so the account's access key stays what its contacts
+/// hold) instead of generating one; used by `reregister`.
+async fn register_full(name: &str, number: &str, unrestricted: bool, profile_key: Option<[u8; 32]>) -> R<()> {
     eprintln!("register {name} ({number})");
     let mut rng = rand::rng();
     let aci_identity = IdentityKeyPair::generate(&mut rng);
@@ -514,7 +524,10 @@ async fn register_with(name: &str, number: &str, unrestricted: bool) -> R<()> {
     let pni_registration_id = rng.random_range(1..=0x3fff_u32);
     const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let password: String = (0..PASSWORD_LEN).map(|_| ALPHABET[rng.random_range(0..ALPHABET.len())] as char).collect();
-    let profile_key: [u8; 32] = rng.random();
+    let profile_key: [u8; 32] = match profile_key {
+        Some(kept) => kept,
+        None => rng.random(),
+    };
     let recovery_password: [u8; 32] = rng.random();
 
     let aci_spk = signed_prekey(&aci_identity, 1, &mut rng)?;
@@ -921,6 +934,77 @@ async fn link(name: &str, one_time: u32) -> R<()> {
     Ok(())
 }
 
+// ---- Fault injection for the MPC client's recovery tests (check_signal_service_local.py). Each
+// changes a test account on the LOCAL server the way a real user's client can.
+
+/// The user registers again (new phone, reinstall): the same number and account id, a NEW
+/// identity key, registration id and prekeys; linked devices are gone. The profile key is kept,
+/// so the access key its contacts hold still works. The saved account is replaced.
+async fn reregister(name: &str) -> R<()> {
+    let old = Account::load(name).await?;
+    register_full(name, &old.number, false, Some(old.profile_key)).await?;
+    let new = Account::load(name).await?;
+    if new.aci != old.aci {
+        return Err(format!("the account id changed on registering again: {} -> {}", old.aci, new.aci).into());
+    }
+    println!("{}", json!({"reregistered": name, "aci": new.aci, "registration_id": new.registration_id,
+        "identity_changed": new.store.get_identity_key_pair().await?.identity_key().serialize()
+            != old.store.get_identity_key_pair().await?.identity_key().serialize()}));
+    Ok(())
+}
+
+/// The primary removes a linked device (`DELETE /v1/devices/{id}`).
+async fn unlink(name: &str, device: u8) -> R<()> {
+    let primary = Account::load(name).await?;
+    let mut chat = Chat::connect(Some((&primary.login(), &primary.password)))?;
+    let (status, _) = chat.request("DELETE", &format!("/v1/devices/{device}"), &[], None)?;
+    chat.close();
+    if status != 200 && status != 204 {
+        return Err(format!("DELETE /v1/devices/{device}: status {status}").into());
+    }
+    println!("{}", json!({"unlinked": format!("{name}.{device}"), "status": status}));
+    Ok(())
+}
+
+/// The user deletes the account (`DELETE /v1/accounts/me`).
+async fn delete_account(name: &str) -> R<()> {
+    let me = Account::load(name).await?;
+    let mut chat = Chat::connect(Some((&me.login(), &me.password)))?;
+    let (status, _) = chat.request("DELETE", "/v1/accounts/me", &[], None)?;
+    chat.close();
+    if status != 200 && status != 204 {
+        return Err(format!("DELETE /v1/accounts/me: status {status}").into());
+    }
+    println!("{}", json!({"deleted": name, "aci": me.aci, "status": status}));
+    Ok(())
+}
+
+/// The user's profile key changes (Signal clients rotate it, for example on blocking someone):
+/// the account's access key becomes the new key's, so sealed sends under the old one get 401.
+async fn rotate_access(name: &str) -> R<()> {
+    let mut me = Account::load(name).await?;
+    let mut rng = rand::rng();
+    me.profile_key = rng.random();
+    let body = json!({
+        "fetchesMessages": true,
+        "registrationId": me.registration_id,
+        "pniRegistrationId": me.pni_registration_id,
+        "capabilities": {"spqr": true},
+        "unidentifiedAccessKey": b64(&me.access_key()),
+        "unrestrictedUnidentifiedAccess": false,
+        "discoverableByPhoneNumber": false,
+    });
+    let mut chat = Chat::connect(Some((&me.login(), &me.password)))?;
+    let (status, _) = chat.request("PUT", "/v1/accounts/attributes", &[], Some(body))?;
+    chat.close();
+    if status != 200 && status != 204 {
+        return Err(format!("PUT /v1/accounts/attributes: status {status}").into());
+    }
+    me.save().await?;
+    println!("{}", json!({"rotated": name, "status": status}));
+    Ok(())
+}
+
 /// The raw body of `GET /v2/keys/{aci}/*` for `name`'s account (every device's bundle), fetched
 /// as a sealed-sender client does: unauthenticated socket, the account's access key. Written to
 /// `out` exactly as the server sent it. (Each fetch uses up one one-time prekey per device.)
@@ -945,6 +1029,10 @@ async fn run(args: &[String]) -> R<()> {
         ["link", name] => link(name, 0).await,
         ["link", name, count] => link(name, count.parse()?).await,
         ["keys-dump", name, out] => keys_dump(name, out).await,
+        ["reregister", name] => reregister(name).await,
+        ["unlink", name, device] => unlink(name, device.parse()?).await,
+        ["delete", name] => delete_account(name).await,
+        ["rotate-access", name] => rotate_access(name).await,
         ["register", name, number] => register(name, number).await,
         ["establish", from, to] => establish(from, to).await,
         ["send", from, to, text] => {

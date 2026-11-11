@@ -47,6 +47,12 @@ inductive Operation where
   /- Several connections (one per Tor circuit): select the worker's connection by its public
   index; every operation that touches a connection acts on the selected one (0 by default). -/
   | useConnection
+  /- Recovery (PRODUCT_TODO.md section 4). A refresh's new device list is scratch in the worker
+  until the database nodes hold it: `scratchSeal` seals the scratch for storage, `scratchCommit`
+  makes it the contact's state (`bundleDrop` discards it). `resetConnection` replaces the
+  selected connection, after a poll reported it closed (`pollRecord` replies `[0]`), by a fresh
+  one to connect and shake hands on again; the other connections are untouched. -/
+  | scratchSeal | scratchCommit | resetConnection
   deriving Repr, BEq
 
 structure Rpc where

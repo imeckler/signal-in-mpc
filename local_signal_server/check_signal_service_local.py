@@ -80,15 +80,18 @@ CIRCUITS = STATE / 'circuits'
 REFUSED = STATE / 'kernels-refused.txt'
 
 
-def strict_manifest():
+def strict_manifest(produce=True):
     """--strict: every circuit the test deployment can need, produced one at a time before the
     server is contacted, and pinned. The sessions' workers then take CIRCUIT_MANIFEST from the
-    environment: they use nothing else and never produce a circuit."""
+    environment: they use nothing else and never produce a circuit.
+    --strict-produced: the same with the manifest already in state/circuits (produced earlier, as
+    a deployment does; a manifest stays usable after the Lean emitter is rebuilt)."""
     started = time.monotonic()
-    r = subprocess.run([sys.executable, str(ROOT / 'scripts/produce_circuits.py'), str(DEPLOYMENT), str(CIRCUITS)], cwd=ROOT,
-                       capture_output=True, text=True)
-    if r.returncode:
-        raise RuntimeError('circuit production failed: ' + (r.stdout + r.stderr)[-600:])
+    if produce:
+        r = subprocess.run([sys.executable, str(ROOT / 'scripts/produce_circuits.py'), str(DEPLOYMENT), str(CIRCUITS)], cwd=ROOT,
+                           capture_output=True, text=True)
+        if r.returncode:
+            raise RuntimeError('circuit production failed: ' + (r.stdout + r.stderr)[-600:])
     REFUSED.write_text('')
     os.environ['CIRCUIT_MANIFEST'] = str(CIRCUITS / 'manifest.txt')
     os.environ['CIRCUIT_REFUSED_LOG'] = str(REFUSED)
@@ -97,7 +100,7 @@ def strict_manifest():
                 seconds=time.monotonic() - started)
 
 
-def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.1'):
+def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.1', server_port=18443, during_logs=None):
     """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
     socket, two broadcasts to every contact, contact state written back to the store.
     Controller argv: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED.
@@ -136,13 +139,15 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
             log = open(output / f'party-{party}.log', 'w')
             logs.append(log)
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
-                       session, endpoint, '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
+                       session, endpoint, str(server_port), 'server.example', str(output / 'public_auth'), str(trust), '0']
             (STORE / f'party-{party}').mkdir(parents=True, exist_ok=True)
             processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}'),
                                                                         **(party_env(party) if party_env else {})),
                                               stdout=subprocess.PIPE, stderr=log, text=True))
         if during:
             during(processes)
+        if during_logs:
+            during_logs(processes, output)   # as `during`, with the directory of the parties' logs
         for party, p in enumerate(processes):
             stdout, _ = p.communicate(timeout=7200)
             (output / f'party-{party}.json').write_text(stdout)
@@ -560,7 +565,9 @@ def run_circuits(mode, texts, counts, db):
             proxy.command(f'drop-after {dropped} 3')
             started = time.monotonic()
             try:
-                failed = session(circuits)
+                # Without recovery (SIGNAL_RECOVERY=0): the session must end cleanly in both parties.
+                # With it the connection is replaced and the session passes: `--recovery drop`.
+                failed = session(circuits, extra=dict(SIGNAL_RECOVERY='0'))
                 failed_cleanly = False   # it should not have passed
             except RuntimeError as e:
                 failed = json.loads(str(e).split(': ', 1)[1])
@@ -582,6 +589,366 @@ def run_circuits(mode, texts, counts, db):
         proxy.stop()
         if cluster:
             cluster.stop()
+    return result
+
+
+# ---- Recovery (--recovery STAGE,...): failures as per-contact results (PRODUCT_TODO.md sections 3
+# and 4; handshake_backend/EmpHybridWork/PublicServiceController.lean, `Recovery` and `deliver`).
+# Every stage has its own accounts and database nodes and runs these sessions, each of two
+# broadcasts to every contact:
+#   created   the contacts are created on the database nodes;
+#   fault     something goes wrong for some contacts (below), usually between the two broadcasts:
+#             the controllers pause there on request (SIGNAL_LOCAL_PAUSE_AFTER, a test hook);
+#   after     a plain session. It shows the state left on the database nodes is consistent.
+# Required of every session: both controllers end normally with the same per-id results, those
+# results are the expected ones, and each recipient decrypts what was reported delivered.
+D, RF, IC = 'delivered', 'delivered after device refresh', 'delivered after identity change'
+RL, NS, FAULT = 'retry later', 'needs re-signup', 'fault'
+TEXTS = ['MPC broadcast one', 'MPC broadcast two ☕']
+FAULT_PLAIN, FAULT_TLS = 18090, 18444
+RECOVERY_STAGES = ['classify', 'devices', 'refresh-retry', 'identity', 'unauthorized', 'drop', 'throttle', 'bundle-fault', 'resume']
+
+
+def wait_for(path, text, processes, seconds=400):
+    """Wait until `text` is in the file (a party's log); False if a party exits first."""
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if path.exists() and text in path.read_text(errors='replace'):
+            return True
+        if any(p.poll() is not None for p in processes):
+            return False
+        time.sleep(0.2)
+    return False
+
+
+def mid(inject, marker='recovery: TEST pause'):
+    """A `during_logs` callback: run `inject` once the controllers reach `marker`."""
+    def during(processes, output):
+        if wait_for(output / 'party-0.log', marker, processes):
+            inject(processes, output)
+    return during
+
+
+class FaultProxy:
+    """scripts/fault_proxy.py behind a second TLS terminator (port FAULT_TLS): a session pointed
+    there has chosen requests answered by the proxy instead of the server."""
+    def __init__(self):
+        import socket
+        self.log = STATE / 'fault-proxy.jsonl'
+        self.log.write_text('')
+        self.process = subprocess.Popen([sys.executable, str(SCRIPTS / 'fault_proxy.py'), str(FAULT_PLAIN), str(self.log)],
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        if not self.process.stdout.readline().startswith('listening'):
+            raise RuntimeError('fault proxy did not start')
+        self.terminator = subprocess.Popen([sys.executable, '-I', str(SCRIPTS / 'tls_terminator.py'), '--cert', str(STATE / 'tls/server.pem'),
+                                            '--key', str(STATE / 'tls/server.key'), '--listen', str(FAULT_TLS), '--backend',
+                                            f'127.0.0.1:{FAULT_PLAIN}', '--require-aes128'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(100):
+            try:
+                socket.create_connection(('127.0.0.1', FAULT_TLS), timeout=1).close()
+                return
+            except OSError:
+                time.sleep(0.1)
+        raise RuntimeError('second TLS terminator did not start')
+
+    def command(self, line):
+        self.process.stdin.write(line + '\n')
+        self.process.stdin.flush()
+        self.process.stdout.readline()
+
+    def rows(self):
+        return [json.loads(line) for line in self.log.read_text().splitlines() if line.strip()]
+
+    def stop(self):
+        for p in (self.process, self.terminator):
+            p.kill()
+            p.wait()
+
+
+class Recovery:
+    def __init__(self, mode, names=('recipient', 'recipient2')):
+        self.mode, self.names = mode, list(names)
+        lss('provision')
+        if 'recipient3' in self.names:
+            lss('register', 'recipient3', '+12025550106')
+            lss('establish', 'sender', 'recipient3')
+        lss('export-mpc', 'sender', *self.names)
+        self.export = json.loads(EXPORT.read_text())
+        self.aci = {name: json.loads((STATE / 'accounts' / f'{name}.json').read_text())['aci'] for name in self.names}
+        by_aci = {c['recipient_aci']: int(c['contact_id_u128_hex'], 16) for c in self.export['contacts']}
+        self.id_of = {name: by_aci[self.aci[name]] for name in self.names}
+        self.ids = list(self.id_of.values())
+        self.cluster = Cluster()
+        for contact in self.ids + [ACCOUNT]:
+            self.cluster.token(contact)
+        self.pause = dict(SIGNAL_LOCAL_PAUSE_AFTER=f'{len(self.ids)}:16000')   # after the first broadcast
+        self.early = {}
+
+    def drain(self, *names):
+        """Receive what is queued for these accounts now (it counts towards the next `check`). To be
+        done before a test step that opens an account's own socket: the provisioning tool's
+        other commands acknowledge and discard what the server delivers to them."""
+        for name in names:
+            self.early.setdefault(name, []).extend(g['text'] for g in receive(name, 2))
+
+    def session(self, env=None, during=None, endpoint='127.0.0.1', port=18443):
+        request = self.cluster.request(self.ids, 'broadcast')
+        try:
+            return run_mpc(self.export, self.mode, {}, during_logs=during, endpoint=endpoint, server_port=port,
+                           party_env=lambda party: dict(self.cluster.env(party, request), **(env(party) if callable(env) else (env or {}))))
+        finally:
+            self.cluster.refresh()
+
+    def check(self, run, expected, received, events=(), exactly=False):
+        """expected: {name: [result of message 0, of message 1]}; received: {account: [texts]} that
+        must have been decrypted (`exactly`: and nothing else); events: texts the controllers'
+        public recovery log must contain."""
+        cases = run['controllers']
+        rows = cases[0].get('results', [])
+        got = {name: [r['result'] for r in sorted(rows, key=lambda r: r['message']) if r['id'] == str(self.id_of[name])] for name in self.names}
+        log = cases[0].get('recovery', [])
+        recipients, delivered = {}, True
+        for name, texts in received.items():
+            try:
+                seen = receive(name, 4)
+            except subprocess.CalledProcessError:
+                seen = []   # the device no longer exists (unlinked): what it received earlier counts
+            attributed = [g for g in seen if g['envelope'].get('source_service_id') or g['envelope'].get('source_device')]
+            found = self.early.pop(name, []) + [g['text'] for g in seen]
+            good = all(t in found for t in texts) and not attributed and (not exactly or sorted(found) == sorted(texts))
+            recipients[name] = dict(received=found, expected=texts, duplicates=len(found) - len(set(found)), passed=good)
+            delivered = delivered and good
+        checks = dict(results_as_expected=got == expected,
+                      both_controllers_agree=all(c.get('results') == rows and c.get('recovery_used') for c in cases),
+                      no_session_abort=all(c.get('passed') and not c.get('error') for c in cases) and not run['rejections'],
+                      recipients_decrypted=delivered,
+                      events_seen=all(any(e in line for line in log) for e in events))
+        return dict(passed=all(checks.values()), checks=checks, results=got, expected=expected, reasons=[r['reason'] for r in rows if r['reason']],
+                    recovery=log, recipients=recipients, seconds=round(run['elapsed_seconds'], 1))
+
+    def stop(self):
+        self.cluster.stop()
+
+
+def finish(out):
+    out['passed'] = all(v.get('passed') for v in out.values() if isinstance(v, dict) and 'passed' in v)
+    return out
+
+
+def stage_classify(mode):
+    """The controller's own unit check: the classification table, back-off, and the response
+    parser on 429 (with Retry-After), 503 and 409 responses."""
+    r = subprocess.run([str(ROOT / '.lake/build/bin/public_service_controller'), 'recovery-check'], capture_output=True, text=True)
+    return dict(json.loads(r.stdout.strip().splitlines()[0]) if r.stdout.strip() else {}, exit_code=r.returncode,
+                passed=r.returncode == 0)
+
+
+def stage_devices(mode):
+    """A device is linked, then removed, each in the middle of a session: 409, refresh, resend."""
+    r, out = Recovery(mode), {}
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        run = r.session(env=r.pause, during=mid(lambda *_: (r.drain('recipient'), lss('link', 'recipient'))))
+        out['linked'] = r.check(run, {'recipient': [D, RF], 'recipient2': [D, D]},
+                                {'recipient': TEXTS, 'recipient.2': TEXTS[1:], 'recipient2': TEXTS}, events=['answered 409'])
+        run = r.session(env=r.pause, during=mid(lambda *_: (r.drain('recipient', 'recipient.2'), lss('unlink', 'recipient', '2'))))
+        out['unlinked'] = r.check(run, {'recipient': [D, RF], 'recipient2': [D, D]},
+                                  {'recipient': TEXTS, 'recipient.2': TEXTS[:1], 'recipient2': TEXTS},
+                                  events=['1 sessions established'])
+        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+    finally:
+        r.stop()
+    return finish(out)
+
+
+def stage_refresh_retry(mode):
+    """The device list changes again between the refresh and the resend (a second 409): the
+    refresh is repeated. The controllers pause after storing the first refresh (test hook)."""
+    r, out = Recovery(mode), {}
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+
+    def inject(processes, output):
+        r.drain('recipient')
+        lss('link', 'recipient')                                           # device 2: the next send gets 409
+        if wait_for(output / 'party-0.log', '2 sessions established', processes):
+            lss('link', 'recipient')                                       # device 3, before the resend: 409 again
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        run = r.session(env=dict(r.pause, SIGNAL_LOCAL_PAUSE_REFRESH='9000'), during=mid(inject))
+        out['second_mismatch'] = r.check(run, {'recipient': [D, RF], 'recipient2': [D, D]},
+                                         {'recipient': TEXTS, 'recipient.2': TEXTS[1:], 'recipient.3': TEXTS[1:], 'recipient2': TEXTS},
+                                         events=['refresh 2', '3 sessions established'])
+        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient.2': TEXTS, 'recipient.3': TEXTS, 'recipient2': TEXTS})
+    finally:
+        r.stop()
+    return finish(out)
+
+
+def stage_identity(mode):
+    """A contact registers again (new identity key, same account id and access key): accepted,
+    sessions replaced, reported. The message sent before it went to the old installation."""
+    r, out = Recovery(mode), {}
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        run = r.session(env=r.pause, during=mid(lambda *_: (r.drain('recipient'), lss('reregister', 'recipient'))))
+        out['reregistered'] = r.check(run, {'recipient': [D, IC], 'recipient2': [D, D]}, {'recipient': TEXTS, 'recipient2': TEXTS},
+                                      events=['under a new identity key'])
+        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+    finally:
+        r.stop()
+    return finish(out)
+
+
+def stage_unauthorized(mode):
+    """One contact's profile key changes (its access key with it); another deletes its account.
+    Both sends get 401: with sealed sender the server answers 401, not 404, for an account that
+    no longer exists (OptionalAccess.verify), so both are reported as needing to sign up again."""
+    r, out = Recovery(mode, ('recipient', 'recipient2', 'recipient3')), {}
+
+    def inject(*_):
+        r.drain('recipient')
+        lss('rotate-access', 'recipient')
+        lss('delete', 'recipient3')
+    try:
+        every = {name: [D, D] for name in r.names}
+        out['created'] = r.check(r.session(), every, {name: TEXTS for name in r.names})
+        run = r.session(env=r.pause, during=mid(inject))
+        out['rotated_and_deleted'] = r.check(run, {'recipient': [D, NS], 'recipient2': [D, D], 'recipient3': [D, NS]},
+                                             {'recipient': TEXTS[:1], 'recipient2': TEXTS}, exactly=True)
+        out['after'] = r.check(r.session(), {'recipient': [NS, NS], 'recipient2': [D, D], 'recipient3': [NS, NS]},
+                               {'recipient': [], 'recipient2': TEXTS}, exactly=True)
+    finally:
+        r.stop()
+    return finish(out)
+
+
+def stage_drop(mode):
+    """A circuit is dropped right after a send left on it (through the SOCKS test proxy, two
+    circuits): that connection is replaced and the send repeated; the other connection is kept.
+    The recipient may get that text twice (the server had received the first copy)."""
+    r, out = Recovery(mode), {}
+    proxy = SocksProxy()
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    via = dict(endpoint=SIGNAL_HOST, env=SocksProxy.env(2))
+    try:
+        out['created'] = r.check(r.session(**via), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        proxy.command('drop-after send-1-of-2 3')   # its Finished, its upgrade request, its first send
+        run = r.session(**via)
+        username = (run['controllers'][0].get('circuit_labels') or [[None]])[0][0]
+        connections = proxy.session(username)
+        out['dropped'] = r.check(run, both, {'recipient': TEXTS, 'recipient2': TEXTS}, events=['connection 1 was closed and replaced'])
+        out['dropped']['proxy'] = dict(connections=[c['password'] for c in connections], dropped=[c['password'] for c in connections if c['close'].get('dropped')])
+        out['dropped']['passed'] = out['dropped']['passed'] and out['dropped']['proxy']['dropped'] == ['send-1-of-2'] and len(connections) == 3
+        out['after'] = r.check(r.session(**via), both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True)
+    finally:
+        proxy.stop()
+        r.stop()
+    return finish(out)
+
+
+def stage_throttle(mode):
+    """429 and 503, injected by scripts/fault_proxy.py (the local server has no switch for them):
+    one contact's first send is answered 429 with Retry-After and is delivered on the retry; the
+    other contact's sends are all answered 503 and end as "retry later" after the bounded
+    retries. Then, directly: everyone is delivered (the state stored for the sends that never
+    arrived is consistent)."""
+    r, out = Recovery(mode), {}
+    proxy = FaultProxy()
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        proxy.command(f'answer 429 1 0 /v1/messages/{r.aci["recipient"]} 2')
+        proxy.command(f'answer 503 99 0 /v1/messages/{r.aci["recipient2"]}')
+        run = r.session(port=FAULT_TLS)
+        out['throttled'] = r.check(run, {'recipient': [D, D], 'recipient2': [RL, RL]}, {'recipient': TEXTS, 'recipient2': []}, exactly=True,
+                                   events=['answered 429, retry 1 in 2000 ms', 'answered 503, retry 3 in 9000 ms', 'after 3 retries'])
+        out['throttled']['injected'] = [row['status'] for row in proxy.rows() if row['action'] == 'answer']
+        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True)
+    finally:
+        proxy.stop()
+        r.stop()
+    return finish(out)
+
+
+def stage_bundle_fault(mode):
+    """A prekey response that is not a bundle, and one that is well formed but does not verify
+    (both from scripts/fault_proxy.py): fault, nothing stored. Then, directly: the same contacts
+    are refreshed from the real bundles and delivered, so their state was left as it was."""
+    r, out = Recovery(mode, ('recipient', 'recipient2', 'recipient3')), {}
+    proxy = FaultProxy()
+    every = {name: [D, D] for name in r.names}
+
+    def inject(*_):
+        r.drain('recipient', 'recipient3')
+        lss('link', 'recipient')
+        lss('link', 'recipient3')
+    try:
+        out['created'] = r.check(r.session(), every, {name: TEXTS for name in r.names})
+        proxy.command(f'garbage 1 0 /v2/keys/{r.aci["recipient"]} 2600')
+        proxy.command(f'forged 1 0 /v2/keys/{r.aci["recipient3"]}')
+        run = r.session(env=r.pause, during=mid(inject), port=FAULT_TLS)
+        out['bad_bundles'] = r.check(run, {'recipient': [D, FAULT], 'recipient2': [D, D], 'recipient3': [D, FAULT]},
+                                     {'recipient': TEXTS[:1], 'recipient2': TEXTS, 'recipient3': TEXTS[:1], 'recipient.2': [], 'recipient3.2': []},
+                                     exactly=True, events=['is not a bundle', 'did not verify'])
+        out['bad_bundles']['injected'] = [row['action'] for row in proxy.rows() if row['action'] != 'forwarded']
+        out['after'] = r.check(r.session(), {'recipient': [RF, D], 'recipient2': [D, D], 'recipient3': [RF, D]},
+                               {'recipient': TEXTS, 'recipient.2': TEXTS, 'recipient2': TEXTS, 'recipient3': TEXTS, 'recipient3.2': TEXTS})
+    finally:
+        proxy.stop()
+        r.stop()
+    return finish(out)
+
+
+def stage_resume(mode):
+    """A session dies in the middle of a notify (one party's controller is killed after the first
+    broadcast). A new session for the same notify (SIGNAL_NOTIFY_ID, each party's journal) reloads
+    the contacts from the database nodes, does not resend what both journals show as settled, and
+    sends the rest."""
+    import secrets
+    r, out = Recovery(mode), {}
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    notify = 'notify-' + secrets.token_hex(4)
+    journals = [STATE / f'notify-journal-{party}.jsonl' for party in range(2)]
+    for path in journals:
+        path.write_text('')
+    env = lambda party: dict(r.pause, SIGNAL_NOTIFY_ID=notify, SIGNAL_NOTIFY_JOURNAL=str(journals[party]))
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        try:
+            r.session(env=env, during=mid(lambda processes, output: processes[1].kill()))
+            died = dict(passed=False, error='the session should have failed')
+        except RuntimeError as e:
+            failed = json.loads(str(e).split(': ', 1)[1])
+            lines = [len(path.read_text().splitlines()) for path in journals]
+            died = dict(passed=lines == [2, 2] and any(code != 0 for code in failed['exit_codes']), journal_lines=lines,
+                        exit_codes=failed['exit_codes'], errors=[c.get('error') for c in failed.get('controllers', [])])
+        out['session_killed'] = died
+        run = r.session(env=lambda party: dict(SIGNAL_NOTIFY_ID=notify, SIGNAL_NOTIFY_JOURNAL=str(journals[party])))
+        # Across the killed session and this one: every text exactly once.
+        out['resumed'] = r.check(run, both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True,
+                                 events=['2 results settled by an earlier session'])
+        out['resumed']['passed'] = out['resumed']['passed'] and out['resumed']['reasons'].count('settled by an earlier session of this notify') == 2
+        out['after'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True)
+    finally:
+        r.stop()
+    return finish(out)
+
+
+STAGES = {'classify': stage_classify, 'devices': stage_devices, 'refresh-retry': stage_refresh_retry, 'identity': stage_identity,
+          'unauthorized': stage_unauthorized, 'drop': stage_drop, 'throttle': stage_throttle, 'bundle-fault': stage_bundle_fault,
+          'resume': stage_resume}
+
+
+def run_recovery(mode, stages):
+    result = {}
+    for stage in stages:
+        try:
+            result[stage] = STAGES[stage](mode)
+        except Exception as e:
+            result[stage] = dict(passed=False, error=f'{type(e).__name__}: {e}'[:2000])
+    result['passed'] = all(result[stage].get('passed') for stage in stages)
     return result
 
 
@@ -611,6 +978,8 @@ def main():
     p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     p.add_argument('--db', action='store_true', help='also run the flow against five database nodes (secret-shared-db)')
     p.add_argument('--multi-device', action='store_true', help='also link a second device to a contact and require both devices to decrypt (database nodes)')
+    p.add_argument('--recovery', default='', help='fault-injection stages, comma separated, each with its own accounts and database nodes '
+                   '(--runs 0 --recovery devices runs only that one): ' + ', '.join(RECOVERY_STAGES))
     p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
     p.add_argument('--trace', action='store_true', help='controllers log the server bytes they reveal (public) to their logs')
     p.add_argument('--circuits', default='', help='also broadcast through the SOCKS test proxy with N Tor circuits, for each N of a '
@@ -620,7 +989,9 @@ def main():
     p.add_argument('--strict', action='store_true', help='produce the circuit manifest of deployment.json first (scripts/produce_circuits.py), '
                    'then run every session in strict mode: only circuits of the manifest, none produced while connected; a refused '
                    'name fails the run (it is a gap in the inventory, CIRCUIT_SHAPES.md)')
+    p.add_argument('--strict-produced', action='store_true', help='--strict with the manifest already in state/circuits: nothing is produced')
     a = p.parse_args()
+    a.strict = a.strict or a.strict_produced
     if a.trace:
         os.environ['SIGNAL_LOCAL_TRACE'] = '1'
     os.environ['SIGNAL_LOCAL_BROADCASTS'] = str(max(2, a.broadcasts))
@@ -629,7 +1000,7 @@ def main():
         if not a.skip_build and not (STATE / 'classpath.txt').exists():
             run(['bash', SCRIPTS / 'build_server.sh'])
         if a.strict:
-            report['strict'] = strict_manifest()
+            report['strict'] = strict_manifest(not a.strict_produced)
         else:
             report['circuits'] = warm()
         import shutil
@@ -689,6 +1060,10 @@ def main():
             # Its own accounts and export (four contacts); runs last.
             report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db or a.circuits_db)
             ok = report['tor_circuits']['passed']
+        if ok and a.recovery:
+            # Each stage provisions its own accounts.
+            report['recovery'] = run_recovery(a.mode, a.recovery.split(','))
+            ok = report['recovery']['passed']
         if a.strict:
             # A name a session asked for outside the manifest (the session went on without it or failed).
             report['strict']['refused'] = kernel_lines(REFUSED)

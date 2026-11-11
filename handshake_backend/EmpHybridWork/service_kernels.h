@@ -342,13 +342,15 @@ public:
         auto reply=kernel.open(s,out,"check");auto ciphertext=kernel.open(s,out,"ciphertext");reply.insert(reply.end(),ciphertext.begin(),ciphertext.end());return reply;
     }
     // Load a contact's state from its stored ciphertext. A wrong key (bad or stale share from
-    // either side) fails the public check value and aborts without revealing anything else.
-    void contact_open(const ContactId&id,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
+    // either side) fails the public check value: nothing else is revealed, the contact stays
+    // unloaded and the reply is 0 (255 when loaded). It is this contact's failure, not the
+    // session's: the opened byte is the kernel's `accepted`, which a refusal always showed.
+    std::vector<uint8_t> contact_open(const ContactId&id,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
         auto it=conversations.find(id);need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&ciphertext.size()==CONTACT,"contact open unavailable");version_ok(version);
         auto&c=it->second;auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
         auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"ciphertext",&body},{"check",&sum}});
-        need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
-        c.record=std::move(out.at("content"));c.ready=false;c.offset=OffsetAgreement{};
+        if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})return {0};
+        c.record=std::move(out.at("content"));c.ready=false;c.offset=OffsetAgreement{};return {255};
     }
     // Give a contact received under a provisional id its real id (named by the message it
     // sent). Reply 255, or 0 (and the contact is dropped) if that id is already present.
@@ -454,11 +456,15 @@ public:
             unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
             name+=" "+std::to_string(width);
         }
-        auto&kernel=k.cache.get(name);
+        // A contact whose state cannot produce a message is refused (reply 0) and keeps the state it
+        // had; the session carries on. What that shows is the kernel's gated status, the one byte
+        // Lean marks as openable here, which a refusal always showed (it used to end the session).
+        const Kernel*found=nullptr;try{found=&shaped(name);}catch(const Rejected&){return {0};}
+        auto&kernel=*found;
         Wires body=text;
         auto out=kernel.run(s,{{"conversation",&w},{"text",&body},{"ephemeralPublic",&ephemeral_public},
             {"senderPublic",&of(c).sender_public},{"ephemeralAgreement",&ephemeral_agreement},{"staticAgreement",&c.static_agreement}});
-        need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
+        if(kernel.open(s,out,"status")!=std::vector<uint8_t>{255})return {0};
         keep(c,out.at("conversation"));
         auto reply=kernel.open(s,out,"timestamp");auto envelope=kernel.open(s,out,"envelope");
         reply.push_back(uint8_t(envelope.size()>>8));reply.push_back(uint8_t(envelope.size()));reply.insert(reply.end(),envelope.begin(),envelope.end());
@@ -537,12 +543,19 @@ private:
         Values fields,bound,hash,ntt,parts,kem;std::vector<Wires>agreements;
         H identity_point,signed_point,one_time_point;std::vector<H>lifted;Wires identity_valid,identity_x,identity_y;
         std::vector<Device>done;std::vector<uint8_t>statuses;
+        // SCRATCH: once every device's status opened to 255 (`ready`), `done` is the contact's new
+        // device list, held here and not yet the contact's state. `scratch_seal` seals it for the
+        // database nodes; `scratch_commit` makes it the contact's state once they acknowledged
+        // it; `bundle_drop` (or any failure before) discards it and the contact is as it was.
+        // `changed`: the opened byte of bundle-rebind (the contact's identity key is a new one).
+        bool ready=false,changed=false;ContactId contact{};
     };
     Establishing establishing;
-    Wires entries(const Conversation&c){
-        std::vector<const Wires*>parts;for(auto&d:c.devices){parts.push_back(&d.record);if(d.kind)parts.push_back(&d.pending);}
+    Wires entries(const std::vector<Device>&devices){
+        std::vector<const Wires*>parts;for(auto&d:devices){parts.push_back(&d.record);if(d.kind)parts.push_back(&d.pending);}
         return DynSession::concat(parts);
     }
+    Wires entries(const Conversation&c){return entries(c.devices);}
     // A new ephemeral pair for a message to this contact (public key word, agreement word), by the
     // offset agreement with a joint public offset, exactly as in seal_open.
     std::pair<Wires,Wires> ephemeral(Conversation&c){
@@ -592,9 +605,11 @@ public:
     //   2..7: Kyber-1024 encapsulation to the device's Kyber prekey (each party supplies 32 private bytes)
     //   8: the session; opens its one status byte
     // `layout`: the item's offset and digit counts, from Lean's `layout?` on the opened shape.
-    // Reply: 255 after steps 0..7, the status after step 8; 0 if Lean refuses the layout. When
-    // the last device's status and all before it are 255 the contact's device list is replaced
-    // by the new one; otherwise it is left as it was.
+    // Reply: 255 after steps 0..7 (254 after step 0 of the first device when bundle-rebind's opened
+    // byte says the contact's identity key is a new one), the status after step 8; 0 if Lean
+    // refuses the layout. The contact's state is NOT touched here: when the last device's status
+    // and all before it are 255 the new device list is held as scratch (`Establishing`), to be
+    // sealed, stored and only then committed; otherwise it is dropped.
     std::vector<uint8_t> bundle_establish(const ContactId&id,size_t index,size_t count,unsigned step,const std::array<size_t,6>&layout,
             const std::vector<uint8_t>&local_registration,const std::vector<uint8_t>&request_id){
         auto it=conversations.find(id);
@@ -602,7 +617,7 @@ public:
             local_registration.size()==4&&request_id.size()==8,"bundle establish");
         if(index==0&&step==0)establishing=Establishing{};
         auto&e=establishing;need(e.index==index&&e.step==step,"bundle establish order");
-        auto&c=it->second;auto&a=of(c);const std::string flag=layout[4]?"1":"0";
+        auto&c=it->second;auto&a=of(c);const std::string flag=layout[4]?"1":"0";uint8_t passed=255;
         try{
             switch(step){
             case 0:{
@@ -644,7 +659,13 @@ public:
                 auto ec_rx=word(r.at(0).at(0)),ec_ry=word(r.at(0).at(1)),pq_rx=word(r.at(1).at(0)),pq_ry=word(r.at(1).at(1));
                 auto verified=k.cache.get("establish-verified").run(s,{{"identityValid",&e.identity_valid},{"ecRx",&ec_rx},{"ecRy",&ec_ry},{"pqRx",&pq_rx},{"pqRy",&pq_ry},
                     {"signedPrekeySignature",&e.fields.at("signedPrekeySignature")},{"kyberPrekeySignature",&e.fields.at("kyberPrekeySignature")}});
-                e.bound=k.cache.get("bundle-bind").run(s,{{"record",&c.record},{"valid",&e.fields.at("valid")},{"verified",&verified.at("verified")},{"identityKey",&e.fields.at("identityKey")}});
+                // bundle-rebind: the bundle's identity key need not be the stored one (a contact that
+                // registered again is accepted). Its one opened byte, `changed`, is 0 unless the bundle
+                // parsed and both signatures verified; it is the same for every device of a response,
+                // so it is opened for the first only.
+                auto&bind=k.cache.get("bundle-rebind");
+                e.bound=bind.run(s,{{"record",&c.record},{"valid",&e.fields.at("valid")},{"verified",&verified.at("verified")},{"identityKey",&e.fields.at("identityKey")}});
+                if(index==0){auto changed=bind.open(s,e.bound,"changed");need(changed.size()==1&&(changed[0]==0||changed[0]==255),"rebind flag");e.changed=changed[0]==255;if(e.changed)passed=254;}
                 break;
             }
             case 1:{
@@ -698,14 +719,35 @@ public:
                 e.fields.clear();e.bound.clear();e.hash.clear();e.ntt.clear();e.parts.clear();e.kem.clear();e.agreements.clear();
                 if(index+1==count){
                     bool all=true;for(auto value:e.statuses)all=all&&value==255;
-                    if(all){c.devices=std::move(e.done);c.record=c.devices[0].record;}
-                    bundle_drop();
+                    // Scratch, not the contact's state (scratch_seal, scratch_commit below).
+                    if(all){e.ready=true;e.contact=id;e.index=count;e.step=0;bundle=Wires{};}
+                    else bundle_drop();
                 }else{e.index=index+1;e.step=0;}
                 return {status[0]};
             }
             }
         }catch(const Rejected&){bundle_drop();return {0};}
-        e.step=step+1;return {255};
+        e.step=step+1;return {passed};
+    }
+    // The scratch device list sealed for storage under the contact's key, exactly as contact_seal
+    // seals a contact's state. Reply: check16, ciphertext. The contact's own state is untouched.
+    std::vector<uint8_t> scratch_seal(const ContactId&id,const std::vector<uint8_t>&version){
+        auto it=conversations.find(id);
+        need(!closed&&it!=conversations.end()&&it->second.key.size()&&establishing.ready&&establishing.contact==id&&!establishing.done.empty(),"scratch seal unavailable");version_ok(version);
+        const Wires content=entries(establishing.done);
+        auto&kernel=k.cache.get("contact-seal "+std::to_string(content.size()/8));auto v=k.constant(version);
+        auto out=kernel.run(s,{{"traffic",&it->second.key},{"version",&v},{"content",&content}});
+        auto reply=kernel.open(s,out,"check");auto ciphertext=kernel.open(s,out,"ciphertext");reply.insert(reply.end(),ciphertext.begin(),ciphertext.end());return reply;
+    }
+    // The scratch device list becomes the contact's state (the controllers call this once the
+    // database nodes acknowledged the sealed scratch). With a new identity key the values derived
+    // from the old one (recipient point, static agreement, offset table) are dropped.
+    void scratch_commit(const ContactId&id){
+        auto it=conversations.find(id);
+        need(!closed&&it!=conversations.end()&&establishing.ready&&establishing.contact==id&&!establishing.done.empty(),"scratch commit unavailable");
+        auto&c=it->second;c.devices=std::move(establishing.done);c.record=c.devices[0].record;
+        if(establishing.changed){c.ready=false;c.static_agreement=Wires{};c.offset=OffsetAgreement{};}
+        establishing=Establishing{};
     }
     // One send to every device of a contact with a device list: per device a new ephemeral pair
     // and the kernel for its kind (0: signal-seal-built, as a single-device send; 1, 2:
@@ -729,12 +771,15 @@ public:
                 unsigned width=1;for(auto flag:widths.open(s,flags,field)){need(flag==0||flag==255,"width flag");width+=flag==255;}
                 name+=" "+std::to_string(width);
             }
-            auto&kernel=k.cache.get(name);
+            // As in seal_open: a device whose state cannot produce a message refuses the send to this
+            // contact (reply 0, nothing kept), not the session.
+            const Kernel*found=nullptr;try{found=&shaped(name);}catch(const Rejected&){return {0};}
+            auto&kernel=*found;
             Binding bound{{"conversation",&w},{"text",&body},{"ephemeralPublic",&pair.first},{"senderPublic",&of(c).sender_public},
                 {"ephemeralAgreement",&pair.second},{"staticAgreement",&c.static_agreement}};
             if(d.kind!=0){bound.push_back({"pending",&d.pending});bound.push_back({"localAddress",&address});}
             auto out=kernel.run(s,bound);
-            need(kernel.open(s,out,"status")==std::vector<uint8_t>{255},"private send rejected");
+            if(kernel.open(s,out,"status")!=std::vector<uint8_t>{255})return {0};
             need(out.at("conversation").size()==8*(CERT+CONTACT),"conversation shape");
             if(reply.empty())reply=kernel.open(s,out,"timestamp");
             auto envelope=kernel.open(s,out,"envelope");
@@ -759,20 +804,21 @@ public:
         return k.retain(std::move(buffer));
     }
     // Load a contact's device list from its stored ciphertext. `kinds` are public (stored next to
-    // the ciphertext) and say how the content splits into entries; a wrong key fails as in contact_open.
-    void contact_open_devices(const ContactId&id,const std::vector<uint8_t>&kinds,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
+    // the ciphertext) and say how the content splits into entries; a wrong key fails as in contact_open
+    // (reply 0, the contact stays unloaded; 255 when loaded).
+    std::vector<uint8_t> contact_open_devices(const ContactId&id,const std::vector<uint8_t>&kinds,const std::vector<uint8_t>&version,const std::vector<uint8_t>&check,const std::vector<uint8_t>&ciphertext){
         auto it=conversations.find(id);size_t total=0;for(auto kind:kinds){need(kind<=2,"device kind");total+=CONTACT+(kind?PENDING:0);}
         need(!closed&&it!=conversations.end()&&it->second.key.size()&&it->second.record.size()==0&&check.size()==16&&!kinds.empty()&&kinds.size()<=6&&ciphertext.size()==total,"contact open unavailable");version_ok(version);
         auto&c=it->second;auto&kernel=k.cache.get("contact-open "+std::to_string(ciphertext.size()));auto v=k.constant(version),sum=k.constant(check),body=k.constant(ciphertext);
         auto out=kernel.run(s,{{"traffic",&c.key},{"version",&v},{"ciphertext",&body},{"check",&sum}});
-        need(kernel.open(s,out,"accepted")==std::vector<uint8_t>{255},"contact key does not match the stored state");
+        if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})return {0};
         const auto&content=out.at("content");c.devices.clear();size_t at=0;
         for(auto kind:kinds){
             Device device;device.kind=kind;device.record=content.slice(8*at,8*(at+CONTACT));at+=CONTACT;
             if(kind){device.pending=content.slice(8*at,8*(at+PENDING));at+=PENDING;}
             c.devices.push_back(std::move(device));
         }
-        c.record=c.devices[0].record;c.ready=false;c.offset=OffsetAgreement{};
+        c.record=c.devices[0].record;c.ready=false;c.offset=OffsetAgreement{};return {255};
     }
     void close(){closed=true;conversations.clear();inputs.clear();ws.clear();}
 };

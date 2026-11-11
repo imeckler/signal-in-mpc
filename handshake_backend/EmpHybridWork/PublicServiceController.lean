@@ -152,6 +152,8 @@ structure State where
   lenient : Bool := false
   /-- Status of the last completed response. -/
   status : Nat := 0
+  /-- Its `Retry-After` header in seconds, if it had one (`retryAfterOf`). -/
+  retryAfter : Option Nat := none
 
 def start (accept : List Byte) : State :=
   { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
@@ -337,6 +339,39 @@ def replyScan (bytes : List Byte) (bodySkipped : Bool) : Need × ReplyFields := 
     else return (.malformed, fields)
   return (.more, fields)
 
+/-- The headers (field 5, each `name:value`) among a response's revealed bytes. No byte is
+revealed for this: a response's headers were always revealed, like its id and status; only its
+body is not, and `replyScan` leaves the body's content out of these bytes. -/
+def replyHeaders (bytes : List Byte) : List String := Id.run do
+  if bytes.length < 3 then return []
+  let some (_, first) := varintAt bytes 3 | return []
+  let mut pos := first
+  let mut headers : List String := []
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return headers
+    let tag := (get bytes pos).toNat
+    if tag == 0x08 || tag == 0x10 then
+      let some (_, next) := varintAt bytes (pos + 1) | return headers
+      pos := next
+    else if tag == 0x1a || tag == 0x2a then
+      let some (count, next) := varintAt bytes (pos + 1) | return headers
+      if next + count > bytes.length then return headers
+      if tag == 0x2a then
+        headers := headers ++ [String.ofList (((bytes.drop next).take count).map (fun b => Char.ofNat b.toNat))]
+      pos := next + count
+    else if tag == 0x22 then
+      let some (_, next) := varintAt bytes (pos + 1) | return headers
+      pos := next
+    else return headers
+  return headers
+
+/-- The `Retry-After` header of a response, in seconds (the server sends one with a 429). -/
+def retryAfterOf (bytes : List Byte) : Option Nat :=
+  (replyHeaders bytes).findSome? fun header =>
+    match header.splitOn ":" with
+    | [name, value] => if name.trimAscii.toString.toLower == "retry-after" then value.trimAscii.toString.toNat? else none
+    | _ => none
+
 /-- How many further bytes of a response are certain not to be body content, given its
 revealed bytes. A body byte can only follow the body's key (`22`) and its complete length, so:
 
@@ -490,7 +525,7 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
       s := { s with skip := count, capture := false, collect := wanted, replySkipped := true,
                     bundle := if wanted then some count else s.bundle }
     | (.more, _) => pure ()
-    if complete then s := { s with status := ((replyScan s.reply true).2.status).getD 0 }
+    if complete then s := { s with status := ((replyScan s.reply true).2.status).getD 0, retryAfter := retryAfterOf s.reply }
   if data && message == [8, 1] then
     match s.inner with
     | some (header, passed, remaining) =>
@@ -532,7 +567,8 @@ def stepPassed (s : State) : Except String (State × Bool) := do
     if get out 1 == on then
       unless get out 2 == on || s.lenient do throw "service response was not a success"
       complete := true
-      s := { s with pending := false, response := [], status := ((replyScan s.reply true).2.status).getD 0 }
+      s := { s with pending := false, response := [], status := ((replyScan s.reply true).2.status).getD 0,
+                    retryAfter := retryAfterOf s.reply }
   if get frame 5 == on then
     unless s.skip == 0 do throw "service response ended inside its body"
     s := { s with message := [], held := none, reply := [], replySkipped := false }
@@ -747,6 +783,219 @@ def labels (session : String) (count : Nat) (index : Option Nat) : String × Str
 
 end Circuits
 
+/-! ---- Failures as per-contact outcomes (PRODUCT_TODO.md sections 3 and 4).
+
+A send session with the database nodes does not end when one contact fails. Everything decided
+here is decided from values both controllers hold: a response's status and headers (revealed
+as always; never its body), the engines' opened status bytes, and whether the worker reported a
+connection closed. The table:
+
+| Signal                                         | Action                                                  |
+|------------------------------------------------|---------------------------------------------------------|
+| 2xx to a send                                  | delivered                                               |
+| 409 / 410 to a send                            | refresh the contact's sessions and send again; a refusal after that is refreshed again, at most `refreshRetries` more times |
+| 429 or 5xx (send or prekey fetch)              | back off (`Retry-After` if the response has it, else `schedule`), the contact goes to the end of the queue; at most `transientRetries` retries |
+| the connection was closed                      | that connection is replaced (new handshake, the others kept) and what was in flight is sent again: a possible duplicate, by the owner's decision; at most `reconnects` times per message |
+| 401 (send or prekey fetch)                     | stop: the contact needs to sign up again                |
+| 404                                            | stop: the account is gone                               |
+| the bundle's identity key is a new one         | accepted: sessions replaced, reported                   |
+| the bundle does not parse or verify            | stop, nothing stored: fault                             |
+
+With sealed sender the Signal server answers 401, not 404, for an account that no longer
+exists (`OptionalAccess.verify`: a 404 "would provide a free exists check"), so a deleted
+account is reported as needing to sign up again. Never falls back to an unsealed send. -/
+namespace Recovery
+
+/-- The result the application gets for an id of a notify. -/
+inductive Result where
+  | delivered | deliveredAfterRefresh | deliveredAfterIdentityChange
+  | retryLater | needsSignup | gone | fault
+  deriving BEq, Repr
+
+def Result.all : List Result :=
+  [.delivered, .deliveredAfterRefresh, .deliveredAfterIdentityChange, .retryLater, .needsSignup, .gone, .fault]
+
+def Result.text : Result → String
+  | .delivered => "delivered"
+  | .deliveredAfterRefresh => "delivered after device refresh"
+  | .deliveredAfterIdentityChange => "delivered after identity change"
+  | .retryLater => "retry later"
+  | .needsSignup => "needs re-signup"
+  | .gone => "gone"
+  | .fault => "fault"
+
+def Result.ofText? (text : String) : Option Result := Result.all.find? (·.text == text)
+
+def Result.isDelivered : Result → Bool
+  | .delivered | .deliveredAfterRefresh | .deliveredAfterIdentityChange => true
+  | _ => false
+
+/-- Settled for this notify: a later session for the same notify does not send it again. -/
+def Result.settled : Result → Bool
+  | .retryLater | .fault => false
+  | _ => true
+
+/-- No further send to this contact in this session. -/
+def Result.stops : Result → Bool
+  | .needsSignup | .gone | .fault => true
+  | _ => false
+
+inductive Action where
+  | done | refresh | backOff | stop (result : Result)
+  deriving BEq, Repr
+
+/-- From the status of the response to a send. -/
+def onSend (status : Nat) : Action :=
+  if 200 ≤ status && status < 300 then .done
+  else if status == 409 || status == 410 then .refresh
+  else if status == 429 || (500 ≤ status && status < 600) then .backOff
+  else if status == 401 then .stop .needsSignup
+  else if status == 404 then .stop .gone
+  else .stop .fault
+
+/-- From the status of the response to a prekey fetch. -/
+def onFetch (status : Nat) : Action :=
+  if status == 200 then .done
+  else if status == 429 || (500 ≤ status && status < 600) then .backOff
+  else if status == 401 then .stop .needsSignup
+  else if status == 404 then .stop .gone
+  else .stop .fault
+
+/-- Refreshes after the first, for one message. -/
+def refreshRetries : Nat := 2
+def transientRetries : Nat := 3
+def reconnects : Nat := 2
+/-- Waits (milliseconds) before retry 1, 2, 3 when the response names none. -/
+def schedule : List Nat := [1000, 3000, 9000]
+/-- The longest wait a session accepts; a longer `Retry-After` is left to the application. -/
+def longestWait : Nat := 60000
+
+/-- The wait before retry number `attempt` (from 0), or `none`: give the contact up as
+"retry later". -/
+def delay (attempt : Nat) (retryAfter : Option Nat) : Option Nat :=
+  if attempt ≥ transientRetries then none else
+  match retryAfter with
+  | some seconds => if seconds * 1000 ≤ longestWait then some (max 200 (seconds * 1000)) else none
+  | none => schedule[attempt]?
+
+/-- How a refresh of a contact's sessions ended. `ok`: the new device list is stored and is the
+contact's state (`changed`: under a new identity key). In every other case nothing was stored
+and the contact is as before. -/
+inductive Refreshed where
+  | ok (changed : Bool)
+  | lost                                             -- the connection was closed meanwhile
+  | stop (result : Result) (reason : String)
+  | transient (status : Nat) (retryAfter : Option Nat)
+
+/-- One result line: (message number within the notify, contact id, result, reason). -/
+abbrev Entry := Nat × Nat × Result × String
+
+/-- The results as the bytes whose digest the two controllers compare before reporting. -/
+def canonical (entries : List Entry) : String :=
+  String.join (entries.map fun (message, contact, result, reason) => s!"{message}\t{contact}\t{result.text}\t{reason}\n")
+
+/-- A journal line: a settled result of notify `notify` (PRODUCT_TODO.md section 4, "what was
+confirmed"). Each computation node appends these to its own journal; a later session for the
+same notify skips an entry only when BOTH nodes' journals have it. -/
+def journalLine (notify : String) (entry : Entry) : String :=
+  (Lean.Json.mkObj [("notify", toJson notify), ("message", toJson entry.1), ("id", toJson (toString entry.2.1)),
+    ("result", toJson entry.2.2.1.text)]).compress
+
+def journalEntries (notify text : String) : List (Nat × Nat × Result) :=
+  (text.splitOn "\n").filterMap fun line =>
+    match Lean.Json.parse line with
+    | .error _ => none
+    | .ok json =>
+      match json.getObjValAs? String "notify", json.getObjValAs? Nat "message", json.getObjValAs? String "id",
+          json.getObjValAs? String "result" with
+      | .ok named, .ok message, .ok id, .ok result =>
+        if named != notify then none else
+        match id.toNat?, Result.ofText? result with
+        | some contact, some result => if result.settled then some (message, contact, result) else none
+        | _, _ => none
+      | _, _, _, _ => none
+
+/-! Unit check (`public_service_controller recovery-check`): the table above, and the response
+parser on server responses built here — a 429 with `Retry-After`, a 503 without, a 409 with a
+body — fed as the session feeds them: a body byte is never given to `step`. -/
+
+private def bytesOf (s : String) : List (BitVec 8) := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
+
+/-- An unmasked server frame carrying a response. -/
+def responseFrame (id status : Nat) (message : String) (body : List (BitVec 8)) (headers : List String) : List (BitVec 8) :=
+  let inner := [0x08] ++ PublicReceive.varint id ++ [0x10] ++ PublicReceive.varint status ++
+    [0x1a] ++ PublicReceive.varint message.utf8ByteSize ++ bytesOf message ++
+    (if body.isEmpty then [] else [0x22] ++ PublicReceive.varint body.length ++ body) ++
+    headers.flatMap (fun header => [0x2a] ++ PublicReceive.varint header.utf8ByteSize ++ bytesOf header)
+  let payload := [0x08, 0x02, 0x1a] ++ PublicReceive.varint inner.length ++ inner
+  (if payload.length < 126 then [0x82, BitVec.ofNat 8 payload.length]
+    else [0x82, 126, BitVec.ofNat 8 (payload.length / 256), BitVec.ofNat 8 payload.length]) ++ payload
+
+/-- Feed a frame to a connection awaiting response `id`. Returns the final state, whether the
+response completed, and how many bytes were passed over unrevealed. -/
+def feed (lenient : Bool) (id : Nat) (frame : List (BitVec 8)) : Except String (PublicReceive.State × Bool × Nat) := do
+  let mut s := PublicReceive.expect { PublicReceive.start [] with upgraded := true, lenient } id
+  let mut complete := false
+  let mut passed := 0
+  for byte in frame do
+    if s.skip > 0 then
+      let (next, done) ← PublicReceive.stepPassed s
+      s := next
+      complete := complete || done
+      passed := passed + 1
+    else
+      unless PublicReceive.mayReveal s do throw "may not reveal"
+      let (next, done) ← PublicReceive.step s byte
+      s := next
+      complete := complete || done
+  return (s, complete, passed)
+
+set_option compiler.extract_closed false in   -- a function, so that nothing is evaluated at program start
+def checks (_ : Unit) : List (String × Bool) :=
+  let parsed (lenient : Bool) (frame : List (BitVec 8)) (want : PublicReceive.State → Bool) (passed : Nat) : Bool :=
+    match feed lenient 77 frame with
+    | .ok (s, complete, count) => complete && want s && count == passed
+    | .error _ => false
+  [ ("send 200 is delivered", onSend 200 == .done),
+    ("send 204 is delivered", onSend 204 == .done),
+    ("send 409 refreshes", onSend 409 == .refresh),
+    ("send 410 refreshes", onSend 410 == .refresh),
+    ("send 429 backs off", onSend 429 == .backOff),
+    ("send 500 backs off", onSend 500 == .backOff),
+    ("send 503 backs off", onSend 503 == .backOff),
+    ("send 401 needs re-signup", onSend 401 == .stop .needsSignup),
+    ("send 404 is gone", onSend 404 == .stop .gone),
+    ("send 413 is a fault", onSend 413 == .stop .fault),
+    ("send 428 is a fault", onSend 428 == .stop .fault),
+    ("fetch 200 continues", onFetch 200 == .done),
+    ("fetch 401 needs re-signup", onFetch 401 == .stop .needsSignup),
+    ("fetch 404 is gone", onFetch 404 == .stop .gone),
+    ("fetch 429 backs off", onFetch 429 == .backOff),
+    ("fetch 503 backs off", onFetch 503 == .backOff),
+    ("fetch 409 is a fault", onFetch 409 == .stop .fault),
+    ("fixed schedule", [delay 0 none, delay 1 none, delay 2 none, delay 3 none] == [some 1000, some 3000, some 9000, none]),
+    ("Retry-After is honoured", delay 0 (some 7) == some 7000 && delay 2 (some 1) == some 1000),
+    ("a long Retry-After gives up", delay 0 (some 3600) == none),
+    ("retries are bounded with Retry-After too", delay 3 (some 1) == none),
+    ("429 with Retry-After parses", parsed true (responseFrame 77 429 "Too Many Requests" [] ["Retry-After:7"])
+      (fun s => s.status == 429 && s.retryAfter == some 7) 0),
+    ("header name case and spaces", parsed true (responseFrame 77 429 "x" [] ["Content-Length:0", "retry-after: 12"])
+      (fun s => s.status == 429 && s.retryAfter == some 12) 0),
+    ("503 without the header", parsed true (responseFrame 77 503 "Service Unavailable" [] [])
+      (fun s => s.status == 503 && s.retryAfter == none) 0),
+    ("409: its body is passed over, not revealed", parsed true
+      (responseFrame 77 409 "Conflict" (bytesOf "{\"missingDevices\":[2],\"extraDevices\":[]}") ["Content-Type:application/json"])
+      (fun s => s.status == 409 && s.bundle == none) 40),
+    ("a failure is refused without leniency", (feed false 77 (responseFrame 77 429 "x" [] [])).toOption.isNone),
+    ("another request's response is refused", (feed true 77 (responseFrame 78 200 "OK" [] [])).toOption.isNone),
+    ("results text", canonical [(0, 5, .delivered, ""), (1, 5, .needsSignup, "status 401")] ==
+      "0\t5\tdelivered\t\n1\t5\tneeds re-signup\tstatus 401\n"),
+    ("journal round trip", journalEntries "n1" (journalLine "n1" (1, 5, .deliveredAfterRefresh, "") ++ "\n" ++
+      journalLine "n2" (0, 6, .delivered, "") ++ "\n" ++ journalLine "n1" (0, 7, .retryLater, "") ++ "\nnot json\n") ==
+      [(1, 5, .deliveredAfterRefresh)]) ]
+
+end Recovery
+
 private def natural (s : String) : IO Nat :=
   match s.toNat? with | some n => pure n | none => throw (IO.userError "invalid fixture integer")
 private def sessionBytes (text : String) : IO Bytes := do
@@ -857,9 +1106,17 @@ def parseBench : IO Unit := do
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
   IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
 
+set_option maxRecDepth 16384 in   -- one long `do` block: the elaborator's default depth is not enough for it
 def main (args : List String) : IO Unit := do
   if args == ["parse-bench"] then
     parseBench
+    return
+  if args == ["recovery-check"] then
+    -- Unit check of the failure classification and of the response parser on failures (`Recovery.checks`).
+    let outcomes := Recovery.checks ()
+    IO.println (Lean.Json.mkObj [("passed", toJson (outcomes.all (·.2))), ("checks", toJson outcomes.length),
+      ("failed", toJson ((outcomes.filter (!·.2)).map (·.1)))]).compress
+    unless outcomes.all (·.2) do throw (IO.userError "recovery check failed")
     return
   if let "request-shape" :: kind :: sizes := args then
     -- PRODUCTION OF CIRCUITS ONLY (scripts/produce_circuits.py, CIRCUIT_SHAPES.md): the kernel that
@@ -952,6 +1209,11 @@ def main (args : List String) : IO Unit := do
     { host, port := p, username, password })
   -- (contact, connection) of every send, in order (public; reported).
   let circuitSends ← IO.mkRef ([] : List (Nat × Nat))
+  -- Recovery (`Recovery` above): whether this session ran it, its per-id results once both
+  -- parties agreed on them, and its public events in order (for the report).
+  let recoveryUsed ← IO.mkRef false
+  let results ← IO.mkRef ([] : List Recovery.Entry)
+  let recoveryLog ← IO.mkRef ([] : List String)
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
     hostsFile := hosts,port := ← natural basePort,manifestFile := manifest,sessionId := ← sessionBytes session }
@@ -1056,9 +1318,16 @@ def main (args : List String) : IO Unit := do
       let setKinds (contact : Nat) (kinds : List Nat) : M Unit :=
         liftM (deviceKinds.modify (fun all => all.filter (·.1 != contact) ++ [(contact, kinds)]) : IO Unit)
       -- Load a contact's stored state `version ‖ check ‖ ciphertext (‖ kinds ‖ count)`.
+      -- A contact whose stored state does not open under its key (the worker replies 0 and
+      -- leaves it unloaded) is noted here: the recovery path reports it as that contact's
+      -- fault; every other path refuses to go on (`requireLoaded`).
+      let unreadable ← liftM (IO.mkRef ([] : List Nat) : IO (IO.Ref (List Nat)))
+      let requireLoaded : M Unit := do
+        insist (← liftM (unreadable.get : IO (List Nat))).isEmpty "contact key does not match the stored state"
       let openState (contact : Nat) (stored : Bytes) : M Unit := do
         if stored.length == 24 + 319 then
-          let _ ← rpc.call .contactOpen (uint 16 contact ++ stored)
+          if (← rpc.call .contactOpen (uint 16 contact ++ stored)) == [0] then
+            liftM (unreadable.modify (· ++ [contact]) : IO Unit)
         else
           let count := (stored.getLast?.getD 0).toNat
           insist (1 ≤ count && count ≤ 6 && stored.length > 24 + count + 1) "stored contact shape"
@@ -1066,7 +1335,8 @@ def main (args : List String) : IO Unit := do
           let kinds := ((stored.drop body.length).take count).map (·.toNat)
           insist (kinds.all (· ≤ 2) && body.length == 24 + (kinds.map (fun k => if k == 0 then 319 else 1935)).foldl (· + ·) 0)
             "stored contact shape"
-          let _ ← rpc.call .devicesOpen (uint 16 contact ++ [UInt8.ofNat count] ++ kinds.map UInt8.ofNat ++ body)
+          if (← rpc.call .devicesOpen (uint 16 contact ++ [UInt8.ofNat count] ++ kinds.map UInt8.ofNat ++ body)) == [0] then
+            liftM (unreadable.modify (· ++ [contact]) : IO Unit)
           setKinds contact kinds
       -- Seal a contact's current state under a new nonce: `check ‖ ciphertext (‖ kinds ‖ count)`.
       let sealState (contact : Nat) (fresh : Bytes) : M Bytes := do
@@ -1410,6 +1680,55 @@ def main (args : List String) : IO Unit := do
           let version := ((← liftM (versions.get : IO (List (Nat × Nat)))).find? (·.1 == contact)).map (·.2) |>.getD 0
           insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
           liftM (versions.modify (fun all => all.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v))) : IO Unit)
+      -- As `dbSubmit`, for a write whose failure is one contact's and not the session's: a client
+      -- that fails, or nodes that do not acknowledge, give `false`. The two parties tell each
+      -- other what they saw and both use the conjunction, so they take the same branch.
+      let dbSubmitSoft (name : String) (authority : List String) (version : Nat) (blob : Bytes) : M Bool := do
+        let file ← dbWork s!"blob-{name}"
+        liftM (IO.FS.writeBinFile file ⟨blob.toArray⟩ : IO Unit)
+        let arguments := ["write-blob"] ++ (← dbParty) ++ authority ++ ["--version", toString version,
+          "--blob-file", file, "--out", ← dbWork s!"write-{name}.json"]
+        let first ← dbTry arguments
+        let _ ← swap [1]   -- both parties have submitted
+        let second ← dbTry arguments
+        let mine := first && second &&
+          ((← dbJson s!"write-{name}.json").getObjValAs? Bool "acknowledged").toOption.getD false
+        let theirs ← swap [if mine then 1 else 0]
+        pure (mine && theirs == [1])
+      let versionOf (contact : Nat) : M Nat := do
+        pure (((← liftM (versions.get : IO (List (Nat × Nat)))).find? (·.1 == contact)).map (·.2) |>.getD 0)
+      let bumpVersion (contact : Nat) : M Unit := do
+        let version ← versionOf contact
+        liftM (versions.modify (fun all => all.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v))) : IO Unit)
+      -- `storeAdvanced` as an outcome: `false` when the database nodes did not take the state.
+      let storeSoft (contact : Nat) : M Bool := do
+        if dbClient.isNone then return true
+        let fresh ← nonce
+        let stored ← sealState contact fresh
+        insist (stored.length > 16) "invalid stored contact state"
+        let taken ← dbSubmitSoft (toString contact) (["--request", ← dbEnv "SIGNAL_DB_REQUEST"] ++ ["--id", toString contact])
+          ((← versionOf contact) + 1) (fresh ++ stored)
+        if taken then bumpVersion contact
+        pure taken
+      -- A refresh's new device list is SCRATCH in the worker (operation 60 no longer touches the
+      -- contact). Here it becomes the contact's state: sealed, stored on the database nodes as
+      -- the contact's next version, and only when they acknowledged it committed in the engines.
+      -- Otherwise the scratch is dropped: the contact is exactly as before, in the engines and
+      -- on the nodes. `kinds`: its entries' kinds, stored after the ciphertext as in `sealState`.
+      let commitScratch (contact : Nat) (kinds : List Nat) : M Bool := do
+        let fresh ← nonce
+        let stored ← rpc.call .scratchSeal (uint 16 contact ++ fresh)
+        insist (stored.length > 16) "invalid sealed device list"
+        let taken ← if dbClient.isSome then
+            dbSubmitSoft (toString contact) (["--request", ← dbEnv "SIGNAL_DB_REQUEST"] ++ ["--id", toString contact])
+              ((← versionOf contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
+          else pure true
+        if taken then
+          TlsWorker.emptyReply rpc .scratchCommit (uint 16 contact)
+          if dbClient.isSome then bumpVersion contact
+          setKinds contact kinds
+        else TlsWorker.emptyReply rpc .bundleDrop []
+        pure taken
       -- Our own address and registration id, for sessions the client starts (a contact's new device).
       let self ← match exportPath with
         | some path => do pure (some (← liftResult (readSelf (← liftM (IO.FS.readFile path : IO String)))))
@@ -1549,11 +1868,12 @@ def main (args : List String) : IO Unit := do
               [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat)
             -- One status byte per device and not the reason: bad JSON, a bad signature, a changed
             -- identity key and a failed encapsulation look the same. The contact keeps its old state.
-            insist (out == [255]) "a device's session could not be established"
+            -- (254 after the first step: the bundle's identity key is a new one, which is accepted.)
+            insist (out == [255] || (out == [254] && index == 0 && step == 0)) "a device's session could not be established"
         liftM (IO.eprintln s!"device refresh: {rows.length} sessions established" : IO Unit)
-        setKinds contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2))
-        -- The new device list is stored before any message to it leaves.
-        storeAdvanced contact
+        -- The new device list is stored, and only then becomes the contact's state (`commitScratch`).
+        insist (← commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2)))
+          "the database did not acknowledge a contact's new device list"
         keepAlive s
       -- Contact state at rest (TEST: the two fixture contacts have ids 1 and 2, and each
       -- controller's key share is local randomness standing in for what the database
@@ -1573,6 +1893,7 @@ def main (args : List String) : IO Unit := do
           let _ ← rpc.call .contactEvict (uint 16 contact)
           let _ ← rpc.call .contactKey (uint 16 contact ++ share)
           openState contact (version ++ stored)
+        requireLoaded
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
         if dbClient.isSome then pure ()   -- stored before each send (storeAdvanced)
@@ -1744,6 +2065,443 @@ def main (args : List String) : IO Unit := do
             else loop fuel s inputs finished
           | .control => loop fuel s inputs completed
           | .closed => throw "TLS closed before private responses"
+      /- ---- Recovery: a send session with the database nodes (`Recovery`, above `main`). ----
+      Instead of `loop`: every input ends in a per-id result and the session carries on. The
+      session still ends on what is the session's own failure: an engine or worker rejection, a
+      disagreement between the parties, a TLS record that does not authenticate, a handshake
+      that fails. `SIGNAL_RECOVERY=0` runs `loop` as before.
+
+      What makes a resend safe: a contact's state is stored on the database nodes before its
+      message leaves (`storeSoft`), so sending the same text again always uses the next keys.
+      A resend can therefore duplicate a message, never reuse a key. -/
+      let recovery := exportPath.isSome && credentials.isNone && dbClient.isSome &&
+        (← liftM (IO.getEnv "SIGNAL_RECOVERY" : IO (Option String))) != some "0"
+      let note (event : String) : M Unit := do
+        liftM (recoveryLog.modify (· ++ [event]) : IO Unit)
+        liftM (IO.eprintln s!"recovery: {event}" : IO Unit)
+      -- Per connection: the slot its transport takes the next record from (connection 0's is `kept`).
+      let slots ← liftM (IO.mkRef #[kept] : IO (IO.Ref (Array (IO.Ref (Option Bytes)))))
+      let states ← liftM (IO.mkRef (#[] : Array PublicReceive.State) : IO (IO.Ref (Array PublicReceive.State)))
+      -- The 101 to a connection's upgrade request.
+      let readUpgrade (session : TlsApplication.Session TlsWorker.BufferHandle) (on : TlsWorker.Rpc)
+          (expected : List (BitVec 8)) : M PublicReceive.State := do
+        let mut s : PublicReceive.State := { PublicReceive.start expected with lenient := true }
+        let mut fuel := 64
+        while !s.upgraded do
+          insist (fuel > 0) "receive budget exhausted"
+          fuel := fuel - 1
+          match ← TlsApplication.receive session with
+          | .application handle =>
+            let (next, complete) ← record handle.id s
+            insist (!complete && next.requests.isEmpty) "unexpected server traffic during the upgrade"
+            let mask ← if (PublicReceive.get next.control 127) == 0 then pure [0, 0, 0, 0] else do
+              let random ← on.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              pure (random.take 4)
+            let (next, frames) ← liftResult (PublicReceive.replies next (toBits mask))
+            for (kind, frame) in frames do
+              let handle ← on.call .publicBuffer (toBytes frame)
+              insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
+              TlsApplication.send session ⟨number handle⟩ frame.length
+              insist (kind != 8) "WebSocket peer closed before completion"
+            s := next
+          | .control => pure ()
+          | .closed => throw "TLS closed before the upgrade"
+        return s
+      -- Connection `index` from nothing: connect (through the proxy, with that connection's
+      -- credentials), handshake, unauthenticated WebSocket and its 101. A failure here is the
+      -- session's. Returns the connection's parser state.
+      let openConnection (index : Nat) : M PublicReceive.State := do
+        let on := TlsWorker.onConnection rpc active index
+        TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
+        let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) {hostname,alpn := ["http/1.1"]}
+        insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
+        let slot ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
+        let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on slot)))
+        let upgrade ← on.call .publicUpgrade []
+        insist (upgrade.length == 44) "invalid public upgrade receipt"
+        let request := toBytes (RelayUpgrade.anonymousRequest PublicReceive.fast (toBits (upgrade.take 16)))
+        let handle ← on.call .publicBuffer request
+        insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
+        TlsApplication.send session ⟨number handle⟩ request.length
+        liftM (apps.modify (fun all => if index < all.size then all.set! index session else all.push session) : IO Unit)
+        liftM (slots.modify (fun all => if index < all.size then all.set! index slot else all.push slot) : IO Unit)
+        readUpgrade session on (toBits (upgrade.drop 16))
+      -- The next record of the connection in use, or `none`: the worker reported that the server
+      -- or the proxy closed the connection (`pollRecord` replies `[0]`; both parties see it at the
+      -- same request). The worker and the other connections are unaffected.
+      let receiveSoft : M (Option (TlsApplication.Received TlsWorker.BufferHandle)) := do
+        let index ← liftM (current.get : IO Nat)
+        let on := TlsWorker.onConnection rpc active index
+        let slot := (← liftM (slots.get : IO (Array (IO.Ref (Option Bytes))))).getD index kept
+        if (← liftM (slot.get : IO (Option Bytes))).isNone then
+          let deadline := (← liftM (IO.monoMsNow : IO Nat)) + 30000
+          let mut waitingFor := true
+          while waitingFor do
+            insist ((← liftM (IO.monoMsNow : IO Nat)) < deadline) "no record from the server within 30 seconds"
+            let wire ← on.call .pollRecord []
+            if wire == [0] then return none
+            if wire.isEmpty then liftM (IO.sleep 10)
+            else
+              liftM (slot.set (some wire) : IO Unit)
+              waitingFor := false
+        match ← TlsApplication.receive (← appNow) with
+        | .closed =>
+          -- close_notify: the connection itself goes next.
+          for _ in [0:1000] do
+            let wire ← on.call .pollRecord []
+            if wire == [0] then return none
+            insist wire.isEmpty "a record after close_notify"
+            liftM (IO.sleep 10)
+          throw "the server closed TLS but kept the connection open"
+        | other => return some other
+      -- Wait for the pending response on the connection in use. `false`: the connection was
+      -- closed first (whatever was in flight on it is unanswered).
+      let rec awaitSoft (fuel : Nat) (s : PublicReceive.State) : M (PublicReceive.State × Bool) := do
+        match fuel with
+        | 0 => throw "receive budget exhausted"
+        | fuel+1 =>
+          match ← receiveSoft with
+          | none => return (s, false)
+          | some (.application handle) =>
+            let (s, complete) ← record handle.id s
+            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              pure (random.take 4)
+            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            -- A close frame from the server is answered; the closed connection is then reported by the worker.
+            for (_, frame) in frames do sendPublic (toBytes frame)
+            for request in s.requests do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+              unless message do sendPublic (toBytes frame)
+            let s := { s with requests := [] }
+            if complete then return (s, true)
+            awaitSoft fuel s
+          | some .control => awaitSoft fuel s
+          | some .closed => return (s, false)
+      -- Replace the connection in use after it was reported closed: a new handshake and upgrade
+      -- on the same index (and the same proxy credentials); the other connections are kept.
+      let reconnect : M Unit := do
+        let index ← liftM (current.get : IO Nat)
+        TlsWorker.emptyReply rpc .bundleDrop []   -- a response body half collected on it
+        TlsWorker.emptyReply (TlsWorker.onConnection rpc active index) .resetConnection []
+        let opened ← openConnection index
+        liftM (states.modify (·.set! index opened) : IO Unit)
+        note s!"connection {index} was closed and replaced"
+      let saveState (s : PublicReceive.State) : M Unit := do
+        let index ← liftM (current.get : IO Nat)
+        liftM (states.modify (·.set! index s) : IO Unit)
+      -- `keepAlive` with a closed connection as an outcome (`false`).
+      let keepAliveSoft (s : PublicReceive.State) : M (PublicReceive.State × Bool) := do
+        let now ← agreedClock
+        if now < (← liftM (quiet.get : IO Nat)) + 20000 then return (s, true)
+        let id ← nextId
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+        liftM (quiet.set now : IO Unit)
+        awaitSoft 64 (PublicReceive.expect s id)
+      -- `refreshContact` with every failure as an outcome (`Recovery.Refreshed`). Nothing of the
+      -- contact changes, in the engines or on the database nodes, unless it returns `ok`.
+      let refreshSoft (contact : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Recovery.Refreshed) := do
+        let some (_, registration) := self | throw "no account for a device refresh"
+        insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
+        let drop : M Unit := TlsWorker.emptyReply rpc .bundleDrop []
+        drop
+        let fetchId ← nextId
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+        let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
+          random.take 4 ++ toBytes frame)
+        insist (handle.length == 8 && number handle != 0) "invalid request handle"
+        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        touch
+        let (fetched, alive) ← awaitSoft 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
+        let mut s := { fetched with fetch := none, collect := false }
+        if !alive then
+          drop
+          return (s, .lost)
+        match Recovery.onFetch s.status with
+        | .done => pure ()
+        | .backOff =>
+          drop
+          return (s, .transient s.status s.retryAfter)
+        | .stop result =>
+          drop
+          return (s, .stop result s!"the prekey fetch was answered {s.status}")
+        | .refresh =>
+          drop
+          return (s, .stop .fault s!"the prekey fetch was answered {s.status}")
+        let size := s.bundle.getD 0
+        if !(2540 ≤ size && size ≤ 65536) then
+          drop
+          return (s, .stop .fault "server fault: the prekey response has no body of a possible size")
+        let (next, alive) ← keepAliveSoft s
+        s := next
+        if !alive then
+          drop
+          return (s, .lost)
+        -- The one thing opened about the body: which of its bytes are JSON punctuation.
+        let flags ← rpc.call .bundleShape []
+        insist (flags.length == size && flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
+        let layout := BundleResponse.layout? (flags.map (· == 255))
+        let widths := layout.getD []
+        let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
+        if layout.isNone || !(1 ≤ rows.length && rows.length ≤ 6) then
+          drop
+          return (s, .stop .fault "server fault: the prekey response is not a bundle")
+        let mut changed := false
+        for ((at_, w), index) in rows.zipIdx do
+          for step in [0:9] do
+            let (next, alive) ← keepAliveSoft s
+            s := next
+            if !alive then
+              drop
+              return (s, .lost)
+            let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
+              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++
+              [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat)
+            -- 254 (first step, first device): the bundle parsed and verified under an identity key
+            -- that is not the stored one. Accepted by decision; reported.
+            if out == [254] && index == 0 && step == 0 then changed := true
+            else if out != [255] then
+              -- One status byte and not the reason: bad JSON, a bad signature, a failed
+              -- agreement or encapsulation look the same. Nothing is stored.
+              drop
+              return (s, .stop .fault "server fault: a device's bundle did not verify")
+        -- Stored on the database nodes, then (and only then) the contact's state.
+        if !(← commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2))) then
+          return (s, .stop .retryLater "the database nodes did not acknowledge the new device list")
+        note s!"contact {contact}: {rows.length} sessions established{if changed then " under a new identity key" else ""}"
+        -- TEST hook: a pause here lets the harness change the contact's devices again before the resend.
+        if let some pause := (← liftM (IO.getEnv "SIGNAL_LOCAL_PAUSE_REFRESH" : IO (Option String))).bind String.toNat? then
+          liftM (IO.sleep (UInt32.ofNat pause) : IO Unit)
+        return (s, .ok changed)
+      -- `sendMessage` with the contact's failures as outcomes. `none`: the request left. Otherwise
+      -- nothing was sent: the result, the reason, and whether to stop sending to this contact.
+      let sendSoft (send : Nat × Bytes) (id : Nat) : M (Option (Recovery.Result × String × Bool)) := do
+        let unacknowledged := (Recovery.Result.retryLater, "the database nodes did not acknowledge the contact's state", false)
+        let refused := (Recovery.Result.fault, "the contact's stored state cannot produce a message", true)
+        let kinds ← kindsOf send.1
+        if kinds != [0] then
+          let some (address, _) := self | throw "no account address for a device list"
+          let sealed ← rpc.call .devicesSend (uint 16 send.1 ++ address ++ send.2)
+          if sealed == [0] then return some refused
+          insist (sealed.length ≥ 10) "invalid sealed envelopes reply"
+          let timestamp := number (sealed.take 8)
+          let mut rest := sealed.drop 8
+          let mut envelopes : List (List (BitVec 8)) := []
+          for _ in [0:kinds.length] do
+            let length := number (rest.take 2)
+            insist (0 < length && length + 2 ≤ rest.length) "invalid sealed envelope length"
+            envelopes := envelopes ++ [toBits ((rest.drop 2).take length)]
+            rest := rest.drop (2 + length)
+          insist rest.isEmpty "invalid sealed envelopes reply"
+          let random ← rpc.call .publicRandom []
+          insist (random.length == 32) "invalid joint randomness"
+          let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)))
+          -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
+          if frame.length > 16384 then
+            return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
+          if !(← storeSoft send.1) then return some unacknowledged
+          let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
+            [UInt8.ofNat kinds.length] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
+          insist (handle.length == 8 && number handle != 0) "invalid request handle"
+          TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+          return none
+        let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
+        if sealed == [0] then return some refused
+        insist (sealed.length ≥ 10) "invalid sealed envelope reply"
+        let timestamp := number (sealed.take 8)
+        let length := number ((sealed.drop 8).take 2)
+        insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
+        if !(← storeSoft send.1) then return some unacknowledged
+        let random ← rpc.call .publicRandom []
+        insist (random.length == 32) "invalid joint randomness"
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)))
+        let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
+        insist (handle.length == 8 && number handle != 0) "invalid request handle"
+        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        return none
+      let deliver : M Nat := do
+        liftM (recoveryUsed.set true : IO Unit)
+        let count := max sendCircuits 1
+        -- Connection 0 is connected and its upgrade request sent; then connections 1..N-1.
+        let first ← readUpgrade app (TlsWorker.onConnection rpc active 0) (toBits accept)
+        liftM (states.set #[first] : IO Unit)
+        for index in [1:count] do
+          let opened ← openConnection index
+          liftM (states.modify (·.push opened) : IO Unit)
+        /- What an earlier session for the SAME notify settled (SIGNAL_NOTIFY_ID names the notify,
+        SIGNAL_NOTIFY_JOURNAL is this party's journal). An entry counts only when both parties'
+        journals have it: a party that lost its journal, or lies, can cause a duplicate, never
+        a message left out. Entries are public values (message number, id, result). -/
+        let notifyId ← liftM (IO.getEnv "SIGNAL_NOTIFY_ID" : IO (Option String))
+        let journal ← liftM (IO.getEnv "SIGNAL_NOTIFY_JOURNAL" : IO (Option String))
+        let settled ← match notifyId, journal with
+          | some named, some path => do
+            let text ← if ← liftM ((path : System.FilePath).pathExists : IO Bool) then liftM (IO.FS.readFile path : IO String) else pure ""
+            let mine := Recovery.journalEntries named text
+            let code (result : Recovery.Result) : Nat := (Recovery.Result.all.findIdx? (· == result)).getD 255
+            let theirs ← swap (mine.flatMap (fun (message, contact, result) => uint 4 message ++ uint 16 contact ++ [UInt8.ofNat (code result)]))
+            let both := mine.filter (fun (message, contact, result) =>
+              (List.range (theirs.length / 21)).any (fun i =>
+                (theirs.drop (21 * i)).take 21 == uint 4 message ++ uint 16 contact ++ [UInt8.ofNat (code result)]))
+            if !mine.isEmpty then note s!"{both.length} results settled by an earlier session of this notify"
+            pure both
+          | _, _ => pure []
+        let contactOf (index : Nat) : Nat := (inputs.getD index (0, [])).1
+        -- The message's number within the notify, for its contact.
+        let messageOf (index : Nat) : Nat := ((inputs.take index).filter (·.1 == contactOf index)).length
+        let mut outcomes : Array (Option (Recovery.Result × String)) := Array.replicate inputs.length none
+        -- Contacts no longer sent to in this session, with the result that stopped them. From the
+        -- start: those whose stored state did not open under their key.
+        let mut stopped : List (Nat × Recovery.Result × String) :=
+          (← liftM (unreadable.get : IO (List Nat))).map (fun contact =>
+            (contact, Recovery.Result.fault, "the contact's stored state does not open under its key"))
+        -- Inputs during whose delivery the contact's sessions were replaced (and under a new identity key).
+        let mut refreshedInputs : List Nat := []
+        let mut changedInputs : List Nat := []
+        -- The queue: (input, transient retries so far, not before this agreed time).
+        let mut queue : List (Nat × Nat × Nat) := (List.range inputs.length).map (fun index => (index, 0, 0))
+        let mut delivered := 0
+        let mut rotated := false
+        let mut rounds := 0
+        -- TEST hook (SIGNAL_LOCAL_PAUSE_AFTER=K:MS): one pause once K inputs have a result, so that
+        -- the harness can change something on the server in the middle of a session.
+        let pauseAfter := match ((← liftM (IO.getEnv "SIGNAL_LOCAL_PAUSE_AFTER" : IO (Option String))).getD "").splitOn ":" with
+          | [after, pause] => match after.toNat?, pause.toNat? with
+            | some after, some pause => some (after, pause)
+            | _, _ => none
+          | _ => none
+        let mut paused := false
+        while !queue.isEmpty do
+          rounds := rounds + 1
+          insist (rounds ≤ 64 + 8 * inputs.length) "delivery budget exhausted"
+          if let some (after, pause) := pauseAfter then
+            if !paused && (outcomes.toList.filter Option.isSome).length ≥ after then
+              paused := true
+              note s!"TEST pause of {pause} ms after {after} results"
+              liftM (IO.sleep (UInt32.ofNat pause) : IO Unit)
+          let now ← agreedClock
+          let (index, retries, _) ← match queue.find? (fun (_, _, notBefore) => notBefore ≤ now) with
+            | some item => pure item
+            | none => do
+              -- Everything left is backing off: both controllers wait for the soonest.
+              let soonest := (queue.map (·.2.2)).foldl min (now + Recovery.longestWait)
+              liftM (IO.sleep (UInt32.ofNat (soonest - now)) : IO Unit)
+              pure ((queue.find? (fun (_, _, notBefore) => notBefore == soonest)).getD (0, 0, 0))
+          queue := queue.filter (·.1 != index)
+          let input := inputs.getD index (0, [])
+          let contact := input.1
+          let message := messageOf index
+          if let some (_, _, result) := settled.find? (fun (m, c, _) => m == message && c == contact) then
+            outcomes := outcomes.set! index (some (result, "settled by an earlier session of this notify"))
+            continue
+          if let some (_, result, reason) := stopped.find? (·.1 == contact) then
+            outcomes := outcomes.set! index (some (result, reason))
+            continue
+          let mut final : Option (Recovery.Result × String) := none
+          let mut again : Option (Nat × Option Nat) := none
+          let mut refreshes := 0
+          let mut lost := 0
+          let mut tries := 0
+          while final.isNone && again.isNone do
+            tries := tries + 1
+            if tries > 16 then
+              final := some (.retryLater, "attempts exhausted")
+              break
+            -- The contact's connection, its parser state and the request's id.
+            let target := Circuits.assign recipients count contact
+            liftM (circuitSends.modify (· ++ [(contact, target)]) : IO Unit)
+            liftM (current.set target : IO Unit)
+            let sent := (← liftM (counters.get : IO (Array Nat))).getD target 0
+            liftM (counters.modify (·.set! target (sent + 1)) : IO Unit)
+            let id := 2 ^ 63 + sent
+            let s := (← liftM (states.get : IO (Array PublicReceive.State))).getD target first
+            match ← sendSoft input id with
+            | some (result, reason, stop) =>
+              final := some (result, reason)
+              if stop && !result.stops then stopped := stopped ++ [(contact, result, reason)]
+              break
+            | none => pure ()
+            let (s, alive) ← awaitSoft 64 (PublicReceive.expect s id)
+            if !alive then
+              -- Sent, not answered: whether the server took it is unknown. It is sent again
+              -- (under new keys), accepting a duplicate.
+              reconnect
+              lost := lost + 1
+              if lost > Recovery.reconnects then final := some (.retryLater, s!"the connection was closed {lost} times")
+              continue
+            saveState s
+            match Recovery.onSend s.status with
+            | .done =>
+              final := some (if changedInputs.contains index then .deliveredAfterIdentityChange
+                else if refreshedInputs.contains index then .deliveredAfterRefresh else .delivered, "")
+            | .backOff => again := some (s.status, s.retryAfter)
+            | .stop result => final := some (result, s!"the send was answered {s.status}")
+            | .refresh =>
+              if refreshes > Recovery.refreshRetries then
+                final := some (.retryLater, s!"the device list was refused again after {refreshes} refreshes")
+              else
+                refreshes := refreshes + 1
+                note s!"contact {contact}: send answered {s.status}, refresh {refreshes}"
+                let (s, outcome) ← refreshSoft contact s
+                match outcome with
+                | .ok changed =>
+                  saveState s
+                  refreshedInputs := refreshedInputs ++ [index]
+                  if changed then changedInputs := changedInputs ++ [index]
+                | .lost =>
+                  reconnect
+                  refreshes := refreshes - 1
+                  lost := lost + 1
+                  if lost > Recovery.reconnects then final := some (.retryLater, s!"the connection was closed {lost} times")
+                | .stop result reason =>
+                  saveState s
+                  final := some (result, reason)
+                | .transient status retryAfter =>
+                  saveState s
+                  again := some (status, retryAfter)
+          match final, again with
+          | some (result, reason), _ =>
+            outcomes := outcomes.set! index (some (result, reason))
+            if !reason.isEmpty then note s!"contact {contact}, message {message}: {result.text} ({reason})"
+            if result.stops then stopped := stopped ++ [(contact, result, reason)]
+            if result.isDelivered then
+              delivered := delivered + 1
+              if !rotated then
+                rotated := true
+                TlsApplication.keyUpdate (← appNow) false
+            if result.settled then
+              match notifyId, journal with
+              | some named, some path =>
+                liftM (IO.FS.withFile (path : System.FilePath) .append (fun file => file.putStrLn (Recovery.journalLine named (message, contact, result, reason))) : IO Unit)
+              | _, _ => pure ()
+          | none, some (status, retryAfter) =>
+            match Recovery.delay retries retryAfter with
+            | some wait =>
+              note s!"contact {contact}, message {message}: answered {status}, retry {retries + 1} in {wait} ms"
+              queue := queue ++ [(index, retries + 1, (← agreedClock) + wait)]
+            | none =>
+              let reason := s!"answered {status}" ++ (match retryAfter with | some seconds => s!", Retry-After {seconds} s" | none => "") ++
+                s!", after {retries} retries"
+              note s!"contact {contact}, message {message}: retry later ({reason})"
+              outcomes := outcomes.set! index (some (.retryLater, reason))
+          | none, none => pure ()
+        -- The per-id results. Both controllers computed them from agreed values: they compare a
+        -- digest (through the worker's exchange) and report only what both arrived at.
+        let entries : List Recovery.Entry := (List.range inputs.length).map (fun index =>
+          let (result, reason) := (outcomes.getD index none).getD (.fault, "no outcome")
+          (messageOf index, contactOf index, result, reason))
+        let digest := TlsWire.hash (Recovery.canonical entries).toUTF8.data.toList
+        insist ((← swap digest) == digest) "the two parties' per-id results differ"
+        liftM (results.set entries : IO Unit)
+        return delivered
       -- The authenticated socket: answer the server's requests, keep the connection alive
       -- while nothing arrives, and stop after the expected number of delivered messages.
       -- A delivered message's body stays unrevealed and is not acknowledged yet.
@@ -1808,8 +2566,11 @@ def main (args : List String) : IO Unit := do
       | none =>
         -- Against a Signal server a send may be answered 409/410 (the contact's devices changed):
         -- such a response is completed and handled in the loop instead of ending the session.
-        openCircuits   -- connections 1..N-1 with several Tor circuits; nothing otherwise
-        let finished ← loop (256 + 16 * inputs.length) { PublicReceive.start (toBits accept) with lenient := exportPath.isSome } inputs 0
+        -- With the database nodes: `deliver`, where a contact's failure is that contact's result.
+        let finished ← if recovery then deliver else do
+          requireLoaded
+          openCircuits   -- connections 1..N-1 with several Tor circuits; nothing otherwise
+          loop (256 + 16 * inputs.length) { PublicReceive.start (toBits accept) with lenient := exportPath.isSome } inputs 0
         writeBack
         TlsApplication.abort app
         return finished
@@ -1819,7 +2580,9 @@ def main (args : List String) : IO Unit := do
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && !codes.contains 18 && (credentials.isSome ||
+    -- (A recovery session passes when it ended in results both parties agreed on; which
+    -- operations it used depends on what happened to its contacts.)
+    let passed := verified && outcome.isOk && !codes.contains 18 && (credentials.isSome || (← recoveryUsed.get) ||
       (codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
@@ -1828,6 +2591,10 @@ def main (args : List String) : IO Unit := do
       ("received",toJson ((← received.get).map (fun (contact, text) => [toString contact, text]))),("refused",toJson (← refused.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
       ("circuits",toJson circuits),("circuit_sends",toJson ((← circuitSends.get).map (fun (contact, index) => [toString contact, toString index]))),
       ("circuit_labels",toJson ((List.range circuits).map (fun i => [(Circuits.labels session circuits (some i)).1, (Circuits.labels session circuits (some i)).2]))),
+      -- Per id of each notify message, once both parties agreed: one of `Recovery.Result.text`.
+      ("results",toJson ((← results.get).map (fun (message, contact, result, reason) => Lean.Json.mkObj
+        [("message",toJson message),("id",toJson (toString contact)),("result",toJson result.text),("reason",toJson reason)]))),
+      ("recovery_used",toJson (← recoveryUsed.get)),("recovery",toJson (← recoveryLog.get)),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop

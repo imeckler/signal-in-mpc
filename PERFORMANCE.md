@@ -168,6 +168,13 @@ unchanged, `Fast.core_refines` that the compiled circuit refines it, and
 `HybridKernelsProofs.tlsOpenApplicationCtr_parser` states it for the kernel. No theorem was
 dropped; `TlsPostHandshake` itself is untouched.
 
+Since then the scan runs only on handshake records (`TlsMpc/TypedOpenKernels.lean`,
+`TLS_WORKER_TYPED_OPEN`; what it reveals and what is proved: `NEEDS_REVIEW.md` section 2).
+`tls-open-typed` decrypts and parses the record and opens one bit, "authenticated handshake
+record"; `tls-frame` scans only when it is set. AND gates, `tls-open-application-class` →
+`tls-open-typed`: 2.7 KB record (class 3072) 2.87M → 1.14M; 150-byte record (class 160)
+132K → 53K. A handshake record costs both kernels (2.91M; 135K).
+
 ## Tried, and not kept or not done
 
 - **The response parser's remaining cost.** With `Word64.fast` it is 0.74 ms per byte; the rest
@@ -246,7 +253,7 @@ more than its computation. What would reduce it, in order of gain:
 | Reveal steps and parsing in the controllers | 0.1–0.3 s per message; about 1.5 s per first message received |
 | The database client as a long-lived process | about 0.05–0.2 s per message |
 | More AND-triple factories on real nodes | removes the pools as the limit in long broadcasts (about 1.2 s → the circuits' own 0.5 s per message) |
-| Open "is a handshake record" first and skip the framing scan for application records | 640 of 935 AND per received byte (2.7 KB record 2.53M → about 0.8M). Changes what the nodes learn for a rejected record and for a `user_canceled` alert: the owner's decision |
+| Open "is a handshake record" first and skip the framing scan for application records | Done (see "The framing circuit"): 2.7 KB record 2.87M → 1.14M AND in its size class |
 | Prepare contacts in batches; keep their table with the stored state | rounds, see above; with stored tables also 14,000 field triples per contact per session |
 | Preload circuits at start-up beside the handshake | about 2 s per process |
 | The engine's per-circuit analysis cached | perhaps a quarter of the remaining 0.2 s per million AND |

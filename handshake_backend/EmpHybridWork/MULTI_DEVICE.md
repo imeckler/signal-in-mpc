@@ -100,31 +100,37 @@ Kernels are named as `find` takes them. "Establish step n" is the list in `TlsMp
     `oneTimePrekey`: the input names of the establishment kernels. Opens nothing.
  6. Establish steps 1–5 on those fields (the identity key is the same for every device, so
     `xeddsa-recover` runs once per response): private `verified`.
- 7. `bundle-bind` (inputs `record`, `valid`, `verified`, `identityKey`): the private `verified` for
-    `establish-session` — now also requiring that the body parsed and that the identity key is the
-    one stored for this contact — and the contact's private `uuid` and `accessKey`.
+ 7. `bundle-rebind` (inputs `record`, `valid`, `verified`, `identityKey`): the private `verified` for
+    `establish-session` — now also requiring that the body parsed — and the contact's private
+    `uuid` and `accessKey`. It does **not** require the identity key to be the one stored for the
+    contact: a contact that registered again is accepted (owner's decision, 2026-11-11). It opens
+    one byte, `changed`: 255 when the bundle parsed, both signatures verified under the bundle's
+    own identity key, and that key is not the stored one; otherwise 0 (section 9).
+    (`bundle-bind`, which requires the stored identity key, is still defined and no longer used.)
  8. Establish steps 6–8. Field engine: `dh1`, `dh2`, `dh3`, (`dh4`), `ratchetAgreement`, `basePublic`,
     `ratchetPublic` with a fresh shared base scalar and ratchet scalar per device. The twelve
     `kem-*` kernels (variant `kyber`, `ML_KEM_ENCAPSULATION.md`) on `kyberPrekey`, with 32 private
     bytes from each party. `establish-session` with `deviceId`, `registrationId` and the key ids from step 5,
     `uuid`, `accessKey` from step 7, our certificate, our registration id and the connection's request
     id as public constants. It opens the **one status byte**; failure does not say why (bad JSON,
-    bad signature, changed identity key, zero agreement and failed KEM look the same).
- 9. Only if every device's status is 255: the contact's device list becomes the new one (section 4),
-    is written to the database nodes, and the message is sent again. Otherwise the old state is kept
-    and the contact is reported as failed. Retry the whole refresh at most twice (a device can be
-    linked between the fetch and the send; a device with no prekeys is left out of the response and
-    produces another 409). *As built:* one refresh and one resend per message; a second refusal,
-    a failed fetch or a failed establishment ends the session with an error (section 7).
+    bad signature, zero agreement and failed KEM look the same).
+ 9. Only if every device's status is 255: the new device list, held as scratch in the worker, is
+    sealed, written to the database nodes as the contact's next version, and once they acknowledged
+    it becomes the contact's state (section 9, "scratch, then commit"); the message is sent again.
+    Otherwise the scratch is dropped, the contact is exactly as before and is reported as failed.
+    A refusal of the resend (a device was linked between the fetch and the send; a device with no
+    prekeys is left out of the response) is refreshed again, at most twice more per message.
+    *As built* (section 9): all of this, as per-contact outcomes; the session carries on.
 
 One establishment is about 90 seconds of engine time in malicious mode and the server drops a socket
 that is silent for 90 seconds, so the worker runs it in nine steps and the controllers send a
 `GET /v1/keepalive` before a step whenever 20 seconds have passed, on a clock they agree on, since
 the last request.
 
-A changed identity key (the contact re-registered) therefore shows up as "refresh failed". Accepting a
-new identity is a separate decision (PRODUCT_TODO section 3) and needs its own rule; it must not be
-automatic.
+A changed identity key (the contact registered again) is accepted automatically, by the owner's
+decision of 2026-11-11: the sessions are replaced under the new key and the id is reported as
+"delivered after identity change". What that trusts and reveals is in section 9 and in
+`NEEDS_REVIEW.md`.
 
 ## 4. Stored state
 
@@ -293,13 +299,15 @@ and `EmitHybridKdf.lean`; `establish-kem` is no longer offered by `EstablishKern
 | 56 | `bundleFetch` | retains the fetch frame with sealer `bundle-fetch-ctr`, input `record` | the sealed record |
 | 57, 58 | `bundleTake`, `bundleDrop` | collects the response body unopened (up to 65,536 bytes); drops it | nothing |
 | 59 | `bundleShape` | `bundle-shape` | the flags |
-| 60 | `bundleEstablish` | one of nine steps of one device: 0 fields, signatures, binding; 1 agreements; 2–7 encapsulation; 8 session | step 8: the status byte |
+| 60 | `bundleEstablish` | one of nine steps of one device: 0 fields, signatures, binding; 1 agreements; 2–7 encapsulation; 8 session. The result is scratch, not the contact's state | step 0 of the first device: `changed`; step 8: the status byte |
+| 64, 65 | `scratchSeal`, `scratchCommit` | seals the scratch device list for storage; makes it the contact's state (58 `bundleDrop` discards it) | 64: check, ciphertext |
 | 61 | `devicesSend` | per device an ephemeral pair and `bundle-seal` (kind 1, 2) or `signal-seal-built` (kind 0) | status, timestamp, envelope per device |
 | 62 | `devicesRequest` | retains the request frame with sealer `bundle-request-ctr`, input `records` | the sealed record |
 | 63 | `devicesOpen` | `contact-open` on a stored device list, split by the public kinds | the key check |
 | 38 | `contactSeal` (existing) | for a device list: seals its entries one after the other | check, ciphertext |
 
-The device list replaces the contact's state only when every device's status is 255.
+The device list replaces the contact's state only when every device's status is 255 **and** the
+database nodes acknowledged the sealed list (operation 65, section 9).
 
 **Controllers** (`PublicServiceController.lean`):
 
@@ -319,21 +327,22 @@ The device list replaces the contact's state only when every device's status is 
 * *Storage.* `sealState` / `openState` add and read the kinds after the ciphertext (section 4), for
   the database nodes and the test store alike.
 
+**Done since (section 9):** failure handling as per-contact outcomes, the refresh retried, a
+changed identity key accepted, three devices, a removed device, 410.
+
 **Not done:**
 
-* Failure handling is "end the session": a second 409 after the resend, a fetch answered 401/404,
-  a refused layout and an establishment status other than 255 all throw. The design's "report the
-  contact as failed and carry on" and "retry the refresh twice" are not built.
 * A device list with an established entry (kind 0) is never produced (replies are not processed),
   so `devicesSend`'s kind 0 branch has not run, and the kinds are not authenticated (section 4).
-* The request is one TLS record: at most about five unanswered devices; more are refused by the
-  controllers before anything is sent.
+* The request is one TLS record: at most about five unanswered devices. Splitting it is not
+  cheap (both request kernels seal exactly one record, and the 16 KB limit is the TLS record's),
+  so it was not done: such a contact is reported "retry later" with the reason "a message to N
+  devices does not fit one request", after the engines sealed the message and before anything is
+  stored or sent, and is not tried again in that session. Not run (it needs six linked devices).
 * A keepalive is sent between establishment steps but not inside `devicesSend`; with more than
   about four unanswered devices one send would be silent for more than 90 seconds in malicious
-  mode.
-* Accepting a changed identity key (section 3), targeted recovery from the 409 body (section 1).
-* Tested with two devices on the local server only (one device with and one without a one-time
-  prekey); three or more devices, 410, and a device removed (extra device) have not been run.
+  mode. (The connection would then be closed by the server and replaced, section 9.)
+* Targeted recovery from the 409 body (section 1).
 
 The lists below are the plan this was built from.
 
@@ -390,7 +399,113 @@ Result on 2026-11-11: passes in semi-honest and in malicious mode. This is the f
 engines, and of the two request kernels against a server; the recipients are libsignal clients, so
 a wrong session, PreKey message or Kyber ciphertext would not have decrypted.
 
-Not checked: more than two devices; 410; a removed device; a device list with an established entry;
-a refresh that fails. Proof status: `TlsMpc/BundleProofs.lean`, header. The controllers' reveal
+Not checked: a device list with an established entry; more than five devices (section 9 has what
+was added). Proof status: `TlsMpc/BundleProofs.lean`, header. The controllers' reveal
 policy (`replyScan`, `replyBudget`, `stepPassed`) is code with run-time checks, not theorems, like
 the policy for request bodies before it.
+
+## 9. Failures as per-contact results (2026-11-11)
+
+A send session with the database nodes no longer ends when something goes wrong for one contact.
+Code: `PublicServiceController.lean` (`Recovery`: the table, limits and result names; `deliver` in
+`main`: the session), `service_kernels.h`, `tls_worker_v3.cpp` (operations 17, 37, 41, 61, 63 and
+the new 64, 65, 91), `TlsMpc/BundleKernels.lean` (`bundle-rebind`). `SIGNAL_RECOVERY=0` on both
+nodes runs the previous loop. Sessions without the database nodes (the test store, the fixture)
+run the previous loop as before: without a store written before each send, sending again is not
+safe across sessions.
+
+### What ends the session and what does not
+
+Still the session's failure (the worker is terminal, as before): an engine or MAC failure; a
+request the two workers were not handed identically; a TLS record that does not authenticate or
+a fatal alert; a handshake or proxy connect that fails; a commitment that does not open; an
+opened shape that is not what Lean declares; the database client failing on a read; no record
+from the server for 30 seconds while a response is awaited.
+
+Now one contact's result. Each is a value both nodes already saw (before, as the reason the
+session ended):
+
+| Status | Seen as | What it shows |
+|---|---|---|
+| a send cannot be sealed | `contactSend` / `devicesSend` reply `0` | the seal kernel's gated status was not 255 (the byte Lean marks as openable), or the opened counter widths name no kernel |
+| stored state does not open | `contactOpen` / `devicesOpen` reply `0` | the key check of the stored blob failed (`contact-open`'s `accepted`) |
+| a device does not verify | `bundleEstablish` status not 255, or layout refused | one byte, not the reason (unchanged) |
+| the identity key changed | `bundleEstablish` reply 254 at the first step | `bundle-rebind`'s `changed`: the bundle parsed and verified, under another identity key |
+| response status, `Retry-After` | revealed status and headers | as before; a body is never revealed |
+| connection closed | `pollRecord` reply `[0]` | the leader's socket was closed by the server or the proxy |
+| database did not take a write | each party's own client result, exchanged | whether the nodes acknowledged this contact's blob |
+
+### Scratch, then commit
+
+`bundleEstablish` builds the new sessions in a scratch slot (`Establishing` in
+`service_kernels.h`) and never touches the contact. When every device's status is 255 the
+controllers call `scratchSeal` (the scratch sealed under the contact's key), submit that blob to
+the database nodes as the contact's next version, tell each other whether the nodes acknowledged
+it, and only if both saw it call `scratchCommit`; otherwise `bundleDrop`. On any failure before
+that — fetch refused, connection closed, layout refused, a device not verifying — the scratch is
+dropped. Either the contact has its new list in the engines and on the nodes, or it has exactly
+what it had. (A write the nodes took only partly is the nodes' matter: PRODUCT_TODO section 6.)
+
+### Policy
+
+| Signal | Action |
+|---|---|
+| 409 / 410 to a send | refresh, send again; refused again: refresh again, at most 2 more times, then "retry later" |
+| 429 or 5xx, to a send or the prekey fetch | wait `Retry-After` seconds if the response says so (at most 60 s; longer gives the contact up), else 1 s, 3 s, 9 s; the contact goes to the end of the queue; 3 retries, then "retry later" |
+| connection closed | `resetConnection` and a new handshake and upgrade on that connection (the others are kept), then the message is sealed and sent **again**: the first copy may have arrived, so a duplicate is possible (owner's decision). At most 2 per message, then "retry later" |
+| 401, to a send or the prekey fetch | "needs re-signup"; no further sends to the contact in the session |
+| 404 | "gone" |
+| bundle under a new identity key | accepted, sessions replaced, "delivered after identity change" |
+| bundle does not parse or verify | "fault"; nothing stored |
+| the send cannot be sealed; the stored state does not open | "fault" |
+| more devices than one request holds | "retry later", reason "does not fit one request" |
+| the database nodes did not acknowledge | "retry later" |
+| any other status | "fault", with the status in the reason |
+
+**The Signal server answers 401, not 404, for a sealed send or fetch to an account that does not
+exist** (`OptionalAccess.verify`: a 404 "would provide a free exists check"). So a deleted
+account is reported "needs re-signup", like a rotated profile key; "gone" can only come from a
+server that answers 404. Never falls back to an unsealed send; never sends a receipt.
+
+### Results
+
+At the end the controller's JSON has `results`: for every id of every message of the notify,
+`{"message": k, "id": "...", "result": R, "reason": "..."}` with R one of `delivered`,
+`delivered after device refresh`, `delivered after identity change`, `retry later`,
+`needs re-signup`, `gone`, `fault`. Both controllers compute the list from agreed values, exchange
+the SHA-256 of its canonical text (`Recovery.canonical`) through the worker, and report it only
+if the digests are equal (otherwise the session fails). `recovery` lists the public events in
+order (refreshes, replaced connections, retries).
+
+### Delivery guarantee, and where "confirmed" is recorded
+
+At least once, with possible duplicates; never two ciphertexts under one message key.
+
+* A contact's state is stored on the database nodes, acknowledged, before its message leaves.
+  Every send, first or repeated, seals under the next keys, so repeating a send can duplicate a
+  message and cannot reuse a key. A message stored for and not sent leaves a gap in the counter,
+  which the recipient's ratchet skips.
+* "Delivered" is reported only after a 2xx that both nodes saw.
+* Across sessions: each computation node appends every settled result (delivered, needs
+  re-signup, gone) to its own journal (`SIGNAL_NOTIFY_JOURNAL`, under the notify's id
+  `SIGNAL_NOTIFY_ID`), as it is reached. A later session for the same notify reloads every contact
+  from the database nodes, the two nodes exchange their journal entries for that notify, and an
+  entry is skipped only when **both** have it; everything else is sent. The journal holds public
+  values only (message number, id, result).
+* Duplicates happen when: a connection closed after a request left and before its response;
+  the session died after a 2xx and before both journals had the line; a node lost its journal
+  (then everything it had settled is sent again); the application retries a notify under a new
+  id. The blob version on the database nodes is not used for this: it counts sends attempted,
+  not sends confirmed, and writing a confirmation there would double the writes per message.
+* Not provided: exactly-once; ordering between a contact's messages when one of them backs off.
+
+### Live checks
+
+`check_signal_service_local.py MODE --runs 0 --recovery STAGE[,STAGE]`, each stage with its own
+accounts and five database nodes. A stage runs a session that creates the contacts, a session in
+which something goes wrong (usually between its two broadcasts; the controllers pause there on
+request, `SIGNAL_LOCAL_PAUSE_AFTER`), and a plain session afterwards. Required of each session:
+both controllers end normally with the same results, the results are the expected ones, the
+recipients (libsignal clients) decrypt what was reported delivered, sealed.
+
+RESULTS_TABLE

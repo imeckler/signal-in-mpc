@@ -89,6 +89,17 @@ def bundleBind (_ : Unit := ()) : Kernel :=   -- a function: a constant kernel w
   { name := "bundle-bind", inputs := bindInputs, outputs := [
       priv "verified" (out.getD 0 []), priv "uuid" (out.getD 1 []), priv "accessKey" (out.getD 2 [])] }
 
+/-- `bundle-bind` without the comparison of identity keys (`BundleResponse.rebind`): a contact
+that registered again is accepted. Opens one byte, `changed`: 255 when the bundle parsed and
+verified and its identity key is not the stored one, else 0 (`rebind_rejects` in
+`TlsMpc/BundleProofs.lean`: 0 whenever the check fails). Everything else is private. -/
+def bundleRebind (_ : Unit := ()) : Kernel :=   -- a function, as `bundleBind`
+  let get := lookup bindInputs
+  let out := BundleResponse.rebind ByteAuth.symbolic (get "record") (get "valid") (get "verified") (get "identityKey")
+  { name := "bundle-rebind", inputs := bindInputs, outputs := [
+      priv "verified" (out.getD 0 []), priv "uuid" (out.getD 1 []), priv "accessKey" (out.getD 2 []),
+      pub "changed" (out.getD 3 [])] }
+
 /-! ### Messages on a session the device has not answered -/
 
 def sealInputs (cert content : Nat) : List (String × Shape) :=
@@ -217,6 +228,7 @@ def find (arguments : List String) : Option Kernel :=
   | name :: rest =>
       match name, rest.mapM (·.toNat?) with
       | "bundle-bind", some [] => some (bundleBind ())
+      | "bundle-rebind", some [] => some (bundleRebind ())
       | "bundle-shape", some [size] => if 2540 ≤ size && size ≤ 65536 then some (bundleShape size) else none
       | "bundle-device", some [size, start, d, r, s, p, k] =>
           let w : Widths := ⟨d, r, s, p, k⟩

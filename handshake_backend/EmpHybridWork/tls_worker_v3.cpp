@@ -12,6 +12,7 @@
 #include "service_kernels.h"
 #include "big_stack.h"
 #include <cerrno>
+#include <csignal>
 #include <chrono>
 #include <iostream>
 #include <deque>
@@ -108,6 +109,13 @@ struct Worker {
         if(!ok||n>16640){uint8_t gone[4]={255,255,255,255};io.send_data(gone,4);io.flush();throw std::runtime_error(ok?"record bound":"server closed");}
         return record;
     }
+    // Leader: one whole record, or false when the connection was closed (or what arrived is not
+    // a record). Nothing is told to the other party here.
+    bool server_record_soft(Bytes&record){
+        record.assign(5,0);bool ok=read_exact(server,record.data(),5);const size_t n=ok?big(record.data()+3,2):0;
+        if(ok&&n<=16640){record.resize(5+n);ok=read_exact(server,record.data()+5,n);}
+        return ok&&n<=16640;
+    }
     static ServiceKernels::ContactId contact(const Bytes&p){ServiceKernels::ContactId id{};std::copy_n(p.begin(),16,id.begin());return id;}
     // Both workers must have been handed the same request.
     void agree(uint8_t code,uint64_t sequence,const Bytes&payload){
@@ -140,7 +148,8 @@ struct Worker {
         switch(code){
         // Contact state at rest (service_kernels.h). Ids are u128, big-endian.
         case 36:{need(phase==Phase::retired&&service&&p.size()==48,"contact key");std::array<uint8_t,32>share{};std::copy_n(p.begin()+16,32,share.begin());service->contact_key(contact(p),share);return {};}
-        case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));return {};}
+        // Reply 255, or 0 when the key check fails: that contact stays unloaded and the session carries on.
+        case 37:{need(phase==Phase::retired&&service&&p.size()>40&&p.size()<=40+16384,"contact open");return service->contact_open(contact(p),Bytes(p.begin()+16,p.begin()+24),Bytes(p.begin()+24,p.begin()+40),Bytes(p.begin()+40,p.end()));}
         case 38:{need(phase==Phase::retired&&service&&p.size()==24,"contact seal");return service->contact_seal(contact(p),Bytes(p.begin()+16,p.end()));}
         // Notify path: a send to a contact by id with a public text, then its request frame.
         case 41:{need(phase==Phase::retired&&service&&p.size()>=16+90&&p.size()<=16+330&&(p.size()-26)%80==0,"contact send");return service->seal_open(contact(p),Bytes(p.begin()+16,p.end()));}
@@ -191,8 +200,13 @@ struct Worker {
         // 63: contact id 16, device count 1, the devices' kinds, version 8, check 16, ciphertext.
         case 63:{
             need(phase==Phase::retired&&service&&p.size()>17,"devices open");const size_t n=p[16];need(n>=1&&n<=6&&p.size()>41+n&&p.size()<=41+n+16384,"devices open");
-            service->contact_open_devices(contact(p),Bytes(p.begin()+17,p.begin()+17+n),Bytes(p.begin()+17+n,p.begin()+25+n),Bytes(p.begin()+25+n,p.begin()+41+n),Bytes(p.begin()+41+n,p.end()));return {};
+            return service->contact_open_devices(contact(p),Bytes(p.begin()+17,p.begin()+17+n),Bytes(p.begin()+17+n,p.begin()+25+n),Bytes(p.begin()+25+n,p.begin()+41+n),Bytes(p.begin()+41+n,p.end()));
         }
+        // A refresh's new device list is scratch until stored (service_kernels.h, `Establishing`).
+        // 64: contact id 16, version 8: the scratch sealed for the database nodes. Reply: check 16, ciphertext.
+        // 65: contact id 16: the scratch becomes the contact's state. (58 drops it.)
+        case 64:{need(phase==Phase::retired&&service&&p.size()==24,"scratch seal");return service->scratch_seal(contact(p),Bytes(p.begin()+16,p.end()));}
+        case 65:{need(phase==Phase::retired&&service&&p.size()==16,"scratch commit");service->scratch_commit(contact(p));return {};}
         case 52:{
             need(phase==Phase::retired&&service&&p.size()==32,"contact assign");ServiceKernels::ContactId to{};std::copy_n(p.begin()+16,16,to.begin());
             return service->contact_assign(contact(p),to);
@@ -282,19 +296,28 @@ struct Worker {
         case 15:case 16:{need(phase==Phase::retired&&p.empty(),"rotate");kernels.rotate(code==15);return {};}
         case 17:{
             // Non-blocking: the socket owner reports whether a whole record is available.
+            // A connection that the server or the proxy closed is not the worker's failure: both
+            // parties get the one-byte reply {0} (no record is that short), the connection is gone
+            // (91 replaces it) and the worker, with every other connection, carries on.
             need(server>=0&&p.empty(),"poll");uint8_t size[4]={0,0,0,0};Bytes record;
             if(party==ALICE){
-                pollfd watch{server,POLLIN,0};
-                if(::poll(&watch,1,0)>0)record=server_record();
+                pollfd watch{server,POLLIN,0};bool lost=false;
+                if(::poll(&watch,1,0)>0)lost=!server_record_soft(record);
+                if(lost){uint8_t gone[4]={255,255,255,255};io.send_data(gone,4);io.flush();::close(server);server=-1;return {0};}
                 for(int i=0;i<4;i++)size[i]=uint8_t(record.size()>>(8*(3-i)));io.send_data(size,4);if(!record.empty())io.send_data(record.data(),record.size());io.flush();
             }else{
-                io.recv_data(size,4);size_t n=big(size,4);need(n!=0xffffffff,"server closed (reported by the leader)");
+                io.recv_data(size,4);size_t n=big(size,4);
+                if(n==0xffffffff){server=-1;return {0};}
                 if(n){need(n>=5&&n<=5+16640,"record bound");record.resize(n);io.recv_data(record.data(),n);need(big(record.data()+3,2)+5==n,"record framing");}
             }
             return record;
         }
         // 90: select connection p[0] (the next unused index opens a new, fresh one). Public, agreed.
         case 90:{need(p.size()==1,"use connection");select(p[0]);return {};}
+        // 91: the selected connection was reported closed (17). It is replaced by a fresh one: no
+        // socket, no TLS and no WebSocket state, to be connected and shaken hands on again (9, 1..7).
+        // The other connections, the engines, the contacts and the account are untouched.
+        case 91:{need(service&&server<0&&phase==Phase::retired&&p.empty(),"reset connection");Connection fresh;exchange(fresh);return {};}
         case 9:{
             // Host length 2, host, port 2; through a SOCKS5 proxy, followed by the proxy part
             // (socks_request). Both parties agree on all of it, so neither can go direct while the
@@ -313,7 +336,9 @@ struct Worker {
             return {};
         }
         case 10:{
-            need(server>=0&&p.size()>=5&&p.size()<=5+16640,"send");if(party==ALICE)write_all(server,p.data(),p.size());
+            // A write to a connection the server or the proxy has closed is dropped: the next poll (17)
+            // reports the closure to both parties. (Only the leader could see it here.)
+            need(server>=0&&p.size()>=5&&p.size()<=5+16640,"send");if(party==ALICE){try{write_all(server,p.data(),p.size());}catch(const std::runtime_error&){}}
             if(sealed_pending){sealed_pending=false;awaiting_echo.push_back(produced_handle);if(produced<3){produced_handle=kernels.test_produce(test_bytes);produced++;}}
             return {};
         }
@@ -335,12 +360,19 @@ struct Worker {
 static int run(int argc,char**argv){
     if(argc!=6)return 2;
     int rpc=::dup(STDOUT_FILENO);if(rpc<0||::dup2(STDERR_FILENO,STDOUT_FILENO)<0)return 2;
+    ::signal(SIGPIPE,SIG_IGN);   // a write to a closed server connection fails (operation 10 drops it) instead of killing the worker
     auto reply=[&](bool ok,const Bytes&payload){Bytes out{uint8_t(ok?0:1)};for(int i=3;i>=0;i--)out.push_back(uint8_t(uint64_t(payload.size())>>(8*i)));out.insert(out.end(),payload.begin(),payload.end());write_all(rpc,out.data(),out.size());};
     try{
         int party=std::stoi(argv[1])+1;unsigned port=std::stoul(argv[3]);std::string session=argv[5];
         if((party!=ALICE&&party!=BOB)||session.size()!=64||session.find_first_not_of("0123456789abcdef")!=std::string::npos)return 2;
         auto started=std::chrono::steady_clock::now();
-        NetIO io(party==ALICE?nullptr:"127.0.0.1",port,true);ThreadPool threads(4);
+        // TEST ONLY (TLS_WORKER_TEST_LINK_SHIFT=N): the connecting party dials PORT+N for every link to
+        // the other worker (this channel and its siblings, the field engine and its stock lines), where
+        // scripts/delay_relay.cpp listens and forwards to PORT with a fixed delay. The listening party
+        // is unchanged. Without the variable nothing changes.
+        unsigned link_shift=0;
+        if(const char*requested=std::getenv("TLS_WORKER_TEST_LINK_SHIFT")){link_shift=std::stoul(requested);if(link_shift<12||link_shift>1000)return 2;if(party==ALICE)link_shift=0;}
+        NetIO io(party==ALICE?nullptr:"127.0.0.1",port+link_shift,true);ThreadPool threads(4);
         // The split agreement needs about a dozen field products; the ladder thousands.
         const char*route=std::getenv("TLS_WORKER_KEY_AGREEMENT");const bool ladder=route&&std::string(route)=="ladder";
         if(route&&!ladder&&std::string(route)!="split")return 2;
@@ -367,7 +399,7 @@ static int run(int argc,char**argv){
             if(n<1||a>10000000||b<1||b>8)return 2;
             field_reserve=unsigned(a);field_lines=unsigned(b);
         }
-        FE field(party-1,port+10,batch,nullptr,field_reserve,field_lines);
+        FE field(party-1,port+10+link_shift,batch,nullptr,field_reserve,field_lines);
         Challenge channel{io,party,"tls-worker-v3:session="+session};
         auto&profile=Profile::get();
         profile.gates=[&]{return mpc.and_gates();};profile.products=[&]{return field.products();};
@@ -377,10 +409,11 @@ static int run(int argc,char**argv){
         if(const char*test=std::getenv("TLS_WORKER_TEST_PRODUCER")){worker.test_bytes=std::stoul(test);if(!worker.test_bytes||worker.test_bytes>16384)return 2;std::cerr<<"tls-worker-v3 TEST producer enabled bytes="<<worker.test_bytes<<"\n";}
         // Both workers must be configured alike: the route is part of every agreed request.
         kernels.ladder_agreement=ladder;
-        // Received records. TLS_WORKER_TYPED_OPEN=1: open the record-type bit first and run the framing
-        // scan only on handshake records (TlsMpc/TypedOpenKernels.lean); 0: scan every record.
+        // Received records. TLS_WORKER_TYPED_OPEN=1 (the default): open the record-type bit first and run
+        // the framing scan only on handshake records (TlsMpc/TypedOpenKernels.lean; what the bit reveals
+        // and what is proved: NEEDS_REVIEW.md section 2); 0: scan every record.
         // Both workers must be configured alike: the setting is part of every agreed request.
-        bool typed_open=false;
+        bool typed_open=true;
         if(const char*requested=std::getenv("TLS_WORKER_TYPED_OPEN")){const std::string value(requested);if(value!="0"&&value!="1")return 2;typed_open=value=="1";}
         kernels.typed_open=typed_open;
         ServiceKernels service(kernels);worker.service=&service;worker.service_fixture=fixture!=nullptr;

@@ -28,6 +28,7 @@ def code : Operation → Nat
   | .bundleFetch => 56 | .bundleTake => 57 | .bundleDrop => 58 | .bundleShape => 59 | .bundleEstablish => 60
   | .devicesSend => 61 | .devicesRequest => 62 | .devicesOpen => 63
   | .useConnection => 90
+  | .scratchSeal => 64 | .scratchCommit => 65 | .resetConnection => 91
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

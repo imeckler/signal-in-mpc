@@ -215,6 +215,15 @@ def main():
     for values in (dict(valid=b'\x00'),dict(verified=b'\x00'),dict(valid=b'\x01'),dict(identityKey=other),dict(record=dead),dict(record=bytes(319),identityKey=bytes(32))):
         if any(any(v) for v in bind(**{**dict(record=known,valid=b'\xff',verified=b'\xff',identityKey=identity),**values}).values()):raise AssertionError('bundle-bind released: %s'%sorted(values))
     report['cases']['bind']=dict(matches_reference=True,rejected_release_nothing=6)
+    # 5b. the binding that accepts a changed identity key (what the sessions use): the same check
+    # without the comparison of identity keys, and the one opened byte `changed`
+    rebind=load('bundle-rebind',opens=['changed'])
+    accepted=dict(record=known,valid=b'\xff',verified=b'\xff',identityKey=identity)
+    if rebind(**accepted)!=dict(verified=b'\xff',uuid=uuid,accessKey=access,changed=b'\x00'):raise AssertionError('bundle-rebind')
+    if rebind(**{**accepted,'identityKey':other})!=dict(verified=b'\xff',uuid=uuid,accessKey=access,changed=b'\xff'):raise AssertionError('bundle-rebind: changed identity key')
+    for values in (dict(valid=b'\x00'),dict(verified=b'\x00'),dict(valid=b'\x01'),dict(record=dead),dict(valid=b'\x00',identityKey=other),dict(verified=b'\x00',identityKey=other)):
+        if any(any(v) for v in rebind(**{**accepted,**values}).values()):raise AssertionError('bundle-rebind released: %s'%sorted(values))
+    report['cases']['rebind']=dict(matches_reference=True,changed_identity_key_accepted_and_flagged=True,rejected_release_nothing=6)
     # 6. the prekey fetch: the kernel's record is the TLS encryption of the real request frame
     block,sequence,mask=rng.randbytes(60),(41).to_bytes(8,'big'),rng.randbytes(4)
     key_text=b64(access).encode()

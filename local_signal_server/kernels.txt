@@ -108,6 +108,10 @@ kernel signal-upgrade-shared 22
 kernel signal-widths 244
 kernel tls-derive
 kernel tls-finish 0
+kernel tls-open-application-class 112
+kernel tls-open-application-class 160
+kernel tls-open-application-class 256
+kernel tls-open-application-class 2560
 kernel tls-open-application-ctr 153
 kernel tls-open-application-ctr 181
 kernel tls-open-application-ctr 222
@@ -125,13 +129,20 @@ kernel tls-open-handshake 43
 kernel tls-open-handshake 58
 kernel tls-open-handshake 922
 kernel tls-open-handshake 94
+kernel tls-open-typed 112
+kernel tls-open-typed 160
+kernel tls-open-typed 256
+kernel tls-open-typed 2560
 kernel tls-parser-initial
 kernel tls-reveal-masked 132
+kernel tls-reveal-masked 139
 kernel tls-reveal-masked 160
 kernel tls-reveal-masked 201
 kernel tls-reveal-masked 225
+kernel tls-reveal-masked 235
 kernel tls-reveal-masked 2400
 kernel tls-reveal-masked 2481
+kernel tls-reveal-masked 2539
 kernel tls-reveal-masked 2641
 kernel tls-reveal-masked 2721
 kernel tls-reveal-masked 28
@@ -139,6 +150,11 @@ kernel tls-reveal-masked 5209
 kernel tls-reveal-masked 5211
 kernel tls-reveal-masked 674
 kernel tls-reveal-masked 77
+kernel tls-reveal-masked 91
+kernel tls-seal-class 256
+kernel tls-seal-class 32
+kernel tls-seal-class 384
+kernel tls-seal-class 48
 kernel tls-seal-ctr 22 5 0
 kernel tls-seal-ctr 23 242 0
 kernel tls-seal-ctr 23 27 0

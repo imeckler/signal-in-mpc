@@ -264,6 +264,19 @@ def bind (a : ByteAuth.Ops B) (record valid verified identityKey : List B) : Lis
     ByteAuth.equalMask a identityKey (part record 150 32)]
   [ok] :: [part record 262 16, part record 278 16].map (ByteAuth.release a ok)
 
+/-- `bind` for a contact whose identity key may have changed (the contact registered again; such
+a change is accepted by the owner's decision, PRODUCT_TODO.md section 1). The check does not
+compare the bundle's identity key with the record's: it is 255 exactly when the bundle parsed
+(`valid`), its two signatures verified under the identity key the bundle itself carries
+(`verified`), and `record` is a live record (version 4). Then the UUID and access key as in
+`bind`, and one more byte, `changed`: 255 when the check holds and the bundle's identity key is
+not the one in `record`, otherwise 0. Like the others it is released by the check, so it is 0
+for a bundle that did not parse or did not verify. -/
+def rebind (a : ByteAuth.Ops B) (record valid verified identityKey : List B) : List (List B) :=
+  let ok := all a [isSet a valid, isSet a verified, ByteAuth.eqMask a (OpenResult.get a record 0) (a.const 4)]
+  [ok] :: [part record 262 16, part record 278 16,
+    [a.not (ByteAuth.equalMask a identityKey (part record 150 32))]].map (ByteAuth.release a ok)
+
 /-! ### Layout from the opened shape (public arithmetic) -/
 
 def Piece.mask : Piece → List Bool
@@ -434,10 +447,18 @@ theorem bind_map (ha : ByteAuth.Hom a a' f) (record valid verified identityKey :
     ReceiveFirst.all_map ha, ReceiveFirst.isSet_map ha, ByteAuth.eqMask_map ha, ByteAuth.equalMask_map ha,
     OpenResult.get_map ha, ha.const, Establish.part_map]
 
+theorem rebind_map (ha : ByteAuth.Hom a a' f) (record valid verified identityKey : List B) :
+    (rebind a record valid verified identityKey).map (List.map f) =
+      rebind a' (record.map f) (valid.map f) (verified.map f) (identityKey.map f) := by
+  simp only [rebind, List.map_cons, List.map_nil, ByteAuth.release_map ha,
+    ReceiveFirst.all_map ha, ReceiveFirst.isSet_map ha, ByteAuth.eqMask_map ha, ByteAuth.equalMask_map ha,
+    OpenResult.get_map ha, ha.const, ha.not, Establish.part_map]
+
 end Refinement
 
 #print axioms device_map
 #print axioms bind_map
+#print axioms rebind_map
 #print axioms shape_map
 
 end TlsMpc.Signal.BundleResponse

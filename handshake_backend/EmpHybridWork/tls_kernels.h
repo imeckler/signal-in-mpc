@@ -158,7 +158,8 @@ public:   // engine references and shared resources are also used by service_ker
     struct PrivateBuffer {Wires length,content,valid;std::string sealer;Values extra;Wires revealable;size_t revealed_length=0;};
     std::map<uint64_t,PrivateBuffer>buffers;uint64_t next_buffer=1;
     uint64_t retain(PrivateBuffer buffer){if(next_buffer==0)throw std::runtime_error("handle space");buffers[next_buffer]=std::move(buffer);return next_buffer++;}
-    // Authenticate, decrypt and classify one record; only the event bytes are opened.
+    // Authenticate, decrypt and classify one record; only the event bytes are opened (and, with
+    // `typed_open`, first the bit "authenticated handshake record").
     std::vector<uint8_t> open_application(const std::vector<uint8_t>&sequence,const std::vector<uint8_t>&wire){
         if(!state.count("parser")){auto unused=constant({0});auto initial=cache.get("tls-parser-initial").run(s,{{"unused",&unused}});keep(initial,"parser");}
         if(wire.size()<22||wire.size()!=5+size_t(wire[3])*256+wire[4])throw std::runtime_error("application record size");
