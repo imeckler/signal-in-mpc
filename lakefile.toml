@@ -82,6 +82,10 @@ name = "hybrid_kdf_emitter"
 root = "handshake_backend.EmpHybridWork.EmitHybridKdf"
 
 [[lean_exe]]
+name = "flat_kernel_emitter"
+root = "handshake_backend.EmpHybridWork.EmitFlatKernel"
+
+[[lean_exe]]
 name = "session_handshake_fixture"
 root = "handshake_backend.SessionWork.NativeHandshakeFixture"
 

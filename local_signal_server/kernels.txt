@@ -8,6 +8,7 @@ kernel gcm-tag
 kernel receive-access-key 244 416 281
 kernel receive-access-key 244 416 283
 kernel receive-access-key 244 416 285
+kernel receive-access-key 244 416 288
 kernel receive-access-key 244 96 25
 kernel receive-certificate 244 1 0 0
 kernel receive-certificate-verified
