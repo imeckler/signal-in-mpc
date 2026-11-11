@@ -100,3 +100,7 @@ root = "handshake_backend.WebSocketWork.ProviderController"
 [[lean_exe]]
 name = "public_service_controller"
 root = "handshake_backend.EmpHybridWork.PublicServiceController"
+
+[[lean_exe]]
+name = "kem_kernel_emitter"
+root = "handshake_backend.EmpHybridWork.EmitKemKernel"

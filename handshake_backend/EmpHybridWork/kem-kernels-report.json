@@ -1,0 +1,52 @@
+{
+  "and_gates": {
+    "kyber": {
+      "kem-hash kyber": 554303,
+      "kem-ntt": 870474,
+      "kem-matrix 0": 920545,
+      "kem-u 0": 1384764,
+      "kem-matrix 1": 920545,
+      "kem-u 1": 1384764,
+      "kem-matrix 2": 920545,
+      "kem-u 2": 1384764,
+      "kem-matrix 3": 920545,
+      "kem-u 3": 1384764,
+      "kem-v": 1366332,
+      "kem-finish kyber": 509351
+    },
+    "mlkem": {
+      "kem-hash mlkem": 517247,
+      "kem-ntt": 870474,
+      "kem-matrix 0": 920545,
+      "kem-u 0": 1384764,
+      "kem-matrix 1": 920545,
+      "kem-u 1": 1384764,
+      "kem-matrix 2": 920545,
+      "kem-u 2": 1384764,
+      "kem-matrix 3": 920545,
+      "kem-u 3": 1384764,
+      "kem-v": 1366332,
+      "kem-finish mlkem": 12839
+    }
+  },
+  "sequence_total": {
+    "kyber": 12521696,
+    "mlkem": 11988128
+  },
+  "checked_at": "2026-11-11T19:55:21Z",
+  "notes": [
+    "reference equals pinned libcrux 0.0.10 on 6 key pairs (keygen, encapsulate, decapsulate)",
+    "reference round-trips under libsignal's two test key pairs",
+    "reference ML-KEM-1024 agrees with the cryptography package (keygen from seed, decapsulation)",
+    "the cryptography package decapsulates the kernels' ML-KEM ciphertext to the kernels' secret"
+  ],
+  "sampler_streams": 22,
+  "sampler_rejected": 8,
+  "sampler_and_gates": 78841,
+  "lean_values_compared": true,
+  "libcrux_compared": true,
+  "nothing_opened": true,
+  "seconds": 152.6,
+  "emitter_sha256": "41bde2e29ba181aba4aafc889fecf68063eb089668d13b37c45d0b5561408dc9",
+  "all_pass": true
+}
