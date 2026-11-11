@@ -3,6 +3,8 @@ import TlsMpc.FieldBits
 import TlsMpc.X25519SwapBits
 import TlsMpc.EdwardsShare
 import TlsMpc.EdwardsAffine
+import TlsMpc.EstablishField
+import TlsMpc.ReceiveField
 open TlsMpc TlsMpc.WordMask TlsMpc.BoolDag
 
 /-! Export the conversion-mask circuits as flat gate lists.
@@ -121,6 +123,9 @@ def main (args : List String) : IO Unit := do
     | "edwards-add-u" => pure (renderFieldAll 4 EdwardsShare.addU)
     | "edwards-prepare" => pure (renderFieldAll (2 + 2 * EdwardsAffine.scalarBits) EdwardsAffine.prepare)
     | "edwards-offset-sum" => pure (renderFieldAll (2 + 3 * EdwardsAffine.windows) EdwardsAffine.offsetSum)
+    | "xeddsa-recover" => pure (renderFieldAll 1 EstablishField.recover)
+    | "xeddsa-check" => pure (renderFieldAll 512 EstablishField.check)
+    | "receive-torsion" => pure (renderFieldAll 2 ReceiveField.torsion)
     | "swap-bits" => pure (render X25519SwapBits.circuit 256)
     | _ => throw (IO.userError "unknown circuit")
   match rendered with

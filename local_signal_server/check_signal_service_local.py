@@ -171,6 +171,34 @@ def run_receive(export, mode, delay):
     return result
 
 
+def run_signup(export, mode, texts):
+    """A NEW user signs up: a fresh libsignal client registers, fetches the account's prekey
+    bundle and sends one sealed-sender first message (with its profile key). The two-party
+    session on the authenticated socket must open it, report its text, store the new contact
+    under a new id and acknowledge the message. A second session then loads that contact from
+    the store alone and broadcasts to it; the new user must decrypt the broadcasts."""
+    import secrets
+    name, token, contact = 'newuser', 'signup token ' + secrets.token_hex(4), 1000
+    lss('signup', name, '+12025550104', 'sender', token)   # queued by the server until the session connects
+    credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
+    share = secrets.token_bytes(len(credentials))
+    shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
+    tool = HERE / 'provision/target/debug/lss-provision'
+    first = run_mpc(export, mode, {}, party_env=lambda party: dict(
+        SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1', SIGNAL_LOCAL_KEM=str(tool), SIGNAL_LOCAL_NEW_CONTACT=str(contact)))
+    result = dict(receive=first, token=token)
+    result['received'] = all(c.get('received') == [[str(contact), token]] for c in first['controllers'])
+    if result['received']:
+        result['send'] = run_mpc(export, mode, texts, party_env=lambda party: dict(SIGNAL_LOCAL_EXTRA_CONTACTS=str(contact)))
+        good, recipients = verify({name: texts[CONTACTS[0]]})
+        result['new_user'] = recipients
+        # Nothing may be left in the account's queue: the first message was acknowledged.
+        result['passed'] = good
+    else:
+        result['passed'] = False
+    return result
+
+
 def verify(expected):
     """expected: {recipient name: [texts]}. Every delivered envelope must be sealed (no source fields)."""
     result = {}
@@ -194,6 +222,7 @@ def main():
     p.add_argument('--runs', type=int, default=2, help='MPC sessions; each after the first loads contacts from the store')
     p.add_argument('--receive', action='store_true', help='also run the authenticated-socket session')
     p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
+    p.add_argument('--signup', action='store_true', help="also receive a new user's first message, then broadcast to them")
     a = p.parse_args()
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:
@@ -230,6 +259,9 @@ def main():
         if ok and a.receive:
             report['receive'] = run_receive(export, a.mode, a.receive_delay)
             ok = report['receive']['passed']
+        if ok and a.signup:
+            report['signup'] = run_signup(export, a.mode, texts)
+            ok = report['signup']['passed']
         report['passed'] = ok
         if ok:
             KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))

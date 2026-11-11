@@ -33,6 +33,9 @@ inductive Operation where
   /- Local-server testing: admit a contact from an export; open an
   unauthenticated chat socket (the upgrade request itself is public). -/
   | contactAdmit | publicUpgrade | accountAdmit | accountCredentials | envelopeTake | envelopeDrop
+  /- A new contact's first message, from the held envelope: its public part (our prekey ids
+  and the Kyber ciphertext), then the session, the text and the contact's record. -/
+  | envelopeOpen | envelopeSession
   deriving Repr, BEq
 
 structure Rpc where

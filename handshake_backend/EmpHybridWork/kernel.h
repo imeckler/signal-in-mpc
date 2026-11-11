@@ -40,6 +40,8 @@ public:
         }
         if(in_bits!=circuit.input_bits()||out_bits!=circuit.output_bits())throw std::runtime_error("kernel layout shape");
     }
+    // The width Lean declared for an input.
+    size_t input_bits(const std::string&name)const{for(auto&field:inputs)if(field.name==name)return field.bits;throw std::runtime_error("kernel input "+name);}
     // Every input field exactly once, by name, with the width Lean declared.
     Values run(DynSession&s,const Binding&bound)const{
         if(bound.size()!=inputs.size())throw std::runtime_error("kernel binding count");

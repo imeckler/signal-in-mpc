@@ -35,10 +35,35 @@ public:   // engine references and shared resources are also used by service_ker
     }
     // Ladder swap bits (as field-bit shares) of the X25519 scalar whose bits are
     // the XOR of both parties' `share` arguments. Every contribution is checked to be a bit.
+    // Swap bit of ladder step `step` (2..253) for a clamped scalar; `top` is scalar bit 254.
+    static uint64_t swap_bit(const std::array<uint8_t,32>&scalar,unsigned step,bool top){
+        auto bit=[&](unsigned i){return uint64_t((scalar[i/8]>>(i%8))&1);};
+        return step==2?bit(3):step==253?(bit(253)^uint64_t(top)):(bit(step+1)^bit(step));
+    }
+    // The same swap bits for a scalar BOTH parties know (one of our own prekeys), as constants.
+    std::vector<H> public_scalar(const std::array<uint8_t,32>&scalar){
+        std::vector<H>out;for(unsigned step=2;step<=253;step++)out.push_back(f.constant(swap_bit(scalar,step,true)));return out;
+    }
+    // n private Boolean bits -> n field shares holding the same bits, each through one single-bit
+    // pair: open bit xor rho, then select rho or 1-rho.
+    std::vector<DynBitPair>pairs;size_t next_pair=0;
+    std::vector<H> bits_to_field(const Wires&bits){
+        const size_t n=bits.size();if(!n||n>16*255)throw std::runtime_error("bit conversion size");
+        if(pairs.size()-next_pair<n){
+            const unsigned blocks=unsigned((n-(pairs.size()-next_pair)+254)/255);std::vector<DynBitPair>more;
+            auto extra=generate_masks(s,f,channel,party,circuits,16,blocks,&more);
+            pairs.erase(pairs.begin(),pairs.begin()+next_pair);next_pair=0;pairs.insert(pairs.end(),more.begin(),more.end());
+            masks.erase(masks.begin(),masks.begin()+std::min(next_mask,masks.size()));next_mask=0;masks.insert(masks.end(),extra.begin(),extra.end());
+        }
+        std::vector<const Wires*>parts;for(size_t i=0;i<n;i++)parts.push_back(&pairs[next_pair+i].bit);
+        auto rho=DynSession::concat(parts);
+        auto opened=s.open(s.run(circuits.xor_bit.parallel(uint32_t(n)),DynSession::interleave(bits,rho)));
+        auto one=f.constant(1);std::vector<H>out;for(size_t i=0;i<n;i++)out.push_back(opened.at(i)?f.sub(one,pairs[next_pair+i].field):pairs[next_pair+i].field);
+        next_pair+=n;return out;
+    }
     std::vector<H> shared_scalar(const std::array<uint8_t,32>&share){
-        auto bit=[&](unsigned i){return uint64_t((share[i/8]>>(i%8))&1);};
         std::vector<uint64_t>local(252);
-        for(unsigned step=2;step<=253;step++)local[step-2]=step==2?bit(3):step==253?(bit(253)^uint64_t(party==emp::ALICE)):(bit(step+1)^bit(step));
+        for(unsigned step=2;step<=253;step++)local[step-2]=swap_bit(share,step,party==emp::ALICE);
         auto shares=f.input_coins(local);f.check();
         std::vector<H>all=shares[0];all.insert(all.end(),shares[1].begin(),shares[1].end());
         for(auto&v:f.checked_open(circuits.field_bit_checks(f,all)))for(auto byte:v)if(byte)throw std::runtime_error("non-bit scalar contribution");

@@ -81,6 +81,20 @@ struct Worker {
         // A delivered envelope's sealed content: take a range of a record (handle8, offset2, count2), or drop what is held.
         case 48:{need(phase==Phase::retired&&service&&p.size()==12,"envelope take");return service->envelope_take(big(p.data(),8),big(p.data()+8,2),big(p.data()+10,2));}
         case 49:{need(phase==Phase::retired&&service&&p.empty(),"envelope drop");service->envelope_drop();return {};}
+        // Receive the held envelope as a new contact's first message (service_kernels.h).
+        // 50: our identity public key 32, time 8, server key 32, then the two forms of the trusted signer, each with a 2-byte length.
+        case 50:{
+            need(phase==Phase::retired&&service&&p.size()>=76,"envelope open");const size_t first=big(p.data()+72,2);
+            need(p.size()>=76+first,"envelope open");const size_t second=big(p.data()+74+first,2);need(p.size()==76+first+second,"envelope open");
+            return service->envelope_open(Bytes(p.begin(),p.begin()+32),Bytes(p.begin()+32,p.begin()+40),Bytes(p.begin()+40,p.begin()+72),
+                Bytes(p.begin()+74,p.begin()+74+first),Bytes(p.begin()+76+first,p.end()));
+        }
+        // 51: new contact id 16, our address 17, signed prekey 32, one-time prekey 32, Kyber secret 32, request id 8.
+        case 51:{
+            need(phase==Phase::retired&&service&&p.size()==137,"envelope session");std::array<uint8_t,32>signed_key{},one_time{};
+            std::copy_n(p.begin()+33,32,signed_key.begin());std::copy_n(p.begin()+65,32,one_time.begin());
+            return service->envelope_session(contact(p),Bytes(p.begin()+16,p.begin()+33),signed_key,one_time,Bytes(p.begin()+97,p.begin()+129),Bytes(p.begin()+129,p.end()));
+        }
         case 44:{need(phase==Phase::retired&&service&&p.size()>16,"contact admit");service->admit_contact(contact(p),Bytes(p.begin()+16,p.end()));return {};}
         case 45:{need(phase==Phase::retired&&service&&p.empty(),"public upgrade");auto nonce=joint_random();nonce.resize(16);return service->upgrade_public(nonce);}
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}

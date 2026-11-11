@@ -29,7 +29,7 @@ pub const SESSION: usize = 182 + SIZE;
 pub const META: usize = 57;
 pub const RECORD: usize = CERT_SLOT + SESSION + META;
 
-fn hex(b: &[u8]) -> String {
+pub fn hex(b: &[u8]) -> String {
     b.iter().map(|x| format!("{x:02x}")).collect()
 }
 fn unhex(s: &str) -> R<Vec<u8>> {
@@ -188,9 +188,39 @@ fn project(record: &[u8]) -> R<(Vec<u8>, Value)> {
     Ok((b, info))
 }
 
+/// Kyber-1024 decapsulation with one of the account's Kyber prekeys (keys both MPC parties hold;
+/// this step runs outside the engines). Arguments and result in hex, in libsignal's serialization
+/// (type byte first) for the key and the ciphertext.
+pub fn kem_decapsulate(key: &str, ciphertext: &str) -> R<()> {
+    let secret = kem::SecretKey::deserialize(&unhex(key)?)?;
+    let shared = secret.decapsulate(&unhex(ciphertext)?.into_boxed_slice())?;
+    println!("{}", hex(&shared));
+    Ok(())
+}
+
 pub async fn export_mpc(sender_name: &str, contact_names: &[&str]) -> R<()> {
     let sender = Account::load(sender_name).await?;
     let cert = sender.sender_certificate.clone().ok_or("sender has no certificate")?;
+    // What receiving needs. Our prekey private keys (held in the clear by both parties), and the
+    // server certificate that signs sender certificates, validated here against the trust root.
+    let mut one_time = vec![];
+    for id in sender.store.all_pre_key_ids().cloned().collect::<Vec<_>>() {
+        one_time.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_pre_key(id).await?.private_key()?.serialize())}));
+    }
+    let mut signed = vec![];
+    for id in sender.store.all_signed_pre_key_ids().cloned().collect::<Vec<_>>() {
+        signed.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_signed_pre_key(id).await?.private_key()?.serialize())}));
+    }
+    let mut kyber = vec![];
+    for id in sender.store.all_kyber_pre_key_ids().cloned().collect::<Vec<_>>() {
+        kyber.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_kyber_pre_key(id).await?.secret_key()?.serialize())}));
+    }
+    let parsed = SenderCertificate::deserialize(&cert)?;
+    let trust = PublicKey::deserialize(&unb64(TEST_TRUST_ROOT)?)?;
+    let signer = parsed.signer()?.clone();
+    if !signer.validate(&trust)? {
+        return Err("server certificate does not validate against the trust root".into());
+    }
     let slot_cert = pad_certificate(&cert, CERT_SLOT)?;
     let identity = sender.store.get_identity_key_pair().await?;
     let mut contacts = vec![];
@@ -233,6 +263,8 @@ pub async fn export_mpc(sender_name: &str, contact_names: &[&str]) -> R<()> {
         "server": {"endpoint": "127.0.0.1", "port": 18443, "hostname": "server.example", "plain_port": 18080,
             "tls_trust_root_pem": state_dir().join("../tls/ca.pem").canonicalize()?.display().to_string()},
         "sealed_sender_trust_root_hex": hex(&root),
+        "sealed_sender_server": {"certificate_hex": hex(signer.serialized()?), "key_id": signer.key_id()?,
+            "public_key_hex": hex(&signer.public_key()?.serialize()[1..])},
         "layout": {"cert_slot": CERT_SLOT, "session_block": SESSION, "metadata": META, "conversation_record": RECORD,
             "initial": "identity_private[32] || conversation_record"},
         "sender": {
@@ -242,6 +274,7 @@ pub async fn export_mpc(sender_name: &str, contact_names: &[&str]) -> R<()> {
             "identity_private_hex": hex(&identity.private_key().serialize()),
             "identity_public_hex": hex(&identity.public_key().serialize()[1..]),
             "certificate_hex": hex(&cert), "certificate_bytes": cert.len(),
+            "one_time_prekeys": one_time, "signed_prekeys": signed, "kyber_prekeys": kyber,
             "certificate_slot_hex": hex(&slot_cert),
             "certificate_slot_note": if cert.len() == CERT_SLOT { "exact".to_string() } else {
                 format!("{}-byte certificate padded to the {}-byte slot with unknown protobuf field 15", cert.len(), CERT_SLOT) },

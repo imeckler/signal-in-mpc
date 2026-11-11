@@ -207,6 +207,30 @@ while twists<3:
 for name,text in texts.items():
     (OUT/(name+'.flat')).write_text(text);digest=hashlib.sha256(text.encode()).hexdigest();pins.append('inline constexpr const char* %s_SHA="%s";'%(name.replace('-','_').upper(),digest))
     report[name]=dict(flat_sha256=digest,products=edwards_products[name],divisions=sum(row.startswith('D') for row in text.split('\n')[3:]),cases_checked=4,reference='independent Edwards arithmetic and Montgomery ladder')
+# XEdDSA and torsion programs (TlsMpc/EstablishField.lean, TlsMpc/ReceiveField.lean), checked
+# against the same independent Edwards arithmetic.
+ELL=2**252+27742317777372353535851937790883648493;BASE_POINT=lift(9)
+texts={name:subprocess.run(['lake','exe','word_mask_emitter',name],cwd=ROOT,check=True,capture_output=True).stdout.decode() for name in ('xeddsa-recover','xeddsa-check','receive-torsion')}
+signature_products={};valid_points=0
+for case in range(8):
+    u=ladder(8*rng.randrange(1,2**250),9) if case<4 else rng.randrange(2,P)
+    (valid,x,y),signature_products['xeddsa-recover']=field_eval_all(texts['xeddsa-recover'],[u]);point=lift(u)
+    if valid!=int(point is not None) or (point is not None and (y!=point[1] or x not in (point[0],P-point[0]))):raise AssertionError('xeddsa-recover')
+    if point is None:continue
+    valid_points+=1
+    flip,h,s=rng.randrange(2),rng.randrange(2**256),rng.randrange(2**253)
+    a=((P-x)%P if flip else x,y);want=ed_add(ed_mul(h,((P-a[0])%P,a[1])),ed_mul(s,BASE_POINT))
+    got,signature_products['xeddsa-check']=field_eval_all(texts['xeddsa-check'],[x,y,flip]+[(h>>i)&1 for i in range(256)]+[(s>>i)&1 for i in range(253)])
+    if tuple(got)!=want:raise AssertionError('xeddsa-check')
+    # Torsion: both outputs zero exactly for a point of the prime-order subgroup.
+    free=case<4
+    for candidate,expected in (((x,y),free),(((P-x)%P,y),free),(ed_add((x,y),(SQRT_M1,0)),False),(ed_add((x,y),(0,P-1)),False)):
+        got,signature_products['receive-torsion']=field_eval_all(texts['receive-torsion'],list(candidate))
+        if (got==[0,0])!=(ed_mul(ELL,candidate)==(0,1)) or (case<4 and (got==[0,0])!=expected):raise AssertionError('receive-torsion')
+if valid_points<4:raise AssertionError('signature program cases')
+for name,text in texts.items():
+    (OUT/(name+'.flat')).write_text(text);digest=hashlib.sha256(text.encode()).hexdigest();pins.append('inline constexpr const char* %s_SHA="%s";'%(name.replace('-','_').upper(),digest))
+    report[name]=dict(flat_sha256=digest,products=signature_products[name],cases_checked=valid_points,reference='independent Edwards arithmetic')
 # Swap-bit derivation from scalar bits (no AND gates).
 text=subprocess.run(['lake','exe','word_mask_emitter','swap-bits'],cwd=ROOT,check=True,capture_output=True).stdout.decode()
 gates,outputs=parse(text,256)

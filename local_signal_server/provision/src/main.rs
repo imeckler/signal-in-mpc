@@ -294,13 +294,19 @@ struct Content {
 struct DataMessage {
     #[prost(string, optional, tag = "1")]
     body: Option<String>,
+    #[prost(bytes = "vec", optional, tag = "6")]
+    profile_key: Option<Vec<u8>>,
     #[prost(uint64, optional, tag = "7")]
     timestamp: Option<u64>,
 }
 
 /// Content bytes with Signal's transport padding (0x80 terminator, zero fill to a multiple of 80).
 fn text_content(text: &str, timestamp: u64) -> Vec<u8> {
-    let mut v = Content { data_message: Some(DataMessage { body: Some(text.into()), timestamp: Some(timestamp) }) }.encode_to_vec();
+    content_with(text, timestamp, None)
+}
+/// The same with the sender's profile key (what a client sends to a contact it shares its profile with).
+fn content_with(text: &str, timestamp: u64, profile_key: Option<Vec<u8>>) -> Vec<u8> {
+    let mut v = Content { data_message: Some(DataMessage { body: Some(text.into()), profile_key, timestamp: Some(timestamp) }) }.encode_to_vec();
     v.push(0x80);
     while v.len() % 80 != 0 {
         v.push(0);
@@ -589,10 +595,14 @@ async fn register(name: &str, number: &str) -> R<()> {
 
 /// Sealed-sender send from `from` to `to` over the unauthenticated socket with `to`'s access key.
 async fn sealed_send(from: &mut Account, to: &Account, text: &str) -> R<u64> {
+    sealed_send_content(from, to, text, false).await
+}
+async fn sealed_send_content(from: &mut Account, to: &Account, text: &str, with_profile_key: bool) -> R<u64> {
     let mut rng = rand::rng();
     let ts = now_ms();
     let cert = SenderCertificate::deserialize(from.sender_certificate.as_ref().ok_or("sender has no certificate")?)?;
-    let wire = sealed_sender_encrypt(&to.address(), &cert, &text_content(text, ts),
+    let profile = if with_profile_key { Some(from.profile_key.to_vec()) } else { None };
+    let wire = sealed_sender_encrypt(&to.address(), &cert, &content_with(text, ts, profile),
         &mut from.store.session_store, &mut from.store.identity_store, SystemTime::now(), &mut rng).await?;
     let mut chat = Chat::connect(None)?;
     let body = json!({
@@ -733,10 +743,50 @@ async fn mpc_send(from_name: &str, to_name: &str, text: &str) -> R<()> {
     }));
     Ok(())
 }
+/// A NEW user's first contact with `to`: register if needed, fetch `to`'s prekey bundle, and send
+/// one sealed-sender PreKey message carrying `text` and the new user's profile key. Nothing is
+/// received here: `to` is expected to be the MPC client.
+async fn signup(name: &str, number: &str, to_name: &str, text: &str) -> R<()> {
+    // Always a fresh registration: an account file from an earlier server instance names an
+    // account this server does not have.
+    register(name, number).await?;
+    let mut from = Account::load(name).await?;
+    let to = Account::load(to_name).await?;
+    start_session(&mut from, &to).await?;
+    let ts = sealed_send_content(&mut from, &to, text, true).await?;
+    from.save().await?;
+    println!("{}", json!({"signup": name, "aci": from.aci, "to": to.aci, "timestamp": ts,
+        "registration_id": from.registration_id, "access_key_hex": mpc::hex(&from.access_key())}));
+    Ok(())
+}
+
 async fn establish(from_name: &str, to_name: &str) -> R<()> {
     eprintln!("establish {from_name} -> {to_name}");
     let mut from = Account::load(from_name).await?;
     let mut to = Account::load(to_name).await?;
+    start_session(&mut from, &to).await?;
+
+    sealed_send(&mut from, &to, "lss establish: hello").await?;
+    from.save().await?;
+    let got = receive(&mut to, 1, Duration::from_secs(15)).await?;
+    if got.len() != 1 || got[0].0 != from.aci {
+        return Err("recipient did not decrypt the PreKey message".into());
+    }
+    // Reply, so FROM's session is acknowledged (it then sends SignalMessages, not PreKey messages).
+    sealed_send(&mut to, &from, "lss establish: reply").await?;
+    to.save().await?;
+    let got = receive(&mut from, 1, Duration::from_secs(15)).await?;
+    if got.len() != 1 || got[0].0 != to.aci {
+        return Err("sender did not decrypt the reply".into());
+    }
+    let s = from.store.load_session(&to.address()).await?.ok_or("no session")?;
+    eprintln!("  {} -> {} session established (has_usable_sender_chain={})", from_name, to_name,
+        s.has_usable_sender_chain(SystemTime::now(), SessionUsabilityRequirements::all())?);
+    Ok(())
+}
+
+/// FROM fetches TO's prekey bundle and starts a session from it (no message is sent).
+async fn start_session(from: &mut Account, to: &Account) -> R<()> {
     let mut rng = rand::rng();
 
     // Fetch TO's prekey bundle with TO's access key (unauthenticated socket, like a sealed-sender client).
@@ -767,23 +817,6 @@ async fn establish(from_name: &str, to_name: &str) -> R<()> {
     process_prekey_bundle(&to.address(), &from.address(), &mut from.store.session_store, &mut from.store.identity_store,
         &bundle, SystemTime::now(), &mut rng).await?;
     from.add_peer(&to.aci.clone());
-
-    sealed_send(&mut from, &to, "lss establish: hello").await?;
-    from.save().await?;
-    let got = receive(&mut to, 1, Duration::from_secs(15)).await?;
-    if got.len() != 1 || got[0].0 != from.aci {
-        return Err("recipient did not decrypt the PreKey message".into());
-    }
-    // Reply, so FROM's session is acknowledged (it then sends SignalMessages, not PreKey messages).
-    sealed_send(&mut to, &from, "lss establish: reply").await?;
-    to.save().await?;
-    let got = receive(&mut from, 1, Duration::from_secs(15)).await?;
-    if got.len() != 1 || got[0].0 != to.aci {
-        return Err("sender did not decrypt the reply".into());
-    }
-    let s = from.store.load_session(&to.address()).await?.ok_or("no session")?;
-    eprintln!("  {from_name} -> {to_name} session established (has_usable_sender_chain={})",
-        s.has_usable_sender_chain(SystemTime::now(), SessionUsabilityRequirements::all())?);
     Ok(())
 }
 
@@ -801,6 +834,8 @@ async fn run(args: &[String]) -> R<()> {
             Ok(())
         }
         ["mpc-send", from, to, text] => mpc_send(from, to, text).await,
+        ["signup", name, number, to, text] => signup(name, number, to, text).await,
+        ["kem-decapsulate", key, ciphertext] => mpc::kem_decapsulate(key, ciphertext),
         ["export-mpc"] => mpc::export_mpc("sender", &["recipient", "recipient2"]).await,
         ["export-mpc", sender, contacts @ ..] => mpc::export_mpc(sender, contacts).await,
         ["ref-send", text] => mpc::ref_send(text, None).await,

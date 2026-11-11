@@ -51,6 +51,42 @@ private:
         auto&a=of(c);if(!a.sender_public.size())a.sender_public=k.agreement_word(a.identity,f.constant(9));
         c.static_agreement=k.agreement_word(a.identity,c.recipient);c.ready=true;
     }
+    // A message being received: what steps 13-17 need from steps 1-12, all private except the widths.
+    struct Rejected {};
+    struct Arrival {Wires message,prekey_valid,verified,sender_identity,uuid,device,ours;H sender_point,base,ratchet;std::string widths;bool one_time=false,held=false;};
+    struct ReceivePrograms {
+        FieldProgram recover{std::string(EMP_WORD_CIRCUIT_DIR)+"/xeddsa-recover.flat",XEDDSA_RECOVER_SHA};
+        FieldProgram check{std::string(EMP_WORD_CIRCUIT_DIR)+"/xeddsa-check.flat",XEDDSA_CHECK_SHA};
+        FieldProgram torsion{std::string(EMP_WORD_CIRCUIT_DIR)+"/receive-torsion.flat",RECEIVE_TORSION_SHA};
+        ReceivePrograms(){
+            if(recover.input_count()!=1||recover.output_count()!=3||check.input_count()!=512||check.output_count()!=2||torsion.input_count()!=2||torsion.output_count()!=2)throw std::runtime_error("receive program shape");
+        }
+    };
+    Arrival arrival;ReceivePrograms programs;
+    // The sealed-sender server key as an Edwards point (xeddsa-recover on a public value, so its
+    // outputs are public): once per key.
+    std::vector<uint8_t>server_key;H server_x,server_y;Wires server_x_word,server_y_word;
+    void server(const std::vector<uint8_t>&key){
+        if(key==server_key)return;
+        std::array<uint8_t,32>u{};std::copy_n(key.begin(),32,u.begin());u[31]&=127;need(canonical(u),"server key range");
+        auto point=f.checked_open(programs.recover.evaluate_all(f,{{f.public_element(u)}}).at(0));
+        std::array<uint8_t,32>one{};one[0]=1;need(point.size()==3&&point[0]==one,"server key is not a curve point");
+        server_x=f.public_element(point[1]);server_y=f.public_element(point[2]);
+        server_x_word=public_word(point[1]);server_y_word=public_word(point[2]);server_key=key;
+    }
+    Wires public_word(const std::array<uint8_t,32>&value){std::vector<uint8_t>bits(255);for(unsigned i=0;i<255;i++)bits[i]=(value[i/8]>>(i%8))&1;return s.public_bits(bits);}
+    Wires public_word(uint8_t small){std::array<uint8_t,32>value{};value[0]=small;return public_word(value);}
+    Wires word(H value){return field_to_word(s,f,k.channel,k.circuits,k.take_mask(),value);}
+    // A kernel whose parameters came from a message: parameters Lean does not accept refuse the message.
+    const Kernel&shaped(const std::string&name){
+        try{return k.cache.get(name);}catch(const std::runtime_error&e){if(std::string(e.what())=="kernel cache failed")throw Rejected{};throw;}
+    }
+    static bool flag(uint8_t byte){if(byte!=0&&byte!=255)throw Rejected{};return byte==255;}
+    // 1 + the index of the single set flag among five.
+    static unsigned width(const std::vector<uint8_t>&flags,size_t at){
+        unsigned found=0,count=0;for(unsigned i=0;i<5;i++)if(flag(flags.at(at+i))){found=i+1;count++;}
+        if(count!=1)throw Rejected{};return found;
+    }
     OffsetPrograms offset_programs;
     std::map<ContactId,Conversation>conversations;std::vector<std::pair<ContactId,Wires>>inputs;std::vector<bool>consumed;
     static ContactId fixture_id(unsigned slot){ContactId id{};id[15]=uint8_t(slot+1);return id;}
@@ -108,7 +144,117 @@ public:
         auto part=k.take_range(handle,offset,count);envelope=envelope.size()?DynSession::concat({&envelope,&part}):part;
         const size_t n=envelope.size()/8;return {uint8_t(n>>24),uint8_t(n>>16),uint8_t(n>>8),uint8_t(n)};
     }
-    void envelope_drop(){envelope=Wires{};}
+    void envelope_drop(){envelope=Wires{};arrival=Arrival{};}
+    // ---- A new contact's first message (TlsMpc/ReceiveKernels.lean lists the steps and what each
+    // opens). This only sequences those kernels and field programs: every shape it opens is one
+    // Lean marks as public, and it selects the next kernel by passing the opened numbers on as
+    // that kernel's parameters. A message that fails any check is refused (reply 0) with nothing
+    // else released; the connection carries on.
+    // Step 1-12: sealed sender, the sender certificate and the prekey message's public part.
+    // Reply: 0, or 255, one-time prekey named (1), its id (4), signed prekey id (4), Kyber prekey
+    // id (4), Kyber ciphertext.
+    std::vector<uint8_t> envelope_open(const std::vector<uint8_t>&identity_public,const std::vector<uint8_t>&now,const std::vector<uint8_t>&server_key,
+            const std::vector<uint8_t>&signer_certificate,const std::vector<uint8_t>&signer_id){
+        need(public_receive&&!closed&&account.identity.size()&&envelope.size()&&!arrival.held&&identity_public.size()==32&&now.size()==8&&server_key.size()==32,"envelope open");
+        Wires sealed=std::move(envelope);envelope=Wires{};
+        try{
+            server(server_key);
+            const std::string size=std::to_string(sealed.size()/8);
+            auto point=shaped("receive-envelope-point "+size).run(s,{{"envelope",&sealed}});
+            auto agreement=k.agreement_word(account.identity,k.word_to_field(point.at("ephemeralPoint")));
+            auto ours=k.constant(identity_public);
+            auto opened=shaped("receive-unseal-static "+size).run(s,{{"envelope",&sealed},{"ourIdentity",&ours},{"agreement",&agreement}});
+            Arrival a;a.sender_point=k.word_to_field(opened.at("senderPoint"));
+            auto second=k.agreement_word(account.identity,a.sender_point);
+            auto&unseal=shaped("receive-unseal-message "+size);
+            auto unsealed=unseal.run(s,{{"envelope",&sealed},{"staticValid",&opened.at("staticValid")},{"chain",&opened.at("chain")},{"agreement",&second}});
+            auto prefix=unseal.open(s,unsealed,"certificateLength");if(prefix.size()!=2)throw Rejected{};
+            const std::string content=std::to_string(unsealed.at("content").size()/8)+" "+std::to_string(prefix[0])+" "+std::to_string(prefix[1]);
+            auto&layout=shaped("receive-content-shape "+content);
+            auto shape=layout.open(s,layout.run(s,{{"content",&unsealed.at("content")},{"valid",&unsealed.at("valid")}}),"shape");
+            if(shape.size()!=4||flag(shape[0])==flag(shape[1]))throw Rejected{};
+            auto parts=shaped("receive-content "+content+(flag(shape[1])?" 1":" 0")).run(s,{{"content",&unsealed.at("content")},{"valid",&unsealed.at("valid")}});
+            // Sender certificate: everything but the signature in the Boolean engine, the
+            // signature's curve equation in the field engine.
+            auto&certificate=shaped("receive-certificate "+std::to_string(prefix[0])+" "+std::to_string(prefix[1])+" "+std::to_string(shape[2])+" "+std::to_string(shape[3]));
+            auto embedded=k.constant(signer_certificate),reference=k.constant(signer_id),time=k.constant(now);
+            const size_t wanted=certificate.input_bits("signer");
+            const Wires*signer=wanted==embedded.size()?&embedded:wanted==reference.size()?&reference:nullptr;if(!signer)throw Rejected{};
+            auto checked=certificate.run(s,{{"certificate",&parts.at("certificate")},{"valid",&parts.at("valid")},{"senderIdentity",&opened.at("senderIdentity")},
+                {"signer",signer},{"now",&time},{"serverX",&server_x_word},{"serverY",&server_y_word}});
+            std::vector<H>challenge{server_x,server_y};
+            for(auto h:k.bits_to_field(DynSession::concat({&checked.at("flip"),&checked.at("challenge"),&checked.at("scalar")})))challenge.push_back(h);
+            auto r=programs.check.evaluate_all(f,{challenge}).at(0);
+            auto rx=word(r.at(0)),ry=word(r.at(1)),valid=public_word(1);
+            auto verified=shaped("receive-certificate-verified").run(s,{{"certificateValid",&checked.at("certificateValid")},{"signature",&checked.at("signature")},
+                {"serverValid",&valid},{"rx",&rx},{"ry",&ry}});
+            // The prekey message: widths, then our prekey ids and the Kyber ciphertext.
+            const std::string n=std::to_string(parts.at("message").size()/8);
+            auto&widths=shaped("receive-prekey-shape "+n);
+            auto flags=widths.open(s,widths.run(s,{{"message",&parts.at("message")},{"valid",&parts.at("valid")}}),"shape");if(flags.size()!=21)throw Rejected{};
+            a.one_time=flag(flags[0]);
+            a.widths=n+" "+std::to_string(a.one_time?width(flags,1):0)+" "+std::to_string(width(flags,6))+" "+std::to_string(width(flags,11))+" "+std::to_string(width(flags,16));
+            auto&prekey=shaped("receive-prekey-open "+a.widths);
+            auto named=prekey.run(s,{{"message",&parts.at("message")},{"valid",&parts.at("valid")},{"messageType",&parts.at("messageType")},{"senderIdentity",&opened.at("senderIdentity")}});
+            std::vector<uint8_t>reply{255,uint8_t(a.one_time)};
+            for(auto field:{"oneTimePrekeyId","signedPrekeyId","kyberPrekeyId","kyberCiphertext"}){auto bytes=prekey.open(s,named,field);reply.insert(reply.end(),bytes.begin(),bytes.end());}
+            a.base=k.word_to_field(named.at("basePoint"));a.ratchet=k.word_to_field(named.at("ratchetPoint"));
+            a.message=std::move(parts.at("message"));a.prekey_valid=std::move(named.at("prekeyValid"));a.verified=std::move(verified.at("verified"));
+            a.sender_identity=std::move(opened.at("senderIdentity"));a.uuid=std::move(checked.at("uuid"));a.device=std::move(checked.at("deviceId"));
+            a.ours=std::move(ours);a.held=true;arrival=std::move(a);
+            return reply;
+        }catch(const Rejected&){arrival=Arrival{};return {0};}
+    }
+    // Step 13-17: the agreements, the session, the message text, the contact's access key; the
+    // new contact's record is kept under `id`. `signed_prekey` and `one_time_prekey` are the
+    // private keys of OUR prekeys the message named and `kem_secret` the decapsulated Kyber
+    // secret: values both parties hold. Reply: 0, or 255, text length (2), text.
+    std::vector<uint8_t> envelope_session(const ContactId&id,const std::vector<uint8_t>&local_address,const std::array<uint8_t,32>&signed_prekey,
+            const std::array<uint8_t,32>&one_time_prekey,const std::vector<uint8_t>&kem_secret,const std::vector<uint8_t>&request_id){
+        need(public_receive&&!closed&&arrival.held&&!conversations.count(id)&&local_address.size()==17&&kem_secret.size()==32&&request_id.size()==8,"envelope session");
+        Arrival a=std::move(arrival);arrival=Arrival{};
+        try{
+            // The base key as an Edwards point, and its multiple by the group order (zero when torsion free).
+            auto lifted=programs.recover.evaluate_all(f,{{a.base}}).at(0);
+            auto order=programs.torsion.evaluate_all(f,{{lifted.at(1),lifted.at(2)}}).at(0);
+            auto base_valid=word(lifted.at(0)),torsion_x=word(order.at(0)),torsion_y=word(order.at(1));
+            auto ours=k.public_scalar(signed_prekey);
+            auto dh1=k.agreement_word(ours,a.sender_point),dh2=k.agreement_word(account.identity,a.base),dh3=k.agreement_word(ours,a.base);
+            Wires dh4;if(a.one_time)dh4=k.agreement_word(k.public_scalar(one_time_prekey),a.base);
+            auto receiving=k.agreement_word(ours,a.ratchet);
+            // Our new ratchet key: a scalar neither party knows.
+            std::array<uint8_t,32>seed{};{emp::PRG prg;prg.random_data_unaligned(seed.data(),32);}
+            auto ratchet=k.shared_scalar(seed);
+            auto sending=k.agreement_word(ratchet,a.ratchet),ratchet_public=k.agreement_word(ratchet,f.constant(9));
+            auto&layout=shaped("receive-signal-shape "+a.widths);
+            auto shape=layout.open(s,layout.run(s,{{"message",&a.message},{"valid",&a.prekey_valid}}),"shape");if(shape.size()!=13)throw Rejected{};
+            auto&session=shaped("receive-session "+std::to_string(CERT)+" "+a.widths+" "+std::to_string(width(shape,0))+" "+std::to_string(width(shape,5))+" "+
+                std::to_string(shape[10])+" "+std::to_string(shape[11])+(flag(shape[12])?" 1":" 0")+" 0");
+            auto address=k.constant(local_address),secret=k.constant(kem_secret),access=k.constant(std::vector<uint8_t>(16,0)),request=k.constant(request_id);
+            Binding bound{{"message",&a.message},{"prekeyValid",&a.prekey_valid},{"verified",&a.verified},{"senderIdentity",&a.sender_identity},{"ourIdentity",&a.ours},
+                {"localAddress",&address},{"uuid",&a.uuid},{"deviceId",&a.device},{"dh1",&dh1},{"dh2",&dh2},{"dh3",&dh3},{"kemSecret",&secret},
+                {"receiveAgreement",&receiving},{"sendAgreement",&sending},{"ratchetPublic",&ratchet_public},{"baseValid",&base_valid},{"torsionX",&torsion_x},
+                {"torsionY",&torsion_y},{"certificate",&account.certificate},{"accessKey",&access},{"requestId",&request}};
+            if(a.one_time)bound.push_back({"dh4",&dh4});
+            auto out=session.run(s,bound);
+            if(session.open(s,out,"status")!=std::vector<uint8_t>{255})throw Rejected{};
+            // The text, and the access key from the profile key that follows it.
+            const size_t ciphertext=out.at("plaintext").size()/8-8;if(ciphertext<16)throw Rejected{};
+            auto&text=shaped("receive-text "+std::to_string(ciphertext)+" "+std::to_string(ciphertext-6));
+            auto body=text.run(s,{{"plaintext",&out.at("plaintext")}});
+            if(text.open(s,body,"status")!=std::vector<uint8_t>{255})throw Rejected{};
+            auto length=text.open(s,body,"length"),content=text.open(s,body,"text"),starts=text.open(s,body,"layout");
+            if(length.size()!=2||starts.size()!=3)throw Rejected{};
+            const size_t count=size_t(length[0])*256+length[1];unsigned start=0,set=0;
+            for(unsigned i=0;i<3;i++)if(flag(starts[i])){start=4+i;set++;}
+            if(set!=1||count>content.size())throw Rejected{};
+            auto&key=shaped("receive-access-key "+std::to_string(CERT)+" "+std::to_string(ciphertext)+" "+std::to_string(start+count));
+            auto keyed=key.run(s,{{"conversation",&out.at("conversation")},{"plaintext",&out.at("plaintext")}});
+            if(key.open(s,keyed,"status")!=std::vector<uint8_t>{255})throw Rejected{};
+            Conversation c;keep(c,keyed.at("conversation"));conversations[id]=std::move(c);
+            std::vector<uint8_t>reply{255,length[0],length[1]};reply.insert(reply.end(),content.begin(),content.begin()+count);return reply;
+        }catch(const Rejected&){return {0};}
+    }
     // Unauthenticated chat socket: the upgrade request has no secrets and is built by the
     // controllers; this only fixes the expected Sec-WebSocket-Accept for the public nonce.
     std::vector<uint8_t> upgrade_public(const std::vector<uint8_t>&nonce){

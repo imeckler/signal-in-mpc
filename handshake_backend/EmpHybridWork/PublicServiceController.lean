@@ -20,11 +20,16 @@ the private profile compiles to circuits, run on concrete bytes
 (`ByteAuth.concrete`). Each party runs this controller; the workers act only on
 requests both controllers issue identically.
 
-One restriction keeps contacts hidden: a server-initiated WebSocket message
-(for example an incoming envelope, whose unsealed form names its sender) is
-never revealed beyond its first two bytes. Those two bytes distinguish a
-response (`08 02`) from anything else; anything else aborts the session,
-because receiving messages is not supported on this path yet.
+One restriction keeps contacts hidden: of a server-initiated request only the
+verb, path, id and headers are revealed, never its body. The body of a
+delivered message is an envelope: its field keys, lengths and varints are
+revealed, and its sealed content goes to the engines unopened, where it is
+received as a NEW contact's first message (`TlsMpc/ReceiveKernels.lean`).
+Public from that: which of our prekeys the message names, its Kyber
+ciphertext, and the message text. The sender's identity stays in the engines;
+the contact's record is sealed and stored under a new id, and only then is the
+message acknowledged. Later messages from an existing contact are not
+supported yet (they are refused and acknowledged).
 
 Public here: record lengths and contents of responses and control frames,
 request ids, the WebSocket nonce and masks. Private: credentials, every
@@ -315,21 +320,21 @@ def varint (n : Nat) : List Byte :=
     if i > 0 && rest == 0 then none
     else some (BitVec.ofNat 8 (rest % 128 + (if rest / 128 == 0 then 0 else 128)))
 
-/-- The reply to a completed server request, if one is due: `200 OK` for
-`queue/empty`. A delivered message is NOT acknowledged (receiving is not
-supported here, and only an acknowledgement removes it from the server's
-queue). Anything else is an error. -/
-def reply (request mask : List Byte) : Except String (Option (List Byte)) := do
+/-- The `200 OK` reply to a completed server request (`queue/empty`, or a
+delivered message), and whether it was a delivered message. Replying to a
+delivered message acknowledges it: the server then removes it from its queue,
+so the caller sends that reply only once the message has been dealt with.
+Anything else is an error. -/
+def reply (request mask : List Byte) : Except String (List Byte × Bool) := do
   let (_, fields) := scan request true
   let some id := fields.id | throw "server request without an id"
   let path := String.fromUTF8! ⟨(fields.path.map (fun b => UInt8.ofNat b.toNat)).toArray⟩
-  if path == "/api/v1/queue/empty" then
-    let response := [0x08] ++ varint id ++ [0x10, 0xc8, 0x01, 0x1a, 0x02, 0x4f, 0x4b]
-    let message := [0x08, 0x02, 0x1a] ++ varint response.length ++ response
-    unless message.length < 126 && mask.length == 4 do throw "server request reply shape"
-    return some (clientFrame mask message)
-  else if path == "/api/v1/message" then return none
-  else throw s!"unsupported server request {path}"
+  let delivered := path == "/api/v1/message"
+  unless delivered || path == "/api/v1/queue/empty" do throw s!"unsupported server request {path}"
+  let response := [0x08] ++ varint id ++ [0x10, 0xc8, 0x01, 0x1a, 0x02, 0x4f, 0x4b]
+  let message := [0x08, 0x02, 0x1a] ++ varint response.length ++ response
+  unless message.length < 126 && mask.length == 4 do throw "server request reply shape"
+  return (clientFrame mask message, delivered)
 
 /-- A `GET /v1/keepalive` request (the server drops a socket that is silent for
 90 seconds and never pings first). Its response is correlated like any other. -/
@@ -461,6 +466,38 @@ private def readExport (text : String) : Except String (Bytes × Bytes × List (
     throw "export shape"
   pure (certificate, identity, records)
 
+/-- What receiving a new contact's first message needs besides the shared
+identity key: our public identity key and address, OUR prekey private keys by
+id (held in the clear by both parties), and the server certificate that signs
+sender certificates (validated against the trust root by the export tool). -/
+structure ReceiveKeys where
+  identityPublic : Bytes
+  address : Bytes
+  serverKey : Bytes
+  serverCertificate : Bytes
+  serverId : Nat
+  oneTime : List (Nat × Bytes)
+  signed : List (Nat × Bytes)
+  kyber : List (Nat × Bytes)
+
+private def readReceive (text : String) : Except String ReceiveKeys := do
+  let json ← Lean.Json.parse text
+  let sender ← json.getObjVal? "sender"
+  let server ← json.getObjVal? "sealed_sender_server"
+  let keys (name : String) : Except String (List (Nat × Bytes)) := do
+    (← sender.getObjValAs? (Array Lean.Json) name).toList.mapM (fun entry => do
+      pure (← entry.getObjValAs? Nat "id", ← fromHex (← entry.getObjValAs? String "key_hex")))
+  let identityPublic ← fromHex (← sender.getObjValAs? String "identity_public_hex")
+  let account ← fromHex (← sender.getObjValAs? String "aci_hex")
+  let serverKey ← fromHex (← server.getObjValAs? String "public_key_hex")
+  let oneTime ← keys "one_time_prekeys"
+  let signed ← keys "signed_prekeys"
+  unless identityPublic.length == 32 && account.length == 16 && serverKey.length == 32 &&
+      (oneTime ++ signed).all (fun entry => entry.2.length == 32) do throw "export receive shape"
+  pure { identityPublic, address := account ++ [1], serverKey
+         serverCertificate := ← fromHex (← server.getObjValAs? String "certificate_hex")
+         serverId := ← server.getObjValAs? Nat "key_id", oneTime, signed, kyber := ← keys "kyber_prekeys" }
+
 def main (args : List String) : IO Unit := do
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
@@ -473,6 +510,9 @@ def main (args : List String) : IO Unit := do
   let delivered ← IO.mkRef 0
   let keepalives ← IO.mkRef 0
   let envelopes ← IO.mkRef ([] : List (Nat × Nat))
+  -- New contacts received in this session: (contact id, the text of their first message).
+  let received ← IO.mkRef ([] : List (Nat × String))
+  let refused ← IO.mkRef 0
   let kept ← IO.mkRef (none : Option Bytes)
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
@@ -526,7 +566,10 @@ def main (args : List String) : IO Unit := do
           let text ← liftM (IO.FS.readFile path : IO String)
           let (certificate, identity, records) ← liftResult (readExport text)
           let _ ← rpc.call .accountAdmit (identity ++ certificate)
-          let known ← (if credentials.isSome then [] else records).mapM (fun (contact, record) => do
+          -- Contacts that exist only in the store (received in an earlier session).
+          let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
+            |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
+          let known ← (if credentials.isSome then [] else records ++ extra).mapM (fun (contact, record) => do
             let file := storeDirectory.map (fun directory => (directory : System.FilePath) / toString contact)
             let saved ← match file with
               | none => pure none
@@ -543,6 +586,7 @@ def main (args : List String) : IO Unit := do
               let _ ← rpc.call .contactOpen (uint 16 contact ++ bytes.drop 32)
               pure (contact, share, number ((bytes.drop 32).take 8))
             | none =>
+              insist (!record.isEmpty) "contact has no stored state"
               let share ← freshShare
               let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
               let _ ← rpc.call .contactKey (uint 16 contact ++ share)
@@ -561,6 +605,70 @@ def main (args : List String) : IO Unit := do
             sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
             pure (upgrade.drop 16, known, true)
       let contacts := known.map (·.1)
+      -- Receiving (authenticated socket with an export): a delivered sealed-sender envelope is
+      -- opened in the engines as a NEW contact's first message. Public here: our prekey ids the
+      -- message names, the Kyber ciphertext, and the message text. The contact's record is
+      -- sealed and stored under a new id before the message is acknowledged.
+      let receiving ← match exportPath, credentials with
+        | some path, some _ => do
+          pure (some (← liftResult (readReceive (← liftM (IO.FS.readFile path : IO String)))))
+        | _, _ => pure none
+      let nextContact ← liftM (IO.mkRef (((← IO.getEnv "SIGNAL_LOCAL_NEW_CONTACT").bind String.toNat?).getD 1000) : IO (IO.Ref Nat))
+      let decapsulate (key ciphertext : Bytes) : M Bytes := do
+        -- Kyber-1024 decapsulation runs outside the engines, with a key both parties hold.
+        let some tool ← liftM (IO.getEnv "SIGNAL_LOCAL_KEM" : IO (Option String)) | throw "SIGNAL_LOCAL_KEM (decapsulation tool) is required"
+        let out ← liftM (IO.Process.output { cmd := tool, args := #["kem-decapsulate", TlsWorkerProcess.hex key, TlsWorkerProcess.hex ([8] ++ ciphertext)] })
+        insist (out.exitCode == 0) "decapsulation failed"
+        let secret ← liftResult (fromHex out.stdout.trimAscii.toString)
+        insist (secret.length == 32) "decapsulated secret shape"
+        pure secret
+      let receiveFirst (keys : ReceiveKeys) : M (Option (Nat × String)) := do
+        -- The certificate's expiry is checked against a time both controllers agree on.
+        let some now := (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).bind String.toNat? |
+          throw "SIGNAL_LOCAL_TIMESTAMP (milliseconds) is required"
+        let signerId := toBytes (PublicReceive.varint keys.serverId)
+        let opened ← rpc.call .envelopeOpen (keys.identityPublic ++ uint 8 now ++ keys.serverKey ++
+          uint 2 keys.serverCertificate.length ++ keys.serverCertificate ++ uint 2 signerId.length ++ signerId)
+        if opened.head? != some 255 then return none
+        insist (opened.length == 14 + 1568) "invalid opened prekey message"
+        let find (table : List (Nat × Bytes)) (at_ : Nat) : Option Bytes :=
+          (table.find? (·.1 == number ((opened.drop at_).take 4))).map (·.2)
+        let oneTime := if opened.getD 1 0 == 1 then find keys.oneTime 2 else some (List.replicate 32 0)
+        match oneTime, find keys.signed 6, find keys.kyber 10 with
+        | some oneTime, some signed, some kyber =>
+          let secret ← decapsulate kyber (opened.drop 14)
+          let contact ← liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
+          let result ← rpc.call .envelopeSession (uint 16 contact ++ keys.address ++ signed ++ oneTime ++ secret ++ uint 8 (2 ^ 63))
+          if result.head? != some 255 then return none
+          insist (result.length ≥ 3 && result.length == 3 + number ((result.drop 1).take 2)) "invalid received text"
+          -- Stored before it is acknowledged.
+          let share ← freshShare
+          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+          let stored ← rpc.call .contactSeal (uint 16 contact ++ uint 8 1)
+          insist (stored.length > 16) "invalid stored contact state"
+          match storeDirectory with
+          | some directory =>
+            liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
+              (TlsWorkerProcess.hex (share ++ uint 8 1 ++ stored) ++ "\n") : IO Unit)
+          | none => pure ()
+          return some (contact, (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD "")
+        | _, _, _ =>
+          -- The message names a prekey we do not hold.
+          TlsWorker.emptyReply rpc .envelopeDrop []
+          return none
+      let handleEnvelope (kind size : Nat) : M Unit := do
+        liftM (envelopes.modify (· ++ [(kind, size)]) : IO Unit)
+        match receiving with
+        | some keys =>
+          if kind == 6 && size > 0 then
+            match ← receiveFirst keys with
+            | some entry => liftM (received.modify (· ++ [entry]) : IO Unit)
+            | none => liftM (refused.modify (· + 1) : IO Unit)
+          else
+            -- Not a sealed-sender message: not supported, dropped.
+            liftM (refused.modify (· + 1) : IO Unit)
+            TlsWorker.emptyReply rpc .envelopeDrop []
+        | none => TlsWorker.emptyReply rpc .envelopeDrop []
       -- Reveal and parse one authenticated record, byte by byte.
       let record (handle : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Bool) := do
         let mut s := start
@@ -581,6 +689,9 @@ def main (args : List String) : IO Unit := do
             for _ in [0:count] do
               s ← liftResult (PublicReceive.stepSkipped s)
             offset := offset + count
+            -- A completed envelope is dealt with before anything further is read.
+            for (kind, size) in s.envelopes do handleEnvelope kind size
+            s := { s with envelopes := [] }
             continue
           insist (PublicReceive.mayReveal s) "refusing to reveal a server-initiated message"
           let count := PublicReceive.budget s
@@ -591,6 +702,9 @@ def main (args : List String) : IO Unit := do
           if offset < length then
             insist (!bytes.isEmpty) "missing revealed bytes"
             liftM (revealed.modify (· + bytes.length) : IO Unit)
+            -- Diagnostics: the revealed (public) bytes, on request.
+            if (← liftM (IO.getEnv "SIGNAL_LOCAL_TRACE" : IO (Option String))).isSome then
+              liftM (IO.eprintln s!"revealed {TlsWorkerProcess.hex bytes}" : IO Unit)
             for (byte, index) in bytes.zipIdx do
               let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 byte.toNat))
               -- A chunk must stay inside the response it was granted for.
@@ -598,6 +712,8 @@ def main (args : List String) : IO Unit := do
               s := next
               complete := complete || done
           offset := offset + (if bytes.isEmpty then 1 else bytes.length)
+          for (kind, size) in s.envelopes do handleEnvelope kind size
+          s := { s with envelopes := [] }
         return (s, complete)
       -- One send: the engines produce and open the sealed-sender envelope; the request
       -- is assembled here; the engines insert the contact's fields and seal the record.
@@ -689,9 +805,9 @@ def main (args : List String) : IO Unit := do
             for request in s.requests do
               let random ← rpc.call .publicRandom []
               insist (random.length == 32) "invalid joint randomness"
-              match ← liftResult (PublicReceive.reply request (toBits (random.take 4))) with
-              | some frame => sendPublic (toBytes frame)
-              | none => pure ()
+              let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+              -- Nothing is received on this socket: a delivered message is left unacknowledged.
+              unless message do sendPublic (toBytes frame)
             let s := { s with requests := [] }
             insist (!complete || wasPending) "unsolicited service response"
             let finished := completed + (if complete then 1 else 0)
@@ -741,15 +857,12 @@ def main (args : List String) : IO Unit := do
             for request in s.requests do
               let random ← rpc.call .publicRandom []
               insist (random.length == 32) "invalid joint randomness"
-              match ← liftResult (PublicReceive.reply request (toBits (random.take 4))) with
-              | some frame => sendPublic (toBytes frame)
-              | none => liftM (delivered.modify (· + 1) : IO Unit)
-            -- Each delivered envelope: its type and the size of the sealed content now held by
-            -- the engines. (Opening it there is the next step; until then it is dropped.)
-            for (kind, size) in s.envelopes do
-              liftM (envelopes.modify (· ++ [(kind, size)]) : IO Unit)
-              TlsWorker.emptyReply rpc .envelopeDrop []
-            waiting fuel { s with requests := [], envelopes := [] } pings expected
+              let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+              -- A delivered message was dealt with (stored or refused) while its record was
+              -- read; acknowledging it lets the server remove it from the queue.
+              if message then liftM (delivered.modify (· + 1) : IO Unit)
+              if !message || receiving.isSome then sendPublic (toBytes frame)
+            waiting fuel { s with requests := [] } pings expected
           | .control => waiting fuel s pings expected
           | .closed => throw "TLS closed while waiting for messages"
       match credentials with
@@ -774,7 +887,8 @@ def main (args : List String) : IO Unit := do
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),
-      ("envelopes",toJson ((← envelopes.get).map (fun (kind, size) => [kind, size]))),("private_receive_parsing_used",toJson (codes.contains 18)),
+      ("envelopes",toJson ((← envelopes.get).map (fun (kind, size) => [kind, size]))),
+      ("received",toJson ((← received.get).map (fun (contact, text) => [toString contact, text]))),("refused",toJson (← refused.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop
