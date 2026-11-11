@@ -362,8 +362,14 @@ party can block a delete by not forwarding it.
           against "same metro": look for providers incorporated in different countries sharing
           a metro, or cross-border metro pairs a millisecond or two apart, and know what
           latency full separation costs. Research in progress: `deployment/PROVIDERS.md`.
-    - [ ] Shortlist candidate pairs, measure RTT, throughput and price between them, and record
-          the result.
+    - [x] Shortlist candidate pairs: `deployment/PROVIDERS.md`. **Decided: Helsinki + Tallinn**
+          (jurisdiction first; about 2.0-2.2 ms round trip measured one way from public probes).
+    - [ ] Still to verify for that pair by renting and measuring inside WireGuard, both
+          directions, at several times of day: median and 99th-percentile round trip, sustained
+          throughput, and for Tallinn the available hardware, 10 Gbit/s ports and traffic price.
+    - [ ] At 2 ms the sequential round counts dominate (2,800 rounds for a contact's first send,
+          11,500 for a first message received): batching and stored per-contact tables are in
+          progress; see `PERFORMANCE.md`, "Rounds".
   - [ ] **Splitting the five database nodes across providers.** Three shares reconstruct a
         contact's key, so no single provider (and no realistic pair) should host three nodes;
         and since each computation node already holds one additive share of what it reads,
