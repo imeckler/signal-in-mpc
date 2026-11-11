@@ -593,6 +593,8 @@ def main():
     p.add_argument('--trace', action='store_true', help='controllers log the server bytes they reveal (public) to their logs')
     p.add_argument('--circuits', default='', help='also broadcast through the SOCKS test proxy with N Tor circuits, for each N of a '
                    'comma-separated list (e.g. 1,3); with --db the contacts are on the database nodes and a dropped circuit is tested')
+    p.add_argument('--circuits-db', action='store_true', help='the --circuits stage on the database nodes without the rest of --db '
+                   '(e.g. --runs 0 --circuits 3 --circuits-db runs only that stage)')
     a = p.parse_args()
     if a.trace:
         os.environ['SIGNAL_LOCAL_TRACE'] = '1'
@@ -657,7 +659,7 @@ def main():
             ok = report['multi_device']['passed']
         if ok and a.circuits:
             # Its own accounts and export (four contacts); runs last.
-            report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db)
+            report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db or a.circuits_db)
             ok = report['tor_circuits']['passed']
         report['passed'] = ok
         if ok:

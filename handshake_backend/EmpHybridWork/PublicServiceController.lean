@@ -6,6 +6,7 @@ import TlsMpc.TlsWebSocketFrame
 import TlsMpc.TlsWebSocketIdle
 import TlsMpc.TlsWebSocketControl
 import TlsMpc.TlsChatResponse
+import TlsMpc.Signal.Word64Fast
 import TlsMpc.Signal.RelayEncoding
 import TlsMpc.Signal.PrivateTextNotification
 import TlsMpc.Signal.RelayUpgrade
@@ -161,8 +162,8 @@ def start (accept : List Byte) : State :=
 /-- Expect the response to the request with this id. -/
 def expect (s : State) (id : Nat) : State :=
   { s with pending := true
-           response := TlsChatResponse.stateBytes Word64.concrete
-             (TlsChatResponse.initial Word64.concrete PublicReceive.fast capacity (BitVec.ofNat 64 id)) }
+           response := TlsChatResponse.stateBytes Word64.fast
+             (TlsChatResponse.initial Word64.fast PublicReceive.fast capacity (BitVec.ofNat 64 id)) }
 
 def get (bytes : List Byte) (index : Nat) : Byte := bytes.getD index 0
 
@@ -469,7 +470,7 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
   if s.pending then
     for (entry, value) in feed do
       if s.pending then
-        let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast capacity
+        let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.fast PublicReceive.fast capacity
           (s.response ++ entry ++ [value])
         unless get out 0 == on do throw "service response rejected or not correlated"
         s := { s with response := out.drop 6 }
@@ -524,7 +525,7 @@ def stepPassed (s : State) : Except String (State × Bool) := do
   let mut complete := false
   if s.skip == 0 then s := { s with collect := false }
   if s.pending then
-    let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast capacity
+    let out := TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.fast PublicReceive.fast capacity
       (s.response ++ [get frame 1, get frame 3, get frame 5] ++ [0])
     unless get out 0 == on do throw "service response rejected or not correlated"
     s := { s with response := out.drop 6 }
@@ -839,8 +840,8 @@ def parseBench : IO Unit := do
   let zero ← IO.rand 0 0   -- not a compile-time constant, so nothing is evaluated ahead
   let frame := TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.start PublicReceive.fast PublicReceive.capacity)
   let control := TlsWebSocketControl.stateBytes (TlsWebSocketControl.initial PublicReceive.fast)
-  let response := TlsChatResponse.stateBytes Word64.concrete
-    (TlsChatResponse.initial Word64.concrete PublicReceive.fast PublicReceive.capacity (BitVec.ofNat 64 5))
+  let response := TlsChatResponse.stateBytes Word64.fast
+    (TlsChatResponse.initial Word64.fast PublicReceive.fast PublicReceive.capacity (BitVec.ofNat 64 5))
   let upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
   let time (name : String) (rounds : Nat) (run : Nat → Nat) : IO Unit := do
     let start ← IO.monoNanosNow
@@ -851,7 +852,7 @@ def parseBench : IO Unit := do
   time "frame parser" 200 (fun i => (TlsWebSocketFrame.runByte PublicReceive.fast PublicReceive.capacity
     (frame ++ [255, BitVec.ofNat 8 (0x82 + i % 2 * 0)])).length)
   time "control queue" 200 (fun i => (TlsWebSocketControl.run PublicReceive.fast (control ++ [0, 0, 0, BitVec.ofNat 8 i])).length)
-  time "response parser" 200 (fun i => (TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.concrete PublicReceive.fast PublicReceive.capacity
+  time "response parser" 200 (fun i => (TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.fast PublicReceive.fast PublicReceive.capacity
     (response ++ [255, 255, 0] ++ [BitVec.ofNat 8 i])).length)
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
   IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"

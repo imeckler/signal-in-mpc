@@ -119,7 +119,7 @@ def show(directory):
     if len(sends) > 2:
         cycles = [(float(rows[b][1]) - float(rows[a][1]), (int(rows[b][2]) - int(rows[a][2])) / 1e6) for a, b in zip(sends, sends[1:])]
         middle = sorted(cycles)[len(cycles) // 2]
-        print('  send to send: median %.2f s, AND %.2fM; each: %s' % (middle[0], middle[1], ' '.join('%.2f' % c[0] for c in cycles)))
+        print('  send to send: median %.2f s, AND %.2fM; each: %s' % (middle[0], middle[1], ' '.join('%.2f s/%.2fM' % c for c in cycles)))
 
 
 for argument in sys.argv[1:]:

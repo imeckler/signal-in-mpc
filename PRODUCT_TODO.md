@@ -343,10 +343,14 @@ party can block a delete by not forwarding it.
 
 - [x] Reveal server bytes in multi-byte steps (was one round trip per byte).
 - [x] Controller parsing of revealed bytes about 6.5x faster (it was a third of a session).
-  - [ ] The response parser's 64-bit arithmetic still falls back to big numbers (request ids are
-        above 2^63): 1.4 ms per byte.
-- [ ] Produce field triples and conversion masks ahead of time (idle time, or a pool), so sends
-      use stock.
+  - [x] The response parser's 64-bit operations computed directly (`Word64.fast`, proved equal):
+        1.2 ms → 0.74 ms per byte. The rest is in its byte-mask folds and stack rewrites.
+- [x] AND triples and field triples produced ahead of use by background pools of the session
+      (`TLS_WORKER_TRIPLE_STOCK`, `TLS_WORKER_FIELD_STOCK`): 2.4 s → 1.0 s per message.
+  - [ ] Conversion masks are still made when a batch runs out (0.6 s per session).
+  - [ ] More factories on real nodes; a sustained broadcast of hundreds of messages is unmeasured.
+- [x] Circuit loading 10.6 s → 2.1 s per process; record opening 1,500 → 935 AND per byte.
+- [ ] Prepare several contacts in the same field rounds (2,800 sequential rounds per contact now).
 - [ ] Keep a contact's per-session setup across sessions (it is recomputed at each load).
 - [ ] One long-lived connection: the handshake and upgrade are paid once, not per broadcast.
 - [ ] Send without waiting for each response; several contacts in parallel.

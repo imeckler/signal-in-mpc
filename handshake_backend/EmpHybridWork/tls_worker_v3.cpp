@@ -288,7 +288,7 @@ struct Worker {
                 if(::poll(&watch,1,0)>0)record=server_record();
                 for(int i=0;i<4;i++)size[i]=uint8_t(record.size()>>(8*(3-i)));io.send_data(size,4);if(!record.empty())io.send_data(record.data(),record.size());io.flush();
             }else{
-                io.recv_data(size,4);size_t n=big(size,4);
+                io.recv_data(size,4);size_t n=big(size,4);need(n!=0xffffffff,"server closed (reported by the leader)");
                 if(n){need(n>=5&&n<=5+16640,"record bound");record.resize(n);io.recv_data(record.data(),n);need(big(record.data()+3,2)+5==n,"record framing");}
             }
             return record;
@@ -323,7 +323,7 @@ struct Worker {
                 record=server_record();
                 for(int i=0;i<4;i++)size[i]=uint8_t(record.size()>>(8*(3-i)));io.send_data(size,4);io.send_data(record.data(),record.size());io.flush();
             }else{
-                io.recv_data(size,4);size_t n=big(size,4);need(n>=5&&n<=5+16640,"record bound");record.resize(n);io.recv_data(record.data(),n);
+                io.recv_data(size,4);size_t n=big(size,4);need(n!=0xffffffff,"server closed (reported by the leader)");need(n>=5&&n<=5+16640,"record bound");record.resize(n);io.recv_data(record.data(),n);
                 need(big(record.data()+3,2)+5==n,"record framing");
             }
             return record;
