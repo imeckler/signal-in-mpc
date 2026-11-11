@@ -216,6 +216,23 @@ party can block a delete by not forwarding it.
         and WebSocket headers with what an official Signal client sends, and match them as far
         as we can honour what we would advertise. A distinctive handshake links every
         connection we make, through any proxy.
+  - [ ] **Payloads too: the server terminates TLS and sees every request in full.** Capture
+        what an official client sends for the same operations and match it. Known or suspected
+        differences today:
+    - [ ] Request ids count up from 2^63 (links requests within and across connections).
+    - [ ] The send request's JSON pads the device id and registration id with spaces to a fixed
+          width so the engines can fill them in. Needs either a way to insert private values of
+          varying length, or sending the canonical form and revealing those lengths to the nodes.
+    - [ ] Field order in the WebSocket request message; which headers are sent on requests and
+          on the upgrade (user agent and the rest), and in what order. So far only checked
+          against what the local server accepts.
+    - [ ] Content padding block (80 bytes here; official clients may use 160): changes envelope
+          sizes.
+    - [ ] Fields of the data message a real client sets beyond body and timestamp: changes
+          ciphertext length.
+    - [ ] Timestamps within a broadcast are a base plus the recipient's index.
+    - [ ] Behaviour over time: keepalive cadence, replies to the server's own requests, never
+          fetching profiles or syncing, never sending receipts (deliberate, still a pattern).
   - [ ] Few Signal clients arrive from Tor exits, so sealed messages arriving over Tor in one
         window are easy to attribute to one sender even on separate circuits. Exits that
         ordinary users also arrive from would be less conspicuous; the SOCKS mechanism is the
