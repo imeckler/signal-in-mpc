@@ -98,6 +98,29 @@ session by one party (test admission). For the product no one may ever hold the 
         through the application, which sends the delete request.
   - [ ] Report per id to the application: delivered, device list refreshed, unreachable (404),
         needs re-signup (401).
+- [ ] **A Signal-identity → id index, if incoming messages from existing contacts are ever to be
+      acted on** (not started; needs the owner's go-ahead on the visibility it adds). Design:
+  - [ ] Tag = one AES block of the sender's 16-byte Signal id under a key that exists only in
+        the shared account record (generated jointly, stored sealed on the database nodes).
+        Computed inside the Boolean engine, about 6,000 AND gates, from the id that comes out of
+        the verified sender certificate; only the tag is opened. Neither node can compute a tag
+        itself, so neither can test whether a given person is a contact, and neither can make
+        the engines tag an id of its choosing.
+  - [ ] The table lives on the database nodes, not the computation nodes: a tag column on the
+        contact's row. Written at signup together with the deal and first blob (accepted only
+        when both parties submit the same tag); looked up on an incoming message by each party
+        from all five nodes, taking the id enough of them agree on; needs no application
+        request, like the account row; removed by delete.
+  - [ ] What it adds to what is visible: the computation nodes and the database nodes learn
+        which id an incoming message came from and when. Nothing about who the person is.
+  - [ ] The same person signing up twice gives the same tag, so the nodes see that two ids are
+        one person. Proposed: the new id supersedes the old (re-signup is the recovery path for
+        a rotated profile key).
+  - [ ] It only finds the state. Acting on a message also needs circuits for receiving on an
+        existing session (the `receiver` record the first-message circuits already produce).
+  - [ ] What it would unlock: "stop" by Signal message, repairing a rotated profile key from
+        the contact's next message, and marking a linked device's session acknowledged (about
+        1.3M AND gates saved per message to that device).
 - [x] **Crash safety of contact state.** With the database, a contact's advanced state is stored
       and acknowledged before its message leaves.
   - [ ] The recovery path itself (restart, reload, resume the broadcast) is section 4.
