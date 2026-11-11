@@ -84,12 +84,16 @@ session by one party (test admission). For the product no one may ever hold the 
   - [x] **Post-quantum encapsulation inside the engines**: twelve kernels, 12.5M AND gates per
         new device (`ML_KEM_ENCAPSULATION.md`), run live.
   - [x] No response body is revealed any more (prekey bundles; the device ids in a 409/410).
-  - [ ] Failure handling: a refresh that fails (second 409, 401/404 on the fetch, a bad bundle,
-        a changed identity key) ends the session. It should mark the contact failed, keep its
-        old state and carry on; the design's two retries are not built.
-  - [ ] Not run: three or more devices, 410 (stale registration id), a removed device. More than
-        about five unanswered devices do not fit the one-record request and are refused; a send
-        to more than about four is silent for over 90 s in malicious mode (no keepalive inside it).
+  - [x] Failure handling (MULTI_DEVICE.md, section 9): a refresh builds the new sessions in a
+        scratch slot and replaces the contact's state, in the engines and on the database nodes,
+        only when every device verified and the nodes acknowledged the new blob; otherwise the
+        contact is exactly as before, gets a result, and the session carries on. A second 409
+        is refreshed again (at most twice more). Run live: three devices, a removed device, 410.
+  - [ ] More than about five unanswered devices do not fit the one-record request. Splitting
+        the request is not cheap (both request kernels seal one TLS record), so it is not built:
+        such a contact is reported "retry later" with that reason. Not run (needs six devices).
+        A send to more than about four is silent for over 90 s in malicious mode (no keepalive
+        inside it); the server then closes the connection, which is now replaced (section 4).
   - [ ] The device kinds stored next to a contact's ciphertext are not authenticated. Harmless
         while every entry is an unanswered session (same size); must be fixed before established
         and unanswered entries are mixed (MULTI_DEVICE.md, section 4).
@@ -109,13 +113,19 @@ session by one party (test admission). For the product no one may ever hold the 
       its Signal id (so id → identity works and device or identity changes are found when a send
       to that id is rejected), but an incoming message cannot be matched to an id. Consequences
       to handle or document for the application:
-  - [ ] A contact who rotates their profile key (Signal clients do on blocking): sealed sends
-        fail with 401 and cannot be repaired; report the id as needing to sign up again. Never
-        fall back to unsealed sends (the server would learn who the account messages).
+  - [x] A contact who rotates their profile key (Signal clients do on blocking): sealed sends
+        fail with 401 and cannot be repaired; the id is reported "needs re-signup" and not sent
+        to again in the session. Never falls back to unsealed sends (the server would learn who
+        the account messages). **A deleted account looks the same**: the Signal server answers a
+        sealed send to an account that does not exist with 401, not 404 (deliberately, so that
+        it gives no existence check), so the application cannot tell "gone" from "rotated".
   - [ ] Nothing a user sends after signup can be acted on ("stop", replies): unsubscribing goes
         through the application, which sends the delete request.
-  - [ ] Report per id to the application: delivered, device list refreshed, unreachable (404),
-        needs re-signup (401).
+  - [x] Per-id results in each controller's output, agreed between the two nodes (a digest
+        compared through the workers) before they are reported: delivered, delivered after
+        device refresh, delivered after identity change, retry later, needs re-signup, gone,
+        fault, each with a reason (MULTI_DEVICE.md, section 9).
+  - [ ] Getting those results to the application is the daemon's job (section 7).
 - [ ] **A Signal-identity → id index, if incoming messages from existing contacts are ever to be
       acted on** (not started; needs the owner's go-ahead on the visibility it adds). Design:
   - [ ] Tag = one AES block of the sender's 16-byte Signal id under a key that exists only in
@@ -141,14 +151,20 @@ session by one party (test admission). For the product no one may ever hold the 
         1.3M AND gates saved per message to that device).
 - [x] **Crash safety of contact state.** With the database, a contact's advanced state is stored
       and acknowledged before its message leaves.
-  - [ ] The recovery path itself (restart, reload, resume the broadcast) is section 4.
+  - [x] The recovery path itself (restart, reload, resume the broadcast) is section 4.
 - [x] Message text up to 256 bytes, in four padded size classes.
   - [ ] Signal's own clients may pad content to 160-byte blocks, not 80: check against the
         client source and match it ("send what a normal client sends").
 - [ ] Messages from existing contacts: delivery receipts, replies, repeated first messages
       until we reply, session resets. Today anything that is not a new contact's first message
       is refused and acknowledged. The `receiver` record the receive circuits produce is dropped.
-- [ ] A contact whose identity key changed (re-registered): detect and re-establish.
+- [x] A contact whose identity key changed (re-registered): accepted automatically (owner's
+      decision): found when the next send is refused (410), sessions replaced under the new key
+      (`bundle-rebind`, which opens one byte: the key changed), reported "delivered after
+      identity change". What this trusts is in `NEEDS_REVIEW.md` section 3: a server that serves
+      a bundle under a key of its own is accepted too. If the contact's profile key changed with
+      the registration (a reinstall without a backup), the send gets 401 instead: "needs
+      re-signup".
 - [ ] Several messages waiting at connect time; more than one envelope in a TLS record (handled
       in the parser, not yet tested).
 - [ ] Non-text first messages, or a first message without a profile key: refused today.
@@ -161,12 +177,36 @@ session by one party (test admission). For the product no one may ever hold the 
 
 - [ ] **(blocker)** One long-lived session that both receives and sends. Today a session either
       sends (unauthenticated socket) or receives (authenticated socket) and then exits.
-- [ ] **(blocker)** Recovery instead of abort: any rejected operation is terminal for the worker.
-      Needed: tear down, restart, reload state from the database nodes, resume the broadcast
-      where it stopped, never resend under old keys.
-- [ ] Keepalives while a long engine operation is running; reconnect when the server drops the
-      socket; handle server-initiated closes and HTTP error statuses (401, 404, 409, 410, 413,
-      428, 429 with back-off).
+- [x] **Recovery instead of abort** (2026-11-11; `MULTI_DEVICE.md` section 9, `NEEDS_REVIEW.md`
+      section 3). In a send session with the database nodes, what goes wrong for one contact is
+      that contact's result and the others continue:
+  - [x] Operations scoped to a contact reply with a status instead of making the worker
+        terminal (a send that cannot be sealed, stored state that does not open, a device that
+        does not verify). Engine and MAC failures, disagreement between the parties and TLS
+        records that do not authenticate stay fatal.
+  - [x] Statuses: 409/410 refresh and resend (the refresh repeated at most twice); 429 and 5xx
+        back off (`Retry-After` when the response has it, else 1, 3, 9 s), the contact moves to
+        the end of the queue, three retries; 401 "needs re-signup"; 404 "gone"; anything else
+        (413, 428, ...) "fault" with the status.
+  - [x] A connection the server or the proxy closed is replaced (new handshake and upgrade on
+        that connection, the others kept) and what was in flight is sent again, under new keys:
+        a possible duplicate, by the owner's decision.
+  - [x] Per-id results agreed by both nodes (section 3 above).
+  - [x] After a session that did die: a new session for the same notify reloads every contact
+        from the database nodes and sends what was not confirmed. "Confirmed" is a journal line
+        on each computation node, counted only when both nodes have it. Guarantee: at least
+        once, duplicates possible, never a message key used twice.
+  - [ ] A handshake or proxy connect that fails while a connection is being replaced still ends
+        the session (the next session resumes). So does a server that sends nothing for 30 s.
+  - [ ] The journal is a file per node named by the test harness; the daemon (section 7) must
+        own it, bound its size, and take the notify's id from the application's signed request.
+  - [ ] A contact that is not on the database nodes, or not readable until their next epoch,
+        still ends the session at load; it should be that id's result.
+  - [ ] No test with a cheating party.
+- [ ] Keepalives while a long engine operation is running (sent between the steps of a
+      refresh; not inside one send to many devices, and not on connections that wait while
+      another is in use: such a connection is closed by the server after 90 s and is now
+      replaced when next used, at the cost of a handshake).
 - [ ] Do not wait for each response before the next send (pipelining), and allow several
       connections. (Several connections: done, one per Tor circuit, section 8; sends still wait
       for each response, one connection at a time.)
@@ -309,8 +349,10 @@ party can block a delete by not forwarding it.
   - [x] Assignment (`Circuits.assign`): the session's distinct ids in ascending order, rank r on
         connection r mod N. A contact stays on one connection for the session; the same set of
         ids is split the same way in every session. The state is still stored before each send.
-  - [x] A dropped circuit ends the session cleanly in both parties (the leader tells the other
-        node, so neither waits); the next session carries on from the stored state.
+  - [x] A dropped circuit is reported to both parties at the same request (the leader tells
+        the other node, so neither waits). With the database nodes the connection is then
+        replaced and the session goes on (below); without them, or with `SIGNAL_RECOVERY=0`, the
+        session ends cleanly and the next one carries on from the stored state.
   - [x] Tested locally only, never with Tor: `local_signal_server/scripts/socks5_test_proxy.py`
         and `check_signal_service_local.py --circuits 1,3` (with and without `--db`; the drop
         test needs `--db`). Costs: `PERFORMANCE.md`, "Tor circuits".
@@ -323,8 +365,10 @@ party can block a delete by not forwarding it.
         server drops a socket silent for 90 s. Fine for a few circuits; one circuit per recipient
         of a large broadcast needs keepalives on idle connections, pipelining (section 4), or
         opening connections in batches.
-  - [ ] Recovery instead of ending the session on a dropped circuit (section 4): reconnect that
-        circuit and resend what was not answered, keeping the other connections.
+  - [x] Recovery instead of ending the session on a dropped circuit (section 4): that connection
+        is replaced (a new handshake, the same SOCKS credentials, so Tor decides whether it is
+        the same circuit or a new one) and what was not answered is sent again; the other
+        connections are kept. `check_signal_service_local.py --recovery drop`.
   - [ ] A Tor client on the leader node (deployment, section 9): its SOCKS port only on
         localhost, no DNS for the Signal host on the node.
   - [ ] Only a run against the real service can show (needs the owner's explicit go-ahead):
@@ -443,6 +487,48 @@ party can block a delete by not forwarding it.
 - [ ] An official Signal client as the recipient and as the new user.
 - [ ] Thousands of contacts; hours-long sessions; reconnects; database node faults.
 - [ ] Then the real service, with one test account, at low volume.
+
+## 12a. Less C++, more Lean (queued: starts when the current work in the worker files lands)
+
+The C++ is dense and hard to audit. Decided by the owner on 2026-11-11: move what can move
+into Lean and prove what is useful about it.
+
+- [ ] **A generic engine server.** The worker keeps only a small instruction set: run a named
+      circuit on named handles, open an output Lean marks public, convert between engines,
+      evaluate a field program, take a private input, draw joint randomness, exchange bytes,
+      checked field openings. One agreed batch of instructions per operation (not one round
+      trip per instruction).
+- [ ] **All sequencing as Lean scripts** (`service_kernels.h`, `tls_kernels.h`: send, receive,
+      device refresh, account and contact state, TLS handshake and records). Theorems for the
+      main flows:
+  - [ ] composition: the script's result equals the flow's specification (closes "the kernels
+        as wholes carry no theorem");
+  - [ ] disclosure: a script opens only outputs marked public, and no private handle reaches an
+        opening any other way;
+  - [ ] ordering: for example, a contact's state is stored before its message leaves.
+- [ ] **The conversion and helper protocols as Lean scripts too** (`dyn_word_mask.h`,
+      `x25519_fast.h`, `edwards_points.h`, `gcm_shares.h`, `split_ecdh.h`): the cut-and-choose
+      for word masks and bit pairs, word/field conversion, masked inversion, the offset key
+      agreement, GHASH key-power shares. Their arithmetic is already Lean circuits and field
+      programs; what moves is the orchestration (which candidates are opened, compared,
+      bucketed; which values are opened; when to abort). To prove, relative to an ideal model
+      of the two engines:
+  - [ ] correctness of an honest run (a mask is the same value in both engines; a conversion
+        returns the value it was given; the masked quotient is x/z; the tag shares sum to the
+        GHASH tag);
+  - [ ] hiding: each opened value is a bijective function of a fresh uniform mask, so it is
+        independent of the secret (and a mask is consumed exactly once, enforced by the script's
+        types rather than a runtime flag);
+  - [ ] detection: every way a single deviating input is caught, as lemmas; and, as the
+        stretch goal, the cut-and-choose counting bound for the parameters in use (statistical
+        128) proved rather than computed by a script.
+  - Not covered by any of this: that the engines themselves implement their ideal behaviour
+    (see `NEEDS_REVIEW.md`).
+- [ ] Public-data pieces still in C++ (commit-and-open, the WebSocket accept value, public
+      curve arithmetic through a C library) into Lean.
+- [ ] **The remaining shell in Rust**: pipe protocol, sockets and SOCKS, connection table,
+      loaders. Engines stay C++ behind a narrow interface.
+- [ ] Reformat whatever C++ is left.
 
 ## 13. Housekeeping
 
