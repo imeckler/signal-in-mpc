@@ -861,6 +861,35 @@ def main (args : List String) : IO Unit := do
   if args == ["parse-bench"] then
     parseBench
     return
+  if let "request-shape" :: kind :: sizes := args then
+    -- PRODUCTION OF CIRCUITS ONLY (scripts/produce_circuits.py, CIRCUIT_SHAPES.md): the kernel that
+    -- seals a request frame, named as a session names it, from the frame this controller builds:
+    --   request-shape send CERTIFICATE ENVELOPE      a send to one device     (signal-request-ctr)
+    --   request-shape devices ENVELOPE ENVELOPE ...  one message per device   (bundle-request-ctr)
+    --   request-shape fetch                          the prekey fetch         (bundle-fetch-ctr)
+    -- The sizes are envelope sizes in bytes. A frame's shape depends on them alone: the timestamp
+    -- has 13 digits and request ids count from 2^63 (ten varint bytes).
+    let numbers ← sizes.mapM natural
+    let mask : List (BitVec 8) := List.replicate 4 0
+    let envelope (size : Nat) : List (BitVec 8) := List.replicate size 0
+    let parts ← match kind, numbers with
+      | "send", [certificate, size] =>
+          match PublicRequest.build (envelope size) 1700000000000 (2 ^ 63) mask with
+          | .ok (frame, offsets) => pure (["signal-request-ctr", toString certificate, toString frame.length] ++ offsets.map toString)
+          | .error e => throw (IO.userError e)
+      | "devices", _ :: _ =>
+          match PublicRequest.buildDevices (numbers.map envelope) 1700000000000 (2 ^ 63) mask with
+          | .ok (frame, payloadAt, offsets) =>
+              pure (["bundle-request-ctr", toString frame.length, toString payloadAt] ++ offsets.map toString)
+          | .error e => throw (IO.userError e)
+      | "fetch", [] =>
+          match PublicRequest.buildFetch (2 ^ 63) mask with
+          | .ok (frame, payloadAt, offsets) =>
+              pure (["bundle-fetch-ctr", toString frame.length, toString payloadAt] ++ offsets.map toString)
+          | .error e => throw (IO.userError e)
+      | _, _ => throw (IO.userError "request-shape send CERTIFICATE ENVELOPE | devices ENVELOPE ... | fetch")
+    IO.println (" ".intercalate ("kernel" :: parts))
+    return
   if let ["db-delete", party, request] := args then
     -- The application's signed delete request: this party submits it to the database nodes,
     -- which act once both parties have. Repeated until all but one node has confirmed.

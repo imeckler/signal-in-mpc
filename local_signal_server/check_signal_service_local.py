@@ -75,6 +75,28 @@ def warm():
     return dict(kernels=len(names), skipped=[n for n, good in zip(names, ok) if not good], seconds=time.monotonic() - started)
 
 
+DEPLOYMENT = HERE / 'deployment.json'
+CIRCUITS = STATE / 'circuits'
+REFUSED = STATE / 'kernels-refused.txt'
+
+
+def strict_manifest():
+    """--strict: every circuit the test deployment can need, produced one at a time before the
+    server is contacted, and pinned. The sessions' workers then take CIRCUIT_MANIFEST from the
+    environment: they use nothing else and never produce a circuit."""
+    started = time.monotonic()
+    r = subprocess.run([sys.executable, str(ROOT / 'scripts/produce_circuits.py'), str(DEPLOYMENT), str(CIRCUITS)], cwd=ROOT,
+                       capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError('circuit production failed: ' + (r.stdout + r.stderr)[-600:])
+    REFUSED.write_text('')
+    os.environ['CIRCUIT_MANIFEST'] = str(CIRCUITS / 'manifest.txt')
+    os.environ['CIRCUIT_REFUSED_LOG'] = str(REFUSED)
+    manifest = json.loads((CIRCUITS / 'manifest.json').read_text())
+    return dict(manifest=os.environ['CIRCUIT_MANIFEST'], manifest_sha256=manifest['manifest_sha256'], summary=manifest['summary'],
+                seconds=time.monotonic() - started)
+
+
 def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.1'):
     """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
     socket, two broadcasts to every contact, contact state written back to the store.
@@ -595,6 +617,9 @@ def main():
                    'comma-separated list (e.g. 1,3); with --db the contacts are on the database nodes and a dropped circuit is tested')
     p.add_argument('--circuits-db', action='store_true', help='the --circuits stage on the database nodes without the rest of --db '
                    '(e.g. --runs 0 --circuits 3 --circuits-db runs only that stage)')
+    p.add_argument('--strict', action='store_true', help='produce the circuit manifest of deployment.json first (scripts/produce_circuits.py), '
+                   'then run every session in strict mode: only circuits of the manifest, none produced while connected; a refused '
+                   'name fails the run (it is a gap in the inventory, CIRCUIT_SHAPES.md)')
     a = p.parse_args()
     if a.trace:
         os.environ['SIGNAL_LOCAL_TRACE'] = '1'
@@ -603,7 +628,10 @@ def main():
     try:
         if not a.skip_build and not (STATE / 'classpath.txt').exists():
             run(['bash', SCRIPTS / 'build_server.sh'])
-        report['circuits'] = warm()
+        if a.strict:
+            report['strict'] = strict_manifest()
+        else:
+            report['circuits'] = warm()
         import shutil
         shutil.rmtree(STORE, ignore_errors=True)   # the accounts below are new: no stored state applies
         run(['bash', SCRIPTS / 'start_server.sh'])
@@ -661,6 +689,10 @@ def main():
             # Its own accounts and export (four contacts); runs last.
             report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db or a.circuits_db)
             ok = report['tor_circuits']['passed']
+        if a.strict:
+            # A name a session asked for outside the manifest (the session went on without it or failed).
+            report['strict']['refused'] = kernel_lines(REFUSED)
+            ok = ok and not report['strict']['refused']
         report['passed'] = ok
         if ok:
             KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))

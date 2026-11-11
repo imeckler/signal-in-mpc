@@ -87,7 +87,9 @@ private:
     Wires word(H value){return field_to_word(s,f,k.channel,k.circuits,k.take_mask(),value);}
     // A kernel whose parameters came from a message: parameters Lean does not accept refuse the message.
     const Kernel&shaped(const std::string&name){
-        try{return k.cache.get(name);}catch(const std::runtime_error&e){if(std::string(e.what())=="kernel cache failed")throw Rejected{};throw;}
+        // Likewise a shape outside the deployment's circuit manifest (strict mode, kernel.h).
+        try{return k.cache.get(name);}catch(const KernelRefused&){throw Rejected{};}
+        catch(const std::runtime_error&e){if(std::string(e.what())=="kernel cache failed")throw Rejected{};throw;}
     }
     static bool flag(uint8_t byte){if(byte!=0&&byte!=255)throw Rejected{};return byte==255;}
     // 1 + the index of the single set flag among five.
@@ -481,7 +483,7 @@ public:
     std::vector<uint8_t> process(uint64_t handle){
         need(started&&!closed,"WebSocket unavailable");
         auto it=k.buffers.find(handle);need(it!=k.buffers.end()&&it->second.length.size()!=0,"receive handle");
-        auto chunk=std::move(it->second);k.buffers.erase(it);const size_t capacity=chunk.content.size()/8;need(capacity>=1&&capacity<=128,"receive profile");
+        auto chunk=std::move(it->second);k.buffers.erase(it);const size_t capacity=chunk.content.size()/8;need(capacity>=1&&capacity<=139,"receive profile");   // the size class of a 149-byte record
         auto&activity=k.cache.get("ws-activity "+std::to_string(capacity));auto valid=k.constant({255});
         auto masks=activity.run(s,{{"valid",&valid},{"length",&chunk.length}});
         need(activity.open(s,masks,"accepted")==std::vector<uint8_t>{255},"invalid private receive chunk");
@@ -574,8 +576,13 @@ public:
     // Opens one flag per body byte: whether it is JSON punctuation (the output Lean marks public).
     std::vector<uint8_t> bundle_shape(){
         need(public_receive&&!closed&&bundle.size()>=8*2540,"bundle shape");
-        auto&kernel=k.cache.get("bundle-shape "+std::to_string(bundle.size()/8));
-        return kernel.open(s,kernel.run(s,{{"body",&bundle}}),"shape");
+        // In a size class (TlsMpc/BundleItemKernels.lean): the body followed by public zero bytes up to
+        // the class's capacity; their flags are zero and are dropped from the reply.
+        const size_t size=bundle.size()/8,capacity=TlsKernels::record_capacity(size);
+        auto filler=k.constant(std::vector<uint8_t>(capacity-size+1,0)).slice(0,8*(capacity-size));
+        auto padded=DynSession::concat({&bundle,&filler});
+        auto&kernel=k.cache.get("bundle-shape "+std::to_string(capacity));
+        auto flags=kernel.open(s,kernel.run(s,{{"body",&padded}}),"shape");flags.resize(size);return flags;
     }
     // One step (0..8) of one device's establishment from the held body. The controllers call the
     // steps of device 0, then of device 1, ... in order (and may keep the connection alive in
@@ -600,8 +607,20 @@ public:
             switch(step){
             case 0:{
                 prepare(c);
-                std::string name="bundle-device "+std::to_string(bundle.size()/8);for(auto v:layout)name+=" "+std::to_string(v);
-                e.fields=shaped(name).run(s,{{"body",&bundle}});e.one_time=layout[4]!=0;
+                // The item and the bytes around it (TlsMpc/BundleItemKernels.lean), cut from the held body at
+                // the item's offset with the widths the kernel declares for its inputs. Its shape depends
+                // on the item alone, not on the size of the body or where the item lies in it.
+                std::string name=std::string("bundle-item ")+(index==0?"1":"0")+(index+1==count?" 1":" 0");
+                for(size_t i=1;i<6;i++)name+=" "+std::to_string(layout[i]);
+                auto&cut=shaped(name);
+                const size_t total=bundle.size()/8,start=layout[0],head=cut.input_bits("head")/8,width=cut.input_bits("item")/8;
+                if(start<head||(index==0)!=(start==head)||start+width+2>total)throw Rejected{};
+                auto head_bytes=bundle.slice(0,8*head),item_bytes=bundle.slice(8*start,8*(start+width)),end_bytes=bundle.slice(8*(total-2),8*total);
+                auto before=bundle.slice(8*(start-1),8*start),after=bundle.slice(8*(start+width),8*(start+width+1));
+                Binding pieces{{"head",&head_bytes},{"item",&item_bytes},{"end",&end_bytes}};
+                if(index!=0)pieces.push_back({"before",&before});
+                if(index+1!=count)pieces.push_back({"after",&after});
+                e.fields=cut.run(s,pieces);e.one_time=layout[4]!=0;
                 Binding keys{{"identityKey",&e.fields.at("identityKey")},{"signedPrekey",&e.fields.at("signedPrekey")}};
                 if(e.one_time)keys.push_back({"oneTimePrekey",&e.fields.at("oneTimePrekey")});
                 auto points=k.cache.get("establish-points "+flag).run(s,keys);

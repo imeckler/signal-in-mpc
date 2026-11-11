@@ -19,10 +19,18 @@ public:   // engine references and shared resources are also used by service_ker
     // multiplications, one point addition in the field engine (split_ecdh.h).
     // true: the shared-scalar Montgomery ladder proved against RFC 7748 in Lean.
     bool ladder_agreement=false;
+    // Received application records: true opens one bit first (authenticated handshake record or
+    // not) and runs the post-handshake framing scan only for handshake records (tls-open-typed,
+    // tls-frame); false runs it on every record (tls-open-application-class). Set by the worker.
+    bool typed_open=false;
     // Named private values: clientHandshake, serverHandshake, mainSecret,
     // clientApplication, serverApplication, parser.
     Values state;
     TlsKernels(DynSession&session,FE&field,Challenge&c,int p,const std::string&cache_script):s(session),f(field),channel(c),party(p),cache(cache_script,c){}
+    // The capacity of a size class (`RecordClass.capacity` in TlsMpc/RecordClassKernels.lean): up to
+    // 32, then rounded up to a multiple of a quarter of the power of two below (40, 48, 56, 64, 80, ...).
+    // A public function of a public size; a deployment's manifest holds one circuit per capacity.
+    static size_t record_capacity(size_t n){if(n<=32)return 32;size_t step=1;while(8*step<n)step*=2;return (n+step-1)/step*step;}
     uint64_t and_gates()const{return s.and_gates();}
     Wires constant(const std::vector<uint8_t>&bytes){return s.public_bits(byte_bits(bytes));}
     const Wires&held(const std::string&name)const{auto it=state.find(name);if(it==state.end()||it->second.size()==0)throw std::runtime_error("no private value "+name);return it->second;}
@@ -153,16 +161,32 @@ public:   // engine references and shared resources are also used by service_ker
     // Authenticate, decrypt and classify one record; only the event bytes are opened.
     std::vector<uint8_t> open_application(const std::vector<uint8_t>&sequence,const std::vector<uint8_t>&wire){
         if(!state.count("parser")){auto unused=constant({0});auto initial=cache.get("tls-parser-initial").run(s,{{"unused",&unused}});keep(initial,"parser");}
-        if(wire.size()<22)throw std::runtime_error("application record size");
-        auto seq=constant(sequence),record=constant(wire);
+        if(wire.size()<22||wire.size()!=5+size_t(wire[3])*256+wire[4])throw std::runtime_error("application record size");
+        // Size class (TlsMpc/RecordClassKernels.lean): the record followed by zero bytes up to its
+        // class's capacity, and its length field as a public value. The kernel masks what lies beyond.
+        std::vector<uint8_t>padded(wire);padded.resize(record_capacity(wire.size()),0);
+        auto seq=constant(sequence),record=constant(padded),size=constant({wire[3],wire[4]});
         // Tag check from the parties' local halves over the public ciphertext; the result is a private mask.
         const std::vector<uint8_t>header(wire.begin(),wire.begin()+5),ciphertext(wire.begin()+5,wire.end()-16);
         receive_shares.ensure(s,cache,party,held("serverApplication"),GcmShares::blocks(header.size(),ciphertext.size()));
         auto halves=receive_shares.supply(s,party,header,ciphertext);auto tag=constant(std::vector<uint8_t>(wire.end()-16,wire.end()));
         auto check=cache.get("gcm-check").run(s,{{"traffic",&held("serverApplication")},{"sequence",&seq},{"halfA",&halves.first},{"halfB",&halves.second},{"tag",&tag}});
-        auto&kernel=cache.get("tls-open-application-ctr "+std::to_string(wire.size()));
-        auto out=kernel.run(s,{{"parser",&held("parser")},{"serverApplication",&held("serverApplication")},{"sequence",&seq},{"record",&record},{"accepted",&check.at("accepted")}});
-        auto event=kernel.open(s,out,"event");keep(out,"parser");
+        const Binding inputs{{"parser",&held("parser")},{"serverApplication",&held("serverApplication")},{"sequence",&seq},{"record",&record},{"size",&size},{"accepted",&check.at("accepted")}};
+        const std::string capacity=std::to_string(padded.size());const Kernel*opener=nullptr;Values out;
+        if(typed_open){
+            // Two steps (TlsMpc/TypedOpenKernels.lean): the first kernel decrypts and parses the record and
+            // opens one bit, "authenticated and a handshake record" (0 for every record whose tag check
+            // failed: TypedOpenProofs.tlsOpenTyped_gated). Bit 0: its own event and fields are the result.
+            // Bit 255: the framing scan runs on the private parse (tls-frame) and gives the result.
+            opener=&cache.get("tls-open-typed "+capacity);out=opener->run(s,inputs);
+            const auto bit=opener->open(s,out,"handshake");
+            if(bit.size()!=1||(bit[0]!=0&&bit[0]!=255))throw std::runtime_error("record type bit");
+            if(bit[0]==255){
+                const Wires parsed=std::move(out.at("parsed"));opener=&cache.get("tls-frame "+capacity);
+                out=opener->run(s,{{"parser",&held("parser")},{"parsed",&parsed}});
+            }
+        }else{opener=&cache.get("tls-open-application-class "+capacity);out=opener->run(s,inputs);}
+        auto event=opener->open(s,out,"event");keep(out,"parser");
         if(event.size()!=2||event[0]>4||event[1]>1)throw std::runtime_error("application event");
         if(event[0]!=1)return event;
         auto id=retain({std::move(out.at("length")),std::move(out.at("content")),Wires{}});
@@ -187,13 +211,26 @@ public:   // engine references and shared resources are also used by service_ker
             if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("private payload rejected");
             return tagged(kernel,out);
         }
+        if(padding==0){
+            // Size class (TlsMpc/RecordClassKernels.lean): the content followed by public zero bytes up
+            // to its class's capacity, and the record's length field (content, type byte, tag) as a
+            // public value. The record is the exact-size one: nothing beyond it is encrypted or kept.
+            const size_t capacity=record_capacity(size),length=size+17;
+            auto filler=constant(std::vector<uint8_t>(capacity-size+1,0)).slice(0,8*(capacity-size));
+            auto content=DynSession::concat({&buffer.content,&filler}),field=constant({uint8_t(length>>8),uint8_t(length)});
+            auto&kernel=cache.get("tls-seal-class "+std::to_string(capacity));
+            auto out=kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&content},{"size",&field}});
+            if(kernel.open(s,out,"accepted")!=std::vector<uint8_t>{255})throw std::runtime_error("sealed record size");
+            return tagged(kernel,out,size+1);
+        }
         auto&kernel=cache.get("tls-seal-ctr 23 "+std::to_string(size)+" "+std::to_string(padding));
         return tagged(kernel,kernel.run(s,{{"clientApplication",&held("clientApplication")},{"sequence",&seq},{"content",&buffer.content}}));
     }
     // Finish a record from a CTR kernel's outputs: the header and ciphertext are public; the
     // tag is the private pad combined with the parties' local halves (gcm_shares.h).
-    std::vector<uint8_t> tagged(const Kernel&kernel,Values out){
+    std::vector<uint8_t> tagged(const Kernel&kernel,Values out,size_t keep=SIZE_MAX){
         auto record=kernel.open(s,out,"header"),ciphertext=kernel.open(s,out,"ciphertext");
+        if(keep<ciphertext.size())ciphertext.resize(keep);   // a size-class kernel: zero bytes follow the record's own
         send_shares.ensure(s,cache,party,held("clientApplication"),GcmShares::blocks(record.size(),ciphertext.size()));
         auto halves=send_shares.supply(s,party,record,ciphertext);auto&tagger=cache.get("gcm-tag");
         auto tag=tagger.open(s,tagger.run(s,{{"pad",&out.at("pad")},{"halfA",&halves.first},{"halfB",&halves.second}}),"tag");

@@ -4,6 +4,9 @@ import TlsMpc.EstablishKernels
 import TlsMpc.ReceiveKernels
 import TlsMpc.BundleKernels
 import TlsMpc.MlKemFastKernels
+import TlsMpc.RecordClassKernels
+import TlsMpc.BundleItemKernels
+import TlsMpc.TypedOpenKernels
 open TlsMpc Std.Tactic.BVDecide
 
 /-! Worker kernels straight to the flat gate list, without the Python lowering.
@@ -76,7 +79,8 @@ def main (args : List String) : IO Unit := do
   let flatPath :: layoutPath :: "kernel" :: rest := args
     | throw (IO.userError "flat_kernel_emitter FLAT_PATH LAYOUT_PATH kernel NAME [PARAMETERS]")
   let some kernel := HybridKernel.find rest <|> EstablishKernel.find rest <|> ReceiveKernel.find rest
-      <|> BundleKernel.find rest <|> MlKemFastKernel.find rest
+      <|> BundleKernel.find rest <|> MlKemFastKernel.find rest <|> RecordClassKernel.find rest
+      <|> BundleItemKernel.find rest <|> TypedOpenKernel.find rest
     | throw (IO.userError "unknown kernel or shape")
   match lowerKernel kernel with
   | .error message => throw (IO.userError message)

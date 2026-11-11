@@ -175,14 +175,36 @@ session by one party (test admission). For the product no one may ever hold the 
 
 ## 5. Circuits ahead of time (blocker for a real run)
 
-- [ ] **(blocker)** Generate every circuit a deployment can need before it starts, with a pinned
-      manifest both parties check. A first message of a new size currently makes the worker
-      produce new circuits while the server waits (over a minute), and the socket drops.
+Inventory of every kernel family, what fixes each parameter, the tools and the numbers:
+`handshake_backend/EmpHybridWork/CIRCUIT_SHAPES.md`.
+
+- [x] Generate every circuit a deployment can need before it starts, with a pinned manifest both
+      parties check: `scripts/produce_circuits.py DEPLOYMENT.json OUT` (names from the Lean
+      executable `circuit_inventory`, one kernel at a time under a memory cap, resumable), and
+      strict mode in the worker (`CIRCUIT_MANIFEST`: only the manifest's kernels, never produces,
+      manifest hash compared before the first kernel, a name outside it is refused). Checked by
+      `check_signal_service_local.py --strict`.
+- [x] TLS application records, sealed public-size contents and prekey response bodies are in size
+      classes (four per doubling; the true length is a value the circuit enforces), proved equal
+      to the exact-size kernels. `bundle-device` no longer depends on the response's size or the
+      item's offset (`bundle-item`).
+- [ ] **(blocker)** Measure the real server's handshake record sizes (`tls-open-handshake` is per
+      size; if they vary between connections it needs classes too).
+- [ ] **(blocker)** Signup shapes are enumerated, not classed: sender certificate lengths, prekey
+      id widths, client version (addresses field, post-quantum field size). A signup outside the
+      listed shapes is refused. Either measure and list what real clients send, or give the
+      receive kernels capacities (a rewrite of `ReceiveFirst` and its proofs).
+- [ ] Multi-device: digit counts of a bundle's numbers (`bundle-item`) and the per-combination
+      request frame (`bundle-request-ctr`) still multiply; fixes are described in
+      CIRCUIT_SHAPES.md ("Not done" 3 and 4).
+- [ ] A manifest belongs to one emitter binary; decide how a deployment ships it (the gate lists
+      are several GB) and add a binary gate-list form to cut loading time.
 - [ ] Remove the Python wrapper from the runtime (`circuit_cache.py`: it now only names, hashes
       and caches what the Lean executable writes). The older non-kernel modes still use the
       unverified Python lowering; no worker uses them: delete or port.
-- [ ] Bound the set of shapes: fixed-width signup token, padding classes for envelopes, the
-      certificate lengths the server issues.
+- [ ] Our own sender certificate's length is a deployment constant (`certificate`); if the server
+      issues another length on refresh, every kernel that takes it must exist for that length too
+      (a second deployment description, produced ahead).
 
 ## 6. Database nodes (`secret-shared-db`, branch `two-party-handoff`)
 

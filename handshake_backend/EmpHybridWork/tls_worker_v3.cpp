@@ -377,9 +377,16 @@ static int run(int argc,char**argv){
         if(const char*test=std::getenv("TLS_WORKER_TEST_PRODUCER")){worker.test_bytes=std::stoul(test);if(!worker.test_bytes||worker.test_bytes>16384)return 2;std::cerr<<"tls-worker-v3 TEST producer enabled bytes="<<worker.test_bytes<<"\n";}
         // Both workers must be configured alike: the route is part of every agreed request.
         kernels.ladder_agreement=ladder;
+        // Received records. TLS_WORKER_TYPED_OPEN=1: open the record-type bit first and run the framing
+        // scan only on handshake records (TlsMpc/TypedOpenKernels.lean); 0: scan every record.
+        // Both workers must be configured alike: the setting is part of every agreed request.
+        bool typed_open=false;
+        if(const char*requested=std::getenv("TLS_WORKER_TYPED_OPEN")){const std::string value(requested);if(value!="0"&&value!="1")return 2;typed_open=value=="1";}
+        kernels.typed_open=typed_open;
         ServiceKernels service(kernels);worker.service=&service;worker.service_fixture=fixture!=nullptr;
         if(fixture)std::cerr<<"tls-worker-v3 TEST service fixture enabled\n";
         worker.session+=kernels.ladder_agreement?":ladder":":split";
+        worker.session+=kernels.typed_open?":typed-open":":scan-open";
         worker.session+=":stock="+std::to_string(factories)+","+std::to_string(factories?stock_batch:0)+","+std::to_string(factories?stock_reserve:0)
             +":field="+std::to_string(batch)+","+std::to_string(field_reserve)+","+std::to_string(field_lines);
         std::cerr<<"tls-worker-v3 security_mode="<<SECURITY_MODE<<" key_agreement="<<(kernels.ladder_agreement?"ladder":"split")<<"\n";

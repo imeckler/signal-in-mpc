@@ -81,10 +81,40 @@ public:
 };
 // Kernels are produced on demand by the Lean emitter through the cache script;
 // both parties compare circuit and layout pins before a kernel is used.
+//
+// STRICT MODE (environment CIRCUIT_MANIFEST = the manifest.txt written by scripts/produce_circuits.py;
+// CIRCUIT_SHAPES.md): only kernels the manifest lists are used, read from the manifest's directory
+// and checked against its pins, and NOTHING is ever produced — no interpreter, no emitter, at any
+// point of a session. The parties compare the manifest's hash once, before the first kernel. A
+// name outside the manifest is refused (KernelRefused, reported on stderr and in
+// CIRCUIT_REFUSED_LOG): the operation that needed it fails, or, for a kernel whose parameters
+// came from a received message, that message is refused.
+struct KernelRefused:std::runtime_error{using std::runtime_error::runtime_error;};
 class KernelCache {
     std::string script;Challenge&channel;std::map<std::string,std::unique_ptr<Kernel>>loaded;
+    struct Pinned {std::string sha,layout_sha;};
+    bool strict=false,agreed=false;std::filesystem::path directory;std::map<std::string,Pinned>manifest;std::array<uint8_t,32>manifest_digest{};
+    static bool hex64(const std::string&s){return s.size()==64&&s.find_first_not_of("0123456789abcdef")==std::string::npos;}
+    // Rows after the first line: SHA256 LAYOUT_SHA256 NAME [PARAMETERS], single spaces.
+    void load_manifest(const std::string&path){
+        std::ifstream in(path,std::ios::binary);if(!in)throw std::runtime_error("circuit manifest file");
+        const std::string text((std::istreambuf_iterator<char>(in)),{});
+        SHA256(reinterpret_cast<const uint8_t*>(text.data()),text.size(),manifest_digest.data());
+        std::istringstream rows(text);std::string line;
+        if(!std::getline(rows,line)||line!="EMP_HYBRID_CIRCUIT_MANIFEST_V1")throw std::runtime_error("circuit manifest format");
+        while(std::getline(rows,line)){
+            if(line.size()<131||line[64]!=' '||line[129]!=' ')throw std::runtime_error("circuit manifest row");
+            const std::string sha=line.substr(0,64),layout_sha=line.substr(65,64),name=line.substr(130);
+            for(char ch:name)if(!(std::isalnum(static_cast<unsigned char>(ch))||ch=='-'||ch==' '))throw std::runtime_error("circuit manifest row");
+            if(!hex64(sha)||!hex64(layout_sha)||!manifest.emplace(name,Pinned{sha,layout_sha}).second)throw std::runtime_error("circuit manifest row");
+        }
+        directory=std::filesystem::path(path).parent_path();strict=true;
+    }
 public:
-    KernelCache(std::string s,Challenge&c):script(std::move(s)),channel(c){}
+    KernelCache(std::string s,Challenge&c):script(std::move(s)),channel(c){
+        if(const char*path=std::getenv("CIRCUIT_MANIFEST"))if(*path)load_manifest(path);
+    }
+    bool pinned()const{return strict;}
     // A kernel that is already in the cache, found the way circuit_cache.py finds it (the
     // directory named by the emitter binary's hash, the files named by the arguments, the
     // pins from the record written with them) without starting an interpreter, which cost
@@ -122,6 +152,26 @@ public:
         ProfileScope scope("circuit load (cache lookup, read, pin comparison)");
         for(char ch:arguments)if(!(std::isalnum(static_cast<unsigned char>(ch))||ch=='-'||ch==' '))throw std::runtime_error("kernel arguments");
         std::string path,sha,layout,layout_sha;
+        if(strict){
+            if(!agreed){
+                std::array<uint8_t,32>peer{};channel.transfer(manifest_digest.data(),peer.data(),32);
+                if(peer!=manifest_digest)throw std::runtime_error("circuit manifest disagreement");
+                agreed=true;
+            }
+            const auto entry=manifest.find(arguments);
+            if(entry==manifest.end()){
+                fprintf(stderr,"circuit manifest: refused kernel %s\n",arguments.c_str());
+                if(const char*log=std::getenv("CIRCUIT_REFUSED_LOG")){std::ofstream out(log,std::ios::app);out<<"kernel "<<arguments<<"\n";}
+                throw KernelRefused("kernel not in the circuit manifest: "+arguments);
+            }
+            std::string name="kernel-"+arguments;for(auto&ch:name)if(ch==' ')ch='-';
+            path=(directory/(name+".flat")).string();layout=(directory/(name+".layout")).string();
+            sha=entry->second.sha;layout_sha=entry->second.layout_sha;
+            if(const char*log=std::getenv("CIRCUIT_CACHE_LOG")){std::ofstream out(log,std::ios::app);out<<"kernel "<<arguments<<"\n";}
+            // The pins are the manifest's, which the parties have agreed on: no exchange per kernel.
+            auto made=std::make_unique<Kernel>(path,sha,layout,layout_sha);made->label=arguments.substr(0,arguments.find(' '));
+            return *(loaded[arguments]=std::move(made));
+        }
         if(!cached(arguments,path,sha,layout,layout_sha)){
             std::string command="python3 '"+script+"' kernel "+arguments;FILE*pipe=popen(command.c_str(),"r");if(!pipe)throw std::runtime_error("kernel cache launch");
             char buffer[4096];std::string line;while(fgets(buffer,sizeof buffer,pipe))line+=buffer;if(pclose(pipe)!=0)throw std::runtime_error("kernel cache failed");
