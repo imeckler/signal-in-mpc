@@ -41,7 +41,7 @@ private:
     // followed by the contact record as one `conversation` value; `whole` only joins the wires and
     // `keep` takes the contact part back.
     // TEST FIXTURE: its two conversations have different senders, so each carries its own account.
-    Account account;std::deque<Account>fixture_accounts;
+    Account account;std::deque<Account>fixture_accounts;Wires credentials_a,credentials_b;
     Account&of(const Conversation&c){return c.fixture?*c.fixture:account;}
     Wires whole(const Conversation&c){return DynSession::concat({&of(c).certificate,&c.record});}
     void keep(Conversation&c,const Wires&conversation){need(conversation.size()==8*(CERT+CONTACT),"conversation shape");c.record=conversation.slice(8*CERT,8*(CERT+CONTACT));}
@@ -92,6 +92,14 @@ public:
     void admit_contact(const ContactId&id,const std::vector<uint8_t>&record){
         need(!closed&&admitted&&account.certificate.size()&&record.size()==CONTACT&&!conversations.count(id),"contact admission");
         Conversation c;c.record=entered(record);conversations[id]=std::move(c);
+    }
+    // The account's socket credentials (account id 16, password) as XOR shares: each party's
+    // share is its own private input, and the upgrade kernel combines them.
+    void account_credentials(const std::vector<uint8_t>&share){
+        need(!started&&!closed&&share.size()==16+PASSWORD&&!credentials_a.size(),"account credentials");
+        const std::vector<uint8_t>none(share.size(),0);
+        credentials_a=s.input_private(emp::ALICE,byte_bits(k.party==emp::ALICE?share:none));
+        credentials_b=s.input_private(emp::BOB,byte_bits(k.party==emp::BOB?share:none));
     }
     // Unauthenticated chat socket: the upgrade request has no secrets and is built by the
     // controllers; this only fixes the expected Sec-WebSocket-Accept for the public nonce.
@@ -146,10 +154,15 @@ public:
     // Authenticated upgrade request with private credentials and a public nonce.
     // Returns the request's handle and its public size.
     std::pair<uint64_t,size_t> upgrade(const std::vector<uint8_t>&nonce){
-        need(admitted&&!started&&!closed&&nonce.size()==16,"upgrade unavailable");started=true;
-        std::vector<uint8_t>credentials{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff};credentials.insert(credentials.end(),PASSWORD,'x');
-        auto secret=entered(credentials),open_nonce=k.constant(nonce);
-        auto request=k.cache.get("signal-upgrade "+std::to_string(PASSWORD)).run(s,{{"credentials",&secret},{"nonce",&open_nonce}});
+        need((admitted||credentials_a.size())&&!started&&!closed&&nonce.size()==16,"upgrade unavailable");started=true;
+        auto open_nonce=k.constant(nonce);Values request;
+        if(credentials_a.size())request=k.cache.get("signal-upgrade-shared "+std::to_string(PASSWORD)).run(s,{{"credentialsA",&credentials_a},{"credentialsB",&credentials_b},{"nonce",&open_nonce}});
+        else{
+            // TEST FIXTURE credentials.
+            std::vector<uint8_t>credentials{0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff};credentials.insert(credentials.end(),PASSWORD,'x');
+            auto secret=entered(credentials);
+            request=k.cache.get("signal-upgrade "+std::to_string(PASSWORD)).run(s,{{"credentials",&secret},{"nonce",&open_nonce}});
+        }
         // Expected Sec-WebSocket-Accept: a public function of the public nonce.
         unsigned char key[25]={},digest[20],encoded[29]={};EVP_EncodeBlock(key,nonce.data(),16);
         std::string material(reinterpret_cast<char*>(key),24);material+="258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

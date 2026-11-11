@@ -59,20 +59,20 @@ def kernel_lines(path):
 
 
 def warm():
-    """Produce every circuit a run is known to ask for, several at a time, before any connection.
+    """Produce every circuit a run is known to ask for before any connection.
     A name the emitter no longer knows is skipped: the run asks for what it needs anyway."""
-    from concurrent.futures import ThreadPoolExecutor
     run(['lake', 'build', 'hybrid_kdf_emitter'], cwd=ROOT, capture_output=True)
     names = sorted(set(kernel_lines(KERNELS) + kernel_lines(KERNEL_LOG)))
     started = time.monotonic()
     def one(name):
         return subprocess.run([sys.executable, str(CACHE), *name.split()], cwd=ROOT, capture_output=True).returncode == 0
-    with ThreadPoolExecutor(max_workers=max(1, (os.cpu_count() or 4) // 2)) as pool:
-        ok = list(pool.map(one, names))
+    # ONE AT A TIME: lowering a large kernel takes many gigabytes; several at once exhausted the
+    # machine's memory (twice). Do not parallelize this.
+    ok = [one(name) for name in names]
     return dict(kernels=len(names), skipped=[n for n, good in zip(names, ok) if not good], seconds=time.monotonic() - started)
 
 
-def run_mpc(export, mode, texts):
+def run_mpc(export, mode, texts, party_env=None, during=None):
     """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
     socket, two broadcasts to every contact, contact state written back to the store.
     Controller argv: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED.
@@ -113,8 +113,11 @@ def run_mpc(export, mode, texts):
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
                        session, '127.0.0.1', '18443', 'server.example', str(output / 'public_auth'), str(trust), '0']
             (STORE / f'party-{party}').mkdir(parents=True, exist_ok=True)
-            processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}')),
+            processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}'),
+                                                                        **(party_env(party) if party_env else {})),
                                               stdout=subprocess.PIPE, stderr=log, text=True))
+        if during:
+            during(processes)
         for party, p in enumerate(processes):
             stdout, _ = p.communicate(timeout=7200)
             (output / f'party-{party}.json').write_text(stdout)
@@ -144,6 +147,30 @@ def run_mpc(export, mode, texts):
     return result
 
 
+def run_receive(export, mode, delay):
+    """The authenticated socket in a two-party session. Each controller gets one XOR share of the
+    account's socket credentials, so neither could open the socket alone. The controllers answer
+    the server's requests and send keepalives; after `delay` seconds (past the server's 90 s idle
+    limit by default) a contact sends the account a message, which must be delivered to the
+    session. Its body is not opened or acknowledged here."""
+    import secrets
+    credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
+    share = secrets.token_bytes(len(credentials))
+    shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
+    def during(processes):
+        deadline = time.monotonic() + delay
+        while time.monotonic() < deadline and all(p.poll() is None for p in processes):
+            time.sleep(1)
+        if all(p.poll() is None for p in processes):
+            lss('send', CONTACTS[0], 'sender', 'to the MPC client')
+    result = run_mpc(export, mode, {}, party_env=lambda party: dict(SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1'),
+                     during=during)
+    result['delay_seconds'] = delay
+    result['passed'] = all(c.get('messages_delivered') == 1 for c in result['controllers']) and (
+        delay < 30 or all(c.get('keepalives', 0) >= delay // 30 for c in result['controllers']))
+    return result
+
+
 def verify(expected):
     """expected: {recipient name: [texts]}. Every delivered envelope must be sealed (no source fields)."""
     result = {}
@@ -165,6 +192,8 @@ def main():
     p.add_argument('--keep-server', action='store_true')
     p.add_argument('--skip-build', action='store_true')
     p.add_argument('--runs', type=int, default=2, help='MPC sessions; each after the first loads contacts from the store')
+    p.add_argument('--receive', action='store_true', help='also run the authenticated-socket session')
+    p.add_argument('--receive-delay', type=int, default=100, help='seconds of silence before the incoming message')
     a = p.parse_args()
     report = dict(passed=False, mode=a.mode, started=time.time())
     try:
@@ -198,6 +227,9 @@ def main():
             ok = ok and good
             if not good:
                 break
+        if ok and a.receive:
+            report['receive'] = run_receive(export, a.mode, a.receive_delay)
+            ok = report['receive']['passed']
         report['passed'] = ok
         if ok:
             KERNELS.write_text(''.join(line + '\n' for line in kernel_lines(KERNEL_LOG)))

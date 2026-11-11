@@ -274,6 +274,16 @@ def signalUpgrade (passwordBytes : Nat) : Kernel :=
   { name := "signal-upgrade", inputs, outputs := [
       priv "content" (RelayUpgrade.request ByteAuth.symbolic passwordBytes (get "credentials" ++ get "nonce"))] }
 
+/-- The same request when the credentials are held as two XOR shares, one per
+party: neither party alone can open the account's authenticated socket. -/
+def signalUpgradeShared (passwordBytes : Nat) : Kernel :=
+  let inputs := [("credentialsA", Shape.bytes (16 + passwordBytes)), ("credentialsB", .bytes (16 + passwordBytes)),
+    ("nonce", .bytes 16)]
+  let get := lookup inputs
+  let credentials := List.zipWith ByteAuth.symbolic.xor (get "credentialsA") (get "credentialsB")
+  { name := "signal-upgrade-shared", inputs, outputs := [
+      priv "content" (RelayUpgrade.request ByteAuth.symbolic passwordBytes (credentials ++ get "nonce"))] }
+
 /-! Conversation record: certificate, session block (182 + plaintext capacity),
 metadata (57). -/
 def conversationBytes (cert size : Nat) : Nat := cert + 182 + size + 57
@@ -697,6 +707,7 @@ def find : List String → Option Kernel
       | "ws-activity", some n => if 0 < n && n ≤ 16385 then some (wsActivity n) else none
       | "ws-control-reply", some n => if n < 4 then some (wsControlReply n) else none
       | "signal-upgrade", some n => if n ≤ 256 then some (signalUpgrade n) else none
+      | "signal-upgrade-shared", some n => if n ≤ 256 then some (signalUpgradeShared n) else none
       | "signal-conversation-view", some n => if n ≤ 1024 then some (signalConversationView n 80) else none
       | "signal-send", some n => if n ≤ 1024 then some (signalSend n) else none
       | "signal-send-open", some n => if n ≤ 1024 then some (signalSend n true) else none

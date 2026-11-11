@@ -15,6 +15,25 @@ ROOT=pathlib.Path(__file__).resolve().parents[2];HERE=pathlib.Path(__file__).res
 sys.path.insert(0,str(HERE))
 import random
 from hybrid_lowering import lower,flat_text,evaluate_bits
+# Memory cap (CIRCUIT_CACHE_MAX_GB, default 24): a watchdog ends this process, and the emitter it
+# runs, if together they pass the cap. An unbounded emitter once exhausted the machine's memory.
+import resource,threading,time
+LIMIT_GB=float(os.environ.get('CIRCUIT_CACHE_MAX_GB','24'));CHILD=[None]
+def _watch():
+    while True:
+        time.sleep(0.5);own=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/2**30;child=0.0   # macOS reports bytes
+        if CHILD[0] is not None and CHILD[0].poll() is None:
+            out=subprocess.run(['ps','-o','rss=','-p',str(CHILD[0].pid)],capture_output=True,text=True).stdout.strip()
+            child=int(out)/2**20 if out.isdigit() else 0.0
+        if own+child>LIMIT_GB:
+            if CHILD[0] is not None and CHILD[0].poll() is None:CHILD[0].kill()
+            sys.stderr.write('circuit_cache: memory cap of %g GB exceeded (%s)\n'%(LIMIT_GB,' '.join(sys.argv[1:])));sys.stderr.flush();os._exit(98)
+threading.Thread(target=_watch,daemon=True).start()
+def emit(binary,args):
+    CHILD[0]=subprocess.Popen([str(binary),*args],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err=CHILD[0].communicate()
+    if CHILD[0].returncode!=0:raise subprocess.CalledProcessError(CHILD[0].returncode,str(binary),out,err)
+    return out
 def ensure(args):
     if not args or any(not a or not all(c.isalnum() or c=='-' for c in a) for a in args):raise ValueError('circuit arguments')
     # The cache is keyed by the emitter binary as well as the arguments, so a changed Lean
@@ -28,7 +47,7 @@ def ensure(args):
     # One producer at a time: the second caller waits and reuses the result.
     lock=open(CACHE/('.lock-'+'-'.join(args)),'w');fcntl.flock(lock,fcntl.LOCK_EX)   # per kernel, so different kernels export in parallel
     if not (path.exists() and meta.exists()):
-        raw=subprocess.run([str(binary),*args],cwd=ROOT,check=True,capture_output=True).stdout
+        raw=emit(binary,args)
         image=json.loads(raw);n,gates,outputs=lower(image);text=flat_text(n,gates,outputs).encode()
         # Self-check of the unverified carry rewrite: same outputs as the plain lowering on random inputs.
         plain=lower(image,majority=False);rng=random.Random(hashlib.sha256(raw).digest())

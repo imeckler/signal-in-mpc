@@ -54,9 +54,9 @@ struct Worker {
         Bytes out(32);for(unsigned i=0;i<32;i++)out[i]=mine[i]^peer[i];return out;
     }
     Bytes call(uint8_t code,uint64_t sequence,const Bytes&p){
-        // Operations 36 and 39 carry this party's PRIVATE bytes after a public prefix; only the
+        // Operations 36, 39 and 47 carry this party's PRIVATE bytes after a public prefix; only the
         // prefix and the total size are agreed.
-        if(code==36||code==39){
+        if(code==36||code==39||code==47){
             const size_t open=code==36?16:0;need(p.size()>=open,"private request shape");
             Bytes agreed(p.begin(),p.begin()+open);for(int i=3;i>=0;i--)agreed.push_back(uint8_t(uint64_t(p.size())>>(8*i)));
             agree(code,sequence,agreed);
@@ -77,6 +77,7 @@ struct Worker {
         // Local-server testing: admit the account (identity 32, certificate) and a contact's record
         // (id16, record) from an export, and open an unauthenticated chat socket (reply: nonce16, accept28).
         case 46:{need(phase==Phase::retired&&service&&p.size()>32,"account admit");service->admit_account(Bytes(p.begin(),p.begin()+32),Bytes(p.begin()+32,p.end()));return {};}
+        case 47:{need(phase==Phase::retired&&service&&!p.empty()&&p.size()<=512,"account credentials");service->account_credentials(p);return {};}
         case 44:{need(phase==Phase::retired&&service&&p.size()>16,"contact admit");service->admit_contact(contact(p),Bytes(p.begin()+16,p.end()));return {};}
         case 45:{need(phase==Phase::retired&&service&&p.empty(),"public upgrade");auto nonce=joint_random();nonce.resize(16);return service->upgrade_public(nonce);}
         case 40:{need(phase==Phase::retired&&service&&p.size()==16,"contact evict");service->contact_evict(contact(p));return {};}

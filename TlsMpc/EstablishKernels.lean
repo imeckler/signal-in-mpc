@@ -181,7 +181,7 @@ This kernel is DEFINED but has not been lowered or run in this form: the
 existing arithmetic (generic 32-bit multiply and remainder per coefficient
 operation) makes it about 190 million AND gates. See the cost note in the
 report that accompanies this file. -/
-def establishKem : Kernel :=
+def establishKem (_ : Unit) : Kernel :=   -- a FUNCTION on purpose: as a constant it is built when any program importing this starts (tens of gigabytes)
   let a := ByteAuth.symbolic
   let get := lookup kemInputs
   let entropy := List.zipWith a.xor (get "entropyA") (get "entropyB")
@@ -197,6 +197,7 @@ def flag : String → Option Bool
   | "1" => some true
   | _ => none
 
+set_option compiler.extract_closed false in   -- or `establishKem ()` would still be built at program start
 /-- Kernel named on the command line, with its public shape parameters:
 `establish-points ONETIME`, `establish-challenges`, `establish-verified`,
 `establish-kem`, `establish-session CERT ONETIME`,
@@ -205,7 +206,7 @@ the last four are varint widths as in `signal-seal-fixed`). -/
 def find : List String → Option Kernel
   | ["establish-challenges"] => some establishChallenges
   | ["establish-verified"] => some establishVerified
-  | ["establish-kem"] => some establishKem
+  | ["establish-kem"] => some (establishKem ())
   | ["establish-points", oneTime] => (flag oneTime).map establishPoints
   | ["establish-session", cert, oneTime] =>
       match cert.toNat?, flag oneTime with

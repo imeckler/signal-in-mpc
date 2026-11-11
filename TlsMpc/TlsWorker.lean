@@ -32,7 +32,7 @@ inductive Operation where
   | revealRange
   /- Local-server testing: admit a contact from an export; open an
   unauthenticated chat socket (the upgrade request itself is public). -/
-  | contactAdmit | publicUpgrade | accountAdmit
+  | contactAdmit | publicUpgrade | accountAdmit | accountCredentials
   deriving Repr, BEq
 
 structure Rpc where
@@ -125,6 +125,30 @@ def applicationTransport (rpc : Rpc) : Transport where
     let now ← liftM (IO.monoMsNow : IO Nat)
     pollRecordLoop rpc (now+30000) 3000
 
+/-- For a long-lived connection: `awaitRecord` waits a bounded number of polls
+for the next record and keeps it for the following `receive`. Every party sees
+the same poll results, so all of them see "nothing arrived" at the same point
+and can then send a keepalive in step. -/
+def waitingTransport (rpc : Rpc) (kept : IO.Ref (Option Bytes)) : Transport where
+  send wire := emptyReply rpc .sendRecord wire
+  receive := do
+    match ← liftM (kept.get : IO (Option Bytes)) with
+    | some wire => liftM (kept.set none : IO Unit); return wire
+    | none =>
+      let now ← liftM (IO.monoMsNow : IO Nat)
+      pollRecordLoop rpc (now+30000) 3000
+
+def awaitRecord (rpc : Rpc) (kept : IO.Ref (Option Bytes)) (interval : Nat) : Nat → M Bool
+  | 0 => return false
+  | polls+1 => do
+      if (← liftM (kept.get : IO (Option Bytes))).isSome then return true
+      let wire ← rpc.call .pollRecord []
+      if !wire.isEmpty then
+        liftM (kept.set (some wire) : IO Unit)
+        return true
+      liftM (IO.sleep interval.toUInt32)
+      awaitRecord rpc kept interval polls
+
 /-- Public identifier only. The worker owns the secret buffer and its private
 length. Zero is reserved for implicit session key handles, never a payload.
 Identifiers are scoped to one worker lifetime and must never be reused. -/
@@ -175,8 +199,9 @@ def applicationBackend (rpc : Rpc) : TlsApplication.Backend BufferHandle where
     return applicationHandleKeys
   abort := emptyReply rpc .abort []
 
-def applicationSession (rpc : Rpc) (handshake : TlsClient.Session Unit) : IO (TlsApplication.Session BufferHandle) :=
-  TlsApplication.make (applicationBackend rpc) (applicationTransport rpc) {
+def applicationSession (rpc : Rpc) (handshake : TlsClient.Session Unit)
+    (transport : Option Transport := none) : IO (TlsApplication.Session BufferHandle) :=
+  TlsApplication.make (applicationBackend rpc) (transport.getD (applicationTransport rpc)) {
     keys := applicationHandleKeys, hostname := handshake.hostname, alpn := handshake.alpn
     sendSequence := handshake.sendSequence, receiveSequence := handshake.receiveSequence
     serverCertificateVerified := handshake.serverCertificateVerified

@@ -248,6 +248,15 @@ def reply (request mask : List Byte) : Except String (Option (List Byte)) := do
   else if path == "/api/v1/message" then return none
   else throw s!"unsupported server request {path}"
 
+/-- A `GET /v1/keepalive` request (the server drops a socket that is silent for
+90 seconds and never pings first). Its response is correlated like any other. -/
+def keepalive (id : Nat) (mask : List Byte) : Except String (List Byte) := do
+  let ascii (s : String) : List Byte := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
+  let request := [0x0a, 3] ++ ascii "GET" ++ [0x12, 13] ++ ascii "/v1/keepalive" ++ [0x20] ++ varint id
+  let message := [0x08, 0x01, 0x12] ++ varint request.length ++ request
+  unless message.length < 126 && mask.length == 4 do throw "keepalive shape"
+  return clientFrame mask message
+
 /-- Queued control replies as (kind, masked frame bytes); the queue is cleared. -/
 def replies (s : State) (mask : List Byte) : Except String (State × List (Nat × List Byte)) := do
   unless get s.control 0 == on do throw "control queue rejected"
@@ -375,6 +384,12 @@ def main (args : List String) : IO Unit := do
   let certificate ← IO.mkRef false
   let operations ← IO.mkRef ([] : List Nat)
   let revealed ← IO.mkRef 0
+  -- Authenticated-socket session (SIGNAL_LOCAL_CREDENTIALS: this party's XOR share of the
+  -- account id and password, hex): wait for delivered messages instead of sending.
+  let credentials ← IO.getEnv "SIGNAL_LOCAL_CREDENTIALS"
+  let delivered ← IO.mkRef 0
+  let keepalives ← IO.mkRef 0
+  let kept ← IO.mkRef (none : Option Bytes)
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
     hostsFile := hosts,port := ← natural basePort,manifestFile := manifest,sessionId := ← sessionBytes session }
@@ -393,7 +408,7 @@ def main (args : List String) : IO Unit := do
       TlsWorker.connect rpc endpoint (← liftM (natural port))
       let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) {hostname,alpn := ["http/1.1"]}
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
-      let app ← liftM (TlsWorker.applicationSession rpc handshake)
+      let app ← liftM (TlsWorker.applicationSession rpc handshake (some (TlsWorker.waitingTransport rpc kept)))
       let sendPublic (bytes : Bytes) : M Unit := do
         let handle ← rpc.call .publicBuffer bytes
         insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
@@ -427,7 +442,7 @@ def main (args : List String) : IO Unit := do
           let text ← liftM (IO.FS.readFile path : IO String)
           let (certificate, identity, records) ← liftResult (readExport text)
           let _ ← rpc.call .accountAdmit (identity ++ certificate)
-          let known ← records.mapM (fun (contact, record) => do
+          let known ← (if credentials.isSome then [] else records).mapM (fun (contact, record) => do
             let file := storeDirectory.map (fun directory => (directory : System.FilePath) / toString contact)
             let saved ← match file with
               | none => pure none
@@ -448,10 +463,19 @@ def main (args : List String) : IO Unit := do
               let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
               let _ ← rpc.call .contactKey (uint 16 contact ++ share)
               pure (contact, share, 0))
-          let upgrade ← rpc.call .publicUpgrade []
-          insist (upgrade.length == 44) "invalid public upgrade receipt"
-          sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
-          pure (upgrade.drop 16, known, true)
+          match credentials with
+          | some share =>
+            -- The password is shared: neither party can open this socket alone.
+            let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+            let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
+            insist (upgrade.length == 38) "invalid upgrade receipt"
+            TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
+            pure (upgrade.drop 10, known, true)
+          | none =>
+            let upgrade ← rpc.call .publicUpgrade []
+            insist (upgrade.length == 44) "invalid public upgrade receipt"
+            sendPublic (toBytes (RelayUpgrade.anonymousRequest ByteAuth.concrete (toBits (upgrade.take 16))))
+            pure (upgrade.drop 16, known, true)
       let contacts := known.map (·.1)
       -- Reveal and parse one authenticated record, byte by byte.
       let record (handle : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Bool) := do
@@ -597,20 +621,66 @@ def main (args : List String) : IO Unit := do
             else loop fuel s inputs finished
           | .control => loop fuel s inputs completed
           | .closed => throw "TLS closed before private responses"
-      let finished ← loop 256 (PublicReceive.start (toBits accept)) inputs 0
-      writeBack
-      TlsApplication.abort app
-      return finished
+      -- The authenticated socket: answer the server's requests, keep the connection alive
+      -- while nothing arrives, and stop after the expected number of delivered messages.
+      -- A delivered message's body stays unrevealed and is not acknowledged yet.
+      let rec waiting (fuel : Nat) (s : PublicReceive.State) (pings : Nat) (expected : Nat) : M Nat := do
+        match fuel with
+        | 0 => throw "receive budget exhausted"
+        | fuel+1 =>
+          if (← liftM (delivered.get : IO Nat)) ≥ expected then return pings
+          -- 25 seconds of agreed silence, then a keepalive.
+          if s.upgraded && !(← TlsWorker.awaitRecord rpc kept 100 250) then
+            insist (!s.pending) "keepalive was not answered"
+            let random ← rpc.call .publicRandom []
+            insist (random.length == 32) "invalid joint randomness"
+            let id := 2 ^ 63 + pings
+            sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+            liftM (keepalives.modify (· + 1) : IO Unit)
+            waiting fuel (PublicReceive.expect s id) (pings + 1) expected
+          else
+          match ← TlsApplication.receive app with
+          | .application handle =>
+            let (s, _) ← record handle.id s
+            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              pure (random.take 4)
+            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            for (kind, frame) in frames do
+              sendPublic (toBytes frame)
+              insist (kind != 8) "WebSocket peer closed before completion"
+            for request in s.requests do
+              let random ← rpc.call .publicRandom []
+              insist (random.length == 32) "invalid joint randomness"
+              match ← liftResult (PublicReceive.reply request (toBits (random.take 4))) with
+              | some frame => sendPublic (toBytes frame)
+              | none => liftM (delivered.modify (· + 1) : IO Unit)
+            waiting fuel { s with requests := [] } pings expected
+          | .control => waiting fuel s pings expected
+          | .closed => throw "TLS closed while waiting for messages"
+      match credentials with
+      | some _ =>
+        let expect ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPECT" : IO (Option String))
+        let pings ← waiting 4096 (PublicReceive.start (toBits accept)) 0 ((expect.bind String.toNat?).getD 1)
+        TlsApplication.abort app
+        return pings
+      | none =>
+        let finished ← loop 256 (PublicReceive.start (toBits accept)) inputs 0
+        writeBack
+        TlsApplication.abort app
+        return finished
     let outcome ← action.run
     if !outcome.isOk then
       let _ ← (TlsWorker.emptyReply running.rpc .abort []).run
       pure ()
     let verified ← certificate.get
     let codes ← operations.get
-    let passed := verified && outcome.isOk && codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38 && !codes.contains 18
+    let passed := verified && outcome.isOk && !codes.contains 18 && (credentials.isSome ||
+      (codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
-      ("bytes_revealed",toJson (← revealed.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
+      ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),("private_receive_parsing_used",toJson (codes.contains 18)),
       ("error",toJson (match outcome with | .ok _ => "" | .error e => e))]).compress
     unless passed do throw (IO.userError "public-receive service session failed")
   finally running.stop
