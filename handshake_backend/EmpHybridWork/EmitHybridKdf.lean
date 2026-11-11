@@ -4,6 +4,7 @@ import TlsMpc.HybridSend
 import TlsMpc.HybridService
 import TlsMpc.HybridKernels
 import TlsMpc.EstablishKernels
+import TlsMpc.ReceiveKernels
 import TlsMpc.TlsRecord
 import TlsMpc.TlsReceive
 open TlsMpc Std.Tactic.BVDecide
@@ -82,7 +83,7 @@ def kernelImage (k : HybridKernel.Kernel) : Except String KernelImage := do
 
 def main (args : List String) : IO Unit := do
   if let "kernel" :: rest := args then
-    let some kernel := HybridKernel.find rest <|> EstablishKernel.find rest | throw (IO.userError "unknown kernel or shape")
+    let some kernel := HybridKernel.find rest <|> EstablishKernel.find rest <|> ReceiveKernel.find rest | throw (IO.userError "unknown kernel or shape")
     match kernelImage kernel with
     | .ok image => (← IO.getStdout).putStrLn (Lean.toJson image).compress
     | .error message => throw (IO.userError message)

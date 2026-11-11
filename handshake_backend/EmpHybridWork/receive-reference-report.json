@@ -1,0 +1,41 @@
+{
+  "libsignal certificate, one-time prekey, content hint": {
+    "style": "libsignal",
+    "one_time_prekey": true,
+    "phone_number": false,
+    "content_hint": true,
+    "envelope_bytes": 2467,
+    "body_bytes": 252,
+    "counter": 0,
+    "reference_matches_libsignal_recipient": true,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "replies_decrypted_by_libsignal_sender": 2
+  },
+  "server certificate with phone number, no one-time prekey": {
+    "style": "server",
+    "one_time_prekey": false,
+    "phone_number": true,
+    "content_hint": false,
+    "envelope_bytes": 2299,
+    "body_bytes": 104,
+    "counter": 0,
+    "reference_matches_libsignal_recipient": true,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "replies_decrypted_by_libsignal_sender": 2
+  },
+  "certificate by reference, second message of the chain (first lost)": {
+    "style": "reference",
+    "one_time_prekey": true,
+    "phone_number": false,
+    "content_hint": true,
+    "envelope_bytes": 2107,
+    "body_bytes": 11,
+    "counter": 1,
+    "reference_matches_libsignal_recipient": false,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "replies_decrypted_by_libsignal_sender": 2
+  }
+}

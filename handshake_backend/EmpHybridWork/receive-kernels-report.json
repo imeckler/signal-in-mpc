@@ -1,0 +1,270 @@
+{
+  "libsignal certificate, one-time prekey, content hint": {
+    "style": "libsignal",
+    "one_time_prekey": true,
+    "phone_number": false,
+    "content_hint": true,
+    "envelope_bytes": 2467,
+    "body_bytes": 252,
+    "counter": 0,
+    "reference_matches_libsignal_recipient": true,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "kernel_outputs_match_reference": true,
+    "tampered_or_invalid_rejected_and_nothing_released": 44,
+    "session_kernel": "receive-session 40 2103 1 2 1 1 1 1 192 2 1 0",
+    "replies_decrypted_by_libsignal_sender": 2
+  },
+  "server certificate with phone number, no one-time prekey": {
+    "style": "server",
+    "one_time_prekey": false,
+    "phone_number": true,
+    "content_hint": false,
+    "envelope_bytes": 2299,
+    "body_bytes": 104,
+    "counter": 0,
+    "reference_matches_libsignal_recipient": true,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "kernel_outputs_match_reference": true,
+    "tampered_or_invalid_rejected_and_nothing_released": 44,
+    "session_kernel": "receive-session 40 1943 0 1 2 3 1 1 160 1 1 0",
+    "replies_decrypted_by_libsignal_sender": 2
+  },
+  "certificate by reference, second message of the chain (first lost)": {
+    "style": "reference",
+    "one_time_prekey": true,
+    "phone_number": false,
+    "content_hint": true,
+    "envelope_bytes": 2107,
+    "body_bytes": 11,
+    "counter": 1,
+    "reference_matches_libsignal_recipient": false,
+    "addresses": true,
+    "post_quantum_payload_bytes": 34,
+    "kernel_outputs_match_reference": true,
+    "tampered_or_invalid_rejected_and_nothing_released": 45,
+    "session_kernel": "receive-session 40 1865 4 2 1 1 1 1 80 0 1 1",
+    "replies_decrypted_by_libsignal_sender": 2
+  },
+  "field program receive-torsion": {
+    "points": 5,
+    "zero_exactly_when_torsion_free": true
+  },
+  "kernels": {
+    "receive-certificate 132 2 0 0": {
+      "and_gates": 682458,
+      "opened": []
+    },
+    "receive-certificate 138 1 0 0": {
+      "and_gates": 615389,
+      "opened": []
+    },
+    "receive-certificate 254 1 255 12": {
+      "and_gates": 678155,
+      "opened": []
+    },
+    "receive-certificate-verified": {
+      "and_gates": 520,
+      "opened": []
+    },
+    "receive-content 2013 138 1 0": {
+      "and_gates": 16111,
+      "opened": []
+    },
+    "receive-content 2013 138 1 1": {
+      "and_gates": 16103,
+      "opened": []
+    },
+    "receive-content 2205 254 1 0": {
+      "and_gates": 17647,
+      "opened": []
+    },
+    "receive-content 2205 254 1 1": {
+      "and_gates": 17639,
+      "opened": []
+    },
+    "receive-content 2373 132 2 0": {
+      "and_gates": 18991,
+      "opened": []
+    },
+    "receive-content 2373 132 2 1": {
+      "and_gates": 18983,
+      "opened": []
+    },
+    "receive-content-shape 2013 138 1": {
+      "and_gates": 73,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-content-shape 2205 254 1": {
+      "and_gates": 73,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-content-shape 2373 132 2": {
+      "and_gates": 73,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-envelope-point 2107": {
+      "and_gates": 0,
+      "opened": []
+    },
+    "receive-envelope-point 2299": {
+      "and_gates": 0,
+      "opened": []
+    },
+    "receive-envelope-point 2467": {
+      "and_gates": 0,
+      "opened": []
+    },
+    "receive-prekey-open 1865 4 2 1 1": {
+      "and_gates": 13800,
+      "opened": [
+        "kyberCiphertext",
+        "kyberPrekeyId",
+        "oneTimePrekeyId",
+        "signedPrekeyId"
+      ]
+    },
+    "receive-prekey-open 1943 0 1 2 3": {
+      "and_gates": 13783,
+      "opened": [
+        "kyberCiphertext",
+        "kyberPrekeyId",
+        "oneTimePrekeyId",
+        "signedPrekeyId"
+      ]
+    },
+    "receive-prekey-open 2103 1 2 1 1": {
+      "and_gates": 13776,
+      "opened": [
+        "kyberCiphertext",
+        "kyberPrekeyId",
+        "oneTimePrekeyId",
+        "signedPrekeyId"
+      ]
+    },
+    "receive-prekey-shape 1865": {
+      "and_gates": 520,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-prekey-shape 1943": {
+      "and_gates": 520,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-prekey-shape 2103": {
+      "and_gates": 520,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-session 40 1865 4 2 1 1 1 1 80 0 1 0": {
+      "and_gates": 2112149,
+      "opened": [
+        "status"
+      ]
+    },
+    "receive-session 40 1865 4 2 1 1 1 1 80 0 1 1": {
+      "and_gates": 2436443,
+      "opened": [
+        "status"
+      ]
+    },
+    "receive-session 40 1943 0 1 2 3 1 1 160 1 1 0": {
+      "and_gates": 2153001,
+      "opened": [
+        "status"
+      ]
+    },
+    "receive-session 40 2103 1 2 1 1 1 1 192 2 1 0": {
+      "and_gates": 2324484,
+      "opened": [
+        "status"
+      ]
+    },
+    "receive-signal-shape 1865 4 2 1 1": {
+      "and_gates": 562,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-signal-shape 1943 0 1 2 3": {
+      "and_gates": 562,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-signal-shape 2103 1 2 1 1": {
+      "and_gates": 562,
+      "opened": [
+        "shape"
+      ]
+    },
+    "receive-text 160 154": {
+      "and_gates": 5693,
+      "opened": [
+        "layout",
+        "length",
+        "status",
+        "text"
+      ]
+    },
+    "receive-text 320 314": {
+      "and_gates": 11531,
+      "opened": [
+        "layout",
+        "length",
+        "status",
+        "text"
+      ]
+    },
+    "receive-text 80 74": {
+      "and_gates": 2775,
+      "opened": [
+        "layout",
+        "length",
+        "status",
+        "text"
+      ]
+    },
+    "receive-unseal-message 2107": {
+      "and_gates": 2100679,
+      "opened": [
+        "certificateLength"
+      ]
+    },
+    "receive-unseal-message 2299": {
+      "and_gates": 2257894,
+      "opened": [
+        "certificateLength"
+      ]
+    },
+    "receive-unseal-message 2467": {
+      "and_gates": 2407792,
+      "opened": [
+        "certificateLength"
+      ]
+    },
+    "receive-unseal-static 2107": {
+      "and_gates": 480543,
+      "opened": []
+    },
+    "receive-unseal-static 2299": {
+      "and_gates": 480543,
+      "opened": []
+    },
+    "receive-unseal-static 2467": {
+      "and_gates": 480543,
+      "opened": []
+    }
+  }
+}
