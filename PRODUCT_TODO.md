@@ -211,7 +211,18 @@ party can block a delete by not forwarding it.
       broadcast's recipients by source address and timing. Decide: who runs it, one connection
       per recipient or per batch, added delay and shuffling. Not started, by instruction.
 - [ ] Review what timing reveals even with a proxy (burst of sends after each notify).
-- [ ] **Tor as the proxy** (concrete option, not started): the node that opens the TCP socket
+- [ ] **Being recognisable is separate from being located.** Whatever the exit:
+  - [ ] Compare our TLS ClientHello (cipher and extension lists and their order) and our HTTP
+        and WebSocket headers with what an official Signal client sends, and match them as far
+        as we can honour what we would advertise. A distinctive handshake links every
+        connection we make, through any proxy.
+  - [ ] Few Signal clients arrive from Tor exits, so sealed messages arriving over Tor in one
+        window are easy to attribute to one sender even on separate circuits. Exits that
+        ordinary users also arrive from would be less conspicuous; the SOCKS mechanism is the
+        same.
+  - [ ] Spread a broadcast in time (random delay and order per recipient). The owner decides
+        how much delivery latency is acceptable.
+- [ ] **Tor as the proxy** (concrete option, in progress): the node that opens the TCP socket
       connects through a local Tor client by SOCKS5 with the hostname passed through; the TLS
       session inside stays end to end, so the exit sees only ciphertext and nothing else in the
       design changes. To unlink recipients, one circuit (so one TLS connection and handshake,
