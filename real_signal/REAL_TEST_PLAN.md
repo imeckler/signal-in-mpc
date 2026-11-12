@@ -201,7 +201,8 @@ Offline (now):
 1. `lss-provision export-account real_signal/state/account.json real_signal/state/export production`
    — done 2026-11-11: certificate 134 bytes, signer id 3, matched root `BUkY…`, valid 167 hours.
    Records `real_signal/state/export/{mpc-export.json, credentials-party-{0,1}.hex, deployment-hints.json}`.
-2. Fix B1; add the profile kernels to the inventory and run the compact-certificate local stage (B2).
+2. Fix B1 and B6b; add the profile kernels to the inventory and run the compact-certificate local
+   stage (B2).
 3. `python3 real_signal/run_real_test.py local --export DIR --local-account NAME` against the local
    server (the same launcher and recording, with `lss-provision export-account … local` from a local
    account; section 4).
@@ -231,13 +232,39 @@ With the owner's go-ahead:
 After the test: the phone's receipts will be waiting for the account as refused messages; a later
 receive session with `--ack-refused` clears them (each is still recorded).
 
-## 4. Tested here
-
-See the end of this section for results.
+## 4. Tested here (2026-11-11/12, offline and local server only)
 
 - `lss-provision export-account` on the real `account.json` (production, offline): writes the
   export; certificate 134 bytes, by reference, key id 3, root `BUkY…`, 167 hours left, signed and
-  Kyber id width 4, no one-time prekeys.
-- `measure_handshake.py local`: 43, 922, 94, 58, verified, `http/1.1`, X25519, Ed25519.
+  Kyber id width 4, no one-time prekeys. `production` refuses a file that is not marked production;
+  `local` refuses one that is.
+- `measure_handshake.py local`: 43, 922, 94, 58 (the local deployment's sizes), verified,
+  `http/1.1`, X25519, Ed25519.
 - `circuit_inventory` on `deployment-production.json`: accepted, 396 kernels.
-- The controller with the new recording and acknowledgement switch builds.
+- **The whole flow against the local server, from an account file in the registration tool's exact
+  format** (a local account, `register NAME NUMBER unrestricted`, rewritten into `account.json`'s 27
+  fields): `export-account … local`, then `run_real_test.py local` (semi-honest, libsignal profile,
+  in-memory database nodes, `SIGNAL_ACK_REFUSED=0`): the receive session created the account row,
+  received the signup (2305-byte sealed content), stored the contact under the token's id and
+  acknowledged it (5 s); the send session delivered one text, 200, and the new user's libsignal
+  client decrypted it from an envelope without source fields (47 s). Recorded: 164 events per
+  party for the receive session, 85 for the send.
+- **The acknowledgement switch** (`.deps/lowering-scratch/check_ack_refused.py`): a valid signup
+  followed by a first message whose text is not a token. Session 1 stored the first and answered
+  it, recorded the second as refused ("the text is not a signup token …") and did not answer it,
+  and kept waiting (a refusal does not count). Session 2 received the refused message again,
+  refused and did not answer it again.
+- `public_service_controller recovery-check`: passes. Other agents' harness runs (`--db
+  --multi-device`, `--circuits 2 --circuits-db`, `--ceremony`) built and ran the controller with
+  these changes while they were in place.
+
+## 5. Where the target is configured
+
+Nothing in the controller assumes the local server: the target is the session's arguments
+`ENDPOINT PORT HOSTNAME … TRUST` (the harness passes `127.0.0.1 18443 server.example
+state/tls/ca.pem`; `run_real_test.py` passes the export's `server` block; the node daemon has the
+same four values in its configuration, `signal.endpoint`, `port`, `hostname`, `trust_root`). The
+sealed-sender trust root enters only through the export (`sealed_sender_server`, validated by
+`export-account` against the target's roots). Fixed in Lean, and correct for production: the HTTP
+`Host: chat.signal.org` and ALPN `http/1.1`. So no change was needed; the default stays the local
+server wherever the harness runs.
