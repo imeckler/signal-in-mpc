@@ -531,6 +531,17 @@ manifest. Do them together.
    controller builds (`requestBuild_ok` proves the header is 8 bytes); the kernel itself does not
    check it.
 
+5. **Reveal policy leak on an over-long varint (controller-side; fix in progress 2026-11-12, no
+   re-lowering needed).** `PublicReceive.varintAt` returned `none` both for an unfinished varint
+   and for one longer than 10 bytes; the scanners read `none` as "unfinished", so after a server
+   wrote an 11-byte varint the body key was never recognised and the controller revealed the rest
+   of the message, including a delivered envelope's sealed content (which the nodes can
+   decrypt) or a prekey-bundle response body. Only a server writing non-canonical protobuf can
+   trigger it. Counterexamples: `ReceiveTest.overlongRequest` / `overlongResponse`
+   (`TlsMpc/Node/Policy/ReceiveTest.lean`). Fix: a three-way varint result and malformed on
+   "too long"; a field length past the end of its message also becomes malformed.
+6. **Mask key reused across control replies in one drain** (RFC 6455 §5.3): fixed in S4.
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer
