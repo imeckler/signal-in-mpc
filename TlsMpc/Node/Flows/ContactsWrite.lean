@@ -29,6 +29,12 @@ prefix of `Random.joint`'s commitment and opening followed by the one `sealedBlo
 seal under the nonce; `write_honest` (T10, two honest parties): both return v and
 v ‖ checkOf K ‖ ctrOf K v S for v the first 8 bytes of r_A ⊕ r_B, when v is a valid, unused version.
 
+THE REVEAL LIST AND THE TABLE: `writeScript_reveals`, `write_viewD_kinds` (a write declares
+`writeKinds = [.commitment, .commitOpening, .sealedBlob]`; no hypothesis); `writeScript_wfp` (well
+formed, leaving the seal's `SealPost`); `opWrite`, the write as a step of the contact table on the
+entry's key and state, with `opWrite_inv` (preserves `Table.Inv`), `opWrite_wf`,
+`opWrite_disclosure` (T3), `opWrite_reveals`.
+
 NOT HERE: the version-per-contact counter ("increase by one per acknowledged write") is the
 controller's database bookkeeping, not a worker flow.
 -/
@@ -180,5 +186,118 @@ theorem write_honest (E : Env) (σA σB : Store) (I : Ideal) (hE : Loaded E) (nA
     (nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB))) K S hkn hsn hK hS h0 h1 hok.1 hk hs
   rw [jointRun_bind E _ _ _ _ _ _ I _ _ hseal]
   simp [Outcome2.then, jointRun]
+
+/-! ## The reveal list: a write declares the commitment, the opening and the sealed blob -/
+
+/-- The kinds a state write declares: `Random.joint`'s, then the seal's. -/
+def writeKinds : List TlsMpc.Node.RevealKind := Random.jointKinds ++ sealKinds
+
+theorem writeKinds_eq : writeKinds = [.commitment, .commitOpening, .sealedBlob] := rfl
+
+theorem writeScript_reveals (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat) (used : List B8)
+    (n : Nat) (key state : BoolH) (size : Nat) :
+    Reveals writeKinds (writeScript hash me nonceSlot valueSlot used n key state size) := by
+  unfold writeScript
+  refine Reveals.bind (Random.joint_reveals hash me nonceSlot valueSlot) (fun j => ?_)
+  split
+  · exact Every.bind (sealScript_reveals _ _ _ _ _) (fun _ => Every.done _)
+  · exact Every.abort _
+
+/-- **T3 for a state write in the reveal list's vocabulary**: against any adversary, from any store
+and engine state, every release the adversary receives is labelled `ofKind .commitment`,
+`ofKind .commitOpening` or `ofKind .sealedBlob`. No hypothesis (`write_disclosure` says which
+values: it needs `Loaded E` and 32-byte hashes). -/
+theorem write_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (nonceSlot valueSlot : Nat) (used : List B8) (n : Nat) (key state : BoolH) (size : Nat) :
+    ∀ r ∈ (withAdv E me adv (writeScript E.hash me nonceSlot valueSlot used n key state size) σ I vD).viewD,
+      ∃ k ∈ writeKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (writeScript_reveals E.hash me nonceSlot valueSlot used n key state size) σ I vD
+
+/-! ## Well-formedness of a write, and the write as a step of the contact table -/
+
+/-- **A write is well formed**, under the seal's hypotheses (`sealScript_wfp`); it leaves what the
+seal leaves (`SealPost`: the handles below `n` as before, nothing defined from `n + 3` on). -/
+theorem writeScript_wfp (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party)
+    (nonceSlot valueSlot : Nat) (used : List B8) (c : Ctx) (n : Nat) (key state : BoolH) (size : Nat)
+    (km sm : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hsn : state.id < n)
+    (hk : c.bool? key = some ⟨km, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hkm : km.length = 480) (hsm : sm.length = 8 * size)
+    (hsig' : 0 < size → size ≤ 16384 → sigs (sealName size) = some ⟨8 * (68 + size), sealMarks size⟩) :
+    WFP sigs (fun c' (_ : B8 × B8) => SealPost c n c' []) c
+      (writeScript hash me nonceSlot valueSlot used n key state size) := by
+  unfold writeScript
+  refine WFP.bind (Random.joint_wfp sigs hash me nonceSlot valueSlot c) (fun c' j hc' => ?_)
+  subst hc'
+  split
+  · exact WFP.bind (sealScript_wfp sigs c' n key state size (nonceOf j) km sm hf hkn hsn hk hs hkm hsm hsig')
+      (fun _ _ hp => WFP.done _ _ hp)
+  · exact WFP.abort _ _
+
+/-- **A state write of contact `id`** (T10 on the table): `writeScript` on the entry's key and
+state, its handles a block of 3 from the session counter. The controller adds the returned nonce to
+`used` (`useNonce`). -/
+def opWrite (t : Table) (id : Nat) (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat)
+    (used : List B8) : Step (B8 × B8) :=
+  match t.find? id with
+  | some e =>
+    match e.key, e.state with
+    | some k, some s =>
+      { script := writeScript hash me nonceSlot valueSlot used (t.alloc 3).1 k s e.size
+        commit := fun _ => (t.alloc 3).2 }
+    | _, _ => { script := .abort "contact write unavailable", commit := fun _ => t }
+  | none => { script := .abort "contact write unavailable", commit := fun _ => t }
+
+/-- **A write preserves the table invariant** (and is well formed): the key and state handles, their
+marks and the counter's freshness all come from `Table.Inv`. -/
+theorem opWrite_inv (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id : Nat)
+    (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat) (used : List B8) (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opWrite t id hash me nonceSlot valueSlot used).commit r).Inv c') c
+      (opWrite t id hash me nonceSlot valueSlot used).script := by
+  unfold opWrite
+  cases hf : t.find? id with
+  | none => exact WFP.abort _ _
+  | some e =>
+    have hm := Table.find_mem hf
+    dsimp only
+    cases hk : e.key with
+    | none => exact WFP.abort _ _
+    | some k =>
+      cases hst : e.state with
+      | none => exact WFP.abort _ _
+      | some s =>
+        dsimp only
+        obtain ⟨hsv, _⟩ := hI.state _ hm s hst
+        refine (writeScript_wfp sigs hash me nonceSlot valueSlot used c (t.alloc 3).1 k s e.size keyMarks _ hI.fresh
+          (hI.below _ hm k (Entry.mem_key hk)) (hI.below _ hm s (Entry.mem_state hst)) (hI.key _ hm k hk) hsv
+          (by simp only [keyMarks, List.length_replicate]) (by simp only [List.length_replicate])
+          (hs.sealing e.size)).mono (fun c' r hp => ?_)
+        obtain ⟨hlow, hf'⟩ := hp
+        exact Table.Inv.keep hI rfl (by simp) hf' (fun p hp g hg => hlow g (hI.below p hp g hg))
+
+theorem opWrite_wf (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id : Nat)
+    (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat) (used : List B8) (hI : t.Inv c) :
+    WF sigs c (opWrite t id hash me nonceSlot valueSlot used).script :=
+  (opWrite_inv sigs hs c t id hash me nonceSlot valueSlot used hI).wf
+
+/-- **T3 for a write on the table**: `write_disclosure` for the entry's key and state handles. -/
+theorem opWrite_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (hE : Loaded E) (hh : ∀ m, (E.hash m).length = 32) (t : Table) (id nonceSlot valueSlot : Nat)
+    (used : List B8) (e : Entry) (k s : BoolH) (kv sv : Bits) (he : t.find? id = some e)
+    (hk : e.key = some k) (hs : e.state = some s) (hkn : k.id < t.next) (hsn : s.id < t.next)
+    (hn : (σ.bytes nonceSlot).length = 32) (hv : (σ.bytes valueSlot).length = 32)
+    (hkv : I.bools k.id = some kv) (hsv : I.bools s.id = some sv) :
+    ∃ v : B8, (withAdv E me adv (opWrite t id E.hash me nonceSlot valueSlot used).script σ I vD).viewD <+:
+      [Random.e1 E me σ nonceSlot valueSlot, Random.e2 σ nonceSlot valueSlot, writeRelease e.size kv sv v] := by
+  simp only [opWrite, he, hk, hs]
+  exact write_disclosure E me adv σ I vD hE hh nonceSlot valueSlot used t.next k s e.size kv sv hn hv hkn hsn hkv hsv
+
+theorem opWrite_reveals (t : Table) (id : Nat) (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat)
+    (used : List B8) : Reveals writeKinds (opWrite t id hash me nonceSlot valueSlot used).script := by
+  unfold opWrite
+  split
+  · split
+    · exact writeScript_reveals _ _ _ _ _ _ _ _ _
+    · exact Every.abort _
+  · exact Every.abort _
 
 end TlsMpc.Node.Flows.Contacts

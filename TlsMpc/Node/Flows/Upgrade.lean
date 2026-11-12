@@ -22,6 +22,7 @@ S16). Until then the C++ op 45 stays in use.
 PROVED: `upgrade_honest` (T4-UPGRADE, honest parties, ideal model): both parties return
 nonce ‖ acceptOf (keyOf nonce) (RFC 6455 section 4.2.2, `WebSocketAccept.accept_spec`) with
 nonce the first 16 bytes of r_A ⊕ r_B (P-RAND (a)). `publicUpgrade_wf`: the script is well formed.
+`publicUpgrade_reveals`, `publicUpgrade_viewD_kinds`: it releases only under `Random.jointKinds`.
 -/
 
 namespace TlsMpc.Node.Flows.Upgrade
@@ -65,6 +66,31 @@ theorem publicUpgrade_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) 
       · exact WF.abort _ _
     | _ => exact WF.abort _ _
   | _ => exact WF.abort _ _
+
+/-- **The reveal list:** the upgrade releases exactly what `Random.joint` does (`jointKinds`: the
+commitment and its opening); the nonce and accept value are computed from those. The kind
+`upgradeNonce` (code 22) is the controller's name for the result, never a label on the wire. -/
+theorem publicUpgrade_reveals (hash : Bytes → Bytes) (me : Party) (nonce value : Nat) :
+    Reveals Random.jointKinds (publicUpgrade hash me nonce value) :=
+  Every.bind (Random.joint_reveals hash me nonce value) (fun j => by
+    split
+    · exact Every.done _
+    · exact Every.abort _)
+
+/-- **T3 for the upgrade in the reveal list's vocabulary**, against any adversary. -/
+theorem publicUpgrade_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) :
+    ∀ r ∈ (withAdv E me adv (publicUpgrade E.hash me nonce value) σ I vD).viewD,
+      ∃ k ∈ Random.jointKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (publicUpgrade_reveals E.hash me nonce value) σ I vD
+
+/-- The sender's wires of the upgrade fit the pipe. -/
+theorem publicUpgrade_bounded (hash : Bytes → Bytes) (me : Party) (nonce value : Nat) :
+    Every Instr.Bounded (publicUpgrade hash me nonce value) :=
+  Every.bind (Random.joint_bounded hash me nonce value) (fun j => by
+    split
+    · exact Every.done _
+    · exact Every.abort _)
 
 /-- **T4-UPGRADE (honest parties).** Both return nonce ‖ acceptOf (keyOf nonce), the RFC 6455
 accept value for the key base64(nonce), with nonce the first 16 bytes of r_A ⊕ r_B. Hypotheses

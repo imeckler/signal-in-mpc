@@ -1,5 +1,6 @@
 import TlsMpc.Node.Engine.Model
 import TlsMpc.Node.Engine.Labels
+import TlsMpc.Node.Engine.Reveal
 
 /-!
 # `Random.joint`: joint public randomness by commit-then-open (op 33)
@@ -19,6 +20,11 @@ plan's default framing is used here (both parties change together when op 33 mov
 
 The result is public (`Reveal.jointRandom`); the commitment and the opening are own-secret
 reveals (`Reveal.commitment`, `Reveal.commitOpening`), declared in the script as `Payload`s.
+In the reveal list's vocabulary (Engine/Reveal.lean): the script declares the kinds
+`jointKinds = [.commitment, .commitOpening]` (`joint_reveals`); its two releases carry the labels
+`Label.ofKind .commitment` (code 100) and `Label.ofKind .commitOpening` (code 101). The kind
+`jointRandom` (code 20) is never a label on the wire: it is the controller's name for the result,
+r_A ⊕ r_B, computed from those two releases.
 
 PROVED (in the ideal model of Engine/Model.lean; `H` is `Env.hash`):
   joint_wf: the script is well formed in every context (labels, exchange sizes).
@@ -38,6 +44,9 @@ PROVED (in the ideal model of Engine/Model.lean; `H` is `Env.hash`):
     on the honest party's randomness: plan 7.0, "the adversary's committed value is a function of
     what it saw before the commitment exchange"), every accepted result is r ⊕ v for one fixed v,
     and r ↦ r ⊕ v is a bijection of 32-byte strings (its own inverse).
+  joint_reveals, joint_viewD_kinds (T3 in the reveal list's vocabulary): every release of any run,
+    against any adversary, is labelled `ofKind .commitment` or `ofKind .commitOpening`; with no
+    hypothesis (not even on the hash). joint_bounded: the sender's wires fit the pipe.
 -/
 
 namespace TlsMpc.Node.Flows.Random
@@ -111,6 +120,78 @@ theorem joint_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Pa
       · exact WF.abort _ _
     | _ => exact WF.abort _ _
   | _ => exact WF.abort _ _
+
+/-- `joint` is well formed and leaves the shell's context as it found it (it only exchanges). -/
+theorem joint_wfp (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (nonce value : Nat)
+    (c : Ctx) : WFP sigs (fun c' _ => c' = c) c (joint hash me nonce value) := by
+  have hc : maxExchange = 65536 := rfl
+  simp only [joint, Script.exchange, Script.ensure, Script.bind_eq, Script.pure_eq, Script.bind_step]
+  refine WFP.step c c (.bytes 32) _ _
+    (by simp [check, InstrP.skel, InstrP.map, Label.jointRandomCommitment, hc, guard]) ?_
+  intro r _
+  cases r with
+  | exchanged s x =>
+    simp only [Script.bind_done]
+    refine WFP.step c c (.bytes 64) _ _
+      (by simp [check, InstrP.skel, InstrP.map, Label.jointRandomOpening, hc, guard]) ?_
+    intro r _
+    cases r with
+    | exchanged o o' =>
+      simp only [Script.bind_done]
+      split
+      · exact WFP.done _ _ rfl
+      · exact WFP.abort _ _
+    | _ => exact WFP.abort _ _
+  | _ => exact WFP.abort _ _
+
+/-! ## The reveal list: the kinds `joint` releases under -/
+
+/-- The kinds `Random.joint` declares: its commitment and its opening. -/
+def jointKinds : List TlsMpc.Node.RevealKind := [.commitment, .commitOpening]
+
+/-- Every instruction of `joint`, on every branch, satisfies `P`, given its two exchanges do. -/
+theorem joint_every (P : Instr → Prop) (hash : Bytes → Bytes) (me : Party) (nonce value : Nat)
+    (h1 : P (.exchange 32 Label.jointRandomCommitment (.commitment tag nonce value)))
+    (h2 : P (.exchange 64 Label.jointRandomOpening (.opening [nonce, value]))) :
+    Every P (joint hash me nonce value) := by
+  simp only [joint, Script.exchange, Script.ensure, Script.bind_eq, Script.pure_eq, Script.bind_step]
+  refine Every.step _ _ h1 (fun r => ?_)
+  cases r with
+  | exchanged s x =>
+    simp only [Script.bind_done]
+    refine Every.step _ _ h2 (fun r => ?_)
+    cases r with
+    | exchanged o o' =>
+      simp only [Script.bind_done]
+      split
+      · exact Every.done _
+      · exact Every.abort _
+    | _ => exact Every.abort _
+  | _ => exact Every.abort _
+
+/-- **`joint` declares `jointKinds`**: its releases are labelled `ofKind .commitment` and
+`ofKind .commitOpening`, on every branch. -/
+theorem joint_reveals (hash : Bytes → Bytes) (me : Party) (nonce value : Nat) :
+    Reveals jointKinds (joint hash me nonce value) :=
+  joint_every _ hash me nonce value
+    (LabelIn.of_mem (k := .commitment) (by simp [jointKinds]) rfl)
+    (LabelIn.of_mem (k := .commitOpening) (by simp [jointKinds]) rfl)
+
+/-- **T3 for `Random.joint` in the reveal list's vocabulary.** Against any adversary, from any
+store and engine state, every release the adversary receives is labelled `ofKind k`, `k` the
+commitment or the opening kind. -/
+theorem joint_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) :
+    ∀ r ∈ (withAdv E me adv (joint E.hash me nonce value) σ I vD).viewD,
+      ∃ k ∈ jointKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (joint_reveals E.hash me nonce value) σ I vD
+
+/-- **The sender's wires of `joint` fit the pipe** (`Wire.Bounded`). -/
+theorem joint_bounded (hash : Bytes → Bytes) (me : Party) (nonce value : Nat) :
+    Every Instr.Bounded (joint hash me nonce value) :=
+  joint_every _ hash me nonce value
+    ⟨by decide, Label.ofKind_code_lt _, show (0 : Nat) < B64 by decide⟩
+    ⟨by decide, Label.ofKind_code_lt _, show (0 : Nat) < B64 by decide⟩
 
 /-! ## Two honest parties: P-RAND (a) -/
 

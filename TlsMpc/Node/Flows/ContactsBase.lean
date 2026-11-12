@@ -1,5 +1,6 @@
 import TlsMpc.Node.Engine.Model
 import TlsMpc.Node.Engine.Labels
+import TlsMpc.Node.Engine.Reveal
 import TlsMpc.ContactKernelsProofs
 
 /-!
@@ -25,8 +26,12 @@ WHAT IS HERE.
     circuits computing their Lean definitions (T2, stage P3; the model's own assumption that "a
     circuit computes its Lean definition"). Nothing else about the engines is assumed.
   * Labels `blobAccepted`, `sealedBlob` (plan 4.3, "Stored state"): the registry's
-    `Label.blobAccepted`, `Label.sealedBlob` (Engine/Labels.lean, pairwise distinct with every
-    other flow's label; provisional codes until RevealKind exists, Engine.lean decision D7).
+    `Label.blobAccepted` = `Label.ofKind .blobAccepted` (code 30) and `Label.sealedBlob` =
+    `Label.ofKind .sealedBlob` (code 31) (Engine/Labels.lean: the reveal kinds' codes, pairwise
+    distinct with every other flow's label).
+  * The reveal list (Engine/Reveal.lean): `every_seq`, `every_seqs`, `every_openThen` (a property of
+    every instruction, through the combinators) and `Silent.reveals` (a silent script declares no
+    kind), with which each flow proves the kinds it declares (`Reveals`).
   * Script combinators `seq` (an instruction whose reply is unit), `seqs` (a block of them) and
     `openThen` (an opening and its continuation), with generic lemmas:
       - `plain` instructions (no private input, no release, independent of the peer: public bits,
@@ -220,6 +225,26 @@ def frees (hs : List BoolH) : List Instr := hs.map .freeBool
 @[simp] theorem seqs_cons {α : Type} (i : Instr) (is : List Instr) (s : Script α) :
     seqs (i :: is) s = seq i (seqs is s) := rfl
 
+/-! ## A property of every instruction, through the combinators (Engine/Reveal.lean `Every`) -/
+
+theorem every_seq {α : Type} {P : Instr → Prop} {i : Instr} {s : Script α} (hi : P i) (hs : Every P s) :
+    Every P (seq i s) :=
+  Every.step i _ hi (fun r => by cases r <;> first | exact hs | exact Every.abort _)
+
+theorem every_seqs {α : Type} {P : Instr → Prop} {s : Script α} (hs : Every P s) :
+    ∀ (is : List Instr), (∀ i ∈ is, P i) → Every P (seqs is s)
+  | [], _ => hs
+  | i :: is, h => every_seq (h i (by simp)) (every_seqs hs is (fun j hj => h j (by simp [hj])))
+
+theorem every_openThen {α : Type} {P : Instr → Prop} {h : BoolH} {l : Label} {k : Bits → Script α}
+    (hi : P (.openBool h l)) (hk : ∀ b, Every P (k b)) : Every P (openThen h l k) :=
+  Every.step _ _ hi (fun r => by cases r <;> first | exact hk _ | exact Every.abort _)
+
+/-- A block of instructions without release declares no kind. -/
+theorem labelIn_of_none {ks : List TlsMpc.Node.RevealKind} {is : List Instr} (h : ∀ i ∈ is, i.label? = none) :
+    ∀ i ∈ is, LabelIn ks i :=
+  fun i hi => LabelIn.of_none (h i hi)
+
 /-! ## Plain instructions in the model -/
 
 /-- No private input, no release, and an ideal effect independent of the parties. -/
@@ -341,6 +366,14 @@ theorem Silent.seqs {α : Type} {s : Script α} (hs : Silent s) :
     ∀ (is : List Instr), (∀ i ∈ is, i.label? = none) → Silent (Contacts.seqs is s)
   | [], _ => hs
   | i :: is, h => Silent.seq (h i (by simp)) (Silent.seqs hs is (fun j hj => h j (by simp [hj])))
+
+/-- **A silent script declares no kind** (so it `Reveals` under any list). -/
+theorem Silent.reveals {α : Type} {s : Script α} (hs : Silent s) (ks : List TlsMpc.Node.RevealKind) :
+    Reveals ks s := by
+  induction hs with
+  | done a => exact Every.done a
+  | abort r => exact Every.abort r
+  | step i k hl _ ih => exact Every.step i k (LabelIn.of_none hl) ih
 
 /-- **Silent scripts release nothing**, to the honest party or to the adversary. -/
 theorem silent_view {α : Type} (s : Script α) (hs : Silent s) :

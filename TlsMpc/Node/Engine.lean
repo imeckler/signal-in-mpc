@@ -107,7 +107,8 @@ purpose: this is the specification the Rust side implements, byte for byte.
      width bound.
      Numbers: check does not test that a number fits in a u64 (on the pipe every decoded number
      does); the Lean sender encodes only Wire.Bounded instructions, which round-trip
-     (decodeBatch_encodeBatch). (The former guard k < 2^64 of fieldScale was dead on the pipe and
+     (decodeBatch_encodeBatch; Engine/Reveal.lean nextBatch_bounded, and per flow
+     Flows/Registry.lean). (The former guard k < 2^64 of fieldScale was dead on the pipe and
      not the only such condition, so it was dropped.)
      Handle lifetime (engine side): an engine value lives exactly as long as its Lean handle is
      live in the context. freeBool / freeField free it at once; a Boolean handle consumed as a
@@ -160,11 +161,14 @@ DECISIONS (against or beyond the plan's text, with the reason):
       contribution and the script combines them in the engine; there is no engine-side random
       instruction (the ABI has none).
   D7. The reply type is a plain sum (Reply), not indexed by the instruction; builders check the
-      constructor and abort otherwise. Labels are numeric codes (Label), provisional until
-      Reveal.lean's RevealKind exists, whose constructor index becomes the code. Labels are part
-      of the agreed skeleton, so both parties agree on why a value is released. Every code a
-      flow uses is a named constant of Engine/Labels.lean (pairwise distinct, nonzero), the one
-      place a RevealKind mapping will read from.
+      constructor and abort otherwise. Labels are numeric codes (Label): the code of a reveal kind
+      (`RevealKind.code`, TlsMpc/Node/Types.lean). This file does not import Types.lean (the
+      instruction set and `check` know only numbers); Engine/Labels.lean is the bridge,
+      `Label.ofKind k = ⟨k.code⟩`, and every label a flow uses is a named `ofKind` constant there
+      (pairwise distinct and nonzero, from RevealKind.codes_distinct and code_ne_zero). Labels are
+      part of the agreed skeleton, so both parties agree on why a value is released.
+      Engine/Reveal.lean states which kinds a script releases under (`Reveals`) and proves that
+      the views of any run carry nothing else (`viewD_kinds`).
   D8. A batch ends at every instruction with a data reply, including openBoolTo (a later input
       may read the slot it fills) and exchange. So P-RAND's commitment and opening are two
       batches, not one: the opening is sent only after the peer's commitment was received, which
@@ -258,8 +262,8 @@ def join : Mark → Mark → Mark
   | _, _ => .never
 end Mark
 
-/-- The reveal label every release carries (an opening, or an exchange). Provisional numeric
-codes (decision D7); code 0 is not a label. The codes flows use are in Engine/Labels.lean. -/
+/-- The reveal label every release carries (an opening, or an exchange): the code of a reveal kind
+(decision D7, `Label.ofKind` in Engine/Labels.lean); code 0 is not a label. -/
 structure Label where
   code : Nat
   deriving DecidableEq, Repr

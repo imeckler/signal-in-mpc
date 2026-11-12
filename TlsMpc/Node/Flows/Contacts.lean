@@ -53,6 +53,10 @@ Lean definitions, ContactsBase.lean):
     labelled blobAccepted: the first byte of the `contact-open` kernel's output, its `accepted`
     field) and `open_released_byte` (for a key of 60 bytes that byte is 255 or 0 according as the
     check value matches: the adversary learns exactly whether the stored check value is this key's).
+  The reveal list (Engine/Reveal.lean): `keyScript_reveals`, `sealScript_reveals`,
+    `openScript_reveals` (the scripts declare `keyKinds = []`, `sealKinds = [.sealedBlob]`,
+    `openKinds = [.blobAccepted]`), and `key_viewD_kinds`, `seal_viewD_kinds`, `open_viewD_kinds`:
+    T3 in the reveal list's vocabulary, with no hypothesis on the engines.
   T4-CONTACT (two honest parties): `key_honest` (the key handle holds
     `contactKey_spec`'s block from the two shares, other handles untouched), `seal_honest`
     (the result is checkOf K ‖ ctrOf K version S, `contactSeal_spec`), `open_honest` (accepted iff
@@ -456,6 +460,63 @@ theorem open_released_byte (K version check ct : B8) (hK : K.length = 60) (hargs
   simp
 
 end Disclosure
+
+/-! ## The reveal list: the kinds each script declares (Engine/Reveal.lean) -/
+
+/-- `Contacts.key` releases nothing. -/
+def keyKinds : List TlsMpc.Node.RevealKind := []
+/-- `Contacts.seal` releases the sealed blob only. -/
+def sealKinds : List TlsMpc.Node.RevealKind := [.sealedBlob]
+/-- `Contacts.open` releases the `accepted` byte only. -/
+def openKinds : List TlsMpc.Node.RevealKind := [.blobAccepted]
+
+theorem keyScript_reveals (n slot : Nat) : Reveals keyKinds (keyScript n slot) :=
+  (keyScript_silent n slot).reveals _
+
+theorem sealScript_reveals (n : Nat) (key state : BoolH) (size : Nat) (version : B8) :
+    Reveals sealKinds (sealScript n key state size version) := by
+  unfold sealScript
+  split
+  · refine every_seqs (every_openThen (LabelIn.of_mem (k := .sealedBlob) (by simp [sealKinds]) rfl)
+      (fun b => every_seqs (Every.done _) _ (labelIn_of_none (by simp [InstrP.label?])))) _
+      (labelIn_of_none (by simp [sealBlock, InstrP.label?]))
+  · exact Every.abort _
+
+theorem openScript_reveals (n : Nat) (key : BoolH) (version check ct : B8) :
+    Reveals openKinds (openScript n key version check ct) := by
+  unfold openScript
+  split
+  · refine every_seqs (every_openThen (LabelIn.of_mem (k := .blobAccepted) (by simp [openKinds]) rfl)
+      (fun b => ?_)) _ (labelIn_of_none (by simp [openBlock, InstrP.label?]))
+    unfold openRest
+    split
+    · exact every_seqs (Every.done _) _ (labelIn_of_none (by simp [InstrP.label?]))
+    · exact every_seqs (Every.done _) _ (labelIn_of_none (by simp [InstrP.label?]))
+  · exact Every.abort _
+
+section Kinds
+
+variable (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+
+/-- **T3 for `Contacts.seal` in the reveal list's vocabulary**: every release the adversary
+receives, in any run, is labelled `ofKind .sealedBlob`. No hypothesis (not even `Loaded`). -/
+theorem seal_viewD_kinds (n : Nat) (key state : BoolH) (size : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (sealScript n key state size version) σ I vD).viewD,
+      ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (sealScript_reveals n key state size version) σ I vD
+
+/-- **T3 for `Contacts.open` in the reveal list's vocabulary**: only `ofKind .blobAccepted`. -/
+theorem open_viewD_kinds (n : Nat) (key : BoolH) (version check ct : B8) :
+    ∀ r ∈ (withAdv E me adv (openScript n key version check ct) σ I vD).viewD,
+      ∃ k ∈ openKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (openScript_reveals n key version check ct) σ I vD
+
+/-- **T3 for `Contacts.key` in the reveal list's vocabulary**: no kind (the view is empty). -/
+theorem key_viewD_kinds (n slot : Nat) :
+    ∀ r ∈ (withAdv E me adv (keyScript n slot) σ I vD).viewD, ∃ k ∈ keyKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (keyScript_reveals n slot) σ I vD
+
+end Kinds
 
 /-! ## T4-CONTACT: two honest parties -/
 

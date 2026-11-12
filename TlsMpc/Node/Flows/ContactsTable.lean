@@ -37,6 +37,9 @@ PROVED: T3 for each step against any adversary (`opKey_disclosure`, `opSeal_disc
 `opOpen_disclosure`, `opEvict_disclosure`, `opAssign_disclosure`): key, evict and assign release
 nothing; seal releases at most the sealed blob of the entry's key and state; open at most the
 `accepted` byte. `frees_wf`: freeing a duplicate-free list of live handles is well formed.
+In the reveal list's vocabulary (Engine/Reveal.lean): `opKey_reveals`, `opSeal_reveals`,
+`opOpen_reveals`, `opEvict_reveals`, `opAssign_reveals` (the kinds each step declares: none,
+`sealedBlob`, `blobAccepted`, none, none) and `opSeal_viewD_kinds`, `opOpen_viewD_kinds`.
 THE TABLE INVARIANT `Table.Inv c t` (in the shell's context `c`): the counter is fresh (no id
 from `t.next` on was ever defined), contact ids are distinct, each entry's handles are distinct
 and no handle belongs to two entries, every table handle is below the counter and live, keys have
@@ -237,6 +240,56 @@ theorem opOpen_disclosure (hE : Loaded E) (t : Table) (id : Nat) (kinds : List N
       rw [runPlain_frees E k.id e.derived I I' hI' hd, hkv]
     exact open_disclosure E me adv σ I' vD hE t.next k version check ct kv hkn hkv'
   · simp [withAdv]
+
+/-! ### The same in the reveal list's vocabulary (Engine/Reveal.lean): the kinds each step declares -/
+
+theorem opKey_reveals (t : Table) (id slot : Nat) : Reveals keyKinds (opKey t id slot).script :=
+  (Silent.seqs (keyScript_silent _ _) _ (frees_silent _)).reveals _
+
+theorem opSeal_reveals (t : Table) (id : Nat) (version : B8) : Reveals sealKinds (opSeal t id version).script := by
+  unfold opSeal
+  split
+  · split
+    · exact sealScript_reveals _ _ _ _ _
+    · exact Every.abort _
+  · exact Every.abort _
+
+theorem opOpen_reveals (t : Table) (id : Nat) (kinds : List Nat) (version check ct : B8) :
+    Reveals openKinds (opOpen t id kinds version check ct).script := by
+  unfold opOpen
+  split
+  · split
+    · split
+      · exact every_seqs (openScript_reveals _ _ _ _ _) _ (labelIn_of_none (frees_silent _))
+      · exact Every.abort _
+    · exact Every.abort _
+  · exact Every.abort _
+
+theorem opEvict_reveals (t : Table) (id : Nat) : Reveals [] (opEvict t id).script := by
+  unfold opEvict
+  split
+  · exact (Silent.seqs (Silent.done _) _ (frees_silent _)).reveals _
+  · exact Every.abort _
+
+theorem opAssign_reveals (t : Table) (fromId toId : Nat) : Reveals [] (opAssign t fromId toId).script := by
+  unfold opAssign
+  split
+  · simp only
+    split
+    · exact (Silent.seqs (Silent.done _) _ (frees_silent _)).reveals _
+    · exact Every.done _
+  · exact Every.abort _
+
+/-- **T3 for op 38 on the table, in the reveal list's vocabulary**: only `ofKind .sealedBlob`. -/
+theorem opSeal_viewD_kinds (t : Table) (id : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (opSeal t id version).script σ I vD).viewD, ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (opSeal_reveals t id version) σ I vD
+
+/-- **T3 for ops 37 and 63 on the table, in the reveal list's vocabulary**: only `ofKind .blobAccepted`. -/
+theorem opOpen_viewD_kinds (t : Table) (id : Nat) (kinds : List Nat) (version check ct : B8) :
+    ∀ r ∈ (withAdv E me adv (opOpen t id kinds version check ct).script σ I vD).viewD,
+      ∃ k ∈ openKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (opOpen_reveals t id kinds version check ct) σ I vD
 
 end Disclosure
 

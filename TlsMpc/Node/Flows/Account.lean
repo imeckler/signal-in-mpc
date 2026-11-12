@@ -33,6 +33,9 @@ PROVED: `accountKey_disclosure` (nothing released), `accountSeal_disclosure` (at
 blob of the key, version and content handles), `opSeal_disclosure` (both credential cases: at
 most one release, labelled sealedBlob, the seal kernel's output on the key, the version and the
 account content), `accountKey_honest` (T4: the block of `contactKey_spec`).
+On the session's counters: `sealStep`, `keyStep` (blocks from `State.ctr`), `sealStep_eq`.
+The reveal list: `sealScript_reveals`, `opSeal_reveals`, `sealStep_reveals` (`sealKinds`),
+`keyStep_reveals` (no kind), `opSeal_viewD_kinds`.
 -/
 
 namespace TlsMpc.Node.Flows.Account
@@ -40,13 +43,15 @@ namespace TlsMpc.Node.Flows.Account
 open TlsMpc.Node.Engine
 open TlsMpc.Node.Flows.Contacts
 
-/-- The account's handles (all Boolean). `certificate`: handle and byte length. -/
+/-- The account's handles (all Boolean). `certificate`: handle and byte length. `ctr`: the session's
+handle counters (Engine.lean decision D12), from which `keyStep` and `sealStep` take their blocks. -/
 structure State where
   key : Option BoolH := none
   scalar : Option BoolH := none
   credentials : Option BoolH := none
   shares : Option (BoolH × BoolH) := none
   certificate : Option (BoolH × Nat) := none
+  ctr : Counters := {}
 
 /-- Account id (16) and password (22). -/
 def credentialBytes : Nat := 16 + 22
@@ -88,6 +93,42 @@ def opSeal (a : State) (n : Nat) (version : B8) : Script B8 × Nat × State :=
     (seqs (combineBlock n ca cb) (sealScript (n + 3) k s ⟨n + 2⟩ cert len version), n + 7,
       { a with credentials := some ⟨n + 2⟩ })
   | _, _, _, _, _ => (.abort "account seal unavailable", n, a)
+
+/-! ## On the session's counters (Engine.lean decision D12)
+
+`opSeal a n` takes its first handle id `n` from the caller. `sealStep` and `keyStep` take it from
+the state's counters instead: a block of `Counters.allocB` (7 ids when the credentials are combined
+from the shares, 4 otherwise; 4 for the key), and the state after the step carries the counters past
+the block. `sealStep_eq`: `sealStep` is `opSeal` at the counter, the counter moved to `opSeal`'s
+next free id; so every theorem about `opSeal a n` applies with `n = a.ctr.bool`. -/
+
+/-- **Op 54 on the counters.** The script and the state after it. -/
+def sealStep (a : State) (version : B8) : Script B8 × State :=
+  match a.key, a.scalar, a.certificate, a.credentials, a.shares with
+  | some k, some s, some (cert, len), some cr, _ =>
+    (sealScript (a.ctr.allocB 4).1 k s cr cert len version, { a with ctr := (a.ctr.allocB 4).2 })
+  | some k, some s, some (cert, len), none, some (ca, cb) =>
+    (seqs (combineBlock (a.ctr.allocB 7).1 ca cb)
+        (sealScript ((a.ctr.allocB 7).1 + 3) k s ⟨(a.ctr.allocB 7).1 + 2⟩ cert len version),
+      { a with credentials := some ⟨(a.ctr.allocB 7).1 + 2⟩, ctr := (a.ctr.allocB 7).2 })
+  | _, _, _, _, _ => (.abort "account seal unavailable", a)
+
+/-- **`sealStep` is `opSeal` at the counter**, the counter moved to `opSeal`'s next free id. -/
+theorem sealStep_eq (a : State) (version : B8) :
+    (sealStep a version).1 = (opSeal a a.ctr.bool version).1 ∧
+      (sealStep a version).2 =
+        { (opSeal a a.ctr.bool version).2.2 with ctr := { a.ctr with bool := (opSeal a a.ctr.bool version).2.1 } } := by
+  obtain ⟨key, scalar, cred, shares, cert, ctr⟩ := a
+  cases key <;> cases scalar <;> cases cert <;> cases cred <;> cases shares <;> exact ⟨rfl, rfl⟩
+
+/-- **Op 53 on the counters.** Frees the previous account key (as `Contacts.opKey` does), then
+`keyScript` on a block of 4 ids; the state after it holds the new key. -/
+def keyStep (a : State) (slot : Nat) : Script BoolH × (BoolH → State) :=
+  (seqs (frees a.key.toList) (keyScript (a.ctr.allocB 4).1 slot),
+    fun h => { a with key := some h, ctr := (a.ctr.allocB 4).2 })
+
+/-- `keyStep` moves the counter past its block of 4 ids. -/
+theorem keyStep_ctr (a : State) (slot : Nat) (h : BoolH) : ((keyStep a slot).2 h).ctr.bool = a.ctr.bool + 4 := rfl
 
 /-! ## T3 -/
 
@@ -166,6 +207,37 @@ theorem opSeal_disclosure_shares (a : State) (n : Nat) (version : B8)
     exact viewD_block_open E me adv _ (by simp [combineBlock, accountBlock, sealBlock, plain]) _ _ _
       (fun v => Silent.seqs (Silent.done _) _ (by simp [InstrP.label?])) σ I vD
   · exact silent_prefix E me adv _ (Silent.seqs (Silent.abort _) _ (by simp [combineBlock, InstrP.label?])) _ _ _ _
+
+/-! ### The reveal list (Engine/Reveal.lean): op 54 declares `sealKinds`, op 53 no kind -/
+
+theorem sealScript_reveals (n : Nat) (key scalar cred cert : BoolH) (certLen : Nat) (version : B8) :
+    Reveals sealKinds (sealScript n key scalar cred cert certLen version) := by
+  unfold sealScript
+  split
+  · exact every_seqs (every_openThen (LabelIn.of_mem (k := .sealedBlob) (by simp [sealKinds]) rfl)
+      (fun b => every_seqs (Every.done _) _ (labelIn_of_none (by simp [InstrP.label?])))) _
+      (labelIn_of_none (by simp [accountBlock, sealBlock, InstrP.label?]))
+  · exact Every.abort _
+
+theorem opSeal_reveals (a : State) (n : Nat) (version : B8) : Reveals sealKinds (opSeal a n version).1 := by
+  unfold opSeal
+  split
+  · exact sealScript_reveals _ _ _ _ _ _ _
+  · exact every_seqs (sealScript_reveals _ _ _ _ _ _ _) _ (labelIn_of_none (by simp [combineBlock, InstrP.label?]))
+  · exact Every.abort _
+
+theorem sealStep_reveals (a : State) (version : B8) : Reveals sealKinds (sealStep a version).1 := by
+  rw [(sealStep_eq a version).1]
+  exact opSeal_reveals a _ version
+
+theorem keyStep_reveals (a : State) (slot : Nat) : Reveals keyKinds (keyStep a slot).1 :=
+  (Silent.seqs (keyScript_silent _ _) _ (frees_silent _)).reveals _
+
+/-- **T3 for op 54 in the reveal list's vocabulary** (both credential cases, any state): every
+release the adversary receives is labelled `ofKind .sealedBlob`. -/
+theorem opSeal_viewD_kinds (a : State) (n : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (opSeal a n version).1 σ I vD).viewD, ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (opSeal_reveals a n version) σ I vD
 
 end Disclosure
 
