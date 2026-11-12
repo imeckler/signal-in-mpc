@@ -43,6 +43,53 @@ for profile in sorted(WORDS.glob('*.json')):
     if 'circuit_sha256' in spec:FIXTURES['run-'+profile.stem]=('lean_run_fixture',WORD+['-DEMP_RUN_INPUT_BITS=%d'%spec['input_bits'],'-DEMP_RUN_OUTPUT_BITS=%d'%spec['output_bits']])
 names=sys.argv[1:] or list(FIXTURES);reports={}
 field=json.loads((BASE/'field-build.json').read_text())
+# ---- The engine C ABI library for the Rust worker (REORGANIZATION_PLAN.md S8):
+#   build_hybrid_v3.py --engine-abi [v3] [v3-test] [sh-v3] [sh-v3-test]   (default: all four)
+# Separate from everything below: it writes only its own new files (field_engine-abi*.o,
+# engine-abi*.o, libengine-abi*.a, engine-abi-link*.txt, engine-abi-build.json and their logs)
+# and never the fixture binaries, field_engine-v3.o / -sh.o or hybrid-v3-build.json.
+# Per mode, a production library (field engine WITHOUT EMP_HYBRID_TEST_FAULTS; strict circuit
+# loading required) and a "-test" one (the field engine's fault hook and unpinned loading kept).
+def build_engine_abi(requested):
+    variants={'v3':(False,False),'v3-test':(False,True),'sh-v3':(True,False),'sh-v3-test':(True,True)}
+    chosen=requested or list(variants)
+    for v in chosen:
+        if v not in variants:raise SystemExit('engine ABI variants: '+' '.join(variants))
+    faults='-DEMP_HYBRID_TEST_FAULTS=1';base=field['commands'][0];link=field['commands'][-1]
+    if base.count(faults)!=1 or str(BASE/'field_engine.o') not in base:raise ValueError('unexpected recorded field engine command')
+    # Everything the recorded fixture link adds after its two objects: the field library's
+    # objects and libraries, then EMP's. One linker argument per line (node_worker/build.rs).
+    at=link.index(str(BASE/'field_engine_fixture.o'))+1
+    link_args=link[at:]+['-L'+str(INSTALL/'lib'),'-lemp-ot','-lemp-tool','-lc++']
+    out=BASE/'engine-abi-build.json';report=json.loads(out.read_text()) if out.exists() else {}
+    for v in chosen:
+        sh,test=variants[v];start=time.monotonic();commands=[]
+        fobj=BASE/f'field_engine-abi-{v}.o';fdep=BASE/f'field_engine-abi-{v}.d'
+        fcmd=[str(fobj) if x==str(BASE/'field_engine.o') else str(fdep) if x==str(BASE/'field_engine.d') else x for x in base]
+        i=fcmd.index(faults);fcmd[i:i+1]=['-DEMP_HYBRID_NATIVE_SECURITY=128']+(['-DEMP_HYBRID_SEMI_HONEST=1'] if sh else [])+([faults] if test else [])
+        obj=BASE/f'engine-abi-{v}.o';dep=BASE/f'engine-abi-{v}.d';lib=BASE/f'libengine-abi-{v}.a';args=BASE/f'engine-abi-link-{v}.txt'
+        ccmd=['c++','-std=c++20','-O3','-DNDEBUG',*options,'-DEMP_CONTEXT_CHECKS=1','-DEMP_HYBRID_STATISTICAL=128',*WORD,
+              *(['-DEMP_HYBRID_SEMI_HONEST=1'] if sh else []),*(['-DEMP_HYBRID_ENGINE_ABI_TEST=1'] if test else []),
+              '-I'+str(EMP),'-I'+str(INSTALL/'include'),'-I/opt/homebrew/opt/openssl@3.5/include','-idirafter','/opt/homebrew/include',
+              '-MMD','-MF',str(dep),'-c',str(HERE/'engine_abi.cpp'),'-o',str(obj)]
+        if lib.exists():lib.unlink()   # `ar r` would otherwise keep members of an earlier archive
+        acmd=['ar','rcs',str(lib),str(obj),str(fobj)]
+        with open(BASE/f'engine-abi-{v}-build.log','w') as log:
+            for c in (fcmd,ccmd,acmd):commands.append(c);subprocess.run(c,stdout=log,stderr=subprocess.STDOUT,check=True)
+        # The hook is a MAC fault: the semi-honest engine has no MAC and drops it (field_engine.cpp:24-25).
+        hooked=b'EMP_TEST_NATIVE_OPEN_MAC' in fobj.read_bytes()
+        if hooked!=(test and not sh):raise ValueError(f'{fobj}: test-fault hook {"present" if hooked else "missing"}')
+        args.write_text(''.join(a+'\n' for a in link_args))
+        dependencies={}
+        for item in dep.read_text().replace('\\\n',' ').split(':',1)[1].split():
+            d=pathlib.Path(item)
+            if d.is_file():dependencies[str(d)]=sha(d)
+        report[v]=dict(seconds=time.monotonic()-start,commands=commands,link_args=link_args,dependencies=dependencies,library=str(lib),
+            library_sha256=sha(lib),field_engine_object_sha256=sha(fobj),test_fault_hook=hooked,
+            source_sha256={n:sha(HERE/n) for n in ('engine_abi.h','engine_abi.cpp','legacy_abi.cpp','tls_worker_v3.cpp','field_engine.cpp')})
+    out.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({v:round(report[v]['seconds'],1) for v in chosen}))
+if sys.argv[1:2]==['--engine-abi']:
+    build_engine_abi(sys.argv[2:]);sys.exit(0)
 # Native field owner rebuilt with the 128 profile; same recorded command otherwise.
 engine_obj=BASE/'field_engine-v3.o';engine_cmd=[str(engine_obj) if x==str(BASE/'field_engine.o') else str(BASE/'field_engine-v3.d') if x==str(BASE/'field_engine.d') else x for x in field['commands'][0]]
 # The recorded command (build_field.py) builds the TEST object field_engine.o, with the

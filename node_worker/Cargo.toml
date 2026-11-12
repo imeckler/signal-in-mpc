@@ -1,0 +1,33 @@
+[package]
+name = "node-worker"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "The trusted worker shell (REORGANIZATION_PLAN.md S8): pipe, agreement, control link, server socket; the engines behind engine_abi.h"
+build = "build.rs"
+
+# Offline, from the vendored crate set node_daemon uses (see .cargo/config.toml).
+[dependencies]
+sha2 = "=0.11.0"
+libc = "=0.2.186"
+
+[features]
+default = ["engine"]
+# Link the engine library (build_hybrid_v3.py --engine-abi). Without it the crate builds and
+# its tests run with no C++ at all; the binary then refuses to start.
+engine = []
+# The semi-honest library (libengine-abi-sh-v3*.a) instead of the malicious one.
+semi-honest = []
+# The -test library: the field engine's fault hook compiled in, and unpinned (non-strict)
+# kernel loading allowed (development fixtures such as check_tls_worker_v3.py). Never deployed.
+test-engine = []
+
+[lib]
+name = "node_worker"
+path = "src/lib.rs"
+
+[[bin]]
+name = "node-worker"
+path = "src/main.rs"
+
+[workspace]
