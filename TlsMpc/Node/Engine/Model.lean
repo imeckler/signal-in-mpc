@@ -54,6 +54,12 @@ PROVED HERE (standard axioms only):
   for two honest parties when both halves returned.
   shellPair_unusable (design note item 4): a batch unusable for either party stops both at the
   agreement; no instruction reaches the functionality.
+  idealStep_program, runProgram_lengths (the program instruction, opcode 22; P-FIELDPROG and
+  P-INV, model side): a program step computes its instances by the V3 semantics
+  (TlsMpc/FieldDagV3.lean `eval`, through `runProgram`) and releases to both parties exactly the
+  openings b·m, one per D/Z row per instance, under its label. What those openings reveal is
+  P-INV (c) (`FieldDagV3.opening_bijective`: uniform for a uniform mask and a nonzero
+  denominator); which outputs may be opened later is `check_program` (Engine.lean).
 -/
 
 namespace TlsMpc.Node.Engine
@@ -75,10 +81,17 @@ structure Circuit where
 structure Env where
   circuits : Bytes → Option Circuit
   hash : Bytes → Bytes
+  /-- The V3 field programs the worker loaded, by name (decision D14). -/
+  programs : Bytes → Option TlsMpc.FieldDag.V3.Program := fun _ => none
 
 /-- The signatures `check` uses, from the model's circuits. -/
 def Env.sigs (E : Env) : Bytes → Option Sig :=
   fun n => (E.circuits n).map fun c => ⟨c.inWidth, c.outMarks⟩
+
+/-- The program signatures `check` uses (`Ctx.progs` at session start), from the model's
+programs. -/
+def Env.progs (E : Env) : Bytes → Option ProgSig :=
+  fun n => (E.programs n).map ProgSig.ofProgram
 
 /-- The values behind the handles (the ideal functionality's state). -/
 structure Ideal where
@@ -121,6 +134,21 @@ def Wire.early : Wire → Option Release
 /-- `copies` side-by-side copies of a circuit (LeanCircuit::parallel). -/
 def runCopies (c : Circuit) (copies : Nat) (v : Bits) : Bits :=
   ((List.range copies).map fun j => c.eval ((v.drop (j * c.inWidth)).take c.inWidth)).flatten
+
+/-- Instance `j`'s `i`-th value of a flattened list of `width` values per instance (0 past the
+width). -/
+def instanceAt (v : List F) (width j i : Nat) : F := if i < width then v.getD (j * width + i) 0 else 0
+
+/-- `copies` instances of a V3 program (`FieldDagV3.eval`) on flattened data inputs `vi` and
+masks `vm`: every instance's outputs, and every instance's openings, each concatenated in
+instance order; `none` when the counts do not fit or an instance aborts (a `D` row's opening
+was 0). -/
+def runProgram (p : TlsMpc.FieldDag.V3.Program) (copies : Nat) (vi vm : List F) : Option (List F × List F) :=
+  if vi.length = copies * p.inputs ∧ vm.length = copies * p.masks then
+    ((List.range copies).mapM fun j =>
+        TlsMpc.FieldDag.V3.eval p (instanceAt vi p.inputs j) (instanceAt vm p.masks j)).map
+      fun rs => ((rs.map (·.1)).flatten, (rs.map (·.2)).flatten)
+  else none
 
 /-- One agreed instruction, computed ideally, from party `me`'s point of view: `w` is `me`'s
 filled instruction and `peer` the other party's contribution. Returns the new ideal state, the
@@ -200,6 +228,79 @@ def idealStep (E : Env) (me : Party) (w : Wire) (peer : PeerPart) (I : Ideal) :
   | .freeField h => some (I.dropField h, none, none)
   | .exchange len l mine =>
     if peer.bytes.length = len then some (I, some ⟨l, .bytes peer.bytes⟩, some ⟨l, .bytes mine⟩) else none
+  | .program name copies ins masks outs l =>
+    match E.programs name, ins.mapM (fun h => I.fields h.id), masks.mapM (fun h => I.fields h.id) with
+    | some p, some vi, some vm =>
+      match runProgram p copies vi vm with
+      | some (vo, opened) =>
+        if vo.length = outs.length then
+          some (I.setFields outs vo, some ⟨l, .elems opened⟩, some ⟨l, .elems opened⟩)
+        else none
+      | none => none
+    | _, _, _ => none
+
+/-! ## The program instruction: what it releases (P-FIELDPROG, model side) -/
+
+theorem mapM_lengths {α : Type} (f : α → Option (List F × List F)) (n m : Nat)
+    (hf : ∀ a r, f a = some r → r.1.length = n ∧ r.2.length = m) :
+    ∀ (l : List α) (rs : List (List F × List F)), l.mapM f = some rs →
+      (rs.map (·.1)).flatten.length = l.length * n ∧ (rs.map (·.2)).flatten.length = l.length * m
+  | [], rs, h => by
+    simp only [List.mapM_nil, Option.pure_def, Option.some.injEq] at h
+    subst h
+    simp
+  | a :: l, rs, h => by
+    simp only [List.mapM_cons, Option.bind_eq_bind, Option.bind_eq_some_iff, Option.pure_def,
+      Option.some.injEq] at h
+    obtain ⟨r, hr, rs', hrs, rfl⟩ := h
+    obtain ⟨h1, h2⟩ := hf a r hr
+    obtain ⟨e1, e2⟩ := mapM_lengths f n m hf l rs' hrs
+    simp only [List.map_cons, List.flatten_cons, List.length_append, h1, h2, e1, e2, List.length_cons]
+    constructor <;> rw [Nat.add_mul, Nat.one_mul, Nat.add_comm]
+
+/-- **A program step opens exactly one value per `D`/`Z` row per instance** (and defines one value
+per output per instance): `FieldDagV3.eval_lengths`, over the instances. -/
+theorem runProgram_lengths (p : TlsMpc.FieldDag.V3.Program) (copies : Nat) (vi vm vo opened : List F)
+    (h : runProgram p copies vi vm = some (vo, opened)) :
+    opened.length = copies * p.openings ∧ vo.length = copies * p.outputs.length := by
+  simp only [runProgram] at h
+  split at h
+  · simp only [Option.map_eq_some_iff, Prod.mk.injEq] at h
+    obtain ⟨rs, hrs, rfl, rfl⟩ := h
+    obtain ⟨e1, e2⟩ := mapM_lengths _ p.outputs.length p.openings
+      (fun j r hr => by
+        obtain ⟨a, b⟩ := r
+        obtain ⟨l1, l2⟩ := TlsMpc.FieldDag.V3.eval_lengths p _ _ a b hr
+        exact ⟨l2, l1⟩) _ rs hrs
+    simp only [List.length_range] at e1 e2
+    exact ⟨e2, e1⟩
+  · cases h
+
+/-- **What a program step releases** (P-FIELDPROG and P-INV, model side). An accepted `program`
+step releases to each party exactly the openings of its instances (the `b·m` of every `D`/`Z`
+row, instance by instance: `runProgram`, through `FieldDagV3.eval`), under its label, the same
+to both parties; its output handles hold the instances' outputs; nothing else changes. With
+`runProgram_lengths`, there are exactly `copies · openings` released values. -/
+theorem idealStep_program (E : Env) (me : Party) (name : Bytes) (copies : Nat) (ins masks outs : List FieldH)
+    (l : Label) (peer : PeerPart) (I I' : Ideal) (toH toD : Option Release)
+    (h : idealStep E me (.program name copies ins masks outs l) peer I = some (I', toH, toD)) :
+    ∃ p vi vm vo opened, E.programs name = some p ∧ ins.mapM (fun h => I.fields h.id) = some vi ∧
+      masks.mapM (fun h => I.fields h.id) = some vm ∧ runProgram p copies vi vm = some (vo, opened) ∧
+      vo.length = outs.length ∧ I' = I.setFields outs vo ∧
+      toH = some ⟨l, .elems opened⟩ ∧ toD = some ⟨l, .elems opened⟩ := by
+  simp only [idealStep] at h
+  split at h
+  · next p vi vm hp hi hm =>
+    split at h
+    · next vo opened hr =>
+      split at h
+      · next hl =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨rfl, rfl, rfl⟩ := h
+        exact ⟨p, vi, vm, vo, opened, hp, hi, hm, hr, hl, rfl, rfl, rfl⟩
+      · cases h
+    · cases h
+  · cases h
 
 /-- How a party's script and store take in what was released to it. -/
 def absorb (hash : Bytes → Bytes) (me : Party) (i : Instr) (σ : Store) (toMe : Option Release) :

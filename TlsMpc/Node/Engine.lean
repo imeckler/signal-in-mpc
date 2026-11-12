@@ -1,4 +1,5 @@
 import TlsMpc.FieldDag
+import TlsMpc.FieldDagV3
 
 /-!
 THE ENGINE INSTRUCTION SET, SCRIPTS, WELL-FORMEDNESS, AND THE BATCH FORMAT.
@@ -46,6 +47,9 @@ purpose: this is the specification the Rust side implements, byte for byte.
        19  openField      list of handles, label
        20  freeField      handle
        21  exchange       len, label, *bytes (exactly len bytes)
+       22  program        program name(bytes), copies, list ins, list masks, list outs, label
+                          (copies instances of a V3 field program, TlsMpc/FieldDagV3.lean; instance
+                          j reads ins[j*inputs ..], masks[j*masks ..], defines outs[j*outputs ..])
      Mapping to engine_abi.h: 1 ea_bool_input_private (owner, the non-owner passes width
      placeholder bits), 2 ea_bool_input_both, 3 ea_bool_public, 4 ea_bool_run on the circuit the
      manifest loaded under that name, or on a pinned word circuit (loader.rs WORD_CIRCUITS:
@@ -55,7 +59,15 @@ purpose: this is the specification the Rust side implements, byte for byte.
      element must be below 2^64, passed as u64) or ea_field_input_elements, 12 ea_field_public
      (or ea_field_constant for values below 2^64; same value), 13-16 ea_field_add / sub /
      scale / divide_public, 17 ea_field_mul, 18 ea_field_check, 19 ea_field_checked_open,
-     20 ea_field_free, 21 the control link's exchange (link.rs; both payloads have length len).
+     20 ea_field_free, 21 the control link's exchange (link.rs; both payloads have length len),
+     22 node_worker/src/program.rs on the program the worker loaded under that name (a V3 file
+     with its pin, loader.rs FIELD_PROGRAMS, added to the workers' start agreement): rows in
+     rounds of ea_field_mul (one round per multiplicative depth; D/Z rows multiply a·m and b·m in
+     their round), ea_field_checked_open of the b·m of every D/Z row of the round (all
+     instances), then ea_field_divide_public (or ea_field_constant 0 for a Z row whose opening is
+     0); linear rows with ea_field_add / sub / scale (a product with a C row below 2^64) /
+     constant / public; F rows with ea_field_constant 0 or 1. The masks are freed at the end of
+     the batch (item 5). Nothing else is opened.
      ea_bool_interleave is not used (interleave is concat then pick).
 
   4. Agreement. Before executing anything of a batch, each worker computes its agreed bytes
@@ -84,14 +96,15 @@ purpose: this is the specification the Rust side implements, byte for byte.
      boolInputBoth's bits have exactly width entries, a fieldInput's elements number outsA's
      length (coins below 2^64), an exchange payload has exactly len bytes; the non-owner's
      boolInput payload is empty. In checkBatch: an instruction that ends a batch (endsBatch:
-     8, 9, 19, 21, the releases) must be the batch's last (D8; refused at its own index
-     otherwise). In check: an output handle id that was ever defined before is refused (handles
+     8, 9, 19, 21, the releases whose data the script reads) must be the batch's last (D8;
+     refused at its own index otherwise); 22 releases its openings too, but its reply to the
+     script is unit, so it does not end a batch. In check: an output handle id that was ever defined before is refused (handles
      are never reused), and so is an operand that is not live (never defined, freed, or
      consumed); a once handle is consumed by its first use as an operand (any instruction),
      after which it is undefined; open marks are kept per bit for Boolean handles and per
      element for field handles; openBool and openField need every bit/element marked public or
      revealable; openBoolTo needs every bit marked for that recipient; every release (8, 9, 19,
-     21) carries a nonzero label; an exchange has 1 <= len <= 65536. Marks: inputs get
+     21, 22) carries a nonzero label; an exchange has 1 <= len <= 65536. Marks: inputs get
      revealable or never as declared, public values and constants public, run outputs the
      circuit layout's marks repeated per copy, plumbing moves marks with the bits, field results
      the join of their operands' marks (public with public is public; public or revealable with
@@ -115,10 +128,23 @@ purpose: this is the specification the Rust side implements, byte for byte.
      once operand (or by an opening of a once handle) is no longer live after its instruction,
      and its engine value is freed at the end of the batch (after the last instruction, before
      the reply). Field handles have no once.
+     The program instruction (22), in this order: a nonzero label; the context's program
+     table (Ctx.progs: the signature of every V3 program the worker loaded, fixed at session
+     start; ProgSig.ofProgram) names it; 1 <= copies <= maxWidth; ins, masks, outs have exactly
+     copies times the program's inputs, masks, outputs; every mask is live with mark never and
+     is CONSUMED (dropped from the context, in order, so a repeated mask is refused and a mask
+     reaches one program instruction only; its engine value is freed at the end of the batch);
+     then every input is live (so no input is one of the masks); then the outputs are defined
+     (fresh ids) with the program's output marks repeated per copy: never for a secret result,
+     public for a declared check value or zero flag (P-FIELDPROG). The marks of the inputs do
+     not flow to the outputs: what a program makes public is what its pinned V3 file declares.
 
   6. Replies. One reply item per instruction that releases data to this party, in order:
      openBool: the bits; openBoolTo: the bits, to the recipient only (the other party gets no
-     item); openField: the elements; exchange: the peer's bytes. Items are encoded by
+     item); openField: the elements; exchange: the peer's bytes; program: the openings (an
+     elements item, possibly empty: instance by instance, the b·m of every D/Z row in row
+     order), to both parties, which the controller discards (they are uniform for nonzero
+     denominators, P-INV (c), and the script does not read them). Items are encoded by
      encodeReplies (tag 1 bits, 2 elements, 3 bytes, then the list). The items follow
      InstrP.releasesTo, not check's Shape: Shape is what the script's continuation receives, and
      openBoolTo has Shape unit (its bits go to the recipient's store slot, decision D1) while the
@@ -151,10 +177,13 @@ DECISIONS (against or beyond the plan's text, with the reason):
       no once (single use of field masks is P-CUT (h), by the pool's API).
   D4. run takes one input bundle and gives one output bundle with copies side by side, as the
       ABI does (no field-name binding: layouts are bound by concat/slice in the flow library).
-  D5. No program instruction yet. Its semantics depends on the V3 format (D/Z nodes, output
-      marks), which is scheduled separately; it is added with V3. No server instruction yet:
-      the server operations stay pipe operations until the TLS flows move (S12). Both extend the
-      inductive later without changing what is here.
+  D5. (Revised with V3.) The program instruction is opcode 22, added with the V3 format
+      (TlsMpc/FieldDagV3.lean: D/Z rows with explicit mask inputs, F flags, output marks); its
+      ideal semantics is the V3 evaluation (Model.lean idealStep, runProgram). It differs from
+      the plan's `program (p) (instances) (outs)` as D4 differs for run: one flattened list of
+      inputs, of masks and of outputs with a copies count, and a label for its openings. No
+      server instruction yet: the server operations stay pipe operations until the TLS flows
+      move (S12); it extends the inductive later without changing what is here.
   D6. One field-input instruction with a kind (coins or elements) and one fieldPublic (the
       shell may use ea_field_constant for small values). interleave is dropped (concat+pick).
       "Jointly random" inputs are boolInputBoth / fieldInput: each party inputs its own random
@@ -189,6 +218,16 @@ DECISIONS (against or beyond the plan's text, with the reason):
   D13. A batch the shell cannot use (undecodable, or a private payload that does not fit) is
       agreed as the fixed bytes `unusable` rather than not agreed at all (design note item 4),
       so both parties fail at the agreement.
+  D14. Program openings are releases (V3, plan 5.5 and P-INV): the program instruction carries a
+      label, releases its openings b·m to both parties (InstrP.releasesTo, Model.lean idealStep),
+      and so appears in the views and in Engine/Reveal.lean's `Reveals` like any release. Its
+      reply to the script is unit (Shape.unit) and it does not end a batch: no later instruction
+      of the batch can depend on the openings, and a program without D/Z rows releases an empty
+      list. Masks are explicit field handles (the script inputs both parties' random
+      contributions with fieldInput, drawn from Channels.random, and adds them), consumed by
+      the instruction (design note item 5). The program table lives in the context (Ctx.progs,
+      default empty), not in `sigs`, so `check`'s signature and every statement over it are
+      unchanged; a session starts from `{ progs := … }` instead of `{}`.
 -/
 
 namespace TlsMpc.Node.Engine
@@ -260,6 +299,12 @@ def join : Mark → Mark → Mark
   | .revealable, .pub => .revealable
   | .revealable, .revealable => .revealable
   | _, _ => .never
+/-- A V3 program output's mark (0 never, 1 public). -/
+def ofOMark : TlsMpc.FieldDag.V3.OMark → Mark
+  | .never => .never
+  | .pub => .pub
+theorem ofOMark_openable (m : TlsMpc.FieldDag.V3.OMark) : (ofOMark m).openable = (m == .pub) := by
+  cases m <;> rfl
 end Mark
 
 /-- The reveal label every release carries (an opening, or an exchange): the code of a reveal kind
@@ -321,6 +366,11 @@ inductive InstrP (SB SF X D : Type) where
   | freeField (h : FieldH)
   /-- Each party sends `len` bytes on the control link and receives the other's `len` bytes. -/
   | exchange (len : Nat) (label : Label) (payload : X)
+  /-- `copies` instances of the V3 field program named `name` (`TlsMpc/FieldDagV3.lean`): instance
+  `j` reads the data inputs `ins[j·inputs ..]` and the masks `masks[j·masks ..]` and defines
+  `outs[j·outputs ..]`. Releases every instance's openings (`b·m` per `D`/`Z` row) to both
+  parties under `label` (decision D14). -/
+  | program (name : Bytes) (copies : Nat) (ins masks outs : List FieldH) (label : Label)
   deriving DecidableEq, Repr
 
 namespace InstrP
@@ -350,6 +400,7 @@ def map (fb : SB → SB') (ff : SF → SF') (fx : X → X') (fd : D → D') :
   | openField hs l => openField hs l
   | freeField h => freeField h
   | exchange n l x => exchange n l (fx x)
+  | program n k i m o l => program n k i m o l
 
 /-- The instruction with every private part erased: what both parties agree on. -/
 def skel (i : InstrP SB SF X D) : InstrP Unit Unit Unit Unit :=
@@ -361,6 +412,7 @@ def label? : InstrP SB SF X D → Option Label
   | openBoolTo _ _ l _ => some l
   | openField _ l => some l
   | exchange _ l _ => some l
+  | program _ _ _ _ _ l => some l
   | _ => none
 
 /-- Whether the instruction releases data to party `me` (the reply items of the design note). -/
@@ -369,6 +421,7 @@ def releasesTo (me : Party) : InstrP SB SF X D → Bool
   | openBoolTo _ r _ _ => r == me
   | openField .. => true
   | exchange .. => true
+  | program .. => true
   | _ => false
 
 /-- Whether a batch ends after this instruction (decision D8). -/
@@ -506,12 +559,26 @@ structure Sig where
   inWidth : Nat
   outMarks : List Mark
 
+/-- A V3 field program's signature for `check` (decision D14): its data inputs, masks, and the
+marks of one instance's outputs. -/
+structure ProgSig where
+  inputs : Nat
+  masks : Nat
+  outMarks : List Mark
+  deriving DecidableEq, Repr
+
+/-- The signature of a loaded V3 program. -/
+def ProgSig.ofProgram (p : TlsMpc.FieldDag.V3.Program) : ProgSig :=
+  ⟨p.inputs, p.masks, p.outputs.map fun o => Mark.ofOMark o.2⟩
+
 structure Ctx where
   bools : List (Nat × BoolInfo) := []
   fields : List (Nat × Mark) := []
   /-- Every Boolean handle id ever defined (ids are never reused). -/
   seenB : List Nat := []
   seenF : List Nat := []
+  /-- The V3 programs the worker loaded, by name (fixed for the session; decision D14). -/
+  progs : Bytes → Option ProgSig := fun _ => none
 
 /-- The largest exchange payload (`link.rs` MAX_EXCHANGE). -/
 def maxExchange : Nat := 65536
@@ -560,6 +627,15 @@ def defFields (c : Ctx) : List FieldH → List Mark → Option Ctx
     let c ← c.defField h m
     defFields c hs ms
   | _, _ => none
+
+/-- Consume a program's masks, in order: each must be live with mark `never`, and is dropped (so
+a mask reaches one program instruction only, and a repeated mask is refused). -/
+def useMasks (c : Ctx) : List FieldH → Option Ctx
+  | [] => some c
+  | h :: hs =>
+    match c.field? h with
+    | some .never => useMasks (c.dropField h.id) hs
+    | _ => none
 
 end Ctx
 
@@ -659,6 +735,16 @@ def check (sigs : Bytes → Option Sig) (c : Ctx) : Skel → Option (Ctx × Shap
   | .exchange len l _ => do
     guard (l.code ≠ 0 ∧ 0 < len ∧ len ≤ maxExchange)
     pure (c, .bytes len)
+  | .program name copies ins masks outs l => do
+    guard (l.code ≠ 0)
+    let s ← c.progs name
+    guard (0 < copies ∧ copies ≤ maxWidth)
+    guard (ins.length = copies * s.inputs ∧ masks.length = copies * s.masks ∧
+      outs.length = copies * s.outMarks.length)
+    let c ← c.useMasks masks
+    guard (ins.all fun h => (c.field? h).isSome)
+    let c ← c.defFields outs (List.replicate copies s.outMarks).flatten
+    pure (c, .unit)
 
 /-- A well-formed script: along every branch (every reply of the expected shape), every
 instruction passes `check` in the context the branch has built. -/
@@ -808,6 +894,147 @@ theorem check_unit_of_not_ends (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : 
       | (obtain ⟨_, _, h⟩ := h)
       | (split at h)) <;>
     simp_all
+
+/-! ### The program instruction: masks consumed, outputs marked as the program declares -/
+
+namespace Ctx
+
+theorem lookup_filter_ne {β : Type} (l : List (Nat × β)) (id k : Nat) :
+    (l.filter (fun e => e.1 != id)).lookup k = if k = id then none else l.lookup k := by
+  induction l with
+  | nil => simp
+  | cons e l ih =>
+    obtain ⟨a, b⟩ := e
+    by_cases ha : a = id
+    · subst ha
+      have h0 : (a != a) = false := by simp
+      rw [List.filter_cons, h0, if_neg (by simp), ih]
+      by_cases hk : k = a
+      · simp [hk]
+      · have h1 : (k == a) = false := by simp [hk]
+        simp [hk, List.lookup, h1]
+    · have h0 : (a != id) = true := by simp [ha]
+      rw [List.filter_cons, h0, if_pos rfl]
+      by_cases hk : k = a
+      · subst hk
+        simp [List.lookup, ha]
+      · have h1 : (k == a) = false := by simp [hk]
+        simp [List.lookup, h1, ih]
+
+theorem field?_dropField (c : Ctx) (id : Nat) (h : FieldH) :
+    (c.dropField id).field? h = if h.id = id then none else c.field? h := by
+  simp only [field?, dropField]
+  exact lookup_filter_ne c.fields id h.id
+
+theorem field?_defField {c c' : Ctx} {h : FieldH} {m : Mark} (hd : c.defField h m = some c') (x : FieldH) :
+    c'.field? x = if x.id = h.id then some m else c.field? x := by
+  simp only [defField] at hd
+  split at hd
+  · cases hd
+  · simp only [Option.some.injEq] at hd
+    subst hd
+    by_cases hx : x.id = h.id
+    · simp [field?, List.lookup, hx]
+    · have h1 : (x.id == h.id) = false := by simp [hx]
+      simp [field?, List.lookup, hx, h1]
+
+theorem seenF_defField {c c' : Ctx} {h : FieldH} {m : Mark} (hd : c.defField h m = some c') :
+    h.id ∉ c.seenF ∧ c'.seenF = h.id :: c.seenF := by
+  simp only [defField] at hd
+  split at hd
+  · cases hd
+  · next hn => simp only [Option.some.injEq] at hd; subst hd; exact ⟨hn, rfl⟩
+
+/-- Defining fields keeps every earlier field whose id was already defined. -/
+theorem defFields_keep : ∀ (c c' : Ctx) (hs : List FieldH) (ms : List Mark), c.defFields hs ms = some c' →
+    ∀ (x : FieldH) (m : Mark), c.field? x = some m → x.id ∈ c.seenF → c'.field? x = some m
+  | c, c', [], [], hd, x, m, hx, _ => by simp only [defFields, Option.some.injEq] at hd; subst hd; exact hx
+  | c, c', h :: hs, m' :: ms, hd, x, m, hx, hs' => by
+    simp only [defFields, Option.bind_eq_bind, Option.bind_eq_some_iff] at hd
+    obtain ⟨c1, h1, h2⟩ := hd
+    obtain ⟨hn, hseen⟩ := seenF_defField h1
+    have hne : x.id ≠ h.id := fun e => hn (e ▸ hs')
+    refine defFields_keep c1 c' hs ms h2 x m ?_ ?_
+    · rw [field?_defField h1, if_neg hne, hx]
+    · rw [hseen]; exact List.mem_cons_of_mem _ hs'
+  | _, _, [], _ :: _, hd, _, _, _, _ => by simp [defFields] at hd
+  | _, _, _ :: _, [], hd, _, _, _, _ => by simp [defFields] at hd
+
+/-- **Defined fields carry their marks**: after `defFields hs ms`, each `hs[j]` has mark `ms[j]`. -/
+theorem defFields_marks : ∀ (c c' : Ctx) (hs : List FieldH) (ms : List Mark), c.defFields hs ms = some c' →
+    ∀ e ∈ hs.zip ms, c'.field? e.1 = some e.2
+  | _, _, [], _, _, e, he => by simp at he
+  | _, _, _ :: _, [], _, e, he => by simp at he
+  | c, c', h :: hs, m :: ms, hd, e, he => by
+    simp only [defFields, Option.bind_eq_bind, Option.bind_eq_some_iff] at hd
+    obtain ⟨c1, h1, h2⟩ := hd
+    simp only [List.zip_cons_cons, List.mem_cons] at he
+    rcases he with rfl | he
+    · obtain ⟨_, hseen⟩ := seenF_defField h1
+      refine defFields_keep c1 c' hs ms h2 h m ?_ ?_
+      · rw [field?_defField h1, if_pos rfl]
+      · rw [hseen]; exact List.mem_cons_self
+    · exact defFields_marks c1 c' hs ms h2 e he
+
+/-- **Masks are consumed**: `useMasks` accepts only live masks marked `never`, pairwise distinct,
+and leaves none of them live. -/
+theorem useMasks_spec : ∀ (c c' : Ctx) (ms : List FieldH), c.useMasks ms = some c' →
+    (∀ m ∈ ms, c.field? m = some .never ∧ c'.field? m = none) ∧
+      ∀ x, (∀ m ∈ ms, x.id ≠ m.id) → c'.field? x = c.field? x
+  | c, c', [], h => by
+    simp only [useMasks, Option.some.injEq] at h
+    subst h
+    simp
+  | c, c', m :: ms, h => by
+    simp only [useMasks] at h
+    split at h
+    · next hm =>
+      obtain ⟨h1, h2⟩ := useMasks_spec _ _ ms h
+      refine ⟨fun x hx => ?_, fun x hx => ?_⟩
+      · simp only [List.mem_cons] at hx
+        rcases hx with rfl | hx
+        · refine ⟨hm, ?_⟩
+          by_cases hin : ∃ y ∈ ms, x.id = y.id
+          · obtain ⟨y, hy, e⟩ := hin
+            have := (h1 y hy).1
+            rw [field?_dropField, if_pos e.symm] at this
+            cases this
+          · rw [h2 x (fun y hy e => hin ⟨y, hy, e⟩), field?_dropField, if_pos rfl]
+        · have := (h1 x hx).1
+          refine ⟨?_, (h1 x hx).2⟩
+          rw [field?_dropField] at this
+          split at this
+          · cases this
+          · exact this
+      · rw [h2 x (fun y hy => hx y (List.mem_cons_of_mem _ hy)), field?_dropField,
+          if_neg (hx m List.mem_cons_self)]
+    · cases h
+
+end Ctx
+
+/-- **The program instruction in the shell** (design note item 5; P-FIELDPROG, shell side). When
+`check` accepts it: the label is nonzero; the program is in the context's table with signature
+`s`; the reply to the script is `unit`; the masks were live with mark `never` and are no longer
+live (consumed, pairwise distinct); every input is live and is none of the masks; and every
+output handle is defined with the mark the program declares for its position (`s.outMarks`,
+repeated per copy). With `Mark.ofOMark_openable`, a program's output is openable later exactly
+when its V3 file marks it public. -/
+theorem check_program (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label)
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∃ s c₁, c.progs name = some s ∧ sh = .unit ∧ l.code ≠ 0 ∧ 0 < copies ∧
+      ins.length = copies * s.inputs ∧ masks.length = copies * s.masks ∧
+      outs.length = copies * s.outMarks.length ∧
+      c.useMasks masks = some c₁ ∧
+      (∀ m ∈ masks, c.field? m = some .never ∧ c₁.field? m = none) ∧
+      (∀ x ∈ ins, (c₁.field? x).isSome) ∧
+      (∀ e ∈ outs.zip (List.replicate copies s.outMarks).flatten, c'.field? e.1 = some e.2) := by
+  simp [check, guard, Option.bind_eq_some_iff] at h
+  obtain ⟨hl, s, hs, ⟨hc, -⟩, ⟨hi, hm, ho⟩, c₁, hu, hin, c₂, hd, rfl, rfl⟩ := h
+  refine ⟨s, c₁, hs, rfl, hl, hc, hi, hm, ho, hu, fun m hm' => (Ctx.useMasks_spec c c₁ masks hu).1 m hm',
+    fun x hx => ?_, Ctx.defFields_marks c₁ c₂ outs _ hd⟩
+  have := hin x hx
+  cases hf : c₁.field? x <;> simp_all
 
 /-- **The shell's admission of an agreed batch** (design note item 5; `handles.rs` check_batch,
 `interp.rs` Interp::admit): `check` on every instruction in order from the carried context,
@@ -1102,6 +1329,9 @@ def encWire : Wire → Bytes
   | .openField hs l => 19 :: (Enc.list Enc.fieldH hs ++ Enc.label l)
   | .freeField h => 20 :: Enc.fieldH h
   | .exchange len l p => 21 :: (Enc.u64 len ++ Enc.label l ++ Enc.bytes p)
+  | .program name k ins ms outs l =>
+    22 :: (Enc.bytes name ++ Enc.u64 k ++ Enc.list Enc.fieldH ins ++ Enc.list Enc.fieldH ms ++
+      Enc.list Enc.fieldH outs ++ Enc.label l)
 
 /-- A batch: the number of instructions, then each. -/
 def encodeBatch (b : List Wire) : Bytes := Enc.list encWire b
@@ -1273,6 +1503,10 @@ def decWire : Dec Wire := do
   | 21 => do
     let len ← Dec.u64; let l ← Dec.label; let p ← Dec.bytes
     Pure.pure (.exchange len l p)
+  | 22 => do
+    let name ← Dec.bytes; let k ← Dec.u64; let ins ← Dec.list Dec.fieldH
+    let ms ← Dec.list Dec.fieldH; let outs ← Dec.list Dec.fieldH; let l ← Dec.label
+    Pure.pure (.program name k ins ms outs l)
   | _ => Dec.fail
 
 def decodeBatch (s : Bytes) : Option (List Wire) :=
@@ -1344,6 +1578,9 @@ def Wire.Bounded : Wire → Prop
   | .openField hs l => hs.length < B64 ∧ (∀ x ∈ hs, x.id < B64) ∧ l.code < B64
   | .freeField h => h.id < B64
   | .exchange len l p => len < B64 ∧ l.code < B64 ∧ p.length < B64
+  | .program name k ins ms outs l =>
+    name.length < B64 ∧ k < B64 ∧ ins.length < B64 ∧ (∀ x ∈ ins, x.id < B64) ∧ ms.length < B64 ∧
+      (∀ x ∈ ms, x.id < B64) ∧ outs.length < B64 ∧ (∀ x ∈ outs, x.id < B64) ∧ l.code < B64
 
 def Datum.Bounded : Datum → Prop
   | .bits b => b.length < B64

@@ -280,6 +280,101 @@ theorem fieldDag_compileAll_correct (es : List Expr) (a : MultiArtifact) (compil
     a.outputs.map (result (concrete input) a.nodes) = es.map (Expr.eval input) :=
   TlsMpc.FieldDag.compileAll_correct es a compiled input
 
+/-! ### 1a. Field programs, format V3 (`TlsMpc/FieldDagV3.lean`, plan 5.5)
+
+**Trust:** the evaluator (`node_worker/src/program.rs`) and the engines are outside the theorems;
+`FieldInverse` (Fermat for p) is a named hypothesis, true because p is prime. -/
+
+open TlsMpc.FieldDag.V3 in
+/-- **V3 round trip**: a valid program's text parses back to it. -/
+theorem fieldDagV3_parse_render (p : Program) (hp : p.valid = true) : parse (render p) = some p :=
+  TlsMpc.FieldDag.V3.parse_render p hp
+
+open TlsMpc.FieldDag.V3 in
+/-- **One text per program**: the parser accepts only rendered texts (so a pin names a program). -/
+theorem fieldDagV3_render_parse (s : String) (p : Program) (h : parse s = some p) : render p = s :=
+  TlsMpc.FieldDag.V3.render_parse s p h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **V3 evaluation agrees with FieldDag**: a translated artifact that does not abort outputs the
+FieldDag results, so every theorem about a compiled field program carries over to its V3 file. -/
+theorem fieldDagV3_eval_ofArtifact (hinv : FieldInverse) (inputs : Nat) (a : MultiArtifact)
+    (marks : Nat → OMark) (input mask : Nat → F) (outs opened : List F)
+    (h : V3.eval (ofArtifact inputs a marks) input mask = some (outs, opened)) :
+    outs = a.outputs.map (result (concrete input) a.nodes) :=
+  TlsMpc.FieldDag.V3.eval_ofArtifact hinv inputs a marks input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- With nonzero masks, a translated artifact aborts only on a zero FieldDag denominator. -/
+theorem fieldDagV3_eval_ofArtifact_some (hinv : FieldInverse) (inputs : Nat) (a : MultiArtifact)
+    (marks : Nat → OMark) (input mask : Nat → F) (hm : ∀ j, mask j ≠ 0)
+    (hd : DivisorsNonzero input #[] a.nodes) :
+    (V3.eval (ofArtifact inputs a marks) input mask).isSome :=
+  TlsMpc.FieldDag.V3.eval_ofArtifact_some hinv inputs a marks input mask hm hd
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- The V3 program of `compileAll es` outputs the source expressions' values. -/
+theorem fieldDagV3_eval_compileAll (hinv : FieldInverse) (inputs : Nat) (es : List Expr)
+    (a : MultiArtifact) (hc : compileAll es = some a) (marks : Nat → OMark)
+    (input mask : Nat → F) (outs opened : List F)
+    (h : V3.eval (ofArtifact inputs a marks) input mask = some (outs, opened)) :
+    outs = es.map (Expr.eval input) :=
+  TlsMpc.FieldDag.V3.eval_compileAll hinv inputs es a hc marks input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (d)** for every translated program: each mask feeds exactly one `D` row. -/
+theorem fieldDagV3_ofArtifact_masksOk (inputs : Nat) (a : MultiArtifact) (marks : Nat → OMark) :
+    (ofArtifact inputs a marks).masksOk = true :=
+  TlsMpc.FieldDag.V3.ofArtifact_masksOk inputs a marks
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-INV (d)** for every loaded program (the parser checks it). -/
+theorem fieldDagV3_parse_masksOk (s : String) (p : Program) (h : parse s = some p) : p.masksOk = true :=
+  TlsMpc.FieldDag.V3.parse_masksOk s p h
+
+open TlsMpc.FieldDag.V3 in
+/-- What `masksOk` means: mask `j` is named by exactly one `D`/`Z` row iff `j < masks`. -/
+theorem fieldDagV3_masksOk_once (p : Program) (h : p.masksOk = true) (j : Nat) :
+    p.maskUses.count j = if j < p.masks then 1 else 0 :=
+  TlsMpc.FieldDag.V3.masksOk_once p h j
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (a)**: a nonzero opening gives the true quotient. -/
+theorem fieldDagV3_masked_div (hinv : FieldInverse) (a b m : F) (h : b * m ≠ 0) :
+    a * m * inverse (b * m) = a * inverse b :=
+  TlsMpc.FieldDag.V3.masked_div hinv a b m h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (b)**: the opening is 0 iff the denominator or the mask is. -/
+theorem fieldDagV3_opening_zero_iff (hinv : FieldInverse) (b m : F) : b * m = 0 ↔ b = 0 ∨ m = 0 :=
+  TlsMpc.FieldDag.V3.opening_zero_iff hinv b m
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (c)**: for `b ≠ 0`, `m ↦ b·m` is a bijection (the opening is uniform for a uniform mask). -/
+theorem fieldDagV3_opening_bijective (hinv : FieldInverse) (b : F) (hb : b ≠ 0) :
+    (∀ m m' : F, b * m = b * m' → m = m') ∧ (∀ o : F, b * (inverse b * o) = o) :=
+  TlsMpc.FieldDag.V3.opening_bijective hinv b hb
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-FIELDPROG** for every translated program: its public outputs are its declared checks. -/
+theorem fieldDagV3_ofArtifact_declares (inputs : Nat) (a : TlsMpc.FieldDag.MultiArtifact) (roles : List Role)
+    (hl : a.outputs.length = roles.length) (hf : Role.flag ∉ roles) :
+    (ofArtifact inputs a (marksOf roles)).declares roles = true :=
+  TlsMpc.FieldDag.V3.ofArtifact_declares inputs a roles hl hf
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-INV (d) and P-FIELDPROG for the quotient program** (`decide` on its rows). -/
+theorem fieldDagV3_quotient_checks :
+    quotient.masksOk = true ∧ quotient.declares [.secret, .flag] = true ∧ quotient.publicOutputs = [1] :=
+  ⟨TlsMpc.FieldDag.V3.quotient_masksOk, TlsMpc.FieldDag.V3.quotient_declares⟩
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- The quotient program computes `x·z⁻¹` and the zero flag of `z`, opening only `z·m`. -/
+theorem fieldDagV3_quotient_spec (hinv : FieldInverse) (input mask : Nat → F) (hm : mask 0 ≠ 0) :
+    V3.eval quotient input mask =
+      some ([input 0 * inverse (input 1), if input 1 = 0 then ofNat 1 else ofNat 0], [input 1 * mask 0]) :=
+  TlsMpc.FieldDag.V3.quotient_spec hinv input mask hm
+
 /-! ## 2. Kernels compute their specification (SECURITY_MAP C.2)
 
 "Specification" here is usually the repository's own concrete transcription of the standard,
@@ -4920,6 +5015,39 @@ theorem engine_skeletonBytes_inj (b₁ b₂ : List Wire) (h₁ : b₁.length < B
 theorem engine_check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s : Skel) (l : Label)
     (h : check sigs c s = some (c', sh)) (hl : s.label? = some l) : l.code ≠ 0 :=
   TlsMpc.Node.Engine.check_label sigs c c' sh s l h hl
+
+/-- **The program instruction in the shell** (opcode 22, P-FIELDPROG shell side): accepted only
+for a loaded program with matching counts; the masks were live, marked `never`, and are consumed;
+every input is live; every output gets the mark its V3 file declares (so it is openable later
+exactly when the file marks it public, `Mark.ofOMark_openable`). -/
+theorem engine_check_program (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label)
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∃ s c₁, c.progs name = some s ∧ sh = .unit ∧ l.code ≠ 0 ∧ 0 < copies ∧
+      ins.length = copies * s.inputs ∧ masks.length = copies * s.masks ∧
+      outs.length = copies * s.outMarks.length ∧
+      c.useMasks masks = some c₁ ∧
+      (∀ m ∈ masks, c.field? m = some .never ∧ c₁.field? m = none) ∧
+      (∀ x ∈ ins, (c₁.field? x).isSome) ∧
+      (∀ e ∈ outs.zip (List.replicate copies s.outMarks).flatten, c'.field? e.1 = some e.2) :=
+  TlsMpc.Node.Engine.check_program sigs c c' sh name copies ins masks outs l h
+
+/-- **What a program step releases** (P-FIELDPROG / P-INV, model side): exactly the openings
+`b·m` of its instances' `D`/`Z` rows (V3 semantics), labelled, the same to both parties. -/
+theorem engine_idealStep_program (E : Env) (me : Party) (name : Bytes) (copies : Nat)
+    (ins masks outs : List FieldH) (l : Label) (peer : PeerPart) (I I' : Ideal) (toH toD : Option Release)
+    (h : idealStep E me (.program name copies ins masks outs l) peer I = some (I', toH, toD)) :
+    ∃ p vi vm vo opened, E.programs name = some p ∧ ins.mapM (fun h => I.fields h.id) = some vi ∧
+      masks.mapM (fun h => I.fields h.id) = some vm ∧ runProgram p copies vi vm = some (vo, opened) ∧
+      vo.length = outs.length ∧ I' = I.setFields outs vo ∧
+      toH = some ⟨l, .elems opened⟩ ∧ toD = some ⟨l, .elems opened⟩ :=
+  TlsMpc.Node.Engine.idealStep_program E me name copies ins masks outs l peer I I' toH toD h
+
+/-- A program step opens exactly one value per `D`/`Z` row per instance. -/
+theorem engine_runProgram_lengths (p : TlsMpc.FieldDag.V3.Program) (copies : Nat)
+    (vi vm vo opened : List TlsMpc.FieldDag.F) (h : runProgram p copies vi vm = some (vo, opened)) :
+    opened.length = copies * p.openings ∧ vo.length = copies * p.outputs.length :=
+  TlsMpc.Node.Engine.runProgram_lengths p copies vi vm vo opened h
 
 end EngineModel
 
