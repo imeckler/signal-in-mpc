@@ -1507,6 +1507,85 @@ Tests: Q, F, D.
 Depends on S6. **3 weeks. Mechanical** (behaviour-preserving) **but large.** A reordering of
 public requests shows up as a request disagreement (fails loudly) or in D.
 
+**Status (2026-11-12).** Done, in four steps, each building with recovery-check 29/29, policy-check
+14/14, parse-bench, the lints and `check_axioms.py`:
+1. `main` moved verbatim to `TlsMpc/Node/Main.lean`; the executable root
+   `PublicServiceController.lean` is `import TlsMpc.Node.Main` / `def main := TlsMpc.Node.Main.main`
+   (executable name, command line and environment unchanged).
+2. Removed: the fixture branch (no export, no ceremony: `Flow.Fixture.catalogue`, the authenticated
+   upgrade with the catalogue's state, contacts 1 and 2 with fresh shares, `keyed`/`keyContacts`)
+   and the in-memory fixture texts; such a session now fails at once ("SIGNAL_LOCAL_EXPORT is
+   required"). Retired `check_signal_service_v3.py` and `check_tls_application_v3.py`; kept
+   `check_tls_worker_v3.py` (it runs `session_handshake_fixture`, not this controller). Nothing in
+   the harness, `node_daemon` or `real_signal/run_real_test.py` used either (both always set
+   SIGNAL_LOCAL_EXPORT).
+3. The session modules (built alone first, unused), then 4. `Main.lean` switched to them:
+   - `Session/State.lean` (188 lines): `Context` (reader: `ch`, `w`, config, party, session id, the
+     server; `self`/`receiving` set after `Start`; `envelope`, see below), `State` (threaded: `Pool`,
+     `Report` (the final report's facts), `Contacts` (kinds, unreadable, versions, prepared,
+     resident, provisional and new ids), request-id counter, keepalive clock, send stamping,
+     `jobRequest`, receive refusals), `SessionM := ReaderT Context (ExceptT String (StateT State IO))`
+     (failures over the state, so a failed session's report still says how far it came, as the
+     references did). The old `main`'s 40 `IO.Ref`s are fields.
+   - `Common` (282): `controlMasks`, `peer`, `peerClock`/`agreedNow`, `nonce`, `nextId`, `touch`,
+     `freshShare`, `note`, `sendPublic`, `record`, `awaitReply`, `keepAlive`, `receiveSoft`,
+     `awaitSoft`, `keepAliveSoft`, `drainOne`.
+   - `Pool` (147): `readUpgrade`, `openConnection`, `openCircuits`, `toCircuit`, `saveState`,
+     `reconnect`, `openAll`.
+   - `Store` (271, **not in the list above**): the database nodes and the TEST store, shared by
+     `Start`, Send, Serve and Receive: `dbRead/dbSubmit/dbSubmitSoft/dbWrite/dbDeal/absentAgreed`,
+     `openState/sealState/kindsOf/requireLoaded/forget`, `storeAdvanced`, `storeSoft`,
+     `commitScratch`, `reloadContacts`, `writeBack`.
+   - `Start` (200, **not in the list**): `connect` (settings agreement, connection, handshake;
+     plain `M` before the state exists), `run` (the upgrade, account and contacts, the export's
+     keys, the agreed broadcast time).
+   - `Send` (576): `notify`, `inputsOf`, `restamp`, `sendMessage`/`sendDevices`, `refreshContact`,
+     `ensurePrepared`, `loop`, `sendSoft`, `refreshSoft`, `deliverJob`; kinds `deliver`, `sendAll`.
+   - `Serve` (184): `loadJob`, `serve`. `Receive` (221): `decapsulate`, `receiveFirst`,
+     `handleEnvelope`, `waiting`, `run`. `Ceremony` (262): `stage` (the subcommand), `upgrade`,
+     `run`. `Delete` (30): the `db-delete` subcommand.
+   - `Main` (214): `main` (dispatch), `requestShape`, `recoveryCheck`, `policyCheck`, `kind` (one
+     session kind), `run` (threads the state), `session` (spawn, run, final report).
+- **Deviations.** (1) Two modules beyond the list: `Store` and `Start` (and `State` for the types).
+  (2) `handleEnvelope` is in `Receive` as listed, but `Common.record` must call it while a record is
+  read: it is injected as `Context.envelope`, bound by `Main` after `Start`. (3) References left: a
+  connection's receive slot (`Connection.slot`, the transport's mailbox that `Flow.Tls.application`
+  and `Flow.Server.awaitRecord` take), `TlsApplication.Session`'s own state and `Flow.Worker`'s; and
+  `Main`'s certificate flag for the worker spawn's callback. The lint's new `session-state` check
+  allows `IO.Ref`/`mkRef` only in `Session/State`, `Pool`, `Start` (and `Main`). (4) Order kept
+  exactly, including the clock agreement every session with an export made for the broadcast's
+  timestamp (now at the end of `Start.run`, for every kind); only the send kinds then build the
+  notify's messages (a ceremony or receive session with SIGNAL_NOTIFY_MESSAGE_FILE would no longer
+  read it; the daemon never sets it for them). (5) The `apps`/`slots` pair is one array of
+  `Connection`s; `parkedStates` (non-recovery) and `states` (recovery) stay apart, as before.
+  (6) `while` loops and fuel recursion as before; no `partial def`.
+- **Lint.** `session-state` (on by default): the executable root is exactly the two lines above;
+  no reference in `Session/*` outside the files of (3). `io-baseline` (strict) and `flow-calls`
+  already applied to every `TlsMpc/Node` file, so `Main.lean` and `Session/*` are covered. Baseline
+  unchanged (3 sites, `TlsWorkerProcess`).
+- **Harness** (`.deps/lowering-scratch/s7_harness*.py`) after the switch and at the end, all passed:
+  compact signup (3 devices); malicious and semi-honest `--runs 2 --signup`, malicious
+  `--runs 0 --db` (all `compare_records.py` equal to `tests/golden`); semi-honest `--runs 0 --app`;
+  malicious `--ceremony`; malicious `--runs 0 --recovery devices`; malicious
+  `--runs 0 --sustained 16 --restart-after 8`.
+- **For P4.** ORD-1: `Send.sendMessage`/`sendDevices`/`sendSoft` call `Store.storeAdvanced`/
+  `storeSoft` (which return only after the nodes acknowledged, and reseal under a fresh `nonce`)
+  before `Flow.Send.request*`; resends go through the same functions. ORD-2:
+  `Store.commitScratch`. T11: `Send.deliverJob` sets `Report.results` only after the results
+  digest agreed; `Serve.serve` and `Main.session` report `Report.results`.
+- **For S8.** The worker spawn is in `Main.session` (`TlsWorkerProcess.spawn`, then
+  `Flow.Worker.start running.rpc ch.random`): the switch to `node_worker` is there. Op 19
+  (`Flow.Fixture.catalogue`) has no caller; `provider_controller_fixture` and
+  `session_application_fixture` lost their checks (targets left in place). Docs still naming the
+  retired checks: SECURITY_MODES.md, REMAINING_WORK.md, PRODUCT_TODO.md, gen_tls_cert.sh,
+  `check_signal_service_local.py`'s docstring.
+- **For S9.** A flow becoming a script changes nothing in the session modules (they call
+  `Flow.*`). The final report's operation check still reads `w.operations` (codes 15, 18, 37, 38,
+  41, 42, 43, `Main.session`): replace it with `Report` facts when those ops become scripts. A
+  script that returns plain bytes (e.g. `Random.joint`) must still hand `Opened` to the session:
+  wrap with `Reveal.jointRandom` in the script runner (widen the lint's `flow-calls` allowlist to
+  that file) or add a script-side maker in `Reveal.lean`.
+
 ---
 
 **S8. Rust worker shell, engine C ABI, legacy library.**

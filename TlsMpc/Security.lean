@@ -91,6 +91,9 @@ import TlsMpc.Node.Flows.Contacts
 import TlsMpc.Node.Flows.ContactsTable
 import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
+import TlsMpc.Node.Engine.Labels
+import TlsMpc.Node.Engine.Reveal
+import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -4921,6 +4924,56 @@ theorem engine_check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shap
     (h : check sigs c s = some (c', sh)) (hl : s.label? = some l) : l.code ≠ 0 :=
   TlsMpc.Node.Engine.check_label sigs c c' sh s l h hl
 
+/-- **`withAdv` over `bind`.** A run of `s.bind f` is the run of `s`, then (if `s` returned `a`)
+the run of `f a` from the store and ideal state `s` left, against the same adversary, whose view
+then includes everything `s` released to it. -/
+theorem engine_withAdv_bind (E : Env) (me : Party) (adv : Adversary) {α β : Type} (s : Script α)
+    (f : α → Script β) (σ : Store) (I : Ideal) (vD : List Release) :
+    withAdv E me adv (s.bind f) σ I vD =
+      match (withAdv E me adv s σ I vD).result with
+      | some a => (withAdv E me adv s σ I vD).then
+          (withAdv E me adv (f a) (withAdv E me adv s σ I vD).store (withAdv E me adv s σ I vD).ideal
+            (vD ++ (withAdv E me adv s σ I vD).viewD))
+      | none => (withAdv E me adv s σ I vD).stop :=
+  TlsMpc.Node.Engine.withAdv_bind E me adv s f σ I vD
+
+/-- **`jointRun` over `bind`.** When two honest parties' runs of `sA`, `sB` both return (`a`, `b`),
+their runs of `sA.bind fA`, `sB.bind fB` are those runs followed by the joint run of `fA a`, `fB b`
+from the stores and ideal state they left. -/
+theorem engine_jointRun_bind (E : Env) {α β γ δ : Type} (sA : Script α) (sB : Script β)
+    (fA : α → Script γ) (fB : β → Script δ) (σA σB : Store) (I : Ideal) (a : α) (b : β)
+    (h : (jointRun E sA sB σA σB I).result = some (a, b)) :
+    jointRun E (sA.bind fA) (sB.bind fB) σA σB I =
+      (jointRun E sA sB σA σB I).then
+        (jointRun E (fA a) (fB b) (jointRun E sA sB σA σB I).storeA (jointRun E sA sB σA σB I).storeB
+          (jointRun E sA sB σA σB I).ideal) :=
+  TlsMpc.Node.Engine.jointRun_bind E sA sB fA fB σA σB I a b h
+
+/-- **The unusable marker is no batch's skeleton bytes.** -/
+theorem engine_skeletonBytes_ne_unusable (b : List Wire) : skeletonBytes b ≠ unusable :=
+  TlsMpc.Node.Engine.skeletonBytes_ne_unusable b
+
+/-- **An unusable batch is rejected by both parties before any engine call:** if either party's
+batch is unusable, neither proceeds past the agreement, whatever the other party's request. -/
+theorem engine_unusable_rejected_by_both (reqA reqB : Bytes)
+    (h : usableBatch .a reqA = none ∨ usableBatch .b reqB = none) :
+    agreeBatch .a reqA (agreedBytes .b reqB) = none ∧ agreeBatch .b reqB (agreedBytes .a reqA) = none :=
+  TlsMpc.Node.Engine.unusable_rejected_by_both reqA reqB h
+
+/-- **An unusable batch stops both shells before any engine call:** no instruction reaches the
+ideal functionality, and nothing is released to anyone. -/
+theorem engine_shellPair_unusable (E : Env) (reqA reqB : Bytes) (I : Ideal)
+    (h : usableBatch .a reqA = none ∨ usableBatch .b reqB = none) :
+    agreeBatch .a reqA (agreedBytes .b reqB) = none ∧ agreeBatch .b reqB (agreedBytes .a reqA) = none ∧
+      shellPair E reqA reqB I = none :=
+  TlsMpc.Node.Engine.shellPair_unusable E reqA reqB I h
+
+/-- **Allocated handles are never reused:** the blocks of any sequence of allocations from the
+session's counters are pairwise disjoint. -/
+theorem engine_counters_blocksB_disjoint (n : Counters) (ks : List Nat) :
+    (Counters.blocksB n ks).Pairwise (fun b b' => ∀ j ∈ b, j ∉ b') :=
+  TlsMpc.Node.Engine.Counters.blocksB_disjoint n ks
+
 end EngineModel
 
 section FlowsRandom
@@ -5297,7 +5350,297 @@ theorem contactsWrite_used_nodup (used : List B8) (v : B8) (hu : used.Nodup) (hv
     (useNonce used v).Nodup :=
   TlsMpc.Node.Flows.Contacts.used_nodup used v hu hv
 
+/-- **T3 for a state write** (against any adversary, any engine state): the adversary's view is a
+prefix of `Random.joint`'s commitment and opening followed by the one `sealedBlob` release of the
+seal under the nonce `v`, the first 8 bytes of the joint value. -/
+theorem contactsWrite_write_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release)
+    (hE : Loaded E) (hh : ∀ m, (E.hash m).length = 32) (nonceSlot valueSlot : Nat) (used : List B8) (n : Nat)
+    (key state : BoolH) (size : Nat) (kv sv : Bits)
+    (hn : (σ.bytes nonceSlot).length = 32) (hv : (σ.bytes valueSlot).length = 32)
+    (hkn : key.id < n) (hsn : state.id < n) (hk : I.bools key.id = some kv) (hs : I.bools state.id = some sv) :
+    ∃ v : B8, (withAdv E me adv (writeScript E.hash me nonceSlot valueSlot used n key state size) σ I vD).viewD <+:
+      [Random.e1 E me σ nonceSlot valueSlot, Random.e2 σ nonceSlot valueSlot, writeRelease size kv sv v] :=
+  TlsMpc.Node.Flows.Contacts.write_disclosure E me adv σ I vD hE hh nonceSlot valueSlot used n key state size
+    kv sv hn hv hkn hsn hk hs
+
+/-- **T10, two honest parties:** both return the nonce `v`, the first 8 bytes of r_A ⊕ r_B, and the
+blob v ‖ checkOf K ‖ ctrOf K v S, when `v` is a valid version not used before in the session. -/
+theorem contactsWrite_write_honest (E : Env) (σA σB : Store) (I : Ideal) (hE : Loaded E) (nA vA nB vB : Nat)
+    (used : List B8) (n : Nat) (key state : BoolH) (size : Nat) (K S : B8)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame Random.tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes nB) (σB.bytes vB)))
+    (hkn : key.id < n) (hsn : state.id < n) (hK : K.length = 60) (hS : S.length = size)
+    (h0 : 0 < size) (h1 : size ≤ 16384)
+    (hk : I.bools key.id = some (bitsOf K)) (hs : I.bools state.id = some (bitsOf S))
+    (hok : versionOk (nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB))) = true ∧
+      nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB)) ∉ used) :
+    (jointRun E (writeScript E.hash .a nA vA used n key state size)
+        (writeScript E.hash .b nB vB used n key state size) σA σB I).result =
+      some ((nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB)),
+          nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB)) ++
+            sealed K (nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB))) S),
+        (nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB)),
+          nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB)) ++
+            sealed K (nonceOf (Random.xorBytes (σA.bytes vA) (σB.bytes vB))) S)) :=
+  TlsMpc.Node.Flows.Contacts.write_honest E σA σB I hE nA vA nB vB used n key state size K S hh hnA hvA hnB hvB
+    hc hkn hsn hK hS h0 h1 hk hs hok
+
+/-- **A write is well formed** under the seal's hypotheses; it leaves what the seal leaves
+(`SealPost`). -/
+theorem contactsWrite_writeScript_wfp (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party)
+    (nonceSlot valueSlot : Nat) (used : List B8) (c : Ctx) (n : Nat) (key state : BoolH) (size : Nat)
+    (km sm : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hsn : state.id < n)
+    (hk : c.bool? key = some ⟨km, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hkm : km.length = 480) (hsm : sm.length = 8 * size)
+    (hsig' : 0 < size → size ≤ 16384 → sigs (sealName size) = some ⟨8 * (68 + size), sealMarks size⟩) :
+    WFP sigs (fun c' (_ : B8 × B8) => SealPost c n c' []) c
+      (writeScript hash me nonceSlot valueSlot used n key state size) :=
+  TlsMpc.Node.Flows.Contacts.writeScript_wfp sigs hash me nonceSlot valueSlot used c n key state size km sm hf
+    hkn hsn hk hs hkm hsm hsig'
+
+/-! #### The contact table's invariant, preserved by every step -/
+
+/-- **The table invariant holds at session start** (empty context, empty table). -/
+theorem contactsTable_inv_empty : Table.Inv {} {} :=
+  TlsMpc.Node.Flows.Contacts.Table.Inv.empty
+
+/-- **Op 36 preserves the table invariant** (and is well formed). -/
+theorem contactsTable_opKey_inv (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id slot : Nat)
+    (hI : t.Inv c) : WFP sigs (fun c' h => ((opKey t id slot).commit h).Inv c') c (opKey t id slot).script :=
+  TlsMpc.Node.Flows.Contacts.opKey_inv sigs hs c t id slot hI
+
+/-- **Op 38 preserves the table invariant** (and is well formed). -/
+theorem contactsTable_opSeal_inv (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id : Nat)
+    (version : B8) (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opSeal t id version).commit r).Inv c') c (opSeal t id version).script :=
+  TlsMpc.Node.Flows.Contacts.opSeal_inv sigs hs c t id version hI
+
+/-- **Ops 37 and 63 preserve the table invariant** (and are well formed). -/
+theorem contactsTable_opOpen_inv (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id : Nat)
+    (kinds : List Nat) (version check ct : B8) (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opOpen t id kinds version check ct).commit r).Inv c') c
+      (opOpen t id kinds version check ct).script :=
+  TlsMpc.Node.Flows.Contacts.opOpen_inv sigs hs c t id kinds version check ct hI
+
+/-- **Op 40 preserves the table invariant.** -/
+theorem contactsTable_opEvict_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Table) (id : Nat) (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opEvict t id).commit r).Inv c') c (opEvict t id).script :=
+  TlsMpc.Node.Flows.Contacts.opEvict_inv sigs c t id hI
+
+/-- **Op 52 preserves the table invariant** (and is well formed). -/
+theorem contactsTable_opAssign_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Table) (fromId toId : Nat)
+    (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opAssign t fromId toId).commit r).Inv c') c (opAssign t fromId toId).script :=
+  TlsMpc.Node.Flows.Contacts.opAssign_inv sigs c t fromId toId hI
+
+/-- **A state write on the table preserves the invariant** (and is well formed). -/
+theorem contactsWrite_opWrite_inv (sigs : Bytes → Option Sig) (hs : SigsOk sigs) (c : Ctx) (t : Table) (id : Nat)
+    (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot : Nat) (used : List B8) (hI : t.Inv c) :
+    WFP sigs (fun c' r => ((opWrite t id hash me nonceSlot valueSlot used).commit r).Inv c') c
+      (opWrite t id hash me nonceSlot valueSlot used).script :=
+  TlsMpc.Node.Flows.Contacts.opWrite_inv sigs hs c t id hash me nonceSlot valueSlot used hI
+
+/-- **T3 for a state write on the table:** `contactsWrite_write_disclosure` for the entry's key and
+state handles. -/
+theorem contactsWrite_opWrite_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release)
+    (hE : Loaded E) (hh : ∀ m, (E.hash m).length = 32) (t : Table) (id nonceSlot valueSlot : Nat)
+    (used : List B8) (e : Entry) (k s : BoolH) (kv sv : Bits) (he : t.find? id = some e)
+    (hk : e.key = some k) (hs : e.state = some s) (hkn : k.id < t.next) (hsn : s.id < t.next)
+    (hn : (σ.bytes nonceSlot).length = 32) (hv : (σ.bytes valueSlot).length = 32)
+    (hkv : I.bools k.id = some kv) (hsv : I.bools s.id = some sv) :
+    ∃ v : B8, (withAdv E me adv (opWrite t id E.hash me nonceSlot valueSlot used).script σ I vD).viewD <+:
+      [Random.e1 E me σ nonceSlot valueSlot, Random.e2 σ nonceSlot valueSlot, writeRelease e.size kv sv v] :=
+  TlsMpc.Node.Flows.Contacts.opWrite_disclosure E me adv σ I vD hE hh t id nonceSlot valueSlot used e k s kv sv
+    he hk hs hkn hsn hn hv hkv hsv
+
+/-- **Op 54 on the session's counters is op 54 at the counter:** `sealStep` is `opSeal a a.ctr.bool`,
+the counter moved to `opSeal`'s next free id (so every `opSeal` theorem applies to it). -/
+theorem account_sealStep_eq (a : Account.State) (version : B8) :
+    (Account.sealStep a version).1 = (Account.opSeal a a.ctr.bool version).1 ∧
+      (Account.sealStep a version).2 =
+        { (Account.opSeal a a.ctr.bool version).2.2 with
+          ctr := { a.ctr with bool := (Account.opSeal a a.ctr.bool version).2.1 } } :=
+  TlsMpc.Node.Flows.Account.sealStep_eq a version
+
 end FlowsContacts
+
+/-! ### 7b. Labels, the reveal registry and the engine's batching (stages S9, S6)
+
+`TlsMpc/Node/Engine/Labels.lean` (the release labels are the reveal kinds' codes),
+`Engine/Reveal.lean` (`Reveals ks s`: every release instruction of `s` carries the label of a
+declared kind; the open rule in the reveal list's vocabulary; the Lean sender's wires are bounded),
+`Flows/Registry.lean` (every script flow's declared kinds are registered) and the batch builder of
+`Engine.lean` (decision D8). **Trust:** statements about the model, as section 7a. -/
+
+section LabelsRegistry
+open TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open TlsMpc.Node (RevealKind)
+
+/-! #### The labels -/
+
+/-- **A label names its kind:** `Label.ofKind` is injective. -/
+theorem engine_label_ofKind_inj {a b : RevealKind} : Label.ofKind a = Label.ofKind b ↔ a = b :=
+  TlsMpc.Node.Engine.Label.ofKind_inj
+
+/-- **The registry's labels are pairwise distinct** (no two share a code). -/
+theorem engine_label_all_distinct : (Label.all.map (·.code)).Nodup :=
+  TlsMpc.Node.Engine.Label.all_distinct
+
+/-- **No registered label has code 0** (which `check` refuses). -/
+theorem engine_label_all_nonzero : ∀ l ∈ Label.all, l.code ≠ 0 :=
+  TlsMpc.Node.Engine.Label.all_nonzero
+
+/-! #### The open rule in the reveal list's vocabulary -/
+
+/-- **The adversary's view in the reveal list's vocabulary.** In any run of a script that declares
+the kinds `ks`, against any adversary, from any store and engine state, every release the adversary
+received is labelled `Label.ofKind k` for a declared kind `k`. -/
+theorem engine_viewD_kinds (E : Env) (me : Party) (adv : Adversary) {α : Type} (ks : List RevealKind)
+    (s : Script α) (hs : Reveals ks s) (σ : Store) (I : Ideal) (vD : List Release) :
+    ∀ r ∈ (withAdv E me adv s σ I vD).viewD, ∃ k ∈ ks, r.label = Label.ofKind k :=
+  TlsMpc.Node.Engine.viewD_kinds E me adv ks s hs σ I vD
+
+/-- **The honest party's view in the reveal list's vocabulary** (the same, for what it received). -/
+theorem engine_viewH_kinds (E : Env) (me : Party) (adv : Adversary) {α : Type} (ks : List RevealKind)
+    (s : Script α) (hs : Reveals ks s) (σ : Store) (I : Ideal) (vD : List Release) :
+    ∀ r ∈ (withAdv E me adv s σ I vD).viewH, ∃ k ∈ ks, r.label = Label.ofKind k :=
+  TlsMpc.Node.Engine.viewH_kinds E me adv ks s hs σ I vD
+
+/-! #### The registry: every script flow declares registered kinds -/
+
+/-- **The registry check:** every kind a script flow declares is one of the label registry's kinds. -/
+theorem registry_declared_registered : ∀ p ∈ Registry.declared, ∀ k ∈ p.2, k ∈ Label.kinds :=
+  TlsMpc.Node.Flows.Registry.declared_registered
+
+/-- **Every script flow declares its kinds** (on every branch, for every argument). -/
+theorem registry_script_flows_reveal :
+    (∀ hash me nonce value, Reveals Random.jointKinds (Random.joint hash me nonce value)) ∧
+    (∀ hash me nonce value, Reveals Random.jointKinds (Upgrade.publicUpgrade hash me nonce value)) ∧
+    (∀ n slot, Reveals keyKinds (keyScript n slot)) ∧
+    (∀ n key state size version, Reveals sealKinds (sealScript n key state size version)) ∧
+    (∀ n key version check ct, Reveals openKinds (openScript n key version check ct)) ∧
+    (∀ hash me nonceSlot valueSlot used n key state size,
+      Reveals writeKinds (writeScript hash me nonceSlot valueSlot used n key state size)) ∧
+    (∀ t id slot, Reveals keyKinds (opKey t id slot).script) ∧
+    (∀ t id version, Reveals sealKinds (opSeal t id version).script) ∧
+    (∀ t id kinds version check ct, Reveals openKinds (opOpen t id kinds version check ct).script) ∧
+    (∀ t id, Reveals [] (opEvict t id).script) ∧
+    (∀ t fromId toId, Reveals [] (opAssign t fromId toId).script) ∧
+    (∀ t id hash me nonceSlot valueSlot used,
+      Reveals writeKinds (opWrite t id hash me nonceSlot valueSlot used).script) ∧
+    (∀ a slot, Reveals keyKinds (Account.keyStep a slot).1) ∧
+    (∀ a n version, Reveals sealKinds (Account.opSeal a n version).1) ∧
+    (∀ a version, Reveals sealKinds (Account.sealStep a version).1) :=
+  TlsMpc.Node.Flows.Registry.script_flows_reveal
+
+/-- **Registered labels only:** in any run of a script that declares registered kinds, against any
+adversary, every release the adversary receives carries a label of `Label.all`. -/
+theorem registry_viewD_registered (E : Env) (me : Party) (adv : Adversary) {α : Type} (ks : List RevealKind)
+    (s : Script α) (hs : Reveals ks s) (hk : ∀ k ∈ ks, k ∈ Label.kinds) (σ : Store) (I : Ideal)
+    (vD : List Release) : ∀ r ∈ (withAdv E me adv s σ I vD).viewD, r.label ∈ Label.all :=
+  TlsMpc.Node.Flows.Registry.viewD_registered E me adv ks s hs hk σ I vD
+
+/-! #### Each flow's releases carry its declared kinds (no hypothesis) -/
+
+/-- **T3 for `Random.joint` in the reveal list's vocabulary:** only the commitment and opening kinds. -/
+theorem flows_joint_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) :
+    ∀ r ∈ (withAdv E me adv (Random.joint E.hash me nonce value) σ I vD).viewD,
+      ∃ k ∈ Random.jointKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Random.joint_viewD_kinds E me adv σ I vD nonce value
+
+/-- **T3 for the upgrade in the reveal list's vocabulary:** only `Random.joint`'s kinds. -/
+theorem flows_publicUpgrade_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) :
+    ∀ r ∈ (withAdv E me adv (Upgrade.publicUpgrade E.hash me nonce value) σ I vD).viewD,
+      ∃ k ∈ Random.jointKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Upgrade.publicUpgrade_viewD_kinds E me adv σ I vD nonce value
+
+/-- **T3 for `Contacts.seal` in the reveal list's vocabulary:** only `ofKind .sealedBlob`. -/
+theorem flows_seal_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n : Nat) (key state : BoolH) (size : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (sealScript n key state size version) σ I vD).viewD,
+      ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.seal_viewD_kinds E me adv σ I vD n key state size version
+
+/-- **T3 for `Contacts.open` in the reveal list's vocabulary:** only `ofKind .blobAccepted`. -/
+theorem flows_open_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n : Nat) (key : BoolH) (version check ct : B8) :
+    ∀ r ∈ (withAdv E me adv (openScript n key version check ct) σ I vD).viewD,
+      ∃ k ∈ openKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.open_viewD_kinds E me adv σ I vD n key version check ct
+
+/-- **T3 for `Contacts.key` in the reveal list's vocabulary:** no kind (the view is empty). -/
+theorem flows_key_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n slot : Nat) :
+    ∀ r ∈ (withAdv E me adv (keyScript n slot) σ I vD).viewD, ∃ k ∈ keyKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.key_viewD_kinds E me adv σ I vD n slot
+
+/-- **T3 for a state write in the reveal list's vocabulary:** only the commitment, opening and
+sealed-blob kinds. -/
+theorem flows_write_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release)
+    (nonceSlot valueSlot : Nat) (used : List B8) (n : Nat) (key state : BoolH) (size : Nat) :
+    ∀ r ∈ (withAdv E me adv (writeScript E.hash me nonceSlot valueSlot used n key state size) σ I vD).viewD,
+      ∃ k ∈ writeKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.write_viewD_kinds E me adv σ I vD nonceSlot valueSlot used n key state size
+
+/-- **T3 for op 38 on the table in the reveal list's vocabulary:** only `ofKind .sealedBlob`. -/
+theorem flows_opSeal_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Table) (id : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (opSeal t id version).script σ I vD).viewD, ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.opSeal_viewD_kinds E me adv σ I vD t id version
+
+/-- **T3 for ops 37 and 63 on the table in the reveal list's vocabulary:** only
+`ofKind .blobAccepted`. -/
+theorem flows_opOpen_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Table) (id : Nat) (kinds : List Nat) (version check ct : B8) :
+    ∀ r ∈ (withAdv E me adv (opOpen t id kinds version check ct).script σ I vD).viewD,
+      ∃ k ∈ openKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Contacts.opOpen_viewD_kinds E me adv σ I vD t id kinds version check ct
+
+/-- **T3 for op 54 in the reveal list's vocabulary** (both credential cases, any state): only
+`ofKind .sealedBlob`. -/
+theorem flows_account_opSeal_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (a : Account.State) (n : Nat) (version : B8) :
+    ∀ r ∈ (withAdv E me adv (Account.opSeal a n version).1 σ I vD).viewD,
+      ∃ k ∈ sealKinds, r.label = Label.ofKind k :=
+  TlsMpc.Node.Flows.Account.opSeal_viewD_kinds E me adv σ I vD a n version
+
+/-! #### The batches the Lean sender builds -/
+
+/-- **The batches an honest party sends are admitted** (decision D8 refuses none): if the script is
+well formed in the carried context and its batch is sent, `checkBatch` accepts its skeletons. -/
+theorem engine_nextBatch_admitted (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (σ : Store)
+    {α : Type} (s : Script α) : ∀ (c : Ctx) (i₀ : Nat), WF sigs c s →
+    (∀ r, (nextBatch hash me σ s).rest ≠ .aborted r) →
+    ∃ c' shs, checkBatchFrom sigs c i₀ ((nextBatch hash me σ s).wires.map InstrP.skel) = .ok (c', shs) :=
+  TlsMpc.Node.Engine.nextBatch_admitted sigs hash me σ s
+
+/-- **Decision D8 for the batch builder:** in a batch `nextBatch` builds, no instruction but the
+last ends a batch. -/
+theorem engine_nextBatch_ends {α : Type} (hash : Bytes → Bytes) (me : Party) (σ : Store) (s : Script α) :
+    ∀ w ∈ (nextBatch hash me σ s).wires.dropLast, w.endsBatch = false :=
+  TlsMpc.Node.Engine.nextBatch_ends hash me σ s
+
+/-- **Filling keeps the bound:** the payloads `fill` puts in have the lengths the skeleton declares,
+all below 2^64. -/
+theorem engine_fill_bounded (hash : Bytes → Bytes) (me : Party) (σ : Store) (i : Instr) (w : Wire)
+    (h : fill hash me σ i = some w) (hb : i.Bounded) : w.Bounded :=
+  TlsMpc.Node.Engine.fill_bounded hash me σ i w h hb
+
+/-- **The wires of a batch the Lean sender builds are bounded** when the script's instructions are
+(on every branch), so the batch encoding round-trips. -/
+theorem engine_nextBatch_bounded {α : Type} (hash : Bytes → Bytes) (me : Party) (σ : Store) (s : Script α)
+    (hs : Every Instr.Bounded s) : ∀ w ∈ (nextBatch hash me σ s).wires, w.Bounded :=
+  TlsMpc.Node.Engine.nextBatch_bounded hash me σ s hs
+
+end LabelsRegistry
 
 /-! ## 8. NOT YET PROVED
 
@@ -5857,6 +6200,45 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.account_accountKey_honest
 #print axioms TlsMpc.Security.contactsWrite_write_fresh
 #print axioms TlsMpc.Security.contactsWrite_used_nodup
+#print axioms TlsMpc.Security.engine_withAdv_bind
+#print axioms TlsMpc.Security.engine_jointRun_bind
+#print axioms TlsMpc.Security.engine_skeletonBytes_ne_unusable
+#print axioms TlsMpc.Security.engine_unusable_rejected_by_both
+#print axioms TlsMpc.Security.engine_shellPair_unusable
+#print axioms TlsMpc.Security.engine_counters_blocksB_disjoint
+#print axioms TlsMpc.Security.contactsWrite_write_disclosure
+#print axioms TlsMpc.Security.contactsWrite_write_honest
+#print axioms TlsMpc.Security.contactsWrite_writeScript_wfp
+#print axioms TlsMpc.Security.contactsTable_inv_empty
+#print axioms TlsMpc.Security.contactsTable_opKey_inv
+#print axioms TlsMpc.Security.contactsTable_opSeal_inv
+#print axioms TlsMpc.Security.contactsTable_opOpen_inv
+#print axioms TlsMpc.Security.contactsTable_opEvict_inv
+#print axioms TlsMpc.Security.contactsTable_opAssign_inv
+#print axioms TlsMpc.Security.contactsWrite_opWrite_inv
+#print axioms TlsMpc.Security.contactsWrite_opWrite_disclosure
+#print axioms TlsMpc.Security.account_sealStep_eq
+#print axioms TlsMpc.Security.engine_label_ofKind_inj
+#print axioms TlsMpc.Security.engine_label_all_distinct
+#print axioms TlsMpc.Security.engine_label_all_nonzero
+#print axioms TlsMpc.Security.engine_viewD_kinds
+#print axioms TlsMpc.Security.engine_viewH_kinds
+#print axioms TlsMpc.Security.registry_declared_registered
+#print axioms TlsMpc.Security.registry_script_flows_reveal
+#print axioms TlsMpc.Security.registry_viewD_registered
+#print axioms TlsMpc.Security.flows_joint_viewD_kinds
+#print axioms TlsMpc.Security.flows_publicUpgrade_viewD_kinds
+#print axioms TlsMpc.Security.flows_seal_viewD_kinds
+#print axioms TlsMpc.Security.flows_open_viewD_kinds
+#print axioms TlsMpc.Security.flows_key_viewD_kinds
+#print axioms TlsMpc.Security.flows_write_viewD_kinds
+#print axioms TlsMpc.Security.flows_opSeal_viewD_kinds
+#print axioms TlsMpc.Security.flows_opOpen_viewD_kinds
+#print axioms TlsMpc.Security.flows_account_opSeal_viewD_kinds
+#print axioms TlsMpc.Security.engine_nextBatch_admitted
+#print axioms TlsMpc.Security.engine_nextBatch_ends
+#print axioms TlsMpc.Security.engine_fill_bounded
+#print axioms TlsMpc.Security.engine_nextBatch_bounded
 #print axioms TlsMpc.Security.contact_round_trip
 #print axioms TlsMpc.Security.chainSend_selectState_accept
 #print axioms TlsMpc.Security.chainSend_selectState_reject
