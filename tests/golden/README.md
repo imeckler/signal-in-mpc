@@ -19,10 +19,18 @@ Regenerated 2026-11-12 on the tree at the end of stage S2 (after the device-refr
 semi-honest pair added. Before regenerating, the new malicious runs compared equal to the previous
 golden set (`malicious-runs2-signup` all sessions; `malicious-db` all but the artefact below).
 
-**Known false difference (slot widths).** A private slot appears in the masked template as
-`<slot N>`, found as a run of zero bytes in the masked frame. When the WebSocket mask byte at a
-slot's neighbouring text byte equals that byte (probability 1/256 per slot edge; a `--db` run has
-about a hundred edges, so roughly one run in three), the masked byte is 0 and the slot shows one
-byte wider (e.g. `<slot 25>` after `unidentified-access-key:` instead of `: ` + `<slot 24>`). The
-frame itself is correct. The golden sets were chosen without such a slot (widths 36, 24, 3, 10
-only); a comparison failing only this way is not a behaviour change.
+**Slot widths (fixed 2026-11-12).** A private slot appears in the masked template as
+`<slot N>`. A slot is zero bytes on the wire, but so is a neighbouring text byte that happens to
+equal its WebSocket mask byte (probability 1/256 per slot edge; a `--db` run has about a hundred
+edges, so roughly one run in three). `compare_records.py` used to take the whole zero run as the
+slot, so such a run showed `<slot 25>` after `unidentified-access-key:` (or `<slot 37>` after
+`/v1/messages/`) and failed against these files although the frame was correct. It now takes
+slot extents from the request builders (`TlsMpc/Node/Policy/Request.lean`; `KNOWN_SLOTS` and
+`template_slots` in the script): the unmasked text before the slot must end with the slot's
+prefix (`/v1/messages/`, `/v2/keys/` 36, `unidentified-access-key: ` 24,
+`"destinationDeviceId":` 3, `"destinationRegistrationId":` 10), the slot is exactly that wide,
+and leftover zero bytes are text (they unmask to the right character). The raw runs that showed
+the artefact (`malicious --db`, `semi-honest --db`, one each) now compare equal to these files;
+`.deps/lowering-scratch/test_compare_records.py` has a synthetic regression case. A zero run that
+follows no known prefix is still taken whole, so a new slot kind must be added to `KNOWN_SLOTS`.
+The golden files themselves were not regenerated (none contained the artefact).

@@ -14,7 +14,9 @@ Signal server and what it revealed of the server's records. Two runs of the same
 times, randomness and the server's own data; everything else must be equal. Masked:
 - `time_ms`, the `timestamp` of a send, 13-digit millisecond and 10-digit second values in text;
 - WebSocket mask keys (frames are unmasked before comparing; in a request template the engines'
-  slots, zero bytes on the wire, show as <slot N>), the `Sec-WebSocket-Key`, `mask_hex`, the
+  slots, zero bytes on the wire, show as <slot N>, with the widths the request builders give
+  them: a text byte next to a slot that is zero on the wire because it equals its mask byte is
+  text, not slot; see `template_slots`), the `Sec-WebSocket-Key`, `mask_hex`, the
   handshake's `transcript_sha256`;
 - values that are fresh per run but structural: UUIDs, base64 runs of 20 or more characters, hex
   runs of 32 or more, and request ids are replaced by aliases numbered in order of first
@@ -145,9 +147,41 @@ def websocket_message(payload, alias, ids):
         return None
 
 
+# The engines' slots in the request templates (TlsMpc/Node/Policy/Request.lean: `sendMessage`,
+# `devicesMessage`, `officialJson`, `fetchMessage`): the text that precedes each slot, and its width.
+KNOWN_SLOTS = (
+    (b'/v1/messages/', 36),                    # recipient UUID (send)
+    (b'/v2/keys/', 36),                        # recipient UUID (prekey fetch)
+    (b'unidentified-access-key: ', 24),        # access key, base64
+    (b'"destinationDeviceId":', 3),            # device id, space padded
+    (b'"destinationRegistrationId":', 10),     # registration id, space padded
+)
+
+
+def template_slots(wire, payload):
+    """The slots of a template payload, as [(start, end)]. A slot is zero on the wire, but so is a
+    text byte that happens to equal its mask byte (1/256 per byte), so a run of zeros may be
+    wider than the slot. Each zero run is therefore matched against the known slots: the
+    unmasked payload just before the slot (a text byte zero on the wire unmasks to itself) must
+    end with the slot's prefix, and the slot is exactly that wide; the zeros left over are text.
+    A run that matches no known slot is taken whole (a slot this script does not know)."""
+    out = []
+    for m in re.finditer(rb'\x00{3,}', wire):
+        found = None
+        for prefix, width in KNOWN_SLOTS:
+            for s in range(m.start(), m.end() - width + 1):
+                if s >= len(prefix) and payload[s - len(prefix):s] == prefix:
+                    found = (s, s + width)
+                    break
+            if found:
+                break
+        out.append(found or (m.start(), m.end()))
+    return out
+
+
 def websocket_frames(b, slots=False):
-    """[(first byte, opcode, unmasked payload, masked?)] or None. With `slots`, zero runs (3 or
-    more) on the wire in a masked payload are the engines' slots and become <slot N>."""
+    """[(first byte, opcode, unmasked payload, masked?)] or None. With `slots`, the engines' slots
+    (zero bytes on the wire in a masked payload, extents from `template_slots`) become <slot N>."""
     frames, i = [], 0
     while i < len(b):
         if len(b) - i < 2:
@@ -166,10 +200,7 @@ def websocket_frames(b, slots=False):
             return None
         wire = b[j:j + size]
         payload = bytes(x ^ key[k % 4] for k, x in enumerate(wire)) if masked else wire
-        slotted = []
-        if masked and slots:
-            for m in re.finditer(rb'\x00{3,}', wire):
-                slotted.append((m.start(), m.end()))
+        slotted = template_slots(wire, payload) if masked and slots else []
         frames.append((b0, opcode, payload, bool(masked), slotted))
         i = j + size
     return frames
