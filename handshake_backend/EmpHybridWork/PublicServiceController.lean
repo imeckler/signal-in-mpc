@@ -14,6 +14,7 @@ import TlsMpc.Signal.BundleResponse
 import TlsMpc.Signal.BundleSlots
 import TlsMpc.CeremonyRequests
 import TlsMpc.Node.Policy.Clock
+import TlsMpc.Node.PassOver
 
 /-!
 Service controller for the public-receive profile.
@@ -61,46 +62,8 @@ abbrev Byte := BitVec 8
 server's limit) is under 15,000 bytes; it was 4096 before such responses were read. -/
 def capacity : Nat := 16384
 
-/-- The byte operations the parsers below run on, for values in the clear. Equal to
-`ByteAuth.concrete` (`fast_eq`); the differences are in how three operations are computed at
-run time. `ByteAuth.concrete` builds the mask of one bit with `BitVec.replicate`, and its
-constants and complements go through `2 ^ 8` as an arbitrary-precision power each time; together
-that made every parsed byte cost milliseconds. -/
-def fastConst (n : Nat) : BitVec 8 := BitVec.ofFin ⟨n % 256, Nat.mod_lt n (by decide)⟩
-theorem fastConst_eq (n : Nat) : fastConst n = BitVec.ofNat 8 n := by
-  apply BitVec.eq_of_toNat_eq
-  simp [fastConst]
-
-def fastNot (x : BitVec 8) : BitVec 8 := x ^^^ 255#8
-theorem fastNot_eq : ∀ x : BitVec 8, fastNot x = ~~~x := by decide
-
-def fastMask (x : BitVec 8) (i : Nat) : BitVec 8 := if x.getLsbD i then 255#8 else 0#8
-
-theorem fastMask_eq (x : BitVec 8) (i : Nat) : fastMask x i = BitVec.replicate 8 (x.extractLsb' i 1) := by
-  have h : x.extractLsb' i 1 = BitVec.ofBool (x.getLsbD i) := by
-    apply BitVec.eq_of_getLsbD_eq
-    intro j hj
-    have hz : j = 0 := by omega
-    subst hz
-    simp
-  rw [h]
-  unfold fastMask
-  cases x.getLsbD i <;> decide
-
-def fast : ByteAuth.Ops (BitVec 8) where
-  const := fastConst
-  xor := (· ^^^ ·)
-  and := (· &&& ·)
-  not := fastNot
-  maskBit := fastMask
-
-theorem fast_eq : fast = ByteAuth.concrete := by
-  have hc : fastConst = BitVec.ofNat 8 := funext fastConst_eq
-  have hn : fastNot = (fun x : BitVec 8 => ~~~x) := funext fastNot_eq
-  have hm : fastMask = (fun (x : BitVec 8) (i : Nat) => BitVec.replicate 8 (x.extractLsb' i 1)) :=
-    funext fun x => funext fun i => fastMask_eq x i
-  unfold fast ByteAuth.concrete
-  rw [hc, hn, hm]
+-- `fast`, the byte operations the parsers below run on (equal to `ByteAuth.concrete`, `fast_eq`),
+-- is in `TlsMpc/Node/PassOver.lean` with the pass-over theorems about it.
 def on : Byte := 255
 
 structure State where
@@ -625,6 +588,256 @@ def stepSkipped (s : State) : Except String State := do
     s := { s with requests := s.requests ++ [s.request], message := [], held := none, request := [], bodySkipped := false }
   return s
 
+/-! ### Passing over a body in bulk
+
+The record loop passes over an unrevealed body one byte at a time (`passOne`, `passRun`): each
+byte runs the frame parser, the control queue and, for a response, the response parser in the
+clear, about a millisecond per byte. Inside a body those parsers only count, so `passBulk k`
+advances them by `k` bytes at once, for any `k ≤ passRoom s`; `passRun_bulk` proves that this is
+exactly what `k` steps of `passOne` give (the parsers' part: `TlsMpc/Node/PassOver.lean`).
+`passRoom` is 0 whenever its conditions do not hold; the loop then takes every byte one at a time. -/
+
+/-- One passed-over body byte, as the record loop takes it. -/
+def passOne (s : State) : Except String (State × Bool) :=
+  if s.message == [8, 2] then stepPassed s else do pure (← stepSkipped s, false)
+
+/-- `n` passed-over bytes: the state after them, and whether a response completed at one of them. -/
+def passRun : Nat → State → Except String (State × Bool)
+  | 0, s => pure (s, false)
+  | n + 1, s => do
+    let (s, done) ← passOne s
+    let (s, later) ← passRun n s
+    pure (s, done || later)
+
+/-- How many body bytes `passBulk` may pass over at once (0: none). Conditions: the upgrade is
+done; the control queue's counts are in range (`PassOver.controlIdle`: a byte with no control
+data, frame end or opcode leaves its state unchanged); the frame parser is inside a data frame's
+payload (`PassOver.frameRoom`); and, for a response awaited, the response parser is inside its body
+(`PassOver.responseRoom`). Never the body's last byte, nor a delivered envelope's (`inner`) last. -/
+def passRoom (s : State) : Nat :=
+  if s.upgraded ∧ PassOver.controlIdle s.control then
+    if s.message = [8, 2] then
+      min (s.skip - 1) (if s.pending then min (PassOver.frameRoom s.frame) (PassOver.responseRoom s.response)
+        else PassOver.frameRoom s.frame)
+    else if s.message = [8, 1] then
+      min (s.skip - 1) (match s.inner with
+        | some (_, _, remaining) => min (PassOver.frameRoom s.frame) remaining
+        | none => PassOver.frameRoom s.frame)
+    else 0
+  else 0
+
+/-- The state after `k ≤ passRoom s` passed-over body bytes, in one step. -/
+def passBulk (k : Nat) (s : State) : State :=
+  if k = 0 then s else
+  { s with frame := PassOver.frameBulk k s.frame, skip := s.skip - k
+           response := if s.message = [8, 2] ∧ s.pending then PassOver.responseBulk k s.response else s.response
+           inner := if s.message = [8, 2] then s.inner else
+             match s.inner with
+             | some (header, passed, remaining) => some (header, passed, remaining - k)
+             | none => none }
+
+theorem passed_gets (X : List Byte) :
+    get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 0 = 255 ∧ get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 1 = 255 ∧
+    get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 2 = 0 ∧ get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 3 = 0 ∧
+    get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 5 = 0 ∧ get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 6 = 0 ∧
+    get ([255, 255, 0, 0, 0, 0, 0, 0] ++ X) 7 = 0 :=
+  ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+theorem passed_reply_gets (successful : Byte) (X : List Byte) :
+    get ([255, 0, successful, 255, 0, 0] ++ X) 0 = 255 ∧ get ([255, 0, successful, 255, 0, 0] ++ X) 1 = 0 :=
+  ⟨rfl, rfl⟩
+
+theorem zero_beq_on : ((0 : Byte) == 255) = false := by decide
+
+theorem drop_six (a b c d e f : Byte) (X : List Byte) : List.drop 6 ([a, b, c, d, e, f] ++ X) = X := rfl
+theorem drop_eight (a b c d e f g i : Byte) (X : List Byte) : List.drop 8 ([a, b, c, d, e, f, g, i] ++ X) = X := rfl
+
+theorem passOne_bulk (s : State) (h : 1 ≤ passRoom s) : passOne s = .ok (passBulk 1 s, false) := by
+  unfold passRoom at h
+  by_cases hc : s.upgraded ∧ PassOver.controlIdle s.control
+  case neg => rw [if_neg hc] at h; omega
+  rw [if_pos hc] at h
+  obtain ⟨hup, hidle⟩ := hc
+  have hctl := PassOver.control_idle s.control hidle
+  obtain ⟨g0, g1, g2, g3, g5, g6, g7⟩ := passed_gets (PassOver.frameBulk 1 s.frame)
+  by_cases hm : s.message = [8, 2]
+  · rw [if_pos hm] at h
+    have hf : 1 ≤ PassOver.frameRoom s.frame := by split at h <;> omega
+    have hframe : TlsWebSocketFrame.runByte fast capacity (s.frame ++ [on, 0]) =
+        [255, 255, 0, 0, 0, 0, 0, 0] ++ PassOver.frameBulk 1 s.frame := PassOver.frame_step_room capacity s.frame hf
+    have hsk : 2 ≤ s.skip := by split at h <;> omega
+    have hpos : decide (s.skip > 0) = true := decide_eq_true (by omega)
+    have hne : (s.skip - 1 == 0) = false := by rw [beq_eq_false_iff_ne]; omega
+    unfold passOne stepPassed
+    dsimp only
+    rw [hframe, g0, g1, g2, g3, g5, g6, g7, hctl]
+    generalize replyScan s.reply true = scanned
+    generalize retryAfterOf s.reply = retry
+    by_cases hp : s.pending
+    · have hr : 1 ≤ PassOver.responseRoom s.response := by rw [if_pos hp] at h; omega
+      rw [PassOver.response_step_room capacity s.response hr]
+      obtain ⟨r0, r1⟩ := passed_reply_gets (TlsChatResponse.readState Word64.fast fast s.response).successful
+        (PassOver.responseBulk 1 s.response)
+      simp only [hm, hup, hp, on, beq_self_eq_true, hpos, hne, zero_beq_on, Bool.and_self,
+        if_true, if_false, Bool.false_eq_true, pure_bind]
+      simp only [r0, r1, beq_self_eq_true, zero_beq_on, if_true, if_false, Bool.false_eq_true]
+      rw [drop_six, drop_eight]
+      unfold passBulk
+      rw [if_neg Nat.one_ne_zero, if_pos ⟨hm, hp⟩, if_pos hm]
+      cases s
+      simp only at hup hp hm
+      subst hup hp hm
+      rfl
+    · simp only [hm, hup, hp, on, beq_self_eq_true, hpos, hne, zero_beq_on, Bool.and_self,
+        if_true, if_false, Bool.false_eq_true, pure_bind]
+      rw [drop_eight]
+      unfold passBulk
+      rw [if_neg Nat.one_ne_zero, if_neg (fun e => hp e.2), if_pos hm]
+      cases s
+      simp only [Bool.not_eq_true] at hup hp hm
+      subst hup hp hm
+      rfl
+  · rw [if_neg hm] at h
+    by_cases hm1 : s.message = [8, 1]
+    case neg => rw [if_neg hm1] at h; omega
+    rw [if_pos hm1] at h
+    have hf : 1 ≤ PassOver.frameRoom s.frame := by split at h <;> omega
+    have hframe : TlsWebSocketFrame.runByte fast capacity (s.frame ++ [on, 0]) =
+        [255, 255, 0, 0, 0, 0, 0, 0] ++ PassOver.frameBulk 1 s.frame := PassOver.frame_step_room capacity s.frame hf
+    have hsk : 2 ≤ s.skip := by split at h <;> omega
+    have hpos : decide (s.skip > 0) = true := decide_eq_true (by omega)
+    have hne : (s.skip - 1 == 0) = false := by rw [beq_eq_false_iff_ne]; omega
+    have h12 : ([8, 1] == ([8, 2] : List Byte)) = false := by decide
+    unfold passOne stepSkipped
+    dsimp only
+    rw [hframe]
+    simp only [g0, g1, g2, g5, g6, g7, hctl, hm1, h12, hup, on, beq_self_eq_true, hpos, hne, zero_beq_on,
+      Bool.and_self, if_true, if_false, Bool.false_eq_true, pure_bind, drop_eight]
+    unfold passBulk
+    rw [if_neg Nat.one_ne_zero, if_neg (fun e => hm (e.1)), if_neg hm]
+    cases hi : s.inner with
+    | none =>
+      simp only [pure_bind]
+      cases s
+      simp only at hup hm1 hi
+      subst hup hm1 hi
+      rfl
+    | some v =>
+      obtain ⟨hd, p, rem⟩ := v
+      rw [hi] at h
+      have hrem : rem > 0 := by simp only at h; omega
+      simp only [if_pos hrem, pure_bind]
+      cases s
+      simp only at hup hm1 hi
+      subst hup hm1 hi
+      rfl
+
+theorem passBulk_pos (s : State) (k : Nat) (hk : k ≠ 0) : passBulk k s =
+    { s with frame := PassOver.frameBulk k s.frame, skip := s.skip - k
+             response := if s.message = [8, 2] ∧ s.pending then PassOver.responseBulk k s.response else s.response
+             inner := if s.message = [8, 2] then s.inner else
+               match s.inner with
+               | some (header, passed, remaining) => some (header, passed, remaining - k)
+               | none => none } := by
+  unfold passBulk; rw [if_neg hk]
+
+/-- After one passed-over byte the room is one byte less. -/
+theorem passRoom_one (s : State) (h : 1 ≤ passRoom s) : passRoom (passBulk 1 s) = passRoom s - 1 := by
+  rw [passBulk_pos s 1 Nat.one_ne_zero]
+  unfold passRoom at h ⊢
+  dsimp only
+  by_cases hc : s.upgraded ∧ PassOver.controlIdle s.control
+  case neg => rw [if_neg hc] at h; omega
+  simp only [if_pos hc] at h ⊢
+  by_cases hm : s.message = [8, 2]
+  · simp only [hm, if_true] at h ⊢
+    have hf : 1 ≤ PassOver.frameRoom s.frame := by split at h <;> omega
+    rw [PassOver.frameRoom_one _ hf]
+    by_cases hp : s.pending
+    · simp only [hp, if_true, and_self] at h ⊢
+      have hr : 1 ≤ PassOver.responseRoom s.response := by omega
+      rw [PassOver.responseRoom_one _ hr]
+      omega
+    · simp only [hp, if_false, and_false, Bool.false_eq_true] at h ⊢
+      omega
+  · simp only [hm, if_false] at h ⊢
+    by_cases hm1 : s.message = [8, 1]
+    case neg => simp only [hm1, if_false] at h; omega
+    simp only [hm1, if_true] at h ⊢
+    have hf : 1 ≤ PassOver.frameRoom s.frame := by split at h <;> omega
+    rw [PassOver.frameRoom_one _ hf]
+    cases hi : s.inner with
+    | none => rw [hi] at h; simp only at h ⊢; omega
+    | some v => obtain ⟨hd, p, rem⟩ := v; rw [hi] at h; simp only at h ⊢; omega
+
+/-- Two bulk steps in a row are one. -/
+theorem passBulk_succ (s : State) (k : Nat) (h : k + 1 ≤ passRoom s) :
+    passBulk k (passBulk 1 s) = passBulk (k + 1) s := by
+  by_cases hk : k = 0
+  · subst hk; rfl
+  rw [passBulk_pos s 1 Nat.one_ne_zero, passBulk_pos _ k hk, passBulk_pos s (k + 1) (Nat.succ_ne_zero k)]
+  unfold passRoom at h
+  by_cases hc : s.upgraded ∧ PassOver.controlIdle s.control
+  case neg => rw [if_neg hc] at h; omega
+  rw [if_pos hc] at h
+  have hf : k + 1 ≤ PassOver.frameRoom s.frame := by
+    split at h
+    · split at h <;> omega
+    · split at h
+      · split at h <;> omega
+      · omega
+  dsimp only
+  rw [PassOver.frameBulk_succ _ _ hf, Nat.sub_sub, Nat.add_comm 1 k]
+  by_cases hm : s.message = [8, 2]
+  · by_cases hp : s.pending
+    · simp only [hm, hp, if_true] at h
+      have hr : k + 1 ≤ PassOver.responseRoom s.response := by omega
+      simp only [hm, hp, and_self, if_true, PassOver.responseBulk_succ _ _ hr]
+    · simp only [hm, hp, and_false, if_false, if_true, Bool.false_eq_true]
+  · simp only [hm, false_and, if_false]
+    cases hi : s.inner with
+    | none => rfl
+    | some v => obtain ⟨hd, p, rem⟩ := v; simp only [Nat.sub_sub, Nat.add_comm 1 k]
+
+/-- **The bulk pass-over is the byte-by-byte one.** For any `k ≤ passRoom s`, passing over `k`
+body bytes one at a time (`passRun`, what the record loop did) succeeds, completes no response,
+and ends in `passBulk k s`. -/
+theorem passRun_bulk (k : Nat) : ∀ (s : State), k ≤ passRoom s → passRun k s = .ok (passBulk k s, false) := by
+  induction k with
+  | zero => intro s _; rfl
+  | succ k ih =>
+    intro s h
+    have h1 : 1 ≤ passRoom s := by omega
+    have first : passOne s = pure (passBulk 1 s, false) := passOne_bulk s h1
+    have next : passRun k (passBulk 1 s) = pure (passBulk k (passBulk 1 s), false) :=
+      ih (passBulk 1 s) (by rw [passRoom_one s h1]; omega)
+    simp only [passRun, first, next, pure_bind, Bool.false_or, passBulk_succ s k h]
+    rfl
+
+/-- Passing over `a + b` bytes is passing over `a`, then `b`: the record loop's `passBulk` of
+`bulk ≤ passRoom s` bytes followed by `count - bulk` steps of `passOne` is `passRun count`. -/
+theorem passRun_add (b : Nat) : ∀ (a : Nat) (s : State), passRun (a + b) s =
+    (do let (s1, d1) ← passRun a s; let (s2, d2) ← passRun b s1; pure (s2, d1 || d2))
+  | 0, s => by
+    simp only [Nat.zero_add, passRun, pure_bind, Bool.false_or]
+    cases passRun b s <;> rfl
+  | a + 1, s => by
+    rw [Nat.add_right_comm]
+    simp only [passRun, bind, Except.bind, pure, Except.pure]
+    cases passOne s with
+    | error e => rfl
+    | ok r =>
+      obtain ⟨s1, d1⟩ := r
+      simp only [passRun_add b a s1, bind, Except.bind, pure, Except.pure]
+      cases passRun a s1 with
+      | error e => rfl
+      | ok r2 =>
+        obtain ⟨s2, d2⟩ := r2
+        simp only
+        cases passRun b s2 with
+        | error e => rfl
+        | ok r3 => obtain ⟨s3, d3⟩ := r3; simp only [Bool.or_assoc]
+
 /-- A masked client frame carrying a binary message shorter than 126 bytes. -/
 def clientFrame (mask payload : List Byte) : List Byte :=
   [0x82, BitVec.ofNat 8 (128 + payload.length)] ++ mask ++
@@ -1015,6 +1228,47 @@ def feed (lenient : Bool) (id : Nat) (frame : List (BitVec 8)) : Except String (
       complete := complete || done
   return (s, complete, passed)
 
+/-- `feed`'s walk from any state, without its reveal check, with the record loop's pass-over when
+`bulk` (a run of body bytes passed over with `passBulk` as far as `passRoom` allows, the rest one
+at a time) or one byte at a time otherwise. Measurement and cross-check only (`parse-bench`). -/
+def walk (bulk : Bool) (start : PublicReceive.State) (frame : List (BitVec 8)) :
+    Except String (PublicReceive.State × Bool × Nat) := do
+  let mut s := start
+  let mut complete := false
+  let mut passed := 0
+  let mut rest := frame
+  for _ in [0:frame.length] do
+    match rest with
+    | [] => break
+    | byte :: tail =>
+      if s.skip > 0 then
+        let count := if bulk then min rest.length (PublicReceive.passRoom s) else 0
+        if count > 0 then
+          s := PublicReceive.passBulk count s
+          passed := passed + count
+          rest := rest.drop count
+        else
+          let (next, done) ← PublicReceive.passOne s
+          s := next
+          complete := complete || done
+          passed := passed + 1
+          rest := tail
+      else
+        let (next, done) ← PublicReceive.step s byte
+        s := next
+        complete := complete || done
+        rest := tail
+  return (s, complete, passed)
+
+/-- What `parse-bench` compares of two walks' results. -/
+def digest : Except String (PublicReceive.State × Bool × Nat) →
+    Option ((List (BitVec 8) × List (BitVec 8) × List (BitVec 8) × List (BitVec 8)) ×
+      (Nat × List (BitVec 8) × List (List (BitVec 8)) × Bool × Nat × Bool × Nat))
+  | .ok (s, complete, passed) =>
+    some ((s.frame, s.control, s.response, s.upgrade),
+      (s.skip, s.message, s.requests, s.pending, s.status, complete, passed))
+  | .error _ => none
+
 set_option compiler.extract_closed false in   -- a function, so that nothing is evaluated at program start
 def checks (_ : Unit) : List (String × Bool) :=
   let parsed (lenient : Bool) (frame : List (BitVec 8)) (want : PublicReceive.State → Bool) (passed : Nat) : Bool :=
@@ -1159,44 +1413,48 @@ def parseBench : IO Unit := do
   let response := TlsChatResponse.stateBytes Word64.fast
     (TlsChatResponse.initial Word64.fast PublicReceive.fast PublicReceive.capacity (BitVec.ofNat 64 5))
   let upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
+  let clock : IO Nat := IO.monoNanosNow
+  let say : String → IO Unit := IO.println
   let time (name : String) (rounds : Nat) (run : Nat → Nat) : IO Unit := do
-    let start ← IO.monoNanosNow
+    let start ← clock
     let mut sum := 0
     for i in [0:rounds] do sum := sum + run (i + zero)
-    let stop ← IO.monoNanosNow
-    IO.println s!"{name}: {(stop - start) / rounds / 1000} microseconds per byte (checksum {sum})"
+    let stop ← clock
+    say s!"{name}: {(stop - start) / rounds / 1000} microseconds per byte (checksum {sum})"
   time "frame parser" 200 (fun i => (TlsWebSocketFrame.runByte PublicReceive.fast PublicReceive.capacity
     (frame ++ [255, BitVec.ofNat 8 (0x82 + i % 2 * 0)])).length)
   time "control queue" 200 (fun i => (TlsWebSocketControl.run PublicReceive.fast (control ++ [0, 0, 0, BitVec.ofNat 8 i])).length)
   time "response parser" 200 (fun i => (TlsChatResponse.runByte VarintDecode.Spqr.concrete Word64.fast PublicReceive.fast PublicReceive.capacity
     (response ++ [255, 255, 0] ++ [BitVec.ofNat 8 i])).length)
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
-  IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
+  say s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
   -- The pass-over of an unrevealed body through the session's own functions, at three sizes: a
-  -- response's body (`stepPassed`, as for a prekey response) and a server request's (`stepSkipped`).
+  -- response's body (`stepPassed`, as for a prekey response) and a server request's (`stepSkipped`),
+  -- byte by byte (before) and with the record loop's bulk step (after). The two must end in the same
+  -- state (`passRun_bulk` proves it; this checks the build).
   let ascii (s : String) : List (BitVec 8) := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
   for n in [2265, 7727, 13000] do
     let body := List.replicate (n + zero) (BitVec.ofNat 8 zero)
-    let start ← IO.monoNanosNow
-    let ok := match Recovery.feed true 77 (Recovery.responseFrame 77 200 "OK" body []) with
-      | .ok (_, complete, passed) => complete && passed == n
-      | .error _ => false
-    unless ok do throw (IO.userError "pass-over bench: response not parsed")
-    let middle ← IO.monoNanosNow
     let inner := [0x0a, 3] ++ ascii "PUT" ++ [0x12, 9] ++ ascii "/v1/bench" ++ [0x1a] ++ PublicReceive.varint n ++
       body ++ [0x20] ++ PublicReceive.varint 9
     let payload := [0x08, 0x01, 0x12] ++ PublicReceive.varint inner.length ++ inner
     let request : List (BitVec 8) := [0x82, 126, BitVec.ofNat 8 (payload.length / 256), BitVec.ofNat 8 payload.length] ++ payload
-    let walked : Except String (PublicReceive.State × Nat) := request.foldlM (init := ({ PublicReceive.start [] with upgraded := true }, 0))
-      fun (s, skipped) byte => do
-        if s.skip > 0 then pure (← PublicReceive.stepSkipped s, skipped + 1)
-        else pure ((← PublicReceive.step s byte).1, skipped)
-    let ok := match walked with
-      | .ok (s, skipped) => skipped == n && s.requests.length == 1
-      | .error _ => false
-    unless ok do throw (IO.userError "pass-over bench: request not parsed")
-    let stop ← IO.monoNanosNow
-    IO.println s!"pass-over {n} bytes: response body (stepPassed) {(middle - start) / 1000000} ms, request body (stepSkipped) {(stop - middle) / 1000000} ms"
+    let cases : List (String × PublicReceive.State × List (BitVec 8)) :=
+      [("response body (stepPassed)", PublicReceive.expect { PublicReceive.start [] with upgraded := true, lenient := true } 77,
+         Recovery.responseFrame 77 200 "OK" body []),
+       ("request body (stepSkipped)", { PublicReceive.start [] with upgraded := true }, request)]
+    for (name, start, bytes) in cases do
+      let t0 ← clock
+      let slow := Recovery.digest (Recovery.walk false start bytes)
+      let parsed := match slow with
+        | some (_, (_, _, requests, _, _, complete, passed)) => passed == n && (complete || requests.length == 1)
+        | none => false
+      unless parsed do throw (IO.userError s!"pass-over bench: {name} not parsed")
+      let t1 ← clock
+      let bulk := Recovery.digest (Recovery.walk true start bytes)
+      unless bulk == slow do throw (IO.userError s!"pass-over bench: {name}: bulk and byte by byte differ")
+      let t2 ← clock
+      say s!"pass-over {n} bytes, {name}: byte by byte {(t1 - t0) / 1000000} ms, bulk {(t2 - t1) / 1000} microseconds, same final state ({(t1 - t0) / max 1 (t2 - t1)}x)"
 
 /-- `SIGNAL_RECORD=FILE` (real_signal/REAL_TEST_PLAN.md, "Recording"): every exchange with the
 Signal server, one JSON line per event with this party's clock in milliseconds, appended to
@@ -1928,14 +2186,14 @@ def main (args : List String) : IO Unit := do
               -- The body of the 200 to the pending prekey fetch goes to the engines as it is.
               let held ← rpc.call .bundleTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
               insist (held.length == 4) "invalid bundle reply"
-            for _ in [0:count] do
-              if s.message == [8, 2] then
-                -- A response's body (never revealed either): the response may complete in it.
-                let (next, done) ← liftResult (PublicReceive.stepPassed s)
-                s := next
-                complete := complete || done
-              else
-                s ← liftResult (PublicReceive.stepSkipped s)
+            -- As much of it as `passRoom` allows in one step (`passRun_bulk`: the state the byte-by-byte
+            -- steps would give), the rest one byte at a time. A response may complete in its body.
+            let bulk := min count (PublicReceive.passRoom s)
+            s := PublicReceive.passBulk bulk s
+            for _ in [0:count - bulk] do
+              let (next, done) ← liftResult (PublicReceive.passOne s)
+              s := next
+              complete := complete || done
             offset := offset + count
             -- A completed envelope is dealt with before anything further is read.
             for (kind, size) in s.envelopes do handleEnvelope kind size

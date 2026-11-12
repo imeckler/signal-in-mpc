@@ -321,13 +321,25 @@ Inventory of every kernel family, what fixes each parameter, the tools and the n
       class for n unanswered devices (30 for four devices; two classes: 60). Fix: CIRCUIT_SHAPES.md
       "Not done" 4. A sixth device does not fit one request record ("retry later"); a request
       split over records is not built.
-- [ ] The controller's pass-over of an unrevealed body is slow in the clear, but linear (measured
-      2026-11-12 with `parse-bench`): 1.24 ms/byte for a response body (`PublicReceive.stepPassed`:
-      frame parser 0.18, control queue 0.35, response parser 0.73) and 0.56 ms/byte for a
-      server-request body (`stepSkipped`). The real run: 2,265-byte envelope 1.2 s, 7,727-byte
-      prekey response 10.2 s, no keepalive in between; 13 KB would take about 16 s. Cause: the
-      circuit-shaped parsers run per byte over `List` states (`List.getD`, a 500-byte queue rebuilt
-      each byte). Fix in progress: a bulk pass-over proved equal to the byte-by-byte one.
+- [x] The controller's pass-over of an unrevealed body was slow in the clear (measured 2026-11-12
+      with `parse-bench`): 1.24 ms/byte for a response body (`PublicReceive.stepPassed`: frame
+      parser 0.18, control queue 0.35, response parser 0.73) and 0.56 ms/byte for a server-request
+      body (`stepSkipped`); a 7,727-byte prekey response took 10 s. **Fixed 2026-11-12:** the record
+      loop now passes over a body in one step (`passBulk k`, `k ≤ passRoom s`) and only the bytes
+      `passRoom` excludes (the body's last byte, or all of them when its conditions fail) one at a
+      time (`passOne`, the old loop body). Proved equal to the byte-by-byte loop, no new axioms:
+      `PublicReceive.passRun_bulk` (controller), from the parser lemmas of
+      `TlsMpc/Node/PassOver.lean` (`frame_step_room`, `control_idle`, `response_step_room`); no
+      parser module changed, no emitter imports it. `parse-bench` (whole frame, revealed header
+      bytes included; bulk and byte by byte checked to end in the same state): response body
+      2,265 / 7,727 / 13,000 bytes 2.8 s / 9.7 s / 16.6 s → 27 / 28 / 28 ms; request body
+      1.2 s / 4.1 s / 6.9 s → 16 / 17 / 17 ms (70× to 580×; what is left is the revealed bytes).
+      Local harness with it (2026-11-12, all passed): `check_signal_service_local_signup.py --compact
+      --manifest …circuits-compact/manifest.txt --devices 2/3/4`, malicious and semi-honest (409,
+      device refresh with 5,090 / 7,643 / 10,193-byte keys responses, delivered after device refresh,
+      every device decrypts; whole send session 32 / 44 / 53 s malicious, 11 / 12 / 13 s semi-honest,
+      where the 7.7 KB pass-over alone took about 10 s before), `android again:android`, the
+      `--resume` test, `check_signal_service_local.py semi-honest --runs 2 --signup` and `--runs 0 --db`.
 - [ ] A manifest belongs to one emitter binary; decide how a deployment ships it (the gate lists
       are several GB) and add a binary gate-list form to cut loading time.
 - [ ] Remove the Python wrapper from the runtime (`circuit_cache.py`: it now only names, hashes
