@@ -636,11 +636,16 @@ The C++ pins them by compile-time hashes. The kernel `kem-*` go through `flat_ke
   `FieldDag.compileAll_correct` (FieldDagMulti.lean:42) [R]: an accepted compilation evaluates to
   the expression. **K**: `EmitWordMask.lean:67/78/91` call these.
 
+**Proved since the emitter batch (EMITTER_BATCH.md; Security.lean section 1b):** the printer
+`Flat.print` (`printWith_render`, `parseFlat_render`, `lowerExpr_loaded`, FlatLowering.lean) and
+the layout text with the **open/private marks** (`TlsMpc/FlatKernelLayout.lean`:
+`parseLayout_layoutText`, `openCode_spec`, `lowerKernel_loaded`), for the four kernel emitters,
+which now share `layoutText` / `lowerKernel`. Trusted instead: that the C++/Rust loaders parse the
+files as `parseFlat` / `parseLayout` do.
+
 **Not proved:**
-- the printer `Flat.print` (FlatLowering.lean:39-44);
 - `EmitWordMask`'s `render` / `renderField` (EmitWordMask.lean:15-16);
-- the layout text, including the **open/private marks** (`layoutText`, EmitFlatKernel:46-51);
-- which flat outputs form which named field;
+- which flat outputs form which named field (`selection`);
 - termination of `lower`;
 - that `ShareCommon.shareCommon'`, used by the translation validators, is correct (it is trusted
   at run time, FlatLowering.lean:44).
@@ -855,8 +860,8 @@ Searched: `TlsMpc/`, all of `handshake_backend/`, the root `.lean` files.
 **Trusted for everything:**
 - the Lean compiler and runtime, which run the controller;
 - `ShareCommon.shareCommon'`;
-- the unproved printers. The `.flat` / `.layout` / field-program text reaches the worker only
-  through them.
+- the field-program printer (`EmitWordMask`) and the loaders' parsing of the `.flat` / `.layout`
+  text (the flat and layout printers are proved since the emitter batch, C.1).
 
 ---
 
@@ -876,8 +881,9 @@ Searched: `TlsMpc/`, all of `handshake_backend/`, the root `.lean` files.
      same request.
 
 3. **No kernel is proved as a whole down to the file the worker loads.**
-   - The printers, the layout text (including the open marks the worker enforces) and the field
-     selection are outside Lean (C.1).
+   - The field selection and the field-program printer are outside Lean (C.1); the flat printer
+     and the layout text with the open marks are proved since the emitter batch
+     (`FlatKernelLayout.lowerKernel_loaded`).
    - The open marks are the security boundary of B.1. No theorem covers them except
      `tlsOpenTyped_gated`, for one kernel.
 

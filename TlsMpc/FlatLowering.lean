@@ -1530,6 +1530,12 @@ theorem parseFlat_render (f : Flat) (hwf : f.wellFormed = true) : parseFlat f.re
   simp only [if_true, Option.some.injEq]
   rw [map_range_getElem!, ← hsz, map_range_getElem!, map_range_getElem!]
 
+/-- The header line is the one the printer wrote before the emitter batch (its `s!` string). -/
+theorem header_eq_before (f : Flat) :
+    f.header = s!"EMP_HYBRID_BOOL_V1\n{f.inputs} {f.opa.size} {f.outputs.size}\n" := by
+  simp only [Flat.header, String.append_assoc]
+  rfl
+
 /-- A sample: the text of a three-gate list is the `EMP_HYBRID_BOOL_V1` format as the engines
 have always read it (`A`/`X` lines with two operands, `N` with one, `O` and the outputs). -/
 theorem render_sample :
@@ -1564,6 +1570,7 @@ theorem lowerExpr_loaded (expr : BVExpr w) (widths : Array Nat) (sel : Array (Fi
 #print axioms parseFlat_render
 #print axioms lowerExpr_loaded
 #print axioms render_sample
+#print axioms header_eq_before
 #print axioms lower_sound
 #print axioms lower_correct
 #print axioms lowerExpr_correct
