@@ -711,7 +711,14 @@ loaded flat file computes the spec".
 
 All **M**.
 
-**Deployed kernels with no kernel-level spec:**
+**Update 2026-11-12:** every kernel in the list below now has a kernel-level spec in
+`TlsMpc/KernelSpecs/` (restated in `TlsMpc/Security.lean` section 2c). Most are stated against
+the kernel's own composition on concrete values; only the four TLS handshake kernels are stated
+against the RFC transcriptions. Still open (Security.lean section 8): `bundle-item` against
+`BundleResponse.device` on the whole body, the meaning of the `signal-widths` flags, the slot
+encoders against their RFCs, and value theorems for `boundSeal`/`prepare`.
+
+**Deployed kernels that had no kernel-level spec when this map was written:**
 - tls-derive, tls-verify-finished, tls-open-handshake, tls-finish;
 - ws-initial, tls-parser-initial;
 - tls-reveal-masked (mask only);

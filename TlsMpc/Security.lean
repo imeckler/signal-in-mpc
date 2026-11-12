@@ -60,6 +60,12 @@ import TlsMpc.Signal.PreKeyValidation
 import TlsMpc.Signal.Word64Fast
 import TlsMpc.Signal.VarintDecode.Spqr
 import TlsMpc.Signal.PrivateTextNotification
+import TlsMpc.KernelSpecs.RequestCtr
+import TlsMpc.KernelSpecs.SealFixed
+import TlsMpc.KernelSpecs.TlsHandshakeKernels
+import TlsMpc.KernelSpecs.RevealMasked
+import TlsMpc.KernelSpecs.SignalKernels
+import TlsMpc.KernelSpecs.PointsAndItem
 import Lean.Elab.Command
 
 /-!
@@ -499,9 +505,8 @@ theorem relayUpgrade_request_compiled (passwordBytes : Nat) (raw : List (BVExpr 
 
 open TlsMpc.HybridKernel Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **`tls-update` computes the TLS 1.3 key update**: the next traffic secret and its key and
-IV, from the current one. **K**. The only TLS key-schedule kernel with a kernel-level spec
-(`tls-derive`, `tls-verify-finished`, `tls-open-handshake`, `tls-finish` have none).
-SECURITY_MAP C.2. -/
+IV, from the current one. **K**. (`tls-derive`, `tls-verify-finished`, `tls-open-handshake`,
+`tls-finish`: section 2c.) SECURITY_MAP C.2. -/
 theorem tlsUpdate_spec (assign : BVExpr.Assignment) :
     let block := (ByteCircuit.inputBytes 0 60).map (BVExpr.eval assign)
     let next := TlsKdf.updateTraffic Sha256.concrete (secretOf block)
@@ -1077,6 +1082,293 @@ theorem spqrSend_sealCore_concrete_correct (shape : Serialization.Shape) (pqShap
     (hpkey : i.pqChainKey.length = 32) (hpcounter : i.pqCounter.length = 4) :
     sealCore Aes.concrete Varint64.concrete Sha256.concrete ByteAuth.concrete shape pqShape i = spec shape pqShape i :=
   TlsMpc.Signal.SpqrSend.sealCore_concrete_correct shape pqShape i hkey hcounter hpkey hpcounter
+
+/-! ### 2c. Kernel level, the kernels that had no spec (TlsMpc/KernelSpecs/*.lean)
+
+Same form as 2b: on every input assignment the kernel's outputs equal the reference function on
+the values of its input fields. Unless an entry says otherwise the reference is the kernel's own
+composition on concrete operations (as for the `receive-*` kernels), not an independent standard.
+All **K**. -/
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-request-ctr` seals the public frame with the contact's UUID, base64 access key and
+space-padded device and registration ids inserted (XORed with the WebSocket mask) at their
+slots**: outputs `[valid]`, the record header, the CTR ciphertext released under `valid`, and the
+pad. **K** (wire). SECURITY_MAP C.2, T7(a). -/
+theorem signalRequestCtr_spec (cert size uuidAt keyAt deviceAt registrationAt : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (signalRequestInputs cert size) name).map (BVExpr.eval assign)
+    let slots := signalRequestSlots cert uuidAt keyAt deviceAt registrationAt (get "conversation")
+    (HybridKernel.signalRequestCtr cert size uuidAt keyAt deviceAt registrationAt).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (insertSlots ByteAuth.concrete 0 (get "frame") (get "mask") 8 slots.2) slots.1 :=
+  TlsMpc.KernelSpecs.signalRequestCtr_spec cert size uuidAt keyAt deviceAt registrationAt assign
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **A refused `signal-request-ctr` opens an all-zero ciphertext.** **K**. -/
+theorem signalRequestCtr_rejects (cert size uuidAt keyAt deviceAt registrationAt : Nat) (assign : BVExpr.Assignment)
+    (refused : ((HybridKernel.signalRequestCtr cert size uuidAt keyAt deviceAt registrationAt).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 0 [] = [0]) :
+    ∀ byte ∈ ((HybridKernel.signalRequestCtr cert size uuidAt keyAt deviceAt registrationAt).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 2 [], byte = 0 :=
+  TlsMpc.KernelSpecs.signalRequestCtr_rejects cert size uuidAt keyAt deviceAt registrationAt assign refused
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-fetch-ctr` seals the frame with the contact's UUID and base64 access key from one
+record inserted; valid when the record is live.** **K** (wire). T7(a). -/
+theorem bundleFetchCtr_spec (size payloadAt uuidAt keyAt : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (fetchInputs size) name).map (BVExpr.eval assign)
+    (BundleKernel.bundleFetchCtr size payloadAt uuidAt keyAt).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (insertSlots ByteAuth.concrete 0 (get "frame") (get "mask") payloadAt
+          [(uuidAt, RelayEncoding.uuid ByteAuth.concrete (((get "record").drop 262).take 16)),
+            (keyAt, RelayEncoding.base64 ByteAuth.concrete (((get "record").drop 278).take 16))])
+        (liveValue (get "record")) :=
+  TlsMpc.KernelSpecs.bundleFetchCtr_spec size payloadAt uuidAt keyAt assign
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **A refused `bundle-fetch-ctr` opens an all-zero ciphertext.** **K**. -/
+theorem bundleFetchCtr_rejects (size payloadAt uuidAt keyAt : Nat) (assign : BVExpr.Assignment)
+    (refused : ((BundleKernel.bundleFetchCtr size payloadAt uuidAt keyAt).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 0 [] = [0]) :
+    ∀ byte ∈ ((BundleKernel.bundleFetchCtr size payloadAt uuidAt keyAt).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 2 [], byte = 0 :=
+  TlsMpc.KernelSpecs.bundleFetchCtr_rejects size payloadAt uuidAt keyAt assign refused
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-request-ctr` seals the frame with the first record's UUID and access key and
+every device's padded ids inserted; valid when every device's record is live and its numbers
+fit.** **K** (wire). T7(a). -/
+theorem bundleRequestCtr_spec (size payloadAt uuidAt keyAt : Nat) (devices : List (Nat × Nat))
+    (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (requestInputsOf size devices.length) name).map (BVExpr.eval assign)
+    let value := bundleRequestValue (get "records") uuidAt keyAt devices
+    (BundleKernel.bundleRequestCtr size payloadAt uuidAt keyAt devices).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (insertSlots ByteAuth.concrete 0 (get "frame") (get "mask") payloadAt value.2) value.1 :=
+  TlsMpc.KernelSpecs.bundleRequestCtr_spec size payloadAt uuidAt keyAt devices assign
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **A refused `bundle-request-ctr` opens an all-zero ciphertext.** **K**. -/
+theorem bundleRequestCtr_rejects (size payloadAt uuidAt keyAt : Nat) (devices : List (Nat × Nat))
+    (assign : BVExpr.Assignment)
+    (refused : ((BundleKernel.bundleRequestCtr size payloadAt uuidAt keyAt devices).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 0 [] = [0]) :
+    ∀ byte ∈ ((BundleKernel.bundleRequestCtr size payloadAt uuidAt keyAt devices).outputs.map
+      (fun field => field.value.map (BVExpr.eval assign))).getD 2 [], byte = 0 :=
+  TlsMpc.KernelSpecs.bundleRequestCtr_rejects size payloadAt uuidAt keyAt devices assign refused
+
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide in
+/-- **Where the frame built in the clear is zero, the inserted byte is the slot byte XOR the
+WebSocket mask byte** (the first slot covering the index). Value level. **K** (with the specs
+above). -/
+theorem insertSlots_inside_zero (frame mask : List (BitVec 8)) (payloadAt : Nat)
+    (before : List (Nat × List (BitVec 8))) (start : Nat) (bytes : List (BitVec 8)) (after : List (Nat × List (BitVec 8)))
+    (i : Nat) (hi : i < frame.length) (blank : frame[i] = 0)
+    (earlier : ∀ slot ∈ before, ¬ (slot.1 ≤ i ∧ i < slot.1 + slot.2.length))
+    (lo : start ≤ i) (up : i < start + bytes.length) :
+    (insertSlots ByteAuth.concrete 0 frame mask payloadAt (before ++ (start, bytes) :: after))[i]'(by
+        simpa [insertSlots] using hi) =
+      bytes.getD (i - start) 0 ^^^ mask.getD ((i - payloadAt) % 4) 0 :=
+  TlsMpc.KernelSpecs.insertSlots_inside_zero frame mask payloadAt before start bytes after i hi blank earlier lo up
+
+open TlsMpc.KernelSpecs.SealFixed Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-seal-official` / `signal-seal-built` compute their composition of
+`SpqrSend.acceptedMask`, `SpqrSend.prepare`, `SealedSenderV1.boundSeal`, `TlsProviderGate.gate`
+and `ChainSend.selectState` on concrete values** (status, next record, timestamp, envelope).
+**K** (wire). No value theorem for `boundSeal` itself (T7(b), section 8). SECURITY_MAP C.2. -/
+theorem signalSealBuilt_spec (cert counterWidth previousWidth epochWidth indexWidth classes : Nat) (official : Bool)
+    (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (sealInputs cert classes official) name).map (BVExpr.eval assign)
+    (HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes official).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealFixedWith Aes.concrete Varint64.concrete Sha256.concrete ByteAuth.concrete 0
+        cert counterWidth previousWidth epochWidth indexWidth (contentBytes classes official)
+        (get "conversation") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
+        (get "staticAgreement") :=
+  TlsMpc.KernelSpecs.SealFixed.signalSealBuilt_spec cert counterWidth previousWidth epochWidth indexWidth classes
+    official assign
+
+open TlsMpc.KernelSpecs.SealFixed Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **A refused seal (opened status 0) opens an all-zero envelope.** **K**. -/
+theorem signalSealBuilt_rejects (cert counterWidth previousWidth epochWidth indexWidth classes : Nat) (official : Bool)
+    (assign : BVExpr.Assignment)
+    (refused : ((HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes
+      official).outputs.map (fun field => field.value.map (BVExpr.eval assign))).getD 0 [] = [0]) :
+    ∀ byte ∈ ((HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes
+      official).outputs.map (fun field => field.value.map (BVExpr.eval assign))).getD 3 [], byte = 0 :=
+  TlsMpc.KernelSpecs.SealFixed.signalSealBuilt_rejects cert counterWidth previousWidth epochWidth indexWidth classes
+    official assign refused
+
+open TlsMpc.KernelSpecs.TlsHandshake Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-derive` outputs the client and server handshake traffic blocks and the main secret of
+the RFC 8446 key schedule** (`TlsKdf.handshakeSecrets`, no PSK). **K**. -/
+theorem tlsDerive_spec (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup deriveInputs name).map (BVExpr.eval assign)
+    let secrets := TlsKdf.handshakeSecrets Sha256.concrete (get "agreement") (get "helloHash")
+    HybridKernel.tlsDerive.outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [trafficBlockValue secrets.client, trafficBlockValue secrets.server, secrets.main] :=
+  TlsMpc.KernelSpecs.TlsHandshake.tlsDerive_spec assign
+
+open TlsMpc.KernelSpecs.TlsHandshake Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-verify-finished` opens 255 exactly when the received message is the server Finished
+message under the server handshake secret, else 0.** **K**. -/
+theorem tlsVerifyFinished_spec (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup verifyInputs name).map (BVExpr.eval assign)
+    HybridKernel.tlsVerifyFinished.outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [[if TlsHandshake.finishedMessage Sha256.concrete ((get "serverHandshake").take 32) (get "transcriptHash") =
+          get "message" then 255 else 0]] :=
+  TlsMpc.KernelSpecs.TlsHandshake.tlsVerifyFinished_spec assign
+
+open TlsMpc.KernelSpecs.TlsHandshake Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-finish` outputs the application traffic blocks and opens the client Finished record
+sealed under the client handshake key** (sequence 0, type 22, after the certificate). **K**
+(wire). -/
+theorem tlsFinish_spec (certificateSize : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (finishInputs certificateSize) name).map (BVExpr.eval assign)
+    let application := TlsKdf.applicationSecrets Sha256.concrete (get "mainSecret") (get "serverHash")
+    let client := get "clientHandshake"
+    (HybridKernel.tlsFinish certificateSize).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [trafficBlockValue application.1, trafficBlockValue application.2,
+        TlsRecord.sealCore Gcm.concrete ((client.drop 32).take 16) ((client.drop 48).take 12) (List.replicate 8 0)
+          (get "certificate" ++ [20, 0, 0, 32] ++
+            TlsKdf.finished Sha256.concrete (client.take 32) (get "clientHash")) 22 0] :=
+  TlsMpc.KernelSpecs.TlsHandshake.tlsFinish_spec certificateSize assign
+
+open TlsMpc.KernelSpecs.TlsHandshake Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-open-handshake` opens the public-handshake gate of the RFC record opening under the
+server handshake key and IV.** **K**. -/
+theorem tlsOpenHandshake_spec (size : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (openInputs size) name).map (BVExpr.eval assign)
+    let block := get "serverHandshake"
+    (HybridKernel.tlsOpenHandshake size).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [TlsPublicHandshake.gate ByteAuth.concrete
+        (TlsReceive.spec ((block.drop 32).take 16) ((block.drop 48).take 12) (get "sequence") (get "record"))] :=
+  TlsMpc.KernelSpecs.TlsHandshake.tlsOpenHandshake_spec size assign
+
+open TlsMpc.KernelSpecs.TlsHandshake Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-open-handshake` opens all zeros for an application-data record.** **K**. C.3. -/
+theorem tlsOpenHandshake_application_zero (size : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (openInputs size) name).map (BVExpr.eval assign)
+    let block := get "serverHandshake"
+    let parsed := TlsReceive.spec ((block.drop 32).take 16) ((block.drop 48).take 12) (get "sequence") (get "record")
+    parsed[1]?.getD 0 = 23 →
+      (HybridKernel.tlsOpenHandshake size).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+        [List.replicate parsed.length 0] :=
+  TlsMpc.KernelSpecs.TlsHandshake.tlsOpenHandshake_application_zero size assign
+
+open TlsMpc.KernelSpecs.Reveal Std.Tactic.BVDecide in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`tls-reveal-masked` opens the length and the content below that length, zero above it;
+all zero when the length exceeds the capacity** (capacity < 65536). **K**. Independent of
+`bv_decide` (re-proves `run_correct`). C.3. -/
+theorem tlsRevealMasked_value (size : Nat) (bound : size < 65536) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (revealInputs size) name).map (BVExpr.eval assign)
+    let n := TlsPrivateSeal.lengthValue ((get "length").getD 0 0) ((get "length").getD 1 0)
+    (HybridKernel.tlsRevealMasked size).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [get "length", if n ≤ size then keepBelow 0 n (get "content") else List.replicate size 0] :=
+  TlsMpc.KernelSpecs.Reveal.tlsRevealMasked_value size bound assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-upgrade` = `RelayUpgrade.request` on the credentials and nonce.** **K**. -/
+theorem signalUpgrade_spec (passwordBytes : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (upgradeInputs passwordBytes) name).map (BVExpr.eval assign)
+    (HybridKernel.signalUpgrade passwordBytes).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [RelayUpgrade.request ByteAuth.concrete passwordBytes (get "credentials" ++ get "nonce")] :=
+  TlsMpc.KernelSpecs.SignalKernels.signalUpgrade_spec passwordBytes assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-upgrade-shared` = `RelayUpgrade.request` on the XOR of the two credential shares.**
+**K**. -/
+theorem signalUpgradeShared_spec (passwordBytes : Nat) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (sharedInputs passwordBytes) name).map (BVExpr.eval assign)
+    (HybridKernel.signalUpgradeShared passwordBytes).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [RelayUpgrade.request ByteAuth.concrete passwordBytes
+        (List.zipWith (· ^^^ ·) (get "credentialsA") (get "credentialsB") ++ get "nonce")] :=
+  TlsMpc.KernelSpecs.SignalKernels.signalUpgradeShared_spec passwordBytes assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-conversation-view` outputs two slices of the record.** **K**. -/
+theorem signalConversationView_spec (cert size : Nat) (assign : BVExpr.Assignment) :
+    let record := (lookup (viewInputs cert size) "conversation").map (BVExpr.eval assign)
+    (HybridKernel.signalConversationView cert size).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [(record.drop (cert + 150)).take 32, (record.drop (cert + 182 + size + 40)).take 8] :=
+  TlsMpc.KernelSpecs.SignalKernels.signalConversationView_spec cert size assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-widths` opens the width flags of the counters and epoch.** **K**. That a flag
+means "value ≥ 2^(7k)" is NOT proved. -/
+theorem signalWidths_spec (cert : Nat) (assign : BVExpr.Assignment) :
+    let session := (((lookup (widthsInputs cert) "conversation").map (BVExpr.eval assign)).drop cert).take 262
+    let flags := fun (bytes : List (BitVec 8)) groups => widthFlagsWith ByteAuth.concrete 0 bytes groups
+    (HybridKernel.signalWidths cert).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [flags ((session.drop 1).take 4) 4, flags ((session.drop 5).take 4) 4, flags ((session.drop 109).take 8) 9,
+        flags (ChainSend.nextCounter Sha256.concrete ByteAuth.concrete ((session.drop 105).take 4)) 4] :=
+  TlsMpc.KernelSpecs.SignalKernels.signalWidths_spec cert assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide in
+/-- **`tls-parser-initial` outputs 11 zero bytes.** **K**. -/
+theorem tlsParserInitial_spec (assign : BVExpr.Assignment) :
+    HybridKernel.tlsParserInitial.outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [List.replicate 11 0] :=
+  TlsMpc.KernelSpecs.SignalKernels.tlsParserInitial_spec assign
+
+open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide in
+/-- **`ws-initial` outputs the concrete initial parser states.** **K**. -/
+theorem wsInitial_spec (assign : BVExpr.Assignment) :
+    HybridKernel.wsInitial.outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [(initialValues.drop 0).take 180, (initialValues.drop 180).take 26, (initialValues.drop 206).take 636,
+        (initialValues.drop 842).take 932] :=
+  TlsMpc.KernelSpecs.SignalKernels.wsInitial_spec assign
+
+open TlsMpc.KernelSpecs.PointsAndItem Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`establish-points` passes the three keys through unchanged.** **K**. -/
+theorem establishPoints_spec (withOneTime : Bool) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (pointsInputs withOneTime) name).map (BVExpr.eval assign)
+    values (EstablishKernel.establishPoints withOneTime) assign =
+      [get "identityKey", get "signedPrekey"] ++ (if withOneTime then [get "oneTimePrekey"] else []) :=
+  TlsMpc.KernelSpecs.PointsAndItem.establishPoints_spec withOneTime assign
+
+open TlsMpc.KernelSpecs.PointsAndItem Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-item` = `BundleResponse.device` on the reassembled body.** **K**. The link to
+`device` on the whole response body is NOT proved (section 8). -/
+theorem bundleItem_spec (first last : Bool) (w : BundleResponse.Widths) (assign : BVExpr.Assignment) :
+    let get := fun name => (lookup (BundleItemKernel.itemInputs first last w) name).map (BVExpr.eval assign)
+    let body := get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end"
+    let out := BundleResponse.device ByteAuth.concrete body.length
+      (BundleResponse.firstItem + (if first then 0 else 1)) w body
+    values (BundleItemKernel.bundleItem first last w) assign =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []]) :=
+  TlsMpc.KernelSpecs.PointsAndItem.bundleItem_spec first last w assign
+
+open TlsMpc.KernelSpecs.PointsAndItem Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-item` with `valid` 0 outputs only zeros.** **K**. -/
+theorem bundleItem_rejects (first last : Bool) (w : BundleResponse.Widths) (assign : BVExpr.Assignment)
+    (failed : (values (BundleItemKernel.bundleItem first last w) assign).getD 0 [] = [0]) :
+    ∀ field ∈ values (BundleItemKernel.bundleItem first last w) assign, ∀ byte ∈ field, byte = 0 :=
+  TlsMpc.KernelSpecs.PointsAndItem.bundleItem_rejects first last w assign failed
 
 /-! ## 3. Gating and what each opening reveals (SECURITY_MAP C.3)
 
@@ -1991,16 +2283,21 @@ the matching section above in the same commit.
   `_spec`). → **P3** (touches the emitters; one re-lowering, alone).
 
 ### Kernels compute their specification
-* Kernel-level specs for tls-derive, tls-verify-finished, tls-open-handshake, tls-finish,
-  ws-initial, tls-parser-initial, tls-reveal-masked, establish-points, bundle-item (incl. its link
-  to `BundleResponse.device`), signal-upgrade(-shared), signal-conversation-view, signal-widths.
-  → no stage assigned; candidates for **P3** / **P5**.
+* Kernel-level specs: now proved for every kernel this item used to list (section 2c). Still
+  open: `bundle-item`'s link to `BundleResponse.device` on the whole response body (a locality
+  lemma for `device`); the meaning of `signal-widths`' flags (flag k = 255 iff value ≥ 2^(7k));
+  the meaning of the request-slot encoders (`uuid`, `base64`, padded decimal) against
+  RFC 4122 / RFC 4648. → no stage assigned; candidates for **P5**.
 * ML-KEM: the `kem-*` kernels composed into `MlKem.encapsulate`. → no stage assigned.
 * **T7** — what the server receives: (a) `signal-request-ctr`, `bundle-request-ctr`,
   `bundle-fetch-ctr` seal the frame with each slot replaced by the WebSocket-masked field and
-  nothing else changed; (b) `signal-seal-official`/`-built` compute `SealedSenderV1` encryption
-  of the message produced by `ChainSend`/`SpqrSend` from the stored state (needs a value theorem
-  for `boundSeal`). → **P5**.
+  nothing else changed — now proved at kernel level up to the frame (section 2c:
+  `*RequestCtr_spec`, `bundleFetchCtr_spec`, `insertSlots_inside_zero`); open: that the frame
+  is zero at the slots and the slots do not overlap (T8); (b) `signal-seal-official`/`-built`
+  compute `SealedSenderV1` encryption of the message produced by `ChainSend`/`SpqrSend` from the
+  stored state — the kernel is now proved to compute that composition on concrete values
+  (`signalSealBuilt_spec`); open: a value theorem for `boundSeal` and for `prepare` against the
+  Signal/SPQR definitions. → **P5**.
 
 ### Gating and what each opening reveals
 * **T13** — receive gating, accept direction: `receive-session` status 255 ⇒ the message MAC
@@ -2172,6 +2469,30 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.bundleBind_spec
 #print axioms TlsMpc.Security.ceremonySecrets_spec
 #print axioms TlsMpc.Security.registerPlaintext_spec
+#print axioms TlsMpc.Security.signalRequestCtr_spec
+#print axioms TlsMpc.Security.signalRequestCtr_rejects
+#print axioms TlsMpc.Security.bundleFetchCtr_spec
+#print axioms TlsMpc.Security.bundleFetchCtr_rejects
+#print axioms TlsMpc.Security.bundleRequestCtr_spec
+#print axioms TlsMpc.Security.bundleRequestCtr_rejects
+#print axioms TlsMpc.Security.insertSlots_inside_zero
+#print axioms TlsMpc.Security.signalSealBuilt_spec
+#print axioms TlsMpc.Security.signalSealBuilt_rejects
+#print axioms TlsMpc.Security.tlsDerive_spec
+#print axioms TlsMpc.Security.tlsVerifyFinished_spec
+#print axioms TlsMpc.Security.tlsFinish_spec
+#print axioms TlsMpc.Security.tlsOpenHandshake_spec
+#print axioms TlsMpc.Security.tlsOpenHandshake_application_zero
+#print axioms TlsMpc.Security.tlsRevealMasked_value
+#print axioms TlsMpc.Security.signalUpgrade_spec
+#print axioms TlsMpc.Security.signalUpgradeShared_spec
+#print axioms TlsMpc.Security.signalConversationView_spec
+#print axioms TlsMpc.Security.signalWidths_spec
+#print axioms TlsMpc.Security.tlsParserInitial_spec
+#print axioms TlsMpc.Security.wsInitial_spec
+#print axioms TlsMpc.Security.establishPoints_spec
+#print axioms TlsMpc.Security.bundleItem_spec
+#print axioms TlsMpc.Security.bundleItem_rejects
 #print axioms TlsMpc.Security.chainSend_sealCore_concrete_correct
 #print axioms TlsMpc.Security.spqrSend_sealCore_concrete_correct
 #print axioms TlsMpc.Security.typedOpen_gated
