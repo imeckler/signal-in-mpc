@@ -1235,6 +1235,58 @@ Tests: Q, F (both modes; the ceremony stage especially), D.
 
 Depends on S2. **1 week. Mechanical / medium.** Not concurrent with S5–S7.
 
+**Status (2026-11-12).** Done, each step building with recovery-check 29/29, parse-bench, the lints
+and `check_axioms.py`:
+- `Node/Secret.lean`: `Secret α` with private constructor and private field; `hide`, `map`,
+  `zipWith`, `++`, `ofHex`, `length` (sizes are fixed by format, so public). Eliminators: `inputOwn`
+  (own input to a worker operation, the closed list `OwnInput`: ops 36, 52, 47, 44, 46, 51; legacy
+  until S9's `Engine.inputOwn*`) and `expose`, the one public accessor, which the lint allows only in
+  the eliminators' files. **Deviation:** Lean's `private` is per file, so the plan's "private val,
+  used in Channels/Engine/Local" cannot compile; the field stays private and `expose` is the door.
+- `Node/Types.lean`: `RevealKind` (no constructor yet), `Opened` (private constructor, to move to
+  `Reveal.lean` in S6), `EngineKind`, `Handle`, `ContactId`. Not imported yet. S9's `Engine.lean`
+  has its own `Party`/`BoolH`/`FieldH`/`Label` (its decision D10); S6 should reconcile (`BoolH` →
+  `Handle .boolean`, `FieldH` → `Handle .field`), not this stage.
+- `Node/Config.lean`: typed `Config` (pure `ofEnv`): `Agreed` (profile, ack-refused, recovery,
+  prepare batch, bundle slots, `SIGNAL_RECEIVE_JUMP`, `TLS_WORKER_HINTED`, Tor circuits), the
+  session kind and paths, `Account` (`none` / `share (Secret)` / `stored`), `Database`, and
+  `TestHooks` (timestamp, both pauses, broadcasts, extra contacts, new-contact id, TEST store,
+  trace) only with `--test` (anywhere in the arguments; set but ignored hooks are named on stderr).
+  **Deviation:** `SIGNAL_LOCAL_EXPORT`, `_KEM`, `_RECEIVE`, `_EXPECT`, `_EVENTS` and
+  `SIGNAL_DB_TOKENS` are not TEST hooks: the node daemon and the real test set them (scaffolding,
+  node_daemon/README.md); they stay in `Config`.
+- `Node/Channels.lean` **begun here** (S5 completes it): `Config.read` (the one `IO.getEnv`, as
+  section 3.2 places it; the lint checks it is the only one), `saveShare` (0600, temporary file then
+  rename; no fsync in Lean's API), `loadShare`, TEST store `loadStored`, `kemDecapsulate` (key on
+  stdin), `random`, and the readers of the database client's share outputs (`readKeyShares`,
+  `readDealt`).
+- `IO.getEnv` sites: 34 (33 controller + 1 `Config.lean`) → 1 (`Config.read`). Controller I/O sites
+  114 → 70; baseline 127 → 82 (ratcheted down only).
+- 4.2 rows 1–6 retyped: key shares (database, deal, TEST store, fresh), the account key share, the
+  credentials share, the ceremony's password/recovery shares (op-80 reply wrapped, saved with
+  `saveShare`), OWN keys (`Export.readExport` identity, `readReceive` prekeys), TEST records.
+  The ceremony child gets `SIGNAL_LOCAL_CREDENTIALS_FILE` (credentials and store stages); the
+  harness and the real test still pass `SIGNAL_LOCAL_CREDENTIALS` (hex) to their sessions.
+- `lss-provision kem-decapsulate CIPHERTEXT` reads the key on stdin (argv form removed).
+- Settings agreement: first thing in every two-party session, the SHA-256 of `Config.agreedText`
+  (the `Agreed` settings, the session kind, and with `--test` the hooks that change the agreed
+  flow) goes through worker op 39; a difference ends the session naming this node's settings.
+  `SIGNAL_RECEIVE_JUMP` and `TLS_WORKER_HINTED` are read by the worker; the controller reads them
+  only to agree on them. Still per node by design: paths, the SOCKS address, `SIGNAL_RECORD`, the
+  TEST store, the trace.
+- Lint: `secret-val` on by default, also rejecting `expose` outside the eliminators' files.
+- `agreedClock`'s check was done in S0 (`agreed_within`); now restated in `Security.lean`.
+- Also in this stage (coordinator): RFC 6455 section 5.3 fix, one masking key per queued control
+  reply (`PublicReceive.replies` takes a key list; `controlMasks` in the controller); identical on
+  the wire for one reply. `ParseWebSocketControl.replies_reuse_mask` replaced by
+  `replies_fresh_masks` and `replies_missing_mask`.
+- Harness (`--record` against `tests/golden`, D: same modulo masks): malicious `--runs 2 --signup`,
+  malicious `--runs 0 --db`; semi-honest `--runs 0 --app`; the compact signup check with three
+  devices; malicious `--ceremony`. `check_signal_service_local.py` passes `--test` to the
+  controllers it starts.
+- Left: the controller still holds the database client's read JSON and blobs (public) and the
+  `Lean.Json` of other files; S5 moves the remaining 70 I/O sites. `Opened` has no kinds (S6).
+
 ---
 
 **S5. `Channels.lean` and `Messages.lean`.**

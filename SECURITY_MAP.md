@@ -805,7 +805,11 @@ against independent references with round trips. Still open: `bundle-slot`'s spl
 - `Word64.fast_eq` (Word64Fast.lean:71). **C**.
 - `VarintDecode.Spqr.decodeCore_spec` (:179). **C** (the response parser, 538 and 595).
 - The parsers are proved only symbolic = concrete (TlsWebSocketUpgrade, TlsWebSocketFrame,
-  TlsWebSocketControl, TlsChatResponse). **Nothing relates them to RFC 6455 or HTTP.**
+  TlsWebSocketControl, TlsChatResponse). Since 2026-11-12 the frame parser, the control queue, the
+  TLS record splitter and the upgrade's accept value also have RFC references
+  (`TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`, `ParseWebSocketControl.lean`,
+  `ParseTlsRecord.lean`, `TlsMpc/Node/Local/WebSocketAccept.lean`; `TlsMpc/Security.lean` section
+  4c). **Nothing relates `TlsChatResponse` or the upgrade response parser to RFC 6455 or HTTP.**
 - `PrivateTextNotification.buildPublic_spec` (:247), `buildPublicOfficial_spec` (:390),
   `buildPublic_short` (:404), `firstFit_spec` (:226) [R]. **C** (used at 2021 and 2314).
 - `BundleProofs.layout?_sound` (:252). **C** (2159, 2651).

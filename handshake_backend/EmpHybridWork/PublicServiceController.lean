@@ -22,6 +22,8 @@ import TlsMpc.Node.Bytes
 import TlsMpc.Node.Export
 import TlsMpc.Node.Bench
 import TlsMpc.Node.Config
+import TlsMpc.Node.Secret
+import TlsMpc.Node.Channels
 
 /-!
 Service controller for the public-receive profile.
@@ -61,7 +63,8 @@ connection with a circuit of its own. What the server can still link: see `Circu
 -/
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Signal
 open Lean (toJson)
-open TlsMpc.Node.Bytes TlsMpc.Node.Export TlsMpc.Node.Bench TlsMpc.Node.Config
+open TlsMpc.Node.Bytes TlsMpc.Node.Export TlsMpc.Node.Bench
+open TlsMpc.Node
 
 -- The pure parts of this controller are in library modules under `TlsMpc/Node/` (stage S2):
 -- `PublicReceive` (what is revealed of the server's bytes, the parsers, the pass-over, the replies)
@@ -72,7 +75,29 @@ open TlsMpc.Node.Bytes TlsMpc.Node.Export TlsMpc.Node.Bench TlsMpc.Node.Config
 -- `PublicReceive.fast` and the byte conversions (`toBits`, `toBytes`, `fromHex`, `natural`,
 -- `sessionBytes`) in `TlsMpc/Node/Bytes.lean`; the export parsers (`readExport`, `readSelf`,
 -- `readReceive`, `ReceiveKeys`) in `TlsMpc/Node/Export.lean`; `parseBench` in
--- `TlsMpc/Node/Bench.lean`; `officialProfile` in `TlsMpc/Node/Config.lean`.
+-- `TlsMpc/Node/Bench.lean`.
+--
+-- Stage S4: every environment variable is read once, by `Config.read` (`TlsMpc/Node/Channels.lean`),
+-- into the typed `Config` of `TlsMpc/Node/Config.lean`; the TEST hooks are in force only when the
+-- controller is started with `--test` (anywhere in its arguments). Secret material held here is
+-- `Secret` (`TlsMpc/Node/Secret.lean`): it reaches the engines through `Secret.inputOwn`, this node's
+-- disk through `Channels.saveShare`, the KEM tool through its standard input.
+
+
+/-- One masking key per queued control reply (`PublicReceive.replies`), each the first 4 bytes of
+its own joint randomness: RFC 6455 section 5.3 requires a fresh key for each frame. None when
+nothing is queued. -/
+def controlMasks (on : TlsWorker.Rpc) (s : PublicReceive.State) : TlsClient.M (List (List (BitVec 8))) :=
+  (List.range (PublicReceive.queuedReplies s)).mapM fun _ => do
+    let random ← on.call .publicRandom []
+    TlsClient.insist (random.length == 32) "invalid joint randomness"
+    pure (toBits (random.take 4))
+
+/-- An I/O step whose failure is the session's (an error string in `M`, reported), not an exception. -/
+def inBand (step : IO α) : TlsClient.M α := ExceptT.mk do
+  match ← step.toBaseIO with
+  | .ok value => pure (.ok value)
+  | .error e => pure (.error (toString e))
 
 
 /-- The end of operation 60 (`bundleEstablish`) for an item with digit counts `w`: the counts,
@@ -95,8 +120,8 @@ Signal server, one JSON line per event with this party's clock in milliseconds, 
 FILE. Only values this controller holds in the clear: revealed server bytes, public records it
 sends, the request templates of private sends (their private slots are zero here), the server's
 certificate chain, statuses and outcomes. Nothing secret-shared reaches it. -/
-def recordEvent (event : String) (fields : List (String × Lean.Json)) : IO Unit := do
-  let some path ← IO.getEnv "SIGNAL_RECORD" | return
+def recordTo (record : Option String) (event : String) (fields : List (String × Lean.Json)) : IO Unit := do
+  let some path := record | return
   let now := (← Std.Time.Timestamp.now).toMillisecondsSinceUnixEpoch.val.toNat
   let line := (Lean.Json.mkObj ([("time_ms", toJson now), ("event", toJson event)] ++ fields)).compress
   IO.FS.withFile path .append (fun file => file.putStrLn line)
@@ -104,7 +129,10 @@ def recordEvent (event : String) (fields : List (String × Lean.Json)) : IO Unit
 
 set_option maxRecDepth 16384 in   -- one long `do` block: the elaborator's default depth is not enough for it
 set_option maxHeartbeats 800000 in   -- and the compiler's default budget (200000) is not either
-def main (args : List String) : IO Unit := do
+def main (arguments : List String) : IO Unit := do
+  -- `--test` (anywhere): the TEST hooks of `Config.TestHooks` are in force.
+  let test := arguments.contains "--test"
+  let args := arguments.filter (· != "--test")
   if args == ["parse-bench"] then
     parseBench
     return
@@ -124,7 +152,7 @@ def main (args : List String) : IO Unit := do
     -- The sizes are envelope sizes in bytes. A frame's shape depends on them alone: the timestamp
     -- has 13 digits and request ids count from 2^63 (ten varint bytes).
     let numbers ← sizes.mapM natural
-    let official ← officialProfile
+    let official := (← Config.read test).agreed.official
     let mask : List (BitVec 8) := List.replicate 4 0
     let envelope (size : Nat) : List (BitVec 8) := List.replicate size 0
     let parts ← match kind, numbers with
@@ -176,24 +204,24 @@ def main (args : List String) : IO Unit := do
     let manifest := match (field ["circuits", "manifest"]).bind (fun j => j.getStr?.toOption) with
       | some path => [("CIRCUIT_MANIFEST", path)]
       | none => []
-    let share ← do
-      let path : System.FilePath := s!"{directory}/credentials.share"
-      if ← path.pathExists then pure (← IO.FS.readFile path).trimAscii.toString else pure ""
+    -- This node's XOR share of the credentials (left by `register`): the child session is given
+    -- the file's path (SIGNAL_LOCAL_CREDENTIALS_FILE), never the value (plan 4.2 row 3).
+    let shareFile := s!"{directory}/credentials.share"
     let (offset, workerDirectory, extra) ← match stage with
       | "register" => pure (100, ← text ["worker", "send_directory"], [("SIGNAL_CEREMONY", "register"), ("SIGNAL_CEREMONY_DIR", directory)])
       | "certificate" => pure (140, ← text ["worker", "receive_directory"],
-          [("SIGNAL_CEREMONY", "certificate"), ("SIGNAL_CEREMONY_DIR", directory), ("SIGNAL_LOCAL_CREDENTIALS", share)])
+          [("SIGNAL_CEREMONY", "certificate"), ("SIGNAL_CEREMONY_DIR", directory), ("SIGNAL_LOCAL_CREDENTIALS_FILE", shareFile)])
       | "store" => do
           IO.FS.createDirAll s!"{directory}/db"
           -- The existing session that creates the account's row from the credentials in two
           -- shares (it expects no message and ends at once).
-          pure (180, ← text ["worker", "receive_directory"], [("SIGNAL_LOCAL_CREDENTIALS", share), ("SIGNAL_LOCAL_EXPECT", "0"),
+          pure (180, ← text ["worker", "receive_directory"], [("SIGNAL_LOCAL_CREDENTIALS_FILE", shareFile), ("SIGNAL_LOCAL_EXPECT", "0"),
             ("SIGNAL_LOCAL_EXPORT", ← text ["test", "export"]), ("SIGNAL_LOCAL_KEM", ← text ["test", "kem_tool"]),
             ("SIGNAL_DB_CLIENT", ← text ["database", "client"]), ("SIGNAL_DB_NETWORK", ← text ["database", "network"]),
             ("SIGNAL_DB_KEY", ← text ["database", "key"]), ("SIGNAL_DB_WORK", s!"{directory}/db"),
             ("SIGNAL_DB_TOKENS", ← text ["test", "tokens"])])
       | _ => throw (IO.userError "ceremony stages: register, certificate, store")
-    unless stage == "register" || share.length == 76 do
+    unless stage == "register" || (← Channels.loadShare shareFile).any (·.length == 38) do
       throw (IO.userError s!"{directory}/credentials.share is missing: run the register stage first")
     let session := TlsWorkerProcess.hex (TlsWire.hash s!"ceremony {name} {stage}".toUTF8.data.toList)
     let child ← IO.Process.output {
@@ -215,14 +243,13 @@ def main (args : List String) : IO Unit := do
   if let ["db-delete", party, request] := args then
     -- The application's signed delete request: this party submits it to the database nodes,
     -- which act once both parties have. Repeated until all but one node has confirmed.
-    let setting (name : String) : IO String := do
-      match ← IO.getEnv name with
-      | some value => pure value
-      | none => throw (IO.userError s!"{name} is required")
-    let out := s!"{← setting "SIGNAL_DB_WORK"}/delete.json"
+    let database := (← Config.read test).database
+    let setting (name : String) (field : Config.Database → Option String) : IO String :=
+      IO.ofExcept ((Config.required name (database.bind field)).mapError IO.userError)
+    let out := s!"{← setting "SIGNAL_DB_WORK" (·.work)}/delete.json"
     for _ in [0:40] do
-      let run ← IO.Process.output { cmd := ← setting "SIGNAL_DB_CLIENT", args := #["delete", "--network", ← setting "SIGNAL_DB_NETWORK",
-        "--key", ← setting "SIGNAL_DB_KEY", "--party", party, "--request", request, "--out", out] }
+      let run ← IO.Process.output { cmd := ← setting "SIGNAL_DB_CLIENT" (some ·.client), args := #["delete", "--network", ← setting "SIGNAL_DB_NETWORK" (·.network),
+        "--key", ← setting "SIGNAL_DB_KEY" (·.key), "--party", party, "--request", request, "--out", out] }
       unless run.exitCode == 0 do throw (IO.userError s!"database client delete: {run.stderr}")
       let done := match Lean.Json.parse (← IO.FS.readFile out) with
         | .ok json => (json.getObjValAs? Bool "acknowledged").toOption.getD false
@@ -234,8 +261,13 @@ def main (args : List String) : IO Unit := do
     throw (IO.userError "the database nodes did not confirm the delete")
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
-  -- The client profile (`officialProfile` above): what the server sees.
-  let official ← officialProfile
+  -- Every setting of this session (`Config`); the agreed ones are compared with the other node's
+  -- at the start (`settings` below).
+  let config ← Config.read test
+  let recordEvent (event : String) (fields : List (String × Lean.Json)) : IO Unit := recordTo config.record event fields
+  let hooks := config.hooks
+  -- The client profile (`Config.Agreed.official`): what the server sees.
+  let official := config.agreed.official
   let tlsConfig : TlsWire.Config := { hostname, alpn := ["http/1.1"], profile := if official then .libsignal else .legacy }
   let anonymousUpgrade (nonce : List (BitVec 8)) : List (BitVec 8) :=
     if official then RelayUpgrade.anonymousRequest PublicReceive.fast nonce
@@ -243,14 +275,11 @@ def main (args : List String) : IO Unit := do
   let certificate ← IO.mkRef false
   let operations ← IO.mkRef ([] : List Nat)
   let revealed ← IO.mkRef 0
-  -- Authenticated-socket session (SIGNAL_LOCAL_CREDENTIALS: this party's XOR share of the
-  -- account id and password, hex): wait for delivered messages instead of sending.
-  -- SIGNAL_LOCAL_RECEIVE without credentials: the same session with the account (identity key,
-  -- password) loaded from the database nodes; the share is then empty.
-  let credentials ← do
-    match ← IO.getEnv "SIGNAL_LOCAL_CREDENTIALS" with
-    | some share => pure (some share)
-    | none => pure ((← IO.getEnv "SIGNAL_LOCAL_RECEIVE").map (fun _ => ""))
+  -- Authenticated-socket session (`Config.Account.share`: this party's XOR share of the account
+  -- id and password): wait for delivered messages instead of sending. `.stored`
+  -- (SIGNAL_LOCAL_RECEIVE without credentials): the same session with the account (identity key,
+  -- password) loaded from the database nodes.
+  let authenticated := config.account.authenticated
   let delivered ← IO.mkRef 0
   let keepalives ← IO.mkRef 0
   let envelopes ← IO.mkRef ([] : List (Nat × Nat))
@@ -258,22 +287,9 @@ def main (args : List String) : IO Unit := do
   let received ← IO.mkRef ([] : List (Nat × String))
   let refused ← IO.mkRef 0
   let kept ← IO.mkRef (none : Option Bytes)
-  -- Tor (the top of this file): SIGNAL_TOR_SOCKS=IP:PORT and SIGNAL_TOR_CIRCUITS=N.
-  let circuitCount ← match ← IO.getEnv "SIGNAL_TOR_CIRCUITS" with
-    | none => pure none
-    | some text => match text.toNat? with
-      | some n => pure (some n)
-      | none => throw (IO.userError "SIGNAL_TOR_CIRCUITS must be a number")
-  let socks ← match ← IO.getEnv "SIGNAL_TOR_SOCKS" with
-    | none => pure none
-    | some text => match text.splitOn ":" with
-      | [host, number] => match number.toNat? with
-        | some p => pure (some (host, p))
-        | none => throw (IO.userError "SIGNAL_TOR_SOCKS must be IP:PORT")
-      | _ => throw (IO.userError "SIGNAL_TOR_SOCKS must be IP:PORT")
-  let circuits := circuitCount.getD (if socks.isSome then 1 else 0)
-  unless (circuits == 0) == socks.isNone && circuits ≤ 16 do
-    throw (IO.userError "SIGNAL_TOR_CIRCUITS of 1..16 needs SIGNAL_TOR_SOCKS, and SIGNAL_TOR_SOCKS at least one circuit")
+  -- Tor (the top of this file): SIGNAL_TOR_SOCKS=IP:PORT and SIGNAL_TOR_CIRCUITS=N (checked by `Config.ofEnv`).
+  let socks := config.socks
+  let circuits := config.agreed.circuits
   -- The proxy and credentials of a connection (`none`: the receive socket); none without Tor.
   let proxyFor (index : Option Nat) : Option TlsWorker.Proxy := socks.map (fun (host, p) =>
     let (username, password) := Circuits.labels session circuits index
@@ -285,7 +301,7 @@ def main (args : List String) : IO Unit := do
   let recoveryUsed ← IO.mkRef false
   -- The registration ceremony (CEREMONY.md): SIGNAL_CEREMONY names the stage this session runs
   -- (`register` or `certificate`), SIGNAL_CEREMONY_DIR this node's ceremony directory.
-  let ceremony ← IO.getEnv "SIGNAL_CEREMONY"
+  let ceremony := config.ceremony
   let ceremonyDone ← IO.mkRef false
   let results ← IO.mkRef ([] : List Recovery.Entry)
   let recoveryLog ← IO.mkRef ([] : List String)
@@ -293,10 +309,10 @@ def main (args : List String) : IO Unit := do
   -- SIGNAL_NOTIFY_MESSAGE_FILE holds the message text, and the session's contacts are the ids of
   -- the signed request (SIGNAL_DB_REQUEST). A requested id that the database nodes do not hold,
   -- or do not serve until their next epoch (`true`), is left out of the session and reported.
-  let notifyFile ← IO.getEnv "SIGNAL_NOTIFY_MESSAGE_FILE"
+  let notifyFile := config.notifyFile
   -- The long-lived send session (SIGNAL_SERVE_DIR; `serve` below, node_daemon/README.md): no
   -- contacts at the start; jobs (one signed notify each) handed over by the daemon in that directory.
-  let serveDir ← IO.getEnv "SIGNAL_SERVE_DIR"
+  let serveDir := config.serveDir
   let absent ← IO.mkRef ([] : List (Nat × Bool))
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
@@ -316,10 +332,17 @@ def main (args : List String) : IO Unit := do
       liftM (operations.modify (fun codes => if codes.contains (TlsWorkerPipe.code op) then codes else codes ++ [TlsWorkerPipe.code op]) : IO Unit)
       running.rpc.call op input}
     let action : M Nat := do
+      -- The settings agreement (SECURITY_MAP D.11; plan 3.1 `PeerMsg.settingsDigest`): before
+      -- anything else, each controller sends the other the SHA-256 of the settings that must be
+      -- the same on both nodes (`Config.agreedText`), and the session ends on a difference.
+      let settings := Config.digest config
+      let theirSettings ← rpc.call .exchange settings
+      insist (theirSettings == settings)
+        s!"the two nodes' settings differ (SECURITY_MAP D.11); this node's: {Config.agreedText config}"
       liftM (recordEvent "connect" [("endpoint", toJson endpoint), ("port", toJson port), ("hostname", toJson hostname),
-        ("socket", toJson (if credentials.isSome then "authenticated" else "unauthenticated")), ("proxy", toJson (socks.map (·.1))),
+        ("socket", toJson (if authenticated then "authenticated" else "unauthenticated")), ("proxy", toJson (socks.map (·.1))),
         ("circuits", toJson circuits), ("profile", toJson (if official then "libsignal" else "legacy"))] : IO Unit)
-      TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if credentials.isSome then none else some 0))
+      TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if authenticated then none else some 0))
       liftM (recordEvent "connected" [] : IO Unit)
       let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) tlsConfig
       liftM (recordEvent "handshake" [("certificate_verified", toJson handshake.serverCertificateVerified),
@@ -343,25 +366,28 @@ def main (args : List String) : IO Unit := do
       -- with private credentials. Local Signal server (SIGNAL_LOCAL_EXPORT): contacts
       -- admitted from the export, and the UNAUTHENTICATED socket, whose upgrade request is
       -- public (sealed-sender sends must not go on an authenticated socket).
-      let exportPath ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPORT" : IO (Option String))
-      -- TEST stand-in for the database nodes (SIGNAL_LOCAL_STORE, one directory per party): per
-      -- contact, this party's key share and the stored state (version, check, ciphertext).
-      let storeDirectory ← liftM (IO.getEnv "SIGNAL_LOCAL_STORE" : IO (Option String))
-      let freshShare : M Bytes := do
-        let random ← liftM (IO.getRandomBytes 32 : IO ByteArray)
+      let exportPath := config.exportFile
+      -- TEST stand-in for the database nodes (SIGNAL_LOCAL_STORE, one directory per party, only
+      -- with `--test`): per contact, this party's key share and the stored state (version, check,
+      -- ciphertext).
+      let storeDirectory := hooks.store
+      -- TEST (no database): this party's key share of a contact, its own randomness.
+      let freshShare : M (Secret Bytes) := do
+        let random ← liftM (Channels.random 32)
         -- below 2^254, so below the share modulus
-        pure (random.data.toList.take 31 ++ [(random.data.toList.getD 31 0) &&& 0x3f])
+        pure (random.map fun bytes => bytes.take 31 ++ [(bytes.getD 31 0) &&& 0x3f])
       /- The database nodes (SIGNAL_DB_CLIENT: the `handoff_client` of secret-shared-db, with
       SIGNAL_DB_NETWORK, SIGNAL_DB_KEY and a scratch directory SIGNAL_DB_WORK). Each party
       runs the client itself: its key shares never leave it. Between the parties go only the
       parity shares of a read (whose sums must be zero) and small status bytes. A contact's
       state is one blob, `nonce ‖ check ‖ ciphertext`, which the nodes accept only when both
       parties submit the same bytes as the next version. -/
-      let dbClient ← liftM (IO.getEnv "SIGNAL_DB_CLIENT" : IO (Option String))
-      let dbEnv (name : String) : M String := do
-        match ← liftM (IO.getEnv name : IO (Option String)) with
-        | some value => pure value
-        | none => throw s!"{name} is required with SIGNAL_DB_CLIENT"
+      let dbClient := config.database.map (·.client)
+      let dbEnv (name : String) : M String :=
+        let field : Config.Database → Option String := match name with
+          | "SIGNAL_DB_NETWORK" => (·.network) | "SIGNAL_DB_KEY" => (·.key) | "SIGNAL_DB_WORK" => (·.work)
+          | "SIGNAL_DB_REQUEST" => (·.request) | "SIGNAL_DB_TOKENS" => (·.tokens) | _ => fun _ => none
+        liftResult (Config.required name (config.database.bind field) " with SIGNAL_DB_CLIENT")
       -- The application's signed request that authorises reads and write-backs: SIGNAL_DB_REQUEST,
       -- or in the long-lived session (`serve`) the request of the job being served.
       let jobRequest ← liftM (IO.mkRef (none : Option String) : IO (IO.Ref (Option String)))
@@ -396,7 +422,7 @@ def main (args : List String) : IO Unit := do
       -- each other, and both use the later one if the two are within two minutes. (A test may
       -- fix it with SIGNAL_LOCAL_TIMESTAMP, the same for both.)
       let agreedNow : M Nat := do
-        match (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).bind String.toNat? with
+        match hooks.timestamp with
         | some fixed => pure fixed
         | none =>
           let mine := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
@@ -460,8 +486,8 @@ def main (args : List String) : IO Unit := do
         dbSubmit (toString contact) (authority ++ ["--id", toString contact]) version (fresh ++ stored)
       -- Read this party's shares (under the application's request, or of the account's own
       -- row), check them against the other party's with the parity shares, and combine.
-      -- Returns the read output and the combined shares.
-      let dbRead (source : List String) (name : String) : M (Lean.Json × Lean.Json) := do
+      -- Returns the read output and this party's combined shares, per id (`Secret`).
+      let dbRead (source : List String) (name : String) : M (Lean.Json × List (String × Secret Bytes)) := do
         let read ← dbWork s!"{name}-read.json"
         let mine ← dbWork s!"{name}-parity-mine.json"
         let theirs ← dbWork s!"{name}-parity-theirs.json"
@@ -474,13 +500,13 @@ def main (args : List String) : IO Unit := do
         db ["verify-signatures", "--network", ← dbEnv "SIGNAL_DB_NETWORK", "--reports", theirs]
         db ["parity-sum", "--mine", mine, "--theirs", theirs, "--out", sums]
         db ["combine", "--summands", read, "--parity-sums", sums, "--out", shares]
-        pure (← dbJson s!"{name}-read.json", ← dbJson s!"{name}-shares.json")
+        pure (← dbJson s!"{name}-read.json", ← inBand (Channels.readKeyShares shares))
       -- From a read: an id's combined share, and its blob (version, bytes in hex).
       let dbEntry (json : Lean.Json) (contact : Nat) : Option Lean.Json :=
         (((json.getObjValAs? (Array Lean.Json) "ids").toOption.getD #[]).toList).find?
           (fun e => (e.getObjValAs? String "id").toOption == some (toString contact))
-      let dbShare (shares : Lean.Json) (contact : Nat) : Option String :=
-        (dbEntry shares contact).bind (fun e => (e.getObjValAs? String "share").toOption)
+      let dbShare (shares : List (String × Secret Bytes)) (contact : Nat) : Option (Secret Bytes) :=
+        (shares.find? (·.1 == toString contact)).map (·.2)
       let dbBlob (read : Lean.Json) (contact : Nat) : Option (Nat × String) :=
         ((dbEntry read contact).bind (fun e => (e.getObjVal? "blob").toOption)).bind (fun b =>
           match b.getObjValAs? Nat "version", b.getObjValAs? String "hex" with
@@ -491,15 +517,14 @@ def main (args : List String) : IO Unit := do
       let accountId := 2 ^ 128 - 2
       -- Deal this party's half of a new contact's key under the application's signup token
       -- for that id. The dealt summand is this party's share of the key.
-      let dbDeal (contact : Nat) (token : String) : M (Option Bytes) := do
+      let dbDeal (contact : Nat) (token : String) : M (Option (Secret Bytes)) := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let dealt ← dbTry (["deal"] ++ (← dbParty) ++ ["--signup-token", token, "--id", toString contact,
           "--session", TlsWorkerProcess.hex (random.take 16), "--out", ← dbWork s!"deal-{contact}.json"])
         let (committed, summand) ← if dealt then do
-            let deal ← dbJson s!"deal-{contact}.json"
-            let nodes := ((deal.getObjValAs? (Array String) "nodes").toOption.getD #[]).toList
-            pure (nodes.map (fun status => if status == "committed" then (1 : UInt8) else 0), (deal.getObjValAs? String "summand").toOption)
+            let (nodes, summand) ← inBand (Channels.readDealt (← dbWork s!"deal-{contact}.json"))
+            pure (nodes.map (fun status => if status == "committed" then (1 : UInt8) else 0), summand)
           else pure ([], none)
         -- A node commits when the second of the two halves reaches it, and tells only that
         -- party. The parties tell each other which nodes they saw commit; all but one must have.
@@ -509,16 +534,16 @@ def main (args : List String) : IO Unit := do
         match summand with
         | some summand =>
           if both.length < 4 then return none
-          return some (← liftResult (fromHex summand))
+          return some summand
         | none => return none
       -- Per contact: id, key share, version of the stored state it was loaded from (0: none).
       -- The registration ceremony (CEREMONY.md): no account exists yet. Its `register` stage
       -- uses the unauthenticated socket; its `certificate` stage the authenticated one, with
       -- this node's XOR share of the new credentials (SIGNAL_LOCAL_CREDENTIALS).
-      let ceremonyUpgrade (stage : String) : M (Bytes × List (Nat × Bytes × Nat) × Bool) := do
+      let ceremonyUpgrade (stage : String) : M (Bytes × List (Nat × Secret Bytes × Nat) × Bool) := do
         if stage == "certificate" then
-          let some share := credentials | throw "the certificate stage needs this node's credentials share"
-          let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+          let .share share := config.account | throw "the certificate stage needs this node's credentials share"
+          let _ ← Secret.inputOwn rpc .accountCredentials share
           let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
           insist (upgrade.length == 38) "invalid upgrade receipt"
           TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
@@ -548,30 +573,31 @@ def main (args : List String) : IO Unit := do
               let (accountRead, accountShares) ← dbRead ["--account"] "account"
               match dbShare accountShares accountId, dbBlob accountRead accountId with
               | some share, some (_, blob) =>
-                let _ ← rpc.call .accountKey (← liftResult (fromHex share))
+                let _ ← Secret.inputOwn rpc .accountKey share
                 let _ ← rpc.call .accountOpen (← liftResult (fromHex blob))
                 pure true
               | _, _ => pure false
             else pure false
           -- TEST: until the account's row exists it is admitted from the export.
           unless accountStored do
-            let _ ← rpc.call .accountAdmit (identity ++ certificate)
+            let _ ← Secret.inputOwn rpc .accountAdmit (identity ++ Secret.hide certificate)
+          -- Per wanted contact: its TEST record from the export, if it has one.
+          let records : List (Nat × Option (Secret Bytes)) := records.map fun (contact, record) => (contact, some record)
           -- Contacts that exist only in the store (received in an earlier session).
-          let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
-            |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
+          let extra := hooks.extraContacts.map (fun contact => (contact, (none : Option (Secret Bytes))))
           -- (The long-lived session starts with none: each job loads its own, `loadJob`.)
-          let wanted := if credentials.isSome || serveDir.isSome then [] else records ++ extra
+          let wanted := if authenticated || serveDir.isSome then [] else records ++ extra
           -- Through the daemon: exactly the ids of the application's signed request, whose message
           -- hash must be the text's. (TEST: an id of the export is still created from it.)
-          let wanted ← match notifyFile, credentials with
-            | some file, none => do
+          let wanted ← match notifyFile, authenticated with
+            | some file, false => do
               let text ← liftM (IO.FS.readFile file : IO String)
               let request ← liftResult (Lean.Json.parse (← liftM (IO.FS.readFile (← dbEnv "SIGNAL_DB_REQUEST") : IO String)))
               let ids := ((request.getObjValAs? (Array String) "ids").toOption.getD #[]).toList.filterMap String.toNat?
               insist (!ids.isEmpty) "the notify request lists no ids"
               let signedFor ← liftResult (fromHex ((request.getObjValAs? String "message_hash").toOption.getD ""))
               insist (signedFor == TlsWire.hash text.toUTF8.data.toList) "the message is not the one the notify request was signed for"
-              pure (ids.map (fun id => (id, ((records.find? (·.1 == id)).map (·.2)).getD [])))
+              pure (ids.map (fun id => (id, (records.find? (·.1 == id)).bind (·.2))))
             | _, _ => pure wanted
           let known ← if dbClient.isSome && !wanted.isEmpty then do
             -- From the database nodes, under the application's signed request for these ids.
@@ -584,7 +610,7 @@ def main (args : List String) : IO Unit := do
             let wanted ← if notifyFile.isNone then pure wanted else do
               let gone := wanted.filterMap (fun (contact, record) =>
                 if waiting.contains (toString contact) then some (contact, true)
-                else if record.isEmpty && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
+                else if record.isNone && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
                 else none)
               let mine := TlsWire.hash (gone.flatMap (fun (contact, later) => uint 16 contact ++ [(if later then 1 else 0 : UInt8)]))
               insist ((← swap mine) == mine) "the two parties' database reads differ"
@@ -596,61 +622,55 @@ def main (args : List String) : IO Unit := do
               let blob := dbBlob readJson contact
               match share, blob with
               | some share, some (version, blob) =>
-                let share ← liftResult (fromHex share)
-                let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
                 -- Both parties must have been given the same blob: the request is agreed.
                 openState contact (← liftResult (fromHex blob))
                 pure (contact, share, version)
               | _, _ =>
                 -- TEST: a contact of the export that the database does not have yet is created
                 -- there, under a signup token the harness supplies (SIGNAL_DB_TOKENS/<id>.json).
-                insist (!record.isEmpty) "contact is not in the database"
+                let some record := record | throw "contact is not in the database"
                 let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
-                let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
-                let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+                let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
+                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
                 pure (contact, share, 0))
           else wanted.mapM (fun (contact, record) => do
-            let file := storeDirectory.map (fun directory => (directory : System.FilePath) / toString contact)
-            let saved ← match file with
+            let saved ← match storeDirectory with
               | none => pure none
-              | some file => do
-                if ← liftM (file.pathExists : IO Bool) then
-                  pure (some (← liftResult (fromHex (← liftM (IO.FS.readFile file : IO String)).trimAscii.toString)))
-                else pure none
+              | some directory => inBand (Channels.loadStored ((directory : System.FilePath) / toString contact))
             match saved with
-            | some bytes =>
+            | some (share, rest) =>
               -- A stored contact: key from the shares, then the state from its ciphertext.
-              insist (bytes.length > 56) "stored contact shape"
-              let share := bytes.take 32
-              let _ ← rpc.call .contactKey (uint 16 contact ++ share)
-              openState contact (bytes.drop 32)
-              pure (contact, share, number ((bytes.drop 32).take 8))
+              insist (share.length == 32 && rest.length > 24) "stored contact shape"
+              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+              openState contact rest
+              pure (contact, share, number (rest.take 8))
             | none =>
-              insist (!record.isEmpty) "contact has no stored state"
+              let some record := record | throw "contact has no stored state"
               let share ← freshShare
-              let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
-              let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+              let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
+              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
               pure (contact, share, 0))
-          match credentials with
-          | some share =>
-            -- The password is shared: neither party can open this socket alone.
-            if share.isEmpty then insist accountStored "no credentials: the account is not stored and none were given"
-            else
-              let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+          if authenticated then
+            match config.account with
+            | .share share =>
+              -- The password is shared: neither party can open this socket alone.
+              let _ ← Secret.inputOwn rpc .accountCredentials share
               if dbClient.isSome && !accountStored then
                 -- TEST: the first session that has the account's key and credentials creates its
                 -- row on the database nodes (key dealt under a token for the reserved id).
                 let some keyShare ← dbDeal accountId s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{accountId}.json" | throw "dealing the account key failed"
-                let _ ← rpc.call .accountKey keyShare
+                let _ ← Secret.inputOwn rpc .accountKey keyShare
                 let fresh ← nonce
                 let stored ← rpc.call .accountSeal fresh
                 insist (stored.length > 16) "invalid stored account state"
                 insist (← dbSubmit "account" ["--account"] 1 (fresh ++ stored)) "the database did not acknowledge the account's state"
+            | _ => insist accountStored "no credentials: the account is not stored and none were given"
             let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
             insist (upgrade.length == 38) "invalid upgrade receipt"
             TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
             pure (upgrade.drop 10, known, true)
-          | none =>
+          else
             let upgrade ← rpc.call .publicUpgrade []
             insist (upgrade.length == 44) "invalid public upgrade receipt"
             sendPublic (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
@@ -660,24 +680,21 @@ def main (args : List String) : IO Unit := do
       -- opened in the engines as a NEW contact's first message. Public here: our prekey ids the
       -- message names, the Kyber ciphertext, and the message text. The contact's record is
       -- sealed and stored under a new id before the message is acknowledged.
-      let receiving ← match exportPath, credentials with
-        | some path, some _ => do
+      let receiving ← match exportPath, authenticated with
+        | some path, true => do
           pure (some (← liftResult (readReceive (← liftM (IO.FS.readFile path : IO String)))))
         | _, _ => pure none
-      let nextContact ← liftM (IO.mkRef (((← IO.getEnv "SIGNAL_LOCAL_NEW_CONTACT").bind String.toNat?).getD 1000) : IO (IO.Ref Nat))
+      let nextContact ← liftM (IO.mkRef hooks.newContact : IO (IO.Ref Nat))
       -- Provisional ids (with the database), one per opened message, from 2^128 - 3 down: the
       -- worker keeps the entry of a contact refused after its session was made (evicted, not
       -- erased) and makes a session only under an id with no entry, so a provisional id is never
       -- reused within a session. Both controllers count the same messages in the same order.
       let provisionals ← liftM (IO.mkRef (0 : Nat) : IO (IO.Ref Nat))
-      let decapsulate (key ciphertext : Bytes) : M Bytes := do
-        -- Kyber-1024 decapsulation runs outside the engines, with a key both parties hold.
-        let some tool ← liftM (IO.getEnv "SIGNAL_LOCAL_KEM" : IO (Option String)) | throw "SIGNAL_LOCAL_KEM (decapsulation tool) is required"
-        let out ← liftM (IO.Process.output { cmd := tool, args := #["kem-decapsulate", TlsWorkerProcess.hex key, TlsWorkerProcess.hex ([8] ++ ciphertext)] })
-        insist (out.exitCode == 0) "decapsulation failed"
-        let secret ← liftResult (fromHex out.stdout.trimAscii.toString)
-        insist (secret.length == 32) "decapsulated secret shape"
-        pure secret
+      let decapsulate (key : Secret Bytes) (ciphertext : Bytes) : M (Secret Bytes) := do
+        -- Kyber-1024 decapsulation runs outside the engines, with a key both parties hold (OWN):
+        -- the key goes to the tool on its standard input (`Channels.kemDecapsulate`).
+        let some tool := config.kem | throw "SIGNAL_LOCAL_KEM (decapsulation tool) is required"
+        liftResult (← liftM (Channels.kemDecapsulate tool key ([8] ++ ciphertext)))
       -- A refusal of the envelope being handled, with its reason (SIGNAL_RECORD).
       let refusedBecause (reason : String) : M (Option (Nat × String)) := do
         liftM (recordEvent "envelope-refused" [("reason", toJson reason)] : IO Unit)
@@ -691,9 +708,9 @@ def main (args : List String) : IO Unit := do
         if opened.head? != some 255 then
           return ← refusedBecause s!"not opened as a new contact's first message (reply {opened.headD 0}: sealed-sender layer, sender certificate, PreKey shape, or no kernel for its shape)"
         insist (opened.length == 14 + 1568) "invalid opened prekey message"
-        let find (table : List (Nat × Bytes)) (at_ : Nat) : Option Bytes :=
+        let find (table : List (Nat × Secret Bytes)) (at_ : Nat) : Option (Secret Bytes) :=
           (table.find? (·.1 == number ((opened.drop at_).take 4))).map (·.2)
-        let oneTime := if opened.getD 1 0 == 1 then find keys.oneTime 2 else some (List.replicate 32 0)
+        let oneTime := if opened.getD 1 0 == 1 then find keys.oneTime 2 else some (Secret.hide (List.replicate 32 0))
         match oneTime, find keys.signed 6, find keys.kyber 10 with
         | some oneTime, some signed, some kyber =>
           let secret ← decapsulate kyber (opened.drop 14)
@@ -701,7 +718,8 @@ def main (args : List String) : IO Unit := do
           -- the contact is held under a provisional id (2^128 - 1, then 2^128 - 3, 2^128 - 4, …).
           let provisional ← liftM (provisionals.modifyGet (fun n => (if n == 0 then 2 ^ 128 - 1 else 2 ^ 128 - 2 - n, n + 1)) : IO Nat)
           let contact ← if dbClient.isSome then pure provisional else liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
-          let result ← rpc.call .envelopeSession (uint 16 contact ++ keys.address ++ signed ++ oneTime ++ secret ++ uint 8 (2 ^ 63))
+          let result ← Secret.inputOwn rpc .envelopeSession
+            (Secret.hide (uint 16 contact ++ keys.address) ++ signed ++ oneTime ++ secret ++ Secret.hide (uint 8 (2 ^ 63)))
           if result.head? != some 255 then return ← refusedBecause s!"no session from it (reply {result.headD 0}: keys, MAC, content or text shape)"
           insist (result.length ≥ 3 && result.length == 3 + number ((result.drop 1).take 2)) "invalid received text"
           let text := (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD ""
@@ -729,7 +747,7 @@ def main (args : List String) : IO Unit := do
               match ← dbDeal id token with
               | none => refuse id
               | some share =>
-                let _ ← rpc.call .contactKey (uint 16 id ++ share)
+                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 id) ++ share)
                 -- Stored (acknowledged by the nodes) before the message is acknowledged.
                 if !(← dbWrite id 1 ["--signup-token", token]) then return ← refuse id
                 return some (id, text)
@@ -737,13 +755,11 @@ def main (args : List String) : IO Unit := do
           -- Stored before it is acknowledged.
           let share ← freshShare
           let fresh ← nonce
-          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+          let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
           let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
           insist (stored.length > 16) "invalid stored contact state"
           match storeDirectory with
-          | some directory =>
-            liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
-              (TlsWorkerProcess.hex (share ++ fresh ++ stored) ++ "\n") : IO Unit)
+          | some directory => inBand (Channels.saveShare ((directory : System.FilePath) / toString contact) share (fresh ++ stored))
           | none => pure ()
           return some (contact, text)
         | _, _, _ =>
@@ -754,7 +770,7 @@ def main (args : List String) : IO Unit := do
       -- is left unacknowledged, so the server keeps it for a later session (a fixed build can then
       -- process it). Default: acknowledged, as before. `refusals`: per handled envelope, in order,
       -- whether it was refused (each delivered-message request carries one envelope).
-      let keepRefused := (← liftM (IO.getEnv "SIGNAL_ACK_REFUSED" : IO (Option String))) == some "0"
+      let keepRefused := config.agreed.keepRefused
       let refusals ← liftM (IO.mkRef ([] : List Bool) : IO (IO.Ref (List Bool)))
       let handleEnvelope (kind size : Nat) : M Unit := do
         liftM (envelopes.modify (· ++ [(kind, size)]) : IO Unit)
@@ -765,7 +781,7 @@ def main (args : List String) : IO Unit := do
               | some entry =>
                 liftM (received.modify (· ++ [entry]) : IO Unit)
                 -- For the node daemon (SIGNAL_LOCAL_EVENTS): the id that signed up, as soon as it is stored.
-                if (← liftM (IO.getEnv "SIGNAL_LOCAL_EVENTS" : IO (Option String))).isSome then
+                if config.events then
                   liftM (IO.println (Lean.Json.mkObj [("event", toJson "signup"), ("id", toJson (toString entry.1))]).compress : IO Unit)
                   liftM ((do (← IO.getStdout).flush) : IO Unit)
                 pure (some entry)
@@ -831,7 +847,7 @@ def main (args : List String) : IO Unit := do
             insist (!bytes.isEmpty) "missing revealed bytes"
             liftM (revealed.modify (· + bytes.length) : IO Unit)
             -- Diagnostics: the revealed (public) bytes, on request.
-            if (← liftM (IO.getEnv "SIGNAL_LOCAL_TRACE" : IO (Option String))).isSome then
+            if hooks.trace then
               liftM (IO.eprintln s!"revealed {TlsWorkerProcess.hex bytes}" : IO Unit)
             liftM (recordEvent "revealed" [("handle", toJson handle), ("offset", toJson offset), ("hex", toJson (TlsWorkerProcess.hex bytes))] : IO Unit)
             for (byte, index) in bytes.zipIdx do
@@ -923,7 +939,7 @@ def main (args : List String) : IO Unit := do
       let lastStamp ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
       let restamp (send : Nat × Bytes) : M (Nat × Bytes) := do
         if !official then return send
-        if (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).isSome then return send
+        if hooks.timestamp.isSome then return send
         if (← liftM (stamped.get : IO (List Bytes))).contains send.2 then return send
         let some (_, body) := (← liftM (bodies.get : IO (List (Bytes × Bytes)))).find? (·.1 == send.2) | return send
         -- The contact's per-session preparation (its first send's curve work: tens of seconds
@@ -1003,11 +1019,7 @@ def main (args : List String) : IO Unit := do
           match ← TlsApplication.receive (← appNow) with
           | .application handle =>
             let (s, complete) ← record handle.id s
-            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
-              pure (random.take 4)
-            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
@@ -1076,7 +1088,7 @@ def main (args : List String) : IO Unit := do
         let some widths := BundleResponse.layout? (flags.map (· == 255)) | throw "prekey response layout refused"
         let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
         insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
-        let slots := (← liftM (IO.getEnv "SIGNAL_BUNDLE_SLOTS" : IO (Option String))) != some "0"
+        let slots := config.agreed.bundleSlots
         for ((at_, w), index) in rows.zipIdx do
           for step in [0:9] do
             s ← keepAlive s
@@ -1100,14 +1112,14 @@ def main (args : List String) : IO Unit := do
       let keyContacts : M Unit := do
         unless keyed do
           for (contact, share, _) in known do
-            let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+            let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
       let reloadContacts : M Unit := do
         for (contact, share, _) in known do
           let version ← nonce
           let stored ← sealState contact version
           insist (stored.length > 16) "invalid stored contact state"
           let _ ← rpc.call .contactEvict (uint 16 contact)
-          let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+          let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
           openState contact (version ++ stored)
         requireLoaded
       -- Before a contact's first send of the session: its per-session curve work (the table its
@@ -1122,8 +1134,8 @@ def main (args : List String) : IO Unit := do
       -- SIGNAL_PREPARE_BATCH: contacts per call (default 32, at most 64; 0: never).
       let preparedContacts ← liftM (IO.mkRef ([] : List Nat) : IO (IO.Ref (List Nat)))
       let ensurePrepared (contact : Nat) (upcoming : List Nat) : M Unit := do
-        if (← liftM (IO.getEnv "TLS_WORKER_HINTED" : IO (Option String))) != some "1" then return
-        let size := min 64 (((← liftM (IO.getEnv "SIGNAL_PREPARE_BATCH" : IO (Option String))).bind String.toNat?).getD 32)
+        if !config.agreed.hinted then return
+        let size := config.agreed.prepareBatch
         let done ← liftM (preparedContacts.get : IO (List Nat))
         if size == 0 || done.contains contact then return
         let batch := ((contact :: upcoming).eraseDups.filter (fun c => !done.contains c)).take size
@@ -1159,12 +1171,12 @@ def main (args : List String) : IO Unit := do
         let records ← match exportPath with
           | some path => do pure (← liftResult (readExport (← liftM (IO.FS.readFile path : IO String)))).2.2
           | none => pure []
-        let wanted := ids.map (fun id => (id, ((records.find? (·.1 == id)).map (·.2)).getD []))
+        let wanted := ids.map (fun id => (id, (records.find? (·.1 == id)).map (·.2)))
         let (readJson, sharesJson) ← dbRead ["--request", requestPath] "contacts"
         let waiting := ((readJson.getObjValAs? (Array String) "not_yet_readable").toOption.getD #[]).toList
         let gone := wanted.filterMap (fun (contact, record) =>
           if waiting.contains (toString contact) then some (contact, true)
-          else if record.isEmpty && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
+          else if record.isNone && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
           else none)
         let mine := TlsWire.hash (gone.flatMap (fun (contact, later) => uint 16 contact ++ [(if later then 1 else 0 : UInt8)]))
         insist ((← swap mine) == mine) "the two parties' database reads differ"
@@ -1182,18 +1194,18 @@ def main (args : List String) : IO Unit := do
             let held := (← liftM (residentIds.get : IO (List Nat))).contains contact
             unless held && (← versionOf contact) == version do
               forget contact
-              let _ ← rpc.call .contactKey (uint 16 contact ++ (← liftResult (fromHex share)))
+              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
               openState contact (← liftResult (fromHex blob))
               setVersion contact version
               -- (A blob that does not open leaves the contact unloaded: `unreadable`, its result.)
               unless (← liftM (unreadable.get : IO (List Nat))).contains contact do
                 liftM (residentIds.modify (· ++ [contact]) : IO Unit)
           | _, _ =>
-            insist (!record.isEmpty) "contact is not in the database"
+            let some record := record | throw "contact is not in the database"
             forget contact
             let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
-            let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
-            let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+            let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
+            let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
             setVersion contact 0
             liftM (residentIds.modify (· ++ [contact]) : IO Unit)
           loaded := loaded ++ [contact]
@@ -1209,8 +1221,7 @@ def main (args : List String) : IO Unit := do
             let version ← nonce
             let stored ← sealState contact version
             insist (stored.length > 16) "invalid stored contact state"
-            liftM (IO.FS.writeFile ((directory : System.FilePath) / toString contact)
-              (TlsWorkerProcess.hex (share ++ version ++ stored) ++ "\n") : IO Unit)
+            inBand (Channels.saveShare ((directory : System.FilePath) / toString contact) share (version ++ stored))
       -- The application's request: `notify(ids, message)`. Ids and text are public to both
       -- parties; it expands to one send per contact. The text is 1..256 bytes of UTF-8. What
       -- goes to the engines is the built message of its size class c in 1..4: a validity byte,
@@ -1249,7 +1260,7 @@ def main (args : List String) : IO Unit := do
             notify contacts text base
           else
           -- Further broadcasts on request (SIGNAL_LOCAL_BROADCASTS, for measuring the cost per message).
-          let count := ((← liftM (IO.getEnv "SIGNAL_LOCAL_BROADCASTS" : IO (Option String))).bind String.toNat?).getD 2
+          let count := hooks.broadcasts
           let more ← ((List.range (count - 2)).mapM (fun k => notify contacts
             -- the third broadcast is 200 bytes long (a larger size class)
             (if k == 0 then "MPC broadcast 3 " ++ String.ofList (List.replicate 184 'x') else s!"MPC broadcast {k + 3}") (base + 1000 * (k + 2))))
@@ -1261,7 +1272,7 @@ def main (args : List String) : IO Unit := do
       worker keeps its TLS and WebSocket state. Established up front rather than lazily: the
       handshakes then cost nothing on the way to a send, and a proxy or circuit that does not
       work fails the session before any contact's state has advanced. -/
-      let sendCircuits := if credentials.isSome then 0 else circuits
+      let sendCircuits := if authenticated then 0 else circuits
       let recipients := inputs.map (·.1)
       let parkedStates ← liftM (IO.mkRef (#[] : Array PublicReceive.State) : IO (IO.Ref (Array PublicReceive.State)))
       let counters ← liftM (IO.mkRef (Array.replicate (max sendCircuits 1) 0) : IO (IO.Ref (Array Nat)))
@@ -1291,11 +1302,7 @@ def main (args : List String) : IO Unit := do
             | .application handle =>
               let (next, complete) ← record handle.id s
               insist (!complete && next.requests.isEmpty) "unexpected server traffic during the upgrade"
-              let mask ← if (PublicReceive.get next.control 127) == 0 then pure [0, 0, 0, 0] else do
-                let random ← on.call .publicRandom []
-                insist (random.length == 32) "invalid joint randomness"
-                pure (random.take 4)
-              let (next, frames) ← liftResult (PublicReceive.replies next (toBits mask))
+              let (next, frames) ← liftResult (PublicReceive.replies next (← controlMasks on next))
               for (kind, frame) in frames do
                 sendOn (toBytes frame)
                 insist (kind != 8) "WebSocket peer closed before completion"
@@ -1328,11 +1335,7 @@ def main (args : List String) : IO Unit := do
             let wasPending := s.pending
             let (s, complete) ← record handle.id s
             -- The mask is public but must be the same for both controllers: joint randomness.
-            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
-              pure (random.take 4)
-            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
@@ -1389,8 +1392,7 @@ def main (args : List String) : IO Unit := do
       What makes a resend safe: a contact's state is stored on the database nodes before its
       message leaves (`storeSoft`), so sending the same text again always uses the next keys.
       A resend can therefore duplicate a message, never reuse a key. -/
-      let recovery := exportPath.isSome && credentials.isNone && dbClient.isSome &&
-        (← liftM (IO.getEnv "SIGNAL_RECOVERY" : IO (Option String))) != some "0"
+      let recovery := exportPath.isSome && !authenticated && dbClient.isSome && config.agreed.recovery
       let note (event : String) : M Unit := do
         liftM (recoveryLog.modify (· ++ [event]) : IO Unit)
         liftM (IO.eprintln s!"recovery: {event}" : IO Unit)
@@ -1410,11 +1412,7 @@ def main (args : List String) : IO Unit := do
           | .application handle =>
             let (next, complete) ← record handle.id s
             insist (!complete && next.requests.isEmpty) "unexpected server traffic during the upgrade"
-            let mask ← if (PublicReceive.get next.control 127) == 0 then pure [0, 0, 0, 0] else do
-              let random ← on.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
-              pure (random.take 4)
-            let (next, frames) ← liftResult (PublicReceive.replies next (toBits mask))
+            let (next, frames) ← liftResult (PublicReceive.replies next (← controlMasks on next))
             for (kind, frame) in frames do
               let handle ← on.call .publicBuffer (toBytes frame)
               insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
@@ -1481,11 +1479,7 @@ def main (args : List String) : IO Unit := do
           | none => return (s, false)
           | some (.application handle) =>
             let (s, complete) ← record handle.id s
-            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
-              pure (random.take 4)
-            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
             -- A close frame from the server is answered; the closed connection is then reported by the worker.
             for (_, frame) in frames do sendPublic (toBytes frame)
             for request in s.requests do
@@ -1577,7 +1571,7 @@ def main (args : List String) : IO Unit := do
           drop
           return (s, .stop .fault "server fault: the prekey response is not a bundle")
         let mut changed := false
-        let slots := (← liftM (IO.getEnv "SIGNAL_BUNDLE_SLOTS" : IO (Option String))) != some "0"
+        let slots := config.agreed.bundleSlots
         for ((at_, w), index) in rows.zipIdx do
           for step in [0:9] do
             let (next, alive) ← keepAliveSoft s
@@ -1600,7 +1594,7 @@ def main (args : List String) : IO Unit := do
           return (s, .stop .retryLater "the database nodes did not acknowledge the new device list")
         note s!"contact {contact}: {rows.length} sessions established{if changed then " under a new identity key" else ""}"
         -- TEST hook: a pause here lets the harness change the contact's devices again before the resend.
-        if let some pause := (← liftM (IO.getEnv "SIGNAL_LOCAL_PAUSE_REFRESH" : IO (Option String))).bind String.toNat? then
+        if let some pause := hooks.pauseRefresh then
           liftM (IO.sleep (UInt32.ofNat pause) : IO Unit)
         return (s, .ok changed)
       -- `sendMessage` with the contact's failures as outcomes. `none`: the request left. Otherwise
@@ -1701,11 +1695,7 @@ def main (args : List String) : IO Unit := do
         let mut rounds := 0
         -- TEST hook (SIGNAL_LOCAL_PAUSE_AFTER=K:MS): one pause once K inputs have a result, so that
         -- the harness can change something on the server in the middle of a session.
-        let pauseAfter := match ((← liftM (IO.getEnv "SIGNAL_LOCAL_PAUSE_AFTER" : IO (Option String))).getD "").splitOn ":" with
-          | [after, pause] => match after.toNat?, pause.toNat? with
-            | some after, some pause => some (after, pause)
-            | _, _ => none
-          | _ => none
+        let pauseAfter := hooks.pauseAfter
         let mut paused := false
         while !queue.isEmpty do
           rounds := rounds + 1
@@ -1837,8 +1827,7 @@ def main (args : List String) : IO Unit := do
         return delivered
       let deliver : M Nat := do
         let first ← openAll
-        deliverJob inputs recipients (← liftM (IO.getEnv "SIGNAL_NOTIFY_ID" : IO (Option String)))
-          (← liftM (IO.getEnv "SIGNAL_NOTIFY_JOURNAL" : IO (Option String))) first
+        deliverJob inputs recipients config.notifyId config.notifyJournal first
       /- ---- The long-lived send session (SIGNAL_SERVE_DIR = DIR; node_daemon/README.md). ----
       The connections are opened once and kept; the daemon hands over one job at a time (one
       signed notify: DIR/job.json, `{"job", "request", "message", "journal"}`, written whole) and
@@ -1864,11 +1853,7 @@ def main (args : List String) : IO Unit := do
         | some (.application handle) =>
           let (s, complete) ← record handle.id s
           insist (!complete) "unsolicited service response"
-          let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
-            let random ← rpc.call .publicRandom []
-            insist (random.length == 32) "invalid joint randomness"
-            pure (random.take 4)
-          let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+          let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
           for (_, frame) in frames do sendPublic (toBytes frame)
           for request in s.requests do
             let random ← rpc.call .publicRandom []
@@ -2030,11 +2015,7 @@ def main (args : List String) : IO Unit := do
           match ← TlsApplication.receive app with
           | .application handle =>
             let (s, _) ← record handle.id s
-            let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
-              pure (random.take 4)
-            let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
@@ -2073,7 +2054,7 @@ def main (args : List String) : IO Unit := do
       are about our own account. What an operator supplies is given to ONE node, which tells the
       other through the workers' link. -/
       if let some stage := ceremony then
-        let directory : System.FilePath ← match ← liftM (IO.getEnv "SIGNAL_CEREMONY_DIR" : IO (Option String)) with
+        let directory : System.FilePath ← match config.ceremonyDir with
           | some path => pure (path : System.FilePath)
           | none => throw "SIGNAL_CEREMONY_DIR is required"
         let fileText (name : String) : M String := do
@@ -2163,10 +2144,12 @@ def main (args : List String) : IO Unit := do
             "the server did not mark the session verified (wrong code?); nothing was registered"
           -- The password and the recovery password, made in the engines. This node's XOR shares
           -- are on disk before the request leaves: a crash cannot lose what the server accepted.
-          let shares ← rpc.call .ceremonySecrets []
+          -- (Plan 4.2 row 4: the operation's reply is this party's own; held as `Secret` from here.)
+          let shares := Secret.hide (← rpc.call .ceremonySecrets [])
           insist (shares.length == Ceremony.passwordBytes + Ceremony.recoveryBytes) "invalid ceremony shares"
-          liftM (IO.FS.writeFile (directory / "password.share") (TlsWorkerProcess.hex (shares.take Ceremony.passwordBytes) ++ "\n") : IO Unit)
-          liftM (IO.FS.writeFile (directory / "recovery.share") (TlsWorkerProcess.hex (shares.drop Ceremony.passwordBytes) ++ "\n") : IO Unit)
+          let passwordShare := shares.map (·.take Ceremony.passwordBytes)
+          inBand (Channels.saveShare (directory / "password.share") passwordShare)
+          inBand (Channels.saveShare (directory / "recovery.share") (shares.map (·.drop Ceremony.passwordBytes)))
           let (basicText, tail) := Ceremony.basic phone
           let (before, after) := Ceremony.registrationBody session keys
           let id ← nextId
@@ -2201,8 +2184,8 @@ def main (args : List String) : IO Unit := do
           insist (account.length == 16) "account id shape"
           -- XOR shares of the socket credentials (account id 16, password 22), the form the
           -- sessions take them in: the public account id is in party 0's share.
-          let mine := (if party == "0" then account else List.replicate 16 0) ++ shares.take Ceremony.passwordBytes
-          liftM (IO.FS.writeFile (directory / "credentials.share") (TlsWorkerProcess.hex mine ++ "\n") : IO Unit)
+          let mine := Secret.hide (if party == "0" then account else List.replicate 16 0) ++ passwordShare
+          inBand (Channels.saveShare (directory / "credentials.share") mine)
           liftM (IO.FS.writeFile (directory / "account.json") ((Lean.Json.mkObj [("number", toJson phone), ("aci", toJson aci),
             ("pni", toJson pni), ("verification_session", toJson session)]).compress ++ "\n") : IO Unit)
         else
@@ -2219,13 +2202,11 @@ def main (args : List String) : IO Unit := do
         liftM (ceremonyDone.set true : IO Unit)
         TlsApplication.abort app
         return 0
-      match credentials with
-      | some _ =>
-        let expect ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPECT" : IO (Option String))
-        let pings ← waiting 4096 (PublicReceive.start (toBits accept)) 0 ((expect.bind String.toNat?).getD 1)
+      if authenticated then
+        let pings ← waiting 4096 (PublicReceive.start (toBits accept)) 0 config.expect
         TlsApplication.abort app
         return pings
-      | none =>
+      else
         -- Against a Signal server a send may be answered 409/410 (the contact's devices changed):
         -- such a response is completed and handled in the loop instead of ending the session.
         -- With the database nodes: `deliver`, where a contact's failure is that contact's result.
@@ -2248,7 +2229,7 @@ def main (args : List String) : IO Unit := do
     -- operations it used depends on what happened to its contacts. Operation 15, the client's
     -- own KeyUpdate, is not used under the libsignal profile.)
     let passed := verified && outcome.isOk && (ceremony.isNone || (← ceremonyDone.get)) && !codes.contains 18 &&
-      (credentials.isSome || (← ceremonyDone.get) || (← recoveryUsed.get) ||
+      (authenticated || (← ceremonyDone.get) || (← recoveryUsed.get) ||
       ((codes.contains 15 || official) && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),

@@ -6,9 +6,6 @@
    "IO.println": 1,
    "IO.rand": 1
   },
-  "TlsMpc/Node/Config.lean": {
-   "IO.getEnv": 1
-  },
   "TlsMpc/Signal/ReceiveFirst.lean": {
    "System.FilePath.metadata (dot call)": 1
   },
@@ -23,20 +20,18 @@
   "handshake_backend/EmpHybridWork/PublicServiceController.lean": {
    "IO.FS.createDirAll": 2,
    "IO.FS.readBinFile": 1,
-   "IO.FS.readFile": 17,
+   "IO.FS.readFile": 15,
    "IO.FS.withFile": 2,
    "IO.FS.writeBinFile": 3,
-   "IO.FS.writeFile": 13,
-   "IO.Process.output": 6,
+   "IO.FS.writeFile": 8,
+   "IO.Process.output": 5,
    "IO.eprintln": 5,
-   "IO.getEnv": 33,
-   "IO.getRandomBytes": 1,
    "IO.getStdout": 2,
    "IO.monoMsNow": 4,
    "IO.println": 7,
    "IO.sleep": 8,
    "Std.Time.Timestamp.now": 4,
-   "System.FilePath.pathExists (dot call)": 6
+   "System.FilePath.pathExists (dot call)": 4
   }
  }
 }

@@ -32,20 +32,16 @@ PROVED (standard axioms only; no `sorry`, no `native_decide`, no `bv_decide`):
   six candidates, or zeros, on all 64 acceptance patterns (a kernel
   computation; the size the kernels use is NOT covered, see below).
 
-NOT PROVED, only tested (`handshake_backend/EmpHybridWork/check_kem_kernels.py`):
-
-* that the compaction network (`MlKemFast.sample`) returns the first 256
-  candidates below q (the specification's `MlKemSample.run`). The proof needs
-  an invariant over the nine stages (every accepted candidate sits at its
-  original position minus the processed digits of its distance, and no two
-  collide); it is not written.
-* that the bit-list encodings (`decode12`, `encode`, `cbd` as a whole
-  polynomial, `messagePoly`) equal the specification's shift-and-mask
-  encodings (`MlKemEncoding.encode`, `decode`, `MlKemArithmetic.cbd`).
-* therefore also the composition: that the six stages together equal
-  `Signal.MlKem.encapsulate` on a key whose coefficients are below q. The check
-  compares exactly this on test vectors (the specification is run on values
-  by `kem_kernel_emitter reference`), and compares both with libcrux.
+Proved elsewhere since (2026-11-12): the compaction network at the size used
+(`TlsMpc/KernelSpecs/KemSample.lean`: `compact_spec`, `sample_eq`), the
+bit-list encodings (`KemEncoding.lean`: `decode12_refines`, `encode_refines`,
+`cbd_refines`, `messagePoly_refines`), and the composition: the six stages,
+wired by name as the worker wires them, equal `Signal.MlKem.encapsulate` on a
+valid key and are zero on an invalid one (`KemCompose.lean`:
+`kernels_compose`, `pipeline_valid_accept`, `pipeline_valid_reject`,
+`pipeline_invalid`; `TlsMpc/Security.lean` section 2e). Still only tested
+(`handshake_backend/EmpHybridWork/check_kem_kernels.py`,
+`scripts/check_lean_signal_mlkem.py`): that the specification equals libcrux.
 
 Nothing here is a security statement.
 -/

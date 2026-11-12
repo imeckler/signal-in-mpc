@@ -1204,7 +1204,13 @@ async fn run(args: &[String]) -> R<()> {
         }
         ["mpc-send", from, to, text] => mpc_send(from, to, text).await,
         ["signup", name, number, to, text] => signup(name, number, to, text).await,
-        ["kem-decapsulate", key, ciphertext] => mpc::kem_decapsulate(key, ciphertext),
+        // The Kyber private key comes on standard input (hex), never on the argument list, which
+        // other users of the machine can read (REORGANIZATION_PLAN.md section 4.2, stage S4).
+        ["kem-decapsulate", ciphertext] => {
+            let mut key = String::new();
+            std::io::stdin().read_line(&mut key)?;
+            mpc::kem_decapsulate(key.trim(), ciphertext)
+        }
         ["export-account", account, out_dir, target] => mpc::export_account(account, out_dir, target).await,
         ["export-mpc"] => mpc::export_mpc("sender", &["recipient", "recipient2"]).await,
         ["export-mpc", sender, contacts @ ..] => mpc::export_mpc(sender, contacts).await,

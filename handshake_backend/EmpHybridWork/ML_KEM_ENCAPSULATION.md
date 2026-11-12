@@ -152,21 +152,28 @@ All with `propext`, `Quot.sound`, `Classical.choice` only; no `sorry`, `native_d
 * `finish_rejects`, `finish_accepts`.
 * `sample_small`: the compaction network on all 64 acceptance patterns of six candidates.
 
-**Not proved**, exactly:
+**Proved since (2026-11-12), in `TlsMpc/KernelSpecs/KemSample.lean`, `KemEncoding.lean`,
+`KemCompose.lean`** (restated in `TlsMpc/Security.lean` section 2e):
 
-1. *The compaction network at the size used* (`MlKemFast.sample 256` on 448 candidates equals the
-   specification's `MlKemSample.run`). The argument is the one in section 2; mechanising it needs the
-   invariant "after stage s every accepted candidate is at its position minus (distance mod 2^s), and
-   every other cell is invalid" over lists, and its link to the specification's fold. Not written.
-2. *The encodings*: that `decode12`, `encode`, `cbd` (whole polynomial) and `messagePoly`, which regroup
-   bit lists, equal the specification's `MlKemEncoding.decode` / `encode`, `MlKemArithmetic.cbd` and
-   `decompress 1`, which shift and mask 32-bit words. Index arithmetic only, but not written.
-3. *The composition*: because of 1 and 2, there is no theorem that the six stages equal
-   `MlKem.encapsulate … 4 2 11 5 224` on a valid key. (That the specification equals libcrux was never
-   a theorem either; it is `scripts/check_lean_signal_mlkem.py`.)
-4. The failure probability of section 2 is a calculation, not a Lean theorem.
+1. *The compaction network at the size used*: `KemSample.compact_spec` (the stage invariant) and
+   `sample_eq` / `sample_448` (`MlKemFast.sample 256` on 448 candidates is the specification's
+   rejection sampling), with `run_refines` / `entry_refines` for the matrix entries.
+2. *The encodings*: `KemEncoding.decode12_refines`, `encode_refines`, `cbd_refines`, `noise_refines`,
+   `messagePoly_refines` (the bit-list regroupings equal the specification's word encodings).
+3. *The composition*: `KemCompose.kernels_compose` (the six kernels, wired by name as the worker
+   wires them, compute `pipeline`) and `pipeline_valid_accept` / `pipeline_valid_reject` /
+   `pipeline_invalid`: on a valid key (`KeyValid`) the outputs are the reference
+   `MlKem.encapsulate` (`specEnc`), zero when its sampling exhausts the budget; zero on an invalid key.
 
-Items 1–3 are exactly what the check compares on values and on gates.
+**Still not proved**, exactly:
+
+- that the reference `MlKem.encapsulate` is Kyber-1024: `scripts/check_lean_signal_mlkem.py`
+  compares it with libcrux on test vectors;
+- the failure probability of section 2 (2⁻¹⁰⁵): a calculation, not a Lean theorem;
+- the worker's name binding between the kernels (the `h*` hypotheses of `kernels_compose`):
+  trusted C++.
+
+The check (section 5) still compares on values and on gates.
 
 ## 5. The check (`check_kem_kernels.py`)
 

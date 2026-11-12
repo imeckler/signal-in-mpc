@@ -32,9 +32,11 @@ Proved (algebra, in any abelian group with integer scalars):
 
 Not proved: hardness of Diffie–Hellman; that the opened envelope reveals only
 a way to check a candidate agreement (key derivation and MAC as random
-oracles); that an offset drawn from `[0, 2^252)` is statistically close to
-uniform modulo the group order; and correctness of the point-addition field
-programs with respect to the curve's group law.
+oracles); and correctness of the point-addition field programs with respect to
+the curve's group law. That an offset drawn from `[0, 2^252)` is statistically
+close to uniform modulo the group order is proved in the Mathlib-backed
+`proofs/TlsMpcProofs/OffsetSampling.lean` (`deployed_key_close_uniform`,
+`ed25519_key_close_uniform`: within 2⁻¹²⁷; see `TlsMpc/Security.lean` section 8).
 -/
 namespace TlsMpc.OffsetAgreement
 open Lean.Grind

@@ -77,6 +77,16 @@ import TlsMpc.KernelSpecs.BundleSlotWhole
 import TlsMpc.KernelSpecs.ReceiveAcceptAccessKey
 import TlsMpc.KernelSpecs.EstablishRequest
 import TlsMpc.Node.Policy.Receive
+import TlsMpc.Node.Policy.Clock
+import TlsMpc.Node.Local.WebSocketAccept
+import TlsMpc.KernelSpecs.ParseWebSocketFrame
+import TlsMpc.KernelSpecs.ParseWebSocketControl
+import TlsMpc.KernelSpecs.ParseTlsRecord
+import TlsMpc.Node.Policy.RequestProofs
+import TlsMpc.KernelSpecs.KemCompose
+import TlsMpc.Node.Engine.Model
+import TlsMpc.Node.Flows.Random
+import TlsMpc.Node.Flows.Upgrade
 import Lean.Elab.Command
 
 /-!
@@ -2139,6 +2149,75 @@ first space). **K-fn**. -/
 theorem slotDecimal_parse (n width : Nat) (h : numDigits n ≤ width) : parsePadded (refPadded n width) = n :=
   TlsMpc.KernelSpecs.SlotDecimal.parsePadded_refPadded n width h
 
+/-! ### 2e. The `kem-*` kernels composed (`TlsMpc/KernelSpecs/KemCompose.lean`)
+
+The six ML-KEM kernels, wired as the worker wires them (the name-binding hypotheses `h*` of
+`kemc_kernels_compose`: a hypothesis about the C++ worker), compute `pipeline`; `pipeline` is the
+repository's reference `MlKem.encapsulate` (`specEnc`) on a valid key and zero on an invalid one.
+That the reference is Kyber-1024 rests on test vectors against libcrux; the 2⁻¹⁰⁵ probability that
+the matrix sampling exhausts its budget is a calculation, not a theorem. -/
+
+section KemCompose
+open TlsMpc.Signal TlsMpc.KernelSpecs.KemCompose
+
+/-- **A valid key and sampling within budget: the composed kernels' outputs are the reference
+encapsulation** (status 255, the ciphertext, the shared secret). -/
+theorem kemc_pipeline_valid_accept (kyber : Bool) (key entropyA entropyB : List (BitVec 8)) (hvalid : KeyValid key)
+    (hlen : kyber = true ∨ (entropyA.length = 32 ∧ entropyB.length = 32))
+    (hs : (specEnc kyber key entropyA entropyB).success = 255) :
+    pipeline kyber key entropyA entropyB =
+      [[255], (specEnc kyber key entropyA entropyB).bytes.take 1568, (specEnc kyber key entropyA entropyB).bytes.drop 1568] :=
+  TlsMpc.KernelSpecs.KemCompose.pipeline_valid_accept kyber key entropyA entropyB hvalid hlen hs
+
+/-- A valid key whose matrix sampling exhausted its budget: everything is zero. -/
+theorem kemc_pipeline_valid_reject (kyber : Bool) (key entropyA entropyB : List (BitVec 8)) (hvalid : KeyValid key)
+    (hlen : kyber = true ∨ (entropyA.length = 32 ∧ entropyB.length = 32))
+    (hs : (specEnc kyber key entropyA entropyB).success ≠ 255) :
+    ∀ field ∈ pipeline kyber key entropyA entropyB, ∀ byte ∈ field, byte = 0 :=
+  TlsMpc.KernelSpecs.KemCompose.pipeline_valid_reject kyber key entropyA entropyB hvalid hlen hs
+
+/-- An invalid key: everything is zero. -/
+theorem kemc_pipeline_invalid (kyber : Bool) (key entropyA entropyB : List (BitVec 8)) (h : ¬ KeyValid key) :
+    ∀ field ∈ pipeline kyber key entropyA entropyB, ∀ byte ∈ field, byte = 0 :=
+  TlsMpc.KernelSpecs.KemCompose.pipeline_invalid kyber key entropyA entropyB h
+
+section
+open TlsMpc.MlKemFastKernel Std.Tactic.BVDecide
+
+/-- **The kernels compose to `pipeline`** when each input is bound to the output the worker binds
+it to (hypotheses `h*`, the name binding between kernels: trusted C++). -/
+theorem kemc_kernels_compose (kyber : Bool) (key entropyA entropyB : List (BitVec 8))
+    (aH aN aV aF : BVExpr.Assignment) (aM aU : Nat → BVExpr.Assignment)
+    (hH1 : (HybridKernel.lookup hashInputs "kyberPrekey").map (BVExpr.eval aH) = key)
+    (hH2 : (HybridKernel.lookup hashInputs "entropyA").map (BVExpr.eval aH) = entropyA)
+    (hH3 : (HybridKernel.lookup hashInputs "entropyB").map (BVExpr.eval aH) = entropyB)
+    (hN : (HybridKernel.lookup nttInputs "coins").map (BVExpr.eval aN) = outVal (kemHash kyber) aH 2)
+    (hM : ∀ i, (HybridKernel.lookup matrixInputs "kyberPrekey").map (BVExpr.eval (aM i)) = key)
+    (hU1 : ∀ i, (HybridKernel.lookup (uInputs i) s!"row{i}").map (BVExpr.eval (aU i)) = outVal (kemMatrix i) (aM i) 0)
+    (hU2 : ∀ i, (HybridKernel.lookup (uInputs i) "rhat").map (BVExpr.eval (aU i)) = outVal (kemNtt ()) aN 0)
+    (hU3 : ∀ i, (HybridKernel.lookup (uInputs i) "coins").map (BVExpr.eval (aU i)) = outVal (kemHash kyber) aH 2)
+    (hV1 : (HybridKernel.lookup vInputs "kyberPrekey").map (BVExpr.eval aV) = key)
+    (hV2 : (HybridKernel.lookup vInputs "rhat").map (BVExpr.eval aV) = outVal (kemNtt ()) aN 0)
+    (hV3 : (HybridKernel.lookup vInputs "coins").map (BVExpr.eval aV) = outVal (kemHash kyber) aH 2)
+    (hV4 : (HybridKernel.lookup vInputs "message").map (BVExpr.eval aV) = outVal (kemHash kyber) aH 0)
+    (hFu0 : (HybridKernel.lookup finishInputs "u0").map (BVExpr.eval aF) = outVal (kemU 0) (aU 0) 0)
+    (hFu1 : (HybridKernel.lookup finishInputs "u1").map (BVExpr.eval aF) = outVal (kemU 1) (aU 1) 0)
+    (hFu2 : (HybridKernel.lookup finishInputs "u2").map (BVExpr.eval aF) = outVal (kemU 2) (aU 2) 0)
+    (hFu3 : (HybridKernel.lookup finishInputs "u3").map (BVExpr.eval aF) = outVal (kemU 3) (aU 3) 0)
+    (hFv : (HybridKernel.lookup finishInputs "v").map (BVExpr.eval aF) = outVal (kemV ()) aV 0)
+    (hFk : (HybridKernel.lookup finishInputs "kbar").map (BVExpr.eval aF) = outVal (kemHash kyber) aH 1)
+    (hFo0 : (HybridKernel.lookup finishInputs "ok0").map (BVExpr.eval aF) = outVal (kemMatrix 0) (aM 0) 1)
+    (hFo1 : (HybridKernel.lookup finishInputs "ok1").map (BVExpr.eval aF) = outVal (kemMatrix 1) (aM 1) 1)
+    (hFo2 : (HybridKernel.lookup finishInputs "ok2").map (BVExpr.eval aF) = outVal (kemMatrix 2) (aM 2) 1)
+    (hFo3 : (HybridKernel.lookup finishInputs "ok3").map (BVExpr.eval aF) = outVal (kemMatrix 3) (aM 3) 1)
+    (hFkv : (HybridKernel.lookup finishInputs "keyValid").map (BVExpr.eval aF) = outVal (kemHash kyber) aH 3) :
+    EstablishKernel.Kernel.values (kemFinish kyber) aF = pipeline kyber key entropyA entropyB :=
+  TlsMpc.KernelSpecs.KemCompose.kernels_compose kyber key entropyA entropyB aH aN aV aF aM aU hH1 hH2 hH3 hN hM
+    hU1 hU2 hU3 hV1 hV2 hV3 hV4 hFu0 hFu1 hFu2 hFu3 hFv hFk hFo0 hFo1 hFo2 hFo3 hFkv
+
+end
+end KemCompose
+
 /-! ## 3. Gating and what each opening reveals (SECURITY_MAP C.3)
 
 "Gating": an opened output is forced to a constant (usually zeros) when a check fails, so a
@@ -3034,7 +3113,9 @@ theorem receiveAccessKey_withAccessKey_rejected (cert offset : Nat) (conversatio
 /-! ## 4. The controller: parsers, the reveal policy, templates, results (SECURITY_MAP C.4)
 
 Code that `public_service_controller` executes. The parsers (WebSocket upgrade, frame, control,
-chat response) are proved only symbolic = concrete; nothing relates them to RFC 6455 or HTTP.
+chat response) are proved symbolic = concrete; the frame parser, the control queue, the TLS record
+splitter and the upgrade's accept value are also related to RFC 6455 / RFC 8446 (section 4c);
+nothing relates `TlsChatResponse` or the upgrade response parser to HTTP or RFC 6455 yet.
 The reveal policy (`PublicReceive.scan`, `budget`, `mayReveal`, …), `Recovery`, `Circuits` and
 `CeremonyRequests` have NO theorem (T1, T11 in section 8). The request templates (`PublicRequest.*`)
 have the structural theorems of section 2d (T8, rest in section 8). Since stage S2 the controller's
@@ -3201,6 +3282,476 @@ theorem bundle_layout_sound (mask : List Bool) (ws : List BundleResponse.Widths)
     (accepted : BundleResponse.layout? mask = some ws) :
     BundleResponse.maskOf (BundleResponse.response ws) = mask ∧ ws.all BundleResponse.Widths.ok = true :=
   TlsMpc.BundleKernel.layout?_sound mask ws accepted
+
+/-! ### 4c. The parsers against RFC 6455 and RFC 8446, the upgrade's accept value, the clock
+
+`TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`, `ParseWebSocketControl.lean`, `ParseTlsRecord.lean`
+and `TlsMpc/Node/Local/WebSocketAccept.lean` (references written from the RFCs, not from the code),
+and `TlsMpc/Node/Policy/Clock.lean`. **C** unless marked. Still open: `TlsChatResponse` and the
+upgrade response parser have no reference; frame-parser acceptance is not proved (section 8). -/
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+/-- **One unmasked data frame, as RFC 6455 section 5.2 lays it out**, from a frame boundary: the
+frame parser's per-byte flags are the reference's (`expectedFlags` of the parsed header: which
+bytes are header, payload, end), and it ends at a frame boundary with no opcode pending. -/
+theorem wsFrame_frame_extent (cap : Nat) (S : State Byte) (hS : S.phases = P 0) (f : List Byte) (h : Header)
+    (hp : parseHeader f = some h) (hn : f.length = h.size + h.length) (hm : h.masked = false)
+    (hf : h.form ≠ 64) :
+    Matches (events cap S f) (expectedFlags h) ∧
+    (finalState cap S f).phases = P 0 ∧ (finalState cap S f).opcode = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.frame_extent cap S hS f h hp hn hm hf
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+/-- **A sequence of such frames:** the flags are the concatenation of each frame's. -/
+theorem wsFrame_frames_extent (cap : Nat) : ∀ (fs : List (Header × List Byte)) (S : State Byte), S.phases = P 0 →
+    Framed fs →
+    Matches (events cap S (fs.flatMap Prod.snd)) (fs.flatMap (fun p => expectedFlags p.1)) ∧
+    (finalState cap S (fs.flatMap Prod.snd)).phases = P 0 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.frames_extent cap
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **The controller's byte-serialised run is the structured one** (`runByte` on the state bytes,
+byte after byte). -/
+theorem wsFrame_controller_run (cap : Nat) : ∀ (f : List Byte) (S : State Byte), Shaped S →
+    controllerRun cap (TlsWebSocketFrame.stateBytes S) f =
+      ((events cap S f).map eventBytes, TlsWebSocketFrame.stateBytes (finalState cap S f)) :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.controller_run cap
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- One active byte of `runByte` is `step`. -/
+theorem wsFrame_runByte_active (cap : Nat) (S : State Byte) (h : Shaped S) (x : Byte) :
+    TlsWebSocketFrame.runByte fast cap (TlsWebSocketFrame.stateBytes S ++ [255#8, x]) =
+      eventBytes (step fast cap S x) ++ TlsWebSocketFrame.stateBytes (step fast cap S x).state :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.runByte_active cap S h x
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal (RFC 6455 section 5.2):** a server frame's second byte with the MASK bit set, or the
+64-bit length form, makes the parser invalid. -/
+theorem wsFrame_reject_second (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 1)
+    (hx : 128 ≤ x.toNat ∨ x.toNat % 128 = 127) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.reject_second cap S x h hx
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- Once invalid, always invalid. -/
+theorem wsFrame_reject_sticky (cap : Nat) (S : State Byte) (x : Byte) (h : S.valid = 0#8) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.reject_sticky cap S x h
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- A 16-bit length below 126 is refused (section 5.2: the minimal number of bytes MUST be used). -/
+theorem wsFrame_reject_noncanonical (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 3)
+    (hh : S.high = 0#8) (hx : x.toNat < 126) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.reject_noncanonical cap S x h hh hx
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- A 16-bit length above the capacity is refused. -/
+theorem wsFrame_reject_capacity16 (cap : Nat) (hc : cap < 65536) (S : State Byte) (x : Byte) (h : S.phases = P 3)
+    (hx : cap < wordValue S.high x) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketFrame.reject_capacity16 cap hc S x h hx
+
+open TlsMpc.KernelSpecs.ParseWebSocketControl in
+open TlsMpc.TlsWebSocketControl (State step) in
+/-- **The control queue against RFC 6455 sections 5.5.1–5.5.3:** a Ping or a Close with payload
+`p ++ [b]` (1 to 125 bytes), from an idle queue, leaves it idle with the reply the RFC requires
+appended (Pong for a Ping, Close for a Close; its length; the payload). -/
+theorem wsControl_control_frame (S : State Byte) (hI : Idle S) (hs p : List Byte) (b o : Byte)
+    (ho : o = 8#8 ∨ o = 9#8) (hn : p.length + 1 ≤ 125) :
+    runC S (hs.map idleIn ++ p.map collectIn ++ [(255#8, 255#8, o, b)]) =
+      { valid := S.valid, count := 0#8, data := List.replicate 125 0#8,
+        queued := BitVec.ofNat 8 (S.queued.toNat + 1), kinds := S.kinds.set S.queued.toNat (kindOf o),
+        lengths := S.lengths.set S.queued.toNat (BitVec.ofNat 8 (p.length + 1)),
+        payloads := blockSet S.payloads S.queued.toNat ((p ++ [b]) ++ List.replicate (125 - (p.length + 1)) 0#8) } :=
+  TlsMpc.KernelSpecs.ParseWebSocketControl.control_frame S hI hs p b o ho hn
+
+open TlsMpc.KernelSpecs.ParseWebSocketControl in
+open TlsMpc.TlsWebSocketControl (State step) in
+open PublicReceive (fast) in
+/-- `run` on the serialised queue and the four inputs is `step`. -/
+theorem wsControl_run_stateBytes (S : State Byte) (hS : Shaped S) (d e o b : Byte) :
+    TlsWebSocketControl.run fast (TlsWebSocketControl.stateBytes S ++ [d, e, o, b]) =
+      TlsWebSocketControl.stateBytes (step fast S d e o b) :=
+  TlsMpc.KernelSpecs.ParseWebSocketControl.run_stateBytes S hS d e o b
+
+open TlsMpc.KernelSpecs.ParseWebSocketControl in
+open PublicReceive (fast) in
+/-- **What `replies` sends is RFC 6455's masked client frame** (section 5.3) for a queued Pong or
+Close of at most 125 bytes, with the given masking key. -/
+theorem wsControl_encode_frame (kind len : Byte) (hk : kind = 8#8 ∨ kind = 10#8) (hl : len.toNat ≤ 125)
+    (key blk : List Byte) (hkey : key.length = 4) (hblk : blk.length = 125) :
+    (TlsWebSocketControl.encode fast ([255#8, 0#8, len, kind] ++ key ++ blk)).take 3 =
+      [255#8, 0#8, BitVec.ofNat 8 (len.toNat + 6)] ∧
+    ((TlsWebSocketControl.encode fast ([255#8, 0#8, len, kind] ++ key ++ blk)).drop 3).take (len.toNat + 6) =
+      clientFrame kind.toNat key (blk.take len.toNat) :=
+  TlsMpc.KernelSpecs.ParseWebSocketControl.encode_frame kind len hk hl key blk hkey hblk
+
+open TlsMpc.KernelSpecs.ParseWebSocketControl in
+/-- **One masking key per control reply (RFC 6455 section 5.3).** Formerly a recorded DEFECT
+(`replies_reuse_mask`: every reply of one drain had the same key); fixed in stage S4: two queued
+Pongs with two keys are each masked with their own. -/
+theorem wsControl_replies_fresh_masks :
+    framesOf (PublicReceive.replies { PublicReceive.start [] with control := twoPongs } [[1, 2, 3, 4], [5, 6, 7, 8]]) =
+      [(10, [0x8a, 0x81, 1, 2, 3, 4, 0x40]), (10, [0x8a, 0x81, 5, 6, 7, 8, 0x47])] :=
+  TlsMpc.KernelSpecs.ParseWebSocketControl.replies_fresh_masks
+
+open TlsMpc.KernelSpecs.ParseWebSocketControl in
+/-- With fewer masking keys than queued replies, `replies` sends nothing. -/
+theorem wsControl_replies_missing_mask :
+    framesOf (PublicReceive.replies { PublicReceive.start [] with control := twoPongs } [[1, 2, 3, 4]]) = [] :=
+  TlsMpc.KernelSpecs.ParseWebSocketControl.replies_missing_mask
+
+open TlsMpc.TlsWire TlsMpc.KernelSpecs.ParseTlsRecord in
+/-- **The TLS record splitter (RFC 8446 section 5.1):** it returns exactly one record and no rest
+iff the bytes are that record's encoding and the record is well formed. -/
+theorem tlsRecord_receive_one (wire : Bytes) (r : Record) :
+    records 2 wire = .ok ([r], []) ↔ WellFormed r ∧ wire = encode r :=
+  TlsMpc.KernelSpecs.ParseTlsRecord.receive_one wire r
+
+open TlsMpc.TlsWire TlsMpc.KernelSpecs.ParseTlsRecord in
+/-- Soundness: what the splitter returns re-encodes to its input, every record is well formed and
+the rest is an incomplete record. -/
+theorem tlsRecord_records_sound : ∀ (fuel : Nat) (b : Bytes) (rs : List Record) (p : Bytes),
+    records fuel b = .ok (rs, p) →
+    b = rs.flatMap encode ++ p ∧ (∀ r ∈ rs, WellFormed r) ∧ Incomplete p :=
+  TlsMpc.KernelSpecs.ParseTlsRecord.records_sound
+
+open TlsMpc.TlsWire TlsMpc.KernelSpecs.ParseTlsRecord in
+/-- Completeness: well-formed records followed by an incomplete one are split back exactly. -/
+theorem tlsRecord_records_complete : ∀ (rs : List Record) (tail : Bytes) (fuel : Nat),
+    (∀ r ∈ rs, WellFormed r) → Incomplete tail → rs.length < fuel →
+    records fuel (rs.flatMap encode ++ tail) = .ok (rs, tail) :=
+  TlsMpc.KernelSpecs.ParseTlsRecord.records_complete
+
+open TlsMpc.TlsWire TlsMpc.KernelSpecs.ParseTlsRecord in
+/-- A record announcing more than 2¹⁴ + 256 bytes is refused (RFC 8446 section 5.2). -/
+theorem tlsRecord_records_overflow (f : Nat) (b : Bytes) (h5 : 5 ≤ b.length) (h : 16640 < announced b) :
+    records (f + 1) b = .error "TLS record overflow" :=
+  TlsMpc.KernelSpecs.ParseTlsRecord.records_overflow f b h5 h
+
+open TlsMpc.Local.WebSocketAccept in
+/-- **The WebSocket accept value (RFC 6455 section 4.2.2):** worker operation 45's Lean
+counterpart on a 16-byte nonce replies the nonce and `base64(SHA-1(base64(nonce) ++ GUID))`
+(`TlsMpc/Node/Local/WebSocketAccept.lean`; the C++ in `service_kernels.h` is not yet replaced). -/
+theorem wsAccept_accept_spec (nonce : List Byte) (h : nonce.length = 16) :
+    upgradePublic nonce = .ok (nonce ++ acceptOf (keyOf nonce)) :=
+  TlsMpc.Local.WebSocketAccept.accept_spec nonce h
+
+open TlsMpc.Local.WebSocketAccept in
+/-- RFC 6455's own example: the accept value of `dGhlIHNhbXBsZSBub25jZQ==`. -/
+theorem wsAccept_rfc6455_accept :
+    acceptOf (ascii "dGhlIHNhbXBsZSBub25jZQ==") = ascii "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=" :=
+  TlsMpc.Local.WebSocketAccept.rfc6455_accept
+
+open TlsMpc.Local.WebSocketAccept in
+/-- The SHA-1 reference against FIPS 180-4's "abc" example. -/
+theorem wsAccept_sha1_abc : Sha1.digest [0x61, 0x62, 0x63] =
+    [0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e,
+     0x25, 0x71, 0x78, 0x50, 0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d] :=
+  TlsMpc.Local.WebSocketAccept.sha1_abc
+
+/-- **The agreed clock is within two minutes of this party's own** (SECURITY_MAP D.11; stage S4,
+brought forward to S0): an agreed value is at least this party's clock and at most `maxSkew` ahead
+of it, so the other party cannot push back-off, keepalive or message timestamps further. -/
+theorem clock_agreed_within {mine theirs t : Nat} (h : TlsMpc.Node.Policy.Clock.agree mine theirs = .ok t) :
+    mine ≤ t ∧ t ≤ mine + TlsMpc.Node.Policy.Clock.maxSkew :=
+  TlsMpc.Node.Policy.Clock.agreed_within h
+
+/-- Both parties compute the same agreed clock (or both refuse). -/
+theorem clock_agree_symm (mine theirs : Nat) :
+    TlsMpc.Node.Policy.Clock.agree mine theirs = TlsMpc.Node.Policy.Clock.agree theirs mine :=
+  TlsMpc.Node.Policy.Clock.agree_symm mine theirs
+
+/-! ### 4d. T8: the request templates against protobuf, JSON and RFC 6455 references
+
+`TlsMpc/Node/Policy/RequestSpec.lean` (references: protobuf encoding, the Signal request JSON, the
+RFC 6455 client frame and its decoder) and `RequestProofs.lean` (about the controller's own
+builders in `Policy/Request.lean` and replies in `Policy/Receive.lean`). **C**. Still open (section
+8): the id `reply` answers is shown to be the one `varintAt` reads only under a hypothesis (`scan`'s
+loop invariant is not proved), and `replies` (pong/close echoes) is not covered here (see 4c). -/
+
+section RequestT8
+open TlsMpc.Signal TlsMpc.Node.RequestSpec
+open TlsMpc.Node.RequestProofs (devicesOf sentFrame)
+open PublicRequest (Piece total field text sendMessage fetchMessage devicesMessage officialJson build assemble
+  buildFetch buildDevices)
+open TlsMpc.KernelSpecs.RequestFrame (render maskFrom body pairsOf buildHeader assembleHeader)
+
+/-- **The send message, its slots filled, is the reference send request** (protobuf
+`WebSocketRequestMessage` with the reference JSON body). -/
+theorem t8_sendMessage_reference (values : Nat → List Byte) (envelope : List Byte) (timestamp id : Nat) (official : Bool)
+    (w0 : (values 0).length = 36) (w1 : (values 1).length = 24) (w2 : (values 2).length = 3)
+    (w3 : (values 3).length = 10) (hid : id < 2 ^ 70)
+    (size : total (sendMessage envelope timestamp id official) < 2 ^ 70) :
+    render values (sendMessage envelope timestamp id official) =
+      (WebSocketMessage.request (sendRequest (values 0) (values 1) (sendBody [(envelope, values 2, values 3)] timestamp)
+        id official)).encode :=
+  TlsMpc.Node.RequestProofs.sendMessage_reference values envelope timestamp id official w0 w1 w2 w3 hid size
+
+/-- The prekey fetch message, filled, is the reference keys request. -/
+theorem t8_fetchMessage_reference (values : Nat → List Byte) (id : Nat)
+    (w0 : (values 0).length = 36) (w1 : (values 1).length = 24) (hid : id < 2 ^ 70)
+    (size : total (fetchMessage id) < 2 ^ 70) :
+    render values (fetchMessage id) = (WebSocketMessage.request (keysRequest (values 0) (values 1) id)).encode :=
+  TlsMpc.Node.RequestProofs.fetchMessage_reference values id w0 w1 hid size
+
+/-- The multi-device send message, filled, is the reference send request with one entry per device. -/
+theorem t8_devicesMessage_reference (values : Nat → List Byte) (envelopes : List (List Byte)) (timestamp id : Nat)
+    (official : Bool) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24)
+    (wd : ∀ i < envelopes.length, (values (2 + 2 * i)).length = 3 ∧ (values (3 + 2 * i)).length = 10)
+    (hid : id < 2 ^ 70) (size : total (devicesMessage envelopes timestamp id official) < 2 ^ 70) :
+    render values (devicesMessage envelopes timestamp id official) =
+      (WebSocketMessage.request (sendRequest (values 0) (values 1) (sendBody (devicesOf values envelopes) timestamp)
+        id official)).encode :=
+  TlsMpc.Node.RequestProofs.devicesMessage_reference values envelopes timestamp id official w0 w1 wd hid size
+
+/-- **`build`, filled: RFC 6455's masked client frame of the reference send request**, which the
+RFC's decoder reads back. -/
+theorem t8_build_reference (envelope : List Byte) (timestamp id : Nat) (mask frame : List Byte) (official : Bool)
+    (offsets : List Nat) (built : build envelope timestamp id mask official = .ok (frame, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24)
+    (w2 : (values 2).length = 3) (w3 : (values 3).length = 10) (hid : id < 2 ^ 70) :
+    let msg := sendMessage envelope timestamp id official
+    let request := WebSocketMessage.request
+      (sendRequest (values 0) (values 1) (sendBody [(envelope, values 2, values 3)] timestamp) id official)
+    buildHeader (total msg) mask ++ maskFrom mask 0 (render values msg) = clientFrame binary mask request.encode ∧
+      decodeFrame (clientFrame binary mask request.encode) =
+        some (sentFrame binary mask request.encode) :=
+  TlsMpc.Node.RequestProofs.build_reference envelope timestamp id mask frame official offsets built values w0 w1 w2 w3 hid
+
+/-- `buildFetch`, filled: the frame of the reference keys request. -/
+theorem t8_buildFetch_reference (id : Nat) (mask frame : List Byte) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildFetch id mask = .ok (frame, payloadAt, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24) (hid : id < 2 ^ 70) :
+    let request := WebSocketMessage.request (keysRequest (values 0) (values 1) id)
+    assembleHeader (total (fetchMessage id)) mask ++ maskFrom mask 0 (render values (fetchMessage id)) =
+        clientFrame binary mask request.encode ∧
+      decodeFrame (clientFrame binary mask request.encode) =
+        some (sentFrame binary mask request.encode) :=
+  TlsMpc.Node.RequestProofs.buildFetch_reference id mask frame payloadAt offsets built values w0 w1 hid
+
+/-- `buildDevices`, filled: the frame of the reference multi-device send request. -/
+theorem t8_buildDevices_reference (envelopes : List (List Byte)) (timestamp id : Nat) (mask frame : List Byte)
+    (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24)
+    (wd : ∀ i < envelopes.length, (values (2 + 2 * i)).length = 3 ∧ (values (3 + 2 * i)).length = 10)
+    (hid : id < 2 ^ 70) :
+    let msg := devicesMessage envelopes timestamp id official
+    let request := WebSocketMessage.request
+      (sendRequest (values 0) (values 1) (sendBody (devicesOf values envelopes) timestamp) id official)
+    assembleHeader (total msg) mask ++ maskFrom mask 0 (render values msg) = clientFrame binary mask request.encode ∧
+      decodeFrame (clientFrame binary mask request.encode) =
+        some (sentFrame binary mask request.encode) :=
+  TlsMpc.Node.RequestProofs.buildDevices_reference envelopes timestamp id mask frame official payloadAt offsets built
+    values w0 w1 wd hid
+
+/-- RFC 6455's decoder reads a client frame back (FIN, opcode, mask, key, payload, minimal length). -/
+theorem t8_decode_clientFrame (op : Nat) (key payload : List Byte) (hop : op < 16) (hkey : key.length = 4)
+    (hlen : payload.length < 65536) :
+    decodeFrame (clientFrame op key payload) =
+      some { fin := true, opcode := op, masked := true, key := key, payload := payload, minimalLength := true } :=
+  TlsMpc.Node.RequestProofs.decode_clientFrame op key payload hop hkey hlen
+
+/-- The controller's `clientFrame` is the reference binary client frame (payloads under 126 bytes). -/
+theorem t8_clientFrame_reference (mask payload : List Byte) (h : payload.length < 126) :
+    PublicReceive.clientFrame mask payload = clientFrame binary mask payload :=
+  TlsMpc.Node.RequestProofs.clientFrame_reference mask payload h
+
+/-- The WebSocket ping, read by RFC 6455: FIN, opcode 9, masked, minimal, payload the count. -/
+theorem t8_ping_decode (count : Nat) (mask : List Byte) (hmask : mask.length = 4) :
+    decodeFrame (PublicReceive.ping count mask) = some (sentFrame pingOpcode mask [BitVec.ofNat 8 count]) :=
+  TlsMpc.Node.RequestProofs.ping_decode count mask hmask
+
+/-- The keepalive is the frame of the reference `GET /v1/keepalive` request. -/
+theorem t8_keepalive_reference (id : Nat) (mask : List Byte) (hmask : mask.length = 4) (hid : id < 2 ^ 70) :
+    PublicReceive.keepalive id mask =
+      .ok (clientFrame binary mask (WebSocketMessage.request (keepaliveRequest id)).encode) :=
+  TlsMpc.Node.RequestProofs.keepalive_reference id mask hmask hid
+
+/-- The keepalive frame, read by RFC 6455. -/
+theorem t8_keepalive_decode (id : Nat) (mask frame : List Byte) (hid : id < 2 ^ 70)
+    (h : PublicReceive.keepalive id mask = .ok frame) :
+    decodeFrame frame = some (sentFrame binary mask (WebSocketMessage.request (keepaliveRequest id)).encode) :=
+  TlsMpc.Node.RequestProofs.keepalive_decode id mask frame hid h
+
+/-- The reply to a server request is the frame of the reference `200 OK` for the id `scan` found. -/
+theorem t8_reply_reference (request mask frame : List Byte) (delivered : Bool)
+    (h : PublicReceive.reply request mask = .ok (frame, delivered)) :
+    ∃ id, (PublicReceive.scan request true).2.id = some id ∧ mask.length = 4 ∧
+      (id < 2 ^ 70 → frame = clientFrame binary mask (WebSocketMessage.response (okResponse id)).encode) :=
+  TlsMpc.Node.RequestProofs.reply_reference request mask frame delivered h
+
+/-- The reply frame, read by RFC 6455. -/
+theorem t8_reply_decode (request mask frame : List Byte) (delivered : Bool)
+    (h : PublicReceive.reply request mask = .ok (frame, delivered)) :
+    ∃ id, (PublicReceive.scan request true).2.id = some id ∧
+      (id < 2 ^ 70 → decodeFrame frame =
+        some (sentFrame binary mask (WebSocketMessage.response (okResponse id)).encode)) :=
+  TlsMpc.Node.RequestProofs.reply_decode request mask frame delivered h
+
+/-- **`build`: outside its four slots, the encrypted frame is the public frame.** -/
+theorem t8_build_public (envelope : List Byte) (timestamp id : Nat) (mask frame : List Byte) (official : Bool)
+    (offsets : List Nat) (built : build envelope timestamp id mask official = .ok (frame, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24)
+    (w2 : (values 2).length = 3) (w3 : (values 3).length = 10) (hid : id < 2 ^ 70) :
+    let plain := clientFrame binary mask (WebSocketMessage.request
+      (sendRequest (values 0) (values 1) (sendBody [(envelope, values 2, values 3)] timestamp) id official)).encode
+    plain.length = frame.length ∧
+      ∀ i, (∀ k ∈ [0, 1, 2, 3], ¬ (offsets.getD k 0 ≤ i ∧ i < offsets.getD k 0 + (values k).length)) →
+        plain[i]? = frame[i]? :=
+  TlsMpc.Node.RequestProofs.build_public envelope timestamp id mask frame official offsets built values w0 w1 w2 w3 hid
+
+/-- `buildFetch`: outside its two slots, the encrypted frame is the public frame. -/
+theorem t8_buildFetch_public (id : Nat) (mask frame : List Byte) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildFetch id mask = .ok (frame, payloadAt, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24) (hid : id < 2 ^ 70) :
+    let plain := clientFrame binary mask (WebSocketMessage.request (keysRequest (values 0) (values 1) id)).encode
+    plain.length = frame.length ∧
+      ∀ i, (∀ k ∈ [0, 1], ¬ (offsets.getD k 0 ≤ i ∧ i < offsets.getD k 0 + (values k).length)) →
+        plain[i]? = frame[i]? :=
+  TlsMpc.Node.RequestProofs.buildFetch_public id mask frame payloadAt offsets built values w0 w1 hid
+
+/-- `buildDevices`: outside its `2 + 2n` slots, the encrypted frame is the public frame. -/
+theorem t8_buildDevices_public (envelopes : List (List Byte)) (timestamp id : Nat) (mask frame : List Byte)
+    (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (values : Nat → List Byte) (w0 : (values 0).length = 36) (w1 : (values 1).length = 24)
+    (wd : ∀ i < envelopes.length, (values (2 + 2 * i)).length = 3 ∧ (values (3 + 2 * i)).length = 10)
+    (hid : id < 2 ^ 70) :
+    let plain := clientFrame binary mask (WebSocketMessage.request
+      (sendRequest (values 0) (values 1) (sendBody (devicesOf values envelopes) timestamp) id official)).encode
+    plain.length = frame.length ∧
+      ∀ i, (∀ k < 2 + 2 * envelopes.length, ¬ (offsets.getD k 0 ≤ i ∧ i < offsets.getD k 0 + (values k).length)) →
+        plain[i]? = frame[i]? :=
+  TlsMpc.Node.RequestProofs.buildDevices_public envelopes timestamp id mask frame official payloadAt offsets built
+    values w0 w1 wd hid
+
+/-- **Two contacts' frames agree outside the slots**: what the controllers know of a send does not
+depend on the contact. -/
+theorem t8_build_two_contacts (envelope : List Byte) (timestamp id : Nat) (mask frame : List Byte) (official : Bool)
+    (offsets : List Nat) (built : build envelope timestamp id mask official = .ok (frame, offsets))
+    (values values' : Nat → List Byte)
+    (w0 : (values 0).length = 36) (w1 : (values 1).length = 24) (w2 : (values 2).length = 3)
+    (w3 : (values 3).length = 10)
+    (w0' : (values' 0).length = 36) (w1' : (values' 1).length = 24) (w2' : (values' 2).length = 3)
+    (w3' : (values' 3).length = 10) (hid : id < 2 ^ 70) (i : Nat)
+    (outside : ∀ k ∈ [0, 1, 2, 3], ¬ (offsets.getD k 0 ≤ i ∧ i < offsets.getD k 0 + (values k).length)) :
+    (clientFrame binary mask (WebSocketMessage.request
+        (sendRequest (values 0) (values 1) (sendBody [(envelope, values 2, values 3)] timestamp) id official)).encode)[i]? =
+      (clientFrame binary mask (WebSocketMessage.request
+        (sendRequest (values' 0) (values' 1) (sendBody [(envelope, values' 2, values' 3)] timestamp) id official)).encode)[i]? :=
+  TlsMpc.Node.RequestProofs.build_two_contacts envelope timestamp id mask frame official offsets built values values'
+    w0 w1 w2 w3 w0' w1' w2' w3' hid i outside
+
+/-- **`build`'s layout depends only on public lengths** (envelope, timestamp digits, id varint). -/
+theorem t8_build_layout (e e' : List Byte) (t t' id id' : Nat) (mask mask' frame frame' : List Byte) (official : Bool)
+    (offsets offsets' : List Nat)
+    (built : build e t id mask official = .ok (frame, offsets))
+    (built' : build e' t' id' mask' official = .ok (frame', offsets'))
+    (he : e.length = e'.length) (ht : (utf8 (toString t)).length = (utf8 (toString t')).length)
+    (hid : (PublicRequest.varint id).length = (PublicRequest.varint id').length) :
+    frame.length = frame'.length ∧ offsets = offsets' :=
+  TlsMpc.Node.RequestProofs.build_layout e e' t t' id id' mask mask' frame frame' official offsets offsets' built built'
+    he ht hid
+
+/-- `buildFetch`'s layout depends only on the length of the id's varint. -/
+theorem t8_buildFetch_layout (id id' : Nat) (mask mask' frame frame' : List Byte) (payloadAt payloadAt' : Nat)
+    (offsets offsets' : List Nat)
+    (built : buildFetch id mask = .ok (frame, payloadAt, offsets))
+    (built' : buildFetch id' mask' = .ok (frame', payloadAt', offsets'))
+    (hid : (PublicRequest.varint id).length = (PublicRequest.varint id').length) :
+    frame.length = frame'.length ∧ payloadAt = payloadAt' ∧ offsets = offsets' :=
+  TlsMpc.Node.RequestProofs.buildFetch_layout id id' mask mask' frame frame' payloadAt payloadAt' offsets offsets'
+    built built' hid
+
+/-- `buildDevices`'s layout depends only on public lengths. -/
+theorem t8_buildDevices_layout (l l' : List (List Byte)) (t t' id id' : Nat) (mask mask' frame frame' : List Byte)
+    (official : Bool) (payloadAt payloadAt' : Nat) (offsets offsets' : List Nat)
+    (built : buildDevices l t id mask official = .ok (frame, payloadAt, offsets))
+    (built' : buildDevices l' t' id' mask' official = .ok (frame', payloadAt', offsets'))
+    (hl : l.map List.length = l'.map List.length) (ht : (utf8 (toString t)).length = (utf8 (toString t')).length)
+    (hid : (PublicRequest.varint id).length = (PublicRequest.varint id').length) :
+    frame.length = frame'.length ∧ payloadAt = payloadAt' ∧ offsets = offsets' :=
+  TlsMpc.Node.RequestProofs.buildDevices_layout l l' t t' id id' mask mask' frame frame' official payloadAt payloadAt'
+    offsets offsets' built built' hl ht hid
+
+section Kernels
+open TlsMpc.KernelSpecs Std.Tactic.BVDecide
+open TlsMpc.HybridKernel (lookup)
+
+/-- **What the server receives from `signal-request-ctr`**: the sealed record of the reference send
+request's frame, the contact's fields from the engines' record in the slots (T7 + T8). -/
+theorem t8_signalRequestCtr_reference (envelope : List Byte) (timestamp id : Nat)
+    (mask frame : List Byte) (official : Bool) (offsets : List Nat)
+    (built : build envelope timestamp id mask official = .ok (frame, offsets))
+    (cert : Nat) (assign : BVExpr.Assignment)
+    (hframe : (lookup (signalRequestInputs cert frame.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (signalRequestInputs cert frame.length) "mask").map (BVExpr.eval assign) = mask)
+    (hid : id < 2 ^ 64) :
+    let get := fun name => (lookup (signalRequestInputs cert frame.length) name).map (BVExpr.eval assign)
+    let values := TlsMpc.KernelSpecs.RequestFrame.requestValues cert (get "conversation")
+    (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
+        (offsets.getD 3 0)).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (clientFrame binary mask (WebSocketMessage.request (sendRequest (values 0) (values 1)
+          (sendBody [(envelope, values 2, values 3)] timestamp) id official)).encode)
+        (signalRequestSlots cert 0 0 0 0 (get "conversation")).1 :=
+  TlsMpc.Node.RequestProofs.signalRequestCtr_reference envelope timestamp id mask frame official offsets built cert
+    assign hframe hmask hid
+
+/-- What the server receives from `bundle-fetch-ctr`: the sealed reference keys request. -/
+theorem t8_bundleFetchCtr_reference (id : Nat) (mask frame : List Byte) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildFetch id mask = .ok (frame, payloadAt, offsets)) (assign : BVExpr.Assignment)
+    (hframe : (lookup (fetchInputs frame.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (fetchInputs frame.length) "mask").map (BVExpr.eval assign) = mask)
+    (hid : id < 2 ^ 64) :
+    let get := fun name => (lookup (fetchInputs frame.length) name).map (BVExpr.eval assign)
+    let values := TlsMpc.KernelSpecs.RequestFrame.fetchValues (get "record")
+    (BundleKernel.bundleFetchCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0)).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (clientFrame binary mask (WebSocketMessage.request (keysRequest (values 0) (values 1) id)).encode)
+        (liveValue (get "record")) :=
+  TlsMpc.Node.RequestProofs.bundleFetchCtr_reference id mask frame payloadAt offsets built assign hframe hmask hid
+
+/-- What the server receives from `bundle-request-ctr`: the sealed reference multi-device request. -/
+theorem t8_bundleRequestCtr_reference (envelopes : List (List Byte)) (timestamp id : Nat)
+    (mask frame : List Byte) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (assign : BVExpr.Assignment)
+    (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask)
+    (hid : id < 2 ^ 64) :
+    let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
+    let values := TlsMpc.KernelSpecs.RequestFrame.devicesValues (get "records")
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (clientFrame binary mask (WebSocketMessage.request (sendRequest (values 0) (values 1)
+          (sendBody (devicesOf values envelopes) timestamp) id official)).encode)
+        (bundleRequestValue (get "records") (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  TlsMpc.Node.RequestProofs.bundleRequestCtr_reference envelopes timestamp id mask frame official payloadAt offsets
+    built devices paired assign hframe hmask hid
+
+end Kernels
+end RequestT8
 
 /-! ## 5. State and ordering (SECURITY_MAP C.4, C.5)
 
@@ -3665,8 +4216,9 @@ theorem offsetAgreement_candidate_needs_initial {G : Type} [Lean.Grind.IntModule
 
 /-! ## 7. Flows and channels
 
-No per-flow or per-channel theorem exists yet (T3, T4-x, T9–T12, section 8). The one statement
-at the level of a flow is a structural fact about the TLS client. -/
+The first flow theorems are in 7a (stage S9: T12, the open rule, P-RAND, T4-UPGRADE, about the
+model). The other flows and channels have none yet (T3, T4-x, T9–T11, section 8). Below: a
+structural fact about the TLS client. -/
 
 open TlsMpc.TlsClient in
 /-- **Any TLS `Session` value records that the server certificate and the server Finished were
@@ -3675,6 +4227,151 @@ supply), not a statement about what the handshake checked. SECURITY_MAP C.4. -/
 theorem tlsClient_accepted_session_authenticated {S : Type} (session : Session S) :
     session.serverCertificateVerified = true ∧ session.serverFinishedVerified = true :=
   TlsMpc.TlsClient.accepted_session_authenticated session
+
+/-! ### 7a. The engine instruction set, its model, and the first flows (stage S9)
+
+`TlsMpc/Node/Engine.lean` (instructions, scripts, the batch encoding), `Engine/Model.lean` (the
+ideal two-party semantics `idealStep`, runs against any adversary `withAdv`), `Flows/Random.lean`
+(joint randomness, P-RAND) and `Flows/Upgrade.lean` (T4-UPGRADE). **Trust:** these are statements
+about the model. The engines, their C ABI and the Rust shell are assumed to behave as `idealStep`
+says (plan section 5.3); the commitment is `idealCommit` (a hypothesis, P-RAND (b)). -/
+
+section EngineModel
+open TlsMpc.Node.Engine
+
+/-- **T12 (skeleton determinism).** Two runs of a script in which the honest party received the same
+replies reached the same instructions, whatever its private inputs, the adversary and the engines'
+state. -/
+theorem engine_T12_skeleton_determinism {α : Type} (s : Script α)
+    (E₁ E₂ : Env) (me₁ me₂ : Party) (adv₁ adv₂ : Adversary) (σ₁ σ₂ : Store) (I₁ I₂ : Ideal)
+    (v₁ v₂ : List Release)
+    (h : (withAdv E₁ me₁ adv₁ s σ₁ I₁ v₁).replies = (withAdv E₂ me₂ adv₂ s σ₂ I₂ v₂).replies) :
+    (withAdv E₁ me₁ adv₁ s σ₁ I₁ v₁).trace = (withAdv E₂ me₂ adv₂ s σ₂ I₂ v₂).trace :=
+  TlsMpc.Node.Engine.T12_skeleton_determinism s E₁ E₂ me₁ me₂ adv₁ adv₂ σ₁ σ₂ I₁ I₂ v₁ v₂ h
+
+/-- The instructions a run reaches are the script's skeletons along the replies it received. -/
+theorem engine_trace_eq_skeletons (E : Env) (me : Party) (adv : Adversary) {α : Type} (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv s σ I vD).trace = s.skeletons (withAdv E me adv s σ I vD).replies :=
+  TlsMpc.Node.Engine.trace_eq_skeletons E me adv s σ I vD
+
+/-- **The open rule, honest party's view:** what was released to it carries, in order, labels of
+release instructions it reached. -/
+theorem engine_view_labels_H (E : Env) (me : Party) (adv : Adversary) {α : Type} (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    List.Sublist ((withAdv E me adv s σ I vD).viewH.map (·.label))
+      ((withAdv E me adv s σ I vD).trace.filterMap InstrP.label?) :=
+  TlsMpc.Node.Engine.view_labels_H E me adv s σ I vD
+
+/-- **The open rule, adversary's view:** the same for what was released to the adversary. -/
+theorem engine_view_labels_D (E : Env) (me : Party) (adv : Adversary) {α : Type} (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    List.Sublist ((withAdv E me adv s σ I vD).viewD.map (·.label))
+      ((withAdv E me adv s σ I vD).trace.filterMap InstrP.label?) :=
+  TlsMpc.Node.Engine.view_labels_D E me adv s σ I vD
+
+/-- **The honest party's result and store are a function of its script, its store and its view.** -/
+theorem engine_honest_replay (E : Env) (me : Party) (adv : Adversary) {α : Type} (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    replay E.hash me s σ (withAdv E me adv s σ I vD).viewH (withAdv E me adv s σ I vD).replies.length =
+      ((withAdv E me adv s σ I vD).result, (withAdv E me adv s σ I vD).store) :=
+  TlsMpc.Node.Engine.honest_replay E me adv s σ I vD
+
+/-- The batch encoding round-trips. -/
+theorem engine_decodeBatch_encodeBatch (b : List Wire) (hl : b.length < B64) (hb : ∀ w ∈ b, w.Bounded) :
+    decodeBatch (encodeBatch b) = some b :=
+  TlsMpc.Node.Engine.decodeBatch_encodeBatch b hl hb
+
+/-- Equal skeleton bytes are equal skeletons (what the two parties agree on per batch). -/
+theorem engine_skeletonBytes_inj (b₁ b₂ : List Wire) (h₁ : b₁.length < B64) (h₂ : b₂.length < B64)
+    (hb₁ : ∀ w ∈ b₁, w.Bounded) (hb₂ : ∀ w ∈ b₂, w.Bounded) (h : skeletonBytes b₁ = skeletonBytes b₂) :
+    b₁.map InstrP.skel = b₂.map InstrP.skel :=
+  TlsMpc.Node.Engine.skeletonBytes_inj b₁ b₂ h₁ h₂ hb₁ hb₂ h
+
+/-- Every release a context accepts carries a label (code nonzero). -/
+theorem engine_check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s : Skel) (l : Label)
+    (h : check sigs c s = some (c', sh)) (hl : s.label? = some l) : l.code ≠ 0 :=
+  TlsMpc.Node.Engine.check_label sigs c c' sh s l h hl
+
+end EngineModel
+
+section FlowsRandom
+open TlsMpc.Node.Engine TlsMpc.Node.Flows.Random
+
+/-- **P-RAND (a).** Both honest parties return r_A ⊕ r_B. -/
+theorem prand_a_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes vB))) :
+    (jointRun E (joint E.hash .a nA vA) (joint E.hash .b nB vB) σA σB I).result =
+      some (xorBytes (σA.bytes vA) (σB.bytes vB), xorBytes (σA.bytes vA) (σB.bytes vB)) :=
+  TlsMpc.Node.Flows.Random.prand_a_honest E σA σB I nA vA nB vB hh hnA hvA hnB hvB hc
+
+/-- **T3 for `Random.joint` (disclosure).** What the honest party releases to the adversary is a
+prefix of [its commitment, its opening]. -/
+theorem prand_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) :
+    (withAdv E me adv (joint E.hash me nonce value) σ I vD).viewD <+:
+      [e1 E me σ nonce value, e2 σ nonce value] :=
+  TlsMpc.Node.Flows.Random.prand_disclosure E me adv σ I vD nonce value hh hn hv
+
+/-- **Commit before open.** If our opening reached the adversary, it had already committed, from its
+prior view and our commitment alone. -/
+theorem prand_commit_before_open (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32)
+    (h : e2 σ nonce value ∈ (withAdv E me adv (joint E.hash me nonce value) σ I vD).viewD) :
+    ∃ p1, adv.act (vD ++ [e1 E me σ nonce value]) skel1 = some p1 ∧ p1.bytes.length = 32 ∧
+      (withAdv E me adv (joint E.hash me nonce value) σ I vD).viewH.head? =
+        some ⟨Label.jointRandomCommitment, .bytes p1.bytes⟩ :=
+  TlsMpc.Node.Flows.Random.prand_commit_before_open E me adv σ I vD nonce value hh hn hv h
+
+/-- **P-RAND (c).** A commitment equal to ours aborts. -/
+theorem prand_c_copy_aborts (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) (p1 : PeerPart)
+    (h1 : adv.act (vD ++ [e1 E me σ nonce value]) skel1 = some p1)
+    (hcopy : p1.bytes = ourCommit E me σ nonce value) :
+    (withAdv E me adv (joint E.hash me nonce value) σ I vD).result = none :=
+  TlsMpc.Node.Flows.Random.prand_c_copy_aborts E me adv σ I vD nonce value hh hn hv p1 h1 hcopy
+
+/-- **P-RAND (b).** Under `IdealCommit` (a hypothesis), every accepted result is r ⊕ v for one
+value `v`, and r ↦ r ⊕ v is a bijection of 32-byte strings: with r uniform, the result is uniform. -/
+theorem prand_b_ideal (E : Env) (me : Party) (adv : Adversary) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32) (S : Store → Prop)
+    (hS : ∀ σ', S σ' → (σ'.bytes nonce).length = 32 ∧ (σ'.bytes value).length = 32)
+    (v : Bytes) (hic : IdealCommit E me adv I vD nonce value S v) :
+    (∀ σ', S σ' → ∀ x, (withAdv E me adv (joint E.hash me nonce value) σ' I vD).result = some x →
+        x = xorBytes (σ'.bytes value) v ∧ v.length = 32) ∧
+      ∀ r : Bytes, r.length = 32 → v.length = 32 →
+        (xorBytes r v).length = 32 ∧ xorBytes (xorBytes r v) v = r :=
+  TlsMpc.Node.Flows.Random.prand_b_ideal E me adv I vD nonce value hh S hS v hic
+
+end FlowsRandom
+
+section FlowsUpgrade
+open TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Upgrade
+open TlsMpc.Local.WebSocketAccept (acceptOf keyOf)
+
+/-- **T4-UPGRADE (honest parties).** Both return nonce ‖ acceptOf (keyOf nonce), RFC 6455's accept
+value for the key base64(nonce), with nonce the first 16 bytes of r_A ⊕ r_B. -/
+theorem upgrade_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame Random.tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes nB) (σB.bytes vB))) :
+    (jointRun E (publicUpgrade E.hash .a nA vA) (publicUpgrade E.hash .b nB vB) σA σB I).result =
+      some ((((Random.xorBytes (σA.bytes vA) (σB.bytes vB)).take 16).map toBV ++
+              acceptOf (keyOf (((Random.xorBytes (σA.bytes vA) (σB.bytes vB)).take 16).map toBV))).map toU8,
+            (((Random.xorBytes (σA.bytes vA) (σB.bytes vB)).take 16).map toBV ++
+              acceptOf (keyOf (((Random.xorBytes (σA.bytes vA) (σB.bytes vB)).take 16).map toBV))).map toU8) :=
+  TlsMpc.Node.Flows.Upgrade.upgrade_honest E σA σB I nA vA nB vB hh hnA hvA hnB hvB hc
+
+end FlowsUpgrade
 
 /-! ## 8. NOT YET PROVED
 
@@ -3705,9 +4402,11 @@ the matching section above in the same commit.
   trusted: that the C++ worker binds `head`/`before`/`item`/`after`/`end` as stated and passes the
   splice and `widths` from the same counts, and that the template is what Signal-Server writes.
   → no stage assigned; candidate for **P5**.
-* ML-KEM: Kyber-1024 (round 3, rank 4; libsignal key type 8). The reference
-  `MlKem.encapsulate` is checked against libcrux only by test vectors; the composition of the
-  `kem-*` kernels into it is not proved. → no stage assigned (in progress).
+* ML-KEM: Kyber-1024 (round 3, rank 4; libsignal key type 8). The `kem-*` kernels equal the
+  repository's reference `MlKem.encapsulate` on valid keys and are zero on invalid keys (proved,
+  section 2e). Still open: the reference being Kyber-1024 rests on test vectors against libcrux;
+  the 2⁻¹⁰⁵ sampling-failure probability is a calculation; the worker's name binding between the
+  `kem-*` kernels is a hypothesis. → no stage assigned.
 * **T7** — what the server receives: (a) `signal-request-ctr`, `bundle-request-ctr`,
   `bundle-fetch-ctr` seal the frame with each slot replaced by the WebSocket-masked field and
   nothing else changed — now proved at kernel level up to the frame (section 2c:
@@ -3756,13 +4455,20 @@ the matching section above in the same commit.
   part is now proved (section 2d, about the controller's own builders in
   `TlsMpc/Node/Policy/Request.lean`): the frame is the WebSocket header and the message masked, slots
   are zero runs inside the payload, non-overlapping, at the returned offsets (`requestBuild_ok`,
-  `requestInsertSlots_offsets`). Still open: that the message is the stated protobuf/JSON
-  (`render` of the pieces, against a protobuf encoder); `reply`, `keepalive`, `ping`,
-  `clientFrame`. → **P2**.
+  `requestInsertSlots_offsets`), and the messages are the reference protobuf/JSON requests in
+  RFC 6455 client frames, `reply`, `keepalive`, `ping` and `clientFrame` included (section 4d,
+  `t8_*`). Still open: the id `reply` answers is shown to be the one `varintAt` reads only under a
+  hypothesis (`scan`'s loop invariant is not proved); `replies` (pong/close echoes) is covered
+  by section 4c only. → **P2**.
 * **T11** — application results: every `jobResult` line carries exactly the entries both
   controllers agreed on; each result is `Recovery.onSend`/`onFetch` of revealed statuses or a
   fixed reason. → **P4**.
-* Parsers vs RFC 6455 / HTTP (today only symbolic = concrete). → no stage assigned.
+* Parsers vs RFC 6455 / HTTP: the frame parser's extents and refusals, the control queue, the
+  TLS record splitter and the upgrade's accept value now have references (section 4c). Still
+  open: `TlsChatResponse` (the chat-response parser) has no reference yet; nor has the upgrade
+  response parser; and frame-parser acceptance (a well-formed frame keeps validity 255) is not
+  proved, so the composition frame parser → control queue is stated on the queue's inputs.
+  → no stage assigned.
 
 ### State and ordering
 * **T6 / ORD-1** — send ordering: every Send(c) is preceded by a StoreAck(c) after the last
@@ -3775,8 +4481,9 @@ the matching section above in the same commit.
 * **T15** — connection rotation reveals nothing about ids. → **X2**.
 
 ### Conversions and helper protocols (T5)
-* **P-RAND** (joint randomness: honest result, bijection under `idealCommit`, copied commitment
-  aborts). → **S9**.
+* **P-RAND** (joint randomness): (a), (b) under `IdealCommit`, (c), disclosure and commit before
+  open are proved in the model (section 7a). Still open: that the running code is the script (S9
+  wiring). → **S9**.
 * **P-CHAL** (challenge permutation: agreement, is a permutation, injective seed). → **S10**.
 * **P-CUT** (cut-and-choose word masks: correctness, disclosure, hiding, detection, bit blocks,
   single use). → **S10**.
@@ -3797,7 +4504,8 @@ the matching section above in the same commit.
   → **S9** (CONTACT), **S12** (TLS), **S13** (SEND), **S14** (RECV), **S15** (REFRESH), **S16**
   (UPGRADE, CEREMONY).
 * **T9** — peer messages are public (by types; `PeerMsg.flow` only from `Reveal.lean`). → **S5**.
-* **T12** — skeleton determinism of scripts. → **S9**.
+* **T12** — skeleton determinism of scripts: proved for the model (section 7a,
+  `engine_T12_skeleton_determinism`); T4-UPGRADE for honest parties likewise (`upgrade_honest`).
 
 ### Affected by the Mathlib decision (owner, 2026-11-12)
 Mathlib may be used by proof-only modules in a separate library that no executable imports. The
@@ -3827,7 +4535,19 @@ Edwards group law (H-GROUP) stays a hypothesis. This changes the following items
     linked by import), P-RAND(b), P-B2F(b), P-W2F(b), P-F2W(b), P-INV(c),
     `maskedAgreement_mask_hides`, P-HINT(c), and `offsetAgreement_public_key_independent`
     (`offset_public_key_independent`, `offset_public_key_uniform`; scalars in ZMod ℓ, H-GROUP as
-    "finite commutative group of order ℓ"; the deployed [0, 2²⁵²) sampling is not covered).
+    "finite commutative group of order ℓ"); several messages: `offset_public_keys_independent`,
+    `offset_public_keys_uniform` (k keys jointly uniform on G^k).
+  - The deployed offset sampling (P-OFFSET(b), `proofs/TlsMpcProofs/OffsetSampling.lean`):
+    τ = (mine XOR peer) mod 2²⁵² is exactly uniform on [0, 2²⁵²) (`deployedOffset_uniform`); keys
+    for any two initial scalars within (ℓ − 2²⁵²)/2²⁵² on every event (`deployed_key_close`),
+    within (ℓ − 2²⁵²)/ℓ of uniform on G (`deployed_key_close_uniform`); ℓ prime (`prime_order`,
+    Pocklington); (ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷ (`order_gap_lt`), so `ed25519_key_close`,
+    `ed25519_key_close_uniform` (2⁻¹²⁷) and `ed25519_keys_close` (k messages, k·2⁻¹²⁷).
+    Hypotheses: H-GROUP, `idealCommit` (fixed peer value per message). Open: P-OFFSET about the
+    C++ `step` (the digit recoding).
+  - Receive: `Unpad.decode` is PKCS#7 unpadding (`unpad_decode_padded`, `unpad_decode_unpadded`,
+    `unpad_decode_accepts_iff`). Open: value forms of `varintValue` (widths 2–5) and
+    `canonicalRange` (ReceiveFirst's import closure is not compiled into proofs/).
   - Cut-and-choose, for the model: `cut_and_bucket_probability`, `cut_bound_le_bound_one`,
     `*_bound_all_t`, `*_undetected_lt` (every bad set < 2⁻¹²⁸ for 2¹⁹/8, 256/14, 512/13,
     1024/12). P-CUT(d)–(f), i.e. that the C++ generators implement the model, remain (S10).
@@ -4091,6 +4811,69 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.notification_buildPublic_short
 #print axioms TlsMpc.Security.notification_firstFit_spec
 #print axioms TlsMpc.Security.bundle_layout_sound
+#print axioms TlsMpc.Security.wsFrame_frame_extent
+#print axioms TlsMpc.Security.wsFrame_frames_extent
+#print axioms TlsMpc.Security.wsFrame_controller_run
+#print axioms TlsMpc.Security.wsFrame_runByte_active
+#print axioms TlsMpc.Security.wsFrame_reject_second
+#print axioms TlsMpc.Security.wsFrame_reject_sticky
+#print axioms TlsMpc.Security.wsFrame_reject_noncanonical
+#print axioms TlsMpc.Security.wsFrame_reject_capacity16
+#print axioms TlsMpc.Security.wsControl_control_frame
+#print axioms TlsMpc.Security.wsControl_run_stateBytes
+#print axioms TlsMpc.Security.wsControl_encode_frame
+#print axioms TlsMpc.Security.wsControl_replies_fresh_masks
+#print axioms TlsMpc.Security.wsControl_replies_missing_mask
+#print axioms TlsMpc.Security.tlsRecord_receive_one
+#print axioms TlsMpc.Security.tlsRecord_records_sound
+#print axioms TlsMpc.Security.tlsRecord_records_complete
+#print axioms TlsMpc.Security.tlsRecord_records_overflow
+#print axioms TlsMpc.Security.wsAccept_accept_spec
+#print axioms TlsMpc.Security.wsAccept_rfc6455_accept
+#print axioms TlsMpc.Security.wsAccept_sha1_abc
+#print axioms TlsMpc.Security.clock_agreed_within
+#print axioms TlsMpc.Security.clock_agree_symm
+#print axioms TlsMpc.Security.t8_sendMessage_reference
+#print axioms TlsMpc.Security.t8_fetchMessage_reference
+#print axioms TlsMpc.Security.t8_devicesMessage_reference
+#print axioms TlsMpc.Security.t8_build_reference
+#print axioms TlsMpc.Security.t8_buildFetch_reference
+#print axioms TlsMpc.Security.t8_buildDevices_reference
+#print axioms TlsMpc.Security.t8_decode_clientFrame
+#print axioms TlsMpc.Security.t8_clientFrame_reference
+#print axioms TlsMpc.Security.t8_ping_decode
+#print axioms TlsMpc.Security.t8_keepalive_reference
+#print axioms TlsMpc.Security.t8_keepalive_decode
+#print axioms TlsMpc.Security.t8_reply_reference
+#print axioms TlsMpc.Security.t8_reply_decode
+#print axioms TlsMpc.Security.t8_build_public
+#print axioms TlsMpc.Security.t8_buildFetch_public
+#print axioms TlsMpc.Security.t8_buildDevices_public
+#print axioms TlsMpc.Security.t8_build_two_contacts
+#print axioms TlsMpc.Security.t8_build_layout
+#print axioms TlsMpc.Security.t8_buildFetch_layout
+#print axioms TlsMpc.Security.t8_buildDevices_layout
+#print axioms TlsMpc.Security.t8_signalRequestCtr_reference
+#print axioms TlsMpc.Security.t8_bundleFetchCtr_reference
+#print axioms TlsMpc.Security.t8_bundleRequestCtr_reference
+#print axioms TlsMpc.Security.kemc_pipeline_valid_accept
+#print axioms TlsMpc.Security.kemc_pipeline_valid_reject
+#print axioms TlsMpc.Security.kemc_pipeline_invalid
+#print axioms TlsMpc.Security.kemc_kernels_compose
+#print axioms TlsMpc.Security.engine_T12_skeleton_determinism
+#print axioms TlsMpc.Security.engine_trace_eq_skeletons
+#print axioms TlsMpc.Security.engine_view_labels_H
+#print axioms TlsMpc.Security.engine_view_labels_D
+#print axioms TlsMpc.Security.engine_honest_replay
+#print axioms TlsMpc.Security.engine_decodeBatch_encodeBatch
+#print axioms TlsMpc.Security.engine_skeletonBytes_inj
+#print axioms TlsMpc.Security.engine_check_label
+#print axioms TlsMpc.Security.prand_a_honest
+#print axioms TlsMpc.Security.prand_disclosure
+#print axioms TlsMpc.Security.prand_commit_before_open
+#print axioms TlsMpc.Security.prand_c_copy_aborts
+#print axioms TlsMpc.Security.prand_b_ideal
+#print axioms TlsMpc.Security.upgrade_honest
 #print axioms TlsMpc.Security.contact_round_trip
 #print axioms TlsMpc.Security.chainSend_selectState_accept
 #print axioms TlsMpc.Security.chainSend_selectState_reject

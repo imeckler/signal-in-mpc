@@ -43,8 +43,9 @@ PROVED (standard axioms only; no `sorry`, `native_decide`, `bv_decide`):
   chain key `b`.
 
 NOT PROVED here: that the field engine computes the agreements, `[s]B − [h]A` and the torsion check
-(field-program theorems elsewhere); that `CbcOpen.openCore`'s unpadding is PKCS#7 (no value lemma
-for `Unpad.decode`); that `SealedSenderV1.material`, `Symmetric.derive`, `SpqrChain.material`,
+(field-program theorems elsewhere); that `CbcOpen.openCore` composes its unpadding as stated
+(`Unpad.decode` itself is PKCS#7 unpadding: `unpad_decode_padded`, `unpad_decode_unpadded`,
+`unpad_decode_accepts_iff` in the Mathlib-backed `proofs/`); that `SealedSenderV1.material`, `Symmetric.derive`, `SpqrChain.material`,
 `MessageMac.tag` match the Rust code (tested only); and the converse for genuine envelopes produced
 by a sender (it needs CTR decryption to invert encryption and the DH agreements to agree, which
 are assumptions about the field engine and X25519).

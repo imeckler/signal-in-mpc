@@ -37,14 +37,15 @@ MASK + 7-bit length, the 4-byte masking key, then payload byte `i` XOR key byte 
 * `encode_frame`: `encode` (what `replies` sends) is `clientFrame` for a kind 8 or 10 and a length
   of at most 125, with the queued payload: RFC 6455's masked client frame.
 
-## Finding (RFC 6455 section 5.3)
+## Finding (RFC 6455 section 5.3), fixed in stage S4
 
-`replies` masks every queued reply of one drain with the same 4-byte key (the controller draws one
-key per drain, `PublicServiceController.lean` around line 1484; only `random.take 4` is used). RFC
-6455 section 5.3: "the client MUST pick a fresh masking key ... for each frame". This happens only
-when two or more control frames (Ping/Close) arrived in the records read before one drain.
-`replies_reuse_mask` evaluates `replies` on a queue holding two Pongs: both frames carry the key.
-Not fixed here (the controller and `Policy/Receive.lean` are not ours to change).
+`replies` masked every queued reply of one drain with the same 4-byte key (the controller drew one
+key per drain). RFC 6455 section 5.3: "the client MUST pick a fresh masking key ... for each frame".
+It happened only when two or more control frames (Ping/Close) arrived in the records read before
+one drain. Stage S4 changed `replies` to take one key per queued reply and the controller to draw
+each from its own joint randomness (`controlMasks`); the counterexample `replies_reuse_mask` is
+replaced by `replies_fresh_masks` (two Pongs, two keys: each frame carries its own) and
+`replies_missing_mask` (too few keys: refused). With one queued reply nothing changed on the wire.
 
 Not covered: that the frame parser stays valid on a well-formed control frame (acceptance), so the
 composition frame parser → queue is stated on the queue's inputs, not proved from the frame bytes.
@@ -444,7 +445,12 @@ theorem kindOf_reply (o : Byte) (ho : o = 8#8 ∨ o = 9#8) (payload : List Byte)
     reply o.toNat payload = some ((kindOf o).toNat, payload) := by
   rcases ho with rfl | rfl <;> rfl
 
-/-! ### Counterexample: one masking key for every reply of a drain (RFC 6455 section 5.3) -/
+/-! ### One masking key per reply (RFC 6455 section 5.3; fixed in stage S4)
+
+`replies` took one key for every reply of a drain (the counterexample `replies_reuse_mask`, now
+deleted: two Pongs both masked with `01 02 03 04`). Since stage S4 it takes one key per queued reply
+(`masks[i]` for reply `i`), and the controller draws each from its own joint randomness
+(`controlMasks` in `PublicServiceController.lean`). -/
 
 /-- A queue holding two Pong replies (payloads `A` and `B`), as two Pings would leave it. -/
 def twoPongs : List Byte :=
@@ -458,12 +464,19 @@ def framesOf (r : Except String (PublicReceive.State × List (Nat × List Byte))
   | .ok (_, fs) => fs
   | .error _ => []
 
-/-- **`replies_reuse_mask`.** `PublicReceive.replies` with the key `01 02 03 04` sends both Pongs
-masked with that same key (bytes 2–5 of each frame). RFC 6455 section 5.3 requires a fresh masking
-key for each frame. -/
-theorem replies_reuse_mask :
-    framesOf (PublicReceive.replies { PublicReceive.start [] with control := twoPongs } [1, 2, 3, 4]) =
-      [(10, [0x8a, 0x81, 1, 2, 3, 4, 0x40]), (10, [0x8a, 0x81, 1, 2, 3, 4, 0x43])] := by
+/-- **`replies_fresh_masks`.** `PublicReceive.replies` on two queued Pongs with the keys
+`01 02 03 04` and `05 06 07 08` masks each frame with its own key (bytes 2–5 of each frame, and the
+payloads `A`, `B` XOR their key's first byte). RFC 6455 section 5.3: a fresh masking key for each
+frame. -/
+theorem replies_fresh_masks :
+    framesOf (PublicReceive.replies { PublicReceive.start [] with control := twoPongs } [[1, 2, 3, 4], [5, 6, 7, 8]]) =
+      [(10, [0x8a, 0x81, 1, 2, 3, 4, 0x40]), (10, [0x8a, 0x81, 5, 6, 7, 8, 0x47])] := by
+  decide +kernel
+
+/-- With fewer keys than queued replies, `replies` refuses (no reply is sent with a missing or
+reused key). -/
+theorem replies_missing_mask :
+    framesOf (PublicReceive.replies { PublicReceive.start [] with control := twoPongs } [[1, 2, 3, 4]]) = [] := by
   decide +kernel
 
 end TlsMpc.KernelSpecs.ParseWebSocketControl

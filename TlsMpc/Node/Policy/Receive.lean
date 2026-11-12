@@ -852,14 +852,21 @@ idle (rust/net/infra/src/ws/connection.rs: `Message::Ping(vec![*ping_count])`). 
 def ping (count : Nat) (mask : List Byte) : List Byte :=
   [0x89, 0x81] ++ mask ++ [BitVec.ofNat 8 count ^^^ get mask 0]
 
-/-- Queued control replies as (kind, masked frame bytes); the queue is cleared. -/
-def replies (s : State) (mask : List Byte) : Except String (State × List (Nat × List Byte)) := do
+/-- How many control replies are queued (`replies` needs one masking key for each). -/
+def queuedReplies (s : State) : Nat := (get s.control 127).toNat
+
+/-- Queued control replies as (kind, masked frame bytes); the queue is cleared. Reply `i` is
+masked with `masks[i]`: RFC 6455 section 5.3 requires a fresh masking key for each frame, so the
+caller draws one per queued reply (`queuedReplies`). -/
+def replies (s : State) (masks : List (List Byte)) : Except String (State × List (Nat × List Byte)) := do
   unless get s.control 0 == on do throw "control queue rejected"
   let count := (get s.control 127).toNat
   unless count ≤ 4 do throw "control queue count"
   let frames ← (List.range count).mapM fun i => do
     let kind := get s.control (128 + i)
     unless kind == 8 || kind == 10 do throw "control kind"
+    let some mask := masks[i]? | throw "control reply without a masking key"
+    unless mask.length == 4 do throw "control reply masking key shape"
     let out := TlsWebSocketControl.encode PublicReceive.fast
       ([get s.control 0, 0, get s.control (132 + i), kind] ++ mask ++ (s.control.drop (136 + 125 * i)).take 125)
     unless get out 0 == on && get out 1 == 0 do throw "control reply rejected"

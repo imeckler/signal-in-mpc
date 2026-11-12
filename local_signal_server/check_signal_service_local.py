@@ -154,8 +154,10 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
                 env['SIGNAL_RECORD'] = str(Path(RECORDS['dir']) / f'session-{RECORDS["sessions"]:02d}-party-{party}.jsonl')
             log = open(output / f'party-{party}.log', 'w')
             logs.append(log)
+            # --test: the controller's TEST hooks (SIGNAL_LOCAL_STORE, _BROADCASTS, _PAUSE_*, _EXTRA_CONTACTS,
+            # _NEW_CONTACT, _TIMESTAMP, _TRACE) are in force only with it (TlsMpc/Node/Config.lean).
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
-                       session, endpoint, str(server_port), 'server.example', str(output / 'public_auth'), str(trust), '0']
+                       session, endpoint, str(server_port), 'server.example', str(output / 'public_auth'), str(trust), '0', '--test']
             (STORE / f'party-{party}').mkdir(parents=True, exist_ok=True)
             processes.append(subprocess.Popen(command, cwd=ROOT, env=dict(env, SIGNAL_LOCAL_STORE=str(STORE / f'party-{party}'),
                                                                         **(party_env(party) if party_env else {})),

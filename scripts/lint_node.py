@@ -14,7 +14,8 @@ Checks:
                         (TlsMpc/Node/Channels.lean and Worker.lean) may have any number. Every
                         other file may have at most the count recorded per primitive in
                         scripts/lint_node_baseline.json (today's sites); a new site, or a site
-                        in a file new to the closure, fails.
+                        in a file new to the closure, fails. Since S4, `IO.getEnv` appears exactly
+                        once in the closure: in `Config.read`, TlsMpc/Node/Channels.lean.
   escape-hatches (b)    No sorry, admit, native_decide, bv_decide, ofReduceBool, implemented_by,
                         extern, unsafe, opaque, axiom, csimp, skipKernelTC or partial def in
                         TlsMpc/Node (plan, rule 6 and section 4.1).
@@ -22,8 +23,10 @@ Checks:
                         (plan, rule 4: the circuit cache is keyed by the emitter binary). The
                         emitters: every lean_exe of lakefile.toml named *_emitter, and
                         circuit_inventory.
-  secret-val (d)        Off until S4. `Secret.val` / `Secret.mk` only in the eliminators' files
-                        (plan 4.1): Secret.lean, Engine.lean, Channels.lean, Reveal.lean, Local/*.
+  secret-val (d)        On since S4. `Secret.val` / `Secret.mk` / `expose` (the one public accessor of
+                        TlsMpc/Node/Secret.lean, its field and constructor being private) only in
+                        the eliminators' files (plan 4.1): Secret.lean, Engine.lean, Channels.lean,
+                        Reveal.lean, Local/*.
   message-fields (d)    Off until S5. Messages.lean mentions neither `Secret` nor `Handle`
                         (plan 3.1; S5 adds the `#guard`-style check inside Lean as well).
 
@@ -38,9 +41,10 @@ BASELINE = os.path.join(ROOT, 'scripts', 'lint_node_baseline.json')
 CONTROLLER_EXE = 'public_service_controller'
 NODE_DIR = 'TlsMpc/Node'
 IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
+CONFIG_READER = 'TlsMpc/Node/Channels.lean'   # Config.read, the one IO.getEnv (stage S4)
 SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
 ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
-DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val']
 
 
 # ---- Lean source without comments and string literals (newlines kept, so lines still count).
@@ -217,6 +221,10 @@ def check_io(report):
     for rel, entries in baseline.items():
         if rel not in counts and rel not in IO_ALLOWED:
             lower.append(f'{rel}: no sites now (baseline lists {sum(entries.values())})')
+    # Stage S4: `Config.read` (TlsMpc/Node/Channels.lean) is the only reader of the environment.
+    readers = [(rel, line) for rel in counts for label, line in io_sites(rel)[0] if label == 'IO.getEnv']
+    if [rel for rel, _ in readers] not in ([], [CONFIG_READER]):
+        findings.append(f'io-baseline: IO.getEnv must appear once, in Config.read ({CONFIG_READER}); found at {readers}')
     for rel, opened in opens.items():
         if rel not in IO_ALLOWED:
             for text, line in opened:
@@ -321,7 +329,7 @@ def check_secret_val(report):
         if SECRET_ALLOWED.search(rel):
             continue
         text = source(rel)
-        for m in re.finditer(r'\bSecret\.(val|mk)\b', text):
+        for m in re.finditer(r'\bSecret\.(val|mk)\b|\bexpose\b', text):
             findings.append(f'secret-val: {rel}:{line_of(text, m.start())}: `{m.group(0)}` outside the eliminators\' files')
     if report:
         print(f'[secret-val] {len(findings)} findings')
