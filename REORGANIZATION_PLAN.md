@@ -1321,6 +1321,66 @@ Tests: Q, F, D (the record transcript must be identical modulo masks).
 
 Depends on S4. **2 weeks. Mechanical**, with medium design care in the message types.
 
+**Status (2026-11-12).** Done. Each step built with recovery-check 29/29, parse-bench, the lints
+and `check_axioms.py`.
+- `Node/Messages.lean`, one type per channel, each with its encoder:
+  - `PeerMsg` (11 kinds: `settingsDigest`, `clock`, `submitted`, `acknowledged`, `parity`,
+    `committedNodes`, `absentDigest`, `journal`, `resultsDigest`, `serveTick`, `ceremonyInput`);
+    `encode` gives today's bytes, `decodeReply` reads the other node's bytes as the same kind
+    (`decodeReply_kind`, restated as `peerMsg_reply_kind`);
+  - `DbCall` (each `handoff_client` command line or input file: `read`, `parity`, `theirParity`,
+    `verifySignatures`, `paritySum`, `combine`, `deal`, `blob`, `writeBlob`, `receivedToken`,
+    `tokenId`, `keptToken`, `delete`, with `ReadAuthority`/`WriteAuthority`), `DbCall.encode`
+    gives the argv or the file;
+  - `DaemonLine` (`ready`, `jobResult`, `signup`, `finalReport`, `recoveryCheck`,
+    `ceremonyStage`, `deleted`, `kernelShape`; typed `FinalReport`, `JobResult`);
+  - `RecordEvent` (18 kinds, one per former `recordEvent` name; `sentPrivate` and
+    `sentPrekeyFetch` replace `recordSend`); `LogLine` (6 kinds); `JournalLine`; `PublicFile`
+    (the ceremony's public files); `ShareFile` (names only); `CertificateQuery`; `ChildSession`;
+    `CeremonyInput`.
+  - `Messages.checkPublic` (the plan's `Messages.noSecret`): run at the end of the file, it fails
+    the build if any constructor of a type declared there reaches `Secret`, `Handle` or the
+    worker's `BufferHandle`, transitively through repository types (tested against a planted
+    field). **Deviation:** a build check rather than one run by the lint; the lint's
+    `message-fields` (textual) is on by default.
+- `Node/Channels.lean`: the implementations in `Channels.Real` (`exchange` with today's framing,
+  `db`, the readers of the client's output files with a typed public `DbRead` instead of the raw
+  read JSON, `report`, `record`, `log`, `checkCertificate`, `kemDecapsulate`, `runChild`,
+  `saveShare`/`loadShare`/`loadStored`, `writePublic`, `journal`/`readJournal`, `nextJob`,
+  `stopAsked`, `readRequest`, `readMessage`, the export readers, `clock`, `monotonic`, `sleep`,
+  `random`, `benchIO`) and the record `Channels`, built once by `Channels.real config party`;
+  the session uses `ch.*`, the subcommands that run before a configuration exists (`ceremony`,
+  `db-delete`, `recovery-check`, `request-shape`, `parse-bench`) call `Channels.Real` directly.
+  **Deviations:** paths are arguments of the channel functions (not folded into the record);
+  `exchange` takes the worker `Rpc` (it is op 39 until S9's `Engine.exchange`); fields are `IO`
+  or `M` (`TlsClient.M`), not a new `NodeM`.
+- I/O sites: controller 70 → 0, `Node/Bench.lean` 3 → 0 (`BenchIO` passed in),
+  `Signal/ReceiveFirst.lean` 1 → 0 (a lint false positive: `Establish.metadata`; the lint no
+  longer counts uppercase-qualified calls). Baseline 82 → 8 (ratcheted down). Left, outside
+  `Channels.lean`: the worker pipe, `TlsWorker.lean` (5: the transport's poll deadlines and
+  sleeps; `Flows/Tls.legacyBackend` in S6) and `TlsWorkerProcess.lean` (3: the spawn and the pipe's
+  streams; `Worker.lean`, S8/S9).
+- Lint: `io-baseline` strict for the controller and every `TlsMpc/Node` file except
+  `Channels.lean`/`Worker.lean` (no site, and the baseline may not list them); `message-fields`
+  on by default.
+- Same bytes on every channel. Behaviour notes: a disagreement on a peer reply's shape now ends
+  the session with a "invalid … reply" error where the old code read the bytes loosely (only
+  `serveTick` checks a length, as before); the daemon's stdout lines are all flushed (the final
+  report was not); an error text naming a missing `SIGNAL_DB_*` setting may name another missing
+  one first.
+- `Security.lean`: `peerMsg_reply_kind`, section 7-channels (T9 by type); also (coordinator) the
+  parser theorems of `KernelSpecs/Parse{WebSocketAccept,WebSocketControlFrame,WebSocketReplies,
+  ChatResponse}` (section 4e) and the reveal-policy theorems of `Policy/ReceiveProofs.lean`
+  (section 4f): 394 restatements, `check_axioms.py` OK. The contact/account flow theorems
+  (`Flows/Contacts*`, `Account`) are drafted in `.deps/lowering-scratch/s5_restate_flows_draft.lean`
+  but not added: `Flows/ContactsBase.lean` did not build at the time (engine change in progress).
+- New controller mode `policy-check`: `ReceiveTest.checks` (T1's property test), compiled: 14/14 in
+  about 40 s, so not part of `recovery-check`.
+- Harness (with the committed reveal-policy fix of `Policy/Receive.lean` in the binary), all
+  passed: the compact signup check with three devices; malicious and semi-honest
+  `--runs 2 --signup --record`, malicious `--runs 0 --db --record` (all three compare equal to
+  `tests/golden`); semi-honest `--runs 0 --app`; malicious `--ceremony`.
+
 ---
 
 **S6. The flow API and `Reveal.lean` (legacy implementations).**
@@ -1729,7 +1789,7 @@ modes. Plan stage ends accordingly.
 | R4 | **The legacy/Lean handle coupling in S9–S16** (contacts' wires shared through `legacy_get` / `legacy_put`). A bug can confuse handles. | Handles are never reused (as today). The S9 differential fixture compares both paths on the same inputs. |
 | R5 | **Two mask pools during S10–S16** (legacy C++ and Lean) cost extra mask generation. | Accept (about 0.6 s per session today). |
 | R6 | **Proof sizes are guesses.** T1, P-CUT, T7 and T13 could double. | The engineering stages do not wait for proofs, except where a stage names its theorem as a deliverable (S9–S16: T3/T4/P-*). If such a proof overruns by 2×, the stage ships with the theorem stated, the proof as a tracked hole in `Security.lean`'s "open" list, **never as `sorry`**. Owner to be told. |
-| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. *2026-11-12: H-QR is no longer a hypothesis — discharged in `proofs/` by `Prime25519.prime_modulus` and `QuadraticResidue.{two_not_square, euler_criterion, euler_nonsquare, sqrtMinusOne_eq_power, candidate_fourth_iff, candidate_sq}`, applied to the programs by `recipient_check_zero_iff` / `recipient_x_mul_self` (`EdwardsAffine.recipient`), `lift_select` / `liftOpen_square_iff` (`EdwardsHinted.liftOpen`) and `XEdDsaRecover.recover_valid_iff` / `recover_x_mul_self` (`XEdDsaField.recover`). H-GROUP, `idealCommit` and the engines' ideal behaviour stay.* *2026-11-12 (later): H-GROUP is discharged in `proofs/` for the Edwards formulas (index `SecurityMathlib.lean` section 7; files `EdwardsPoly`, `EdwardsCurve`, `EdwardsEd25519`, `EdwardsBasePoint`, `MontgomeryLadder`). Proved, with no hypothesis: `d = −121665/121666` is not a square and `−1` is a square mod p, so the unified addition law is complete (`edwards_complete`); the curve points with that law, `(−x, y)` and `(0, 1)` are a commutative group (`Edwards.Point.instAddCommGroup`; associativity `edwards_add_assoc` by the polynomial identity modulo the three curve equations with explicit cofactors, checked by `linear_combination`); `EdwardsAffine.pointAddValue`, `EdwardsHinted.extAddValue`, `negate`, `curveCheck`, `sumTreeValue`, `extSumValue` compute in that group (`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `curveCheck_zero_iff`, `sumTreeValue_is_group_sum`, `extSumValue_is_group_sum`); `recipient` (check zero) and `recover` (`valid = 1`) output curve points; the base point is on the curve and `ℓ·B = 0` (kernel-evaluated double-and-add over `ℕ` mod p, proved to be the group's scalar multiple), so with `ℓ` prime `B` has order exactly `ℓ` and the subgroup it generates is a finite commutative group of order `ℓ` (`base_addOrderOf`, `curve_subgroup_card`); the offset and masked-point theorems are instantiated with it (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`, `curve_hinted_Z_uniform`, …); `X25519.spec` is the Montgomery coordinate of `k·P` in the same group for `u ≠ 0` the coordinate of a curve point (`x25519_spec_scalar_mult`). **What remains of H-GROUP:** the group order `#E = 8ℓ` (point counting; hence that the `ℓ`-torsion is exactly the multiples of `B`, and the cofactor claim of `edwards-torsion-hinted`); that a recipient's point is nonzero and killed by `ℓ` (a hypothesis of the instantiated offset theorems); X25519 for `u` on the quadratic twist and `u = 0`; `liftPoint`'s Montgomery-to-Edwards map `x = √(−486664)·u/v`; `windowValue`, `doublingsValue`, `XEdDsaField.doubleScalar` and the C++ `Local/Edwards` as scalar multiples (only their additions are covered). `idealCommit` and the engines' ideal behaviour stay.* | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
+| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. *2026-11-12: H-QR is no longer a hypothesis — discharged in `proofs/` by `Prime25519.prime_modulus` and `QuadraticResidue.{two_not_square, euler_criterion, euler_nonsquare, sqrtMinusOne_eq_power, candidate_fourth_iff, candidate_sq}`, applied to the programs by `recipient_check_zero_iff` / `recipient_x_mul_self` (`EdwardsAffine.recipient`), `lift_select` / `liftOpen_square_iff` (`EdwardsHinted.liftOpen`) and `XEdDsaRecover.recover_valid_iff` / `recover_x_mul_self` (`XEdDsaField.recover`). H-GROUP, `idealCommit` and the engines' ideal behaviour stay.* *2026-11-12 (later): H-GROUP is discharged in `proofs/` for the Edwards formulas (index `SecurityMathlib.lean` section 7; files `EdwardsPoly`, `EdwardsCurve`, `EdwardsEd25519`, `EdwardsBasePoint`, `MontgomeryLadder`). Proved, with no hypothesis: `d = −121665/121666` is not a square and `−1` is a square mod p, so the unified addition law is complete (`edwards_complete`); the curve points with that law, `(−x, y)` and `(0, 1)` are a commutative group (`Edwards.Point.instAddCommGroup`; associativity `edwards_add_assoc` by the polynomial identity modulo the three curve equations with explicit cofactors, checked by `linear_combination`); `EdwardsAffine.pointAddValue`, `EdwardsHinted.extAddValue`, `negate`, `curveCheck`, `sumTreeValue`, `extSumValue` compute in that group (`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `curveCheck_zero_iff`, `sumTreeValue_is_group_sum`, `extSumValue_is_group_sum`); `recipient` (check zero) and `recover` (`valid = 1`) output curve points; the base point is on the curve and `ℓ·B = 0` (kernel-evaluated double-and-add over `ℕ` mod p, proved to be the group's scalar multiple), so with `ℓ` prime `B` has order exactly `ℓ` and the subgroup it generates is a finite commutative group of order `ℓ` (`base_addOrderOf`, `curve_subgroup_card`); the offset and masked-point theorems are instantiated with it (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`, `curve_hinted_Z_uniform`, …); `X25519.spec` is the Montgomery coordinate of `k·P` in the same group for `u ≠ 0` the coordinate of a curve point (`x25519_spec_scalar_mult`). *2026-11-12 (later still): also proved in `proofs/` (index sections 7c–7e; files `EdwardsScalarMul`, `EdwardsBitSum`, `X25519Clamp`, `X25519Special`, `MontgomeryLift`): the chains are scalar multiples — `windowValue` (`P … 8P`, next `16P`), the window table (entry `8w + j` is `((j+1)·16^w)·P`), `bitEntry` (`2^i·P`), `doublingsValue` and `bitTable` (entry `i` is `2^i·P`), `prepareHinted`'s initial point (`(kA + kB)·P`), `bitSum` (its quotient is `X25519.spec`), `offsetSum` with the signed base-16 recoding `recode` (the C++ `step` rule: digits in `−8 … 8`, exact and carry-free for offsets `< 2²⁵²`) giving `u(I + n·P)`, and `XEdDsaField.doubleScalar` = `[s]B − [h]A` (`window_multiples`, `window_table`, `prepareHinted_bit_entry`, `prepareHinted_initial_point`, `doublings_multiples`, `bitTable_entries`, `recode_offset`, `offsetSum_scalar_mult`, `bitSum_is_x25519`, `xeddsa_doubleScalar`, `xeddsa_run_doubleScalar`); the clamped scalar is RFC 7748's `2²⁵⁴ + 8·(⌊n/8⌋ mod 2²⁵¹)` (`x25519_clampedScalar_rfc`); X25519 at `u = 0` outputs `0`, which is `k·(0, −1) = 0` (`x25519_u_zero`), so X25519 is scalar multiplication for every coordinate of a curve point (`x25519_spec_scalar_mult_all`, `x25519_on_curve`); `liftPoint`'s map `x = √(−486664)·u/v`, `y = (u − 1)/(u + 1)` gives a curve point with Montgomery coordinate `u`, `u(u² + 486662u + 1)` is a square exactly for those `u`, and the program's output (valid or not) and its `Z` are curve points (`montgomery_map_onCurve`, `montQ_square_iff`, `liftPoint_valid_point`, `liftPoint_invalid_point`).* **What remains of H-GROUP:** the group order `#E = 8ℓ` (point counting; hence that the `ℓ`-torsion is exactly the multiples of `B`, and the cofactor claim of `edwards-torsion-hinted`); that a recipient's point is nonzero and killed by `ℓ` (a hypothesis of the instantiated offset theorems); X25519 for `u` on the quadratic twist (its Edwards model has `a = −2`, not a square, so the complete-law group construction does not apply); that the C++ `step` and `Local/Edwards` implement the Lean definitions (`recode` copies the C++ rule; not proved). `idealCommit` and the engines' ideal behaviour stay.* | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
 | R8 | **Rust linking emp and MP-SPDZ** through `build.rs` may be fiddly (C++20, OpenSSL 3.5, thread pools, the 1 GB stack of `big_stack.h`). | Build the ABI as a static library with the existing `build_hybrid_v3.py` and link it. Run the engines on a thread with the 1 GB stack, as `run_with_stack` does. |
 | R9 | **Semi-honest mode.** The instruction set must run on `ShSession` too. | `engine_abi` per mode. The scripts are the same. The cut-and-choose has a semi-honest variant (`dyn_word_mask.h:20-43`), kept as `Masks.generateSemiHonest` with only P-CUT (a). |
 | R10 | **The retired fixture checks** (`check_signal_service_v3.py`, `check_tls_application_v3.py`) test undeployed paths. | Retire in S7. Keep `check_tls_worker_v3.py`. |

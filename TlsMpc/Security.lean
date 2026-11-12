@@ -87,6 +87,12 @@ import TlsMpc.KernelSpecs.KemCompose
 import TlsMpc.Node.Engine.Model
 import TlsMpc.Node.Flows.Random
 import TlsMpc.Node.Flows.Upgrade
+import TlsMpc.Node.Messages
+import TlsMpc.KernelSpecs.ParseWebSocketAccept
+import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
+import TlsMpc.KernelSpecs.ParseWebSocketReplies
+import TlsMpc.KernelSpecs.ParseChatResponse
+import TlsMpc.Node.Policy.ReceiveProofs
 import Lean.Elab.Command
 
 /-!
@@ -139,9 +145,18 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
 
 ## Assumptions that stay hypotheses (REORGANIZATION_PLAN R7)
 
-* **H-GROUP**: the Edwards/Montgomery formulas used by the curve programs are the group law. No
-  entry proves it; entries about curve formulas say "formulas only". Stays a hypothesis even
-  under the Mathlib decision below.
+* **H-GROUP**: **now a theorem for the Edwards formulas** (2026-11-12) in `proofs/` (index
+  `SecurityMathlib.lean` section 7): `edwards_complete`, `edwards_add_assoc`, `edwards_group_laws`,
+  `pointAddValue_is_group_add`, `extAddValue_is_group_add`, `curveCheck_zero_iff`,
+  `sumTreeValue_is_group_sum`, `extSumValue_is_group_sum`, `recipient_on_curve`,
+  `xeddsa_recover_on_curve`, `base_order_nsmul`, `base_addOrderOf`, `curve_subgroup_card`,
+  `x25519_spec_scalar_mult`, `x25519_spec_scalar_mult_all` (also `u = 0`), `x25519_on_curve`,
+  `x25519_clampedScalar_rfc`, `window_table`, `bitTable_entries`, `recode_offset`,
+  `offsetSum_scalar_mult`, `bitSum_is_x25519`, `prepareHinted_initial_point`,
+  `xeddsa_doubleScalar`, `montgomery_map_onCurve`, `montQ_square_iff`, `liftPoint_valid_point`
+  (proofs/ sections 7c–7e). Still assumed: `#E = 8ℓ` (point counting); the recipient point
+  nonzero and killed by ℓ; X25519 on the quadratic twist; that the C++ `step` / `Local/Edwards`
+  implement `recode` / the Lean programs.
 * **H-QR**: 2 is a non-square mod p (used by the hinted lift; no entry here needs it yet).
   **Now a theorem** (2026-11-12) in the Mathlib-backed package `proofs/`, which no executable
   and nothing in this package imports: `prime_modulus`, `two_not_square`, `euler_criterion`,
@@ -378,7 +393,7 @@ theorem tls_verifyHash_value (secret transcriptHash receivedMessage : List (BitV
 
 open TlsMpc.EstablishField TlsMpc.FieldDag in
 /-- **The `xeddsa-recover` field program computes `XEdDsaField.run`.** **K**. Formulas only:
-not proved to be the group law (H-GROUP). SECURITY_MAP C.2. -/
+not proved to be the group law (H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). SECURITY_MAP C.2. -/
 theorem xeddsa_recover_correct (artifact : MultiArtifact) (compiled : compileAll recover = some artifact) (input : Nat → F) :
     artifact.outputs.map (result (concrete input) artifact.nodes) =
       TlsMpc.Signal.XEdDsaField.run TlsMpc.X25519.concrete true input :=
@@ -386,7 +401,7 @@ theorem xeddsa_recover_correct (artifact : MultiArtifact) (compiled : compileAll
 
 open TlsMpc.EstablishField TlsMpc.FieldDag in
 /-- **The `xeddsa-check` field program computes `XEdDsaField.signedRun`.** **K**. Formulas
-only (H-GROUP). SECURITY_MAP C.2. -/
+only (H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). SECURITY_MAP C.2. -/
 theorem xeddsa_check_correct (artifact : MultiArtifact) (compiled : compileAll check = some artifact) (input : Nat → F) :
     artifact.outputs.map (result (concrete input) artifact.nodes) =
       TlsMpc.Signal.XEdDsaField.signedRun TlsMpc.X25519.concrete input :=
@@ -394,7 +409,7 @@ theorem xeddsa_check_correct (artifact : MultiArtifact) (compiled : compileAll c
 
 open TlsMpc.ReceiveField TlsMpc.FieldDag in
 /-- **The `receive-torsion` field program computes `torsionRun`.** **K**. Formulas only
-(H-GROUP). Not listed in SECURITY_MAP C.2; found while building this file. -/
+(H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). Not listed in SECURITY_MAP C.2; found while building this file. -/
 theorem receive_torsion_correct (artifact : MultiArtifact) (compiled : compileAll torsion = some artifact) (input : Nat → F) :
     artifact.outputs.map (result (concrete input) artifact.nodes) = torsionRun TlsMpc.X25519.concrete input :=
   TlsMpc.ReceiveField.torsion_correct artifact compiled input
@@ -423,7 +438,7 @@ theorem x25519_compiled_compute_correct (bits : Nat → Bool) (u : F) (artifact 
 open TlsMpc.FieldDag TlsMpc.EdwardsAffine in
 /-- **The `edwards-offset-sum` program computes the Montgomery u of the sum** of the initial
 point and the signed table entries (one per window). **K** (the non-hinted sealed-sender offset
-agreement, `edwards_points.h`). Formulas only (H-GROUP). Not listed in SECURITY_MAP C.2; found
+agreement, `edwards_points.h`). Formulas only (H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). Not listed in SECURITY_MAP C.2; found
 while building this file. No theorem covers `edwards-prepare`. -/
 theorem edwards_offsetSum_eval (input : Nat → F) :
     offsetSum.map (Expr.eval input) =
@@ -3115,9 +3130,12 @@ theorem receiveAccessKey_withAccessKey_rejected (cert offset : Nat) (conversatio
 Code that `public_service_controller` executes. The parsers (WebSocket upgrade, frame, control,
 chat response) are proved symbolic = concrete; the frame parser, the control queue, the TLS record
 splitter and the upgrade's accept value are also related to RFC 6455 / RFC 8446 (section 4c);
-nothing relates `TlsChatResponse` or the upgrade response parser to HTTP or RFC 6455 yet.
-The reveal policy (`PublicReceive.scan`, `budget`, `mayReveal`, …), `Recovery`, `Circuits` and
-`CeremonyRequests` have NO theorem (T1, T11 in section 8). The request templates (`PublicRequest.*`)
+the frame parser's acceptance of well-formed frames, its refusals, the control frames' path to the
+reply, and the chat-response parser's body extent and fail-closed cases are in section 4e; the
+upgrade response parser has no such theorem yet. The reveal policy (`PublicReceive.scan`,
+`budget`, `mayReveal`, …) has the T1 pieces of section 4f (bodies passed over are never revealed;
+over-long varints refused); `Recovery`, `Circuits` and `CeremonyRequests` have NO theorem (T11 in
+section 8). The request templates (`PublicRequest.*`)
 have the structural theorems of section 2d (T8, rest in section 8). Since stage S2 the controller's
 pure code is in library modules under `TlsMpc/Node/` (no emitter imports them), so the entries
 below are about the code it runs, not about copies. -/
@@ -3753,6 +3771,445 @@ theorem t8_bundleRequestCtr_reference (envelopes : List (List Byte)) (timestamp 
 end Kernels
 end RequestT8
 
+/-! ### 4e. WebSocket and chat-response parsers: acceptance and rejection (KernelSpecs/Parse*)
+
+`TlsMpc/KernelSpecs/ParseWebSocketAccept.lean` (the frame parser accepts RFC 6455's well-formed
+server frames; payload-level rejections), `ParseWebSocketControlFrame.lean` (a control frame's bytes
+through the parser into the control queue), `ParseWebSocketReplies.lean` (what `replies` then sends),
+`ParseChatResponse.lean` (which bytes of a service response are the body; fail-closed cases). All
+about the deployed parsers on `PublicReceive.fast` as the controller runs them. **C**. -/
+
+/-! #### Frame parser acceptance (`ParseWebSocketAccept.lean`) -/
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **The frame parser accepts every well-formed server frame (RFC 6455).** From a frame boundary
+in context `c`, over a frame `parseHeader` reads (`f` exactly header and payload) that the reference
+`Accepts` in that context: every event keeps the validity byte at 255, and the parser ends at a frame
+boundary with the reference's next context, closed exactly after a Close. **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_frame_accept (cap : Nat) (hcap : cap < 65536) (S : State Byte) (c : Ctx)
+    (hS : Boundary S c false)
+    (f : List Byte) (h : Header) (hp : parseHeader f = some h) (hn : f.length = h.size + h.length)
+    (hA : Accepts cap c h (f.drop h.size)) :
+    AllValid (events cap S f) ∧ Boundary (finalState cap S f) (c.after cap h) (h.opcode == 8) :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.frame_accept cap hcap S c hS f h hp hn hA
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Over an accepted frame the parser's flags are exactly the reference's:** its `data`,
+`controlData`, `frameDone` bytes are 255 where `expectedFlags` says so and 0 elsewhere, every event
+valid, and it ends at the next boundary as in `frame_accept`. **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_frame_exact (cap : Nat) (hcap : cap < 65536) (S : State Byte) (c : Ctx)
+    (hS : Boundary S c false)
+    (f : List Byte) (h : Header) (hp : parseHeader f = some h) (hn : f.length = h.size + h.length)
+    (hA : Accepts cap c h (f.drop h.size)) :
+    (events cap S f).map (fun e => (e.data, e.controlData, e.frameDone)) =
+      (expectedFlags h).map (fun t => (mb t.1, mb t.2.1, mb t.2.2)) ∧
+    AllValid (events cap S f) ∧ Boundary (finalState cap S f) (c.after cap h) (h.opcode == 8) :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.frame_exact cap hcap S c hS f h hp hn hA
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Any sequence of accepted frames** (each accepted in the context the ones before leave,
+nothing after a Close): every event is valid and the parser ends at a frame boundary. **C**.
+SECURITY_MAP C.4. -/
+theorem wsFrameAccept_frames_accept (cap : Nat) (hcap : cap < 65536) :
+    ∀ (fs : List (Header × List Byte)) (S : State Byte) (c : Ctx),
+    Boundary S c false → FramesOk cap c fs →
+    AllValid (events cap S (fs.flatMap Prod.snd)) ∧ ∃ c' cl, Boundary (finalState cap S (fs.flatMap Prod.snd)) c' cl :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.frames_accept cap hcap
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **The parser's Close status-code check is RFC 6455's list** (section 7.4 and the IANA registry:
+1000–1003, 1007–1014, 3000–4999). **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_closeCode_value (hi lo : Byte) :
+    TlsWebSocketFrame.closeCode fast hi lo = mb (decide (validCloseCode (wordValue hi lo))) :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.closeCode_value hi lo
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+/-- Every RFC 3629 UTF-8 string runs the parser's UTF-8 automaton (`delta`, read left to right)
+back to its start state. (The converse is not proved.) **C** (the automaton is the parser's,
+`utf_step`). SECURITY_MAP C.4. -/
+theorem wsFrameAccept_utf8_drun {w : List Byte} (h : Utf8 w) : drun 0 w = some 0 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.utf8_drun h
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** a Close with a 1-byte payload (RFC 6455 section 5.5.1: a body starts with a 2-byte
+code) makes the parser invalid. **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_close_one (cap : Nat) (S : State Byte) (h : S.phases = P 1) (ho : S.opcode = 8#8) :
+    (step fast cap S 1#8).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_close_one cap S h ho
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** a data payload byte beyond the message's capacity. **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_message_full (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 4)
+    (ho : S.opcode = 0#8 ∨ S.opcode = 2#8) (hm : wordValue S.messageHigh S.messageLow = 0) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_message_full cap S x h ho hm
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** a byte of a Close's reason that no UTF-8 character can continue with. **C**.
+SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_reason (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 4)
+    (ho : S.opcode = 8#8)
+    (h1 : S.payloadFirst = 0#8) (h2 : S.payloadSecond = 0#8) (i : Nat) (hi : i < 8) (hu : S.utfPhases = U i)
+    (hd : delta i x = none) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_reason cap S x h ho h1 h2 i hi hu hd
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** the last byte of a 2-byte Close payload whose code RFC 6455 does not allow. **C**.
+SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_close_code (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 4)
+    (ho : S.opcode = 8#8)
+    (h1 : S.payloadFirst = 0#8) (h2 : S.payloadSecond = 255#8) (hcv : S.closeCodeValid = 0#8)
+    (hn : wordValue S.high S.low = 1) (hc : ¬ validCloseCode (wordValue S.closeCodeHigh x)) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_close_code cap S x h ho h1 h2 hcv hn hc
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** the last byte of a Close with a reason, its code invalid. **C**. SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_reason_code (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 4)
+    (ho : S.opcode = 8#8)
+    (h1 : S.payloadFirst = 0#8) (h2 : S.payloadSecond = 0#8) (hn : wordValue S.high S.low = 1)
+    (hc : S.closeCodeValid = 0#8) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_reason_code cap S x h ho h1 h2 hn hc
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **Refusal:** the last byte of a Close's reason leaves a UTF-8 character unfinished. **C**.
+SECURITY_MAP C.4. -/
+theorem wsFrameAccept_reject_reason_unfinished (cap : Nat) (S : State Byte) (x : Byte) (h : S.phases = P 4)
+    (ho : S.opcode = 8#8)
+    (h1 : S.payloadFirst = 0#8) (h2 : S.payloadSecond = 0#8) (hn : wordValue S.high S.low = 1)
+    (i j : Nat) (hu : S.utfPhases = U i) (hd : delta i x = some j) (hj : j ≠ 0) :
+    (step fast cap S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseWebSocketAccept.reject_reason_unfinished cap S x h ho h1 h2 hn i j hu hd hj
+
+/-! #### Control frames into the control queue (`ParseWebSocketControlFrame.lean`) -/
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.KernelSpecs.ParseWebSocketControlFrame in
+open TlsMpc.KernelSpecs.ParseWebSocketControl (runC Idle kindOf reply blockSet) in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **A Ping or Close, from its bytes to the queued answer (RFC 6455 sections 5.5.1–5.5.2).** A Ping
+(9) or Close (8) with payload `q ++ [b]` (1 to 125 bytes; for a Close a valid code and UTF-8 reason),
+run through the frame parser from a frame boundary, its outputs fed to an idle control queue: the
+queue is idle again with `reply`'s answer appended (Pong for a Ping, Close for a Close; the length;
+the payload, zero-padded). **C**. SECURITY_MAP C.4. -/
+theorem wsControlFrame_control_queue (cap : Nat) (hcap : cap < 65536) (S : State Byte) (c : Ctx)
+    (hS : Boundary S c false)
+    (Q : TlsWebSocketControl.State Byte) (hQ : Idle Q) (o : Nat) (ho : o = 8 ∨ o = 9) (q : List Byte) (b : Byte)
+    (hp : (q ++ [b]).length ≤ 125) (hc : (q ++ [b]).length ≤ cap) (hclose : o = 8 → CloseBody (q ++ [b])) :
+    runC Q (List.zipWith cin (events cap S (controlFrame o (q ++ [b]))) (controlFrame o (q ++ [b]))) =
+      { valid := Q.valid, count := 0#8, data := List.replicate 125 0#8,
+        queued := BitVec.ofNat 8 (Q.queued.toNat + 1),
+        kinds := Q.kinds.set Q.queued.toNat (kindOf (BitVec.ofNat 8 o)),
+        lengths := Q.lengths.set Q.queued.toNat (BitVec.ofNat 8 (q ++ [b]).length),
+        payloads := blockSet Q.payloads Q.queued.toNat
+          ((q ++ [b]) ++ List.replicate (125 - (q ++ [b]).length) 0#8) } ∧
+    reply o (q ++ [b]) = some ((kindOf (BitVec.ofNat 8 o)).toNat, q ++ [b]) :=
+  TlsMpc.KernelSpecs.ParseWebSocketControlFrame.control_queue cap hcap S c hS Q hQ o ho q b hp hc hclose
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.KernelSpecs.ParseWebSocketControlFrame in
+open TlsMpc.KernelSpecs.ParseWebSocketControl (runC Idle kindOf reply blockSet) in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **A Pong leaves an idle queue as it is:** no answer is owed (section 5.5.3). **C**.
+SECURITY_MAP C.4. -/
+theorem wsControlFrame_control_queue_pong (cap : Nat) (hcap : cap < 65536) (S : State Byte) (c : Ctx)
+    (hS : Boundary S c false)
+    (Q : TlsWebSocketControl.State Byte) (hQ : Idle Q) (q : List Byte) (b : Byte)
+    (hp : (q ++ [b]).length ≤ 125) (hc : (q ++ [b]).length ≤ cap) :
+    runC Q (List.zipWith cin (events cap S (controlFrame 10 (q ++ [b]))) (controlFrame 10 (q ++ [b]))) = Q ∧
+    reply 10 (q ++ [b]) = none :=
+  TlsMpc.KernelSpecs.ParseWebSocketControlFrame.control_queue_pong cap hcap S c hS Q hQ q b hp hc
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.KernelSpecs.ParseWebSocketControlFrame in
+open TlsMpc.KernelSpecs.ParseWebSocketControl (runC Idle kindOf reply blockSet) in
+open TlsMpc.TlsWebSocketFrame (State step wordValue) in
+open PublicReceive (fast) in
+/-- **A Ping or Close with no payload:** the answer is queued with length 0. **C**.
+SECURITY_MAP C.4. -/
+theorem wsControlFrame_control_queue_empty (cap : Nat) (hcap : cap < 65536) (S : State Byte) (c : Ctx)
+    (hS : Boundary S c false)
+    (Q : TlsWebSocketControl.State Byte) (hQ : Idle Q) (o : Nat) (ho : o = 8 ∨ o = 9) :
+    runC Q (List.zipWith cin (events cap S (controlFrame o [])) (controlFrame o [])) =
+      { valid := Q.valid, count := 0#8, data := List.replicate 125 0#8,
+        queued := BitVec.ofNat 8 (Q.queued.toNat + 1),
+        kinds := Q.kinds.set Q.queued.toNat (kindOf (BitVec.ofNat 8 o)),
+        lengths := Q.lengths.set Q.queued.toNat 0#8,
+        payloads := blockSet Q.payloads Q.queued.toNat (List.replicate 125 0#8) } ∧
+    reply o [] = some ((kindOf (BitVec.ofNat 8 o)).toNat, []) :=
+  TlsMpc.KernelSpecs.ParseWebSocketControlFrame.control_queue_empty cap hcap S c hS Q hQ o ho
+
+/-! #### The reply sent (`ParseWebSocketReplies.lean`) -/
+
+open TlsMpc.KernelSpecs.ParseWebSocketFrame TlsMpc.KernelSpecs.ParseWebSocketAccept in
+open TlsMpc.KernelSpecs.ParseWebSocketControlFrame in
+open TlsMpc.KernelSpecs.ParseWebSocketControl (Idle kindOf blockSet clientFrame framesOf) in
+open PublicReceive (fast) in
+/-- **End to end, a Ping or Close gets RFC 6455's answer.** A Ping or Close (payload `q ++ [b]`, 1
+to 125 bytes) read by the frame parser from a frame boundary and fed to a fresh control queue: with
+that queue in the controller's state, `replies` sends exactly one masked client frame (section 5.3)
+carrying `reply`'s answer (Pong for a Ping, Close echoing a Close), masked with the first key. **C**.
+SECURITY_MAP C.4. -/
+theorem wsReplies_control_reply (cap : Nat) (hcap : cap < 65536) (S : TlsWebSocketFrame.State Byte) (c : Ctx)
+    (hS : Boundary S c false) (o : Nat) (ho : o = 8 ∨ o = 9) (q : List Byte) (b : Byte)
+    (hp : (q ++ [b]).length ≤ 125) (hc : (q ++ [b]).length ≤ cap) (hclose : o = 8 → CloseBody (q ++ [b]))
+    (s : PublicReceive.State) (mask : List Byte) (hmask : mask.length = 4) (rest : List (List Byte))
+    (hs : s.control = TlsWebSocketControl.stateBytes (TlsMpc.KernelSpecs.ParseWebSocketControl.runC
+      (TlsWebSocketControl.initial fast)
+      (List.zipWith cin (events cap S (controlFrame o (q ++ [b]))) (controlFrame o (q ++ [b]))))) :
+    framesOf (PublicReceive.replies s (mask :: rest)) =
+      [((kindOf (BitVec.ofNat 8 o)).toNat, clientFrame (kindOf (BitVec.ofNat 8 o)).toNat mask (q ++ [b]))] ∧
+    TlsMpc.KernelSpecs.ParseWebSocketControl.reply o (q ++ [b]) =
+      some ((kindOf (BitVec.ofNat 8 o)).toNat, q ++ [b]) :=
+  TlsMpc.KernelSpecs.ParseWebSocketReplies.control_reply cap hcap S c hS o ho q b hp hc hclose s mask hmask rest hs
+
+/-! #### The chat-response parser: the body's extent (`ParseChatResponse.lean`)
+
+`d`, `o` are `VarintDecode.Spqr.concrete` and `Word64.fast` (abbrevs in `ParseChatResponse`), the
+decoder and 64-bit word operations the controller runs the parser with. -/
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **The response parser marks exactly the body as body.** From a field key inside the inner
+response, with `rem` bytes of it and `bud` of the budget left, over the body field (key `22`, the
+length as a varint, a non-empty body) followed by more of the inner response: every event valid;
+`bodyData` exactly on the body's bytes (not on the key or the length); `bodyReset` exactly on the
+length's last byte; afterwards at a field key again with the counts lowered and the body's length
+recorded. **C**. SECURITY_MAP C.4. -/
+theorem chatResponse_body_field (S : RState) (hK : KeyIn S) (rem bud : Nat) (hr : rem < 2 ^ 64) (hb : bud < 2 ^ 64)
+    (hrem : S.responseRemaining = BitVec.ofNat 64 rem) (hbud : S.budget = BitVec.ofNat 64 bud)
+    (body : List Byte) (hne : body ≠ []) (hv9 : (varint body.length).length ≤ 9)
+    (hfit : (bodyField body).length < rem) (hbfit : (bodyField body).length ≤ bud) :
+    AllValid (sEvents S (bodyField body)) ∧
+    (sEvents S (bodyField body)).map (·.bodyData) =
+      List.replicate (1 + (varint body.length).length) 0#8 ++ List.replicate body.length 255#8 ∧
+    (sEvents S (bodyField body)).map (·.bodyReset) =
+      List.replicate (varint body.length).length 0#8 ++ [255#8] ++ List.replicate body.length 0#8 ∧
+    sFinal S (bodyField body) = { S with
+      modes := [255#8, 0#8, 0#8, 0#8], tag := 4#64, scalarKnown := 0#8, kinds := [0#8, 255#8, 0#8, 0#8],
+      responseRemaining := BitVec.ofNat 64 (rem - (bodyField body).length),
+      budget := BitVec.ofNat 64 (bud - (bodyField body).length), skip := 0#64, bodyPresent := 255#8,
+      bodyLength := BitVec.ofNat 64 body.length, utf := TlsWebSocketUpgrade.initial fast 7,
+      header := TlsChatResponse.headerInitial fast } :=
+  TlsMpc.KernelSpecs.ParseChatResponse.body_field S hK rem bud hr hb hrem hbud body hne hv9 hfit hbfit
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **The same when the body is the inner response's last field:** the parser leaves the inner
+response (`inner` 0, `responseRemaining` 0) at the body's last byte. **C**. SECURITY_MAP C.4. -/
+theorem chatResponse_body_field_close (S : RState) (hK : KeyIn S) (rem bud : Nat) (hr : rem < 2 ^ 64)
+    (hb : bud < 2 ^ 64)
+    (hrem : S.responseRemaining = BitVec.ofNat 64 rem) (hbud : S.budget = BitVec.ofNat 64 bud)
+    (body : List Byte) (hne : body ≠ []) (hv9 : (varint body.length).length ≤ 9)
+    (hfit : (bodyField body).length = rem) (hbfit : (bodyField body).length ≤ bud) :
+    AllValid (sEvents S (bodyField body)) ∧
+    (sEvents S (bodyField body)).map (·.bodyData) =
+      List.replicate (1 + (varint body.length).length) 0#8 ++ List.replicate body.length 255#8 ∧
+    (sEvents S (bodyField body)).map (·.bodyReset) =
+      List.replicate (varint body.length).length 0#8 ++ [255#8] ++ List.replicate body.length 0#8 ∧
+    sFinal S (bodyField body) = { S with
+      modes := [255#8, 0#8, 0#8, 0#8], tag := 4#64, scalarKnown := 0#8, kinds := [0#8, 255#8, 0#8, 0#8],
+      inner := 0#8, responseRemaining := 0#64,
+      budget := BitVec.ofNat 64 (bud - (bodyField body).length), skip := 0#64, bodyPresent := 255#8,
+      bodyLength := BitVec.ofNat 64 body.length, utf := TlsWebSocketUpgrade.initial fast 7,
+      header := TlsChatResponse.headerInitial fast } :=
+  TlsMpc.KernelSpecs.ParseChatResponse.body_field_close S hK rem bud hr hb hrem hbud body hne hv9 hfit hbfit
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **The controller's loop over the parser is `step` iterated:** for payload bytes that neither start
+nor end the message (flags `255 0 0`), feeding `runByte` the serialised state byte after byte gives
+`step`'s events and final state. **C**. SECURITY_MAP C.4. -/
+theorem chatResponse_respRun_active (cap : Nat) : ∀ (xs : List Byte) (S : RState), Shaped S →
+    respRun cap (TlsChatResponse.stateBytes o S) (xs.map (fun x => ([255#8, 0#8, 0#8], x))) =
+      ((sEvents S xs).map outBytes, TlsChatResponse.stateBytes o (sFinal S xs)) :=
+  TlsMpc.KernelSpecs.ParseChatResponse.respRun_active cap
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **`body_field` through the deployed `runByte`, as the controller runs it:** over the body field's
+bytes, output byte 0 (validity) is 255 throughout, byte 1 (`finished`) 0, byte 3 (`bodyData`) 255
+exactly on the body's bytes, byte 4 (`bodyReset`) exactly on the length's last byte. **C**.
+SECURITY_MAP C.4. -/
+theorem chatResponse_body_field_runByte (cap : Nat) (S : RState) (hK : KeyIn S) (rem bud : Nat) (hr : rem < 2 ^ 64)
+    (hb : bud < 2 ^ 64) (hrem : S.responseRemaining = BitVec.ofNat 64 rem) (hbud : S.budget = BitVec.ofNat 64 bud)
+    (body : List Byte) (hne : body ≠ []) (hv9 : (varint body.length).length ≤ 9)
+    (hfit : (bodyField body).length < rem) (hbfit : (bodyField body).length ≤ bud) :
+    let outs := (respRun cap (TlsChatResponse.stateBytes o S)
+      ((bodyField body).map (fun x => ([255#8, 0#8, 0#8], x)))).1
+    outs.map (fun out : List Byte => out.getD 0 0) = List.replicate (bodyField body).length 255#8 ∧
+    outs.map (fun out : List Byte => out.getD 1 0) = List.replicate (bodyField body).length 0#8 ∧
+    outs.map (fun out : List Byte => out.getD 3 0) =
+      List.replicate (1 + (varint body.length).length) 0#8 ++ List.replicate body.length 255#8 ∧
+    outs.map (fun out : List Byte => out.getD 4 0) =
+      List.replicate (varint body.length).length 0#8 ++ [255#8] ++ List.replicate body.length 0#8 :=
+  TlsMpc.KernelSpecs.ParseChatResponse.body_field_runByte cap S hK rem bud hr hb hrem hbud body hne hv9 hfit hbfit
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **Fail closed: a body length beyond the inner response.** A declared body length larger than what
+is left of the inner response drops the validity byte at the length's last byte, before any byte is
+reported as body. **C**. SECURITY_MAP C.4. -/
+theorem chatResponse_reject_body_length (S : RState) (hm : S.modes = [0#8, 0#8, 255#8, 0#8]) (j : Nat) (hj : j < 9)
+    (hp : S.positions = Pos j) (hi : S.inner = 255#8) (hS : Shaped S) (x : Byte) (hx : x.toNat < 128)
+    (hgt : (S.responseRemaining - 1).toNat < (S.value ||| TlsMpc.Signal.VarintDecode.Spqr.payload x j).toNat) :
+    (TlsChatResponse.step d o fast S x).state.valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseChatResponse.reject_body_length S hm j hj hp hi hS x hx hgt
+
+open TlsMpc.KernelSpecs.ParseChatResponse in
+open PublicReceive (fast) in
+/-- **Fail closed: a message that ends inside a field** (e.g. a truncated body) is not completed:
+`finish` drops the validity byte. **C**. SECURITY_MAP C.4. -/
+theorem chatResponse_reject_end_in_field (S : RState) (hm : S.modes = [0#8, 0#8, 0#8, 255#8]) :
+    (TlsChatResponse.finish o fast S).valid = 0#8 :=
+  TlsMpc.KernelSpecs.ParseChatResponse.reject_end_in_field S hm
+
+/-! #### Whole-message vectors (not restated)
+
+`TlsMpc/KernelSpecs/ParseChatResponseVectors.lean` runs the controller's loop (`respRun 16384`,
+the deployed `runByte` byte by byte) over three whole WebSocket messages and pins every output and
+the final state: `vA_run`, `vB_run`, `vC_run` (with `vA_extent`, `vB_extent`, `vC_extent`: `bodyData`
+is 255 exactly on the bytes the reference decoder `wsMessage` puts in the body; and `vA_reference`,
+`vB_reference`, `vC_reference`: what that decoder reads). Not imported here: checking that file is
+too heavy for this one. **C**. SECURITY_MAP C.4. -/
+
+/-! ### 4f. The reveal policy (T1, Policy/ReceiveProofs.lean)
+
+`TlsMpc/Node/Policy/ReceiveProofs.lean` (proof track P1). The record loop `recordLoop` /
+`streamRun` is a Lean model of the controller's `record` loop (handshake_backend/EmpHybridWork/
+PublicServiceController.lean): it reveals a run first and checks it after. The functions it calls
+(`scan`, `replyScan`, `budget`, `mayReveal`, `passRun`, `passBulk`) are the controller's own
+(`TlsMpc/Node/Policy/Receive.lean`). `scanBody` / `replyScanBody` are the scanners' loop bodies
+written out, proved equal to the loops by `scan_eq` / `replyScan_eq`. Not proved here: the per-byte
+glue (that `step` keeps `request`/`reply` equal to the message so far and sets `skip` from the
+scanners' answer), and `T1` for every stream (checked by `ReceiveTest`). End-to-end runs of the loop
+on the two former too-long-varint counterexamples, `ReceiveTest.overlongRequest_refused` and
+`ReceiveTest.overlongResponse_refused` (`TlsMpc/Node/Policy/ReceiveTest.lean`), are not restated: that
+file is too heavy to import here. -/
+
+/-- **A body being passed over is never revealed, across records.** If the loop starts a record at
+stream position `base` with `skip = n`, none of the positions `base, …, base + n - 1` is ever
+revealed, however the rest of the stream is cut into records. **M** (the loop is a model of the
+controller's `record`; the steps it calls are **C**). SECURITY_MAP C.4. -/
+theorem receivePolicy_go_skip : ∀ (records : List (List PublicReceive.Byte)) (s : PublicReceive.State) (base : Nat)
+    (acc : List Nat),
+    ∀ q ∈ (ReceiveProofs.streamRun.go s records base acc).1, q ∈ acc ∨ base + s.skip ≤ q :=
+  ReceiveProofs.go_skip
+
+/-- **Within one record:** if the loop reaches `offset` with `skip > 0`, it reveals none of the next
+`min skip (bytes left)` positions. **M** (as `go_skip`). SECURITY_MAP C.4. -/
+theorem receivePolicy_recordLoop_skip (fuel : Nat) (s : PublicReceive.State) (bytes : List PublicReceive.Byte)
+    (offset base : Nat) (acc : List Nat)
+    (hs : 0 < s.skip) (ho : offset < bytes.length) :
+    ∀ q ∈ (ReceiveProofs.recordLoop (fuel + 1) s bytes offset base acc).1,
+      q ∈ acc ∨ (base + offset + min s.skip (bytes.length - offset) ≤ q ∧ q < base + bytes.length) :=
+  ReceiveProofs.recordLoop_skip fuel s bytes offset base acc hs ho
+
+/-- **A server request's body is found exactly and no run reaches it.** For a server request in the
+server's layout (verb, path, body key and length; any verb and path bytes, any varint encodings of at
+most 10 bytes): on every proper prefix of its head, `scan` asks for more (neither skips nor refuses)
+and the controller's next run (`budget`) ends at or before the body's first byte; at the end of the
+body's length, `scan` says to pass over exactly the body. With `go_skip`: no body byte is revealed.
+**C**. SECURITY_MAP C.4. -/
+theorem receivePolicy_request_body_unrevealed {lw vv verb pv path bv : List PublicReceive.Byte} {L n : Nat}
+    (hl : ReceiveProofs.Varint lw L) (hl10 : lw.length ≤ 10) (hv : ReceiveProofs.Varint vv verb.length)
+    (hv10 : vv.length ≤ 10)
+    (hp : ReceiveProofs.Varint pv path.length) (hp10 : pv.length ≤ 10) (hb : ReceiveProofs.Varint bv n)
+    (hb10 : bv.length ≤ 10)
+    (hn : 0 < n) :
+    (∀ (s : PublicReceive.State) (k : Nat), 2 ≤ k → k < (ReceiveProofs.requestHead lw vv verb pv path bv).length →
+      s.request = (ReceiveProofs.requestHead lw vv verb pv path bv).take k → s.upgraded = true →
+      (PublicReceive.get s.frame 0 == PublicReceive.on) = false →
+      (PublicReceive.get s.frame 2 == PublicReceive.on) = false →
+      (PublicReceive.get s.frame 4 == PublicReceive.on) = true →
+      (PublicReceive.get s.frame 10).toNat * 256 + (PublicReceive.get s.frame 11).toNat ≠ 0 →
+      (PublicReceive.get s.frame 7).toNat < 8 → s.message = [8, 1] →
+      (PublicReceive.scan s.request false).1 = .more ∧
+        k + PublicReceive.budget s ≤ (ReceiveProofs.requestHead lw vv verb pv path bv).length) ∧
+    PublicReceive.scan (ReceiveProofs.requestHead lw vv verb pv path bv) false =
+      (.skip n, { verb, path, id := none, body := some n }) :=
+  ReceiveProofs.request_body_unrevealed hl hl10 hv hv10 hp hp10 hb hb10 hn
+
+/-- **The same for a response** (id, status, message, body; e.g. the `200` to a prekey fetch, whose
+body is the contact's bundle): no run reaches the body, and at the end of its length `replyScan` says
+to pass over exactly the body, with the id and status read. **C**. SECURITY_MAP C.4. -/
+theorem receivePolicy_response_body_unrevealed {lw iv sv mv msg bv : List PublicReceive.Byte} {L i st n : Nat}
+    (hl : ReceiveProofs.Varint lw L) (hl10 : lw.length ≤ 10) (hi : ReceiveProofs.Varint iv i)
+    (hi10 : iv.length ≤ 10)
+    (hs : ReceiveProofs.Varint sv st) (hs10 : sv.length ≤ 10) (hm : ReceiveProofs.Varint mv msg.length)
+    (hm10 : mv.length ≤ 10)
+    (hb : ReceiveProofs.Varint bv n) (hb10 : bv.length ≤ 10) (hn : 0 < n) :
+    (∀ (s : PublicReceive.State) (k : Nat), 2 ≤ k → k < (ReceiveProofs.responseHead lw iv sv mv msg bv).length →
+      s.reply = (ReceiveProofs.responseHead lw iv sv mv msg bv).take k → s.openBody = false →
+      s.upgraded = true →
+      (PublicReceive.get s.frame 0 == PublicReceive.on) = false →
+      (PublicReceive.get s.frame 2 == PublicReceive.on) = false →
+      (PublicReceive.get s.frame 4 == PublicReceive.on) = true →
+      (PublicReceive.get s.frame 10).toNat * 256 + (PublicReceive.get s.frame 11).toNat ≠ 0 →
+      (PublicReceive.get s.frame 7).toNat < 8 → s.message = [8, 2] →
+      (PublicReceive.replyScan s.reply false s.openBody).1 = .more ∧
+        k + PublicReceive.budget s ≤ (ReceiveProofs.responseHead lw iv sv mv msg bv).length) ∧
+    PublicReceive.replyScan (ReceiveProofs.responseHead lw iv sv mv msg bv) false false =
+      (.skip n, { id := some i, status := some st, body := some n }) :=
+  ReceiveProofs.response_body_unrevealed hl hl10 hi hi10 hs hs10 hm hm10 hb hb10 hn
+
+/-- **Fail closed: a too-long varint after a key is refused** (`scan`'s loop, at the varint's 10th
+byte: `malformed`). **C**. SECURITY_MAP C.4. -/
+theorem receivePolicy_scanBody_tooLong {bytes rest : List PublicReceive.Byte} {tag : PublicReceive.Byte} {b : Bool}
+    {x : Option (PublicReceive.Need × PublicReceive.Fields)}
+    {f : PublicReceive.Fields} {pos : Nat} (ht : tag = 0x0a ∨ tag = 0x12 ∨ tag = 0x2a ∨ tag = 0x1a ∨ tag = 0x20)
+    (h : bytes.drop pos = tag :: rest) (hl : PublicReceive.varintTooLong bytes (pos + 1) = true) :
+    ReceiveProofs.scanBody bytes b ⟨x, f, pos⟩ = .done ⟨some (.malformed, f), f, pos⟩ :=
+  ReceiveProofs.scanBody_tooLong ht h hl
+
+/-- **Fail closed: a too-long wrapper length is refused** (`scan` of a server request). **C**.
+SECURITY_MAP C.4. -/
+theorem receivePolicy_scan_wrapper_tooLong (bytes : List PublicReceive.Byte) (b : Bool)
+    (hk : (bytes.take 2 == [8, 1] && PublicReceive.get bytes 2 == 0x12) = true)
+    (h : PublicReceive.varintTooLong bytes 3 = true) : (PublicReceive.scan bytes b).1 = .malformed :=
+  ReceiveProofs.scan_wrapper_tooLong bytes b hk h
+
+/-- **Fail closed: a too-long varint after a key is refused** (`replyScan`'s loop, at the varint's
+10th byte). **C**. SECURITY_MAP C.4. -/
+theorem receivePolicy_replyScanBody_tooLong {bytes rest : List PublicReceive.Byte} {tag : PublicReceive.Byte}
+    {x : Option (PublicReceive.Need × PublicReceive.ReplyFields)}
+    {f : PublicReceive.ReplyFields} {pos : Nat} {b i : Bool}
+    (ht : tag = 0x08 ∨ tag = 0x10 ∨ tag = 0x1a ∨ tag = 0x2a ∨ tag = 0x22)
+    (h : bytes.drop pos = tag :: rest) (hl : PublicReceive.varintTooLong bytes (pos + 1) = true) :
+    ReceiveProofs.replyScanBody bytes b i ⟨x, f, pos⟩ = .done ⟨some (.malformed, f), f, pos⟩ :=
+  ReceiveProofs.replyScanBody_tooLong ht h hl
+
+/-- **Fail closed: a too-long wrapper length is refused** (`replyScan` of a response). **C**.
+SECURITY_MAP C.4. -/
+theorem receivePolicy_replyScan_wrapper_tooLong (bytes : List PublicReceive.Byte) (b i : Bool)
+    (hk : (bytes.take 2 == [8, 2] && PublicReceive.get bytes 2 == 0x1a) = true)
+    (h : PublicReceive.varintTooLong bytes 3 = true) : (PublicReceive.replyScan bytes b i).1 = .malformed :=
+  ReceiveProofs.replyScan_wrapper_tooLong bytes b i hk h
+
 /-! ## 5. State and ordering (SECURITY_MAP C.4, C.5)
 
 What is stored, when state advances, and that sequence numbers are not reused. The send-side
@@ -3977,7 +4434,7 @@ theorem fieldBits_maskPair_eval (input : Nat → F) :
 open TlsMpc.EdwardsShare TlsMpc.FieldDag in
 /-- **The `edwards-on-curve` program is the Edwards curve equation's residual.** **K**
 (`split_ecdh.h`). That it opens to 0 only on curve points needs the converse (P-SPLIT(b)).
-Formulas only (H-GROUP). -/
+Formulas only (H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). -/
 theorem edwards_onCurve_eval (input : Nat → F) :
     onCurve.eval input =
       ofNat 121666 * (input 1 * input 1 - input 0 * input 0 - ofNat 1) +
@@ -3986,7 +4443,7 @@ theorem edwards_onCurve_eval (input : Nat → F) :
 
 open TlsMpc.EdwardsShare TlsMpc.FieldDag in
 /-- **The `edwards-add-u` program computes the numerator and denominator of the Montgomery u of
-a sum.** **K** (`split_ecdh.h`). Formulas only (H-GROUP). -/
+a sum.** **K** (`split_ecdh.h`). Formulas only (H-GROUP: the group law is proved in `proofs/`, `SecurityMathlib.lean` section 7). -/
 theorem edwards_addU_eval (input : Nat → F) :
     addU.map (Expr.eval input) =
       [ofNat 121666 + ofNat 121665 * (input 0 * input 2 * (input 1 * input 3)) +
@@ -4217,8 +4674,10 @@ theorem offsetAgreement_candidate_needs_initial {G : Type} [Lean.Grind.IntModule
 /-! ## 7. Flows and channels
 
 The first flow theorems are in 7a (stage S9: T12, the open rule, P-RAND, T4-UPGRADE, about the
-model). The other flows and channels have none yet (T3, T4-x, T9–T11, section 8). Below: a
-structural fact about the TLS client. -/
+model). The contact and account flows' T3/T4-CONTACT/T10 theorems (`Flows/Contacts*.lean`,
+`Account.lean`, under `Contacts.Loaded`) are to be restated here once those files build again (their
+engine dependency was being changed when stage S5 ended). The channels: 7-channels (stage S5; T9
+by type). The other flows have none yet (T3, T4-x, T11, section 8). Below: a structural fact about the TLS client. -/
 
 open TlsMpc.TlsClient in
 /-- **Any TLS `Session` value records that the server certificate and the server Finished were
@@ -4227,6 +4686,30 @@ supply), not a statement about what the handshake checked. SECURITY_MAP C.4. -/
 theorem tlsClient_accepted_session_authenticated {S : Type} (session : Session S) :
     session.serverCertificateVerified = true ∧ session.serverFinishedVerified = true :=
   TlsMpc.TlsClient.accepted_session_authenticated session
+
+/-! ### 7-channels. What leaves a node's controller (stage S5; plan sections 2.1, 3)
+
+`TlsMpc/Node/Messages.lean` lists every message type of the controller's channels (the other
+node `PeerMsg`, the database client `DbCall`, the daemon `DaemonLine`, the event record
+`RecordEvent`, standard error `LogLine`, the journal, public and share files, the certificate
+checker, the ceremony's child session), each with its encoder; `TlsMpc/Node/Channels.lean` is the
+only controller file that performs I/O (`scripts/lint_node.py`, check `io-baseline`, strict for
+the controller and `TlsMpc/Node`).
+
+**T9 by type (C, a build check, not a theorem).** No constructor of a type declared in
+`Messages.lean` mentions `TlsMpc.Node.Secret`, `TlsMpc.Node.Handle` or
+`TlsMpc.TlsWorker.BufferHandle`, directly or through any repository type it uses:
+`Messages.checkPublic`, run at the end of that file, fails the build otherwise (and the lint's
+`message-fields` check rejects the words there). `PeerMsg.flow` (own-secret openings, only from
+`Reveal.lean`) does not exist yet (S6/S9). -/
+
+/-- **A peer's reply is read as a message of the kind this node sent** (plan 3.2: "the reply's
+constructor is checked here"): whatever bytes the other controller sends back through the
+worker's exchange, `Channels.exchange` decodes them as the same `PeerMsg` constructor, or the
+session ends. **C**. -/
+theorem peerMsg_reply_kind {mine reply : TlsMpc.Node.PeerMsg} {theirs : TlsMpc.TlsWire.Bytes}
+    (h : TlsMpc.Node.PeerMsg.decodeReply mine theirs = .ok reply) : reply.name = mine.name :=
+  TlsMpc.Node.PeerMsg.decodeReply_kind h
 
 /-! ### 7a. The engine instruction set, its model, and the first flows (stage S9)
 
@@ -4503,13 +4986,25 @@ the matching section above in the same commit.
   the ideal model with both parties honest, the flow's result equals its specification.
   → **S9** (CONTACT), **S12** (TLS), **S13** (SEND), **S14** (RECV), **S15** (REFRESH), **S16**
   (UPGRADE, CEREMONY).
-* **T9** — peer messages are public (by types; `PeerMsg.flow` only from `Reveal.lean`). → **S5**.
+* **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
+  `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S6/S9).
+* **`Contacts.Loaded E`** (`TlsMpc/Node/Flows/ContactsBase.lean`), the trust behind every
+  contact/account entry of section 7a that takes `hE : Loaded E`: the environment's circuit named
+  `contact-key` is `kernelCircuit HybridKernel.contactKey 64 keyMarks` (480 output bits, never
+  opened), and for every size N from 1 to 16384 `contact-seal N` is
+  `kernelCircuit (HybridKernel.contactSeal N) (68 + N) (sealMarks N)` (8N + 128 public bits) and
+  `contact-open N` is `kernelCircuit (HybridKernel.contactOpen N) (84 + N) (openMarks N)` (8 public
+  bits, then 8N never opened). That is, the pinned circuits the worker loads under those names
+  compute their Lean kernels with these open marks: the T2 correspondence for these three kernels.
+  Open. → **P3** (with T2). Not covered by `Loaded`: the `xor-bit` circuit that `Account.opSeal`
+  runs on two credential shares.
 * **T12** — skeleton determinism of scripts: proved for the model (section 7a,
   `engine_T12_skeleton_determinism`); T4-UPGRADE for honest parties likewise (`upgrade_honest`).
 
 ### Affected by the Mathlib decision (owner, 2026-11-12)
 Mathlib may be used by proof-only modules in a separate library that no executable imports. The
-Edwards group law (H-GROUP) stays a hypothesis. This changes the following items:
+Edwards group law (H-GROUP) was a hypothesis; discharged later the same day, see below. This
+changes the following items:
 * **H-QR** (2 is a non-square mod p; Euler's criterion for p = 2²⁵⁵ − 19) becomes a theorem, so
   **P-HINT(b)** ((r, b) ↦ q·r²·2ᵇ covers F∖{0} four-to-one) loses that hypothesis. → **S11**,
   Mathlib library.
@@ -4543,7 +5038,7 @@ Edwards group law (H-GROUP) stays a hypothesis. This changes the following items
     within (ℓ − 2²⁵²)/ℓ of uniform on G (`deployed_key_close_uniform`); ℓ prime (`prime_order`,
     Pocklington); (ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷ (`order_gap_lt`), so `ed25519_key_close`,
     `ed25519_key_close_uniform` (2⁻¹²⁷) and `ed25519_keys_close` (k messages, k·2⁻¹²⁷).
-    Hypotheses: H-GROUP, `idealCommit` (fixed peer value per message). Open: P-OFFSET about the
+    Hypotheses: `idealCommit`; `P ≠ 0`, `ℓ·P = 0` for the recipient point. Open: P-OFFSET about the
     C++ `step` (the digit recoding).
   - Receive: `Unpad.decode` is PKCS#7 unpadding (`unpad_decode_padded`, `unpad_decode_unpadded`,
     `unpad_decode_accepts_iff`). Open: value forms of `varintValue` (widths 2–5) and
@@ -4551,6 +5046,15 @@ Edwards group law (H-GROUP) stays a hypothesis. This changes the following items
   - Cut-and-choose, for the model: `cut_and_bucket_probability`, `cut_bound_le_bound_one`,
     `*_bound_all_t`, `*_undetected_lt` (every bad set < 2⁻¹²⁸ for 2¹⁹/8, 256/14, 512/13,
     1024/12). P-CUT(d)–(f), i.e. that the C++ generators implement the model, remain (S10).
+  - H-GROUP (section 7): the group law, the main-package formulas in it, base point of order
+    exactly ℓ, the offset and masked-point theorems instantiated
+    (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`,
+    `curve_hinted_Z_uniform`, `curve_maskedAgreement_mask_hides`), `x25519_spec_scalar_mult`.
+  - H-GROUP, chains and Montgomery side (sections 7c–7e): `x25519_u_zero`,
+    `x25519_spec_scalar_mult_all`, `x25519_clampedScalar_rfc`, `window_table`, `bitTable_entries`,
+    `offsetSum_scalar_mult` (with `recode_offset`), `bitSum_is_x25519`,
+    `prepareHinted_initial_point`, `xeddsa_doubleScalar`, `montQ_square_iff`,
+    `liftPoint_valid_point`, `liftPoint_invalid_point`. Open: `#E = 8ℓ`, X25519 on the twist.
 * Not affected: everything in sections 1–7 above is proved without Mathlib and stays so; the
   executables' import closure must stay Mathlib-free.
 -/
@@ -4935,6 +5439,36 @@ inside `TlsPrivateSeal.seal_status`). Their axioms answer whether `bv_decide` ne
 #print axioms TlsMpc.TlsWebSocketActivity.activity_valid
 #print axioms TlsMpc.TlsPrivateSeal.build_correct
 #print axioms TlsMpc.TlsPrivateSeal.seal_status
+#print axioms TlsMpc.Security.wsFrameAccept_frame_accept
+#print axioms TlsMpc.Security.wsFrameAccept_frame_exact
+#print axioms TlsMpc.Security.wsFrameAccept_frames_accept
+#print axioms TlsMpc.Security.wsFrameAccept_closeCode_value
+#print axioms TlsMpc.Security.wsFrameAccept_utf8_drun
+#print axioms TlsMpc.Security.wsFrameAccept_reject_close_one
+#print axioms TlsMpc.Security.wsFrameAccept_reject_message_full
+#print axioms TlsMpc.Security.wsFrameAccept_reject_reason
+#print axioms TlsMpc.Security.wsFrameAccept_reject_close_code
+#print axioms TlsMpc.Security.wsFrameAccept_reject_reason_code
+#print axioms TlsMpc.Security.wsFrameAccept_reject_reason_unfinished
+#print axioms TlsMpc.Security.wsControlFrame_control_queue
+#print axioms TlsMpc.Security.wsControlFrame_control_queue_pong
+#print axioms TlsMpc.Security.wsControlFrame_control_queue_empty
+#print axioms TlsMpc.Security.wsReplies_control_reply
+#print axioms TlsMpc.Security.chatResponse_body_field
+#print axioms TlsMpc.Security.chatResponse_body_field_close
+#print axioms TlsMpc.Security.chatResponse_respRun_active
+#print axioms TlsMpc.Security.chatResponse_body_field_runByte
+#print axioms TlsMpc.Security.chatResponse_reject_body_length
+#print axioms TlsMpc.Security.chatResponse_reject_end_in_field
+#print axioms TlsMpc.Security.receivePolicy_go_skip
+#print axioms TlsMpc.Security.receivePolicy_recordLoop_skip
+#print axioms TlsMpc.Security.receivePolicy_request_body_unrevealed
+#print axioms TlsMpc.Security.receivePolicy_response_body_unrevealed
+#print axioms TlsMpc.Security.receivePolicy_scanBody_tooLong
+#print axioms TlsMpc.Security.receivePolicy_scan_wrapper_tooLong
+#print axioms TlsMpc.Security.receivePolicy_replyScanBody_tooLong
+#print axioms TlsMpc.Security.receivePolicy_replyScan_wrapper_tooLong
+#print axioms TlsMpc.Security.peerMsg_reply_kind
 
 /-! Which restated entries depend (transitively, through any proof or definition) on a constant
 proved by `bv_decide`. Prints one line per such entry; the script records them. -/

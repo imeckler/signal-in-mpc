@@ -4,25 +4,32 @@ import TlsMpc.Node.Policy.Recovery
 # `public_service_controller parse-bench` (measurement only)
 
 Moved unchanged from the controller (`handshake_backend/EmpHybridWork/PublicServiceController.lean`,
-which opens this namespace and calls `parseBench`) in REORGANIZATION_PLAN.md stage S2. Its console
-output and clock reads moved with it (`scripts/lint_node_baseline.json`). No emitter imports this
-module.
+which opens this namespace and calls `parseBench`) in REORGANIZATION_PLAN.md stage S2. Since S5 its
+console output and clock reads are given to it (`BenchIO`, from `Channels.Real.benchIO`). No emitter
+imports this module.
 -/
 
 namespace TlsMpc.Node.Bench
 open TlsMpc TlsMpc.Signal
 
+/-- What the bench needs from the process (stage S5: given by `Channels.Real.benchIO`, so this file
+has no I/O primitive): a zero the compiler cannot see, a nanosecond clock, a line to stdout. -/
+structure BenchIO where
+  zero : IO Nat
+  clock : IO Nat
+  say : String → IO Unit
+
 /-- Measurement only (`public_service_controller parse-bench`): the cost per byte of the
 parsers this controller runs on revealed bytes. -/
-def parseBench : IO Unit := do
-  let zero ← IO.rand 0 0   -- not a compile-time constant, so nothing is evaluated ahead
+def parseBench (io : BenchIO) : IO Unit := do
+  let zero ← io.zero   -- not a compile-time constant, so nothing is evaluated ahead
   let frame := TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.start PublicReceive.fast PublicReceive.capacity)
   let control := TlsWebSocketControl.stateBytes (TlsWebSocketControl.initial PublicReceive.fast)
   let response := TlsChatResponse.stateBytes Word64.fast
     (TlsChatResponse.initial Word64.fast PublicReceive.fast PublicReceive.capacity (BitVec.ofNat 64 5))
   let upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
-  let clock : IO Nat := IO.monoNanosNow
-  let say : String → IO Unit := IO.println
+  let clock : IO Nat := io.clock
+  let say : String → IO Unit := io.say
   let time (name : String) (rounds : Nat) (run : Nat → Nat) : IO Unit := do
     let start ← clock
     let mut sum := 0

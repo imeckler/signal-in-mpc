@@ -16,6 +16,11 @@ Checks:
                         scripts/lint_node_baseline.json (today's sites); a new site, or a site
                         in a file new to the closure, fails. Since S4, `IO.getEnv` appears exactly
                         once in the closure: in `Config.read`, TlsMpc/Node/Channels.lean.
+                        Since S5 (strict): the controller's own file and every other module under
+                        TlsMpc/Node may have NO site, and the baseline may not list them; what is
+                        left in the baseline is the worker pipe (TlsWorker, TlsWorkerProcess: later
+                        `Worker.lean` and the flow API, stages S6-S9). A `Namespace.metadata`-style
+                        call (an uppercase qualifier) is not counted as a FilePath dot call.
   escape-hatches (b)    No sorry, admit, native_decide, bv_decide, ofReduceBool, implemented_by,
                         extern, unsafe, opaque, axiom, csimp, skipKernelTC or partial def in
                         TlsMpc/Node (plan, rule 6 and section 4.1).
@@ -27,8 +32,10 @@ Checks:
                         TlsMpc/Node/Secret.lean, its field and constructor being private) only in
                         the eliminators' files (plan 4.1): Secret.lean, Engine.lean, Channels.lean,
                         Reveal.lean, Local/*.
-  message-fields (d)    Off until S5. Messages.lean mentions neither `Secret` nor `Handle`
-                        (plan 3.1; S5 adds the `#guard`-style check inside Lean as well).
+  message-fields (d)    On since S5. Messages.lean mentions neither `Secret` nor `Handle` outside
+                        comments and strings (plan 3.1). Inside Lean, `Messages.checkPublic` (run at
+                        the end of Messages.lean, so the build fails) checks the same by type,
+                        transitively through every repository type a message field uses.
 
 Comments and string literals are ignored. Patterns are textual: an `open IO.FS` (or similar)
 followed by an unprefixed call would hide a site, so such an `open` is itself reported as a
@@ -44,7 +51,10 @@ IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
 CONFIG_READER = 'TlsMpc/Node/Channels.lean'   # Config.read, the one IO.getEnv (stage S4)
 SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
 ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
-DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
+# Stage S5 (strict): files that may have no I/O site at all, whatever the baseline says: the
+# controller and every module under TlsMpc/Node except the allowed ones.
+STRICT_FILES = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
 
 
 # ---- Lean source without comments and string literals (newlines kept, so lines still count).
@@ -165,6 +175,9 @@ IO_STDIO_VALUES = re.compile(r'^IO\.(FS\.Mode|Process\.Stdio)\.')
 OPEN_IO = re.compile(r'^\s*open\b[^\n]*\b(IO(\.FS|\.Process)?|System\.FilePath|Std\.Time)\b(?!\.)', re.M)
 
 
+QUALIFIER = re.compile(r'(?:^|[^\w.\'])([A-Z][\w\']*)$')
+
+
 def io_sites(rel):
     text = source(rel)
     sites = []
@@ -172,6 +185,10 @@ def io_sites(rel):
         for m in pattern.finditer(text):
             label = name(m)
             if IO_STDIO_VALUES.match(label):
+                continue
+            # `Namespace.metadata` (a function of a namespace, e.g. `Establish.metadata`) is not a
+            # `System.FilePath` method called on a value: only dot calls on values count (S5).
+            if label.endswith('(dot call)') and QUALIFIER.search(text[max(0, m.start() - 80):m.start()]):
                 continue
             sites.append((label, line_of(text, m.start())))
     opens = [(m.group(0).strip(), line_of(text, m.start())) for m in OPEN_IO.finditer(text)]
@@ -210,7 +227,7 @@ def check_io(report):
     for rel, per in counts.items():
         if rel in IO_ALLOWED:
             continue
-        allowed = baseline.get(rel, {})
+        allowed = {} if STRICT_FILES.search(rel) else baseline.get(rel, {})
         for label, count in per.items():
             if count > allowed.get(label, 0):
                 where = [line for l, line in io_sites(rel)[0] if l == label]
@@ -219,7 +236,9 @@ def check_io(report):
             if per.get(label, 0) < count:
                 lower.append(f'{rel}: {label} {per.get(label, 0)} < baseline {count}')
     for rel, entries in baseline.items():
-        if rel not in counts and rel not in IO_ALLOWED:
+        if STRICT_FILES.search(rel) and rel not in IO_ALLOWED:
+            findings.append(f'io-baseline: {rel} is strict since S5 (no I/O site allowed); the baseline must not list it')
+        elif rel not in counts and rel not in IO_ALLOWED:
             lower.append(f'{rel}: no sites now (baseline lists {sum(entries.values())})')
     # Stage S4: `Config.read` (TlsMpc/Node/Channels.lean) is the only reader of the environment.
     readers = [(rel, line) for rel in counts for label, line in io_sites(rel)[0] if label == 'IO.getEnv']
@@ -254,7 +273,7 @@ def update_baseline():
     data = dict(
         about='I/O primitive sites per file of the controller\'s import closure (scripts/lint_node.py, check io-baseline). '
               'A count may only go down. Rewrite with --update-baseline after a stage moved sites into TlsMpc/Node/Channels.lean.',
-        sites={rel: per for rel, per in counts.items() if rel not in IO_ALLOWED})
+        sites={rel: per for rel, per in counts.items() if rel not in IO_ALLOWED and not STRICT_FILES.search(rel)})
     with open(BASELINE, 'w') as f:
         f.write(json.dumps(data, indent=1, sort_keys=True) + '\n')
     print(f'wrote {os.path.relpath(BASELINE, ROOT)}: {sum(sum(p.values()) for p in data["sites"].values())} sites in {len(data["sites"])} files')
