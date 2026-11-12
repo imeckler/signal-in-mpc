@@ -1,6 +1,11 @@
 import TlsMpc.FieldDagV3
 import TlsMpc.FieldBits
+import TlsMpc.X25519Fast
 import TlsMpc.EdwardsShare
+import TlsMpc.EdwardsAffine
+import TlsMpc.EstablishField
+import TlsMpc.ReceiveField
+import TlsMpc.EdwardsHinted
 
 /-!
 # The V3 field programs: declarations, P-FIELDPROG and P-INV (d) per program
@@ -116,8 +121,117 @@ theorem onCurve_fieldprog (hinv : FieldInverse) (p : Program) (hp : onCurve.prog
   rw [Decl.values hinv onCurve p hp input mask outs opened h]
   rfl
 
+/-! ## Every exported V3 program (the emitter's mode `v3 NAME`)
+
+The roles say which outputs the C++ flows of today open publicly (`checked_open` to both parties),
+surveyed per program from `handshake_backend/EmpHybridWork` (FIELD_PROGRAMS_V3.md has the
+evidence): those are `check` (public); everything else is `secret`. `field-mask-pair` has no V3
+form: its job (opening `z·r` and dividing in C++) is the `Z` row of `field-quotient`
+(`FieldDagV3.quotient`). Outputs that a flow opens only after multiplying by a mask through the
+quotient stay `secret` (the quotient opens `z·m` itself). `xeddsa-recover`'s outputs are opened
+today only when its input is public (the server key), where S11 evaluates the Lean definition
+locally instead, so they are `secret` here. -/
+
+/-- The first `k` of `n` outputs public, the rest secret. -/
+def firstPublic (k n : Nat) : List Role := List.replicate k .check ++ List.replicate (n - k) .secret
+
+def secretAll (n : Nat) : List Role := List.replicate n .secret
+
+/-- A declaration whose first `k` outputs are public. -/
+def first (name : String) (inputs : Nat) (exprs : List Expr) (k : Nat) : Decl :=
+  ⟨name, inputs, exprs, firstPublic k exprs.length⟩
+
+/-- The declaration of an exported program, by name. -/
+def find : String → Option Decl
+  | "field-bit-check" => some bitCheck
+  | "field-bit-xor" => some (first "field-bit-xor" 2 [FieldBits.bitXor] 0)
+  | "field-recompose" => some (first "field-recompose" 256 [FieldBits.recompose] 1)
+  | "x25519-fast" => some (first "x25519-fast" 257 X25519Fast.exprs 0)
+  | "edwards-on-curve" => some onCurve
+  | "edwards-add-u" => some (first "edwards-add-u" 4 EdwardsShare.addU 0)
+  | "edwards-prepare" =>
+    some (first "edwards-prepare" (2 + 2 * EdwardsAffine.scalarBits) EdwardsAffine.prepare EdwardsAffine.prepareChecks)
+  | "edwards-offset-sum" => some (first "edwards-offset-sum" (2 + 3 * EdwardsAffine.windows) EdwardsAffine.offsetSum 0)
+  | "xeddsa-recover" => some (first "xeddsa-recover" 1 EstablishField.recover 0)
+  | "xeddsa-check" => some (first "xeddsa-check" 512 EstablishField.check 0)
+  | "receive-torsion" => some (first "receive-torsion" 2 ReceiveField.torsion 0)
+  -- w (opened after the checks), the two bit checks, the two curve checks; b secret
+  | "lift-open" => some ⟨"lift-open", 8, EdwardsHinted.liftOpen (), firstPublic 5 6⟩
+  -- valid (opened by Hinted::prepare), the point (secret), Z = P + M_A + M_B (opened)
+  | "lift-point" => some ⟨"lift-point", 9, EdwardsHinted.liftPoint (), [.check, .secret, .secret, .check, .check]⟩
+  | "edwards-prepare-hinted" =>
+    some (first "edwards-prepare-hinted" EdwardsHinted.prepareInputs (EdwardsHinted.prepareHinted ())
+      EdwardsHinted.prepareHintedChecks)
+  | "edwards-offset-sum-fast" =>
+    some (first "edwards-offset-sum-fast" (2 + 3 * EdwardsAffine.windows) (EdwardsHinted.offsetSumFast ()) 0)
+  | "edwards-bit-table" =>
+    some (first "edwards-bit-table" EdwardsHinted.bitTableInputs (EdwardsHinted.bitTable ())
+      (2 * (EdwardsAffine.windows - 1)))
+  | "edwards-bit-sum" => some (first "edwards-bit-sum" EdwardsHinted.bitSumInputs (EdwardsHinted.bitSum ()) 0)
+  | "edwards-affine-bit-sum" =>
+    some (first "edwards-affine-bit-sum" EdwardsHinted.affineBitSumInputs (EdwardsHinted.affineBitSum ()) 0)
+  | "edwards-signature-sum" =>
+    some (first "edwards-signature-sum" EdwardsHinted.signatureSumInputs (EdwardsHinted.signatureSum ()) 0)
+  | "edwards-torsion-hinted" => some (first "edwards-torsion-hinted" 7 (EdwardsHinted.torsionHinted ()) 0)
+  | _ => none
+
+/-- Every name `find` knows, and the natively V3 `field-quotient` (the export's list). -/
+def names : List String :=
+  ["field-quotient", "field-bit-check", "field-bit-xor", "field-recompose", "x25519-fast", "edwards-on-curve",
+   "edwards-add-u", "edwards-prepare", "edwards-offset-sum", "xeddsa-recover", "xeddsa-check", "receive-torsion",
+   "lift-open", "lift-point", "edwards-prepare-hinted", "edwards-offset-sum-fast", "edwards-bit-table",
+   "edwards-bit-sum", "edwards-affine-bit-sum", "edwards-signature-sum", "edwards-torsion-hinted"]
+
+/-- **The V3 text of an exported program** (what `EmitWordMask v3 NAME` prints): the declaration
+must be `ok`, its expressions must pass FieldDag's validator, and the program must be valid
+(`renderValid`), so the text parses back to it (`parse_render`) and `Decl.checks` /
+`Decl.values` apply to it. -/
+def v3Text (name : String) : Except String String :=
+  if name = "field-quotient" then renderValid quotient
+  else match find name with
+    | none => .error "unknown V3 field program"
+    | some d =>
+      if !d.ok then .error "V3 declaration: one role per output, no flag"
+      else match d.program with
+        | none => .error "field program failed its translation validator"
+        | some p => renderValid p
+
+theorem v3Text_quotient : v3Text "field-quotient" = .ok (render quotient) := by
+  simp only [v3Text, if_true, renderValid, quotient_valid, if_true]
+
+/-- **What an exported text is**: the rendering of a valid program that satisfies P-INV (d) and
+P-FIELDPROG for its declaration (`Decl.checks`), or of `quotient`. -/
+theorem v3Text_spec (name s : String) (h : v3Text name = .ok s) :
+    s = render quotient ∨
+      ∃ d p, find name = some d ∧ d.program = some p ∧ s = render p ∧ p.valid = true ∧
+        p.masksOk = true ∧ p.declares d.roles = true := by
+  simp only [v3Text] at h
+  split at h
+  · left
+    simp only [renderValid] at h
+    split at h
+    · exact (Except.ok.inj h).symm
+    · cases h
+  · right
+    split at h
+    · cases h
+    · next d hd =>
+      split at h
+      · cases h
+      · next hok =>
+        split at h
+        · cases h
+        · next p hp =>
+          simp only [renderValid] at h
+          split at h
+          · next hv =>
+            obtain ⟨h1, h2, -⟩ := Decl.checks d (by simpa using hok) p hp
+            exact ⟨d, p, hd, hp, (Except.ok.inj h).symm, hv, h1, h2⟩
+          · cases h
+
 #print axioms Decl.checks
 #print axioms bitCheck_fieldprog
 #print axioms onCurve_fieldprog
+#print axioms v3Text_spec
 
 end TlsMpc.FieldProgramsV3

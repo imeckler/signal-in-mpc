@@ -1000,8 +1000,9 @@ end RoundTrip
 
 /-! ## P-FIELDPROG: which outputs are public -/
 
-/-- The role a program's author declares for an output: a secret result, a check value (opened,
-must be zero), or a zero flag (an `F` row). -/
+/-- The role a program's author declares for an output: a secret result, a public value both
+parties open (`check`: a check value that must be zero, or another value the flow opens by
+design, such as a masked point), or a zero flag (an `F` row). -/
 inductive Role where
   | secret
   | check
