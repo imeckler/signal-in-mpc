@@ -69,7 +69,28 @@ session by one party (test admission). For the product no one may ever hold the 
 `CEREMONY.md`; review items in `NEEDS_REVIEW.md` 3c). Scope set by the owner the same day: only
 the password must be secret-shared; the account's keys may be in the clear on the nodes.
 
-CEREMONY_TODO_BLOCK
+- [x] The account password is made inside the engines from both nodes' randomness, enters
+      `POST /v1/registration` only there, and each node keeps an XOR share in the form sessions
+      already take (kernels `ceremony-secrets`, `ceremony-register-ctr`; worker operations 80, 81).
+      The recovery password likewise (its shares are two files; nothing reads them yet).
+- [x] `public_service_controller ceremony NODE_CONFIG NAME register|certificate|store`, run on
+      both nodes: verification session, captcha (from a file), SMS code, registration; then the
+      authenticated socket from the shares, the sender certificate, one-time prekeys; then the
+      account's row on the database nodes. A record of every request and response on each node.
+- [x] `check_signal_service_local.py --runs 0 --ceremony`: the ceremony against the local server,
+      then a signup received and a broadcast sent with the result; semi-honest and malicious pass.
+- [ ] **(blocker for a real run) Owner's decisions**, `CEREMONY.md` section 8: the verified
+      session id is public to both nodes, so either can register the number alone while it
+      lives (fix designed: keep the id in the engines); the identity private key in the clear
+      lets a node colluding with the Signal server read who signs up; who holds the SIM;
+      registration lock; password length 22 vs the official 24.
+- [ ] Username (reserve and confirm on the authenticated socket). Not started.
+- [ ] Replace the export file as the carrier of the keys and public account between the
+      ceremony and the sessions; a key tool that is not the test tool.
+- [ ] The ceremony through the node daemons (today started by hand on both nodes); strict mode
+      (the registration request's circuit ahead of time: its shape is fixed by the number's
+      length, the session id's length and the tool's fixed-width ids); failure paths; the wait
+      for the SMS code; libsignal's JSON field order for the registration body.
 
 ## 3. Signal protocol coverage
 

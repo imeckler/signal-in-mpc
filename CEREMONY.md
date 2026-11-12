@@ -211,7 +211,45 @@ ceremony runs without one (it is a one-time session before the deployment sends 
 
 See the end of `PRODUCT_TODO.md` section 2 for the same list as work.
 
-STATUS_BLOCK
+**Built and run against the local Signal-Server** (2026-11-11), semi-honest and malicious:
+`python3 scripts/guarded.py 24 590 python3 local_signal_server/check_signal_service_local.py MODE --runs 0 --ceremony`
+
+| Step | Semi-honest | Malicious |
+|---|---|---|
+| `register` (session, captcha, code, password in the engines, registration) | passed, 35.5 s (first run: the request's circuit was produced in it) | passed, 8.3 s |
+| `certificate` (authenticated socket from the two shares, certificate, one-time prekeys) | passed, 8.7 s | passed, 5.1 s |
+| `store` (the account's row on five database nodes) | passed, 1.8 s | passed, 4.2 s |
+| A new user signs up; receive session with the account from the database row only | passed, 83.9 s (first-time circuits for the new certificate's length) | passed, 11.6 s |
+| Send session to that user (two broadcasts), who decrypts both, sealed | passed, 3.5 s | passed, 7.7 s |
+| Whole harness run | 259 s, peak 10.3 GB | 98 s, peak 9.1 GB |
+
+Also checked in both: the two nodes end with the same public account and certificate; the
+password, recombined by the test from both share files, is 22 base64 characters; it occurs in no
+record or log of either node, as text, as hex, or inside the Basic credential. The local server
+asks for a captcha (its stub accepts `noop.noop.registration.noop`) and accepts any code; the
+number, captcha and keys were given to node 0 only and the code to node 1 only.
+
+Cost of the two kernels: `ceremony-secrets` 2,728 AND gates; `ceremony-register-ctr` for the
+5,584-byte registration frame 1,487,347 AND gates (AES-CTR over the frame; the base64 is small).
+
+**Not built, not tested, or scaffolding:**
+
+- **Username** (reserve, confirm with the zero-knowledge proof and encrypted username). Public
+  requests on the authenticated socket; needs libsignal's `usernames` for the proof. Not started.
+- **The verification-session id is public** (section 4). Not closed.
+- The wait for the SMS code (keepalives until `code.txt` appears) ran zero iterations in the
+  test: the code was there from the start. Failure paths (wrong code, refused captcha, a 4xx to
+  the registration, a node that stops) end the stage with an error and were not exercised.
+- `store` and every later session still read the sessions' export file, written by
+  `lss-provision ceremony-finish` and `export-mpc` from `keys.json` and the public account
+  (PRODUCT_TODO.md section 7). The key tool is the test tool. The key ids and registration ids
+  it draws are 8 and 5 digits, so that the registration request has one shape.
+- The request's JSON field order is that of the local provisioning tool, not checked against
+  libsignal's serialization (what the server sees; CLIENT_FINGERPRINT.md applies).
+- Strict mode; a ceremony through the node daemons (the command is a mode of the controller,
+  started by hand on both nodes); a cheating party; the real service.
+- Sender-certificate refresh and prekey rotation after the ceremony are as before (PRODUCT_TODO.md
+  section 2); signing new prekeys is now a conventional signature by either node.
 
 ## 8. Decisions for the owner
 
