@@ -15,8 +15,14 @@ use crate::link::{Link, LinkError, PeerFrame};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
 
-/// The agreed part of a request's payload.
+/// The agreed part of a request's payload. For a batch (interp.rs [`crate::interp::BATCH`]) it
+/// is the batch's skeleton bytes (Engine.lean design note, item 4); the shell agrees batches
+/// through [`agree_bytes`] directly.
 pub fn agreed_part(code: u8, payload: &[u8]) -> Result<Vec<u8>, String> {
+    if code == crate::interp::BATCH {
+        let batch = crate::interp::decode_batch(payload).ok_or("batch encoding")?;
+        return Ok(crate::interp::skeleton_bytes(&batch));
+    }
     if matches!(code, 36 | 39 | 47 | 53) {
         let open = if code == 36 { 16 } else { 0 };
         if payload.len() < open {
@@ -45,7 +51,12 @@ pub fn request_hash(session: &str, code: u8, sequence: u64, agreed: &[u8]) -> [u
 /// Agree on one request with the other worker, or fail.
 pub fn agree(link: &mut Link, session: &str, code: u8, sequence: u64, payload: &[u8], wait: Option<Duration>) -> Result<(), String> {
     let agreed = agreed_part(code, payload)?;
-    let mine = request_hash(session, code, sequence, &agreed);
+    agree_bytes(link, session, code, sequence, &agreed, wait)
+}
+
+/// Agree on a request whose agreed part is already computed.
+pub fn agree_bytes(link: &mut Link, session: &str, code: u8, sequence: u64, agreed: &[u8], wait: Option<Duration>) -> Result<(), String> {
+    let mine = request_hash(session, code, sequence, agreed);
     link.send(&PeerFrame::Agreement(mine)).map_err(|e| format!("control link: {e}"))?;
     match link.recv(wait) {
         Ok(PeerFrame::Agreement(peer)) if peer == mine => Ok(()),

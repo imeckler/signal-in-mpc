@@ -27,6 +27,92 @@ pub trait Engines {
     fn abort(&mut self);
     /// The engines' measurement rows to stderr.
     fn profile_report(&mut self, prefix: &str);
+
+    // ---- S9: the instruction set's engine calls (interp.rs), one per engine_abi.h function.
+    // Handles are the engines' own. Bits are one byte each (0/1), elements 32 bytes
+    // little-endian. The defaults refuse: an `Engines` without them runs no batch.
+
+    /// `ea_circuit_load` then `ea_circuit_shape`: (circuit, input bits, output bits).
+    fn circuit_load(&mut self, _path: &str, _sha256: &str) -> Result<(u64, u32, u32), String> {
+        no_instructions()
+    }
+    /// `ea_bool_input_private` (`owner` 0 or 1; the non-owner passes placeholder bits).
+    fn bool_input_private(&mut self, _owner: u8, _bits: &[u8]) -> Result<u64, String> {
+        no_instructions()
+    }
+    /// `ea_bool_input_both`: (party 0's handle, party 1's handle).
+    fn bool_input_both(&mut self, _bits: &[u8]) -> Result<(u64, u64), String> {
+        no_instructions()
+    }
+    fn bool_public(&mut self, _bits: &[u8]) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn bool_run(&mut self, _circuit: u64, _copies: u32, _input: u64) -> Result<u64, String> {
+        no_instructions()
+    }
+    /// `ea_bool_open`: `count` (the handle's width) opened bits.
+    fn bool_open(&mut self, _h: u64, _count: usize) -> Result<Vec<u8>, String> {
+        no_instructions()
+    }
+    /// `ea_bool_open_to`: the recipient's bits; the other party's are all zero.
+    fn bool_open_to(&mut self, _h: u64, _recipient: u8, _count: usize) -> Result<Vec<u8>, String> {
+        no_instructions()
+    }
+    fn bool_concat(&mut self, _hs: &[u64]) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn bool_pick(&mut self, _h: u64, _indices: &[u64]) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn bool_slice(&mut self, _h: u64, _lo: usize, _hi: usize) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn bool_free(&mut self, _h: u64) -> Result<(), String> {
+        no_instructions()
+    }
+    /// `ea_field_input_coins`: (party 0's handles, party 1's handles).
+    fn field_input_coins(&mut self, _local: &[u64]) -> Result<(Vec<u64>, Vec<u64>), String> {
+        no_instructions()
+    }
+    /// `ea_field_input_elements`: (party 0's handles, party 1's handles).
+    fn field_input_elements(&mut self, _local: &[[u8; 32]]) -> Result<(Vec<u64>, Vec<u64>), String> {
+        no_instructions()
+    }
+    fn field_constant(&mut self, _value: u64) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_public(&mut self, _value: &[u8; 32]) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_add(&mut self, _a: u64, _b: u64) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_sub(&mut self, _a: u64, _b: u64) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_scale(&mut self, _a: u64, _constant: u64) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_divide_public(&mut self, _a: u64, _c: &[u8; 32]) -> Result<u64, String> {
+        no_instructions()
+    }
+    fn field_mul(&mut self, _a: &[u64], _b: &[u64]) -> Result<Vec<u64>, String> {
+        no_instructions()
+    }
+    fn field_check(&mut self) -> Result<(), String> {
+        no_instructions()
+    }
+    /// `ea_field_checked_open`: the opened elements.
+    fn field_checked_open(&mut self, _hs: &[u64]) -> Result<Vec<[u8; 32]>, String> {
+        no_instructions()
+    }
+    fn field_free(&mut self, _h: u64) -> Result<(), String> {
+        no_instructions()
+    }
+}
+
+fn no_instructions<T>() -> Result<T, String> {
+    Err("these engines run no instructions".into())
 }
 
 /// The operations the legacy library serves (the same list as `legacy_operation` in
@@ -43,8 +129,9 @@ pub mod native {
     use crate::config::Config;
     use std::ffi::{CStr, CString, c_int};
 
-    /// engine_abi.h, the part S8 uses. (The Boolean and field instruction functions are
-    /// declared there and linked from S9 on, by interp.rs.)
+    /// engine_abi.h: the session and legacy part (S8) and the Boolean and field instruction
+    /// functions (S9, used by interp.rs through [`Engines`]). `ea_bool_interleave` and
+    /// `ea_bool_width` are not used (Engine.lean design note, item 3).
     #[allow(non_camel_case_types, dead_code)]
     mod ffi {
         use std::ffi::{c_char, c_int, c_uint};
@@ -108,6 +195,30 @@ pub mod native {
             pub fn ea_legacy_select(session: *mut ea_session, index: u64) -> c_int;
             pub fn ea_legacy_reset(session: *mut ea_session) -> c_int;
             pub fn ea_legacy_abort(session: *mut ea_session) -> c_int;
+            pub fn ea_circuit_load(session: *mut ea_session, path: *const c_char, sha256_hex: *const c_char, out: *mut u64) -> c_int;
+            pub fn ea_circuit_shape(session: *mut ea_session, circuit: u64, input_bits: *mut u32, output_bits: *mut u32) -> c_int;
+            pub fn ea_bool_input_private(session: *mut ea_session, owner: c_int, bits: *const u8, count: usize, out: *mut u64) -> c_int;
+            pub fn ea_bool_input_both(session: *mut ea_session, bits: *const u8, count: usize, out_a: *mut u64, out_b: *mut u64) -> c_int;
+            pub fn ea_bool_public(session: *mut ea_session, bits: *const u8, count: usize, out: *mut u64) -> c_int;
+            pub fn ea_bool_run(session: *mut ea_session, circuit: u64, copies: u32, input: u64, out: *mut u64) -> c_int;
+            pub fn ea_bool_open(session: *mut ea_session, handle: u64, bits: *mut u8, count: usize) -> c_int;
+            pub fn ea_bool_open_to(session: *mut ea_session, handle: u64, recipient: c_int, bits: *mut u8, count: usize) -> c_int;
+            pub fn ea_bool_concat(session: *mut ea_session, handles: *const u64, count: usize, out: *mut u64) -> c_int;
+            pub fn ea_bool_pick(session: *mut ea_session, handle: u64, indices: *const u64, count: usize, out: *mut u64) -> c_int;
+            pub fn ea_bool_slice(session: *mut ea_session, handle: u64, lo: usize, hi: usize, out: *mut u64) -> c_int;
+            pub fn ea_bool_free(session: *mut ea_session, handle: u64) -> c_int;
+            pub fn ea_field_input_coins(session: *mut ea_session, local: *const u64, count: usize, outs_a: *mut u64, outs_b: *mut u64) -> c_int;
+            pub fn ea_field_input_elements(session: *mut ea_session, local: *const u8, count: usize, outs_a: *mut u64, outs_b: *mut u64) -> c_int;
+            pub fn ea_field_constant(session: *mut ea_session, value: u64, out: *mut u64) -> c_int;
+            pub fn ea_field_public(session: *mut ea_session, element: *const u8, out: *mut u64) -> c_int;
+            pub fn ea_field_add(session: *mut ea_session, a: u64, b: u64, out: *mut u64) -> c_int;
+            pub fn ea_field_sub(session: *mut ea_session, a: u64, b: u64, out: *mut u64) -> c_int;
+            pub fn ea_field_scale(session: *mut ea_session, a: u64, constant: u64, out: *mut u64) -> c_int;
+            pub fn ea_field_divide_public(session: *mut ea_session, a: u64, c: *const u8, out: *mut u64) -> c_int;
+            pub fn ea_field_mul(session: *mut ea_session, a: *const u64, b: *const u64, count: usize, outs: *mut u64) -> c_int;
+            pub fn ea_field_check(session: *mut ea_session) -> c_int;
+            pub fn ea_field_checked_open(session: *mut ea_session, handles: *const u64, count: usize, out: *mut u8) -> c_int;
+            pub fn ea_field_free(session: *mut ea_session, handle: u64) -> c_int;
         }
     }
 
@@ -232,6 +343,126 @@ pub mod native {
                 // SAFETY: live session, NUL-terminated prefix.
                 let _ = unsafe { ffi::ea_profile_report(self.session, p.as_ptr()) };
             }
+        }
+
+        // SAFETY (every call below): the session is live; every input pointer comes from a
+        // slice or array valid for the stated count; every output pointer refers to a local or
+        // to a buffer of exactly the count the ABI writes.
+        fn circuit_load(&mut self, path: &str, sha256: &str) -> Result<(u64, u32, u32), String> {
+            let (p, s) = (text(path)?, text(sha256)?);
+            let mut c = 0u64;
+            check(unsafe { ffi::ea_circuit_load(self.session, p.as_ptr(), s.as_ptr(), &mut c) })?;
+            let (mut i, mut o) = (0u32, 0u32);
+            check(unsafe { ffi::ea_circuit_shape(self.session, c, &mut i, &mut o) })?;
+            Ok((c, i, o))
+        }
+        fn bool_input_private(&mut self, owner: u8, bits: &[u8]) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_bool_input_private(self.session, owner as c_int, bits.as_ptr(), bits.len(), &mut h) })?;
+            Ok(h)
+        }
+        fn bool_input_both(&mut self, bits: &[u8]) -> Result<(u64, u64), String> {
+            let (mut a, mut b) = (0u64, 0u64);
+            check(unsafe { ffi::ea_bool_input_both(self.session, bits.as_ptr(), bits.len(), &mut a, &mut b) })?;
+            Ok((a, b))
+        }
+        fn bool_public(&mut self, bits: &[u8]) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_bool_public(self.session, bits.as_ptr(), bits.len(), &mut h) })?;
+            Ok(h)
+        }
+        fn bool_run(&mut self, circuit: u64, copies: u32, input: u64) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_bool_run(self.session, circuit, copies, input, &mut h) })?;
+            Ok(h)
+        }
+        fn bool_open(&mut self, h: u64, count: usize) -> Result<Vec<u8>, String> {
+            let mut bits = vec![0u8; count];
+            check(unsafe { ffi::ea_bool_open(self.session, h, bits.as_mut_ptr(), count) })?;
+            Ok(bits)
+        }
+        fn bool_open_to(&mut self, h: u64, recipient: u8, count: usize) -> Result<Vec<u8>, String> {
+            let mut bits = vec![0u8; count];
+            check(unsafe { ffi::ea_bool_open_to(self.session, h, recipient as c_int, bits.as_mut_ptr(), count) })?;
+            Ok(bits)
+        }
+        fn bool_concat(&mut self, hs: &[u64]) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_bool_concat(self.session, hs.as_ptr(), hs.len(), &mut h) })?;
+            Ok(h)
+        }
+        fn bool_pick(&mut self, h: u64, indices: &[u64]) -> Result<u64, String> {
+            let mut out = 0u64;
+            check(unsafe { ffi::ea_bool_pick(self.session, h, indices.as_ptr(), indices.len(), &mut out) })?;
+            Ok(out)
+        }
+        fn bool_slice(&mut self, h: u64, lo: usize, hi: usize) -> Result<u64, String> {
+            let mut out = 0u64;
+            check(unsafe { ffi::ea_bool_slice(self.session, h, lo, hi, &mut out) })?;
+            Ok(out)
+        }
+        fn bool_free(&mut self, h: u64) -> Result<(), String> {
+            check(unsafe { ffi::ea_bool_free(self.session, h) })
+        }
+        fn field_input_coins(&mut self, local: &[u64]) -> Result<(Vec<u64>, Vec<u64>), String> {
+            let (mut a, mut b) = (vec![0u64; local.len()], vec![0u64; local.len()]);
+            check(unsafe { ffi::ea_field_input_coins(self.session, local.as_ptr(), local.len(), a.as_mut_ptr(), b.as_mut_ptr()) })?;
+            Ok((a, b))
+        }
+        fn field_input_elements(&mut self, local: &[[u8; 32]]) -> Result<(Vec<u64>, Vec<u64>), String> {
+            let flat: Vec<u8> = local.concat();
+            let (mut a, mut b) = (vec![0u64; local.len()], vec![0u64; local.len()]);
+            check(unsafe { ffi::ea_field_input_elements(self.session, flat.as_ptr(), local.len(), a.as_mut_ptr(), b.as_mut_ptr()) })?;
+            Ok((a, b))
+        }
+        fn field_constant(&mut self, value: u64) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_constant(self.session, value, &mut h) })?;
+            Ok(h)
+        }
+        fn field_public(&mut self, value: &[u8; 32]) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_public(self.session, value.as_ptr(), &mut h) })?;
+            Ok(h)
+        }
+        fn field_add(&mut self, a: u64, b: u64) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_add(self.session, a, b, &mut h) })?;
+            Ok(h)
+        }
+        fn field_sub(&mut self, a: u64, b: u64) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_sub(self.session, a, b, &mut h) })?;
+            Ok(h)
+        }
+        fn field_scale(&mut self, a: u64, constant: u64) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_scale(self.session, a, constant, &mut h) })?;
+            Ok(h)
+        }
+        fn field_divide_public(&mut self, a: u64, c: &[u8; 32]) -> Result<u64, String> {
+            let mut h = 0u64;
+            check(unsafe { ffi::ea_field_divide_public(self.session, a, c.as_ptr(), &mut h) })?;
+            Ok(h)
+        }
+        fn field_mul(&mut self, a: &[u64], b: &[u64]) -> Result<Vec<u64>, String> {
+            if a.len() != b.len() {
+                return Err("mul arguments".into());
+            }
+            let mut outs = vec![0u64; a.len()];
+            check(unsafe { ffi::ea_field_mul(self.session, a.as_ptr(), b.as_ptr(), a.len(), outs.as_mut_ptr()) })?;
+            Ok(outs)
+        }
+        fn field_check(&mut self) -> Result<(), String> {
+            check(unsafe { ffi::ea_field_check(self.session) })
+        }
+        fn field_checked_open(&mut self, hs: &[u64]) -> Result<Vec<[u8; 32]>, String> {
+            let mut out = vec![0u8; 32 * hs.len()];
+            check(unsafe { ffi::ea_field_checked_open(self.session, hs.as_ptr(), hs.len(), out.as_mut_ptr()) })?;
+            Ok(out.chunks_exact(32).map(|c| c.try_into().unwrap()).collect())
+        }
+        fn field_free(&mut self, h: u64) -> Result<(), String> {
+            check(unsafe { ffi::ea_field_free(self.session, h) })
         }
     }
 }

@@ -1,6 +1,7 @@
 //! One worker operation: agreement, then the shell's own operations (the server socket, the
 //! connection table, the exchange) or the legacy library (`tls_worker_v3.cpp` `dispatch`, the
-//! shell's cases: 9, 10, 11, 17, 39, 90, 91; and the new 92).
+//! shell's cases: 9, 10, 11, 17, 39, 90, 91; and the new 92), or a batch of engine
+//! instructions (93, S9: interp.rs).
 //!
 //! Party 0 (the leader) owns the server socket; records it receives are forwarded to the other
 //! party on the control link as public data. A connection the server or the proxy closed is
@@ -9,7 +10,9 @@
 use crate::agree;
 use crate::connections::{Connections, Endpoint};
 use crate::engines::{Engines, is_legacy};
+use crate::interp::{self, Interp, Party};
 use crate::link::{Link, MAX_EXCHANGE, MAX_RECORD, PeerFrame};
+use crate::loader::Kernels;
 use crate::server::{RecordError, Server, ServerOp};
 use std::time::Duration;
 
@@ -21,6 +24,10 @@ pub struct Shell<E: Engines> {
     pub engines: E,
     pub connections: Connections,
     pub peer_wait: Option<Duration>,
+    /// The kernels a batch's `run` may name (the circuit manifest's; none without one).
+    pub kernels: Kernels,
+    /// The batch interpreter's state (interp.rs), carried across batches.
+    pub interp: Interp,
 }
 
 fn need(ok: bool, what: &str) -> Result<(), String> {
@@ -35,11 +42,23 @@ fn check_record(r: &[u8]) -> Result<(), String> {
 
 impl<E: Engines> Shell<E> {
     pub fn new(leader: bool, session: String, link: Link, engines: E, peer_wait: Option<Duration>) -> Self {
-        Shell { leader, session, link, engines, connections: Connections::default(), peer_wait }
+        Shell {
+            leader,
+            session,
+            link,
+            engines,
+            connections: Connections::default(),
+            peer_wait,
+            kernels: Kernels::default(),
+            interp: Interp::default(),
+        }
     }
 
     /// One agreed operation (never 8, which is local: see [`Shell::abort`]).
     pub fn call(&mut self, code: u8, sequence: u64, payload: &[u8]) -> Result<Vec<u8>, String> {
+        if code == interp::BATCH {
+            return self.batch(sequence, payload);
+        }
         agree::agree(&mut self.link, &self.session, code, sequence, payload, self.peer_wait)?;
         if ServerOp::is_server_op(code) {
             let op = ServerOp::parse(code, payload)?;
@@ -55,6 +74,31 @@ impl<E: Engines> Shell<E> {
             return self.engines.legacy(code, sequence, payload);
         }
         Err("unsupported operation".into())
+    }
+
+    /// Operation 93: one batch of engine instructions (interp.rs; Engine.lean design note).
+    /// Decode and payload check, agreement on the skeleton, `check` over the whole batch, then
+    /// the instructions in order; the reply is the encoded reply items.
+    fn batch(&mut self, sequence: u64, payload: &[u8]) -> Result<Vec<u8>, String> {
+        let me = if self.leader { Party::A } else { Party::B };
+        let prepared = interp::decode_batch(payload).ok_or_else(|| "batch encoding".to_string()).and_then(|batch| {
+            interp::validate_payloads(me, &batch)?;
+            Ok(batch)
+        });
+        // An unusable batch is still agreed (as `UNUSABLE`), so that the other party stops at the
+        // agreement instead of inside an engine call.
+        let agreed = match &prepared {
+            Ok(batch) => interp::skeleton_bytes(batch),
+            Err(_) => interp::UNUSABLE.to_vec(),
+        };
+        let agreement = agree::agree_bytes(&mut self.link, &self.session, interp::BATCH, sequence, &agreed, self.peer_wait);
+        let batch = prepared?;
+        agreement?;
+        let kernels = &self.kernels;
+        let steps = self.interp.admit(&|name| kernels.sig(name), &batch)?;
+        let (leader, link) = (self.leader, &mut self.link);
+        let replies = self.interp.execute(&mut self.engines, kernels, me, &batch, &steps, &mut |mine| link.exchange(leader, mine))?;
+        Ok(interp::encode_replies(&replies))
     }
 
     /// Operation 8 and every failure: drop the engines' private state and close every socket.

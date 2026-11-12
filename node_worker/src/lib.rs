@@ -16,6 +16,12 @@
 //! - [`profile`]: the per-operation measurement lines.
 //! - [`engines`]: the engines behind the C ABI (and a trait, so the shell is testable without them).
 //! - [`shell`]: one operation: agreement, then the shell's own operations or the legacy library.
+//! - [`interp`] (S9): pipe operation 93, a batch of the engine instruction set of
+//!   `TlsMpc/Node/Engine.lean` (its design note is the specification): the batch and reply
+//!   encodings, the skeleton agreement, and execution through the engine ABI.
+//! - [`handles`] (S9): the handle table and the open rule, the Lean `check` transcribed.
+//!   `tests/engine_vectors.rs` compares both with vectors computed by the Lean definitions
+//!   (`tests/lean/EngineVectors.lean`).
 //!
 //! Only `link.rs` and `server.rs` touch sockets (`tests/socket_owners.rs` checks it).
 //!
@@ -47,6 +53,8 @@ pub mod agree;
 pub mod config;
 pub mod connections;
 pub mod engines;
+pub mod handles;
+pub mod interp;
 pub mod link;
 pub mod loader;
 pub mod pipe;

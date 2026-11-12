@@ -6,7 +6,7 @@
 use node_worker::config::Config;
 use node_worker::engines::Engines;
 use node_worker::link::Link;
-use node_worker::loader::Circuits;
+use node_worker::loader::{Circuits, Kernels};
 use node_worker::pipe::{self, ABORT, Latch, PipeError};
 use node_worker::profile::{PREFIX, Profile};
 use node_worker::shell::Shell;
@@ -75,8 +75,14 @@ fn run() -> i32 {
             Ok(_) => return Err("circuit manifest disagreement".into()),
             Err(e) => return Err(format!("control link: {e}")),
         }
+        let kernels = match &circuits {
+            Circuits::Pinned(manifest) => Kernels::from_manifest(manifest)?,
+            Circuits::Unpinned => Kernels::default(),
+        };
         let engines = NativeEngines::open(&config, matches!(circuits, Circuits::Pinned(_)) || !cfg!(feature = "test-engine"))?;
-        Ok(Shell::new(config.leader(), config.session.clone(), link, engines, config.peer_wait))
+        let mut shell = Shell::new(config.leader(), config.session.clone(), link, engines, config.peer_wait);
+        shell.kernels = kernels;
+        Ok(shell)
     };
     let mut shell = match setup() {
         Ok(s) => s,
