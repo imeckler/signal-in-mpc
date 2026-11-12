@@ -1036,6 +1036,28 @@ theorem check_program (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (n
   have := hin x hx
   cases hf : c₁.field? x <;> simp_all
 
+/-- **P-FIELDPROG, the open rule for a loaded program**: after an accepted `program` step, each
+output handle is openable (`openField`'s rule, `Mark.openable`) exactly when the program's V3
+file marks that output public (a declared check value or zero flag, `FieldDagV3.declares`). -/
+theorem check_program_openable (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label) (p : TlsMpc.FieldDag.V3.Program)
+    (hp : c.progs name = some (ProgSig.ofProgram p))
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∀ e ∈ outs.zip (List.replicate copies (p.outputs.map (·.2))).flatten,
+      (c'.field? e.1).map Mark.openable = some (e.2 == .pub) := by
+  obtain ⟨s, -, hs, -, -, -, -, -, -, -, -, -, ho⟩ := check_program sigs c c' sh name copies ins masks outs l h
+  rw [hp, Option.some.injEq] at hs
+  subst hs
+  intro e he
+  have hmap : (List.replicate copies (ProgSig.ofProgram p).outMarks).flatten =
+      ((List.replicate copies (p.outputs.map (·.2))).flatten).map Mark.ofOMark := by
+    simp [ProgSig.ofProgram, List.map_flatten, List.map_replicate, List.map_map, Function.comp_def]
+  have he' : (e.1, Mark.ofOMark e.2) ∈ outs.zip (List.replicate copies (ProgSig.ofProgram p).outMarks).flatten := by
+    rw [hmap, List.zip_map_right]
+    exact List.mem_map.mpr ⟨e, he, rfl⟩
+  rw [ho _ he']
+  simp [Mark.ofOMark_openable]
+
 /-- **The shell's admission of an agreed batch** (design note item 5; `handles.rs` check_batch,
 `interp.rs` Interp::admit): `check` on every instruction in order from the carried context,
 and decision D8: an instruction that ends a batch must be its last. `.error i`: instruction `i`

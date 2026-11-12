@@ -16,6 +16,7 @@ import TlsMpc.TlsReceive
 import TlsMpc.TlsHandshake
 import TlsMpc.FieldDag
 import TlsMpc.FieldDagV3
+import TlsMpc.FieldProgramsV3
 import TlsMpc.X25519
 import TlsMpc.Sha256
 import TlsMpc.ByteCircuit

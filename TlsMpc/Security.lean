@@ -3,6 +3,7 @@ import TlsMpc.ByteCircuit
 import TlsMpc.BoolDag
 import TlsMpc.FieldDag
 import TlsMpc.FieldDagMulti
+import TlsMpc.FieldProgramsV3
 import TlsMpc.HybridKernelsProofs
 import TlsMpc.SealCtrProofs
 import TlsMpc.GcmShareKernelsProofs
@@ -374,6 +375,30 @@ theorem fieldDagV3_quotient_spec (hinv : FieldInverse) (input mask : Nat → F) 
     V3.eval quotient input mask =
       some ([input 0 * inverse (input 1), if input 1 = 0 then ofNat 1 else ofNat 0], [input 1 * mask 0]) :=
   TlsMpc.FieldDag.V3.quotient_spec hinv input mask hm
+
+open TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- **P-INV (d) and P-FIELDPROG for every exported declaration** (`TlsMpc/FieldProgramsV3.lean`):
+masks used once, public outputs exactly the declared checks. -/
+theorem fieldProgramsV3_decl_checks (d : Decl) (hd : d.ok = true) (p : Program) (hp : d.program = some p) :
+    p.masksOk = true ∧ p.declares d.roles = true ∧
+      p.publicOutputs = publicPositions (d.roles.map Role.mark) :=
+  TlsMpc.FieldProgramsV3.Decl.checks d hd p hp
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- **P-FIELDPROG (values)**: an exported program's outputs are its source expressions' values. -/
+theorem fieldProgramsV3_decl_values (hinv : FieldInverse) (d : Decl) (p : Program) (hp : d.program = some p)
+    (input mask : Nat → F) (outs opened : List F) (h : V3.eval p input mask = some (outs, opened)) :
+    outs = d.exprs.map (Expr.eval input) :=
+  TlsMpc.FieldProgramsV3.Decl.values hinv d p hp input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- `field-bit-check` in V3: one public output, `b·(b − 1)`, zero on bits. -/
+theorem fieldProgramsV3_bitCheck (hinv : FieldInverse) (p : Program) (hp : bitCheck.program = some p) :
+    p.masksOk = true ∧ p.declares [.check] = true ∧ p.publicOutputs = [0] ∧
+      ∀ input mask outs opened, V3.eval p input mask = some (outs, opened) →
+        outs = [input 0 * (input 0 - ofNat 1)] ∧
+        ∀ b : Bool, input 0 = X25519.bitValue b → outs = [0] :=
+  TlsMpc.FieldProgramsV3.bitCheck_fieldprog hinv p hp
 
 /-! ## 2. Kernels compute their specification (SECURITY_MAP C.2)
 
@@ -5031,6 +5056,16 @@ theorem engine_check_program (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Sh
       (∀ x ∈ ins, (c₁.field? x).isSome) ∧
       (∀ e ∈ outs.zip (List.replicate copies s.outMarks).flatten, c'.field? e.1 = some e.2) :=
   TlsMpc.Node.Engine.check_program sigs c c' sh name copies ins masks outs l h
+
+/-- **P-FIELDPROG, the open rule**: after an accepted program step, an output is openable exactly
+when the program's V3 file marks it public. -/
+theorem engine_check_program_openable (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label) (p : TlsMpc.FieldDag.V3.Program)
+    (hp : c.progs name = some (ProgSig.ofProgram p))
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∀ e ∈ outs.zip (List.replicate copies (p.outputs.map (·.2))).flatten,
+      (c'.field? e.1).map Mark.openable = some (e.2 == .pub) :=
+  TlsMpc.Node.Engine.check_program_openable sigs c c' sh name copies ins masks outs l p hp h
 
 /-- **What a program step releases** (P-FIELDPROG / P-INV, model side): exactly the openings
 `b·m` of its instances' `D`/`Z` rows (V3 semantics), labelled, the same to both parties. -/

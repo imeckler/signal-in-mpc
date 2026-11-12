@@ -186,6 +186,53 @@ def runFrom (rows : List Row) (input mask : Nat → F) (s : State) : Option Stat
 def eval (p : Program) (input mask : Nat → F) : Option (List F × List F) :=
   (runFrom p.rows input mask {}).map fun s => (p.outputs.map fun o => get s.vals o.1, s.opened)
 
+/-- Running rows adds one opening per `D`/`Z` row, and nothing else. -/
+theorem foldlM_opened (rows : List Row) (input mask : Nat → F) :
+    ∀ (rs : List Row) (s s' : State), rs.foldlM (step rows input mask) s = some s' →
+      s'.opened.length = s.opened.length + (rs.filterMap Row.mask?).length := by
+  intro rs
+  induction rs with
+  | nil =>
+    intro s s' h
+    simp only [List.foldlM_nil, Option.pure_def, Option.some.injEq] at h
+    subst h
+    simp
+  | cons r rs ih =>
+    intro s s' h
+    simp only [List.foldlM_cons, Option.bind_eq_bind] at h
+    cases r with
+    | input i => simp only [step, Option.bind_some] at h; simp [Row.mask?, ih _ _ h]
+    | const n => simp only [step, Option.bind_some] at h; simp [Row.mask?, ih _ _ h]
+    | add a b => simp only [step, Option.bind_some] at h; simp [Row.mask?, ih _ _ h]
+    | sub a b => simp only [step, Option.bind_some] at h; simp [Row.mask?, ih _ _ h]
+    | mul a b => simp only [step, Option.bind_some] at h; simp [Row.mask?, ih _ _ h]
+    | div a b m =>
+      simp only [step] at h
+      split at h
+      · simp at h
+      · simp only [Option.bind_some] at h
+        simp only [ih _ _ h, Row.mask?, List.filterMap_cons, List.length_append, List.length_cons,
+          List.length_nil]
+        omega
+    | zdiv a b m =>
+      simp only [step, Option.bind_some] at h
+      simp only [ih _ _ h, Row.mask?, List.filterMap_cons, List.length_append, List.length_cons,
+        List.length_nil]
+      omega
+    | flag k =>
+      simp only [step] at h
+      split at h <;> (simp only [Option.bind_some] at h; simp [Row.mask?, ih _ _ h])
+
+/-- **A program opens exactly one value per `D`/`Z` row** (and has one value per output). -/
+theorem eval_lengths (p : Program) (input mask : Nat → F) (outs opened : List F)
+    (h : eval p input mask = some (outs, opened)) :
+    opened.length = p.openings ∧ outs.length = p.outputs.length := by
+  simp only [eval, runFrom, Option.map_eq_some_iff, Prod.mk.injEq] at h
+  obtain ⟨s, hs, rfl, rfl⟩ := h
+  have := foldlM_opened p.rows input mask p.rows {} s hs
+  simp only [Program.openings, Program.maskUses, List.length_map]
+  simpa using this
+
 /-! ## P-INV (a)–(c): masked inversion, as field facts -/
 
 /-- Fermat's little theorem for p = 2^255 − 19 in the form the masked inversion needs. True
@@ -923,9 +970,19 @@ def Program.declares (p : Program) (roles : List Role) : Bool :=
         | some (.flag _) => true
         | _ => false
 
+/-- The positions of the public marks of a list of marks. -/
+def publicPositions (marks : List OMark) : List Nat :=
+  (marks.zipIdx.filter fun e => e.1 == .pub).map (·.2)
+
 /-- The positions of the public outputs. -/
-def Program.publicOutputs (p : Program) : List Nat :=
-  (p.outputs.zipIdx.filter fun e => e.1.2 == .pub).map (·.2)
+def Program.publicOutputs (p : Program) : List Nat := publicPositions (p.outputs.map (·.2))
+
+/-- A program that declares `roles` has its public outputs exactly at the declared checks and
+flags. -/
+theorem declares_publicOutputs (p : Program) (roles : List Role) (h : p.declares roles = true) :
+    p.publicOutputs = publicPositions (roles.map Role.mark) := by
+  simp only [Program.declares, Bool.and_eq_true, beq_iff_eq] at h
+  simp only [Program.publicOutputs, h.1]
 
 /-- The marks of a list of roles, as `ofArtifact` takes them. -/
 def marksOf (roles : List Role) (j : Nat) : OMark := (roles.getD j .secret).mark
