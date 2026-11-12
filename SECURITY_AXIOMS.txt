@@ -111,6 +111,22 @@ wsInitial_spec: [Quot.sound, propext]
 establishPoints_spec: [Quot.sound, propext]
 bundleItem_spec: [Quot.sound, propext]
 bundleItem_rejects: [Quot.sound, propext]
+requestBuild_ok: [Quot.sound, propext]
+requestInsertSlots_offsets: [Classical.choice, Quot.sound, propext]
+signalRequestCtr_built: [Classical.choice, Quot.sound, propext]
+bundleFetchCtr_built: [Classical.choice, Quot.sound, propext]
+bundleRequestCtr_built: [Classical.choice, Quot.sound, propext]
+bundleDevice_local: [Quot.sound, propext]
+bundleItem_whole: [Classical.choice, Quot.sound, propext]
+bundleSlot_whole: [Classical.choice, Quot.sound, propext]
+widthFlags_value: [Classical.choice, Quot.sound, propext]
+signalWidths_value: [Classical.choice, Quot.sound, propext]
+slotUuid_eq: [Quot.sound, propext]
+slotUuid_parse: [Quot.sound, propext]
+slotBase64_eq: [Quot.sound, propext]
+slotBase64_decode: [Quot.sound, propext]
+slotDecimal_value: [Classical.choice, Quot.sound, propext]
+slotDecimal_parse: [Quot.sound, propext]
 typedOpen_gated: [Classical.choice, Quot.sound, propext]
 typedOpen_rejected_parse: [Quot.sound, propext]
 typedOpen_rejected_independent: [Classical.choice, Quot.sound, propext]
@@ -219,4 +235,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 # Restated theorems that depend (transitively) on a bv_decide proof
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
-# 2 of 204 entries
+# 2 of 220 entries

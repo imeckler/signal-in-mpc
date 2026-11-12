@@ -718,6 +718,16 @@ against the RFC transcriptions. Still open (Security.lean section 8): `bundle-it
 `BundleResponse.device` on the whole body, the meaning of the `signal-widths` flags, the slot
 encoders against their RFCs, and value theorems for `boundSeal`/`prepare`.
 
+**Update 2026-11-12 (later):** closed in `TlsMpc/Security.lean` section 2d: the three request
+sealers composed with the frames the controller builds (`*_built`: slots zero and non-overlapping,
+8-byte header proved for every frame `build` returns, the opened ciphertext encrypts exactly the
+masked frame of the filled request; builders restated in `KernelSpecs/RequestFrame.lean`, proved
+equal to the controller's in `KernelSpecs/RequestFrameBridge.lean`); `bundle-item` against
+`device` on the whole body (`bundleItem_whole`, locality lemma `bundleDevice_local`); the
+`signal-widths` flags (`signalWidths_value`); the UUID, base64 and padded-decimal slot encoders
+against independent references with round trips. Still open: `bundle-slot`'s spliced item against
+`device` on the original, and `boundSeal`/`prepare`.
+
 **Deployed kernels that had no kernel-level spec when this map was written:**
 - tls-derive, tls-verify-finished, tls-open-handshake, tls-finish;
 - ws-initial, tls-parser-initial;

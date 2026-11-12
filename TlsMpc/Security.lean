@@ -66,6 +66,12 @@ import TlsMpc.KernelSpecs.TlsHandshakeKernels
 import TlsMpc.KernelSpecs.RevealMasked
 import TlsMpc.KernelSpecs.SignalKernels
 import TlsMpc.KernelSpecs.PointsAndItem
+import TlsMpc.KernelSpecs.RequestFrame
+import TlsMpc.KernelSpecs.BundleItemWhole
+import TlsMpc.KernelSpecs.WidthFlags
+import TlsMpc.KernelSpecs.SlotEncoders
+import TlsMpc.KernelSpecs.SlotBase64
+import TlsMpc.KernelSpecs.SlotDecimal
 import Lean.Elab.Command
 
 /-!
@@ -1311,8 +1317,8 @@ theorem signalConversationView_spec (cert size : Nat) (assign : BVExpr.Assignmen
 
 open TlsMpc.KernelSpecs.SignalKernels Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (lookup) in
-/-- **`signal-widths` opens the width flags of the counters and epoch.** **K**. That a flag
-means "value ≥ 2^(7k)" is NOT proved. -/
+/-- **`signal-widths` opens the width flags of the counters and epoch.** **K**. What a flag means
+(255 exactly when the value is ≥ 2^(7(k+1))) is `signalWidths_value` (section 2d). -/
 theorem signalWidths_spec (cert : Nat) (assign : BVExpr.Assignment) :
     let session := (((lookup (widthsInputs cert) "conversation").map (BVExpr.eval assign)).drop cert).take 262
     let flags := fun (bytes : List (BitVec 8)) groups => widthFlagsWith ByteAuth.concrete 0 bytes groups
@@ -1350,7 +1356,7 @@ open TlsMpc.KernelSpecs.PointsAndItem Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (lookup) in
 open TlsMpc.ReceiveKernel (values) in
 /-- **`bundle-item` = `BundleResponse.device` on the reassembled body.** **K**. The link to
-`device` on the whole response body is NOT proved (section 8). -/
+`device` on the whole response body is `bundleItem_whole` (section 2d). -/
 theorem bundleItem_spec (first last : Bool) (w : BundleResponse.Widths) (assign : BVExpr.Assignment) :
     let get := fun name => (lookup (BundleItemKernel.itemInputs first last w) name).map (BVExpr.eval assign)
     let body := get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end"
@@ -1369,6 +1375,214 @@ theorem bundleItem_rejects (first last : Bool) (w : BundleResponse.Widths) (assi
     (failed : (values (BundleItemKernel.bundleItem first last w) assign).getD 0 [] = [0]) :
     ∀ field ∈ values (BundleItemKernel.bundleItem first last w) assign, ∀ byte ∈ field, byte = 0 :=
   TlsMpc.KernelSpecs.PointsAndItem.bundleItem_rejects first last w assign failed
+
+/-! ### 2d. What the request sealers send, `bundle-item` on the whole body, the width flags, the
+slot encoders (TlsMpc/KernelSpecs/{RequestFrame, BundleItemWhole, WidthFlags, SlotEncoders,
+SlotBase64, SlotDecimal}.lean)
+
+The request builders `PublicRequest.build`/`buildFetch`/`buildDevices` live in the controller's
+executable root, which this file does not import (section 4). The entries below are about
+`RequestFrame.Mirror.*`, restated character for character with the byte operations as a
+parameter; `TlsMpc/KernelSpecs/RequestFrameBridge.lean` (checked on its own, not imported here)
+proves `PublicRequest.build = Mirror.build PublicReceive.fast`, `PublicRequest.buildFetch =
+Mirror.buildFetch` and `PublicRequest.buildDevices = Mirror.buildDevices PublicReceive.fast`. Those
+entries are **C** (the builders) composed with **K** (the kernels). -/
+
+open TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror in
+/-- **Every frame `build` returns has the 8-byte WebSocket header** `[130, 254, size / 256, size] ‖
+mask` (payload of 126..65535 bytes), followed by the built payload (text masked, slots zero); the
+offsets are those the slot pieces set. So `signal-request-ctr`'s fixed payload start 8 is right for
+every frame the controller builds for it. **C** (mirror + bridge). T8. -/
+theorem requestBuild_ok (ops : ByteAuth.Ops (BitVec 8)) (envelope : List (BitVec 8)) (timestamp id : Nat)
+    (mask frame : List (BitVec 8)) (official : Bool) (offsets : List Nat)
+    (built : build ops envelope timestamp id mask official = .ok (frame, offsets)) :
+    let msg := sendMessage ops envelope timestamp id official
+    126 ≤ total msg ∧ total msg < 65536 ∧ mask.length = 4 ∧ (buildHeader (total msg) mask).length = 8 ∧
+      frame = buildHeader (total msg) mask ++ body mask 0 msg ∧ offsets = (offsetsFold #[0, 0, 0, 0] 8 msg).toList :=
+  TlsMpc.KernelSpecs.RequestFrame.build_ok ops envelope timestamp id mask frame official offsets built
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror in
+/-- **Slots never overlap, the built frame is zero in each, and inserting values of the slots'
+widths at the builder's offsets gives the frame of the filled message**: `header ‖ masked(render
+values msg)`, whatever the order of the kernel's slot list. Value level. **C**. T7(a), T8. -/
+theorem requestInsertSlots_offsets (header mask : List (BitVec 8)) (msg : List Piece) (values : Nat → List (BitVec 8))
+    (O : Array Nat) (ks : List Nat) (fits : Fits values (slotTable header.length msg))
+    (same : ∀ k, k ∈ ks ↔ k ∈ indicesOf msg) (nodup : (indicesOf msg).Nodup)
+    (small : ∀ k ∈ indicesOf msg, k < O.size) :
+    insertSlots ByteAuth.concrete 0 (header ++ body mask 0 msg) mask header.length
+        (ks.map (fun k => ((offsetsFold O header.length msg).toList.getD k 0, values k))) =
+      header ++ maskFrom mask 0 (render values msg) :=
+  TlsMpc.KernelSpecs.RequestFrame.insertSlots_offsets header mask msg values O ks fits same nodup small
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+  TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-request-ctr` on a frame `build` returned seals exactly the WebSocket frame of the
+request with the contact's UUID, base64 access key and space-padded device and registration ids in
+place of its four slots** (masked with the frame's mask), released under `valid`. **K** + **C**.
+T7(a), T8. -/
+theorem signalRequestCtr_built (ops : ByteAuth.Ops (BitVec 8)) (envelope : List (BitVec 8)) (timestamp id : Nat)
+    (mask frame : List (BitVec 8)) (official : Bool) (offsets : List Nat)
+    (built : build ops envelope timestamp id mask official = .ok (frame, offsets))
+    (cert : Nat) (assign : BVExpr.Assignment)
+    (hframe : (lookup (signalRequestInputs cert frame.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (signalRequestInputs cert frame.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (signalRequestInputs cert frame.length) name).map (BVExpr.eval assign)
+    let msg := sendMessage ops envelope timestamp id official
+    (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
+        (offsets.getD 3 0)).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (buildHeader (total msg) mask ++ maskFrom mask 0 (render (requestValues cert (get "conversation")) msg))
+        (signalRequestSlots cert 0 0 0 0 (get "conversation")).1 :=
+  TlsMpc.KernelSpecs.RequestFrame.signalRequestCtr_built ops envelope timestamp id mask frame official offsets built
+    cert assign hframe hmask
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+  TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-fetch-ctr` on a frame `buildFetch` returned seals exactly the frame of
+`GET /v2/keys/{uuid}/*` with the contact's UUID and base64 access key in place**, valid when the
+record is live. **K** + **C**. T7(a), T8. -/
+theorem bundleFetchCtr_built (id : Nat) (mask frame : List (BitVec 8)) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildFetch id mask = .ok (frame, payloadAt, offsets)) (assign : BVExpr.Assignment)
+    (hframe : (lookup (fetchInputs frame.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (fetchInputs frame.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (fetchInputs frame.length) name).map (BVExpr.eval assign)
+    (BundleKernel.bundleFetchCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0)).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (assembleHeader (total (fetchMessage id)) mask ++ maskFrom mask 0 (render (fetchValues (get "record")) (fetchMessage id)))
+        (liveValue (get "record")) :=
+  TlsMpc.KernelSpecs.RequestFrame.bundleFetchCtr_built id mask frame payloadAt offsets built assign hframe hmask
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+  TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-request-ctr` on a frame `buildDevices` returned seals exactly the frame of
+`PUT /v1/messages/{uuid}` with the UUID, access key and every device's padded ids in place**, the
+kernel named with the device offsets paired as `find` pairs them. **K** + **C**. T7(a), T8. -/
+theorem bundleRequestCtr_built (ops : ByteAuth.Ops (BitVec 8)) (envelopes : List (List (BitVec 8))) (timestamp id : Nat)
+    (mask frame : List (BitVec 8)) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices ops envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (assign : BVExpr.Assignment)
+    (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
+    let msg := devicesMessage ops envelopes timestamp id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (assembleHeader (total msg) mask ++ maskFrom mask 0 (render (devicesValues (get "records")) msg))
+        (bundleRequestValue (get "records") (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  TlsMpc.KernelSpecs.RequestFrame.bundleRequestCtr_built ops envelopes timestamp id mask frame official payloadAt
+    offsets built devices paired assign hframe hmask
+
+open TlsMpc.KernelSpecs.BundleItemWhole TlsMpc.Signal BundleResponse in
+/-- **Locality of `BundleResponse.device`:** it reads only the header, the item, the separator
+before it, what follows it and the last two bytes; two bodies that agree there give the same
+outputs. **K-fn**. -/
+theorem bundleDevice_local {B : Type} (a : ByteAuth.Ops B) (R X : List B) (start' start : Nat) (w : Widths)
+    (hw : Windows a R X start' start (size (item w))) :
+    BundleResponse.device a R.length start' w R = BundleResponse.device a X.length start w X :=
+  TlsMpc.KernelSpecs.BundleItemWhole.device_local a R X start' start w hw
+
+open TlsMpc.KernelSpecs.BundleItemWhole Std.Tactic.BVDecide TlsMpc.Signal BundleResponse in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-item` computes `BundleResponse.device` on the whole response body** at the item's
+real offset, for every assignment whose five inputs are the cut of that body around the item (as
+`layout?` places it). **K**. -/
+theorem bundleItem_whole (first last : Bool) (w : Widths) (assign : BVExpr.Assignment) (X : List (BitVec 8))
+    (start : Nat) (placed : Placed X.length first last start (size (item w)))
+    (inputs : let get := fun name => (lookup (BundleItemKernel.itemInputs first last w) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" = cut X first last start (size (item w))) :
+    let out := BundleResponse.device ByteAuth.concrete X.length start w X
+    values (BundleItemKernel.bundleItem first last w) assign =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []]) :=
+  TlsMpc.KernelSpecs.BundleItemWhole.bundleItem_whole first last w assign X start placed inputs
+
+open TlsMpc.KernelSpecs.BundleItemWhole Std.Tactic.BVDecide TlsMpc.Signal BundleResponse in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-slot` computes `BundleSlots.deviceSlots` on the whole response body with the item
+spliced into the slot layout.** **K**. That `deviceSlots` on the spliced item equals `device` on
+the original is NOT proved (section 8). -/
+theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment) (X : List (BitVec 8))
+    (start : Nat) (placed : Placed X.length first last start (size (item (BundleSlots.slots oneTime))))
+    (inputs : let get := fun name => (lookup (BundleSlotKernel.slotInputs first last oneTime) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        cut X first last start (size (item (BundleSlots.slots oneTime)))) :
+    let get := fun name => (lookup (BundleSlotKernel.slotInputs first last oneTime) name).map (BVExpr.eval assign)
+    let out := BundleSlots.deviceSlots ByteAuth.concrete X.length start oneTime (get "widths") X
+    values (BundleSlotKernel.bundleSlot first last oneTime) assign =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if oneTime then [out.getD 10 [], out.getD 11 []] else []) :=
+  TlsMpc.KernelSpecs.BundleItemWhole.bundleSlot_whole first last oneTime assign X start placed inputs
+
+open TlsMpc.KernelSpecs.WidthFlags TlsMpc.KernelSpecs.SignalKernels in
+/-- **A width flag is 255 exactly when the big-endian value is at least 2^(7(k+1))** (flag k,
+k = 0, 1, …), else 0. **K-fn**. -/
+theorem widthFlags_value (bytes : List (BitVec 8)) (groups : Nat) :
+    widthFlagsWith ByteAuth.concrete 0 bytes groups =
+      (List.range groups).map (fun k => if 2 ^ (7 * (k + 1)) ≤ bigEndian bytes then 255 else 0) :=
+  TlsMpc.KernelSpecs.WidthFlags.widthFlags_value bytes groups
+
+open TlsMpc.KernelSpecs.WidthFlags Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-widths` opens, for the counter, previous counter, SPQR epoch and next counter, the
+comparisons "value ≥ 2^(7(k+1))"** (as 255/0). **K**. -/
+theorem signalWidths_value (cert : Nat) (assign : BVExpr.Assignment) :
+    let session := (((lookup (TlsMpc.KernelSpecs.SignalKernels.widthsInputs cert) "conversation").map
+      (BVExpr.eval assign)).drop cert).take 262
+    let flags := fun (bytes : List (BitVec 8)) (groups : Nat) =>
+      (List.range groups).map (fun k => if 2 ^ (7 * (k + 1)) ≤ bigEndian bytes then (255 : BitVec 8) else 0)
+    (HybridKernel.signalWidths cert).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      [flags ((session.drop 1).take 4) 4, flags ((session.drop 5).take 4) 4, flags ((session.drop 109).take 8) 9,
+        flags (ChainSend.nextCounter Sha256.concrete ByteAuth.concrete ((session.drop 105).take 4)) 4] :=
+  TlsMpc.KernelSpecs.WidthFlags.signalWidths_value cert assign
+
+open TlsMpc.KernelSpecs.SlotEncoders TlsMpc.Signal in
+/-- **The UUID slot encoder is the RFC 4122 string form** (8-4-4-4-12 lower-case hex) of the 16
+bytes, against the independent `refUuid`. **K-fn**. -/
+theorem slotUuid_eq (raw : List (BitVec 8)) (h : raw.length = 16) :
+    RelayEncoding.uuid ByteAuth.concrete raw = refUuid raw :=
+  TlsMpc.KernelSpecs.SlotEncoders.uuid_eq raw h
+
+open TlsMpc.KernelSpecs.SlotEncoders in
+/-- **The UUID string form parses back to the 16 bytes** (so it is injective). **K-fn**. -/
+theorem slotUuid_parse (raw : List (BitVec 8)) (h : raw.length = 16) : refUuidParse (refUuid raw) = raw :=
+  TlsMpc.KernelSpecs.SlotEncoders.uuid_parse raw h
+
+open TlsMpc.KernelSpecs.SlotBase64 TlsMpc.Signal in
+/-- **The base64 slot encoder is RFC 4648 base64 with padding**, against the independent
+`refBase64`, for every input length. **K-fn**. -/
+theorem slotBase64_eq (raw : List (BitVec 8)) : RelayEncoding.base64 ByteAuth.concrete raw = refBase64 raw :=
+  TlsMpc.KernelSpecs.SlotBase64.base64_eq raw
+
+open TlsMpc.KernelSpecs.SlotBase64 in
+/-- **RFC 4648 base64 decodes back to the bytes** (so it is injective). **K-fn**. -/
+theorem slotBase64_decode (raw : List (BitVec 8)) : refBase64Decode (refBase64 raw) = raw :=
+  TlsMpc.KernelSpecs.SlotBase64.base64_decode raw
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.SlotDecimal TlsMpc.Signal in
+/-- **The padded decimal slot (device id 3, registration id 10 bytes) holds the decimal digits of
+the number followed by spaces, and its validity byte is 255 exactly when the digits fit**, against
+the independent `refDecimal` / `refPadded`, for every 64-bit number and slot width below 20.
+**K-fn**. -/
+theorem slotDecimal_value (w : BitVec 64) (width : Nat) (hw : width < 20) :
+    paddedDecimalWith RelayEncoding.decimalConcrete ByteAuth.concrete 0 w width =
+      (if numDigits w.toNat ≤ width then 255 else 0, refPadded w.toNat width) :=
+  TlsMpc.KernelSpecs.SlotDecimal.paddedDecimal_value w width hw
+
+open TlsMpc.KernelSpecs.SlotDecimal in
+/-- **A padded decimal slot whose digits fit reads back to the number** (the digits before the
+first space). **K-fn**. -/
+theorem slotDecimal_parse (n width : Nat) (h : numDigits n ≤ width) : parsePadded (refPadded n width) = n :=
+  TlsMpc.KernelSpecs.SlotDecimal.parsePadded_refPadded n width h
 
 /-! ## 3. Gating and what each opening reveals (SECURITY_MAP C.3)
 
@@ -2283,17 +2497,23 @@ the matching section above in the same commit.
   `_spec`). → **P3** (touches the emitters; one re-lowering, alone).
 
 ### Kernels compute their specification
-* Kernel-level specs: now proved for every kernel this item used to list (section 2c). Still
-  open: `bundle-item`'s link to `BundleResponse.device` on the whole response body (a locality
-  lemma for `device`); the meaning of `signal-widths`' flags (flag k = 255 iff value ≥ 2^(7k));
-  the meaning of the request-slot encoders (`uuid`, `base64`, padded decimal) against
-  RFC 4122 / RFC 4648. → no stage assigned; candidates for **P5**.
+* Kernel-level specs: now proved for every kernel this item used to list (section 2c). Closed in
+  section 2d: `bundle-item` on the whole body (`bundleItem_whole`, from the locality lemma
+  `bundleDevice_local`), the meaning of the `signal-widths` flags (`signalWidths_value`), the UUID,
+  base64 and padded decimal slot encoders against independent references (RFC 4122 string form,
+  RFC 4648, decimal digits) with round trips (`slotUuid_*`, `slotBase64_*`, `slotDecimal_*`).
+  Still open: `bundle-slot`: `deviceSlots` on the spliced item = `device` on the original item,
+  and `BundleSlots.splice` producing the slot layout (`bundleSlot_whole` links the kernel only to
+  the whole SPLICED body). → no stage assigned; candidate for **P5**.
 * ML-KEM: the `kem-*` kernels composed into `MlKem.encapsulate`. → no stage assigned.
 * **T7** — what the server receives: (a) `signal-request-ctr`, `bundle-request-ctr`,
   `bundle-fetch-ctr` seal the frame with each slot replaced by the WebSocket-masked field and
   nothing else changed — now proved at kernel level up to the frame (section 2c:
-  `*RequestCtr_spec`, `bundleFetchCtr_spec`, `insertSlots_inside_zero`); open: that the frame
-  is zero at the slots and the slots do not overlap (T8); (b) `signal-seal-official`/`-built`
+  `*RequestCtr_spec`, `bundleFetchCtr_spec`, `insertSlots_inside_zero`), and now composed with the
+  frames the controller builds (section 2d: `signalRequestCtr_built`, `bundleFetchCtr_built`,
+  `bundleRequestCtr_built`: the opened ciphertext encrypts exactly the masked frame of the request
+  with the secret fields in their slots; trusted: the C++ worker passes the controller's frame,
+  mask and offsets unchanged); (b) `signal-seal-official`/`-built`
   compute `SealedSenderV1` encryption of the message produced by `ChainSend`/`SpqrSend` from the
   stored state — the kernel is now proved to compute that composition on concrete values
   (`signalSealBuilt_spec`); open: a value theorem for `boundSeal` and for `prepare` against the
@@ -2313,10 +2533,13 @@ the matching section above in the same commit.
   `budget`/`mayReveal`/`step`/`stepPassed`/`stepSkipped`, the revealed positions are disjoint
   from the reference classifier's hidden set (request bodies, response bodies unless `openBody`,
   envelope payloads, …). → **P1**.
-* **T8** — request templates: `PublicRequest.build`/`buildDevices`/`buildFetch`/`assemble`
-  unmask to a WebSocket frame with the stated protobuf fields; slots are zero runs inside the
-  payload, non-overlapping; bytes outside slots depend only on (envelope, timestamp, id,
-  profile); also `reply`, `keepalive`, `ping`, `clientFrame`. → **P2**.
+* **T8** — request templates: for `build`/`buildDevices`/`buildFetch`/`assemble` the structural
+  part is now proved (section 2d, about the restated `Mirror` builders, equal to the controller's
+  by `RequestFrameBridge.lean`): the frame is the WebSocket header and the message masked, slots
+  are zero runs inside the payload, non-overlapping, at the returned offsets (`requestBuild_ok`,
+  `requestInsertSlots_offsets`). Still open: that the message is the stated protobuf/JSON
+  (`render` of the pieces, against a protobuf encoder); `reply`, `keepalive`, `ping`,
+  `clientFrame`. → **P2**.
 * **T11** — application results: every `jobResult` line carries exactly the entries both
   controllers agreed on; each result is `Recovery.onSend`/`onFetch` of revealed statuses or a
   fixed reason. → **P4**.
@@ -2493,6 +2716,22 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.establishPoints_spec
 #print axioms TlsMpc.Security.bundleItem_spec
 #print axioms TlsMpc.Security.bundleItem_rejects
+#print axioms TlsMpc.Security.requestBuild_ok
+#print axioms TlsMpc.Security.requestInsertSlots_offsets
+#print axioms TlsMpc.Security.signalRequestCtr_built
+#print axioms TlsMpc.Security.bundleFetchCtr_built
+#print axioms TlsMpc.Security.bundleRequestCtr_built
+#print axioms TlsMpc.Security.bundleDevice_local
+#print axioms TlsMpc.Security.bundleItem_whole
+#print axioms TlsMpc.Security.bundleSlot_whole
+#print axioms TlsMpc.Security.widthFlags_value
+#print axioms TlsMpc.Security.signalWidths_value
+#print axioms TlsMpc.Security.slotUuid_eq
+#print axioms TlsMpc.Security.slotUuid_parse
+#print axioms TlsMpc.Security.slotBase64_eq
+#print axioms TlsMpc.Security.slotBase64_decode
+#print axioms TlsMpc.Security.slotDecimal_value
+#print axioms TlsMpc.Security.slotDecimal_parse
 #print axioms TlsMpc.Security.chainSend_sealCore_concrete_correct
 #print axioms TlsMpc.Security.spqrSend_sealCore_concrete_correct
 #print axioms TlsMpc.Security.typedOpen_gated
