@@ -73,11 +73,39 @@ def blobAccepted : Label := ofKind .blobAccepted
 /-- Ciphertext and check value of `contact-seal` (ops 38, 54, 64). Kind `sealedBlob` (code 31). -/
 def sealedBlob : Label := ofKind .sealedBlob
 
+/-! Conversions and masks (stage S10, kinds 80–87; masked inversion, kind 90). -/
+
+/-- Bits to field (P-B2F): the opened `x ⊕ ρ`. Kind `maskedBit` (code 80). -/
+def maskedBit : Label := ofKind .maskedBit
+/-- Word to field (P-W2F): the opened `(u mod p + r) mod p` and its re-comparison. Kind `maskedWord` (81). -/
+def maskedWord : Label := ofKind .maskedWord
+/-- Field to word (P-F2W): the opened `v − f` and its re-comparison. Kind `maskedFieldValue` (82). -/
+def maskedFieldValue : Label := ofKind .maskedFieldValue
+/-- Mask generation (P-CUT): the opened cut candidates, both engines. Kind `cutCandidates` (83). -/
+def cutCandidates : Label := ofKind .cutCandidates
+/-- Mask generation: per bucket member the two sums. Kind `bucketSums` (84). -/
+def bucketSums : Label := ofKind .bucketSums
+/-- Mask generation: one flag bit per kept reference. Kind `referenceFlags` (85). -/
+def referenceFlags : Label := ofKind .referenceFlags
+/-- Mask generation, bit blocks: the recomposition and bit checks. Kind `bitBlockChecks` (86). -/
+def bitBlockChecks : Label := ofKind .bitBlockChecks
+/-- Shared scalars as field bits (P-BITS): the bit checks. Kind `scalarBitChecks` (87). -/
+def scalarBitChecks : Label := ofKind .scalarBitChecks
+/-- Masked inversion (P-INV): the openings `b·m` of the `D`/`Z` rows and the zero flag. Kind
+`maskedDenominator` (90). -/
+def maskedDenominator : Label := ofKind .maskedDenominator
+
 /-- The kinds the script flows release under, in the order of `all`. -/
-def kinds : List RevealKind := [.commitment, .commitOpening, .blobAccepted, .sealedBlob]
+def kinds : List RevealKind :=
+  [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
+   .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
+   .bitBlockChecks, .scalarBitChecks, .maskedDenominator]
 
 /-- Every label a flow uses. -/
-def all : List Label := [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob]
+def all : List Label :=
+  [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob,
+   maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
+   bitBlockChecks, scalarBitChecks, maskedDenominator]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -101,7 +129,7 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
   obtain ⟨k, -, rfl⟩ := (mem_all_iff l).mp hl
   exact ofKind_ne_zero k
 
-/-- The codes, for the record (the Rust test vectors carry them): 100, 101, 30, 31. -/
-theorem all_codes : all.map (·.code) = [100, 101, 30, 31] := rfl
+/-- The codes, for the record (the Rust test vectors carry them). -/
+theorem all_codes : all.map (·.code) = [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90] := rfl
 
 end TlsMpc.Node.Engine.Label
