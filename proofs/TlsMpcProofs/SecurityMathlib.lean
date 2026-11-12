@@ -9,6 +9,10 @@ import TlsMpcProofs.XEdDsaRecover
 import TlsMpcProofs.OffsetAgreementDist
 import TlsMpcProofs.OffsetSampling
 import TlsMpcProofs.UnpadSpec
+import TlsMpcProofs.EdwardsCurve
+import TlsMpcProofs.EdwardsEd25519
+import TlsMpcProofs.EdwardsBasePoint
+import TlsMpcProofs.MontgomeryLadder
 
 /-!
 # Security theorems that use Mathlib (companion to `TlsMpc/Security.lean`)
@@ -28,9 +32,19 @@ Statuses as in `TlsMpc/Security.lean` (**K**, **K-fn**, **C**, **M**, **switch**
 * **H-QR is now proved** (section 2), including the primality of `p = 2²⁵⁵ − 19` (section 1),
   with no hypothesis. The square-root formulas (`recipient`) and the hinted lift's selection
   rule and uniformity are theorems about the main package's programs.
-* **H-GROUP stays a hypothesis.** Where a statement needs "the points form a group" (P-HINT(c),
-  the masked agreement) it is stated for any finite commutative group `G`; nothing proves that
-  `pointAddValue` is such a group law.
+* **H-GROUP is now proved for the Edwards formulas** (section 7): the points of
+  `−x² + y² = 1 + d·x²·y²` over `ZMod p` with the unified addition law are a commutative group
+  (completeness from "`d` is not a square, `−1` is"; associativity by the polynomial identity
+  modulo the curve equations); `pointAddValue`, `extAddValue`, `negate`, `curveCheck`,
+  `sumTreeValue`, `extSumValue` compute in that group; the base point has order exactly `ℓ`
+  (`ℓ·B = 0` by kernel arithmetic, `ℓ` prime), so the subgroup it generates is a finite
+  commutative group of order `ℓ` and the statements of sections 3–3c hold for it without a group
+  hypothesis; the X25519 ladder computes scalar multiplication in the same group. The generic
+  statements (sections 3–3c) keep their form "for any finite commutative group `G`"; section 7b
+  instantiates them. **Still not proved:** the group order `#E = 8ℓ` (so: that every point killed
+  by `ℓ` is a multiple of `B`, and what `edwards-torsion-hinted` assumes about `8Q = P`); the
+  Montgomery side for `u` on the quadratic twist or `u = 0`; the map `x = √(−486664)·u/v` of
+  `liftPoint`; the window/table chains (`windowValue`, `doublingsValue`) as multiples.
 * **idealCommit stays a hypothesis** (a cryptographic assumption). The distributional statements
   of section 3 assume, as their model, that the other party's value does not depend on the honest
   party's mask (that is what `idealCommit` provides in the protocols).
@@ -138,8 +152,8 @@ theorem candidate_sq (X : ZMod FieldDag.modulus) (hX : IsSquare X) :
 
 /-- **`recipient`'s check value is zero exactly when its `x²` is a square.** **K-fn**
 (`recipient` is part of `edwards-prepare`, the non-hinted offset agreement; the composition with
-`prepare`'s other outputs is not stated). Reading "square ⇔ on the curve, not the twist" needs
-H-GROUP's formulas. -/
+`prepare`'s other outputs is not stated). That a zero check gives a point of the curve group is
+`recipient_on_curve` (section 7). -/
 theorem recipient_check_zero_iff (u : FieldDag.Expr) (input : ℕ → FieldDag.F) :
     (EdwardsAffine.recipient u).2.eval input = FieldDag.ofNat 0 ↔
       ∃ r : FieldDag.F, r * r = TlsMpcProofs.recXX (u.eval input) :=
@@ -240,7 +254,8 @@ theorem xeddsa_recover_valid_zero_or_one (U valid x y : FieldDag.F)
   TlsMpcProofs.recover_valid_zero_or_one U valid x y h
 
 /-- **`valid = 1` exactly when `u + 1 ≠ 0`, `v = d·y² + 1 ≠ 0` and `xx` is a square.** **K-fn**
-(H-QR; reading "square ⇔ on the curve" needs H-GROUP's formulas). -/
+(H-QR; that `valid = 1` gives a point of the curve group is `xeddsa_recover_on_curve`,
+section 7). -/
 theorem xeddsa_recover_valid_iff (U valid x y : FieldDag.F)
     (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) :
     valid = FieldDag.ofNat 1 ↔
@@ -633,13 +648,20 @@ theorem profile_1024_undetected_lt (S : Finset (Position 1024 12)) :
 
 /-! ## 5. Open (comments only)
 
-* H-GROUP (the Edwards formulas are a group law; also needed to read "`xx` is a square" as "on
-  the curve"); `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
+* H-GROUP: proved in section 7 for the Edwards formulas and the base point's subgroup. What
+  remains of it: the group order `#E = 8ℓ` (point counting; needed to say that the `ℓ`-torsion is
+  exactly the multiples of `B`, and for the cofactor reading of `edwards-torsion-hinted`); the
+  X25519 ladder on inputs of the quadratic twist and `u = 0`; `liftPoint`'s map
+  `x = √(−486664)·u/v`; `windowValue` / `doublingsValue` / `XEdDsaField.doubleScalar` as scalar
+  multiples (their additions are `pointAddValue` / `extAddValue`, which are proved).
+* `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
 * Cut-and-choose: the model's detection rules (P-CUT(d), (e)) against `dyn_word_mask.h` /
   `dabit_generator.h`; that the two challenge permutations of P-CUT compose to one uniform one.
 * Offset agreement: `idealCommit` (the peer's value independent of the honest party's, modelled as
   a fixed value; peer values chosen adaptively across messages are not covered); the two aborts
-  that depend only on the offsets (`mine = peer`, offset `0`) are not modelled; H-GROUP.
+  that depend only on the offsets (`mine = peer`, offset `0`) are not modelled; that the
+  recipient's point is nonzero and killed by `ℓ` is the hypothesis of section 7b's statements
+  (true for the base point; for a recipient key it is what the torsion check is for).
 * XEdDSA `recover`: the sign of `x` and its binding to the signature bit; `doubleScalar`.
 * Receive: the value forms of `varintValue` (widths 2–5) and `canonicalRange` (in
   `TlsMpc.Signal.ReceiveFirst`, whose 52-module import closure is not compiled here).
@@ -671,6 +693,244 @@ open TlsMpcProofs.UnpadSpec in
 theorem unpad_decode_accepts_iff {block : List (BitVec 8)} (hlen : block.length = 16) :
     (Signal.Unpad.decode ByteAuth.concrete block).head? = some 255 ↔ ∃ p, PaddedWith block p :=
   TlsMpcProofs.UnpadSpec.decode_accepts_iff hlen
+
+/-! ## 7. H-GROUP: the Edwards formulas are a group law
+
+`Ed25519.Curve` is the type of points of `−x² + y² = 1 + d·x²·y²` over `ZMod (2²⁵⁵ − 19)`,
+`d = −121665/121666` (`Ed25519.dK`); its `+`, `−`, `0` are the unified addition law, `(−x, y)` and
+`(0, 1)`. `Ed25519.Affine v P`: the pair `v` of main-package field values is the point `P`.
+`Ed25519.ExtRep e P`: the extended coordinates `e` represent `P` (`Z ≠ 0`, `X = xZ`, `Y = yZ`,
+`T = xyZ`). `Edwards.MRep X Z P`: `(X : Z)` is the projective Montgomery coordinate
+`(1 + y : 1 − y)` of `P`. -/
+
+open Ed25519 Edwards in
+/-- **`d` is not a square mod `p`** (Euler's criterion, the power by kernel arithmetic). **gen**. -/
+theorem edwards_d_not_square : ¬ IsSquare dK :=
+  TlsMpcProofs.Ed25519.dK_not_isSquare
+
+open Ed25519 Edwards in
+/-- **`−1` is a square mod `p`.** **gen**. -/
+theorem edwards_neg_one_square : IsSquare (-1 : ZMod FieldDag.modulus) :=
+  TlsMpcProofs.Ed25519.neg_one_isSquare
+
+open Ed25519 Edwards in
+/-- **The addition law is complete** (Bernstein–Lange): on curve points neither denominator
+vanishes. **gen** (H-GROUP; this is why the runtime's abort on a zero denominator cannot happen on
+valid inputs). -/
+theorem edwards_complete (P Q : Curve) :
+    1 + dK * P.x * Q.x * P.y * Q.y ≠ 0 ∧ 1 - dK * P.x * Q.x * P.y * Q.y ≠ 0 :=
+  ⟨Point.denom_x_ne_zero P Q, Point.denom_y_ne_zero P Q⟩
+
+open Ed25519 Edwards in
+/-- **The group operations are the formulas:** `P + Q`, `−P`, `0` in coordinates. **gen**. -/
+theorem edwards_operations (P Q : Curve) :
+    (P + Q).x = (P.x * Q.y + P.y * Q.x) / (1 + dK * P.x * Q.x * P.y * Q.y) ∧
+      (P + Q).y = (P.y * Q.y + P.x * Q.x) / (1 - dK * P.x * Q.x * P.y * Q.y) ∧
+      (-P).x = -P.x ∧ (-P).y = P.y ∧ (0 : Curve).x = 0 ∧ (0 : Curve).y = 1 :=
+  ⟨Point.add_x P Q, Point.add_y P Q, rfl, rfl, rfl, rfl⟩
+
+open Ed25519 Edwards in
+/-- **Associativity of the Edwards addition law** (the polynomial identity modulo the three
+curve equations, with explicit cofactors: `Edwards.assoc_x_poly`, `assoc_y_poly`). **gen**
+(H-GROUP). -/
+theorem edwards_add_assoc (P Q R : Curve) : P + Q + R = P + (Q + R) :=
+  add_assoc P Q R
+
+open Ed25519 Edwards in
+/-- **Commutativity, identity, inverse.** With `edwards_add_assoc`: the curve points are a
+commutative group (`Edwards.Point.instAddCommGroup`). **gen** (H-GROUP). -/
+theorem edwards_group_laws (P Q : Curve) : P + Q = Q + P ∧ 0 + P = P ∧ -P + P = 0 :=
+  ⟨add_comm P Q, zero_add P, neg_add_cancel P⟩
+
+open Ed25519 in
+/-- **`EdwardsAffine.pointAddValue` is the group law on curve points.** **K-fn** (every affine
+addition of `edwards-prepare`, `edwards-offset-sum`, `lift-point`, the windows). -/
+theorem pointAddValue_is_group_add {p q : EdwardsAffine.Value} {P Q : Curve} (hp : Affine p P)
+    (hq : Affine q Q) : Affine (EdwardsAffine.pointAddValue p q) (P + Q) :=
+  TlsMpcProofs.Ed25519.affine_pointAddValue hp hq
+
+open Ed25519 in
+/-- **`EdwardsHinted.negate` is the group negation; `(0, 1)` is the neutral element.** **K-fn**. -/
+theorem negate_is_group_neg {v : EdwardsAffine.Value} {P : Curve} (hp : Affine v P) :
+    Affine (FieldDag.ofNat 0 - v.1, v.2) (-P) ∧ Affine (FieldDag.ofNat 0, FieldDag.ofNat 1) (0 : Curve) :=
+  ⟨TlsMpcProofs.Ed25519.affine_neg hp, TlsMpcProofs.Ed25519.affine_neutral⟩
+
+open Ed25519 in
+/-- **`EdwardsHinted.curveCheck` is zero exactly when the pair is a point of the group.**
+**K-fn** (`lift-open`, `edwards-torsion-hinted`). -/
+theorem curveCheck_zero_iff (input : ℕ → FieldDag.F) (p : EdwardsAffine.Point) :
+    (EdwardsHinted.curveCheck p).eval input = FieldDag.ofNat 0 ↔
+      ∃ P : Curve, Affine (EdwardsAffine.evalPoint input p) P := by
+  rw [TlsMpcProofs.Ed25519.curveCheck_eval]
+  exact TlsMpcProofs.Ed25519.curveCheckValue_zero_iff_exists _
+
+open Ed25519 in
+/-- **`EdwardsHinted.extAddValue` is the group law in extended coordinates**, and the `Z` of its
+result is nonzero. **K-fn** (`extSum`, `doublings`, `torsionHinted`). -/
+theorem extAddValue_is_group_add {p q : EdwardsHinted.ExtV} {P Q : Curve} (hp : ExtRep p P)
+    (hq : ExtRep q Q) : ExtRep (EdwardsHinted.extAddValue p q) (P + Q) :=
+  TlsMpcProofs.Ed25519.extRep_extAddValue hp hq
+
+open Ed25519 in
+/-- **`ofAffineValue` / `toAffineValue` move between the two representations.** **K-fn**. -/
+theorem ext_affine_conversions {v : EdwardsAffine.Value} {e : EdwardsHinted.ExtV} {P : Curve} :
+    (Affine v P → ExtRep (EdwardsHinted.ofAffineValue v) P) ∧
+      (ExtRep e P → Affine (EdwardsHinted.toAffineValue e) P) :=
+  ⟨TlsMpcProofs.Ed25519.extRep_ofAffineValue, TlsMpcProofs.Ed25519.affine_toAffineValue⟩
+
+open Ed25519 in
+/-- **`EdwardsAffine.sumTreeValue` of curve points is their sum in the group.** **K-fn**
+(`edwards-offset-sum`, `edwards-prepare`'s initial point). -/
+theorem sumTreeValue_is_group_sum (l : List (EdwardsAffine.Value × Curve))
+    (h : ∀ a ∈ l, Affine a.1 a.2) :
+    Affine (EdwardsAffine.sumTreeValue (l.map Prod.fst)) (l.map Prod.snd).sum :=
+  TlsMpcProofs.Ed25519.affine_sumTreeValue l h
+
+open Ed25519 in
+/-- **`EdwardsHinted.extSumValue` of represented points represents their sum in the group.**
+**K-fn** (`edwards-offset-sum-fast`, `edwards-bit-sum`, `edwards-signature-sum`). -/
+theorem extSumValue_is_group_sum (l : List (EdwardsHinted.ExtV × Curve))
+    (h : ∀ a ∈ l, ExtRep a.1 a.2) :
+    ExtRep (EdwardsHinted.extSumValue (l.map Prod.fst)) (l.map Prod.snd).sum :=
+  TlsMpcProofs.Ed25519.extRep_extSumValue l h
+
+open Ed25519 in
+/-- **When `recipient`'s check value is zero, its output is a point of the curve group** (the
+reading of `recipient_check_zero_iff` that needed H-GROUP's formulas). **K-fn**. -/
+theorem recipient_on_curve (u : FieldDag.Expr) (input : ℕ → FieldDag.F)
+    (h : (EdwardsAffine.recipient u).2.eval input = FieldDag.ofNat 0) :
+    ∃ P : Curve, Affine (EdwardsAffine.evalPoint input (EdwardsAffine.recipient u).1) P :=
+  TlsMpcProofs.Ed25519.recipient_onCurve u input h
+
+open Ed25519 in
+/-- **When `recover` reports `valid = 1`, its `(x, y)` is a point of the curve group.** **K-fn**
+(`xeddsa-recover`). -/
+theorem xeddsa_recover_on_curve (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) (hv : valid = FieldDag.ofNat 1) :
+    ∃ P : Curve, TlsMpcProofs.toZMod x = P.x ∧ TlsMpcProofs.toZMod y = P.y :=
+  TlsMpcProofs.Ed25519.recover_onCurve U valid x y h hv
+
+/-! ### 7b. The base point and the subgroup of order `ℓ` -/
+
+open Ed25519 in
+/-- **`ℓ·B = 0` for the base point `B = (baseX, baseY)`** (on the curve: `Ed25519.base_onCurve`):
+double-and-add in extended coordinates over `ℕ` mod `p`, evaluated by the kernel
+(`decide +kernel`, `Nat` arithmetic only), proved to be the group's scalar multiple. **gen**. -/
+theorem base_order_nsmul : Signal.XEdDsaScalar.order • B = 0 :=
+  TlsMpcProofs.Ed25519.order_nsmul_base
+
+open Ed25519 in
+/-- **The base point has order exactly `ℓ`** (`ℓ` prime, `B ≠ 0`). **gen**. -/
+theorem base_addOrderOf : addOrderOf B = Signal.XEdDsaScalar.order :=
+  TlsMpcProofs.Ed25519.addOrderOf_base
+
+open Ed25519 in
+/-- **A nonzero point killed by `ℓ` generates a subgroup with exactly `ℓ` elements**; in
+particular the base point. **gen** (this replaces "a finite commutative group of order `ℓ`" in
+section 3b/3c; `#Curve = 8ℓ` is not proved and not needed). -/
+theorem curve_subgroup_card {P : Curve} (h : Signal.XEdDsaScalar.order • P = 0) (hP : P ≠ 0) :
+    Fintype.card (AddSubgroup.zmultiples P) = Signal.XEdDsaScalar.order ∧
+      Fintype.card (AddSubgroup.zmultiples B) = Signal.XEdDsaScalar.order :=
+  ⟨TlsMpcProofs.Ed25519.card_zmultiples_of_order h hP, TlsMpcProofs.Ed25519.card_zmultiples_base⟩
+
+open Ed25519 TlsMpcProofs.OffsetAgreement in
+/-- **Section 3b on the curve, H-GROUP discharged:** for a curve point `P ≠ 0` with `ℓ·P = 0`,
+the published key `initial·P + offset·P` (offset uniform mod `ℓ`) is uniform on the subgroup `P`
+generates, whatever the initial scalar. **M**. -/
+theorem curve_offset_public_key_uniform {P : Curve} (h : Signal.XEdDsaScalar.order • P = 0)
+    (hP : P ≠ 0) (initial : ZMod Signal.XEdDsaScalar.order) :
+    PMF.map (publicKey (gen P) initial) (PMF.uniformOfFintype (ZMod Signal.XEdDsaScalar.order)) =
+      PMF.uniformOfFintype (AddSubgroup.zmultiples P) :=
+  TlsMpcProofs.Ed25519.curve_public_key_uniform h hP initial
+
+open Ed25519 TlsMpcProofs.OffsetSampling in
+/-- **Section 3c on the curve, H-GROUP discharged:** deployed sampling, one message, any two
+initial scalars, every event within `2⁻¹²⁷`. **M**. -/
+theorem curve_deployed_key_close {P : Curve} (h : Signal.XEdDsaScalar.order • P = 0) (hP : P ≠ 0)
+    (peer : BitVec 256) (initial other : ZMod Signal.XEdDsaScalar.order) :
+    EventClose
+      (PMF.map (fun mine => deployedKey (gen P) initial (deployedOffset mine peer))
+        (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.map (fun mine => deployedKey (gen P) other (deployedOffset mine peer))
+        (PMF.uniformOfFintype (BitVec 256)))
+      (1 / ((2 ^ 127 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.Ed25519.curve_key_close h hP peer initial other
+
+open Ed25519 TlsMpcProofs.OffsetSampling in
+/-- **… and within `2⁻¹²⁷` of uniform on the subgroup.** **M**. -/
+theorem curve_deployed_key_close_uniform {P : Curve} (h : Signal.XEdDsaScalar.order • P = 0)
+    (hP : P ≠ 0) (peer : BitVec 256) (initial : ZMod Signal.XEdDsaScalar.order) :
+    StatClose
+      (PMF.map (fun mine => deployedKey (gen P) initial (deployedOffset mine peer))
+        (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.uniformOfFintype (AddSubgroup.zmultiples P)) (1 / ((2 ^ 127 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.Ed25519.curve_key_close_uniform h hP peer initial
+
+open Ed25519 TlsMpcProofs.OffsetSampling in
+/-- **`k` messages on the curve:** the joint keys, any two initial scalars, within `k·2⁻¹²⁷`.
+**M**. -/
+theorem curve_deployed_keys_close {P : Curve} (h : Signal.XEdDsaScalar.order • P = 0) (hP : P ≠ 0)
+    {k : ℕ} (peers : Fin k → BitVec 256) (initial other : ZMod Signal.XEdDsaScalar.order) :
+    EventClose
+      (PMF.map (fun mines => deployedKeys (gen P) initial (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (PMF.map (fun mines => deployedKeys (gen P) other (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (k * (1 / ((2 ^ 127 : ℕ) : ENNReal))) :=
+  TlsMpcProofs.Ed25519.curve_keys_close h hP peers initial other
+
+open Ed25519 TlsMpcProofs.OffsetSampling in
+/-- **The base point, no hypothesis at all:** the deployed key `initial·B + offset·B` is within
+`2⁻¹²⁷` of uniform on the `ℓ`-element subgroup generated by `B`. **M**. -/
+theorem base_deployed_key_close_uniform (peer : BitVec 256)
+    (initial : ZMod Signal.XEdDsaScalar.order) :
+    StatClose
+      (PMF.map (fun mine => deployedKey (gen B) initial (deployedOffset mine peer))
+        (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.uniformOfFintype (AddSubgroup.zmultiples B)) (1 / ((2 ^ 127 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.Ed25519.base_key_close_uniform peer initial
+
+open Ed25519 in
+/-- **P-HINT(c) on the curve, H-GROUP discharged:** `Z = P + M_A + M_B` is uniform on the curve
+group for the honest party's uniform curve point `M_B`. **M**. -/
+theorem curve_hinted_Z_uniform (P maskA : Curve) :
+    PMF.map (fun maskB => MaskedAgreement.opened P maskA maskB) (PMF.uniformOfFintype Curve) =
+      PMF.uniformOfFintype Curve :=
+  TlsMpcProofs.Ed25519.curve_hinted_Z_uniform P maskA
+
+open Ed25519 in
+/-- **The masked agreement on the curve, H-GROUP discharged.** **M**. -/
+theorem curve_maskedAgreement_mask_hides (R other maskA : Curve) :
+    PMF.map (fun maskB => MaskedAgreement.opened R maskA maskB) (PMF.uniformOfFintype Curve) =
+      PMF.map (fun maskB => MaskedAgreement.opened other maskA maskB) (PMF.uniformOfFintype Curve) :=
+  TlsMpcProofs.Ed25519.curve_maskedAgreement_mask_hides R other maskA
+
+/-! ### 7c. X25519 (the Montgomery ladder) -/
+
+open Ed25519 Edwards in
+/-- **One ladder step is `(Q, R) ↦ (2Q, Q + R)` in the Edwards group**, for representatives of
+`Q`, `R` and the affine `u ≠ 0` of `R − Q` (all degenerate cases included). **K-fn**
+(`X25519.advance`). -/
+theorem x25519_advance {u : FieldDag.F} {s : X25519.Coordinates FieldDag.F} {Q R : Curve}
+    (hD : MRep (TlsMpcProofs.toZMod u) 1 (R - Q)) (hu : TlsMpcProofs.toZMod u ≠ 0)
+    (hQ : MRep (TlsMpcProofs.toZMod s.x2) (TlsMpcProofs.toZMod s.z2) Q)
+    (hR : MRep (TlsMpcProofs.toZMod s.x3) (TlsMpcProofs.toZMod s.z3) R) :
+    MRep (TlsMpcProofs.toZMod (X25519.advance X25519.concrete u s).x2)
+        (TlsMpcProofs.toZMod (X25519.advance X25519.concrete u s).z2) (Q + Q) ∧
+      MRep (TlsMpcProofs.toZMod (X25519.advance X25519.concrete u s).x3)
+        (TlsMpcProofs.toZMod (X25519.advance X25519.concrete u s).z3) (Q + R) :=
+  TlsMpcProofs.Ed25519.advance_rep hD hu hQ hR
+
+open Ed25519 Edwards in
+/-- **X25519 is scalar multiplication in the Edwards group:** if `u ≠ 0` is the Montgomery
+coordinate `(1 + y)/(1 − y)` of a curve point `P`, `X25519.spec input u` is the Montgomery
+coordinate of `k·P`, `k` the clamped scalar (`0` when `k·P = 0`). **K-fn** (`x25519`;
+`X25519.compiled_compute_correct` links the artifact to `spec`). Inputs on the quadratic twist
+and `u = 0` are not covered. -/
+theorem x25519_spec_scalar_mult (input : ℕ → Bool) (u : FieldDag.F) (P : Curve)
+    (hP : MRep (TlsMpcProofs.toZMod u) 1 P) (hu : TlsMpcProofs.toZMod u ≠ 0) :
+    TlsMpcProofs.toZMod (X25519.spec input u) = montU (clampedScalar input • P) :=
+  TlsMpcProofs.Ed25519.spec_eq_montU input u P hP hu
 
 end TlsMpcProofs.Security
 
@@ -758,3 +1018,30 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.unpad_decode_padded
 #print axioms TlsMpcProofs.Security.unpad_decode_unpadded
 #print axioms TlsMpcProofs.Security.unpad_decode_accepts_iff
+#print axioms TlsMpcProofs.Security.edwards_d_not_square
+#print axioms TlsMpcProofs.Security.edwards_neg_one_square
+#print axioms TlsMpcProofs.Security.edwards_complete
+#print axioms TlsMpcProofs.Security.edwards_operations
+#print axioms TlsMpcProofs.Security.edwards_add_assoc
+#print axioms TlsMpcProofs.Security.edwards_group_laws
+#print axioms TlsMpcProofs.Security.pointAddValue_is_group_add
+#print axioms TlsMpcProofs.Security.negate_is_group_neg
+#print axioms TlsMpcProofs.Security.curveCheck_zero_iff
+#print axioms TlsMpcProofs.Security.extAddValue_is_group_add
+#print axioms TlsMpcProofs.Security.ext_affine_conversions
+#print axioms TlsMpcProofs.Security.sumTreeValue_is_group_sum
+#print axioms TlsMpcProofs.Security.extSumValue_is_group_sum
+#print axioms TlsMpcProofs.Security.recipient_on_curve
+#print axioms TlsMpcProofs.Security.xeddsa_recover_on_curve
+#print axioms TlsMpcProofs.Security.base_order_nsmul
+#print axioms TlsMpcProofs.Security.base_addOrderOf
+#print axioms TlsMpcProofs.Security.curve_subgroup_card
+#print axioms TlsMpcProofs.Security.curve_offset_public_key_uniform
+#print axioms TlsMpcProofs.Security.curve_deployed_key_close
+#print axioms TlsMpcProofs.Security.curve_deployed_key_close_uniform
+#print axioms TlsMpcProofs.Security.curve_deployed_keys_close
+#print axioms TlsMpcProofs.Security.base_deployed_key_close_uniform
+#print axioms TlsMpcProofs.Security.curve_hinted_Z_uniform
+#print axioms TlsMpcProofs.Security.curve_maskedAgreement_mask_hides
+#print axioms TlsMpcProofs.Security.x25519_advance
+#print axioms TlsMpcProofs.Security.x25519_spec_scalar_mult

@@ -9,4 +9,9 @@ import TlsMpcProofs.XEdDsaRecover
 import TlsMpcProofs.OffsetAgreementDist
 import TlsMpcProofs.OffsetSampling
 import TlsMpcProofs.UnpadSpec
+import TlsMpcProofs.EdwardsPoly
+import TlsMpcProofs.EdwardsCurve
+import TlsMpcProofs.EdwardsEd25519
+import TlsMpcProofs.EdwardsBasePoint
+import TlsMpcProofs.MontgomeryLadder
 import TlsMpcProofs.SecurityMathlib

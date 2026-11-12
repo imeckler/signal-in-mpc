@@ -849,6 +849,9 @@ Definition:
 Properties:
 - (a) under hypothesis H-GROUP (the Edwards formulas are the group law; stated, not proved), the
   honest result is u((k_A + k_B)·S);
+  *2026-11-12: H-GROUP is proved in `proofs/` for the field programs' formulas (R7:
+  `pointAddValue_is_group_add`, `extAddValue_is_group_add`); (a) itself, about `Local/Edwards`
+  and the script, is not yet stated there.*
 - (b) the checks open to 0 iff both inputs are curve points (`EdwardsShare.onCurve_eval` plus
   the converse);
 - (c) released values: P_A, the checks, the quotient denominator; only P_A depends on k_A;
@@ -891,6 +894,12 @@ Properties:
   `k·2⁻¹²⁷`). Still hypotheses: H-GROUP, `idealCommit`, a fixed (non-adaptive) peer value per
   message; not modelled: the aborts on `mine = peer` and on τ = 0 (both independent of the
   initial scalar). Still open: the statement about `step` (the recoding lemma).*
+  *2026-11-12 (H-GROUP): the group hypothesis is discharged for the curve (R7): for a curve point
+  `P ≠ 0` with `ℓ·P = 0` the subgroup it generates has exactly `ℓ` elements, and
+  `curve_offset_public_key_uniform`, `curve_deployed_key_close`, `curve_deployed_key_close_uniform`,
+  `curve_deployed_keys_close` are the statements above for that subgroup;
+  `base_deployed_key_close_uniform` is the one for the base point, with no hypothesis. What is
+  assumed instead of H-GROUP: `P ≠ 0` and `ℓ·P = 0` for the recipient's point.*
 - (c) the checks open 0 iff the bits are bits and the hints are right (`entries_sound`,
   `prepareTable_sound` exist);
 - (d) K₀'s commitment binds party and nonce, as P-RAND.
@@ -917,6 +926,9 @@ Properties:
   count above: for the pair (r, b) every value of F (0 included) has exactly **2** preimages; the
   "4" counts (r, b_A, b_B). (a), (d), (e) and the script-level (b) remain with S11.*
 - (c) Z = P + M_A + M_B: for fixed P, M_A ↦ Z is a bijection on the group, under H-GROUP;
+  *2026-11-12: H-GROUP is proved for the curve (R7); `proofs/` `curve_hinted_Z_uniform` is (c) as
+  probability on the curve group itself (Z uniform for a uniform curve point M_B), no group
+  hypothesis. That the script's mask points are uniform curve points is not modelled.*
 - (d) `entries_sound` composed: whatever the hints, if the links open to 0 the table equals the
   chain from P;
 - (e) the validity bit `valid` is opened only in `prepareContacts` (NEEDS_REVIEW 3b's table),
@@ -1717,7 +1729,7 @@ modes. Plan stage ends accordingly.
 | R4 | **The legacy/Lean handle coupling in S9–S16** (contacts' wires shared through `legacy_get` / `legacy_put`). A bug can confuse handles. | Handles are never reused (as today). The S9 differential fixture compares both paths on the same inputs. |
 | R5 | **Two mask pools during S10–S16** (legacy C++ and Lean) cost extra mask generation. | Accept (about 0.6 s per session today). |
 | R6 | **Proof sizes are guesses.** T1, P-CUT, T7 and T13 could double. | The engineering stages do not wait for proofs, except where a stage names its theorem as a deliverable (S9–S16: T3/T4/P-*). If such a proof overruns by 2×, the stage ships with the theorem stated, the proof as a tracked hole in `Security.lean`'s "open" list, **never as `sorry`**. Owner to be told. |
-| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. *2026-11-12: H-QR is no longer a hypothesis — discharged in `proofs/` by `Prime25519.prime_modulus` and `QuadraticResidue.{two_not_square, euler_criterion, euler_nonsquare, sqrtMinusOne_eq_power, candidate_fourth_iff, candidate_sq}`, applied to the programs by `recipient_check_zero_iff` / `recipient_x_mul_self` (`EdwardsAffine.recipient`), `lift_select` / `liftOpen_square_iff` (`EdwardsHinted.liftOpen`) and `XEdDsaRecover.recover_valid_iff` / `recover_x_mul_self` (`XEdDsaField.recover`). H-GROUP, `idealCommit` and the engines' ideal behaviour stay.* | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
+| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. *2026-11-12: H-QR is no longer a hypothesis — discharged in `proofs/` by `Prime25519.prime_modulus` and `QuadraticResidue.{two_not_square, euler_criterion, euler_nonsquare, sqrtMinusOne_eq_power, candidate_fourth_iff, candidate_sq}`, applied to the programs by `recipient_check_zero_iff` / `recipient_x_mul_self` (`EdwardsAffine.recipient`), `lift_select` / `liftOpen_square_iff` (`EdwardsHinted.liftOpen`) and `XEdDsaRecover.recover_valid_iff` / `recover_x_mul_self` (`XEdDsaField.recover`). H-GROUP, `idealCommit` and the engines' ideal behaviour stay.* *2026-11-12 (later): H-GROUP is discharged in `proofs/` for the Edwards formulas (index `SecurityMathlib.lean` section 7; files `EdwardsPoly`, `EdwardsCurve`, `EdwardsEd25519`, `EdwardsBasePoint`, `MontgomeryLadder`). Proved, with no hypothesis: `d = −121665/121666` is not a square and `−1` is a square mod p, so the unified addition law is complete (`edwards_complete`); the curve points with that law, `(−x, y)` and `(0, 1)` are a commutative group (`Edwards.Point.instAddCommGroup`; associativity `edwards_add_assoc` by the polynomial identity modulo the three curve equations with explicit cofactors, checked by `linear_combination`); `EdwardsAffine.pointAddValue`, `EdwardsHinted.extAddValue`, `negate`, `curveCheck`, `sumTreeValue`, `extSumValue` compute in that group (`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `curveCheck_zero_iff`, `sumTreeValue_is_group_sum`, `extSumValue_is_group_sum`); `recipient` (check zero) and `recover` (`valid = 1`) output curve points; the base point is on the curve and `ℓ·B = 0` (kernel-evaluated double-and-add over `ℕ` mod p, proved to be the group's scalar multiple), so with `ℓ` prime `B` has order exactly `ℓ` and the subgroup it generates is a finite commutative group of order `ℓ` (`base_addOrderOf`, `curve_subgroup_card`); the offset and masked-point theorems are instantiated with it (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`, `curve_hinted_Z_uniform`, …); `X25519.spec` is the Montgomery coordinate of `k·P` in the same group for `u ≠ 0` the coordinate of a curve point (`x25519_spec_scalar_mult`). **What remains of H-GROUP:** the group order `#E = 8ℓ` (point counting; hence that the `ℓ`-torsion is exactly the multiples of `B`, and the cofactor claim of `edwards-torsion-hinted`); that a recipient's point is nonzero and killed by `ℓ` (a hypothesis of the instantiated offset theorems); X25519 for `u` on the quadratic twist and `u = 0`; `liftPoint`'s Montgomery-to-Edwards map `x = √(−486664)·u/v`; `windowValue`, `doublingsValue`, `XEdDsaField.doubleScalar` and the C++ `Local/Edwards` as scalar multiples (only their additions are covered). `idealCommit` and the engines' ideal behaviour stay.* | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
 | R8 | **Rust linking emp and MP-SPDZ** through `build.rs` may be fiddly (C++20, OpenSSL 3.5, thread pools, the 1 GB stack of `big_stack.h`). | Build the ABI as a static library with the existing `build_hybrid_v3.py` and link it. Run the engines on a thread with the 1 GB stack, as `run_with_stack` does. |
 | R9 | **Semi-honest mode.** The instruction set must run on `ShSession` too. | `engine_abi` per mode. The scripts are the same. The cut-and-choose has a semi-honest variant (`dyn_word_mask.h:20-43`), kept as `Masks.generateSemiHonest` with only P-CUT (a). |
 | R10 | **The retired fixture checks** (`check_signal_service_v3.py`, `check_tls_application_v3.py`) test undeployed paths. | Retire in S7. Keep `check_tls_worker_v3.py`. |
