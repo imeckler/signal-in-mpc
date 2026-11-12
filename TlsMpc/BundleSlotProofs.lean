@@ -17,9 +17,10 @@ Proved since in `TlsMpc/KernelSpecs/BundleSlotWhole.lean` (restated in `TlsMpc/S
 section 2d): `deviceSlots` on the spliced item gives exactly `BundleResponse.device` on the
 original (`deviceSlots_splice`, `slotValid_pad`), `BundleSlots.splice` produces the slot layout
 (`spliced_layout`), and so `bundle-slot` on the body the server sent computes `device`
-(`bundleSlot_device`); with the caveat `inconsistent_width_accepts` there (a `widths` input that
-disagrees with the splice, on a number with a leading zero). `check_bundle_slots.py` remains as a
-test. What `numberBytes`/`decode` mean as integers is `number_spec` in `TlsMpc/BundleProofs.lean`.
+(`bundleSlot_device`); and, since the emitter batch (filler padding), whatever the `widths` input
+the kernel gives `device`'s outputs or nothing (`bundleSlot_any_widths`; the former caveat
+`inconsistent_width_accepts` is now `inconsistent_width_refused`). `check_bundle_slots.py` remains
+as a test. What `numberBytes`/`decode` mean as integers is `number_spec` in `TlsMpc/BundleProofs.lean`.
 -/
 namespace TlsMpc.BundleSlotKernel
 open Std.Tactic.BVDecide

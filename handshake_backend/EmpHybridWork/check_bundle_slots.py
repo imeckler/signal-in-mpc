@@ -7,12 +7,14 @@ shape Signal-Server writes (as check_bundle_kernels.py does), for 1 to 5 devices
 have every digit count the server's types allow (device id 1–3 digits, registration id 1–5,
 key ids 1–10). For each item:
   1. the Lean splice (`bundle_slot_emitter splice D R S P K`) equals an independent one written
-     here (each number right-aligned in its slot: 3, 5, 10, 10, 10, padded with `0`);
+     here (each number right-aligned in its slot: 3, 5, 10, 10, 10, padded with the filler byte 0,
+     NUL; `0` characters before the emitter batch, see EMITTER_BATCH.md);
   2. the kernel on the spliced item, the bytes around it and the digit counts gives exactly the
      fields a `json.loads` parse of the body gives (the outputs of `bundle-item`);
   3. altered inputs release nothing: a number with a leading zero in the body, a padding byte that
-     is not `0`, a digit count one too small or too large, 0, or beyond the slot, numbers out of
-     range with the same digit counts, a template character changed.
+     is not the filler (`1`, or the old `0`), a digit count one too small or too large, 0, or
+     beyond the slot, numbers out of range with the same digit counts, a template character
+     changed.
 Kernels come from `circuit_cache.py kernel bundle-slot ...` (which runs `bundle_slot_emitter`).
 
     check_bundle_slots.py        (run it under scripts/guarded.py; writes bundle-slots-report.json)
@@ -24,6 +26,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 SPLICER = ROOT / '.lake/build/bin/bundle_slot_emitter'
 SLOTS = (3, 5, 10, 10, 10)
+FILLER = b'\x00'   # Lean's `BundleSlots.filler`
 
 
 def kernel(*args):
@@ -128,13 +131,13 @@ def number_spans(item):
 
 
 def splice_reference(item):
-    """Each number right-aligned in its slot, padded with `0`; everything else copied."""
+    """Each number right-aligned in its slot, padded with the filler; everything else copied."""
     out, at = b'', 0
     for span, slot in zip(number_spans(item), SLOTS):
         if span is None:
             continue
         start, digits = span
-        out += item[at:start] + b'0' * (slot - digits) + item[start:start + digits]
+        out += item[at:start] + FILLER * (slot - digits) + item[start:start + digits]
         at = start + digits
     return out + item[at:]
 
@@ -145,7 +148,7 @@ def splice_lean(widths, item):
     for row in rows:
         if row.strip():
             zeros, copy = map(int, row.split())
-            out += b'0' * zeros + item[at:at + copy]
+            out += FILLER * zeros + item[at:at + copy]
             at += copy
     if at != len(item):
         raise AssertionError('the Lean splice does not copy the whole item')
@@ -246,11 +249,20 @@ def main():
                     rejected('width %d %+d' % (position, delta), widths=bytes(other))
             rejected('device width 0', widths=bytes([0] + widths[1:]))
             rejected('registration width beyond the slot', widths=bytes([widths[0], 6] + widths[2:]))
-            # a padding byte that is not `0` (the first byte of the device-id slot is padding when D < 3)
+            # a padding byte that is not the filler (the first byte of the device-id slot is padding
+            # when D < 3): a digit, or the character `0` the splice used before the emitter batch
             spans = number_spans(spliced)
             if widths[0] < 3:
                 at = spans[0][0]
-                rejected('padding not 0', item=spliced[:at] + b'1' + spliced[at + 1:])
+                rejected('padding 1', item=spliced[:at] + b'1' + spliced[at + 1:])
+                rejected('padding 0 character', item=spliced[:at] + b'0' + spliced[at + 1:])
+                # the former defect (NEEDS_REVIEW.md 3f, 2): the body's device id written `0d` (two
+                # digits, leading zero) and spliced with two digits, declared with one or with two
+                if widths[0] == 1:
+                    leading = spliced[:at + 1] + b'0' + spliced[at + 2:]
+                    rejected('leading zero spliced with 2 digits, declared 1', item=leading)
+                    rejected('leading zero spliced with 2 digits, declared 2', item=leading,
+                             widths=bytes([2] + widths[1:]))
             # a number written with a leading zero, kept at its digit count (the body would be
             # invalid JSON): take the registration id's slot and make its first real digit `0`
             if widths[1] > 1:
@@ -270,7 +282,7 @@ def main():
         spans = number_spans(good)
         slot_start, _ = spans[position]
         slot = SLOTS[position]
-        bad = good[:slot_start] + str(value).rjust(slot, '0').encode() + good[slot_start + slot:]
+        bad = good[:slot_start] + FILLER * (slot - len(str(value))) + str(value).encode() + good[slot_start + slot:]
         widths = list(widths)
         widths[position] = len(str(value))
         got = load(1, 1, 0)(head=body[:73], item=bad, end=body[-2:], widths=bytes(widths))

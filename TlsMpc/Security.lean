@@ -1902,18 +1902,22 @@ theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment
 /-! `bundle-slot` against `BundleResponse.device` on the body the server sent
 (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). The slot check, the splice, the item: **K-fn**; the
 kernel on the cut of the body: **K**. Trusted: the C++ worker binds `head`/`before`/`item`/`after`/
-`end` as stated and passes the splice and `widths` from the same digit counts. Caveat
-`inconsistent_width_accepts` (section 8). -/
+`end` as stated and pads the splice with the filler byte 0 (`service_kernels.h`,
+`bundle_establish`). Since the emitter batch (effective after the re-lowering) the padding is the
+filler 0, not `0`, and a `widths` input that disagrees with the splice no longer matters:
+`bundleSlot_any_widths` holds for any item, not only one `device` accepts, and the former caveat
+`inconsistent_width_accepts` is `bundleSlot_inconsistent_width_refused` (NEEDS_REVIEW.md 3f,
+defect 2). -/
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.Signal.Establish (part) in
 open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
   numberBytes digitValid pushDigit) in
-/-- **A slot of `m` bytes holding `m − n` zeros and then `n` characters, checked with the declared
-width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
+/-- **A slot of `m` bytes holding `m − n` filler bytes (0) and then `n` characters, checked with
+the declared width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
 theorem slotValid_pad (limit : Nat) (cs : List Byte) (m : Nat) (h1 : 1 ≤ cs.length) (hnm : cs.length ≤ m)
     (hm : m < 256) :
-    BundleSlots.slotValid ByteAuth.concrete limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 48 ++ cs) =
+    BundleSlots.slotValid ByteAuth.concrete limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 0 ++ cs) =
       numberValid ByteAuth.concrete limit cs :=
   TlsMpc.KernelSpecs.BundleSlotWhole.slotValid_pad limit cs m h1 hnm hm
 
@@ -1927,9 +1931,9 @@ the item, `post` what follows it). -/
 theorem deviceSlots_splice (w : Widths) (ok : w.ok = true) (pre I post : List Byte)
     (hI : I.length = size (item w)) (hpre : firstItem ≤ pre.length) (hpost : 2 ≤ post.length) :
     BundleSlots.deviceSlots ByteAuth.concrete
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) (widthBytes w)
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
       BundleResponse.device ByteAuth.concrete (pre ++ I ++ post).length pre.length w (pre ++ I ++ post) :=
   TlsMpc.KernelSpecs.BundleSlotWhole.deviceSlots_splice w ok pre I post hI hpre hpost
 
@@ -1971,7 +1975,7 @@ theorem bundleSlot_device (first last : Bool) (w : Widths) (ok : w.ok = true) (a
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w) :
@@ -1997,7 +2001,7 @@ theorem bundleSlot_eq_bundleItem (first last : Bool) (w : Widths) (ok : w.ok = t
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w)
@@ -2036,7 +2040,7 @@ theorem bundleSlot_wrong_counts (first last : Bool) (w w' : Widths) (ok' : w'.ok
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w')
@@ -2062,7 +2066,7 @@ theorem bundleSlot_parses_or_refuses (first last : Bool) (w' : Widths) (ok' : w'
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w') :
@@ -2082,26 +2086,59 @@ open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header fir
   numberBytes digitValid pushDigit) in
 open TlsMpc.HybridKernel (lookup) in
 open TlsMpc.ReceiveKernel (values) in
-/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If `device`
-accepts the item at `start` of `X` with digit counts `w` and the runtime splices it with `w`,
-then for ANY five bytes as `widths` the kernel either gives exactly `device`'s outputs (those of
-`bundle-item`) or releases nothing at all. -/
+/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If the runtime
+splices the item at `start` of `X` with digit counts `w` (no field of the item starting with a NUL
+byte, the filler), then for ANY five bytes as `widths` the kernel either gives exactly `device`'s
+outputs with `w` (those of `bundle-item`; all zero when `device` refuses) or releases nothing at
+all. Since the emitter batch: no longer needs `device` to accept the item. -/
 theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true) (assign : BVExpr.Assignment)
     (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
     (inputs : let get := fun name =>
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
-    (accepted : (BundleResponse.device ByteAuth.concrete X.length start w X).getD 0 [] = [255]) :
+    (lead : ∀ k, 1 ≤ (fieldOf X start (item w) k).length →
+      OpenResult.get ByteAuth.concrete (fieldOf X start (item w) k) 0 ≠ 0) :
     (let out := BundleResponse.device ByteAuth.concrete X.length start w X;
       values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
         [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
           out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
         (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
     (∀ field ∈ values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign, ∀ byte ∈ field, byte = 0) :=
-  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_any_widths first last w ok assign X start placed inputs accepted
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_any_widths first last w ok assign X start placed inputs lead
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **A slot accepts only its true width byte** (filler padding; the number's first byte not the
+filler), whatever the number: the `widths` input cannot disagree with the splice. -/
+theorem bundleSlot_slotValid_width (L : Nat) (cs : List Byte) (m : Nat) (v : Byte) (h1 : 1 ≤ cs.length)
+    (hnm : cs.length ≤ m) (hm : m < 256) (hfirst : OpenResult.get ByteAuth.concrete cs 0 ≠ 0)
+    (acc : BundleSlots.slotValid ByteAuth.concrete L v (List.replicate (m - cs.length) 0 ++ cs) = 255) :
+    v = BitVec.ofNat 8 cs.length :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.slotValid_width L cs m v h1 hnm hm hfirst acc
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **The former DEFECT (`inconsistent_width_accepts`), now refused (emitter batch; NEEDS_REVIEW.md
+3f, defect 2).** The non-canonical device id `05` spliced with its two digits is refused by the
+slot check for every width byte. -/
+theorem bundleSlot_inconsistent_width_refused :
+    (∀ v : Byte, BundleSlots.slotValid ByteAuth.concrete 7 v (List.replicate (3 - 2) 0 ++ [48, 53]) = 0) ∧
+      numberValid ByteAuth.concrete 7 [48, 53] = 0 :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.inconsistent_width_refused
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **Why the padding byte changed**: with `0` padding, `05` spliced with two digits and `5` with
+one were the same slot (so no kernel on the same inputs could tell them apart); with the filler 0
+they differ. -/
+theorem bundleSlot_zero_padding_ambiguous :
+    List.replicate (3 - 2) (48 : Byte) ++ [48, 53] = List.replicate (3 - 1) 48 ++ [53] ∧
+      List.replicate (3 - 2) (0 : Byte) ++ [48, 53] ≠ List.replicate (3 - 1) 0 ++ [53] :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.zero_padding_ambiguous
 
 open TlsMpc.KernelSpecs.WidthFlags TlsMpc.KernelSpecs.SignalKernels in
 /-- **A width flag is 255 exactly when the big-endian value is at least 2^(7(k+1))** (flag k,
@@ -4906,12 +4943,15 @@ the matching section above in the same commit.
   Also closed: `bundle-slot` against `device` on the body the server sent (section 2d:
   `bundleSlot_device`, `bundleSlot_eq_bundleItem`, `deviceSlots_splice`, `spliced_layout`,
   `slotValid_pad`; wrong digit counts refuse: `device_unique`, `bundleSlot_wrong_counts`,
-  `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). Still open for `bundle-slot`: the
-  caveat `inconsistent_width_accepts` (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`): a body whose
-  number has a leading zero, spliced with one digit count but declared with another in `widths`,
-  is accepted where `device` refuses (the released value is still that number's value); still
-  trusted: that the C++ worker binds `head`/`before`/`item`/`after`/`end` as stated and passes the
-  splice and `widths` from the same counts, and that the template is what Signal-Server writes.
+  `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). The caveat `inconsistent_width_accepts`
+  (a body whose number has a leading zero, spliced with one digit count but declared with another
+  in `widths`, was accepted where `device` refuses) is fixed in the emitter batch, effective after
+  the re-lowering together with the C++ worker's new filler byte: the splice pads with the byte 0
+  instead of `0`, `bundleSlot_inconsistent_width_refused`, and `bundleSlot_any_widths` now holds
+  for every item whose fields do not start with a NUL byte (`bundleSlot_zero_padding_ambiguous`:
+  with `0` padding no kernel change alone could have fixed it). Still trusted: that the C++ worker
+  binds `head`/`before`/`item`/`after`/`end` as stated and pads with the filler 0, and that the
+  template is what Signal-Server writes.
   → no stage assigned; candidate for **P5**.
 * ML-KEM: Kyber-1024 (round 3, rank 4; libsignal key type 8). The `kem-*` kernels equal the
   repository's reference `MlKem.encapsulate` on valid keys and are zero on invalid keys (proved,
@@ -5241,6 +5281,9 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.bundleSlot_wrong_counts
 #print axioms TlsMpc.Security.bundleSlot_parses_or_refuses
 #print axioms TlsMpc.Security.bundleSlot_any_widths
+#print axioms TlsMpc.Security.bundleSlot_slotValid_width
+#print axioms TlsMpc.Security.bundleSlot_inconsistent_width_refused
+#print axioms TlsMpc.Security.bundleSlot_zero_padding_ambiguous
 #print axioms TlsMpc.Security.receiveAccept_session_status_iff
 #print axioms TlsMpc.Security.receiveAccept_session_accept_outputs
 #print axioms TlsMpc.Security.receiveAccept_session_status_cases

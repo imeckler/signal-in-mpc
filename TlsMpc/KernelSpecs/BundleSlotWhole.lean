@@ -3,9 +3,11 @@ import TlsMpc.KernelSpecs.BundleItemWhole
 /-!
 # `bundle-slot` against `BundleResponse.device` on the body the server sent
 
-New file; it changes no definition and no emitter imports it. Closes the gap left by
-`BundleItemWhole.bundleSlot_whole` (which links `bundle-slot` only to the body with the item
-already spliced) and replaces `check_bundle_slots.py` as the source of truth for the decimal slots.
+No emitter imports this file. Closes the gap left by `BundleItemWhole.bundleSlot_whole` (which
+links `bundle-slot` only to the body with the item already spliced) and replaces
+`check_bundle_slots.py` as the source of truth for the decimal slots. Updated for the emitter
+batch (EMITTER_BATCH.md): the splice now pads with the `filler` byte 0 instead of `0` (48), and
+`slotValid` requires the padding to be the filler and the rest digits.
 
 PROVED (standard axioms only; no `sorry`, `native_decide`, `bv_decide`; `decide` only on closed
 byte-sized facts):
@@ -13,9 +15,9 @@ byte-sized facts):
 * Numbers. `numberBits_value`: on any bytes, `numberBits` is `4 · length` mask bits whose value is
   Horner's rule over the low four bits of each character (it never overflows);
   `numberBits_decimal`: on digits that is the decimal value. `numberBits_zeros`,
-  `numberBytes_zeros`, `tail_zeros`: leading `0`s only add zero bits at the top, so neither the
-  decoded bytes nor the range check change.
-* (a) for one slot. `slotValid_pad`: a slot of `m` bytes made of `m − n` zeros and `n` characters,
+  `numberBytes_zeros`, `tail_zeros`: leading filler bytes (0) only add zero bits at the top, so
+  neither the decoded bytes nor the range check change.
+* (a) for one slot. `slotValid_pad`: a slot of `m` bytes made of `m − n` filler bytes and `n` characters,
   checked with the declared width `n` (`1 ≤ n ≤ m < 256`), is accepted EXACTLY when `numberValid`
   accepts the `n` characters (same validity byte, not only the same verdict).
 * (b) the splice. `spliced_eq`: the runtime's `BundleSlots.spliced` (fold over `splice w`, whose
@@ -35,25 +37,24 @@ byte-sized facts):
   splices it with, and declares, other counts `w'`, every output is 0 (validity included).
   `bundleSlot_parses_or_refuses`: whatever counts the runtime uses, the kernel either outputs
   `device` with the only counts that parse the item, or releases nothing.
-* A `widths` input that disagrees with the splice. `slotValid_width`: a slot holding a canonical
-  decimal accepts only its true width byte. `deviceSlots_any_widths`, `bundleSlot_any_widths`: for
-  an item `device` accepts, spliced with its counts, ANY five `widths` bytes give `device`'s outputs
-  or nothing.
+* A `widths` input that disagrees with the splice. `slotValid_width`: a slot accepts only its
+  true width byte (whatever the number, provided its first byte is not the filler).
+  `deviceSlots_any_widths`, `bundleSlot_any_widths`: for ANY item spliced with its counts (no
+  longer only one `device` accepts) and ANY five `widths` bytes, the kernel gives `device`'s
+  outputs with the true counts or nothing.
 
-COUNTEREXAMPLE (`inconsistent_width_accepts`, by `decide`): if the `widths` input disagrees with
-the splice AND the body's number has a leading zero, the slot check accepts: device id `05`
-spliced with count 2 into `005`, declared width 1, is accepted and decodes to 5, while
-`numberValid` (so `device`, for every count) refuses `05`. So for a body that is not canonical
-JSON `bundle-slot` with inconsistent public inputs can accept an item `device` refuses (the value
-is still the number's value). Signal-Server writes no leading zeros, and the runtime derives the
-splice and `widths` from the same counts; with consistent inputs this cannot happen
-(`bundleSlot_device`).
+The former COUNTEREXAMPLE (`inconsistent_width_accepts`: device id `05` spliced with count 2 into
+`005` and declared with width 1 was accepted as 5, while `device` refuses `05`) is now
+`inconsistent_width_refused` (refused for every width byte). `zero_padding_ambiguous` shows why the
+padding byte had to change: with `0` padding, `05` spliced with two digits and `5` spliced with one
+were the same slot, so no change to the kernel alone could tell them apart.
 
 NOT PROVED here: what `numberBytes` and `decode` mean as integers/bytes (`number_spec` and the
 base64 meaning in `TlsMpc/BundleProofs.lean`; they concern `device` itself, hence `bundle-item`
 too; `numberBits_decimal` covers the bits); that the C++ worker binds the inputs as stated (the
-cut around the item, the splice from `splice w`, `widths` = the counts); the kernel on an `item`
-input that is not a splice of the body (e.g. a non-`0` padding byte), which only the test covers.
+cut around the item, the splice from `splice w` with the filler 0 — `service_kernels.h`
+`bundle_establish` —, `widths` = the counts); the kernel on an `item` input that is not a splice
+of the body (e.g. a non-filler padding byte), which only the test covers.
 -/
 
 namespace TlsMpc.KernelSpecs.BundleSlotWhole
@@ -344,7 +345,7 @@ theorem numberBits_value (cs : List Byte) :
     rw [Nat.zero_add, show (16 : Nat) ^ cs.length = 2 ^ (4 * cs.length) by rw [Nat.pow_mul]] at this
     exact Nat.mod_eq_of_lt this
 
-theorem horner_zeros (k : Nat) (a : Nat) (h : a = 0) : horner a (List.replicate k (48 : Byte)) = 0 := by
+theorem horner_zeros (k : Nat) (a : Nat) (h : a = 0) : horner a (List.replicate k (0 : Byte)) = 0 := by
   subst h
   induction k with
   | zero => rfl
@@ -355,8 +356,8 @@ theorem horner_zeros (k : Nat) (a : Nat) (h : a = 0) : horner a (List.replicate 
 
 /-- **Leading `0`s add zero bits at the top and change nothing else.** -/
 theorem numberBits_zeros (k : Nat) (cs : List Byte) :
-    numberBits C (List.replicate k 48 ++ cs) = numberBits C cs ++ List.replicate (4 * k) 0 := by
-  obtain ⟨R', e', l', v'⟩ := numberBits_value (List.replicate k 48 ++ cs)
+    numberBits C (List.replicate k 0 ++ cs) = numberBits C cs ++ List.replicate (4 * k) 0 := by
+  obtain ⟨R', e', l', v'⟩ := numberBits_value (List.replicate k 0 ++ cs)
   obtain ⟨R, e, l, v⟩ := numberBits_value cs
   have hv : value R' = value (R ++ List.replicate (4 * k) false) := by
     rw [v', value_append, value_replicate, Nat.mul_zero, Nat.add_zero, v]
@@ -403,12 +404,12 @@ theorem fromBits_zeros (xs : List Byte) (e first : Nat) :
 
 /-- The big-endian bytes of a number do not change with leading `0`s. -/
 theorem numberBytes_zeros (count k : Nat) (cs : List Byte) :
-    numberBytes C count (List.replicate k 48 ++ cs) = numberBytes C count cs := by
+    numberBytes C count (List.replicate k 0 ++ cs) = numberBytes C count cs := by
   simp only [numberBytes, numberBits_zeros, fromBits_zeros]
 
 /-- Nor does the range check (the bits at and above `limit` are zero). -/
 theorem tail_zeros (limit k : Nat) (cs : List Byte) :
-    ReceiveFirst.all C (((numberBits C (List.replicate k 48 ++ cs)).drop limit).map ByteAuth.concrete.not) =
+    ReceiveFirst.all C (((numberBits C (List.replicate k 0 ++ cs)).drop limit).map ByteAuth.concrete.not) =
       ReceiveFirst.all C (((numberBits C cs).drop limit).map ByteAuth.concrete.not) := by
   have hz : ∀ d, ReceiveFirst.all C ((List.drop d (List.replicate (4 * k) (0 : Byte))).map ByteAuth.concrete.not) =
       255 := by
@@ -424,15 +425,16 @@ theorem tail_zeros (limit k : Nat) (cs : List Byte) :
 
 theorem either255 : ∀ x : Byte, ReceiveFirst.either C x 255 = 255 := by decide
 theorem either255' : ∀ x : Byte, ReceiveFirst.either C 255 x = 255 := by decide
+theorem either0 : ∀ z : Byte, ReceiveFirst.either C 0 z = z := by decide
 
 theorem get_slot_pad (cs : List Byte) (g j : Nat) (h : j < g) :
-    OpenResult.get C (List.replicate g 48 ++ cs) j = 48 := by
+    OpenResult.get C (List.replicate g 0 ++ cs) j = 0 := by
   simp only [OpenResult.get]
   rw [List.getElem?_append_left (by simp; omega), List.getElem?_replicate, if_pos h]
   rfl
 
 theorem get_slot_digit (cs : List Byte) (g i : Nat) :
-    OpenResult.get C (List.replicate g 48 ++ cs) (g + i) = OpenResult.get C cs i := by
+    OpenResult.get C (List.replicate g 0 ++ cs) (g + i) = OpenResult.get C cs i := by
   simp only [OpenResult.get]
   rw [List.getElem?_append_right (by simp), List.length_replicate, Nat.add_sub_cancel_left]
 
@@ -449,47 +451,91 @@ theorem width_ok (n m : Nat) (h1 : 1 ≤ n) (hnm : n ≤ m) :
       (fun k => if BitVec.ofNat 8 n = BitVec.ofNat 8 (k + 1) then (255 : Byte) else 0) from
       funext (fun k => is_value n (k + 1)), any_ite, if_pos ⟨n - 1, by simp; omega, by congr 1; omega⟩]
 
-theorem digits_pad (g : Nat) (cs : List Byte) :
-    ReceiveFirst.all C ((List.replicate g 48 ++ cs).map (digitValid C)) = ReceiveFirst.all C (cs.map (digitValid C)) := by
-  rw [List.map_append, all_append, all_255 _ ?_, and255']
-  intro x hx
-  simp only [List.map_replicate, List.mem_replicate] at hx
-  rw [hx.2]
-  decide
+/-- The padding mask at position `j` of a slot of `m` bytes, for a declared width `u`: 255 exactly
+when `u < m − j`. -/
+theorem pad_value (v : Byte) (u m j : Nat) (hv : v = BitVec.ofNat 8 u) (hu : u < 256) (hm : m < 256) :
+    ReceiveFirst.any C ((List.range (m - j)).map (fun k => ByteAuth.eqMask C v (ByteAuth.concrete.const k))) =
+      if u < m - j then 255 else 0 := by
+  subst hv
+  rw [show (fun k => ByteAuth.eqMask C (BitVec.ofNat 8 u) (ByteAuth.concrete.const k)) =
+      (fun k => if BitVec.ofNat 8 u = BitVec.ofNat 8 k then (255 : Byte) else 0) from
+      funext (fun k => is_value u k), any_ite]
+  by_cases h : u < m - j
+  · rw [if_pos ⟨u, List.mem_range.mpr h, rfl⟩, if_pos h]
+  · rw [if_neg, if_neg h]
+    rintro ⟨k, hk, e⟩
+    simp only [List.mem_range] at hk
+    have := (ofNat_inj u k hu (by omega)).mp e
+    omega
 
-/-- The padding checks all pass on a slot made of `m − n` zeros and `n` characters. -/
-theorem pads_ok (n m : Nat) (cs : List Byte) (hnm : n ≤ m) (hm : m < 256) :
+theorem and255'' : ∀ x : Byte, ByteAuth.concrete.and 255 x = x := and255'
+theorem and0'' : ∀ x : Byte, ByteAuth.concrete.and 0 x = 0 := and0'
+
+/-- One position of the padding/digit check, with the padding mask 255: the byte is the filler. -/
+theorem entry_pad (c : Byte) :
+    ReceiveFirst.either C (ByteAuth.concrete.and 255 (ByteAuth.eqMask C c (ByteAuth.concrete.const BundleSlots.filler)))
+      (ByteAuth.concrete.and (ByteAuth.concrete.not 255) (BundleResponse.digitValid C c)) =
+      ByteAuth.eqMask C c (ByteAuth.concrete.const BundleSlots.filler) := by
+  rw [and255'', show ByteAuth.concrete.not 255 = (0 : Byte) from rfl, and0'']
+  rw [ByteAuth.eqMask_value]
+  split <;> decide
+
+/-- One position of the padding/digit check, with the padding mask 0: the byte is a digit. -/
+theorem entry_digit (c : Byte) :
+    ReceiveFirst.either C (ByteAuth.concrete.and 0 (ByteAuth.eqMask C c (ByteAuth.concrete.const BundleSlots.filler)))
+      (ByteAuth.concrete.and (ByteAuth.concrete.not 0) (BundleResponse.digitValid C c)) =
+      BundleResponse.digitValid C c := by
+  rw [and0'', show ByteAuth.concrete.not 0 = (255 : Byte) from rfl, and255'', either0]
+
+theorem range_get_map (cs : List Byte) (f : Byte → Byte) :
+    (List.range cs.length).map (fun i => f (OpenResult.get C cs i)) = cs.map f := by
+  apply List.ext_getElem
+  · simp
+  · intro i h1 h2
+    simp only [List.getElem_map, List.getElem_range, OpenResult.get]
+    rw [List.getElem?_eq_getElem (by simpa using h1)]
+    rfl
+
+/-- The padding and digit checks on a slot of `m` bytes made of `m − n` filler bytes and `n`
+characters, with the declared width `n`: exactly the digit checks of the `n` characters. -/
+theorem pads_digits (n m : Nat) (cs : List Byte) (hn : cs.length = n) (hnm : n ≤ m) (hm : m < 256) :
     ReceiveFirst.all C ((List.range m).map (fun j => ReceiveFirst.either C
-      (ByteAuth.concrete.not (ReceiveFirst.any C ((List.range (m - j)).map
-        (fun k => ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const k)))))
-      (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 48 ++ cs) j) (ByteAuth.concrete.const 48)))) = 255 := by
-  apply all_255
-  intro x hx
-  simp only [List.mem_map, List.mem_range] at hx
-  obtain ⟨j, hj, rfl⟩ := hx
-  by_cases hp : j < m - n
-  · rw [get_slot_pad cs (m - n) j hp, show ByteAuth.eqMask C (48 : Byte) (ByteAuth.concrete.const 48) = 255 by decide,
-      either255]
-  · rw [show (fun k => ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const k)) =
-        (fun k => if BitVec.ofNat 8 n = BitVec.ofNat 8 k then (255 : Byte) else 0) from
-        funext (fun k => is_value n k), any_ite, if_neg ?_]
-    · exact either255' _
-    · rintro ⟨k, hk, e⟩
-      simp only [List.mem_range] at hk
-      have := (ofNat_inj n k (by omega) (by omega)).mp e
-      omega
+      (ByteAuth.concrete.and (ReceiveFirst.any C ((List.range (m - j)).map
+          (fun k => ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const k))))
+        (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 0 ++ cs) j)
+          (ByteAuth.concrete.const BundleSlots.filler)))
+      (ByteAuth.concrete.and (ByteAuth.concrete.not (ReceiveFirst.any C ((List.range (m - j)).map
+          (fun k => ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const k)))))
+        (BundleResponse.digitValid C (OpenResult.get C (List.replicate (m - n) 0 ++ cs) j))))) =
+    ReceiveFirst.all C (cs.map (BundleResponse.digitValid C)) := by
+  subst hn
+  have hr : List.range m = List.range (m - cs.length) ++ (List.range cs.length).map ((m - cs.length) + ·) := by
+    rw [← List.range_add]; congr 1; omega
+  rw [hr, List.map_append, all_append, all_255 _ ?_, and255', List.map_map]
+  · rw [← range_get_map cs (BundleResponse.digitValid C)]
+    congr 1
+    apply List.map_congr_left
+    intro i hi
+    simp only [List.mem_range] at hi
+    simp only [Function.comp_apply]
+    rw [pad_value _ cs.length _ _ rfl (by omega) (by omega), if_neg (by omega), get_slot_digit, entry_digit]
+  · intro x hx
+    simp only [List.mem_map, List.mem_range] at hx
+    obtain ⟨j, hj, rfl⟩ := hx
+    rw [pad_value _ cs.length _ _ rfl (by omega) (by omega), if_pos (by omega), get_slot_pad cs _ j hj, entry_pad]
+    decide
 
 /-- The first-digit check: the only one that can fail is at the number's first digit, and only
 when the number has more than one digit; there it is `numberValid`'s leading-zero check. -/
 theorem firsts_eq (n m : Nat) (cs : List Byte) (h1 : 1 ≤ n) (hnm : n ≤ m) (hm : m < 256) :
     ReceiveFirst.all C ((List.range (m - 1)).map (fun j => ByteAuth.concrete.not (ByteAuth.concrete.and
       (ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const (m - j)))
-      (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 48 ++ cs) j) (ByteAuth.concrete.const 48))))) =
+      (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 0 ++ cs) j) (ByteAuth.concrete.const 48))))) =
     ReceiveFirst.all C (BundleResponse.optional (decide (1 < n))
       [ByteAuth.concrete.not (ByteAuth.eqMask C (OpenResult.get C cs 0) (ByteAuth.concrete.const 48))]) := by
   have pointwise : ∀ j ∈ List.range (m - 1), ByteAuth.concrete.not (ByteAuth.concrete.and
       (ByteAuth.eqMask C (BitVec.ofNat 8 n) (ByteAuth.concrete.const (m - j)))
-      (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 48 ++ cs) j) (ByteAuth.concrete.const 48))) =
+      (ByteAuth.eqMask C (OpenResult.get C (List.replicate (m - n) 0 ++ cs) j) (ByteAuth.concrete.const 48))) =
       if j = m - n then ByteAuth.concrete.not (ByteAuth.eqMask C (OpenResult.get C cs 0) (ByteAuth.concrete.const 48))
       else 255 := by
     intro j hj
@@ -509,20 +555,20 @@ theorem firsts_eq (n m : Nat) (cs : List Byte) (h1 : 1 ≤ n) (hnm : n ≤ m) (h
   · rw [if_neg (by simp; omega), decide_eq_false hn1]
     rfl
 
-/-- **A slot of `m` bytes holding `m − n` zeros and then `n` characters, checked with the declared
-width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
+/-- **A slot of `m` bytes holding `m − n` filler bytes and then `n` characters, checked with the
+declared width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
 theorem slotValid_pad (limit : Nat) (cs : List Byte) (m : Nat) (h1 : 1 ≤ cs.length) (hnm : cs.length ≤ m)
     (hm : m < 256) :
-    BundleSlots.slotValid C limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 48 ++ cs) =
+    BundleSlots.slotValid C limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 0 ++ cs) =
       numberValid C limit cs := by
-  have hlen : (List.replicate (m - cs.length) 48 ++ cs).length = m := by simp; omega
+  have hlen : (List.replicate (m - cs.length) 0 ++ cs).length = m := by simp; omega
   simp only [BundleSlots.slotValid, numberValid, hlen, all_append, all_single]
-  have key : ∀ (A D P F T D' F' T' : Byte), A = 255 → P = 255 → D = D' → F = F' → T = T' →
-      (((A &&& D) &&& P) &&& F) &&& T = (D' &&& F') &&& T' := by
-    intro A D P F T D' F' T' hA hP hD hF hT
-    rw [hA, hP, hD, hF, hT, and255', and255]
-  exact key _ _ _ _ _ _ _ _ (width_ok cs.length m h1 hnm) (pads_ok cs.length m cs hnm hm)
-    (digits_pad _ cs) (firsts_eq cs.length m cs h1 hnm hm) (tail_zeros limit _ cs)
+  have key : ∀ (A PD F T D' F' T' : Byte), A = 255 → PD = D' → F = F' → T = T' →
+      ((A &&& PD) &&& F) &&& T = (D' &&& F') &&& T' := by
+    intro A PD F T D' F' T' hA hPD hF hT
+    rw [hA, hPD, hF, hT, and255']
+  exact key _ _ _ _ _ _ _ (width_ok cs.length m h1 hnm) (pads_digits cs.length m cs rfl hnm hm)
+    (firsts_eq cs.length m cs h1 hnm hm) (tail_zeros limit _ cs)
 
 /-! ### The splice, piece by piece -/
 
@@ -728,7 +774,7 @@ theorem part_after (pre A post : List Byte) (c : Nat) :
 /-- A number field: the slot is the field with `0`s in front, so the slot check with the declared
 width is the field's `numberValid`, and the decoded bytes are the same. -/
 theorem num_field (Y X : List Byte) (Q P : List Piece) (s k m n L c : Nat)
-    (hf : fieldOf Y s Q k = List.replicate (m - n) 48 ++ fieldOf X s P k) (hl : (fieldOf X s P k).length = n)
+    (hf : fieldOf Y s Q k = List.replicate (m - n) 0 ++ fieldOf X s P k) (hl : (fieldOf X s P k).length = n)
     (h1 : 1 ≤ n) (hnm : n ≤ m) (hm : m < 256) :
     BundleSlots.slotValid C L (BitVec.ofNat 8 n) (fieldOf Y s Q k) = numberValid C L (fieldOf X s P k) ∧
       numberBytes C c (fieldOf Y s Q k) = numberBytes C c (fieldOf X s P k) := by
@@ -742,22 +788,22 @@ the item, `post` what follows it). -/
 theorem deviceSlots_splice (w : Widths) (ok : w.ok = true) (pre I post : List Byte)
     (hI : I.length = size (item w)) (hpre : firstItem ≤ pre.length) (hpost : 2 ≤ post.length) :
     BundleSlots.deviceSlots C
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) (widthBytes w)
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
       BundleResponse.device C (pre ++ I ++ post).length pre.length w (pre ++ I ++ post) := by
   obtain ⟨hd1, hd, hr1, hr, hs1, hs, hp, hk1, hk⟩ := ok_bounds w ok
   have fits := fits_item w ok
   generalize ho : (w.oneTime != 0) = o at fits ⊢
-  generalize hS : applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots o))) I = S
+  generalize hS : applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots o))) I = S
   have hSl : S.length = size (item (BundleSlots.slots o)) := by
-    rw [← hS]; exact applyRuns_length 48 _ _ fits I hI
+    rw [← hS]; exact applyRuns_length 0 _ _ fits I hI
   have hYS : part (pre ++ S ++ post) pre.length (size (item (BundleSlots.slots o))) = S := by
     rw [← hSl]; exact part_mid pre S post
   have hXI : part (pre ++ I ++ post) pre.length (size (item w)) = I := by
     rw [← hI]; exact part_mid pre I post
   have hXl : pre.length + size (item w) ≤ (pre ++ I ++ post).length := by simp; omega
-  obtain ⟨hlit, hfield⟩ := splice_pieces C (48 : Byte) _ _ fits (pre ++ I ++ post) (pre ++ S ++ post)
+  obtain ⟨hlit, hfield⟩ := splice_pieces C (0 : Byte) _ _ fits (pre ++ I ++ post) (pre ++ S ++ post)
     pre.length pre.length hXl (by rw [hYS, hXI, hS])
   have fl := fun k => fieldOf_length (item w) (pre ++ I ++ post) pre.length k hXl
   have fi : firstItem = 73 := rfl
@@ -896,7 +942,7 @@ theorem bundleSlot_device (first last : Bool) (w : Widths) (ok : w.ok = true) (a
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w) :
@@ -942,7 +988,7 @@ theorem bundleSlot_eq_bundleItem (first last : Bool) (w : Widths) (ok : w.ok = t
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w)
@@ -1413,7 +1459,7 @@ theorem bundleSlot_wrong_counts (first last : Bool) (w w' : Widths) (ok' : w'.ok
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w')
@@ -1441,7 +1487,7 @@ theorem bundleSlot_parses_or_refuses (first last : Bool) (w' : Widths) (ok' : w'
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w') :
@@ -1464,26 +1510,27 @@ theorem bundleSlot_parses_or_refuses (first last : Bool) (w' : Widths) (ok' : w'
 /-! ### A width byte that disagrees with the splice
 
 The runtime derives the splice and the `widths` input from the same digit counts. If they ever
-disagreed, a slot check still accepts only the declared width, unless the number in the body has
-a leading zero (which `numberValid`, hence `device`, refuses for every digit count): -/
+disagreed, a slot check still accepts only the true width: the padding is the `filler` byte (0),
+which is not a digit, so a declared width above the digit count puts a filler where a digit must
+be, and one below puts the number's first byte where the filler must be. The only hypothesis is
+that the number's first byte is not itself the filler (a NUL, which no JSON text contains). -/
 
-theorem either0 : ∀ z : Byte, ReceiveFirst.either C 0 z = z := by decide
-
-/-- **A slot holding a canonical decimal accepts only its true width.** If `cs` is a decimal as
-JSON writes it (`numberValid` accepts it) and it is spliced into a slot of `m` bytes, then the
-slot check accepts the declared width byte `v` only when `v` is the digit count of `cs`. -/
+/-- **A slot accepts only its true width.** If `cs` (whose first byte is not the filler) is
+spliced into a slot of `m` bytes, the slot check accepts the declared width byte `v` only when `v`
+is the length of `cs`. (Before the emitter batch the padding was `0` and this needed `cs` to be a
+canonical decimal: `zero_padding_ambiguous`.) -/
 theorem slotValid_width (L : Nat) (cs : List Byte) (m : Nat) (v : Byte) (h1 : 1 ≤ cs.length) (hnm : cs.length ≤ m)
-    (hm : m < 256) (canon : numberValid C L cs = 255)
-    (acc : BundleSlots.slotValid C L v (List.replicate (m - cs.length) 48 ++ cs) = 255) :
+    (hm : m < 256) (hfirst : OpenResult.get C cs 0 ≠ 0)
+    (acc : BundleSlots.slotValid C L v (List.replicate (m - cs.length) 0 ++ cs) = 255) :
     v = BitVec.ofNat 8 cs.length := by
-  have hlen : (List.replicate (m - cs.length) 48 ++ cs).length = m := by simp; omega
+  have hlen : (List.replicate (m - cs.length) 0 ++ cs).length = m := by simp; omega
   simp only [BundleSlots.slotValid, hlen] at acc
   have hall := all_mem_255 _ acc
   have isv : ∀ k, ByteAuth.eqMask C v (ByteAuth.concrete.const k) = if v = BitVec.ofNat 8 k then 255 else 0 :=
     fun k => ByteAuth.eqMask_value _ _
   -- the declared width is some `u` in `1 … m`
   have ha := hall _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
-    (List.mem_append_left _ (List.mem_singleton_self _)))))
+    (List.mem_singleton_self _))))
   rw [show (fun k => ByteAuth.eqMask C v (ByteAuth.concrete.const (k + 1))) =
       (fun k => if v = BitVec.ofNat 8 (k + 1) then (255 : Byte) else 0) from funext (fun k => isv (k + 1)),
     any_ite] at ha
@@ -1491,52 +1538,39 @@ theorem slotValid_width (L : Nat) (cs : List Byte) (m : Nat) (v : Byte) (h1 : 1 
   · rename_i hex
     obtain ⟨k, hk, hv⟩ := hex
     rw [List.mem_range] at hk
+    have hpd := fun j (hj : j < m) => hall _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_right _ (List.mem_map_of_mem (List.mem_range.mpr hj)))))
     generalize hn : cs.length = n at *
     by_cases e : k + 1 = n
     · rw [hv, e]
     · exfalso
       rcases Nat.lt_or_gt_of_ne e with lt | gt
-      · -- declared width below the digit count: the first digit is padding, so it is `0`
-        have hpad := fun j (hj : j < m) => hall _ (List.mem_append_left _ (List.mem_append_left _
-          (List.mem_append_right _ (List.mem_map_of_mem (List.mem_range.mpr hj)))))
-        have hp := hpad (m - n) (by omega)
-        rw [show (fun k => ByteAuth.eqMask C v (ByteAuth.concrete.const k)) =
-            (fun k => if v = BitVec.ofNat 8 k then (255 : Byte) else 0) from funext isv, any_ite,
-          if_pos ⟨k + 1, List.mem_range.mpr (by omega), hv⟩] at hp
+      · -- declared width below the digit count: the number's first byte is padding, so the filler
+        have hp := hpd (m - n) (by omega)
+        rw [pad_value v (k + 1) m (m - n) hv (by omega) hm, if_pos (by omega)] at hp
         have g := get_slot_digit cs (m - n) 0
         rw [Nat.add_zero] at g
-        rw [show ByteAuth.concrete.not 255 = 0 from rfl, either0, g, ByteAuth.eqMask_value] at hp
-        have z : OpenResult.get C cs 0 = 48 := by
-          split at hp
-          · assumption
-          · exact absurd hp (by decide)
-        have hc := all_mem_255 _ canon (ByteAuth.concrete.not (ByteAuth.eqMask C (OpenResult.get C cs 0)
-          (ByteAuth.concrete.const 48))) (List.mem_append_left _ (List.mem_append_right _ (by
-            unfold BundleResponse.optional
-            rw [if_pos (decide_eq_true (by omega))]
-            exact List.mem_singleton_self _)))
-        rw [z] at hc
-        exact absurd hc (by decide)
-      · -- declared width above the digit count: its first digit would be a padding `0`
-        have hfirst := fun j (hj : j < m - 1) => hall _ (List.mem_append_left _ (List.mem_append_right _
-          (List.mem_map_of_mem (List.mem_range.mpr hj))))
-        have hf := hfirst (m - (k + 1)) (by omega)
-        rw [isv, if_pos (by rw [hv, show m - (m - (k + 1)) = k + 1 by omega]),
-          get_slot_pad cs (m - n) _ (by omega)] at hf
-        exact absurd hf (by decide)
+        rw [g, entry_pad, ByteAuth.eqMask_value] at hp
+        split at hp
+        · rename_i h0
+          exact hfirst h0
+        · exact absurd hp (by decide)
+      · -- declared width above the digit count: a filler byte would have to be a digit
+        have hp := hpd (m - (k + 1)) (by omega)
+        rw [pad_value v (k + 1) m (m - (k + 1)) hv (by omega) hm, if_neg (by omega),
+          get_slot_pad cs (m - n) _ (by omega), entry_digit] at hp
+        exact absurd hp (by decide)
   · exact absurd ha (by decide)
 
-/-- **The counterexample when the width byte disagrees with the splice.** A device id written
-`05` in the body (two digits with a leading zero: not JSON as Signal-Server writes it, and
-refused by `numberValid`, hence by `device`, whatever the digit count), spliced with its true
-count 2 into the 3-byte slot (`005`), is ACCEPTED by the slot check if the width byte says 1,
-and decodes to 5. So `bundle-slot` with a `widths` input that disagrees with the splice can
-accept an item `device` refuses (the value is still the number's value, 5). With `widths` equal to
-the splice's counts (`bundleSlot_device`) this cannot happen. -/
-theorem inconsistent_width_accepts :
-    BundleSlots.slotValid C 7 (BitVec.ofNat 8 1) (List.replicate (3 - 2) 48 ++ [48, 53]) = 255 ∧
-      numberValid C 7 [48, 53] = 0 ∧ numberValid C 7 [53] = 255 ∧
-      numberBytes C 1 (List.replicate (3 - 2) 48 ++ [48, 53]) = [5] := by
+/-- **Why the padding byte changed.** With `0` (48) as padding, the device id `05` spliced with
+its two digits and the device id `5` spliced with one digit were the SAME slot `005`, and every
+other input of `bundle-slot` can be the same too; so no kernel on these inputs could accept `5` and
+refuse `05` when the `widths` byte disagrees with the splice (the former counterexample
+`inconsistent_width_accepts`: the slot `005` with width byte 1 was accepted as 5). With the filler
+0 the two slots differ. -/
+theorem zero_padding_ambiguous :
+    List.replicate (3 - 2) (48 : Byte) ++ [48, 53] = List.replicate (3 - 1) 48 ++ [53] ∧
+      List.replicate (3 - 2) (0 : Byte) ++ [48, 53] ≠ List.replicate (3 - 1) 0 ++ [53] := by
   decide
 
 /-! ### Any `widths` input, for an item the server wrote -/
@@ -1601,22 +1635,45 @@ theorem mask_slotValid (L : Nat) (v : Byte) (chars : List Byte) : IsMask (Bundle
   apply mask_all
   intro x hx
   simp only [List.mem_append, List.mem_map, List.mem_singleton] at hx
-  rcases hx with ((((rfl | ⟨c, _, rfl⟩) | ⟨j, _, rfl⟩) | ⟨j, _, rfl⟩) | ⟨b, hb, rfl⟩)
-  · apply mask_any
-    intro y hy
-    simp only [List.mem_map] at hy
-    obtain ⟨k, _, rfl⟩ := hy
-    exact mask_eqMask _ _
-  · rw [TlsMpc.BundleKernel.digitValid_value]; exact mask_ite _
-  · apply mask_either _ (mask_eqMask _ _)
-    apply mask_not
+  have hpad : ∀ j, IsMask (ReceiveFirst.any C ((List.range (chars.length - j)).map
+      (fun k => ByteAuth.eqMask C v (ByteAuth.concrete.const k)))) := by
+    intro j
     apply mask_any
     intro y hy
     simp only [List.mem_map] at hy
     obtain ⟨k, _, rfl⟩ := hy
     exact mask_eqMask _ _
+  rcases hx with (((rfl | ⟨j, _, rfl⟩) | ⟨j, _, rfl⟩) | ⟨b, hb, rfl⟩)
+  · apply mask_any
+    intro y hy
+    simp only [List.mem_map] at hy
+    obtain ⟨k, _, rfl⟩ := hy
+    exact mask_eqMask _ _
+  · apply mask_either (mask_and (hpad j) (mask_eqMask _ _))
+    apply mask_and (mask_not (hpad j))
+    rw [TlsMpc.BundleKernel.digitValid_value]; exact mask_ite _
   · exact mask_not (mask_and (mask_eqMask _ _) (mask_eqMask _ _))
   · exact mask_not (mask_numberBits chars b (List.mem_of_mem_drop hb))
+
+/-- **The former counterexample, now refused for every width byte.** The device id `05` (refused by
+`numberValid`, hence by `device`, whatever the digit count), spliced with its two digits into the
+3-byte slot (filler, `0`, `5`), is refused by the slot check whatever the width byte says
+(`slotValid_width`: only the width 2 could pass, and there the check is `numberValid` of `05`). -/
+theorem inconsistent_width_refused :
+    (∀ v : Byte, BundleSlots.slotValid C 7 v (List.replicate (3 - 2) 0 ++ [48, 53]) = 0) ∧
+      numberValid C 7 [48, 53] = 0 := by
+  have hn : numberValid C 7 [48, 53] = 0 := by decide
+  refine ⟨fun v => ?_, hn⟩
+  rcases mask_slotValid 7 v (List.replicate (3 - 2) 0 ++ [48, 53]) with h | h
+  · exact h
+  · exfalso
+    have hv := slotValid_width 7 [48, 53] 3 v (by decide) (by decide) (by decide) (by decide) h
+    have hp : BundleSlots.slotValid C 7 (BitVec.ofNat 8 [48, 53].length) (List.replicate (3 - 2) 0 ++ [48, 53]) =
+        numberValid C 7 [48, 53] := slotValid_pad 7 [48, 53] 3 (by decide) (by decide) (by decide)
+    rw [hv] at h
+    have e := h.symm.trans hp
+    rw [hn] at e
+    exact absurd e (by decide)
 
 /-- `deviceSlots`'s validity byte is always 0 or 255, whatever the `widths` input. -/
 theorem deviceSlots_valid_mask (total start : Nat) (oneTime : Bool) (widths body : List Byte) :
@@ -1643,56 +1700,57 @@ theorem deviceSlots_valid_mask (total start : Nat) (oneTime : Bool) (widths body
       · exact mask_eqMask _ _
     · simp at hx
 
-/-- **For an item `device` accepts, the `widths` input either is the digit counts or nothing is
-released.** The item spliced with its digit counts `w`, whatever the five `widths` bytes `V`:
-`deviceSlots` with `V` is `deviceSlots` with the true counts (every byte it reads agrees), or its
-validity byte is 0. (With `bundleSlot_any_widths` this covers the `widths` mutations of
-`check_bundle_slots.py`: a count one too small or too large, 0, beyond the slot.) -/
+/-- **The `widths` input either is the digit counts or nothing is released.** The item spliced
+with its digit counts `w` (no field of it starting with the filler byte 0; whether or not `device`
+accepts it), whatever the five `widths` bytes `V`: `deviceSlots` with `V` is `deviceSlots` with
+the true counts (every byte it reads agrees), or its validity byte is 0. (With
+`bundleSlot_any_widths` this covers the `widths` mutations of `check_bundle_slots.py`: a count
+one too small or too large, 0, beyond the slot.) Before the emitter batch this needed `device` to
+accept the item. -/
 theorem deviceSlots_any_widths (w : Widths) (ok : w.ok = true) (pre I post : List Byte)
-    (hI : I.length = size (item w)) (accepted : (BundleResponse.device C (pre ++ I ++ post).length pre.length w
-      (pre ++ I ++ post)).getD 0 [] = [255]) (V : List Byte) :
+    (hI : I.length = size (item w))
+    (lead : ∀ k, 1 ≤ (fieldOf (pre ++ I ++ post) pre.length (item w) k).length →
+      OpenResult.get C (fieldOf (pre ++ I ++ post) pre.length (item w) k) 0 ≠ 0) (V : List Byte) :
     BundleSlots.deviceSlots C
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) V
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
       BundleSlots.deviceSlots C
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) (widthBytes w)
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) ∨
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) ∨
     (BundleSlots.deviceSlots C
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) V
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post)).getD 0 []
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post)).getD 0 []
       = [0] := by
   obtain ⟨hd1, hd, hr1, hr, hs1, hs, hp, hk1, hk⟩ := ok_bounds w ok
-  rw [device_valid] at accepted
-  have acc := all_mem_255 _ (List.cons.inj accepted).1
   have fits := fits_item w ok
   generalize ho : (w.oneTime != 0) = o at fits ⊢
-  generalize hS : applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots o))) I = S
+  generalize hS : applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots o))) I = S
   rcases deviceSlots_valid_mask (pre ++ S ++ post).length pre.length o V (pre ++ S ++ post) with h | h
   · right; rw [deviceSlots_valid, h]
   left
   have hall := all_mem_255 _ h
   have hSl : S.length = size (item (BundleSlots.slots o)) := by
-    rw [← hS]; exact applyRuns_length 48 _ _ fits I hI
+    rw [← hS]; exact applyRuns_length 0 _ _ fits I hI
   have hYS : part (pre ++ S ++ post) pre.length (size (item (BundleSlots.slots o))) = S := by
     rw [← hSl]; exact part_mid pre S post
   have hXI : part (pre ++ I ++ post) pre.length (size (item w)) = I := by
     rw [← hI]; exact part_mid pre I post
   have hXl : pre.length + size (item w) ≤ (pre ++ I ++ post).length := by simp; omega
-  obtain ⟨_, hfield⟩ := splice_pieces C (48 : Byte) _ _ fits (pre ++ I ++ post) (pre ++ S ++ post)
+  obtain ⟨_, hfield⟩ := splice_pieces C (0 : Byte) _ _ fits (pre ++ I ++ post) (pre ++ S ++ post)
     pre.length pre.length hXl (by rw [hYS, hXI, hS])
   have fl := fun k => fieldOf_length (item w) (pre ++ I ++ post) pre.length k hXl
   have slotw : ∀ (k m L i : Nat), fieldSize (item (BundleSlots.slots o)) k = m → 1 ≤ fieldSize (item w) k →
       fieldSize (item w) k ≤ m → m < 256 →
       BundleSlots.slotValid C L (OpenResult.get C V i) (fieldOf (pre ++ S ++ post) pre.length (item (BundleSlots.slots o)) k)
         = 255 →
-      numberValid C L (fieldOf (pre ++ I ++ post) pre.length (item w) k) = 255 →
       OpenResult.get C V i = BitVec.ofNat 8 (fieldSize (item w) k) := by
-    intro k m L i hq h1 h2 h3 hsv hn
+    intro k m L i hq h1 h2 h3 hsv
     rw [hfield k, hq, ← fl k] at hsv
-    have := slotValid_width L _ m _ (by rw [fl k]; exact h1) (by rw [fl k]; exact h2) h3 hn hsv
+    have := slotValid_width L _ m _ (by rw [fl k]; exact h1) (by rw [fl k]; exact h2) h3
+      (lead k (by rw [fl k]; exact h1)) hsv
     rw [this, fl k]
   have g0 : OpenResult.get C (widthBytes w) 0 = BitVec.ofNat 8 w.device := rfl
   have g1 : OpenResult.get C (widthBytes w) 1 = BitVec.ofNat 8 w.registration := rfl
@@ -1700,11 +1758,11 @@ theorem deviceSlots_any_widths (w : Widths) (ok : w.ok = true) (pre I post : Lis
   have g3 : OpenResult.get C (widthBytes w) 3 = BitVec.ofNat 8 w.oneTime := rfl
   have g4 : OpenResult.get C (widthBytes w) 4 = BitVec.ofNat 8 w.kyber := rfl
   have v0 : OpenResult.get C V 0 = BitVec.ofNat 8 w.device :=
-    slotw 0 3 7 0 rfl hd1 hd (by decide) (hall _ (by simp [okListSlots])) (acc _ (by simp [okList]))
+    slotw 0 3 7 0 rfl hd1 hd (by decide) (hall _ (by simp [okListSlots]))
   have v1 : OpenResult.get C V 1 = BitVec.ofNat 8 w.registration :=
-    slotw 1 5 32 1 rfl hr1 hr (by decide) (hall _ (by simp [okListSlots])) (acc _ (by simp [okList]))
+    slotw 1 5 32 1 rfl hr1 hr (by decide) (hall _ (by simp [okListSlots]))
   have v2 : OpenResult.get C V 2 = BitVec.ofNat 8 w.signed :=
-    slotw 2 10 32 2 rfl hs1 hs (by decide) (hall _ (by simp [okListSlots])) (acc _ (by simp [okList]))
+    slotw 2 10 32 2 rfl hs1 hs (by decide) (hall _ (by simp [okListSlots]))
   cases o with
   | false =>
       have hz : w.oneTime = 0 := by simpa using ho
@@ -1713,7 +1771,6 @@ theorem deviceSlots_any_widths (w : Widths) (ok : w.ok = true) (pre I post : Lis
         rw [← fp5]
         exact slotw 5 10 32 4 rfl (by rw [fp5]; exact hk1) (by rw [fp5]; exact hk) (by decide)
           (hall _ (by simp [okListSlots, BundleSlots.slots]))
-          (acc _ (by simp [okList, hz]))
       have q : (BundleSlots.slots false).oneTime = 0 := rfl
       simp only [BundleSlots.deviceSlots, q, v0, v1, v2, v4, g0, g1, g2, g4, ↓reduceIte, Nat.add_zero,
         BundleResponse.optional, bne_self_eq_false, Bool.false_eq_true]
@@ -1725,12 +1782,10 @@ theorem deviceSlots_any_widths (w : Widths) (ok : w.ok = true) (pre I post : Lis
         rw [← fp5]
         exact slotw 5 10 32 3 rfl (by rw [fp5]; omega) (by rw [fp5]; exact hp) (by decide)
           (hall _ (by simp [okListSlots, BundleSlots.slots, BundleResponse.optional]))
-          (acc _ (by simp [okList, BundleResponse.optional, hz]))
       have v4 : OpenResult.get C V 4 = BitVec.ofNat 8 w.kyber := by
         rw [← fp7]
         exact slotw 7 10 32 4 rfl (by rw [fp7]; exact hk1) (by rw [fp7]; exact hk) (by decide)
           (hall _ (by simp [okListSlots, BundleSlots.slots]))
-          (acc _ (by simp [okList, hz]))
       have q : (BundleSlots.slots true).oneTime = 10 := rfl
       have t10 : ((10 : Nat) = 0) = False := by simp
       have b10 : ((10 : Nat) != 0) = true := rfl
@@ -1739,19 +1794,22 @@ theorem deviceSlots_any_widths (w : Widths) (ok : w.ok = true) (pre I post : Lis
 
 open TlsMpc.HybridKernel (lookup) in
 open TlsMpc.ReceiveKernel (values) in
-/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If `device`
-accepts the item at `start` of `X` with digit counts `w` and the runtime splices it with `w`,
-then for ANY five bytes as `widths` the kernel either gives exactly `device`'s outputs (those of
-`bundle-item`) or releases nothing at all. -/
+/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If the runtime
+splices the item at `start` of `X` with digit counts `w` (and no field of the item starts with a
+NUL byte, the filler), then for ANY five bytes as `widths` the kernel either gives exactly
+`device`'s outputs with `w` (those of `bundle-item`; all zero if `device` refuses the item) or
+releases nothing at all. Before the emitter batch this needed `device` to accept the item (a
+canonical body): a non-canonical number (`05`) with a `widths` byte that disagreed with the splice
+was accepted (`zero_padding_ambiguous`, `inconsistent_width_refused`). -/
 theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true) (assign : BVExpr.Assignment)
     (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
     (inputs : let get := fun name =>
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
-    (accepted : (BundleResponse.device C X.length start w X).getD 0 [] = [255]) :
+    (lead : ∀ k, 1 ≤ (fieldOf X start (item w) k).length → OpenResult.get C (fieldOf X start (item w) k) 0 ≠ 0) :
     (let out := BundleResponse.device C X.length start w X;
       values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
         [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
@@ -1780,13 +1838,21 @@ theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true
   have hcut : pre ++ part X start (size (item w)) ++ (af ++ en) =
       BundleItemWhole.cut X first last start (size (item w)) := by
     rw [← hA, ← hC, ← hD]; simp only [BundleItemWhole.cut, List.append_assoc]
-  have acc' : (BundleResponse.device C (pre ++ part X start (size (item w)) ++ (af ++ en)).length pre.length w
-      (pre ++ part X start (size (item w)) ++ (af ++ en))).getD 0 [] = [255] := by
-    rw [hcut, hpre, show firstItem + (if first then 0 else 1) = BundleItemWhole.cutStart first from rfl,
-      BundleItemWhole.device_cut C X first last start w placed]
-    exact accepted
+  have hagree : BundleItemWhole.Agree (pre ++ part X start (size (item w)) ++ (af ++ en)) X pre.length start
+      (size (item w)) := by
+    intro x c hxc
+    rw [List.append_assoc, BundleItemWhole.part_append_right,
+      BundleItemWhole.part_append_left _ _ _ _ (by rw [hI]; exact hxc),
+      BundleItemWhole.part_part X start _ x c hxc]
+  have lead' : ∀ k, 1 ≤ (fieldOf (pre ++ part X start (size (item w)) ++ (af ++ en)) pre.length (item w) k).length →
+      OpenResult.get C (fieldOf (pre ++ part X start (size (item w)) ++ (af ++ en)) pre.length (item w) k) 0 ≠ 0 := by
+    intro k
+    have e := BundleItemWhole.fieldOf_agree _ X pre.length start (size (item w)) hagree (item w) 0 k (by omega)
+    rw [Nat.add_zero, Nat.add_zero] at e
+    rw [e]
+    exact lead k
   rw [List.append_assoc _ af en, ← hpre]
-  rcases deviceSlots_any_widths w ok pre _ (af ++ en) hI acc' V with e | e
+  rcases deviceSlots_any_widths w ok pre _ (af ++ en) hI lead' V with e | e
   · left
     rw [e, deviceSlots_splice w ok pre _ (af ++ en) hI (by omega) hpost, hcut, hpre,
       show firstItem + (if first then 0 else 1) = BundleItemWhole.cutStart first from rfl,
@@ -1821,7 +1887,8 @@ theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true
 #print axioms bundleSlot_wrong_counts
 #print axioms bundleSlot_parses_or_refuses
 #print axioms slotValid_width
-#print axioms inconsistent_width_accepts
+#print axioms inconsistent_width_refused
+#print axioms zero_padding_ambiguous
 #print axioms deviceSlots_any_widths
 #print axioms bundleSlot_any_widths
 
