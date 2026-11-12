@@ -1172,6 +1172,31 @@ def parseBench : IO Unit := do
     (response ++ [255, 255, 0] ++ [BitVec.ofNat 8 i])).length)
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
   IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
+  -- The pass-over of an unrevealed body through the session's own functions, at three sizes: a
+  -- response's body (`stepPassed`, as for a prekey response) and a server request's (`stepSkipped`).
+  let ascii (s : String) : List (BitVec 8) := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
+  for n in [2265, 7727, 13000] do
+    let body := List.replicate (n + zero) (BitVec.ofNat 8 zero)
+    let start ← IO.monoNanosNow
+    let ok := match Recovery.feed true 77 (Recovery.responseFrame 77 200 "OK" body []) with
+      | .ok (_, complete, passed) => complete && passed == n
+      | .error _ => false
+    unless ok do throw (IO.userError "pass-over bench: response not parsed")
+    let middle ← IO.monoNanosNow
+    let inner := [0x0a, 3] ++ ascii "PUT" ++ [0x12, 9] ++ ascii "/v1/bench" ++ [0x1a] ++ PublicReceive.varint n ++
+      body ++ [0x20] ++ PublicReceive.varint 9
+    let payload := [0x08, 0x01, 0x12] ++ PublicReceive.varint inner.length ++ inner
+    let request : List (BitVec 8) := [0x82, 126, BitVec.ofNat 8 (payload.length / 256), BitVec.ofNat 8 payload.length] ++ payload
+    let walked : Except String (PublicReceive.State × Nat) := request.foldlM (init := ({ PublicReceive.start [] with upgraded := true }, 0))
+      fun (s, skipped) byte => do
+        if s.skip > 0 then pure (← PublicReceive.stepSkipped s, skipped + 1)
+        else pure ((← PublicReceive.step s byte).1, skipped)
+    let ok := match walked with
+      | .ok (s, skipped) => skipped == n && s.requests.length == 1
+      | .error _ => false
+    unless ok do throw (IO.userError "pass-over bench: request not parsed")
+    let stop ← IO.monoNanosNow
+    IO.println s!"pass-over {n} bytes: response body (stepPassed) {(middle - start) / 1000000} ms, request body (stepSkipped) {(stop - middle) / 1000000} ms"
 
 /-- `SIGNAL_RECORD=FILE` (real_signal/REAL_TEST_PLAN.md, "Recording"): every exchange with the
 Signal server, one JSON line per event with this party's clock in milliseconds, appended to

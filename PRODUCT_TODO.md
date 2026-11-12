@@ -321,10 +321,13 @@ Inventory of every kernel family, what fixes each parameter, the tools and the n
       class for n unanswered devices (30 for four devices; two classes: 60). Fix: CIRCUIT_SHAPES.md
       "Not done" 4. A sixth device does not fit one request record ("retry later"); a request
       split over records is not built.
-- [ ] The controller's pass-over of an unrevealed response body is slow and superlinear in the
-      clear (2,265 bytes: 1.2 s; the real run's 7,727-byte prekey response: 10.2 s, with no
-      keepalive in between); a five-device response (about 13 KB) would take about 30 s. Profile
-      `PublicReceive.stepPassed` / the frame and response parsers per byte.
+- [ ] The controller's pass-over of an unrevealed body is slow in the clear, but linear (measured
+      2026-11-12 with `parse-bench`): 1.24 ms/byte for a response body (`PublicReceive.stepPassed`:
+      frame parser 0.18, control queue 0.35, response parser 0.73) and 0.56 ms/byte for a
+      server-request body (`stepSkipped`). The real run: 2,265-byte envelope 1.2 s, 7,727-byte
+      prekey response 10.2 s, no keepalive in between; 13 KB would take about 16 s. Cause: the
+      circuit-shaped parsers run per byte over `List` states (`List.getD`, a 500-byte queue rebuilt
+      each byte). Fix in progress: a bulk pass-over proved equal to the byte-by-byte one.
 - [ ] A manifest belongs to one emitter binary; decide how a deployment ships it (the gate lists
       are several GB) and add a binary gate-list form to cut loading time.
 - [ ] Remove the Python wrapper from the runtime (`circuit_cache.py`: it now only names, hashes
