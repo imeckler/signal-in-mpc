@@ -1,4 +1,5 @@
 import TlsMpc.Node.Engine.Model
+import TlsMpc.Node.Engine.Labels
 import TlsMpc.ContactKernelsProofs
 
 /-!
@@ -23,9 +24,9 @@ WHAT IS HERE.
     `contact-seal N`, `contact-open N` are these. It is exactly the trust in the pinned flat
     circuits computing their Lean definitions (T2, stage P3; the model's own assumption that "a
     circuit computes its Lean definition"). Nothing else about the engines is assumed.
-  * Labels `blobAccepted`, `sealedBlob` (plan 4.3, "Stored state"). PROVISIONAL CODES 20 and 21
-    (Engine.lean decision D7: codes are provisional until Reveal.lean's RevealKind exists; 1 and 2
-    are `Random.joint`'s). To be renumbered with the other flows' labels when RevealKind lands.
+  * Labels `blobAccepted`, `sealedBlob` (plan 4.3, "Stored state"): the registry's
+    `Label.blobAccepted`, `Label.sealedBlob` (Engine/Labels.lean, pairwise distinct with every
+    other flow's label; provisional codes until RevealKind exists, Engine.lean decision D7).
   * Script combinators `seq` (an instruction whose reply is unit), `seqs` (a block of them) and
     `openThen` (an opening and its continuation), with generic lemmas:
       - `plain` instructions (no private input, no release, independent of the peer: public bits,
@@ -37,7 +38,9 @@ WHAT IS HERE.
       - `Silent` scripts (no release instruction on any branch) and `silent_view`: their runs
         release nothing to either party, whatever the adversary;
       - `WF_seqs`, `WF_openThen`: well-formedness reduced to the shell's `check`, in a form `simp`
-        evaluates on a symbolic context; `Fresh c n`: no handle id from `n` on was ever defined.
+        evaluates on a symbolic context; `Fresh c n`: no handle id from `n` on was ever defined
+        (the Boolean half of `Counters.Ahead`, Engine.lean); `WFP_seq`, `WFP_openThen`,
+        `frees_wfp`: the same with a postcondition on the context a script leaves (`WFP`).
 -/
 
 namespace TlsMpc.Node.Flows.Contacts
@@ -186,12 +189,12 @@ structure Loaded (E : Env) : Prop where
   opening : ∀ size, 0 < size → size ≤ 16384 →
     E.circuits (openName size) = some (kernelCircuit (HybridKernel.contactOpen size) (84 + size) (openMarks size))
 
-/-! ## Labels (provisional codes; plan 4.3 "Stored state") -/
+/-! ## Labels (from the registry, Engine/Labels.lean; plan 4.3 "Stored state") -/
 
 /-- `Reveal.blobAccepted`: the `accepted` byte of `contact-open` (ops 37, 55, 63). -/
-def blobAccepted : Label := ⟨20⟩
+def blobAccepted : Label := Label.blobAccepted
 /-- `Reveal.sealedBlob`: ciphertext and check value of `contact-seal` (ops 38, 54, 64). -/
-def sealedBlob : Label := ⟨21⟩
+def sealedBlob : Label := Label.sealedBlob
 
 /-! ## Script combinators -/
 
@@ -209,6 +212,9 @@ def openThen {α : Type} (h : BoolH) (l : Label) (k : Bits → Script α) : Scri
   .step (.openBool h l) fun
     | .bits b => k b
     | _ => .abort "reply shape"
+
+/-- Free each of the handles, in order. -/
+def frees (hs : List BoolH) : List Instr := hs.map .freeBool
 
 @[simp] theorem seqs_nil {α : Type} (s : Script α) : seqs [] s = s := rfl
 @[simp] theorem seqs_cons {α : Type} (i : Instr) (is : List Instr) (s : Script α) :
@@ -577,37 +583,46 @@ theorem useBools_cons {c c' c'' : Ctx} {h : BoolH} {hs : List BoolH} {i : BoolIn
 
 theorem useBools_nil (c : Ctx) : c.useBools [] = some ([], c) := rfl
 
-theorem check_boolPublic (sigs : Bytes → Option Sig) {c : Ctx} {n : Nat} (hf : Fresh c n) (bits : Bits) :
+theorem check_boolPublic (sigs : Bytes → Option Sig) {c : Ctx} {n : Nat} (hf : Fresh c n) (bits : Bits)
+    (hw : bits.length ≤ maxWidth) :
     check sigs c (.boolPublic ⟨n⟩ bits) = some (push c n ⟨List.replicate bits.length .pub, false⟩, .unit) := by
-  simp [check, Ctx.defBool, hf n (Nat.le_refl n), push]
+  simp [check, Ctx.defBool, hf n (Nat.le_refl n), push, Nat.not_lt.mpr hw]
 
 theorem check_boolInputBoth (sigs : Bytes → Option Sig) {c : Ctx} {n : Nat} (hf : Fresh c n) (w : Nat)
-    (once rev : Bool) :
+    (once rev : Bool) (hw : w ≤ maxWidth) :
     check sigs c (.boolInputBoth ⟨n⟩ ⟨n + 1⟩ w once rev ()) =
       some (push (push c n ⟨List.replicate w (Mark.ofInput rev), once⟩) (n + 1) ⟨List.replicate w (Mark.ofInput rev), once⟩,
         .unit) := by
   have h0 := hf n (Nat.le_refl n)
   have h1 := hf (n + 1) (by omega)
-  simp [check, Ctx.defBool, h0, h1, push]
+  simp [check, guard, Ctx.defBool, h0, h1, push, hw, Nat.not_lt.mpr hw]
 
 theorem check_concat (sigs : Bytes → Option Sig) {c c' : Ctx} {n : Nat} {parts : List BoolH} {is : List BoolInfo}
-    (hu : c.useBools parts = some (is, c')) (hf : Fresh c' n) :
+    (hu : c.useBools parts = some (is, c')) (hf : Fresh c' n) (hw : ((is.map (·.marks)).flatten).length ≤ maxWidth) :
     check sigs c (.concat ⟨n⟩ parts) =
       some (push c' n ⟨(is.map (·.marks)).flatten, is.any (·.once)⟩, .unit) := by
   simp [check, hu, Ctx.defBool, hf n (Nat.le_refl n), push]
+  split
+  · next h => exact absurd h (by simpa using hw)
+  · rfl
 
 theorem check_run (sigs : Bytes → Option Sig) {c c' : Ctx} {n copies : Nat} {name : Bytes} {input : BoolH}
     {i : BoolInfo} {s : Sig} (hs : sigs name = some s) (hc : 0 < copies) (hu : c.useBool input = some (i, c'))
-    (hl : i.marks.length = copies * s.inWidth) (hf : Fresh c' n) :
+    (hl : i.marks.length = copies * s.inWidth) (hf : Fresh c' n) (hcw : copies ≤ maxWidth)
+    (hw : copies * s.outMarks.length ≤ maxWidth) :
     check sigs c (.run ⟨n⟩ name copies input) =
       some (push c' n ⟨(List.replicate copies s.outMarks).flatten, false⟩, .unit) := by
-  simp [check, hs, hc, hu, hl, guard, Ctx.defBool, hf n (Nat.le_refl n), push]
+  simp [check, hs, hc, hcw, hu, hl, guard, Ctx.defBool, hf n (Nat.le_refl n), push, hw, Nat.not_lt.mpr hw]
 
 theorem check_slice (sigs : Bytes → Option Sig) {c c' : Ctx} {n lo hi : Nat} {h : BoolH} {i : BoolInfo}
-    (hu : c.useBool h = some (i, c')) (hb : lo ≤ hi ∧ hi ≤ i.marks.length) (hf : Fresh c' n) :
+    (hu : c.useBool h = some (i, c')) (hb : lo ≤ hi ∧ hi ≤ i.marks.length) (hf : Fresh c' n)
+    (hw : hi - lo ≤ maxWidth) :
     check sigs c (.slice ⟨n⟩ h lo hi) =
       some (push c' n ⟨(i.marks.drop lo).take (hi - lo), i.once⟩, .unit) := by
   simp [check, hu, hb, guard, Ctx.defBool, hf n (Nat.le_refl n), push]
+  split
+  · next h => exact absurd h (by omega)
+  · rfl
 
 theorem check_openBool (sigs : Bytes → Option Sig) {c c' : Ctx} {h : BoolH} {l : Label} {i : BoolInfo}
     (hl : l.code ≠ 0) (hu : c.useBool h = some (i, c')) (ho : i.marks.all Mark.openable = true) :
@@ -668,5 +683,52 @@ theorem WF_openThen {α : Type} (sigs : Bytes → Option Sig) (c : Ctx) (h : Boo
     | bits b => exact hw b hr
     | _ => exact absurd hr (by simp [Shape.Fits])
   · exact hw.elim
+
+/-! ### Well-formedness with a postcondition (`WFP`, Engine.lean) -/
+
+theorem Fresh.of_seenB {c c' : Ctx} {n : Nat} (hf : Fresh c n) (h : c'.seenB = c.seenB) : Fresh c' n := by
+  intro j hj hm
+  rw [h] at hm
+  exact hf j hj hm
+
+/-- `Fresh` is the Boolean half of the session counters being ahead of the context. -/
+theorem fresh_of_ahead {n : Counters} {c : Ctx} (h : n.Ahead c) : Fresh c n.bool := h.1
+
+theorem WFP_seq {α : Type} (sigs : Bytes → Option Sig) {Q : Ctx → α → Prop} (c c' : Ctx) (i : Instr) (s : Script α)
+    (h : check sigs c i.skel = some (c', .unit)) (hs : WFP sigs Q c' s) : WFP sigs Q c (seq i s) :=
+  WFP.step c c' .unit i _ h (fun r hr => by
+    cases r with
+    | unit => exact hs
+    | _ => exact absurd hr (by simp [Shape.Fits]))
+
+theorem WFP_openThen {α : Type} (sigs : Bytes → Option Sig) {Q : Ctx → α → Prop} (c c' : Ctx) (h : BoolH)
+    (l : Label) (k : Bits → Script α) (m : Nat) (hc : check sigs c (.openBool h l) = some (c', .bits m))
+    (hk : ∀ b : Bits, b.length = m → WFP sigs Q c' (k b)) : WFP sigs Q c (openThen h l k) :=
+  WFP.step c c' (.bits m) _ _ hc (fun r hr => by
+    cases r with
+    | bits b => exact hk b hr
+    | _ => exact absurd hr (by simp [Shape.Fits]))
+
+/-- **Freeing live, distinct handles**, then `s`: well formed when `s` is, from every context in
+which exactly those handles were dropped (and no id was defined). -/
+theorem frees_wfp {α : Type} (sigs : Bytes → Option Sig) {Q : Ctx → α → Prop} (s : Script α) :
+    ∀ (hs : List BoolH) (c : Ctx), (hs.map (·.id)).Nodup → (∀ h ∈ hs, (c.bool? h).isSome = true) →
+      (∀ c' : Ctx, (∀ g : BoolH, c'.bool? g = if g.id ∈ hs.map (·.id) then none else c.bool? g) →
+        c'.seenB = c.seenB → WFP sigs Q c' s) →
+      WFP sigs Q c (seqs (frees hs) s)
+  | [], c, _, _, hk => hk c (fun g => by simp) rfl
+  | h :: hs, c, hn, hl, hk => by
+    simp only [List.map_cons, List.nodup_cons, List.mem_map] at hn
+    refine WFP_seq sigs c _ _ _ (check_freeBool' sigs (hl h (by simp))) ?_
+    refine frees_wfp sigs s hs _ hn.2 (fun g hg => ?_) (fun c' h1 h2 => hk c' (fun g => ?_) h2)
+    · have hne : g.id ≠ h.id := fun e => hn.1 ⟨g, hg, e⟩
+      rw [bool?_drop_of_ne _ _ _ hne]
+      exact hl g (by simp [hg])
+    · rw [h1 g, bool?_drop]
+      by_cases e : g.id = h.id
+      · simp [e]
+      · by_cases m : g.id ∈ hs.map (·.id)
+        · simp [m]
+        · simp only [m, if_false, e, List.map_cons, List.mem_cons, false_or]
 
 end TlsMpc.Node.Flows.Contacts

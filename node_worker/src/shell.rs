@@ -81,16 +81,11 @@ impl<E: Engines> Shell<E> {
     /// the instructions in order; the reply is the encoded reply items.
     fn batch(&mut self, sequence: u64, payload: &[u8]) -> Result<Vec<u8>, String> {
         let me = if self.leader { Party::A } else { Party::B };
-        let prepared = interp::decode_batch(payload).ok_or_else(|| "batch encoding".to_string()).and_then(|batch| {
-            interp::validate_payloads(me, &batch)?;
-            Ok(batch)
-        });
-        // An unusable batch is still agreed (as `UNUSABLE`), so that the other party stops at the
-        // agreement instead of inside an engine call.
-        let agreed = match &prepared {
-            Ok(batch) => interp::skeleton_bytes(batch),
-            Err(_) => interp::UNUSABLE.to_vec(),
-        };
+        // Lean `usableBatch`, then `agreedBytes`: an unusable batch is still agreed (as
+        // `UNUSABLE`), so that the other party stops at the agreement instead of inside an
+        // engine call (Lean `unusable_rejected_by_both`).
+        let prepared = interp::usable_batch(me, payload);
+        let agreed = interp::agreed_bytes(&prepared);
         let agreement = agree::agree_bytes(&mut self.link, &self.session, interp::BATCH, sequence, &agreed, self.peer_wait);
         let batch = prepared?;
         agreement?;

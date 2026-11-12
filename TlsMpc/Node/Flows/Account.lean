@@ -24,9 +24,10 @@ version`: concat n := scalar ‖ cred ‖ cert; `Contacts.sealBlock (n+1) key n`
 by the legacy ops 46, 47, 55 through `legacy_get` until those move (S10, S16).
 
 ASSUMED BEYOND `Loaded`: nothing for T3 of op 54 with stored credentials. With shares, the
-`xor-bit` word circuit must be loadable by the shell under that name (Rust loader): it is not a
-kernel of the manifest today (`word_mask.h` line 27 loads it from its own pinned file). Recorded
-in the S9 report.
+`xor-bit` word circuit runs by name: it is not a kernel of the manifest, and the Rust loader
+registers it from its own pinned file, as `word_mask.h` line 27 loads it (node_worker loader.rs
+`WORD_CIRCUITS`: signature 2 inputs, 1 private output; the end-to-end tests run this block's shape
+on the real engines). Its correctness is the pinned Lean export's (TlsMpc/WordMask.lean).
 
 PROVED: `accountKey_disclosure` (nothing released), `accountSeal_disclosure` (at most the sealed
 blob of the key, version and content handles), `opSeal_disclosure` (both credential cases: at

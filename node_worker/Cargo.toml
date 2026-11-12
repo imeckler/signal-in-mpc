@@ -21,6 +21,9 @@ semi-honest = []
 # The -test library: the field engine's fault hook compiled in, and unpinned (non-strict)
 # kernel loading allowed (development fixtures such as check_tls_worker_v3.py). Never deployed.
 test-engine = []
+# tests/e2e_engines.rs: two real workers run the Lean flows (heavy; run it alone, under
+# scripts/guarded.py --heavy). Implies `engine`.
+e2e = ["engine"]
 
 [lib]
 name = "node_worker"

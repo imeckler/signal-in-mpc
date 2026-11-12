@@ -8,21 +8,28 @@
 //!    items, bits and flags one byte 0/1, field elements 32 bytes little-endian below
 //!    p = 2^255 - 19, opcodes 1-21; nothing may follow the batch.
 //! 2. [`validate_payloads`]: this party's private payloads have the shapes the skeleton declares
-//!    (design note item 5, Lean `fill`'s length conditions).
-//! 3. Agreement on [`skeleton_bytes`] (Lean `skeletonBytes`: the batch with every private payload
-//!    emptied, re-encoded) through `agree.rs`. A batch this party cannot decode or whose payloads
-//!    do not fit is agreed as [`UNUSABLE`], so the other party fails at the agreement instead of
-//!    waiting inside an engine call.
-//! 4. [`Interp::admit`]: Lean `check` (handles.rs) over the WHOLE batch before the first engine
-//!    call, from the context carried across batches; a refusal rejects the batch and nothing runs.
+//!    (design note item 5, Lean `Wire.payloadOk`: `fill`'s conditions). 1 and 2 together are
+//!    Lean `usableBatch` ([`usable_batch`]).
+//! 3. Agreement on [`agreed_bytes`] (Lean `agreedBytes`): [`skeleton_bytes`] (Lean
+//!    `skeletonBytes`: the batch with every private payload emptied, re-encoded) through
+//!    `agree.rs`. A batch this party cannot decode or whose payloads do not fit is agreed as
+//!    [`UNUSABLE`] (Lean `unusable`), so the other party fails at the agreement instead of
+//!    waiting inside an engine call (Lean `unusable_rejected_by_both`).
+//! 4. [`Interp::admit`]: Lean `checkBatch` (handles.rs [`handles::check_batch`]: `check` per
+//!    instruction, and decision D8, a release must be the batch's last instruction) over the
+//!    WHOLE batch before the first engine call, from the context carried across batches; a
+//!    refusal rejects the batch and nothing runs.
 //! 5. [`Interp::execute`]: each instruction through the engine ABI (opcodes map 1:1 to
 //!    `ea_bool_*` / `ea_field_*`, opcode 21 to the control link's exchange), collecting the reply
-//!    items (Lean `encodeReplies`): one datum per release to this party, in order.
+//!    items (Lean `encodeReplies`): one datum per release to this party ([`Wire::releases_to`],
+//!    not the check's shape: `openBoolTo` has shape unit but gives its recipient an item), in
+//!    order.
 //!
 //! Handles: the Lean script names handles (two name spaces, Boolean and field); the engines issue
-//! their own. [`Interp`] maps the first to the second. An engine handle whose Lean handle is no
-//! longer live (freed, or a `once` handle consumed) is released in the engine at the end of the
-//! batch (or at once, for an explicit free).
+//! their own. [`Interp`] maps the first to the second. The lifetime rule (design note item 5):
+//! an engine value lives as long as its Lean handle is live; an explicit free releases it at
+//! once, and a Boolean handle consumed as a `once` operand is released in the engine at the end
+//! of the batch.
 use crate::engines::Engines;
 use crate::handles::{self, Ctx, Shape, Sig};
 use crate::loader::Kernels;
@@ -31,10 +38,10 @@ use std::collections::HashMap;
 /// The pipe operation code of a batch: the next free code after the shell's 90-92.
 pub const BATCH: u8 = 93;
 
-/// What is agreed in place of the skeleton when this party's batch is unusable (undecodable, or
-/// private payloads that do not fit it). It does not decode as a batch (its count is far larger
-/// than the 6 bytes after it; test `unusable_is_not_a_batch`), so it never equals a usable batch's
-/// skeleton.
+/// Lean `unusable`: what is agreed in place of the skeleton when this party's batch is unusable
+/// (undecodable, or private payloads that do not fit it). It never equals a batch's skeleton
+/// bytes (Lean `skeletonBytes_ne_unusable`: its first byte, 117, would be the low byte of an
+/// instruction count that its 14 bytes cannot hold).
 pub const UNUSABLE: &[u8] = b"unusable batch";
 
 /// A field element: 32 bytes little-endian, below p (Lean `F`).
@@ -129,6 +136,10 @@ impl Wire {
             Wire::OpenBoolTo { recipient, .. } => *recipient == me,
             _ => false,
         }
+    }
+    /// Lean `InstrP.endsBatch` (decision D8): the releases.
+    pub fn ends_batch(&self) -> bool {
+        matches!(self, Wire::OpenBool { .. } | Wire::OpenBoolTo { .. } | Wire::OpenField { .. } | Wire::Exchange { .. })
     }
 }
 
@@ -597,10 +608,10 @@ pub fn decode_replies(s: &[u8]) -> Option<Vec<Datum>> {
     r.s.is_empty().then_some(items)
 }
 
-/// Design note item 5 (Lean `fill`'s conditions, checked on what arrived): an input owner's bits
-/// and both parties' `boolInputBoth` bits number `width`; the non-owner's `boolInput` payload is
-/// empty; a `fieldInput`'s elements number `outsA`'s length, and coins are below 2^64; an
-/// exchange payload has exactly `len` bytes.
+/// Lean `Wire.payloadOk` on every instruction (design note item 5; `fill`'s conditions, checked
+/// on what arrived): an input owner's bits and both parties' `boolInputBoth` bits number
+/// `width`; the non-owner's `boolInput` payload is empty; a `fieldInput`'s elements number
+/// `outsA`'s length, and coins are below 2^64; an exchange payload has exactly `len` bytes.
 pub fn validate_payloads(me: Party, batch: &[Wire]) -> Result<(), String> {
     for (i, w) in batch.iter().enumerate() {
         let ok = match w {
@@ -619,6 +630,23 @@ pub fn validate_payloads(me: Party, batch: &[Wire]) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// Lean `usableBatch`: the batch this party can run from its request bytes (they decode, and
+/// every private payload fits its skeleton), or why not.
+pub fn usable_batch(me: Party, payload: &[u8]) -> Result<Vec<Wire>, String> {
+    let batch = decode_batch(payload).ok_or_else(|| "batch encoding".to_string())?;
+    validate_payloads(me, &batch)?;
+    Ok(batch)
+}
+
+/// Lean `agreedBytes`: what this party puts into the agreement hash for a usable batch (its
+/// skeleton bytes) or an unusable one ([`UNUSABLE`]).
+pub fn agreed_bytes(usable: &Result<Vec<Wire>, String>) -> Vec<u8> {
+    match usable {
+        Ok(batch) => skeleton_bytes(batch),
+        Err(_) => UNUSABLE.to_vec(),
+    }
 }
 
 /// What [`Interp::execute`] needs from the check of one instruction.
@@ -647,8 +675,9 @@ pub struct Interp {
 }
 
 impl Interp {
-    /// Lean `check` over the whole batch from the carried context. On success the context moves
-    /// past the batch; on a refusal nothing changes and the batch must not run.
+    /// Lean `checkBatch` over the whole batch from the carried context ([`handles::check_batch`],
+    /// with the widths `openBoolTo` needs). On success the context moves past the batch; on a
+    /// refusal nothing changes and the batch must not run.
     pub fn admit(&mut self, sigs: &dyn Fn(&[u8]) -> Option<Sig>, batch: &[Wire]) -> Result<Vec<Step>, String> {
         let mut work = self.ctx.clone();
         let mut steps = Vec::with_capacity(batch.len());
@@ -658,6 +687,9 @@ impl Interp {
                 _ => 0,
             };
             let shape = handles::check(sigs, &mut work, w).ok_or_else(|| format!("instruction {i} refused by check"))?;
+            if w.ends_batch() && i + 1 < batch.len() {
+                return Err(format!("instruction {i} releases data but does not end the batch"));
+            }
             steps.push(Step { shape, width });
         }
         self.ctx = work;
@@ -923,6 +955,22 @@ mod tests {
     #[test]
     fn unusable_is_not_a_batch() {
         assert_eq!(decode_batch(UNUSABLE), None);
+        // Lean `unusable`, byte for byte.
+        assert_eq!(UNUSABLE, [117, 110, 117, 115, 97, 98, 108, 101, 32, 98, 97, 116, 99, 104]);
+        assert_eq!(agreed_bytes(&usable_batch(Party::A, UNUSABLE)), UNUSABLE);
+        let ok = encode_batch(&[Wire::FieldCheck]);
+        assert_eq!(agreed_bytes(&usable_batch(Party::A, &ok)), skeleton_bytes(&[Wire::FieldCheck]));
+    }
+
+    #[test]
+    fn admit_enforces_d8() {
+        let none = |_: &[u8]| None;
+        let mut i = Interp::default();
+        let open = Wire::BoolPublic { out: 1, bits: vec![true] };
+        let batch = [open, Wire::OpenBool { h: 1, label: 3 }, Wire::FreeBool { h: 1 }];
+        assert!(i.admit(&none, &batch).is_err());
+        assert_eq!(i.ctx, Ctx::default(), "a refused batch leaves the context");
+        assert!(i.admit(&none, &batch[..2]).is_ok());
     }
 
     #[test]

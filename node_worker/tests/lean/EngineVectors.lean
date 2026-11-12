@@ -16,7 +16,8 @@ Format (one item per line, `key value`):
   case NAME / end                      batches checked in sequence from the empty context
     batch HEX                          encodeBatch
     skeleton HEX                       skeletonBytes
-    verdict ok SHAPES | refused INDEX  checkBatch over the skeletons (SHAPES: u, bN, eN, xN; -)
+    verdict ok SHAPES | refused INDEX  Engine.checkBatch over the skeletons (check per instruction
+                                       and decision D8; SHAPES: u, bN, eN, xN; -)
     ctx TEXT                           the context after the batch (unchanged when refused)
   flow NAME / endflow                  two honest parties, rounds of one batch each
     round
@@ -24,6 +25,8 @@ Format (one item per line, `key value`):
     reply HEX                          encodeReplies of what this party is released (honest run)
     result a|b TEXT                    the script's result (hex), when it is a script
   decode HEX none|some HEX             decodeBatch, and the re-encoding when it succeeds
+  agreed a|b HEX HEX                   agreedBytes for that party of the request bytes (the
+                                       skeleton bytes, or `unusable`)
   replies HEX                          encodeReplies of a fixed datum list
 Marks: 0 never, 1 pub, 2 toA, 3 toB, 4 revealable.
 -/
@@ -72,7 +75,10 @@ def marksStr (ms : List Mark) : String := String.join (ms.map markCode)
 def sigTable : List (String × Sig) :=
   [("tls-reveal 7", ⟨128, List.replicate 24 .pub⟩),
    ("toy", ⟨4, [.never, .toA, .toB, .pub]⟩),
-   ("noin", ⟨0, [.pub, .toB]⟩)]
+   ("noin", ⟨0, [.pub, .toB]⟩),
+   ("nothing", ⟨0, []⟩),
+   -- the pinned word circuit (node_worker loader.rs WORD_CIRCUITS): one XOR gate, output private
+   ("xor-bit", ⟨2, [.never]⟩)]
 
 def sigs (n : Bytes) : Option Sig := (sigTable.find? (fun e => ascii e.1 == n)).map (·.2)
 
@@ -92,21 +98,9 @@ def showShape : Shape → String
   | .elems n => s!"e{n}"
   | .bytes n => s!"x{n}"
 
-/-- `check` over a whole batch, as the shell runs it: the first refused index, or the context
-after the batch and every instruction's shape. -/
-def checkBatch (c : Ctx) : List Skel → Nat → Except Nat (Ctx × List Shape)
-  | [], _ => .ok (c, [])
-  | s :: ss, i =>
-    match check sigs c s with
-    | none => .error i
-    | some (c', sh) =>
-      match checkBatch c' ss (i + 1) with
-      | .error j => .error j
-      | .ok (c'', shs) => .ok (c'', sh :: shs)
-
 def emitBatch (c : Ctx) (b : List Wire) : Ctx × List String :=
   let lines := [s!"batch {hex (encodeBatch b)}", s!"skeleton {hex (skeletonBytes b)}"]
-  match checkBatch c (b.map InstrP.skel) 0 with
+  match TlsMpc.Node.Engine.checkBatch sigs c (b.map InstrP.skel) with
   | .ok (c', shs) =>
     let sh := if shs.isEmpty then "-" else ",".intercalate (shs.map showShape)
     (c', lines ++ [s!"verdict ok {sh}", s!"ctx {showCtx c'}"])
@@ -191,8 +185,8 @@ def cases : List (String × List (List Wire)) :=
    ("open-pub-slice-ok", [[inp 1, .run ⟨2⟩ toy 1 ⟨1⟩, .slice ⟨3⟩ ⟨2⟩ 3 4, .openBool ⟨3⟩ ⟨3⟩]]),
    ("open-dead", [[.openBool ⟨1⟩ ⟨3⟩]]),
    ("open-once-twice", [[inpOnce 1, .openBool ⟨1⟩ ⟨3⟩], [.openBool ⟨1⟩ ⟨3⟩]]),
-   ("open-mixed-pick", [[inpNever 1, inp 2, .concat ⟨3⟩ [⟨1⟩, ⟨2⟩], .pick ⟨4⟩ ⟨3⟩ [4, 5, 7], .pick ⟨5⟩ ⟨3⟩ [7, 3],
-      .openBool ⟨4⟩ ⟨3⟩, .openBool ⟨5⟩ ⟨3⟩]]),
+   ("open-mixed-pick", [[inpNever 1, inp 2, .concat ⟨3⟩ [⟨1⟩, ⟨2⟩], .pick ⟨4⟩ ⟨3⟩ [4, 5, 7], .pick ⟨5⟩ ⟨3⟩ [7, 3]],
+      [.openBool ⟨4⟩ ⟨3⟩], [.openBool ⟨5⟩ ⟨3⟩]]),
    ("opento-label0", [[inp 1, .run ⟨2⟩ toy 1 ⟨1⟩, .slice ⟨3⟩ ⟨2⟩ 1 2, .openBoolTo ⟨3⟩ .a ⟨0⟩ ()]]),
    ("opento-wrong-recipient", [[inp 1, .run ⟨2⟩ toy 1 ⟨1⟩, .slice ⟨3⟩ ⟨2⟩ 1 2, .openBoolTo ⟨3⟩ .b ⟨5⟩ ()]]),
    ("opento-b-ok", [[inp 1, .run ⟨2⟩ toy 1 ⟨1⟩, .slice ⟨3⟩ ⟨2⟩ 2 3, .openBoolTo ⟨3⟩ .b ⟨5⟩ ()]]),
@@ -240,11 +234,27 @@ def cases : List (String × List (List Wire)) :=
    ("separate-namespaces-ok", [[inp 1, fin 1 2, .freeBool ⟨1⟩, .freeField ⟨1⟩]]),
    ("once-across-batches", [[inpOnce 1], [.slice ⟨2⟩ ⟨1⟩ 0 2], [.slice ⟨3⟩ ⟨1⟩ 0 2]]),
    ("pick-inherits-once", [[inpOnce 1, .pick ⟨2⟩ ⟨1⟩ [3, 3, 0]], [.openBool ⟨2⟩ ⟨3⟩], [.openBool ⟨2⟩ ⟨3⟩]]),
-   ("both-once-concat", [[.boolInputBoth ⟨1⟩ ⟨2⟩ 3 true true (bs "011"), .concat ⟨3⟩ [⟨2⟩, ⟨1⟩], .openBool ⟨3⟩ ⟨3⟩, .openBool ⟨3⟩ ⟨3⟩]]),
-   ("large-ids-ok", [[.boolPublic ⟨2 ^ 64 - 1⟩ (bs "1"), .openBool ⟨2 ^ 64 - 1⟩ ⟨2 ^ 64 - 1⟩,
-      .fieldPublic ⟨2 ^ 64 - 1⟩ (fe (modulus - 1)), .openField [⟨2 ^ 64 - 1⟩] ⟨2 ^ 64 - 1⟩,
-      .exchange 1 ⟨2 ^ 64 - 1⟩ [255]]]),
-   ("empty-batch-ok", [[]])]
+   ("both-once-concat", [[.boolInputBoth ⟨1⟩ ⟨2⟩ 3 true true (bs "011"), .concat ⟨3⟩ [⟨2⟩, ⟨1⟩], .openBool ⟨3⟩ ⟨3⟩],
+      [.openBool ⟨3⟩ ⟨3⟩]]),
+   ("large-ids-ok", [[.boolPublic ⟨2 ^ 64 - 1⟩ (bs "1"), .openBool ⟨2 ^ 64 - 1⟩ ⟨2 ^ 64 - 1⟩],
+      [.fieldPublic ⟨2 ^ 64 - 1⟩ (fe (modulus - 1)), .openField [⟨2 ^ 64 - 1⟩] ⟨2 ^ 64 - 1⟩],
+      [.exchange 1 ⟨2 ^ 64 - 1⟩ [255]]]),
+   ("empty-batch-ok", [[]]),
+   -- decision D8: a release must be its batch's last instruction (refused at the release)
+   ("d8-two-opens", [[inp 1, .openBool ⟨1⟩ ⟨3⟩, .openBool ⟨1⟩ ⟨3⟩]]),
+   ("d8-open-then-plain", [[inp 1, .openBool ⟨1⟩ ⟨3⟩, .freeBool ⟨1⟩]]),
+   ("d8-opento-then-input", [[inp 1, .run ⟨2⟩ toy 1 ⟨1⟩, .slice ⟨3⟩ ⟨2⟩ 1 2, .openBoolTo ⟨3⟩ .a ⟨5⟩ (), inp 4]]),
+   ("d8-openfield-then-check", [[fin 1 2, .openField [⟨1⟩] ⟨4⟩, .fieldCheck]]),
+   ("d8-exchange-then-exchange", [[.exchange 1 ⟨9⟩ [7], .exchange 1 ⟨9⟩ [8]]]),
+   ("d8-refused-before-release", [[.openBool ⟨1⟩ ⟨3⟩, inp 2]]),
+   -- the width bound (maxWidth = 2^26 bits) and the copies bound, refused before anything is built
+   ("width-input-over", [[.boolInput ⟨1⟩ .b (2 ^ 26 + 1) false false []]]),
+   ("width-input-u64", [[.boolInput ⟨1⟩ .a (2 ^ 64 - 1) false false []]]),
+   ("width-both-over", [[.boolInputBoth ⟨1⟩ ⟨2⟩ (2 ^ 26 + 1) false false []]]),
+   ("width-run-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "noin") (2 ^ 25 + 1) ⟨1⟩]]),
+   ("copies-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") (2 ^ 26 + 1) ⟨1⟩]]),
+   ("copies-u32-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") (2 ^ 32) ⟨1⟩]]),
+   ("copies-nothing-ok", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") 5 ⟨1⟩]])]
 
 /-! ## Two-party runs: the flows, and the engine round trips of the end-to-end test -/
 
@@ -324,6 +334,20 @@ def boolRounds : List ((Party → List Wire) × List Datum × List Datum) :=
        .concat ⟨26⟩ [⟨23⟩, ⟨24⟩, ⟨25⟩],
        .openBool ⟨26⟩ ⟨3⟩],
     [.bits plumbed], [.bits plumbed])]
+
+/-- Op 54's credential XOR, as `Account.combineBlock` builds it (8 bits here): both parties' shares
+(once), concatenated, interleaved a0 b0 a1 b1 …, `xor-bit` on 8 copies; the result stays in the
+engine (private) and is freed, so nothing is released and no engine value is left. Handle ids from
+50 on, so the end-to-end tests can run it in the same session after the other flows (and their
+refused batch, which defines handle 40, still fails at its label). -/
+def xorRounds : List ((Party → List Wire) × List Datum × List Datum) :=
+  [(fun me =>
+      [.boolInputBoth ⟨50⟩ ⟨51⟩ 8 true false (if me = .a then bothA else bothB),
+       .concat ⟨52⟩ [⟨50⟩, ⟨51⟩],
+       .pick ⟨53⟩ ⟨52⟩ ((List.range 8).flatMap fun i => [i, 8 + i]),
+       .run ⟨54⟩ (ascii "xor-bit") 8 ⟨53⟩,
+       .freeBool ⟨54⟩],
+    [], [])]
 
 def x1 : F := fe (2 ^ 254 + 12345)
 def x2 : F := fe 77
@@ -407,6 +431,37 @@ def decodeVectors : List Bytes :=
    -- a field element cut short
    pub0.dropLast]
 
+/-! ## Agreement vectors (design note item 4: the agreed bytes, `unusable` for an unusable batch) -/
+
+def partyStr (p : Party) : String := if p = .a then "a" else "b"
+
+def agreedLine (p : (Party × Bytes)) : String :=
+  s!"agreed {partyStr p.1} {hex p.2} {hex (agreedBytes p.1 p.2)}"
+
+def agreedVectors : List (Party × Bytes) :=
+  [(.a, encodeBatch (allBatches .a).head!),
+   -- A's input bits in the non-owner B's request: unusable for B
+   (.b, encodeBatch (allBatches .a).head!),
+   (.b, encodeBatch (allBatches .b).head!),
+   -- boolInput owner's bits shorter than the width
+   (.a, encodeBatch [.boolInput ⟨1⟩ .a 2 false false (bs "1")]),
+   (.b, encodeBatch [.boolInput ⟨1⟩ .a 2 false false []]),
+   (.a, encodeBatch [.boolInputBoth ⟨1⟩ ⟨2⟩ 2 false false (bs "1")]),
+   (.b, encodeBatch [.boolInputBoth ⟨1⟩ ⟨2⟩ 2 false false (bs "10")]),
+   (.a, encodeBatch [.fieldInput [⟨1⟩] [⟨2⟩] .elements false []]),
+   (.a, encodeBatch [.fieldInput [⟨1⟩] [⟨2⟩] .coins false [fe (2 ^ 64)]]),
+   (.a, encodeBatch [.fieldInput [⟨1⟩] [⟨2⟩] .coins false [fe (2 ^ 64 - 1)]]),
+   (.b, encodeBatch [.fieldInput [⟨1⟩] [⟨2⟩] .elements false [fe (2 ^ 64)]]),
+   (.a, encodeBatch [.exchange 3 ⟨1⟩ [1, 2]]),
+   (.a, encodeBatch [.exchange 2 ⟨1⟩ [1, 2]]),
+   -- undecodable requests, and the marker itself
+   (.a, [0, 0, 0]),
+   (.b, encodeBatch [.fieldCheck] ++ [0]),
+   (.a, unusable),
+   -- usable although `check` will refuse it (the agreement comes first)
+   (.a, encodeBatch [.openBool ⟨1⟩ ⟨0⟩]),
+   (.b, encodeBatch [])]
+
 def replyVectors : List (List Datum) :=
   [[], [.bits (bs "101"), .elems [fe 5, fe (modulus - 1)], .bytes [1, 2, 3]], [.bits [], .elems [], .bytes []]]
 
@@ -421,7 +476,9 @@ def allLines : List String :=
   flowLines "upgrade-public" hex (fun me => TlsMpc.Node.Flows.Upgrade.publicUpgrade sha256 me 0 1) ++
   fixedFlow "bool" boolRounds ++
   fixedFlow "field" fieldRounds ++
+  fixedFlow "xor" xorRounds ++
   decodeVectors.map decodeLine ++
+  agreedVectors.map agreedLine ++
   replyVectors.map (fun r => s!"replies {hex (encodeReplies r)}")
 
 end S9R

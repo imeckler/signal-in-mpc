@@ -4,8 +4,9 @@
 //!
 //! `check` reads only the agreed skeleton of an instruction (the payload fields of
 //! [`Wire`] are never looked at here). The shell runs it over a whole batch after the agreement
-//! and before the first engine call ([`check_batch`]); the context is carried across batches
-//! from the empty one at session start.
+//! and before the first engine call ([`check_batch`], Lean `checkBatch`: `check` per instruction
+//! and decision D8, a release must be its batch's last instruction); the context is carried
+//! across batches from the empty one at session start.
 //!
 //! Representation (the same function, another data structure):
 //! - Lean's association lists `bools`, `fields` hold at most one entry per id (`defBool` /
@@ -14,11 +15,9 @@
 //! - Lean's `check` is pure; here it mutates a working context in place. On a refusal the
 //!   working context is garbage and is discarded ([`check_batch`] works on a copy and returns the
 //!   original unchanged), exactly as Lean's `none` discards everything computed before it.
-//!
-//! NOT IN LEAN (resource bounds, the only places where this function refuses what Lean accepts):
-//! a Boolean handle wider than [`MAX_WIDTH`] bits is never created (Lean's widths are unbounded
-//! naturals; here they become marks in memory and wires in the engine), and `run` refuses more
-//! copies than the ABI's `uint32_t copies`. Both are marked `NOT IN LEAN` below.
+//! - Lean's `defBool` refuses a handle wider than `maxWidth` ([`MAX_WIDTH`]). Where building the
+//!   marks would allocate (`concat`), the same condition is tested before they are built; a
+//!   refusal either way is the same `none`.
 use crate::interp::{Party, Wire};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -107,7 +106,7 @@ pub enum Shape {
 /// Lean `maxExchange` (= link.rs MAX_EXCHANGE).
 pub const MAX_EXCHANGE: u64 = 65536;
 
-/// NOT IN LEAN: the widest Boolean handle the shell creates (bits).
+/// Lean `maxWidth`: the widest Boolean handle (bits), and the most copies of a run.
 pub const MAX_WIDTH: u64 = 1 << 26;
 
 /// Lean `Ctx`.
@@ -134,10 +133,9 @@ impl Ctx {
     pub fn field(&self, h: u64) -> Option<Mark> {
         self.fields.get(&h).copied()
     }
-    /// Lean `Ctx.defBool` (with the NOT IN LEAN width bound).
+    /// Lean `Ctx.defBool`: `if h.id ∈ c.seenB ∨ maxWidth < i.marks.length then none`.
     fn def_bool(&mut self, h: u64, i: BoolInfo) -> Option<()> {
-        guard(i.marks.len() as u64 <= MAX_WIDTH)?; // NOT IN LEAN: resource bound
-        if self.seen_b.contains(&h) {
+        if self.seen_b.contains(&h) || MAX_WIDTH < i.marks.len() as u64 {
             return None;
         }
         self.bools.insert(h, i);
@@ -209,13 +207,13 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
     match s {
         // | .boolInput out _ w once rev _
         Wire::BoolInput { out, width, once, revealable, .. } => {
-            guard(*width <= MAX_WIDTH)?; // NOT IN LEAN: resource bound, before allocating
+            guard(*width <= MAX_WIDTH)?; // guard (w ≤ maxWidth), before the marks are built
             c.def_bool(*out, BoolInfo { marks: vec![Mark::of_input(*revealable); *width as usize], once: *once })?;
             Some(Shape::Unit)
         }
         // | .boolInputBoth outA outB w once rev _
         Wire::BoolInputBoth { out_a, out_b, width, once, revealable, .. } => {
-            guard(*width <= MAX_WIDTH)?; // NOT IN LEAN: resource bound, before allocating
+            guard(*width <= MAX_WIDTH)?; // guard (w ≤ maxWidth)
             c.def_bool(*out_a, BoolInfo { marks: vec![Mark::of_input(*revealable); *width as usize], once: *once })?;
             c.def_bool(*out_b, BoolInfo { marks: vec![Mark::of_input(*revealable); *width as usize], once: *once })?;
             Some(Shape::Unit)
@@ -228,12 +226,11 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
         // | .run out name copies input
         Wire::Run { out, circuit, copies, input } => {
             let s = sigs(circuit)?; // let s ← sigs name
-            guard(0 < *copies)?; // guard (0 < copies)
-            guard(*copies <= u32::MAX as u64)?; // NOT IN LEAN: the ABI's uint32_t copies
+            guard(0 < *copies && *copies <= MAX_WIDTH)?; // guard (0 < copies ∧ copies ≤ maxWidth)
             let i = c.use_bool(*input)?; // let (i, c) ← c.useBool input
             // guard (i.marks.length = copies * s.inWidth); an overflowing product exceeds any width
             guard(copies.checked_mul(s.in_width) == Some(i.marks.len() as u64))?;
-            // NOT IN LEAN: resource bound, before allocating the replicated marks
+            // guard (copies * s.outMarks.length ≤ maxWidth), before the marks are built
             guard(copies.checked_mul(s.out_marks.len() as u64).is_some_and(|w| w <= MAX_WIDTH))?;
             let marks: Vec<Mark> = (0..*copies).flat_map(|_| s.out_marks.iter().copied()).collect();
             c.def_bool(*out, BoolInfo { marks, once: false })?; // (List.replicate copies s.outMarks).flatten
@@ -242,7 +239,7 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
         // | .concat out parts
         Wire::Concat { out, parts } => {
             let is = c.use_bools(parts)?; // let (is, c) ← c.useBools parts
-            // NOT IN LEAN: resource bound, before allocating the concatenation
+            // defBool's width condition, tested before the concatenation is built
             guard(is.iter().map(|i| i.marks.len() as u64).sum::<u64>() <= MAX_WIDTH)?;
             let marks: Vec<Mark> = is.iter().flat_map(|i| i.marks.iter().copied()).collect();
             c.def_bool(*out, BoolInfo { marks, once: is.iter().any(|i| i.once) })?;
@@ -307,7 +304,6 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
         }
         // | .fieldScale out a k
         Wire::FieldScale { out, a, .. } => {
-            // guard (k < B64): every decoded u64 is below 2^64
             let m = c.field(*a)?; // let m ← c.field? a
             c.def_field(*out, m.join(Mark::Pub))?;
             Some(Shape::Unit)
@@ -358,14 +354,17 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
     }
 }
 
-/// `check` over a whole batch from `c` (the test vectors' `checkBatch`): the context after it and
-/// every instruction's shape, or the index of the first refused instruction (then `c` is
-/// unchanged).
+/// Lean `checkBatch` (`checkBatchFrom` from index 0): `check` on every instruction in order from
+/// `c`, and decision D8: an instruction that ends a batch ([`Wire::ends_batch`]) must be the last.
+/// The context after the batch and every instruction's shape, or the index of the first refused
+/// instruction (then `c` is unchanged).
 pub fn check_batch(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &Ctx, batch: &[Wire]) -> Result<(Ctx, Vec<Shape>), usize> {
     let mut work = c.clone();
     let mut shapes = Vec::with_capacity(batch.len());
     for (index, w) in batch.iter().enumerate() {
         match check(sigs, &mut work, w) {
+            // if s.endsBatch && !ss.isEmpty then .error i
+            Some(_) if w.ends_batch() && index + 1 < batch.len() => return Err(index),
             Some(shape) => shapes.push(shape),
             None => return Err(index),
         }
@@ -413,5 +412,25 @@ mod tests {
         assert_eq!(check(&noin, &mut c.clone(), &many), None);
         let fits = Wire::Run { out: 2, circuit: b"noin".to_vec(), copies: MAX_WIDTH, input: 1 };
         assert_eq!(check(&noin, &mut c, &fits), Some(Shape::Unit));
+        // A circuit without inputs or outputs: copies alone are bounded (Lean's copies ≤ maxWidth).
+        let nothing = |n: &[u8]| (n == b"nothing").then(|| Sig { in_width: 0, out_marks: vec![] });
+        let mut c = Ctx::default();
+        assert_eq!(check(&nothing, &mut c, &Wire::Concat { out: 1, parts: vec![] }), Some(Shape::Unit));
+        let at = Wire::Run { out: 2, circuit: b"nothing".to_vec(), copies: MAX_WIDTH, input: 1 };
+        assert_eq!(check(&nothing, &mut c.clone(), &at), Some(Shape::Unit));
+        let over = Wire::Run { out: 2, circuit: b"nothing".to_vec(), copies: MAX_WIDTH + 1, input: 1 };
+        assert_eq!(check(&nothing, &mut c, &over), None);
+    }
+
+    #[test]
+    fn releases_end_batches() {
+        let none = |_: &[u8]| None;
+        let input = Wire::BoolPublic { out: 1, bits: vec![true] };
+        let open = Wire::OpenBool { h: 1, label: 3 };
+        let ok = check_batch(&none, &Ctx::default(), &[input.clone(), open.clone()]);
+        assert!(ok.is_ok());
+        assert_eq!(check_batch(&none, &Ctx::default(), &[input.clone(), open.clone(), open.clone()]), Err(1));
+        let free = Wire::FreeBool { h: 1 };
+        assert_eq!(check_batch(&none, &Ctx::default(), &[input, open, free]), Err(1));
     }
 }

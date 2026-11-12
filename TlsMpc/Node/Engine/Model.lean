@@ -49,6 +49,11 @@ PROVED HERE (standard axioms only):
   honest_replay: the honest party's result and final store are a function of its own script,
   its own store, its view and the number of completed steps; so everything the other party and
   the engines influence reaches it through released values.
+  withAdv_bind, viewD_bind, withAdv_seq, jointRun_bind (composition): a run of `s.bind f` is the
+  run of `s` then the run of `f a` from where `s` stopped (the adversary's view carried over);
+  for two honest parties when both halves returned.
+  shellPair_unusable (design note item 4): a batch unusable for either party stops both at the
+  agreement; no instruction reaches the functionality.
 -/
 
 namespace TlsMpc.Node.Engine
@@ -116,10 +121,6 @@ def Wire.early : Wire → Option Release
 /-- `copies` side-by-side copies of a circuit (LeanCircuit::parallel). -/
 def runCopies (c : Circuit) (copies : Nat) (v : Bits) : Bits :=
   ((List.range copies).map fun j => c.eval ((v.drop (j * c.inWidth)).take c.inWidth)).flatten
-
-def coinsOk : FieldIn → List F → Bool
-  | .coins, v => v.all (·.val < B64)
-  | .elements, _ => true
 
 /-- One agreed instruction, computed ideally, from party `me`'s point of view: `w` is `me`'s
 filled instruction and `peer` the other party's contribution. Returns the new ideal state, the
@@ -275,6 +276,157 @@ def jointRun (E : Env) {α β : Type} : Script α → Script β → Store → St
       | _, _ => ⟨none, σA, σB, I, [], [], [iA.skel]⟩
     else ⟨none, σA, σB, I, [], [], []⟩
   | _, _, σA, σB, I => ⟨none, σA, σB, I, [], [], []⟩
+
+/-! ## Composition: runs of `bind` -/
+
+/-- The run `o` stopped without a result (the script it belongs to does not continue). -/
+def Outcome.stop {α β : Type} (o : Outcome α) : Outcome β :=
+  ⟨none, o.store, o.ideal, o.viewH, o.viewD, o.trace, o.replies⟩
+
+/-- The run `o` followed by the run `o₂` (started from `o`'s store and ideal state). -/
+def Outcome.then {α β : Type} (o : Outcome α) (o₂ : Outcome β) : Outcome β :=
+  ⟨o₂.result, o₂.store, o₂.ideal, o.viewH ++ o₂.viewH, o.viewD ++ o₂.viewD, o.trace ++ o₂.trace,
+    o.replies ++ o₂.replies⟩
+
+/-- **`withAdv` over `bind`.** A run of `s.bind f` is the run of `s`, then (if `s` returned `a`)
+the run of `f a` from the store and ideal state `s` left, against the same adversary whose view
+then includes everything `s` released to it. -/
+theorem withAdv_bind (E : Env) (me : Party) (adv : Adversary) {α β : Type} (s : Script α)
+    (f : α → Script β) (σ : Store) (I : Ideal) (vD : List Release) :
+    withAdv E me adv (s.bind f) σ I vD =
+      match (withAdv E me adv s σ I vD).result with
+      | some a => (withAdv E me adv s σ I vD).then
+          (withAdv E me adv (f a) (withAdv E me adv s σ I vD).store (withAdv E me adv s σ I vD).ideal
+            (vD ++ (withAdv E me adv s σ I vD).viewD))
+      | none => (withAdv E me adv s σ I vD).stop := by
+  induction s generalizing σ I vD with
+  | done a => simp [withAdv, Outcome.then]
+  | abort r => rfl
+  | step i k ih =>
+    simp only [Script.bind_step, withAdv]
+    cases hf : fill E.hash me σ i with
+    | none => rfl
+    | some w =>
+      simp only
+      cases ha : adv.act (vD ++ w.early.toList) i.skel with
+      | none => rfl
+      | some p =>
+        simp only
+        cases hs : idealStep E me w p I with
+        | none => rfl
+        | some x =>
+          obtain ⟨I', toH, toD⟩ := x
+          simp only
+          rw [ih]
+          cases hr : (withAdv E me adv (k (absorb E.hash me i σ toH).1) (absorb E.hash me i σ toH).2 I'
+            (vD ++ toD.toList)).result with
+          | none => simp [Outcome.stop]
+          | some a => simp [Outcome.then, List.append_assoc]
+
+/-- The adversary's view of `s.bind f`: its view of `s`, then (if `s` returned `a`) its view of
+`f a`. -/
+theorem viewD_bind (E : Env) (me : Party) (adv : Adversary) {α β : Type} (s : Script α)
+    (f : α → Script β) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (s.bind f) σ I vD).viewD =
+      (withAdv E me adv s σ I vD).viewD ++
+        match (withAdv E me adv s σ I vD).result with
+        | some a => (withAdv E me adv (f a) (withAdv E me adv s σ I vD).store (withAdv E me adv s σ I vD).ideal
+            (vD ++ (withAdv E me adv s σ I vD).viewD)).viewD
+        | none => [] := by
+  rw [withAdv_bind]
+  split <;> simp [Outcome.then, Outcome.stop]
+
+/-- **`withAdv` over sequencing** (`s` then `t`, `s`'s result unused). -/
+theorem withAdv_seq (E : Env) (me : Party) (adv : Adversary) {α β : Type} (s : Script α)
+    (t : Script β) (σ : Store) (I : Ideal) (vD : List Release) :
+    withAdv E me adv (s.bind fun _ => t) σ I vD =
+      match (withAdv E me adv s σ I vD).result with
+      | some _ => (withAdv E me adv s σ I vD).then
+          (withAdv E me adv t (withAdv E me adv s σ I vD).store (withAdv E me adv s σ I vD).ideal
+            (vD ++ (withAdv E me adv s σ I vD).viewD))
+      | none => (withAdv E me adv s σ I vD).stop :=
+  withAdv_bind E me adv s (fun _ => t) σ I vD
+
+/-- The joint run `o` followed by the joint run `o₂`. -/
+def Outcome2.then {α β γ δ : Type} (o : Outcome2 α β) (o₂ : Outcome2 γ δ) : Outcome2 γ δ :=
+  ⟨o₂.result, o₂.storeA, o₂.storeB, o₂.ideal, o.viewA ++ o₂.viewA, o.viewB ++ o₂.viewB, o.trace ++ o₂.trace⟩
+
+/-- **`jointRun` over `bind`.** When two honest parties' runs of `sA`, `sB` both return (`a`, `b`),
+their runs of `sA.bind fA`, `sB.bind fB` are those runs followed by the joint run of `fA a`, `fB b`
+from the stores and ideal state they left. -/
+theorem jointRun_bind (E : Env) {α β γ δ : Type} (sA : Script α) (sB : Script β)
+    (fA : α → Script γ) (fB : β → Script δ) (σA σB : Store) (I : Ideal) (a : α) (b : β)
+    (h : (jointRun E sA sB σA σB I).result = some (a, b)) :
+    jointRun E (sA.bind fA) (sB.bind fB) σA σB I =
+      (jointRun E sA sB σA σB I).then
+        (jointRun E (fA a) (fB b) (jointRun E sA sB σA σB I).storeA (jointRun E sA sB σA σB I).storeB
+          (jointRun E sA sB σA σB I).ideal) := by
+  induction sA generalizing sB σA σB I with
+  | done a' =>
+    cases sB with
+    | done b' =>
+      simp only [jointRun, Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      simp [jointRun, Outcome2.then]
+    | abort r => simp [jointRun] at h
+    | step i k => simp [jointRun] at h
+  | abort r =>
+    cases sB <;> simp [jointRun] at h
+  | step iA kA ih =>
+    cases sB with
+    | done b' => simp [jointRun] at h
+    | abort r => simp [jointRun] at h
+    | step iB kB =>
+      by_cases hsk : iA.skel = iB.skel
+      · cases hfA : fill E.hash .a σA iA with
+        | none => simp [jointRun, hsk, hfA] at h
+        | some wA =>
+          cases hfB : fill E.hash .b σB iB with
+          | none => simp [jointRun, hsk, hfA, hfB] at h
+          | some wB =>
+            cases hst : idealStep E .a wA wB.part I with
+            | none => simp [jointRun, hsk, hfA, hfB, hst] at h
+            | some x =>
+              obtain ⟨I', toA, toB⟩ := x
+              simp only [jointRun, hsk, if_true, hfA, hfB, hst] at h
+              simp only [Script.bind_step, jointRun, hsk, if_true, hfA, hfB, hst]
+              rw [ih _ _ _ _ _ h]
+              simp [Outcome2.then, List.append_assoc]
+      · simp [jointRun, hsk] at h
+
+/-! ## One batch through both shells: the agreement comes before any engine step -/
+
+/-- Both parties' agreed batches through the ideal functionality, instruction by instruction:
+A's filled wire and B's contribution (as `jointRun` does). -/
+def runWires (E : Env) : List Wire → List Wire → Ideal → Option (Ideal × List Release × List Release)
+  | [], [], I => some (I, [], [])
+  | wA :: as, wB :: bs, I =>
+    match idealStep E .a wA wB.part I with
+    | some (I', toA, toB) =>
+      match runWires E as bs I' with
+      | some (I'', ra, rb) => some (I'', toA.toList ++ ra, toB.toList ++ rb)
+      | none => none
+    | none => none
+  | _, _, _ => none
+
+/-- **One batch through both shells** (design note items 4 and 5): each party decides from its
+own request and the other party's agreed bytes (`agreeBatch`); the engines are reached only when
+both proceed. -/
+def shellPair (E : Env) (reqA reqB : Bytes) (I : Ideal) : Option (Ideal × List Release × List Release) :=
+  match agreeBatch .a reqA (agreedBytes .b reqB), agreeBatch .b reqB (agreedBytes .a reqA) with
+  | some bA, some bB => runWires E bA bB I
+  | _, _ => none
+
+/-- **An unusable batch stops both parties before any engine call.** If either party's batch is
+unusable (undecodable, or a private payload that does not fit its skeleton), neither party
+proceeds past the agreement, so no instruction reaches the ideal functionality, and nothing is
+released to anyone. -/
+theorem shellPair_unusable (E : Env) (reqA reqB : Bytes) (I : Ideal)
+    (h : usableBatch .a reqA = none ∨ usableBatch .b reqB = none) :
+    agreeBatch .a reqA (agreedBytes .b reqB) = none ∧ agreeBatch .b reqB (agreedBytes .a reqA) = none ∧
+      shellPair E reqA reqB I = none := by
+  obtain ⟨hA, hB⟩ := unusable_rejected_by_both reqA reqB h
+  exact ⟨hA, hB, by simp [shellPair, hA]⟩
 
 /-! ## T12: skeleton determinism -/
 

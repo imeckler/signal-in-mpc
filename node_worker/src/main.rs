@@ -59,6 +59,12 @@ fn run() -> i32 {
             );
         }
         let circuits = Circuits::from_environment(std::env::var("CIRCUIT_MANIFEST").ok(), cfg!(feature = "test-engine"))?;
+        // The kernels `run` may name: the manifest's, and the pinned word circuits (loader.rs).
+        let mut kernels = match &circuits {
+            Circuits::Pinned(manifest) => Kernels::from_manifest(manifest)?,
+            Circuits::Unpinned => Kernels::default(),
+        };
+        let words = kernels.add_word_circuits(&node_worker::loader::word_circuit_dir())?;
         let port = u16::try_from(config.link_port()).map_err(|_| "port")?;
         let mut link = if config.leader() {
             Link::listen(config.listen, port)
@@ -67,18 +73,15 @@ fn run() -> i32 {
         }
         .map_err(|e| format!("control link: {e}"))?;
         link.hello(&config.session_id, config.peer_wait)?;
-        // The circuit manifest, agreed once before anything else (kernel.h's agreement, moved).
-        let digest = circuits.digest();
+        // The circuit manifest (and the word circuits added), agreed once before anything else
+        // (kernel.h's agreement, moved).
+        let digest = node_worker::loader::agreement_digest(&circuits, &words);
         link.send(&node_worker::link::PeerFrame::Agreement(digest)).map_err(|e| format!("control link: {e}"))?;
         match link.recv(config.peer_wait) {
             Ok(node_worker::link::PeerFrame::Agreement(peer)) if peer == digest => {}
             Ok(_) => return Err("circuit manifest disagreement".into()),
             Err(e) => return Err(format!("control link: {e}")),
         }
-        let kernels = match &circuits {
-            Circuits::Pinned(manifest) => Kernels::from_manifest(manifest)?,
-            Circuits::Unpinned => Kernels::default(),
-        };
         let engines = NativeEngines::open(&config, matches!(circuits, Circuits::Pinned(_)) || !cfg!(feature = "test-engine"))?;
         let mut shell = Shell::new(config.leader(), config.session.clone(), link, engines, config.peer_wait);
         shell.kernels = kernels;

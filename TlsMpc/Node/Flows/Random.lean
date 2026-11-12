@@ -1,4 +1,5 @@
 import TlsMpc.Node.Engine.Model
+import TlsMpc.Node.Engine.Labels
 
 /-!
 # `Random.joint`: joint public randomness by commit-then-open (op 33)
@@ -131,6 +132,23 @@ theorem prand_a_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Na
   simp [jointRun, fill, Payload.eval, InstrP.skel, InstrP.map, idealStep, Wire.part, absorb, hh, hnA, hvA,
     hnB, hvB, accepts, dA, tA, dB, tB, hc, hc', Party.other, xorBytes_comm (σB.bytes vB)]
 
+/-- The honest run of `joint` leaves the engines' state as it was (it only exchanges bytes). -/
+theorem prand_a_honest_ideal (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes vB))) :
+    (jointRun E (joint E.hash .a nA vA) (joint E.hash .b nB vB) σA σB I).ideal = I := by
+  have dA : (σA.bytes nA ++ σA.bytes vA).drop 32 = σA.bytes vA := List.drop_left' hnA
+  have tA : (σA.bytes nA ++ σA.bytes vA).take 32 = σA.bytes nA := List.take_left' hnA
+  have dB : (σB.bytes nB ++ σB.bytes vB).drop 32 = σB.bytes vB := List.drop_left' hnB
+  have tB : (σB.bytes nB ++ σB.bytes vB).take 32 = σB.bytes nB := List.take_left' hnB
+  have hc' := Ne.symm hc
+  simp only [joint, Script.exchange, Script.ensure, Script.bind_eq, Script.pure_eq, Script.bind_step]
+  simp [jointRun, fill, Payload.eval, InstrP.skel, InstrP.map, idealStep, Wire.part, absorb, hh, hnA, hvA,
+    hnB, hvB, accepts, dA, tA, dB, tB, hc, hc', Party.other, xorBytes_comm (σB.bytes vB)]
+
 /-! ## Against any adversary -/
 
 section Adversary
@@ -195,6 +213,25 @@ theorem withAdv_joint (hh : ∀ m, (E.hash m).length = 32)
             e1, e2, ourCommit, skel1, skel2]
     · simp_all [withAdv, fill, Payload.eval, InstrP.skel, InstrP.map, Wire.early, idealStep,
         e1, ourCommit, skel1]
+
+/-- Against any adversary, `joint` leaves the engines' state as it was. -/
+theorem joint_ideal (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) :
+    (withAdv E me adv (joint E.hash me nonce value) σ I vD).ideal = I ∧
+      (withAdv E me adv (joint E.hash me nonce value) σ I vD).store = σ := by
+  rw [withAdv_joint E me adv σ I vD nonce value hh hn hv]
+  repeat' split
+  all_goals exact ⟨rfl, rfl⟩
+
+/-- When `joint` returns, the adversary saw exactly our commitment and our opening. -/
+theorem joint_viewD_of_result (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) (x : Bytes)
+    (h : (withAdv E me adv (joint E.hash me nonce value) σ I vD).result = some x) :
+    (withAdv E me adv (joint E.hash me nonce value) σ I vD).viewD = [e1 E me σ nonce value, e2 σ nonce value] := by
+  rw [withAdv_joint E me adv σ I vD nonce value hh hn hv] at h ⊢
+  revert h
+  repeat' split
+  all_goals simp
 
 /-- **T3 for `Random.joint` (disclosure).** What the honest party releases to the adversary is a
 prefix of [its commitment, its opening]. -/

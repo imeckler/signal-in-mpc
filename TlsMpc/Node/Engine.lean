@@ -48,7 +48,9 @@ purpose: this is the specification the Rust side implements, byte for byte.
        21  exchange       len, label, *bytes (exactly len bytes)
      Mapping to engine_abi.h: 1 ea_bool_input_private (owner, the non-owner passes width
      placeholder bits), 2 ea_bool_input_both, 3 ea_bool_public, 4 ea_bool_run on the circuit the
-     manifest loaded under that name, 5-7 ea_bool_concat / ea_bool_slice / ea_bool_pick,
+     manifest loaded under that name, or on a pinned word circuit (loader.rs WORD_CIRCUITS:
+     xor-bit, the file and pin word_mask.h uses, signature 2 inputs and 1 private output; added
+     to the workers' start agreement), 5-7 ea_bool_concat / ea_bool_slice / ea_bool_pick,
      8 ea_bool_open, 9 ea_bool_open_to, 10 ea_bool_free, 11 ea_field_input_coins (coins: each
      element must be below 2^64, passed as u64) or ea_field_input_elements, 12 ea_field_public
      (or ea_field_constant for values below 2^64; same value), 13-16 ea_field_add / sub /
@@ -56,37 +58,70 @@ purpose: this is the specification the Rust side implements, byte for byte.
      20 ea_field_free, 21 the control link's exchange (link.rs; both payloads have length len).
      ea_bool_interleave is not used (interleave is concat then pick).
 
-  4. Agreement. Before executing anything of a batch, each worker computes the skeleton bytes:
-     the batch decoded, every starred payload replaced by the empty list, re-encoded
-     (skeletonBytes; the Lean theorem skeletonBytes_inj says equal skeleton bytes mean equal
-     skeletons). The agreed part of the pipe request (agree.rs agreed_part) is these bytes, so
-     the hash is SHA-256("tls-worker-v3:" || session || code || sequence || size || skeleton).
-     Disagreement rejects the batch before any engine call.
+  4. Agreement. Before executing anything of a batch, each worker computes its agreed bytes
+     (agreedBytes): if the request decodes (decodeBatch) and every private payload fits its
+     skeleton (Wire.payloadOk, item 5), the skeleton bytes: the batch with every starred payload
+     replaced by the empty list, re-encoded (skeletonBytes; the Lean theorem skeletonBytes_inj
+     says equal skeleton bytes mean equal skeletons). Otherwise the batch is UNUSABLE for this
+     party and it agrees the fixed bytes `unusable` = ASCII "unusable batch" (interp.rs
+     UNUSABLE) instead of failing silently, so the peer does not wait inside an engine call for a
+     party that will not come. These bytes never equal any batch's skeleton bytes
+     (skeletonBytes_ne_unusable). The agreed part of the pipe request (agree.rs agreed_part) is
+     the agreed bytes, so the hash is
+     SHA-256("tls-worker-v3:" || session || code || sequence || size || agreed bytes).
+     A party proceeds only with a usable batch whose skeleton bytes equal the peer's agreed bytes
+     (agreeBatch); otherwise the batch is rejected before any engine call. If either party's
+     batch is unusable, both reject (unusable_rejected_by_both; Model.lean shellPair_unusable).
 
-  5. Execution. The handle table and the open rule (handles.rs) are the Lean function check
-     over the skeleton, started from the empty context at session start and carried across
-     batches. Since check reads only skeletons, the shell runs it over the whole batch right
-     after the agreement and before the first engine call; if it refuses any instruction the
-     batch is rejected and nothing of it runs (both parties refuse identically). Then the
-     instructions run in order. The private payloads are checked against the skeleton too:
-     a boolInput owner's bits and a boolInputBoth's bits have exactly width entries, a
-     fieldInput's elements number outsA's length (coins below 2^64), an exchange payload has
-     exactly len bytes; the non-owner's boolInput payload is empty. In particular, in check: an
-     output handle id that was ever defined before is refused (handles are never reused), and so
-     is an operand that is not live (never defined, freed, or consumed); a once handle is consumed by its
-     first use as an operand (any instruction), after which it is undefined; open marks are kept
-     per bit for Boolean handles and per element for field handles; openBool and openField need
-     every bit/element marked public or revealable; openBoolTo needs every bit marked for that
-     recipient; every release (8, 9, 19, 21) carries a nonzero label; an exchange has
-     1 <= len <= 65536. Marks: inputs get revealable or never as declared, public values and
-     constants public, run outputs the circuit layout's marks repeated per copy, plumbing moves
-     marks with the bits, field results the join of their operands' marks (public with public is
-     public; public or revealable with public or revealable is revealable; anything else never).
+  5. Execution. The handle table and the open rule (handles.rs) are the Lean function
+     checkBatch over the skeletons (check per instruction, plus decision D8), started from the
+     empty context at session start and carried across batches. Since it reads only skeletons,
+     the shell runs it over the whole batch right after the agreement and before the first
+     engine call; if it refuses any instruction the batch is rejected and nothing of it runs
+     (both parties refuse identically, at the same index). Then the instructions run in order.
+     The private payloads are checked against the skeleton before the agreement (item 4,
+     Wire.payloadOk, the conditions under which fill succeeds): a boolInput owner's bits and a
+     boolInputBoth's bits have exactly width entries, a fieldInput's elements number outsA's
+     length (coins below 2^64), an exchange payload has exactly len bytes; the non-owner's
+     boolInput payload is empty. In checkBatch: an instruction that ends a batch (endsBatch:
+     8, 9, 19, 21, the releases) must be the batch's last (D8; refused at its own index
+     otherwise). In check: an output handle id that was ever defined before is refused (handles
+     are never reused), and so is an operand that is not live (never defined, freed, or
+     consumed); a once handle is consumed by its first use as an operand (any instruction),
+     after which it is undefined; open marks are kept per bit for Boolean handles and per
+     element for field handles; openBool and openField need every bit/element marked public or
+     revealable; openBoolTo needs every bit marked for that recipient; every release (8, 9, 19,
+     21) carries a nonzero label; an exchange has 1 <= len <= 65536. Marks: inputs get
+     revealable or never as declared, public values and constants public, run outputs the
+     circuit layout's marks repeated per copy, plumbing moves marks with the bits, field results
+     the join of their operands' marks (public with public is public; public or revealable with
+     public or revealable is revealable; anything else never).
+     Resource bounds (part of check, not only of the shell): no Boolean handle wider than
+     maxWidth = 2^26 bits is ever defined (Ctx.defBool refuses it; boolInput, boolInputBoth and
+     run test the same condition before the marks are built, so a peer's declared width never
+     makes this party allocate), and a run has 1 <= copies <= maxWidth. Why 2^26: the widest
+     bundle of the flows so far is below 2^18 bits (contact-open of 16384 bytes: 8 * 16484),
+     2^26 bits are 64 MiB of marks, and of one-byte bits on the pipe for an input or a public
+     value (far above any bundle a flow ships), and copies <= 2^26 fits the ABI's uint32_t
+     copies; for a circuit with an input or an output wire the copies bound follows from the
+     width bound.
+     Numbers: check does not test that a number fits in a u64 (on the pipe every decoded number
+     does); the Lean sender encodes only Wire.Bounded instructions, which round-trip
+     (decodeBatch_encodeBatch). (The former guard k < 2^64 of fieldScale was dead on the pipe and
+     not the only such condition, so it was dropped.)
+     Handle lifetime (engine side): an engine value lives exactly as long as its Lean handle is
+     live in the context. freeBool / freeField free it at once; a Boolean handle consumed as a
+     once operand (or by an opening of a once handle) is no longer live after its instruction,
+     and its engine value is freed at the end of the batch (after the last instruction, before
+     the reply). Field handles have no once.
 
   6. Replies. One reply item per instruction that releases data to this party, in order:
      openBool: the bits; openBoolTo: the bits, to the recipient only (the other party gets no
      item); openField: the elements; exchange: the peer's bytes. Items are encoded by
-     encodeReplies (tag 1 bits, 2 elements, 3 bytes, then the list).
+     encodeReplies (tag 1 bits, 2 elements, 3 bytes, then the list). The items follow
+     InstrP.releasesTo, not check's Shape: Shape is what the script's continuation receives, and
+     openBoolTo has Shape unit (its bits go to the recipient's store slot, decision D1) while the
+     recipient's shell still gets a reply item with the bits.
 
   7. What is not here. Randomness is drawn on the Lean side (rule 5) into this party's private
      store before a script runs; local computations on own secrets (commitments) are evaluated
@@ -127,17 +162,29 @@ DECISIONS (against or beyond the plan's text, with the reason):
   D7. The reply type is a plain sum (Reply), not indexed by the instruction; builders check the
       constructor and abort otherwise. Labels are numeric codes (Label), provisional until
       Reveal.lean's RevealKind exists, whose constructor index becomes the code. Labels are part
-      of the agreed skeleton, so both parties agree on why a value is released.
+      of the agreed skeleton, so both parties agree on why a value is released. Every code a
+      flow uses is a named constant of Engine/Labels.lean (pairwise distinct, nonzero), the one
+      place a RevealKind mapping will read from.
   D8. A batch ends at every instruction with a data reply, including openBoolTo (a later input
       may read the slot it fills) and exchange. So P-RAND's commitment and opening are two
       batches, not one: the opening is sent only after the peer's commitment was received, which
-      is the property the plan wanted from the single batch.
+      is the property the plan wanted from the single batch. Enforced: checkBatch refuses a
+      release that is not its batch's last instruction, and nextBatch builds only such batches
+      (nextBatch_ends, nextBatch_admitted). No flow needs a batch with two releases.
   D9. Numbers are u64 little-endian; bits one byte each (the ABI's convention).
   D10. Handles, Party and Label are defined here in namespace TlsMpc.Node.Engine; when
       Types.lean (S4) lands, its Handle replaces BoolH/FieldH by a rename.
   D11. Commitment frames are tag || party || nonce || value with the party byte 1 for A and 2
       for B (as split_ecdh.h), and a 32-byte random nonce revealed with the opening; one frame
       function (commitFrame) for every commit-then-open site.
+  D12. Handle ids come from the session's Counters (Lean-side public state, one Boolean and one
+      field counter): a step takes a block [n, n + k) (Counters.allocB / allocF) and defines
+      handles only inside it. Blocks never overlap (Counters.blocksB_disjoint), and while the
+      counters are Ahead of the context check never refuses a block's id for reuse. The contact
+      table carries the counters (ContactsTable.lean Table.ctr, Table.alloc).
+  D13. A batch the shell cannot use (undecodable, or a private payload that does not fit) is
+      agreed as the fixed bytes `unusable` rather than not agreed at all (design note item 4),
+      so both parties fail at the agreement.
 -/
 
 namespace TlsMpc.Node.Engine
@@ -212,16 +259,10 @@ def join : Mark → Mark → Mark
 end Mark
 
 /-- The reveal label every release carries (an opening, or an exchange). Provisional numeric
-codes (decision D7); code 0 is not a label. -/
+codes (decision D7); code 0 is not a label. The codes flows use are in Engine/Labels.lean. -/
 structure Label where
   code : Nat
   deriving DecidableEq, Repr
-
-namespace Label
-/-- `Random.joint`: this party's commitment, and the commitment's opening (nonce, value). -/
-def jointRandomCommitment : Label := ⟨1⟩
-def jointRandomOpening : Label := ⟨2⟩
-end Label
 
 inductive FieldIn where
   | coins
@@ -341,6 +382,9 @@ theorem label?_skel (i : InstrP SB SF X D) : i.skel.label? = i.label? := by
   cases i <;> rfl
 
 theorem releasesTo_skel (me : Party) (i : InstrP SB SF X D) : i.skel.releasesTo me = i.releasesTo me := by
+  cases i <;> rfl
+
+theorem endsBatch_skel (i : InstrP SB SF X D) : i.skel.endsBatch = i.endsBatch := by
   cases i <;> rfl
 
 end InstrP
@@ -469,14 +513,21 @@ structure Ctx where
 def maxExchange : Nat := 65536
 /-- The bound of a u64. -/
 def B64 : Nat := 2 ^ 64
+/-- The widest Boolean handle, in bits (`handles.rs` MAX_WIDTH), and the most copies of a run
+(design note item 5). -/
+def maxWidth : Nat := 2 ^ 26
+
+theorem maxWidth_eq : maxWidth = 67108864 := rfl
 
 namespace Ctx
 
 def bool? (c : Ctx) (h : BoolH) : Option BoolInfo := c.bools.lookup h.id
 def field? (c : Ctx) (h : FieldH) : Option Mark := c.fields.lookup h.id
 
+/-- Define a Boolean handle: refused if its id was ever defined, or if it is wider than
+`maxWidth`. -/
 def defBool (c : Ctx) (h : BoolH) (i : BoolInfo) : Option Ctx :=
-  if h.id ∈ c.seenB then none
+  if h.id ∈ c.seenB ∨ maxWidth < i.marks.length then none
   else some { c with bools := (h.id, i) :: c.bools, seenB := h.id :: c.seenB }
 
 def defField (c : Ctx) (h : FieldH) (m : Mark) : Option Ctx :=
@@ -512,9 +563,11 @@ end Ctx
 or `none` if the instruction is refused. -/
 def check (sigs : Bytes → Option Sig) (c : Ctx) : Skel → Option (Ctx × Shape)
   | .boolInput out _ w once rev _ => do
+    guard (w ≤ maxWidth)
     let c ← c.defBool out ⟨List.replicate w (Mark.ofInput rev), once⟩
     pure (c, .unit)
   | .boolInputBoth outA outB w once rev _ => do
+    guard (w ≤ maxWidth)
     let c ← c.defBool outA ⟨List.replicate w (Mark.ofInput rev), once⟩
     let c ← c.defBool outB ⟨List.replicate w (Mark.ofInput rev), once⟩
     pure (c, .unit)
@@ -523,9 +576,10 @@ def check (sigs : Bytes → Option Sig) (c : Ctx) : Skel → Option (Ctx × Shap
     pure (c, .unit)
   | .run out name copies input => do
     let s ← sigs name
-    guard (0 < copies)
+    guard (0 < copies ∧ copies ≤ maxWidth)
     let (i, c) ← c.useBool input
     guard (i.marks.length = copies * s.inWidth)
+    guard (copies * s.outMarks.length ≤ maxWidth)
     let c ← c.defBool out ⟨(List.replicate copies s.outMarks).flatten, false⟩
     pure (c, .unit)
   | .concat out parts => do
@@ -572,8 +626,7 @@ def check (sigs : Bytes → Option Sig) (c : Ctx) : Skel → Option (Ctx × Shap
     let mb ← c.field? b
     let c ← c.defField out (ma.join mb)
     pure (c, .unit)
-  | .fieldScale out a k => do
-    guard (k < B64)
+  | .fieldScale out a _ => do
     let m ← c.field? a
     let c ← c.defField out (m.join .pub)
     pure (c, .unit)
@@ -611,6 +664,127 @@ inductive WF (sigs : Bytes → Option Sig) {α : Type} : Ctx → Script α → P
   | step (c c' : Ctx) (sh : Shape) (i : Instr) (k : Reply → Script α) :
       check sigs c i.skel = some (c', sh) → (∀ r, sh.Fits r → WF sigs c' (k r)) → WF sigs c (.step i k)
 
+/-- `WF` with a postcondition: every instruction passes `check`, and at every `done a` leaf the
+context the branch has built, `c`, satisfies `Q c a`. (How a flow states what the session's handle
+table looks like after it: the handles it returns, the ones it freed, the counter.) -/
+inductive WFP (sigs : Bytes → Option Sig) {α : Type} (Q : Ctx → α → Prop) : Ctx → Script α → Prop
+  | done (c : Ctx) (a : α) : Q c a → WFP sigs Q c (.done a)
+  | abort (c : Ctx) (r : String) : WFP sigs Q c (.abort r)
+  | step (c c' : Ctx) (sh : Shape) (i : Instr) (k : Reply → Script α) :
+      check sigs c i.skel = some (c', sh) → (∀ r, sh.Fits r → WFP sigs Q c' (k r)) → WFP sigs Q c (.step i k)
+
+namespace WFP
+
+variable {sigs : Bytes → Option Sig} {α β : Type}
+
+theorem wf {Q : Ctx → α → Prop} {c : Ctx} {s : Script α} (h : WFP sigs Q c s) : WF sigs c s := by
+  induction h with
+  | done c a _ => exact WF.done c a
+  | abort c r => exact WF.abort c r
+  | step c c' sh i k hc _ ih => exact WF.step c c' sh i k hc ih
+
+theorem mono {Q Q' : Ctx → α → Prop} {c : Ctx} {s : Script α} (h : WFP sigs Q c s)
+    (hq : ∀ c a, Q c a → Q' c a) : WFP sigs Q' c s := by
+  induction h with
+  | done c a ha => exact WFP.done c a (hq c a ha)
+  | abort c r => exact WFP.abort c r
+  | step c c' sh i k hc _ ih => exact WFP.step c c' sh i k hc ih
+
+/-- **Composition:** `s` then `f a` is well formed when `s` is, with a postcondition under which
+every `f a` is. -/
+theorem bind {Q : Ctx → α → Prop} {R : Ctx → β → Prop} {c : Ctx} {s : Script α} {f : α → Script β}
+    (h : WFP sigs Q c s) (hf : ∀ c' a, Q c' a → WFP sigs R c' (f a)) : WFP sigs R c (s.bind f) := by
+  induction h with
+  | done c a ha => exact hf c a ha
+  | abort c r => exact WFP.abort c r
+  | step c c' sh i k hc _ ih => exact WFP.step c c' sh i _ hc ih
+
+end WFP
+
+theorem WF.wfp {sigs : Bytes → Option Sig} {α : Type} {c : Ctx} {s : Script α} (h : WF sigs c s) :
+    WFP sigs (fun _ _ => True) c s := by
+  induction h with
+  | done c a => exact WFP.done c a trivial
+  | abort c r => exact WFP.abort c r
+  | step c c' sh i k hc _ ih => exact WFP.step c c' sh i k hc ih
+
+/-! ## The session's handle counters (a fresh-handle discipline)
+
+Handle ids are public names chosen by the Lean side. A session keeps `Counters`, the next free
+Boolean and field ids, and every flow takes its handles as a block from them (`allocB`, `allocF`):
+block `[n, n + k)` with `n` the counter, which then moves to `n + k`. `check` refuses every id ever
+defined (`seenB`, `seenF`); the counters keep the scripts clear of that refusal, as long as they
+are `Ahead` of the context (no id at or above them was ever defined), which every allocation
+preserves. -/
+
+structure Counters where
+  bool : Nat := 0
+  field : Nat := 0
+  deriving DecidableEq, Repr
+
+namespace Counters
+
+/-- A block of `k` Boolean ids: its first id, and the counters after it. -/
+def allocB (n : Counters) (k : Nat) : Nat × Counters := (n.bool, { n with bool := n.bool + k })
+/-- A block of `k` field ids. -/
+def allocF (n : Counters) (k : Nat) : Nat × Counters := (n.field, { n with field := n.field + k })
+
+/-- No Boolean id from `n.bool` on and no field id from `n.field` on was ever defined in `c`. -/
+def Ahead (n : Counters) (c : Ctx) : Prop :=
+  (∀ j, n.bool ≤ j → j ∉ c.seenB) ∧ (∀ j, n.field ≤ j → j ∉ c.seenF)
+
+/-- Ids of successive blocks: the blocks of `ks` allocated in order from `n`. -/
+def blocksB : Counters → List Nat → List (List Nat)
+  | _, [] => []
+  | n, k :: ks => (List.range' (n.allocB k).1 k) :: blocksB (n.allocB k).2 ks
+
+theorem mem_blocksB (n : Counters) (ks : List Nat) :
+    ∀ b ∈ blocksB n ks, ∀ j ∈ b, n.bool ≤ j ∧ j < n.bool + ks.sum := by
+  induction ks generalizing n with
+  | nil => simp [blocksB]
+  | cons k ks ih =>
+    intro b hb j hj
+    simp only [blocksB, List.mem_cons] at hb
+    rcases hb with rfl | hb
+    · simp only [allocB, List.mem_range'_1] at hj
+      simp only [List.sum_cons]
+      omega
+    · have := ih _ b hb j hj
+      simp only [allocB, List.sum_cons] at this ⊢
+      omega
+
+/-- **Allocated handles are never reused:** the blocks of any sequence of allocations are
+pairwise disjoint, and all at or above the counter they started from (so, when the counters are
+`Ahead` of the context, no allocated id was ever defined before). -/
+theorem blocksB_disjoint (n : Counters) (ks : List Nat) :
+    (blocksB n ks).Pairwise (fun b b' => ∀ j ∈ b, j ∉ b') := by
+  induction ks generalizing n with
+  | nil => simp [blocksB]
+  | cons k ks ih =>
+    simp only [blocksB, List.pairwise_cons]
+    refine ⟨fun b' hb' j hj hj' => ?_, ih _⟩
+    have h1 := mem_blocksB _ ks b' hb' j hj'
+    simp only [allocB, List.mem_range'_1] at hj h1
+    omega
+
+/-- An allocated id was never defined (so `defBool` does not refuse it for reuse). -/
+theorem Ahead.fresh_bool {n : Counters} {c : Ctx} (h : n.Ahead c) (j : Nat) (hj : n.bool ≤ j) : j ∉ c.seenB :=
+  h.1 j hj
+
+/-- Defining Boolean ids inside the block just allocated keeps the counters ahead. -/
+theorem Ahead.allocB {n : Counters} {c c' : Ctx} (k : Nat) (h : n.Ahead c)
+    (hb : ∀ j ∈ c'.seenB, j ∈ c.seenB ∨ j < n.bool + k) (hf : c'.seenF = c.seenF) :
+    (n.allocB k).2.Ahead c' := by
+  refine ⟨fun j hj hm => ?_, fun j hj hm => ?_⟩
+  · simp only [Counters.allocB] at hj
+    rcases hb j hm with h' | h'
+    · exact h.1 j (by omega) h'
+    · omega
+  · rw [hf] at hm
+    exact h.2 j hj hm
+
+end Counters
+
 /-- Every release a context accepts carries a label (code nonzero). -/
 theorem check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s : Skel) (l : Label)
     (h : check sigs c s = some (c', sh)) (hl : s.label? = some l) : l.code ≠ 0 := by
@@ -618,6 +792,37 @@ theorem check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s :
     simp only [check, Option.bind_eq_bind, Option.bind_eq_some_iff, guard, Option.pure_def] at h <;>
     (try (obtain ⟨_, h1, _⟩ := h; split at h1 <;> simp_all)) <;>
     (try (split at h <;> simp_all))
+
+/-- An instruction that does not end a batch has the reply shape `unit` (so the batch builder's
+`.unit` reply is the one its continuation expects). -/
+theorem check_unit_of_not_ends (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s : Skel)
+    (h : check sigs c s = some (c', sh)) (he : s.endsBatch = false) : sh = .unit := by
+  cases s <;> simp only [InstrP.endsBatch, reduceCtorEq] at he <;>
+    simp only [check, Option.bind_eq_bind, Option.bind_eq_some_iff, guard, Option.pure_def,
+      Option.some.injEq, Prod.mk.injEq] at h <;>
+    (repeat' first
+      | (obtain ⟨_, _, h⟩ := h)
+      | (split at h)) <;>
+    simp_all
+
+/-- **The shell's admission of an agreed batch** (design note item 5; `handles.rs` check_batch,
+`interp.rs` Interp::admit): `check` on every instruction in order from the carried context,
+and decision D8: an instruction that ends a batch must be its last. `.error i`: instruction `i`
+(counted from `i₀`) is refused, and the whole batch with it. -/
+def checkBatchFrom (sigs : Bytes → Option Sig) : Ctx → Nat → List Skel → Except Nat (Ctx × List Shape)
+  | c, _, [] => .ok (c, [])
+  | c, i, s :: ss =>
+    match check sigs c s with
+    | none => .error i
+    | some (c', sh) =>
+      if s.endsBatch && !ss.isEmpty then .error i
+      else
+        match checkBatchFrom sigs c' (i + 1) ss with
+        | .error j => .error j
+        | .ok (c'', shs) => .ok (c'', sh :: shs)
+
+def checkBatch (sigs : Bytes → Option Sig) (c : Ctx) (ss : List Skel) : Except Nat (Ctx × List Shape) :=
+  checkBatchFrom sigs c 0 ss
 
 /-! ## The private store and filling (what the Lean interpreter does before sending a batch) -/
 
@@ -650,6 +855,11 @@ def Payload.eval (hash : Bytes → Bytes) (me : Party) (σ : Store) : Payload �
   | .commitment tag n v => hash (commitFrame tag me (σ.bytes n) (σ.bytes v))
   | .opening slots => (slots.map σ.bytes).flatten
 
+/-- Coins (`ea_field_input_coins`) are elements below 2^64. -/
+def coinsOk : FieldIn → List F → Bool
+  | .coins, v => v.all (·.val < B64)
+  | .elements, _ => true
+
 /-- Fill an instruction's private parts from the store; `none` when a slot's content does not
 have the declared shape (the party then aborts locally, before sending the batch). -/
 def fill (hash : Bytes → Bytes) (me : Party) (σ : Store) : Instr → Option Wire
@@ -660,7 +870,9 @@ def fill (hash : Bytes → Bytes) (me : Party) (σ : Store) : Instr → Option W
   | .boolInputBoth oa ob w once rev slot =>
     if (σ.bits slot).length = w then some (.boolInputBoth oa ob w once rev (σ.bits slot)) else none
   | .fieldInput oa ob k rev slot =>
-    if (σ.elems slot).length = oa.length then some (.fieldInput oa ob k rev (σ.elems slot)) else none
+    if (σ.elems slot).length = oa.length ∧ coinsOk k (σ.elems slot) = true then
+      some (.fieldInput oa ob k rev (σ.elems slot))
+    else none
   | .exchange len l p =>
     if (p.eval hash me σ).length = len then some (.exchange len l (p.eval hash me σ)) else none
   | i => some (i.map (fun _ => []) (fun _ => []) (fun _ => []) (fun _ => ()))
@@ -669,6 +881,22 @@ theorem fill_skel (hash : Bytes → Bytes) (me : Party) (σ : Store) (i : Instr)
     (h : fill hash me σ i = some w) : w.skel = i.skel := by
   cases i <;> simp only [fill] at h <;> (try split at h) <;> (try split at h) <;>
     simp only [Option.some.injEq, reduceCtorEq] at h <;> subst h <;> rfl
+
+/-- Party `me`'s private payload of a wire instruction fits its skeleton (design note item 5;
+`interp.rs` validate_payloads): exactly the conditions under which `fill` succeeds. -/
+def Wire.payloadOk (me : Party) : Wire → Bool
+  | .boolInput _ owner w _ _ v => if owner = me then v.length == w else v.isEmpty
+  | .boolInputBoth _ _ w _ _ v => v.length == w
+  | .fieldInput oa _ k _ v => v.length == oa.length && coinsOk k v
+  | .exchange len _ p => p.length == len
+  | _ => true
+
+/-- What `fill` produces fits its skeleton. -/
+theorem fill_payloadOk (hash : Bytes → Bytes) (me : Party) (σ : Store) (i : Instr) (w : Wire)
+    (h : fill hash me σ i = some w) : w.payloadOk me = true := by
+  cases i <;> simp only [fill] at h <;> (repeat' split at h) <;>
+    simp only [Option.some.injEq, reduceCtorEq] at h <;> subst h <;>
+    simp_all [Wire.payloadOk, InstrP.map]
 
 /-! ## Batching (5.2)
 
@@ -723,6 +951,95 @@ theorem nextBatch_skel {α : Type} (hash : Bytes → Bytes) (me : Party) (σ : S
           exact ⟨.unit :: rs, by simpa [Script.skeletons, hs] using hrs⟩
         | waiting i' k' =>
           exact ⟨.unit :: rs, by simpa [Script.skeletons, hs] using hrs⟩
+
+/-- **The batches an honest party sends are admitted** (decision D8 refuses none of them): if the
+script is well formed in the carried context and its batch is sent (not aborted locally),
+`checkBatch` accepts the batch's skeletons. In particular every release of the batch is its last
+instruction. -/
+theorem nextBatch_admitted (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (σ : Store)
+    {α : Type} (s : Script α) : ∀ (c : Ctx) (i₀ : Nat), WF sigs c s →
+    (∀ r, (nextBatch hash me σ s).rest ≠ .aborted r) →
+    ∃ c' shs, checkBatchFrom sigs c i₀ ((nextBatch hash me σ s).wires.map InstrP.skel) = .ok (c', shs) := by
+  induction s with
+  | done a => intro c i₀ _ _; exact ⟨c, [], rfl⟩
+  | abort r => intro c i₀ _ hr; exact absurd rfl (hr r)
+  | step i k ih =>
+    intro c i₀ hwf hr
+    cases hwf with
+    | step _ c' sh _ _ hc hk =>
+      rcases hf : fill hash me σ i with _ | w
+      · simp only [nextBatch, hf] at hr
+        exact absurd rfl (hr _)
+      · have hs : w.skel = i.skel := fill_skel hash me σ i w hf
+        by_cases he : i.endsBatch = true
+        · simp only [nextBatch, hf, he, if_true, List.map_cons, List.map_nil, checkBatchFrom, hs, hc,
+            List.isEmpty_nil, Bool.not_true, Bool.and_false, Bool.false_eq_true, if_false]
+          exact ⟨c', [sh], rfl⟩
+        · have he' : i.endsBatch = false := by simpa using he
+          have hu : sh = .unit := check_unit_of_not_ends sigs c c' sh i.skel hc (by rw [InstrP.endsBatch_skel, he'])
+          subst hu
+          rcases hnb : nextBatch hash me σ (k .unit) with ⟨ws, rest⟩
+          cases rest with
+          | aborted r =>
+            simp only [nextBatch, hf, he', hnb, Bool.false_eq_true, if_false] at hr
+            exact absurd rfl (hr r)
+          | finished a =>
+            have hr' : ∀ r, (nextBatch hash me σ (k .unit)).rest ≠ .aborted r := by
+              rw [hnb]; intro r h; cases h
+            obtain ⟨c'', shs, h⟩ := ih .unit c' (i₀ + 1) (hk .unit trivial) hr'
+            rw [hnb] at h
+            simp only [nextBatch, hf, he', hnb, Bool.false_eq_true, if_false, List.map_cons, checkBatchFrom,
+              hs, hc, InstrP.endsBatch_skel, Bool.false_and, h]
+            exact ⟨c'', _, rfl⟩
+          | waiting i' k' =>
+            have hr' : ∀ r, (nextBatch hash me σ (k .unit)).rest ≠ .aborted r := by
+              rw [hnb]; intro r h; cases h
+            obtain ⟨c'', shs, h⟩ := ih .unit c' (i₀ + 1) (hk .unit trivial) hr'
+            rw [hnb] at h
+            simp only [nextBatch, hf, he', hnb, Bool.false_eq_true, if_false, List.map_cons, checkBatchFrom,
+              hs, hc, InstrP.endsBatch_skel, Bool.false_and, h]
+            exact ⟨c'', _, rfl⟩
+
+/-- **Decision D8 for the batch builder:** in a batch `nextBatch` builds, no instruction but the
+last ends a batch. -/
+theorem nextBatch_ends {α : Type} (hash : Bytes → Bytes) (me : Party) (σ : Store) (s : Script α) :
+    ∀ w ∈ (nextBatch hash me σ s).wires.dropLast, w.endsBatch = false := by
+  induction s with
+  | done a => simp [nextBatch]
+  | abort r => simp [nextBatch]
+  | step i k ih =>
+    rcases hf : fill hash me σ i with _ | w
+    · simp [nextBatch, hf]
+    · have hs : w.skel = i.skel := fill_skel hash me σ i w hf
+      by_cases he : i.endsBatch = true
+      · simp [nextBatch, hf, he]
+      · have he' : i.endsBatch = false := by simpa using he
+        have hw : w.endsBatch = false := by rw [← InstrP.endsBatch_skel, hs, InstrP.endsBatch_skel, he']
+        rcases hnb : nextBatch hash me σ (k .unit) with ⟨ws, rest⟩
+        have ih' := ih .unit
+        rw [hnb] at ih'
+        cases rest with
+        | aborted r => simp [nextBatch, hf, he', hnb]
+        | finished a =>
+          simp only [nextBatch, hf, he', hnb, Bool.false_eq_true, if_false]
+          intro x hx
+          cases ws with
+          | nil => simp at hx
+          | cons y ys =>
+            simp only [List.dropLast_cons_cons, List.mem_cons] at hx
+            rcases hx with rfl | hx
+            · exact hw
+            · exact ih' x hx
+        | waiting i' k' =>
+          simp only [nextBatch, hf, he', hnb, Bool.false_eq_true, if_false]
+          intro x hx
+          cases ws with
+          | nil => simp at hx
+          | cons y ys =>
+            simp only [List.dropLast_cons_cons, List.mem_cons] at hx
+            rcases hx with rfl | hx
+            · exact hw
+            · exact ih' x hx
 
 /-! ## The pipe encoding of batches and replies, and their decoders -/
 
@@ -972,6 +1289,32 @@ def decodeReplies (s : Bytes) : Option (List Datum) :=
   | some (r, []) => some r
   | _ => none
 
+/-! ### The agreement on a batch (design note item 4) -/
+
+/-- The batch party `me` can run from its request bytes: they decode, and every private payload
+fits its skeleton. `none`: the batch is unusable for `me`. -/
+def usableBatch (me : Party) (req : Bytes) : Option (List Wire) :=
+  match decodeBatch req with
+  | some b => if b.all (·.payloadOk me) then some b else none
+  | none => none
+
+/-- What a party agrees when its batch is unusable: the ASCII bytes of "unusable batch"
+(`interp.rs` UNUSABLE). -/
+def unusable : Bytes := [117, 110, 117, 115, 97, 98, 108, 101, 32, 98, 97, 116, 99, 104]
+
+/-- The bytes party `me` puts into the agreement hash for its request `req`. -/
+def agreedBytes (me : Party) (req : Bytes) : Bytes :=
+  match usableBatch me req with
+  | some b => skeletonBytes b
+  | none => unusable
+
+/-- Party `me`'s decision after the agreement, given the peer's agreed bytes: its batch, when
+usable and its skeleton bytes are the peer's; otherwise `none` (rejected before any engine call). -/
+def agreeBatch (me : Party) (req peerAgreed : Bytes) : Option (List Wire) :=
+  match usableBatch me req with
+  | some b => if skeletonBytes b = peerAgreed then some b else none
+  | none => none
+
 /-- Every number written by `encWire` fits in a u64. -/
 def Wire.Bounded : Wire → Prop
   | .boolInput out _ w _ _ v => out.id < B64 ∧ w < B64 ∧ v.length < B64
@@ -1136,6 +1479,88 @@ theorem skeletonBytes_inj (b₁ b₂ : List Wire) (h₁ : b₁.length < B64) (h�
     funext fun w => InstrP.blank_skel w.skel
   simp only [Option.getD_some, List.map_map, hc] at e
   exact e.symm
+
+/-! ### Unusable batches are rejected by both parties -/
+
+theorem encWire_length_pos (w : Wire) : 0 < (encWire w).length := by
+  cases w <;> simp [encWire]
+
+theorem length_flatten_encWire (L : List Wire) : L.length ≤ ((L.map encWire).flatten).length := by
+  induction L with
+  | nil => simp
+  | cons w L ih =>
+    simp only [List.map_cons, List.flatten_cons, List.length_append, List.length_cons]
+    have := encWire_length_pos w
+    omega
+
+/-- **The unusable marker is no batch's skeleton bytes.** (Its first byte, 117, would be the low
+byte of an instruction count, which its 14 bytes cannot hold.) -/
+theorem skeletonBytes_ne_unusable (b : List Wire) : skeletonBytes b ≠ unusable := by
+  intro h
+  have hl := congrArg List.length h
+  have hd := congrArg List.head? h
+  have hu : ∀ n, Enc.u64 n = UInt8.ofNat (n % 256) :: le 7 (n / 256) := fun _ => rfl
+  have h6 := length_flatten_encWire (b.map fun w => w.skel.blank)
+  simp only [skeletonBytes, encodeBatch, Enc.list, hu, List.cons_append, List.length_cons, List.length_append,
+    length_le, unusable, List.length_nil] at hl
+  simp only [skeletonBytes, encodeBatch, Enc.list, hu, List.cons_append, List.head?_cons, unusable,
+    Option.some.injEq] at hd
+  have hn : (b.map fun w => w.skel.blank).length ≤ 6 := by omega
+  have ht := congrArg UInt8.toNat hd
+  rw [UInt8.toNat_ofNat_of_lt' (Nat.mod_lt _ (by decide))] at ht
+  have h117 : (117 : UInt8).toNat = 117 := rfl
+  rw [h117] at ht
+  simp only [List.length_map, UInt8.size] at hn ht
+  omega
+
+theorem agreeBatch_of_unusable (me : Party) (req p : Bytes) (h : usableBatch me req = none) :
+    agreeBatch me req p = none := by
+  simp [agreeBatch, h]
+
+theorem agreeBatch_unusable (me : Party) (req : Bytes) : agreeBatch me req unusable = none := by
+  unfold agreeBatch
+  split
+  · rw [if_neg (skeletonBytes_ne_unusable _)]
+  · rfl
+
+/-- **An unusable batch is rejected by both parties before any engine call** (design note item
+4): if either party's batch is unusable, neither proceeds past the agreement, whatever the other
+party's request. -/
+theorem unusable_rejected_by_both (reqA reqB : Bytes)
+    (h : usableBatch .a reqA = none ∨ usableBatch .b reqB = none) :
+    agreeBatch .a reqA (agreedBytes .b reqB) = none ∧ agreeBatch .b reqB (agreedBytes .a reqA) = none := by
+  rcases h with h | h
+  · refine ⟨agreeBatch_of_unusable _ _ _ h, ?_⟩
+    rw [show agreedBytes .a reqA = unusable by simp [agreedBytes, h]]
+    exact agreeBatch_unusable _ _
+  · refine ⟨?_, agreeBatch_of_unusable _ _ _ h⟩
+    rw [show agreedBytes .b reqB = unusable by simp [agreedBytes, h]]
+    exact agreeBatch_unusable _ _
+
+/-- When both parties proceed, they run batches with equal skeleton bytes (so, by
+`skeletonBytes_inj`, equal skeletons). -/
+theorem agreeBatch_both (reqA reqB : Bytes) (bA bB : List Wire)
+    (hA : agreeBatch .a reqA (agreedBytes .b reqB) = some bA)
+    (hB : agreeBatch .b reqB (agreedBytes .a reqA) = some bB) :
+    skeletonBytes bA = skeletonBytes bB := by
+  unfold agreeBatch at hA hB
+  split at hA
+  · next b₁ h₁ =>
+    split at hB
+    · next b₂ h₂ =>
+      split at hA <;> split at hB <;> simp only [Option.some.injEq, reduceCtorEq] at hA hB
+      subst hA hB
+      next e₁ _ =>
+      rw [e₁]
+      simp [agreedBytes, h₂]
+    · cases hB
+  · cases hA
+
+/-- An honest party's batch (bounded, payloads filled by `fill`) is usable on its side. -/
+theorem usableBatch_encode (me : Party) (b : List Wire) (hl : b.length < B64) (hb : ∀ w ∈ b, w.Bounded)
+    (hp : ∀ w ∈ b, w.payloadOk me = true) : usableBatch me (encodeBatch b) = some b := by
+  simp only [usableBatch, decodeBatch_encodeBatch b hl hb, List.all_eq_true]
+  rw [if_pos hp]
 
 end RoundTrip
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """S9 end-to-end check of pipe operation 93 with the REAL engines: two node-worker processes run
-Lean-generated batches (tests/engine_vectors.txt: the flows random-joint, upgrade-public, bool and
-field) while this script plays the controller's side of both pipes and compares every reply with
-the reply the Lean model computes for honest parties. Then one batch that `check` refuses (an
-exchange with label 0): both workers must reject it and stay terminal.
+Lean-generated batches (tests/engine_vectors.txt: the flows random-joint, upgrade-public, bool,
+field and xor) while this script plays the controller's side of both pipes and compares every
+reply with the reply the Lean model computes for honest parties. Then one batch that `check`
+refuses (an exchange with label 0): both workers must reject it and stay terminal. The same
+check as a cargo test: tests/e2e_engines.rs (feature `e2e`).
 
     python3 node_worker/tests/e2e_batches.py NODE_WORKER
 

@@ -3,12 +3,16 @@
 //! reduced to its skeleton and checked here, and each result must equal Lean's byte for byte:
 //! `decodeBatch` / `encodeBatch` (round trip), `skeletonBytes`, `check` over the batch (the
 //! verdict, the refused index, every reply shape) and the context after it (carried across the
-//! batches of a case), `decodeBatch` on malformed inputs, and `encodeReplies`.
+//! batches of a case; `checkBatch` includes decision D8 and the width bounds), `decodeBatch` on
+//! malformed inputs, `agreedBytes` (the agreement on usable and unusable batches), and
+//! `encodeReplies`.
 mod common;
 
 use common::{hex, unhex};
 use node_worker::handles::{Ctx, Shape, check_batch};
-use node_worker::interp::{Wire, decode_batch, decode_replies, encode_batch, encode_replies, skeleton_bytes};
+use node_worker::interp::{
+    Party, Wire, agreed_bytes, decode_batch, decode_replies, encode_batch, encode_replies, skeleton_bytes, usable_batch,
+};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
@@ -36,7 +40,7 @@ fn opcode(w: &Wire) -> u8 {
 fn rust_equals_lean_on_every_vector() {
     let text = common::text();
     let sig_table = common::sigs(&text);
-    assert_eq!(sig_table.len(), 3);
+    assert_eq!(sig_table.len(), 5);
     let sigs = |n: &[u8]| sig_table.iter().find(|(k, _)| k == n).map(|(_, s)| s.clone());
 
     // State: the context per party (a case uses slot 0), the batch under test, and the outcome
@@ -50,6 +54,7 @@ fn rust_equals_lean_on_every_vector() {
     let mut in_flow = false;
     let mut opcodes = BTreeSet::new();
     let (mut batches, mut refusals, mut decodes, mut replies, mut flows, mut cases) = (0, 0, 0, 0, 0, 0);
+    let (mut agreed, mut unusable) = (0, 0);
 
     for (number, line) in text.lines().enumerate() {
         let at = format!("engine_vectors.txt line {}", number + 1);
@@ -121,6 +126,16 @@ fn rust_equals_lean_on_every_vector() {
                     other => panic!("{at}: {other}"),
                 }
             }
+            "agreed" => {
+                agreed += 1;
+                let f: Vec<&str> = line.split(' ').collect();
+                let me = if f[1] == "a" { Party::A } else { Party::B };
+                let usable = usable_batch(me, &unhex(f[2]));
+                if usable.is_err() {
+                    unusable += 1;
+                }
+                assert_eq!(hex(&agreed_bytes(&usable)), f[3], "{at}: agreedBytes");
+            }
             "reply" | "replies" => {
                 replies += 1;
                 let items = decode_replies(&unhex(rest)).unwrap_or_else(|| panic!("{at}: Lean's encodeReplies does not decode"));
@@ -136,7 +151,10 @@ fn rust_equals_lean_on_every_vector() {
     assert_eq!(skel("all-a"), skel("all-b"));
     assert!(opcodes == (1..=21).collect::<BTreeSet<u8>>(), "every opcode is covered: {opcodes:?}");
     // Every vector was looked at (counts as generated; see s9r_vectors.py's summary).
-    assert_eq!((cases, flows), (85, 4));
-    assert!(batches >= 117 && refusals >= 50 && decodes >= 26 && replies >= 19, "{batches} {refusals} {decodes} {replies}");
-    eprintln!("lean vectors: {cases} cases, {flows} flows, {batches} batches ({refusals} refused), {decodes} decoder inputs, {replies} reply encodings");
+    assert_eq!((cases, flows, agreed, unusable), (98, 5, 18, 9));
+    assert!(batches >= 137 && refusals >= 74 && decodes >= 26 && replies >= 19, "{batches} {refusals} {decodes} {replies}");
+    eprintln!(
+        "lean vectors: {cases} cases, {flows} flows, {batches} batches ({refusals} refused), {decodes} decoder inputs, \
+         {agreed} agreements ({unusable} unusable), {replies} reply encodings"
+    );
 }

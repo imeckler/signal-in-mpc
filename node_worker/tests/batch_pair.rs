@@ -174,7 +174,8 @@ fn bits_byte(bits: &[u8]) -> u8 {
     bits.iter().enumerate().map(|(i, &b)| b << i).sum()
 }
 
-/// The stand-in circuits: `tls-reveal 7` (HybridKernels.tlsReveal) and `toy` (identity on 4 bits).
+/// The stand-in circuits: `tls-reveal 7` (HybridKernels.tlsReveal), `toy` (identity on 4 bits)
+/// and `xor-bit` (one XOR gate).
 fn eval(name: &str, input: &[u8]) -> Vec<u8> {
     match name {
         "tls-reveal 7" => {
@@ -183,6 +184,7 @@ fn eval(name: &str, input: &[u8]) -> Vec<u8> {
             [input[..16].to_vec(), byte_bits(picked)].concat()
         }
         "toy" => input.to_vec(),
+        "xor-bit" => vec![input[0] ^ input[1]],
         other => panic!("no stand-in for {other}"),
     }
 }
@@ -209,6 +211,7 @@ impl Engines for Ideal {
         let shape = match name.as_str() {
             "tls-reveal 7" => (128, 24),
             "toy" => (4, 4),
+            "xor-bit" => (2, 1),
             _ => return Err("no such circuit".into()),
         };
         let h = self.handle();
@@ -398,7 +401,7 @@ fn both(p: Pair, code: u8, seq: u64, pa: Vec<u8>, pb: Vec<u8>) -> (Pair, Results
 fn lean_flows_on_two_shells() {
     let text = common::text();
     let flows = common::flows(&text);
-    assert_eq!(flows.iter().map(|f| f.name.as_str()).collect::<Vec<_>>(), ["random-joint", "upgrade-public", "bool", "field"]);
+    assert_eq!(flows.iter().map(|f| f.name.as_str()).collect::<Vec<_>>(), ["random-joint", "upgrade-public", "bool", "field", "xor"]);
     for flow in flows {
         let mut p = pair();
         for (seq, round) in flow.rounds.iter().enumerate() {
@@ -476,6 +479,17 @@ fn refusals_on_two_shells() {
     assert_eq!(ra.unwrap_err(), "instruction 2 refused by check");
     assert_eq!(rb.unwrap_err(), "instruction 2 refused by check");
     assert_eq!(p.0.engines.log.len(), calls, "nothing of a refused batch runs");
+
+    // Decision D8: a release that is not its batch's last instruction refuses the batch on both
+    // sides, before any engine call.
+    let d8 = get("d8-two-opens");
+    let p = pair();
+    let before = p.0.engines.log.len();
+    let (p, (ra, rb)) = both(p, BATCH, 0, d8[0].clone(), for_b(&d8[0]));
+    let why = "instruction 1 releases data but does not end the batch".to_string();
+    assert_eq!((ra.unwrap_err(), rb.unwrap_err()), (why.clone(), why));
+    assert_eq!(p.0.engines.log.len(), before, "nothing of a refused batch runs");
+    drop(p);
 
     // Different skeletons: both refuse at the agreement.
     let p = pair();

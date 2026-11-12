@@ -7,6 +7,20 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
+use std::time::{Duration, Instant};
+
+/// The proxy's log once it holds every one of `needles` (the proxy writes a line after it has
+/// answered, so a reader may be ahead of it), or as it is after 10 seconds.
+fn log_with(log: &Path, needles: &[&str]) -> String {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        let text = std::fs::read_to_string(log).unwrap_or_default();
+        if needles.iter().all(|n| text.contains(n)) || Instant::now() > deadline {
+            return text;
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
 
 struct Running(Child);
 impl Drop for Running {
@@ -76,7 +90,10 @@ fn proxied_connection_through_the_test_proxy() {
     let named = Proxy { host: b"localhost".to_vec(), ..via.clone() };
     assert_eq!(Server::connect_proxied(&named, b"chat.example", 443).err().unwrap(), "proxy address (numeric only)");
     drop(server);
-    let text = std::fs::read_to_string(&log).unwrap();
+    let text = log_with(
+        &log,
+        &["\"event\": \"open\"", "\"username\": \"circuit-7\"", "\"host\": \"chat.example\"", "not a mapped hostname"],
+    );
     assert!(text.contains("\"event\": \"open\""), "{text}");
     assert!(text.contains("\"username\": \"circuit-7\"") && text.contains("\"password\": \"secret-7\""), "{text}");
     assert!(text.contains("\"atyp\": 3") && text.contains("\"host\": \"chat.example\""), "{text}");

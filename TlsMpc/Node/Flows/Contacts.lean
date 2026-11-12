@@ -43,7 +43,10 @@ PROVED (ideal model of Engine/Model.lean; `Loaded E`: the three kernels' circuit
 Lean definitions, ContactsBase.lean):
   WF: `keyScript_wf`, `sealScript_wf`, `openScript_wf` (the shell's `check` accepts every
     instruction on every branch, from any context in which the handle counter is fresh and the
-    operands are live with the kernel widths).
+    operands are live with the kernel widths), and with the context each leaves
+    (`keyScript_wfp`, `sealScript_wfp`, `openScript_wfp`: `KeyPost`, `SealPost`, `OpenPost`: the
+    returned handle and its marks, the handles below the counter untouched, the counter past the
+    script's block), which ContactsTable.lean uses for the table invariant.
   T3 (disclosure, against ANY adversary): `key_disclosure` (nothing is released to either party);
     `seal_disclosure` (at most one release, labelled sealedBlob: the `contact-seal` kernel's output
     on the key, version and state handles' values); `open_disclosure` (at most one release,
@@ -196,97 +199,167 @@ theorem shares_length (w : Nat) (m : Mark) :
       1 * (w + w) := by
   simp
 
-theorem keyScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n slot : Nat) (hf : Fresh c n)
-    (hsig : sigs keyName = some ⟨512, keyMarks⟩) : WF sigs c (keyScript n slot) := by
+/-- What `keyScript n` leaves: it returns handle `n + 3`, which holds the key (480 private bits,
+not once); the handles below `n` are as before; no id from `n + 4` on was defined. -/
+def KeyPost (c : Ctx) (n : Nat) (c' : Ctx) (h : BoolH) : Prop :=
+  h = ⟨n + 3⟩ ∧ c'.bool? ⟨n + 3⟩ = some ⟨keyMarks, false⟩ ∧ (∀ g : BoolH, g.id < n → c'.bool? g = c.bool? g) ∧
+    Fresh c' (n + 4)
+
+theorem keyScript_wfp (sigs : Bytes → Option Sig) (c : Ctx) (n slot : Nat) (hf : Fresh c n)
+    (hsig : sigs keyName = some ⟨512, keyMarks⟩) : WFP sigs (KeyPost c n) c (keyScript n slot) := by
   unfold keyScript
   simp only [seqs_cons, seqs_nil]
   have hf1 := (hf.push n (Nat.le_refl n) ⟨List.replicate 256 (Mark.ofInput false), true⟩).push (n + 1)
     (Nat.le_refl _) ⟨List.replicate 256 (Mark.ofInput false), true⟩
   have hf2 := (hf1.drop n).drop (n + 1)
-  refine WF_seq sigs c _ _ _ (check_boolInputBoth sigs hf 256 true false) ?_
-  refine WF_seq sigs _ _ _ _ (check_concat sigs
+  refine WFP_seq sigs c _ _ _ (check_boolInputBoth sigs hf 256 true false (by decide)) ?_
+  refine WFP_seq sigs _ _ _ _ (check_concat sigs
     (useBools_cons (useBool_once ((bool?_push_of_ne _ _ _ _ (by simp)).trans (bool?_push_self _ _ _)) rfl)
       (useBools_cons (useBool_once ((bool?_drop_of_ne _ _ _ (by simp)).trans (bool?_push_self _ _ _)) rfl)
-        (useBools_nil _))) hf2) ?_
-  refine WF_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_once (bool?_push_self _ _ _) rfl)
-    (shares_length 256 _) ((hf2.push (n + 2) (Nat.le_refl _) _).drop (n + 2))) ?_
-  exact WF.done _ _
+        (useBools_nil _))) hf2
+      (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+            List.length_append, List.length_replicate, maxWidth_eq]; omega)) ?_
+  have hf3 := (hf2.push (n + 2) (Nat.le_refl _) ⟨(List.map BoolInfo.marks [⟨List.replicate 256 (Mark.ofInput false), true⟩,
+    ⟨List.replicate 256 (Mark.ofInput false), true⟩]).flatten, true⟩).drop (n + 2)
+  refine WFP_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_once (bool?_push_self _ _ _) rfl)
+    (shares_length 256 _) hf3 (by decide) (by simp only [keyMarks, List.length_replicate, maxWidth_eq]; omega)) ?_
+  refine WFP.done _ _ ⟨rfl, ?_, fun g hg => ?_, hf3.push (n + 3) (Nat.le_refl _) _⟩
+  · rw [bool?_push_self]
+    simp only [List.replicate_one, List.flatten_cons, List.flatten_nil, List.append_nil]
+  · have e0 : g.id ≠ n := by omega
+    have e1 : g.id ≠ n + 1 := by omega
+    have e2 : g.id ≠ n + 2 := by omega
+    have e3 : g.id ≠ n + 3 := by omega
+    simp only [bool?_push, bool?_drop, e0, e1, e2, e3, if_false]
+
+theorem keyScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n slot : Nat) (hf : Fresh c n)
+    (hsig : sigs keyName = some ⟨512, keyMarks⟩) : WF sigs c (keyScript n slot) :=
+  (keyScript_wfp sigs c n slot hf hsig).wf
+
+/-- What a seal leaves: the handles below `n` as before, nothing defined from `n + 3` on. -/
+def SealPost (c : Ctx) (n : Nat) (c' : Ctx) (_ : B8) : Prop :=
+  (∀ g : BoolH, g.id < n → c'.bool? g = c.bool? g) ∧ Fresh c' (n + 3)
+
+theorem sealScript_wfp (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key state : BoolH) (size : Nat)
+    (version : B8) (km sm : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hsn : state.id < n)
+    (hk : c.bool? key = some ⟨km, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hkm : km.length = 480) (hsm : sm.length = 8 * size)
+    (hsig' : 0 < size → size ≤ 16384 → sigs (sealName size) = some ⟨8 * (68 + size), sealMarks size⟩) :
+    WFP sigs (SealPost c n) c (sealScript n key state size version) := by
+  unfold sealScript
+  split
+  · next hc =>
+    obtain ⟨hv, h0, h1⟩ := hc
+    have hsig := hsig' h0 h1
+    have hvl := versionOk_length version hv
+    simp only [sealBlock, seqs_cons, seqs_nil]
+    have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf version).length .pub, false⟩
+    refine WFP_seq sigs c _ _ _ (check_boolPublic sigs hf _ (by simp [hvl, maxWidth])) ?_
+    refine WFP_seq sigs _ _ _ _ (check_concat sigs
+      (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans hk) rfl)
+        (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl)
+          (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans hs) rfl)
+            (useBools_nil _)))) hf1 (by simp [hkm, hsm, hvl, maxWidth] <;> omega)) ?_
+    have hf2 := hf1.push (n + 1) (Nat.le_refl _) ⟨(List.map BoolInfo.marks [⟨km, false⟩,
+      ⟨List.replicate (bitsOf version).length Mark.pub, false⟩, ⟨sm, false⟩]).flatten, false⟩
+    refine WFP_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+      (by simp [hkm, hsm, hvl] <;> omega) hf2 (by decide) (by simp [sealMarks, maxWidth] <;> omega)) ?_
+    have hf3 := hf2.push (n + 2) (Nat.le_refl _) ⟨(List.replicate 1 (sealMarks size)).flatten, false⟩
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push])) ?_
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+    refine WFP_openThen sigs _ _ _ _ _ _ (check_openBool sigs (by decide)
+      (useBool_keep ((bool?_drop_of_ne _ _ _ (by simp)).trans ((bool?_drop_of_ne _ _ _ (by simp)).trans
+        (bool?_push_self _ _ _))) rfl)
+      (by simp [sealMarks, Mark.openable])) ?_
+    intro b _
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+    refine WFP.done _ _ ⟨fun g hg => ?_, ((hf3.drop n).drop (n + 1)).drop (n + 2)⟩
+    have e0 : g.id ≠ n := by omega
+    have e1 : g.id ≠ n + 1 := by omega
+    have e2 : g.id ≠ n + 2 := by omega
+    simp only [bool?_push, bool?_drop, e0, e1, e2, if_false]
+  · exact WFP.abort _ _
 
 theorem sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key state : BoolH) (size : Nat)
     (version : B8) (km sm : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hsn : state.id < n)
     (hk : c.bool? key = some ⟨km, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
     (hkm : km.length = 480) (hsm : sm.length = 8 * size)
     (hsig : sigs (sealName size) = some ⟨8 * (68 + size), sealMarks size⟩) :
-    WF sigs c (sealScript n key state size version) := by
-  unfold sealScript
+    WF sigs c (sealScript n key state size version) :=
+  (sealScript_wfp sigs c n key state size version km sm hf hkn hsn hk hs hkm hsm (fun _ _ => hsig)).wf
+
+/-- What an open leaves: the handles below `n` as before, nothing defined from `n + 5` on, and,
+when it returns a handle, that is `n + 4` holding the content (8·|ct| private bits, not once). -/
+def OpenPost (c : Ctx) (n size : Nat) (c' : Ctx) (r : Option BoolH) : Prop :=
+  (∀ g : BoolH, g.id < n → c'.bool? g = c.bool? g) ∧ Fresh c' (n + 5) ∧
+    ∀ h, r = some h → h = ⟨n + 4⟩ ∧ c'.bool? ⟨n + 4⟩ = some ⟨List.replicate (8 * size) .never, false⟩
+
+theorem openScript_wfp (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key : BoolH) (version check ct : B8)
+    (km : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hk : c.bool? key = some ⟨km, false⟩)
+    (hkm : km.length = 480)
+    (hsig' : 0 < ct.length → ct.length ≤ 16384 →
+      sigs (openName ct.length) = some ⟨8 * (84 + ct.length), openMarks ct.length⟩) :
+    WFP sigs (OpenPost c n ct.length) c (openScript n key version check ct) := by
+  unfold openScript
   split
   · next hc =>
-    obtain ⟨hv, -, -⟩ := hc
+    obtain ⟨hv, hcl, h0, h1⟩ := hc
+    have hsig := hsig' h0 h1
     have hvl := versionOk_length version hv
-    simp only [sealBlock, seqs_cons, seqs_nil]
-    have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf version).length .pub, false⟩
-    refine WF_seq sigs c _ _ _ (check_boolPublic sigs hf _) ?_
-    refine WF_seq sigs _ _ _ _ (check_concat sigs
+    simp only [openBlock, seqs_cons, seqs_nil]
+    have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf (version ++ ct ++ check)).length .pub, false⟩
+    refine WFP_seq sigs c _ _ _ (check_boolPublic sigs hf _ (by simp [hvl, hcl, maxWidth] <;> omega)) ?_
+    refine WFP_seq sigs _ _ _ _ (check_concat sigs
       (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans hk) rfl)
-        (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl)
-          (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans hs) rfl)
-            (useBools_nil _)))) hf1) ?_
-    refine WF_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
-      (by simp [hkm, hsm, hvl] <;> omega) (hf1.push (n + 1) (Nat.le_refl _) _)) ?_
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push])) ?_
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-    refine WF_openThen sigs _ _ _ _ ?_
-    rw [check_openBool sigs (by decide)
+        (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl) (useBools_nil _))) hf1
+      (by simp [hkm, hvl, hcl, maxWidth] <;> omega)) ?_
+    have hf2 := hf1.push (n + 1) (Nat.le_refl _) ⟨(List.map BoolInfo.marks [⟨km, false⟩,
+      ⟨List.replicate (bitsOf (version ++ ct ++ check)).length Mark.pub, false⟩]).flatten, false⟩
+    refine WFP_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+      (by simp [hkm, hvl, hcl] <;> omega) hf2 (by decide) (by simp [openMarks, maxWidth] <;> omega)) ?_
+    have hf3 := hf2.push (n + 2) (Nat.le_refl _) ⟨(List.replicate 1 (openMarks ct.length)).flatten, false⟩
+    refine WFP_seq sigs _ _ _ _ (check_slice sigs (useBool_keep (bool?_push_self _ _ _) rfl)
+      (by simp [openMarks]) hf3 (by simp [maxWidth])) ?_
+    have hf4 := hf3.push (n + 3) (Nat.le_refl _)
+      ⟨((((List.replicate 1 (openMarks ct.length)).flatten).drop 0).take (8 - 0)), false⟩
+    refine WFP_seq sigs _ _ _ _ (check_slice sigs
+      (useBool_keep ((bool?_push_of_ne _ _ _ _ (by simp)).trans (bool?_push_self _ _ _)) rfl)
+      (by simp [openMarks] <;> omega) hf4 (by simp [maxWidth] <;> omega)) ?_
+    have hf5 := hf4.push (n + 4) (Nat.le_refl _)
+      ⟨((((List.replicate 1 (openMarks ct.length)).flatten).drop 8).take (8 + 8 * ct.length - 8)), false⟩
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push])) ?_
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+    refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+    refine WFP_openThen sigs _ _ _ _ _ _ (check_openBool sigs (by decide)
       (useBool_keep ((bool?_drop_of_ne _ _ _ (by simp)).trans ((bool?_drop_of_ne _ _ _ (by simp)).trans
-        (bool?_push_self _ _ _))) rfl)
-      (by simp [sealMarks, Mark.openable])]
+        ((bool?_drop_of_ne _ _ _ (by simp)).trans ((bool?_push_of_ne _ _ _ _ (by simp)).trans
+          (bool?_push_self _ _ _))))) rfl)
+      (by simp [openMarks, Mark.openable])) ?_
     intro b _
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-    exact WF.done _ _
-  · exact WF.abort _ _
+    have hlow : ∀ g : BoolH, g.id < n → g.id ≠ n ∧ g.id ≠ n + 1 ∧ g.id ≠ n + 2 ∧ g.id ≠ n + 3 ∧ g.id ≠ n + 4 :=
+      fun g hg => ⟨by omega, by omega, by omega, by omega, by omega⟩
+    unfold openRest
+    split
+    · refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+      refine WFP.done _ _ ⟨fun g hg => ?_, (((hf5.drop n).drop (n + 1)).drop (n + 2)).drop (n + 3),
+        fun h hh => ⟨(Option.some.inj hh).symm, ?_⟩⟩
+      · obtain ⟨e0, e1, e2, e3, e4⟩ := hlow g hg
+        simp only [bool?_push, bool?_drop, e0, e1, e2, e3, e4, if_false]
+      · simp [bool?_push, bool?_drop, openMarks]
+    · refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+      refine WFP_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
+      refine WFP.done _ _ ⟨fun g hg => ?_, ((((hf5.drop n).drop (n + 1)).drop (n + 2)).drop (n + 3)).drop (n + 4),
+        fun h hh => by cases hh⟩
+      obtain ⟨e0, e1, e2, e3, e4⟩ := hlow g hg
+      simp only [bool?_push, bool?_drop, e0, e1, e2, e3, e4, if_false]
+  · exact WFP.abort _ _
 
 theorem openScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key : BoolH) (version check ct : B8)
     (km : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hk : c.bool? key = some ⟨km, false⟩)
     (hkm : km.length = 480)
     (hsig : sigs (openName ct.length) = some ⟨8 * (84 + ct.length), openMarks ct.length⟩) :
-    WF sigs c (openScript n key version check ct) := by
-  unfold openScript
-  split
-  · next hc =>
-    obtain ⟨hv, hcl, -, -⟩ := hc
-    have hvl := versionOk_length version hv
-    simp only [openBlock, seqs_cons, seqs_nil]
-    have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf (version ++ ct ++ check)).length .pub, false⟩
-    refine WF_seq sigs c _ _ _ (check_boolPublic sigs hf _) ?_
-    refine WF_seq sigs _ _ _ _ (check_concat sigs
-      (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (by omega)).trans hk) rfl)
-        (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl) (useBools_nil _))) hf1) ?_
-    refine WF_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
-      (by simp [hkm, hvl, hcl] <;> omega) (hf1.push (n + 1) (Nat.le_refl _) _)) ?_
-    refine WF_seq sigs _ _ _ _ (check_slice sigs (useBool_keep (bool?_push_self _ _ _) rfl)
-      (by simp [openMarks]) ((hf1.push (n + 1) (Nat.le_refl _) _).push (n + 2) (Nat.le_refl _) _)) ?_
-    refine WF_seq sigs _ _ _ _ (check_slice sigs
-      (useBool_keep ((bool?_push_of_ne _ _ _ _ (by simp)).trans (bool?_push_self _ _ _)) rfl)
-      (by simp [openMarks] <;> omega)
-      (((hf1.push (n + 1) (Nat.le_refl _) _).push (n + 2) (Nat.le_refl _) _).push (n + 3) (Nat.le_refl _) _)) ?_
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push])) ?_
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-    refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-    refine WF_openThen sigs _ _ _ _ ?_
-    rw [check_openBool sigs (by decide)
-      (useBool_keep ((bool?_drop_of_ne _ _ _ (by simp)).trans ((bool?_drop_of_ne _ _ _ (by simp)).trans
-        ((bool?_drop_of_ne _ _ _ (by simp)).trans ((bool?_push_of_ne _ _ _ _ (by simp)).trans
-          (bool?_push_self _ _ _))))) rfl)
-      (by simp [openMarks, Mark.openable])]
-    intro b _
-    unfold openRest
-    split
-    · refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-      exact WF.done _ _
-    · refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-      refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by simp [bool?_push, bool?_drop])) ?_
-      exact WF.done _ _
-  · exact WF.abort _ _
+    WF sigs c (openScript n key version check ct) :=
+  (openScript_wfp sigs c n key version check ct km hf hkn hk hkm (fun _ _ => hsig)).wf
 
 /-! ## T3: disclosure against any adversary -/
 

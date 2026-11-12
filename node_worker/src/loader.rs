@@ -181,6 +181,84 @@ impl Kernels {
     }
 }
 
+/// A Lean word circuit outside the kernel manifest, which the engines load from its own pinned
+/// file exactly as the legacy library does (`word_mask.h` line 27: `LeanCircuit{
+/// EMP_WORD_CIRCUIT_DIR "/xor-bit.flat", WORD_XOR_BIT_SHA}`; `ea_circuit_load` builds the same
+/// `LeanCircuit(path, sha)`, so no ABI change is involved). Its pin is `word_circuit_pins.h`'s
+/// (written by lower_word_circuits.py from `TlsMpc/WordMask.lean`); it has no layout file, so its
+/// signature for `check` is fixed here, next to the pin.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WordCircuit {
+    /// The name a batch's `run` uses.
+    pub name: &'static str,
+    pub file: &'static str,
+    pub sha256: &'static str,
+    /// Lean `Sig`: input bits and output marks of one copy.
+    pub in_width: u64,
+    pub out_marks: &'static [Mark],
+}
+
+/// The word circuits `run` may name. `xor-bit`: one XOR gate, inputs (a, b), output a ⊕ b,
+/// private (op 54 combines the two credential shares with 8·38 copies on the interleaved
+/// shares, Account.lean `combineBlock`).
+pub const WORD_CIRCUITS: &[WordCircuit] = &[WordCircuit {
+    name: "xor-bit",
+    file: "xor-bit.flat",
+    sha256: "6495137f2dc968d4553b3560a5e09d4a1cdc182503460dbb0773783f35feadac",
+    in_width: 2,
+    out_marks: &[Mark::Never],
+}];
+
+/// The directory of the pinned word circuits: the engine library's `EMP_WORD_CIRCUIT_DIR`
+/// (build_hybrid_v3.py: `.deps/emp-hybrid-word-v1`), or `NODE_WORKER_WORD_DIR` at build time.
+pub fn word_circuit_dir() -> PathBuf {
+    match option_env!("NODE_WORKER_WORD_DIR") {
+        Some(d) => PathBuf::from(d),
+        None => Path::new(env!("CARGO_MANIFEST_DIR")).join("../.deps/emp-hybrid-word-v1"),
+    }
+}
+
+impl Kernels {
+    /// Adds every word circuit whose file is in `dir`, after checking the file against its pin
+    /// (the engine checks it again when it loads it). A file present with another hash, or a
+    /// name the manifest already uses, is an error; an absent file is not added (then `check`
+    /// refuses a `run` of it). Returns the names added, which the start agreement covers
+    /// ([`agreement_digest`]).
+    pub fn add_word_circuits(&mut self, dir: &Path) -> Result<Vec<&'static str>, String> {
+        let mut added = Vec::new();
+        for w in WORD_CIRCUITS {
+            let flat = dir.join(w.file);
+            let Ok(bytes) = std::fs::read(&flat) else { continue };
+            if hex(&Sha256::digest(&bytes)) != w.sha256 {
+                return Err(format!("word circuit pin: {}", w.name));
+            }
+            if self.get(w.name.as_bytes()).is_some() {
+                return Err(format!("word circuit name in the manifest: {}", w.name));
+            }
+            let sig = Sig { in_width: w.in_width, out_marks: w.out_marks.to_vec() };
+            self.insert(w.name.as_bytes(), Kernel { flat, sha256: w.sha256.to_string(), sig });
+            added.push(w.name);
+        }
+        Ok(added)
+    }
+}
+
+/// What the two workers compare at start: the circuit source's digest ([`Circuits::digest`])
+/// alone when no word circuit is runnable, otherwise SHA-256 of it and each added word circuit's
+/// name and pin, so two workers that could run different circuit sets stop before any request.
+pub fn agreement_digest(circuits: &Circuits, words: &[&str]) -> [u8; 32] {
+    if words.is_empty() {
+        return circuits.digest();
+    }
+    let mut h = Sha256::new();
+    h.update(circuits.digest());
+    for name in words {
+        let w = WORD_CIRCUITS.iter().find(|w| w.name == *name).expect("a listed word circuit");
+        h.update(format!("\nword {} {}", w.name, w.sha256).as_bytes());
+    }
+    h.finalize().into()
+}
+
 /// The circuit source of this worker: a manifest, or (test-engine only) none.
 #[derive(Debug, Clone)]
 pub enum Circuits {
@@ -255,6 +333,31 @@ mod tests {
         assert_eq!(sig.out_marks, vec![Pub, Pub, ToA, ToB, Never, Never]);
         for bad in ["OTHER\n", "EMP_HYBRID_KERNEL_LAYOUT_V1\nO x 1 4\n", "EMP_HYBRID_KERNEL_LAYOUT_V1\nI x\n", "EMP_HYBRID_KERNEL_LAYOUT_V1\n\n", "EMP_HYBRID_KERNEL_LAYOUT_V1\nX x 1\n"] {
             assert!(parse_layout(bad.as_bytes()).is_err(), "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn word_circuits_are_pinned() {
+        let dir = std::env::temp_dir().join(format!("node-worker-words-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        // Absent: not added.
+        let mut k = Kernels::default();
+        assert_eq!(k.add_word_circuits(&dir).unwrap(), Vec::<&str>::new());
+        assert!(k.sig(b"xor-bit").is_none());
+        // Present with another hash: refused.
+        std::fs::write(dir.join("xor-bit.flat"), b"not the circuit").unwrap();
+        assert_eq!(k.add_word_circuits(&dir).unwrap_err(), "word circuit pin: xor-bit");
+        let _ = std::fs::remove_dir_all(&dir);
+        // The pinned export in this repository (lower_word_circuits.py), when it is present.
+        let real = word_circuit_dir();
+        if real.join("xor-bit.flat").is_file() {
+            let mut k = Kernels::default();
+            assert_eq!(k.add_word_circuits(&real).unwrap(), vec!["xor-bit"]);
+            assert_eq!(k.sig(b"xor-bit"), Some(Sig { in_width: 2, out_marks: vec![Mark::Never] }));
+            // Twice: the name is taken.
+            assert!(k.add_word_circuits(&real).is_err());
+            let c = Circuits::Unpinned;
+            assert_ne!(agreement_digest(&c, &["xor-bit"]), agreement_digest(&c, &[]));
         }
     }
 
