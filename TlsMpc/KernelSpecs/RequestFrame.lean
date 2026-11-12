@@ -1,23 +1,18 @@
 import TlsMpc.KernelSpecs.RequestCtr
+import TlsMpc.Node.Policy.Request
 
 /-!
 # The request frames the controller builds in the clear (T8, for the three request sealers)
 
-New file; it changes no definition and no emitter imports it.
+It changes no definition and no emitter imports it.
 
 `signal-request-ctr`, `bundle-fetch-ctr` and `bundle-request-ctr` encrypt
 `insertSlots frame mask payloadAt slots` (`TlsMpc/KernelSpecs/RequestCtr.lean`), where `frame` is
-the masked WebSocket frame that `PublicRequest.build` / `buildFetch` / `buildDevices` (in the
-controller's executable root `handshake_backend/EmpHybridWork/PublicServiceController.lean`) built
-in the clear with zero bytes in the slots. This file proves what that plaintext is: exactly the
-masked WebSocket frame of the message with every slot replaced by its secret field.
-
-`PublicRequest` lives in an executable root, which `TlsMpc/Security.lean` does not import (see its
-section 4). So the request builders are restated here as `Mirror.*`, character for character, with
-one change: the controller's byte operations `PublicReceive.fast` (used only to base64 the public
-envelope) are a parameter `ops`. `TlsMpc/KernelSpecs/RequestFrameBridge.lean` (NOT imported by
-`Security.lean`) imports the controller and proves `PublicRequest.build = Mirror.build
-PublicReceive.fast` etc., so the theorems here are about the code the controller runs.
+the masked WebSocket frame that `PublicRequest.build` / `buildFetch` / `buildDevices`
+(`TlsMpc/Node/Policy/Request.lean`, the definitions the controller runs) built in the clear with
+zero bytes in the slots. This file proves what that plaintext is: exactly the masked WebSocket
+frame of the message with every slot replaced by its secret field. The theorems are about the
+controller's own builders: there is no restated copy.
 
 PROVED (standard axioms only; no `sorry`, `native_decide`, `bv_decide`):
 
@@ -47,106 +42,9 @@ open TlsMpc TlsMpc.Signal Std.Tactic.BVDecide
 
 abbrev Byte := BitVec 8
 
-/-! ### The controller's request builders, restated (`PublicRequest`, controller lines 690–805) -/
-namespace Mirror
-
-inductive Piece where
-  | bytes (value : List Byte)
-  | slot (index width : Nat)
-
-def Piece.width : Piece → Nat
-  | .bytes value => value.length
-  | .slot _ width => width
-
-def total (pieces : List Piece) : Nat := (pieces.map Piece.width).foldl (· + ·) 0
-def text (s : String) : List Byte := s.toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)
-
-def varint (n : Nat) : List Byte :=
-  (List.range 10).filterMap fun i =>
-    let rest := n / 128 ^ i
-    if i > 0 && rest == 0 then none
-    else some (BitVec.ofNat 8 (rest % 128 + (if rest / 128 == 0 then 0 else 128)))
-
-def field (tag : Nat) (pieces : List Piece) : List Piece :=
-  .bytes (BitVec.ofNat 8 tag :: varint (total pieces)) :: pieces
-
-def officialJson (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp : Nat) : List Piece :=
-  let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
-    [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"type\":6,\"destinationDeviceId\":")), .slot (2 + 2 * index) 3,
-     .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10,
-     .bytes (text ",\"content\":\"" ++ RelayEncoding.base64 ops envelope ++ text "\"}")]).flatten
-  [.bytes (text "{\"messages\":[")] ++ messages ++
-    [.bytes (text ("],\"online\":false,\"urgent\":true,\"timestamp\":" ++ toString timestamp ++ "}"))]
-
-def build (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) (official : Bool := false) :
-    Except String (List Byte × List Nat) := do
-  let json : List Piece := if official then officialJson ops [envelope] timestamp else [
-    .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 ops envelope ++
-      text "\",\"destinationDeviceId\":"), .slot 2 3,
-    .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
-    .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
-  let request := field 10 [.bytes (text "PUT")] ++
-    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
-    field 26 json ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "content-type: application/json")] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
-  let message := Piece.bytes [8, 1] :: field 18 request
-  let size := total message
-  unless 126 ≤ size && size < 65536 && mask.length == 4 do throw "request size"
-  let header : List Byte := [130, 254, BitVec.ofNat 8 (size / 256), BitVec.ofNat 8 size] ++ mask
-  let mut frame := header
-  let mut offsets := #[0, 0, 0, 0]
-  for piece in message do
-    match piece with
-    | .bytes value =>
-      for byte in value do
-        frame := frame ++ [byte ^^^ mask.getD ((frame.length - 8) % 4) 0]
-    | .slot index width =>
-      offsets := offsets.set! index frame.length
-      frame := frame ++ List.replicate width 0
-  return (frame, offsets.toList)
-
-def assemble (message : List Piece) (mask : List Byte) (slots : Nat) : Except String (List Byte × Nat × List Nat) := do
-  let size := total message
-  unless 0 < size && size < 65536 && mask.length == 4 do throw "request size"
-  let header : List Byte := (if size < 126 then [130, BitVec.ofNat 8 (128 + size)]
-    else [130, 254, BitVec.ofNat 8 (size / 256), BitVec.ofNat 8 size]) ++ mask
-  let mut frame := header.toArray
-  let mut offsets := Array.replicate slots 0
-  for piece in message do
-    match piece with
-    | .bytes value =>
-      for byte in value do
-        frame := frame.push (byte ^^^ mask.getD ((frame.size - header.length) % 4) 0)
-    | .slot index width =>
-      offsets := offsets.set! index frame.size
-      frame := frame ++ Array.replicate width 0
-  return (frame.toList, header.length, offsets.toList)
-
-def buildFetch (id : Nat) (mask : List Byte) : Except String (List Byte × Nat × List Nat) := do
-  let request := field 10 [.bytes (text "GET")] ++
-    field 18 [.bytes (text "/v2/keys/"), .slot 0 36, .bytes (text "/*")] ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
-  assemble (Piece.bytes [8, 1] :: field 18 request) mask 2
-
-def buildDevices (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte)
-    (official : Bool := false) : Except String (List Byte × Nat × List Nat) := do
-  unless !envelopes.isEmpty do throw "no devices"
-  let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
-    [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"content\":\"") ++ RelayEncoding.base64 ops envelope ++
-      text "\",\"destinationDeviceId\":"), .slot (2 + 2 * index) 3,
-     .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10, .bytes (text ",\"type\":6}")]).flatten
-  let json : List Piece := if official then officialJson ops envelopes timestamp else [.bytes (text "{\"messages\":[")] ++ messages ++
-    [.bytes (text ("],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
-  let request := field 10 [.bytes (text "PUT")] ++
-    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
-    field 26 json ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "content-type: application/json")] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
-  assemble (Piece.bytes [8, 1] :: field 18 request) mask (2 + 2 * envelopes.length)
-
-end Mirror
-open Mirror
+/-! The controller's request builders and the messages they frame (`TlsMpc/Node/Policy/Request.lean`). -/
+open PublicRequest (Piece total field officialJson sendMessage build assemble fetchMessage buildFetch
+  devicesMessage buildDevices)
 
 /-! ### The frame, piece by piece -/
 
@@ -321,21 +219,7 @@ theorem assemble_eq (message : List Piece) (mask : List Byte) (slots : Nat) :
     rfl
   · rfl
 
-/-! ### The three messages -/
-
-/-- The message `build` frames (`PUT /v1/messages/{uuid}` for one device). -/
-def sendMessage (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat) (official : Bool) : List Piece :=
-  let json : List Piece := if official then officialJson ops [envelope] timestamp else [
-    .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 ops envelope ++
-      text "\",\"destinationDeviceId\":"), .slot 2 3,
-    .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
-    .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
-  let request := field 10 [.bytes (text "PUT")] ++
-    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
-    field 26 json ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "content-type: application/json")] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24]
-  Piece.bytes [8, 1] :: field 18 request
+/-! ### The three messages (`sendMessage`, `fetchMessage`, `devicesMessage`: the builders' own) -/
 
 /-- The 8-byte header `build` writes: FIN + binary, masked, 16-bit payload length, the mask. -/
 def buildHeader (size : Nat) (mask : List Byte) : List Byte :=
@@ -344,30 +228,17 @@ def buildHeader (size : Nat) (mask : List Byte) : List Byte :=
 /-- **`build` as a function.** It accepts exactly when the payload is 126..65535 bytes and the
 mask 4 bytes; then the frame is the 8-byte header and the payload `body`, and the offsets are what
 the slot pieces set (from `#[0, 0, 0, 0]`). -/
-theorem build_eq (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat) (mask : List Byte)
-    (official : Bool) :
-    build ops envelope timestamp id mask official =
-      if (decide (126 ≤ total (sendMessage ops envelope timestamp id official)) &&
-          decide (total (sendMessage ops envelope timestamp id official) < 65536) && mask.length == 4) = true then
-        .ok (buildHeader (total (sendMessage ops envelope timestamp id official)) mask ++
-            body mask 0 (sendMessage ops envelope timestamp id official),
-          (offsetsFold #[0, 0, 0, 0] 8 (sendMessage ops envelope timestamp id official)).toList)
+theorem build_eq (envelope : List Byte) (timestamp id : Nat) (mask : List Byte) (official : Bool) :
+    build envelope timestamp id mask official =
+      if (decide (126 ≤ total (sendMessage envelope timestamp id official)) &&
+          decide (total (sendMessage envelope timestamp id official) < 65536) && mask.length == 4) = true then
+        .ok (buildHeader (total (sendMessage envelope timestamp id official)) mask ++
+            body mask 0 (sendMessage envelope timestamp id official),
+          (offsetsFold #[0, 0, 0, 0] 8 (sendMessage envelope timestamp id official)).toList)
       else .error "request size" := by
   unfold build
   simp only [pure_bind, bind_pure_comp, map_pure]
-  generalize hm : sendMessage ops envelope timestamp id official = m
-  have hm' : (Piece.bytes [8, 1] :: field 18
-      (field 10 [.bytes (text "PUT")] ++
-        field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
-        field 26 (if official then officialJson ops [envelope] timestamp else [
-          .bytes (text "{\"messages\":[{\"content\":\"" ++ RelayEncoding.base64 ops envelope ++
-            text "\",\"destinationDeviceId\":"), .slot 2 3,
-          .bytes (text ",\"destinationRegistrationId\":"), .slot 3 10,
-          .bytes (text (",\"type\":6}],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]) ++
-        [.bytes (32 :: varint id)] ++
-        field 42 [.bytes (text "content-type: application/json")] ++
-        field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24])) = m := hm
-  rw [hm']
+  generalize sendMessage envelope timestamp id official = m
   by_cases hc : (decide (126 ≤ total m) && decide (total m < 65536) && mask.length == 4) = true
   · rw [if_pos hc, if_pos hc]
     have h4 : mask.length = 4 := by simp at hc; exact hc.2
@@ -381,34 +252,12 @@ theorem build_eq (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id 
   · rw [if_neg hc, if_neg hc]
     rfl
 
-/-- The message `buildFetch` frames (`GET /v2/keys/{uuid}/*`). -/
-def fetchMessage (id : Nat) : List Piece :=
-  Piece.bytes [8, 1] :: field 18 (field 10 [.bytes (text "GET")] ++
-    field 18 [.bytes (text "/v2/keys/"), .slot 0 36, .bytes (text "/*")] ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24])
-
 theorem buildFetch_eq (id : Nat) (mask : List Byte) : buildFetch id mask = assemble (fetchMessage id) mask 2 := rfl
 
-/-- The message `buildDevices` frames (`PUT /v1/messages/{uuid}`, one message per device). -/
-def devicesMessage (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp id : Nat) (official : Bool) :
-    List Piece :=
-  let messages : List Piece := (envelopes.zipIdx.map fun (envelope, index) =>
-    [Piece.bytes (text ((if index == 0 then "" else ",") ++ "{\"content\":\"") ++ RelayEncoding.base64 ops envelope ++
-      text "\",\"destinationDeviceId\":"), .slot (2 + 2 * index) 3,
-     .bytes (text ",\"destinationRegistrationId\":"), .slot (3 + 2 * index) 10, .bytes (text ",\"type\":6}")]).flatten
-  let json : List Piece := if official then officialJson ops envelopes timestamp else [.bytes (text "{\"messages\":[")] ++ messages ++
-    [.bytes (text ("],\"online\":false,\"timestamp\":" ++ toString timestamp ++ ",\"urgent\":true}"))]
-  Piece.bytes [8, 1] :: field 18 (field 10 [.bytes (text "PUT")] ++
-    field 18 ([.bytes (text "/v1/messages/"), .slot 0 36] ++ (if official then [] else [.bytes (text "?story=false")])) ++
-    field 26 json ++ [.bytes (32 :: varint id)] ++
-    field 42 [.bytes (text "content-type: application/json")] ++
-    field 42 [.bytes (text "unidentified-access-key: "), .slot 1 24])
-
-theorem buildDevices_eq (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte)
-    (official : Bool) :
-    buildDevices ops envelopes timestamp id mask official =
+theorem buildDevices_eq (envelopes : List (List Byte)) (timestamp id : Nat) (mask : List Byte) (official : Bool) :
+    buildDevices envelopes timestamp id mask official =
       if envelopes.isEmpty then .error "no devices"
-      else assemble (devicesMessage ops envelopes timestamp id official) mask (2 + 2 * envelopes.length) := by
+      else assemble (devicesMessage envelopes timestamp id official) mask (2 + 2 * envelopes.length) := by
   unfold buildDevices
   cases h : envelopes.isEmpty <;> rfl
 
@@ -773,8 +622,8 @@ theorem fits_of_pairs (values : Nat → List Byte) :
       · exact h (k, w) (by simp [pairsOf])
       · exact fits_of_pairs values (start + w) rest (fun p hp => h p (by simp [pairsOf, hp])) e he
 
-theorem sendMessage_pairs (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat) (official : Bool) :
-    pairsOf (sendMessage ops envelope timestamp id official) = [(0, 36), (2, 3), (3, 10), (1, 24)] := by
+theorem sendMessage_pairs (envelope : List Byte) (timestamp id : Nat) (official : Bool) :
+    pairsOf (sendMessage envelope timestamp id official) = [(0, 36), (2, 3), (3, 10), (1, 24)] := by
   cases official <;> simp [sendMessage, officialJson, pairsOf_append, pairsOf_field, pairsOf_flatten, pairsOf]
 
 theorem fetchMessage_pairs (id : Nat) : pairsOf (fetchMessage id) = [(0, 36), (1, 24)] := by
@@ -795,9 +644,9 @@ theorem zipIdx_flatMap_snd {α β : Type} (l : List α) (g : Nat → List β) :
     | cons x l ih => intro n; simp [List.zipIdx_cons, List.range'_succ, ih]
   rw [gen l 0, List.range_eq_range']
 
-theorem devicesMessage_pairs (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp id : Nat)
+theorem devicesMessage_pairs (envelopes : List (List Byte)) (timestamp id : Nat)
     (official : Bool) :
-    pairsOf (devicesMessage ops envelopes timestamp id official) =
+    pairsOf (devicesMessage envelopes timestamp id official) =
       [(0, 36)] ++ deviceSlotPairs envelopes.length ++ [(1, 24)] := by
   have block : ∀ (f : List Byte × Nat → List Piece),
       (∀ p, pairsOf (f p) = [(2 + 2 * p.2, 3), (3 + 2 * p.2, 10)]) →
@@ -812,7 +661,7 @@ theorem devicesMessage_pairs (ops : ByteAuth.Ops Byte) (envelopes : List (List B
     simp [pairsOf]
   · simp only [devicesMessage, officialJson, pairsOf, pairsOf_append, pairsOf_field, if_true]
     rw [block _ (fun p => by simp [pairsOf, pairsOf_append])]
-    simp [pairsOf]
+    simp
 
 /-! ### Widths of the slot encoders -/
 
@@ -841,9 +690,9 @@ theorem paddedDecimal_length (n : BitVec 64) (width : Nat) (h : width ≤ 20) :
 4-byte mask, and then the frame is the 8-byte header `[130, 254, size / 256, size] ‖ mask`
 followed by the built payload. So the WebSocket payload of every frame `build` returns starts at
 frame index 8: `signal-request-ctr`'s fixed `mask[(i − 8) % 4]` is the right mask byte for it. -/
-theorem build_ok (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat) (mask frame : List Byte)
-    (official : Bool) (offsets : List Nat) (built : build ops envelope timestamp id mask official = .ok (frame, offsets)) :
-    let msg := sendMessage ops envelope timestamp id official
+theorem build_ok (envelope : List Byte) (timestamp id : Nat) (mask frame : List Byte)
+    (official : Bool) (offsets : List Nat) (built : build envelope timestamp id mask official = .ok (frame, offsets)) :
+    let msg := sendMessage envelope timestamp id official
     126 ≤ total msg ∧ total msg < 65536 ∧ mask.length = 4 ∧ (buildHeader (total msg) mask).length = 8 ∧
       frame = buildHeader (total msg) mask ++ body mask 0 msg ∧ offsets = (offsetsFold #[0, 0, 0, 0] 8 msg).toList := by
   intro msg
@@ -868,21 +717,21 @@ returned, with the kernel named by that frame's length and offsets (as the contr
 the kernel's outputs are `sealedRequest` of `header ‖ masked(render values msg)` — the 8-byte
 header and the request message with the contact's UUID, base64 access key and space-padded device
 and registration ids in place of the four slots, masked with the WebSocket mask. -/
-theorem signalRequestCtr_built (ops : ByteAuth.Ops Byte) (envelope : List Byte) (timestamp id : Nat)
+theorem signalRequestCtr_built (envelope : List Byte) (timestamp id : Nat)
     (mask frame : List Byte) (official : Bool) (offsets : List Nat)
-    (built : build ops envelope timestamp id mask official = .ok (frame, offsets))
+    (built : build envelope timestamp id mask official = .ok (frame, offsets))
     (cert : Nat) (assign : BVExpr.Assignment)
     (hframe : (lookup (signalRequestInputs cert frame.length) "frame").map (BVExpr.eval assign) = frame)
     (hmask : (lookup (signalRequestInputs cert frame.length) "mask").map (BVExpr.eval assign) = mask) :
     let get := fun name => (lookup (signalRequestInputs cert frame.length) name).map (BVExpr.eval assign)
-    let msg := sendMessage ops envelope timestamp id official
+    let msg := sendMessage envelope timestamp id official
     (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
         (offsets.getD 3 0)).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
       sealedRequest (get "clientApplication") (get "sequence")
         (buildHeader (total msg) mask ++ maskFrom mask 0 (render (requestValues cert (get "conversation")) msg))
         (signalRequestSlots cert 0 0 0 0 (get "conversation")).1 := by
   intro get msg
-  obtain ⟨_, _, _, h8, hf, ho⟩ := build_ok ops envelope timestamp id mask frame official offsets built
+  obtain ⟨_, _, _, h8, hf, ho⟩ := build_ok envelope timestamp id mask frame official offsets built
   rw [signalRequestCtr_spec]
   have convLength : (get "conversation").length = HybridKernel.conversationBytes cert 80 := by
     simp [get, lookup, HybridKernel.lookupFrom, signalRequestInputs, ByteCircuit.inputBytes]
@@ -1086,15 +935,15 @@ open TlsMpc.HybridKernel (lookup) in
 place**, valid when every device's record is live and its numbers fit. The kernel is named as the
 controller names it: frame length, payload start, the UUID and key offsets, and the device slot
 offsets paired up as `find` pairs them (`BundleKernel.pairs (offsets.drop 2) = some devices`). -/
-theorem bundleRequestCtr_built (ops : ByteAuth.Ops Byte) (envelopes : List (List Byte)) (timestamp id : Nat)
+theorem bundleRequestCtr_built (envelopes : List (List Byte)) (timestamp id : Nat)
     (mask frame : List Byte) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
-    (built : buildDevices ops envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (built : buildDevices envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
     (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
     (assign : BVExpr.Assignment)
     (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
     (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask) :
     let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
-    let msg := devicesMessage ops envelopes timestamp id official
+    let msg := devicesMessage envelopes timestamp id official
     (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
         (fun field => field.value.map (BVExpr.eval assign)) =
       sealedRequest (get "clientApplication") (get "sequence")
@@ -1147,7 +996,7 @@ theorem bundleRequestCtr_built (ops : ByteAuth.Ops Byte) (envelopes : List (List
   have key := insertSlots_offsets (assembleHeader (total msg) mask) mask msg (devicesValues (get "records"))
     (Array.replicate (2 + 2 * m) 0) ([0, 1] ++ deviceIndices m)
   rw [← hp] at key
-  have pairsMsg := devicesMessage_pairs ops envelopes timestamp id official
+  have pairsMsg := devicesMessage_pairs envelopes timestamp id official
   rw [hm] at pairsMsg
   have indices : indicesOf msg = [0] ++ deviceIndices m ++ [1] := by
     rw [indicesOf_pairs, pairsMsg]

@@ -1,6 +1,14 @@
 {
  "about": "I/O primitive sites per file of the controller's import closure (scripts/lint_node.py, check io-baseline). A count may only go down. Rewrite with --update-baseline after a stage moved sites into TlsMpc/Node/Channels.lean.",
  "sites": {
+  "TlsMpc/Node/Bench.lean": {
+   "IO.monoNanosNow": 1,
+   "IO.println": 1,
+   "IO.rand": 1
+  },
+  "TlsMpc/Node/Config.lean": {
+   "IO.getEnv": 1
+  },
   "TlsMpc/Signal/ReceiveFirst.lean": {
    "System.FilePath.metadata (dot call)": 1
   },
@@ -21,13 +29,11 @@
    "IO.FS.writeFile": 13,
    "IO.Process.output": 6,
    "IO.eprintln": 5,
-   "IO.getEnv": 34,
+   "IO.getEnv": 33,
    "IO.getRandomBytes": 1,
    "IO.getStdout": 2,
    "IO.monoMsNow": 4,
-   "IO.monoNanosNow": 2,
-   "IO.println": 9,
-   "IO.rand": 1,
+   "IO.println": 7,
    "IO.sleep": 8,
    "Std.Time.Timestamp.now": 4,
    "System.FilePath.pathExists (dot call)": 6

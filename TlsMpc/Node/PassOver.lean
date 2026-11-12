@@ -2,11 +2,12 @@ import TlsMpc.TlsWebSocketFrame
 import TlsMpc.TlsWebSocketControl
 import TlsMpc.TlsChatResponse
 import TlsMpc.Signal.Word64Fast
+import TlsMpc.Node.Bytes
 
 /-!
 # Passing over an unrevealed body in bulk
 
-The controller (`handshake_backend/EmpHybridWork/PublicServiceController.lean`) passes over the
+The controller (`TlsMpc/Node/Policy/Receive.lean`) passes over the
 unrevealed body of a server response (`stepPassed`) or server request (`stepSkipped`) one byte at a
 time: for each byte it runs, in the clear, the circuit-shaped frame parser
 (`TlsWebSocketFrame.runByte`, fed the active byte `[255, 0]`: the byte is not revealed, so a zero
@@ -29,62 +30,15 @@ inputs the controller feeds them:
 
 So `k` such bytes are `frameBulk k` / the identity / `responseBulk k`, computed in one step, as long
 as `k` is within `frameRoom` / `controlIdle` / `responseRoom` (decidable conditions on the states;
-0 or false when the state has any other shape). The controller's `passRun_bulk` combines these into
-the theorem that its bulk step equals its byte-by-byte loop. None of the parser modules is changed:
+0 or false when the state has any other shape). `passRun_bulk` (`TlsMpc/Node/Policy/Receive.lean`)
+combines these into the theorem that the controller's bulk step equals its byte-by-byte loop. None of the parser modules is changed:
 the circuits are compiled from them, and no emitter imports this module.
 
-`fast` (the controller's byte operations, equal to `ByteAuth.concrete`) moved here from the
-controller unchanged, so that these theorems can be stated about it. Pure: no I/O.
+`fast` (the controller's byte operations, equal to `ByteAuth.concrete`, `fast_eq`) is in
+`TlsMpc/Node/Bytes.lean`. Pure: no I/O.
 -/
 
 open TlsMpc TlsMpc.Signal
-
-namespace PublicReceive
-
-/-! The byte operations the controller's parsers run on, for values in the clear (moved here
-unchanged from the controller, which imports this module, so that the pass-over theorems below can
-be stated about them). Equal to `ByteAuth.concrete` (`fast_eq`); the differences are in how three
-operations are computed at run time. `ByteAuth.concrete` builds the mask of one bit with
-`BitVec.replicate`, and its constants and complements go through `2 ^ 8` as an arbitrary-precision
-power each time; together that made every parsed byte cost milliseconds. -/
-
-def fastConst (n : Nat) : BitVec 8 := BitVec.ofFin ⟨n % 256, Nat.mod_lt n (by decide)⟩
-theorem fastConst_eq (n : Nat) : fastConst n = BitVec.ofNat 8 n := by
-  apply BitVec.eq_of_toNat_eq
-  simp [fastConst]
-
-def fastNot (x : BitVec 8) : BitVec 8 := x ^^^ 255#8
-theorem fastNot_eq : ∀ x : BitVec 8, fastNot x = ~~~x := by decide
-
-def fastMask (x : BitVec 8) (i : Nat) : BitVec 8 := if x.getLsbD i then 255#8 else 0#8
-
-theorem fastMask_eq (x : BitVec 8) (i : Nat) : fastMask x i = BitVec.replicate 8 (x.extractLsb' i 1) := by
-  have h : x.extractLsb' i 1 = BitVec.ofBool (x.getLsbD i) := by
-    apply BitVec.eq_of_getLsbD_eq
-    intro j hj
-    have hz : j = 0 := by omega
-    subst hz
-    simp
-  rw [h]
-  unfold fastMask
-  cases x.getLsbD i <;> decide
-
-def fast : ByteAuth.Ops (BitVec 8) where
-  const := fastConst
-  xor := (· ^^^ ·)
-  and := (· &&& ·)
-  not := fastNot
-  maskBit := fastMask
-
-theorem fast_eq : fast = ByteAuth.concrete := by
-  have hc : fastConst = BitVec.ofNat 8 := funext fastConst_eq
-  have hn : fastNot = (fun x : BitVec 8 => ~~~x) := funext fastNot_eq
-  have hm : fastMask = (fun (x : BitVec 8) (i : Nat) => BitVec.replicate 8 (x.extractLsb' i 1)) :=
-    funext fun x => funext fun i => fastMask_eq x i
-  unfold fast ByteAuth.concrete
-  rw [hc, hn, hm]
-
-end PublicReceive
 
 namespace PublicReceive.PassOver
 open TlsWebSocketUpgrade (get eq either any member choose initial)

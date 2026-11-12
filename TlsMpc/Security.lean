@@ -72,6 +72,11 @@ import TlsMpc.KernelSpecs.WidthFlags
 import TlsMpc.KernelSpecs.SlotEncoders
 import TlsMpc.KernelSpecs.SlotBase64
 import TlsMpc.KernelSpecs.SlotDecimal
+import TlsMpc.KernelSpecs.SealFrame
+import TlsMpc.KernelSpecs.BundleSlotWhole
+import TlsMpc.KernelSpecs.ReceiveAcceptAccessKey
+import TlsMpc.KernelSpecs.EstablishRequest
+import TlsMpc.Node.Policy.Receive
 import Lean.Elab.Command
 
 /-!
@@ -480,8 +485,8 @@ theorem xeddsa_reduce_bytes_spec (bytes : List (BitVec 8)) (hlen : bytes.length 
 
 open TlsMpc.Signal TlsMpc.Signal.MessageMac Std.Tactic.BVDecide in
 /-- **The Signal message MAC check outputs 255 exactly when the received tag equals the
-computed tag, else 0** (accept direction included). **K-fn**: no theorem connects it to
-`receive-session`'s status (T13, section 8). SECURITY_MAP C.2, C.3. -/
+computed tag, else 0** (accept direction included). **K-fn**; composed with `receive-session`'s
+status in section 3a (`receiveAccept_session_status_iff`). SECURITY_MAP C.2, C.3. -/
 theorem messageMac_verifyMask_value (macKey sender receiver wire : List (BitVec 8)) :
     verifyMask Sha256.concrete ByteAuth.concrete macKey sender receiver wire =
       if tag Sha256.concrete macKey sender receiver (content wire) = receivedTag wire then 255 else 0 :=
@@ -822,8 +827,8 @@ theorem receive_certificate_spec (cert : Nat) (c : ReceiveFirst.CertShape) (assi
 
 open TlsMpc.ReceiveKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel lookup) in
-/-- **`receive-certificate-verified`** = `ReceiveFirst.certificateVerified`. **K**. That status
-255 implies the signature verified is NOT proved (T13, section 8). -/
+/-- **`receive-certificate-verified`** = `ReceiveFirst.certificateVerified`. **K**. What status
+255 implies: `receiveAccept_certificateVerified_iff` (section 3a). -/
 theorem receive_certificateVerified_spec (assign : BVExpr.Assignment) :
     let get := lookup verifiedInputs
     let e := BVExpr.eval assign
@@ -865,8 +870,9 @@ theorem receive_signalShape_spec (size : Nat) (p : ReceiveFirst.PreKeyShape) (as
 
 open TlsMpc.ReceiveKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel lookup) in
-/-- **`receive-session`** = `ReceiveFirst.session` (first four outputs). **K**. That status 255
-implies the message MAC verified is NOT proved (T13, section 8). -/
+/-- **`receive-session`** = `ReceiveFirst.session` (first four outputs). **K**. Status 255
+iff the message MAC verified and the other checks passed: `receiveAccept_session_status_iff`
+(section 3a). -/
 theorem receive_session_spec (cert size : Nat) (p : ReceiveFirst.PreKeyShape) (q : ReceiveFirst.SignalShape) (jump : Nat)
     (assign : BVExpr.Assignment) :
     let get := lookup (sessionInputs cert size (p.oneTime != 0))
@@ -884,7 +890,8 @@ theorem receive_session_spec (cert size : Nat) (p : ReceiveFirst.PreKeyShape) (q
 
 open TlsMpc.ReceiveKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel lookup) in
-/-- **`receive-text`** = `ReceiveFirst.text`. **K**. No `_rejects` lemma (section 8, T13). -/
+/-- **`receive-text`** = `ReceiveFirst.text`. **K**. Its `_rejects` lemma and what it opens:
+`receiveAcceptText_text_*` (section 3a). -/
 theorem receive_text_spec (ciphertext capacity : Nat) (assign : BVExpr.Assignment) :
     let out := ReceiveFirst.text ByteAuth.concrete capacity
         ((lookup (textInputs ciphertext) "plaintext").map (BVExpr.eval assign))
@@ -997,8 +1004,9 @@ theorem bundleRebind_spec (assign : BVExpr.Assignment) :
 open TlsMpc.BundleKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel lookup sl) in
 open TlsMpc.ReceiveKernel (values) in
-/-- **`bundle-seal`** = `Establish.sealMessage` (rearranged). **K**. `Establish.sealMessage`
-itself has only `_map` lemmas, no value theorem (T7, section 8). -/
+/-- **`bundle-seal`** = `Establish.sealMessage` (rearranged). **K**. The value of
+`Establish.sealMessage` and of the kernel: `establishSeal_sealMessage_value`,
+`establishSeal_bundleSeal_value` (section 2c). -/
 theorem bundleSeal_spec (cert : Nat) (withOneTime : Bool)
     (content counterWidth previousWidth epochWidth indexWidth : Nat) (assign : BVExpr.Assignment) :
     let get := lookup (sealInputs cert content)
@@ -1189,7 +1197,8 @@ open TlsMpc.HybridKernel (lookup) in
 /-- **`signal-seal-official` / `signal-seal-built` compute their composition of
 `SpqrSend.acceptedMask`, `SpqrSend.prepare`, `SealedSenderV1.boundSeal`, `TlsProviderGate.gate`
 and `ChainSend.selectState` on concrete values** (status, next record, timestamp, envelope).
-**K** (wire). No value theorem for `boundSeal` itself (T7(b), section 8). SECURITY_MAP C.2. -/
+**K** (wire). The value of `boundSeal` and of the whole kernel: `boundSeal_value`,
+`signalSeal_value` below. SECURITY_MAP C.2. -/
 theorem signalSealBuilt_spec (cert counterWidth previousWidth epochWidth indexWidth classes : Nat) (official : Bool)
     (assign : BVExpr.Assignment) :
     let get := fun name => (lookup (sealInputs cert classes official) name).map (BVExpr.eval assign)
@@ -1201,6 +1210,232 @@ theorem signalSealBuilt_spec (cert counterWidth previousWidth epochWidth indexWi
         (get "staticAgreement") :=
   TlsMpc.KernelSpecs.SealFixed.signalSealBuilt_spec cert counterWidth previousWidth epochWidth indexWidth classes
     official assign
+
+open TlsMpc.KernelSpecs.SealValue TlsMpc.KernelSpecs.SealValue.Reference TlsMpc.Signal in
+/-- **`SealedSenderV1.sealCore` is sealed sender v1 on concrete values:** it equals
+`Reference.sealV1`, a transcription of libsignal's sealed-sender v1 encryption (not machine-linked
+to libsignal, section 8) (`TlsMpc/KernelSpecs/SealValue.lean`). **K-fn**. T7(b). -/
+theorem sealCore_value (recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner : List (BitVec 8))
+    (he : ephemeralPublic.length < 2 ^ 32) (hs : senderPublic.length < 2 ^ 32)
+    (hc : certificate.length < 2 ^ 32) (hi : inner.length < 2 ^ 32) :
+    SealedSenderV1.sealCore Aes.concrete Sha256.concrete ByteAuth.concrete recipient ephemeralPublic senderPublic
+        ephemeralDh staticDh certificate inner =
+      sealV1 recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner :=
+  TlsMpc.KernelSpecs.SealValue.sealCore_value recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate
+    inner he hs hc hi
+
+open TlsMpc.KernelSpecs.SealValue TlsMpc.KernelSpecs.SealValue.Reference TlsMpc.Signal in
+/-- **What `boundSeal` produces:** status 255 and sealed sender v1 (`Reference.sealV1`) of `inner`
+when both agreements are nonzero and the computed sender key is the stored one; otherwise status 0
+and as many zero bytes. **K-fn**. T7(b). -/
+theorem boundSeal_value (recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner
+    expectedSender : List (BitVec 8))
+    (he : ephemeralPublic.length < 2 ^ 32) (hs : senderPublic.length < 2 ^ 32)
+    (hc : certificate.length < 2 ^ 32) (hi : inner.length < 2 ^ 32) :
+    SealedSenderV1.boundSeal Aes.concrete Sha256.concrete ByteAuth.concrete recipient ephemeralPublic senderPublic
+        ephemeralDh staticDh certificate inner expectedSender =
+      if boundAccepted ephemeralDh staticDh senderPublic expectedSender then
+        255 :: sealV1 recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner
+      else 0 :: List.replicate
+        (sealV1 recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner).length 0 :=
+  TlsMpc.KernelSpecs.SealValue.boundSeal_value recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate
+    inner expectedSender he hs hc hi
+
+open TlsMpc.KernelSpecs.SealFixed TlsMpc.KernelSpecs.SealSend Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`signal-seal-official` / `signal-seal-built` on every input assignment:** the four outputs
+(status, conversation record, timestamp, envelope) are `sealValue` of the input fields: on accepted
+inputs the envelope is sealed sender v1 of the Signal message of the reference send step
+`SpqrSend.canonical` on the stored state, and the record carries the advanced ratchet state;
+otherwise status 0, an all-zero envelope and the old ratchet state
+(`TlsMpc/KernelSpecs/SealSend.lean`). **K**. T7(b). -/
+theorem signalSeal_value (cert counterWidth previousWidth epochWidth indexWidth classes : Nat) (official : Bool)
+    (assign : BVExpr.Assignment)
+    (hbound : cert + contentBytes classes official + counterWidth + previousWidth + epochWidth + indexWidth < 2 ^ 31) :
+    let get := fun name => (lookup (sealInputs cert classes official) name).map (BVExpr.eval assign)
+    (HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes official).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealValue cert counterWidth previousWidth epochWidth indexWidth (contentBytes classes official)
+        (get "conversation") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
+        (get "staticAgreement") :=
+  TlsMpc.KernelSpecs.SealSend.signalSeal_value cert counterWidth previousWidth epochWidth indexWidth classes official
+    assign hbound
+
+open TlsMpc.KernelSpecs.SealFixed TlsMpc.KernelSpecs.SealSend TlsMpc.KernelSpecs.SealValue.Reference TlsMpc.Signal in
+/-- **An accepted seal (opened status 255):** the reference send step accepts, both agreements and
+the sender key check pass, the text is valid, the stored record is the advanced one, and the opened
+envelope is sealed sender v1 of the reference send step's Signal message. **K**. T7(b). -/
+theorem sealValue_accepted (cert counterWidth previousWidth epochWidth indexWidth content : Nat)
+    (record text ephemeralPublic senderPublic ephemeralAgreement staticAgreement : List (BitVec 8))
+    (opened : (sealValue cert counterWidth previousWidth epochWidth indexWidth content record text ephemeralPublic
+      senderPublic ephemeralAgreement staticAgreement).getD 0 [] = [255]) :
+    let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
+    let certificate := (record.drop 0).take cert
+    let staged := stagedOf ((record.drop cert).take (182 + 80)) text
+    let i := inputOf 0 staged text content
+    let p := SpqrSend.canonical shape pqShape i
+    SpqrSend.accepted shape pqShape i ∧
+      boundAccepted ephemeralAgreement staticAgreement senderPublic i.sender ∧ text.getD 0 0 = 255 ∧
+      (sealValue cert counterWidth previousWidth epochWidth indexWidth content record text ephemeralPublic
+        senderPublic ephemeralAgreement staticAgreement).getD 1 [] = advancedRecord cert record staged p ∧
+      (sealValue cert counterWidth previousWidth epochWidth indexWidth content record text ephemeralPublic
+        senderPublic ephemeralAgreement staticAgreement).getD 3 [] =
+        sealV1 i.receiver ephemeralPublic senderPublic ephemeralAgreement staticAgreement certificate p.wire :=
+  TlsMpc.KernelSpecs.SealSend.sealValue_accepted cert counterWidth previousWidth epochWidth indexWidth content record
+    text ephemeralPublic senderPublic ephemeralAgreement staticAgreement opened
+
+/-! `bundle-seal` (a device refresh's first message to a new session) and `establish-session`, by
+value (`TlsMpc/KernelSpecs/{EstablishSealValue, EstablishFirstMessage}.lean`): the PreKey message,
+its sealed-sender envelope against `Reference` transcriptions, the session keys. **K** / **K-fn**.
+T7(b). -/
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+/-- `EstablishSeal.preKeyMessage_value`. -/
+theorem establishSeal_preKeyMessage_value (withOneTime : Bool) (version : Byte) (pending identity signal : List Byte)
+    (hp : pending.length < 2 ^ 32) (hi : identity.length < 2 ^ 32) (hs : signal.length < 2 ^ 32) :
+    Establish.preKeyMessage Sha256.concrete ByteAuth.concrete withOneTime version pending identity signal =
+      preKeySignalMessage varint5 version (u32BE (Establish.part pending 0 4))
+        (if withOneTime then some (u32BE (Establish.part pending 4 4)) else none)
+        (u32BE (Establish.part pending 8 4)) (u32BE (Establish.part pending 12 4))
+        (pending.drop 48) (Establish.part pending 16 32) identity signal :=
+  TlsMpc.KernelSpecs.EstablishSeal.preKeyMessage_value withOneTime version pending identity signal hp hi hs
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+/-- **`Establish.sealedSender` is sealed sender v1 with message type `kind`.** -/
+theorem establishSeal_sealedSender_value (kind : Nat) (hk : kind < 128)
+    (recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner : List Byte)
+    (he : ephemeralPublic.length < 2 ^ 32) (hs : senderPublic.length < 2 ^ 32)
+    (hc : certificate.length < 2 ^ 32) (hi : inner.length < 2 ^ 32) :
+    Establish.sealedSender Aes.concrete Sha256.concrete ByteAuth.concrete kind recipient ephemeralPublic senderPublic
+        ephemeralDh staticDh certificate inner =
+      sealV1Typed kind recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner :=
+  TlsMpc.KernelSpecs.EstablishSeal.sealedSender_value kind hk recipient ephemeralPublic senderPublic ephemeralDh staticDh certificate inner he hs hc hi
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+/-- **`Establish.sealMessage` on concrete values** (the body of `bundle-seal` and `establish-seal`). -/
+theorem establishSeal_sealMessage_value (withOneTime : Bool) (shape : Serialization.Shape) (pqShape : SpqrMessage.Shape)
+    (size : Nat) (session metadata pending certificate localAddress text ephemeralPublic senderPublic
+      ephemeralAgreement staticAgreement : List Byte)
+    (hsession : session.length = 262) (hchunk : pqShape.hasChunk = false)
+    (hbound : pending.length + certificate.length + localAddress.length + size + shape.counterWidth +
+      shape.previousWidth + pqShape.epochWidth + pqShape.indexWidth < 2 ^ 31)
+    (he : ephemeralPublic.length < 2 ^ 32) (hs : senderPublic.length < 2 ^ 32) :
+    Establish.sealMessage Aes.concrete Varint64.concrete Sha256.concrete ByteAuth.concrete withOneTime shape pqShape
+        size session metadata pending certificate localAddress text ephemeralPublic senderPublic ephemeralAgreement
+        staticAgreement =
+      sealMessageValue withOneTime shape pqShape size session metadata pending certificate localAddress text
+        ephemeralPublic senderPublic ephemeralAgreement staticAgreement :=
+  TlsMpc.KernelSpecs.EstablishSeal.sealMessage_value withOneTime shape pqShape size session metadata pending certificate localAddress text ephemeralPublic senderPublic ephemeralAgreement staticAgreement hsession hchunk hbound he hs
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-seal` on every input assignment**: its four outputs (status, conversation record,
+timestamp, envelope) are `sealMessageValue` of the values of its input fields, the record framed by
+the stored certificate and metadata. The only hypothesis bounds the public parameters. -/
+theorem establishSeal_bundleSeal_value (cert : Nat) (withOneTime : Bool) (content counterWidth previousWidth epochWidth indexWidth : Nat)
+    (assign : BVExpr.Assignment)
+    (hbound : cert + content + counterWidth + previousWidth + epochWidth + indexWidth < 2 ^ 30) :
+    let get := fun name => (lookup (BundleKernel.sealInputs cert content) name).map (BVExpr.eval assign)
+    let record := get "conversation"
+    let out := sealMessageValue withOneTime ⟨counterWidth, previousWidth, true⟩ ⟨epochWidth, indexWidth, 0, false⟩
+      content ((record.drop cert).take 262) ((record.drop (cert + 262)).take 57) (get "pending")
+      ((record.drop 0).take cert) (get "localAddress") (get "text") (get "ephemeralPublic") (get "senderPublic")
+      (get "ephemeralAgreement") (get "staticAgreement")
+    ReceiveKernel.values (BundleKernel.bundleSeal cert withOneTime content counterWidth previousWidth epochWidth
+        indexWidth) assign =
+      [out.getD 0 [], (record.drop 0).take cert ++ (out.getD 1 []).take 262 ++ (record.drop (cert + 262)).take 57,
+        ((get "text").drop (2 + content)).take 8, out.getD 2 []] :=
+  TlsMpc.KernelSpecs.EstablishSeal.bundleSeal_value cert withOneTime content counterWidth previousWidth epochWidth indexWidth assign hbound
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **`bundle-seal`, opened status 255**: the opened envelope (output 3) is the reference PreKey
+sealed-sender envelope `envelopeOf` of the kernel's inputs, and the send was accepted. -/
+theorem establishSeal_bundleSeal_accepted (cert : Nat) (withOneTime : Bool)
+    (content counterWidth previousWidth epochWidth indexWidth : Nat) (assign : BVExpr.Assignment)
+    (hbound : cert + content + counterWidth + previousWidth + epochWidth + indexWidth < 2 ^ 30)
+    (opened : (ReceiveKernel.values (BundleKernel.bundleSeal cert withOneTime content counterWidth previousWidth
+      epochWidth indexWidth) assign).getD 0 [] = [255]) :
+    let get := fun name => (lookup (BundleKernel.sealInputs cert content) name).map (BVExpr.eval assign)
+    let record := get "conversation"
+    let session := (record.drop cert).take 262
+    let metadata := (record.drop (cert + 262)).take 57
+    let shape : Serialization.Shape := ⟨counterWidth, previousWidth, true⟩
+    let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 0, false⟩
+    let i := inputOf content session metadata (get "localAddress") (get "text")
+    SpqrSend.accepted shape pqShape i ∧
+      boundAccepted (get "ephemeralAgreement") (get "staticAgreement") (get "senderPublic") i.sender ∧
+      OpenResult.get ByteAuth.concrete (get "text") 0 = 255 ∧
+      (ReceiveKernel.values (BundleKernel.bundleSeal cert withOneTime content counterWidth previousWidth epochWidth
+        indexWidth) assign).getD 3 [] =
+        envelopeOf withOneTime shape pqShape content session metadata (get "pending") ((record.drop 0).take cert)
+          (get "localAddress") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
+          (get "staticAgreement") :=
+  TlsMpc.KernelSpecs.EstablishSeal.bundleSeal_accepted cert withOneTime content counterWidth previousWidth epochWidth indexWidth assign hbound opened
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+/-- The kernel's five groups decode to the value (`n < 2^35`, so every `uint32`). -/
+theorem establishSeal_varint5_decode (n : Nat) (h : n < 2 ^ 35) : leb128 (varint5 n) = n :=
+  TlsMpc.KernelSpecs.EstablishSeal.varint5_decode n h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishSeal TlsMpc.KernelSpecs.EstablishSeal.Reference TlsMpc.KernelSpecs.SealValue.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+/-- libsignal's canonical varint decodes to the value. -/
+theorem establishSeal_varint_decode (n : Nat) : leb128 (varint n) = n :=
+  TlsMpc.KernelSpecs.EstablishSeal.varint_decode n
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishFirst TlsMpc.KernelSpecs.EstablishFirst.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.KernelSpecs.SealValue.Reference (hkdfSha256) in
+open TlsMpc.KernelSpecs.EstablishSeal.Reference (sealV1Typed prekeyMessage preKeySignalMessage varint5 u32BE) in
+/-- `EstablishFirst.keys_value`. -/
+theorem establishFirst_keys_value (dh1 dh2 dh3 oneTime kem ratchetAgreement : List Byte) :
+    Establish.keys Sha256.concrete dh1 dh2 dh3 oneTime kem ratchetAgreement =
+      createChain ((handshakeKeys dh1 dh2 dh3 oneTime kem).take 32) ratchetAgreement ++
+        (handshakeKeys dh1 dh2 dh3 oneTime kem).drop 32 ++
+        spqrChainStart ((handshakeKeys dh1 dh2 dh3 oneTime kem).drop 64) :=
+  TlsMpc.KernelSpecs.EstablishFirst.keys_value dh1 dh2 dh3 oneTime kem ratchetAgreement
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishFirst TlsMpc.KernelSpecs.EstablishFirst.Reference Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.KernelSpecs.SealValue.Reference (hkdfSha256) in
+open TlsMpc.KernelSpecs.EstablishSeal.Reference (sealV1Typed prekeyMessage preKeySignalMessage varint5 u32BE) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **The first message to a new device, end to end over the two kernels.** When
+`establish-session` opened status 255, `bundle-seal`'s `conversation` and `pending` inputs are that
+run's `conversation` and `pending` outputs (the worker's wiring, a hypothesis), and `bundle-seal`
+opened status 255, the opened envelope is `firstEnvelope` of the key agreements (`dh1` … `dh4`,
+`kemSecret`, `ratchetAgreement`), the Kyber ciphertext, the public keys and ids
+`establish-session` was given, and `bundle-seal`'s own text and sealed-sender inputs. -/
+theorem establishFirst_firstMessage_envelope (cert : Nat) (withOneTime : Bool)
+    (content counterWidth previousWidth epochWidth indexWidth : Nat) (sessionAssign sealAssign : BVExpr.Assignment)
+    (hbound : cert + content + counterWidth + previousWidth + epochWidth + indexWidth < 2 ^ 30)
+    (established : (EstablishKernel.Kernel.values (EstablishKernel.establishSession cert withOneTime)
+      sessionAssign).getD 0 [] = [255])
+    (hconversation : (lookup (BundleKernel.sealInputs cert content) "conversation").map (BVExpr.eval sealAssign) =
+      (EstablishKernel.Kernel.values (EstablishKernel.establishSession cert withOneTime) sessionAssign).getD 1 [])
+    (hpending : (lookup (BundleKernel.sealInputs cert content) "pending").map (BVExpr.eval sealAssign) =
+      (EstablishKernel.Kernel.values (EstablishKernel.establishSession cert withOneTime) sessionAssign).getD 2 [])
+    (opened : (ReceiveKernel.values (BundleKernel.bundleSeal cert withOneTime content counterWidth previousWidth
+      epochWidth indexWidth) sealAssign).getD 0 [] = [255]) :
+    let est := fun name =>
+      (lookup (EstablishKernel.sessionInputs cert withOneTime) name).map (BVExpr.eval sessionAssign)
+    let sealIn := fun name => (lookup (BundleKernel.sealInputs cert content) name).map (BVExpr.eval sealAssign)
+    (ReceiveKernel.values (BundleKernel.bundleSeal cert withOneTime content counterWidth previousWidth epochWidth
+        indexWidth) sealAssign).getD 3 [] =
+      firstEnvelope withOneTime ⟨counterWidth, previousWidth, true⟩ ⟨epochWidth, indexWidth, 0, false⟩ content
+        (est "dh1") (est "dh2") (est "dh3") (est "dh4") (est "kemSecret") (est "ratchetAgreement")
+        (est "kemCiphertext") (est "basePublic") (est "ratchetPublic") (est "senderPublic") (est "identityKey")
+        (est "certificate") (est "uuid") (est "deviceId") (est "localRegistrationId") (est "oneTimePrekeyId")
+        (est "signedPrekeyId") (est "kyberPrekeyId") (sealIn "localAddress") (sealIn "text")
+        (sealIn "ephemeralPublic") (sealIn "senderPublic") (sealIn "ephemeralAgreement") (sealIn "staticAgreement") :=
+  TlsMpc.KernelSpecs.EstablishFirst.firstMessage_envelope cert withOneTime content counterWidth previousWidth epochWidth indexWidth sessionAssign sealAssign hbound established hconversation hpending opened
 
 open TlsMpc.KernelSpecs.SealFixed Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **A refused seal (opened status 0) opens an all-zero envelope.** **K**. -/
@@ -1378,31 +1613,29 @@ theorem bundleItem_rejects (first last : Bool) (w : BundleResponse.Widths) (assi
   TlsMpc.KernelSpecs.PointsAndItem.bundleItem_rejects first last w assign failed
 
 /-! ### 2d. What the request sealers send, `bundle-item` on the whole body, the width flags, the
-slot encoders (TlsMpc/KernelSpecs/{RequestFrame, BundleItemWhole, WidthFlags, SlotEncoders,
-SlotBase64, SlotDecimal}.lean)
+slot encoders (TlsMpc/KernelSpecs/{RequestFrame, SealFrame, BundleItemWhole, WidthFlags,
+SlotEncoders, SlotBase64, SlotDecimal}.lean)
 
-The request builders `PublicRequest.build`/`buildFetch`/`buildDevices` live in the controller's
-executable root, which this file does not import (section 4). The entries below are about
-`RequestFrame.Mirror.*`, restated character for character with the byte operations as a
-parameter; `TlsMpc/KernelSpecs/RequestFrameBridge.lean` (checked on its own, not imported here)
-proves `PublicRequest.build = Mirror.build PublicReceive.fast`, `PublicRequest.buildFetch =
-Mirror.buildFetch` and `PublicRequest.buildDevices = Mirror.buildDevices PublicReceive.fast`. Those
-entries are **C** (the builders) composed with **K** (the kernels). -/
+The entries below are about the request builders the controller runs,
+`PublicRequest.build`/`buildFetch`/`buildDevices` and the messages they frame
+(`sendMessage`/`fetchMessage`/`devicesMessage`), in `TlsMpc/Node/Policy/Request.lean` (moved out of
+the controller's executable root in stage S2; there is no restated copy). Those entries are **C**
+(the builders) composed with **K** (the kernels). -/
 
-open TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror in
+open TlsMpc.KernelSpecs.RequestFrame PublicRequest in
 /-- **Every frame `build` returns has the 8-byte WebSocket header** `[130, 254, size / 256, size] ‖
 mask` (payload of 126..65535 bytes), followed by the built payload (text masked, slots zero); the
 offsets are those the slot pieces set. So `signal-request-ctr`'s fixed payload start 8 is right for
-every frame the controller builds for it. **C** (mirror + bridge). T8. -/
-theorem requestBuild_ok (ops : ByteAuth.Ops (BitVec 8)) (envelope : List (BitVec 8)) (timestamp id : Nat)
+every frame the controller builds for it. **C**. T8. -/
+theorem requestBuild_ok (envelope : List (BitVec 8)) (timestamp id : Nat)
     (mask frame : List (BitVec 8)) (official : Bool) (offsets : List Nat)
-    (built : build ops envelope timestamp id mask official = .ok (frame, offsets)) :
-    let msg := sendMessage ops envelope timestamp id official
+    (built : build envelope timestamp id mask official = .ok (frame, offsets)) :
+    let msg := sendMessage envelope timestamp id official
     126 ≤ total msg ∧ total msg < 65536 ∧ mask.length = 4 ∧ (buildHeader (total msg) mask).length = 8 ∧
       frame = buildHeader (total msg) mask ++ body mask 0 msg ∧ offsets = (offsetsFold #[0, 0, 0, 0] 8 msg).toList :=
-  TlsMpc.KernelSpecs.RequestFrame.build_ok ops envelope timestamp id mask frame official offsets built
+  TlsMpc.KernelSpecs.RequestFrame.build_ok envelope timestamp id mask frame official offsets built
 
-open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror in
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame PublicRequest in
 /-- **Slots never overlap, the built frame is zero in each, and inserting values of the slots'
 widths at the builder's offsets gives the frame of the filled message**: `header ‖ masked(render
 values msg)`, whatever the order of the kernel's slot list. Value level. **C**. T7(a), T8. -/
@@ -1415,30 +1648,30 @@ theorem requestInsertSlots_offsets (header mask : List (BitVec 8)) (msg : List P
       header ++ maskFrom mask 0 (render values msg) :=
   TlsMpc.KernelSpecs.RequestFrame.insertSlots_offsets header mask msg values O ks fits same nodup small
 
-open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame PublicRequest Std.Tactic.BVDecide
   TlsMpc.Signal in
 open TlsMpc.HybridKernel (lookup) in
 /-- **`signal-request-ctr` on a frame `build` returned seals exactly the WebSocket frame of the
 request with the contact's UUID, base64 access key and space-padded device and registration ids in
 place of its four slots** (masked with the frame's mask), released under `valid`. **K** + **C**.
 T7(a), T8. -/
-theorem signalRequestCtr_built (ops : ByteAuth.Ops (BitVec 8)) (envelope : List (BitVec 8)) (timestamp id : Nat)
+theorem signalRequestCtr_built (envelope : List (BitVec 8)) (timestamp id : Nat)
     (mask frame : List (BitVec 8)) (official : Bool) (offsets : List Nat)
-    (built : build ops envelope timestamp id mask official = .ok (frame, offsets))
+    (built : build envelope timestamp id mask official = .ok (frame, offsets))
     (cert : Nat) (assign : BVExpr.Assignment)
     (hframe : (lookup (signalRequestInputs cert frame.length) "frame").map (BVExpr.eval assign) = frame)
     (hmask : (lookup (signalRequestInputs cert frame.length) "mask").map (BVExpr.eval assign) = mask) :
     let get := fun name => (lookup (signalRequestInputs cert frame.length) name).map (BVExpr.eval assign)
-    let msg := sendMessage ops envelope timestamp id official
+    let msg := sendMessage envelope timestamp id official
     (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
         (offsets.getD 3 0)).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
       sealedRequest (get "clientApplication") (get "sequence")
         (buildHeader (total msg) mask ++ maskFrom mask 0 (render (requestValues cert (get "conversation")) msg))
         (signalRequestSlots cert 0 0 0 0 (get "conversation")).1 :=
-  TlsMpc.KernelSpecs.RequestFrame.signalRequestCtr_built ops envelope timestamp id mask frame official offsets built
+  TlsMpc.KernelSpecs.RequestFrame.signalRequestCtr_built envelope timestamp id mask frame official offsets built
     cert assign hframe hmask
 
-open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame PublicRequest Std.Tactic.BVDecide
   TlsMpc.Signal in
 open TlsMpc.HybridKernel (lookup) in
 /-- **`bundle-fetch-ctr` on a frame `buildFetch` returned seals exactly the frame of
@@ -1456,28 +1689,145 @@ theorem bundleFetchCtr_built (id : Nat) (mask frame : List (BitVec 8)) (payloadA
         (liveValue (get "record")) :=
   TlsMpc.KernelSpecs.RequestFrame.bundleFetchCtr_built id mask frame payloadAt offsets built assign hframe hmask
 
-open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame TlsMpc.KernelSpecs.RequestFrame.Mirror Std.Tactic.BVDecide
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.RequestFrame PublicRequest Std.Tactic.BVDecide
   TlsMpc.Signal in
 open TlsMpc.HybridKernel (lookup) in
 /-- **`bundle-request-ctr` on a frame `buildDevices` returned seals exactly the frame of
 `PUT /v1/messages/{uuid}` with the UUID, access key and every device's padded ids in place**, the
 kernel named with the device offsets paired as `find` pairs them. **K** + **C**. T7(a), T8. -/
-theorem bundleRequestCtr_built (ops : ByteAuth.Ops (BitVec 8)) (envelopes : List (List (BitVec 8))) (timestamp id : Nat)
+theorem bundleRequestCtr_built (envelopes : List (List (BitVec 8))) (timestamp id : Nat)
     (mask frame : List (BitVec 8)) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
-    (built : buildDevices ops envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
+    (built : buildDevices envelopes timestamp id mask official = .ok (frame, payloadAt, offsets))
     (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
     (assign : BVExpr.Assignment)
     (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
     (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask) :
     let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
-    let msg := devicesMessage ops envelopes timestamp id official
+    let msg := devicesMessage envelopes timestamp id official
     (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
         (fun field => field.value.map (BVExpr.eval assign)) =
       sealedRequest (get "clientApplication") (get "sequence")
         (assembleHeader (total msg) mask ++ maskFrom mask 0 (render (devicesValues (get "records")) msg))
         (bundleRequestValue (get "records") (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
-  TlsMpc.KernelSpecs.RequestFrame.bundleRequestCtr_built ops envelopes timestamp id mask frame official payloadAt
+  TlsMpc.KernelSpecs.RequestFrame.bundleRequestCtr_built envelopes timestamp id mask frame official payloadAt
     offsets built devices paired assign hframe hmask
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.SealFixed TlsMpc.KernelSpecs.SealValue.Reference
+  TlsMpc.KernelSpecs.RequestFrame Std.Tactic.BVDecide TlsMpc.Signal in
+open PublicRequest (sendMessage build total) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **What the Signal server receives for an accepted send** (T7 (b) composed with (a)): when
+`signal-seal-official` / `signal-seal-built` opened status 255 and the controller built the request
+frame with the opened envelope (`PublicRequest.build`), the reference send step accepts and the
+`signal-request-ctr` kernel's outputs are the TLS record of the masked WebSocket frame of
+`sendMessage envelope …` with the contact's UUID, access key, device and registration ids in their
+slots, where `envelope` is sealed sender v1 (`Reference.sealV1`) of the Signal message of
+`SpqrSend.canonical` on the stored state (`TlsMpc/KernelSpecs/SealFrame.lean`). Trusted: the C++
+worker passes the opened envelope, frame, mask and offsets unchanged. **K** + **C**. T7. -/
+theorem serverReceives_accepted (cert counterWidth previousWidth epochWidth indexWidth classes : Nat)
+    (official : Bool) (sealAssign : BVExpr.Assignment)
+    (hbound : cert + contentBytes classes official + counterWidth + previousWidth + epochWidth + indexWidth < 2 ^ 31)
+    (accepted : ((HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes
+      official).outputs.map (fun field => field.value.map (BVExpr.eval sealAssign))).getD 0 [] = [255])
+    (timestamp id : Nat) (mask frame : List (BitVec 8)) (offsets : List Nat)
+    (built : build (((HybridKernel.signalSealFixed cert counterWidth previousWidth epochWidth indexWidth true classes
+      official).outputs.map (fun field => field.value.map (BVExpr.eval sealAssign))).getD 3 [])
+      timestamp id mask official = .ok (frame, offsets))
+    (assign : BVExpr.Assignment)
+    (hframe : (lookup (signalRequestInputs cert frame.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (signalRequestInputs cert frame.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (sealInputs cert classes official) name).map (BVExpr.eval sealAssign)
+    let record := get "conversation"
+    let text := get "text"
+    let shape : Serialization.Shape := ⟨counterWidth, previousWidth, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨epochWidth, indexWidth, 1, false⟩
+    let i := inputOf 0 (stagedOf ((record.drop cert).take (182 + 80)) text) text (contentBytes classes official)
+    let envelope := sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
+      (get "staticAgreement") ((record.drop 0).take cert) (SpqrSend.canonical shape pqShape i).wire
+    let msg := sendMessage envelope timestamp id official
+    let requestGet := fun name => (lookup (signalRequestInputs cert frame.length) name).map (BVExpr.eval assign)
+    SpqrSend.accepted shape pqShape i ∧
+    (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
+        (offsets.getD 3 0)).outputs.map (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (requestGet "clientApplication") (requestGet "sequence")
+        (buildHeader (total msg) mask ++ maskFrom mask 0 (render (requestValues cert (requestGet "conversation")) msg))
+        (signalRequestSlots cert 0 0 0 0 (requestGet "conversation")).1 :=
+  TlsMpc.KernelSpecs.SealFrame.serverReceives_accepted cert counterWidth previousWidth epochWidth indexWidth classes
+    official sealAssign hbound accepted timestamp id mask frame offsets built assign hframe hmask
+
+/-! What the server receives for a send after a device refresh (`bundle-seal` per device, then
+`bundle-request-ctr` over the opened envelopes; `TlsMpc/KernelSpecs/{EstablishDevices,
+EstablishRequest}.lean`), about the controller's own `buildDevices`. **K** + **C**. T7. -/
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishDevices Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **Every device accepted ⇒ the opened envelopes are the reference envelopes, in order.** -/
+theorem establishDevices_openedEnvelopes_reference (cert content : Nat) (ds : List DeviceSeal)
+    (hb : ∀ d ∈ ds, d.bounded cert content)
+    (opened : ∀ d ∈ ds, (d.outputs cert content).getD 0 [] = [255]) :
+    ds.map (fun d => (d.outputs cert content).getD 3 []) = ds.map (fun d => d.reference cert content) :=
+  TlsMpc.KernelSpecs.EstablishDevices.openedEnvelopes_reference cert content ds hb opened
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishDevices Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **The first message after a refresh**: device by device, the opened envelope is the first
+PreKey sealed-sender message of the session its `establish-session` run set up. -/
+theorem establishDevices_openedEnvelopes_first (cert content : Nat) (ps : List (DeviceSession × DeviceSeal))
+    (hb : ∀ p ∈ ps, p.2.bounded cert content) (hw : ∀ p ∈ ps, wired cert content p) :
+    ps.map (fun p => (p.2.outputs cert content).getD 3 []) = ps.map (firstOf cert content) :=
+  TlsMpc.KernelSpecs.EstablishDevices.openedEnvelopes_first cert content ps hb hw
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishRequest Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.KernelSpecs.EstablishDevices (DeviceSeal DeviceSession firstOf wired) in
+open PublicRequest (buildDevices devicesMessage total) in
+open TlsMpc.KernelSpecs.RequestFrame (assembleHeader maskFrom render devicesValues) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **The bytes the server receives for an accepted send to several unanswered devices.** -/
+theorem establishRequest_serverReceives_refresh (cert content : Nat) (ds : List DeviceSeal)
+    (hb : ∀ d ∈ ds, d.bounded cert content) (opened : ∀ d ∈ ds, (d.outputs cert content).getD 0 [] = [255])
+    (timestamp id : Nat) (mask frame : List Byte) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices (ds.map (fun d => (d.outputs cert content).getD 3 [])) timestamp id mask official =
+      .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (assign : BVExpr.Assignment)
+    (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
+    let msg := devicesMessage (ds.map (fun d => d.reference cert content)) timestamp id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (assembleHeader (total msg) mask ++ maskFrom mask 0 (render (devicesValues (get "records")) msg))
+        (bundleRequestValue (get "records") (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  TlsMpc.KernelSpecs.EstablishRequest.serverReceives_refresh cert content ds hb opened timestamp id mask frame official payloadAt offsets built devices paired assign hframe hmask
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.EstablishRequest Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.KernelSpecs.SealValue (Byte) in
+open TlsMpc.KernelSpecs.EstablishDevices (DeviceSeal DeviceSession firstOf wired) in
+open PublicRequest (buildDevices devicesMessage total) in
+open TlsMpc.KernelSpecs.RequestFrame (assembleHeader maskFrom render devicesValues) in
+open TlsMpc.HybridKernel (lookup) in
+/-- **The first message after a refresh, as the server receives it**: each device's envelope is the
+first PreKey sealed-sender message of the session its `establish-session` run set up. -/
+theorem establishRequest_serverReceives_refresh_first (cert content : Nat) (ps : List (DeviceSession × DeviceSeal))
+    (hb : ∀ p ∈ ps, p.2.bounded cert content) (hw : ∀ p ∈ ps, wired cert content p)
+    (timestamp id : Nat) (mask frame : List Byte) (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (built : buildDevices (ps.map (fun p => (p.2.outputs cert content).getD 3 [])) timestamp id mask official =
+      .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (paired : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (assign : BVExpr.Assignment)
+    (hframe : (lookup (requestInputsOf frame.length devices.length) "frame").map (BVExpr.eval assign) = frame)
+    (hmask : (lookup (requestInputsOf frame.length devices.length) "mask").map (BVExpr.eval assign) = mask) :
+    let get := fun name => (lookup (requestInputsOf frame.length devices.length) name).map (BVExpr.eval assign)
+    let msg := devicesMessage (ps.map (firstOf cert content)) timestamp id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun field => field.value.map (BVExpr.eval assign)) =
+      sealedRequest (get "clientApplication") (get "sequence")
+        (assembleHeader (total msg) mask ++ maskFrom mask 0 (render (devicesValues (get "records")) msg))
+        (bundleRequestValue (get "records") (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  TlsMpc.KernelSpecs.EstablishRequest.serverReceives_refresh_first cert content ps hb hw timestamp id mask frame official payloadAt offsets built devices paired assign hframe hmask
 
 open TlsMpc.KernelSpecs.BundleItemWhole TlsMpc.Signal BundleResponse in
 /-- **Locality of `BundleResponse.device`:** it reads only the header, the item, the separator
@@ -1509,8 +1859,8 @@ open TlsMpc.KernelSpecs.BundleItemWhole Std.Tactic.BVDecide TlsMpc.Signal Bundle
 open TlsMpc.HybridKernel (lookup) in
 open TlsMpc.ReceiveKernel (values) in
 /-- **`bundle-slot` computes `BundleSlots.deviceSlots` on the whole response body with the item
-spliced into the slot layout.** **K**. That `deviceSlots` on the spliced item equals `device` on
-the original is NOT proved (section 8). -/
+spliced into the slot layout.** **K**. That this is `device` on the original item (the body the
+server sent) is `bundleSlot_device` below. -/
 theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment) (X : List (BitVec 8))
     (start : Nat) (placed : Placed X.length first last start (size (item (BundleSlots.slots oneTime))))
     (inputs : let get := fun name => (lookup (BundleSlotKernel.slotInputs first last oneTime) name).map (BVExpr.eval assign)
@@ -1523,6 +1873,210 @@ theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment
         out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
       (if oneTime then [out.getD 10 [], out.getD 11 []] else []) :=
   TlsMpc.KernelSpecs.BundleItemWhole.bundleSlot_whole first last oneTime assign X start placed inputs
+
+/-! `bundle-slot` against `BundleResponse.device` on the body the server sent
+(`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). The slot check, the splice, the item: **K-fn**; the
+kernel on the cut of the body: **K**. Trusted: the C++ worker binds `head`/`before`/`item`/`after`/
+`end` as stated and passes the splice and `widths` from the same digit counts. Caveat
+`inconsistent_width_accepts` (section 8). -/
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **A slot of `m` bytes holding `m − n` zeros and then `n` characters, checked with the declared
+width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
+theorem slotValid_pad (limit : Nat) (cs : List Byte) (m : Nat) (h1 : 1 ≤ cs.length) (hnm : cs.length ≤ m)
+    (hm : m < 256) :
+    BundleSlots.slotValid ByteAuth.concrete limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 48 ++ cs) =
+      numberValid ByteAuth.concrete limit cs :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.slotValid_pad limit cs m h1 hnm hm
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **(a) `deviceSlots` on the item spliced with the digit counts `w` is `device` with `w` on the
+item as it was**, the response around it unchanged (`pre` holds the header and the byte before
+the item, `post` what follows it). -/
+theorem deviceSlots_splice (w : Widths) (ok : w.ok = true) (pre I post : List Byte)
+    (hI : I.length = size (item w)) (hpre : firstItem ≤ pre.length) (hpost : 2 ≤ post.length) :
+    BundleSlots.deviceSlots ByteAuth.concrete
+        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        pre.length (w.oneTime != 0) (widthBytes w)
+        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
+      BundleResponse.device ByteAuth.concrete (pre ++ I ++ post).length pre.length w (pre ++ I ++ post) :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.deviceSlots_splice w ok pre I post hI hpre hpost
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **(b) The splice produces the slot layout.** For an item laid out for the digit counts `w`
+(`size (item w)` bytes), `BundleSlots.spliced w` (what the runtime does, from `splice w`) has
+the size of the slot item; its template text is in place exactly when the original's is; and
+each of its fields is the original field preceded by `z`s up to the slot's size (base64 fields,
+whose sizes do not change, are copied as they are). -/
+theorem spliced_layout {B : Type} (a : ByteAuth.Ops B) (z : B) (w : Widths) (ok : w.ok = true) (I : List B)
+    (hI : I.length = size (item w)) :
+    (BundleSlots.spliced w I z).length = size (item (BundleSlots.slots (w.oneTime != 0))) ∧
+      literals a (BundleSlots.spliced w I z) 0 (item (BundleSlots.slots (w.oneTime != 0))) = literals a I 0 (item w) ∧
+      ∀ k, fieldOf (BundleSlots.spliced w I z) 0 (item (BundleSlots.slots (w.oneTime != 0))) k =
+        List.replicate (fieldSize (item (BundleSlots.slots (w.oneTime != 0))) k - fieldSize (item w) k) z ++
+          fieldOf I 0 (item w) k :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.spliced_layout a z w ok I hI
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-slot` computes `BundleResponse.device` on the body the server sent.** Let `X` be
+the response body and the item of digit counts `w` (`w.ok`, as `layout?` returns them) start at
+`start`, placed as `layout?` places it. If the kernel `bundle-slot FIRST LAST ONETIME` (with
+`ONETIME` = whether `w` has a one-time prekey, as `BundleSlotKernel.arguments` chooses it) gets
+as `head`, `before`, `item`, `after`, `end` the header, the byte before the item, the item spliced
+by `BundleSlots.spliced w`, the byte after it and the body's last two bytes, and as `widths` the
+five digit counts, then its outputs are `BundleResponse.device` on `X` at `start` with `w`:
+exactly the outputs `bundle-item` has (`BundleItemWhole.bundleItem_whole`). -/
+theorem bundleSlot_device (first last : Bool) (w : Widths) (ok : w.ok = true) (assign : BVExpr.Assignment)
+    (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
+    (inputs : let get := fun name =>
+        (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
+          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
+    (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
+      widthBytes w) :
+    let out := BundleResponse.device ByteAuth.concrete X.length start w X
+    values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []]) :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_device first last w ok assign X start placed inputs widths
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-slot` and `bundle-item` give the same outputs** on the same item of the same body:
+the first fed the splice and the digit counts, the second the item as it is. -/
+theorem bundleSlot_eq_bundleItem (first last : Bool) (w : Widths) (ok : w.ok = true) (X : List Byte) (start : Nat)
+    (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
+    (assign assign' : BVExpr.Assignment)
+    (inputs : let get := fun name =>
+        (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
+          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
+    (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
+      widthBytes w)
+    (inputs' : let get := fun name => (lookup (BundleItemKernel.itemInputs first last w) name).map (BVExpr.eval assign')
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        BundleItemWhole.cut X first last start (size (item w))) :
+    values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
+      values (BundleItemKernel.bundleItem first last w) assign' :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_eq_bundleItem first last w ok X start placed assign assign' inputs widths inputs'
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **Only one set of digit counts parses an item.** If `device` accepts the item at `s` with
+digit counts `w` and with `w'`, then `w = w'`. -/
+theorem device_unique (X : List Byte) (s : Nat) (w w' : Widths)
+    (hv : (BundleResponse.device ByteAuth.concrete X.length s w X).getD 0 [] = [255])
+    (hv' : (BundleResponse.device ByteAuth.concrete X.length s w' X).getD 0 [] = [255]) : w = w' :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.device_unique X s w w' hv hv'
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **Wrong digit counts: `bundle-slot` refuses.** If the item at `start` of the body `X` is
+accepted by `device` with its true digit counts `w`, and the runtime instead splices it with,
+and passes as `widths`, other counts `w'` (within `Widths.ok`, the cut placed for `w'`), every
+output of the kernel is zero, the validity byte included: nothing is released, in particular
+no other number. -/
+theorem bundleSlot_wrong_counts (first last : Bool) (w w' : Widths) (ok' : w'.ok = true) (assign : BVExpr.Assignment)
+    (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w')))
+    (inputs : let get := fun name =>
+        (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
+    (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
+      widthBytes w')
+    (accepted : (BundleResponse.device ByteAuth.concrete X.length start w X).getD 0 [] = [255]) (wrong : w' ≠ w) :
+    ∀ field ∈ values (BundleSlotKernel.bundleSlot first last (w'.oneTime != 0)) assign, ∀ byte ∈ field, byte = 0 :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_wrong_counts first last w w' ok' assign X start placed inputs widths accepted wrong
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-slot` either parses the item exactly as `device` does with the only digit counts
+that fit, or releases nothing.** For whatever digit counts `w'` (within `Widths.ok`) the runtime
+splices the item with and passes as `widths`: either `device` accepts the item with `w'`, `w'` is
+the only set of digit counts with which it does, and the kernel's outputs are `device`'s; or every
+output of the kernel, the validity byte included, is zero. -/
+theorem bundleSlot_parses_or_refuses (first last : Bool) (w' : Widths) (ok' : w'.ok = true)
+    (assign : BVExpr.Assignment) (X : List Byte) (start : Nat)
+    (placed : BundleItemWhole.Placed X.length first last start (size (item w')))
+    (inputs : let get := fun name =>
+        (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
+    (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
+      widthBytes w') :
+    ((BundleResponse.device ByteAuth.concrete X.length start w' X).getD 0 [] = [255] ∧
+      (∀ w, (BundleResponse.device ByteAuth.concrete X.length start w X).getD 0 [] = [255] → w = w') ∧
+      let out := BundleResponse.device ByteAuth.concrete X.length start w' X
+      values (BundleSlotKernel.bundleSlot first last (w'.oneTime != 0)) assign =
+        [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+          out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+        (if w'.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
+    (∀ field ∈ values (BundleSlotKernel.bundleSlot first last (w'.oneTime != 0)) assign, ∀ byte ∈ field, byte = 0) :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_parses_or_refuses first last w' ok' assign X start placed inputs widths
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.Establish (part) in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+open TlsMpc.HybridKernel (lookup) in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If `device`
+accepts the item at `start` of `X` with digit counts `w` and the runtime splices it with `w`,
+then for ANY five bytes as `widths` the kernel either gives exactly `device`'s outputs (those of
+`bundle-item`) or releases nothing at all. -/
+theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true) (assign : BVExpr.Assignment)
+    (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
+    (inputs : let get := fun name =>
+        (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
+      get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
+        part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
+          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
+    (accepted : (BundleResponse.device ByteAuth.concrete X.length start w X).getD 0 [] = [255]) :
+    (let out := BundleResponse.device ByteAuth.concrete X.length start w X;
+      values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
+        [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+          out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+        (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
+    (∀ field ∈ values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign, ∀ byte ∈ field, byte = 0) :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_any_widths first last w ok assign X start placed inputs accepted
 
 open TlsMpc.KernelSpecs.WidthFlags TlsMpc.KernelSpecs.SignalKernels in
 /-- **A width flag is 255 exactly when the big-endian value is at least 2^(7(k+1))** (flag k,
@@ -1780,7 +2334,7 @@ theorem receive_prekeyOpen_rejects (p : ReceiveFirst.PreKeyShape) (size : Nat)
 
 open TlsMpc.ReceiveKernel Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **`session` with status 0 outputs only zeros.** **K**. The accept direction (status 255 ⇒
-MAC verified) is NOT proved (T13, section 8). SECURITY_MAP C.3. -/
+MAC verified): `receiveAccept_session_status_iff` (section 3a). SECURITY_MAP C.3. -/
 theorem receive_session_rejects (p : ReceiveFirst.PreKeyShape) (q : ReceiveFirst.SignalShape) (size jump : Nat)
     (message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement
       sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId : List (BitVec 8))
@@ -1919,22 +2473,660 @@ theorem preKeyValidation_finish_spec (constructed : List (BitVec 8)) (trust ec p
         (if code = 0 then constructed.drop 2 else List.replicate (constructed.length-2) 0) :=
   TlsMpc.Signal.PreKeyValidation.finish_spec constructed trust ec pq
 
+/-! ### 3a. Receive, accept direction (T13): what an accepted receive implies and opens
+(`TlsMpc/KernelSpecs/{ReceiveAccept, ReceiveAcceptText, ReceiveAcceptAccessKey}.lean`)
+
+`receive-session` status 255 holds exactly when the MAC verified under libsignal's keys and the
+other checks passed; with the controller's wiring it also implies the certificate checks; every
+receive kernel's refusal releases nothing, and what an accepted one opens is stated. The opened
+field names of every receive kernel are listed (`receiveAccept_opened_*`). **K** (the session,
+text and access-key kernels on concrete values), **K-fn** where stated. One DEFECT is recorded
+as a counterexample pair: `receive-text` accepts a body longer than its DataMessage
+(`receiveAcceptText_overlongBody_*`; NEEDS_REVIEW.md 3f). -/
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-session` status 255, exactly.** The status is 255 if and only if
+
+* every earlier check byte (`prekeyValid`, `verified`) is 255 and no agreement is all zero;
+* the PreKeySignalMessage has layout `p`, carries the sender identity `senderIdentity`;
+* the base key is a valid, torsion-free point (`baseValid`, `torsionX`, `torsionY`);
+* the SignalMessage has layout `q` and, if it carries addresses, they are (sender, us);
+* its counter is some `n ≤ jump` and its post-quantum index some `1 + i ≤ 1 + jump`;
+* the MAC verifies under libsignal's MAC key for chain key `n` and post-quantum key `i`
+  (`MessageMac.tag`: HMAC-SHA256 over `05 ‖ sender ‖ 05 ‖ us ‖ message`, first 8 bytes); and
+* the AES-256-CBC decryption under the cipher key and IV of those same keys has valid padding. -/
+theorem receiveAccept_session_status_iff (p : PreKeyShape) (q : SignalShape) (size : Nat) (jump : Nat) (message : List (BitVec 8)) (checks : List (BitVec 8)) (senderIdentity : List (BitVec 8)) (ourIdentity : List (BitVec 8)) (localAddress : List (BitVec 8)) (uuid : List (BitVec 8)) (device : List (BitVec 8)) (dh1 : List (BitVec 8)) (dh2 : List (BitVec 8)) (dh3 : List (BitVec 8)) (oneTime : List (BitVec 8)) (kem : List (BitVec 8)) (receiveAgreement : List (BitVec 8)) (sendAgreement : List (BitVec 8)) (ratchetPublic : List (BitVec 8)) (baseValid : List (BitVec 8)) (torsionX : List (BitVec 8)) (torsionY : List (BitVec 8)) (certificate : List (BitVec 8)) (accessKey : List (BitVec 8)) (requestId : List (BitVec 8)) (hjump : jump ≤ 16) :
+    (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+      ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+      baseValid torsionX torsionY certificate accessKey requestId).getD 0 [] = [255] ↔
+    ((∀ c ∈ checks, c = 255) ∧
+      (∀ g ∈ [dh1, dh2, dh3, oneTime, receiveAgreement, sendAgreement], g ≠ List.replicate 32 0) ∧
+      prekeyMask ByteAuth.concrete p size message = 255 ∧
+      Establish.part message (p.keysAt + 38) 32 = senderIdentity ∧
+      baseValid = ByteAuth.concrete.const 1 :: List.replicate 31 (ByteAuth.concrete.const 0) ∧
+      torsionX = List.replicate 32 (ByteAuth.concrete.const 0) ∧
+      torsionY = List.replicate 32 (ByteAuth.concrete.const 0) ∧
+      signalMask ByteAuth.concrete q (p.signalSize size) (signalWire p size message)
+        (expectedAddresses localAddress uuid device) = 255) ∧
+    ∃ n, (n ≤ jump ∧ counterBytes q (signalWire p size message) = numberBytes ByteAuth.concrete n) ∧
+    ∃ i, (i ≤ jump ∧ pqIndexBytes q (p.signalSize size) (signalWire p size message) =
+        numberBytes ByteAuth.concrete (1 + i)) ∧
+      MessageMac.tag Sha256.concrete
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.macKey
+          senderIdentity ourIdentity (MessageMac.content (signalWire p size message)) =
+        MessageMac.receivedTag (signalWire p size message) ∧
+      OpenResult.get ByteAuth.concrete (CbcOpen.openCore AesInverse.concrete ByteAuth.concrete
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.cipherKey
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.iv
+          (Establish.part (signalWire p size message) q.cipherAt q.ciphertext)) 0 = 255 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.session_status_iff p q size jump message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId hjump
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **What `receive-session` releases when its status is 255.** For the counter `n` and
+post-quantum index `1 + i` of `session_status_iff`:
+
+* `plaintext` (output 3, the input of `receive-text` and `receive-access-key`) is exactly the
+  AES-256-CBC decryption with PKCS#7 unpadding (`CbcOpen.openCore`, without its status byte) of the
+  message's ciphertext under libsignal's cipher key and IV for that counter;
+* the receiver record (output 2) stores the root key, the NEXT chain key (`n + 1`), the sender's
+  ratchet key, the next counter, the post-quantum root, the next post-quantum chain key, the index
+  and the sender's base key;
+* the conversation record (output 1) is the send kernels' record built from the session keys. -/
+theorem receiveAccept_session_accept_outputs (p : PreKeyShape) (q : SignalShape) (size : Nat) (jump : Nat) (message : List (BitVec 8)) (checks : List (BitVec 8)) (senderIdentity : List (BitVec 8)) (ourIdentity : List (BitVec 8)) (localAddress : List (BitVec 8)) (uuid : List (BitVec 8)) (device : List (BitVec 8)) (dh1 : List (BitVec 8)) (dh2 : List (BitVec 8)) (dh3 : List (BitVec 8)) (oneTime : List (BitVec 8)) (kem : List (BitVec 8)) (receiveAgreement : List (BitVec 8)) (sendAgreement : List (BitVec 8)) (ratchetPublic : List (BitVec 8)) (baseValid : List (BitVec 8)) (torsionX : List (BitVec 8)) (torsionY : List (BitVec 8)) (certificate : List (BitVec 8)) (accessKey : List (BitVec 8)) (requestId : List (BitVec 8)) (hjump : jump ≤ 16)
+    (h : (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+      ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+      baseValid torsionX torsionY certificate accessKey requestId).getD 0 [] = [255]) :
+    ∃ n i, (n ≤ jump ∧ counterBytes q (signalWire p size message) = numberBytes ByteAuth.concrete n) ∧
+      (i ≤ jump ∧ pqIndexBytes q (p.signalSize size) (signalWire p size message) =
+        numberBytes ByteAuth.concrete (1 + i)) ∧
+      (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+        ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+        baseValid torsionX torsionY certificate accessKey requestId).getD 1 [] =
+        certificate ++ Establish.session ByteAuth.concrete 80 ratchetPublic
+          (Establish.part (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) 96 32)
+          (Establish.part (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) 192 32)
+          ourIdentity senderIdentity ++
+        Establish.metadata ByteAuth.concrete uuid accessKey requestId device
+          (varintValue ByteAuth.concrete (Establish.part message (p.idsAt size + 1) p.registration)) ∧
+      (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+        ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+        baseValid torsionX torsionY certificate accessKey requestId).getD 2 [] =
+        Establish.part (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) 64 32 ++
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).nextChainKey ++
+          Establish.part (signalWire p size message) 4 32 ++
+          ChainSend.nextCounter Sha256.concrete ByteAuth.concrete (counterBytes q (signalWire p size message)) ++
+          Establish.part (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) 128 32 ++
+          Establish.part (pqMaterial (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump i) 0 32 ++
+          pqIndexBytes q (p.signalSize size) (signalWire p size message) ++
+          Establish.part message (p.keysAt + 3) 32 ∧
+      (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+        ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+        baseValid torsionX torsionY certificate accessKey requestId).getD 3 [] =
+        (CbcOpen.openCore AesInverse.concrete ByteAuth.concrete
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.cipherKey
+          (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.iv
+          (Establish.part (signalWire p size message) q.cipherAt q.ciphertext)).drop 1 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.session_accept_outputs p q size jump message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId hjump h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-session`'s status is 255 or 0** (so `session_rejects` covers every non-accepted
+status: nothing is ever released under a partial mask). -/
+theorem receiveAccept_session_status_cases (p : PreKeyShape) (q : SignalShape) (size : Nat) (jump : Nat) (message : List (BitVec 8)) (checks : List (BitVec 8)) (senderIdentity : List (BitVec 8)) (ourIdentity : List (BitVec 8)) (localAddress : List (BitVec 8)) (uuid : List (BitVec 8)) (device : List (BitVec 8)) (dh1 : List (BitVec 8)) (dh2 : List (BitVec 8)) (dh3 : List (BitVec 8)) (oneTime : List (BitVec 8)) (kem : List (BitVec 8)) (receiveAgreement : List (BitVec 8)) (sendAgreement : List (BitVec 8)) (ratchetPublic : List (BitVec 8)) (baseValid : List (BitVec 8)) (torsionX : List (BitVec 8)) (torsionY : List (BitVec 8)) (certificate : List (BitVec 8)) (accessKey : List (BitVec 8)) (requestId : List (BitVec 8)) :
+    (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+      ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+      baseValid torsionX torsionY certificate accessKey requestId).getD 0 [] = [255] ∨
+    (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+      ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+      baseValid torsionX torsionY certificate accessKey requestId).getD 0 [] = [0] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.session_status_cases p q size jump message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **T13, accept direction, composed.** With the controller's wiring (the session's `verified`
+check byte is `receive-certificate-verified`'s output on `receive-certificate`'s validity and
+signature), `receive-session` status 255 implies:
+
+* the message MAC verified under libsignal's keys for some counter `n ≤ jump` and post-quantum
+  index `1 + i` (`session_status_iff`);
+* the certificate's validity checks passed (`certificate_valid`: identity key, trusted signer,
+  device id, expiry, layout);
+* the server key decoded to a curve point and the signature's `R` is the compression of the field
+  engine's `[s]B − [h]A` (`rx`, `ry`) with `s < 2^253` (`certificateVerified_iff`), where `h` is
+  `receive-certificate`'s challenge over the certificate body. -/
+theorem receiveAccept_session_accept_certificate {H R : Type} (hh : XEdDsaSha512.Ops (BitVec 8) H) (rr : XEdDsaScalar.Ops (BitVec 8) R)
+    (p : PreKeyShape) (q : SignalShape) (size jump : Nat) (hjump : jump ≤ 16)
+    (message prekeyValid senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement
+      sendAgreement ratchetPublic baseValid torsionX torsionY certificate' accessKey requestId : List (BitVec 8))
+    (cert : Nat) (c : CertShape) (bytes contentValid signer now serverX serverY serverValid rx ry : List (BitVec 8))
+    (h : (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message
+      (prekeyValid ++ (certificateVerified ByteAuth.concrete
+        ((certificate ByteAuth.concrete hh rr cert c bytes contentValid senderIdentity signer now serverX serverY).getD 0 [])
+        ((certificate ByteAuth.concrete hh rr cert c bytes contentValid senderIdentity signer now serverX serverY).getD 3 [])
+        serverValid rx ry).getD 0 [])
+      senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement
+      ratchetPublic baseValid torsionX torsionY certificate' accessKey requestId).getD 0 [] = [255]) :
+    (∃ n, (n ≤ jump ∧ counterBytes q (signalWire p size message) = numberBytes ByteAuth.concrete n) ∧
+      ∃ i, (i ≤ jump ∧ pqIndexBytes q (p.signalSize size) (signalWire p size message) =
+          numberBytes ByteAuth.concrete (1 + i)) ∧
+        MessageMac.tag Sha256.concrete
+            (messageStep (keys Sha256.concrete dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement) jump n i).material.macKey
+            senderIdentity ourIdentity (MessageMac.content (signalWire p size message)) =
+          MessageMac.receivedTag (signalWire p size message)) ∧
+    (certificate ByteAuth.concrete hh rr cert c bytes contentValid senderIdentity signer now serverX serverY).getD 0 [] =
+      [255] ∧
+    Establish.part bytes (bodyAt cert + c.e164 + 14) 32 = senderIdentity ∧
+    Establish.part bytes (if c.embedded then bodyAt cert + c.e164 + 48 else bodyAt cert + c.e164 + 46 + 2 + c.uuidSize + 1)
+      c.signerSize = signer ∧
+    atMost ByteAuth.concrete now (Establish.part bytes (bodyAt cert + c.e164 + 3) 8).reverse = 255 ∧
+    serverValid = ByteAuth.concrete.const 1 :: List.replicate 31 (ByteAuth.concrete.const 0) ∧
+    (OpenResult.get ByteAuth.concrete (Establish.part bytes (bodyAt cert + c.body + 2) 64) 63 &&& 127).toNat < 32 ∧
+    (Establish.part bytes (bodyAt cert + c.body + 2) 64).take 32 = XEdDsa.compress ByteAuth.concrete rx ry :=
+  TlsMpc.KernelSpecs.ReceiveAccept.session_accept_certificate hh rr p q size jump hjump message prekeyValid senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate' accessKey requestId cert c bytes contentValid signer now serverX serverY serverValid rx ry h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-text` is gated by `receive-session`** (definition level): if the session's status
+is not 255, every output of `receive-text` on the session's plaintext is zero (status, length,
+text and layout). -/
+theorem receiveAccept_text_zero_unless_accepted (p : PreKeyShape) (q : SignalShape) (size : Nat) (jump : Nat) (message : List (BitVec 8)) (checks : List (BitVec 8)) (senderIdentity : List (BitVec 8)) (ourIdentity : List (BitVec 8)) (localAddress : List (BitVec 8)) (uuid : List (BitVec 8)) (device : List (BitVec 8)) (dh1 : List (BitVec 8)) (dh2 : List (BitVec 8)) (dh3 : List (BitVec 8)) (oneTime : List (BitVec 8)) (kem : List (BitVec 8)) (receiveAgreement : List (BitVec 8)) (sendAgreement : List (BitVec 8)) (ratchetPublic : List (BitVec 8)) (baseValid : List (BitVec 8)) (torsionX : List (BitVec 8)) (torsionY : List (BitVec 8)) (certificate : List (BitVec 8)) (accessKey : List (BitVec 8)) (requestId : List (BitVec 8)) (capacity : Nat)
+    (hne : (session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+      ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+      baseValid torsionX torsionY certificate accessKey requestId).getD 0 [] ≠ [255]) :
+    ∀ field ∈ text ByteAuth.concrete capacity
+        ((session AesInverse.concrete Sha256.concrete ByteAuth.concrete p q size jump message checks senderIdentity
+          ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic
+          baseValid torsionX torsionY certificate accessKey requestId).getD 3 []),
+      ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.text_zero_unless_accepted p q size jump message checks senderIdentity ourIdentity localAddress uuid device dh1 dh2 dh3 oneTime kem receiveAgreement sendAgreement ratchetPublic baseValid torsionX torsionY certificate accessKey requestId capacity hne
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-text` is gated by `receive-session`** (kernel level): when the `plaintext` input of
+`receive-text` is the `plaintext` output of `receive-session` (the controller's wiring) and the
+session's opened `status` is not 255, every output of `receive-text` (all four opened) is zero. -/
+theorem receiveAccept_receiveText_gated (cert size : Nat) (p : PreKeyShape) (q : SignalShape) (jump ciphertext capacity : Nat)
+    (assign assign' : BVExpr.Assignment)
+    (wired : (HybridKernel.lookup (ReceiveKernel.textInputs ciphertext) "plaintext").map (BVExpr.eval assign') =
+      (values (ReceiveKernel.session cert size p q jump) assign).getD 3 [])
+    (rejected : (values (ReceiveKernel.session cert size p q jump) assign).getD 0 [] ≠ [255]) :
+    ∀ field ∈ values (ReceiveKernel.text ciphertext capacity) assign', ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.receiveText_gated cert size p q jump ciphertext capacity assign assign' wired rejected
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-certificate-verified` is 255 exactly when** the certificate's other checks passed
+(`certificateValid` 255), the server key decoded to a curve point (`serverValid` is the field
+value 1), and the point `rx, ry` (the field engine's `[s]B − [h]A` for the signature's `s` and the
+challenge `h` of `receive-certificate`) compresses to the signature's `R`, with `s`'s bits 253, 254
+clear (libsignal's `xeddsa` verify, `R == [s]B − [h]A`). -/
+theorem receiveAccept_certificateVerified_iff (certificateValid signature serverValid rx ry : List (BitVec 8)) :
+    (certificateVerified ByteAuth.concrete certificateValid signature serverValid rx ry).getD 0 [] = [255] ↔
+      OpenResult.get ByteAuth.concrete certificateValid 0 = 255 ∧
+      serverValid = ByteAuth.concrete.const 1 :: List.replicate 31 (ByteAuth.concrete.const 0) ∧
+      signature.length = 64 ∧ rx.length = 32 ∧ ry.length = 32 ∧
+      (OpenResult.get ByteAuth.concrete signature 63 &&& 127).toNat < 32 ∧
+      signature.take 32 = XEdDsa.compress ByteAuth.concrete rx ry :=
+  TlsMpc.KernelSpecs.ReceiveAccept.certificateVerified_iff certificateValid signature serverValid rx ry
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **What `receive-certificate`'s validity says** (for the public shape `cert`, `c`): the content
+stage was valid; the certificate's identity key is `senderIdentity` (the key decrypted from the
+envelope's static part); its signer (embedded server certificate, or server id) is the trusted
+`signer`; its device id is in 1..127; `now ≤ expires` (`atMost` is the big-endian comparison,
+`atMost_value`); and the layout masks (field tags, lengths, the UUID's form) hold. -/
+theorem receiveAccept_certificate_valid {H R : Type} (h : XEdDsaSha512.Ops (BitVec 8) H) (r : XEdDsaScalar.Ops (BitVec 8) R)
+    (cert : Nat) (c : CertShape) (bytes valid senderIdentity signer now serverX serverY : List (BitVec 8))
+    (hv : (certificate ByteAuth.concrete h r cert c bytes valid senderIdentity signer now serverX serverY).getD 0 [] =
+      [255]) :
+    OpenResult.get ByteAuth.concrete valid 0 = 255 ∧
+    Establish.part bytes (bodyAt cert + c.e164 + 14) 32 = senderIdentity ∧
+    Establish.part bytes (if c.embedded then bodyAt cert + c.e164 + 48 else bodyAt cert + c.e164 + 46 + 2 + c.uuidSize + 1)
+      c.signerSize = signer ∧
+    (OpenResult.get ByteAuth.concrete bytes (bodyAt cert + c.e164 + 1)).toNat < 128 ∧
+    OpenResult.get ByteAuth.concrete bytes (bodyAt cert + c.e164 + 1) ≠ 0 ∧
+    atMost ByteAuth.concrete now (Establish.part bytes (bodyAt cert + c.e164 + 3) 8).reverse = 255 ∧
+    Establish.part bytes (bodyAt cert + c.e164) 1 = lit ByteAuth.concrete [16] ∧
+    Establish.part bytes (bodyAt cert + c.e164 + 2) 1 = lit ByteAuth.concrete [25] ∧
+    Establish.part bytes (bodyAt cert + c.e164 + 11) 3 = lit ByteAuth.concrete [34, 33, 5] ∧
+    Establish.part bytes (bodyAt cert + c.body) 2 = lit ByteAuth.concrete [18, 64] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.certificate_valid h r cert c bytes valid senderIdentity signer now serverX serverY hv
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-unseal-static` is valid exactly when** the envelope has the v1 layout, the
+encrypted static key's 10-byte MAC verifies under the MAC key of `ephemeralKeys`, the agreement is
+not all zero, and the decrypted static key starts with the key type `05`. -/
+theorem receiveAccept_unsealStatic_valid_iff (size : Nat) (ourIdentity envelope agreement : List (BitVec 8)) :
+    (unsealStatic Aes.concrete Sha256.concrete ByteAuth.concrete size ourIdentity envelope agreement).getD 0 [] =
+        [255] ↔
+      envelopeMask ByteAuth.concrete size envelope = 255 ∧
+      macMatches (Establish.part (ephemeralKeys ourIdentity envelope agreement) 64 32) (Establish.part envelope 38 43) ∧
+      agreement ≠ List.replicate 32 0 ∧
+      OpenResult.get ByteAuth.concrete
+        (ctrOpen (Establish.part (ephemeralKeys ourIdentity envelope agreement) 32 32) (Establish.part envelope 38 43)) 0 =
+        ByteAuth.concrete.const 5 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.unsealStatic_valid_iff size ourIdentity envelope agreement
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **What `receive-unseal-static` outputs when valid**: the sender's identity key is the
+decrypted static key without its type byte, and the chain key is the first 32 bytes of
+`ephemeralKeys`. -/
+theorem receiveAccept_unsealStatic_outputs (size : Nat) (ourIdentity envelope agreement : List (BitVec 8))
+    (h : (unsealStatic Aes.concrete Sha256.concrete ByteAuth.concrete size ourIdentity envelope agreement).getD 0 [] =
+      [255]) :
+    (unsealStatic Aes.concrete Sha256.concrete ByteAuth.concrete size ourIdentity envelope agreement).getD 1 [] =
+        (ctrOpen (Establish.part (ephemeralKeys ourIdentity envelope agreement) 32 32)
+          (Establish.part envelope 38 43)).drop 1 ∧
+      (unsealStatic Aes.concrete Sha256.concrete ByteAuth.concrete size ourIdentity envelope agreement).getD 2 [] =
+        (ephemeralKeys ourIdentity envelope agreement).take 32 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.unsealStatic_outputs size ourIdentity envelope agreement h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-unseal-message` is valid exactly when** the first half was valid, the encrypted
+message's 10-byte MAC verifies under the MAC key of `staticKeys`, the agreement is not all zero,
+and the decrypted UnidentifiedSenderMessageContent starts `08 type 12` followed by a two-byte
+varint (the certificate's length prefix). -/
+theorem receiveAccept_unsealMessage_valid_iff (size : Nat) (envelope staticValid chain agreement : List (BitVec 8)) :
+    (unsealMessage Aes.concrete Sha256.concrete ByteAuth.concrete size envelope staticValid chain agreement).getD 0 [] =
+        [255] ↔
+      OpenResult.get ByteAuth.concrete staticValid 0 = 255 ∧
+      macMatches (Establish.part (staticKeys envelope chain agreement) 64 32) (envelope.drop (messageAt size)) ∧
+      agreement ≠ List.replicate 32 0 ∧
+      Establish.part (ctrOpen (Establish.part (staticKeys envelope chain agreement) 32 32) (envelope.drop (messageAt size)))
+        0 1 = lit ByteAuth.concrete [8] ∧
+      Establish.part (ctrOpen (Establish.part (staticKeys envelope chain agreement) 32 32) (envelope.drop (messageAt size)))
+        2 1 = lit ByteAuth.concrete [18] ∧
+      varintShape ByteAuth.concrete
+        (ctrOpen (Establish.part (staticKeys envelope chain agreement) 32 32) (envelope.drop (messageAt size))) 3 2 = 255 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.unsealMessage_valid_iff size envelope staticValid chain agreement
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **What `receive-unseal-message` outputs when valid**: the content is the AES-256-CTR decryption
+under `staticKeys`, and the opened `certificateLength` is its bytes 3..5 (the length prefix of
+field 2, the sender certificate). -/
+theorem receiveAccept_unsealMessage_outputs (size : Nat) (envelope staticValid chain agreement : List (BitVec 8))
+    (h : (unsealMessage Aes.concrete Sha256.concrete ByteAuth.concrete size envelope staticValid chain agreement).getD 0 [] =
+      [255]) :
+    (unsealMessage Aes.concrete Sha256.concrete ByteAuth.concrete size envelope staticValid chain agreement).getD 1 [] =
+        ctrOpen (Establish.part (staticKeys envelope chain agreement) 32 32) (envelope.drop (messageAt size)) ∧
+      (unsealMessage Aes.concrete Sha256.concrete ByteAuth.concrete size envelope staticValid chain agreement).getD 2 [] =
+        Establish.part (ctrOpen (Establish.part (staticKeys envelope chain agreement) 32 32)
+          (envelope.drop (messageAt size))) 3 2 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.unsealMessage_outputs size envelope staticValid chain agreement h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`receive-prekey-open` is valid exactly when** the content stage was valid, the message type
+is PREKEY_MESSAGE (1), the PreKeySignalMessage has layout `p` (`prekeyMask`), its identity key is
+the certificate's (`senderIdentity`), its base key is below `2^255 − 19` (`canonicalRange`), and
+the inner SignalMessage starts with the ratchet key's header `0A 21 05`. -/
+theorem receiveAccept_prekeyOpen_valid_iff (p : PreKeyShape) (size : Nat) (message valid messageType senderIdentity : List (BitVec 8)) :
+    (prekeyOpen ByteAuth.concrete p size message valid messageType senderIdentity).getD 0 [] = [255] ↔
+      OpenResult.get ByteAuth.concrete valid 0 = 255 ∧
+      OpenResult.get ByteAuth.concrete messageType 0 = ByteAuth.concrete.const 1 ∧
+      prekeyMask ByteAuth.concrete p size message = 255 ∧
+      Establish.part message (p.keysAt + 38) 32 = senderIdentity ∧
+      canonicalRange ByteAuth.concrete (Establish.part message (p.keysAt + 3) 32) = 255 ∧
+      Establish.part message (p.signalAt size + 1) 3 = lit ByteAuth.concrete [10, 33, 5] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.prekeyOpen_valid_iff p size message valid messageType senderIdentity
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **What `receive-prekey-open` releases when valid**: the base key and ratchet key (private), and
+the opened ids and Kyber ciphertext are the message's own fields: the varint values of the
+one-time, signed and Kyber prekey ids (4 bytes big endian) and the 1,568 bytes after `42 A1 0C 08`. -/
+theorem receiveAccept_prekeyOpen_outputs (p : PreKeyShape) (size : Nat) (message valid messageType senderIdentity : List (BitVec 8))
+    (h : (prekeyOpen ByteAuth.concrete p size message valid messageType senderIdentity).getD 0 [] = [255]) :
+    prekeyOpen ByteAuth.concrete p size message valid messageType senderIdentity =
+      [[255], Establish.part message (p.keysAt + 3) 32, Establish.part message (p.signalAt size + 4) 32,
+        varintValue ByteAuth.concrete (Establish.part message 2 p.oneTime),
+        varintValue ByteAuth.concrete (Establish.part message (p.idsAt size + 2 + p.registration) p.signed),
+        varintValue ByteAuth.concrete (Establish.part message (p.idsAt size + 3 + p.registration + p.signed) p.kyber),
+        Establish.part message (p.idsAt size + 3 + p.registration + p.signed + p.kyber + 4) 1568] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.prekeyOpen_outputs p size message valid messageType senderIdentity h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.contentShape_rejects`. -/
+theorem receiveAccept_contentShape_rejects (size cert : Nat) (content valid : List (BitVec 8))
+    (h : OpenResult.get ByteAuth.concrete valid 0 ≠ 255) :
+    ∀ field ∈ contentShape ByteAuth.concrete size cert content valid, ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.contentShape_rejects size cert content valid h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.prekeyShape_rejects`. -/
+theorem receiveAccept_prekeyShape_rejects (size : Nat) (m valid : List (BitVec 8)) (h : OpenResult.get ByteAuth.concrete valid 0 ≠ 255) :
+    ∀ field ∈ prekeyShape ByteAuth.concrete size m valid, ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.prekeyShape_rejects size m valid h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.signalShape_rejects`. -/
+theorem receiveAccept_signalShape_rejects (p : PreKeyShape) (size : Nat) (m valid : List (BitVec 8))
+    (h : OpenResult.get ByteAuth.concrete valid 0 ≠ 255) :
+    ∀ field ∈ signalShape ByteAuth.concrete p size m valid, ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAccept.signalShape_rejects p size m valid h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- **`atMost` is the big-endian comparison**: for byte strings of equal length, 255 exactly when
+the value of `x` is at most the value of `y`. -/
+theorem receiveAccept_atMost_value (x y : List (BitVec 8)) (hl : x.length = y.length) :
+    atMost ByteAuth.concrete x y = mk (val (bitsOf x) ≤ val (bitsOf y)) :=
+  TlsMpc.KernelSpecs.ReceiveAccept.atMost_value x y hl
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_unsealStatic`. -/
+theorem receiveAccept_opened_unsealStatic (size : Nat) : openedNames (ReceiveKernel.unsealStatic size) = [] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_unsealStatic size
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_unsealMessage`. -/
+theorem receiveAccept_opened_unsealMessage (size : Nat) :
+    openedNames (ReceiveKernel.unsealMessage size) = ["certificateLength"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_unsealMessage size
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_contentShape`. -/
+theorem receiveAccept_opened_contentShape (size cert : Nat) : openedNames (ReceiveKernel.contentShape size cert) = ["shape"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_contentShape size cert
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_content`. -/
+theorem receiveAccept_opened_content (size cert : Nat) (hint : Bool) : openedNames (ReceiveKernel.content size cert hint) = [] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_content size cert hint
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_certificate`. -/
+theorem receiveAccept_opened_certificate (cert : Nat) (c : CertShape) : openedNames (ReceiveKernel.certificate cert c) = [] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_certificate cert c
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_certificateVerified`. -/
+theorem receiveAccept_opened_certificateVerified : openedNames (ReceiveKernel.certificateVerified ()) = [] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_certificateVerified
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_prekeyShape`. -/
+theorem receiveAccept_opened_prekeyShape (size : Nat) : openedNames (ReceiveKernel.prekeyShape size) = ["shape"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_prekeyShape size
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_prekeyOpen`. -/
+theorem receiveAccept_opened_prekeyOpen (size : Nat) (p : PreKeyShape) :
+    openedNames (ReceiveKernel.prekeyOpen size p) =
+      ["oneTimePrekeyId", "signedPrekeyId", "kyberPrekeyId", "kyberCiphertext"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_prekeyOpen size p
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_signalShape`. -/
+theorem receiveAccept_opened_signalShape (size : Nat) (p : PreKeyShape) : openedNames (ReceiveKernel.signalShape size p) = ["shape"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_signalShape size p
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_session`. -/
+theorem receiveAccept_opened_session (cert size : Nat) (p : PreKeyShape) (q : SignalShape) (jump : Nat) :
+    openedNames (ReceiveKernel.session cert size p q jump) = ["status"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_session cert size p q jump
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_text`. -/
+theorem receiveAccept_opened_text (ciphertext capacity : Nat) :
+    openedNames (ReceiveKernel.text ciphertext capacity) = ["status", "length", "text", "layout"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_text ciphertext capacity
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_accessKey`. -/
+theorem receiveAccept_opened_accessKey (cert ciphertext offset : Nat) :
+    openedNames (ReceiveKernel.accessKey cert ciphertext offset) = ["status"] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_accessKey cert ciphertext offset
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+open TlsMpc.ReceiveKernel (values) in
+/-- `ReceiveAccept.opened_envelopePoint`. -/
+theorem receiveAccept_opened_envelopePoint (size : Nat) : openedNames (ReceiveKernel.envelopePoint size) = [] :=
+  TlsMpc.KernelSpecs.ReceiveAccept.opened_envelopePoint size
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text`, exactly**, for `capacity < 65536`: with `c` the content (the plaintext after
+its 8-byte length), the status is `mk (Accepted c capacity)`; the length is the body length
+(released under the status); text byte `i` is content byte `bodyStart + i` when accepted and
+`i < bodyLength`, else 0; the layout flags say which of the two prefixes have two bytes (released
+under the status). -/
+theorem receiveAcceptText_text_eq (capacity : Nat) (hcap : capacity < 65536) (plain : List (BitVec 8)) :
+    text ByteAuth.concrete capacity plain =
+      [[mk (Accepted (plain.drop 8) capacity)],
+        ByteAuth.release ByteAuth.concrete (mk (Accepted (plain.drop 8) capacity))
+          [BitVec.ofNat 8 ((highByte (plain.drop 8)).toNat / 2),
+            BitVec.ofNat 8 ((lowByte (plain.drop 8)).toNat % 128 + 128 * ((highByte (plain.drop 8)).toNat % 2))],
+        (List.range capacity).map (fun i =>
+          if Accepted (plain.drop 8) capacity ∧ ¬ bodyLength (plain.drop 8) ≤ i then
+            g (plain.drop 8) (bodyStart (plain.drop 8) + i) else 0),
+        ByteAuth.release ByteAuth.concrete (mk (Accepted (plain.drop 8) capacity))
+          [mk (¬Wide (plain.drop 8) ∧ ¬Long (plain.drop 8)), mk (¬(Wide (plain.drop 8) ↔ Long (plain.drop 8))),
+            mk (Wide (plain.drop 8) ∧ Long (plain.drop 8))]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_eq capacity hcap plain
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text`'s status is 255 exactly when the content passes `Accepted`** (and 0 otherwise). -/
+theorem receiveAcceptText_text_status (capacity : Nat) (hcap : capacity < 65536) (plain : List (BitVec 8)) :
+    (text ByteAuth.concrete capacity plain).getD 0 [] = [mk (Accepted (plain.drop 8) capacity)] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_status capacity hcap plain
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **A refused `receive-text` releases nothing** (the missing `_rejects` lemma): when the content
+fails `Accepted`, every output byte is zero. -/
+theorem receiveAcceptText_text_rejects (capacity : Nat) (hcap : capacity < 65536) (plain : List (BitVec 8))
+    (h : ¬Accepted (plain.drop 8) capacity) :
+    ∀ field ∈ text ByteAuth.concrete capacity plain, ∀ b ∈ field, b = 0 :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_rejects capacity hcap plain h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **What an accepted `receive-text` opens**: status 255; the body length as two big-endian bytes;
+exactly the `bodyLength` content bytes starting at `bodyStart` (4, 5 or 6), then zeros up to
+`capacity`; and the flags of `bodyStart = 4, 5, 6`. -/
+theorem receiveAcceptText_text_accepted (capacity : Nat) (hcap : capacity < 65536) (plain : List (BitVec 8))
+    (h : Accepted (plain.drop 8) capacity) :
+    text ByteAuth.concrete capacity plain =
+      [[255], [BitVec.ofNat 8 (bodyLength (plain.drop 8) / 256), BitVec.ofNat 8 (bodyLength (plain.drop 8) % 256)],
+        (List.range capacity).map (fun i =>
+          if i < bodyLength (plain.drop 8) then g (plain.drop 8) (bodyStart (plain.drop 8) + i) else 0),
+        [mk (bodyStart (plain.drop 8) = 4), mk (bodyStart (plain.drop 8) = 5), mk (bodyStart (plain.drop 8) = 6)]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_accepted capacity hcap plain h
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **Converse: a content the reference parses, whose two length prefixes have at most two bytes
+each and whose body fits `capacity`, is accepted, and the opened text is exactly the reference
+body (zero-padded to `capacity`).** -/
+theorem receiveAcceptText_text_of_reference (capacity : Nat) (plain body : List (BitVec 8))
+    (href : referenceBody (plain.drop 8) = some body)
+    (hw₁ : (g (plain.drop 8) 1).toNat < 128 ∨ (g (plain.drop 8) 2).toNat < 128)
+    (hw₂ : (lowByte (plain.drop 8)).toNat < 128 ∨ (highByte (plain.drop 8)).toNat < 128)
+    (hfit : body.length ≤ capacity) :
+    Accepted (plain.drop 8) capacity ∧ bodyLength (plain.drop 8) = body.length ∧
+      (List.range capacity).map (fun i =>
+          if i < bodyLength (plain.drop 8) then g (plain.drop 8) (bodyStart (plain.drop 8) + i) else 0) =
+        (List.range capacity).map (fun i => body.getD i 0) :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_of_reference capacity plain body href hw₁ hw₂ hfit
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **The converse at the level of `receive-text`'s outputs**: for such a content, `receive-text`
+opens status 255, the reference body's length, the reference body (zero-padded to `capacity`) and
+the layout flags. -/
+theorem receiveAcceptText_text_reference (capacity : Nat) (hcap : capacity < 65536) (plain body : List (BitVec 8))
+    (href : referenceBody (plain.drop 8) = some body)
+    (hw₁ : (g (plain.drop 8) 1).toNat < 128 ∨ (g (plain.drop 8) 2).toNat < 128)
+    (hw₂ : (lowByte (plain.drop 8)).toNat < 128 ∨ (highByte (plain.drop 8)).toNat < 128)
+    (hfit : body.length ≤ capacity) :
+    text ByteAuth.concrete capacity plain =
+      [[255], [BitVec.ofNat 8 (body.length / 256), BitVec.ofNat 8 (body.length % 256)],
+        (List.range capacity).map (fun i => body.getD i 0),
+        [mk (bodyStart (plain.drop 8) = 4), mk (bodyStart (plain.drop 8) = 5), mk (bodyStart (plain.drop 8) = 6)]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_reference capacity hcap plain body href hw₁ hw₂ hfit
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **DEFECT (counterexample, with `receiveAcceptText_overlongBody_reference`): `receive-text`
+accepts a body longer than its DataMessage.** On this plaintext the kernel opens status 255 and the
+5-byte text `abcde`, while the reference parse of the same content refuses it (NEEDS_REVIEW.md 3f).
+A statement of what the kernel does today, not a property to keep. -/
+theorem receiveAcceptText_overlongBody_accepted :
+    text ByteAuth.concrete 10 overlongBodyPlain =
+      [[255], [0, 5], [0x61, 0x62, 0x63, 0x64, 0x65, 0, 0, 0, 0, 0], [255, 0, 0]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_accepted
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **DEFECT, the other half:** the reference parse refuses the plaintext that `receive-text`
+accepts in `receiveAcceptText_overlongBody_accepted` (NEEDS_REVIEW.md 3f). -/
+theorem receiveAcceptText_overlongBody_reference : referenceBody (overlongBodyPlain.drop 8) = none :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_reference
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **Two layouts never both match** (at the same offset in the same content). -/
+theorem receiveAccessKey_gap_unique (c : List (BitVec 8)) (off : Nat) (g g' : Gap)
+    (h : gapMask ByteAuth.concrete c off g = 255) (h' : gapMask ByteAuth.concrete c off g' = 255) : g = g' :=
+  TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.gap_unique c off g g' h h'
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-access-key`'s status is 255 exactly when one of the 72 layouts matches** (and 0
+otherwise). -/
+theorem receiveAccessKey_withAccessKey_status (cert offset : Nat) (conversation plain : List (BitVec 8)) :
+    (withAccessKey Aes.concrete ByteAuth.concrete cert offset conversation plain).getD 0 [] =
+      [mk (Found (plain.drop 8) offset)] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.withAccessKey_status cert offset conversation plain
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **When a layout `g` matches**, the record is the input record with bytes `cert + 278 ..
+cert + 294` (the access key in the metadata) replaced by the access key derived from the 32 bytes
+after `g`'s `32 20`. -/
+theorem receiveAccessKey_withAccessKey_accepted (cert offset : Nat) (conversation plain : List (BitVec 8))
+    (hlen : cert + 294 ≤ conversation.length) (g : Gap) (hg : g ∈ gaps)
+    (hm : gapMask ByteAuth.concrete (plain.drop 8) offset g = 255) :
+    withAccessKey Aes.concrete ByteAuth.concrete cert offset conversation plain =
+      [[255], conversation.take (cert + 278) ++ accessKeyOf (profileKey (plain.drop 8) offset g) ++
+        conversation.drop (cert + 294)] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.withAccessKey_accepted cert offset conversation plain hlen g hg hm
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **When no layout matches**, the record is unchanged. -/
+theorem receiveAccessKey_withAccessKey_rejected (cert offset : Nat) (conversation plain : List (BitVec 8))
+    (hno : ¬Found (plain.drop 8) offset) :
+    withAccessKey Aes.concrete ByteAuth.concrete cert offset conversation plain = [[0], conversation] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.withAccessKey_rejected cert offset conversation plain hno
+
 /-! ## 4. The controller: parsers, the reveal policy, templates, results (SECURITY_MAP C.4)
 
 Code that `public_service_controller` executes. The parsers (WebSocket upgrade, frame, control,
 chat response) are proved only symbolic = concrete; nothing relates them to RFC 6455 or HTTP.
-The reveal policy (`PublicReceive.scan`, `budget`, `mayReveal`, …), the request templates
-(`PublicRequest.*`), `Recovery`, `Circuits` and `CeremonyRequests` have NO theorem (T1, T8, T11
-in section 8). -/
+The reveal policy (`PublicReceive.scan`, `budget`, `mayReveal`, …), `Recovery`, `Circuits` and
+`CeremonyRequests` have NO theorem (T1, T11 in section 8). The request templates (`PublicRequest.*`)
+have the structural theorems of section 2d (T8, rest in section 8). Since stage S2 the controller's
+pure code is in library modules under `TlsMpc/Node/` (no emitter imports them), so the entries
+below are about the code it runs, not about copies. -/
 
-/-! **Pending restatement (C): `PublicReceive.fast_eq : fast = ByteAuth.concrete`** — the
-controller's fast byte operations equal the reference ones, so every parser the controller runs
-with `fast` is the proved concrete parser (SECURITY_MAP C.4; the controller file's only theorems
-are this one and its helpers `fastConst_eq`, `fastNot_eq`, `fastMask_eq`). It lives in the
-controller's executable root `handshake_backend/EmpHybridWork/PublicServiceController.lean`,
-which stage S2 is moving to `TlsMpc/Node/Policy/Receive.lean`. This file does not import an
-executable root; restate it here (`theorem controller_fast_eq : PublicReceive.fast =
-ByteAuth.concrete := …fast_eq`) in the S2 commit, from its new module. -/
+/-- **The controller's fast byte operations equal the reference ones**, so every parser and
+builder the controller runs with `PublicReceive.fast` is the proved concrete one
+(`TlsMpc/Node/Bytes.lean`). **C**. SECURITY_MAP C.4. -/
+theorem controller_fast_eq : PublicReceive.fast = TlsMpc.ByteAuth.concrete :=
+  PublicReceive.fast_eq
+
+/-! ### 4a. Passing over an unrevealed body in bulk (`TlsMpc/Node/PassOver.lean`, `Policy/Receive.lean`)
+
+Inside the unrevealed body of a server response or request, the three parsers the controller runs
+in the clear only count. These are the facts the bulk pass-over rests on, for exactly the inputs
+the controller feeds them (an active zero byte in place of the unrevealed one). **C**. -/
+
+/-- **One passed-over payload byte, frame parser:** inside a valid data frame's payload, with more
+than one payload byte and message capacity left (`1 ≤ frameRoom f`), the frame parser reports a
+valid data byte that ends nothing, and its new state is `frameBulk 1 f` (both 16-bit counts one
+lower, everything else kept). **C**. -/
+theorem passOver_frame_step_room (cap : Nat) (f : List (BitVec 8)) (h : 1 ≤ PublicReceive.PassOver.frameRoom f) :
+    TlsWebSocketFrame.runByte PublicReceive.fast cap (f ++ [255, 0]) =
+      [255, 255, 0, 0, 0, 0, 0, 0] ++ PublicReceive.PassOver.frameBulk 1 f :=
+  PublicReceive.PassOver.frame_step_room cap f h
+
+/-- After one such byte the frame parser's room is one byte less. **C**. -/
+theorem passOver_frameRoom_one (f : List (BitVec 8)) (h : 1 ≤ PublicReceive.PassOver.frameRoom f) :
+    PublicReceive.PassOver.frameRoom (PublicReceive.PassOver.frameBulk 1 f) =
+      PublicReceive.PassOver.frameRoom f - 1 :=
+  PublicReceive.PassOver.frameRoom_one f h
+
+/-- One frame byte then `k` more is `k + 1` at once, within the room. **C**. -/
+theorem passOver_frameBulk_succ (f : List (BitVec 8)) (k : Nat) (h : k + 1 ≤ PublicReceive.PassOver.frameRoom f) :
+    PublicReceive.PassOver.frameBulk k (PublicReceive.PassOver.frameBulk 1 f) =
+      PublicReceive.PassOver.frameBulk (k + 1) f :=
+  PublicReceive.PassOver.frameBulk_succ f k h
+
+/-- **One passed-over payload byte, control queue:** with no control data, no frame end and no
+opcode (what the frame parser reports for a data payload byte), the queue's step is the identity on
+its 636-byte state when its counts are in range (`controlIdle`). **C**. -/
+theorem passOver_control_idle (c : List (BitVec 8)) (h : PublicReceive.PassOver.controlIdle c) :
+    TlsWebSocketControl.run PublicReceive.fast (c ++ [0, 0, 0, 0]) = c :=
+  PublicReceive.PassOver.control_idle c h
+
+/-- **One passed-over body byte, response parser:** inside the body field of the inner response,
+with more than one body byte and inner-response byte left and budget left (`1 ≤ responseRoom r`),
+the parser stays valid, does not finish, reports a body byte, and its new state is
+`responseBulk 1 r` (three 64-bit counts one lower). **C**. -/
+theorem passOver_response_step_room (cap : Nat) (r : List (BitVec 8)) (h : 1 ≤ PublicReceive.PassOver.responseRoom r) :
+    TlsChatResponse.runByte TlsMpc.Signal.VarintDecode.Spqr.concrete TlsMpc.Signal.Word64.fast PublicReceive.fast cap
+        (r ++ [255, 0, 0] ++ [0]) =
+      [255, 0, (TlsChatResponse.readState TlsMpc.Signal.Word64.fast PublicReceive.fast r).successful, 255, 0, 0] ++
+        PublicReceive.PassOver.responseBulk 1 r :=
+  PublicReceive.PassOver.response_step_room cap r h
+
+/-- After one such byte the response parser's room is one byte less. **C**. -/
+theorem passOver_responseRoom_one (r : List (BitVec 8)) (h : 1 ≤ PublicReceive.PassOver.responseRoom r) :
+    PublicReceive.PassOver.responseRoom (PublicReceive.PassOver.responseBulk 1 r) =
+      PublicReceive.PassOver.responseRoom r - 1 :=
+  PublicReceive.PassOver.responseRoom_one r h
+
+/-- One response byte then `k` more is `k + 1` at once, within the room. **C**. -/
+theorem passOver_responseBulk_succ (r : List (BitVec 8)) (k : Nat)
+    (h : k + 1 ≤ PublicReceive.PassOver.responseRoom r) :
+    PublicReceive.PassOver.responseBulk k (PublicReceive.PassOver.responseBulk 1 r) =
+      PublicReceive.PassOver.responseBulk (k + 1) r :=
+  PublicReceive.PassOver.responseBulk_succ r k h
+
+/-- **One passed-over body byte, the controller's step** (`passOne`: `stepPassed` for a response,
+`stepSkipped` for a server request): within `passRoom`, it succeeds, completes no response, and
+gives `passBulk 1` (`TlsMpc/Node/Policy/Receive.lean`). **C**. -/
+theorem passOne_bulk (s : PublicReceive.State) (h : 1 ≤ PublicReceive.passRoom s) :
+    PublicReceive.passOne s = .ok (PublicReceive.passBulk 1 s, false) :=
+  PublicReceive.passOne_bulk s h
+
+/-- **The bulk pass-over is the byte-by-byte one.** For any `k ≤ passRoom s`, passing over `k`
+body bytes one at a time (`passRun`, what the record loop did before) succeeds, completes no
+response, and ends in `passBulk k s`, the state the record loop now computes in one step. **C**. -/
+theorem passRun_bulk (k : Nat) (s : PublicReceive.State) (h : k ≤ PublicReceive.passRoom s) :
+    PublicReceive.passRun k s = .ok (PublicReceive.passBulk k s, false) :=
+  PublicReceive.passRun_bulk k s h
+
+/-- Passing over `a + b` bytes is passing over `a`, then `b`: so the record loop's `passBulk` of
+`bulk ≤ passRoom s` bytes followed by `count - bulk` single steps is `passRun count`. **C**. -/
+theorem passRun_add (b a : Nat) (s : PublicReceive.State) :
+    PublicReceive.passRun (a + b) s =
+      (do let (s1, d1) ← PublicReceive.passRun a s; let (s2, d2) ← PublicReceive.passRun b s1; pure (s2, d1 || d2)) :=
+  PublicReceive.passRun_add b a s
+
+/-! ### 4b. Other controller functions -/
 
 open TlsMpc.Signal TlsMpc.Signal.Word64 in
 /-- **The controller's fast 64-bit word operations equal the reference ones.** **C** (the
@@ -2503,10 +3695,19 @@ the matching section above in the same commit.
   `bundleDevice_local`), the meaning of the `signal-widths` flags (`signalWidths_value`), the UUID,
   base64 and padded decimal slot encoders against independent references (RFC 4122 string form,
   RFC 4648, decimal digits) with round trips (`slotUuid_*`, `slotBase64_*`, `slotDecimal_*`).
-  Still open: `bundle-slot`: `deviceSlots` on the spliced item = `device` on the original item,
-  and `BundleSlots.splice` producing the slot layout (`bundleSlot_whole` links the kernel only to
-  the whole SPLICED body). → no stage assigned; candidate for **P5**.
-* ML-KEM: the `kem-*` kernels composed into `MlKem.encapsulate`. → no stage assigned.
+  Also closed: `bundle-slot` against `device` on the body the server sent (section 2d:
+  `bundleSlot_device`, `bundleSlot_eq_bundleItem`, `deviceSlots_splice`, `spliced_layout`,
+  `slotValid_pad`; wrong digit counts refuse: `device_unique`, `bundleSlot_wrong_counts`,
+  `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). Still open for `bundle-slot`: the
+  caveat `inconsistent_width_accepts` (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`): a body whose
+  number has a leading zero, spliced with one digit count but declared with another in `widths`,
+  is accepted where `device` refuses (the released value is still that number's value); still
+  trusted: that the C++ worker binds `head`/`before`/`item`/`after`/`end` as stated and passes the
+  splice and `widths` from the same counts, and that the template is what Signal-Server writes.
+  → no stage assigned; candidate for **P5**.
+* ML-KEM: Kyber-1024 (round 3, rank 4; libsignal key type 8). The reference
+  `MlKem.encapsulate` is checked against libcrux only by test vectors; the composition of the
+  `kem-*` kernels into it is not proved. → no stage assigned (in progress).
 * **T7** — what the server receives: (a) `signal-request-ctr`, `bundle-request-ctr`,
   `bundle-fetch-ctr` seal the frame with each slot replaced by the WebSocket-masked field and
   nothing else changed — now proved at kernel level up to the frame (section 2c:
@@ -2517,15 +3718,32 @@ the matching section above in the same commit.
   mask and offsets unchanged); (b) `signal-seal-official`/`-built`
   compute `SealedSenderV1` encryption of the message produced by `ChainSend`/`SpqrSend` from the
   stored state — the kernel is now proved to compute that composition on concrete values
-  (`signalSealBuilt_spec`); open: a value theorem for `boundSeal` and for `prepare` against the
-  Signal/SPQR definitions. → **P5**.
+  (`signalSealBuilt_spec`), its value is sealed sender v1 of the reference send step's message
+  (section 2c: `sealCore_value`, `boundSeal_value`, `signalSeal_value`, `sealValue_accepted`), and
+  composed with (a) for an accepted send (section 2d: `serverReceives_accepted`). On refusal the
+  kernel preserves the ratchet state, not the whole record: the stored record still takes the built
+  text's kind byte and first 80 content bytes (`stagedOf`, `TlsMpc/HybridKernels.lean` line 446).
+  Still open: `Reference.sealV1` is a transcription of libsignal's sealed-sender v1, not
+  machine-linked to libsignal; the send step is checked against the repository's own
+  `SpqrSend.canonical`, not against the Signal/SPQR specifications; the X25519 agreements (inputs
+  here) and that the controller passes the opened envelope, frame and mask unchanged are not
+  proved. The device-refresh path is now covered too: `bundle-seal` by value
+  (`establishSeal_*`, `establishFirst_*`, section 2c) and `bundle-request-ctr` over several opened
+  envelopes (`establishDevices_*`, `establishRequest_serverReceives_refresh*`, section 2d), with the
+  same transcription and wiring caveats. → **P5**.
 
 ### Gating and what each opening reveals
-* **T13** — receive gating, accept direction: `receive-session` status 255 ⇒ the message MAC
-  verified and the sender certificate verified under the trusted server key; `receive-text`
-  outputs are zero unless the session status is 255 (the missing `_rejects` lemmas for
-  receive-text, -certificate, -certificate-verified, -access-key and the three -shape kernels).
-  → **P6**.
+* **T13** — receive gating, accept direction: now proved for the kernels on concrete values
+  (section 3a: `receive-session` status 255 iff the MAC verified and the other checks passed, with
+  the certificate checks under the controller's wiring; `receive-text` zero unless the session
+  accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). One DEFECT
+  recorded: `receive-text` accepts a body longer than its DataMessage
+  (`receiveAcceptText_overlongBody_*`, NEEDS_REVIEW.md 3f). Still open: the converse for a genuine
+  sender's envelope (that it is accepted); Prop forms for the multi-byte counters,
+  `canonicalRange`, `Unpad.decode` and the layout masks (stated today as byte computations); an
+  accept-direction value theorem for `contentShape`'s flags and for `receive-content`; and the
+  field engine (the curve computations whose outputs `rx`, `ry` and the agreements are inputs
+  here). → **P6**.
 * **T3** — disclosure per flow: the released values in any trace of a flow are exactly the
   listed `Reveal` kinds on the listed handles. → **S9–S16** (one per flow).
 
@@ -2535,8 +3753,8 @@ the matching section above in the same commit.
   from the reference classifier's hidden set (request bodies, response bodies unless `openBody`,
   envelope payloads, …). → **P1**.
 * **T8** — request templates: for `build`/`buildDevices`/`buildFetch`/`assemble` the structural
-  part is now proved (section 2d, about the restated `Mirror` builders, equal to the controller's
-  by `RequestFrameBridge.lean`): the frame is the WebSocket header and the message masked, slots
+  part is now proved (section 2d, about the controller's own builders in
+  `TlsMpc/Node/Policy/Request.lean`): the frame is the WebSocket header and the message masked, slots
   are zero runs inside the payload, non-overlapping, at the returned offsets (`requestBuild_ok`,
   `requestInsertSlots_offsets`). Still open: that the message is the stated protobuf/JSON
   (`render` of the pieces, against a protobuf encoder); `reply`, `keepalive`, `ping`,
@@ -2715,6 +3933,10 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.bundleRequestCtr_rejects
 #print axioms TlsMpc.Security.insertSlots_inside_zero
 #print axioms TlsMpc.Security.signalSealBuilt_spec
+#print axioms TlsMpc.Security.sealCore_value
+#print axioms TlsMpc.Security.boundSeal_value
+#print axioms TlsMpc.Security.signalSeal_value
+#print axioms TlsMpc.Security.sealValue_accepted
 #print axioms TlsMpc.Security.signalSealBuilt_rejects
 #print axioms TlsMpc.Security.tlsDerive_spec
 #print axioms TlsMpc.Security.tlsVerifyFinished_spec
@@ -2736,9 +3958,75 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.signalRequestCtr_built
 #print axioms TlsMpc.Security.bundleFetchCtr_built
 #print axioms TlsMpc.Security.bundleRequestCtr_built
+#print axioms TlsMpc.Security.serverReceives_accepted
+#print axioms TlsMpc.Security.establishSeal_preKeyMessage_value
+#print axioms TlsMpc.Security.establishSeal_sealedSender_value
+#print axioms TlsMpc.Security.establishSeal_sealMessage_value
+#print axioms TlsMpc.Security.establishSeal_bundleSeal_value
+#print axioms TlsMpc.Security.establishSeal_bundleSeal_accepted
+#print axioms TlsMpc.Security.establishSeal_varint5_decode
+#print axioms TlsMpc.Security.establishSeal_varint_decode
+#print axioms TlsMpc.Security.establishFirst_keys_value
+#print axioms TlsMpc.Security.establishFirst_firstMessage_envelope
+#print axioms TlsMpc.Security.establishDevices_openedEnvelopes_reference
+#print axioms TlsMpc.Security.establishDevices_openedEnvelopes_first
+#print axioms TlsMpc.Security.establishRequest_serverReceives_refresh
+#print axioms TlsMpc.Security.establishRequest_serverReceives_refresh_first
 #print axioms TlsMpc.Security.bundleDevice_local
 #print axioms TlsMpc.Security.bundleItem_whole
 #print axioms TlsMpc.Security.bundleSlot_whole
+#print axioms TlsMpc.Security.slotValid_pad
+#print axioms TlsMpc.Security.deviceSlots_splice
+#print axioms TlsMpc.Security.spliced_layout
+#print axioms TlsMpc.Security.bundleSlot_device
+#print axioms TlsMpc.Security.bundleSlot_eq_bundleItem
+#print axioms TlsMpc.Security.device_unique
+#print axioms TlsMpc.Security.bundleSlot_wrong_counts
+#print axioms TlsMpc.Security.bundleSlot_parses_or_refuses
+#print axioms TlsMpc.Security.bundleSlot_any_widths
+#print axioms TlsMpc.Security.receiveAccept_session_status_iff
+#print axioms TlsMpc.Security.receiveAccept_session_accept_outputs
+#print axioms TlsMpc.Security.receiveAccept_session_status_cases
+#print axioms TlsMpc.Security.receiveAccept_session_accept_certificate
+#print axioms TlsMpc.Security.receiveAccept_text_zero_unless_accepted
+#print axioms TlsMpc.Security.receiveAccept_receiveText_gated
+#print axioms TlsMpc.Security.receiveAccept_certificateVerified_iff
+#print axioms TlsMpc.Security.receiveAccept_certificate_valid
+#print axioms TlsMpc.Security.receiveAccept_unsealStatic_valid_iff
+#print axioms TlsMpc.Security.receiveAccept_unsealStatic_outputs
+#print axioms TlsMpc.Security.receiveAccept_unsealMessage_valid_iff
+#print axioms TlsMpc.Security.receiveAccept_unsealMessage_outputs
+#print axioms TlsMpc.Security.receiveAccept_prekeyOpen_valid_iff
+#print axioms TlsMpc.Security.receiveAccept_prekeyOpen_outputs
+#print axioms TlsMpc.Security.receiveAccept_contentShape_rejects
+#print axioms TlsMpc.Security.receiveAccept_prekeyShape_rejects
+#print axioms TlsMpc.Security.receiveAccept_signalShape_rejects
+#print axioms TlsMpc.Security.receiveAccept_atMost_value
+#print axioms TlsMpc.Security.receiveAccept_opened_unsealStatic
+#print axioms TlsMpc.Security.receiveAccept_opened_unsealMessage
+#print axioms TlsMpc.Security.receiveAccept_opened_contentShape
+#print axioms TlsMpc.Security.receiveAccept_opened_content
+#print axioms TlsMpc.Security.receiveAccept_opened_certificate
+#print axioms TlsMpc.Security.receiveAccept_opened_certificateVerified
+#print axioms TlsMpc.Security.receiveAccept_opened_prekeyShape
+#print axioms TlsMpc.Security.receiveAccept_opened_prekeyOpen
+#print axioms TlsMpc.Security.receiveAccept_opened_signalShape
+#print axioms TlsMpc.Security.receiveAccept_opened_session
+#print axioms TlsMpc.Security.receiveAccept_opened_text
+#print axioms TlsMpc.Security.receiveAccept_opened_accessKey
+#print axioms TlsMpc.Security.receiveAccept_opened_envelopePoint
+#print axioms TlsMpc.Security.receiveAcceptText_text_eq
+#print axioms TlsMpc.Security.receiveAcceptText_text_status
+#print axioms TlsMpc.Security.receiveAcceptText_text_rejects
+#print axioms TlsMpc.Security.receiveAcceptText_text_accepted
+#print axioms TlsMpc.Security.receiveAcceptText_text_of_reference
+#print axioms TlsMpc.Security.receiveAcceptText_text_reference
+#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_accepted
+#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_reference
+#print axioms TlsMpc.Security.receiveAccessKey_gap_unique
+#print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_status
+#print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_accepted
+#print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_rejected
 #print axioms TlsMpc.Security.widthFlags_value
 #print axioms TlsMpc.Security.signalWidths_value
 #print axioms TlsMpc.Security.slotUuid_eq
@@ -2785,6 +4073,17 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.bundleItem_shape_padded
 #print axioms TlsMpc.Security.ceremony_masked_hides
 #print axioms TlsMpc.Security.preKeyValidation_finish_spec
+#print axioms TlsMpc.Security.controller_fast_eq
+#print axioms TlsMpc.Security.passOver_frame_step_room
+#print axioms TlsMpc.Security.passOver_frameRoom_one
+#print axioms TlsMpc.Security.passOver_frameBulk_succ
+#print axioms TlsMpc.Security.passOver_control_idle
+#print axioms TlsMpc.Security.passOver_response_step_room
+#print axioms TlsMpc.Security.passOver_responseRoom_one
+#print axioms TlsMpc.Security.passOver_responseBulk_succ
+#print axioms TlsMpc.Security.passOne_bulk
+#print axioms TlsMpc.Security.passRun_bulk
+#print axioms TlsMpc.Security.passRun_add
 #print axioms TlsMpc.Security.word64_fast_eq
 #print axioms TlsMpc.Security.varint_decodeCore_spec
 #print axioms TlsMpc.Security.notification_buildPublic_spec

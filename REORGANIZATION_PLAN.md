@@ -1141,6 +1141,30 @@ Tests: Q, L, D.
 Depends on S0. **3 days. Mechanical.** Must not run concurrently with any stage editing the
 controller.
 
+**Status (2026-11-12).** Done, in four steps, each building with recovery-check 29/29,
+parse-bench, the lints and `check_axioms.py`:
+- `PublicRequest` → `Node/Policy/Request.lean`. Each builder is now split into the message it
+  frames (`sendMessage`, `fetchMessage`, `devicesMessage`, new names) and the framing (`build`,
+  `assemble`); same bytes. `KernelSpecs/RequestFrame.lean` states its theorems about these
+  definitions; the restated copy (`Mirror`) and `RequestFrameBridge.lean` are deleted.
+- `PublicReceive.fast` (with `fast_eq`) → `Node/Bytes.lean` (from `Node/PassOver.lean`), so that
+  `Policy/Request.lean` does not import the receive side.
+- `PublicReceive` (including `passOne`/`passRun`/`passRoom`/`passBulk` and their theorems, and the
+  replies `reply`/`keepalive`/`ping`/`replies`) → `Node/Policy/Receive.lean`; `Circuits` →
+  `Node/Policy/Circuits.lean`; `Recovery` (with `checks`, `responseFrame`, `feed`, `walk`,
+  `digest`) → `Node/Policy/Recovery.lean`.
+- `fromHex`, `toBits`, `toBytes`, `natural`, `sessionBytes` → `Node/Bytes.lean`; `readExport`,
+  `readSelf`, `readReceive`, `ReceiveKeys` → `Node/Export.lean`; `parseBench` → `Node/Bench.lean`;
+  `officialProfile` → `Node/Config.lean`. These were `private` or top level in the controller; they
+  are now in namespaces `TlsMpc.Node.{Bytes,Export,Bench,Config}`, which the controller opens.
+  The four I/O sites of `parseBench` and `officialProfile` moved with them (baseline updated).
+- Namespaces: `PublicReceive`, `PublicRequest`, `Circuits` and `Recovery` kept their names (the
+  owner asked for the same names in the controller), not `TlsMpc.Node.Policy.*` as written above.
+- `Security.lean` restates `controller_fast_eq`, the pass-over theorems (`passOver_*`) and
+  `passOne_bulk`, `passRun_bulk`, `passRun_add`.
+- Left in the controller: `establishTail` (the argument encoder of worker operation 60, not
+  listed above; it moves with that operation's flow) and `recordEvent` (I/O; S5).
+
 ---
 
 **S3. Daemon channels.**

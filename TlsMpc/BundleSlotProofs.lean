@@ -13,12 +13,13 @@ PROVED (standard axioms only; no `sorry`, no `native_decide`, no `bv_decide`):
   (the response made of `head`, `before`, `item`, `after`, `end`, and the digit counts `widths`).
 * `slot_rejects`: when the validity is 0, every output is zero.
 
-NOT PROVED, only tested (`handshake_backend/EmpHybridWork/check_bundle_slots.py`, against a JSON
-parse of bodies with every digit count): that `deviceSlots` on the spliced item gives exactly
-`BundleResponse.device` on the original (the value of a decimal does not change with leading
-`0`s, and `slotValid` accepts exactly the slots of canonical decimals); that `BundleSlots.splice`
-produces the slot layout. The same kind of statement is untested-by-proof for `device` itself
-(`number_spec` in `TlsMpc/BundleProofs.lean`).
+Proved since in `TlsMpc/KernelSpecs/BundleSlotWhole.lean` (restated in `TlsMpc/Security.lean`
+section 2d): `deviceSlots` on the spliced item gives exactly `BundleResponse.device` on the
+original (`deviceSlots_splice`, `slotValid_pad`), `BundleSlots.splice` produces the slot layout
+(`spliced_layout`), and so `bundle-slot` on the body the server sent computes `device`
+(`bundleSlot_device`); with the caveat `inconsistent_width_accepts` there (a `widths` input that
+disagrees with the splice, on a number with a leading zero). `check_bundle_slots.py` remains as a
+test. What `numberBytes`/`decode` mean as integers is `number_spec` in `TlsMpc/BundleProofs.lean`.
 -/
 namespace TlsMpc.BundleSlotKernel
 open Std.Tactic.BVDecide

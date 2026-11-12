@@ -484,7 +484,7 @@ party). The worker performs these openings:
 | 37 / 63 / 55 | `service_kernels.h:443`, `:958`, `:237` | `contact-open` → `accepted` | the stored blob's key check | — | `contactOpen_accepted_iff` (:275), `contactOpen_rejected` (:286) |
 | 38 / 64 / 54 | `:433`, `:882`, `:229` | `contact-seal` → `check`, `ciphertext` | sealed state for the database nodes | — | `contactSeal_spec` (:217), `contact_round_trip` (:300). A key check only; **no ciphertext integrity** (file header) |
 | 41 / 61 | `:545-551`, `:911-917` | `signal-widths` → `counter`, `previous`, `epoch`, `index` | varint widths of the contact's counters (about log₁₂₈ of each) | — | **none** |
-| 41 / 61 | `:561-563`, `:926-929` | `signal-seal-official` / `-built` / `-fixed`, `bundle-seal` → `status`, `timestamp`, `envelope` | sealed-sender envelope ciphertext; ok bit | envelope released under `status` (`TlsProviderGate.gate`) | `buildPublic_spec` (size class); `bundleSeal_spec` (:112, against an unproved `Establish.sealMessage`); **no value theorem for the seal kernels** (C.2) |
+| 41 / 61 | `:561-563`, `:926-929` | `signal-seal-official` / `-built` / `-fixed`, `bundle-seal` → `status`, `timestamp`, `envelope` | sealed-sender envelope ciphertext; ok bit | envelope released under `status` (`TlsProviderGate.gate`) | `buildPublic_spec` (size class); `bundleSeal_spec` (:112). **Update 2026-11-12:** value theorems now: `signal-seal-*` = sealed sender v1 (`Reference.sealV1`, a transcription of libsignal) of the reference send step's message (`KernelSpecs/SealValue.lean`, `SealSend.lean`; Security.lean `signalSeal_value`, `sealValue_accepted`); `bundle-seal` = the reference PreKey message sealed the same way (`KernelSpecs/EstablishSealValue.lean`; `establishSeal_bundleSeal_value`, `_accepted`); composed with the request frames (`serverReceives_accepted`, `establishRequest_serverReceives_refresh*`) |
 | 41 / 61 (inside) | `:539-541`, `:662-664` | (field engine, `OffsetAgreement::step`) | **ephemeral public key** u(K₀ + offset·B), computed in the clear | — | `OffsetAgreement.public_key_independent` (:69; model) |
 | 31 / 20 (fixture path) | `:504-506` | `signal-send(-open)` → `status`, `requestIdUsed` | | | none |
 | 18 (private profile; refused by this controller) | `:589`, `:601`, `:611-612` | `ws-activity` → `accepted`; `ws-*-byte` → `status`; `ws-control-status` → `valid`, `queue` | | | |
@@ -699,7 +699,7 @@ loaded flat file computes the spec".
 | `kem-*` | `kemHash_spec` … (MlKemFastProofs:607-664). `kemSample_spec` is about a kernel not deployed. **The composition into `MlKem.encapsulate` is not proved** (header 35-48) |
 | `receive-*` (13) | ReceiveProofs `*_spec` (:53-183). The "spec" is the same `ReceiveFirst` definition on concrete ops; the header says "Nothing here is a security statement" (:14-18, :28-32). The only independent formula is `keys_specification` (:276) |
 | `establish-*` | `establishChallenges_spec` (:57), `establishVerified_spec` (:72), `establishSession_spec` (:83) |
-| `bundle-shape`, `bundle-rebind`, `bundle-seal` | `bundleShape_spec` :73, `bundleRebind_spec` :102, `bundleSeal_spec` :112 (against `Establish.sealMessage`, which has only `_map` lemmas) |
+| `bundle-shape`, `bundle-rebind`, `bundle-seal` | `bundleShape_spec` :73, `bundleRebind_spec` :102, `bundleSeal_spec` :112 (against `Establish.sealMessage`; its value, 2026-11-12: `KernelSpecs/EstablishSealValue.lean` `sealMessage_value`, `bundleSeal_value`, `bundleSeal_accepted`, against `Reference` transcriptions of libsignal's PreKey message and sealed sender v1) |
 | `ceremony-secrets` | `ceremonySecrets_spec` (:130) |
 | `ceremony-register-ctr` | `registerPlaintext_spec` (:140, plaintext only) |
 
@@ -721,8 +721,9 @@ encoders against their RFCs, and value theorems for `boundSeal`/`prepare`.
 **Update 2026-11-12 (later):** closed in `TlsMpc/Security.lean` section 2d: the three request
 sealers composed with the frames the controller builds (`*_built`: slots zero and non-overlapping,
 8-byte header proved for every frame `build` returns, the opened ciphertext encrypts exactly the
-masked frame of the filled request; builders restated in `KernelSpecs/RequestFrame.lean`, proved
-equal to the controller's in `KernelSpecs/RequestFrameBridge.lean`); `bundle-item` against
+masked frame of the filled request; stated in `KernelSpecs/RequestFrame.lean` about the
+controller's own builders, which stage S2 moved to `TlsMpc/Node/Policy/Request.lean`; the earlier
+restated copy and its bridge are gone); `bundle-item` against
 `device` on the whole body (`bundleItem_whole`, locality lemma `bundleDevice_local`); the
 `signal-widths` flags (`signalWidths_value`); the UUID, base64 and padded-decimal slot encoders
 against independent references with round trips. Still open: `bundle-slot`'s spliced item against

@@ -38,10 +38,19 @@ would be masked with the wrong mask bytes (corrupted, not leaked beyond what the
 The two bundle kernels take the payload offset as a parameter.
 
 The "spec" here is the kernel's own encoders on concrete values (as for the `receive-*` and
-bundle kernels). NOT PROVED: that `uuid` / `base64` / the padded decimal are the RFC 4122 /
-RFC 4648 / decimal encodings, and that the frame built in the clear (`PublicRequest.*`) has
-zero bytes at the slots and no overlapping slots (T8). `find` checks that the slots of the two
-bundle kernels do not overlap (`slotsOk`); for `signal-request-ctr` it checks bounds only.
+bundle kernels). Proved elsewhere (restated in `TlsMpc/Security.lean` section 2d):
+
+* the encoders against independent references: `uuid` / `base64` / the padded decimal are the
+  RFC 4122 string form / RFC 4648 / decimal digits, with round trips
+  (`TlsMpc/KernelSpecs/SlotEncoders.lean`, `SlotBase64.lean`, `SlotDecimal.lean`);
+* the frame built in the clear (`PublicRequest.*`, `TlsMpc/Node/Policy/Request.lean`) has zero
+  bytes at the slots, no overlapping slots, and the 8-byte header assumed above for every frame
+  `build` returns; composed with the specs here, the three kernels seal exactly the masked frame
+  of the filled request (`TlsMpc/KernelSpecs/RequestFrame.lean`: `*_built`).
+
+`find` checks that the slots of the two bundle kernels do not overlap (`slotsOk`); for
+`signal-request-ctr` it checks bounds only (the builders' theorems make that check unnecessary for
+the frames the controller builds).
 -/
 namespace TlsMpc.KernelSpecs
 open Std.Tactic.BVDecide

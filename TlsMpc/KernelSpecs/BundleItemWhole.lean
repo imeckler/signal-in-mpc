@@ -22,11 +22,10 @@ PROVED (standard axioms only; no `sorry`, `native_decide`, `bv_decide`):
 * `bundleSlot_whole`: `bundle-slot`'s outputs are `BundleSlots.deviceSlots` on the whole body in
   which the item has been spliced into the slot layout.
 
-NOT PROVED: that `deviceSlots` on a spliced item equals `device` on the original item (leading
-`0`s do not change a decimal; `slotValid` accepts exactly the slots of canonical decimals), nor that
-`BundleSlots.splice` produces the slot layout. So `bundle-slot` is linked to the whole spliced body,
-not yet to `device` on the body the server sent. Trusted: that the C++ worker binds the five inputs
-as `cut` describes.
+Here `bundle-slot` is linked to the whole spliced body; `TlsMpc/KernelSpecs/BundleSlotWhole.lean`
+links it to `device` on the body the server sent (`bundleSlot_device`: `deviceSlots` on a spliced
+item equals `device` on the original, and the splice produces the slot layout). Trusted: that the
+C++ worker binds the five inputs as `cut` describes.
 -/
 namespace TlsMpc.KernelSpecs.BundleItemWhole
 open Std.Tactic.BVDecide
@@ -297,7 +296,8 @@ open TlsMpc.ReceiveKernel (values) in
 /-- **`bundle-slot` computes `BundleSlots.deviceSlots` on the whole (spliced) response body**, in the
 same sense: its outputs are those of `deviceSlots` on any body `X` whose cut around the slot item
 at `start` is the kernel's five inputs. (`X` is the response with this item replaced by its splice;
-that `deviceSlots` on the spliced item equals `device` on the original is NOT proved.) -/
+that `deviceSlots` on the spliced item equals `device` on the original is
+`BundleSlotWhole.deviceSlots_splice`, and the kernel on the original body `bundleSlot_device`.) -/
 theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment) (X : List (BitVec 8))
     (start : Nat) (placed : Placed X.length first last start (size (item (BundleSlots.slots oneTime))))
     (inputs : let get := fun name => (lookup (BundleSlotKernel.slotInputs first last oneTime) name).map (BVExpr.eval assign)
