@@ -502,6 +502,35 @@ with that reason). Results: PERFORMANCE.md, "The long-lived send session".
 **Switch off.** Revert the three hunks (`ReceiveFirst.lean` `gaps`/`withAccessKey`;
 `PublicServiceController.lean` `provisionals` and the `contactsPrepare` call in `restamp`).
 
+## 3f. Kernel defects found by the proof work (2026-11-12; kernels NOT changed yet)
+
+Each fix changes a kernel, so it needs one re-lowering of the affected kernels and a new
+manifest. Do them together.
+
+1. **`receive-text` opens bytes a protobuf parse rejects.** Proved:
+   `ReceiveAcceptText.overlongBody_accepted` / `overlongBody_reference`
+   (`TlsMpc/KernelSpecs/ReceiveAcceptText.lean`). Content `0A 03 0A 05 61 62 63 64 65 00…`
+   (a 3-byte DataMessage whose body claims 5 bytes) is accepted and "abcde" is opened. The kernel
+   never checks the body's extent against the DataMessage length, and reads that length's width
+   from one continuation bit without checking its second byte. Only an authenticated sender can
+   produce such a plaintext and what is opened is that sender's own bytes; but for a signup the
+   opened bytes are the token, so a malicious sender chooses which of its plaintext bytes are
+   treated as the token. Fix: add `2 + w₁ + w₂ + len₂ ≤ 1 + w₁ + len₁` and the top bit of
+   `len₁`'s second byte to `ok`.
+2. **`bundle-slot` with inconsistent width bytes.** Proved:
+   `inconsistent_width_accepts` (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). A response body with
+   a leading-zero number (`05`), spliced with one digit count and declared with another, is
+   accepted where `BundleResponse.device` refuses; the released value is still that number.
+   Needs a non-canonical body from the server and a worker passing inconsistent counts. Fix:
+   derive the width bytes and the splice from one input inside the kernel, or reject a slot whose
+   first significant digit is `0` unless the number is one digit.
+3. **A refused send still overwrites the stored text slot** (`stagedOf`, HybridKernels.lean:446):
+   the ratchet state is preserved, the record is not byte-for-byte the old one. Probably
+   intended (HybridKernels.lean:425); statements must say "preserves the ratchet state".
+4. **`signal-request-ctr` assumes an 8-byte WebSocket header.** Not a defect for frames the
+   controller builds (`requestBuild_ok` proves the header is 8 bytes); the kernel itself does not
+   check it.
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer
