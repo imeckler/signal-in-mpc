@@ -446,6 +446,19 @@ party can block a delete by not forwarding it.
       broadcast's recipients by source address and timing. Decide: who runs it, one connection
       per recipient or per batch, added delay and shuffling. Not started, by instruction.
 - [ ] Review what timing reveals even with a proxy (burst of sends after each notify).
+- [ ] **Connection rotation over Tor (owner decision 2026-11-11; queued behind the C++ move and
+      reorganisation of section 12a).** The long-lived send session reuses connections, and so
+      Tor circuits, across notifies. Build: a new connection on a new Tor circuit (distinct
+      SOCKS credentials; check that this is what `SIGNAL_TOR_CIRCUITS` does today) after a
+      *random* number of messages around a configurable mean (default 10); a pool of
+      connections on different circuits (default 4) with each message assigned to a random one
+      and sent in random order, not id order; messages of concurrent broadcasts interleaved
+      across the pool; an optional hold window (default 0) so small broadcasts can wait to be
+      mixed. Circuits built ahead in idle time. No TLS session resumption (the ticket links
+      connections). Cost: one in-MPC handshake (1.5–2.6 s) per new connection, about 0.2 s per
+      message at a mean of 10. Known limit: bulk sealed sends from Tor exits are probably
+      recognisable as one sender whatever the circuits; rotation hides which messages go
+      together, not that they share a sender.
 - [ ] **Being recognisable is separate from being located.** Whatever the exit. Comparison,
       reference and ranking: `handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md` (model client
       Signal-Android; reference derived from libsignal v0.106.1 and BoringSSL source, because
@@ -711,6 +724,62 @@ party can block a delete by not forwarding it.
 - [ ] Send without waiting for each response; several contacts in parallel.
 - [ ] Fewer AND gates in the send and record circuits (AES, SHA-256, large-record opens).
 - [ ] Measure over a real network between two machines.
+
+## 11a. Spikes: a stock of circuits made ahead, encrypted on disk (owner decision 2026-11-11)
+
+**Load (owner).** About 300 broadcasts a day averaging 48 recipients (about 14,400 messages a
+day, 430,000 a month, US daytime), and occasionally one broadcast of about 14,000 recipients,
+which should finish "within minutes ideally. an hour is too long. 10 minutes would be nice":
+about 23 messages a second sustained. Live, semi-honest mode would need about 18 Gbit/s
+between the nodes for that. Still open: how often the large broadcasts happen, and whether
+they are known in advance (both set the stock size).
+
+**Design chosen.** One dedicated pair with large disks. In quiet hours the nodes produce and
+exchange the message-independent part of each send (semi-honest: the garbled circuit, about
+85–100 MB per message; one spike is about 1.2–1.4 TB) and keep it on disk; a send then needs
+only a small exchange plus local computation. The owner accepted keeping the stock on disk
+provided it is encrypted ("encrypting on disk seems reasonable. plan for that"). Many burst
+pairs rented by the hour stay the fallback for a spike larger than the stock. Queued with the
+move out of C++ (section 12a), because the stock handling belongs in Lean with the sequencing.
+
+Order of work:
+- [ ] **Measure first.** With the engine as it is: how much of a semi-honest send is
+      message-independent (bytes and time), the evaluator's time per message per core, and
+      therefore whether 23 a second is reachable on one 16-core pair. If not, size the pair or
+      add burst pairs. Same split for malicious mode (stock about 13 TB a side per spike).
+- [ ] **Stock format.** Per circuit shape (size class, client profile), fixed-size items with an
+      index; produced by the same lowered circuits as today (manifest hash recorded in the
+      stock header, so a stock is never used with other circuits). Both nodes agree a hash of
+      every item when it is made and check it before use.
+- [ ] **Use exactly once.** A durable "consumed" record written and synced before an item is
+      used; both nodes confirm the item index inside the agreement for every message; a node
+      that finds its record ahead of or behind its peer's skips forward, never back. State and
+      prove in Lean: no index is ever handed to the engine twice, including across crashes and
+      restarts (model the journal). Stock is never restored from a snapshot or backup: the
+      stock header carries a boot-time random id held only in memory, so a restored disk is
+      unusable.
+- [ ] **Encryption at rest.** Stock encrypted under a key that exists only in memory (lost on
+      reboot: the stock is disposable and is made again). Each item under its own key derived
+      from a chain that is advanced and the old value erased on use, so used items cannot be
+      recovered from the disk even though SSDs do not reliably delete. The garbling node's side
+      (its randomness) is the sensitive one; the evaluator's side is authenticated, and
+      encrypted too for uniformity.
+- [ ] **Refill policy.** Target level per shape, refill when idle and at night, rate limit so
+      the everyday load is not starved; what happens when the stock runs out (fall back to
+      live garbling at link speed, reported to the application as slower, never refused).
+- [ ] **The other limits on a spike**, needed whatever the stock: contacts prepared in parallel
+      or ahead (0.28 s each today, over an hour for 14,000 on one session); a long-lived,
+      release-build database client (0.4 s per write today); the field engine freeing shares
+      (about 0.1 GB per contact per session today); several sessions per pair with each
+      contact id on exactly one.
+- [ ] **Malicious mode.** The same stock for authenticated triples; needs each node's
+      authentication key to live as long as the stock (the persistent-key question in
+      `SEALED_SENDER_AGREEMENT.md`) — decide then.
+- [ ] `NEEDS_REVIEW.md`: the stock changes when secrets exist and for how long; record the
+      argument (nothing in the stock depends on contacts or messages; reuse is the hazard).
+- [ ] Deployment: disks sized for the stock, the machines of `deployment/PROVIDERS.md`
+      re-priced for this design (dedicated pair about €330–400 a month plus five database
+      nodes), and a test that pulls the plug mid-spike and checks no index is reused.
 
 ## 12. Testing still owed
 

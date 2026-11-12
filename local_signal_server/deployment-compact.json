@@ -1,0 +1,21 @@
+{
+  "description": "The LOCAL compact-certificate deployment of check_signal_service_local_signup.py --compact --manifest (the second server instance, scripts/start_compact_server.sh: embedSigner false, 138-byte certificates naming libsignal's test signer 0x7357C357 by id): production's shapes as far as the local server can show them. Its terminator (scripts/coalesced_terminator.py) gives production's handshake shape: the encrypted flight in ONE record (621 bytes here, measure_handshake.py local-compact; 1122 at chat.signal.org), one Ed25519 certificate, 16 bytes of record padding. libsignal profile (official padding, signal-seal-official), the signup layouts official clients send (ciphertext 176 for the legacy test layout, 240 for Signal-Android's), both content hints. record_max 10240: the terminator, like a real frontend, packs queued WebSocket frames into records of up to 16 KB; 10240 is the largest class whose kernels lower under the 16 GB cap (12288 does not), about four queued deliveries. See handshake_backend/EmpHybridWork/CIRCUIT_SHAPES.md for each setting.",
+  "settings": {
+    "profile": "libsignal",
+    "certificate": 138,
+    "password": 22,
+    "client_certificate": 0,
+    "handshake": [621],
+    "record_max": 10240,
+    "typed_records": 1,
+    "seal_max": 384,
+    "sends": ["1:1:1:1:1", "2:1:1:1:1"],
+    "devices": 1,
+    "signup_certificates": ["138:0:0"],
+    "signup_hints": [0, 1],
+    "signup_one_time": [0, 1],
+    "signup_registration": [1, 2],
+    "signup_ciphertext": [176, 240],
+    "signup_text": 108
+  }
+}

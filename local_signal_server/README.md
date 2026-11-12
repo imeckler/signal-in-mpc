@@ -27,6 +27,10 @@ tool refuses non-loopback servers.
 | `replay/Replay.lean` | runs recorded server bytes through the client's own Lean parsers (`TlsWebSocketUpgrade/Frame/Idle/Control`, `TlsChatResponse`, and verbatim copies of `PublicReceive` at HEAD e27de08 and in the working tree); executed with `lean --run` against the repo's existing `.olean`s, nothing is built and the lakefile is untouched |
 | `testdata/` | server-originated byte samples from the local server (101 heads, frames, keepalive and send responses) and unauthenticated request samples. No passwords, Authorization headers or keys (checked) |
 | `check_signal_service_local.py` | the local-server harness: start, provision, export, optional `--self-check`, MPC run (`NotImplementedError`, documented), verification, stop |
+| `scripts/start_compact_server.sh` / `scripts/stop_compact_server.sh` | a SECOND server instance (ports 19080/19081, terminator 19443, pid files in `state/compact/`) issuing production's compact sender certificates (`make_config.py … compact`: `embedSigner: false`), behind `scripts/coalesced_terminator.py`: production's handshake shape (the encrypted flight in one padded record, one Ed25519 certificate). The default instance is not touched |
+| `scripts/coalesced_terminator.py` | a small TLS 1.3 server (one profile: AES-128-GCM, X25519, Ed25519, http/1.1) that sends the whole encrypted flight in ONE record, as chat.signal.org does (OpenSSL cannot) |
+| `check_signal_service_local_signup.py` | the first real test's flow (`real_signal/run_real_test.py`'s pieces): signups in the layouts official clients send (`lss-provision` `LSS_DATA_LAYOUT=legacy\|android\|android-tag\|android-timer`), a refused one before them, one reply; `--compact` against the second instance, `--manifest` strict (`deployment-compact.json`) |
+| `scripts/make_fake_account.py` | a local account rewritten in the real registration tool's account format (for `export-account … local`) |
 | `state/`, `logs/`, `third_party/` | generated; git-ignored. `state/accounts/*.json` and `state/mpc-export.json` hold LOCAL TEST keys and passwords |
 
 ## Tooling (this machine, 2026-11-10)

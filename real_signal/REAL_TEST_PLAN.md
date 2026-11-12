@@ -61,6 +61,14 @@ the `ContentHint` (Android may set RESENDABLE: hint 1), the post-quantum field s
 lists 176 and 240 and both hints; anything else is produced on demand (non-strict) or refused
 (strict), and recorded.
 
+**B2 — DONE 2026-11-12.** `CircuitInventory.lean` has a `profile` setting (`libsignal`:
+`signal-seal-official`, `bundle-seal … 80c−1`), `produce_circuits.py` names the request kernels
+under the same profile, and `deployment-production.json` sets `profile: libsignal`. The local
+compact-certificate stage runs strict with the libsignal profile (a second server instance,
+`scripts/start_compact_server.sh`, ports 19080/19081/19443, `embedSigner: false`; the default
+instance is untouched): passes semi-honest and malicious (section 4). The production set is
+produced into `real_signal/state/circuits/` (see step 5). Original text:
+
 **B2. Circuits for production shapes have never been produced or run (change needed).** Our
 production sender certificate is **134 bytes** (compact: UUID as 16 bytes, signer named by id 3)
 against 244 locally (embedded signer, UUID text). Every kernel parameterised by our certificate
@@ -161,7 +169,7 @@ session (test admission, PRODUCT_TODO section 2). Fine for a first test; not the
 | Socket password | 22 characters | 22 (the registration tool samples 22 base64url characters) | `signal-upgrade 22`. Android's are 24: a fingerprint difference (PRODUCT_TODO section 8) |
 | Our prekey ids | small (varint width 1) | random 24-bit: signed and Kyber width 4; no one-time prekeys uploaded | `deployment-production.json`: `signup_signed 4`, `signup_kyber 4`, `signup_one_time 0` (from the export's `deployment-hints.json`) |
 | A phone's sender certificate | 244 | 134 without a phone number (Android's default "nobody" sharing), 136 + n with one of n characters | `signup_certificates` `134:0:0`, `148:255:12` (+1 numbers); other lengths are produced on demand or refused, recorded |
-| Responses and records | record classes up to 6144 | the same classes; a send's response is ~150 bytes; the upgrade response may carry headers the local server does not send | the upgrade validator accepts any syntactically valid headers; a record above 6144 is refused (`record_max`, CIRCUIT_SHAPES "Not done" 6) |
+| Responses and records | record classes up to 6144 | the same classes; a send's response is ~150 bytes; the upgrade response may carry headers the local server does not send | the upgrade validator accepts any syntactically valid headers; `record_max` is now 10240 in `deployment-production.json` (2026-11-12: a frontend packs queued WebSocket frames into one record; locally two queued deliveries made an 8192-class record, which 6144 refused in strict mode). 12288 and up do not lower under the 16 GB per-kernel cap: a record above 10240 (five or more deliveries queued in one record) is refused, the session ends and the messages stay on the server |
 | Contacts with linked devices | tested (`--multi-device`) | a phone user with Desktop or iPad: first send answered 409 → prekey fetch → one message per device | `bundle_items` covers 3–5-digit registration ids, 7–8-digit key ids and 0/3/4-digit one-time ids; other digit counts are refused (CIRCUIT_SHAPES "Not done" 3) |
 | Export without contacts | n/a | a real account has none | `readExport` accepts an empty `contacts` list (changed) |
 | Never a receipt | | | no request kind exists for one: the only requests are sealed text sends, prekey fetches, keepalives, pings and 200 replies to server requests; the content is always a `DataMessage` (body, timestamp) |
@@ -244,8 +252,8 @@ Offline (now):
 1. `lss-provision export-account real_signal/state/account.json real_signal/state/export production`
    — done 2026-11-11: certificate 134 bytes, signer id 3, matched root `BUkY…`, valid 167 hours.
    Records `real_signal/state/export/{mpc-export.json, credentials-party-{0,1}.hex, deployment-hints.json}`.
-2. Fix B1 and B6b; add the profile kernels to the inventory and run the compact-certificate local
-   stage (B2).
+2. ~~Fix B1 and B6b; add the profile kernels to the inventory and run the compact-certificate local
+   stage (B2).~~ Done 2026-11-12 (section 4).
 3. `python3 real_signal/run_real_test.py local --export DIR --local-account NAME` against the local
    server (the same launcher and recording, with `lss-provision export-account … local` from a local
    account; section 4).
@@ -255,10 +263,21 @@ With the owner's go-ahead:
 4. *(go-ahead)* `python3 real_signal/measure_handshake.py production real_signal/state/handshake.json --i-have-the-go-ahead`
    (twice more if the peer signature is ECDSA). Records the chain, record sizes, ALPN, group,
    signature scheme. Put the sizes in `deployment-production.json` `handshake`.
-5. Offline: `python3 scripts/guarded.py 16 3600 python3 scripts/produce_circuits.py real_signal/deployment-production.json real_signal/state/circuits`
-   with `SIGNAL_CLIENT_PROFILE=libsignal` (after B2). Records the manifest and its hash.
+5. Offline: `python3 scripts/guarded.py 20 3600 python3 scripts/produce_circuits.py real_signal/deployment-production.json real_signal/state/circuits`
+   (the profile now comes from the deployment's `profile` setting). **Done 2026-11-12**: 436
+   kernels, 17 GB, 23.5 min, peak 10.5 GB per kernel; every file present and hashing as pinned;
+   the 195 kernels it shares with the compact local manifest are pinned identically (the strict
+   local stage ran with exactly those). Redo it after any change to the Lean kernels if the run
+   is non-strict (the cache is keyed by the emitter binary); a strict run reads the manifest's
+   own directory and is unaffected. Recommended: run step 7 with `--manifest
+   real_signal/state/circuits/manifest.txt` (strict) and the default `SIGNAL_ACK_REFUSED=0`: a
+   signup of an unlisted shape (e.g. another `signup_pq`) is refused, recorded in
+   `kernels-refused.txt` and kept on the server; produce that shape and run again. Non-strict, a
+   cold shape is produced while connected (90 s locally), and the local server closed the idle
+   socket (1001) meanwhile.
 6. Offline: `python3 real_signal/run_real_test.py production --export real_signal/state/export --dry-run [--manifest real_signal/state/circuits/manifest.txt]`.
-   Records `plan.json`; must list no problems (certificate time, binaries, manifest).
+   Records `plan.json`; must list no problems (certificate time, binaries, manifest). Not run on
+   2026-11-12: the agents' permission classifier refused even the dry run; the owner runs it.
 7. *(go-ahead)* Optionally start the packet capture; then
    `python3 real_signal/run_real_test.py production --export real_signal/state/export --i-have-the-go-ahead [--manifest …]`,
    type YES. It starts the database nodes, issues the signup token and prints it.
@@ -297,6 +316,26 @@ receive session with `--ack-refused` clears them (each is still recorded).
   it, recorded the second as refused ("the text is not a signup token …") and did not answer it,
   and kept waiting (a refusal does not count). Session 2 received the refused message again,
   refused and did not answer it again.
+- **2026-11-12, B1/B6b/B2/B3/timestamps** (`local_signal_server/check_signal_service_local_signup.py`,
+  the real run's launcher pieces, libsignal profile, in-memory database nodes): queue = a refused
+  signup (Android layout, text not a token), then signups in the `legacy`, `android` (Wire order:
+  expireTimer 0, expireTimerVersion 1, isViewOnce, 80k−1 padding, hint RESENDABLE),
+  `android-tag` and `android-timer` (one-week timer, version 2) layouts; then one reply to the
+  `android` contact, which the server accepts only with the access key the engines derived from
+  that layout's profile key (the test senders are not unrestricted).
+  - default server, semi-honest, non-strict: refused 1, stored 4, reply delivered and decrypted.
+    The receive session then got the server's close 1001 "Connection Idle Timeout": the first
+    envelope took 90 s because its circuits were produced on demand (cold cache after the Lean
+    change). Another reason to produce the circuits ahead (step 5).
+  - **compact-certificate instance, strict** (`--compact --manifest
+    local_signal_server/state/circuits-compact/manifest.txt`, `deployment-compact.json`, 283
+    kernels): our certificate 138 bytes by reference (signer 0x7357C357), the senders' 138, the
+    handshake ONE coalesced 621-byte record with padding and one Ed25519 certificate
+    (`coalesced_terminator.py`), every kernel from the manifest, none refused. Semi-honest:
+    receive 15.5 s for 5 messages, send 3.7 s, the reply's timestamp 1.4 s old at the server.
+    Malicious: receive 37.1 s, send 7.6 s, timestamp 2.3 s old. The first malicious attempt was
+    refused `tls-open-typed 8192` (two deliveries packed into one record) with `record_max`
+    6144: now 10240 in both deployments.
 - `public_service_controller recovery-check`: passes. Other agents' harness runs (`--db
   --multi-device`, `--circuits 2 --circuits-db`, `--ceremony`) built and ran the controller with
   these changes while they were in place.
