@@ -50,25 +50,29 @@ outside this binary profile), a masked server frame, a 64-bit length (code 127: 
 protocol's messages), a control frame with an extended length, a 16-bit length below 126; a
 wrapper key other than `12` (request) or `1a` (response); a request or response key outside the
 lists above; an envelope key of wire type 3, 4, 6 or 7; a varint whose 10th byte still has its top
-bit set. The offending byte itself keeps its class (a header byte, a key, a varint byte), and
-**every later byte of the stream is `error` (secret)**: `failClosed`.
+bit set; a request's or response's length-delimited field (verb, path, body, message, header)
+whose declared length runs past the end of its message, the offending byte being the length's
+last byte, as soon as the message's end is known: when the message's last frame (FIN) is read,
+whose header gives the message's length (`delimitedThen` with `complete`). The offending byte
+itself keeps its class (a header byte, a key, a varint byte), and **every later byte of the stream
+is `error` (secret)**: `failClosed`.
 
 Not errors here (the controller may still refuse them, which is stricter): the declared length of
 the request or response wrapper (the reference reads the request's or response's fields to the
-end of the message, as the server writes them; the length bytes are `structure`), a field that runs
-past the end of its message or of the body, message sizes, close codes, and anything after a close
-frame.
+end of the message, as the server writes them; the length bytes are `structure`), an envelope field
+that runs past the end of the body, a varint the message ends inside, message sizes, close codes,
+and anything after a close frame.
 
 ## What T1 asks (`Policy/ReceiveProofs.lean`, `Policy/ReceiveTest.lean`)
 
-The controller reveals byte `q` of a stream only if `allowed openBody stream q`, except possibly the
-one byte right after the first malformed byte (`firstError`): the controller reveals bytes in
-runs it computes in advance and checks each byte after it is revealed, so it may have revealed the
-byte after an offending key before it refuses the key and stops.
+For every stream, cut into records in any way, the controller reveals byte `q` only if
+`allowed openBody stream q`, or `q` is the one byte right after the first malformed byte
+(`firstError`): the controller reveals bytes in runs it computes in advance and checks each byte
+after it is revealed, so it may have revealed the byte after an offending key (a response's next key
+and the byte after it are one run) before it refuses the key and stops. `ReceiveProofs.T1`.
 
-The deployed policy does NOT meet this on streams with a varint longer than 10 bytes (the
-scanners take such a varint for an unfinished one and reveal the rest of the message, body
-included): `ReceiveTest.overlongRequest`, `ReceiveTest.overlongResponse`.
+(Before REORGANIZATION_PLAN.md P1's fix the policy did not meet this on streams with a varint longer
+than 10 bytes: `ReceiveTest.overlongRequest`, `ReceiveTest.overlongResponse`, now refused.)
 -/
 
 namespace ReceiveSpec
@@ -144,11 +148,13 @@ def varintThen (bytes : List Byte) (next : Nat → List Byte → List Class) : L
 
 /-- A length-delimited field's length and content: the length is a varint (`structure`), the
 content is the next `length` bytes (`content` classifies them), and `next content rest`
-classifies what follows. -/
-def delimitedThen (bytes : List Byte) (content : List Byte → List Class)
+classifies what follows. `complete`: `bytes` run to the end of the message (its last frame has been
+read); then a length running past them is malformed (every byte after it `error`). -/
+def delimitedThen (complete : Bool) (bytes : List Byte) (content : List Byte → List Class)
     (next : List Byte → List Byte → List Class) : List Class :=
   varintThen bytes fun length after =>
-    content (after.take length) ++ next (after.take length) (after.drop length)
+    if complete ∧ after.length < length then fill .error after
+    else content (after.take length) ++ next (after.take length) (after.drop length)
 
 /-! ### Envelopes, requests, responses
 
@@ -166,7 +172,7 @@ def envelope : (fuel : Nat) → List Byte → List Class
       | 0 => varintThen after fun _ rest => envelope fuel rest
       | 1 => fill .envelope (after.take 8) ++ envelope fuel (after.drop 8)
       | 5 => fill .envelope (after.take 4) ++ envelope fuel (after.drop 4)
-      | 2 => delimitedThen after (fill .envelope) fun _ rest => envelope fuel rest
+      | 2 => delimitedThen false after (fill .envelope) fun _ rest => envelope fuel rest
       | _ => fill .error after
 
 /-- The path of a delivered message. -/
@@ -176,32 +182,33 @@ def messagePath : List Byte := "/api/v1/message".toUTF8.data.toList.map fun b =>
 def requestBody (path content : List Byte) : List Class :=
   if path = messagePath then envelope (content.length + 1) content else fill .body content
 
-/-- A `WebSocketRequestMessage`'s fields; `path` is the last path field read so far. -/
-def request : (fuel : Nat) → (path : List Byte) → List Byte → List Class
+/-- A `WebSocketRequestMessage`'s fields; `path` is the last path field read so far; `complete`:
+the bytes run to the end of the message. -/
+def request (complete : Bool) : (fuel : Nat) → (path : List Byte) → List Byte → List Class
   | 0, _, bytes => fill .error bytes
   | _ + 1, _, [] => []
   | fuel + 1, path, key :: rest =>
     if key = 0x20 then
-      .structure :: varintThen rest fun _ after => request fuel path after
+      .structure :: varintThen rest fun _ after => request complete fuel path after
     else if key = 0x0a ∨ key = 0x12 ∨ key = 0x2a then
-      .structure :: delimitedThen rest (fill .text) fun content after =>
-        request fuel (if key = 0x12 then content else path) after
+      .structure :: delimitedThen complete rest (fill .text) fun content after =>
+        request complete fuel (if key = 0x12 then content else path) after
     else if key = 0x1a then
-      .structure :: delimitedThen rest (requestBody path) fun _ after => request fuel path after
+      .structure :: delimitedThen complete rest (requestBody path) fun _ after => request complete fuel path after
     else .structure :: fill .error rest
 
 /-- A `WebSocketResponseMessage`'s fields. -/
-def response (openBody : Bool) : (fuel : Nat) → List Byte → List Class
+def response (openBody complete : Bool) : (fuel : Nat) → List Byte → List Class
   | 0, bytes => fill .error bytes
   | _ + 1, [] => []
   | fuel + 1, key :: rest =>
     if key = 0x08 ∨ key = 0x10 then
-      .structure :: varintThen rest fun _ after => response openBody fuel after
+      .structure :: varintThen rest fun _ after => response openBody complete fuel after
     else if key = 0x1a ∨ key = 0x2a then
-      .structure :: delimitedThen rest (fill .text) fun _ after => response openBody fuel after
+      .structure :: delimitedThen complete rest (fill .text) fun _ after => response openBody complete fuel after
     else if key = 0x22 then
-      .structure :: delimitedThen rest (fill (if openBody then .text else .body)) fun _ after =>
-        response openBody fuel after
+      .structure :: delimitedThen complete rest (fill (if openBody then .text else .body)) fun _ after =>
+        response openBody complete fuel after
     else .structure :: fill .error rest
 
 /-- `WebSocketMessage`'s wrapper of a request (key `12`) or response (key `1a`): the key and the
@@ -212,11 +219,14 @@ def wrapper (key : Byte) (fields : List Byte → List Class) : List Byte → Lis
     if k = key then .structure :: varintThen rest fun _ after => fields after
     else .structure :: fill .error rest
 
-/-- A whole message's payload (its frames' payloads, concatenated). -/
-def message (openBody : Bool) : List Byte → List Class
+/-- A message's payload (its frames' payloads, concatenated); `complete`: the whole of it (its last
+frame has been read), else the part read so far. -/
+def message (openBody complete : Bool) : List Byte → List Class
   | a :: b :: rest =>
-    if a = 8 ∧ b = 1 then .kind :: .kind :: wrapper 0x12 (fun fields => request (fields.length + 1) [] fields) rest
-    else if a = 8 ∧ b = 2 then .kind :: .kind :: wrapper 0x1a (fun fields => response openBody (fields.length + 1) fields) rest
+    if a = 8 ∧ b = 1 then
+      .kind :: .kind :: wrapper 0x12 (fun fields => request complete (fields.length + 1) [] fields) rest
+    else if a = 8 ∧ b = 2 then
+      .kind :: .kind :: wrapper 0x1a (fun fields => response openBody complete (fields.length + 1) fields) rest
     else .kind :: .kind :: fill .unknown rest
   | short => fill .kind short
 
@@ -228,7 +238,8 @@ def word (hi lo : Byte) : Nat := hi.toNat * 256 + lo.toNat
 /-- The frames after the upgrade. `msg`: the payload of the binary message in progress so far
 (empty between messages); `fragmented`: a binary message is in progress (its last frame had FIN
 clear). A data frame's payload bytes get their classes in the whole message read so far: those
-of `msg ++ payload` after `msg` (the classes above depend only on the bytes before). -/
+of `msg ++ payload` after `msg` (the classes above depend only on the bytes before, and on whether
+the message is complete: the frame has FIN and all its payload is in the stream). -/
 def frames (openBody : Bool) : (fuel : Nat) → (msg : List Byte) → (fragmented : Bool) → List Byte → List Class
   | 0, _, _, bytes => fill .error bytes
   | _ + 1, _, _, [] => []
@@ -247,7 +258,8 @@ def frames (openBody : Bool) : (fuel : Nat) → (msg : List Byte) → (fragmente
       -- The payload: `length` bytes after a header of `header` bytes.
       let payload (header : List Class) (length : Nat) (rest : List Byte) : List Class :=
         let bytes := rest.take length
-        let classes := if isControl then fill .control bytes else (message openBody (msg ++ bytes)).drop msg.length
+        let classes := if isControl then fill .control bytes
+          else (message openBody (fin && decide (bytes.length = length)) (msg ++ bytes)).drop msg.length
         let (msg', fragmented') :=
           if isControl then (msg, fragmented) else if fin then ([], false) else (msg ++ bytes, true)
         header ++ classes ++ (if bytes.length < length then [] else frames openBody fuel msg' fragmented' (rest.drop length))

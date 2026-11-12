@@ -43,8 +43,16 @@ ends at or before the body's first byte; at the end of the body's length, `scan`
 `responseHead_prefix`, `budget_response`): id, status, message, body. The body of the `200` to a
 prekey fetch (the contact's bundle) and of a 409/410 (the contact's devices) is passed over whole.
 
+**Too-long varints are refused** (the P1 fix): `varintAt_tooLong`, `scanBody_tooLong`,
+`scan_wrapper_tooLong`, `replyScanBody_tooLong`, `replyScan_wrapper_tooLong`; end to end on the two
+former counterexamples, `ReceiveTest.overlongRequest_refused`, `overlongResponse_refused`,
+`overlong_T1` (kernel-checked runs of the loop).
+
 The scanners' `for` loops are rewritten as plain functions (`scan_eq`, `fieldMissing_eq`,
 `replyScan_eq`, `replyBudget_eq`: the loop bodies are written out and checked by `rfl`).
+
+`T1` states the property for every stream (with the one-byte allowance after the first malformed
+byte; it stays: a response's next key and the byte after it are revealed in one run).
 
 ## What is not proved here
 
@@ -57,7 +65,8 @@ The scanners' `for` loops are rewritten as plain functions (`scan_eq`, `fieldMis
   `ReceiveTest` only.
 * Field layouts other than the server's order, and the relation to `ReceiveSpec.classify` (checked
   by `ReceiveTest` on generated streams).
-* T1 on every stream is false: a varint of more than 10 bytes (`ReceiveTest.overlongRequest`).
+* `T1` itself for all streams: checked by `ReceiveTest` (generated and mutated streams), proved for
+  the parts above.
 -/
 
 namespace ReceiveProofs
@@ -112,6 +121,20 @@ where
       match recordLoop (r.length + 1) s r 0 base acc with
       | (acc, .error e) => (acc, .error e)
       | (acc, .ok s) => go s rs (base + r.length) acc
+
+/-- **T1, for every stream.** From state `s`, over a stream of frames cut into `records` (any
+cut), every position the record loop reveals is allowed by the reference
+(`ReceiveSpec.classifyFrames`), or is the one byte right after the first malformed byte (the
+allowance: the controller reveals a run before checking it, and a response's next key and the
+byte after it are one run). Checked on generated streams by `ReceiveTest.checks`; its parts are
+proved below. -/
+def T1 (openBody : Bool) (s : State) (records : List (List Byte)) : Prop :=
+  ∀ q ∈ (streamRun s records).1,
+    ReceiveSpec.allowedIn (ReceiveSpec.classifyFrames openBody records.flatten) q = true ∨
+      ReceiveSpec.firstError (ReceiveSpec.classifyFrames openBody records.flatten) = some q
+
+instance (openBody : Bool) (s : State) (records : List (List Byte)) : Decidable (T1 openBody s records) := by
+  unfold T1; infer_instance
 
 /-! ### Passing over: a body being passed over is never revealed
 
@@ -358,7 +381,7 @@ def scanBody (bytes : List Byte) (bodySkipped : Bool) (r : LoopState Fields) : F
   if (get bytes r.snd.snd).toNat == 0x20 then
     match varintAt bytes (r.snd.snd + 1) with
     | some (value, next) => .yield ⟨none, { r.snd.fst with id := some value }, next⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else if ((get bytes r.snd.snd).toNat == 0x0a || (get bytes r.snd.snd).toNat == 0x12 ||
       (get bytes r.snd.snd).toNat == 0x2a) then
     match varintAt bytes (r.snd.snd + 1) with
@@ -372,7 +395,7 @@ def scanBody (bytes : List Byte) (bodySkipped : Bool) (r : LoopState Fields) : F
         if (get bytes r.snd.snd).toNat == 0x12 then
           .yield ⟨none, { r.snd.fst with path := (bytes.drop next).take count }, next + count⟩
         else .yield ⟨none, r.snd.fst, next + count⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else if (get bytes r.snd.snd).toNat == 0x1a then
     match varintAt bytes (r.snd.snd + 1) with
     | some (count, next) =>
@@ -380,7 +403,7 @@ def scanBody (bytes : List Byte) (bodySkipped : Bool) (r : LoopState Fields) : F
       if next == bytes.length && !bodySkipped && decide (count > 0) then
         .done ⟨some (.skip count, { r.snd.fst with body := some count }), { r.snd.fst with body := some count }, r.snd.snd⟩
       else .yield ⟨none, { r.snd.fst with body := some count }, next⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else .done ⟨some (.malformed, r.snd.fst), r.snd.fst, r.snd.snd⟩
 
 /-- The result of a scanner's loop. -/
@@ -394,7 +417,7 @@ theorem scan_eq (bytes : List Byte) (b : Bool) : scan bytes b =
     if (bytes.take 2 == [8, 1] && get bytes 2 == 0x12) = true then
       match varintAt bytes 3 with
       | some (_, first) => loopResult (loopG (scanBody bytes b) (bytes.length + 1) ⟨none, {}, first⟩)
-      | none => (.more, {})
+      | none => (if varintTooLong bytes 3 then .malformed else .more, {})
     else (.malformed, {}) := by
   unfold scan
   simp only [Id.run, forIn_range]
@@ -495,6 +518,41 @@ theorem varintAt_partial {bytes u : List Byte} {pos : Nat} (hu : ∀ b ∈ u, 12
     (h : bytes.drop pos = u) : varintAt bytes pos = none :=
   varint_go_partial bytes u hu 10 pos 0 0 h
 
+theorem varint_go_tooLong (bytes : List Byte) : ∀ (fuel pos shift acc : Nat),
+    (∀ i < fuel, pos + i < bytes.length ∧ 128 ≤ (PublicReceive.get bytes (pos + i)).toNat) →
+    varintAt.go bytes fuel pos shift acc = none
+  | 0, _, _, _, _ => rfl
+  | fuel + 1, pos, shift, acc, h => by
+    obtain ⟨h1, h2⟩ := h 0 (by omega)
+    simp only [Nat.add_zero] at h1 h2
+    unfold varintAt.go
+    dsimp only
+    rw [if_neg (by omega), if_neg (by omega)]
+    exact varint_go_tooLong bytes fuel (pos + 1) _ _ (fun i hi => by
+      have := h (i + 1) (by omega); rw [show pos + 1 + i = pos + (i + 1) by omega]; exact this)
+
+/-- A too-long varint is not read. -/
+theorem varintAt_tooLong {bytes : List Byte} {pos : Nat} (h : varintTooLong bytes pos = true) :
+    varintAt bytes pos = none := by
+  unfold varintAt
+  apply varint_go_tooLong
+  intro i hi
+  have := List.all_eq_true.mp h i (List.mem_range.mpr hi)
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at this
+  exact this
+
+/-- Fewer than 10 bytes left: not a too-long varint (whatever they are). -/
+theorem varintTooLong_short {bytes u : List Byte} {pos : Nat} (h : bytes.drop pos = u) (hu : u.length < 10) :
+    varintTooLong bytes pos = false := by
+  have hl := congrArg List.length h
+  rw [List.length_drop] at hl
+  unfold varintTooLong
+  rw [Bool.eq_false_iff]
+  intro hall
+  have := List.all_eq_true.mp hall u.length (List.mem_range.mpr hu)
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at this
+  omega
+
 /-- Every proper prefix of a varint is an unfinished one. -/
 theorem varint_prefix : ∀ {v : List Byte} {n : Nat}, Varint v n → ∀ j, j < v.length → ∀ b ∈ v.take j, 128 ≤ b.toNat
   | _, _, .last _, j, hj, b, hb => by
@@ -574,7 +632,7 @@ theorem scanBody_text_more {bytes v c : List Byte} {tag : Byte} {b : Bool} {x : 
 /-- After a key whose varint (a length or the id) is not complete yet: more is needed. -/
 theorem scanBody_partial {bytes u : List Byte} {tag : Byte} {b : Bool} {x : Option (Need × Fields)}
     {f : Fields} {pos : Nat} (ht : tag = 0x0a ∨ tag = 0x12 ∨ tag = 0x2a ∨ tag = 0x1a ∨ tag = 0x20)
-    (hu : ∀ y ∈ u, 128 ≤ y.toNat) (h : bytes.drop pos = tag :: u) :
+    (hu : ∀ y ∈ u, 128 ≤ y.toNat) (hl : u.length < 10) (h : bytes.drop pos = tag :: u) :
     scanBody bytes b ⟨x, f, pos⟩ = .done ⟨some (.more, f), f, pos⟩ := by
   have hlen := length_of_drop h (by simp)
   simp only [List.length_cons] at hlen
@@ -583,7 +641,7 @@ theorem scanBody_partial {bytes u : List Byte} {tag : Byte} {b : Bool} {x : Opti
   have hvar := varintAt_partial hu hd1
   have hp : ¬ bytes.length ≤ pos := by omega
   unfold scanBody
-  simp only [hg, hvar, ge_iff_le, hp, if_false]
+  simp only [hg, hvar, varintTooLong_short hd1 hl, ge_iff_le, hp, if_false, Bool.false_eq_true]
   rcases ht with rfl | rfl | rfl | rfl | rfl <;> rfl
 
 /-- A body's key and complete length at the end of the revealed bytes: pass over `n` bytes. -/
@@ -603,6 +661,33 @@ theorem scanBody_skip {bytes v : List Byte} {x : Option (Need × Fields)} {f : F
   unfold scanBody
   simp only [hg, hvar, hf, ge_iff_le, hp, he, if_false, if_true, Option.isSome_none, Bool.false_eq_true]
   rfl
+
+/-- **A too-long varint after a key is refused** (`scan`, at the varint's 10th byte). -/
+theorem scanBody_tooLong {bytes rest : List Byte} {tag : Byte} {b : Bool} {x : Option (Need × Fields)}
+    {f : Fields} {pos : Nat} (ht : tag = 0x0a ∨ tag = 0x12 ∨ tag = 0x2a ∨ tag = 0x1a ∨ tag = 0x20)
+    (h : bytes.drop pos = tag :: rest) (hl : varintTooLong bytes (pos + 1) = true) :
+    scanBody bytes b ⟨x, f, pos⟩ = .done ⟨some (.malformed, f), f, pos⟩ := by
+  have hlen := length_of_drop h (by simp)
+  simp only [List.length_cons] at hlen
+  have hg := get_of_drop h
+  have hp : ¬ bytes.length ≤ pos := by omega
+  unfold scanBody
+  simp only [hg, varintAt_tooLong hl, hl, ge_iff_le, hp, if_false, if_true]
+  rcases ht with rfl | rfl | rfl | rfl | rfl <;> rfl
+
+theorem tooLong_length {bytes : List Byte} {pos : Nat} (h : varintTooLong bytes pos = true) :
+    pos + 10 ≤ bytes.length := by
+  have := List.all_eq_true.mp h 9 (by simp)
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at this
+  omega
+
+/-- **A too-long wrapper length is refused** (`scan`). -/
+theorem scan_wrapper_tooLong (bytes : List Byte) (b : Bool)
+    (hk : (bytes.take 2 == [8, 1] && PublicReceive.get bytes 2 == 0x12) = true)
+    (h : varintTooLong bytes 3 = true) : (scan bytes b).1 = .malformed := by
+  have := tooLong_length h
+  rw [scan_eq, if_neg (by omega), if_pos hk, varintAt_tooLong h]
+  simp [h]
 
 theorem drop_field {bytes v c rest : List Byte} {tag : Byte} {p : Nat}
     (h : bytes.drop p = tag :: (v ++ (c ++ rest))) : bytes.drop (p + 1 + v.length + c.length) = rest := by
@@ -719,7 +804,7 @@ field boundary, after a key inside its varint, or inside a verb, path or header.
 inductive Tail : List Byte → Nat → Prop
   | empty : Tail [] 0
   | unfinished {tag : Byte} {u : List Byte} : (tag = 0x0a ∨ tag = 0x12 ∨ tag = 0x2a ∨ tag = 0x1a ∨ tag = 0x20) →
-      (∀ y ∈ u, 128 ≤ y.toNat) → Tail (tag :: u) (u.length + 1)
+      (∀ y ∈ u, 128 ≤ y.toNat) → u.length < 10 → Tail (tag :: u) (u.length + 1)
   | short {tag : Byte} {v c : List Byte} {count : Nat} : (tag = 0x0a ∨ tag = 0x12 ∨ tag = 0x2a) →
       Varint v count → v.length ≤ 10 → c.length < count → Tail (tag :: (v ++ c)) (1 + v.length + count)
 
@@ -729,7 +814,7 @@ theorem scan_tail {bytes : List Byte} {b : Bool} {f : Fields} {p m e : Nat} (ht 
   cases ht with
   | empty =>
     rw [loopG_done _ (scanBody_end (by have := congrArg List.length hd; simp at this; omega))]; rfl
-  | unfinished htag hu => rw [loopG_done _ (scanBody_partial htag hu hd)]; rfl
+  | unfinished htag hu hl10 => rw [loopG_done _ (scanBody_partial htag hu hl10 hd)]; rfl
   | short htag hv hl hc => rw [loopG_done _ (scanBody_text_more htag hv hl hc hd)]; rfl
 
 /-- `fieldMissing` at a tail: no more than what is left of the field it ends in. -/
@@ -743,7 +828,7 @@ theorem missing_tail {bytes : List Byte} {p m e : Nat} (ht : Tail (bytes.drop p)
     have hle : bytes.length ≤ p := by simp at hlen0; omega
     rw [loopG_done _ (by unfold missingBody; rw [if_pos hle])]
     simp [missingResult]; omega
-  | unfinished htag hu =>
+  | unfinished htag hu hl10 =>
     rename_i tag u
     have hlen := length_of_drop hd (by simp)
     simp only [List.length_cons] at hlen
@@ -808,19 +893,21 @@ theorem tail_text {tag : Byte} {v c Z : List Byte} (ht : tag = 0x0a ∨ tag = 0x
     rw [List.take_succ_cons]
     by_cases hjv : j < v.length
     · rw [List.take_append_of_le_length (by omega)]
-      refine ⟨(v.take j).length + 1, by simp; omega, Tail.unfinished (by rcases ht with h | h | h <;> simp [h]) ?_⟩
+      refine ⟨(v.take j).length + 1, by simp; omega,
+        Tail.unfinished (by rcases ht with h | h | h <;> simp [h]) ?_ (by simp; omega)⟩
       exact varint_prefix hv j hjv
     · rw [take_append_ge v _ j (by omega), List.take_append_of_le_length (by omega)]
       exact ⟨1 + v.length + c.length, by omega, Tail.short ht hv hl (by simp; omega)⟩
 
-theorem tail_body {bv : List Byte} {n : Nat} (hb : Varint bv n) (j : Nat) (hj : j < 1 + bv.length) :
+theorem tail_body {bv : List Byte} {n : Nat} (hb : Varint bv n) (hb10 : bv.length ≤ 10) (j : Nat)
+    (hj : j < 1 + bv.length) :
     ∃ e, e ≤ 1 + bv.length ∧ Tail (((0x1a : Byte) :: bv).take j) e := by
   cases j with
   | zero => exact ⟨0, by omega, by simpa using Tail.empty⟩
   | succ j =>
     rw [List.take_succ_cons]
     exact ⟨(bv.take j).length + 1, by simp; omega,
-      Tail.unfinished (by simp) (varint_prefix hb j (by omega))⟩
+      Tail.unfinished (by simp) (varint_prefix hb j (by omega)) (by simp; omega)⟩
 
 /-- **Before the body, nothing is skipped and no run reaches the body.** On every proper prefix of
 a server request's revealed bytes (from the kind bytes on), `scan` asks for more (it neither skips
@@ -828,8 +915,8 @@ nor refuses), and `fieldMissing`, which bounds the controller's next run (`budge
 request's head: the run ends at or before the body's first byte. -/
 theorem requestHead_prefix {lw vv verb pv path bv : List Byte} {L n : Nat}
     (hl : Varint lw L) (hl10 : lw.length ≤ 10) (hv : Varint vv verb.length) (hv10 : vv.length ≤ 10)
-    (hp : Varint pv path.length) (hp10 : pv.length ≤ 10) (hb : Varint bv n) (k : Nat) (hk2 : 2 ≤ k)
-    (hk : k < (requestHead lw vv verb pv path bv).length) :
+    (hp : Varint pv path.length) (hp10 : pv.length ≤ 10) (hb : Varint bv n) (hb10 : bv.length ≤ 10)
+    (k : Nat) (hk2 : 2 ≤ k) (hk : k < (requestHead lw vv verb pv path bv).length) :
     (scan ((requestHead lw vv verb pv path bv).take k) false).1 = .more ∧
       fieldMissing ((requestHead lw vv verb pv path bv).take k) + k ≤ (requestHead lw vv verb pv path bv).length := by
   generalize hP : requestHead lw vv verb pv path bv = P at hk ⊢
@@ -855,7 +942,8 @@ theorem requestHead_prefix {lw vv verb pv path bv : List Byte} {L n : Nat}
   by_cases ha1 : k < 3 + lw.length
   · have hd : Q.drop 3 = lw.take (k - 3) := by
       rw [hQd, h0, List.take_append_of_le_length (by omega)]
-    rw [varintAt_partial (varint_prefix hl (k - 3) (by omega)) hd]
+    rw [varintAt_partial (varint_prefix hl (k - 3) (by omega)) hd,
+      varintTooLong_short hd (by simp; omega)]
     exact ⟨by trivial, by simp only; omega⟩
   have hd3 : Q.drop 3 = lw ++ (0x0a :: (vv ++ (verb ++ (0x12 :: (pv ++ (path ++ (0x1a :: bv))))))).take (k - 3 - lw.length) := by
     rw [hQd, h0, take_append_ge _ _ _ (by omega)]
@@ -892,7 +980,7 @@ theorem requestHead_prefix {lw vv verb pv path bv : List Byte} {L n : Nat}
   have hk2' : k - 1 + 1 = (k - 2) + 1 + 1 := by omega
   rw [hk2', loopG_yield _ (scanBody_text (Or.inr (Or.inl rfl)) hp hp10 hq2),
     loopG_yield _ (missingBody_text (Or.inr (Or.inl rfl)) hp hp10 hq2)]
-  obtain ⟨e, he, ht⟩ := tail_body hb (k - (3 + lw.length + 1 + vv.length + verb.length + 1 + pv.length + path.length))
+  obtain ⟨e, he, ht⟩ := tail_body hb hb10 (k - (3 + lw.length + 1 + vv.length + verb.length + 1 + pv.length + path.length))
     (by omega)
   rw [← h3, ← hQd] at ht
   refine ⟨by rw [scan_tail ht], ?_⟩
@@ -934,7 +1022,7 @@ theorem request_body_unrevealed {lw vv verb pv path bv : List Byte} {L n : Nat}
     scan (requestHead lw vv verb pv path bv) false = (.skip n, { verb, path, id := none, body := some n }) := by
   refine ⟨?_, scan_requestHead hl hl10 hv hv10 hp hp10 hb hb10 hn⟩
   intro s k hk2 hk hs hu h0 h2 h4 hr ho hm
-  obtain ⟨hscan, hmiss⟩ := requestHead_prefix hl hl10 hv hv10 hp hp10 hb k hk2 hk
+  obtain ⟨hscan, hmiss⟩ := requestHead_prefix hl hl10 hv hv10 hp hp10 hb hb10 k hk2 hk
   rw [hs]
   refine ⟨hscan, ?_⟩
   have := budget_request s hu h0 h2 h4 hr ho hm
@@ -956,13 +1044,13 @@ def replyScanBody (bytes : List Byte) (bodySkipped inline : Bool) (r : LoopState
     | some (value, next) =>
       .yield ⟨none, if (get bytes r.snd.snd).toNat == 0x08 then { r.snd.fst with id := some value }
         else { r.snd.fst with status := some value }, next⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else if ((get bytes r.snd.snd).toNat == 0x1a || (get bytes r.snd.snd).toNat == 0x2a) then
     match varintAt bytes (r.snd.snd + 1) with
     | some (count, next) =>
       if next + count > bytes.length then .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
       else .yield ⟨none, r.snd.fst, next + count⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else if (get bytes r.snd.snd).toNat == 0x22 then
     match varintAt bytes (r.snd.snd + 1) with
     | some (count, next) =>
@@ -972,7 +1060,7 @@ def replyScanBody (bytes : List Byte) (bodySkipped inline : Bool) (r : LoopState
       else if (inline && decide (next + count > bytes.length)) then
         .done ⟨some (.more, { r.snd.fst with body := some count }), { r.snd.fst with body := some count }, r.snd.snd⟩
       else .yield ⟨none, { r.snd.fst with body := some count }, if inline then next + count else next⟩
-    | _ => .done ⟨some (.more, r.snd.fst), r.snd.fst, r.snd.snd⟩
+    | _ => .done ⟨some (if varintTooLong bytes (r.snd.snd + 1) then .malformed else .more, r.snd.fst), r.snd.fst, r.snd.snd⟩
   else .done ⟨some (.malformed, r.snd.fst), r.snd.fst, r.snd.snd⟩
 
 theorem replyScan_eq (bytes : List Byte) (b inline : Bool) : replyScan bytes b inline =
@@ -980,7 +1068,7 @@ theorem replyScan_eq (bytes : List Byte) (b inline : Bool) : replyScan bytes b i
     if (bytes.take 2 == [8, 2] && get bytes 2 == 0x1a) = true then
       match varintAt bytes 3 with
       | some (_, first) => loopResult (loopG (replyScanBody bytes b inline) (bytes.length + 1) ⟨none, {}, first⟩)
-      | none => (.more, {})
+      | none => (if varintTooLong bytes 3 then .malformed else .more, {})
     else (.malformed, {}) := by
   unfold replyScan
   simp only [Id.run, forIn_range]
@@ -1007,7 +1095,7 @@ def budgetBody (bytes : List Byte) (inline : Bool) (r : MProd (Option Nat) Nat) 
   if ((get bytes r.snd).toNat == 0x08 || (get bytes r.snd).toNat == 0x10) then
     match varintAt bytes (r.snd + 1) with
     | some (_, next) => .yield ⟨none, next⟩
-    | none => .done ⟨some (if r.snd + 1 ≥ bytes.length then 1 else 3), r.snd⟩
+    | none => .done ⟨some (if r.snd + 1 ≥ bytes.length then 1 else min 3 (11 - (bytes.length - (r.snd + 1)))), r.snd⟩
   else if ((get bytes r.snd).toNat == 0x1a || (get bytes r.snd).toNat == 0x2a) then
     match varintAt bytes (r.snd + 1) with
     | some (count, next) =>
@@ -1124,6 +1212,25 @@ theorem replyScanBody_skip {bytes v : List Byte} {x : Option (Need × ReplyField
   simp only [hg, hvar, hf, ge_iff_le, hp, he, if_false, if_true, Option.isSome_none, Bool.false_eq_true]
   rfl
 
+/-- **A too-long varint after a key is refused** (`replyScan`, at the varint's 10th byte). -/
+theorem replyScanBody_tooLong {bytes rest : List Byte} {tag : Byte} {x : Option (Need × ReplyFields)}
+    {f : ReplyFields} {pos : Nat} {b i : Bool}
+    (ht : tag = 0x08 ∨ tag = 0x10 ∨ tag = 0x1a ∨ tag = 0x2a ∨ tag = 0x22)
+    (h : bytes.drop pos = tag :: rest) (hl : varintTooLong bytes (pos + 1) = true) :
+    replyScanBody bytes b i ⟨x, f, pos⟩ = .done ⟨some (.malformed, f), f, pos⟩ := by
+  obtain ⟨hg, -, hp, -⟩ := field_at h
+  unfold replyScanBody
+  simp only [hg, varintAt_tooLong hl, hl, ge_iff_le, hp, if_false, if_true]
+  rcases ht with rfl | rfl | rfl | rfl | rfl <;> rfl
+
+/-- **A too-long wrapper length is refused** (`replyScan`). -/
+theorem replyScan_wrapper_tooLong (bytes : List Byte) (b i : Bool)
+    (hk : (bytes.take 2 == [8, 2] && PublicReceive.get bytes 2 == 0x1a) = true)
+    (h : varintTooLong bytes 3 = true) : (replyScan bytes b i).1 = .malformed := by
+  have := tooLong_length h
+  rw [replyScan_eq, if_neg (by omega), if_pos hk, varintAt_tooLong h]
+  simp [h]
+
 /-- Where a proper prefix of a response's revealed bytes can end after its complete fields, and how
 far `replyBudget` may then reach: at a field boundary (the next key and the byte after it), just
 after an id or status key (one byte), inside an id or status (three), after a message, header or
@@ -1132,9 +1239,9 @@ inductive RTail : List Byte → Nat → Prop
   | boundary : RTail [] 2
   | numberKey {tag : Byte} : (tag = 0x08 ∨ tag = 0x10) → RTail [tag] 1
   | number {tag : Byte} {u : List Byte} : (tag = 0x08 ∨ tag = 0x10) → u ≠ [] → (∀ y ∈ u, 128 ≤ y.toNat) →
-      RTail (tag :: u) 3
+      u.length < 10 → RTail (tag :: u) 3
   | lengthKey {tag : Byte} {u : List Byte} : (tag = 0x1a ∨ tag = 0x2a ∨ tag = 0x22) → (∀ y ∈ u, 128 ≤ y.toNat) →
-      RTail (tag :: u) 1
+      u.length < 10 → RTail (tag :: u) 1
   | short {tag : Byte} {v c : List Byte} {count : Nat} : (tag = 0x1a ∨ tag = 0x2a) → Varint v count →
       v.length ≤ 10 → c.length < count → RTail (tag :: (v ++ c)) (count - c.length)
 
@@ -1152,21 +1259,24 @@ theorem scan_rtail {bytes : List Byte} {f : ReplyFields} {p m e : Nat} (ht : RTa
     obtain ⟨hg, hd1, hp, -⟩ := field_at (rest := []) hd
     rw [loopG_done _ (by
       unfold replyScanBody
-      simp only [hg, varintAt_partial (u := []) (by simp) hd1, rtag_number tag htag, ge_iff_le, hp, if_false, if_true]
+      simp only [hg, varintAt_partial (u := []) (by simp) hd1, varintTooLong_short hd1 (by simp),
+        rtag_number tag htag, ge_iff_le, hp, if_false, if_true, Bool.false_eq_true]
       rfl)]; rfl
-  | number htag hne hu =>
+  | number htag hne hu hl10 =>
     rename_i tag u
     obtain ⟨hg, hd1, hp, -⟩ := field_at hd
     rw [loopG_done _ (by
       unfold replyScanBody
-      simp only [hg, varintAt_partial hu hd1, rtag_number tag htag, ge_iff_le, hp, if_false, if_true]
+      simp only [hg, varintAt_partial hu hd1, varintTooLong_short hd1 hl10, rtag_number tag htag, ge_iff_le, hp,
+        if_false, if_true, Bool.false_eq_true]
       rfl)]; rfl
-  | lengthKey htag hu =>
+  | lengthKey htag hu hl10 =>
     rename_i tag u
     obtain ⟨hg, hd1, hp, -⟩ := field_at hd
     rw [loopG_done _ (by
       unfold replyScanBody
-      simp only [hg, varintAt_partial hu hd1, ge_iff_le, hp, if_false]
+      simp only [hg, varintAt_partial hu hd1, varintTooLong_short hd1 hl10, ge_iff_le, hp, if_false,
+        Bool.false_eq_true]
       rcases htag with rfl | rfl | rfl <;> rfl)]; rfl
   | short htag hv hl hc =>
     rename_i tag v c count
@@ -1198,7 +1308,7 @@ theorem budget_rtail {bytes : List Byte} {p m e : Nat} (ht : RTail (bytes.drop p
       simp only [hg, varintAt_partial (u := []) (by simp) hd1, rtag_number tag htag, ge_iff_le, hp, h1,
         if_false, if_true]
       rfl)]; simp [budgetResult]
-  | number htag hne hu =>
+  | number htag hne hu hl10 =>
     rename_i tag u
     obtain ⟨hg, hd1, hp, hlen⟩ := field_at hd
     rw [loopG_done _ (by
@@ -1206,7 +1316,7 @@ theorem budget_rtail {bytes : List Byte} {p m e : Nat} (ht : RTail (bytes.drop p
       simp only [hg, varintAt_partial hu hd1, rtag_number tag htag, ge_iff_le, hp, if_false, if_true]
       rfl)]
     simp only [budgetResult]; split <;> omega
-  | lengthKey htag hu =>
+  | lengthKey htag hu hl10 =>
     rename_i tag u
     obtain ⟨hg, hd1, hp, -⟩ := field_at hd
     rw [loopG_done _ (by
@@ -1235,14 +1345,14 @@ theorem drop_number {bytes v rest : List Byte} {tag : Byte} {p : Nat}
   simpa using this
 
 theorem rtail_number {tag : Byte} {v Z : List Byte} {n : Nat} (ht : tag = 0x08 ∨ tag = 0x10) (hv : Varint v n)
-    (j : Nat) (hj : j < 1 + v.length) :
+    (hl : v.length ≤ 10) (j : Nat) (hj : j < 1 + v.length) :
     ∃ e, j + e ≤ 1 + v.length + 2 ∧ RTail ((tag :: (v ++ Z)).take j) e := by
   match j with
   | 0 => exact ⟨2, by omega, by simpa using RTail.boundary⟩
   | 1 => exact ⟨1, by omega, by simpa using RTail.numberKey ht⟩
   | j + 2 =>
     rw [List.take_succ_cons, List.take_append_of_le_length (by omega)]
-    refine ⟨3, by omega, RTail.number ht ?_ (varint_prefix hv (j + 1) (by omega))⟩
+    refine ⟨3, by omega, RTail.number ht ?_ (varint_prefix hv (j + 1) (by omega)) (by simp; omega)⟩
     apply List.ne_nil_of_length_pos; simp only [List.length_take]; omega
 
 theorem rtail_text {tag : Byte} {v c Z : List Byte} (ht : tag = 0x1a ∨ tag = 0x2a) (hv : Varint v c.length)
@@ -1254,19 +1364,21 @@ theorem rtail_text {tag : Byte} {v c Z : List Byte} (ht : tag = 0x1a ∨ tag = 0
     rw [List.take_succ_cons]
     by_cases hjv : j < v.length
     · rw [List.take_append_of_le_length (by omega)]
-      exact ⟨1, by omega, RTail.lengthKey (by rcases ht with h | h <;> simp [h]) (varint_prefix hv j hjv)⟩
+      exact ⟨1, by omega, RTail.lengthKey (by rcases ht with h | h <;> simp [h]) (varint_prefix hv j hjv)
+        (by simp; omega)⟩
     · rw [take_append_ge v _ j (by omega), List.take_append_of_le_length (by omega)]
       refine ⟨c.length - (c.take (j - v.length)).length, ?_, RTail.short ht hv hl (by simp; omega)⟩
       simp only [List.length_take]; omega
 
-theorem rtail_body {bv : List Byte} {n : Nat} (hb : Varint bv n) (j : Nat) (hj : j < 1 + bv.length) :
+theorem rtail_body {bv : List Byte} {n : Nat} (hb : Varint bv n) (hb10 : bv.length ≤ 10) (j : Nat)
+    (hj : j < 1 + bv.length) :
     ∃ e, j + e ≤ 1 + bv.length ∧ RTail (((0x22 : Byte) :: bv).take j) e := by
   have := varint_ne_nil hb
   cases j with
   | zero => exact ⟨2, by omega, by simpa using RTail.boundary⟩
   | succ j =>
     rw [List.take_succ_cons]
-    exact ⟨1, by omega, RTail.lengthKey (by simp) (varint_prefix hb j (by omega))⟩
+    exact ⟨1, by omega, RTail.lengthKey (by simp) (varint_prefix hb j (by omega)) (by simp; omega)⟩
 
 /-- Kind `08 02`, wrapper key `1a` and length `lw`, id (`08`, varint `iv`), status (`10`, varint
 `sv`), message (`1a`, length `mv`), body key `22` and length `bv`. -/
@@ -1313,7 +1425,8 @@ prefix of a response's revealed bytes (from the kind bytes on), `replyScan` asks
 theorem responseHead_prefix {lw iv sv mv msg bv : List Byte} {L i st n : Nat}
     (hl : Varint lw L) (hl10 : lw.length ≤ 10) (hi : Varint iv i) (hi10 : iv.length ≤ 10)
     (hs : Varint sv st) (hs10 : sv.length ≤ 10) (hm : Varint mv msg.length) (hm10 : mv.length ≤ 10)
-    (hb : Varint bv n) (k : Nat) (hk2 : 2 ≤ k) (hk : k < (responseHead lw iv sv mv msg bv).length) :
+    (hb : Varint bv n) (hb10 : bv.length ≤ 10) (k : Nat) (hk2 : 2 ≤ k)
+    (hk : k < (responseHead lw iv sv mv msg bv).length) :
     (replyScan ((responseHead lw iv sv mv msg bv).take k) false false).1 = .more ∧
       k + replyBudget ((responseHead lw iv sv mv msg bv).take k) false ≤ (responseHead lw iv sv mv msg bv).length := by
   generalize hP : responseHead lw iv sv mv msg bv = P at hk ⊢
@@ -1343,7 +1456,8 @@ theorem responseHead_prefix {lw iv sv mv msg bv : List Byte} {L i st n : Nat}
   by_cases ha1 : k < 3 + lw.length
   · have hd : Q.drop 3 = lw.take (k - 3) := by
       rw [hQd, h0, List.take_append_of_le_length (by omega)]
-    rw [varintAt_partial (varint_prefix hl (k - 3) (by omega)) hd]
+    rw [varintAt_partial (varint_prefix hl (k - 3) (by omega)) hd,
+      varintTooLong_short hd (by simp; omega)]
     exact ⟨by trivial, by simp only; omega⟩
   have hd3 : Q.drop 3 = lw ++ (0x08 :: (iv ++ (0x10 :: (sv ++ (0x1a :: (mv ++ (msg ++ (0x22 :: bv)))))))).take (k - 3 - lw.length) := by
     rw [hQd, h0, take_append_ge _ _ _ (by omega)]
@@ -1351,7 +1465,7 @@ theorem responseHead_prefix {lw iv sv mv msg bv : List Byte} {L i st n : Nat}
   dsimp only
   -- Inside the id field.
   by_cases ha2 : k < 3 + lw.length + 1 + iv.length
-  · obtain ⟨e, he, ht⟩ := rtail_number (Z := 0x10 :: (sv ++ (0x1a :: (mv ++ (msg ++ (0x22 :: bv)))))) (Or.inl rfl) hi
+  · obtain ⟨e, he, ht⟩ := rtail_number (Z := 0x10 :: (sv ++ (0x1a :: (mv ++ (msg ++ (0x22 :: bv)))))) (Or.inl rfl) hi hi10
       (k - (3 + lw.length)) (by omega)
     rw [← h1, ← hQd] at ht
     refine ⟨by rw [scan_rtail ht], ?_⟩
@@ -1365,7 +1479,7 @@ theorem responseHead_prefix {lw iv sv mv msg bv : List Byte} {L i st n : Nat}
     loopG_yield _ (budgetBody_number (Or.inl rfl) hi hi10 hq1)]
   -- Inside the status field.
   by_cases ha3 : k < 3 + lw.length + 1 + iv.length + 1 + sv.length
-  · obtain ⟨e, he, ht⟩ := rtail_number (Z := 0x1a :: (mv ++ (msg ++ (0x22 :: bv)))) (Or.inr rfl) hs
+  · obtain ⟨e, he, ht⟩ := rtail_number (Z := 0x1a :: (mv ++ (msg ++ (0x22 :: bv)))) (Or.inr rfl) hs hs10
       (k - (3 + lw.length + 1 + iv.length)) (by omega)
     rw [← h2, ← hQd] at ht
     refine ⟨by rw [scan_rtail ht], ?_⟩
@@ -1392,8 +1506,8 @@ theorem responseHead_prefix {lw iv sv mv msg bv : List Byte} {L i st n : Nat}
   rw [e3, loopG_yield _ (replyScanBody_text (Or.inl rfl) hm hm10 hq3),
     loopG_yield _ (budgetBody_text (Or.inl rfl) hm hm10 hq3)]
   -- Inside the body's length.
-  obtain ⟨e, he, ht⟩ := rtail_body hb
-    (k - (3 + lw.length + 1 + iv.length + 1 + sv.length + 1 + mv.length + msg.length)) (by omega)
+  obtain ⟨e, he, ht⟩ := rtail_body hb hb10
+    (k -(3 + lw.length + 1 + iv.length + 1 + sv.length + 1 + mv.length + msg.length)) (by omega)
   rw [← h4, ← hQd] at ht
   refine ⟨by rw [scan_rtail ht], ?_⟩
   have := budget_rtail (m := k - 3) ht
@@ -1435,7 +1549,7 @@ theorem response_body_unrevealed {lw iv sv mv msg bv : List Byte} {L i st n : Na
       (.skip n, { id := some i, status := some st, body := some n }) := by
   refine ⟨?_, replyScan_responseHead hl hl10 hi hi10 hs hs10 hm hm10 hb hb10 hn⟩
   intro s k hk2 hk hs' hob hu h0 h2 h4 hr ho hmsg
-  obtain ⟨hscan, hbud⟩ := responseHead_prefix hl hl10 hi hi10 hs hs10 hm hm10 hb k hk2 hk
+  obtain ⟨hscan, hbud⟩ := responseHead_prefix hl hl10 hi hi10 hs hs10 hm hm10 hb hb10 k hk2 hk
   rw [hs', hob]
   refine ⟨hscan, ?_⟩
   have := budget_response s hu h0 h2 h4 hr ho hmsg

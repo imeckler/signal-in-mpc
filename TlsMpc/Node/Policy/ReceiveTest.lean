@@ -128,7 +128,7 @@ def Gen.response (g : Gen) : List Byte × Gen := Id.run do
 envelope's field payload (the controller requires each of those to lie in one frame, and refuses
 the stream otherwise, which is safe but not live). -/
 def cutAllowed (payload : List Byte) (p : Nat) : Bool :=
-  match (ReceiveSpec.message false payload)[p]? with
+  match (ReceiveSpec.message false true payload)[p]? with
   | some c => !c.secret
   | none => true
 
@@ -218,17 +218,19 @@ def run (openBody : Bool) (seed count : Nat) : List Nat × List Nat × List Nat 
     if !safe openBody mrecords then bad := (bad.1, bad.2.1, bad.2.2 ++ [i])
   return bad
 
-/-! ### Counterexamples: secret bytes the policy reveals
+/-! ### The former counterexamples, now refused
 
 **A varint of more than 10 bytes.** `varintAt` reads at most 10 bytes and returns `none` both when
-the bytes end inside a varint and when the varint is longer; the scanners (`scan`, `replyScan`,
-`envelopeScan`, `fieldMissing`, `replyBudget`) take `none` as "not complete yet" and ask for the
-next byte. So once the server sends an 11-byte varint where a request's (or response's) wrapper
-length, a field length or the id is expected, the scanners never see another field: the body's key
-is not recognised, `skip` is never set, and every remaining payload byte of the message is revealed
-one at a time. The message then completes normally. On the stream below (a delivered message whose
-wrapper length is written in 11 bytes), every byte is revealed, the envelope's sealed content
-included. -/
+the bytes end inside a varint and when the varint is longer. Before the fix the scanners (`scan`,
+`replyScan`, `envelopeScan`, `fieldMissing`, `replyBudget`) took `none` as "not complete yet": once
+the server sent an 11-byte varint where a wrapper length, a field length or the id was expected,
+the scanners never saw another field, `skip` was never set, and every remaining payload byte of the
+message was revealed, a delivered envelope's sealed content included. Now `varintTooLong` tells the
+two apart and the scanners refuse the varint at its 10th byte (`overlongRequest_refused`,
+`overlongResponse_refused` below: nothing after that byte is revealed).
+
+**A field running past the end of its message** (`overrunResponse`): refused at the byte that
+completes its length, once the message's last frame is known. -/
 
 /-- A delivered message with a sealed content `AA BB CC DD`, whose request length is an 11-byte
 varint. -/
@@ -256,6 +258,34 @@ def splitBody : List Byte :=
 def refusedSafely (records : List (List Byte)) : Bool :=
   safe false records && (streamRun (upgraded false) records).2.toOption.isNone
 
+/-- A response whose message field declares 60 bytes in a final frame that holds 5 more. -/
+def overrunResponse : List Byte :=
+  frame true 2 (responseMessage (number [0x08] 1 ++ number [0x10] 200 ++ [0x1a, 60] ++ bytesOf "Hello"))
+
+/-- The same, the message in two frames: the length in the first, the end in the second. -/
+def overrunFragmented : List Byte :=
+  let payload := responseMessage (number [0x08] 1 ++ number [0x10] 200 ++ [0x1a, 60] ++ bytesOf "Hello")
+  frame false 2 (payload.take 12) ++ frame true 0 (payload.drop 12)
+
+/-- **The 11-byte request length is refused at its 10th byte** (stream position 14: frame header 2,
+kind and wrapper key 3, varint bytes 9 before it); nothing after it, nothing of the envelope, is
+revealed. -/
+theorem overlongRequest_refused :
+    (streamRun (upgraded false) [overlongRequest]).1 = List.range 15 ∧
+      (streamRun (upgraded false) [overlongRequest]).2.toOption.isNone = true := by
+  decide +kernel
+
+/-- **The 11-byte response id is refused at its 10th byte** (stream position 16); the body is not
+revealed. -/
+theorem overlongResponse_refused :
+    (streamRun (upgraded false) [overlongResponse]).1 = List.range 17 ∧
+      (streamRun (upgraded false) [overlongResponse]).2.toOption.isNone = true := by
+  decide +kernel
+
+/-- T1 holds on both (no allowance needed: nothing after the offending byte is revealed). -/
+theorem overlong_T1 : T1 false (upgraded false) [overlongRequest] ∧ T1 false (upgraded false) [overlongResponse] := by
+  decide +kernel
+
 /-! ### The checks -/
 
 set_option compiler.extract_closed false in
@@ -270,8 +300,12 @@ def checks (_ : Unit) : List (String × Bool) :=
     ("openBody, mutated: safe", m2.isEmpty),
     ("a body cut across frames is refused, unrevealed", refusedSafely [splitBody]),
     ("the same, cut into records", refusedSafely [splitBody.take 7, splitBody.drop 7]),
-    ("counterexample reproduced: 11-byte request length reveals the sealed content", leaks [overlongRequest]),
-    ("counterexample reproduced: 11-byte response id reveals the body", leaks [overlongResponse]) ]
+    ("11-byte request length: refused, sealed content unrevealed", refusedSafely [overlongRequest]),
+    ("11-byte response id: refused, body unrevealed", refusedSafely [overlongResponse]),
+    ("the same, cut into records", refusedSafely [overlongRequest.take 9, overlongRequest.drop 9]),
+    ("a field past the end of its message: refused", refusedSafely [overrunResponse]),
+    ("the same over two frames: refused", refusedSafely [overrunFragmented]),
+    ("the same cut into records", refusedSafely [overrunFragmented.take 13, overrunFragmented.drop 13]) ]
 
 def failures (_ : Unit) : List String := (checks ()).filterMap fun (name, ok) => if ok then none else some name
 

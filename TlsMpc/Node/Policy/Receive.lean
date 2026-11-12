@@ -134,6 +134,27 @@ def varintAt (bytes : List Byte) (index : Nat) : Option (Nat × Nat) :=
       if b < 128 then some (acc, pos + 1) else go fuel (pos + 1) (shift + 7) acc
   go 10 index 0 0
 
+/-- The varint at `index` is longer than a varint may be: its first 10 bytes are all there and all
+have their top bit set (a protobuf varint has at most 10 bytes). `varintAt` returns `none` both for
+such a varint and for one the bytes end inside; the scanners below refuse the first and wait for
+more bytes of the second. (Without this distinction a server could write an 11-byte varint, which
+the scanners would wait on forever while every later byte of the message, its body included, was
+revealed: REORGANIZATION_PLAN.md P1.) -/
+def varintTooLong (bytes : List Byte) (index : Nat) : Bool :=
+  (List.range 10).all fun i => decide (index + i < bytes.length) && decide (128 ≤ (get bytes (index + i)).toNat)
+
+/-- How the varint at `index` ends: complete (its value and the index after it), not yet
+(the bytes end inside it), or never (more than 10 bytes: malformed). -/
+inductive VarintRead where
+  | done (value next : Nat)
+  | unfinished
+  | tooLong
+
+def varintRead (bytes : List Byte) (index : Nat) : VarintRead :=
+  match varintAt bytes index with
+  | some (value, next) => .done value next
+  | none => if varintTooLong bytes index then .tooLong else .unfinished
+
 inductive Need where
   | more                 -- reveal the next byte
   | skip (count : Nat)   -- pass over this many body bytes without revealing them
@@ -151,25 +172,29 @@ whether the body's content has already been passed over. -/
 def scan (bytes : List Byte) (bodySkipped : Bool) : Need × Fields := Id.run do
   if bytes.length < 3 then return (.more, {})
   unless bytes.take 2 == [8, 1] && get bytes 2 == 0x12 do return (.malformed, {})
-  let some (_, first) := varintAt bytes 3 | return (.more, {})
+  let some (_, first) := varintAt bytes 3
+    | return (if varintTooLong bytes 3 then .malformed else .more, {})
   let mut pos := first
   let mut fields : Fields := {}
   for _ in [0:bytes.length + 1] do
     if pos ≥ bytes.length then return (.more, fields)
     let tag := (get bytes pos).toNat
     if tag == 0x20 then
-      let some (value, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (value, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       fields := { fields with id := some value }
       pos := next
     else if tag == 0x0a || tag == 0x12 || tag == 0x2a then
-      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (count, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       if next + count > bytes.length then return (.more, fields)
       let value := (bytes.drop next).take count
       if tag == 0x0a then fields := { fields with verb := value }
       if tag == 0x12 then fields := { fields with path := value }
       pos := next + count
     else if tag == 0x1a then
-      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (count, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       if fields.body.isSome then return (.malformed, fields)
       fields := { fields with body := some count }
       if next == bytes.length && !bodySkipped && count > 0 then return (.skip count, fields)
@@ -201,17 +226,19 @@ def envelopeScan (bytes : List Byte) (passed : Nat) : EnvelopeNeed × Nat × Nat
   let mut content := 0
   for _ in [0:bytes.length + 1] do
     if pos ≥ bytes.length then return (.more true, kind, content)
-    let some (key, next) := varintAt bytes pos | return (.more false, kind, content)
+    let some (key, next) := varintAt bytes pos
+      | return (if varintTooLong bytes pos then .malformed else .more false, kind, content)
     let wire := key % 8
     if wire == 0 then
-      let some (value, after) := varintAt bytes next | return (.more false, kind, content)
+      let some (value, after) := varintAt bytes next
+        | return (if varintTooLong bytes next then .malformed else .more false, kind, content)
       if key / 8 == 1 then kind := value
       pos := after
     else if wire == 1 || wire == 2 || wire == 5 then
       let (count, after) ← if wire == 2 then
           match varintAt bytes next with
           | some found => pure found
-          | none => return (.more false, kind, content)
+          | none => return (if varintTooLong bytes next then .malformed else .more false, kind, content)
         else pure ((if wire == 1 then 8 else 4), next)
       if wire == 2 && key / 8 == 8 then
         if content != 0 then return (.malformed, kind, content)
@@ -261,22 +288,26 @@ body's content). `bodySkipped` says whether the body has been passed over. -/
 def replyScan (bytes : List Byte) (bodySkipped : Bool) (inline : Bool := false) : Need × ReplyFields := Id.run do
   if bytes.length < 3 then return (.more, {})
   unless bytes.take 2 == [8, 2] && get bytes 2 == 0x1a do return (.malformed, {})
-  let some (_, first) := varintAt bytes 3 | return (.more, {})
+  let some (_, first) := varintAt bytes 3
+    | return (if varintTooLong bytes 3 then .malformed else .more, {})
   let mut pos := first
   let mut fields : ReplyFields := {}
   for _ in [0:bytes.length + 1] do
     if pos ≥ bytes.length then return (.more, fields)
     let tag := (get bytes pos).toNat
     if tag == 0x08 || tag == 0x10 then
-      let some (value, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (value, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       fields := if tag == 0x08 then { fields with id := some value } else { fields with status := some value }
       pos := next
     else if tag == 0x1a || tag == 0x2a then
-      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (count, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       if next + count > bytes.length then return (.more, fields)
       pos := next + count
     else if tag == 0x22 then
-      let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
+      let some (count, next) := varintAt bytes (pos + 1)
+        | return (if varintTooLong bytes (pos + 1) then .malformed else .more, fields)
       if fields.body.isSome then return (.malformed, fields)
       fields := { fields with body := some count }
       -- (`inline`, the ceremony's `openBody`: the body's content is among the bytes, like a header's.)
@@ -345,7 +376,8 @@ revealed bytes. A body byte can only follow the body's key (`22`) and its comple
 * at the end of a field (or before the first): the next key and the byte after it (2);
 * inside the id or the status (a varint whose last revealed byte says it continues): the next
   three bytes are the varint's, or its end and then a key, and then at most the first byte
-  after that key (3);
+  after that key (3); but never past the varint's 10th byte and the one after it (`11 - j` with
+  `j` of its bytes revealed: a 10th byte with its top bit set is refused by `replyScan`);
 * after a key, or inside a length: one byte (the length of the body may end there);
 * inside the message or a header whose length is known: the rest of it.
 
@@ -360,7 +392,7 @@ def replyBudget (bytes : List Byte) (inline : Bool := false) : Nat := Id.run do
     if tag == 0x08 || tag == 0x10 then
       match varintAt bytes (pos + 1) with
       | some (_, next) => pos := next
-      | none => return (if pos + 1 ≥ bytes.length then 1 else 3)
+      | none => return (if pos + 1 ≥ bytes.length then 1 else min 3 (11 - (bytes.length - (pos + 1))))
     else if tag == 0x1a || tag == 0x2a then
       let some (count, next) := varintAt bytes (pos + 1) | return 1
       if next + count > bytes.length then return next + count - bytes.length
@@ -380,7 +412,8 @@ def mayReveal (s : State) : Bool :=
   s.skip == 0 && (s.message.length < 2 || s.message == [8, 2] || s.message == [8, 1])
 
 /-- Bytes still unrevealed of the field a request's revealed bytes end in, when
-that field is its verb, path or a header (never its body). -/
+that field is its verb, path or a header (never its body). 0 inside any varint, a too-long one
+included (`scan` refuses that one at its 10th byte). -/
 def fieldMissing (bytes : List Byte) : Nat := Id.run do
   if bytes.length < 3 then return 0
   let some (_, first) := varintAt bytes 3 | return 0
@@ -398,6 +431,40 @@ def fieldMissing (bytes : List Byte) : Nat := Id.run do
       pos := next
     else return 0
   return 0
+
+/-- Bytes still unrevealed of the field a response's revealed bytes end in, when that field is its
+message or a header (or, with `inline`, its body): `fieldMissing` for responses. -/
+def replyMissing (bytes : List Byte) (inline : Bool := false) : Nat := Id.run do
+  if bytes.length < 3 then return 0
+  let some (_, first) := varintAt bytes 3 | return 0
+  let mut pos := first
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return 0
+    let tag := (get bytes pos).toNat
+    if tag == 0x08 || tag == 0x10 then
+      let some (_, next) := varintAt bytes (pos + 1) | return 0
+      pos := next
+    else if tag == 0x1a || tag == 0x2a || (inline && tag == 0x22) then
+      let some (count, next) := varintAt bytes (pos + 1) | return 0
+      if next + count > bytes.length then return next + count - bytes.length
+      pos := next + count
+    else if tag == 0x22 then
+      let some (_, next) := varintAt bytes (pos + 1) | return 0
+      pos := next
+    else return 0
+  return 0
+
+/-- Bytes the message in progress has declared and not delivered yet: what is left of the field its
+revealed bytes end in (`fieldMissing`, `replyMissing`), of the body being passed over (`skip`), or
+of the delivered envelope being walked. -/
+def pendingField (s : State) : Nat :=
+  if s.message == [8, 1] then
+    match s.inner with
+    | some (_, _, remaining) => remaining
+    | none => if s.skip > 0 then s.skip else fieldMissing s.request
+  else if s.message == [8, 2] then
+    if s.skip > 0 then s.skip else replyMissing s.reply s.openBody
+  else 0
 
 /-- How many bytes may be revealed in one step: as many as are certain to be
 bytes this controller may see, given what has been revealed so far. Each step
@@ -512,8 +579,16 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
           s ← envelopeAdvance { s with bodySkipped := true } [] 0 count
         else s := { s with skip := count, capture := false, bodySkipped := true }
       | (.more, _) => pure ()
+  -- No field (nor a body) may run past the end of its message (fail closed). Once the message's last
+  -- frame is known (its FIN is set and its payload is next), what is still declared must fit in the
+  -- rest of that frame; at the message's end nothing may still be declared. Checked at the byte that
+  -- completes a length, or at the last frame's header, before anything of the field is revealed.
+  if get s.frame 4 == on && get s.frame 8 == on && (get s.frame 7).toNat < 8 &&
+      pendingField s > (get s.frame 10).toNat * 256 + (get s.frame 11).toNat then
+    throw "a field runs past the end of its message"
   if done then
     unless s.skip == 0 && s.inner.isNone do throw "server request ended inside its body"
+    unless pendingField s == 0 do throw "a field runs past the end of its message"
     if message == [8, 1] then s := { s with requests := s.requests ++ [s.request] }
     s := { s with message := [], held := none, request := [], bodySkipped := false, reply := [], replySkipped := false }
   return (s, complete)
