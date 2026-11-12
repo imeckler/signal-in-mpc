@@ -20,9 +20,10 @@ projectively `(X : Z) = (1 + y : 1 − y)` (`MRep X Z P`), which also covers the
   `X25519.spec input u` is the Montgomery coordinate of `k·P` in the Edwards group, `k` the
   clamped scalar (`0` when `k·P` is the neutral element, as `x/0 = 0` in the program).
 
-Not proved: inputs `u` that are not the coordinate of a curve point (points of the quadratic
-twist), and `u = 0`; that `u ↦ (u, v)` lands on `v² = u³ + 486662u² + u` is not needed and not
-stated.
+`u = 0` is covered in `X25519Special.lean` (`spec_eq_montU'`), the closed form of `clampedScalar`
+in `X25519Clamp.lean`, and which `u` are coordinates of curve points (`v² = u³ + 486662u² + u`
+has a solution) in `MontgomeryLift.lean`. Not proved: inputs `u` that are not the coordinate of a
+curve point (points of the quadratic twist).
 -/
 
 namespace TlsMpcProofs.Edwards

@@ -2,7 +2,7 @@
 
 Proof-only Lean package (REORGANIZATION_PLAN.md section 1, rule 6, "Superseded 2026-11-12"). It
 uses Mathlib to turn H-QR into theorems, to state hiding as probability, to prove the
-cut-and-choose counting bound, and to prove H-GROUP for the Edwards formulas (items 10–12). **Nothing in the main package imports it**, so no executable,
+cut-and-choose counting bound, and to prove H-GROUP for the Edwards formulas (items 10–15). **Nothing in the main package imports it**, so no executable,
 emitter or circuit-cache key can reach Mathlib.
 
 ## Layout and isolation
@@ -158,6 +158,38 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
     `(Q, R)` to `(2Q, Q + R)` (`advance_rep`), the ladder holds `(n·P, (n+1)·P)`
     (`ladderSpec_inv`), and `spec_eq_montU`: for `u ≠ 0` the coordinate of a curve point `P`,
     `X25519.spec input u` is the coordinate of `k·P`, `k` the clamped scalar.
+13. **The clamped scalar and `u = 0`** (`X25519Clamp.lean`, `X25519Special.lean`).
+    `clampedScalar_eq`: for any input bits, `k = 2²⁵⁴ + 8·m`, `m` the value of bits 3 … 253;
+    `clampedScalar_decodeScalar`: for the bytes as `X25519.decodeScalar` reads them,
+    `k = 2²⁵⁴ + 8·(⌊n/8⌋ mod 2²⁵¹)`, `n` their little-endian value (RFC 7748: low three bits
+    cleared, bit 255 cleared, bit 254 set); `k ≡ 0 (mod 8)`, `2²⁵⁴ ≤ k < 2²⁵⁵`. `spec_u_zero`:
+    `X25519.spec input 0 = 0` (every ladder step leaves `X·Z = 0` in both registers); the group
+    reading: `u = 0` is `T2 = (0, −1)` of order 2 and `k` is even, so `k·T2 = 0`
+    (`spec_u_zero_montU`); hence `spec_eq_montU'` (no `u ≠ 0`) and `x25519_on_curve`: for every
+    `u` with `u(u² + 486662u + 1)` a square, `X25519.spec input u = montU (k·P)` for a curve
+    point `P` with that coordinate.
+14. **The scalar-multiple chains** (`EdwardsScalarMul.lean`, `EdwardsBitSum.lean`).
+    `window_spec` (`windowValue`: `P … 8P`, next base `16P`), `windowChain_spec` (entry `8w + j`
+    of the table is `((j+1)·16^w)·P`), `bitEntry_spec` / `prepareHinted_bitEntry` (`2^i·P`, once
+    every link holds); `doublings_spec`, `doublingsChain_spec`, `bitTable_entry` (entry `i` is
+    `2^i·P`); generic `chain_spec`. Digits: `recode` is the signed base-16 rule of
+    `edwards_points.h` (`digit = nibble + carry; carry = digit > 8; digit -= 16·carry`):
+    `recode_value` (the digits encode the number), `recode_bound` (digits in `−8 … 8`),
+    `recode_carry_zero`, `recode64_value` (64 windows, offset `< 2²⁵²`: exact, no carry);
+    `signed_entry`, `offsetSum_value`, `offsetSum_recoded` (`offsetSum` outputs `u(I + n·P)`).
+    Unsigned: `sum_choose_smul`; `bitSum_value`, `bitSum_eq_x25519` (`bitSum`'s quotient is
+    `X25519.spec`); `prepareHinted_initial` (`(kA + kB)·P`). XEdDSA: `xrep_add`
+    (`XEdDsaField.add` is the group law), `xrep_mulBits`, `doubleScalar_spec` (`[s]B − [h]A`),
+    `run_doubleScalar_spec` (the `xeddsa` program for the bits of `h < 2²⁵⁶`, `s < 2²⁵³`).
+15. **`liftPoint`'s map** (`MontgomeryLift.lean`). `sA2_mul_self`
+    (`EdwardsHinted.sqrtMinusA2² = −486664`); `montgomery_lift`: for `v² = u(u² + 486662u + 1)`,
+    `v ≠ 0`, the point `(√(−486664)·u/v, (u − 1)/(u + 1))` is on the curve (`u + 1 ≠ 0` follows:
+    `486660` is not a square), with Montgomery coordinate `u`; `montgomery_lift_neg` (`−v` gives
+    `−P`); `montQ_isSquare_iff`: `u(u² + 486662u + 1)` is a square exactly when `u` is the
+    coordinate of a curve point (`v = 0` only at `u = 0`: `montW_ne_zero`, the discriminant is
+    `−d·486664²`); `lift_root` (`valid = sel xor b = 1` means `s² = q·r²`); `liftPoint_valid`
+    (the program outputs a curve point with coordinate `u` and `Z = M_A + M_B + P`),
+    `liftPoint_invalid` (the base point); `x25519_lift`.
 
 ## What stays a hypothesis or open
 
@@ -166,12 +198,18 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
   `edwards-torsion-hinted` (`8Q = P` has a solution exactly for `P` in the prime-order subgroup).
   The instantiated offset theorems therefore take `P ≠ 0` and `ℓ·P = 0` as hypotheses about the
   recipient's point (they hold for `B`). Also not proved: X25519 for a `u` that is not the
-  coordinate of a curve point (the quadratic twist) and for `u = 0`; `liftPoint`'s map
-  `x = √(−486664)·u/v` and that `q = u(u² + 486662u + 1)` is a square exactly on the curve;
-  `windowValue`, `doublingsValue`, `XEdDsaField.doubleScalar` as scalar multiples (their
-  additions are covered); the value of `clampedScalar` as a closed formula; the C++
-  `Local/Edwards`. The generic statements (items 4, 7, 8) keep the form "any finite commutative
-  group".
+  coordinate of a curve point (the quadratic twist, `u(u² + 486662u + 1)` not a square). There
+  the ladder computes scalar multiplication on the twist `2v² = u³ + 486662u² + u`, whose Edwards
+  model `−2x² + y² = 1 + 2d·x²y²` has `a = −2`, not a square in `ZMod p`; `EdwardsCurve.lean`'s
+  construction needs `a = −1` (a square) and `d` not a square (a complete law), and moving to
+  `a = −1` needs `√2`, so the twist is not an instance; it would need the incomplete projective
+  law or a transfer from Mathlib's Weierstrass group, plus the x-only formulas against it. Not
+  stated: that the C++ `step` / `step_inputs` implement `recode` (the Lean definition copies the
+  C++ rule; the C++ is not in Lean), and the C++ `Local/Edwards`. What is assumed about the curve
+  after items 10–15 is therefore only: nothing for curve points (group law, completeness, base
+  point order `ℓ`, X25519 for every curve `u`, all chains and the lift are theorems); the group
+  order `#E = 8ℓ` (and so the torsion reading) and the twist behaviour of X25519 are open. The
+  generic statements (items 4, 7, 8) keep the form "any finite commutative group".
 * **idealCommit**: the distributional statements take the other party's values as independent of
   the honest party's mask; that is the modelling assumption `idealCommit` justifies.
 * **Cut-and-choose model:** the detection rules (P-CUT(d), (e)) and the single uniform challenge
@@ -181,14 +219,15 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
   (`idealCommit`; SHA-256 as a commitment is not proved), and per message a fixed value (a peer
   adapting its values across messages is not covered); the aborts on `mine = peer` (probability
   `2⁻²⁵⁶`) and on τ = 0 (`crypto_scalarmult_ed25519_base_noclamp` refuses it, `2⁻²⁵²`) are not
-  modelled (they depend only on the offsets, not on the initial scalar); the statement about the
-  C++ `step` (the digit recoding) is not made here.
+  modelled (they depend only on the offsets, not on the initial scalar); the digit recoding is
+  proved for the Lean `recode`, which copies the C++ `step` rule (item 14); that the C++ code is
+  that rule is read off the source, not proved.
 * **Receive accept direction:** the value forms of `varintValue` (counter widths 2–5) and
   `canonicalRange` (`< 2²⁵⁵ − 19`) are not stated: they live in `Signal.ReceiveFirst`, whose import
   closure is not compiled into this package.
 * **XEdDSA:** the sign of `x` (not normalised by `recover`) and its binding to the signature
-  bit; `doubleScalar`; that the compiled artifact is the program is the main package's
-  `XEdDsaField.compiled_output_correct`, not re-proved here.
+  bit (`doubleScalar` itself is item 14); that the compiled artifact is the program is the main
+  package's `XEdDsaField.compiled_output_correct`, not re-proved here.
 * **`ceremony_masked_uniform`** restates the expression of `Ceremony.masked_hides` instead of
   importing `TlsMpc.CeremonyProofs`, whose imports (the receive kernels' proofs) would make this
   package compile a large part of the main library.

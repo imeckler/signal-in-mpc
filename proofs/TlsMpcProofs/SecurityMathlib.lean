@@ -13,6 +13,11 @@ import TlsMpcProofs.EdwardsCurve
 import TlsMpcProofs.EdwardsEd25519
 import TlsMpcProofs.EdwardsBasePoint
 import TlsMpcProofs.MontgomeryLadder
+import TlsMpcProofs.EdwardsScalarMul
+import TlsMpcProofs.X25519Clamp
+import TlsMpcProofs.MontgomeryLift
+import TlsMpcProofs.X25519Special
+import TlsMpcProofs.EdwardsBitSum
 
 /-!
 # Security theorems that use Mathlib (companion to `TlsMpc/Security.lean`)
@@ -39,12 +44,16 @@ Statuses as in `TlsMpc/Security.lean` (**K**, **K-fn**, **C**, **M**, **switch**
   `sumTreeValue`, `extSumValue` compute in that group; the base point has order exactly `ℓ`
   (`ℓ·B = 0` by kernel arithmetic, `ℓ` prime), so the subgroup it generates is a finite
   commutative group of order `ℓ` and the statements of sections 3–3c hold for it without a group
-  hypothesis; the X25519 ladder computes scalar multiplication in the same group. The generic
-  statements (sections 3–3c) keep their form "for any finite commutative group `G`"; section 7b
-  instantiates them. **Still not proved:** the group order `#E = 8ℓ` (so: that every point killed
-  by `ℓ` is a multiple of `B`, and what `edwards-torsion-hinted` assumes about `8Q = P`); the
-  Montgomery side for `u` on the quadratic twist or `u = 0`; the map `x = √(−486664)·u/v` of
-  `liftPoint`; the window/table chains (`windowValue`, `doublingsValue`) as multiples.
+  hypothesis; the X25519 ladder computes scalar multiplication in the same group, for every
+  coordinate of a curve point including `u = 0` (section 7c), with the clamped scalar in closed
+  form; the scalar-multiple chains (`windowValue`, `doublingsValue`, the signed recoding of
+  `offsetSum`, `bitSum`, `prepareHinted`'s initial point, XEdDSA's `doubleScalar`) are scalar
+  multiples (section 7d); `liftPoint`'s map `x = √(−486664)·u/v` lands on the curve with
+  Montgomery coordinate `u`, and `u(u² + 486662u + 1)` is a square exactly for those `u`
+  (section 7e). The generic statements (sections 3–3c) keep their form "for any finite
+  commutative group `G`"; section 7b instantiates them. **Still not proved:** the group order
+  `#E = 8ℓ` (so: that every point killed by `ℓ` is a multiple of `B`, and what
+  `edwards-torsion-hinted` assumes about `8Q = P`); X25519 for `u` on the quadratic twist.
 * **idealCommit stays a hypothesis** (a cryptographic assumption). The distributional statements
   of section 3 assume, as their model, that the other party's value does not depend on the honest
   party's mask (that is what `idealCommit` provides in the protocols).
@@ -648,12 +657,14 @@ theorem profile_1024_undetected_lt (S : Finset (Position 1024 12)) :
 
 /-! ## 5. Open (comments only)
 
-* H-GROUP: proved in section 7 for the Edwards formulas and the base point's subgroup. What
+* H-GROUP: proved in section 7 for the Edwards formulas, the base point's subgroup, the
+  scalar-multiple chains, X25519 on every coordinate of a curve point and `liftPoint`'s map. What
   remains of it: the group order `#E = 8ℓ` (point counting; needed to say that the `ℓ`-torsion is
   exactly the multiples of `B`, and for the cofactor reading of `edwards-torsion-hinted`); the
-  X25519 ladder on inputs of the quadratic twist and `u = 0`; `liftPoint`'s map
-  `x = √(−486664)·u/v`; `windowValue` / `doublingsValue` / `XEdDsaField.doubleScalar` as scalar
-  multiples (their additions are `pointAddValue` / `extAddValue`, which are proved).
+  X25519 ladder on inputs of the quadratic twist (its Edwards model `−2x² + y² = 1 + 2d·x²y²`
+  has `a = −2`, not a square, so the complete-law construction does not apply); the statement
+  that the C++ `step` implements `recode` (the Lean `recode` is written to match it line by
+  line).
 * `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
 * Cut-and-choose: the model's detection rules (P-CUT(d), (e)) against `dyn_word_mask.h` /
   `dabit_generator.h`; that the two challenge permutations of P-CUT compose to one uniform one.
@@ -662,7 +673,8 @@ theorem profile_1024_undetected_lt (S : Finset (Position 1024 12)) :
   that depend only on the offsets (`mine = peer`, offset `0`) are not modelled; that the
   recipient's point is nonzero and killed by `ℓ` is the hypothesis of section 7b's statements
   (true for the base point; for a recipient key it is what the torsion check is for).
-* XEdDSA `recover`: the sign of `x` and its binding to the signature bit; `doubleScalar`.
+* XEdDSA `recover`: the sign of `x` and its binding to the signature bit (`doubleScalar` is
+  proved to compute `s·B − h·A` for Boolean bit inputs: section 7d).
 * Receive: the value forms of `varintValue` (widths 2–5) and `canonicalRange` (in
   `TlsMpc.Signal.ReceiveFirst`, whose 52-module import closure is not compiled here).
 -/
@@ -925,12 +937,269 @@ open Ed25519 Edwards in
 /-- **X25519 is scalar multiplication in the Edwards group:** if `u ≠ 0` is the Montgomery
 coordinate `(1 + y)/(1 − y)` of a curve point `P`, `X25519.spec input u` is the Montgomery
 coordinate of `k·P`, `k` the clamped scalar (`0` when `k·P = 0`). **K-fn** (`x25519`;
-`X25519.compiled_compute_correct` links the artifact to `spec`). Inputs on the quadratic twist
-and `u = 0` are not covered. -/
+`X25519.compiled_compute_correct` links the artifact to `spec`). `u = 0`:
+`x25519_spec_scalar_mult_all`; inputs on the quadratic twist are not covered. -/
 theorem x25519_spec_scalar_mult (input : ℕ → Bool) (u : FieldDag.F) (P : Curve)
     (hP : MRep (TlsMpcProofs.toZMod u) 1 P) (hu : TlsMpcProofs.toZMod u ≠ 0) :
     TlsMpcProofs.toZMod (X25519.spec input u) = montU (clampedScalar input • P) :=
   TlsMpcProofs.Ed25519.spec_eq_montU input u P hP hu
+
+open Ed25519 in
+/-- **The clamped scalar in closed form, any input bits:** `2²⁵⁴ + 8·m`, `m` the value of input
+bits 3 … 253 (bits 0–2 cleared, bit 254 set, bit 255 ignored). **K-fn** (`x25519`). -/
+theorem x25519_clampedScalar_eq (input : ℕ → Bool) :
+    clampedScalar input =
+      2 ^ 254 + 8 * TlsMpcProofs.bitsValue 0 ((List.range 251).reverse.map (fun i => input (i + 3))) :=
+  TlsMpcProofs.Ed25519.clampedScalar_eq input
+
+open Ed25519 in
+/-- **RFC 7748 `decodeScalar25519`:** for the scalar bytes as `X25519.decodeScalar` reads them,
+the ladder's scalar is `2²⁵⁴ + 8·(⌊n/8⌋ mod 2²⁵¹)`, `n` the little-endian value of the bytes (low
+three bits cleared, bit 255 cleared, bit 254 set). **K-fn**. -/
+theorem x25519_clampedScalar_rfc (bytes : List UInt8) :
+    clampedScalar (X25519.decodeScalar bytes) = 2 ^ 254 + 8 * (leValue bytes / 8 % 2 ^ 251) :=
+  TlsMpcProofs.Ed25519.clampedScalar_decodeScalar bytes
+
+open Ed25519 in
+/-- **The clamped scalar is a multiple of 8 in `[2²⁵⁴, 2²⁵⁵)`.** **K-fn**. -/
+theorem x25519_clampedScalar_bounds (input : ℕ → Bool) :
+    clampedScalar input % 8 = 0 ∧ 2 ^ 254 ≤ clampedScalar input ∧ clampedScalar input < 2 ^ 255 :=
+  ⟨TlsMpcProofs.Ed25519.clampedScalar_mod_eight input,
+    TlsMpcProofs.Ed25519.clampedScalar_range input⟩
+
+open Ed25519 Edwards in
+/-- **X25519 at `u = 0` is `0`** (RFC 7748's all-zero output), and that is the group answer:
+`u = 0` is `T2 = (0, −1)`, of order 2, and the clamped scalar is even, so `k·T2 = 0`. **K-fn**. -/
+theorem x25519_u_zero (input : ℕ → Bool) {u : FieldDag.F} (hu : TlsMpcProofs.toZMod u = 0) :
+    TlsMpcProofs.toZMod (X25519.spec input u) = 0 ∧ T2 + T2 = 0 ∧ clampedScalar input • T2 = 0 :=
+  ⟨TlsMpcProofs.Ed25519.spec_u_zero input hu, TlsMpcProofs.Ed25519.T2_add_self,
+    (TlsMpcProofs.Ed25519.spec_u_zero_montU input hu).1⟩
+
+open Ed25519 Edwards in
+/-- **X25519 is scalar multiplication for every curve point** (no `u ≠ 0`). **K-fn**. -/
+theorem x25519_spec_scalar_mult_all (input : ℕ → Bool) (u : FieldDag.F) (P : Curve)
+    (hP : MRep (TlsMpcProofs.toZMod u) 1 P) :
+    TlsMpcProofs.toZMod (X25519.spec input u) = montU (clampedScalar input • P) :=
+  TlsMpcProofs.Ed25519.spec_eq_montU' input u P hP
+
+open Ed25519 Edwards in
+/-- **X25519 on every Montgomery coordinate of a curve point:** if `u(u² + 486662u + 1)` is a
+square, there is a curve point `P` with `(1 + y)/(1 − y) = u` and `X25519.spec input u` is the
+coordinate of `k·P`. **K-fn**. -/
+theorem x25519_on_curve (input : ℕ → Bool) (u : FieldDag.F)
+    (h : IsSquare (montQ (TlsMpcProofs.toZMod u))) :
+    ∃ P : Curve, P.y ≠ 1 ∧ montU P = TlsMpcProofs.toZMod u ∧
+      TlsMpcProofs.toZMod (X25519.spec input u) = montU (clampedScalar input • P) :=
+  TlsMpcProofs.Ed25519.x25519_on_curve input u h
+
+/-! ### 7d. The scalar-multiple chains -/
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **One window (`windowValue`):** entries `P, 2P, …, 8P`, next base `16P`. **K-fn**
+(`edwards-prepare`, `edwards-prepare-hinted`). -/
+theorem window_multiples {b : EdwardsAffine.Value} {P : Curve} (hb : Affine b P) :
+    (windowValue b).1.length = 8 ∧ Multiples (windowValue b).1 P ∧
+      Affine (windowValue b).2 (16 • P) :=
+  TlsMpcProofs.Ed25519.window_spec hb
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **The window table:** entry `8w + j` of `chain windowValue r n` is `((j+1)·16^w)·P`. **K-fn**. -/
+theorem window_table {r : EdwardsAffine.Value} {P : Curve} (hr : Affine r P) (n : ℕ) :
+    (chain windowValue r n).length = 8 * n ∧
+      ∀ w < n, ∀ j < 8, Affine ((chain windowValue r n).getD (8 * w + j)
+        (FieldDag.ofNat 0, FieldDag.ofNat 1)) (((j + 1) * 16 ^ w) • P) :=
+  TlsMpcProofs.Ed25519.windowChain_spec hr n
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **`prepareHinted`'s `bitEntry i` is `2^i·P`** once every link holds. **K-fn**. -/
+theorem prepareHinted_bit_entry (input : ℕ → FieldDag.F) {P : Curve}
+    (hP : Affine (input 0, input 1) P)
+    (h : LinkedFrom (evalPoint input) window (inputPoint 0)
+      ((List.range (windows - 1)).map (fun i => hinted (prepareHints + 4 * i))))
+    (i : ℕ) (hi : i < 256) :
+    Affine (evalPoint input (bitEntry (entries window (prepareBases ())) i)) (2 ^ i • P) :=
+  TlsMpcProofs.Ed25519.prepareHinted_bitEntry input hP h i hi
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **`prepareHinted`'s initial point is `(kA + kB)·P`** once every link holds. **K-fn**. -/
+theorem prepareHinted_initial_point (input : ℕ → FieldDag.F) {P : Curve}
+    (hP : Affine (input 0, input 1) P)
+    (h : LinkedFrom (evalPoint input) window (inputPoint 0)
+      ((List.range (windows - 1)).map (fun i => hinted (prepareHints + 4 * i))))
+    (c : ℕ → Bool) (hbits : ∀ i < 2 * scalarBits, input (prepareBits + i) = X25519.bitValue (c i)) :
+    ExtRep (evalExt input (extSum ((List.range (2 * scalarBits)).map (fun i =>
+        chooseAffine (.input (prepareBits + i))
+          (bitEntry (entries window (prepareBases ())) (i % scalarBits))))))
+      ((TlsMpcProofs.bitsValue 0 ((List.range 252).reverse.map c) +
+        TlsMpcProofs.bitsValue 0 ((List.range 252).reverse.map (fun i => c (252 + i)))) • P) :=
+  TlsMpcProofs.Ed25519.prepareHinted_initial input hP h c hbits
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **One doubling window (`doublingsValue`):** `P, 2P, 4P, 8P` (extended), next base `16P`.
+**K-fn** (`edwards-bit-table`). -/
+theorem doublings_multiples {b : EdwardsAffine.Value} {P : Curve} (hb : Affine b P) :
+    (doublingsValue b).1.length = 4 ∧
+      (∀ j < 4, ExtRep ((doublingsValue b).1.getD j neutralValue) (2 ^ j • P)) ∧
+      Affine (doublingsValue b).2 (16 • P) :=
+  TlsMpcProofs.Ed25519.doublings_spec hb
+
+open Ed25519 EdwardsAffine EdwardsHinted in
+/-- **`bitTable`'s entry `i` is `2^i·P`** once every link holds. **K-fn**. -/
+theorem bitTable_entries (input : ℕ → FieldDag.F) {P : Curve} (hP : Affine (input 0, input 1) P)
+    (h : LinkedFrom (evalPoint input) doublings (inputPoint 0)
+      ((List.range (windows - 1)).map (fun i => hinted (2 + 4 * i))))
+    (i : ℕ) (hi : i < 256) :
+    ExtRep (((entries doublings (bitTableBases ())).map (evalExt input)).getD i neutralValue)
+      (2 ^ i • P) :=
+  TlsMpcProofs.Ed25519.bitTable_entry input hP h i hi
+
+open Ed25519 in
+/-- **The signed base-16 recoding (`edwards_points.h` `step`) encodes the number:**
+`Σ dᵢ·16^i + 16^k·carry = (n mod 16^k) + c`. **gen**. -/
+theorem recode_encodes (c n k : ℕ) :
+    digitsValue (recode c n k).1 + 16 ^ k * ((recode c n k).2 : ℤ) = ((n % 16 ^ k : ℕ) : ℤ) + c :=
+  TlsMpcProofs.Ed25519.recode_value c n k
+
+open Ed25519 in
+/-- **64 windows, offset `< 2²⁵²`:** the digits encode `n` exactly, lie in `−8 … 8`, and leave no
+carry (the C++ check `need(!carry, …)` never fails). **gen**. -/
+theorem recode_offset (n : ℕ) (hn : n < 2 ^ 252) :
+    digitsValue (recode 0 n 64).1 = n ∧ (recode 0 n 64).2 = 0 ∧
+      (recode 0 n 64).1.length = 64 ∧ ∀ d ∈ (recode 0 n 64).1, -8 ≤ d ∧ d ≤ 8 :=
+  TlsMpcProofs.Ed25519.recode64_value n hn
+
+open Ed25519 in
+/-- **A signed table entry is the signed multiple** (sign `−1` for a negative digit). **K-fn**. -/
+theorem signed_table_entry {x y s : FieldDag.F} {Q : Curve} {d : ℤ}
+    (h : Affine (x, y) (d.natAbs • Q))
+    (hs : TlsMpcProofs.toZMod s = if d < 0 then -1 else 1) : Affine (s * x, y) (d • Q) :=
+  TlsMpcProofs.Ed25519.signed_entry h hs
+
+open Ed25519 Edwards EdwardsAffine in
+/-- **`offsetSum` with the C++ recoding computes `u(I + n·P)`** for an offset `n < 2²⁵²`. **K-fn**
+(`edwards-offset-sum`). -/
+theorem offsetSum_scalar_mult (input : ℕ → FieldDag.F) {I P : Curve} (n : ℕ) (hn : n < 2 ^ 252)
+    (hI : Affine (input 0, input 1) I)
+    (hw : ∀ w < windows,
+      Affine (input (2 + 3 * w), input (2 + 3 * w + 1))
+        ((((recode 0 n 64).1.getD w 0).natAbs * 16 ^ w) • P) ∧
+      TlsMpcProofs.toZMod (input (2 + 3 * w + 2)) =
+        if (recode 0 n 64).1.getD w 0 < 0 then -1 else 1) :
+    ∃ o : FieldDag.F, offsetSum.map (FieldDag.Expr.eval input) = [o] ∧
+      TlsMpcProofs.toZMod o = montU (I + n • P) :=
+  TlsMpcProofs.Ed25519.offsetSum_recoded input n hn hI hw
+
+open Ed25519 Edwards EdwardsHinted in
+/-- **X25519 from a bit table (`bitSum`) is X25519:** with the table `2^i·P` (`i = 3 … 254`) of
+the curve point `P` whose Montgomery representative is `u`, scalar bits 3 … 253 of `input'` and
+`valid = 1`, the quotient of the two outputs is `X25519.spec input' u`. **K-fn**
+(`edwards-bit-sum`). -/
+theorem bitSum_is_x25519 (input : ℕ → FieldDag.F) (input' : ℕ → Bool) (u : FieldDag.F) {P : Curve}
+    (hP : MRep (TlsMpcProofs.toZMod u) 1 P)
+    (hpts : ∀ j ≤ agreementBits, ExtRep (evalExt input (extInput (2 + 4 * j))) (2 ^ (j + 3) • P))
+    (hbits : ∀ j < agreementBits,
+      input (2 + 4 * (agreementBits + 1) + j) = X25519.bitValue (input' (j + 3)))
+    (hvalid : input 0 = FieldDag.ofNat 1) :
+    ∃ N D : FieldDag.F, (bitSum ()).map (FieldDag.Expr.eval input) = [N, D] ∧
+      TlsMpcProofs.toZMod N / TlsMpcProofs.toZMod D = TlsMpcProofs.toZMod (X25519.spec input' u) :=
+  TlsMpcProofs.Ed25519.bitSum_eq_x25519 input input' u hP hpts hbits hvalid
+
+open Ed25519 in
+/-- **`XEdDsaField.add` is the group law** (unscaled extended coordinates, `k = 2d`). **K-fn**. -/
+theorem xeddsa_add_is_group_add {p q : Signal.XEdDsaField.Point FieldDag.F} {P Q : Curve}
+    (hp : XRep p P) (hq : XRep q Q) : XRep (Signal.XEdDsaField.add X25519.concrete p q) (P + Q) :=
+  TlsMpcProofs.Ed25519.xrep_add hp hq
+
+open Ed25519 in
+/-- **`XEdDsaField.doubleScalar` computes `[s]B − [h]A`** for a curve point `A = (x, y)` and
+Boolean bit lists (big-endian). **K-fn** (`xeddsa`). -/
+theorem xeddsa_doubleScalar {x y : FieldDag.F} {A : Curve} (hA : Affine (x, y) A) (h s : List Bool) :
+    ∃ v : EdwardsAffine.Value,
+      Signal.XEdDsaField.doubleScalar X25519.concrete x y (h.map X25519.bitValue)
+          (s.map X25519.bitValue) = [v.1, v.2] ∧
+        Affine v (TlsMpcProofs.bitsValue 0 s • B - TlsMpcProofs.bitsValue 0 h • A) :=
+  TlsMpcProofs.Ed25519.doubleScalar_spec hA h s
+
+open Ed25519 in
+/-- **The `xeddsa` field program computes `s·B − h·A`** for the bits of `h < 2²⁵⁶`, `s < 2²⁵³` at
+inputs 2 …, 258 … and the curve point `A` at inputs 0, 1. **K-fn**. -/
+theorem xeddsa_run_doubleScalar (input : ℕ → FieldDag.F) {A : Curve}
+    (hA : Affine (input 0, input 1) A) (hh sc : ℕ) (hlt : hh < 2 ^ 256) (slt : sc < 2 ^ 253)
+    (hbits : ∀ i < 256, input (2 + i) = X25519.bitValue (hh.testBit i))
+    (sbits : ∀ i < 253, input (258 + i) = X25519.bitValue (sc.testBit i)) :
+    ∃ v : EdwardsAffine.Value, Signal.XEdDsaField.run X25519.concrete false input = [v.1, v.2] ∧
+      Affine v (sc • B - hh • A) :=
+  TlsMpcProofs.Ed25519.run_doubleScalar_spec input hA hh sc hlt slt hbits sbits
+
+/-! ### 7e. The Montgomery-to-Edwards map (`liftPoint`) -/
+
+open Ed25519 Edwards in
+/-- **The map `x = √(−486664)·u/v`, `y = (u − 1)/(u + 1)`** sends a Montgomery point with
+`v ≠ 0` to a point of the Edwards group with Montgomery coordinate `u`. **gen**. -/
+theorem montgomery_map_onCurve {u v : ZMod FieldDag.modulus} (hv : v * v = montQ u) (hv0 : v ≠ 0) :
+    ∃ P : Curve, P.x = sA2 * u / v ∧ P.y = (u - 1) / (u + 1) ∧ P.y ≠ 1 ∧ montU P = u :=
+  TlsMpcProofs.Ed25519.montgomery_lift hv hv0
+
+open Ed25519 Edwards in
+/-- **`v ↦ −v` is the group negation** (same `u`). **gen**. -/
+theorem montgomery_map_neg {u v : ZMod FieldDag.modulus} {P : Curve} (hx : P.x = sA2 * u / v) :
+    (-P).x = sA2 * u / (-v) ∧ (-P).y = P.y ∧ montU (-P) = montU P :=
+  TlsMpcProofs.Ed25519.montgomery_lift_neg hx
+
+open Ed25519 Edwards in
+/-- **`u(u² + 486662u + 1)` is a square exactly when `u` is the Montgomery coordinate of a curve
+point** (other than the neutral element). Also: `u = −1` and the roots of `u² + 486662u + 1`
+(there are none) are not on the curve. **gen** (H-QR + H-GROUP; the lift's validity bit). -/
+theorem montQ_square_iff (u : ZMod FieldDag.modulus) :
+    (IsSquare (montQ u) ↔ ∃ P : Curve, P.y ≠ 1 ∧ montU P = u) ∧ ¬ IsSquare (montQ (-1)) ∧
+      u ^ 2 + 486662 * u + 1 ≠ 0 :=
+  ⟨TlsMpcProofs.Ed25519.montQ_isSquare_iff u,
+    by rw [TlsMpcProofs.Ed25519.montQ_neg_one]; exact TlsMpcProofs.Ed25519.c486660_not_isSquare,
+    TlsMpcProofs.Ed25519.montW_ne_zero u⟩
+
+open Ed25519 in
+/-- **What `valid = sel xor b = 1` means for the opened root:** `s² = q·r²`. **gen**. -/
+theorem lift_root_relation {q r w s : ZMod FieldDag.modulus} {sel b : Bool}
+    (hw : w = q * (r * r) * (if b then 2 else 1))
+    (hs : if sel then s * s = w else 2 * (s * s) = w) (hv : (sel ^^ b) = true) :
+    s * s = q * (r * r) :=
+  TlsMpcProofs.Ed25519.lift_root hw hs hv
+
+open Ed25519 Edwards EdwardsHinted in
+/-- **`liftPoint` with `valid = 1` outputs a point `P` of the Edwards group with Montgomery
+coordinate `u`, and `Z = M_A + M_B + P`.** **K-fn** (`lift-point`). -/
+theorem liftPoint_valid_point (input : ℕ → FieldDag.F) {s : ZMod FieldDag.modulus} (hs0 : s ≠ 0)
+    (h0 : TlsMpcProofs.toZMod (input 0) * s = sA2)
+    (hsq : s * s = montQ (TlsMpcProofs.toZMod (input 2)) *
+      (TlsMpcProofs.toZMod (input 3) * TlsMpcProofs.toZMod (input 3)))
+    (hvalid : TlsMpcProofs.toZMod (input 1 + input 4 - FieldDag.ofNat 2 * (input 1 * input 4)) = 1)
+    {MA MB : Curve} (hA : Affine (input 5, input 6) MA) (hB : Affine (input 7, input 8) MB) :
+    ∃ (P : Curve) (val px py zx zy : FieldDag.F),
+      (liftPoint ()).map (FieldDag.Expr.eval input) = [val, px, py, zx, zy] ∧
+        TlsMpcProofs.toZMod val = 1 ∧ Affine (px, py) P ∧ montU P = TlsMpcProofs.toZMod (input 2) ∧
+          P.y ≠ 1 ∧ Affine (zx, zy) (MA + MB + P) :=
+  TlsMpcProofs.Ed25519.liftPoint_valid input hs0 h0 hsq hvalid hA hB
+
+open Ed25519 EdwardsHinted in
+/-- **`liftPoint` with `valid = 0` outputs the base point `B`, and `Z = M_A + M_B + B`.**
+**K-fn**. -/
+theorem liftPoint_invalid_point (input : ℕ → FieldDag.F)
+    (hvalid : TlsMpcProofs.toZMod (input 1 + input 4 - FieldDag.ofNat 2 * (input 1 * input 4)) = 0)
+    {MA MB : Curve} (hA : Affine (input 5, input 6) MA) (hB : Affine (input 7, input 8) MB) :
+    ∃ (val px py zx zy : FieldDag.F),
+      (liftPoint ()).map (FieldDag.Expr.eval input) = [val, px, py, zx, zy] ∧
+        TlsMpcProofs.toZMod val = 0 ∧ Affine (px, py) B ∧ Affine (zx, zy) (MA + MB + B) :=
+  TlsMpcProofs.Ed25519.liftPoint_invalid input hvalid hA hB
+
+open Ed25519 Edwards in
+/-- **X25519 of a lifted `u`** is the Montgomery coordinate of `k·P` for the lifted point.
+**K-fn**. -/
+theorem x25519_of_lift (input : ℕ → Bool) (u : FieldDag.F) {v : ZMod FieldDag.modulus}
+    (hv : v * v = montQ (TlsMpcProofs.toZMod u)) (hv0 : v ≠ 0) :
+    ∃ P : Curve, P.x = sA2 * TlsMpcProofs.toZMod u / v ∧
+      P.y = (TlsMpcProofs.toZMod u - 1) / (TlsMpcProofs.toZMod u + 1) ∧
+      TlsMpcProofs.toZMod (X25519.spec input u) = montU (clampedScalar input • P) :=
+  TlsMpcProofs.Ed25519.x25519_lift input u hv hv0
 
 end TlsMpcProofs.Security
 
@@ -1045,3 +1314,30 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.curve_maskedAgreement_mask_hides
 #print axioms TlsMpcProofs.Security.x25519_advance
 #print axioms TlsMpcProofs.Security.x25519_spec_scalar_mult
+#print axioms TlsMpcProofs.Security.x25519_clampedScalar_eq
+#print axioms TlsMpcProofs.Security.x25519_clampedScalar_rfc
+#print axioms TlsMpcProofs.Security.x25519_clampedScalar_bounds
+#print axioms TlsMpcProofs.Security.x25519_u_zero
+#print axioms TlsMpcProofs.Security.x25519_spec_scalar_mult_all
+#print axioms TlsMpcProofs.Security.x25519_on_curve
+#print axioms TlsMpcProofs.Security.window_multiples
+#print axioms TlsMpcProofs.Security.window_table
+#print axioms TlsMpcProofs.Security.prepareHinted_bit_entry
+#print axioms TlsMpcProofs.Security.prepareHinted_initial_point
+#print axioms TlsMpcProofs.Security.doublings_multiples
+#print axioms TlsMpcProofs.Security.bitTable_entries
+#print axioms TlsMpcProofs.Security.recode_encodes
+#print axioms TlsMpcProofs.Security.recode_offset
+#print axioms TlsMpcProofs.Security.signed_table_entry
+#print axioms TlsMpcProofs.Security.offsetSum_scalar_mult
+#print axioms TlsMpcProofs.Security.bitSum_is_x25519
+#print axioms TlsMpcProofs.Security.xeddsa_add_is_group_add
+#print axioms TlsMpcProofs.Security.xeddsa_doubleScalar
+#print axioms TlsMpcProofs.Security.xeddsa_run_doubleScalar
+#print axioms TlsMpcProofs.Security.montgomery_map_onCurve
+#print axioms TlsMpcProofs.Security.montgomery_map_neg
+#print axioms TlsMpcProofs.Security.montQ_square_iff
+#print axioms TlsMpcProofs.Security.lift_root_relation
+#print axioms TlsMpcProofs.Security.liftPoint_valid_point
+#print axioms TlsMpcProofs.Security.liftPoint_invalid_point
+#print axioms TlsMpcProofs.Security.x25519_of_lift

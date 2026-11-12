@@ -14,4 +14,9 @@ import TlsMpcProofs.EdwardsCurve
 import TlsMpcProofs.EdwardsEd25519
 import TlsMpcProofs.EdwardsBasePoint
 import TlsMpcProofs.MontgomeryLadder
+import TlsMpcProofs.EdwardsScalarMul
+import TlsMpcProofs.X25519Clamp
+import TlsMpcProofs.MontgomeryLift
+import TlsMpcProofs.X25519Special
+import TlsMpcProofs.EdwardsBitSum
 import TlsMpcProofs.SecurityMathlib
