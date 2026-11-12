@@ -2574,9 +2574,11 @@ theorem preKeyValidation_finish_spec (constructed : List (BitVec 8)) (trust ec p
 other checks passed; with the controller's wiring it also implies the certificate checks; every
 receive kernel's refusal releases nothing, and what an accepted one opens is stated. The opened
 field names of every receive kernel are listed (`receiveAccept_opened_*`). **K** (the session,
-text and access-key kernels on concrete values), **K-fn** where stated. One DEFECT is recorded
-as a counterexample pair: `receive-text` accepts a body longer than its DataMessage
-(`receiveAcceptText_overlongBody_*`; NEEDS_REVIEW.md 3f). -/
+text and access-key kernels on concrete values), **K-fn** where stated. The DEFECT recorded here
+before (`receive-text` accepted a body longer than its DataMessage) is fixed in the emitter batch
+and takes effect after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+`receive-text` now accepts exactly what the reference parse accepts for covered widths
+(`receiveAcceptText_accepted_iff_reference`; NEEDS_REVIEW.md 3f). -/
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
 open TlsMpc.ReceiveKernel (values) in
@@ -3078,20 +3080,46 @@ theorem receiveAcceptText_text_reference (capacity : Nat) (hcap : capacity < 655
   TlsMpc.KernelSpecs.ReceiveAcceptText.text_reference capacity hcap plain body href hw₁ hw₂ hfit
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
-/-- **DEFECT (counterexample, with `receiveAcceptText_overlongBody_reference`): `receive-text`
-accepts a body longer than its DataMessage.** On this plaintext the kernel opens status 255 and the
-5-byte text `abcde`, while the reference parse of the same content refuses it (NEEDS_REVIEW.md 3f).
-A statement of what the kernel does today, not a property to keep. -/
-theorem receiveAcceptText_overlongBody_accepted :
+/-- **The former DEFECT, now refused (emitter batch; NEEDS_REVIEW.md 3f, defect 1).** A content
+whose 3-byte DataMessage claims a 5-byte body (`0A 03 0A 05 abcde`): `receive-text` opens status 0
+and nothing else. Before the batch it opened status 255 and `abcde`. -/
+theorem receiveAcceptText_overlongBody_refused :
     text ByteAuth.concrete 10 overlongBodyPlain =
-      [[255], [0, 5], [0x61, 0x62, 0x63, 0x64, 0x65, 0, 0, 0, 0, 0], [255, 0, 0]] :=
-  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_accepted
+      [[0], [0, 0], List.replicate 10 0, [0, 0, 0]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_refused
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
-/-- **DEFECT, the other half:** the reference parse refuses the plaintext that `receive-text`
-accepts in `receiveAcceptText_overlongBody_accepted` (NEEDS_REVIEW.md 3f). -/
+/-- The reference parse refuses the same plaintext (`receiveAcceptText_overlongBody_refused`). -/
 theorem receiveAcceptText_overlongBody_reference : referenceBody (overlongBodyPlain.drop 8) = none :=
   TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_reference
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text` accepts exactly what the reference protobuf reading accepts**, for length
+prefixes of at most two bytes (`Covered`) and a body of at most `capacity` bytes. -/
+theorem receiveAcceptText_accepted_iff_reference (capacity : Nat) (c : List (BitVec 8)) :
+    Accepted c capacity ↔ (∃ body, referenceBody c = some body ∧ body.length ≤ capacity) ∧ Covered c :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.accepted_iff_reference capacity c
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text`'s status is 255 exactly when the reference parses the content** (covered
+widths, body within `capacity`); otherwise 0 (`receiveAcceptText_text_rejects`: nothing opened). -/
+theorem receiveAcceptText_text_status_iff_reference (capacity : Nat) (hcap : capacity < 65536)
+    (plain : List (BitVec 8)) :
+    (text ByteAuth.concrete capacity plain).getD 0 [] = [255] ↔
+      (∃ body, referenceBody (plain.drop 8) = some body ∧ body.length ≤ capacity) ∧ Covered (plain.drop 8) :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_status_iff_reference capacity hcap plain
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **Accept direction, outputs**: whenever `receive-text`'s status is 255, the reference parses
+the content and the opened length and text are exactly the reference body's. -/
+theorem receiveAcceptText_text_accepted_reference (capacity : Nat) (hcap : capacity < 65536)
+    (plain : List (BitVec 8)) (h : (text ByteAuth.concrete capacity plain).getD 0 [] = [255]) :
+    ∃ body, referenceBody (plain.drop 8) = some body ∧ body.length ≤ capacity ∧ Covered (plain.drop 8) ∧
+      text ByteAuth.concrete capacity plain =
+        [[255], [BitVec.ofNat 8 (body.length / 256), BitVec.ofNat 8 (body.length % 256)],
+          (List.range capacity).map (fun i => body.getD i 0),
+          [mk (bodyStart (plain.drop 8) = 4), mk (bodyStart (plain.drop 8) = 5), mk (bodyStart (plain.drop 8) = 6)]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_accepted_reference capacity hcap plain h
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
 /-- **Two layouts never both match** (at the same offset in the same content). -/
 theorem receiveAccessKey_gap_unique (c : List (BitVec 8)) (off : Nat) (g g' : Gap)
@@ -4918,9 +4946,14 @@ the matching section above in the same commit.
 * **T13** — receive gating, accept direction: now proved for the kernels on concrete values
   (section 3a: `receive-session` status 255 iff the MAC verified and the other checks passed, with
   the certificate checks under the controller's wiring; `receive-text` zero unless the session
-  accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). One DEFECT
-  recorded: `receive-text` accepts a body longer than its DataMessage
-  (`receiveAcceptText_overlongBody_*`, NEEDS_REVIEW.md 3f). Still open: the converse for a genuine
+  accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). The DEFECT
+  recorded here (`receive-text` accepted a body longer than its DataMessage) is fixed in the
+  emitter batch, effective after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+  `receive-text` accepts exactly what the reference protobuf reading accepts for length prefixes of
+  at most two bytes (`receiveAcceptText_accepted_iff_reference`,
+  `receiveAcceptText_text_status_iff_reference`, `receiveAcceptText_text_accepted_reference`;
+  NEEDS_REVIEW.md 3f). Still open: prefixes of three or more bytes (refused by the kernel, accepted
+  by a protobuf decoder: a completeness gap, not a leak); the converse for a genuine
   sender's envelope (that it is accepted); Prop forms for the multi-byte counters,
   `canonicalRange`, `Unpad.decode` and the layout masks (stated today as byte computations); an
   accept-direction value theorem for `contentShape`'s flags and for `receive-content`; and the
@@ -5245,8 +5278,11 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.receiveAcceptText_text_accepted
 #print axioms TlsMpc.Security.receiveAcceptText_text_of_reference
 #print axioms TlsMpc.Security.receiveAcceptText_text_reference
-#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_accepted
+#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_refused
 #print axioms TlsMpc.Security.receiveAcceptText_overlongBody_reference
+#print axioms TlsMpc.Security.receiveAcceptText_accepted_iff_reference
+#print axioms TlsMpc.Security.receiveAcceptText_text_status_iff_reference
+#print axioms TlsMpc.Security.receiveAcceptText_text_accepted_reference
 #print axioms TlsMpc.Security.receiveAccessKey_gap_unique
 #print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_status
 #print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_accepted
