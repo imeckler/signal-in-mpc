@@ -1,4 +1,5 @@
 import TlsMpc.FlatLowering
+import TlsMpc.FlatKernelLayout
 import TlsMpc.ByteCircuit
 import TlsMpc.BoolDag
 import TlsMpc.FieldDag
@@ -134,10 +135,11 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
 
 ## What every entry silently relies on (trusted, not proved)
 
-* The circuit printers (`Flat.print`, `EmitWordMask.render`/`renderField`), the layout text with
-  its open/private marks, and the choice of which flat outputs form which named field
-  (SECURITY_MAP C.1). A kernel theorem is about the Lean term; the file the worker loads reaches
-  it only through these printers.
+* The field-program printers (`EmitWordMask.render`/`renderField`), the choice of which flat
+  outputs form which named field (`selection`), and that the engines' loaders parse the files as
+  `parseFlat`/`parseLayout` do (SECURITY_MAP C.1). Since the emitter batch the flat circuit
+  printer and the layout text with its open/private marks are proved (section 1b: what they
+  print parses back to the gate list and to the kernel's declared fields and marks).
 * `ShareCommon.shareCommon'` (used by the translation validators), the Lean compiler and runtime.
 * The engines (emp-ag2pc, the MP-SPDZ-based field engine) compute ideally; the C++ worker's
   sequencing (SECURITY_MAP D.5, D.6). None of the C++ is modelled here except where an entry says
@@ -171,7 +173,9 @@ namespace TlsMpc.Security
 /-! ## 1. Lowering and artifacts (SECURITY_MAP C.1)
 
 How a Lean circuit term becomes the gate list the worker loads, and why the gate list computes the
-term. The printers that turn the gate list into text are NOT covered (see the header). -/
+term. Since the emitter batch the printers that turn the gate list and the kernel's fields into
+text are covered too (section 1b): parsing the printed text gives back what was printed. The V3
+field-program printer (`EmitWordMask`) is not (stage S9/S10). -/
 
 open TlsMpc.FlatLowering Std.Sat Std.Tactic.BVDecide in
 open scoped Std.Sat.AIG in
@@ -222,6 +226,72 @@ SECURITY_MAP C.1. -/
 theorem flat_run_eq_eval (f : Flat) (inp : Nat → Bool) (hwf : f.wellFormed = true) (w : Nat)
     (hw : w < f.inputs + f.opa.size) : (f.run inp)[w]? = some (f.eval inp w) :=
   TlsMpc.FlatLowering.Flat.run_eq_eval f inp hwf w hw
+
+/-! ### 1b. Printers and marks (T2, proof track P3; emitter batch)
+
+The circuit text and the layout file the four kernel emitters write. The printers print what they
+always printed (`layoutText_eq_before`; `Flat.print` uses the same `++` chains); the theorems
+below say what they print. -/
+
+open TlsMpc.FlatLowering in
+/-- **What the circuit printer writes is `Flat.render`** (run with a `write` that appends; the
+emitters run the same `printWith` in `IO`). **K** (generic). -/
+theorem flat_printWith_render (f : Flat) : ((f.printWith appendOut).run "").2 = f.render :=
+  TlsMpc.FlatLowering.printWith_render f
+
+open TlsMpc.FlatLowering in
+/-- **A loader's parse of the printed text gives back the gate list**, for every well-formed one
+(every `lower` result). **K** (generic). Trusted: the engines' loaders parse as `parseFlat`. -/
+theorem flat_parse_render (f : Flat) (hwf : f.wellFormed = true) : parseFlat f.render.toList = some f :=
+  TlsMpc.FlatLowering.parseFlat_render f hwf
+
+open TlsMpc.FlatLowering Std.Tactic.BVDecide in
+/-- **The text the engines load denotes the lowered expression**: it parses back to the gate list,
+and output `k` of that list is bit `sel[k]` of the expression's value. **K** (generic). -/
+theorem flat_lowerExpr_loaded (expr : BVExpr w) (widths : Array Nat) (sel : Array (Fin w)) (flat : Flat)
+    (h : lowerExpr expr widths sel = .ok flat) :
+    parseFlat ((flat.printWith appendOut).run "").2.toList = some flat ∧ flat.outputs.size = sel.size ∧
+      ∀ (assign : BVExpr.Assignment) (inp : Nat → Bool),
+        (∀ (v off b : Nat) (width : Nat), widths[v]? = some width → (offsets widths)[v]? = some off →
+          b < width → inp (off + b) = (assign.get v).bv.getLsbD b) →
+        ∀ (k out : Nat) (hk : k < sel.size), flat.outputs[k]? = some out →
+          flat.eval inp out = (expr.eval assign).getLsbD sel[k].val :=
+  TlsMpc.FlatLowering.lowerExpr_loaded expr widths sel flat h
+
+open TlsMpc.FlatKernelLayout in
+/-- **The layout file is byte for byte what the emitters wrote before the batch.** -/
+theorem layoutText_unchanged (k : HybridKernel.Kernel) : layoutText k = layoutTextBefore k :=
+  TlsMpc.FlatKernelLayout.layoutText_eq_before k
+
+open TlsMpc.FlatKernelLayout in
+/-- **The layout file lists exactly the kernel's declared fields and open marks** (alphanumeric
+names, which `lowerKernel` checks). **K** (generic). -/
+theorem layout_parse (k : HybridKernel.Kernel) (hin : ∀ f ∈ k.inputs, ValidName f.1)
+    (hout : ∀ o ∈ k.outputs, ValidName o.name) :
+    parseLayout (layoutText k).toList = some (inputFields k, outputFields k) :=
+  TlsMpc.FlatKernelLayout.parseLayout_layoutText k hin hout
+
+open TlsMpc.FlatKernelLayout in
+/-- **The open mark says who may see an output**: 2 / 3 exactly for party 1 / 2 only, 1 exactly
+for an `opened` output with no single audience, 0 for a private one. -/
+theorem layout_openCode (o : HybridKernel.Output) :
+    (openCode o = 2 ↔ o.audience = 1) ∧ (openCode o = 3 ↔ o.audience = 2) ∧
+      (openCode o = 1 ↔ o.opened = true ∧ o.audience ≠ 1 ∧ o.audience ≠ 2) ∧
+      (openCode o = 0 ↔ o.opened = false ∧ o.audience ≠ 1 ∧ o.audience ≠ 2) :=
+  TlsMpc.FlatKernelLayout.openCode_spec o
+
+open TlsMpc.FlatKernelLayout in
+/-- **What the engines load for a kernel is that kernel (T2 for every kernel the four kernel
+emitters lower).** If `lowerKernel k` returns `flat`: the circuit text parses back to `flat`, the
+layout file to the kernel's fields and marks, and `flat` is `lowerExpr` of the kernel's joined
+outputs (so `flat_lowerExpr_loaded` and `joinExpr_correct` give each output wire's value). Not
+covered: `selection` (which named output bit is which bit of the joined value). -/
+theorem kernel_loaded (k : HybridKernel.Kernel) (flat : TlsMpc.FlatLowering.Flat) (h : lowerKernel k = .ok flat) :
+    TlsMpc.FlatLowering.parseFlat ((flat.printWith TlsMpc.FlatLowering.appendOut).run "").2.toList = some flat ∧
+      parseLayout (layoutText k).toList = some (inputFields k, outputFields k) ∧
+      ∃ chosen, TlsMpc.FlatLowering.lowerExpr (ByteCircuit.joinExpr (k.outputs.flatMap (·.value)))
+        (inputWidths k) chosen = .ok flat :=
+  TlsMpc.FlatKernelLayout.lowerKernel_loaded k flat h
 
 open TlsMpc.ByteCircuit Std.Tactic.BVDecide in
 /-- **Joining a kernel's byte outputs into one bit vector is faithful:** the joined expression
@@ -2276,7 +2346,8 @@ end KemCompose
 failed check reveals nothing but the failure. Only `typedOpen_gated` quantifies over a
 deployed kernel's opened-field flags; the rest are at function or spec level and reach kernels
 through the `_spec` theorems of section 2. The open marks themselves (which outputs the worker
-lets out) are printed by unproved code (T2, section 8). -/
+lets out) are printed as the kernels declare them (section 1b, `layout_parse`,
+`layout_openCode`; emitter batch). -/
 
 open TlsMpc.TypedOpenKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel Shape lookup lookupFrom pub priv sl) in
@@ -4928,11 +4999,16 @@ and the stage or proof track that delivers it. When one is proved, its restateme
 the matching section above in the same commit.
 
 ### Lowering and artifacts
-* **T2** — open marks and printers: for every kernel name the inventory can emit, the printed
-  layout's rows and open flags equal the kernel's declared fields and marks; parsing the printed
-  `.flat` gives back `Flat`; the V3 field-program printer likewise. Also: a composed theorem
-  "the loaded flat file computes the kernel spec" (`lowerExpr_correct` + `joinExpr_correct` +
-  `_spec`). → **P3** (touches the emitters; one re-lowering, alone).
+* **T2** — open marks and printers. DONE for the flat kernels in the emitter batch (section 1b,
+  effective once the emitters are rebuilt; the printed bytes do not change): for every kernel
+  `lowerKernel` lowers (all four kernel emitters now share `TlsMpc/FlatKernelLayout.lean`), the
+  printed layout's rows and open marks are the kernel's declared fields and marks
+  (`layout_parse`, `layout_openCode`), parsing the printed `.flat` gives back `Flat`
+  (`flat_printWith_render`, `flat_parse_render`), and the flat is `lowerExpr` of the joined
+  outputs (`kernel_loaded`, `flat_lowerExpr_loaded`). Still open: `selection` (which named output
+  bit is which bit of the joined value; with it, "the loaded file computes the kernel's `_spec`"
+  per named field); that the C++/Rust loaders parse as `parseFlat`/`parseLayout` do; the V3
+  field-program printer (`EmitWordMask`; scheduled with S9/S10). → **P3** (rest), **S9/S10**.
 
 ### Kernels compute their specification
 * Kernel-level specs: now proved for every kernel this item used to list (section 2c). Closed in
@@ -5069,8 +5145,13 @@ the matching section above in the same commit.
   `contact-open N` is `kernelCircuit (HybridKernel.contactOpen N) (84 + N) (openMarks N)` (8 public
   bits, then 8N never opened). That is, the pinned circuits the worker loads under those names
   compute their Lean kernels with these open marks: the T2 correspondence for these three kernels.
-  Open. → **P3** (with T2). Not covered by `Loaded`: the `xor-bit` circuit that `Account.opSeal`
-  runs on two credential shares.
+  Partly discharged by the emitter batch: for a circuit `lowerKernel` produced from the kernel,
+  the file the engine loads parses back to that circuit and its layout to the kernel's fields and
+  open marks (`kernel_loaded`, `layout_openCode`), and the circuit computes `lowerExpr` of the
+  joined outputs. What `Loaded` still assumes: that the cache entry under that name is the
+  emitter's output for that kernel (cache/manifest integrity), that the engine's loader parses as
+  `parseFlat`/`parseLayout`, and `selection`. → **P3** (rest). Not covered by `Loaded`: the
+  `xor-bit` circuit that `Account.opSeal` runs on two credential shares.
 * **T12** — skeleton determinism of scripts: proved for the model (section 7a,
   `engine_T12_skeleton_determinism`); T4-UPGRADE for honest parties likewise (`upgrade_honest`).
 
@@ -5142,6 +5223,13 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.lower_sound
 #print axioms TlsMpc.Security.lower_correct
 #print axioms TlsMpc.Security.lowerExpr_correct
+#print axioms TlsMpc.Security.flat_printWith_render
+#print axioms TlsMpc.Security.flat_parse_render
+#print axioms TlsMpc.Security.flat_lowerExpr_loaded
+#print axioms TlsMpc.Security.layoutText_unchanged
+#print axioms TlsMpc.Security.layout_parse
+#print axioms TlsMpc.Security.layout_openCode
+#print axioms TlsMpc.Security.kernel_loaded
 #print axioms TlsMpc.Security.flat_run_eq_eval
 #print axioms TlsMpc.Security.joinExpr_correct
 #print axioms TlsMpc.Security.kernel_compiled_correct

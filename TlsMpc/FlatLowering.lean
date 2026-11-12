@@ -36,12 +36,22 @@ trusted: it is a hint. A node the plan skips gets no wire, and a later reference
 `lower` fail rather than emit a wrong gate. That the plan never causes such a failure is
 not proved (it would be a completeness statement); neither is any gate-count bound.
 
+The printed text (T2, proof track P3, added in the emitter batch): `printWith_render` (what the
+printer hands to `write`, concatenated, is `Flat.render`), `parseFlat_render` (a loader's parse of
+that text, `parseFlat`, gives back the gate list, for every well-formed list), `lowerExpr_loaded`
+(both composed with `lowerExpr_correct`). The printer's expressions are unchanged
+(`appendGate`/`appendOutput` are the `++` chains it always used), so it prints the same bytes;
+`gateOk` now also requires a NOT gate's unused operand to be 0 (true of every `lower` result).
+The layout file: `TlsMpc/FlatKernelLayout.lean`.
+
 ## What is not proved
 
-* The text printer (`Flat.print`) and the layout file: decimal rendering, row order.
-* Which output bit belongs to which named field (computed by the emitter, as before).
+* That the engines' loaders (C++ `kernel.h`, Rust `loader.rs`) read the text as `parseFlat` does.
+* Which output bit belongs to which named field (`selection`, computed by the emitter).
 * `lower` terminating without an error.
-* The runtime: compiled code and, as everywhere in this project, `ShareCommon`.
+* The runtime: compiled code and, as everywhere in this project, `ShareCommon`; that
+  `Flat.print` in `IO` performs the same `write`s as `printWith` in `Writer` (one definition,
+  run in two monads).
 
 No `sorry`, no `native_decide`, no `bv_decide`, no axioms beyond `propext`, `Classical.choice`
 and `Quot.sound` (see the `#print axioms` lines at the end).
@@ -504,9 +514,11 @@ def totalBits (widths : Array Nat) : Nat := widths.foldl (· + ·) 0
 
 /-! ## Well-formedness and one-pass evaluation -/
 
+/-- Gate `k` reads earlier wires, is an AND, XOR or NOT, and a NOT has second operand 0 (the
+printer does not print it; the parser reads it back as 0). -/
 def gateOk (f : Flat) (k : Nat) : Bool :=
   match f.opa[k]?, f.opb[k]? with
-  | some c, some b => c / 4 < f.inputs + k && b < f.inputs + k && c % 4 < 3
+  | some c, some b => c / 4 < f.inputs + k && b < f.inputs + k && c % 4 < 3 && (c % 4 != 2 || b == 0)
   | _, _ => false
 
 def gatesOk (f : Flat) : Nat → Bool
@@ -559,7 +571,7 @@ theorem Flat.runTo_spec (f : Flat) (inp : Nat → Bool) :
           have h1 : ¬ (f.inputs + m < f.inputs) := by omega
           have h2 : f.inputs + m - f.inputs = m := by omega
           simp only [h1, if_false, h2, hc, hb, Option.getD_some]
-          rw [dif_pos ⟨hg.1.1, hg.1.2⟩, hvals _ hg.1.1, hvals _ hg.1.2]
+          rw [dif_pos ⟨hg.1.1.1, hg.1.1.2⟩, hvals _ hg.1.1.1, hvals _ hg.1.1.2]
           simp
         · rw [if_neg hlast]
           exact hvals w (by omega)
@@ -599,27 +611,56 @@ theorem offsets_getElem? (widths : Array Nat) (v : Nat) (hv : v < widths.size) :
 /-- Number of AND gates: the only gates with a cost in the Boolean engine. -/
 def Flat.andCount (f : Flat) : Nat := f.opa.foldl (fun count c => if c % 4 == 0 then count + 1 else count) 0
 
-/-- `EMP_HYBRID_BOOL_V1` text, handed to `write` in pieces of about 64 kB so that a large
-circuit is never held as one string. Outside the theorems. -/
-def Flat.print (f : Flat) (write : String → IO Unit) : IO Unit := do
-  write s!"EMP_HYBRID_BOOL_V1\n{f.inputs} {f.opa.size} {f.outputs.size}\n"
-  let mut buffer := ""
-  for k in [0:f.opa.size] do
-    let c := f.opa[k]!
-    buffer := match c % 4 with
-      | 0 => buffer ++ "A " ++ toString (c / 4) ++ " " ++ toString f.opb[k]! ++ "\n"
-      | 1 => buffer ++ "X " ++ toString (c / 4) ++ " " ++ toString f.opb[k]! ++ "\n"
-      | _ => buffer ++ "N " ++ toString (c / 4) ++ "\n"
-    if buffer.utf8ByteSize ≥ 65536 then
-      write buffer
-      buffer := ""
-  buffer := buffer ++ "O "
-  for k in [0:f.outputs.size] do
-    buffer := if k == 0 then buffer ++ toString f.outputs[k]! else buffer ++ " " ++ toString f.outputs[k]!
-    if buffer.utf8ByteSize ≥ 65536 then
-      write buffer
-      buffer := ""
+/-! ## The printer (`EMP_HYBRID_BOOL_V1`)
+
+The text the engines load. The pieces below are the expressions the printer has always used
+(`appendGate`, `appendOutput`: the same `++` chains, the same flushes), so the printed bytes are
+unchanged; what is new is that they are named, the printer is written once for any monad
+(`printWith`), and `Flat.render` is the whole text as one string, with `printWith_render` (what the
+printer writes, concatenated, is `render`) and `parseFlat_render` (parsing `render` gives back the
+gate list) below. -/
+
+/-- `buffer` followed by gate `(c, b)`'s line, exactly as the printer appends it. -/
+@[inline] def appendGate (buffer : String) (c b : Nat) : String :=
+  match c % 4 with
+  | 0 => buffer ++ "A " ++ toString (c / 4) ++ " " ++ toString b ++ "\n"
+  | 1 => buffer ++ "X " ++ toString (c / 4) ++ " " ++ toString b ++ "\n"
+  | _ => buffer ++ "N " ++ toString (c / 4) ++ "\n"
+
+/-- `buffer` followed by output `k` (wire `o`), exactly as the printer appends it. -/
+@[inline] def appendOutput (buffer : String) (k o : Nat) : String :=
+  if k == 0 then buffer ++ toString o else buffer ++ " " ++ toString o
+
+/-- Gate `(c, b)`'s line. -/
+def gateLine (c b : Nat) : String := appendGate "" c b
+
+/-- Output `k`'s text (preceded by a space unless it is the first). -/
+def outputPiece (k o : Nat) : String := appendOutput "" k o
+
+def Flat.header (f : Flat) : String :=
+  "EMP_HYBRID_BOOL_V1\n" ++ toString f.inputs ++ " " ++ toString f.opa.size ++ " " ++ toString f.outputs.size ++ "\n"
+
+/-- Append a piece; hand the buffer to `write` once it reaches 64 kB. -/
+@[inline] def Flat.flushPiece [Monad m] (write : String → m Unit) (buffer : String) : m (ForInStep String) :=
+  if buffer.utf8ByteSize ≥ 65536 then do write buffer; pure (.yield "") else pure (.yield buffer)
+
+/-- The printer, for any monad: the header, the gate lines, `O` and the output wires, handed to
+`write` in pieces of about 64 kB so that a large circuit is never held as one string. -/
+@[inline] def Flat.printWith [Monad m] (f : Flat) (write : String → m Unit) : m Unit := do
+  write f.header
+  let buffer ← forIn [0:f.opa.size] "" fun k buffer =>
+    Flat.flushPiece write (appendGate buffer f.opa[k]! f.opb[k]!)
+  let buffer ← forIn [0:f.outputs.size] (buffer ++ "O ") fun k buffer =>
+    Flat.flushPiece write (appendOutput buffer k f.outputs[k]!)
   write (buffer ++ "\n")
+
+/-- `EMP_HYBRID_BOOL_V1` text, handed to `write` in pieces (what the emitters call). -/
+def Flat.print (f : Flat) (write : String → IO Unit) : IO Unit := f.printWith write
+
+/-- The whole text as one string (for the theorems; the printer never builds it). -/
+def Flat.render (f : Flat) : String :=
+  f.header ++ String.join ((List.range' 0 f.opa.size).map fun k => gateLine f.opa[k]! f.opb[k]!) ++ "O " ++
+    String.join ((List.range' 0 f.outputs.size).map fun k => outputPiece k f.outputs[k]!) ++ "\n"
 
 /-! ## The lowering -/
 
@@ -1093,6 +1134,436 @@ theorem lowerExpr_correct (expr : BVExpr w) (widths : Array Nat) (sel : Array (F
   exact BVExpr.denote_bitblast AIG.empty ⟨expr, BVExpr.Cache.empty⟩ assign
     (BVExpr.Cache.Inv_empty AIG.empty) sel[k].val sel[k].isLt
 
+/-! ## The printed text: what the printer writes, and parsing it back (T2, proof track P3)
+
+`printWith_render`: running the printer with a `write` that appends to a string gives
+`Flat.render`. `parseFlat_render`: the parser below (the specification of a loader of
+`EMP_HYBRID_BOOL_V1`: header, one `A a b` / `X a b` / `N a` line per gate, `O` and the output
+wires) reads `render f` back as `f`, for every well-formed `f` (every `lower` result is one).
+`lowerExpr_loaded` composes this with `lowerExpr_correct`. -/
+
+theorem appendGate_eq (buffer : String) (c b : Nat) : appendGate buffer c b = buffer ++ gateLine c b := by
+  unfold gateLine appendGate
+  split <;> simp only [String.append_assoc, String.empty_append]
+
+theorem appendOutput_eq (buffer : String) (k o : Nat) : appendOutput buffer k o = buffer ++ outputPiece k o := by
+  unfold outputPiece appendOutput
+  split <;> simp only [String.append_assoc, String.empty_append]
+
+/-- The monad the theorems run the printer in: `write` appends to the state. -/
+abbrev Writer := StateM String
+
+/-- `write` for `Writer`. -/
+def appendOut (s : String) : Writer Unit := modify (· ++ s)
+
+theorem run_bind' {α β : Type} (x : Writer α) (f : α → Writer β) (s : String) :
+    (x >>= f).run s = (f (x.run s).1).run (x.run s).2 := rfl
+theorem run_pure' {α : Type} (a : α) (s : String) : (pure a : Writer α).run s = (a, s) := rfl
+theorem run_appendOut (t s : String) : (appendOut t).run s = ((), s ++ t) := rfl
+
+theorem flushPiece_run (buffer W : String) :
+    (Flat.flushPiece appendOut buffer).run W =
+      if buffer.utf8ByteSize ≥ 65536 then (.yield "", W ++ buffer) else (.yield buffer, W) := by
+  unfold Flat.flushPiece
+  split <;> rfl
+
+theorem flushLoop (piece : Nat → String) (app : String → Nat → String) (happ : ∀ b k, app b k = b ++ piece k) :
+    ∀ (L : List Nat) (b W : String),
+      ((forIn (m := Writer) L b (fun k buffer => Flat.flushPiece appendOut (app buffer k))).run W).2 ++
+        ((forIn (m := Writer) L b (fun k buffer => Flat.flushPiece appendOut (app buffer k))).run W).1 =
+      W ++ b ++ String.join (L.map piece) := by
+  intro L
+  induction L with
+  | nil => intro b W; simp only [List.forIn_nil, run_pure', List.map_nil, String.join, List.foldl_nil,
+      String.append_empty]
+  | cons k L ih =>
+      intro b W
+      simp only [List.forIn_cons, run_bind', List.map_cons, String.join_cons, flushPiece_run]
+      by_cases hf : (app b k).utf8ByteSize ≥ 65536
+      · simp only [hf, if_true]
+        rw [ih, happ]
+        simp only [String.append_assoc, String.empty_append]
+      · simp only [hf, if_false]
+        rw [ih, happ]
+        simp only [String.append_assoc]
+
+theorem range_size (n : Nat) : ([0:n] : Std.Legacy.Range).size = n := by
+  simp [Std.Legacy.Range.size]
+
+/-- **What the printer writes is `render`**: run with a `write` that appends to a string, the
+printer leaves exactly `Flat.render f`. The engines' file is the concatenation of the pieces the
+printer hands to `write`, in order (`Flat.print` is `printWith` in `IO`). -/
+theorem printWith_render (f : Flat) : ((f.printWith appendOut).run "").2 = f.render := by
+  unfold Flat.printWith Flat.render
+  simp only [run_bind', run_appendOut, Std.Legacy.Range.forIn_eq_forIn_range', range_size]
+  generalize hr1 : (forIn (m := Writer) (List.range' 0 f.opa.size 1) "" fun k buffer =>
+    Flat.flushPiece appendOut (appendGate buffer f.opa[k]! f.opb[k]!)).run ("" ++ f.header) = r1
+  have g := flushLoop (fun k => gateLine f.opa[k]! f.opb[k]!) (fun buffer k => appendGate buffer f.opa[k]! f.opb[k]!)
+    (fun b k => appendGate_eq b _ _) (List.range' 0 f.opa.size) "" ("" ++ f.header)
+  have o := flushLoop (fun k => outputPiece k f.outputs[k]!) (fun buffer k => appendOutput buffer k f.outputs[k]!)
+    (fun b k => appendOutput_eq b _ _) (List.range' 0 f.outputs.size) (r1.1 ++ "O ") r1.2
+  rw [hr1] at g
+  generalize (forIn (m := Writer) (List.range' 0 f.outputs.size 1) (r1.1 ++ "O ") fun k buffer =>
+    Flat.flushPiece appendOut (appendOutput buffer k f.outputs[k]!)).run r1.2 = r2 at o ⊢
+  generalize String.join ((List.range' 0 f.opa.size).map fun k => gateLine f.opa[k]! f.opb[k]!) = G at g ⊢
+  generalize String.join ((List.range' 0 f.outputs.size).map fun k => outputPiece k f.outputs[k]!) = O at o ⊢
+  have e : r2.2 ++ (r2.1 ++ "\n") = (r2.2 ++ r2.1) ++ "\n" := by rw [String.append_assoc]
+  have e2 : r1.2 ++ (r1.1 ++ "O ") = (r1.2 ++ r1.1) ++ "O " := by rw [String.append_assoc]
+  rw [e, o, e2, g]
+  simp only [String.empty_append, String.append_empty, String.append_assoc]
+
+/-! ### Reading the text back -/
+
+/-- The digits at the head of a list of characters, and the rest. -/
+def splitDigits : List Char → List Char × List Char
+  | [] => ([], [])
+  | c :: cs => if c.isDigit then (c :: (splitDigits cs).1, (splitDigits cs).2) else ([], c :: cs)
+
+/-- A decimal number (at least one digit) at the head, and the rest. -/
+def parseNat (cs : List Char) : Option (Nat × List Char) :=
+  match splitDigits cs with
+  | ([], _) => none
+  | (ds, rest) => some (Nat.ofDigitChars 10 ds 0, rest)
+
+/-- The characters `lit` at the head; the rest. -/
+def expectLit : List Char → List Char → Option (List Char)
+  | [], cs => some cs
+  | l :: ls, c :: cs => if l = c then expectLit ls cs else none
+  | _ :: _, [] => none
+
+/-- `n` gate lines: the operand arrays (`opa`, `opb`) and the rest. `N a` gives `opb = 0`. -/
+def parseGates : Nat → List Char → Option (List Nat × List Nat × List Char)
+  | 0, cs => some ([], [], cs)
+  | n + 1, c :: ' ' :: cs =>
+      if c = 'A' ∨ c = 'X' then
+        match parseNat cs with
+        | some (a, cs) =>
+            match expectLit [' '] cs with
+            | some cs =>
+                match parseNat cs with
+                | some (b, cs) =>
+                    match expectLit ['\n'] cs with
+                    | some cs =>
+                        match parseGates n cs with
+                        | some (as, bs, rest) => some ((4 * a + (if c = 'A' then 0 else 1)) :: as, b :: bs, rest)
+                        | none => none
+                    | none => none
+                | none => none
+            | none => none
+        | none => none
+      else if c = 'N' then
+        match parseNat cs with
+        | some (a, cs) =>
+            match expectLit ['\n'] cs with
+            | some cs =>
+                match parseGates n cs with
+                | some (as, bs, rest) => some ((4 * a + 2) :: as, 0 :: bs, rest)
+                | none => none
+            | none => none
+        | none => none
+      else none
+  | _ + 1, _ => none
+
+/-- `n` output wires, the first being output `k` (a space before each one but output 0). -/
+def parseOutputs : Nat → Nat → List Char → Option (List Nat × List Char)
+  | _, 0, cs => some ([], cs)
+  | k, n + 1, cs =>
+      match (if k = 0 then some cs else expectLit [' '] cs) with
+      | some cs =>
+          match parseNat cs with
+          | some (o, cs) =>
+              match parseOutputs (k + 1) n cs with
+              | some (os, rest) => some (o :: os, rest)
+              | none => none
+          | none => none
+      | none => none
+
+/-- **A loader's reading of an `EMP_HYBRID_BOOL_V1` text** (as characters): the header line,
+`INPUTS GATES OUTPUTS`, that many gate lines, `O` and that many output wires, end of text. -/
+def parseFlat (cs : List Char) : Option Flat :=
+  match expectLit "EMP_HYBRID_BOOL_V1\n".toList cs with
+  | none => none
+  | some cs =>
+    match parseNat cs with
+    | none => none
+    | some (inputs, cs) =>
+      match expectLit [' '] cs with
+      | none => none
+      | some cs =>
+        match parseNat cs with
+        | none => none
+        | some (gates, cs) =>
+          match expectLit [' '] cs with
+          | none => none
+          | some cs =>
+            match parseNat cs with
+            | none => none
+            | some (outputs, cs) =>
+              match expectLit ['\n'] cs with
+              | none => none
+              | some cs =>
+                match parseGates gates cs with
+                | none => none
+                | some (as, bs, cs) =>
+                  match expectLit ['O', ' '] cs with
+                  | none => none
+                  | some cs =>
+                    match parseOutputs 0 outputs cs with
+                    | none => none
+                    | some (os, cs) =>
+                      if cs = ['\n'] then some ⟨inputs, as.toArray, bs.toArray, os.toArray⟩ else none
+
+/-- The list does not start with a digit. -/
+def NoDigit (cs : List Char) : Prop := ∀ c, cs.head? = some c → c.isDigit = false
+
+theorem splitDigits_append (ds rest : List Char) (hd : ∀ c ∈ ds, c.isDigit = true) (hr : NoDigit rest) :
+    splitDigits (ds ++ rest) = (ds, rest) := by
+  induction ds with
+  | nil =>
+      cases rest with
+      | nil => rfl
+      | cons c cs =>
+          have := hr c rfl
+          simp [splitDigits, this]
+  | cons d ds ih =>
+      have h1 : d.isDigit = true := hd d (by simp)
+      have ih' := ih (fun c hc => hd c (by simp [hc]))
+      simp only [List.cons_append, splitDigits, h1, if_true, ih']
+
+theorem toList_toString (n : Nat) : (toString n).toList = Nat.toDigits 10 n := by
+  rw [Nat.toString_eq_repr, Nat.toList_repr]
+
+theorem parseNat_digits (n : Nat) (rest : List Char) (hr : NoDigit rest) :
+    parseNat (Nat.toDigits 10 n ++ rest) = some (n, rest) := by
+  unfold parseNat
+  rw [splitDigits_append _ _ (fun c hc => Nat.isDigit_of_mem_toDigits (by decide) (by decide) hc) hr]
+  cases h : Nat.toDigits 10 n with
+  | nil => exact absurd h Nat.toDigits_ne_nil
+  | cons d ds =>
+      simp only [Option.some.injEq, Prod.mk.injEq, and_true]
+      rw [← h, Nat.ofDigitChars_ten_toDigits]
+
+theorem expectLit_append (l rest : List Char) : expectLit l (l ++ rest) = some rest := by
+  induction l with
+  | nil => rfl
+  | cons c cs ih => simp [expectLit, ih]
+
+theorem noDigit_space (cs : List Char) : NoDigit (' ' :: cs) := by
+  intro c h; simp only [List.head?_cons, Option.some.injEq] at h; subst h; rfl
+
+theorem noDigit_newline (cs : List Char) : NoDigit ('\n' :: cs) := by
+  intro c h; simp only [List.head?_cons, Option.some.injEq] at h; subst h; rfl
+
+theorem lit_A : "A ".toList = ['A', ' '] := rfl
+theorem lit_X : "X ".toList = ['X', ' '] := rfl
+theorem lit_N : "N ".toList = ['N', ' '] := rfl
+theorem lit_sp : " ".toList = [' '] := rfl
+theorem lit_nl : "\n".toList = ['\n'] := rfl
+theorem lit_O : "O ".toList = ['O', ' '] := rfl
+theorem lit_empty : "".toList = [] := rfl
+
+/-- A gate the printer prints and the parser reads back: AND, XOR or NOT, a NOT with operand 0. -/
+def Printable (c b : Nat) : Prop := c % 4 < 3 ∧ (c % 4 = 2 → b = 0)
+
+theorem gateLine_A (c b : Nat) (h : c % 4 = 0) :
+    (gateLine c b).toList = 'A' :: ' ' :: (Nat.toDigits 10 (c / 4) ++ ' ' :: (Nat.toDigits 10 b ++ ['\n'])) := by
+  unfold gateLine appendGate
+  rw [h]
+  simp only [String.toList_append, toList_toString, lit_A, lit_sp, lit_nl, lit_empty, List.nil_append,
+    List.append_assoc, List.cons_append]
+
+theorem gateLine_X (c b : Nat) (h : c % 4 = 1) :
+    (gateLine c b).toList = 'X' :: ' ' :: (Nat.toDigits 10 (c / 4) ++ ' ' :: (Nat.toDigits 10 b ++ ['\n'])) := by
+  unfold gateLine appendGate
+  rw [h]
+  simp only [String.toList_append, toList_toString, lit_X, lit_sp, lit_nl, lit_empty, List.nil_append,
+    List.append_assoc, List.cons_append]
+
+theorem gateLine_N (c b : Nat) (h : c % 4 = 2) :
+    (gateLine c b).toList = 'N' :: ' ' :: (Nat.toDigits 10 (c / 4) ++ ['\n']) := by
+  unfold gateLine appendGate
+  rw [h]
+  simp only [String.toList_append, toList_toString, lit_N, lit_nl, lit_empty, List.nil_append,
+    List.append_assoc, List.cons_append]
+
+theorem parseGates_lines (A B : Nat → Nat) (rest : List Char) :
+    ∀ (n s : Nat), (∀ k, s ≤ k → k < s + n → Printable (A k) (B k)) →
+      parseGates n ((String.join ((List.range' s n).map fun k => gateLine (A k) (B k))).toList ++ rest) =
+        some ((List.range' s n).map A, (List.range' s n).map B, rest) := by
+  intro n
+  induction n with
+  | zero => intro s _; rfl
+  | succ n ih =>
+      intro s hp
+      have hs := hp s (Nat.le_refl _) (by omega)
+      have ih' := ih (s + 1) (fun k h1 h2 => hp k (by omega) (by omega))
+      rw [List.range'_succ, List.map_cons, String.join_cons, String.toList_append, List.map_cons, List.map_cons]
+      generalize (String.join ((List.range' (s + 1) n).map fun k => gateLine (A k) (B k))).toList = T at ih' ⊢
+      have h3 := hs.1
+      by_cases e0 : A s % 4 = 0
+      · rw [gateLine_A _ _ e0]
+        simp only [List.append_assoc, List.cons_append, List.nil_append]
+        simp only [parseGates, true_or, if_true]
+        rw [parseNat_digits _ _ (noDigit_space _)]
+        simp only [expectLit, if_true]
+        rw [parseNat_digits _ _ (noDigit_newline _)]
+        simp only [expectLit, if_true]
+        rw [ih']
+        simp only [if_true, Option.some.injEq, Prod.mk.injEq, List.cons.injEq, and_true]
+        omega
+      · by_cases e1 : A s % 4 = 1
+        · rw [gateLine_X _ _ e1]
+          simp only [List.append_assoc, List.cons_append, List.nil_append]
+          simp only [parseGates, or_true, if_true]
+          rw [parseNat_digits _ _ (noDigit_space _)]
+          simp only [expectLit, if_true]
+          rw [parseNat_digits _ _ (noDigit_newline _)]
+          simp only [expectLit, if_true]
+          rw [ih']
+          simp only [Option.some.injEq, Prod.mk.injEq, List.cons.injEq, and_true]
+          simp only [show ('X' = 'A') = False from by decide, if_false]
+          omega
+        · have e2 : A s % 4 = 2 := by omega
+          rw [gateLine_N _ _ e2]
+          simp only [List.append_assoc, List.cons_append, List.nil_append]
+          simp only [parseGates, show ('N' = 'A') = False from by decide, show ('N' = 'X') = False from by decide,
+            or_self, if_false, if_true]
+          rw [parseNat_digits _ _ (noDigit_newline _)]
+          simp only [expectLit, if_true]
+          rw [ih']
+          simp only [Option.some.injEq, Prod.mk.injEq, List.cons.injEq, and_true]
+          exact ⟨by omega, (hs.2 e2).symm⟩
+
+theorem outputPiece_chars (k o : Nat) :
+    (outputPiece k o).toList = (if k = 0 then [] else [' ']) ++ Nat.toDigits 10 o := by
+  unfold outputPiece appendOutput
+  by_cases hk : k = 0
+  · simp only [hk, beq_self_eq_true, if_true, String.toList_append, toList_toString, lit_empty, List.nil_append]
+  · simp only [hk, beq_iff_eq, if_false, String.toList_append, toList_toString, lit_empty, lit_sp, List.nil_append]
+
+theorem noDigit_pieces (O : Nat → Nat) (rest : List Char) (n s : Nat) (hs : s ≠ 0) :
+    NoDigit ((String.join ((List.range' s n).map fun k => outputPiece k (O k))).toList ++ '\n' :: rest) := by
+  cases n with
+  | zero => exact noDigit_newline rest
+  | succ n =>
+      rw [List.range'_succ, List.map_cons, String.join_cons, String.toList_append, outputPiece_chars, if_neg hs]
+      simp only [List.cons_append, List.nil_append, List.append_assoc]
+      exact noDigit_space _
+
+theorem parseOutputs_pieces (O : Nat → Nat) (rest : List Char) :
+    ∀ (n s : Nat), parseOutputs s n
+        ((String.join ((List.range' s n).map fun k => outputPiece k (O k))).toList ++ '\n' :: rest) =
+      some ((List.range' s n).map O, '\n' :: rest) := by
+  intro n
+  induction n with
+  | zero => intro s; rfl
+  | succ n ih =>
+      intro s
+      have hnd := noDigit_pieces O rest n (s + 1) (by omega)
+      have tail := ih (s + 1)
+      rw [List.range'_succ, List.map_cons, String.join_cons, String.toList_append, outputPiece_chars, List.map_cons]
+      generalize (String.join ((List.range' (s + 1) n).map fun k => outputPiece k (O k))).toList = T at hnd tail ⊢
+      by_cases hs : s = 0
+      · simp only [parseOutputs, hs, if_true, List.nil_append, List.append_assoc]
+        rw [parseNat_digits _ _ hnd]
+        simp only
+        rw [← hs, tail]
+      · simp only [parseOutputs, hs, if_false, List.append_assoc, List.cons_append, List.nil_append, expectLit,
+          if_true]
+        rw [parseNat_digits _ _ hnd]
+        simp only
+        rw [tail]
+
+theorem map_range_getElem! (a : Array Nat) : (List.range' 0 a.size).map (fun k => a[k]!) = a.toList := by
+  apply List.ext_getElem
+  · simp
+  · intro i h1 h2
+    simp only [List.getElem_map, List.getElem_range', Nat.zero_add, Nat.one_mul, Array.getElem_toList]
+    simp only [List.length_map, List.length_range'] at h1
+    exact getElem!_pos a i h1
+
+/-- **The parser reads the printed text back.** For every well-formed gate list (every result of
+`lower` is one: `lower_sound`), parsing `render f` gives `f`. -/
+theorem parseFlat_render (f : Flat) (hwf : f.wellFormed = true) : parseFlat f.render.toList = some f := by
+  simp only [Flat.wellFormed, Bool.and_eq_true, beq_iff_eq] at hwf
+  obtain ⟨⟨hsz, hok⟩, _⟩ := hwf
+  have gates_ok : ∀ m, gatesOk f m = true → ∀ k, k < m → gateOk f k = true := by
+    intro m
+    induction m with
+    | zero => intro _ k hk; omega
+    | succ m ih =>
+        intro h k hk
+        simp only [gatesOk, Bool.and_eq_true] at h
+        rcases Nat.lt_or_ge k m with lt | ge
+        · exact ih h.2 k lt
+        · have : k = m := by omega
+          subst this; exact h.1
+  have hp : ∀ k, 0 ≤ k → k < 0 + f.opa.size → Printable f.opa[k]! f.opb[k]! := by
+    intro k _ hk
+    have g := gates_ok _ hok k (by omega)
+    unfold gateOk at g
+    rw [Array.getElem?_eq_getElem (by omega), Array.getElem?_eq_getElem (by omega)] at g
+    simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.or_eq_true, bne_iff_ne, ne_eq, beq_iff_eq] at g
+    rw [getElem!_pos f.opa k (by omega), getElem!_pos f.opb k (by omega)]
+    refine ⟨g.1.2, fun h2 => ?_⟩
+    rcases g.2 with h | h
+    · exact absurd h2 h
+    · exact h
+  have hg := parseGates_lines (fun k => f.opa[k]!) (fun k => f.opb[k]!)
+    ('O' :: ' ' :: ((String.join ((List.range' 0 f.outputs.size).map fun k => outputPiece k f.outputs[k]!)).toList ++
+      ['\n'])) f.opa.size 0 hp
+  have ho := parseOutputs_pieces (fun k => f.outputs[k]!) [] f.outputs.size 0
+  unfold Flat.render Flat.header parseFlat
+  simp only [String.toList_append, toList_toString, lit_sp, lit_nl, lit_O, List.append_assoc,
+    List.cons_append, List.nil_append]
+  rw [expectLit_append]
+  simp only
+  rw [parseNat_digits _ _ (noDigit_space _)]
+  simp only [expectLit, if_true]
+  rw [parseNat_digits _ _ (noDigit_space _)]
+  simp only [expectLit, if_true]
+  rw [parseNat_digits _ _ (noDigit_newline _)]
+  simp only [expectLit, if_true]
+  rw [hg]
+  simp only [expectLit, if_true]
+  rw [ho]
+  simp only [if_true, Option.some.injEq]
+  rw [map_range_getElem!, ← hsz, map_range_getElem!, map_range_getElem!]
+
+/-- A sample: the text of a three-gate list is the `EMP_HYBRID_BOOL_V1` format as the engines
+have always read it (`A`/`X` lines with two operands, `N` with one, `O` and the outputs). -/
+theorem render_sample :
+    Flat.render ⟨2, #[0, 5, 10], #[1, 2, 0], #[3, 4]⟩ = "EMP_HYBRID_BOOL_V1\n2 3 2\nA 0 1\nX 1 2\nN 2\nO 3 4\n" := by
+  decide
+
+theorem render_sample_empty :
+    Flat.render ⟨0, #[], #[], #[]⟩ = "EMP_HYBRID_BOOL_V1\n0 0 0\nO \n" := by
+  decide
+
+/-- **What the engines load is the lowered circuit.** If `lowerExpr` returns `flat`, the text the
+printer writes (`printWith`, which `Flat.print` runs in `IO`) parses back to exactly `flat`, and
+output `k` of that gate list carries bit `sel[k]` of the expression's value on every input
+assignment (`lowerExpr_correct`). What stays trusted: that the engine's loader reads the text as
+`parseFlat` does and evaluates gates as `Flat.eval` does (`Flat.run_eq_eval` for one-pass
+evaluation), and the binding of input wires to variables (`hin`). -/
+theorem lowerExpr_loaded (expr : BVExpr w) (widths : Array Nat) (sel : Array (Fin w)) (flat : Flat)
+    (h : lowerExpr expr widths sel = .ok flat) :
+    parseFlat ((flat.printWith appendOut).run "").2.toList = some flat ∧ flat.outputs.size = sel.size ∧
+      ∀ (assign : BVExpr.Assignment) (inp : Nat → Bool),
+        (∀ (v off b : Nat) (width : Nat), widths[v]? = some width → (offsets widths)[v]? = some off →
+          b < width → inp (off + b) = (assign.get v).bv.getLsbD b) →
+        ∀ (k out : Nat) (hk : k < sel.size), flat.outputs[k]? = some out →
+          flat.eval inp out = (expr.eval assign).getLsbD sel[k].val := by
+  have ls := lower_sound (AigExport.compile expr).aig.hdag h (fun _ => false) (fun _ => false)
+    (fun _ _ _ _ => rfl)
+  refine ⟨by rw [printWith_render]; exact parseFlat_render flat ls.1, by simpa using ls.2.2.1, ?_⟩
+  · intro assign inp hin
+    exact (lowerExpr_correct expr widths sel flat h assign inp hin).2
+
+#print axioms printWith_render
+#print axioms parseFlat_render
+#print axioms lowerExpr_loaded
+#print axioms render_sample
 #print axioms lower_sound
 #print axioms lower_correct
 #print axioms lowerExpr_correct
