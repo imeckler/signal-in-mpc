@@ -18,8 +18,11 @@ emitter or circuit-cache key can reach Mathlib.
 How the main package's definitions are reached: the library `TlsMpcSources` has
 `srcDir = ".."` and root `TlsMpc`, so `import TlsMpc.FieldDag` here compiles the main package's
 working-tree source **into `proofs/.lake/build`**. Only the modules the proofs import are compiled:
-FieldDag, FieldDagMulti, X25519, EdwardsAffine, EdwardsHinted, Signal.XEdDsaField, GhashShares,
-Ghash, ByteCircuit, Sha256, BoolDag, WordMask, MaskedAgreement and their imports (a few seconds).
+FieldDag, FieldDagMulti, X25519, EdwardsAffine, EdwardsHinted, Signal.XEdDsaField,
+Signal.XEdDsaScalar (for `order`), Signal.Unpad, ByteAuth, GhashShares, Ghash, ByteCircuit, Sha256,
+BoolDag, WordMask, MaskedAgreement and their imports (a few seconds). `Signal.ReceiveFirst`
+(`varintValue`, `canonicalRange`) is deliberately not imported: its closure is 52 main-package
+modules (about 9,400 lines: AES, TLS, Signal sessions).
 A Lake `path` dependency on `..` was not used on purpose: Lake builds a path dependency inside the
 dependency's own directory, so it would read and, when stale, rewrite the main package's `.lake`
 while other engineers build there. The main package's `lakefile.toml`, `lake-manifest.json` and
@@ -93,6 +96,30 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
    in `ZMod ℓ`, the published key `initial·B + offset·B` has the same distribution for any two
    initial scalars (`offset_public_key_independent`); if `ℓ` is prime and `B ≠ 0` it is uniform
    on `G` (`offset_public_key_uniform`).
+8. **The deployed offset sampling** (`OffsetSampling.lean`). As deployed (`service_kernels.h`
+   `seal_open`/`ephemeral`, `edwards_points.h` `step`/`step_inputs`), τ = `(mine XOR peer) mod 2²⁵²`
+   (32 random bytes per party, SHA-256 commit then open, bytes XORed, `offset[31] &= 15`).
+   `deployedOffset_uniform`: τ is exactly uniform on `[0, 2²⁵²)` for uniform `mine` and any fixed
+   `peer`. Generic: two injections of a uniform `R` into `Z` give distributions within
+   `(|Z| − |R|)/|R|` on every event (`eventClose_injective`); one injection is within
+   `(|Z| − |R|)/|Z|` of uniform on `Z` in total variation (`statClose_uniform`). Hence, for any
+   `ℓ ≥ 2²⁵²` and any finite commutative group of order `ℓ`: the key for any two initial scalars
+   within `(ℓ − 2²⁵²)/2²⁵²` (`deployed_key_close`; this, not `/ℓ`, is the right bound: two shifted
+   ranges differ in up to `ℓ − 2²⁵²` points of mass `2⁻²⁵²`), within `(ℓ − 2²⁵²)/ℓ` of the ideal
+   key and, `ℓ` prime and `B ≠ 0`, of uniform on `G` (`deployed_key_close_ideal`, `_uniform`).
+   `prime_order`: the Ed25519 order `ℓ = 2²⁵² + 27742317777372353535851937790883648493`
+   (`Signal.XEdDsaScalar.order`) is prime (Pocklington chain ℓ ← 138-bit ← 134 ← 88 ← 62 ← 51-bit
+   ← primes below 2·10⁶, reusing `Prime25519.pocklington`). `order_gap_lt`:
+   `(ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷`; so `ed25519_key_close` (two initial scalars, every event within
+   `2⁻¹²⁷`) and `ed25519_key_close_uniform` (within `2⁻¹²⁷` of uniform on `G`). Several messages:
+   `offset_public_keys_independent` / `_uniform` (offsets uniform mod `ℓ`: the joint keys of `k`
+   messages do not depend on the initial scalar; uniform on `G^k`, i.e. independent of each
+   other), `deployedOffsets_uniform`, `deployed_keys_close` (union bound over the messages:
+   `k·(ℓ − 2²⁵²)/2²⁵²`) and `ed25519_keys_close` (`k·2⁻¹²⁷`).
+9. **`Unpad.decode` is PKCS#7 unpadding** (`UnpadSpec.lean`, a 16-byte block, concrete bytes):
+   padded with `p` (`1 ≤ p ≤ 16`, last `p` bytes equal `p`; unique) it returns
+   `[255, 16 − p] ++ take (16 − p) ++ p zeros` (`decode_padded`), otherwise eighteen zeros
+   (`decode_unpadded`); the status byte is 255 iff the padding is valid (`decode_accepts_iff`).
 
 ## What stays a hypothesis or open
 
@@ -104,9 +131,15 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
 * **Cut-and-choose model:** the detection rules (P-CUT(d), (e)) and the single uniform challenge
   permutation (standing for P-CUT's two) are assumptions of the model, not theorems about
   `dyn_word_mask.h` / `dabit_generator.h`.
-* **Offset agreement:** the deployed offset is drawn from `[0, 2²⁵²)`, not uniformly modulo
-  `ℓ`; statistical closeness is not proved. Joint independence of several messages' keys is not
-  stated as a theorem.
+* **Offset agreement:** the peer's value is a fixed value independent of the honest party's
+  (`idealCommit`; SHA-256 as a commitment is not proved), and per message a fixed value (a peer
+  adapting its values across messages is not covered); the aborts on `mine = peer` (probability
+  `2⁻²⁵⁶`) and on τ = 0 (`crypto_scalarmult_ed25519_base_noclamp` refuses it, `2⁻²⁵²`) are not
+  modelled (they depend only on the offsets, not on the initial scalar); the statement about the
+  C++ `step` (the digit recoding) is not made here.
+* **Receive accept direction:** the value forms of `varintValue` (counter widths 2–5) and
+  `canonicalRange` (`< 2²⁵⁵ − 19`) are not stated: they live in `Signal.ReceiveFirst`, whose import
+  closure is not compiled into this package.
 * **XEdDSA:** the sign of `x` (not normalised by `recover`) and its binding to the signature
   bit; `doubleScalar`; that the compiled artifact is the program is the main package's
   `XEdDsaField.compiled_output_correct`, not re-proved here.

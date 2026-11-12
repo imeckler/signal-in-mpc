@@ -7,6 +7,8 @@ import TlsMpcProofs.CutAndChoose
 import TlsMpcProofs.CutAndChooseAll
 import TlsMpcProofs.XEdDsaRecover
 import TlsMpcProofs.OffsetAgreementDist
+import TlsMpcProofs.OffsetSampling
+import TlsMpcProofs.UnpadSpec
 
 /-!
 # Security theorems that use Mathlib (companion to `TlsMpc/Security.lean`)
@@ -42,6 +44,15 @@ Statuses as in `TlsMpc/Security.lean` (**K**, **K-fn**, **C**, **M**, **switch**
 * **The offset agreement's public key** (section 3b): independent of the initial scalar as a
   probability statement, with scalars in `ZMod ℓ` for any finite commutative group of order `ℓ`
   (H-GROUP as that hypothesis); uniform on `G` when `ℓ` is prime and `B ≠ 0`.
+* **The deployed offset sampling** (section 3c): the offset `(mine XOR peer) mod 2²⁵²` is exactly
+  uniform on `[0, 2²⁵²)` for the honest party's uniform `mine` and any (independent) peer value;
+  the published keys for any two initial scalars are within `(ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷` (every
+  event), and within `(ℓ − 2²⁵²)/ℓ` of uniform on `G`; `k` messages: the joint keys within
+  `k·2⁻¹²⁷`, and with offsets uniform mod `ℓ` exactly independent of the initial scalar (uniform
+  on `G^k`). The Ed25519 group order `ℓ` is proved prime (section 1).
+* **`Unpad.decode` is PKCS#7 unpadding** (section 6). `varintValue` and `canonicalRange` are not
+  stated: they live in `TlsMpc.Signal.ReceiveFirst`, whose imports (52 modules) are not compiled
+  into this package.
 -/
 
 namespace TlsMpcProofs.Security
@@ -55,6 +66,13 @@ arithmetic checked by the kernel's GMP-accelerated `Nat` operations (`decide +ke
 `native_decide`). **gen** (used by every entry below). -/
 theorem prime_modulus : Nat.Prime FieldDag.modulus :=
   TlsMpcProofs.prime_modulus
+
+/-- **The Ed25519 group order `ℓ = 2²⁵² + 27742317777372353535851937790883648493` (the main
+package's `Signal.XEdDsaScalar.order`) is prime.** Pocklington chain: `ℓ` ← a 138-bit prime ←
+134-bit ← 88-bit ← 62-bit ← 51-bit ← primes below 2·10⁶. **gen** (used by
+`ed25519_key_close_uniform`). -/
+theorem prime_order : Nat.Prime Signal.XEdDsaScalar.order :=
+  TlsMpcProofs.OffsetSampling.prime_order
 
 /-- **Pocklington's criterion** (proved here from Mathlib's `orderOf`/`ZMod`): a checked
 certificate whose listed factors are prime proves `N` prime. **gen**. -/
@@ -333,7 +351,7 @@ open TlsMpcProofs.OffsetAgreement in
 /-- **`offsetAgreement_public_key_independent` as probability** (H-GROUP as the hypothesis "`G`
 is a finite commutative group of order `ℓ`"): with the offset uniform in `ZMod ℓ`, the published
 key `initial·B + offset·B` has the same distribution for any two initial scalars. **M**
-(the deployed offset is drawn from `[0, 2²⁵²)`, not uniformly mod `ℓ`: not covered). -/
+(the deployed offset is drawn from `[0, 2²⁵²)`, not uniformly mod `ℓ`: section 3c). -/
 theorem offset_public_key_independent {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
     (hℓ : Fintype.card G = ℓ) (B : G) (initial other : ZMod ℓ) :
     PMF.map (publicKey B initial) (PMF.uniformOfFintype (ZMod ℓ)) =
@@ -346,6 +364,151 @@ theorem offset_public_key_uniform {G : Type} [AddCommGroup G] [Fintype G] {ℓ :
     [Fact ℓ.Prime] (hℓ : Fintype.card G = ℓ) (B : G) (hB : B ≠ 0) (initial : ZMod ℓ) :
     PMF.map (publicKey B initial) (PMF.uniformOfFintype (ZMod ℓ)) = PMF.uniformOfFintype G :=
   TlsMpcProofs.OffsetAgreement.offset_public_key_uniform hℓ B hB initial
+
+open TlsMpcProofs.OffsetAgreement TlsMpcProofs.OffsetSampling in
+/-- **Several messages, offsets uniform mod `ℓ`:** the joint distribution of the `k` keys of one
+conversation is the same for any two initial scalars. **M**. -/
+theorem offset_public_keys_independent {G : Type} [AddCommGroup G] [Fintype G] {ℓ k : ℕ} [NeZero ℓ]
+    (hℓ : Fintype.card G = ℓ) (B : G) (initial other : ZMod ℓ) :
+    PMF.map (publicKeys (k := k) B initial) (PMF.uniformOfFintype (Fin k → ZMod ℓ)) =
+      PMF.map (publicKeys B other) (PMF.uniformOfFintype (Fin k → ZMod ℓ)) :=
+  TlsMpcProofs.OffsetSampling.offset_public_keys_independent hℓ B initial other
+
+open TlsMpcProofs.OffsetAgreement TlsMpcProofs.OffsetSampling in
+/-- **… uniform on `G^k`** (`ℓ` prime, `B ≠ 0`): `k` independent uniform keys, so independent of
+the initial scalar and of each other. **M**. -/
+theorem offset_public_keys_uniform {G : Type} [AddCommGroup G] [Fintype G] {ℓ k : ℕ} [NeZero ℓ]
+    [Fact ℓ.Prime] (hℓ : Fintype.card G = ℓ) (B : G) (hB : B ≠ 0) (initial : ZMod ℓ) :
+    PMF.map (publicKeys (k := k) B initial) (PMF.uniformOfFintype (Fin k → ZMod ℓ)) =
+      PMF.uniformOfFintype (Fin k → G) :=
+  TlsMpcProofs.OffsetSampling.offset_public_keys_uniform hℓ B hB initial
+
+/-! ## 3c. The deployed offset sampling (`[0, 2²⁵²)`, `mine XOR peer`)
+
+`EventClose p q δ`: every event's probability under `p` is at most its probability under `q` plus
+`δ`; `StatClose`: both directions (total variation `≤ δ`). The peer's value is fixed (independent
+of the honest party's `mine`: `idealCommit`). -/
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Two injections of a uniform `R` into `Z` give `(|Z| − |R|)/|R|`-close distributions.**
+**gen**. -/
+theorem eventClose_injective {R Z : Type} [Fintype R] [Nonempty R] [Fintype Z] (e1 e2 : R → Z)
+    (h1 : Function.Injective e1) (h2 : Function.Injective e2) :
+    EventClose (PMF.map e1 (PMF.uniformOfFintype R)) (PMF.map e2 (PMF.uniformOfFintype R))
+      (((Fintype.card Z - Fintype.card R : ℕ) : ENNReal) / Fintype.card R) :=
+  TlsMpcProofs.OffsetSampling.eventClose_injective e1 e2 h1 h2
+
+open TlsMpcProofs.OffsetSampling in
+/-- **An injection of a uniform `R` into `Z` is `(|Z| − |R|)/|Z|`-close to uniform on `Z`** (total
+variation). **gen**. -/
+theorem statClose_uniform {R Z : Type} [Fintype R] [Nonempty R] [Fintype Z] [Nonempty Z]
+    (e : R → Z) (he : Function.Injective e) :
+    StatClose (PMF.map e (PMF.uniformOfFintype R)) (PMF.uniformOfFintype Z)
+      (((Fintype.card Z - Fintype.card R : ℕ) : ENNReal) / Fintype.card Z) :=
+  TlsMpcProofs.OffsetSampling.statClose_uniform e he
+
+open TlsMpcProofs.OffsetSampling in
+/-- **The deployed offset `(mine XOR peer) mod 2²⁵²` is exactly uniform on `[0, 2²⁵²)`**
+(`service_kernels.h` `seal_open`/`ephemeral`, `offset[31] &= 15` in `edwards_points.h`). **M**. -/
+theorem deployedOffset_uniform (peer : BitVec 256) :
+    PMF.map (fun mine => deployedOffset mine peer) (PMF.uniformOfFintype (BitVec 256)) =
+      PMF.uniformOfFintype (Fin (2 ^ 252)) :=
+  TlsMpcProofs.OffsetSampling.deployedOffset_uniform peer
+
+open TlsMpcProofs.OffsetSampling in
+/-- **The deployed offset modulo `ℓ` is `(ℓ − 2²⁵²)/ℓ`-close to uniform in `ZMod ℓ`** (any
+`ℓ ≥ 2²⁵²`). **M**. -/
+theorem offset_cast_close_uniform {ℓ : ℕ} [NeZero ℓ] (hN : 2 ^ 252 ≤ ℓ) (peer : BitVec 256) :
+    StatClose (PMF.map (fun mine => castOffset ℓ (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.uniformOfFintype (ZMod ℓ)) (((ℓ - 2 ^ 252 : ℕ) : ENNReal) / (ℓ : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.offset_cast_close_uniform hN peer
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Deployed sampling, one message, any two initial scalars:** every event's probability differs
+by at most `(ℓ − 2²⁵²)/2²⁵²` (any `ℓ ≥ 2²⁵²`, any finite commutative group of order `ℓ`). **M**. -/
+theorem deployed_key_close {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
+    (hℓ : Fintype.card G = ℓ) (hN : 2 ^ 252 ≤ ℓ) (B : G) (peer : BitVec 256) (initial other : ZMod ℓ) :
+    EventClose
+      (PMF.map (fun mine => deployedKey B initial (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.map (fun mine => deployedKey B other (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (((ℓ - 2 ^ 252 : ℕ) : ENNReal) / ((2 ^ 252 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.deployed_key_close hℓ hN B peer initial other
+
+open TlsMpcProofs.OffsetAgreement TlsMpcProofs.OffsetSampling in
+/-- **The deployed key is `(ℓ − 2²⁵²)/ℓ`-close to the key with a uniform offset.** **M**. -/
+theorem deployed_key_close_ideal {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
+    (hℓ : Fintype.card G = ℓ) (hN : 2 ^ 252 ≤ ℓ) (B : G) (peer : BitVec 256) (initial : ZMod ℓ) :
+    StatClose
+      (PMF.map (fun mine => deployedKey B initial (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.map (publicKey B initial) (PMF.uniformOfFintype (ZMod ℓ)))
+      (((ℓ - 2 ^ 252 : ℕ) : ENNReal) / (ℓ : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.deployed_key_close_ideal hℓ hN B peer initial
+
+open TlsMpcProofs.OffsetSampling in
+/-- **`ℓ` prime, `B ≠ 0`: the deployed key is `(ℓ − 2²⁵²)/ℓ`-close to uniform on `G`.** **M**. -/
+theorem deployed_key_close_uniform {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
+    [Fact ℓ.Prime] (hℓ : Fintype.card G = ℓ) (hN : 2 ^ 252 ≤ ℓ) (B : G) (hB : B ≠ 0)
+    (peer : BitVec 256) (initial : ZMod ℓ) :
+    StatClose
+      (PMF.map (fun mine => deployedKey B initial (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.uniformOfFintype G) (((ℓ - 2 ^ 252 : ℕ) : ENNReal) / (ℓ : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.deployed_key_close_uniform hℓ hN B hB peer initial
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Deployed sampling, `k` messages:** the joint keys for any two initial scalars, every event
+within `k·(ℓ − 2²⁵²)/2²⁵²` (fixed peer values). **M**. -/
+theorem deployed_keys_close {G : Type} [AddCommGroup G] [Fintype G] {ℓ k : ℕ} [NeZero ℓ]
+    (hℓ : Fintype.card G = ℓ) (hN : 2 ^ 252 ≤ ℓ) (B : G) (peers : Fin k → BitVec 256)
+    (initial other : ZMod ℓ) :
+    EventClose
+      (PMF.map (fun mines => deployedKeys B initial (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (PMF.map (fun mines => deployedKeys B other (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (k * (((ℓ - 2 ^ 252 : ℕ) : ENNReal) / ((2 ^ 252 : ℕ) : ENNReal))) :=
+  TlsMpcProofs.OffsetSampling.deployed_keys_close hℓ hN B peers initial other
+
+/-- **`(ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷`** for the Ed25519 order (`ℓ − 2²⁵² ≈ 2^124.4`). **gen**. -/
+theorem order_gap_lt :
+    ((Signal.XEdDsaScalar.order - 2 ^ 252 : ℕ) : ENNReal) / ((2 ^ 252 : ℕ) : ENNReal) <
+      1 / ((2 ^ 127 : ℕ) : ENNReal) :=
+  TlsMpcProofs.OffsetSampling.order_gap_lt
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Ed25519, one message:** any two initial scalars, every event within `2⁻¹²⁷`. **M**. -/
+theorem ed25519_key_close {G : Type} [AddCommGroup G] [Fintype G]
+    (hℓ : Fintype.card G = Signal.XEdDsaScalar.order) (B : G) (peer : BitVec 256)
+    (initial other : ZMod Signal.XEdDsaScalar.order) :
+    EventClose
+      (PMF.map (fun mine => deployedKey B initial (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.map (fun mine => deployedKey B other (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (1 / ((2 ^ 127 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.ed25519_key_close hℓ B peer initial other
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Ed25519, one message: the deployed key is within `2⁻¹²⁷` of uniform on `G`** (`B ≠ 0`;
+`ℓ` prime is proved). **M**. -/
+theorem ed25519_key_close_uniform {G : Type} [AddCommGroup G] [Fintype G]
+    (hℓ : Fintype.card G = Signal.XEdDsaScalar.order) (B : G) (hB : B ≠ 0) (peer : BitVec 256)
+    (initial : ZMod Signal.XEdDsaScalar.order) :
+    StatClose
+      (PMF.map (fun mine => deployedKey B initial (deployedOffset mine peer)) (PMF.uniformOfFintype (BitVec 256)))
+      (PMF.uniformOfFintype G) (1 / ((2 ^ 127 : ℕ) : ENNReal)) :=
+  TlsMpcProofs.OffsetSampling.ed25519_key_close_uniform hℓ B hB peer initial
+
+open TlsMpcProofs.OffsetSampling in
+/-- **Ed25519, `k` messages:** the joint keys, any two initial scalars, every event within
+`k·2⁻¹²⁷`. **M**. -/
+theorem ed25519_keys_close {G : Type} [AddCommGroup G] [Fintype G] {k : ℕ}
+    (hℓ : Fintype.card G = Signal.XEdDsaScalar.order) (B : G) (peers : Fin k → BitVec 256)
+    (initial other : ZMod Signal.XEdDsaScalar.order) :
+    EventClose
+      (PMF.map (fun mines => deployedKeys B initial (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (PMF.map (fun mines => deployedKeys B other (deployedOffsets peers mines))
+        (PMF.uniformOfFintype (Fin k → BitVec 256)))
+      (k * (1 / ((2 ^ 127 : ℕ) : ENNReal))) :=
+  TlsMpcProofs.OffsetSampling.ed25519_keys_close hℓ B peers initial other
 
 /-! ## 4. The cut-and-choose counting bound (formerly P7) -/
 
@@ -474,16 +637,47 @@ theorem profile_1024_undetected_lt (S : Finset (Position 1024 12)) :
   the curve"); `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
 * Cut-and-choose: the model's detection rules (P-CUT(d), (e)) against `dyn_word_mask.h` /
   `dabit_generator.h`; that the two challenge permutations of P-CUT compose to one uniform one.
-* Offset agreement: that an offset drawn from `[0, 2²⁵²)` is statistically close to uniform
-  modulo `ℓ`; joint independence of the keys of several messages (not stated).
+* Offset agreement: `idealCommit` (the peer's value independent of the honest party's, modelled as
+  a fixed value; peer values chosen adaptively across messages are not covered); the two aborts
+  that depend only on the offsets (`mine = peer`, offset `0`) are not modelled; H-GROUP.
 * XEdDSA `recover`: the sign of `x` and its binding to the signature bit; `doubleScalar`.
+* Receive: the value forms of `varintValue` (widths 2–5) and `canonicalRange` (in
+  `TlsMpc.Signal.ReceiveFirst`, whose 52-module import closure is not compiled here).
 -/
+
+/-! ## 6. Receive: `Unpad.decode` is PKCS#7 unpadding -/
+
+open TlsMpcProofs.UnpadSpec in
+/-- **At most one PKCS#7 padding length** (the last byte is `p`). **gen**. -/
+theorem unpad_paddedWith_unique {block : List (BitVec 8)} (hlen : block.length = 16) {p q : ℕ}
+    (hp : PaddedWith block p) (hq : PaddedWith block q) : p = q :=
+  TlsMpcProofs.UnpadSpec.paddedWith_unique hlen hp hq
+
+open TlsMpcProofs.UnpadSpec in
+/-- **A block padded with `p` decodes to `[255, 16 − p] ++ take (16 − p) ++ p zero bytes`.**
+**K-fn** (`Unpad.decode`, inside `CbcOpen.openCore`). -/
+theorem unpad_decode_padded {block : List (BitVec 8)} (hlen : block.length = 16) {p : ℕ}
+    (hp : PaddedWith block p) : Signal.Unpad.decode ByteAuth.concrete block = accepted block p :=
+  TlsMpcProofs.UnpadSpec.decode_padded hlen hp
+
+open TlsMpcProofs.UnpadSpec in
+/-- **A block without PKCS#7 padding decodes to eighteen zero bytes.** **K-fn**. -/
+theorem unpad_decode_unpadded {block : List (BitVec 8)} (hlen : block.length = 16)
+    (h : ∀ p, ¬ PaddedWith block p) : Signal.Unpad.decode ByteAuth.concrete block = List.replicate 18 0 :=
+  TlsMpcProofs.UnpadSpec.decode_unpadded hlen h
+
+open TlsMpcProofs.UnpadSpec in
+/-- **The status byte is 255 exactly when the block carries valid PKCS#7 padding.** **K-fn**. -/
+theorem unpad_decode_accepts_iff {block : List (BitVec 8)} (hlen : block.length = 16) :
+    (Signal.Unpad.decode ByteAuth.concrete block).head? = some 255 ↔ ∃ p, PaddedWith block p :=
+  TlsMpcProofs.UnpadSpec.decode_accepts_iff hlen
 
 end TlsMpcProofs.Security
 
 /-! ## Machine checks -/
 
 #print axioms TlsMpcProofs.Security.prime_modulus
+#print axioms TlsMpcProofs.Security.prime_order
 #print axioms TlsMpcProofs.Security.pocklington
 #print axioms TlsMpcProofs.Security.toZMod_ofNat
 #print axioms TlsMpcProofs.Security.toZMod_power
@@ -527,6 +721,20 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.hinted_Z_uniform
 #print axioms TlsMpcProofs.Security.offset_public_key_independent
 #print axioms TlsMpcProofs.Security.offset_public_key_uniform
+#print axioms TlsMpcProofs.Security.offset_public_keys_independent
+#print axioms TlsMpcProofs.Security.offset_public_keys_uniform
+#print axioms TlsMpcProofs.Security.eventClose_injective
+#print axioms TlsMpcProofs.Security.statClose_uniform
+#print axioms TlsMpcProofs.Security.deployedOffset_uniform
+#print axioms TlsMpcProofs.Security.offset_cast_close_uniform
+#print axioms TlsMpcProofs.Security.deployed_key_close
+#print axioms TlsMpcProofs.Security.deployed_key_close_ideal
+#print axioms TlsMpcProofs.Security.deployed_key_close_uniform
+#print axioms TlsMpcProofs.Security.deployed_keys_close
+#print axioms TlsMpcProofs.Security.order_gap_lt
+#print axioms TlsMpcProofs.Security.ed25519_key_close
+#print axioms TlsMpcProofs.Security.ed25519_key_close_uniform
+#print axioms TlsMpcProofs.Security.ed25519_keys_close
 #print axioms TlsMpcProofs.Security.fiber_mul_choose
 #print axioms TlsMpcProofs.Security.undetected_count
 #print axioms TlsMpcProofs.Security.undetected_count_zero
@@ -546,3 +754,7 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.profile_256_undetected_lt
 #print axioms TlsMpcProofs.Security.profile_512_undetected_lt
 #print axioms TlsMpcProofs.Security.profile_1024_undetected_lt
+#print axioms TlsMpcProofs.Security.unpad_paddedWith_unique
+#print axioms TlsMpcProofs.Security.unpad_decode_padded
+#print axioms TlsMpcProofs.Security.unpad_decode_unpadded
+#print axioms TlsMpcProofs.Security.unpad_decode_accepts_iff

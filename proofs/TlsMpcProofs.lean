@@ -7,4 +7,6 @@ import TlsMpcProofs.CutAndChoose
 import TlsMpcProofs.CutAndChooseAll
 import TlsMpcProofs.XEdDsaRecover
 import TlsMpcProofs.OffsetAgreementDist
+import TlsMpcProofs.OffsetSampling
+import TlsMpcProofs.UnpadSpec
 import TlsMpcProofs.SecurityMathlib

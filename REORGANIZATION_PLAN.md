@@ -873,6 +873,24 @@ Properties:
   finite commutative group of order `ℓ`, H-GROUP as that hypothesis) and
   `offset_public_key_uniform` (`ℓ` prime, `B ≠ 0`: the key is uniform). Open: the deployed
   offset is drawn from `[0, 2²⁵²)`, not uniformly mod `ℓ`; and the statement about `step`.*
+  *2026-11-12 (later): the deployed sampling is covered in `proofs/TlsMpcProofs/OffsetSampling.lean`.
+  As deployed (`service_kernels.h` `seal_open`/`ephemeral`; `edwards_points.h` `step`/`step_inputs`):
+  each party draws 32 bytes, commits with SHA-256, the values are exchanged and XORed, and
+  `offset[31] &= 15` keeps the low 252 bits, so τ = `(mine XOR peer) mod 2²⁵²`.
+  `deployedOffset_uniform`: τ is exactly uniform on `[0, 2²⁵²)` for the honest party's uniform
+  `mine` and any peer value independent of it (`idealCommit`). `deployed_key_close`: for any two
+  initial scalars the published key's distributions differ on every event by at most
+  `(ℓ − 2²⁵²)/2²⁵²`, and `ed25519_key_close` bounds that by `2⁻¹²⁷` for ℓ = the Ed25519 order
+  (`order_gap_lt`; `ℓ − 2²⁵² = 27742317777372353535851937790883648493 ≈ 2^124.4`; the bound is
+  `/2²⁵²`, not `/ℓ`, because two shifted ranges differ in up to `ℓ − 2²⁵²` points of mass
+  `2⁻²⁵²` each). `deployed_key_close_ideal` / `_uniform` / `ed25519_key_close_uniform`: within
+  `(ℓ − 2²⁵²)/ℓ < 2⁻¹²⁷` (total variation) of the ideal key and of uniform on `G`. `prime_order`:
+  ℓ is prime (Pocklington chain, no hypothesis). Several messages: `offset_public_keys_independent`
+  / `_uniform` (offsets uniform mod ℓ: the joint keys do not depend on the initial scalar; uniform
+  on `G^k`) and `deployed_keys_close` / `ed25519_keys_close` (deployed offsets: joint keys within
+  `k·2⁻¹²⁷`). Still hypotheses: H-GROUP, `idealCommit`, a fixed (non-adaptive) peer value per
+  message; not modelled: the aborts on `mine = peer` and on τ = 0 (both independent of the
+  initial scalar). Still open: the statement about `step` (the recoding lemma).*
 - (c) the checks open 0 iff the bits are bits and the hints are right (`entries_sound`,
   `prepareTable_sound` exist);
 - (d) K₀'s commitment binds party and nonce, as P-RAND.

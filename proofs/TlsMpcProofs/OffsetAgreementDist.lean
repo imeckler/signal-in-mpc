@@ -18,13 +18,12 @@ integer scalars. Integers carry no uniform distribution, so here the scalars liv
   `initial·B + offset·B` has the **same distribution for any two initial scalars** (any finite
   commutative group of order `ℓ`; primality not needed).
 * `offset_public_key_uniform`: if moreover `ℓ` is prime and `B ≠ 0`, the published key is
-  **uniform on `G`** (so it reveals nothing about `initial`). That keys of different messages,
-  with independent offsets, are jointly independent is the same argument per coordinate; it is not
-  stated as a theorem here.
+  **uniform on `G`** (so it reveals nothing about `initial`). Keys of several messages:
+  `OffsetSampling.offset_public_keys_independent` / `_uniform`.
 
-Not proved: that the deployed offset, drawn from `[0, 2²⁵²)` rather than uniformly modulo `ℓ`,
-is statistically close to uniform modulo `ℓ` (the main package's `OffsetAgreement` lists that as
-open too); that the offsets are independent of everything else (`idealCommit`).
+The deployed offset, drawn from `[0, 2²⁵²)` rather than uniformly modulo `ℓ`, is treated in
+`OffsetSampling.lean` (statistical distance `< 2⁻¹²⁷` for the Ed25519 order). Not proved: that the
+offsets are independent of everything else (`idealCommit`).
 -/
 
 namespace TlsMpcProofs.OffsetAgreement
