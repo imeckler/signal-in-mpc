@@ -128,8 +128,9 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
   entry proves it; entries about curve formulas say "formulas only". Stays a hypothesis even
   under the Mathlib decision below.
 * **H-QR**: 2 is a non-square mod p (used by the hinted lift; no entry here needs it yet).
-  **To become a theorem** in the planned Mathlib-backed proof library (owner's decision of
-  2026-11-12: Mathlib for proof-only modules in a separate library no executable imports).
+  **Now a theorem** (2026-11-12) in the Mathlib-backed package `proofs/`, which no executable
+  and nothing in this package imports: `prime_modulus`, `two_not_square`, `euler_criterion`,
+  `euler_nonsquare` (index: `proofs/TlsMpcProofs/SecurityMathlib.lean`, sections 1–2).
 * **idealCommit**: SHA-256 commitments are hiding and binding (commit-then-open; no entry here
   states it yet — the commit-then-open exchanges are C++ today).
 * The pad `E = AES_K(J0)` is a fresh pseudorandom value (GHASH share entries).
@@ -2598,6 +2599,20 @@ Edwards group law (H-GROUP) stays a hypothesis. This changes the following items
   probability that a bad mask survives the cut and the buckets, against
   `check_parameters_128.py`'s 2⁻¹²⁸ target. → now in scope, Mathlib library; pairs with
   **P-CUT(d)–(f)**.
+* **Done in `proofs/` (2026-11-12; index `proofs/TlsMpcProofs/SecurityMathlib.lean`, axioms in
+  `proofs/SECURITY_MATHLIB_AXIOMS.txt`):**
+  - H-QR and the square-root programs: `sqrtMinusOne_eq_power`, `candidate_fourth_iff`,
+    `candidate_sq`, `recipient_check_zero_iff`, `recipient_x_mul_self`, `lift_select`,
+    `liftOpen_square_iff`, `lift_fiber_card` (2 preimages per (r, b), not 4), `lift_opened_uniform`,
+    `xeddsa_recover_valid_iff`, `xeddsa_recover_x_mul_self`. P-HINT(b) for the script remains (S11).
+  - Distributional hiding for `ghash_share_hides`, `ceremony_masked_hides` (same expression, not
+    linked by import), P-RAND(b), P-B2F(b), P-W2F(b), P-F2W(b), P-INV(c),
+    `maskedAgreement_mask_hides`, P-HINT(c), and `offsetAgreement_public_key_independent`
+    (`offset_public_key_independent`, `offset_public_key_uniform`; scalars in ZMod ℓ, H-GROUP as
+    "finite commutative group of order ℓ"; the deployed [0, 2²⁵²) sampling is not covered).
+  - Cut-and-choose, for the model: `cut_and_bucket_probability`, `cut_bound_le_bound_one`,
+    `*_bound_all_t`, `*_undetected_lt` (every bad set < 2⁻¹²⁸ for 2¹⁹/8, 256/14, 512/13,
+    1024/12). P-CUT(d)–(f), i.e. that the C++ generators implement the model, remain (S10).
 * Not affected: everything in sections 1–7 above is proved without Mathlib and stays so; the
   executables' import closure must stay Mathlib-free.
 -/
