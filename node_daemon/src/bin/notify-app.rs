@@ -9,9 +9,16 @@
 //!   notify-app events --daemons A,B [--after N] [--wait S] [--until-id ID]
 //!   notify-app status --daemons A,B
 //!
+//! With `--bearer-file F` every request to a daemon carries the token in F (for daemons whose
+//! configuration sets `application.token_file`).
+//!
 //! Prints one JSON object. Exit status 0: done and both nodes agree; 1: otherwise.
+//!
+//! This is the application's side, not a node's: it is exempt from the daemon's rule that all
+//! I/O goes through `channels` (`channels/lint.rs`), and uses `channels::call` for the daemons.
 
-use node_daemon::{Kind, Request, call};
+use node_daemon::channels::call;
+use node_daemon::{Kind, Request};
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
@@ -52,8 +59,16 @@ fn db_client(options: &Options, arguments: &[&str]) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&out.stdout).to_string())
 }
 
+/// The bearer token for the daemons (`--bearer-file`), read once.
+static BEARER: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
+
 /// The same request to both daemons at once; each reply, or why there is none.
 fn both(daemons: &[String], request: &Value, timeout: Duration) -> Vec<Result<Value, String>> {
+    let mut request = request.clone();
+    if let Some(Some(token)) = BEARER.get() {
+        request["bearer"] = json!(token);
+    }
+    let request = &request;
     let handles: Vec<_> = daemons.iter().map(|address| {
         let (address, request) = (address.clone(), request.clone());
         thread::spawn(move || call(&address, &request, timeout))
@@ -185,9 +200,17 @@ fn main() {
         }
         index += 2;
     }
-    let outcome = match arguments.first() {
-        Some(command) => run(command, &Options(options)),
-        None => Err("usage: notify-app token|notify|delete|events|status --option value ...".into()),
+    let bearer = match options.get("bearer-file") {
+        None => Ok(None),
+        Some(file) => fs::read_to_string(file).map(|t| Some(t.trim().to_string())).map_err(|e| format!("{file}: {e}")),
+    };
+    let outcome = match (arguments.first(), bearer) {
+        (_, Err(why)) => Err(why),
+        (Some(command), Ok(bearer)) => {
+            let _ = BEARER.set(bearer);
+            run(command, &Options(options))
+        }
+        (None, Ok(_)) => Err("usage: notify-app token|notify|delete|events|status --option value ...".into()),
     };
     match outcome {
         Ok((report, good)) => {

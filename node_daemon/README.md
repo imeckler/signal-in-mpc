@@ -12,7 +12,26 @@ application ──notify / delete / events──▶ node-daemon 0 ◀──confi
 
 Build (offline, vendored crates, the toolchain of `local_signal_server/scripts/provision.sh`):
 `node_daemon/build.sh` → `target/debug/node-daemon`, `target/debug/notify-app`.
-Checked end to end by `local_signal_server/check_signal_service_local.py --runs 0 --app`.
+Checked end to end by `local_signal_server/check_signal_service_local.py --runs 0 --app`; unit
+tests by `cargo test` (same toolchain and `--config .cargo/config.toml --offline` as `build.sh`).
+
+## Where to look: everything a daemon sends, writes, starts or reads is in `src/channels/`
+
+| file | channel | what crosses it |
+|---|---|---|
+| `channels/application.rs` | the application's listener (`listen`) | `AppRequest` {`Notify`, `Delete`, `Wait`, `Events`, `Status`} in, `AppReply` out; the optional bearer token |
+| `channels/peer.rs` | the other daemon (`peer_listen` in, `peer` out) | `PeerMessage` {`Ping`, `Agree`, `Start`, `Receive`, `Serve`, `Ended`, `Finish`} and `PeerReply`, sealed both ways; the replay cache |
+| `channels/controller.rs` | the controller processes | `SessionEnv` (the node's settings) and `Launch` {`Notify`, `Receive`, `Serve`, `Delete`} decide the argument list and environment; `ControllerLine` {`Ready`, `Signup`, `JobResult`, `FinalReport`} parses its output; `SessionEnv::run` (spawn and supervise), `kill_tree`, `tree_megabytes` (`ps`) |
+| `channels/disk.rs` | the state directory, the configuration files | `work/`, `work/send/serve/`, `journal/`, `events.jsonl`, `logs/`; config, network config, peer key, bearer token (read at start) |
+| `channels/host.rs` | this machine | the clock (`unix_now`, `Moment`, `sleep`), randomness (`/dev/urandom`), SIGTERM/SIGINT, the log (standard error), the start line (standard output), arguments, exit |
+| `channels/mod.rs` | both listeners | the line protocol: `read_line`, `write_line`, `call`, `Listener` |
+
+The rest is pure: `scheduler.rs` (the state machine: jobs, queue, sessions), `request.rs` (the
+signed requests), `config.rs` (parsing), `lib.rs` (SHA-256, HMAC, constant-time comparison);
+`bin/node-daemon.rs` is only the wiring. The unit test `channels/lint.rs` fails when a source
+outside `src/channels/` names an I/O primitive (`std::net`, `std::fs`, `std::process`,
+`std::env`, `std::io`, `Instant`, `SystemTime`, `thread::sleep`, `libc::`, `println!`, …).
+`bin/notify-app.rs` (the application's side, not a node's) is exempt.
 
 ## What a daemon does
 
@@ -22,7 +41,7 @@ Checked end to end by `local_signal_server/check_signal_service_local.py --runs 
   (`secret-shared-db`, `server/src/handoff.rs`: `NotifyRequest::encode`, `DeleteRequest::encode`),
   the freshness rule of the nodes (`issued_at` within `[now − notify_max_age_secs, now + 30 s]`),
   and for a notify that SHA-256 of the message text is the signed `message_hash`. The encoding is
-  re-implemented in `src/lib.rs` (the database project's library does not build from the vendored
+  re-implemented in `src/request.rs` (the database project's library does not build from the vendored
   crate set); a unit test checks it against a request file written by `handoff_client`, and the
   application stand-in signs with `handoff_client` only.
 - Confirms with the other daemon that it holds the SAME request (the request's digest, which
@@ -35,13 +54,22 @@ Checked end to end by `local_signal_server/check_signal_service_local.py --runs 
 - Keeps a receive session running at all times and turns each new user it stores into an event.
 - Returns only what the two controllers agreed on as public results. It never holds, logs or
   returns a share; it does not read Signal traffic. Its own secrets are the path of this node's
-  database client key and the key of the link to the other daemon. The controller's error text
+  database client key, the key of the link to the other daemon, and the application's bearer
+  token when one is configured. The controller's error text
   and log stay on the node (`STATE/logs/`); the application gets a status.
 
 ## Protocol between the application and a daemon
 
 TCP, one JSON object per line, one request and one reply per connection. The application sends
 every request to BOTH daemons and accepts a result only if both report the same `result_digest`.
+
+The listener binds only to `listen`, which is **localhost or the node's WireGuard address** (an
+address only the application server reaches); a wildcard address (`0.0.0.0`, `[::]`) is refused
+at start unless a bearer token is set. `notify` and `delete` are authenticated by the
+application's signature. `wait`, `events` and `status` are unauthenticated by default (what they
+return is public to the nodes). Optionally, `application.token_file` names a file holding a
+bearer token (at least 16 bytes); then every request must carry `"bearer": TOKEN`, compared in
+constant time, and anything else is answered `{"ok":false,"error":"not authorised"}`.
 
 | Request | Reply |
 |---|---|
@@ -117,7 +145,10 @@ the sender's party (`from`), a fresh 16-byte `nonce`, the sender's clock (`at`, 
 (`peer_key_file`). A request is accepted once: a nonce seen within the window is refused as a
 replay, and a message whose `from` is the receiver itself (reflected) is refused. Each reply is
 sealed the same way with `reply_to` = the request's nonce, and the caller accepts only a reply
-to the request it sent (`lib.rs`, `seal_request` / `open_request` / `seal_reply` / `open_reply`).
+to the request it sent (`channels/peer.rs`: `seal_request` / `open_request` / `seal_reply` /
+`open_reply`, `Link::call` and `serve`). The messages are the variants of `PeerMessage`; a
+request that is authentic but malformed (a missing field, a port above 65535) gets a sealed
+refusal naming the field. The replies are `PeerReply` (`{"ok"[,"busy":true][,"error"]}`).
 Both daemons must run the same version of this link. Party 0 leads:
 
 - `peer-agree {job}`: "do you hold this request?" Asked for every request party 0 accepted, until
@@ -207,7 +238,7 @@ with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
 ## Configuration (one JSON file per node)
 
 ```json
-{ "party": 0, "listen": "127.0.0.1:19700",   // the application's: localhost, or an address only it reaches
+{ "party": 0, "listen": "127.0.0.1:19700",   // the application's: localhost or the WireGuard address (no wildcard without a token)
   "peer_listen": "10.0.0.1:19710",            // the other daemon's (WireGuard address); must differ from listen
   "peer": "10.0.0.2:19710",                   // the other daemon's peer_listen
   "peer_key_file": "…/peer.key",              // hex, at least 16 bytes, shared by the two nodes
@@ -215,13 +246,14 @@ with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
   "controller": "…/public_service_controller",
   "worker": { "binary": "…/tls-worker-fixture-v3",   // or the semi-honest worker
               "send_directory": "…", "receive_directory": "…",   // the workers' key material, one per session kind
-              "hosts": ["10.0.0.1", "10.0.0.2"], "port_base": 23000 },
+              "hosts": ["10.0.0.1", "10.0.0.2"], "port_base": 23000 },   // sessions use port_base .. port_base+639
   "circuits": { "tool": "…/circuit_cache.py", "manifest": null },   // manifest: CIRCUIT_MANIFEST (strict mode)
   "signal": { "endpoint": "127.0.0.1", "port": 18443, "hostname": "server.example",
               "trust_root": "…/ca.pem", "certificate_checker": "…/public_auth" },
   "proxy": { "socks": "127.0.0.1:9050", "circuits": 3 },             // optional (Tor)
   "database": { "client": "…/handoff_client", "network": "…/network.json", "key": "…/compute-nodes/0/key.json" },
-  "application": { "notify_public_key": "base64" },   // optional pin; default and cross-check: the database network config
+  "application": { "notify_public_key": "base64",     // optional pin; default and cross-check: the database network config
+                   "token_file": "…/bearer" },         // optional: every application request must carry "bearer"
   "test": { "export": "…/mpc-export.json", "tokens": "…/tokens", "kem_tool": "…/lss-provision" },   // scaffolding, below
   "environment": { "DYLD_LIBRARY_PATH": "…" },        // passed to the controller as is
   "receive": true,
@@ -242,6 +274,9 @@ notify-app delete --daemons A,B --db-client C --key NOTIFY_KEY --network NET --i
 notify-app events --daemons A,B [--after N] [--wait S] [--until-id ID]
 notify-app status --daemons A,B
 ```
+
+`--bearer-file F` (any command) adds the token in `F` to every request, for daemons configured
+with `application.token_file`.
 
 It signs with the database project's `handoff_client` (`sign-signup`, `sign-request`,
 `sign-delete`), sends the request to both daemons, waits for both, and prints
@@ -311,7 +346,8 @@ Honest list; PRODUCT_TODO.md section 7 has the same items as work.
 - If one node's daemon holds a `completed` result and the other's a `failed` one, resubmitting is
   refused by the first (the application sees the disagreement and must sign a new request).
 - No reply to the user who signed up, and a delete does not tell Signal anything.
-- No limit on connections or request rate from the application side; no authentication of who
-  may ask for events or results (they are public to the nodes, not to the world).
+- No limit on connections or request rate from the application side. Who may ask for events or
+  results is limited by where the listener binds (localhost or the WireGuard address) and, when
+  set, by the bearer token; the token travels in plaintext (inside WireGuard, or on localhost).
 - The receive session is not restarted on a schedule, and a hung one is noticed only by its
   worker link failing.
