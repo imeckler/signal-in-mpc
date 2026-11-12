@@ -71,22 +71,50 @@ axiom check 4 s, peak 3.3 GB. Disk: 7.3 GB under `proofs/.lake`.
    its applications: `ghash_share_hides` (via the main package's `share_views_equal`), the ceremony
    mask, P-RAND(b), P-B2F(b), P-W2F(b), P-F2W(b), P-INV(c), `maskedAgreement_mask_hides` and
    P-HINT(c) (both for any finite commutative group).
-5. **Cut-and-choose** (`CutAndChoose.lean`): a uniform challenge permutation puts a bad set of
-   `B·t` candidates exactly on a union of whole buckets with probability exactly
-   `C(N, t)/C(2BN, B·t)` (`parameters.py`'s `bound(t)`), and never if `B ∤ |S|`; and
-   `bound(1) < 2⁻¹²⁸` for the batch profile (N = 2¹⁹, B = 8) and the three profiles of
-   `check_parameters_128.py`.
+5. **Cut-and-choose** (`CutAndChoose.lean`, `CutAndChooseAll.lean`): a uniform challenge
+   permutation puts a bad set of `B·t` candidates exactly on a union of whole buckets with
+   probability exactly `C(N, t)/C(2BN, B·t)` (`parameters.py`'s `bound(t)`), and never if
+   `B ∤ |S|`; `bound(t + 1) ≤ bound(t)` for every `N`, every `B ≥ 2`, `1 ≤ t < N`
+   (`bound_step`), so `t = 1` is always the worst case (`bound_le_bound_one`; monotonicity holds
+   on the whole range, no exception); `bound(1) < 2⁻¹²⁸` for the batch profile (N = 2¹⁹, B = 8)
+   and the three profiles of `check_parameters_128.py` (256/14, 512/13, 1024/12); hence for each
+   of these four profiles `bound(t) < 2⁻¹²⁸` for every `1 ≤ t ≤ N` (`*_bound_all_t`) and **every
+   bad set, of any size, goes undetected with probability `< 2⁻¹²⁸`** (`*_undetected_lt`, via
+   `undetected_lt_of_bound_t1`).
+6. **XEdDSA `recover`** (`XEdDsaRecover.lean`): `X25519.powBits` on the concrete field is the power
+   by the big-endian bit value (`toZMod_powBits`), so `XEdDsaField.exponent x n = x^n` for
+   `n < 2²⁵⁵`, `X25519.inverse = FieldDag.inverse` and `XEdDsaField.zero` is the zero indicator;
+   `recover X25519.concrete u = [valid, x, y]` with explicit value forms (`recover_eq`); `valid` is
+   0 or 1, and 1 iff `u + 1 ≠ 0`, `d·y² + 1 ≠ 0` and `xx` is a square; whenever `xx` is a square
+   `x·x = xx` (the same square-root statement as for `recipient`, under a weaker hypothesis); and
+   `y = (u − 1)/(u + 1)`. No hypothesis (H-QR is proved).
+7. **Offset agreement as probability** (`OffsetAgreementDist.lean`): for any finite commutative
+   group `G` of order `ℓ`, scalars in `ZMod ℓ` acting by `k ↦ k.val • B`, and the offset uniform
+   in `ZMod ℓ`, the published key `initial·B + offset·B` has the same distribution for any two
+   initial scalars (`offset_public_key_independent`); if `ℓ` is prime and `B ≠ 0` it is uniform
+   on `G` (`offset_public_key_uniform`).
 
 ## What stays a hypothesis or open
 
 * **H-GROUP** (the Edwards formulas are the group law): stated as "any finite commutative group"
-  where needed; never proved here.
+  (of order `ℓ`, for the offset agreement) where needed; never proved here. It is also what
+  turns "`xx` is a square" (`recipient`, `recover`) into "the point is on the curve".
 * **idealCommit**: the distributional statements take the other party's values as independent of
   the honest party's mask; that is the modelling assumption `idealCommit` justifies.
-* **Cut-and-choose, `t ≥ 2`:** that `bound(t) ≤ bound(1)` at the deployed parameters is not
-  proved (`check_parameters_128.py` checks every `t` numerically). The model's detection rules
-  (P-CUT(d), (e)) are assumptions of the model, not theorems about `dyn_word_mask.h`.
-* **XEdDSA `recover`**: same mathematics as `recipient` but through `X25519.powBits`; not done.
+* **Cut-and-choose model:** the detection rules (P-CUT(d), (e)) and the single uniform challenge
+  permutation (standing for P-CUT's two) are assumptions of the model, not theorems about
+  `dyn_word_mask.h` / `dabit_generator.h`.
+* **Offset agreement:** the deployed offset is drawn from `[0, 2²⁵²)`, not uniformly modulo
+  `ℓ`; statistical closeness is not proved. Joint independence of several messages' keys is not
+  stated as a theorem.
+* **XEdDSA:** the sign of `x` (not normalised by `recover`) and its binding to the signature
+  bit; `doubleScalar`; that the compiled artifact is the program is the main package's
+  `XEdDsaField.compiled_output_correct`, not re-proved here.
 * **`ceremony_masked_uniform`** restates the expression of `Ceremony.masked_hides` instead of
   importing `TlsMpc.CeremonyProofs`, whose imports (the receive kernels' proofs) would make this
   package compile a large part of the main library.
+* **Lean pitfall (recorded for the next author):** do not let Lean's defeq checker compare a
+  term containing `FieldDag.power x n` (or `inverse`) with a form it can only reach by
+  unfolding, e.g. `rfl` after `rw` on `[a, b, c][2]?.getD _`: it unfolds `power` with a 255-bit
+  exponent and exhausts memory (12 GB in 40 s). Use list injectivity (`List.cons.injEq`) or
+  rewriting instead, as `XEdDsaRecover.recover_components` does.

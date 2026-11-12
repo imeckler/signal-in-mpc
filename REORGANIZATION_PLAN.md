@@ -625,6 +625,12 @@ plan makes it the form of every hiding theorem.
 
 **Statistical bounds** (the cut-and-choose counting) are **not** in Lean. They stay a written
 argument with `check_parameters_128.py`; P7 is optional.
+*Update 2026-11-12: now in the Mathlib package `proofs/` (see P7 in 10.2): for the model of
+P-CUT steps 2–3, `CutAndChoose.cut_and_bucket_probability` (exact `bound(t)`),
+`CutAndChooseAll.bound_le_bound_one` (`t = 1` is the worst case, any `B ≥ 2`) and
+`CutAndChooseAll.{deployed,profile_256,profile_512,profile_1024}_undetected_lt` (every bad set
+undetected with probability `< 2⁻¹²⁸`). Distributional forms of several hiding statements are
+there too (`proofs/README.md`, items 4 and 7); the bijection form stays the main package's form.*
 
 **Commitments are ideal.** The model's commitment is an opaque token, and the adversary's
 committed value is a function of what it saw *before* the commitment exchange. A theorem that
@@ -862,6 +868,11 @@ Properties:
 - (a) `OffsetAgreement.public_key_correct` and `agreement_correct` become statements about
   `step` (via the recoding lemma: signed base-16 digits recompose τ; new, about 200 lines);
 - (b) `public_key_independent` (exists), now about the script's output;
+  *2026-11-12: its probability form for the algebra (not yet for the script's output) is
+  `proofs/` `OffsetAgreement.offset_public_key_independent` (offset uniform in `ZMod ℓ`, any
+  finite commutative group of order `ℓ`, H-GROUP as that hypothesis) and
+  `offset_public_key_uniform` (`ℓ` prime, `B ≠ 0`: the key is uniform). Open: the deployed
+  offset is drawn from `[0, 2²⁵²)`, not uniformly mod `ℓ`; and the statement about `step`.*
 - (c) the checks open 0 iff the bits are bits and the hints are right (`entries_sound`,
   `prepareTable_sound` exist);
 - (d) K₀'s commitment binds party and nonce, as P-RAND.
@@ -880,6 +891,13 @@ Properties:
 - (b) under hypothesis H-QR (2 is a non-square mod p; Euler's criterion for this p) and
   q ≠ 0: (r, b) ↦ q·r²·2^b maps the nonzero pairs onto F∖{0}, exactly 4 pairs to each value.
   The proof of H-QR is **not** in scope; it is stated as a hypothesis.
+  *2026-11-12: H-QR is discharged in `proofs/` (`QuadraticResidue.two_not_square`,
+  `euler_criterion`, `euler_nonsquare`, from `Prime25519.prime_modulus`). For the program
+  `EdwardsHinted.liftOpen` (not yet for the script `Flows/Curve.hinted`): `lift_select` and
+  `liftOpen_square_iff` (validity is `sel xor b`), `lift_fiber_card` and `lift_opened_uniform` /
+  `lift_opened_uniform_xor` (the opened w is exactly uniform on F for q ≠ 0). Correction to the
+  count above: for the pair (r, b) every value of F (0 included) has exactly **2** preimages; the
+  "4" counts (r, b_A, b_B). (a), (d), (e) and the script-level (b) remain with S11.*
 - (c) Z = P + M_A + M_B: for fixed P, M_A ↦ Z is a bijection on the group, under H-GROUP;
 - (d) `entries_sound` composed: whatever the hints, if the links open to 0 the table equals the
   chain from P;
@@ -1354,7 +1372,8 @@ The legacy library keeps its own conversions until S11–S16 delete their caller
 two implementations come from separate pools.**
 
 Theorems: as listed in 7.1, all of (a)–(h) of P-CUT, plus `commit_open_sound`. P7 (the counting
-bound) is not included.
+bound) is not included. *(2026-11-12: P7 is now done separately in `proofs/`, for the model;
+see 10.2. S10 still owes P-CUT (d), (e) — the detection rules that model assumes.)*
 
 Tests: Q, F, E (cheating fixtures: a wrong cut candidate, a wrong bucket member, a non-bit, a
 reference ≥ p, a wrong bit block; each must abort), D.
@@ -1541,6 +1560,17 @@ engineering stages edit, except where noted.
   - Depends on S1. **4–6 weeks. Strong.**
 - **P7. Optional: the cut-and-choose counting bound in Lean.**
   - **Default: not done** (no Mathlib). The written argument and `check_parameters_128.py` stay.
+  - **Done 2026-11-12 in `proofs/` (Mathlib), for the model** (a bad set fixed before one uniform
+    challenge permutation of the `2BN` positions; first `BN` opened, the rest `N` buckets of `B`;
+    undetected iff it lands on a nonempty union of whole buckets):
+    `CutAndChoose.cut_and_bucket_probability` (probability exactly `C(N,t)/C(2BN,Bt)`,
+    `parameters.py`'s `bound(t)`), `undetected_count_zero` (`B ∤ |S|` or `S = ∅`: never);
+    `CutAndChooseAll.bound_step` / `bound_le_bound_one` (`bound` non-increasing on `1 ≤ t ≤ N`
+    for every `N` and `B ≥ 2`, so `t = 1` is the worst case); `CutAndChoose.*_bound_t1` and
+    `CutAndChooseAll.*_bound_all_t` (`bound(t) < 2⁻¹²⁸` for every `t`, profiles 2¹⁹/8, 256/14,
+    512/13, 1024/12); `CutAndChooseAll.*_undetected_lt` (every bad set: probability `< 2⁻¹²⁸`).
+    **Not covered:** that `dyn_word_mask.h` / `dabit_generator.h` implement the model (P-CUT (d),
+    (e) and the composition of the two challenge permutations are assumptions there).
 
 **Future: X1 (stock) after S16; X2 (rotation) after S7 and S8** (section 9).
 
@@ -1593,7 +1623,7 @@ modes. Plan stage ends accordingly.
 | R4 | **The legacy/Lean handle coupling in S9–S16** (contacts' wires shared through `legacy_get` / `legacy_put`). A bug can confuse handles. | Handles are never reused (as today). The S9 differential fixture compares both paths on the same inputs. |
 | R5 | **Two mask pools during S10–S16** (legacy C++ and Lean) cost extra mask generation. | Accept (about 0.6 s per session today). |
 | R6 | **Proof sizes are guesses.** T1, P-CUT, T7 and T13 could double. | The engineering stages do not wait for proofs, except where a stage names its theorem as a deliverable (S9–S16: T3/T4/P-*). If such a proof overruns by 2×, the stage ships with the theorem stated, the proof as a tracked hole in `Security.lean`'s "open" list, **never as `sorry`**. Owner to be told. |
-| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
+| R7 | **Assumptions that stay hypotheses:** H-GROUP (Edwards law), H-QR, `idealCommit`; the engines' ideal behaviour. *2026-11-12: H-QR is no longer a hypothesis — discharged in `proofs/` by `Prime25519.prime_modulus` and `QuadraticResidue.{two_not_square, euler_criterion, euler_nonsquare, sqrtMinusOne_eq_power, candidate_fourth_iff, candidate_sq}`, applied to the programs by `recipient_check_zero_iff` / `recipient_x_mul_self` (`EdwardsAffine.recipient`), `lift_select` / `liftOpen_square_iff` (`EdwardsHinted.liftOpen`) and `XEdDsaRecover.recover_valid_iff` / `recover_x_mul_self` (`XEdDsaField.recover`). H-GROUP, `idealCommit` and the engines' ideal behaviour stay.* | Stated in theorem hypotheses and listed in `Security.lean`'s header. |
 | R8 | **Rust linking emp and MP-SPDZ** through `build.rs` may be fiddly (C++20, OpenSSL 3.5, thread pools, the 1 GB stack of `big_stack.h`). | Build the ABI as a static library with the existing `build_hybrid_v3.py` and link it. Run the engines on a thread with the 1 GB stack, as `run_with_stack` does. |
 | R9 | **Semi-honest mode.** The instruction set must run on `ShSession` too. | `engine_abi` per mode. The scripts are the same. The cut-and-choose has a semi-honest variant (`dyn_word_mask.h:20-43`), kept as `Masks.generateSemiHonest` with only P-CUT (a). |
 | R10 | **The retired fixture checks** (`check_signal_service_v3.py`, `check_tls_application_v3.py`) test undeployed paths. | Retire in S7. Keep `check_tls_worker_v3.py`. |

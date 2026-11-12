@@ -4,4 +4,7 @@ import TlsMpcProofs.Uniform
 import TlsMpcProofs.QuadraticResidue
 import TlsMpcProofs.Hiding
 import TlsMpcProofs.CutAndChoose
+import TlsMpcProofs.CutAndChooseAll
+import TlsMpcProofs.XEdDsaRecover
+import TlsMpcProofs.OffsetAgreementDist
 import TlsMpcProofs.SecurityMathlib

@@ -4,6 +4,9 @@ import TlsMpcProofs.Uniform
 import TlsMpcProofs.QuadraticResidue
 import TlsMpcProofs.Hiding
 import TlsMpcProofs.CutAndChoose
+import TlsMpcProofs.CutAndChooseAll
+import TlsMpcProofs.XEdDsaRecover
+import TlsMpcProofs.OffsetAgreementDist
 
 /-!
 # Security theorems that use Mathlib (companion to `TlsMpc/Security.lean`)
@@ -30,8 +33,15 @@ Statuses as in `TlsMpc/Security.lean` (**K**, **K-fn**, **C**, **M**, **switch**
   of section 3 assume, as their model, that the other party's value does not depend on the honest
   party's mask (that is what `idealCommit` provides in the protocols).
 * **The cut-and-choose bound** (section 4) is proved exactly for every number of bad buckets
-  `t`, and numerically for `t = 1` for the deployed profiles. **Open:** that `t = 1` is the worst
-  case (`check_parameters_128.py` checks all `t` numerically).
+  `t`; `bound(t) ≤ bound(1)` for every `1 ≤ t ≤ N` and every `B ≥ 2` (so `t = 1` is the worst
+  case, for all parameters, not only the deployed ones); `bound(1) < 2⁻¹²⁸` for the four
+  deployed profiles; hence every bad set goes undetected with probability `< 2⁻¹²⁸` there. The
+  detection rules P-CUT(d), (e) remain the model's assumptions.
+* **XEdDSA `recover`** (section 2b): `X25519.powBits` is proved to be the field power, and the
+  square-root correctness of `recipient` is proved for `recover` too.
+* **The offset agreement's public key** (section 3b): independent of the initial scalar as a
+  probability statement, with scalars in `ZMod ℓ` for any finite commutative group of order `ℓ`
+  (H-GROUP as that hypothesis); uniform on `G` when `ℓ` is prime and `B ≠ 0`.
 -/
 
 namespace TlsMpcProofs.Security
@@ -167,6 +177,77 @@ theorem lift_opened_uniform_xor (q : FieldDag.F) (hq : q ≠ FieldDag.ofNat 0) (
       (PMF.uniformOfFintype (FieldDag.F × Bool)) = PMF.uniformOfFintype FieldDag.F :=
   TlsMpcProofs.lift_opened_uniform_xor q hq a'
 
+/-! ## 2b. XEdDSA `recover` (H-QR through `X25519.powBits`) -/
+
+/-- **`X25519.powBits` on the concrete field is the power:** `powBits x acc bits =
+acc^(2^|bits|) · x^(big-endian value of bits)`. **gen** (every exponentiation of the
+`X25519`-based field programs). -/
+theorem powBits_value (x acc : FieldDag.F) (bits : List Bool) :
+    TlsMpcProofs.toZMod (X25519.powBits X25519.concrete x acc bits) =
+      TlsMpcProofs.toZMod acc ^ (2 ^ bits.length) * TlsMpcProofs.toZMod x ^ TlsMpcProofs.bitsValue 0 bits :=
+  TlsMpcProofs.toZMod_powBits x acc bits
+
+/-- **`XEdDsaField.exponent x n = x^n`** for `n < 2²⁵⁵`. **K-fn** (`xeddsa-recover`). -/
+theorem xeddsa_exponent_eq_power (x : FieldDag.F) (n : ℕ) (hn : n < 2 ^ 255) :
+    Signal.XEdDsaField.exponent X25519.concrete x n = FieldDag.power x n :=
+  TlsMpcProofs.exponent_eq_power x n hn
+
+/-- **`X25519.inverse` (concrete) is `FieldDag.inverse`.** **gen**. -/
+theorem x25519_inverse_eq (x : FieldDag.F) : X25519.inverse X25519.concrete x = FieldDag.inverse x :=
+  TlsMpcProofs.x25519_inverse_eq x
+
+/-- **`XEdDsaField.zero x` is the indicator of `x = 0`.** **K-fn**. -/
+theorem xeddsa_zero_eq_ite (x : FieldDag.F) :
+    Signal.XEdDsaField.zero X25519.concrete x = if x = FieldDag.ofNat 0 then FieldDag.ofNat 1 else FieldDag.ofNat 0 :=
+  TlsMpcProofs.zero_eq_ite x
+
+/-- **What `recover` computes:** `[valid, x, y]` with `y = (u−1)/(u+1)`, `xx = (y²−1)/(d·y²+1)`,
+`x = c` or `c·√−1` for `c = xx^((p+3)/8)`, `valid` the product of the three indicators.
+**K-fn** (`xeddsa-recover`; `XEdDsaField.compiled_output_correct` links the artifact to
+`run X25519.concrete true`, which is `recover` of input 0, `run_recovery_eq`). -/
+theorem xeddsa_recover_eq (U : FieldDag.F) :
+    Signal.XEdDsaField.recover X25519.concrete U =
+      [TlsMpcProofs.xedValid U, TlsMpcProofs.xedX U, TlsMpcProofs.xedY U] :=
+  TlsMpcProofs.recover_eq U
+
+/-- **The `xeddsa-recover` program is `recover` of input 0.** **K-fn**. -/
+theorem xeddsa_run_recovery_eq (input : ℕ → FieldDag.F) :
+    Signal.XEdDsaField.run X25519.concrete true input = Signal.XEdDsaField.recover X25519.concrete (input 0) :=
+  TlsMpcProofs.run_recovery_eq input
+
+/-- **`recover`'s validity output is `0` or `1`.** **K-fn**. -/
+theorem xeddsa_recover_valid_zero_or_one (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) :
+    valid = FieldDag.ofNat 1 ∨ valid = FieldDag.ofNat 0 :=
+  TlsMpcProofs.recover_valid_zero_or_one U valid x y h
+
+/-- **`valid = 1` exactly when `u + 1 ≠ 0`, `v = d·y² + 1 ≠ 0` and `xx` is a square.** **K-fn**
+(H-QR; reading "square ⇔ on the curve" needs H-GROUP's formulas). -/
+theorem xeddsa_recover_valid_iff (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) :
+    valid = FieldDag.ofNat 1 ↔
+      U + FieldDag.ofNat 1 ≠ FieldDag.ofNat 0 ∧ TlsMpcProofs.xedV U ≠ FieldDag.ofNat 0 ∧
+        ∃ r : FieldDag.F, r * r = TlsMpcProofs.xedXX U :=
+  TlsMpcProofs.recover_valid_iff U valid x y h
+
+/-- **Whenever `xx` is a square, `recover`'s `x` is a square root of it** (sign not
+normalised). **K-fn**. -/
+theorem xeddsa_recover_x_mul_self (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y])
+    (hsq : ∃ r : FieldDag.F, r * r = TlsMpcProofs.xedXX U) : x * x = TlsMpcProofs.xedXX U :=
+  TlsMpcProofs.recover_x_mul_self U valid x y h hsq
+
+/-- **When `valid = 1`, `x·x = xx`.** **K-fn**. -/
+theorem xeddsa_recover_x_mul_self_of_valid (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) (hv : valid = FieldDag.ofNat 1) :
+    x * x = TlsMpcProofs.xedXX U :=
+  TlsMpcProofs.recover_x_mul_self_of_valid U valid x y h hv
+
+/-- **`recover`'s `y` is `(u − 1)/(u + 1)`.** **K-fn**. -/
+theorem xeddsa_recover_y (U valid x y : FieldDag.F)
+    (h : Signal.XEdDsaField.recover X25519.concrete U = [valid, x, y]) : y = TlsMpcProofs.xedY U :=
+  TlsMpcProofs.recover_y U valid x y h
+
 /-! ## 3. Hiding as probability (plan section 7.0; Security.lean section 8) -/
 
 /-- **A family of bijections on the randomness gives equal output distributions.** If
@@ -246,6 +327,26 @@ theorem hinted_Z_uniform {G : Type} [AddCommGroup G] [Fintype G] [Nonempty G] (P
       PMF.uniformOfFintype G :=
   TlsMpcProofs.hinted_Z_uniform P maskA
 
+/-! ## 3b. The offset agreement's public key as probability -/
+
+open TlsMpcProofs.OffsetAgreement in
+/-- **`offsetAgreement_public_key_independent` as probability** (H-GROUP as the hypothesis "`G`
+is a finite commutative group of order `ℓ`"): with the offset uniform in `ZMod ℓ`, the published
+key `initial·B + offset·B` has the same distribution for any two initial scalars. **M**
+(the deployed offset is drawn from `[0, 2²⁵²)`, not uniformly mod `ℓ`: not covered). -/
+theorem offset_public_key_independent {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
+    (hℓ : Fintype.card G = ℓ) (B : G) (initial other : ZMod ℓ) :
+    PMF.map (publicKey B initial) (PMF.uniformOfFintype (ZMod ℓ)) =
+      PMF.map (publicKey B other) (PMF.uniformOfFintype (ZMod ℓ)) :=
+  TlsMpcProofs.OffsetAgreement.offset_public_key_independent hℓ B initial other
+
+open TlsMpcProofs.OffsetAgreement in
+/-- **The published key is uniform on `G`** when `|G| = ℓ` is prime and `B ≠ 0`. **M**. -/
+theorem offset_public_key_uniform {G : Type} [AddCommGroup G] [Fintype G] {ℓ : ℕ} [NeZero ℓ]
+    [Fact ℓ.Prime] (hℓ : Fintype.card G = ℓ) (B : G) (hB : B ≠ 0) (initial : ZMod ℓ) :
+    PMF.map (publicKey B initial) (PMF.uniformOfFintype (ZMod ℓ)) = PMF.uniformOfFintype G :=
+  TlsMpcProofs.OffsetAgreement.offset_public_key_uniform hℓ B hB initial
+
 /-! ## 4. The cut-and-choose counting bound (formerly P7) -/
 
 open TlsMpcProofs.CutAndChoose in
@@ -285,7 +386,7 @@ theorem cut_and_bucket_probability {N B : ℕ} (hB : 0 < B) (S : Finset (Positio
   TlsMpcProofs.CutAndChoose.cut_and_bucket_probability hB S t ht htN hS
 
 /-- **Deployed batch profile (`N = 2¹⁹`, `B = 8`, NEEDS_REVIEW 1.2): `bound(1) < 2⁻¹²⁸`.**
-**M**. The other `t` are not covered (open item). -/
+**M**. (Every `t`: `deployed_bound_all_t` below.) -/
 theorem deployed_bound_t1 : 2 ^ 128 * (2 ^ 19).choose 1 < (2 * 8 * 2 ^ 19).choose (8 * 1) :=
   TlsMpcProofs.CutAndChoose.deployed_bound_t1
 
@@ -301,16 +402,81 @@ theorem profile_512_bound_t1 : 2 ^ 128 * (512 : ℕ).choose 1 < (2 * 13 * 512).c
 theorem profile_1024_bound_t1 : 2 ^ 128 * (1024 : ℕ).choose 1 < (2 * 12 * 1024).choose (12 * 1) :=
   TlsMpcProofs.CutAndChoose.profile_1024_bound_t1
 
+/-- **`bound` is non-increasing:** `bound(t + 1) ≤ bound(t)` for every `N`, `B ≥ 2`, `t < N`
+(without division). **gen**. -/
+theorem cut_bound_step (N B t : ℕ) (hB : 2 ≤ B) (htN : t < N) :
+    N.choose (t + 1) * (2 * B * N).choose (B * t) ≤ N.choose t * (2 * B * N).choose (B * (t + 1)) :=
+  TlsMpcProofs.CutAndChoose.bound_step N B t hB htN
+
+/-- **`t = 1` is the worst case:** `bound(t) ≤ bound(1)` for `1 ≤ t ≤ N`, `B ≥ 2`. **gen**
+(`parameters.py`'s `exact_worst_bound` is always attained at `t = 1`). -/
+theorem cut_bound_le_bound_one (N B t : ℕ) (hB : 2 ≤ B) (ht : 1 ≤ t) (htN : t ≤ N) :
+    N.choose t * (2 * B * N).choose (B * 1) ≤ N.choose 1 * (2 * B * N).choose (B * t) :=
+  TlsMpcProofs.CutAndChoose.bound_le_bound_one N B t hB ht htN
+
+open TlsMpcProofs.CutAndChoose in
+/-- **Every bad set:** if `B ≥ 2` and `bound(1) < 2⁻¹²⁸`, any bad set fixed before the uniform
+challenge goes undetected with probability `< 2⁻¹²⁸`. **M** (detection rules P-CUT(d), (e)
+assumed). -/
+theorem undetected_lt_of_bound_t1 {N B : ℕ} (hB : 2 ≤ B)
+    (h1 : 2 ^ 128 * N.choose 1 < (2 * B * N).choose (B * 1)) (S : Finset (Position N B)) :
+    ((undetected (protocolBucket N B) S).card : ℚ) / (2 * B * N).factorial < 1 / 2 ^ 128 :=
+  TlsMpcProofs.CutAndChoose.undetected_lt_of_bound_t1 hB h1 S
+
+/-- **Batch profile, every `t`: `bound(t) < 2⁻¹²⁸`.** **M**. -/
+theorem deployed_bound_all_t (t : ℕ) (ht : 1 ≤ t) (htN : t ≤ 2 ^ 19) :
+    2 ^ 128 * (2 ^ 19).choose t < (2 * 8 * 2 ^ 19).choose (8 * t) :=
+  TlsMpcProofs.CutAndChoose.deployed_bound_all_t t ht htN
+
+/-- **Profile 256/14, every `t`.** **M**. -/
+theorem profile_256_bound_all_t (t : ℕ) (ht : 1 ≤ t) (htN : t ≤ 256) :
+    2 ^ 128 * (256 : ℕ).choose t < (2 * 14 * 256).choose (14 * t) :=
+  TlsMpcProofs.CutAndChoose.profile_256_bound_all_t t ht htN
+
+/-- **Profile 512/13, every `t`.** **M**. -/
+theorem profile_512_bound_all_t (t : ℕ) (ht : 1 ≤ t) (htN : t ≤ 512) :
+    2 ^ 128 * (512 : ℕ).choose t < (2 * 13 * 512).choose (13 * t) :=
+  TlsMpcProofs.CutAndChoose.profile_512_bound_all_t t ht htN
+
+/-- **Profile 1024/12, every `t`.** **M**. -/
+theorem profile_1024_bound_all_t (t : ℕ) (ht : 1 ≤ t) (htN : t ≤ 1024) :
+    2 ^ 128 * (1024 : ℕ).choose t < (2 * 12 * 1024).choose (12 * t) :=
+  TlsMpcProofs.CutAndChoose.profile_1024_bound_all_t t ht htN
+
+open TlsMpcProofs.CutAndChoose in
+/-- **Batch profile (`N = 2¹⁹`, `B = 8`): any bad set goes undetected with probability
+`< 2⁻¹²⁸`.** **M** (P7 closed for the model). -/
+theorem deployed_undetected_lt (S : Finset (Position (2 ^ 19) 8)) :
+    ((undetected (protocolBucket (2 ^ 19) 8) S).card : ℚ) / (2 * 8 * 2 ^ 19).factorial < 1 / 2 ^ 128 :=
+  TlsMpcProofs.CutAndChoose.deployed_undetected_lt S
+
+open TlsMpcProofs.CutAndChoose in
+/-- **Profile 256/14, as a probability.** **M**. -/
+theorem profile_256_undetected_lt (S : Finset (Position 256 14)) :
+    ((undetected (protocolBucket 256 14) S).card : ℚ) / (2 * 14 * 256).factorial < 1 / 2 ^ 128 :=
+  TlsMpcProofs.CutAndChoose.profile_256_undetected_lt S
+
+open TlsMpcProofs.CutAndChoose in
+/-- **Profile 512/13, as a probability.** **M**. -/
+theorem profile_512_undetected_lt (S : Finset (Position 512 13)) :
+    ((undetected (protocolBucket 512 13) S).card : ℚ) / (2 * 13 * 512).factorial < 1 / 2 ^ 128 :=
+  TlsMpcProofs.CutAndChoose.profile_512_undetected_lt S
+
+open TlsMpcProofs.CutAndChoose in
+/-- **Profile 1024/12, as a probability.** **M**. -/
+theorem profile_1024_undetected_lt (S : Finset (Position 1024 12)) :
+    ((undetected (protocolBucket 1024 12) S).card : ℚ) / (2 * 12 * 1024).factorial < 1 / 2 ^ 128 :=
+  TlsMpcProofs.CutAndChoose.profile_1024_undetected_lt S
+
 /-! ## 5. Open (comments only)
 
-* `bound(t) ≤ bound(1)` for all `1 ≤ t ≤ N` at the deployed parameters (then
-  `cut_and_bucket_probability` + `*_bound_t1` give "every bad set is undetected with probability
-  below 2⁻¹²⁸"). `check_parameters_128.py` checks each `t` numerically.
-* XEdDSA `recover` (`XEdDsaField.recover`): the same candidate argument as `recipient`, through
-  `X25519.powBits` (needs a lemma "`powBits` is the power by the bits"); not done.
-* H-GROUP; `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
-* `offsetAgreement_public_key_independent` as probability: needs the offset uniform modulo the
-  group order (`ZMod ℓ` scalars), not `Int`; not done.
+* H-GROUP (the Edwards formulas are a group law; also needed to read "`xx` is a square" as "on
+  the curve"); `idealCommit`; the C++ protocols themselves (P-CUT, P-HINT … as scripts, S9–S16).
+* Cut-and-choose: the model's detection rules (P-CUT(d), (e)) against `dyn_word_mask.h` /
+  `dabit_generator.h`; that the two challenge permutations of P-CUT compose to one uniform one.
+* Offset agreement: that an offset drawn from `[0, 2²⁵²)` is statistically close to uniform
+  modulo `ℓ`; joint independence of the keys of several messages (not stated).
+* XEdDSA `recover`: the sign of `x` and its binding to the signature bit; `doubleScalar`.
 -/
 
 end TlsMpcProofs.Security
@@ -336,6 +502,17 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.lift_fiber_card
 #print axioms TlsMpcProofs.Security.lift_opened_uniform
 #print axioms TlsMpcProofs.Security.lift_opened_uniform_xor
+#print axioms TlsMpcProofs.Security.powBits_value
+#print axioms TlsMpcProofs.Security.xeddsa_exponent_eq_power
+#print axioms TlsMpcProofs.Security.x25519_inverse_eq
+#print axioms TlsMpcProofs.Security.xeddsa_zero_eq_ite
+#print axioms TlsMpcProofs.Security.xeddsa_recover_eq
+#print axioms TlsMpcProofs.Security.xeddsa_run_recovery_eq
+#print axioms TlsMpcProofs.Security.xeddsa_recover_valid_zero_or_one
+#print axioms TlsMpcProofs.Security.xeddsa_recover_valid_iff
+#print axioms TlsMpcProofs.Security.xeddsa_recover_x_mul_self
+#print axioms TlsMpcProofs.Security.xeddsa_recover_x_mul_self_of_valid
+#print axioms TlsMpcProofs.Security.xeddsa_recover_y
 #print axioms TlsMpcProofs.Security.hiding_of_bijection
 #print axioms TlsMpcProofs.Security.map_uniform_equiv
 #print axioms TlsMpcProofs.Security.ghash_share_hides_dist
@@ -348,6 +525,8 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.masked_inverse_open_uniform
 #print axioms TlsMpcProofs.Security.maskedAgreement_mask_hides_dist
 #print axioms TlsMpcProofs.Security.hinted_Z_uniform
+#print axioms TlsMpcProofs.Security.offset_public_key_independent
+#print axioms TlsMpcProofs.Security.offset_public_key_uniform
 #print axioms TlsMpcProofs.Security.fiber_mul_choose
 #print axioms TlsMpcProofs.Security.undetected_count
 #print axioms TlsMpcProofs.Security.undetected_count_zero
@@ -356,3 +535,14 @@ end TlsMpcProofs.Security
 #print axioms TlsMpcProofs.Security.profile_256_bound_t1
 #print axioms TlsMpcProofs.Security.profile_512_bound_t1
 #print axioms TlsMpcProofs.Security.profile_1024_bound_t1
+#print axioms TlsMpcProofs.Security.cut_bound_step
+#print axioms TlsMpcProofs.Security.cut_bound_le_bound_one
+#print axioms TlsMpcProofs.Security.undetected_lt_of_bound_t1
+#print axioms TlsMpcProofs.Security.deployed_bound_all_t
+#print axioms TlsMpcProofs.Security.profile_256_bound_all_t
+#print axioms TlsMpcProofs.Security.profile_512_bound_all_t
+#print axioms TlsMpcProofs.Security.profile_1024_bound_all_t
+#print axioms TlsMpcProofs.Security.deployed_undetected_lt
+#print axioms TlsMpcProofs.Security.profile_256_undetected_lt
+#print axioms TlsMpcProofs.Security.profile_512_undetected_lt
+#print axioms TlsMpcProofs.Security.profile_1024_undetected_lt

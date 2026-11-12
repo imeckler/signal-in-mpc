@@ -33,9 +33,9 @@ permutations of P-CUT steps 2–3 (cut, then bucket); their composition is again
 
 Numerically (`deployed_bound_t1`, `profile_*_bound_t1`): `bound(1) < 2⁻¹²⁸` for the batch
 profile of NEEDS_REVIEW 1.2 (`N = 2¹⁹`, `B = 8`) and for the three profiles of
-`check_parameters_128.py` (256/14, 512/13, 1024/12). **Not proved:** that `t = 1` is the worst
-case (`bound(t) ≤ bound(1)` for all `t`); `check_parameters_128.py` checks every `t` with exact
-rationals, and its report says the worst `t` is 1 for every profile. See the README.
+`check_parameters_128.py` (256/14, 512/13, 1024/12). That `t = 1` is the worst case
+(`bound(t) ≤ bound(1)` for all `1 ≤ t ≤ N`, any `B ≥ 2`), and hence the bound for every bad set,
+is in `CutAndChooseAll.lean`.
 -/
 
 namespace TlsMpcProofs.CutAndChoose
