@@ -5,9 +5,10 @@ import TlsMpc.Node.Policy.ReceiveProofs
 
 REORGANIZATION_PLAN.md proof track P1 ("extend `Recovery.checks` into a property test"). New file;
 pure (no I/O). `checks ()` returns named results like `Recovery.checks`; every entry is `true` when
-the policy behaves as T1 says. No emitter or executable imports this module; to run it, evaluate
-`ReceiveTest.failures ()` (the names of the failing checks, expected `[]`) from any Lean file that
-imports it.
+the policy behaves as T1 says. The controller (`handshake_backend/EmpHybridWork/PublicServiceController.lean`)
+imports this module and runs `checks ()` in its `policy-check` mode; no emitter imports it. It can
+also be run by evaluating `ReceiveTest.failures ()` (the names of the failing checks, expected `[]`)
+from any Lean file that imports it.
 
 Streams are generated from a seed (a linear congruential generator): server requests (delivered
 envelopes with every wire type, `queue/empty`, other paths, with and without bodies), responses

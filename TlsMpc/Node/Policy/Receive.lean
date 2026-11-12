@@ -498,9 +498,13 @@ def budget (s : State) : Nat :=
   else if s.message.isEmpty then min 2 remaining
   else 1
 
-/-- Consume one revealed byte. Returns the new state and whether a successful
-response to the pending request completed at this byte. -/
-def step (s : State) (byte : Byte) : Except String (State × Bool) := do
+/-- The upgrade, frame and control part of `step` on one revealed byte: the upgrade parser (before
+the upgrade completes), the check that no body byte is being revealed, the response parser's
+rollback point at a frame's first byte, the frame parser and the control queue. Returns the state
+with the new upgrade, frame and control states, and the byte's frame event: its 8 bytes are
+valid, data, control data, message start, frame done, message done, control done, control kind
+(`TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`, `eventBytes`). -/
+def frameByte (s : State) (byte : Byte) : Except String (State × List Byte) := do
   let (activity, s) ← if s.upgraded then pure (on, s) else do
     let out := TlsWebSocketUpgrade.runByte PublicReceive.fast (s.upgrade ++ s.accept ++ [on, byte])
     unless get out 0 == on do throw "WebSocket upgrade response rejected"
@@ -511,19 +515,28 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     pure (get out 2, { s with upgrade := out.drop 3, upgraded := get out 1 == on, terminator })
   unless s.skip == 0 do throw "a request body byte was revealed"
   let s := if s.pending && s.message.isEmpty && get s.frame 0 == on then { s with rollback := s.response } else s
-  let wasFirst := s.message.length == 1
   -- The general frame parser: server requests are data frames too.
   let frame := TlsWebSocketFrame.runByte PublicReceive.fast capacity (s.frame ++ [activity, byte])
   unless get frame 0 == on do throw "WebSocket frame rejected"
   let control := TlsWebSocketControl.run PublicReceive.fast (s.control ++ [get frame 2, get frame 6, get frame 7, byte])
-  let data := get frame 1 == on
-  let done := get frame 5 == on
-  let first := data && s.message.length == 0
+  return ({ s with frame := frame.drop 8, control }, frame.take 8)
+
+/-- The message part of `step` on one revealed byte, after `frameByte`: `data` (the byte is a data
+frame's payload byte), `done` (it ends the message), `first` (it is the message's first payload
+byte), `flags` (the frame event's data, message-start and message-done bytes, as the response parser
+takes them). The message's kind (its first two payload bytes), the response parser's feed and its
+rollback when the message turns out to be a server request, a response's fields
+(`replyScan`), a server request's fields (`scan`) or its delivered envelope (`envelopeAdvance`),
+the check that no field runs past the end of its message, and the reset at the message's end.
+Returns the new state and whether a successful response to the pending request completed at this
+byte. -/
+def payloadByte (s : State) (byte : Byte) (data done first : Bool) (flags : List Byte) :
+    Except String (State × Bool) := do
+  let wasFirst := s.message.length == 1
   let message := if data && s.message.length < 2 then s.message ++ [byte] else s.message
   unless message.length < 2 || message == [8, 2] || message == [8, 1] do
     throw "server-initiated message of an unknown kind: not revealed further"
   if first && done then throw "one-byte message"
-  let flags := [get frame 1, get frame 3, get frame 5]
   -- What the response parser sees: everything except the payload of a request. The first
   -- payload byte waits until the second shows which kind of message this is.
   let feed : List (List Byte × Byte) :=
@@ -531,8 +544,7 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     else if first then []
     else if message == [8, 2] then (if s.message.length == 1 then s.held.toList else []) ++ [(flags, byte)]
     else []
-  let mut s := { s with frame := frame.drop 8, control, message,
-                        held := if first then some (flags, byte) else if message.length ≥ 2 then none else s.held }
+  let mut s := { s with message, held := if first then some (flags, byte) else if message.length ≥ 2 then none else s.held }
   let mut complete := false
   -- A server request arriving while a response is awaited: its header bytes were not the
   -- response's.
@@ -592,6 +604,14 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     if message == [8, 1] then s := { s with requests := s.requests ++ [s.request] }
     s := { s with message := [], held := none, request := [], bodySkipped := false, reply := [], replySkipped := false }
   return (s, complete)
+
+/-- Consume one revealed byte. Returns the new state and whether a successful
+response to the pending request completed at this byte. The frame side (`frameByte`), then the
+message side (`payloadByte`). -/
+def step (s : State) (byte : Byte) : Except String (State × Bool) := do
+  let (s, event) ← frameByte s byte
+  let data := get event 1 == on
+  payloadByte s byte data (get event 5 == on) (data && s.message.length == 0) [get event 1, get event 3, get event 5]
 
 /-- Pass over one unrevealed body byte of a response: the frame parser advances, and the
 response parser is given a zero byte in its place (it only counts a body's bytes). Returns

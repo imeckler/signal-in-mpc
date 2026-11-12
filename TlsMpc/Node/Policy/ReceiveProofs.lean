@@ -59,10 +59,13 @@ byte; it stays: a response's next key and the byte after it are revealed in one 
 * The per-byte glue: that `step` keeps `request`/`reply` equal to the message's payload so far
   (the frame parser delivers payload bytes in order; `TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`
   has the frame side) and sets `skip` from `scan`/`replyScan`'s answer. The theorems above take the
-  state's `request`/`reply` and frame position as hypotheses.
+  state's `request`/`reply` and frame position as hypotheses. For server requests and the frame
+  side it is in `Policy/ReceiveInvariant.lean` (`payloadByte_request_*`, `frameByte_frame`); for
+  responses it is still open.
 * Delivered envelopes: proved at the scanner level in `Policy/ReceiveEnvelope.lean`
-  (`envelope_payload_unrevealed`, every byte string); the link from `step`/`stepSkipped` to its
-  `envWalk` is the per-byte glue above.
+  (`envelope_payload_unrevealed`, every byte string), and linked to `step`/`stepSkipped` in
+  `Policy/ReceiveInvariant.lean` (`envRun_safe`, `request_envelope_safe`: every move of the
+  controller over a delivered envelope's body reveals only what `envWalk` reveals).
 * Field layouts other than the server's order, and the relation to `ReceiveSpec.classify` (checked
   by `ReceiveTest` on generated streams).
 * `T1` itself for all streams: checked by `ReceiveTest` (generated and mutated streams), proved for
