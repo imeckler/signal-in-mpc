@@ -811,6 +811,37 @@ Order of work:
       re-priced for this design (dedicated pair about €330–400 a month plus five database
       nodes), and a test that pulls the plug mid-spike and checks no index is reused.
 
+## 11b. Prepare a contact's devices ahead of the first broadcast (owner idea 2026-11-12)
+
+The second real run showed the cost: the first send to a contact with three devices was answered
+409 and took about 30 s of device refresh (key fetch, one session establishment per device
+including a KEM encapsulation) before the resend. In a 14,000-recipient broadcast to new
+multi-device contacts that would dominate. So do the multi-device work after the signup, not in
+the broadcast.
+
+- [ ] **Default plan: prepare silently, delayed and batched.** A background job takes contacts
+      that signed up since its last pass, in shuffled order, and for each one fetches the key
+      bundle for all devices (`GET /v2/keys/{uuid}/*`) and runs the establishment kernels, storing
+      one session record per device. No message is sent; the first broadcast then goes out as
+      PreKey messages to every device in one request, with no 409. The 409/410 path stays as the
+      fallback for device lists that changed since.
+- [ ] **Do not do it immediately after the signup.** A key fetch (or a welcome message) for user
+      U seconds after the account received a sealed-sender message tells the server that U was
+      the sender: the same timing correlation as a read receipt (owner: "never send read
+      receipts … de-anonymizing through timing correlation"). Run the job on its own schedule
+      (for example a pass every few hours, or a random delay of hours per contact), over
+      connections that are not the receive connection, and with the rotation of section 8.
+- [ ] **Optional: a welcome message** ("you are signed up") sent by the same delayed job. It does
+      the same preparation as a side effect and confirms the signup to the user. Owner's choice;
+      not built by default because it is user-visible and adds a send per signup.
+- [ ] Needs: a fetch-without-send flow (today the fetch only runs after a 409), storing
+      established-but-unsent device sessions (the PreKey state must survive until the first
+      send), a "prepared" mark in the contact record, and a harness stage: signup, prepare job,
+      link another device, broadcast (expect: no 409 for prepared devices, 409 only for the new
+      one). One-time prekeys are consumed by the fetch; that is what they are for.
+- [ ] Measure: prepare cost per device in both modes, and the broadcast rate to prepared
+      three-device contacts (three envelopes per send; not measured yet).
+
 ## 12. Testing still owed
 
 - [ ] Rerun the older fixture checks (`check_tls_worker_v3.py`, `check_tls_application_v3.py`,
