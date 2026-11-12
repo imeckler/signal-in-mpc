@@ -12,7 +12,7 @@ use crate::connections::{Connections, Endpoint};
 use crate::engines::{Engines, is_legacy};
 use crate::interp::{self, Interp, Party};
 use crate::link::{Link, MAX_EXCHANGE, MAX_RECORD, PeerFrame};
-use crate::loader::Kernels;
+use crate::loader::{Kernels, Programs};
 use crate::server::{RecordError, Server, ServerOp};
 use std::time::Duration;
 
@@ -26,6 +26,8 @@ pub struct Shell<E: Engines> {
     pub peer_wait: Option<Duration>,
     /// The kernels a batch's `run` may name (the circuit manifest's; none without one).
     pub kernels: Kernels,
+    /// The V3 field programs a batch's `program` may name ([`Shell::set_programs`]).
+    pub programs: Programs,
     /// The batch interpreter's state (interp.rs), carried across batches.
     pub interp: Interp,
 }
@@ -50,8 +52,16 @@ impl<E: Engines> Shell<E> {
             connections: Connections::default(),
             peer_wait,
             kernels: Kernels::default(),
+            programs: Programs::default(),
             interp: Interp::default(),
         }
+    }
+
+    /// The loaded V3 field programs, at session start: the interpreter's context starts with
+    /// their signatures (Lean `Ctx.progs`, `Env.progs`; decision D14).
+    pub fn set_programs(&mut self, programs: Programs) {
+        self.interp.ctx.progs = programs.sigs();
+        self.programs = programs;
     }
 
     /// One agreed operation (never 8, which is local: see [`Shell::abort`]).
@@ -92,7 +102,8 @@ impl<E: Engines> Shell<E> {
         let kernels = &self.kernels;
         let steps = self.interp.admit(&|name| kernels.sig(name), &batch)?;
         let (leader, link) = (self.leader, &mut self.link);
-        let replies = self.interp.execute(&mut self.engines, kernels, me, &batch, &steps, &mut |mine| link.exchange(leader, mine))?;
+        let replies =
+            self.interp.execute(&mut self.engines, kernels, &self.programs, me, &batch, &steps, &mut |mine| link.exchange(leader, mine))?;
         Ok(interp::encode_replies(&replies))
     }
 

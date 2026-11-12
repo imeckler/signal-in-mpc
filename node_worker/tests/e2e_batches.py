@@ -100,7 +100,9 @@ def refused(payload_byte):
 
 
 def main():
-    fl = flows(VECTORS.read_text())
+    # The `program` flow needs V3 programs loaded from pinned files; it runs on the stand-in
+    # engines only (tests/batch_pair.rs).
+    fl = [f for f in flows(VECTORS.read_text()) if f['name'] != 'program']
     path = manifest()
     work = OUT / 'work'
     work.mkdir()

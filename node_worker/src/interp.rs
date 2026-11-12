@@ -6,7 +6,7 @@
 //! One batch, in this order ([`crate::shell::Shell`] drives it):
 //! 1. [`decode_batch`] (Lean `decodeBatch`): u64 little-endian numbers, lists as a count then the
 //!    items, bits and flags one byte 0/1, field elements 32 bytes little-endian below
-//!    p = 2^255 - 19, opcodes 1-21; nothing may follow the batch.
+//!    p = 2^255 - 19, opcodes 1-22; nothing may follow the batch.
 //! 2. [`validate_payloads`]: this party's private payloads have the shapes the skeleton declares
 //!    (design note item 5, Lean `Wire.payloadOk`: `fill`'s conditions). 1 and 2 together are
 //!    Lean `usableBatch` ([`usable_batch`]).
@@ -20,7 +20,8 @@
 //!    WHOLE batch before the first engine call, from the context carried across batches; a
 //!    refusal rejects the batch and nothing runs.
 //! 5. [`Interp::execute`]: each instruction through the engine ABI (opcodes map 1:1 to
-//!    `ea_bool_*` / `ea_field_*`, opcode 21 to the control link's exchange), collecting the reply
+//!    `ea_bool_*` / `ea_field_*`, opcode 21 to the control link's exchange, opcode 22 to
+//!    program.rs's evaluator of a loaded V3 field program), collecting the reply
 //!    items (Lean `encodeReplies`): one datum per release to this party ([`Wire::releases_to`],
 //!    not the check's shape: `openBoolTo` has shape unit but gives its recipient an item), in
 //!    order.
@@ -28,11 +29,12 @@
 //! Handles: the Lean script names handles (two name spaces, Boolean and field); the engines issue
 //! their own. [`Interp`] maps the first to the second. The lifetime rule (design note item 5):
 //! an engine value lives as long as its Lean handle is live; an explicit free releases it at
-//! once, and a Boolean handle consumed as a `once` operand is released in the engine at the end
-//! of the batch.
+//! once, and a Boolean handle consumed as a `once` operand, or a field mask consumed by a
+//! program, is released in the engine at the end of the batch.
 use crate::engines::Engines;
 use crate::handles::{self, Ctx, Shape, Sig};
-use crate::loader::Kernels;
+use crate::loader::{Kernels, Programs};
+use crate::program;
 use std::collections::HashMap;
 
 /// The pipe operation code of a batch: the next free code after the shell's 90-92.
@@ -115,6 +117,8 @@ pub enum Wire {
     OpenField { hs: Vec<u64>, label: u64 },
     FreeField { h: u64 },
     Exchange { len: u64, label: u64, payload: Vec<u8> },
+    /// Opcode 22: `copies` instances of a V3 field program (program.rs).
+    Program { name: Vec<u8>, copies: u64, ins: Vec<u64>, masks: Vec<u64>, outs: Vec<u64>, label: u64 },
 }
 
 impl Wire {
@@ -132,12 +136,13 @@ impl Wire {
     /// Lean `InstrP.releasesTo`.
     pub fn releases_to(&self, me: Party) -> bool {
         match self {
-            Wire::OpenBool { .. } | Wire::OpenField { .. } | Wire::Exchange { .. } => true,
+            Wire::OpenBool { .. } | Wire::OpenField { .. } | Wire::Exchange { .. } | Wire::Program { .. } => true,
             Wire::OpenBoolTo { recipient, .. } => *recipient == me,
             _ => false,
         }
     }
-    /// Lean `InstrP.endsBatch` (decision D8): the releases.
+    /// Lean `InstrP.endsBatch` (decision D8): the releases whose data the script reads (not
+    /// `program`, whose openings the script does not read; decision D14).
     pub fn ends_batch(&self) -> bool {
         matches!(self, Wire::OpenBool { .. } | Wire::OpenBoolTo { .. } | Wire::OpenField { .. } | Wire::Exchange { .. })
     }
@@ -328,6 +333,15 @@ fn enc_wire(o: &mut Out, w: &Wire) {
             o.u64(*len);
             o.u64(*label);
             o.bytes(payload);
+        }
+        Wire::Program { name, copies, ins, masks, outs, label } => {
+            o.byte(22);
+            o.bytes(name);
+            o.u64(*copies);
+            o.u64s(ins);
+            o.u64s(masks);
+            o.u64s(outs);
+            o.u64(*label);
         }
     }
 }
@@ -584,6 +598,15 @@ impl<'a> In<'a> {
                 let payload = r.bytes()?;
                 Wire::Exchange { len, label, payload }
             }
+            22 => {
+                let name = r.bytes()?;
+                let copies = r.u64()?;
+                let ins = r.u64s()?;
+                let masks = r.u64s()?;
+                let outs = r.u64s()?;
+                let label = r.u64()?;
+                Wire::Program { name, copies, ins, masks, outs, label }
+            }
             _ => return None,
         })
     }
@@ -705,10 +728,12 @@ impl Interp {
 
     /// Runs an admitted batch (`steps` from [`Interp::admit`] on the same batch). `exchange`
     /// sends this party's bytes on the control link and returns the other party's.
+    #[allow(clippy::too_many_arguments)]
     pub fn execute<E: Engines>(
         &mut self,
         engines: &mut E,
         kernels: &Kernels,
+        programs: &Programs,
         me: Party,
         batch: &[Wire],
         steps: &[Step],
@@ -852,13 +877,37 @@ impl Interp {
                     }
                     replies.push(Datum::Bytes(peer));
                 }
+                Wire::Program { name, copies, ins, masks, outs, .. } => {
+                    let p = programs.get(name).ok_or("field program not loaded")?;
+                    let hi = ins.iter().map(|&h| self.field_handle(h)).collect::<Result<Vec<_>, _>>()?;
+                    let hm = masks.iter().map(|&h| self.field_handle(h)).collect::<Result<Vec<_>, _>>()?;
+                    let (ho, opened) = program::evaluate(engines, p, *copies as usize, &hi, &hm)?;
+                    if ho.len() != outs.len() {
+                        for h in ho {
+                            engines.field_free(h)?;
+                        }
+                        return Err("field program output count".into());
+                    }
+                    for (id, h) in outs.iter().zip(ho) {
+                        self.fields.insert(*id, h);
+                    }
+                    // Both parties get the openings (Lean releasesTo); the script reads none.
+                    replies.push(Datum::Elems(opened));
+                }
             }
         }
-        // Engine values whose Lean handles are no longer live (consumed `once` handles).
+        // Engine values whose Lean handles are no longer live (consumed `once` handles, and the
+        // masks a program consumed).
         let dead: Vec<u64> = self.bools.keys().filter(|id| !self.ctx.bools.contains_key(id)).copied().collect();
         for id in dead {
             if let Some(h) = self.bools.remove(&id) {
                 engines.bool_free(h)?;
+            }
+        }
+        let dead: Vec<u64> = self.fields.keys().filter(|id| !self.ctx.fields.contains_key(id)).copied().collect();
+        for id in dead {
+            if let Some(h) = self.fields.remove(&id) {
+                engines.field_free(h)?;
             }
         }
         Ok(replies)
@@ -935,7 +984,7 @@ mod tests {
         kind[25] = 2;
         assert_eq!(decode_batch(&kind), None);
         // unknown opcodes
-        for op in [0u8, 22, 93, 255] {
+        for op in [0u8, 23, 93, 255] {
             assert_eq!(decode_batch(&[1, 0, 0, 0, 0, 0, 0, 0, op]), None, "opcode {op}");
         }
         assert_eq!(decode_batch(&[1, 0, 0, 0, 0, 0, 0, 0, 18]), Some(vec![Wire::FieldCheck]));

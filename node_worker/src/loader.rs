@@ -13,7 +13,8 @@
 //! strict mode from the same variable, re-checking every pin). What this module adds: the
 //! manifest is parsed and every listed file is checked to exist and every layout to match its
 //! pin before the session starts, and the manifest agreement happens before the first request.
-use crate::handles::{Mark, Sig};
+use crate::handles::{Mark, ProgSig, Sig};
+use crate::program::{Program, parse};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -244,10 +245,11 @@ impl Kernels {
 }
 
 /// What the two workers compare at start: the circuit source's digest ([`Circuits::digest`])
-/// alone when no word circuit is runnable, otherwise SHA-256 of it and each added word circuit's
-/// name and pin, so two workers that could run different circuit sets stop before any request.
-pub fn agreement_digest(circuits: &Circuits, words: &[&str]) -> [u8; 32] {
-    if words.is_empty() {
+/// alone when no word circuit and no field program is runnable, otherwise SHA-256 of it, each
+/// added word circuit's name and pin, and each added V3 field program's name and pin, so two
+/// workers that could run different circuit or program sets stop before any request.
+pub fn agreement_digest(circuits: &Circuits, words: &[&str], programs: &[&str]) -> [u8; 32] {
+    if words.is_empty() && programs.is_empty() {
         return circuits.digest();
     }
     let mut h = Sha256::new();
@@ -256,7 +258,75 @@ pub fn agreement_digest(circuits: &Circuits, words: &[&str]) -> [u8; 32] {
         let w = WORD_CIRCUITS.iter().find(|w| w.name == *name).expect("a listed word circuit");
         h.update(format!("\nword {} {}", w.name, w.sha256).as_bytes());
     }
+    for name in programs {
+        let p = FIELD_PROGRAMS.iter().find(|p| p.name == *name).expect("a listed field program");
+        h.update(format!("\nprogram {} {}", p.name, p.sha256).as_bytes());
+    }
     h.finalize().into()
+}
+
+/// A V3 field program the `program` instruction may name (TlsMpc/FieldDagV3.lean, program.rs):
+/// its file in the word-circuit directory (written by the V3 export of `EmitWordMask`,
+/// FIELD_PROGRAMS_V3.md) and the file's pin. The file is parsed by program.rs, which accepts only
+/// a valid program's canonical text (Lean `parse`), so the pin names one program.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FieldProgramPin {
+    /// The name a batch's `program` uses.
+    pub name: &'static str,
+    pub file: &'static str,
+    pub sha256: &'static str,
+}
+
+/// The V3 field programs `program` may name. `field-quotient`: `x / z` with a mask and the
+/// public zero flag (Lean `FieldDagV3.quotient`; its text is fixed by Lean's printer, so its pin
+/// is known before the export; tests/engine_vectors.txt carries the text). The compiled
+/// programs' pins are added from the re-export's report (FIELD_PROGRAMS_V3.md).
+pub const FIELD_PROGRAMS: &[FieldProgramPin] =
+    &[FieldProgramPin { name: "field-quotient", file: "field-quotient.v3", sha256: FIELD_QUOTIENT_SHA256 }];
+
+/// SHA-256 of `render FieldDagV3.quotient` (checked against the Lean text in
+/// tests/program_vectors.rs).
+pub const FIELD_QUOTIENT_SHA256: &str = "ec4abf2bfd564dae04801e00de2d6ca21503321c1af86909fb2871007f8f1e34";
+
+/// The V3 field programs of `program` (interp.rs), by name, parsed.
+#[derive(Debug, Clone, Default)]
+pub struct Programs {
+    entries: BTreeMap<Vec<u8>, Program>,
+}
+
+impl Programs {
+    pub fn insert(&mut self, name: &[u8], program: Program) {
+        self.entries.insert(name.to_vec(), program);
+    }
+    pub fn get(&self, name: &[u8]) -> Option<&Program> {
+        self.entries.get(name)
+    }
+    /// Lean `Ctx.progs` at session start (Lean `Env.progs`).
+    pub fn sigs(&self) -> BTreeMap<Vec<u8>, ProgSig> {
+        self.entries.iter().map(|(n, p)| (n.clone(), p.sig())).collect()
+    }
+    /// Adds every pinned program of `pins` whose file is in `dir`, after checking the file
+    /// against its pin and parsing it (program.rs `parse`, Lean `parse`). A file present with
+    /// another hash, or that does not parse, is an error; an absent file is not added (then
+    /// `check` refuses a `program` naming it). Returns the names added, which the start agreement
+    /// covers ([`agreement_digest`]).
+    pub fn add_pinned(&mut self, dir: &Path, pins: &[FieldProgramPin]) -> Result<Vec<&'static str>, String> {
+        let mut added = Vec::new();
+        for pin in pins {
+            let path = dir.join(pin.file);
+            let Ok(bytes) = std::fs::read(&path) else { continue };
+            if hex(&Sha256::digest(&bytes)) != pin.sha256 {
+                return Err(format!("field program pin: {}", pin.name));
+            }
+            let program = parse(&bytes).map_err(|e| format!("{e}: {}", pin.name))?;
+            if self.get(pin.name.as_bytes()).is_some() {
+                return Err(format!("field program listed twice: {}", pin.name));
+            }
+            self.insert(pin.name.as_bytes(), program);
+            added.push(pin.name);
+        }
+        Ok(added)
+    }
 }
 
 /// The circuit source of this worker: a manifest, or (test-engine only) none.
@@ -357,8 +427,36 @@ mod tests {
             // Twice: the name is taken.
             assert!(k.add_word_circuits(&real).is_err());
             let c = Circuits::Unpinned;
-            assert_ne!(agreement_digest(&c, &["xor-bit"]), agreement_digest(&c, &[]));
+            assert_ne!(agreement_digest(&c, &["xor-bit"], &[]), agreement_digest(&c, &[], &[]));
         }
+    }
+
+    #[test]
+    fn field_programs_are_pinned_and_parsed() {
+        let dir = std::env::temp_dir().join(format!("node-worker-programs-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let text = format!(
+            "EMP_HYBRID_FIELD_DAG_V3\n2 1 4 2\n{}\nI 0\nI 1\nZ 0 1 0\nF 2\nO 2 0\nO 3 1\n",
+            std::str::from_utf8(crate::program::MODULUS_DECIMAL).unwrap()
+        );
+        let sha = hex(&Sha256::digest(text.as_bytes()));
+        let leaked = |s: String| -> &'static str { Box::leak(s.into_boxed_str()) };
+        let pins = [FieldProgramPin { name: "q", file: "q.v3", sha256: leaked(sha) }];
+        let mut p = Programs::default();
+        // Absent: not added.
+        assert_eq!(p.add_pinned(&dir, &pins).unwrap(), Vec::<&str>::new());
+        // Present and pinned: parsed, and its signature is check's.
+        std::fs::write(dir.join("q.v3"), &text).unwrap();
+        assert_eq!(p.add_pinned(&dir, &pins).unwrap(), vec!["q"]);
+        assert_eq!(p.sigs()[b"q".as_slice()], ProgSig { inputs: 2, masks: 1, out_marks: vec![Mark::Never, Mark::Pub] });
+        // Twice: refused.
+        assert!(p.add_pinned(&dir, &pins).is_err());
+        // Another hash: refused.
+        std::fs::write(dir.join("q.v3"), format!("{text} ")).unwrap();
+        assert_eq!(Programs::default().add_pinned(&dir, &pins).unwrap_err(), "field program pin: q");
+        let _ = std::fs::remove_dir_all(&dir);
+        let c = Circuits::Unpinned;
+        assert_ne!(agreement_digest(&c, &[], &["field-quotient"]), agreement_digest(&c, &[], &[]));
     }
 
     #[test]

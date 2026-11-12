@@ -1,7 +1,29 @@
 //! The Lean-generated vectors (tests/engine_vectors.txt, written by tests/lean/EngineVectors.lean
 //! through .deps/lowering-scratch/s9r_vectors.py), parsed for the tests.
 #![allow(dead_code)]
+pub mod field;
+
 use node_worker::handles::{Mark, Sig};
+use node_worker::loader::Programs;
+
+/// The loaded V3 programs (`prog NAME_HEX TEXT_HEX …`), parsed by program.rs.
+pub fn programs(text: &str) -> Programs {
+    let mut p = Programs::default();
+    for l in text.lines().filter_map(|l| l.strip_prefix("prog ")) {
+        let f: Vec<&str> = l.split(' ').collect();
+        let program = node_worker::program::parse(&unhex(f[1])).expect("Lean's V3 text parses");
+        p.insert(&unhex(f[0]), program);
+    }
+    p
+}
+
+/// Field elements from Lean's `Enc.felts` hex (a u64 count, then 32 bytes each).
+pub fn felts(hexed: &str) -> Vec<[u8; 32]> {
+    let b = unhex(hexed);
+    let n = u64::from_le_bytes(b[..8].try_into().unwrap()) as usize;
+    assert_eq!(b.len(), 8 + 32 * n, "felts");
+    (0..n).map(|i| b[8 + 32 * i..8 + 32 * (i + 1)].try_into().unwrap()).collect()
+}
 
 pub fn unhex(s: &str) -> Vec<u8> {
     assert!(s.len() % 2 == 0, "odd hex");

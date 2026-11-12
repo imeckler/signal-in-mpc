@@ -167,7 +167,10 @@ impl Worker {
 #[test]
 fn lean_flows_on_the_real_engines() {
     let started = Instant::now();
-    let flows = common::flows(&common::text());
+    // The `program` flow needs its V3 programs loaded from pinned files (loader.rs
+    // FIELD_PROGRAMS); `test-allrows` is a vector-only program, so it runs on the stand-in
+    // engines only (tests/batch_pair.rs).
+    let flows: Vec<_> = common::flows(&common::text()).into_iter().filter(|f| f.name != "program").collect();
     let out = Path::new(env!("CARGO_TARGET_TMPDIR")).join(format!("node-worker-e2e-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&out);
     std::fs::create_dir_all(&out).unwrap();
