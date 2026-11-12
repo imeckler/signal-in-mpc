@@ -156,6 +156,59 @@ structure State where
   vals : Array F := #[]
   opened : List F := []
 
+/-! ### An executable inverse
+
+`FieldDag.inverse` is `power x (p − 2)`, unary recursion: a definition, not a computation. The V3
+semantics computes it by square and multiply (`powFast`, about 255 steps), proved equal
+(`inverseFast_eq`), so `eval` runs (the Rust test vectors are computed by it). -/
+
+theorem ofNat_one : ofNat 1 = (1 : F) := rfl
+
+theorem power_add (x : F) (a b : Nat) : power x (a + b) = power x a * power x b := by
+  induction a with
+  | zero =>
+    rw [Nat.zero_add]
+    show power x b = ofNat 1 * power x b
+    rw [ofNat_one]
+    grind
+  | succ a ih =>
+    rw [Nat.succ_add, power, power, ih]
+    grind
+
+/-- `x^n` by square and multiply. -/
+def powFast (x : F) (n : Nat) : F :=
+  if n = 0 then ofNat 1
+  else
+    let half := powFast x (n / 2)
+    if n % 2 = 0 then half * half else x * (half * half)
+termination_by n
+decreasing_by omega
+
+theorem powFast_eq (x : F) (n : Nat) : powFast x n = power x n := by
+  induction n using Nat.strongRecOn with
+  | _ n ih =>
+    rw [powFast]
+    split
+    · next h => subst h; rfl
+    · next h =>
+      have e := ih (n / 2) (by omega)
+      simp only [e]
+      split
+      · next h2 =>
+        rw [← power_add]
+        congr 1
+        omega
+      · next h2 =>
+        rw [← power_add]
+        have : n = (n / 2 + n / 2) + 1 := by omega
+        conv => rhs; rw [this]
+        rfl
+
+/-- The inverse the semantics computes. -/
+def inverseFast (x : F) : F := powFast x (modulus - 2)
+
+theorem inverseFast_eq (x : F) : inverseFast x = inverse x := powFast_eq x _
+
 /-- A row's value (0 for a dangling index, as FieldDag's `run`). -/
 def get (vals : Array F) (a : Nat) : F := vals[a]?.getD (ofNat 0)
 
@@ -169,10 +222,10 @@ def step (rows : List Row) (input mask : Nat → F) (s : State) : Row → Option
   | .div a b m =>
     let o := get s.vals b * mask m
     if o = 0 then none
-    else some ⟨s.vals.push (get s.vals a * mask m * inverse o), s.opened ++ [o]⟩
+    else some ⟨s.vals.push (get s.vals a * mask m * inverseFast o), s.opened ++ [o]⟩
   | .zdiv a b m =>
     let o := get s.vals b * mask m
-    some ⟨s.vals.push (if o = 0 then ofNat 0 else get s.vals a * mask m * inverse o), s.opened ++ [o]⟩
+    some ⟨s.vals.push (if o = 0 then ofNat 0 else get s.vals a * mask m * inverseFast o), s.opened ++ [o]⟩
   | .flag k =>
     match rows[k]? with
     | some (.zdiv _ b m) => some { s with vals := s.vals.push (if get s.vals b * mask m = 0 then ofNat 1 else ofNat 0) }
@@ -395,7 +448,7 @@ theorem runFrom_ofNodes (hinv : FieldInverse) (rows : List Row) (input mask : Na
           simp only [Option.bind_some] at h
           have e := ih (k + 1) _ _ h
           rw [e]
-          simp only [FieldDag.Bin.eval]
+          simp only [FieldDag.Bin.eval, inverseFast_eq]
           rw [masked_div hinv _ _ _ ho]
 
 /-- The FieldDag denominators of a run are nonzero (the condition under which FieldDag's `div` is
@@ -443,7 +496,7 @@ theorem runFrom_ofNodes_some (hinv : FieldInverse) (rows : List Row) (input mask
         simp only [ofNodes, List.foldlM_cons, step, Option.bind_eq_bind, if_neg ho, Option.bind_some]
         refine ih (k + 1) _ ?_
         simp only [FieldDag.Bin.eval] at hd
-        rw [masked_div hinv _ _ _ ho]
+        rw [inverseFast_eq, masked_div hinv _ _ _ ho]
         exact hd
 
 /-- **V3 evaluation agrees with the FieldDag semantics.** A translated artifact that does not abort
@@ -1036,7 +1089,9 @@ theorem quotient_declares : quotient.declares [.secret, .flag] = true ∧ quotie
 theorem quotient_eval (input mask : Nat → F) :
     eval quotient input mask =
       some ([if input 1 * mask 0 = 0 then ofNat 0 else input 0 * mask 0 * inverse (input 1 * mask 0),
-             if input 1 * mask 0 = 0 then ofNat 1 else ofNat 0], [input 1 * mask 0]) := rfl
+             if input 1 * mask 0 = 0 then ofNat 1 else ofNat 0], [input 1 * mask 0]) := by
+  rw [← inverseFast_eq]
+  rfl
 
 theorem inverse_zero : inverse 0 = 0 := by
   have h : modulus - 2 = (modulus - 3) + 1 := by decide
