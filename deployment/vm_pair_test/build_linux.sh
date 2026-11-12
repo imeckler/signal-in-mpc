@@ -127,7 +127,8 @@ FIELD_LIBS="$FIELD_LIBS $MP/deps/SimplestOT_C/ref10/libSimplestOT.a -Wl,--start-
 FIELD_LIBS="$FIELD_LIBS -lgmpxx -lgmp -lsodium -lssl -lcrypto -lboost_filesystem -lboost_iostreams -lboost_system -Wl,-rpath,$MP -pthread"
 
 # 3. Our field engine wrapper, statistical 128, in both modes (as build_hybrid_v3.py).
-FIELD_FLAGS="-std=c++20 -O3 $ARCH -DNO_AVX_OT -DUSE_GF2N_LONG -DEMP_HYBRID_NATIVE_SECURITY=128 -DEMP_HYBRID_TEST_FAULTS=1 -I$MP -I$MP/deps -I$MP/local/include -Wno-deprecated-literal-operator -Wno-deprecated-declarations -Wno-unknown-warning-option"
+# No -DEMP_HYBRID_TEST_FAULTS: that test-only cheating hook stays out of these objects (SECURITY_MAP A.7).
+FIELD_FLAGS="-std=c++20 -O3 $ARCH -DNO_AVX_OT -DUSE_GF2N_LONG -DEMP_HYBRID_NATIVE_SECURITY=128 -I$MP -I$MP/deps -I$MP/local/include -Wno-deprecated-literal-operator -Wno-deprecated-declarations -Wno-unknown-warning-option"
 step field-engine $CXX $FIELD_FLAGS -c "$SRC/field_engine.cpp" -o "$ROOT/build/obj/field_engine.o"
 step field-engine-sh $CXX $FIELD_FLAGS -DEMP_HYBRID_SEMI_HONEST=1 -c "$SRC/field_engine.cpp" -o "$ROOT/build/obj/field_engine-sh.o"
 

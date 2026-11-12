@@ -110,9 +110,15 @@ are compared the same way at load.
 
 ## Between the two daemons
 
-The same line protocol on the same port, each message with the sender's clock (`at`, accepted
-within 60 s) and `mac` = HMAC-SHA256 over the message under a key the two nodes share
-(`peer_key_file`). Party 0 leads:
+The same line protocol on a listener of its own (`peer_listen`; the application's listener,
+`listen`, refuses peer messages and the peer listener takes nothing else). Each request carries
+the sender's party (`from`), a fresh 16-byte `nonce`, the sender's clock (`at`, accepted within
+60 s) and `mac` = HMAC-SHA256 over the message under a key the two nodes share
+(`peer_key_file`). A request is accepted once: a nonce seen within the window is refused as a
+replay, and a message whose `from` is the receiver itself (reflected) is refused. Each reply is
+sealed the same way with `reply_to` = the request's nonce, and the caller accepts only a reply
+to the request it sent (`lib.rs`, `seal_request` / `open_request` / `seal_reply` / `open_reply`).
+Both daemons must run the same version of this link. Party 0 leads:
 
 - `peer-agree {job}`: "do you hold this request?" Asked for every request party 0 accepted, until
   yes or `agree_seconds`. Party 1 marks a request rejected if it is not asked within
@@ -201,7 +207,9 @@ with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
 ## Configuration (one JSON file per node)
 
 ```json
-{ "party": 0, "listen": "127.0.0.1:19700", "peer": "127.0.0.1:19701",
+{ "party": 0, "listen": "127.0.0.1:19700",   // the application's: localhost, or an address only it reaches
+  "peer_listen": "10.0.0.1:19710",            // the other daemon's (WireGuard address); must differ from listen
+  "peer": "10.0.0.2:19710",                   // the other daemon's peer_listen
   "peer_key_file": "…/peer.key",              // hex, at least 16 bytes, shared by the two nodes
   "state_directory": "…/node-0",              // the daemon's own: logs/, work/, journal/, events.jsonl
   "controller": "…/public_service_controller",

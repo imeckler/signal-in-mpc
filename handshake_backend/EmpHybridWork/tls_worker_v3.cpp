@@ -210,11 +210,14 @@ struct Worker {
         case 58:{need(phase==Phase::retired&&service&&p.empty(),"bundle drop");service->bundle_drop();return {};}
         case 59:{need(phase==Phase::retired&&service&&p.empty(),"bundle shape");return service->bundle_shape();}
         // 60: contact id 16, request id 8, our registration id 4, device index 1, device count 1, step 1,
-        // item offset 4, digit counts 5 (device id, registration id, signed prekey id, one-time prekey id or 0, Kyber prekey id).
+        // item offset 4, digit counts 5 (device id, registration id, signed prekey id, one-time prekey id or 0, Kyber prekey id);
+        // then optionally (bundle-slot) a run count 1 and per run zeros 1, copy 2 (Lean's BundleSlots.splice).
         case 60:{
-            need(phase==Phase::retired&&service&&p.size()==40,"bundle establish");
+            need(phase==Phase::retired&&service&&(p.size()==40||(p.size()>41&&p.size()==41+3*size_t(p[40]))),"bundle establish");
             std::array<size_t,6>layout{size_t(big(p.data()+31,4)),p[35],p[36],p[37],p[38],p[39]};
-            return service->bundle_establish(contact(p),p[28],p[29],p[30],layout,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+16,p.begin()+24));
+            std::vector<std::pair<size_t,size_t>>runs;
+            for(size_t i=41;i+3<=p.size();i+=3)runs.push_back({p[i],size_t(big(p.data()+i+1,2))});
+            return service->bundle_establish(contact(p),p[28],p[29],p[30],layout,Bytes(p.begin()+24,p.begin()+28),Bytes(p.begin()+16,p.begin()+24),runs);
         }
         // 61: contact id 16, our address 17 (account id, device id), the built text. Reply: timestamp 8, then per device length 2 and envelope.
         case 61:{need(phase==Phase::retired&&service&&p.size()>=33+89&&p.size()<=33+330&&((p.size()-43)%80==0||(p.size()-42)%80==0),"devices send");return service->seal_devices(contact(p),Bytes(p.begin()+16,p.begin()+33),Bytes(p.begin()+33,p.end()));}

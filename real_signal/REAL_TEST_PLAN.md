@@ -21,6 +21,95 @@ Tools (all new except the first):
 | `SIGNAL_RECORD=FILE` (controller) | one JSON line per exchange with the server, with time |
 | `SIGNAL_ACK_REFUSED=0` (controller) | refused messages stay on the server (recorded, not acknowledged) |
 
+## 0. The first real run (2026-11-12) and what changed after it
+
+Run `state/runs/20261112-074913-production` (malicious, strict with the 436-kernel manifest,
+libsignal profile, in-memory database nodes). **The signup worked; the reply did not reach the
+phone.** From the run's records (`.deps/lowering-scratch/record_events.py`, `unmask.py`,
+`time_breakdown.py` print them):
+
+**Receive session, 55.6 s, exit 0.** Connection, handshake (the 1122-byte flight, as measured),
+upgrade: 3.7 s. Then idle, waiting for the phone (a ping after 31 s, as designed), 44 s. The
+signup arrived at 48.5 s in one record of 2,402 bytes (`tls-open-typed 2560`): envelope type 6,
+sealed content 2,265, unsealed content 2,171, PreKey message 2,027, ciphertext 240 (Android's
+layout, as B1 predicted), hint RESENDABLE, sender certificate 134 without a phone number, the
+phone's registration id two varint bytes, addresses present, post-quantum field 37 bytes:
+`receive-session 134 2027 0 2 4 4 1 1 240 1 1 0`, a shape the manifest had. (The `4 4` are OUR
+signed and Kyber prekey ids' widths, which the phone's message names; the phone's own key ids
+are never visible.) The controller passed the 2,265 bytes over in 1.2 s, the engines opened the
+message (2.9 s) and built the session (2.1 s), the contact was stored and the message
+**acknowledged at 55.06 s**: the record's `server-request` event with `delivered_message: true,
+answered: true`, and the `sent-public` frame after it, which is a WebSocket response with status
+200 to the server's request id (decoded: `unmask.py`). So the message is off the server's queue
+and will not be delivered again. Worker busy time 8.8 s of the 55.6.
+
+**Send session, 20.8 s, exit 1 on both.** Connect, handshake, upgrade 4.1 s; the contact read
+back from the database nodes and prepared, 0.6 s; sealed (`signal-seal-official 134 2`), 1.0 s;
+the advanced state stored and acknowledged by the database nodes (`contactSeal`, then the
+parties' exchange) **before** the request left at 7.1 s (928-byte frame; the message's timestamp
+was then 2.0 s old). **409** at 7.5 s, body 42 bytes: `{"missingDevices":[…],"extraDevices":[]}`
+has 39 fixed characters, so the list is three characters, two device ids of one digit each. The
+prekey fetch left at once; the 200 came at 10.3 s in ONE record of 7,843 bytes (body 7,727),
+opened with `tls-open-typed 8192` (listed). Then the controllers spent **10.2 s** in the clear
+passing over the 7,727 unrevealed bytes (finding: superlinear, PRODUCT_TODO section 5), and the
+worker asked for `bundle-shape 8192`, which the manifest did not have (`bundle_max` followed
+`devices: 2`): refused, "native worker rejected the operation", both controllers exited 1.
+Worker busy 7.0 s of the 20.8.
+
+**What the sizes say about the contact.** A 7,727-byte body is exactly three devices
+(two: at most 5,200; four: at least 9,986), and only with a one-time EC prekey on each of the
+three (with two or fewer the remaining digits would exceed what the numbers can hold); the 15
+numbers then have 72 digits, the three device ids 3, so registration ids and key ids average
+about six digits. An Android primary's key ids are random 24-bit numbers (7 or 8 digits), so at
+least one linked device has shorter ids: outside `bundle_items` (7–8 digits for linked devices)
+even if `bundle-shape 8192` had been listed. Which device has which numbers, and what the 409
+body names, cannot be known: neither body is ever revealed (only their lengths and the opened
+punctuation flags, which never ran here).
+
+**State left by the run.** The contact's state was on the harness's in-memory database nodes,
+which `run_real_test.py` stopped at the end: **it is gone**; no resume is possible for this run.
+Its stored state had been advanced past the message that got the 409 (stored before every
+send), so a resend from it would have sealed under the next key, never the same one; this is
+what `--resume` now relies on (section 3). The phone has a session with our account that it
+started and that was never answered.
+
+**Changed (2026-11-12), offline and against the local server only:**
+- `bundle-slot FIRST LAST ONETIME` (`TlsMpc/BundleSlotKernels.lean`): one circuit per item
+  position and one-time flag for EVERY digit count (the item is spliced into fixed-width number
+  slots; CIRCUIT_SHAPES.md). Enumerating `bundle-item` for realistic ranges would have been about
+  11,500 kernels. Checked against a JSON parse for every digit count (`check_bundle_slots.py`).
+- `deployment-production.json`: `devices 4`, `bundle_slots 1`, `device_lists pending`,
+  `record_max 12288` with `scan_record_max 10240`, `signup_jump [3]`. Sizes per device count:
+
+  | Devices | Prekey response body | Record (content) | Record class | Request frame, class 2 |
+  |---|---|---|---|---|
+  | 1 | 2,552–2,637 | ≤ 2,747 | 3072 | about 3.1 KB |
+  | 2 | 5,030–5,200 | ≤ 5,304 | 6144 | about 6.2 KB |
+  | 3 | 7,508–7,763 (the real one: 7,727) | ≤ 7,861 | 8192 | about 9.3 KB |
+  | 4 | 9,986–10,326 | ≤ 10,419 | 10240 or 12288 | about 12.4 KB |
+  | 5 (not covered) | 12,464–12,889 | ≤ 12,976 | 14336 | about 15.5 KB |
+  | 6 (the server's limit) | about 15,400 | about 15,500 | 16384 | over one record: "retry later" |
+
+  (Bodies from the template with 3–5-digit registration ids and 6–10-digit key ids; the record
+  adds 116 bytes of framing and headers.) `record_max 10240`, as before, allows three devices
+  always and four only with short numbers. The framing-scan kernels of 12288 and up do not lower
+  under the 16 GB cap, but they run only on handshake records, so above 10240 only
+  `tls-open-typed` and `tls-reveal-masked` are listed (`scan_record_max`). `tls-open-typed 12288`
+  itself is 4.58M AND gates and peaks at **23.6 GB** to produce (59 s): hence `--max-gb 26`.
+  `14336` (five devices) would be about 5.3M AND gates and, by the same growth, over 30 GB: not
+  attempted on this 48 GB machine (crash history). **Five or more devices are therefore not
+  covered**: the response record is refused in strict mode and the session ends (the contact's
+  stored state is untouched; nothing is sent). Beyond that: an opening kernel that takes a long
+  record in pieces (the decryption is per block; the parser's state would be carried between
+  pieces), or a lowering that uses less memory per gate.
+- The receive kernels accept a first message that is the sender's number 0 to 3 of its
+  unanswered session (`SIGNAL_RECEIVE_JUMP=3`, set by the launchers; `signup_jump [3]`). Needed
+  for the next run: the phone's next token goes out as message 1 of the session it started
+  for the first one, which we never answered (with jump 0 it would be refused).
+- `run_real_test.py`: real database nodes by default (`--db real`: secret-shared-db's node
+  binary with a private Postgres under `RUN/db/real`, kept after the run), `--resume RUN` (only
+  the send, to the contact RUN stored), `--stop-after receive` (for testing).
+
 ## 1. Gap list
 
 Status: **handled** (works for production as it is), **change needed** (file, size), **unknown**
@@ -127,8 +216,10 @@ while a receive session is connected (the server closes the older socket, code 4
 recovery path (`deliver`: sent but not answered → reconnect, send again under new keys, at most 2
 reconnects) runs only with `SIGNAL_DB_CLIENT`. Without it (`SIGNAL_LOCAL_STORE`) a dropped
 connection ends the session and the stored state can be behind what was sent, so a rerun would
-reuse a message key. `run_real_test.py` therefore always uses the database nodes (the harness's
-in-memory test nodes, local to this machine; they live for the one process).
+reuse a message key. `run_real_test.py` therefore always uses the database nodes. Until
+2026-11-12 these were the harness's in-memory test nodes, which live for the one process (the
+first real run's contact was lost with them); now by default the real node binary with its own
+Postgres under the run directory, kept, so `--resume RUN` can retry the send (section 3).
 
 **B6b — FIXED 2026-11-12** (the controller option: Lean only, `PublicServiceController.lean`
 `provisionals`): every opened message gets its own provisional id (2^128 − 1, then 2^128 − 3,
@@ -170,7 +261,7 @@ session (test admission, PRODUCT_TODO section 2). Fine for a first test; not the
 | Our prekey ids | small (varint width 1) | random 24-bit: signed and Kyber width 4; no one-time prekeys uploaded | `deployment-production.json`: `signup_signed 4`, `signup_kyber 4`, `signup_one_time 0` (from the export's `deployment-hints.json`) |
 | A phone's sender certificate | 244 | 134 without a phone number (Android's default "nobody" sharing), 136 + n with one of n characters | `signup_certificates` `134:0:0`, `148:255:12` (+1 numbers); other lengths are produced on demand or refused, recorded |
 | Responses and records | record classes up to 6144 | the same classes; a send's response is ~150 bytes; the upgrade response may carry headers the local server does not send | the upgrade validator accepts any syntactically valid headers; `record_max` is now 10240 in `deployment-production.json` (2026-11-12: a frontend packs queued WebSocket frames into one record; locally two queued deliveries made an 8192-class record, which 6144 refused in strict mode). 12288 and up do not lower under the 16 GB per-kernel cap: a record above 10240 (five or more deliveries queued in one record) is refused, the session ends and the messages stay on the server |
-| Contacts with linked devices | tested (`--multi-device`) | a phone user with Desktop or iPad: first send answered 409 → prekey fetch → one message per device | `bundle_items` covers 3–5-digit registration ids, 7–8-digit key ids and 0/3/4-digit one-time ids; other digit counts are refused (CIRCUIT_SHAPES "Not done" 3) |
+| Contacts with linked devices | tested (`--multi-device`) | a phone user with Desktop or iPad: first send answered 409 → prekey fetch → one message per device | since 2026-11-12 `bundle-slot`: any digit counts; up to four devices (section 0). Before: `bundle_items` (3–5-digit registration ids, 7–8-digit key ids); the first real run's contact (three devices, mixed widths) would have been refused there too |
 | Export without contacts | n/a | a real account has none | `readExport` accepts an empty `contacts` list (changed) |
 | Never a receipt | | | no request kind exists for one: the only requests are sealed text sends, prekey fetches, keepalives, pings and 200 replies to server requests; the content is always a `DataMessage` (body, timestamp) |
 | Signups sealed sender only | | | a delivered envelope is processed only if its type is 6 (UNIDENTIFIED_SENDER); any other type is refused and recorded; sends are always sealed on the unauthenticated socket, and a 401 is "needs re-signup", never an unsealed retry |
@@ -246,6 +337,54 @@ by their envelope header, sizes and reason only; their content stays on the serv
 run a capture on the leader during the test (`sudo tcpdump -i any -w RUN/wire.pcap tcp port 443`).
 
 ## 3. Run sequence
+
+### The next run (after 2026-11-12's), in order
+
+All commands from the repository root. Steps A and B are offline; C and D contact Signal's
+service and are run by the owner only.
+
+A. Produce the production circuits (again after any change to the Lean kernels; the cache, and
+   with it every pin, belongs to the emitter binaries), one heavy job:
+
+       python3 scripts/guarded.py --heavy 28 10800 python3 scripts/produce_circuits.py real_signal/deployment-production.json real_signal/state/circuits --max-gb 26
+
+   `--max-gb 26` because `tls-open-typed 12288` (the four-device prekey response) peaks at
+   23.6 GB; everything else stays under 12.3 GB. **Done 2026-11-12** (05:00 local): 414 kernels,
+   412.6M AND gates, 31.1 GB of gate lists, 43 min with the earlier production's kernels in the
+   cache (from an empty cache: about 1.5 to 2 hours). Against the 436 of the first run: +8
+   `bundle-slot`, +4 `bundle-shape` (7168 to 12288), `tls-open-typed 12288` and its
+   `tls-reveal-masked`, +18 stored-list sizes (up to four unanswered devices), the four
+   `receive-session` shapes at jump 3 instead of 0, 60 `bundle-request-ctr` frames (one to four
+   unanswered devices, both message classes; 163M AND gates, 14.2 GB, the bulk of the growth);
+   −90 `bundle-item`, −12 request frames with established devices.
+B. Dry run (no connection; writes a run directory with `plan.json`, which must list no problems):
+
+       python3 real_signal/run_real_test.py production --export real_signal/state/export --manifest real_signal/state/circuits/manifest.txt --dry-run
+
+C. *(go-ahead)* The run, with the persistent database nodes (the default `--db real`):
+
+       python3 real_signal/run_real_test.py production --export real_signal/state/export --manifest real_signal/state/circuits/manifest.txt --i-have-the-go-ahead
+
+   It prints a NEW token. The first run's contact is gone (in-memory nodes), so the phone signs
+   up again: send the new token as one message. Phone side: this is the second message of the
+   session the phone started on 2026-11-12, which we never answered, so it goes out as a PreKey
+   message with counter 1; the receive kernels now accept counters 0 to 3
+   (`SIGNAL_RECEIVE_JUMP=3`). The old token is meaningless (it was signed by the first run's
+   in-memory application keys). Expected then: our reply answered 409, a refresh of three
+   devices (about 30 s in malicious mode), the reply sent again to all three, 200, "delivered
+   after device refresh". Check all three devices.
+D. *(go-ahead)* If the receive stored the contact but the send failed (any reason): retry ONLY
+   the send, for that contact, without a new signup:
+
+       python3 real_signal/run_real_test.py production --export real_signal/state/export --manifest real_signal/state/circuits/manifest.txt --resume real_signal/state/runs/RUN --i-have-the-go-ahead
+
+   RUN is C's run directory. It restarts that run's database nodes (Postgres and five nodes under
+   `RUN/db/real`, same ports and keys), waits one epoch, and sends. The stored state is always
+   the one advanced past the last message that may have left (it is written and acknowledged
+   before each send), so the resend seals under new keys; a duplicate is possible, a reused
+   message key is not.
+
+The earlier sequence, kept for the record:
 
 Offline (now):
 
@@ -339,6 +478,51 @@ receive session with `--ack-refused` clears them (each is still recorded).
 - `public_service_controller recovery-check`: passes. Other agents' harness runs (`--db
   --multi-device`, `--circuits 2 --circuits-db`, `--ceremony`) built and ran the controller with
   these changes while they were in place.
+
+- **2026-11-12, after the first real run** (offline; this machine):
+  - `check_bundle_slots.py` (under `guarded.py 12`): the eight `bundle-slot` kernels against a JSON
+    parse of responses of one to five devices with every digit count (device id 1–3, registration
+    id 1–5, key ids 1–10, with and without one-time prekeys, including a 72-digit three-device
+    account like the real one): 18 items, every field equal; the Lean splice equal to an
+    independent one; 251 altered inputs (wrong digit counts, 0, beyond the slot, padding not `0`,
+    a leading zero, out of range, template text) all release nothing.
+  - Lean: `BundleSlots.slotValid_map`, `deviceSlots_map`, `bundleSlot_spec`, `slot_rejects`,
+    `compiled_correct`: standard axioms only (`[propext, Quot.sound]`, the last also
+    `Classical.choice`); no `sorry`, `native_decide`, `bv_decide`.
+  - `circuit_inventory`: production 351 kernels before the request frames (414 produced in all);
+    compact local 350 (413 produced: `local_signal_server/state/circuits-compact/manifest.txt`,
+    60 min, peak 23.6 GB for `tls-open-typed 12288`).
+  - The persistent database nodes: started, an epoch applied, stopped, started again from their
+    Postgres data with `run_real_test.reopen_cluster` (10.3 s), an epoch applied after the restart
+    (48.6 s), same tables (`.deps/lowering-scratch/test_db_restart.py`, 141 s).
+  - `public_service_controller recovery-check`: passes (29 checks).
+  - **NOT RUN: the local 2/3/4-device reproduction and the local `--resume` test.** The local
+    Signal-Server instances need Docker (Testcontainers for DynamoDB and Redis), and OrbStack's
+    Docker daemon stopped answering at about 01:00 (OrbStack restarted at 00:15; `docker ps` and a
+    raw `GET /_ping` on its socket time out for hours since). Every local harness on this machine
+    is blocked by it. After Docker is back, in this order (each one heavy job, about 3–5 minutes):
+
+        python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt --devices 3
+        python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt --devices 2 --one-time 0
+        python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt --devices 4
+        (the same three with semi-honest)
+        python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt android again:android
+
+    The first three: an Android-layout signup, then 1, 2 or 3 linked devices (`--one-time`: their
+    one-time EC prekeys, default 5, 0, 5), the reply answered 409, refresh, resend, and every
+    device must decrypt; `report.json` has the statuses, the prekey response size and the record
+    sizes. The last: the same token sent twice (a redelivered or repeated signup): the second must
+    be refused at the token step, no second contact. Then the resume test, with the export of
+    one of those runs (`real_signal/state/runs/STAMP-local-signup-compact/export`, account
+    `signup-NNNNNN` from its `timeline.jsonl`):
+
+        python3 scripts/guarded.py --heavy 20 600 python3 real_signal/run_real_test.py local --export EXPORT --local-account ACCOUNT --manifest local_signal_server/state/circuits-compact/manifest.txt --stop-after receive
+        python3 .deps/lowering-scratch/lss_compact.py link realtest-user 5
+        python3 scripts/guarded.py --heavy 20 600 python3 real_signal/run_real_test.py local --export EXPORT --local-account ACCOUNT --manifest local_signal_server/state/circuits-compact/manifest.txt --resume real_signal/state/runs/RUN
+
+    (RUN: the first command's run directory.) Expected: the resumed send answered 409, two
+    devices refreshed, "delivered after device refresh", `realtest-user` decrypts (and
+    `realtest-user.2`: `lss_compact.py receive realtest-user.2`).
 
 ## 5. Where the target is configured
 

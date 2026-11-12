@@ -45,13 +45,22 @@ names=sys.argv[1:] or list(FIXTURES);reports={}
 field=json.loads((BASE/'field-build.json').read_text())
 # Native field owner rebuilt with the 128 profile; same recorded command otherwise.
 engine_obj=BASE/'field_engine-v3.o';engine_cmd=[str(engine_obj) if x==str(BASE/'field_engine.o') else str(BASE/'field_engine-v3.d') if x==str(BASE/'field_engine.d') else x for x in field['commands'][0]]
-engine_cmd.insert(engine_cmd.index('-DEMP_HYBRID_TEST_FAULTS=1'),'-DEMP_HYBRID_NATIVE_SECURITY=128')
+# The recorded command (build_field.py) builds the TEST object field_engine.o, with the
+# cheating hook EMP_TEST_NATIVE_OPEN_MAC compiled in (EMP_HYBRID_TEST_FAULTS) for
+# check_field_roundtrip.py's field-roundtrip-fixture. The objects linked into the workers and
+# the other fixtures here are built without it (SECURITY_MAP A.7, D.12).
+TEST_FAULTS='-DEMP_HYBRID_TEST_FAULTS=1'
+at=engine_cmd.index(TEST_FAULTS);engine_cmd[at:at+1]=['-DEMP_HYBRID_NATIVE_SECURITY=128']
+def no_test_hook(obj):
+    if b'EMP_TEST_NATIVE_OPEN_MAC' in obj.read_bytes():raise ValueError(f'{obj} contains the test-fault hook')
 with open(BASE/'field-engine-v3-build.log','w') as log:subprocess.run(engine_cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
+no_test_hook(engine_obj)
 sh_obj=BASE/'field_engine-sh.o'
 if any(n.endswith('-sh') for n in names):
     sh_cmd=[str(sh_obj) if x==str(engine_obj) else str(BASE/'field_engine-sh.d') if x==str(BASE/'field_engine-v3.d') else x for x in engine_cmd]
-    sh_cmd.insert(sh_cmd.index('-DEMP_HYBRID_TEST_FAULTS=1'),'-DEMP_HYBRID_SEMI_HONEST=1')
+    sh_cmd.insert(sh_cmd.index('-DEMP_HYBRID_NATIVE_SECURITY=128')+1,'-DEMP_HYBRID_SEMI_HONEST=1')
     with open(BASE/'field-engine-sh-build.log','w') as log:subprocess.run(sh_cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
+    no_test_hook(sh_obj)
 for name in names:
     stem,extra=FIXTURES[name];start=time.monotonic();commands=[]
     obj=BASE/(name+'-v3.o');dep=BASE/(name+'-v3.d');binary=BASE/(name+'-fixture-v3')
@@ -60,6 +69,7 @@ for name in names:
         command=field['commands'][-1]
         command=[str(binary) if x==str(BASE/'native-field-fixture') else str(obj) if x==str(BASE/'field_engine_fixture.o') else str(sh_obj if name.endswith('-sh') else engine_obj) if x==str(BASE/'field_engine.o') else x for x in command]
         command+=['-L'+str(INSTALL/'lib'),'-lemp-ot','-lemp-tool'];commands.append(command);subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=True)
+    no_test_hook(binary)
     dependencies={}
     for item in dep.read_text().replace('\\\n',' ').split(':',1)[1].split():
         d=pathlib.Path(item)

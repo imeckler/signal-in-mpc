@@ -1,17 +1,19 @@
 {
-  "description": "PRODUCTION deployment for the first real test (real_signal/REAL_TEST_PLAN.md). certificate, password, signup_signed, signup_kyber and signup_one_time come from the registered account (lss-provision export-account ... deployment-hints.json). profile libsignal: the sessions run with SIGNAL_CLIENT_PROFILE=libsignal (signal-seal-official, bundle-seal 80c-1, the official request frames). handshake 1122: measured 2026-11-12 (real_signal/state/handshake-production.json): chat.signal.org sends EncryptedExtensions, Certificate (one Ed25519 certificate), CertificateVerify (Ed25519) and Finished coalesced in ONE encrypted record of 1122 bytes (16 bytes of record padding); a new server certificate of another length changes it. record_max 10240 (was 6144): a TLS frontend packs several queued WebSocket frames into one record of up to 16 KB (seen locally: tls-open-typed 8192 when two delivered messages were queued); a larger record is refused in strict mode (the session ends, the messages stay on the server). 10240 is the largest class that lowers under the 16 GB per-kernel cap (12288 does not): about four queued deliveries. signup_ciphertext 240 is Signal-Android's first text with a 108-character token (body, expireTimer, expireTimerVersion, profileKey, timestamp; padded to 80k-1 = 239), 176 the test sender's legacy layout; signup_hints 0 and 1 (Android seals 1:1 texts with RESENDABLE). Not known until the phone's first message: the post-quantum field's size (signup_pq, 37 for libsignal 0.106) and whether addresses are present; another shape is produced on demand (non-strict) or refused and recorded (strict).",
+  "description": "PRODUCTION deployment for the real test (real_signal/REAL_TEST_PLAN.md). certificate, password, signup_signed, signup_kyber and signup_one_time come from the registered account (lss-provision export-account ... deployment-hints.json). profile libsignal: the sessions run with SIGNAL_CLIENT_PROFILE=libsignal (signal-seal-official, bundle-seal 80c-1, the official request frames). handshake 1122: measured 2026-11-12 (real_signal/state/handshake-production.json): chat.signal.org sends EncryptedExtensions, Certificate (one Ed25519 certificate), CertificateVerify (Ed25519) and Finished coalesced in ONE encrypted record of 1122 bytes (16 bytes of record padding); a new server certificate of another length changes it. signup_ciphertext 240 is Signal-Android's first text with a 108-character token (seen in the first real run, 2026-11-12: receive-session 134 2027 0 2 4 4 1 1 240 1 1 0), 176 the test sender's legacy layout; signup_hints 0 and 1. CONTACTS WITH LINKED DEVICES (2026-11-12: the first real run's contact has three devices; our reply was answered 409 and the refresh was refused at bundle-shape 8192): devices 4 (the server allows six; five need record class 14336, whose opening kernel does not lower in reach of this machine: tls-open-typed 12288 already peaks at 23.6 GB, so produce with --max-gb 26; a fifth device's response is refused in strict mode and the contact's message reported failed; a sixth device would not fit one request record anyway);bundle_slots 1: bundle-slot reads a device's item whatever the digit counts of its numbers (TlsMpc/BundleSlotKernels.lean; bundle_items, one kernel per digit-count combination, would need about 11,500 kernels for realistic ranges); device_lists pending: after a refresh every device is one that has not answered, so the request frames are 2^n per message class for n devices, not 3^n; record_max 12288: the prekey response of four devices is a record of up to 10,419 bytes (three: 7,861; the real run's three devices: 7,843; five: 12,976, not covered); scan_record_max 10240: above it only tls-open-typed and tls-reveal-masked are listed (the framing-scan kernels of 12288 do not lower under any cap this machine allows, and run only on small handshake records). A record above 12288 (five or more devices, or four or more queued deliveries packed in one record) is refused in strict mode. signup_jump 3 (the sessions run with SIGNAL_RECEIVE_JUMP=3, run_real_test.py sets it): a phone whose earlier signup we never answered (the first real run's contact was lost with that run's in-memory database nodes) sends its next token as message number 1 of the same unanswered session; receive-session ... 3 accepts numbers 0 to 3, privately.",
   "settings": {
     "profile": "libsignal",
     "certificate": 134,
     "password": 22,
     "client_certificate": 0,
     "handshake": [1122],
-    "record_max": 10240,
+    "record_max": 12288,
+    "scan_record_max": 10240,
     "typed_records": 1,
     "seal_max": 384,
     "sends": ["1:1:1:1:1", "2:1:1:1:1"],
-    "devices": 2,
-    "bundle_items": "1/3.4.5/1/0.3/1+1/3.4.5/7.8/0.4/7.8",
+    "devices": 4,
+    "bundle_slots": 1,
+    "device_lists": "pending",
     "signup_certificates": ["134:0:0", "148:255:12"],
     "signup_hints": [0, 1],
     "signup_one_time": [0],
@@ -19,6 +21,7 @@
     "signup_signed": [4],
     "signup_kyber": [4],
     "signup_ciphertext": [176, 240],
+    "signup_jump": [3],
     "signup_text": 108
   }
 }

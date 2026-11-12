@@ -49,7 +49,9 @@ def ensure_kernel(args):
     """A worker kernel, written by the Lean executable; keyed by that executable alone."""
     # The registration ceremony's kernels (`kernel ceremony-...`, CEREMONY.md) have an emitter of their own,
     # so that adding them left `flat_kernel_emitter`, and with it the cache of every other circuit, as it was.
-    tool='ceremony_kernel_emitter' if len(args)>1 and args[1].startswith('ceremony-') else 'flat_kernel_emitter'
+    # Likewise `bundle-slot` (TlsMpc/BundleSlotKernels.lean, its own `bundle_slot_emitter`).
+    tool='ceremony_kernel_emitter' if len(args)>1 and args[1].startswith('ceremony-') else \
+        'bundle_slot_emitter' if len(args)>1 and args[1]=='bundle-slot' else 'flat_kernel_emitter'
     binary=ROOT/'.lake/build/bin'/tool
     if not binary.exists():subprocess.run(['lake','build',tool],cwd=ROOT,check=True,capture_output=True)
     CACHE=BASE/('lean-'+hashlib.sha256(binary.read_bytes()).hexdigest()[:16])

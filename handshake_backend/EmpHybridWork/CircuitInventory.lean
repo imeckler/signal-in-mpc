@@ -1,5 +1,6 @@
 import TlsMpc.RecordClassKernels
 import TlsMpc.BundleItemKernels
+import TlsMpc.BundleSlotKernels
 import TlsMpc.ReceiveKernels
 open TlsMpc Signal
 
@@ -27,13 +28,16 @@ Settings (lists are comma separated; a tuple's parts are separated by `:`):
 * `handshake`: sizes of the server's encrypted handshake records (`tls-open-handshake`).
 * `record_max`: the largest TLS record the server sends, in bytes; `seal_max`: the largest content
   sealed in a record of its own (upgrade request, replies, keepalives). `typed_records` (0): 1 also
-  lists `tls-open-typed` and `tls-frame` for every record class.
+  lists `tls-open-typed` and `tls-frame` for every record class. `scan_record_max` (default
+  `record_max`, typed only): `tls-frame` and `tls-open-application-class` only up to this class.
 * `sends`: `CLASS:COUNTER:PREVIOUS:EPOCH:INDEX` for each message size class and counter-width
   combination to cover (`signal-seal-built`, and `bundle-seal` when there are bundles).
 * `devices` (1): the most devices a contact may have (sizes of stored device lists).
 * `bundle_items`: `D/R/S/P/K` groups separated by `+`, each part a `.`-separated list of digit
-  counts; every combination in a group is covered (`bundle-item`). `bundle_max`: the largest
-  prekey response body, in bytes.
+  counts; every combination in a group is covered (`bundle-item`). `bundle_slots` (0): 1 lists
+  `bundle-slot FIRST LAST ONETIME` as well, one circuit for every digit count (the controllers use
+  it unless `SIGNAL_BUNDLE_SLOTS=0`). `bundle_max`: the largest prekey response body, in bytes
+  (default: `devices` items with the most digits).
 * Signups (a new user's first message; every combination is covered): `signup_certificates`
   (`BYTES:PRESENT:LENGTH` of the SENDER's certificate and its phone-number field, `PRESENT` 0 or
   255), `signup_hints`, `signup_one_time` (0: none), `signup_registration`, `signup_signed`,
@@ -96,13 +100,22 @@ def always (s : Settings) : Except String (List String) := do
     (if (← number s "ceremony" "0") == 0 then [] else [kernel ["ceremony-secrets"]])
 
 def records (s : Settings) : Except String (List String) := do
-  let opened := ladder 22 (← number s "record_max" "4096")
+  let recordMax ← number s "record_max" "4096"
+  let opened := ladder 22 recordMax
   let sealed := ladder 1 (← number s "seal_max" "512")
   -- The second way of opening records (`TlsMpc/TypedOpenKernels.lean`), in the same classes; off
   -- until a worker asks for them (`typed_records=1`).
-  let typed := if (← number s "typed_records" "0") == 0 then [] else
-    opened.flatMap fun c => [named "tls-open-typed" [c], named "tls-frame" [c]]
-  pure <| opened.map (named "tls-open-application-class" [·]) ++ opened.map (fun c => named "tls-reveal-masked" [c - 21]) ++
+  let typedOn := (← number s "typed_records" "0") != 0
+  -- `scan_record_max` (typed only; default `record_max`): the framing scan (`tls-frame`, and the
+  -- untyped `tls-open-application-class`) runs only on handshake records with typed opening, and
+  -- those are small; above this class only `tls-open-typed` and `tls-reveal-masked` are listed
+  -- (the scan kernels of 12288 and up do not lower under a 16 GB cap).
+  let scanMax ← number s "scan_record_max" (toString recordMax)
+  let scanned := if typedOn then opened.filter (· ≤ RecordClass.capacity scanMax) else opened
+  let typed := if typedOn then
+    opened.flatMap fun c => named "tls-open-typed" [c] :: (if scanned.contains c then [named "tls-frame" [c]] else [])
+    else []
+  pure <| scanned.map (named "tls-open-application-class" [·]) ++ opened.map (fun c => named "tls-reveal-masked" [c - 21]) ++
     sealed.map (named "tls-seal-class" [·]) ++ typed
 
 def stored (s : Settings) (bundles : Bool) : Except String (List String) := do
@@ -153,12 +166,23 @@ def bundleWidths (s : Settings) : Except String (List BundleResponse.Widths) := 
       | _ => throw "bundle_items"
   pure all.eraseDups
 
+/-- `bundle_slots=1`: the prekey response's items are read by `bundle-slot` (any digit counts). -/
+def slotted (s : Settings) : Except String Bool := do
+  match ← number s "bundle_slots" "0" with
+  | 0 => pure false
+  | 1 => pure true
+  | _ => throw "bundle_slots must be 0 or 1"
+
 def bundles (s : Settings) : Except String (List String) := do
   let widths ← bundleWidths s
-  if widths.isEmpty then return []
+  let slots ← slotted s
+  if widths.isEmpty && !slots then return []
   let certificate ← number s "certificate" "244"
   let devices ← number s "devices" "1"
-  let largest := BundleResponse.firstItem + 2 + devices * (1 + (widths.map fun w => BundleResponse.size (BundleResponse.item w)).foldl max 0)
+  -- With slots any digit counts can arrive: the largest item is the one with the most digits.
+  let items := widths.map (fun w => BundleResponse.size (BundleResponse.item w)) ++
+    (if slots then [BundleResponse.size (BundleResponse.item (BundleSlots.slots true))] else [])
+  let largest := BundleResponse.firstItem + 2 + devices * (1 + items.foldl max 0)
   let bodies := ladder 2540 (← number s "bundle_max" (toString largest))
   let positions := [(true, true)] ++ (if devices ≥ 2 then [(true, false), (false, true)] else []) ++
     (if devices ≥ 3 then [(false, false)] else [])
@@ -167,8 +191,10 @@ def bundles (s : Settings) : Except String (List String) := do
     (List.range 4).flatMap (fun row => [named "kem-matrix" [row], named "kem-u" [row]]) ++
     [0, 1].flatMap (fun oneTime => [named "establish-points" [oneTime], named "establish-session" [certificate, oneTime]]) ++
     bodies.map (named "bundle-shape" [·]) ++
-    positions.flatMap fun (first, last) => widths.map fun w =>
-      named "bundle-item" [first.toNat, last.toNat, w.device, w.registration, w.signed, w.oneTime, w.kyber]
+    positions.flatMap (fun (first, last) => widths.map fun w =>
+      named "bundle-item" [first.toNat, last.toNat, w.device, w.registration, w.signed, w.oneTime, w.kyber]) ++
+    (if slots then positions.flatMap fun (first, last) => [0, 1].map fun oneTime =>
+      named "bundle-slot" [first.toNat, last.toNat, oneTime] else [])
 
 /-- A length-delimited field with a body of `body` bytes: tag, length prefix, body. -/
 def framedBytes (body : Nat) : Nat := 1 + ReceiveFirst.varintWidth body + body
@@ -235,7 +261,7 @@ def main (args : List String) : IO Unit := do
   unless s.length == args.length do throw (IO.userError "circuit_inventory KEY=VALUE ...")
   let result : Except String (List String) := do
     let _ ← official s
-    let withBundles := !(← bundleWidths s).isEmpty
+    let withBundles := !(← bundleWidths s).isEmpty || (← slotted s)
     pure ((← always s) ++ (← records s) ++ (← stored s withBundles) ++ (← sends s withBundles) ++ (← bundles s) ++ (← signups s))
   match result with
   | .error message => throw (IO.userError message)

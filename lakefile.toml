@@ -5,6 +5,12 @@ defaultTargets = ["TlsMpc"]
 [[lean_lib]]
 name = "TlsMpc"
 
+# TlsMpc/Security.lean: every important theorem restated (REORGANIZATION_PLAN.md S1). Proof-only:
+# no executable imports it. `lake build TlsMpcSecurity`; axioms: scripts/check_axioms.py.
+[[lean_lib]]
+name = "TlsMpcSecurity"
+roots = ["TlsMpc.Security"]
+
 [[lean_exe]]
 name = "emit_mpc"
 root = "Main"
@@ -108,6 +114,10 @@ root = "handshake_backend.EmpHybridWork.EmitKemKernel"
 [[lean_exe]]
 name = "ceremony_kernel_emitter"
 root = "handshake_backend.EmpHybridWork.EmitCeremonyKernel"
+
+[[lean_exe]]
+name = "bundle_slot_emitter"
+root = "handshake_backend.EmpHybridWork.EmitBundleSlotKernel"
 
 [[lean_exe]]
 name = "circuit_inventory"

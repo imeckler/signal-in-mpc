@@ -83,7 +83,8 @@ def main():
     a = p.parse_args()
     deployment = json.loads(pathlib.Path(a.deployment).read_text())
     settings = {key: ','.join(map(str, value)) if isinstance(value, list) else str(value) for key, value in deployment['settings'].items()}
-    built = subprocess.run(['lake', 'build', 'flat_kernel_emitter', 'circuit_inventory', 'public_service_controller'], cwd=ROOT, capture_output=True, text=True)
+    built = subprocess.run(['lake', 'build', 'flat_kernel_emitter', 'bundle_slot_emitter', 'circuit_inventory', 'public_service_controller'],
+                           cwd=ROOT, capture_output=True, text=True)
     if built.returncode:
         raise SystemExit('lake build failed: ' + (built.stdout + built.stderr)[-600:])
     names = lean('circuit_inventory', *[f'{key}={value}' for key, value in settings.items()])
@@ -145,8 +146,13 @@ def main():
         requests += lean('public_service_controller', 'request-shape', 'fetch', profile=profile)
         # One message per device; the devices of a contact may be at different counters (a new device
         # beside an old one), so every combination of the covered rows of one size class.
+        # `device_lists: pending` (setting): only devices that have not answered (kinds 1 and 2), the
+        # only entries a device list holds while replies are not processed (MULTI_DEVICE.md section 4);
+        # 2^n instead of 3^n combinations for n devices. Default `mixed`: established ones too.
+        pending_only = settings.get('device_lists', 'mixed') == 'pending'
         for size_class in sorted({key[0] for key in rows}):
-            choices = sorted({size for key, sizes in rows.items() if key[0] == size_class for size in sizes.values()})
+            choices = sorted({size for key, sizes in rows.items() if key[0] == size_class
+                              for kind, size in sizes.items() if not (pending_only and kind == 0)})
             for count in range(1, int(settings.get('devices', '1')) + 1):
                 for envelopes in itertools.product(choices, repeat=count):
                     requests += lean('public_service_controller', 'request-shape', 'devices', *envelopes, profile=profile)

@@ -100,6 +100,9 @@ def strict_manifest(produce=True):
                 seconds=time.monotonic() - started)
 
 
+RECORDS = dict(dir=None, sessions=0)   # --record
+
+
 def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.1', server_port=18443, during_logs=None):
     """One two-party client session against 127.0.0.1:18443: handshake, unauthenticated chat
     socket, two broadcasts to every contact, contact state written back to the store.
@@ -141,9 +144,14 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
         relay = subprocess.Popen([str(base / 'delay-relay'), str(link_delay), f'{port + shift}:{port}', f'{port + 10 + shift}:{port + 10}'],
                                  stderr=open(output / 'delay-relay.log', 'w'))
         env['TLS_WORKER_TEST_LINK_SHIFT'] = str(shift)
+    # --record DIR: each session's SIGNAL_RECORD, per party, numbered in the order the sessions
+    # run (golden records for scripts/compare_records.py, REORGANIZATION_PLAN.md test set D).
+    RECORDS['sessions'] += 1
     started = time.monotonic()
     try:
         for party in range(2):
+            if RECORDS['dir']:
+                env['SIGNAL_RECORD'] = str(Path(RECORDS['dir']) / f'session-{RECORDS["sessions"]:02d}-party-{party}.jsonl')
             log = open(output / f'party-{party}.log', 'w')
             logs.append(log)
             command = [str(controller), str(worker), str(work), str(party), str(hosts), str(port), str(here / 'circuit_cache.py'),
@@ -581,7 +589,8 @@ class AppNodes:
     application stand-in `notify-app`. TEST fixture (not the daemons' work): the account's row on
     the database nodes is created first by a harness-run session from the export's credentials.
     `send_session`: the daemons' settings of their long-lived send session (README)."""
-    ADDRESSES = ['127.0.0.1:19700', '127.0.0.1:19701']
+    ADDRESSES = ['127.0.0.1:19700', '127.0.0.1:19701']        # the application's listeners
+    PEER_ADDRESSES = ['127.0.0.1:19710', '127.0.0.1:19711']   # the daemons' link (peer_listen)
 
     def __init__(self, export, mode, cluster, send_session=None):
         import secrets, shutil
@@ -615,7 +624,8 @@ class AppNodes:
         addresses = self.ADDRESSES
         for party in range(2):
             config = dict(
-                party=party, listen=addresses[party], peer=addresses[1 - party], peer_key_file=str(directory / 'peer.key'),
+                party=party, listen=addresses[party], peer_listen=self.PEER_ADDRESSES[party], peer=self.PEER_ADDRESSES[1 - party],
+                peer_key_file=str(directory / 'peer.key'),
                 state_directory=str(directory / f'node-{party}'), controller=str(ROOT / '.lake/build/bin/public_service_controller'),
                 worker=dict(binary=str(base / ('tls-worker-sh-fixture-v3' if mode == 'semi-honest' else 'tls-worker-fixture-v3')),
                             send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
@@ -1585,7 +1595,14 @@ def main():
                    'and contacts prepared in batches (PERFORMANCE.md, "Rounds")')
     p.add_argument('--field-direct', action='store_true', help='TLS_WORKER_FIELD_DIRECT=1 for every session: the field engine\'s '
                    'openings sent by both workers at once (one message delay per round instead of two)')
+    p.add_argument('--record', help='write each session\'s SIGNAL_RECORD per party into this (new or empty) directory, '
+                   'session-NN-party-P.jsonl: what scripts/compare_records.py compares (REORGANIZATION_PLAN.md, test set D)')
     a = p.parse_args()
+    if a.record:
+        Path(a.record).mkdir(parents=True, exist_ok=True)
+        if any(Path(a.record).iterdir()):
+            p.error(f'--record {a.record}: the directory is not empty')
+        RECORDS['dir'] = str(Path(a.record).resolve())
     if a.link_delay_ms > 0:
         run(['c++', '-std=c++17', '-O2', '-pthread', ROOT / 'scripts/delay_relay.cpp', '-o', ROOT / '.deps/two-party-comparison/delay-relay'])
         os.environ['SIGNAL_LINK_DELAY_MS'] = str(a.link_delay_ms)

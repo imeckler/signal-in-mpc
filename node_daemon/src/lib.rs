@@ -221,32 +221,118 @@ pub fn call(address: &str, request: &Value, timeout: Duration) -> Result<Value, 
     read_line(&mut stream)
 }
 
-// ---- The link between the two daemons: the same line protocol, each message carrying the
-// sender's clock and an HMAC-SHA256 under a key the two nodes share.
+// ---- The link between the two daemons: the same line protocol (on its own listener,
+// `peer_listen`), each message carrying the sender's party, a fresh nonce, the sender's clock and
+// an HMAC-SHA256 under a key the two nodes share.
+//
+// A request: {"op": "peer-…", …, "from", "nonce", "at", "mac"}. The receiver accepts it once:
+// the MAC, the sender being the other party (a message reflected back to its sender is refused),
+// the clock within PEER_SKEW_SECS, and a nonce not seen before (`ReplayCache`).
+// A reply: {…, "from", "reply_to" (the request's nonce), "at", "mac"}, checked by the caller
+// against the request it sent, so a reply cannot be forged, replayed, or taken from another call.
 
 pub const PEER_SKEW_SECS: u64 = 60;
+/// Nonces remembered at most (one per peer request within two minutes; the leader sends a few a second).
+pub const REPLAY_CAPACITY: usize = 1 << 16;
 
-pub fn seal(key: &[u8], mut message: Value) -> Value {
-    message["at"] = json!(unix_now());
-    let mac = hex::encode(hmac(key, message.to_string().as_bytes()));
+fn mac_of(key: &[u8], body: &Value) -> String {
+    hex::encode(hmac(key, body.to_string().as_bytes()))
+}
+
+fn sealed(key: &[u8], mut message: Value, now: u64) -> Value {
+    message["at"] = json!(now);
+    let mac = mac_of(key, &message);
     message["mac"] = json!(mac);
     message
 }
 
-pub fn open(key: &[u8], message: &Value) -> Result<(), String> {
+/// The MAC and the clock of a sealed message; returns the body without `mac`.
+fn verified(key: &[u8], message: &Value, now: u64) -> Result<Value, String> {
     let mut body = message.clone();
     let given = body.as_object_mut().and_then(|o| o.remove("mac")).and_then(|m| m.as_str().map(str::to_string)).ok_or("peer message without mac")?;
-    let expected = hex::encode(hmac(key, body.to_string().as_bytes()));
+    let expected = mac_of(key, &body);
     let same = given.len() == expected.len() && given.bytes().zip(expected.bytes()).fold(0u8, |acc, (a, b)| acc | (a ^ b)) == 0;
     if !same {
         return Err("peer message not authenticated".into());
     }
     let at = body.get("at").and_then(Value::as_u64).ok_or("peer message without time")?;
-    let now = unix_now();
     if at > now + PEER_SKEW_SECS || at + PEER_SKEW_SECS < now {
         return Err("peer message is stale".into());
     }
-    Ok(())
+    Ok(body)
+}
+
+fn from_other(body: &Value, me: u8) -> Result<(), String> {
+    match body.get("from").and_then(Value::as_u64) {
+        Some(from) if from <= 1 && from != me as u64 => Ok(()),
+        Some(_) => Err("peer message from this node itself".into()),
+        None => Err("peer message without sender".into()),
+    }
+}
+
+/// A request to the other daemon, from party `from`, with a fresh nonce.
+pub fn seal_request(key: &[u8], from: u8, mut message: Value) -> Result<Value, String> {
+    message["from"] = json!(from);
+    message["nonce"] = json!(hex::encode(random_bytes(16)?));
+    Ok(sealed(key, message, unix_now()))
+}
+
+/// The reply to `request` (already opened), from party `from`.
+pub fn seal_reply(key: &[u8], from: u8, request: &Value, mut reply: Value) -> Value {
+    if !reply.is_object() {
+        reply = json!({"ok": false, "error": "invalid reply"});
+    }
+    reply["from"] = json!(from);
+    reply["reply_to"] = request.get("nonce").cloned().unwrap_or(Value::Null);
+    sealed(key, reply, unix_now())
+}
+
+/// The nonces of the requests accepted within the freshness window.
+#[derive(Default)]
+pub struct ReplayCache {
+    /// nonce -> the time after which its request would be stale anyway.
+    seen: std::sync::Mutex<std::collections::HashMap<String, u64>>,
+}
+
+impl ReplayCache {
+    fn admit(&self, nonce: &str, at: u64, now: u64) -> Result<(), String> {
+        let mut seen = self.seen.lock().unwrap_or_else(|p| p.into_inner());
+        seen.retain(|_, until| *until >= now);
+        if seen.contains_key(nonce) {
+            return Err("peer message replayed".into());
+        }
+        if seen.len() >= REPLAY_CAPACITY {
+            return Err("too many peer messages".into());
+        }
+        seen.insert(nonce.to_string(), at + PEER_SKEW_SECS);
+        Ok(())
+    }
+}
+
+/// A request of the other daemon to party `me`, accepted at most once.
+pub fn open_request(key: &[u8], me: u8, message: &Value, seen: &ReplayCache) -> Result<(), String> {
+    open_request_at(key, me, message, seen, unix_now())
+}
+
+fn open_request_at(key: &[u8], me: u8, message: &Value, seen: &ReplayCache, now: u64) -> Result<(), String> {
+    let body = verified(key, message, now)?;
+    from_other(&body, me)?;
+    if body.get("reply_to").is_some() || !body.get("op").and_then(Value::as_str).is_some_and(|op| op.starts_with("peer-")) {
+        return Err("not a peer request".into());
+    }
+    let nonce = body.get("nonce").and_then(Value::as_str).filter(|n| n.len() == 32 && n.bytes().all(|b| b.is_ascii_hexdigit()))
+        .ok_or("peer message without nonce")?;
+    seen.admit(nonce, body["at"].as_u64().unwrap_or(0), now)
+}
+
+/// The other daemon's reply to `request`, which party `me` sent.
+pub fn open_reply(key: &[u8], me: u8, request: &Value, reply: &Value) -> Result<(), String> {
+    let body = verified(key, reply, unix_now()).map_err(|why| format!("reply: {why}"))?;
+    from_other(&body, me).map_err(|why| format!("reply: {why}"))?;
+    match (body.get("reply_to"), request.get("nonce")) {
+        (Some(a), Some(b)) if a == b && a.is_string() => Ok(()),
+        _ => Err("reply: not the reply to this request".into()),
+    }
 }
 
 #[cfg(test)]
@@ -288,13 +374,61 @@ mod tests {
 
     #[test]
     fn peer_messages() {
-        let sealed = seal(b"key", json!({"op": "peer-agree", "job": "ab"}));
-        assert!(open(b"key", &sealed).is_ok());
-        assert!(open(b"other", &sealed).is_err());
+        let cache = ReplayCache::default();
+        let sealed = seal_request(b"key", 0, json!({"op": "peer-agree", "job": "ab"})).unwrap();
+        assert!(open_request(b"other", 1, &sealed, &cache).is_err());   // wrong key
         let mut changed = sealed.clone();
         changed["job"] = json!("cd");
-        assert!(open(b"key", &changed).is_err());
+        assert!(open_request(b"key", 1, &changed, &cache).is_err());   // forged field
+        assert!(open_request(b"key", 0, &sealed, &cache).is_err());   // reflected to its sender
+        assert!(open_request(b"key", 1, &sealed, &cache).is_ok());
+        assert_eq!(open_request(b"key", 1, &sealed, &cache), Err("peer message replayed".to_string()));
         // RFC 4231 test case 2.
         assert_eq!(hex::encode(hmac(b"Jefe", b"what do ya want for nothing?")), "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843");
+    }
+
+    #[test]
+    fn peer_freshness_and_replay_window() {
+        let cache = ReplayCache::default();
+        let now = 1_800_000_000;
+        let request = sealed(b"key", json!({"op": "peer-ended", "session": "s", "from": 0, "nonce": "00".repeat(16)}), now);
+        assert_eq!(open_request_at(b"key", 1, &request, &cache, now + PEER_SKEW_SECS + 1), Err("peer message is stale".to_string()));
+        assert!(open_request_at(b"key", 1, &request, &cache, now - PEER_SKEW_SECS).is_ok());
+        // Replayed anywhere in the window it is accepted in: refused.
+        for t in [now - PEER_SKEW_SECS, now, now + PEER_SKEW_SECS] {
+            assert_eq!(open_request_at(b"key", 1, &request, &cache, t), Err("peer message replayed".to_string()));
+        }
+        // Expired nonces are forgotten only once their message is stale anyway.
+        assert!(cache.seen.lock().unwrap().len() == 1);
+        assert!(open_request_at(b"key", 1, &request, &cache, now + PEER_SKEW_SECS + 1).is_err());
+        let later = sealed(b"key", json!({"op": "peer-ping", "from": 0, "nonce": "22".repeat(16)}), now + PEER_SKEW_SECS + 1);
+        assert!(open_request_at(b"key", 1, &later, &cache, now + PEER_SKEW_SECS + 1).is_ok());
+        assert!(cache.seen.lock().unwrap().keys().eq(["22".repeat(16)].iter()));
+        // Without a nonce, or with a malformed one: refused.
+        let bare = sealed(b"key", json!({"op": "peer-ping", "from": 0}), now);
+        assert!(open_request_at(b"key", 1, &bare, &cache, now).is_err());
+        let short = sealed(b"key", json!({"op": "peer-ping", "from": 0, "nonce": "ab"}), now);
+        assert!(open_request_at(b"key", 1, &short, &cache, now).is_err());
+        // A reply is not a request.
+        let reply = sealed(b"key", json!({"op": "peer-ping", "from": 0, "nonce": "11".repeat(16), "reply_to": "x"}), now);
+        assert_eq!(open_request_at(b"key", 1, &reply, &cache, now), Err("not a peer request".to_string()));
+    }
+
+    #[test]
+    fn peer_replies() {
+        let request = seal_request(b"key", 0, json!({"op": "peer-start", "job": "ab"})).unwrap();
+        let reply = seal_reply(b"key", 1, &request, json!({"ok": true}));
+        assert!(open_reply(b"key", 0, &request, &reply).is_ok());
+        assert_eq!(reply["ok"], json!(true));
+        // Unsealed (what an attacker on the link could write), forged, wrong key, own reply reflected.
+        assert!(open_reply(b"key", 0, &request, &json!({"ok": true})).is_err());
+        let mut forged = reply.clone();
+        forged["ok"] = json!(false);
+        assert!(open_reply(b"key", 0, &request, &forged).is_err());
+        assert!(open_reply(b"other", 0, &request, &reply).is_err());
+        assert!(open_reply(b"key", 1, &request, &reply).is_err());
+        // The reply to another request (an old one replayed): refused.
+        let other = seal_request(b"key", 0, json!({"op": "peer-start", "job": "ab"})).unwrap();
+        assert_eq!(open_reply(b"key", 0, &other, &reply), Err("reply: not the reply to this request".to_string()));
     }
 }

@@ -22,8 +22,16 @@ real run does (libsignal profile, in-memory database nodes).
                 (scripts/start_compact_server.sh: embedSigner false, ports 19080/19443); started
                 if needed, the default instance is not touched
   --manifest M  strict mode: CIRCUIT_MANIFEST=M; a kernel not in it is refused (kernels-refused.txt)
+  --devices N   the reply's recipient has N devices (default 1), as the first real run's contact
+                had three: after the receive session N − 1 devices are linked to the user who signed
+                up (`lss-provision link USER K`: its own registration id, signed prekey and Kyber
+                last-resort key, K one-time EC prekeys; K from --one-time, default 5, 0, 5, ...).
+                The reply is then answered 409, the client refreshes the contact's devices
+                (`GET /v2/keys/{uuid}/*`, one establishment per device) and sends again; required:
+                "delivered after device refresh" and the text decrypted by EVERY device
+  --one-time K,K,..  one-time EC prekeys of each linked device (0: its bundle has "preKey":null)
 
-check_signal_service_local_signup.py [semi-honest|malicious] [--compact] [--manifest M] [LAYOUT ...]
+check_signal_service_local_signup.py [semi-honest|malicious] [--compact] [--manifest M] [--devices N] [LAYOUT ...]
 Recorded under real_signal/state/runs/STAMP-local-signup/ (report.json)."""
 import argparse, json, os, secrets, subprocess, sys, time
 from pathlib import Path
@@ -36,9 +44,14 @@ p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDes
 p.add_argument('mode', nargs='?', default='semi-honest', choices=['semi-honest', 'malicious'])
 p.add_argument('--compact', action='store_true')
 p.add_argument('--manifest')
+p.add_argument('--devices', type=int, default=1)
+p.add_argument('--one-time', default='')
 p.add_argument('queue', nargs='*')
 a = p.parse_args()
-queue = a.queue or ['bad:android', 'legacy', 'android', 'android-tag', 'android-timer']
+queue = a.queue or (['android'] if a.devices > 1 else ['bad:android', 'legacy', 'android', 'android-tag', 'android-timer'])
+one_time = [int(k) for k in a.one_time.split(',') if k] or [5 if i % 2 == 0 else 0 for i in range(a.devices - 1)]
+if len(one_time) != a.devices - 1:
+    sys.exit('--one-time: one count per linked device')
 HERE = ROOT / 'local_signal_server'
 
 if a.compact:
@@ -68,13 +81,13 @@ hints = json.loads((export_dir / 'deployment-hints.json').read_text())
 r.harness.STATE = run.dir
 common = dict(DYLD_LIBRARY_PATH=str(r.MP), TLS_WORKER_FIELD_BATCH='3000', SIGNAL_CLIENT_PROFILE='libsignal',
               SIGNAL_LOCAL_EXPORT=str(export_path), SIGNAL_LOCAL_KEM=str(r.LSS),
-              CIRCUIT_CACHE_LOG=str(run.dir / 'kernels-requested.txt'), SIGNAL_ACK_REFUSED='1')
+              CIRCUIT_CACHE_LOG=str(run.dir / 'kernels-requested.txt'), SIGNAL_ACK_REFUSED='1', SIGNAL_RECEIVE_JUMP=r.RECEIVE_JUMP)
 if a.manifest:
     common.update(CIRCUIT_MANIFEST=str(Path(a.manifest).resolve()), CIRCUIT_REFUSED_LOG=str(run.dir / 'kernels-refused.txt'))
 shares = [(export_dir / f'credentials-party-{party}.hex').read_text().strip() for party in range(2)]
 auth, work, hosts = r.prepare_workers(run)
 cluster = r.harness.Cluster()
-result = dict(queue=queue, compact=a.compact, manifest=a.manifest, deployment_hints=hints)
+result = dict(queue=queue, compact=a.compact, manifest=a.manifest, deployment_hints=hints, devices=a.devices, one_time=one_time)
 
 
 def events(label):
@@ -84,20 +97,23 @@ def events(label):
 
 try:
     cluster.token(r.harness.ACCOUNT)
-    expected, users = [], {}
+    expected, users, last = [], {}, None
     for index, entry in enumerate(queue):
-        bad = entry.startswith('bad:')
-        layout = entry[4:] if bad else entry
+        # `again:LAYOUT`: the previous good signup's token once more (as a redelivered signup or a
+        # phone sending its token twice): it must be refused at the token step, no second contact.
+        bad, again = entry.startswith('bad:'), entry.startswith('again:')
+        layout = entry.split(':', 1)[1] if bad or again else entry
         contact = secrets.randbits(100)
-        token = cluster.token(contact).read_text().strip()
+        token = last if again else cluster.token(contact).read_text().strip()
         name = f'{account}-u{index}'
         out = subprocess.run([str(r.LSS), 'signup', name, f'+1202556{stamp[-3:]}{index}', account, 'x' * len(token) if bad else token],
                              capture_output=True, text=True, env=dict(os.environ, LSS_DATA_LAYOUT=layout))
-        run.log('signup-sent', layout=layout, bad=bad, exit_code=out.returncode,
+        run.log('signup-sent', layout=layout, bad=bad, again=again, exit_code=out.returncode,
                 detail=[line for line in out.stderr.splitlines() if 'layout' in line or 'rror' in line][-3:])
-        if not bad:
+        if not bad and not again:
             expected.append([str(contact), token])
             users.setdefault(layout, (name, contact))
+            last = token
     env = lambda party: dict(cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT=str(len(queue)))
     receive = r.session(run, 'receive', server, export_dir, auth, work, hosts, env, common, 420)
     received = [c.get('received') for c in receive['controllers']]
@@ -105,21 +121,39 @@ try:
                              exit_codes=receive['exit_codes'], seconds=receive['seconds'])
     stored = all(sorted(x or []) == sorted(expected) for x in received)
     refused = sum(e[0] == 'envelope-refused' for e in result['receive']['events'])
-    result['receive_passed'] = stored and refused == sum(q.startswith('bad:') for q in queue)
-    target = next((users[q] for q in queue if not q.startswith('bad:') and q != 'legacy'), None) or next(iter(users.values()), None)
+    result['receive_passed'] = stored and refused == sum(q.startswith(('bad:', 'again:')) for q in queue)
+    target = next((users[q] for q in queue if q in users and q != 'legacy'), None) or next(iter(users.values()), None)
     if result['receive_passed'] and target:
         cluster.refresh()
-        text = 'Thanks for signing up. A reply from the local two-party test of the signup layouts.'
+        # The user's other devices (linked after the signup: `signup` registers the user afresh).
+        names = [target[0]]
+        for k in one_time:
+            out = subprocess.run([str(r.LSS), 'link', target[0], str(k)], capture_output=True, text=True)
+            linked = json.loads(out.stdout.strip().splitlines()[-1]) if out.returncode == 0 else {}
+            run.log('device-linked', exit_code=out.returncode, device=linked.get('device_id'), registration_id=linked.get('registration_id'),
+                    signed_prekey_id=linked.get('signed_prekey_id'), one_time_prekeys=k, error=out.stderr[-300:])
+            if out.returncode:
+                raise RuntimeError('lss-provision link failed: ' + out.stderr[-300:])
+            names.append(linked['linked'])
+        # 110 bytes, as real_signal/run_real_test.py's default text (message class 2).
+        text = ('Thanks for signing up. A reply from the local two-party test of the signup layouts.' if a.devices == 1 else
+                'Thanks for signing up. This is a reply to every device of a user with %d devices; nothing to answer.' % a.devices)
         request = cluster.request([target[1]], text)
         send = r.session(run, 'send', server, export_dir, auth, work, hosts,
                          lambda party: dict(cluster.env(party, request), SIGNAL_NOTIFY_MESSAGE_FILE=str(cluster.dir / 'message.txt')), common, 420)
         results = [c.get('results') for c in send['controllers']]
-        seen = r.harness.receive(target[0], 6)
-        lags = [g['envelope'].get('server_timestamp', 0) - g['timestamp'] for g in seen if g['text'] == text]
-        result['send'] = dict(results=results, seconds=send['seconds'], received=[g['text'] for g in seen],
-                              timestamp_age_ms_at_server=lags, sealed=all(not g['envelope'].get('source_service_id') for g in seen))
-        result['send_passed'] = all(x and x[0].get('result', '').startswith('delivered') for x in results) and text in result['send']['received'] \
-            and result['send']['sealed']
+        seen = {name: r.harness.receive(name, 6) for name in names}
+        lags = [g['envelope'].get('server_timestamp', 0) - g['timestamp'] for g in seen[names[0]] if g['text'] == text]
+        rows = [json.loads(line) for line in (run.dir / 'record-send-party-0.jsonl').read_text().splitlines()]
+        result['send'] = dict(results=results, seconds=send['seconds'], received={name: [g['text'] for g in got] for name, got in seen.items()},
+                              timestamp_age_ms_at_server=lags, sealed=all(not g['envelope'].get('source_service_id') for got in seen.values() for g in got),
+                              recovery=[c.get('recovery') for c in send['controllers']], errors=[c.get('error') for c in send['controllers']],
+                              statuses=[e['status'] for e in rows if e['event'] == 'response'],
+                              prekey_response_bytes=[e['bytes'] for e in rows if e['event'] == 'passed-over' and 'prekey' in e.get('to', '')],
+                              records=[e['content_bytes'] for e in rows if e['event'] == 'record'])
+        good = (lambda r: r == 'delivered after device refresh') if a.devices > 1 else (lambda r: r.startswith('delivered'))
+        result['send_passed'] = all(x and good(x[0].get('result', '')) for x in results) \
+            and all(text in got for got in result['send']['received'].values()) and result['send']['sealed']
     if a.manifest:
         refused_path = run.dir / 'kernels-refused.txt'
         result['kernels_refused'] = refused_path.read_text().split('\n') if refused_path.exists() and refused_path.read_text().strip() else []

@@ -180,6 +180,29 @@ def stop(directory):
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def restart(directory):
+    """Start again the Postgres instance and the five nodes of a cluster that `stop` stopped, with
+    their data (real_signal/run_real_test.py --resume). Returns the cluster's state."""
+    directory = Path(directory).resolve()
+    state = load(directory)
+    if any(alive(pid, '/server') for pid in state['pids']):
+        raise RuntimeError(f'{directory}: nodes are running')
+    taken = [p for p in ports(state['base']) if not port_free(p)]
+    if taken:
+        raise RuntimeError(f'port(s) {taken} are in use')
+    setup_log = directory / 'logs' / 'setup.log'
+    options = f"-p {state['base']} -c listen_addresses=127.0.0.1 -c unix_socket_directories='' -c max_connections=120"
+    quiet([pg('pg_ctl', state.get('pg_bin')), '-D', directory / 'pg', '-l', directory / 'logs' / 'postgres.log', '-o', options, '-w', 'start'], setup_log)
+    try:
+        for j in range(N):
+            start_node(directory, state, j)
+        wait_compute(directory, state, list(range(N)))
+    except BaseException:
+        stop(directory)
+        raise
+    return state
+
+
 def start(directory, binaries, base, epoch_secs, max_malicious, wait_first_epoch, pg_bin):
     directory = Path(directory).resolve()
     if state_path(directory).exists():

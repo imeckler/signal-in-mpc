@@ -1,0 +1,386 @@
+#!/usr/bin/env python3
+"""The guard-rail lints of REORGANIZATION_PLAN.md (stage S0). Reads the tree only; builds nothing.
+
+    lint_node.py                     run the checks that are switched on; exit 1 on a finding
+    lint_node.py --report            also print what the checks see (counts, worst files)
+    lint_node.py --update-baseline   rewrite the I/O baseline from the tree as it is (ratchet down
+                                     after a stage moved sites into Channels; never to add sites)
+    lint_node.py --enable secret-val,message-fields   switch on checks of later stages
+
+Checks:
+  io-baseline (a)       The I/O primitive sites of the controller: every Lean module the
+                        controller's executable imports from this repository (its import
+                        closure, recomputed each run). Files the plan allows to do I/O
+                        (TlsMpc/Node/Channels.lean and Worker.lean) may have any number. Every
+                        other file may have at most the count recorded per primitive in
+                        scripts/lint_node_baseline.json (today's sites); a new site, or a site
+                        in a file new to the closure, fails.
+  escape-hatches (b)    No sorry, admit, native_decide, bv_decide, ofReduceBool, implemented_by,
+                        extern, unsafe, opaque, axiom, csimp, skipKernelTC or partial def in
+                        TlsMpc/Node (plan, rule 6 and section 4.1).
+  emitter-isolation (c) No circuit emitter's import closure contains a module under TlsMpc.Node
+                        (plan, rule 4: the circuit cache is keyed by the emitter binary). The
+                        emitters: every lean_exe of lakefile.toml named *_emitter, and
+                        circuit_inventory.
+  secret-val (d)        Off until S4. `Secret.val` / `Secret.mk` only in the eliminators' files
+                        (plan 4.1): Secret.lean, Engine.lean, Channels.lean, Reveal.lean, Local/*.
+  message-fields (d)    Off until S5. Messages.lean mentions neither `Secret` nor `Handle`
+                        (plan 3.1; S5 adds the `#guard`-style check inside Lean as well).
+
+Comments and string literals are ignored. Patterns are textual: an `open IO.FS` (or similar)
+followed by an unprefixed call would hide a site, so such an `open` is itself reported as a
+finding in the checked files.
+"""
+import argparse, json, os, re, sys, tomllib
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASELINE = os.path.join(ROOT, 'scripts', 'lint_node_baseline.json')
+CONTROLLER_EXE = 'public_service_controller'
+NODE_DIR = 'TlsMpc/Node'
+IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
+SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
+ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation']
+
+
+# ---- Lean source without comments and string literals (newlines kept, so lines still count).
+
+def strip_lean(text):
+    out, i, n = [], 0, len(text)
+    while i < n:
+        c = text[i]
+        if text.startswith('--', i):
+            j = text.find('\n', i)
+            j = n if j < 0 else j
+            i = j
+        elif text.startswith('/-', i):
+            depth, j = 1, i + 2
+            while j < n and depth:
+                if text.startswith('/-', j):
+                    depth, j = depth + 1, j + 2
+                elif text.startswith('-/', j):
+                    depth, j = depth - 1, j + 2
+                else:
+                    j += 1
+            out.append(''.join(ch if ch == '\n' else ' ' for ch in text[i:j]))
+            i = j
+        elif c == 'r' and re.match(r'r#*"', text[i:i + 12]) and (i == 0 or not (text[i - 1].isalnum() or text[i - 1] in "_'.")):
+            hashes = re.match(r'r(#*)"', text[i:]).group(1)
+            end = text.find('"' + hashes, i + 2 + len(hashes))
+            j = n if end < 0 else end + 1 + len(hashes)
+            out.append(''.join(ch if ch == '\n' else ' ' for ch in text[i:j]))
+            i = j
+        elif c == '"':
+            j = i + 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == '\\' else 1
+            j = min(j + 1, n)
+            out.append('""' + ''.join('\n' for ch in text[i:j] if ch == '\n'))
+            i = j
+        elif c == "'" and (i == 0 or not (text[i - 1].isalnum() or text[i - 1] in "_'.")):
+            m = re.match(r"'(\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}|\\.|[^'\\\n])'", text[i:i + 10])
+            if m:
+                out.append(' ' * len(m.group(0)))
+                i += len(m.group(0))
+            else:
+                out.append(c)
+                i += 1
+        else:
+            out.append(c)
+            i += 1
+    return ''.join(out)
+
+
+_cache = {}
+
+
+def source(rel):
+    if rel not in _cache:
+        with open(os.path.join(ROOT, rel), encoding='utf-8') as f:
+            _cache[rel] = strip_lean(f.read())
+    return _cache[rel]
+
+
+def module_file(module):
+    rel = module.replace('.', '/') + '.lean'
+    return rel if os.path.isfile(os.path.join(ROOT, rel)) else None
+
+
+IMPORT = re.compile(r'^\s*(?:public\s+|private\s+)?(?:meta\s+)?import\s+(?:all\s+)?(.*)$')
+
+
+def imports(rel):
+    found = []
+    for line in source(rel).split('\n'):
+        m = IMPORT.match(line)
+        if m:
+            found += [t for t in m.group(1).split() if re.match(r'^[A-Za-z_][\w.]*$', t)]
+    return found
+
+
+def closure(root_module):
+    """Repository modules reachable from root_module (itself included): {module: file}."""
+    seen, stack = {}, [root_module]
+    while stack:
+        module = stack.pop()
+        if module in seen:
+            continue
+        rel = module_file(module)
+        if rel is None:
+            continue   # Lean, Std, Lake: outside the repository
+        seen[module] = rel
+        stack += imports(rel)
+    return seen
+
+
+def executables():
+    with open(os.path.join(ROOT, 'lakefile.toml'), 'rb') as f:
+        lake = tomllib.load(f)
+    return {exe['name']: exe.get('root', exe['name']) for exe in lake.get('lean_exe', [])}
+
+
+def line_of(text, index):
+    return text.count('\n', 0, index) + 1
+
+
+# ---- (a) I/O primitive sites.
+
+IO_PATTERNS = [
+    # IO.FS.* and IO.Process.* functions (a lower-case last component): readFile, withFile,
+    # createDirAll, Handle.mk, output, spawn, run, exit, ... Types (Handle, Stdio, Mode) are not sites.
+    (re.compile(r'\bIO\.(FS|Process)((?:\.[A-Z]\w*)*)\.([a-z]\w*)'), lambda m: f'IO.{m.group(1)}{m.group(2)}.{m.group(3)}'),
+    (re.compile(r'\bIO\.(getEnv|println|eprintln|print|eprint|getStdout|getStderr|getStdin|setStdout|setStderr|setStdin|'
+                r'getRandomBytes|rand|setRandSeed|sleep|monoMsNow|monoNanosNow|appPath|appDir|currentDir|getPID|getTID)\b'),
+     lambda m: f'IO.{m.group(1)}'),
+    (re.compile(r'\b(?:Std\.Time\.)?(Timestamp|PlainDateTime|ZonedDateTime|DateTime|PlainTime|PlainDate)\.now\b'),
+     lambda m: f'Std.Time.{m.group(1)}.now'),
+    (re.compile(r'(?<!IO\.FS)\.(pathExists|isDir|readDir|metadata|walkDir)\b'),
+     lambda m: f'System.FilePath.{m.group(1)} (dot call)'),
+]
+IO_STDIO_VALUES = re.compile(r'^IO\.(FS\.Mode|Process\.Stdio)\.')
+OPEN_IO = re.compile(r'^\s*open\b[^\n]*\b(IO(\.FS|\.Process)?|System\.FilePath|Std\.Time)\b(?!\.)', re.M)
+
+
+def io_sites(rel):
+    text = source(rel)
+    sites = []
+    for pattern, name in IO_PATTERNS:
+        for m in pattern.finditer(text):
+            label = name(m)
+            if IO_STDIO_VALUES.match(label):
+                continue
+            sites.append((label, line_of(text, m.start())))
+    opens = [(m.group(0).strip(), line_of(text, m.start())) for m in OPEN_IO.finditer(text)]
+    return sorted(sites, key=lambda s: s[1]), opens
+
+
+def controller_files():
+    exes = executables()
+    return closure(exes[CONTROLLER_EXE])
+
+
+def io_counts(files):
+    counts, opens = {}, {}
+    for rel in sorted(set(files.values())):
+        sites, opened = io_sites(rel)
+        per = {}
+        for label, _ in sites:
+            per[label] = per.get(label, 0) + 1
+        if per:
+            counts[rel] = dict(sorted(per.items()))
+        if opened:
+            opens[rel] = opened
+    return counts, opens
+
+
+def check_io(report):
+    files = controller_files()
+    counts, opens = io_counts(files)
+    findings = []
+    try:
+        with open(BASELINE) as f:
+            baseline = json.load(f)['sites']
+    except FileNotFoundError:
+        return [f'io-baseline: {os.path.relpath(BASELINE, ROOT)} is missing (run with --update-baseline once)'], {}
+    lower = []
+    for rel, per in counts.items():
+        if rel in IO_ALLOWED:
+            continue
+        allowed = baseline.get(rel, {})
+        for label, count in per.items():
+            if count > allowed.get(label, 0):
+                where = [line for l, line in io_sites(rel)[0] if l == label]
+                findings.append(f'io-baseline: {rel}: {label} {count} sites, baseline {allowed.get(label, 0)} (lines {where[:12]})')
+        for label, count in allowed.items():
+            if per.get(label, 0) < count:
+                lower.append(f'{rel}: {label} {per.get(label, 0)} < baseline {count}')
+    for rel, entries in baseline.items():
+        if rel not in counts and rel not in IO_ALLOWED:
+            lower.append(f'{rel}: no sites now (baseline lists {sum(entries.values())})')
+    for rel, opened in opens.items():
+        if rel not in IO_ALLOWED:
+            for text, line in opened:
+                findings.append(f'io-baseline: {rel}:{line}: `{text}` hides unprefixed I/O calls from this lint')
+    info = dict(files=len(files), counts=counts, lower=lower)
+    if report:
+        total = sum(sum(per.values()) for per in counts.values())
+        print(f'[io-baseline] controller closure: {len(files)} repository modules; {total} I/O sites in {len(counts)} files')
+        by_label = {}
+        for per in counts.values():
+            for label, count in per.items():
+                by_label[label] = by_label.get(label, 0) + count
+        for rel, per in sorted(counts.items(), key=lambda kv: -sum(kv[1].values())):
+            print(f'  {sum(per.values()):4}  {rel}')
+        print('  by primitive:')
+        for label, count in sorted(by_label.items(), key=lambda kv: -kv[1]):
+            print(f'  {count:4}  {label}')
+        if lower:
+            print('  below the baseline (tighten with --update-baseline):')
+            for line in lower:
+                print('   ', line)
+    return findings, info
+
+
+def update_baseline():
+    counts, _ = io_counts(controller_files())
+    data = dict(
+        about='I/O primitive sites per file of the controller\'s import closure (scripts/lint_node.py, check io-baseline). '
+              'A count may only go down. Rewrite with --update-baseline after a stage moved sites into TlsMpc/Node/Channels.lean.',
+        sites={rel: per for rel, per in counts.items() if rel not in IO_ALLOWED})
+    with open(BASELINE, 'w') as f:
+        f.write(json.dumps(data, indent=1, sort_keys=True) + '\n')
+    print(f'wrote {os.path.relpath(BASELINE, ROOT)}: {sum(sum(p.values()) for p in data["sites"].values())} sites in {len(data["sites"])} files')
+
+
+# ---- (b) Escape hatches.
+
+HATCHES = re.compile(r'\b(sorry|admit|native_decide|bv_decide|ofReduceBool|implemented_by|extern|unsafe|opaque|axiom|csimp|'
+                     r'skipKernelTC|partial\s+def)\b')
+
+
+def hatches(rel):
+    text = source(rel)
+    return [(m.group(1), line_of(text, m.start())) for m in HATCHES.finditer(text)]
+
+
+def lean_files(top):
+    base = os.path.join(ROOT, top)
+    out = []
+    for dirpath, dirnames, filenames in os.walk(base):
+        dirnames[:] = [d for d in dirnames if d not in ('.lake', 'Build', 'build', 'target', '.git')]
+        out += [os.path.relpath(os.path.join(dirpath, f), ROOT) for f in filenames if f.endswith('.lean')]
+    return sorted(out)
+
+
+def check_hatches(report):
+    findings = []
+    for rel in lean_files(NODE_DIR):
+        for word, line in hatches(rel):
+            findings.append(f'escape-hatches: {rel}:{line}: `{word}`')
+    if report:
+        print(f'[escape-hatches] {NODE_DIR}: {len(lean_files(NODE_DIR))} files, {len(findings)} findings')
+        # For information: the same patterns over the rest of the Lean tree (SECURITY_MAP C.6).
+        tree = lean_files('TlsMpc') + lean_files('handshake_backend') + sorted(
+            f for f in os.listdir(ROOT) if f.endswith('.lean'))
+        per = {}
+        for rel in tree:
+            for word, line in hatches(rel):
+                per.setdefault(word.split()[0] if word.startswith('partial') else word, []).append(f'{rel}:{line}')
+        print(f'  whole tree, for information ({len(tree)} files in TlsMpc/, handshake_backend/, the root; not a failure):')
+        for word, where in sorted(per.items()):
+            print(f'  {len(where):4}  {word}: {", ".join(where[:6])}{" ..." if len(where) > 6 else ""}')
+    return findings
+
+
+# ---- (c) Emitter isolation.
+
+def emitters():
+    return {name: root for name, root in executables().items() if name.endswith('_emitter') or name == 'circuit_inventory'}
+
+
+def check_emitters(report):
+    findings = []
+    lines = []
+    for name, root in sorted(emitters().items()):
+        mods = closure(root)
+        bad = sorted(m for m in mods if m == 'TlsMpc.Node' or m.startswith('TlsMpc.Node.'))
+        for m in bad:
+            findings.append(f'emitter-isolation: {name} ({root}) imports {m}')
+        lines.append(f'  {len(mods):4} modules  {name}' + ('   (imports the TlsMpc root module: anything added to it reaches this emitter)' if 'TlsMpc' in mods else ''))
+    if report:
+        print(f'[emitter-isolation] {len(lines)} emitters, {len(findings)} findings; each emitter\'s repository import closure:')
+        print('\n'.join(lines))
+    return findings
+
+
+# ---- (d) Later stages.
+
+def check_secret_val(report):
+    findings = []
+    for rel in lean_files('TlsMpc') + lean_files('handshake_backend'):
+        if SECRET_ALLOWED.search(rel):
+            continue
+        text = source(rel)
+        for m in re.finditer(r'\bSecret\.(val|mk)\b', text):
+            findings.append(f'secret-val: {rel}:{line_of(text, m.start())}: `{m.group(0)}` outside the eliminators\' files')
+    if report:
+        print(f'[secret-val] {len(findings)} findings')
+    return findings
+
+
+def check_message_fields(report):
+    rel = f'{NODE_DIR}/Messages.lean'
+    if not os.path.isfile(os.path.join(ROOT, rel)):
+        if report:
+            print(f'[message-fields] {rel} does not exist yet')
+        return []
+    text = source(rel)
+    findings = [f'message-fields: {rel}:{line_of(text, m.start())}: `{m.group(0)}`' for m in re.finditer(r'\b(Secret|Handle)\b', text)]
+    if report:
+        print(f'[message-fields] {len(findings)} findings')
+    return findings
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    p.add_argument('--report', action='store_true')
+    p.add_argument('--update-baseline', action='store_true')
+    p.add_argument('--enable', default='', help='comma-separated checks to switch on in addition: ' + ', '.join(ALL_CHECKS))
+    p.add_argument('--only', default='', help='comma-separated checks to run instead of the default ones')
+    p.add_argument('--root', help='TEST: lint another tree (with its own lakefile.toml and scripts/lint_node_baseline.json)')
+    a = p.parse_args()
+    if a.root:
+        global ROOT, BASELINE
+        ROOT = os.path.abspath(a.root)
+        BASELINE = os.path.join(ROOT, 'scripts', 'lint_node_baseline.json')
+    if a.update_baseline:
+        update_baseline()
+        return
+    checks = [c for c in (a.only.split(',') if a.only else DEFAULT_ON + [c for c in a.enable.split(',') if c]) if c]
+    unknown = [c for c in checks if c not in ALL_CHECKS]
+    if unknown:
+        p.error(f'unknown checks: {unknown}')
+    findings = []
+    for check in ALL_CHECKS:
+        if check not in checks:
+            if a.report:
+                print(f'[{check}] not switched on')
+            continue
+        if check == 'io-baseline':
+            findings += check_io(a.report)[0]
+        elif check == 'escape-hatches':
+            findings += check_hatches(a.report)
+        elif check == 'emitter-isolation':
+            findings += check_emitters(a.report)
+        elif check == 'secret-val':
+            findings += check_secret_val(a.report)
+        elif check == 'message-fields':
+            findings += check_message_fields(a.report)
+    for line in findings:
+        print('FAIL', line)
+    print(f'lint_node: {len(findings)} findings ({", ".join(checks)})')
+    sys.exit(1 if findings else 0)
+
+
+if __name__ == '__main__':
+    main()

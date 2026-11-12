@@ -1065,7 +1065,8 @@ Depends on nothing. **3–4 days. Mechanical.**
   controller's 122-module import closure); checks (d) behind `--enable`;
 - `scripts/compare_records.py` (`--mask` writes the golden form);
 - `check_signal_service_local.py --record DIR` writes each session's `SIGNAL_RECORD` per party
-  (the harness wrote none before); golden records in `tests/golden/`;
+  (the harness wrote none before); golden records in `tests/golden/` (malicious only so far,
+  recorded before the device-refresh change: regenerate, and add semi-honest, see its README);
 - the manifest for `--strict-produced` already existed in `local_signal_server/state/circuits`.
 
 Brought forward from later stages, small and independent of the reorganisation:

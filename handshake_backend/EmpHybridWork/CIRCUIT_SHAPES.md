@@ -148,11 +148,12 @@ well (see "Not done").
 |---|---|---|---|
 | `bundle-fetch-ctr SIZE P U K` | frame layout | constant (request ids from 2^63) | 1; named by `request-shape fetch` |
 | `bundle-shape CAP` | response body size class | **data** → ladder | classes from 2560 up to `bundle_max` (about one per 2.5 KB device, 6 for two devices) |
-| `bundle-item FIRST LAST D R S P K` | whether the item is first / last in the response; digit counts of its device id, registration id, signed prekey id, one-time prekey id (0: none), Kyber prekey id | **bounded**, but a product: D 1–3, R 1–5, S, K 1–10, P 0–10 | the description lists the combinations to cover (`bundle_items`). Replaces `bundle-device SIZE START D R S P K`, which also depended on the body size and the item's offset (unbounded). See "Not done" for the digit counts. |
+| `bundle-slot FIRST LAST ONETIME` (2026-11-12) | whether the item is first / last in the response; whether it has a one-time prekey | constant / flags | **8**, whatever the digit counts (`bundle_slots: 1`). The runtime splices the item into fixed-width number slots (device id 3, registration id 5, key ids 10: public `0`s inserted before each number, Lean's `BundleSlots.splice`, sent by the controllers with operation 60) and passes the five digit counts as a public input; the kernel checks the padding, the canonical form at the count and the range, and decodes exactly as `bundle-item` (`TlsMpc/BundleSlotKernels.lean`, `BundleSlotProofs.lean`; checked against a JSON parse for every digit count, `check_bundle_slots.py`: 18 items, 251 altered inputs refused). About 103–106k AND gates, as `bundle-item`. Its own emitter (`bundle_slot_emitter`), so the cache of every other kernel was unchanged. The controllers use it unless `SIGNAL_BUNDLE_SLOTS=0`. |
+| `bundle-item FIRST LAST D R S P K` | whether the item is first / last in the response; digit counts of its device id, registration id, signed prekey id, one-time prekey id (0: none), Kyber prekey id | **bounded**, but a product: D 1–3, R 1–5, S, K 1–10, P 0–10 | only with `SIGNAL_BUNDLE_SLOTS=0`: the description lists the combinations to cover (`bundle_items`). For realistic ranges (D 1, R 1–5, S and K 1–8, P 0–8, four positions) that is 11,520 kernels (about 32 GB, 2.2 h to produce), which is why `bundle-slot` exists. Replaces `bundle-device SIZE START D R S P K`, which also depended on the body size and the item's offset (unbounded). |
 | `establish-points F`, `establish-session CERT F`, `establish-challenges`, `establish-verified`, `bundle-rebind` (was `bundle-bind`) | one-time prekey present | constant / flag | 7 |
 | `kem-hash kyber`, `kem-ntt`, `kem-matrix 0–3`, `kem-u 0–3`, `kem-v`, `kem-finish kyber` | none | constant | 12 |
 | `bundle-seal CERT F CONTENT CW PW EW IW` | as `signal-seal-built`, for a device that has not answered | as there (counters start at 0) | 2 per `sends` row |
-| `bundle-request-ctr SIZE P U K (D R)…` | frame layout for one message per device | the devices' envelope sizes: per device, established or pending without / with a one-time prekey, at one of the covered counter-width rows | (3·rows)^1 + … + (3·rows)^d for up to `d` devices (12 for two devices and one row); named by `request-shape devices`. Each is large (1.8M AND for two PreKey messages). See "Not done". |
+| `bundle-request-ctr SIZE P U K (D R)…` | frame layout for one message per device | the devices' envelope sizes: per device, established or pending without / with a one-time prekey, at one of the covered counter-width rows | (3·rows)^1 + … + (3·rows)^d for up to `d` devices (12 for two devices and one row); with `device_lists: pending` (no established entries: true while replies are not processed) 2^1 + … + 2^d per message class (30 for four devices, 62 for five). Named by `request-shape devices`. Each is large (1.8M AND for two PreKey messages, about 4.3M for five). See "Not done". |
 
 ### Not in a deployment's manifest
 
@@ -283,12 +284,12 @@ parsing the text gate lists, already made direct in `lean_circuit.h` by the perf
    and its field offsets values rather than parameters: a rewrite of that module and its proofs.
    Until then: enumerate (cheap to list, about 40 s and 10 GB to produce per shape), and anything
    else is refused.
-3. **Digit counts in `bundle-item`**: realistic ranges (registration ids of 1–5 digits, key ids of
-   1–8) multiply to thousands of 100K-gate kernels. The fix is fixed-width number slots: the body's
-   punctuation is public, so the worker can splice public `0` characters in front of each number
-   (a generic "splice" binding) and one kernel per (FIRST, LAST, one-time present) remains; the
-   number parser must then accept leading zeros while the canonical-form check moves to the first
-   real digit. Not done: it changes `BundleResponse.device` and its theorems.
+3. ~~**Digit counts in `bundle-item`**~~ **Done 2026-11-12** (`bundle-slot`, above): the fixed-width
+   number slots described here, without changing `BundleResponse.device` (the slot variant,
+   `BundleSlots.deviceSlots`, is a module of its own with its own `_map`, `_spec` and `_rejects`
+   theorems). Not proved, as for `device`: that the decoded numbers are the decimal values
+   (tested). When the cache is next rebuilt anyway, `deviceSlots` could replace `device` (one
+   function with a validator parameter) and `bundle-slot` move into `flat_kernel_emitter`.
 4. **`bundle-request-ctr`** (and `signal-request-ctr`): one kernel per combination of envelope
    sizes. The fix is to seal request frames with `tls-seal-class` after a small fixed kernel has
    formatted the private slots (UUID, access key, device and registration ids), with the worker
@@ -299,4 +300,8 @@ parsing the text gate lists, already made direct in `lean_circuit.h` by the perf
    gate-list form pinned by the manifest is not done.
 6. `record_max` bounds what can be received: a record above it is refused (the session fails at
    that record). The largest class (20480) is about 19M AND gates and well over 16 GB to produce
-   with today's lowering; classes up to 8192 fit under the cap.
+   with today's lowering. With typed opening the framing-scan kernels (`tls-open-application-class`,
+   `tls-frame`), the heavy ones, run only on handshake records; `scan_record_max` (2026-11-12) lists
+   them only up to 10240, and above it only `tls-open-typed` and `tls-reveal-masked` (about
+   370 AND gates per byte). Production uses 14336 (a five-device prekey response); see
+   REAL_TEST_PLAN.md for what was measured.

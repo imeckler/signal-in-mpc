@@ -95,7 +95,10 @@ Kernels are named as `find` takes them. "Establish step n" is the list in `TlsMp
  3. `bundle-shape SIZE`: opens `shape`, one flag per body byte.
  4. Controllers, in the clear: `BundleResponse.layout? flags` gives the devices' widths or refuses;
     `BundleKernel.arguments SIZE widths` gives one `bundle-device` parameter list per device.
- 5. For each device, `bundle-device SIZE START D R S P K`: private `valid`, `identityKey`, `deviceId`,
+ 5. For each device, `bundle-device SIZE START D R S P K` (since replaced by `bundle-item FIRST LAST
+    D R S P K`, and since 2026-11-12 by `bundle-slot FIRST LAST ONETIME`: the item spliced into
+    fixed-width number slots, one circuit for every digit count, CIRCUIT_SHAPES.md; the first
+    real contact's three devices had key ids of mixed widths): private `valid`, `identityKey`, `deviceId`,
     `registrationId`, `signedPrekeyId`, `signedPrekey`, `signedPrekeySignature`, `kyberPrekeyId`,
     `kyberPrekey`, `kyberPrekeySignature`, and with a one-time prekey `oneTimePrekeyId`,
     `oneTimePrekey`: the input names of the establishment kernels. Opens nothing.

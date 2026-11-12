@@ -373,8 +373,14 @@ public:
             Wires dh4;if(a.one_time)dh4=agreed[6];
             auto&layout=shaped("receive-signal-shape "+a.widths);
             auto shape=layout.open(s,layout.run(s,{{"message",&a.message},{"valid",&a.prekey_valid}}),"shape");if(shape.size()!=13)throw Rejected{};
+            // JUMP (SIGNAL_RECEIVE_JUMP, default 0, at most 16): the first message may be the sender's
+            // message number 0..JUMP of its unanswered session (a phone that already sent us a signup
+            // we never answered sends its next one as number 1). One kernel covers them all; the
+            // number itself stays private (ReceiveFirst.session, `selectAt`).
+            const char*jump_text=std::getenv("SIGNAL_RECEIVE_JUMP");const unsigned long jump=jump_text?std::strtoul(jump_text,nullptr,10):0;
+            if(jump>16)throw Rejected{};
             auto&session=shaped("receive-session "+std::to_string(CERT)+" "+a.widths+" "+std::to_string(width(shape,0))+" "+std::to_string(width(shape,5))+" "+
-                std::to_string(shape[10])+" "+std::to_string(shape[11])+(flag(shape[12])?" 1":" 0")+" 0");
+                std::to_string(shape[10])+" "+std::to_string(shape[11])+(flag(shape[12])?" 1":" 0")+" "+std::to_string(jump));
             auto address=k.constant(local_address),secret=k.constant(kem_secret),access=k.constant(std::vector<uint8_t>(16,0)),request=k.constant(request_id);
             Binding bound{{"message",&a.message},{"prekeyValid",&a.prekey_valid},{"verified",&a.verified},{"senderIdentity",&a.sender_identity},{"ourIdentity",&a.ours},
                 {"localAddress",&address},{"uuid",&a.uuid},{"deviceId",&a.device},{"dh1",&dh1},{"dh2",&dh2},{"dh3",&dh3},{"kemSecret",&secret},
@@ -720,8 +726,10 @@ public:
         const size_t size=bundle.size()/8,capacity=TlsKernels::record_capacity(size);
         auto filler=k.constant(std::vector<uint8_t>(capacity-size+1,0)).slice(0,8*(capacity-size));
         auto padded=DynSession::concat({&bundle,&filler});
-        auto&kernel=k.cache.get("bundle-shape "+std::to_string(capacity));
-        auto flags=kernel.open(s,kernel.run(s,{{"body",&padded}}),"shape");flags.resize(size);return flags;
+        // A class outside a strict manifest (a response of more devices than the deployment covers):
+        // no flags, and the controllers give that contact up ("fault"), not the session.
+        const Kernel*kernel=nullptr;try{kernel=&shaped("bundle-shape "+std::to_string(capacity));}catch(const Rejected&){return {};}
+        auto flags=kernel->open(s,kernel->run(s,{{"body",&padded}}),"shape");flags.resize(size);return flags;
     }
     // One step (0..8) of one device's establishment from the held body. The controllers call the
     // steps of device 0, then of device 1, ... in order (and may keep the connection alive in
@@ -736,8 +744,12 @@ public:
     // refuses the layout. The contact's state is NOT touched here: when the last device's status
     // and all before it are 255 the new device list is held as scratch (`Establishing`), to be
     // sealed, stored and only then committed; otherwise it is dropped.
+    // `runs` (non-empty: the controllers chose `bundle-slot`, TlsMpc/BundleSlotKernels.lean): how to
+    // build the kernel's `item` from the item in the body, Lean's `BundleSlots.splice` for the widths:
+    // per run, that many public `0` characters, then that many bytes of the item.
     std::vector<uint8_t> bundle_establish(const ContactId&id,size_t index,size_t count,unsigned step,const std::array<size_t,6>&layout,
-            const std::vector<uint8_t>&local_registration,const std::vector<uint8_t>&request_id){
+            const std::vector<uint8_t>&local_registration,const std::vector<uint8_t>&request_id,
+            const std::vector<std::pair<size_t,size_t>>&runs={}){
         auto it=conversations.find(id);
         need(public_receive&&!closed&&it!=conversations.end()&&it->second.record.size()!=0&&bundle.size()&&count>=1&&count<=6&&index<count&&step<=8&&
             local_registration.size()==4&&request_id.size()==8,"bundle establish");
@@ -751,14 +763,34 @@ public:
                 // The item and the bytes around it (TlsMpc/BundleItemKernels.lean), cut from the held body at
                 // the item's offset with the widths the kernel declares for its inputs. Its shape depends
                 // on the item alone, not on the size of the body or where the item lies in it.
-                std::string name=std::string("bundle-item ")+(index==0?"1":"0")+(index+1==count?" 1":" 0");
-                for(size_t i=1;i<6;i++)name+=" "+std::to_string(layout[i]);
+                const bool slots=!runs.empty();
+                std::string name=std::string(slots?"bundle-slot ":"bundle-item ")+(index==0?"1":"0")+(index+1==count?" 1":" 0");
+                if(slots)name+=layout[4]?" 1":" 0";
+                else for(size_t i=1;i<6;i++)name+=" "+std::to_string(layout[i]);
                 auto&cut=shaped(name);
-                const size_t total=bundle.size()/8,start=layout[0],head=cut.input_bits("head")/8,width=cut.input_bits("item")/8;
+                // The item's size in the body: the kernel's for `bundle-item`; the bytes the runs copy for `bundle-slot`.
+                size_t width=cut.input_bits("item")/8;
+                if(slots){width=0;for(auto&r:runs)width+=r.second;}
+                const size_t total=bundle.size()/8,start=layout[0],head=cut.input_bits("head")/8;
                 if(start<head||(index==0)!=(start==head)||start+width+2>total)throw Rejected{};
                 auto head_bytes=bundle.slice(0,8*head),item_bytes=bundle.slice(8*start,8*(start+width)),end_bytes=bundle.slice(8*(total-2),8*total);
                 auto before=bundle.slice(8*(start-1),8*start),after=bundle.slice(8*(start+width),8*(start+width+1));
+                Wires digits;
+                if(slots){
+                    // Splice: public `0` characters before each number, the item's own bytes otherwise.
+                    std::vector<Wires>parts;size_t at=0;
+                    for(auto&r:runs){
+                        if(r.first)parts.push_back(k.constant(std::vector<uint8_t>(r.first,'0')));
+                        if(r.second)parts.push_back(item_bytes.slice(8*at,8*(at+r.second)));
+                        at+=r.second;
+                    }
+                    std::vector<const Wires*>refs;for(auto&p:parts)refs.push_back(&p);
+                    item_bytes=DynSession::concat(refs);
+                    if(item_bytes.size()!=cut.input_bits("item"))throw Rejected{};
+                    digits=k.constant(std::vector<uint8_t>{uint8_t(layout[1]),uint8_t(layout[2]),uint8_t(layout[3]),uint8_t(layout[4]),uint8_t(layout[5])});
+                }
                 Binding pieces{{"head",&head_bytes},{"item",&item_bytes},{"end",&end_bytes}};
+                if(slots)pieces.push_back({"widths",&digits});
                 if(index!=0)pieces.push_back({"before",&before});
                 if(index+1!=count)pieces.push_back({"after",&after});
                 e.fields=cut.run(s,pieces);e.one_time=layout[4]!=0;

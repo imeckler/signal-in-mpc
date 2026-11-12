@@ -307,9 +307,24 @@ Inventory of every kernel family, what fixes each parameter, the tools and the n
       id widths, client version (addresses field, post-quantum field size). A signup outside the
       listed shapes is refused. Either measure and list what real clients send, or give the
       receive kernels capacities (a rewrite of `ReceiveFirst` and its proofs).
-- [ ] Multi-device: digit counts of a bundle's numbers (`bundle-item`) and the per-combination
-      request frame (`bundle-request-ctr`) still multiply; fixes are described in
-      CIRCUIT_SHAPES.md ("Not done" 3 and 4).
+- [x] Multi-device digit counts (2026-11-12, after the first real run's contact turned out to have
+      three devices and the refresh was refused at `bundle-shape 8192`): `bundle-slot FIRST LAST
+      ONETIME`, 8 kernels for every digit count (the item spliced into fixed-width number slots;
+      CIRCUIT_SHAPES.md). Enumerating `bundle-item` instead would have been about 11,500 kernels.
+- [x] Production deployment covers contacts with up to four devices (`devices 4`, `record_max
+      12288` with `scan_record_max 10240`, `device_lists pending`, produced with `--max-gb 26`).
+- [ ] **Five or six devices**: the prekey response is a record of class 14336 or 16384, whose
+      opening kernel does not lower within this machine's memory (12288 already peaks at 23.6 GB).
+      Needs an opening kernel that takes a long record in pieces, or a leaner lowering. Such a
+      contact's refresh is refused (strict) and the session ends.
+- [ ] The per-combination request frame (`bundle-request-ctr`) still multiplies: 2^n per message
+      class for n unanswered devices (30 for four devices; two classes: 60). Fix: CIRCUIT_SHAPES.md
+      "Not done" 4. A sixth device does not fit one request record ("retry later"); a request
+      split over records is not built.
+- [ ] The controller's pass-over of an unrevealed response body is slow and superlinear in the
+      clear (2,265 bytes: 1.2 s; the real run's 7,727-byte prekey response: 10.2 s, with no
+      keepalive in between); a five-device response (about 13 KB) would take about 30 s. Profile
+      `PublicReceive.stepPassed` / the frame and response parsers per byte.
 - [ ] A manifest belongs to one emitter binary; decide how a deployment ships it (the gate lists
       are several GB) and add a binary gate-list form to cut loading time.
 - [ ] Remove the Python wrapper from the runtime (`circuit_cache.py`: it now only names, hashes
@@ -787,7 +802,17 @@ Order of work:
       `check_signal_service_v3.py`) after the recent worker changes.
 - [ ] An official Signal client as the recipient and as the new user.
 - [ ] Thousands of contacts; hours-long sessions; reconnects; database node faults.
-- [ ] Then the real service, with one test account, at low volume.
+- [ ] Then the real service, with one test account, at low volume. **First run 2026-11-12**: the
+      signup worked; the reply got 409 (three devices) and the refresh was refused by the manifest
+      (REAL_TEST_PLAN.md section 0). Fixed offline the same day.
+- [ ] **(before the retry)** The local reproduction of that run with 2, 3 and 4 devices, strict,
+      both modes, the repeated-signup case and `run_real_test.py --resume` (commands in
+      REAL_TEST_PLAN.md section 4): not run on 2026-11-12, the machine's Docker daemon (OrbStack)
+      had stopped answering, which blocks every local Signal-Server.
+- [ ] The multi-device harness stages of `check_signal_service_local.py --strict` use
+      `local_signal_server/deployment.json`, which now also lists `bundle-slot` (the controllers'
+      default since 2026-11-12): produce that manifest again before its next strict run, or run
+      with `SIGNAL_BUNDLE_SLOTS=0`.
 
 ## 12a. Less C++, more Lean (queued: starts only after the application works end to end)
 

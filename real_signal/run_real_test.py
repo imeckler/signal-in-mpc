@@ -4,10 +4,18 @@
     run_real_test.py local      --export DIR --local-account NAME   the same flow against the LOCAL server
     run_real_test.py production --export DIR --i-have-the-go-ahead  Signal's service (chat.signal.org)
     run_real_test.py production --export DIR --dry-run              everything but the connections
+    run_real_test.py TARGET --export DIR --resume RUN_DIR [...]      only step 3, for the contact RUN_DIR stored
 
-DIR is what `lss-provision export-account ACCOUNT_JSON DIR production|local` wrote. One process,
-because the database nodes are the harness's in-memory test nodes (local_signal_server/
-check_signal_service_local.py, `Cluster`) and live as long as it:
+DIR is what `lss-provision export-account ACCOUNT_JSON DIR production|local` wrote.
+
+The database nodes (`--db real`, the default since 2026-11-12) are secret-shared-db's REAL node
+binary with a private Postgres instance under RUN/db/real (local_signal_server/scripts/
+start_db_nodes.py): they are stopped at the end and their data stays, so a send that failed can be
+tried again for the contact the run stored, without a new signup: `--resume RUN` starts that
+run's nodes again (same ports, same keys), waits one epoch, and runs only the send session, recorded
+in a new run directory. `--db memory` uses the harness's in-memory test nodes, as the first real run
+did (2026-11-12): their state ends with the process and cannot be resumed. `--stop-after receive`
+ends after step 2 (for testing --resume). Steps:
 
   1. the database nodes start; the application's signup token for a new id is issued and shown
      (production: the owner's phone sends it to the account as a text message);
@@ -40,12 +48,16 @@ BASE = ROOT / '.deps/two-party-comparison'
 MP = BASE / 'data61-MP-SPDZ-113c4e4'
 CACHE = ROOT / 'handshake_backend/EmpHybridWork/circuit_cache.py'
 DEFAULT_TEXT = 'Thanks for signing up. This is the first message from the two-party test client; there is nothing to reply.'
+# The receive kernels accept a first message that is the sender's number 0..RECEIVE_JUMP of its
+# unanswered session (service_kernels.h; the deployments' `signup_jump`): a phone whose earlier
+# signup was never answered sends its next one as number 1.
+RECEIVE_JUMP = '3'
 
 
 class Run:
-    def __init__(self, target, mode):
+    def __init__(self, target, mode, suffix=''):
         stamp = time.strftime('%Y%m%d-%H%M%S', time.gmtime())
-        self.dir = HERE / 'state' / 'runs' / f'{stamp}-{target}'
+        self.dir = HERE / 'state' / 'runs' / f'{stamp}-{target}{suffix}'
         self.dir.mkdir(parents=True)
         os.chmod(self.dir, 0o700)
         self.target, self.mode = target, mode
@@ -79,6 +91,28 @@ def prepare_workers(run):
     hosts = run.dir / 'hosts'
     hosts.write_text('127.0.0.1\n' * 2)
     return auth, work, hosts
+
+
+def reopen_cluster(db):
+    """The REAL database nodes of an earlier run (RUN/db), started again with their data."""
+    cluster = harness.Cluster.__new__(harness.Cluster)
+    script = cluster._nodes_script()
+    cluster.BIN = script.DEFAULT_BIN
+    cluster.dir, cluster.real, cluster.config, cluster.nodes = db, db / 'real', db / 'real/config', []
+    started = time.time()
+    state = script.restart(cluster.real)
+    cluster.network = Path(state['network'])
+    cluster.waits = dict(start=round(time.time() - started, 1), epochs=[])
+    return cluster
+
+
+def stored_contact(previous):
+    """The contact id an earlier run issued its signup token for, and whether it was stored."""
+    steps = [json.loads(line) for line in (previous / 'timeline.jsonl').read_text().splitlines() if line.strip()]
+    contact = next((s['id'] for s in steps if s['step'] == 'signup-token'), None)
+    ends = [s for s in steps if s['step'] == 'receive-end']
+    stored = bool(ends) and all(r and r[0][0] == contact for r in ends[-1].get('received') or [None])
+    return contact, stored
 
 
 def stop(p):
@@ -150,6 +184,10 @@ def main():
     p.add_argument('--local-account', help='local target: the lss-provision account name the export was made from')
     p.add_argument('--i-have-the-go-ahead', action='store_true', help='production: the owner said to go ahead')
     p.add_argument('--dry-run', action='store_true', help='check and record the plan; no connection')
+    p.add_argument('--db', default='real', choices=['real', 'memory'],
+                   help='real: secret-shared-db nodes with Postgres under RUN/db/real, kept after the run (resumable); memory: in-memory test nodes')
+    p.add_argument('--resume', metavar='RUN_DIR', help='only the send, to the contact RUN_DIR stored (its database nodes are started again)')
+    p.add_argument('--stop-after', choices=['receive'], help='end after the receive session (to test --resume)')
     a = p.parse_args()
     export_dir = Path(a.export).resolve()
     export = json.loads((export_dir / 'mpc-export.json').read_text())
@@ -161,7 +199,10 @@ def main():
     if len(a.text.encode()) > 256:
         sys.exit('the text is longer than 256 bytes')
     server = export['server']
-    hours_left = (export['sender']['certificate_expires_ms'] - time.time() * 1000) / 3.6e6
+    if a.target == 'local' and server.get('plain_port'):
+        # The local server instance the export names (the compact one listens on 19080/19443).
+        os.environ['LSS_SERVER'] = f'127.0.0.1:{server["plain_port"]}'
+    hours_left =(export['sender']['certificate_expires_ms'] - time.time() * 1000) / 3.6e6
     problems = []
     if hours_left < 2:
         problems.append(f'the sender certificate expires in {hours_left:.1f} hours: refresh it first')
@@ -170,13 +211,26 @@ def main():
             problems.append(f'missing {path}')
     if a.manifest and not Path(a.manifest).exists():
         problems.append(f'missing manifest {a.manifest}')
-    run = Run(a.target, a.mode)
+    previous, contact = None, None
+    if a.resume:
+        previous = Path(a.resume).resolve()
+        contact, stored = stored_contact(previous) if (previous / 'timeline.jsonl').exists() else (None, False)
+        if not (previous / 'db/real/nodes.json').exists():
+            problems.append(f'{previous} kept no database (its nodes were the in-memory test nodes, --db memory, or it ended before '
+                            'they started): the contact it stored is gone; a new signup is needed')
+        if not stored:
+            problems.append(f'{previous} did not store a contact (no receive session stored the signup)')
+        if previous.exists() and json.loads((previous / 'plan.json').read_text()).get('target') != a.target:
+            problems.append(f'{previous} was a run against another target')
+    run = Run(a.target, a.mode, '-resume' if a.resume else '')
     common = dict(DYLD_LIBRARY_PATH=str(MP), TLS_WORKER_FIELD_BATCH='3000', SIGNAL_CLIENT_PROFILE='libsignal',
                   SIGNAL_LOCAL_EXPORT=str(export_dir / 'mpc-export.json'), SIGNAL_LOCAL_KEM=str(LSS),
-                  CIRCUIT_CACHE_LOG=str(run.dir / 'kernels-requested.txt'), SIGNAL_ACK_REFUSED='1' if a.ack_refused else '0')
+                  CIRCUIT_CACHE_LOG=str(run.dir / 'kernels-requested.txt'), SIGNAL_ACK_REFUSED='1' if a.ack_refused else '0',
+                  SIGNAL_RECEIVE_JUMP=RECEIVE_JUMP)
     if a.manifest:
         common.update(CIRCUIT_MANIFEST=str(Path(a.manifest).resolve()), CIRCUIT_REFUSED_LOG=str(run.dir / 'kernels-refused.txt'))
     plan = dict(target=a.target, mode=a.mode, server=server, profile='libsignal', ack_refused=a.ack_refused,
+                db=a.db, resume_from=str(previous) if previous else None, contact=contact, stop_after=a.stop_after,
                 text_bytes=len(a.text.encode()), manifest=a.manifest, manifest_sha256=sha256(a.manifest) if a.manifest else None,
                 deployment_hints=hints, certificate_hours_left=round(hours_left, 1), sealed_sender_server_key_id=export['sealed_sender_server']['key_id'],
                 environment={k: v for k, v in common.items()}, git_head=git('rev-parse', 'HEAD'),
@@ -197,34 +251,48 @@ def main():
             run.log('cancelled-before-any-connection')
             return
 
-    harness.STATE = run.dir    # the in-memory database nodes' files go under the run directory
-    report = dict(directory=str(run.dir), target=a.target, passed=False)
+    harness.STATE = run.dir    # the database nodes' files go under the run directory
+    harness.Cluster.REAL = a.db == 'real'
+    report = dict(directory=str(run.dir), target=a.target, passed=False, db=a.db, resumed_from=str(previous) if previous else None)
     cluster = None
     try:
         auth, work, hosts = prepare_workers(run)
-        cluster = harness.Cluster()
-        cluster.token(harness.ACCOUNT)
-        contact = secrets.randbits(100)
-        token = cluster.token(contact).read_text().strip()
-        (run.dir / 'token.txt').write_text(token + '\n')
-        run.log('signup-token', id=str(contact), characters=len(token), file=str(run.dir / 'token.txt'))
+        if previous:
+            # Only the send: the earlier run's nodes, with the contact it stored, started again.
+            cluster = reopen_cluster(previous / 'db')
+            run.log('database-restarted', directory=str(previous / 'db/real'), seconds=cluster.waits['start'])
+            contact = int(contact)
+            cluster.refresh()    # one epoch: everything written before the earlier run stopped is applied
+            run.log('database-epoch', seconds=cluster.waits['epochs'][-1])
+        else:
+            cluster = harness.Cluster()
+            cluster.token(harness.ACCOUNT)
+            contact = secrets.randbits(100)
+            token = cluster.token(contact).read_text().strip()
+            (run.dir / 'token.txt').write_text(token + '\n')
+            run.log('signup-token', id=str(contact), characters=len(token), file=str(run.dir / 'token.txt'))
         shares = [(export_dir / f'credentials-party-{party}.hex').read_text().strip() for party in range(2)]
 
         # 2. Receive the signup.
-        if a.target == 'local':
-            out = subprocess.run([str(LSS), 'signup', 'realtest-user', '+12025550199', a.local_account, token], capture_output=True, text=True)
-            run.log('local-signup-sent', exit_code=out.returncode, error=out.stderr[-300:])
-        else:
-            print(f'\nSend this text from the phone to the account (one message, nothing else):\n\n{token}\n', flush=True)
-        receive = session(run, 'receive', server, export_dir, auth, work, hosts,
-                          lambda party: dict(cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1'),
-                          common, a.wait_minutes * 60 + 300)
-        report['receive'] = receive
-        signed_up = all(c.get('received') == [[str(contact), token]] for c in receive['controllers'])
-        report['signed_up'] = signed_up
-        if not signed_up:
-            raise RuntimeError('the signup was not received and stored (see the receive records)')
-        cluster.refresh()
+        if not previous:
+            if a.target == 'local':
+                out = subprocess.run([str(LSS), 'signup', 'realtest-user', '+12025550199', a.local_account, token], capture_output=True, text=True)
+                run.log('local-signup-sent', exit_code=out.returncode, error=out.stderr[-300:])
+            else:
+                print(f'\nSend this text from the phone to the account (one message, nothing else):\n\n{token}\n', flush=True)
+            receive = session(run, 'receive', server, export_dir, auth, work, hosts,
+                              lambda party: dict(cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='1'),
+                              common, a.wait_minutes * 60 + 300)
+            report['receive'] = receive
+            signed_up = all(c.get('received') == [[str(contact), token]] for c in receive['controllers'])
+            report['signed_up'] = signed_up
+            if not signed_up:
+                raise RuntimeError('the signup was not received and stored (see the receive records)')
+            if a.stop_after == 'receive':
+                report['passed'] = True
+                run.log('stopped-after-receive', resume=f'--resume {run.dir}')
+                return
+            cluster.refresh()
 
         # 3. Send one text back.
         request = cluster.request([contact], a.text)

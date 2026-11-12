@@ -4,7 +4,8 @@
 //! this node's own database client key file, by path. It never sees a share, never parses
 //! Signal traffic, and returns nothing the controller did not report as an agreed public value.
 
-use node_daemon::{Kind, Request, call, hmac, open, public_key, random_bytes, read_line, result_digest, seal, sha256, unix_now, write_line, MAX_MESSAGE_BYTES};
+use node_daemon::{Kind, ReplayCache, Request, call, hmac, open_reply, open_request, public_key, random_bytes, read_line, result_digest, seal_reply, seal_request,
+    sha256, unix_now, write_line, MAX_MESSAGE_BYTES};
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
@@ -30,7 +31,10 @@ fn log(text: &str) {
 
 struct Config {
     party: u8,
+    /// The application's listener (localhost, or an address only the application reaches).
     listen: String,
+    /// The other daemon's listener, separate from the application's (peer messages only).
+    peer_listen: String,
     peer: String,
     peer_key: Vec<u8>,
     state: PathBuf,
@@ -133,11 +137,16 @@ impl Config {
         if peer_key.len() < 16 {
             return Err(format!("{key_file}: the peer key must be at least 16 bytes"));
         }
+        let (listen, peer_listen) = (text(&c, &["listen"])?, text(&c, &["peer_listen"])?);
+        if listen == peer_listen {
+            return Err("config: peer_listen must differ from listen (the application and the other daemon have separate listeners)".into());
+        }
         let environment = c.get("environment").and_then(Value::as_object)
             .map(|o| o.iter().filter_map(|(k, v)| v.as_str().map(|v| (k.clone(), v.to_string()))).collect()).unwrap_or_default();
         Ok(Config {
             party: party as u8,
-            listen: text(&c, &["listen"])?,
+            listen,
+            peer_listen,
             peer: text(&c, &["peer"])?,
             peer_key,
             state: PathBuf::from(text(&c, &["state_directory"])?),
@@ -303,6 +312,15 @@ struct Daemon {
     config: Config,
     shared: Mutex<Shared>,
     changed: Condvar,
+    /// Nonces of the other daemon's requests accepted within the freshness window.
+    replay: ReplayCache,
+}
+
+/// Which listener a message came in on.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Channel {
+    Application,
+    Peer,
 }
 
 /// The process and everything below it, from the process table.
@@ -352,8 +370,12 @@ impl Daemon {
         self.config.party == 0
     }
 
+    /// A request to the other daemon; its reply only if it is sealed and answers this request.
     fn peer_call(&self, message: Value) -> Result<Value, String> {
-        call(&self.config.peer, &seal(&self.config.peer_key, message), Duration::from_secs(5))
+        let request = seal_request(&self.config.peer_key, self.config.party, message)?;
+        let reply = call(&self.config.peer, &request, Duration::from_secs(5))?;
+        open_reply(&self.config.peer_key, self.config.party, &request, &reply)?;
+        Ok(reply)
     }
 
     // ---- Requests of the application.
@@ -1180,12 +1202,16 @@ impl Daemon {
         }
     }
 
-    fn handle(self: &Arc<Self>, message: &Value) -> Value {
+    fn handle(self: &Arc<Self>, channel: Channel, message: &Value) -> Value {
         let op = message.get("op").and_then(Value::as_str).unwrap_or("");
-        if op.starts_with("peer-") {
-            return match open(&self.config.peer_key, message) {
-                Ok(()) => self.peer(op, message),
-                Err(why) => json!({"ok": false, "error": why}),
+        if channel == Channel::Peer {
+            let key = &self.config.peer_key;
+            return match open_request(key, self.config.party, message, &self.replay) {
+                Ok(()) => seal_reply(key, self.config.party, message, self.peer(op, message)),
+                Err(why) => {
+                    log(&format!("peer message refused: {why}"));
+                    json!({"ok": false, "error": why})
+                }
             };
         }
         match op {
@@ -1232,20 +1258,23 @@ fn main() {
             }
         }
     }
-    let listener = match TcpListener::bind(&config.listen) {
+    // Two listeners: the application's (`listen`) and the other daemon's (`peer_listen`). Each
+    // takes only its own messages, so neither can reach the other's operations.
+    let bind = |address: &str| match TcpListener::bind(address) {
         Ok(listener) => listener,
         Err(e) => {
-            eprintln!("node-daemon: {}: {e}", config.listen);
+            eprintln!("node-daemon: {address}: {e}");
             std::process::exit(2);
         }
     };
+    let (listener, peer_listener) = (bind(&config.listen), bind(&config.peer_listen));
     // A fixed check of the link's MAC, so that a wrong build is noticed at start.
     assert_eq!(hex::encode(hmac(b"Jefe", b"what do ya want for nothing?")), "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843");
-    let daemon = Arc::new(Daemon { config, shared: Mutex::new(Shared { events, ..Shared::default() }), changed: Condvar::new() });
-    log(&format!("party {} listening on {}", daemon.config.party, daemon.config.listen));
-    println!("listening {}", daemon.config.listen);
+    let daemon = Arc::new(Daemon { config, shared: Mutex::new(Shared { events, ..Shared::default() }), changed: Condvar::new(), replay: ReplayCache::default() });
+    log(&format!("party {} listening on {} (application) and {} (the other daemon)", daemon.config.party, daemon.config.listen, daemon.config.peer_listen));
+    println!("listening {} peer {}", daemon.config.listen, daemon.config.peer_listen);
     let _ = std::io::stdout().flush();
-    {
+    for (listener, channel) in [(listener, Channel::Application), (peer_listener, Channel::Peer)] {
         let daemon = daemon.clone();
         thread::spawn(move || {
             for stream in listener.incoming().flatten() {
@@ -1254,7 +1283,7 @@ fn main() {
                     let mut stream = stream;
                     let _ = stream.set_read_timeout(Some(Duration::from_secs(30)));
                     let reply = match read_line(&mut stream) {
-                        Ok(message) => daemon.handle(&message),
+                        Ok(message) => daemon.handle(channel, &message),
                         Err(why) => json!({"ok": false, "error": why}),
                     };
                     let _ = write_line(&mut stream, &reply);

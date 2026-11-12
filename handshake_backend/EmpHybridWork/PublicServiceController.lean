@@ -11,7 +11,9 @@ import TlsMpc.Signal.RelayEncoding
 import TlsMpc.Signal.PrivateTextNotification
 import TlsMpc.Signal.RelayUpgrade
 import TlsMpc.Signal.BundleResponse
+import TlsMpc.Signal.BundleSlots
 import TlsMpc.CeremonyRequests
+import TlsMpc.Node.Policy.Clock
 
 /-!
 Service controller for the public-receive profile.
@@ -835,6 +837,17 @@ def labels (session : String) (count : Nat) (index : Option Nat) : String × Str
 
 end Circuits
 
+/-- The end of operation 60 (`bundleEstablish`) for an item with digit counts `w`: the counts,
+and with `slots` (`SIGNAL_BUNDLE_SLOTS`, on unless `0`) the splice that turns the item into the
+fixed-width layout of `bundle-slot` (`BundleSlots.splice`: a count, then per run zeros 1 byte,
+copy 2 bytes), so that one circuit serves every digit count (CIRCUIT_SHAPES.md). -/
+def establishTail (slots : Bool) (w : BundleResponse.Widths) : List UInt8 :=
+  [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat ++
+    (if slots then
+      let runs := BundleSlots.splice w
+      UInt8.ofNat runs.length :: runs.flatMap fun (zeros, copy) => [UInt8.ofNat zeros, UInt8.ofNat (copy / 256), UInt8.ofNat (copy % 256)]
+    else [])
+
 /-! ---- Failures as per-contact outcomes (PRODUCT_TODO.md sections 3 and 4).
 
 A send session with the database nodes does not end when one contact fails. Everything decided
@@ -1482,9 +1495,7 @@ def main (args : List String) : IO Unit := do
         | some fixed => pure fixed
         | none =>
           let mine := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
-          let theirs := number (← swap (uint 8 mine))
-          insist (mine ≤ theirs + 120000 && theirs ≤ mine + 120000) "the two parties' clocks differ by more than two minutes"
-          pure (max mine theirs)
+          liftResult (Node.Policy.Clock.agree mine (number (← swap (uint 8 mine))))
       -- A new nonce for each seal of a contact's state: joint randomness.
       let nonce : M Bytes := do
         let random ← rpc.call .publicRandom []
@@ -2108,10 +2119,11 @@ def main (args : List String) : IO Unit := do
       -- Request ids of the refresh's own requests, apart from the sends' counter from 2^63.
       let extraIds ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
       let nextId : M Nat := liftM (extraIds.modifyGet (fun n => (2 ^ 63 + 2 ^ 32 + n, n + 1)) : IO Nat)
-      -- A clock both controllers use: each reads its own, they tell each other, the later one counts.
+      -- A clock both controllers use: each reads its own, they tell each other, the later one
+      -- counts if the two are within two minutes (`Clock.agreed_within`), as for `agreedNow`.
       let agreedClock : M Nat := do
         let mine := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
-        pure (max mine (number (← swap (uint 8 mine))))
+        liftResult (Node.Policy.Clock.agree mine (number (← swap (uint 8 mine))))
       -- The server drops a socket that is silent for 90 seconds, and establishing one device's
       -- session takes about that long. Before each step: if 20 seconds have passed on the agreed
       -- clock since the last exchange, a keepalive is sent and its answer awaited.
@@ -2159,12 +2171,12 @@ def main (args : List String) : IO Unit := do
         let some widths := BundleResponse.layout? (flags.map (· == 255)) | throw "prekey response layout refused"
         let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
         insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
+        let slots := (← liftM (IO.getEnv "SIGNAL_BUNDLE_SLOTS" : IO (Option String))) != some "0"
         for ((at_, w), index) in rows.zipIdx do
           for step in [0:9] do
             s ← keepAlive s
             let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
-              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++
-              [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat)
+              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++ establishTail slots w)
             -- One status byte per device and not the reason: bad JSON, a bad signature, a changed
             -- identity key and a failed encapsulation look the same. The contact keeps its old state.
             -- (254 after the first step: the bundle's identity key is a new one, which is accepted.)
@@ -2647,6 +2659,11 @@ def main (args : List String) : IO Unit := do
           return (s, .lost)
         -- The one thing opened about the body: which of its bytes are JSON punctuation.
         let flags ← rpc.call .bundleShape []
+        if flags.isEmpty then
+          -- Strict mode, and the response's size class is not in the manifest (more devices than
+          -- the deployment covers): this contact fails, the session goes on.
+          drop
+          return (s, .stop .fault s!"no circuit for a prekey response of {size} bytes (more devices than the deployment covers)")
         insist (flags.length == size && flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
         let layout := BundleResponse.layout? (flags.map (· == 255))
         let widths := layout.getD []
@@ -2655,6 +2672,7 @@ def main (args : List String) : IO Unit := do
           drop
           return (s, .stop .fault "server fault: the prekey response is not a bundle")
         let mut changed := false
+        let slots := (← liftM (IO.getEnv "SIGNAL_BUNDLE_SLOTS" : IO (Option String))) != some "0"
         for ((at_, w), index) in rows.zipIdx do
           for step in [0:9] do
             let (next, alive) ← keepAliveSoft s
@@ -2663,8 +2681,7 @@ def main (args : List String) : IO Unit := do
               drop
               return (s, .lost)
             let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
-              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++
-              [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat)
+              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++ establishTail slots w)
             -- 254 (first step, first device): the bundle parsed and verified under an identity key
             -- that is not the stored one. Accepted by decision; reported.
             if out == [254] && index == 0 && step == 0 then changed := true
@@ -2991,9 +3008,7 @@ def main (args : List String) : IO Unit := do
             | none => List.replicate 32 0
           let theirs ← swap (named ++ [if stopping then 1 else 0] ++ uint 8 clock)
           insist (theirs.length == 41) "invalid serve tick"
-          let other := number (theirs.drop 33)
-          insist (clock ≤ other + 120000 && other ≤ clock + 120000) "the two parties' clocks differ by more than two minutes"
-          let now := max clock other
+          let now ← liftResult (Node.Policy.Clock.agree clock (number (theirs.drop 33)))
           if job.isSome && theirs.take 32 == named then
             let (jobName, requestPath, messagePath, journalPath) := job.getD ("", "", "", "")
             let begun ← liftM (IO.monoMsNow : IO Nat)
