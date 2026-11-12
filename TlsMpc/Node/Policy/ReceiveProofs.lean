@@ -54,22 +54,52 @@ The scanners' `for` loops are rewritten as plain functions (`scan_eq`, `fieldMis
 `T1` states the property for every stream (with the one-byte allowance after the first malformed
 byte; it stays: a response's next key and the byte after it are revealed in one run).
 
-## What is not proved here
+## What is proved elsewhere, and what is not proved
 
-* The per-byte glue: that `step` keeps `request`/`reply` equal to the message's payload so far
-  (the frame parser delivers payload bytes in order; `TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`
-  has the frame side) and sets `skip` from `scan`/`replyScan`'s answer. The theorems above take the
-  state's `request`/`reply` and frame position as hypotheses. For server requests and the frame
-  side it is in `Policy/ReceiveInvariant.lean` (`payloadByte_request_*`, `frameByte_frame`); for
-  responses it is still open.
-* Delivered envelopes: proved at the scanner level in `Policy/ReceiveEnvelope.lean`
-  (`envelope_payload_unrevealed`, every byte string), and linked to `step`/`stepSkipped` in
-  `Policy/ReceiveInvariant.lean` (`envRun_safe`, `request_envelope_safe`: every move of the
-  controller over a delivered envelope's body reveals only what `envWalk` reveals).
-* Field layouts other than the server's order, and the relation to `ReceiveSpec.classify` (checked
-  by `ReceiveTest` on generated streams).
-* `T1` itself for all streams: checked by `ReceiveTest` (generated and mutated streams), proved for
-  the parts above.
+**`T1` for every stream (`t1_all`) is not proved.** It is checked by `ReceiveTest` on generated and
+mutated streams. Its parts proved so far (standard axioms only):
+
+* Here: passing over (`go_skip`), the server's layouts (`request_body_unrevealed`,
+  `response_body_unrevealed`), too-long varints refused.
+* `Policy/ReceiveEnvelope.lean`, `Policy/ReceiveInvariant.lean`: delivered envelopes, scanner level
+  (`envelope_payload_unrevealed`) and controller level (`envRun_safe`, `request_envelope_safe`); the
+  per-byte glue for requests (`payloadByte_request_*`) and the frame side (`frameByte_frame`).
+* `Policy/ReceiveStream.lean` (item 1): the reference byte by byte, equal to the recursive one for
+  every stream (`classifyFrames_stream`, `classify_stream`); a byte's class depends only on the bytes
+  before it, and on the message's length when it is complete (`message_causal`, `message_prefix`,
+  `message_at`).
+* `Policy/ReceiveReply.lean` (item 2, responses): every field order, every byte string, with or
+  without `openBody`. The controller's view `RShape` is kept by every byte the scanner accepts and every
+  body it passes over (`rshape_more`, `rshape_skip`); every run `replyBudget` allows from it is public,
+  or ends at the reference's first `error` (`rshape_budget`). Controller level: `ReplyIn`,
+  `payloadByte_replyIn`, `stepPassed_replyIn`, `reply_run_safe`.
+* `Policy/ReceiveRequestScan.lean` (item 2, requests): the same for `scan` and `fieldMissing`, every
+  field order, delivered message or not (`qshape_more`, `qshape_skip`, `qshape_run`: every run inside a
+  request is public); controller level `QIn`, `payloadByte_qIn`, `stepSkipped_qIn`, `request_run_safe`.
+* `Policy/ReceiveFrame.lean` (item 3, part): every header byte at which the reference enters its error
+  state is refused by the frame parser and by `frameByte` (`first_reject`, `second_reject`,
+  `extLo_reject`, `frameByte_reject`).
+* `Policy/ReceiveHead.lean` (item 5): before the upgrade, every run stays inside the HTTP head
+  (`upgrade_run_safe`, `frameByte_terminator`).
+
+What `t1_all` still needs (each a lemma about the deployed code, none a change to it):
+
+* The frame-position simulation: the frame parser's phase, `fragmented`, opcode and high-length
+  bytes against `ReceiveStream.Stream.Phase` (the hypotheses of `ReceiveFrame`'s lemmas), from
+  `frameByte_frame` and `frame_extent`; and the message state across fragments and control frames:
+  header and control bytes leave `message`/`reply`/`request`/`skip` alone (`payloadByte` with
+  `data = false`; `payloadByte_nodata` has it for an envelope), the second kind byte starts `ReplyIn _
+  []` / `QIn _ []`, the message's end resets them.
+* `complete = true`: the reference classes the payload of a message's last frame, when the stream
+  holds all of it, with `complete = true` (an overrunning length makes the bytes after it `error`); the
+  theorems above use `complete = false`. They agree on every revealed position because `payloadByte`
+  refuses an overrunning length at its last byte, which ends its run (to be proved).
+* A delivered envelope's body classes have no `error` once the controller has walked all of it (the
+  hypothesis `qshape_skip` takes for `/api/v1/message`; it follows from the walk not being refused).
+* `payloadByte` keeps `upgraded`, `terminator` and `openBody` in general (proved on the response
+  path: `payloadByte_reply_more'`, `payloadByte_reply_skip'`).
+* The loop: `recordLoop`'s runs (one `budget s` each, `stepWindow`'s checks, `passBulk`) composed with
+  the above into `T1`, with the one-byte allowance exactly as stated, and `streamRun` across records.
 -/
 
 namespace ReceiveProofs
