@@ -1,0 +1,28 @@
+name = "tls-mpc-proofs"
+version = "0.1.0"
+defaultTargets = ["TlsMpcProofs"]
+
+# Proof-only package (REORGANIZATION_PLAN.md section 1, rule 6, "Superseded 2026-11-12").
+# Mathlib lives here and only here; nothing in the main package (../lakefile.toml) imports this
+# package, so no executable, emitter or circuit-cache key can reach Mathlib.
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.31.0"
+
+# The main package's Lean sources, by relative path (`srcDir = ".."`), compiled into THIS
+# package's .lake/build. Deliberately not a Lake `path` dependency: Lake builds a path dependency
+# inside the dependency's own directory, i.e. it would read and (when stale) rewrite the main
+# package's .lake while other engineers build there. With this library only the modules the proofs
+# import are compiled (on demand, here), the main package's .lake is never opened, and the
+# definitions proved about are always the working-tree sources. Do not `lake build TlsMpcSources`
+# (that would compile the whole main library); build `TlsMpcProofs`.
+[[lean_lib]]
+name = "TlsMpcSources"
+srcDir = ".."
+roots = ["TlsMpc"]
+
+[[lean_lib]]
+name = "TlsMpcProofs"
+leanOptions = { autoImplicit = false }

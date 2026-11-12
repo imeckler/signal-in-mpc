@@ -1,0 +1,2 @@
+# Mathlib checkout, its prebuilt cache, and this package's build (all rebuildable).
+.lake/
