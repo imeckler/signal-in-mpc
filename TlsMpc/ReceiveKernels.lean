@@ -261,10 +261,10 @@ def accessKeyInputs (cert ciphertext : Nat) : List (String × Shape) :=
 
 /-- The contact's unidentified-access key, derived from the profile key in the
 message and written into the conversation record (unchanged unless `status`
-is 255). `offset` is where the profile-key field starts in the content: the
-body's start (4, 5 or 6, the set flag of `receive-text`'s `layout`) plus the
-body's length, when the body is the first field and the profile key the
-next. -/
+is 255). `offset` is where the body ends in the content: the body's start (4,
+5 or 6, the set flag of `receive-text`'s `layout`) plus the body's length. The
+profile-key field follows after one of `ReceiveFirst.gaps` (Signal-Android's
+`expireTimer`, `expireTimerVersion`, or `flags`), chosen inside the circuit. -/
 def accessKey (cert ciphertext offset : Nat) : Kernel :=
   let get := lookup (accessKeyInputs cert ciphertext)
   let out := ReceiveFirst.withAccessKey Aes.symbolic ByteAuth.symbolic cert offset (get "conversation") (get "plaintext")

@@ -715,26 +715,69 @@ and the unidentified-access key that sealed-sender delivery to the contact
 needs is derived from it (`rust/zkgroup/src/api/profiles/profile_key.rs`,
 `derive_access_key`: AES-256 under the profile key of the block `0^15 ‖ 02`). -/
 
+/-- The fields a Signal client may put between a data message's body (field 1)
+and its profile key (field 6), each absent (0) or a varint of that many bytes:
+`flags` (4, tag `20`), `expireTimer` (5, tag `28`) and `expireTimerVersion`
+(23, tag `B8 01`). Signal-Android encodes with Wire, which writes fields in
+DECLARATION order (`body, attachments, groupV2, flags, expireTimer,
+expireTimerVersion, profileKey, timestamp, …`): a plain text is
+`0A len body ‖ 28 timer ‖ B8 01 version ‖ 32 20 key ‖ 38 timestamp …`. A
+tag-order encoder (protoc, prost) puts field 23 after the profile key, leaving
+`28 timer` or nothing. -/
+structure Gap where
+  flags : Nat
+  timer : Nat
+  version : Nat
+
+def Gap.size (g : Gap) : Nat :=
+  (if g.flags = 0 then 0 else 1 + g.flags) + (if g.timer = 0 then 0 else 1 + g.timer) +
+    (if g.version = 0 then 0 else 2 + g.version)
+
+/-- Every accepted gap: flags absent or 1..2 bytes, timer absent or 1..5 bytes
+(any `uint32`), version absent or 1..3 bytes. 72 layouts, at most 16 bytes.
+Two of them never both match the same bytes (they first differ in a tag byte or
+in a continuation bit), so at most one mask below is set. -/
+def gaps : List Gap :=
+  (List.range 3).flatMap (fun f => (List.range 6).flatMap (fun t => (List.range 4).map (fun v => ⟨f, t, v⟩)))
+
+/-- 255 exactly when the content `c` has the fields of `g` at `offset`, then
+the profile key's header `32 20`. -/
+def gapMask (a : ByteAuth.Ops B) (c : List B) (offset : Nat) (g : Gap) : B :=
+  let t := offset + (if g.flags = 0 then 0 else 1 + g.flags)
+  let v := t + (if g.timer = 0 then 0 else 1 + g.timer)
+  all a [whenever a (g.flags != 0) (a.and (ByteAuth.eqMask a (OpenResult.get a c offset) (a.const 32))
+      (varintShape a c (offset + 1) g.flags)),
+    whenever a (g.timer != 0) (a.and (ByteAuth.eqMask a (OpenResult.get a c t) (a.const 40))
+      (varintShape a c (t + 1) g.timer)),
+    whenever a (g.version != 0) (all a [ByteAuth.eqMask a (OpenResult.get a c v) (a.const 184),
+      ByteAuth.eqMask a (OpenResult.get a c (v + 1)) (a.const 1), varintShape a c (v + 2) g.version]),
+    ByteAuth.eqMask a (OpenResult.get a c (offset + g.size)) (a.const 50),
+    ByteAuth.eqMask a (OpenResult.get a c (offset + g.size + 1)) (a.const 32)]
+
+/-- For byte `j` of the profile key: each gap's mask with that byte under the gap. -/
+def keyChoices (a : ByteAuth.Ops B) (c : List B) (offset j : Nat) : List Gap → List B → List (B × B)
+  | g :: gs, m :: ms => (m, OpenResult.get a c (offset + g.size + 2 + j)) :: keyChoices a c offset j gs ms
+  | _, _ => []
+
 /-- Status (1) and the conversation record with the access key written into
 its metadata; the record is unchanged unless the status is 255. `offset` is
-the position in the content of the profile-key field: right after the body
-unless other fields come between. `plain` is the session's fourth result. -/
+the position in the content right after the body (public: the body's start
+and length are opened by `text`); the profile-key field follows it after one
+of the `gaps`, chosen inside the circuit, so the nodes learn nothing about
+which (the status says only that one matched, as it did when only the empty
+gap was accepted). `plain` is the session's fourth result. -/
 def withAccessKey (o : Aes.Ops B) (a : ByteAuth.Ops B) (cert offset : Nat) (conversation plain : List B) :
     List (List B) :=
-  [[expect a (plain.drop 8) offset (lit a [50, 32])],
+  let c := plain.drop 8
+  let masks := gaps.map (gapMask a c offset)
+  let found := any a masks
+  let key := (List.range 32).map (fun j => pick a (keyChoices a c offset j gaps masks))
+  [[found],
     conversation.take (cert + 278) ++
-      ChainSend.selectState a (expect a (plain.drop 8) offset (lit a [50, 32]))
-        (Aes.encryptExpanded o 14 (Aes.expandKey o 8 14 (part (plain.drop 8) (offset + 2) 32))
-          (lit a (List.replicate 15 0 ++ [2])))
+      ChainSend.selectState a found
+        (Aes.encryptExpanded o 14 (Aes.expandKey o 8 14 key) (lit a (List.replicate 15 0 ++ [2])))
         (part conversation (cert + 278) 16) ++
       conversation.drop (cert + 294)]
-
-theorem withAccessKey_map {o : Aes.Ops B} {o' : Aes.Ops B'} {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'}
-    (ho : Aes.Hom o o' f) (ha : ByteAuth.Hom a a' f) (cert offset : Nat) (conversation plain : List B) :
-    (withAccessKey o a cert offset conversation plain).map (List.map f) =
-      withAccessKey o' a' cert offset (conversation.map f) (plain.map f) := by
-  simp only [withAccessKey, List.map_cons, List.map_nil, List.map_append, List.map_take, List.map_drop, expect_map ha,
-    lit_map ha, ChainSend.selectState_map ha, Aes.encryptExpanded_map ho, Aes.expandKey_map ho, Establish.part_map]
 
 section Refinement
 variable {o : AesInverse.Ops B} {o' : AesInverse.Ops B'} {s : Sha256.Ops B W} {s' : Sha256.Ops B' W'}
@@ -916,5 +959,39 @@ end Refinement
 #print axioms signalShape_map
 #print axioms session_map
 #print axioms text_map
+
+theorem gapMask_map {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'} (ha : ByteAuth.Hom a a' f)
+    (c : List B) (offset : Nat) (g : Gap) : f (gapMask a c offset g) = gapMask a' (c.map f) offset g := by
+  simp only [gapMask, all_map ha, List.map_cons, List.map_nil, whenever_map ha, ha.and, ByteAuth.eqMask_map ha,
+    OpenResult.get_map ha, ha.const, varintShape_map ha]
+
+theorem keyChoices_map {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'} (ha : ByteAuth.Hom a a' f)
+    (c : List B) (offset j : Nat) (gs : List Gap) (ms : List B) :
+    (keyChoices a c offset j gs ms).map (fun choice => (f choice.1, f choice.2)) =
+      keyChoices a' (c.map f) offset j gs (ms.map f) := by
+  induction gs generalizing ms with
+  | nil => rfl
+  | cons g gs ih =>
+      cases ms with
+      | nil => rfl
+      | cons m ms => simp only [keyChoices, List.map_cons, ih, OpenResult.get_map ha]
+
+theorem withAccessKey_map {o : Aes.Ops B} {o' : Aes.Ops B'} {a : ByteAuth.Ops B} {a' : ByteAuth.Ops B'} {f : B → B'}
+    (ho : Aes.Hom o o' f) (ha : ByteAuth.Hom a a' f) (cert offset : Nat) (conversation plain : List B) :
+    (withAccessKey o a cert offset conversation plain).map (List.map f) =
+      withAccessKey o' a' cert offset (conversation.map f) (plain.map f) := by
+  have masks : (gaps.map (gapMask a (plain.drop 8) offset)).map f =
+      gaps.map (gapMask a' ((plain.map f).drop 8) offset) := by
+    simp only [List.map_map, Function.comp_def, gapMask_map ha, List.map_drop]
+  have key : ((List.range 32).map (fun j => pick a (keyChoices a (plain.drop 8) offset j gaps
+      (gaps.map (gapMask a (plain.drop 8) offset))))).map f =
+      (List.range 32).map (fun j => pick a' (keyChoices a' ((plain.map f).drop 8) offset j gaps
+        (gaps.map (gapMask a' ((plain.map f).drop 8) offset)))) := by
+    simp only [List.map_map, Function.comp_def, pick_map ha, keyChoices_map ha, ← masks, List.map_drop]
+  simp only [withAccessKey, List.map_cons, List.map_nil, List.map_append, List.map_take, List.map_drop, any_map ha,
+    lit_map ha, ChainSend.selectState_map ha, Aes.encryptExpanded_map ho, Aes.expandKey_map ho, Establish.part_map,
+    key, masks]
+
+#print axioms withAccessKey_map
 
 end TlsMpc.Signal.ReceiveFirst

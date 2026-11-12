@@ -1376,6 +1376,9 @@ def main (args : List String) : IO Unit := do
   -- the signed request (SIGNAL_DB_REQUEST). A requested id that the database nodes do not hold,
   -- or do not serve until their next epoch (`true`), is left out of the session and reported.
   let notifyFile ← IO.getEnv "SIGNAL_NOTIFY_MESSAGE_FILE"
+  -- The long-lived send session (SIGNAL_SERVE_DIR; `serve` below, node_daemon/README.md): no
+  -- contacts at the start; jobs (one signed notify each) handed over by the daemon in that directory.
+  let serveDir ← IO.getEnv "SIGNAL_SERVE_DIR"
   let absent ← IO.mkRef ([] : List (Nat × Bool))
   let running ← TlsWorkerProcess.spawn {
     executable := worker, workingDirectory := directory,party := ← natural party,
@@ -1441,6 +1444,13 @@ def main (args : List String) : IO Unit := do
         match ← liftM (IO.getEnv name : IO (Option String)) with
         | some value => pure value
         | none => throw s!"{name} is required with SIGNAL_DB_CLIENT"
+      -- The application's signed request that authorises reads and write-backs: SIGNAL_DB_REQUEST,
+      -- or in the long-lived session (`serve`) the request of the job being served.
+      let jobRequest ← liftM (IO.mkRef (none : Option String) : IO (IO.Ref (Option String)))
+      let requestFile : M String := do
+        match ← liftM (jobRequest.get : IO (Option String)) with
+        | some path => pure path
+        | none => dbEnv "SIGNAL_DB_REQUEST"
       let dbWork (name : String) : M String := do pure s!"{← dbEnv "SIGNAL_DB_WORK"}/{name}"
       let dbTry (arguments : List String) : M Bool := do
         let some tool := dbClient | throw "no database client"
@@ -1633,7 +1643,8 @@ def main (args : List String) : IO Unit := do
           -- Contacts that exist only in the store (received in an earlier session).
           let extra := ((← liftM (IO.getEnv "SIGNAL_LOCAL_EXTRA_CONTACTS" : IO (Option String))).getD "").splitOn ","
             |>.filterMap String.toNat? |>.map (fun contact => (contact, ([] : Bytes)))
-          let wanted := if credentials.isSome then [] else records ++ extra
+          -- (The long-lived session starts with none: each job loads its own, `loadJob`.)
+          let wanted := if credentials.isSome || serveDir.isSome then [] else records ++ extra
           -- Through the daemon: exactly the ids of the application's signed request, whose message
           -- hash must be the text's. (TEST: an id of the export is still created from it.)
           let wanted ← match notifyFile, credentials with
@@ -1738,6 +1749,11 @@ def main (args : List String) : IO Unit := do
           pure (some (← liftResult (readReceive (← liftM (IO.FS.readFile path : IO String)))))
         | _, _ => pure none
       let nextContact ← liftM (IO.mkRef (((← IO.getEnv "SIGNAL_LOCAL_NEW_CONTACT").bind String.toNat?).getD 1000) : IO (IO.Ref Nat))
+      -- Provisional ids (with the database), one per opened message, from 2^128 - 3 down: the
+      -- worker keeps the entry of a contact refused after its session was made (evicted, not
+      -- erased) and makes a session only under an id with no entry, so a provisional id is never
+      -- reused within a session. Both controllers count the same messages in the same order.
+      let provisionals ← liftM (IO.mkRef (0 : Nat) : IO (IO.Ref Nat))
       let decapsulate (key ciphertext : Bytes) : M Bytes := do
         -- Kyber-1024 decapsulation runs outside the engines, with a key both parties hold.
         let some tool ← liftM (IO.getEnv "SIGNAL_LOCAL_KEM" : IO (Option String)) | throw "SIGNAL_LOCAL_KEM (decapsulation tool) is required"
@@ -1766,8 +1782,8 @@ def main (args : List String) : IO Unit := do
         | some oneTime, some signed, some kyber =>
           let secret ← decapsulate kyber (opened.drop 14)
           -- With the database, the contact's id is named by the message itself; until then
-          -- the contact is held under a provisional id.
-          let provisional := 2 ^ 128 - 1
+          -- the contact is held under a provisional id (2^128 - 1, then 2^128 - 3, 2^128 - 4, …).
+          let provisional ← liftM (provisionals.modifyGet (fun n => (if n == 0 then 2 ^ 128 - 1 else 2 ^ 128 - 2 - n, n + 1)) : IO Nat)
           let contact ← if dbClient.isSome then pure provisional else liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
           let result ← rpc.call .envelopeSession (uint 16 contact ++ keys.address ++ signed ++ oneTime ++ secret ++ uint 8 (2 ^ 63))
           if result.head? != some 255 then return ← refusedBecause s!"no session from it (reply {result.headD 0}: keys, MAC, content or text shape)"
@@ -1923,7 +1939,7 @@ def main (args : List String) : IO Unit := do
       let storeAdvanced (contact : Nat) : M Unit := do
         if dbClient.isSome then
           let version := ((← liftM (versions.get : IO (List (Nat × Nat)))).find? (·.1 == contact)).map (·.2) |>.getD 0
-          insist (← dbWrite contact (version + 1) ["--request", ← dbEnv "SIGNAL_DB_REQUEST"]) "the database did not acknowledge a contact's state"
+          insist (← dbWrite contact (version + 1) ["--request", ← requestFile]) "the database did not acknowledge a contact's state"
           liftM (versions.modify (fun all => all.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v))) : IO Unit)
       -- As `dbSubmit`, for a write whose failure is one contact's and not the session's: a client
       -- that fails, or nodes that do not acknowledge, give `false`. The two parties tell each
@@ -1951,7 +1967,7 @@ def main (args : List String) : IO Unit := do
         let fresh ← nonce
         let stored ← sealState contact fresh
         insist (stored.length > 16) "invalid stored contact state"
-        let taken ← dbSubmitSoft (toString contact) (["--request", ← dbEnv "SIGNAL_DB_REQUEST"] ++ ["--id", toString contact])
+        let taken ← dbSubmitSoft (toString contact) (["--request", ← requestFile] ++ ["--id", toString contact])
           ((← versionOf contact) + 1) (fresh ++ stored)
         if taken then bumpVersion contact
         pure taken
@@ -1965,7 +1981,7 @@ def main (args : List String) : IO Unit := do
         let stored ← rpc.call .scratchSeal (uint 16 contact ++ fresh)
         insist (stored.length > 16) "invalid sealed device list"
         let taken ← if dbClient.isSome then
-            dbSubmitSoft (toString contact) (["--request", ← dbEnv "SIGNAL_DB_REQUEST"] ++ ["--id", toString contact])
+            dbSubmitSoft (toString contact) (["--request", ← requestFile] ++ ["--id", toString contact])
               ((← versionOf contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
           else pure true
         if taken then
@@ -1994,6 +2010,12 @@ def main (args : List String) : IO Unit := do
         if (← liftM (IO.getEnv "SIGNAL_LOCAL_TIMESTAMP" : IO (Option String))).isSome then return send
         if (← liftM (stamped.get : IO (List Bytes))).contains send.2 then return send
         let some (_, body) := (← liftM (bodies.get : IO (List (Bytes × Bytes)))).find? (·.1 == send.2) | return send
+        -- The contact's per-session preparation (its first send's curve work: tens of seconds
+        -- without TLS_WORKER_HINTED) runs BEFORE the stamp, so that the stamp is taken just
+        -- before the message is sealed and sent, as an official client's is. Once prepared, this
+        -- costs one exchange; a contact with a device list is prepared by its own send.
+        if (← kindsOf send.1) == [0] then
+          let _ ← rpc.call .contactsPrepare (uint 16 send.1)
         let now := max (← agreedNow) ((← liftM (lastStamp.get : IO Nat)) + 1)
         liftM (lastStamp.set now : IO Unit)
         let some (_, built) := PrivateTextNotification.buildPublicOfficial 4 (toBits body) (toBits (uint 8 now)) | throw "message text rejected"
@@ -2191,6 +2213,74 @@ def main (args : List String) : IO Unit := do
         let statuses ← rpc.call .contactsPrepare (batch.flatMap (uint 16))
         insist (statuses.length == batch.length) "invalid contacts-prepare reply"
         liftM (preparedContacts.modify (· ++ batch) : IO Unit)
+      /- ---- The long-lived session (`serve` below): one job's contacts. ----
+      As the daemon's one-notify session does at its start, for the ids of the job's signed request:
+      read them from the database nodes under that request (which also authorises the write-backs),
+      compare with the other party what the nodes do not hold or do not serve yet (that id's result,
+      `absent`), and load the rest. A contact the engines still hold from an earlier job is kept,
+      with its per-session preparation, when the nodes' version of its state is the version this
+      session holds (`versions`): the engines then hold what was stored under that version, or are
+      at most one unacknowledged store ahead of it (a counter gap, never a key used twice).
+      Otherwise (another version, or not held) it is evicted and loaded from the nodes' blob.
+      Returns the job's contacts in the request's order. -/
+      let residentIds ← liftM (IO.mkRef ([] : List Nat) : IO (IO.Ref (List Nat)))
+      let forget (contact : Nat) : M Unit := do
+        if (← liftM (residentIds.get : IO (List Nat))).contains contact then
+          let _ ← rpc.call .contactEvict (uint 16 contact)
+        liftM (residentIds.modify (·.filter (· != contact)) : IO Unit)
+        liftM (preparedContacts.modify (·.filter (· != contact)) : IO Unit)
+        liftM (deviceKinds.modify (·.filter (·.1 != contact)) : IO Unit)
+      let setVersion (contact version : Nat) : M Unit :=
+        liftM (versions.modify (fun all => all.filter (·.1 != contact) ++ [(contact, version)]) : IO Unit)
+      let loadJob (requestPath text : String) : M (List Nat) := do
+        let request ← liftResult (Lean.Json.parse (← liftM (IO.FS.readFile requestPath : IO String)))
+        let ids := ((request.getObjValAs? (Array String) "ids").toOption.getD #[]).toList.filterMap String.toNat?
+        insist (!ids.isEmpty) "the notify request lists no ids"
+        let signedFor ← liftResult (fromHex ((request.getObjValAs? String "message_hash").toOption.getD ""))
+        insist (signedFor == TlsWire.hash text.toUTF8.data.toList) "the message is not the one the notify request was signed for"
+        -- TEST: an id of the export that the database nodes do not hold yet is created from it.
+        let records ← match exportPath with
+          | some path => do pure (← liftResult (readExport (← liftM (IO.FS.readFile path : IO String)))).2.2
+          | none => pure []
+        let wanted := ids.map (fun id => (id, ((records.find? (·.1 == id)).map (·.2)).getD []))
+        let (readJson, sharesJson) ← dbRead ["--request", requestPath] "contacts"
+        let waiting := ((readJson.getObjValAs? (Array String) "not_yet_readable").toOption.getD #[]).toList
+        let gone := wanted.filterMap (fun (contact, record) =>
+          if waiting.contains (toString contact) then some (contact, true)
+          else if record.isEmpty && ((dbShare sharesJson contact).isNone || (dbBlob readJson contact).isNone) then some (contact, false)
+          else none)
+        let mine := TlsWire.hash (gone.flatMap (fun (contact, later) => uint 16 contact ++ [(if later then 1 else 0 : UInt8)]))
+        insist ((← swap mine) == mine) "the two parties' database reads differ"
+        liftM (absent.set gone : IO Unit)
+        liftM (unreadable.set [] : IO Unit)
+        let mut loaded : List Nat := []
+        for (contact, record) in wanted do
+          if let some (_, later) := gone.find? (·.1 == contact) then
+            -- Not on the nodes (deleted, or never signed up): nothing of it stays in the engines.
+            -- Not served yet: it is not touched.
+            if !later then forget contact
+            continue
+          match dbShare sharesJson contact, dbBlob readJson contact with
+          | some share, some (version, blob) =>
+            let held := (← liftM (residentIds.get : IO (List Nat))).contains contact
+            unless held && (← versionOf contact) == version do
+              forget contact
+              let _ ← rpc.call .contactKey (uint 16 contact ++ (← liftResult (fromHex share)))
+              openState contact (← liftResult (fromHex blob))
+              setVersion contact version
+              -- (A blob that does not open leaves the contact unloaded: `unreadable`, its result.)
+              unless (← liftM (unreadable.get : IO (List Nat))).contains contact do
+                liftM (residentIds.modify (· ++ [contact]) : IO Unit)
+          | _, _ =>
+            insist (!record.isEmpty) "contact is not in the database"
+            forget contact
+            let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
+            let _ ← rpc.call .contactAdmit (uint 16 contact ++ record)
+            let _ ← rpc.call .contactKey (uint 16 contact ++ share)
+            setVersion contact 0
+            liftM (residentIds.modify (· ++ [contact]) : IO Unit)
+          loaded := loaded ++ [contact]
+        pure loaded
       -- After the sends: every contact's advanced state goes back to the store.
       let writeBack : M Unit := do
         if dbClient.isSome then pure ()   -- stored before each send (storeAdvanced)
@@ -2640,21 +2730,24 @@ def main (args : List String) : IO Unit := do
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
         return none
-      let deliver : M Nat := do
-        liftM (recoveryUsed.set true : IO Unit)
-        let count := max sendCircuits 1
-        -- Connection 0 is connected and its upgrade request sent; then connections 1..N-1.
+      -- Connection 0 is connected and its upgrade request sent; then connections 1..N-1.
+      let openAll : M PublicReceive.State := do
         let first ← readUpgrade app (TlsWorker.onConnection rpc active 0) (toBits accept)
         liftM (states.set #[first] : IO Unit)
-        for index in [1:count] do
+        for index in [1:max sendCircuits 1] do
           let opened ← openConnection index
           liftM (states.modify (·.push opened) : IO Unit)
+        pure first
+      -- One notify's sends (`inputs`, to the contacts `recipients`) on the open connections. Once
+      -- per session, or once per job of the long-lived session (`serve`).
+      let deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+          (first : PublicReceive.State) : M Nat := do
+        liftM (recoveryUsed.set true : IO Unit)
+        let count := max sendCircuits 1
         /- What an earlier session for the SAME notify settled (SIGNAL_NOTIFY_ID names the notify,
         SIGNAL_NOTIFY_JOURNAL is this party's journal). An entry counts only when both parties'
         journals have it: a party that lost its journal, or lies, can cause a duplicate, never
         a message left out. Entries are public values (message number, id, result). -/
-        let notifyId ← liftM (IO.getEnv "SIGNAL_NOTIFY_ID" : IO (Option String))
-        let journal ← liftM (IO.getEnv "SIGNAL_NOTIFY_JOURNAL" : IO (Option String))
         let settled ← match notifyId, journal with
           | some named, some path => do
             let text ← if ← liftM ((path : System.FilePath).pathExists : IO Bool) then liftM (IO.FS.readFile path : IO String) else pure ""
@@ -2820,6 +2913,157 @@ def main (args : List String) : IO Unit := do
         insist ((← swap digest) == digest) "the two parties' per-id results differ"
         liftM (results.set entries : IO Unit)
         return delivered
+      let deliver : M Nat := do
+        let first ← openAll
+        deliverJob inputs recipients (← liftM (IO.getEnv "SIGNAL_NOTIFY_ID" : IO (Option String)))
+          (← liftM (IO.getEnv "SIGNAL_NOTIFY_JOURNAL" : IO (Option String))) first
+      /- ---- The long-lived send session (SIGNAL_SERVE_DIR = DIR; node_daemon/README.md). ----
+      The connections are opened once and kept; the daemon hands over one job at a time (one
+      signed notify: DIR/job.json, `{"job", "request", "message", "journal"}`, written whole) and
+      reads one result line per job on standard output (`{"job", "status", "results", ...}`, the
+      same per-id results the one-notify session reports, agreed the same way). Between jobs the
+      session ticks: the two controllers exchange which job each was handed (its name's hash),
+      whether its daemon asks the session to end (DIR/stop), and their clocks. A job runs when
+      both were handed the same one; the session ends cleanly, between jobs, when either daemon
+      asks. While idle, each connection is polled (a closed one is replaced at once; a record that
+      arrived is read and answered) and kept alive after 25 s without traffic (WebSocket ping under
+      the libsignal profile, as libsignal; otherwise a keepalive request, awaited). The triple
+      stocks refill in the background as in any session. A job's failure is the session's (as for
+      the one-notify session); the daemon then starts a new session, which resumes from the
+      journals. What is kept from job to job: the open connections and their request counters,
+      the contacts' loaded state and preparation (`loadJob`), the account, the circuits. -/
+      let emit (json : Lean.Json) : M Unit :=
+        liftM ((do IO.println json.compress; (← IO.getStdout).flush) : IO Unit)
+      -- One record that arrived on the connection in use while nothing was awaited (a pong, a
+      -- ping or close of the server). `false`: the connection is gone.
+      let drainOne (s : PublicReceive.State) : M (PublicReceive.State × Bool) := do
+        match ← receiveSoft with
+        | none => return (s, false)
+        | some (.application handle) =>
+          let (s, complete) ← record handle.id s
+          insist (!complete) "unsolicited service response"
+          let mask ← if (PublicReceive.get s.control 127) == 0 then pure [0, 0, 0, 0] else do
+            let random ← rpc.call .publicRandom []
+            insist (random.length == 32) "invalid joint randomness"
+            pure (random.take 4)
+          let (s, frames) ← liftResult (PublicReceive.replies s (toBits mask))
+          for (_, frame) in frames do sendPublic (toBytes frame)
+          for request in s.requests do
+            let random ← rpc.call .publicRandom []
+            insist (random.length == 32) "invalid joint randomness"
+            let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+            unless message do sendPublic (toBytes frame)
+          return ({ s with requests := [] }, true)
+        | some .control => return (s, true)
+        | some .closed => return (s, false)
+      let serve (directory : String) : M Nat := do
+        let first ← openAll
+        let count := max sendCircuits 1
+        liftM (recoveryUsed.set true : IO Unit)
+        emit (Lean.Json.mkObj [("event", toJson "ready"), ("connections", toJson count)])
+        let folder : System.FilePath := directory
+        let opened ← agreedClock
+        let mut lastUsed : Array Nat := Array.replicate count opened
+        let mut lastJob := opened
+        let mut finishedJobs : List String := []
+        let mut served := 0
+        let mut jobsDone := 0
+        let mut pings := 0
+        let mut running := true
+        while running do
+          -- The job this party's daemon handed over, if any (one already served is ignored until
+          -- the daemon removes its file).
+          let path := folder / "job.json"
+          let job ← if ← liftM (path.pathExists : IO Bool) then do
+              let text ← liftM (IO.FS.readFile path : IO String)
+              pure (match Lean.Json.parse text with
+                | .ok json => match json.getObjValAs? String "job", json.getObjValAs? String "request",
+                    json.getObjValAs? String "message", json.getObjValAs? String "journal" with
+                  | .ok named, .ok request, .ok message, .ok journalPath =>
+                    if finishedJobs.contains named then none else some (named, request, message, journalPath)
+                  | _, _, _, _ => none
+                | .error _ => none)
+            else pure none
+          let stopping ← liftM ((folder / "stop").pathExists : IO Bool)
+          let clock := (← liftM (Std.Time.Timestamp.now : IO Std.Time.Timestamp)).toMillisecondsSinceUnixEpoch.val.toNat
+          let named := match job with
+            | some (n, _, _, _) => TlsWire.hash n.toUTF8.data.toList
+            | none => List.replicate 32 0
+          let theirs ← swap (named ++ [if stopping then 1 else 0] ++ uint 8 clock)
+          insist (theirs.length == 41) "invalid serve tick"
+          let other := number (theirs.drop 33)
+          insist (clock ≤ other + 120000 && other ≤ clock + 120000) "the two parties' clocks differ by more than two minutes"
+          let now := max clock other
+          if job.isSome && theirs.take 32 == named then
+            let (jobName, requestPath, messagePath, journalPath) := job.getD ("", "", "", "")
+            let begun ← liftM (IO.monoMsNow : IO Nat)
+            let text ← liftM (IO.FS.readFile messagePath : IO String)
+            liftM (jobRequest.set (some requestPath) : IO Unit)
+            liftM (results.set [] : IO Unit)
+            liftM (recoveryLog.set [] : IO Unit)
+            liftM (circuitSends.set [] : IO Unit)
+            liftM (bodies.set [] : IO Unit)
+            liftM (stamped.set [] : IO Unit)
+            let contactsOfJob ← loadJob requestPath text
+            let jobInputs ← notify contactsOfJob text (← agreedNow)
+            let delivered ← if jobInputs.isEmpty then pure 0
+              else deliverJob jobInputs contactsOfJob (some jobName) (some journalPath) first
+            liftM (jobRequest.set none : IO Unit)
+            served := served + jobInputs.length
+            jobsDone := jobsDone + 1
+            finishedJobs := (jobName :: finishedJobs).take 64
+            let after ← agreedClock
+            lastUsed := Array.replicate count after
+            lastJob := after
+            let absentNow ← liftM (absent.get : IO (List (Nat × Bool)))
+            emit (Lean.Json.mkObj [("job", toJson jobName), ("status", toJson "completed"),
+              ("results", toJson ((← liftM (results.get : IO (List Recovery.Entry))).map (fun (message, contact, result, reason) =>
+                Lean.Json.mkObj [("message", toJson message), ("id", toJson (toString contact)), ("result", toJson result.text),
+                  ("reason", toJson reason)]))),
+              ("unknown", toJson ((absentNow.filter (fun entry => !entry.2)).map (fun entry => toString entry.1))),
+              ("not_yet_readable", toJson ((absentNow.filter (·.2)).map (fun entry => toString entry.1))),
+              ("recovery", toJson (← liftM (recoveryLog.get : IO (List String)))),
+              ("messages", toJson jobInputs.length), ("delivered", toJson delivered),
+              ("milliseconds", toJson ((← liftM (IO.monoMsNow : IO Nat)) - begun)),
+              ("session_messages", toJson served), ("session_jobs", toJson jobsDone)])
+          else if stopping || theirs.getD 32 0 == 1 then
+            running := false
+          else
+            for index in [0:count] do
+              liftM (current.set index : IO Unit)
+              let mut s := (← liftM (states.get : IO (Array PublicReceive.State))).getD index first
+              -- Closed by the server or the proxy while idle: replaced now, not at the next send.
+              let wire ← (TlsWorker.onConnection rpc active index).call .pollRecord []
+              if wire == [0] then
+                reconnect
+                lastUsed := lastUsed.set! index now
+                continue
+              if !wire.isEmpty then
+                let slot := (← liftM (slots.get : IO (Array (IO.Ref (Option Bytes))))).getD index kept
+                liftM (slot.set (some wire) : IO Unit)
+                let (next, alive) ← drainOne s
+                if !alive then
+                  reconnect
+                  lastUsed := lastUsed.set! index now
+                  continue
+                s := next
+                saveState s
+              if now ≥ lastUsed.getD index 0 + 25000 then
+                let random ← rpc.call .publicRandom []
+                insist (random.length == 32) "invalid joint randomness"
+                if official then
+                  pings := pings + 1
+                  sendPublic (toBytes (PublicReceive.ping (pings % 256) (toBits (random.take 4))))
+                else
+                  let id ← nextId
+                  sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+                  let (next, alive) ← awaitSoft 64 (PublicReceive.expect s id)
+                  if alive then saveState next else reconnect
+                lastUsed := lastUsed.set! index now
+            -- A quarter of a second between ticks; a second after a minute without a job.
+            liftM (IO.sleep (if now > lastJob + 60000 then 1000 else 250) : IO Unit)
+        liftM (IO.eprintln s!"serve: {jobsDone} jobs, {served} messages; the session ends between jobs" : IO Unit)
+        pure served
       -- The authenticated socket: answer the server's requests, keep the connection alive
       -- while nothing arrives, and stop after the expected number of delivered messages.
       -- A delivered message's body stays unrevealed and is not acknowledged yet.
@@ -3065,7 +3309,9 @@ def main (args : List String) : IO Unit := do
         -- Against a Signal server a send may be answered 409/410 (the contact's devices changed):
         -- such a response is completed and handled in the loop instead of ending the session.
         -- With the database nodes: `deliver`, where a contact's failure is that contact's result.
-        let finished ← if recovery then deliver else do
+        -- The long-lived session (`serve`) is built on it.
+        insist (serveDir.isNone || recovery) "SIGNAL_SERVE_DIR needs the database nodes, the export and recovery"
+        let finished ← if recovery then (match serveDir with | some folder => serve folder | none => deliver) else do
           requireLoaded
           openCircuits   -- connections 1..N-1 with several Tor circuits; nothing otherwise
           loop (256 + 16 * inputs.length) { PublicReceive.start (toBits accept) with lenient := exportPath.isSome } inputs 0

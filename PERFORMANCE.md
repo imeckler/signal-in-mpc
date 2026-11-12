@@ -90,7 +90,8 @@ pools make about 2.5M AND triples per second while the circuits run beside them,
 broadcast with no pauses the pools, not the circuits, set the pace (about 1.2 s per message with
 two pools; the waits for the server and the controllers are when they catch up). On separate
 machines each node has its cores to itself; `TLS_WORKER_TRIPLE_STOCK=3` or `4` adds pools.
-A sustained broadcast of hundreds of messages was not measured.
+A sustained run is now measured: "The long-lived send session" below (there the database
+writes before each send, not the pools, set the pace).
 
 ## Receiving one new contact's first message, malicious
 
@@ -383,13 +384,100 @@ Measured in the runs above; none of it is in the field programs any more.
   operations between the workers (two round trips each) beside its own traffic to the
   database nodes.
 
+## The long-lived send session (2026-11-11)
+
+The node daemons now keep one send session per node pair alive across notifies
+(`node_daemon/README.md`, "The long-lived send session"). Measured on this machine (12 cores;
+both computation nodes, the five in-memory database test nodes, the local Signal-Server, and each
+daemon's receive session running beside the send session) with
+`check_signal_service_local.py MODE --runs 0 --sustained 160 --restart-after 80`: eight contacts,
+twenty notifies of all eight (160 messages, a 59-byte text), issued one after another by
+`notify-app` as an application would; the daemons end the session after 80 messages and start a
+new one. Both modes passed: every notify completed with all eight delivered and both nodes
+agreeing, and every recipient decrypted every text exactly once (the planned restart lost and
+repeated nothing).
+
+| | Semi-honest | Malicious |
+|---|---|---|
+| Session start to ready (process, circuits from the cache, handshake, upgrade) | 1–2 s | 3–6 s |
+| A notify of 8 contacts, steady state, inside the session | 6.2 s (0.78 s per message) | 11.2–11.5 s (1.41 s per message) |
+| The first notify of a session, extra (its 8 contacts prepared) | +2.2 s (0.28 s per contact) | +6.5 s (0.8 s per contact) |
+| A planned restart, as the application sees it (next notify) | +8 s | +11.7 s |
+| **Sustained, inside the session** | **1.25 messages/s** | **0.67 messages/s** |
+| Sustained, as the application sees it (signing, both daemons, hand-over) | 1.14 messages/s | 0.63 messages/s |
+| Resident memory of one node's send session (controller and worker), idle | 1.0 GB | 2.8–2.9 GB |
+| — with 8 contacts loaded, over 80 messages | 1.6–1.8 GB, no trend | 3.8–4.4 GB, no trend (±0.3 GB between samples) |
+| Traffic between the workers per message, one direction (whole sessions, so with handshakes and unused stock) | 117 MB | 0.96 GB |
+| AND gates per message (same) | 2.84M | 2.89M |
+
+**One session, no restart, with the worker's buffer release** (`--sustained 400`, semi-honest):
+400 messages (50 notifies of 8) in one session, 1.26 messages/s inside it and 1.21 as the
+application saw it; the session's resident memory sampled every 10 s stayed between 1.50 and
+1.76 GB from the 8th message to the 400th, with no trend (1.57 GB at 200, 1.57 GB at 392);
+99 MB of traffic per message one way over the whole session; every recipient decrypted all 50
+texts exactly once. Malicious, `--sustained 200`: 200 messages in one session, 0.69 messages/s
+inside it and 0.64 as the application saw it; resident memory between 3.26 and 3.83 GB per node
+from the 16th message to the 200th, no trend; 0.84 GB of traffic per message one way over the
+session. (The daemons' first session of that run failed while starting, both sides with
+"write_some: No buffer space available" in the field engine's library, as the receive and send
+sessions opened their links at the same moment on this machine; the daemons started the next
+one 9 s later and nothing else was affected.)
+
+For comparison, the same notify of 8 contacts as its own session (the previous daemon) paid the
+fixed 6.8 s (malicious) and the 6.5 s of preparation every time: about 25 s instead of 11.3 s.
+
+**Where a steady message's time goes** (`.deps/lowering-scratch/serve_profile.py` over party 0's
+worker log, 56 messages in the middle of a session):
+
+| Malicious, per message | |
+|---|---|
+| Send circuit (operation 41) | 0.53 s |
+| Sealing the request record (13), storing the contact's state (38), opening the response (12), reveals (43) | 0.18 s |
+| **Database client: two `write-blob` runs (a debug build, one process each) and the exchanges between them** | **0.41 s** |
+| Controllers (reveal steps, parsing, building the request), the server | about 0.3 s |
+| **Per message** | **1.43 s** |
+
+In semi-honest mode the workers are busy 0.12 s per message and the same 0.4 s of database
+client calls is half of the 0.78 s. **What limits throughput on one machine is therefore the
+database write before every send** (state stored before the message leaves: an owner's
+decision), then the send circuit. The triple pools (about 2.5M AND triples per second on this
+machine for 2.9M per message) keep up because they refill while the controllers wait for the
+database client. Per notify there is also the read of its ids (five client runs) and the
+agreement on results: about 0.2 s.
+
+**On real nodes the limit moves to the link.** Malicious mode moves 0.96 GB each way per message:
+a 1 Gbit/s link carries one message every 7.7 s (0.13 messages/s), 10 Gbit/s one every 0.77 s,
+about the local rate. Semi-honest mode moves 117 MB: 0.94 s per message at 1 Gbit/s.
+
+**The owner's volume** (about 1,000,000 messages a month, US daytime, spiky): 1,000,000 / 30 days
+/ 12 hours is 0.77 messages/s on average, so a peak of five to ten times that is 4–8 messages/s.
+One pair as measured here (0.67/s malicious, 1.25/s semi-honest on one machine) covers about the
+average, not the peaks; in malicious mode only with 10 Gbit/s between the nodes, and the traffic
+is about 1 PB each way per month (1,000,000 × 0.96 GB), which at cloud egress prices is the
+dominant cost. Several pairs in parallel scale the rate (what they need: PRODUCT_TODO.md section
+7); the database nodes then take two writes per message from every pair. Cheapest levers, in
+order: a long-lived release-build database client (−0.4 s per message), fewer AND gates per
+message (the send circuit), and for traffic, semi-honest mode (8× less) if the owner accepts it.
+
+**What bounds a session's life** (and what the daemons do about it):
+
+| Bound | Size | Handled by |
+|---|---|---|
+| Memory, per distinct contact loaded and prepared (the field engine never frees a share; the contact's Boolean state) | about 0.1 GB per contact here (8 contacts: +0.8 GB semi-honest, +1.2–1.5 GB malicious, including circuits loaded by the first notify); the earlier estimate for a batch was 3 MB per contact of field shares alone | `send_session.max_megabytes` (the daemon samples the tree's resident memory every 10 s) and `max_messages`; a large notify must be split (PRODUCT_TODO section 4) |
+| Memory per message | no trend over 400 messages (semi-honest) or 200 (malicious) in one session, within the ±0.3 GB the samples scatter: below about 1 MB per message. Each sealed request and each received record kept about 50 bytes of engine state per bit; the worker now drops a buffer once sealed and keeps only the newest 64 received records (`tls_worker_v3.cpp`, operations 12 and 13) | the fix; `max_messages` (default 5,000) as a backstop |
+| TLS on one connection | AES-128-GCM allows 2^24.5 records per key (RFC 8446 5.5); a message is 2–3 records, so about 8M messages; no client KeyUpdate under the libsignal profile | `max_messages`, and a replaced connection starts new keys |
+| Request ids | 2^63 + n per connection, ten varint bytes until 2^64 | none needed |
+| The server dropping an idle socket (90 s) or closing one | | polled every tick, replaced at once; pinged after 25 s idle |
+| The notify request's lifetime | read at the job's start (fresh: 120 s); write-backs allowed for 6 hours after it was issued, if its read was served (`notify_write_back_secs`; the nodes remember 4,096 served reads) | a job longer than 6 hours would get "retry later" for the rest; a session that dies after 120 s cannot resume the notify (the application signs a new one) |
+| Logs | an idle session ticks four times a second (once a second after a minute idle), two worker log lines a tick | log rotation (deployment) |
+
 ## What remains, with estimates
 
 | What | Gain |
 |---|---|
 | Send without waiting for each response (controller) | up to 0.26 s per message here; more over a real link |
 | Reveal steps and parsing in the controllers | 0.1–0.3 s per message; about 1.5 s per first message received |
-| The database client as a long-lived process | about 0.05–0.2 s per message |
+| The database client as a long-lived process (and a release build) | measured in the long-lived session: 0.4 s per message today (two `write-blob` runs of a debug build), the largest single item outside the workers |
 | More AND-triple factories on real nodes | removes the pools as the limit in long broadcasts (about 1.2 s → the circuits' own 0.5 s per message) |
 | Open "is a handshake record" first and skip the framing scan for application records | Done (see "The framing circuit"): 2.7 KB record 2.87M → 1.14M AND in its size class |
 | Prepare contacts in batches | Done behind `TLS_WORKER_HINTED=1` (see "Rounds"): the rounds are per batch, not per contact |

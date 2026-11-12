@@ -203,8 +203,26 @@ the password must be secret-shared; the account's keys may be in the clear on th
 
 ## 4. Connection lifecycle and failure handling
 
-- [ ] **(blocker)** One long-lived session that both receives and sends. Today a session either
-      sends (unauthenticated socket) or receives (authenticated socket) and then exits.
+- [x] **One long-lived send session** (2026-11-11; `node_daemon/README.md`, "The long-lived send
+      session"; `PublicServiceController.lean`, `serve`). The daemons keep one send session alive
+      across notifies: connections opened once and kept alive between notifies (polled, replaced
+      when closed, pinged after 25 s idle), contacts kept loaded with their preparation, triple
+      stocks refilling in idle time, one notify after another from the daemon's queue, per-id
+      results per notify. Ended cleanly between notifies after `max_messages` (5,000),
+      `max_seconds` (6 h) or `max_megabytes`; restarted and the notify handed over again when it
+      fails. Receiving stays its own long-lived session on the authenticated socket (a sealed
+      send must not go on it; the two run side by side).
+  - [ ] What bounds a session (PERFORMANCE.md, "The long-lived send session"): memory, which
+        grows with every distinct contact prepared (the field engine never frees a share; per
+        message no growth was measurable over 400 messages, after the worker began dropping
+        sealed and old received buffers); the request lifetime for a notify that must be
+        resumed (its ids are read again under the same request, 120 s); a Tor circuit kept for
+        hours (NEEDS_REVIEW 3d, the owner's decision on rotating connections).
+  - [ ] A notify of thousands of ids is one job: its contacts' field state (several MB each in
+        malicious mode) stays until the session ends, and a session that dies after the
+        request's lifetime cannot resume it. Until the field engine frees per-contact state,
+        the application (or the daemon) should split large notifies into requests of a few
+        hundred ids.
 - [x] **Recovery instead of abort** (2026-11-11; `MULTI_DEVICE.md` section 9, `NEEDS_REVIEW.md`
       section 3). In a send session with the database nodes, what goes wrong for one contact is
       that contact's result and the others continue:
@@ -226,18 +244,26 @@ the password must be secret-shared; the account's keys may be in the clear on th
         once, duplicates possible, never a message key used twice.
   - [ ] A handshake or proxy connect that fails while a connection is being replaced still ends
         the session (the next session resumes). So does a server that sends nothing for 30 s.
+        With the daemons the next session is started and handed the notify at once (at most
+        `send_session.attempts` sessions, 3, while the request is fresh).
   - [x] The journal belongs to the daemon (section 7): one file per notify, named by the signed
         request's digest, removed when the notify completes (leftovers after a day).
   - [x] Through the daemon, a requested id that is not on the database nodes, or not readable
         until their next epoch, is that id's result ("unknown contact" / "retry later"), agreed
         by both parties. (The harness's own sessions, which take their contacts from the export,
         still end there. The "not readable yet" case is not exercised by a test.)
-  - [ ] **A party that stops without closing its link is not detected.** The link between the
-        two workers has no timeout: when one node's controller was killed and its worker stayed
-        alive, the other node's session waited indefinitely (seen in the resume test, which
-        therefore kills the worker too). A real crash closes the TCP link and the other side
-        fails at once; a hung process or a silent network does not. Needs a deadline per engine
-        operation, or a supervisor that ends a session without progress.
+  - [x] **A party that stops without closing its link is detected** (2026-11-11). The workers
+        wait for each other at the start of every request for at most `TLS_WORKER_PEER_WAIT`
+        seconds (default 180; `tls_worker_v3.cpp`, `await_peer`), then fail the session with the
+        reason in the log ("the other party did not reach operation N within S s"). The daemons
+        also tell each other when a send session ends (`peer-ended`), so the other side ends at
+        once, and stop a session whose log has not grown for 15 minutes. Then the next session
+        resumes from the journals. Checked: `--recovery hang` (a controller stopped, the other
+        party ends within the wait) and `--app` (a controller killed in a notify, its worker
+        left alive; the daemons restart and the notify completes).
+  - [ ] Not covered: a party hung INSIDE a request (both workers in one engine operation, one of
+        them stopped): the engines' own reads have no deadline. The daemon's stall check (no log
+        growth for `stall_seconds`) ends it; nothing faster.
   - [ ] Local-server limits of the tests: account deletion cannot be run (the local server
         answers 500 to it), and 429, 5xx, 404 and bad prekey responses are injected by a test
         proxy between the TLS terminator and the server (`scripts/fault_proxy.py`), not produced
@@ -268,8 +294,15 @@ Inventory of every kernel family, what fixes each parameter, the tools and the n
       classes (four per doubling; the true length is a value the circuit enforces), proved equal
       to the exact-size kernels. `bundle-device` no longer depends on the response's size or the
       item's offset (`bundle-item`).
-- [ ] **(blocker)** Measure the real server's handshake record sizes (`tls-open-handshake` is per
-      size; if they vary between connections it needs classes too).
+- [x] Measure the real server's handshake record sizes: chat.signal.org (2026-11-12) sends the
+      whole encrypted flight in ONE record of 1122 bytes (Ed25519 certificate and signature, one
+      certificate, 16 bytes of record padding): `deployment-production.json` `handshake: [1122]`.
+      Ed25519 signatures have a fixed size, so the size changes only with a new server
+      certificate (re-measure then; `measure_handshake.py`). The local compact instance
+      (`start_compact_server.sh`, `coalesced_terminator.py`) reproduces that shape (621 bytes).
+- [x] `profile` setting in the inventory (`libsignal`: `signal-seal-official`, `bundle-seal 80c−1`,
+      request frames named with the same profile), so strict mode works with
+      `SIGNAL_CLIENT_PROFILE=libsignal`.
 - [ ] **(blocker)** Signup shapes are enumerated, not classed: sender certificate lengths, prekey
       id widths, client version (addresses field, post-quantum field size). A signup outside the
       listed shapes is refused. Either measure and list what real clients send, or give the
@@ -302,6 +335,17 @@ party can block a delete by not forwarding it.
 - [ ] **(blocker)** Run against the real node binary with Postgres. The compute path's Postgres
       code has never been run against a database; the checked-in configs lack the compute
       fields; docker-compose ports and `init.sql` do not match the generated configs.
+  - [x] On one machine (2026-11-11): `check_signal_service_local.py MODE --runs 0 --app --real-db`
+        (five `server` processes on a private Postgres, consensus and 20 s epochs,
+        `scripts/start_db_nodes.py`) passes in semi-honest and malicious mode with the
+        long-lived send session: the account's row, a sealed signup with the fixed-width token,
+        three notifies (one interrupted by a killed controller and resumed by the next session),
+        a delete with the nodes' signatures checked, and a notify reporting the deleted id
+        unknown. 410 s and 444 s per run, most of it waiting for epochs. Nothing needed fixing on
+        the database side; the binaries of `.deps/ssdb-agent-target` were current, those of the
+        in-memory test node were rebuilt.
+  - [ ] Not run: nodes on separate machines, a node down or restarted during a session, a
+        database larger than a few rows.
 - [ ] **(blocker)** A new contact becomes readable only after the next epoch (120 s). The flow
       must tolerate "not readable yet" for contacts created moments ago.
 - [ ] Notify request lifetime (section 1).
@@ -341,9 +385,53 @@ party can block a delete by not forwarding it.
         127.0.0.1. Needs mutually authenticated TLS and per-node keys.
   - [ ] The application stand-in (keys in files, signatures by `handoff_client`, no persistence
         or retry policy) is a reference, not a server.
-- [ ] Batching and scheduling for thousands of ids: one request is one session and must start
-      within the request's lifetime (120 s); no progress during a session; a failed notify
-      reports no per-id results (resubmitting the same request resumes from the journals).
+- [ ] Batching and scheduling for thousands of ids: one request is one job of the long-lived
+      session (section 4) and must start within the request's lifetime (120 s); its write-backs
+      are accepted for 6 hours after it was issued, and the database nodes remember at most
+      4,096 served reads (`notify_write_back_secs`, `DEFAULT_MAX_SERVED_REQUESTS` in
+      `secret-shared-db`), so very many small notifies within 6 hours would lose the older
+      ones' write authority. No progress reports during a job; a failed notify reports no
+      per-id results (the daemons hand it to the next session, which resumes from the journals,
+      while the request is fresh).
+- [ ] **Several node pairs in parallel** (not built; the owner is considering it for peaks of
+      several messages a second, PERFORMANCE.md "The long-lived send session"). Against the
+      same database nodes and the same Signal account they would need:
+  - [ ] **One contact advanced by one pair at a time.** The database's versioned write already
+        refuses a second writer of the same version (that pair's contact gets "retry later" and
+        nothing is sent, so no key is reused), but two pairs racing on one contact can leave the
+        nodes with different blobs for one version (a write the nodes took only partly), which
+        the next read detects and cannot repair. So partition: every id belongs to exactly one
+        pair (e.g. a hash of the id, fixed for the deployment, changed only with the pairs
+        drained), and the application splits each notify by that rule. A pair's long-lived
+        session reloads a contact whenever the nodes' version is not the one it stored, so
+        moving an id between pairs is safe once the old pair is idle.
+  - [ ] **One receiving pair.** A second authenticated WebSocket for the same account and device
+        displaces the first: the server closes the old one with 4409 "Connected elsewhere" and
+        delivers queued and new messages to the new one (Signal-Server
+        `RedisMessageAvailabilityManager.handleClientConnected`, `WebSocketConnection` line 164;
+        best effort through Redis pub/sub; on one server instance the displacement can also drop
+        the new socket's presence, which its next keepalive turns into a close with 1000). Two
+        pairs receiving would knock each other off in turn. Exactly one pair holds the receive
+        session (signups, account row writes, certificate refresh, one-time prekey upload); the
+        others only send. Failover needs a lease (e.g. a row on the database nodes) so that two
+        never receive at once.
+  - [ ] **Sealed-sender rate limits do not depend on the sending connection or address.** The
+        only limit on `PUT /v1/messages/{destination}` with an access key is `inboundMessageBytes`,
+        keyed on the DESTINATION (128 MiB bucket refilling at about 2 KB/s, fail-open); the
+        identified-sender `messages` limiter does not apply; nothing is keyed per connection,
+        source address or access key, and no concurrent-connection limit exists in the source
+        (`MessageController.sendSealedSenderMessage`, `RateLimiters`). The prekey fetch with an
+        access key has no limiter at all. So more pairs (more connections, more addresses) do not
+        hit a server limit by themselves; what production adds in its private spam filter
+        (`SpamChecker`, not in the public source) or load balancer is unknown and only a real run
+        can show.
+  - [ ] Per pair: its own journals and daemons; the two organisations' database client keys
+        shared by their nodes of every pair (or more compute parties registered with the
+        database network); its own worker ports and links. The database nodes take two writes
+        and one read per message from every pair (their 64-connection cap, section 6).
+  - [ ] What the server sees: N unauthenticated connections from N addresses sending sealed
+        messages in bursts after each notify; linkable by timing unless the proxy work (section
+        8) spreads them.
 - [ ] The daemon keeps requests and results in memory only (signup events are on disk); decide
       what must survive a restart.
 - [ ] One node holding "completed" and the other "failed" for the same notify cannot be resumed
@@ -398,12 +486,15 @@ party can block a delete by not forwarding it.
       - [ ] Owner's decision: `x-signal-receive-stories: false` (most Android users send `true`;
             `true` makes the server deliver stories, which we would refuse).
     - [x] Content padding `80k − 1` (it was `80k`: every envelope 16 bytes off). Size classes:
-          `signal-seal-official`, `bundle-seal … 80k−1`; `CircuitInventory` does not list them yet.
+          `signal-seal-official`, `bundle-seal … 80k−1`; listed by `CircuitInventory` with
+          `profile=libsignal` (2026-11-12).
     - [ ] Data-message fields (Android adds expireTimer 0, isViewOnce false, expireTimerVersion,
           profileKey): not added; the server sees only lengths, and `expireTimer` could reset a
           recipient's disappearing timer. Owner's decision.
     - [x] Timestamps: each message stamped from the agreed clock when first sent, increasing,
-          kept on a resend (was base + recipient index, built ahead).
+          kept on a resend (was base + recipient index, built ahead). Since 2026-11-12 the stamp
+          is taken after the contact's per-session preparation (it was taken before it: a first
+          message to a contact was stamped about 40 s before it left).
     - [x] No client-initiated TLS KeyUpdate.
     - [x] Keepalive on the receive socket: WebSocket ping after 31 s idle, as libsignal.
       - [ ] The send session's keepalive during a device refresh and the last keepalive of a
@@ -581,7 +672,11 @@ party can block a delete by not forwarding it.
 - [x] AND triples and field triples produced ahead of use by background pools of the session
       (`TLS_WORKER_TRIPLE_STOCK`, `TLS_WORKER_FIELD_STOCK`): 2.4 s → 1.0 s per message.
   - [ ] Conversion masks are still made when a batch runs out (0.6 s per session).
-  - [ ] More factories on real nodes; a sustained broadcast of hundreds of messages is unmeasured.
+  - [ ] More factories on real nodes. A sustained run of 160 messages is measured (PERFORMANCE.md,
+        "The long-lived send session": 0.67 messages/s malicious, 1.25 semi-honest on one
+        machine); there the database writes, not the pools, were the limit.
+  - [ ] A long-lived, release-build database client: its two `write-blob` runs per message are
+        0.4 s of the 1.43 s (malicious) and of the 0.78 s (semi-honest).
 - [x] Circuit loading 10.6 s → 2.1 s per process; record opening 1,500 → 935 AND per byte.
 - [x] Measuring with latency: `scripts/delay_relay.cpp` and the harness's `--link-delay-ms`
       (every link between the two workers, each direction delayed); the field side alone in
@@ -611,7 +706,8 @@ party can block a delete by not forwarding it.
       opening in the field engine carries two MAC checks.
 - [ ] `TLS_WORKER_FIELD_DIRECT=1` (one message delay per field round instead of two): built,
       off by default, to be reviewed and then switched on.
-- [ ] One long-lived connection: the handshake and upgrade are paid once, not per broadcast.
+- [x] One long-lived connection: the handshake and upgrade are paid once per send session (up to
+      5,000 messages by default), not per broadcast (section 4).
 - [ ] Send without waiting for each response; several contacts in parallel.
 - [ ] Fewer AND gates in the send and record circuits (AES, SHA-256, large-record opens).
 - [ ] Measure over a real network between two machines.
@@ -629,6 +725,17 @@ party can block a delete by not forwarding it.
 Order set by the owner on 2026-11-11: first finish the orchestration blockers (sections 4, 6
 and 7: recovery, the node daemons and the application's requests, the real database nodes) so
 there is a functioning application end to end including the database nodes; then this.
+
+**One plan with the audit reorganisation (owner, 2026-11-11).** The owner wants it to be "easy
+to look at all the external communication a node is doing and easily verify its security
+properties", and asked that this and the move out of C++ be one coherent plan, queued to start
+once the agents now editing the controller have landed. The map of what exists is
+`SECURITY_MAP.md`; the staged plan is `REORGANIZATION_PLAN.md` (both being written). Target: all
+controller I/O through one small Lean module; public versus secret in the types, with named
+reveal functions as the complete list of openings; per-channel theorems; `TlsMpc/Security.lean`
+restating the important theorems in one place. The owner waived a review of the plan ("you can
+skip my review of the plan, i trust your judgement here"): the work starts as soon as the plan
+is written and the other agents have landed.
 
 The C++ is dense and hard to audit. Decided by the owner on 2026-11-11: move what can move
 into Lean and prove what is useful about it.

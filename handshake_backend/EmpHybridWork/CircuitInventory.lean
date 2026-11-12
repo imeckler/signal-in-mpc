@@ -20,6 +20,7 @@ kernels exist).
 
 Settings (lists are comma separated; a tuple's parts are separated by `:`):
 
+* `profile` (`legacy`): the sessions' `SIGNAL_CLIENT_PROFILE`, `legacy` or `libsignal` (see `official`).
 * `certificate` (244): bytes of OUR sender certificate. `password` (22): bytes of the socket password.
   `ceremony` (0): 1 also lists `ceremony-secrets` (the registration ceremony, CEREMONY.md).
 * `client_certificate` (0): bytes of the TLS client certificate message (`tls-finish`).
@@ -115,15 +116,27 @@ def stored (s : Settings) (bundles : Bool) : Except String (List String) := do
   let sizes := ([BundleKernel.recordBytes, 32 + 16 + password + certificate] ++ lists).eraseDups
   pure <| sizes.flatMap fun size => [named "contact-seal" [size], named "contact-open" [size]]
 
+/-- `profile` (`legacy`): the sessions' `SIGNAL_CLIENT_PROFILE`. `libsignal` pads message content
+as the official clients do (`80c − 1` bytes, CLIENT_FINGERPRINT.md (e)), so the sends are
+`signal-seal-official` and `bundle-seal` of `80c − 1` bytes instead of `signal-seal-built` and
+`80c`; the request frames differ too (`produce_circuits.py` names them with the same profile). -/
+def official (s : Settings) : Except String Bool :=
+  match setting s "profile" "legacy" with
+  | "legacy" => pure false
+  | "libsignal" => pure true
+  | other => throw s!"profile must be legacy or libsignal, not {other}"
+
 def sends (s : Settings) (bundles : Bool) : Except String (List String) := do
   let certificate ← number s "certificate" "244"
+  let official ← official s
   (← tuples s "sends" "1:1:1:1:1" 5).flatMapM fun row =>
     match row with
     | [size, counter, previous, epoch, index] => do
         unless 1 ≤ size && size ≤ 4 do throw "message size class"
-        pure <| named "signal-seal-built" [certificate, size, counter, previous, epoch, index] ::
+        let padded := if official then PrivateTextNotification.officialPaddedBytes size else PrivateTextNotification.paddedBytes size
+        pure <| named (if official then "signal-seal-official" else "signal-seal-built") [certificate, size, counter, previous, epoch, index] ::
           (if bundles then [0, 1].map fun oneTime =>
-            named "bundle-seal" [certificate, oneTime, PrivateTextNotification.paddedBytes size, counter, previous, epoch, index]
+            named "bundle-seal" [certificate, oneTime, padded, counter, previous, epoch, index]
           else [])
     | _ => throw "sends"
 
@@ -221,6 +234,7 @@ def main (args : List String) : IO Unit := do
     | _ => none
   unless s.length == args.length do throw (IO.userError "circuit_inventory KEY=VALUE ...")
   let result : Except String (List String) := do
+    let _ ← official s
     let withBundles := !(← bundleWidths s).isEmpty
     pure ((← always s) ++ (← records s) ++ (← stored s withBundles) ++ (← sends s withBundles) ++ (← bundles s) ++ (← signups s))
   match result with

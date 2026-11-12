@@ -12,12 +12,21 @@ service, unidentified-delivery certificate and the documented test trust root)
 is upstream test configuration, unchanged. The secrets come from the upstream
 test-secrets-bundle.yml, which LocalWhisperServerService loads itself.
 
-Usage: make_config.py SIGNAL_SERVER_SRC OUTPUT_YML
+Usage: make_config.py SIGNAL_SERVER_SRC OUTPUT_YML [compact]
+
+`compact` (scripts/start_compact_server.sh; the default instance is unchanged): a SECOND instance
+whose sender certificates are in production's compact form, `embedSigner: false` (the signer named
+by its id, 0x7357C357, which libsignal knows as its test certificate; UUID as 16 bytes; 138 bytes
+without a phone number, against production's 134 with id 3), on its own ports: application
+19080, admin 19081, gRPC 19051.
 """
 import sys
 from pathlib import Path
 
 src, out = Path(sys.argv[1]), Path(sys.argv[2])
+compact = sys.argv[3:] == ['compact']
+if sys.argv[3:] and not compact:
+    raise SystemExit('make_config.py SIGNAL_SERVER_SRC OUTPUT_YML [compact]')
 text = (src / 'service/src/test/resources/config/test.yml').read_text()
 
 REPLACEMENTS = [
@@ -38,6 +47,9 @@ REPLACEMENTS = [
      '  applicationConnectors:\n    - type: h2c\n      bindHost: 127.0.0.1\n      port: 18080\n      useForwardedHeaders: true\n'
      '  adminConnectors:\n    - type: http\n      bindHost: 127.0.0.1\n      port: 18081\n'),
 ]
+if compact:
+    REPLACEMENTS = [(old, new.replace('18051', '19051').replace('18080', '19080').replace('18081', '19081')) for old, new in REPLACEMENTS]
+    REPLACEMENTS.append(('  expiresDays: 7\n  embedSigner: true\n', '  expiresDays: 7\n  embedSigner: false\n'))
 for old, new in REPLACEMENTS:
     if text.count(old) != 1:
         raise SystemExit('test.yml layout changed; update make_config.py for: ' + old.splitlines()[0])

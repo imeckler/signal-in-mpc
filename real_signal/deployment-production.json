@@ -1,10 +1,11 @@
 {
-  "description": "PRODUCTION deployment for the first real test (real_signal/REAL_TEST_PLAN.md). certificate, password, signup_signed, signup_kyber and signup_one_time come from the registered account (lss-provision export-account ... deployment-hints.json). handshake is EMPTY until measured (real_signal/measure_handshake.py production, with the owner's go-ahead): circuit production refuses nothing for it, but a strict session would refuse every tls-open-handshake kernel. signup_ciphertext 240 and signup_hints 1 are guesses for a Signal-Android first message (CLIENT_FINGERPRINT.md (e)): measure from the first refused signup. Not yet listed by circuit_inventory: the libsignal-profile seal kernels (signal-seal-official, bundle-seal 80k-1), so --strict cannot be used with SIGNAL_CLIENT_PROFILE=libsignal yet.",
+  "description": "PRODUCTION deployment for the first real test (real_signal/REAL_TEST_PLAN.md). certificate, password, signup_signed, signup_kyber and signup_one_time come from the registered account (lss-provision export-account ... deployment-hints.json). profile libsignal: the sessions run with SIGNAL_CLIENT_PROFILE=libsignal (signal-seal-official, bundle-seal 80c-1, the official request frames). handshake 1122: measured 2026-11-12 (real_signal/state/handshake-production.json): chat.signal.org sends EncryptedExtensions, Certificate (one Ed25519 certificate), CertificateVerify (Ed25519) and Finished coalesced in ONE encrypted record of 1122 bytes (16 bytes of record padding); a new server certificate of another length changes it. signup_ciphertext 240 is Signal-Android's first text with a 108-character token (body, expireTimer, expireTimerVersion, profileKey, timestamp; padded to 80k-1 = 239), 176 the test sender's legacy layout; signup_hints 0 and 1 (Android seals 1:1 texts with RESENDABLE). Not known until the phone's first message: the post-quantum field's size (signup_pq, 37 for libsignal 0.106) and whether addresses are present; another shape is produced on demand (non-strict) or refused and recorded (strict).",
   "settings": {
+    "profile": "libsignal",
     "certificate": 134,
     "password": 22,
     "client_certificate": 0,
-    "handshake": [],
+    "handshake": [1122],
     "record_max": 6144,
     "typed_records": 1,
     "seal_max": 384,

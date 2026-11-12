@@ -245,6 +245,15 @@ server knows both values anyway: they are in the request):
 | DataMessage (Android, plain text) | body 1, expireTimer 5 (= 0), profileKey 6 (if profile sharing), timestamp 7, isViewOnce 14 (= false), expireTimerVersion 23 | body, timestamp | unchanged |
 | Timestamp | the message's send time, per message | broadcast base + recipient index, built ahead | **agreed clock when first sent**, strictly increasing, kept on a resend |
 
+**Receiving** (2026-11-12): Signal-Android encodes with Wire, which writes fields in DECLARATION
+order, so its first text is `0A len body ‖ 28 00 (expireTimer) ‖ B8 01 01 (expireTimerVersion) ‖
+32 20 profileKey ‖ 38 timestamp ‖ 70 00`, padded to `80k − 1`, sealed with content hint
+RESENDABLE (`20 01`). For a 108-character signup token that is 161 bytes of content, 239 padded,
+**240 bytes of session ciphertext**. The receive kernels accept it: `ReceiveFirst.gaps` lets
+`flags`, `expireTimer` (any value) and `expireTimerVersion` stand between the body and the
+profile key, chosen inside the circuit (tested with `lss-provision`'s `LSS_DATA_LAYOUT=android`,
+`android-tag`, `android-timer` and `legacy`).
+
 The server sees only lengths, so the data-message fields matter only through the size class: with
 Android's extra fields (+7 bytes, +34 with a profile key) the class boundaries move, but no length
 we produce is impossible for an official client once the padding is `80k − 1`. The fields were not

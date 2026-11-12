@@ -414,6 +414,94 @@ the Signal server open the sealed-sender layer of signups (the earlier split kep
 **Tested.** `check_signal_service_local.py MODE --runs 0 --ceremony` (CEREMONY.md section 7).
 No cheating-party test.
 
+## 3d. The long-lived send session and the workers' bounded wait (2026-11-11, uncommitted)
+
+**What changed.** A send session no longer ends after one notify (`PublicServiceController.lean`,
+`serve`, `loadJob`, `deliverJob`; `node_daemon/` README, "The long-lived send session"). It
+keeps its connections, the contacts it loaded and their per-session preparation, and takes one
+notify after another from its daemon. The workers now give up on each other at the start of a
+request after `TLS_WORKER_PEER_WAIT` seconds (`tls_worker_v3.cpp`, `await_peer`; default 180).
+
+**To check.**
+1. *A contact kept loaded across notifies.* Each job reads its ids from the database nodes under
+   its own signed request (the parity check between the parties as before). A contact the
+   engines already hold is NOT reloaded when the version the nodes return equals the version
+   this session last stored (`versions`). Then the engines hold either exactly that stored state,
+   or (after a store the nodes did not acknowledge) a state one sealed message further on: a gap
+   in the counter, never a message key used twice, as within one session before. Any other
+   version: evicted and loaded from the blob. Check that no path lets a job use state the nodes'
+   current version does not describe in a way that could reuse a key (in particular, two pairs
+   of nodes, or a session started while another still runs, writing the same contact: today
+   prevented only by running one send session per node pair; PRODUCT_TODO section 7).
+2. *Write authority per job.* `storeSoft`, `storeAdvanced` and `commitScratch` take the request
+   of the job being served (`requestFile`) instead of `SIGNAL_DB_REQUEST`. The nodes accept a
+   write-back only under a request that read that id (unchanged rule); check that a job can never
+   write under another job's request.
+3. *The tick.* Between jobs the two controllers exchange, through operation 39: the SHA-256 of the
+   name of the job each holds (the request digest, already known to both daemons), one bit "end
+   the session", and their clocks. Nothing secret; a job runs only when both hold the same one.
+4. *What the Signal server sees now.* One unauthenticated connection (or one per Tor circuit)
+   stays open for hours and carries many notifies, with a WebSocket ping (libsignal profile) or a
+   keepalive request every 25 s while idle. **The server can now link the recipients of
+   different notifies sent on the same connection**, where before each notify was a new
+   connection (it could already link them by source address and timing; with Tor circuits a
+   long-lived session keeps the same circuits too, since the SOCKS credentials are per session).
+   Owner's decision: rotate connections per notify (a handshake each, about 1.5 to 2.6 s and
+   3 to 4.5M AND gates per connection), per N messages (`send_session.max_messages`), or accept.
+5. *The bounded wait.* A liveness change only: the first 32-byte exchange of each request now
+   polls the socket with a deadline before reading (bytes already buffered skip the wait); the
+   bytes on the wire are unchanged. A party could always end a session by closing its link; now a
+   silent one ends it too. Check the default (180 s) against the longest legitimate gap between two
+   requests of one controller (a database client call, a back-off both sleep, a proxy connect).
+6. *Private buffers dropped* (`tls_worker_v3.cpp`, operations 12 and 13). A buffer sealed into a
+   record is erased right after sealing; of the received records only the newest 64 are kept. A
+   handle used after it was dropped is unknown and fails the request (never another buffer: handles
+   are never reused). Check that no path seals a buffer twice or reads a record's handle after 64
+   later records (the controller reads each record completely before the next; envelope and bundle
+   takes copy what they keep). This frees memory only; it is not erasure.
+
+**Tested.** `check_signal_service_local.py --runs 0 --app` (notifies in one session; a
+controller killed in the middle of a notify, the next session resuming from the journals),
+`--sustained N --restart-after M` (a planned restart between notifies: every recipient gets every
+text exactly once), `--recovery hang` (a controller stopped: the other party ends within the wait,
+with that reason). Results: PERFORMANCE.md, "The long-lived send session".
+
+## 3e. First real test: Android signup layouts, provisional ids, send-time stamps (2026-11-12, uncommitted)
+
+**What changed.**
+1. `ReceiveFirst.withAccessKey` (kernel `receive-access-key CERT CIPHERTEXT OFFSET`, same name and
+   inputs): the contact's profile key no longer has to follow the message body directly. Between
+   them it accepts one of 72 layouts (`ReceiveFirst.gaps`: `flags`, `expireTimer`,
+   `expireTimerVersion`, each absent or a varint of 1..2 / 1..5 / 1..3 bytes, in that order,
+   which is Signal-Android's Wire declaration order and also covers tag order). One mask per
+   layout is computed in the circuit, the key is the XOR of the masked candidates, and the opened
+   status is "some layout matched" (before: "the empty layout matched"). OFFSET (body start +
+   body length) is public as before: the body and its length are opened by `receive-text`.
+   About 28k AND gates (one AES-256 key schedule and block plus the masks), once per signup.
+2. The controller gives each opened message its own provisional id (2^128 − 1, then
+   2^128 − 3, 2^128 − 4, …), so a signup refused after its session was made (bad token) no longer
+   leaves an entry under the one provisional id that blocks the next signup (REAL_TEST_PLAN B6b).
+   The worker still keeps evicted entries; nothing in the worker changed.
+3. The libsignal profile's `restamp` prepares the contact (operation 66, the same work its first
+   seal did) before taking the timestamp, so the message is stamped just before it is sealed.
+
+**To check.**
+1. *Nothing new opened.* The status byte of `receive-access-key` is opened as before; its meaning
+   widened from one layout to 72. A refused signup still shows only "no layout matched" (no
+   profile key, or an unknown field between body and key). Check that the masks are mutually
+   exclusive (two layouts first differ in a tag byte, `20`/`28`/`B8 01`/`32`, or in a varint
+   continuation bit), so the XOR selection cannot combine two candidates.
+2. *Provisional ids.* Both controllers count opened messages in the same order (they process the
+   same envelopes in lockstep). An application id equal to a provisional id of an earlier refusal
+   in the same session is refused by the worker (`contactAssign` to an existing id): harmless,
+   application ids are signed by the application and 2^-96-unlikely to collide.
+3. *Timing.* The stamp is now taken after the contact's preparation; the server sees a message
+   whose timestamp is the time of sealing (seconds old with the database write) instead of tens
+   of seconds old.
+
+**Switch off.** Revert the three hunks (`ReceiveFirst.lean` `gaps`/`withAccessKey`;
+`PublicServiceController.lean` `provisionals` and the `contactsPrepare` call in `restamp`).
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer

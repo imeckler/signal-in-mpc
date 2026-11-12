@@ -82,6 +82,7 @@ struct Worker {
     ServiceKernels*service=nullptr;bool service_fixture=false;   // TLS_WORKER_SERVICE_FIXTURE=text: admit the public text fixture at retirement
     static Bytes receipt(std::pair<uint64_t,size_t>r){Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(r.first>>(8*i)));out.push_back(uint8_t(r.second>>8));out.push_back(uint8_t(r.second));return out;}
     size_t test_bytes=0;uint64_t produced_handle=0;unsigned produced=0;bool sealed_pending=false;std::deque<uint64_t>awaiting_echo;
+    std::deque<uint64_t>received;static constexpr size_t kept_records=64;   // received records still held (operation 12)
     ~Worker(){if(server>=0)::close(server);drop_connections();}
     void need(bool ok,const char*what){if(!ok)throw std::runtime_error(what);}
     // ---- Connection table (operation 90; one TLS connection per Tor circuit). One connection is
@@ -118,13 +119,29 @@ struct Worker {
         return ok&&n<=16640;
     }
     static ServiceKernels::ContactId contact(const Bytes&p){ServiceKernels::ContactId id{};std::copy_n(p.begin(),16,id.begin());return id;}
+    // A bounded wait for the other party at the start of every request (TLS_WORKER_PEER_WAIT,
+    // seconds, default 180; 0: no limit). Every request begins with this agreement, so a party
+    // whose controller died or hangs while its worker lives (its TCP links stay open, nothing
+    // arrives) ends this party's session here with a reported failure instead of a wait without
+    // end. Inside a request nothing changes: once both parties are in it, the engines' own waits
+    // apply. The limit must exceed the longest gap between two requests of one controller (a
+    // database client call, a back-off both parties sleep, a proxy connect: well under a minute).
+    int peer_wait_ms=180000;
+    void await_peer(uint8_t code){
+        if(peer_wait_ms<=0||io.recv_ptr<io.recv_fill)return;   // already buffered: no wait
+        pollfd watch{io.sock,POLLIN,0};int ready;
+        do ready=::poll(&watch,1,peer_wait_ms);while(ready<0&&errno==EINTR);
+        if(ready==0)throw std::runtime_error("the other party did not reach operation "+std::to_string(code)+" within "+std::to_string(peer_wait_ms/1000)+" s");
+    }
     // Both workers must have been handed the same request.
     void agree(uint8_t code,uint64_t sequence,const Bytes&payload){
         std::string head="tls-worker-v3:"+session;Bytes frame(head.begin(),head.end());frame.push_back(code);
         for(int i=7;i>=0;i--)frame.push_back(uint8_t(sequence>>(8*i)));
         for(int i=3;i>=0;i--)frame.push_back(uint8_t(uint64_t(payload.size())>>(8*i)));
         frame.insert(frame.end(),payload.begin(),payload.end());
-        std::array<uint8_t,32>mine{},peer{};SHA256(frame.data(),frame.size(),mine.data());channel.transfer(mine.data(),peer.data(),32);
+        std::array<uint8_t,32>mine{},peer{};SHA256(frame.data(),frame.size(),mine.data());
+        // As `channel.transfer` of 32 bytes (both send, then both receive), with the bounded wait.
+        io.send_data(mine.data(),32);io.flush();await_peer(code);io.recv_data(peer.data(),32);
         need(mine==peer,"request disagreement");
     }
     // Public ClientHello random: commit, then open, then XOR.
@@ -298,12 +315,24 @@ struct Worker {
                 if(same==0)throw std::runtime_error("echo differs from the private payload");
                 if(same==1){awaiting_echo.pop_front();std::cerr<<"tls-worker-v3 test echo matches private payload\n";}
             }
+            // A long-lived session would otherwise keep every record it received (each about 50
+            // bytes of engine state per bit). The controller reads a record completely before it
+            // asks for the next one, and envelope and bundle takes copy what they keep, so only
+            // the newest `kept_records` stay; a handle older than that is unknown, as any handle
+            // never issued (the request fails, it is never silently another buffer).
+            if(out[0]==1&&!test_bytes){
+                received.push_back(big(out.data()+2,8));
+                while(received.size()>kept_records){kernels.buffers.erase(received.front());received.pop_front();}
+            }
             return out;
         }
         case 13:{
             need(phase==Phase::retired&&p.size()==20,"seal application");uint64_t id=big(p.data()+8,8);
             auto wire=kernels.seal_application(Bytes(p.begin(),p.begin()+8),id,big(p.data()+16,2),big(p.data()+18,2));
             if(test_bytes&&id==produced_handle)sealed_pending=true;
+            // A buffer is sealed into exactly one record (its whole content, `seal_application`)
+            // and never used again: dropped (the test fixture compares echoes with sent buffers).
+            if(!test_bytes)kernels.buffers.erase(id);
             return wire;
         }
         case 14:{
@@ -434,6 +463,8 @@ static int run(int argc,char**argv){
         profile.boolean_bytes=[&]{return uint64_t(mpc.sent_bytes());};profile.field_bytes=[&]{return field.sent_bytes();};
         TlsKernels kernels(mpc,field,channel,party,argv[4]);kernels.prepare();
         Worker worker{party,io,channel,kernels,session};
+        // TLS_WORKER_PEER_WAIT=SECONDS: the bounded wait for the other party at each request (`await_peer`).
+        if(const char*requested=std::getenv("TLS_WORKER_PEER_WAIT")){const long seconds=std::stol(requested);if(seconds<0||seconds>86400)return 2;worker.peer_wait_ms=int(seconds*1000);}
         if(const char*test=std::getenv("TLS_WORKER_TEST_PRODUCER")){worker.test_bytes=std::stoul(test);if(!worker.test_bytes||worker.test_bytes>16384)return 2;std::cerr<<"tls-worker-v3 TEST producer enabled bytes="<<worker.test_bytes<<"\n";}
         // Both workers must be configured alike: the route is part of every agreed request.
         kernels.ladder_agreement=ladder;

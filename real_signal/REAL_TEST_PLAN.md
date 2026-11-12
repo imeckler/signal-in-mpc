@@ -28,6 +28,21 @@ Status: **handled** (works for production as it is), **change needed** (file, si
 
 ### Blocking
 
+**B1 — FIXED 2026-11-12.** `ReceiveFirst.withAccessKey` now accepts, between the body and the
+profile key, any of 72 layouts (`ReceiveFirst.gaps`: `flags` 4, `expireTimer` 5 of any value,
+`expireTimerVersion` 23, each absent or a varint; Wire's declaration order, which Signal-Android
+uses, and tag order), chosen inside the circuit: the opened status still says only "a layout
+matched" (NEEDS_REVIEW 3e). Kernel name and inputs unchanged; `withAccessKey_map` kept (no new
+axioms). What the phone is now expected to send for the 108-character token:
+`0A len (0A 6C token ‖ 28 00 ‖ B8 01 01 ‖ 32 20 profileKey ‖ 38 timestamp(6) ‖ 70 00)`, 161 bytes,
+padded to 239, **240 bytes of ciphertext**, sealed with hint RESENDABLE (`20 01`), sender
+certificate 134 bytes (no phone number). Tested: kernel level on 11 layouts
+(`.deps/lowering-scratch/check_access_key_layouts.py`), and end to end
+(`local_signal_server/check_signal_service_local_signup.py`, section 4). Still unknown until the
+phone's message: the post-quantum field's size (`signup_pq`, 37 for libsignal 0.106; the phone has
+0.107) and whether addresses are present; both are shape parameters of `receive-session`.
+Original text:
+
 **B1. A real Signal-Android first message is refused (change needed).** The receive kernels take the
 contact's profile key from the field right after the message body
 (`TlsMpc/Signal/ReceiveFirst.lean`, `withAccessKey`: "right after the body unless other fields come
@@ -67,6 +82,22 @@ for tens of seconds (the server may close it). Needed before the run:
   and a deployment with `certificate: 138`. Not done here because the local server is shared by
   other runs.
 
+**B3 — MEASURED 2026-11-12 (owner's go-ahead), handled.** `state/handshake-production.json`:
+chat.signal.org sends EncryptedExtensions (49), Certificate (927: ONE certificate, Ed25519 key,
+signed by the pinned RSA root), CertificateVerify (72, Ed25519) and Finished (36) coalesced in ONE
+encrypted record of **1122 bytes**, with 16 bytes of record padding; ALPN http/1.1, X25519. Our
+path handles that as it is: the worker opens each record with `tls-open-handshake SIZE` (the inner
+parser strips padding), and `TlsClient.receiveFlight` splits the decrypted bytes into messages
+by their own headers (`TlsWire.messages`, any number per record, split across records too), then
+checks the chain (`public_auth`: one certificate, path built to the trust file), the Ed25519
+CertificateVerify (0x0807, offered by the libsignal profile) and Finished. Nothing about the
+split is taken from fixed offsets. The local default server never showed this shape (OpenSSL: 4
+records, two certificates); the second local instance does (`scripts/coalesced_terminator.py`, a
+small TLS 1.3 server: one record of 621 bytes, 16 bytes of padding, one Ed25519 certificate) and
+the compact strict stage runs through it (section 4). `deployment-production.json`:
+`handshake: [1122]`. Ed25519 signatures have a fixed length: the size changes only with a new
+server certificate (re-measure then). Original text:
+
 **B3. The server's handshake record sizes (unknown; tool ready).** `tls-open-handshake N` is one
 circuit per encrypted handshake record size. Local: 43, 922, 94, 58 (Ed25519 certificate). Production's
 chain, key type and record split are unknown; with an ECDSA key the CertificateVerify record varies
@@ -90,6 +121,12 @@ reconnects) runs only with `SIGNAL_DB_CLIENT`. Without it (`SIGNAL_LOCAL_STORE`)
 connection ends the session and the stored state can be behind what was sent, so a rerun would
 reuse a message key. `run_real_test.py` therefore always uses the database nodes (the harness's
 in-memory test nodes, local to this machine; they live for the one process).
+
+**B6b — FIXED 2026-11-12** (the controller option: Lean only, `PublicServiceController.lean`
+`provisionals`): every opened message gets its own provisional id (2^128 − 1, then 2^128 − 3,
+2^128 − 4, …; both controllers count in lockstep), so an evicted entry never blocks the next
+signup. Tested: a refused signup (not a token) first, then four good ones, in one receive session:
+the first refused, all four stored (section 4). Original text:
 
 **B6b. After a signup refused at the token step, no further signup works in that session (bug,
 change needed, pre-existing).** Found in the local test of the acknowledgement switch. A first
@@ -149,7 +186,13 @@ session (test admission, PRODUCT_TODO section 2). Fine for a first test; not the
   libsignal/0.107.0`; the account declared only the `spqr` capability (Android declares many);
   the client Finished leaves about a second after the server's flight. None is a protocol error;
   all are visible (CLIENT_FINGERPRINT.md).
-- **Message timestamps older than the send.** In the local run of `run_real_test.py` the text's
+- **Message timestamps older than the send (2026-11-12: cause found, partly changed).** The
+  libsignal profile's `restamp` now prepares the contact (operation 66) before it stamps. But the
+  40 s were not the preparation (0.3 s): they were operation 41 producing the
+  `signal-seal-official` circuit on demand (the cache was cold). With the circuits produced ahead
+  (step 5) the stamp is taken about a circuit load, a seal and the database write before the
+  request leaves; measured in the compact strict stage (section 4). Original text:
+  In the local run of `run_real_test.py` the text's
   timestamp was taken 40 s before its request left (semi-honest; the contact's first preparation
   and seal run after the stamp, `restamp` in `sendSoft`). The server and the phone see a message
   "sent" 40 s before it arrived; an official client's is milliseconds old. Fix: stamp after the

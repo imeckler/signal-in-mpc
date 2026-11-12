@@ -64,6 +64,20 @@ struct Config {
     send_seconds: u64,
     send_seconds_per_id: u64,
     delete_seconds: u64,
+    /// The long-lived send session (README, "The long-lived send session"); `false`: one session per notify, as before.
+    long_lived: bool,
+    /// When a long-lived session is ended (between jobs) and a new one started: after this many
+    /// messages, this many seconds, or this much resident memory of its process tree (0: no limit).
+    max_messages: u64,
+    max_seconds: u64,
+    max_megabytes: u64,
+    /// A send session whose log has not grown for this long is stopped (its worker logs every
+    /// operation, and an idle session ticks every quarter second).
+    stall_seconds: u64,
+    /// Sessions a notify may be handed to (a session that dies with it is followed by another, which resumes from the journals).
+    attempts: u32,
+    /// TLS_WORKER_PEER_WAIT for the workers, unless `environment` sets it.
+    peer_wait_seconds: u64,
 }
 
 fn text(value: &Value, path: &[&str]) -> Result<String, String> {
@@ -157,6 +171,13 @@ impl Config {
             send_seconds: number(&c, &["timeouts", "send_seconds"], 600),
             send_seconds_per_id: number(&c, &["timeouts", "send_seconds_per_id"], 60),
             delete_seconds: number(&c, &["timeouts", "delete_seconds"], 120),
+            long_lived: c.get("send_session").and_then(|s| s.get("long_lived")).and_then(Value::as_bool).unwrap_or(true),
+            max_messages: number(&c, &["send_session", "max_messages"], 5000),
+            max_seconds: number(&c, &["send_session", "max_seconds"], 6 * 3600),
+            max_megabytes: number(&c, &["send_session", "max_megabytes"], 0),
+            stall_seconds: number(&c, &["send_session", "stall_seconds"], 900),
+            attempts: number(&c, &["send_session", "attempts"], 3).clamp(1, 10) as u32,
+            peer_wait_seconds: number(&c, &["timeouts", "peer_wait_seconds"], 180),
         })
     }
 }
@@ -191,6 +212,36 @@ struct Job {
     start_failed: Option<Instant>,
     result: Option<Value>,
     finished: Option<Instant>,
+    /// Long-lived sessions it was handed to.
+    attempts: u32,
+}
+
+/// This node's long-lived send session (both nodes run one under the same name).
+struct SendSession {
+    name: String,
+    /// The directory the controller takes jobs from (`SIGNAL_SERVE_DIR`).
+    serve: PathBuf,
+    pid: Option<u32>,
+    /// Its connections are open (the controller's `ready` line).
+    ready: bool,
+    /// The notify it is serving.
+    job: Option<String>,
+    started: Instant,
+    messages: u64,
+    jobs: u64,
+    /// Why this node asked it to end (DIR/stop), once asked.
+    stop_asked: Option<String>,
+    rss_checked: Option<Instant>,
+    rss_megabytes: u64,
+    rss_logged: Option<(Instant, u64)>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Role {
+    /// A one-request controller (a notify in the per-request mode, a delete).
+    Job,
+    Receive,
+    Send,
 }
 
 #[derive(Default)]
@@ -206,6 +257,46 @@ struct Shared {
     receive_child: Option<u32>,
     receive_generation: u64,
     sessions: u64,
+    send: Option<SendSession>,
+    send_generation: u64,
+}
+
+/// Resident memory of a process and everything below it, in megabytes.
+fn tree_megabytes(root: u32) -> u64 {
+    let out = Command::new("ps").args(["-axo", "pid=,ppid=,rss="]).output().map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
+    let rows: Vec<(u32, u32, u64)> = out.lines().filter_map(|line| {
+        let mut parts = line.split_whitespace();
+        Some((parts.next()?.parse().ok()?, parts.next()?.parse().ok()?, parts.next()?.parse().ok()?))
+    }).collect();
+    let mut found = vec![root];
+    let mut index = 0;
+    while index < found.len() {
+        let parent = found[index];
+        found.extend(rows.iter().filter(|(pid, ppid, _)| *ppid == parent && !found.contains(pid)).map(|(pid, _, _)| *pid).collect::<Vec<_>>());
+        index += 1;
+    }
+    rows.iter().filter(|(pid, _, _)| found.contains(pid)).map(|(_, _, kb)| kb).sum::<u64>() / 1024
+}
+
+/// Per requested id, from what the two controllers agreed on (they compare a digest of these
+/// before reporting them): the send's result, or that the database nodes do not have the id.
+fn notify_results(request: &Request, report: &Value) -> Vec<Value> {
+    let listed = |name: &str| -> Vec<String> {
+        report.get(name).and_then(Value::as_array).map(|l| l.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()).unwrap_or_default()
+    };
+    let (unknown, waiting) = (listed("unknown"), listed("not_yet_readable"));
+    let rows = report.get("results").and_then(Value::as_array).cloned().unwrap_or_default();
+    request.ids.iter().map(|id| {
+        let id = id.to_string();
+        let row = rows.iter().find(|r| r["id"].as_str() == Some(&id) && r["message"].as_u64() == Some(0));
+        let (result, reason) = match row {
+            Some(row) => (row["result"].as_str().unwrap_or("fault").to_string(), row["reason"].as_str().unwrap_or("").to_string()),
+            None if unknown.contains(&id) => ("unknown contact".to_string(), String::new()),
+            None if waiting.contains(&id) => ("retry later".to_string(), "not readable until the database nodes' next epoch".to_string()),
+            None => ("fault".to_string(), "the session reported no result for this id".to_string()),
+        };
+        json!({"id": id, "result": result, "reason": reason})
+    }).collect()
 }
 
 struct Daemon {
@@ -302,7 +393,7 @@ impl Daemon {
             }
         }
         log(&format!("{} {} received: {} ids", kind.name(), &digest[..16], request.ids.len()));
-        shared.jobs.insert(digest.clone(), Job { request, message: text, stage: Stage::Received, received: Instant::now(), start_failed: None, result: None, finished: None });
+        shared.jobs.insert(digest.clone(), Job { request, message: text, stage: Stage::Received, received: Instant::now(), start_failed: None, result: None, finished: None, attempts: 0 });
         self.changed.notify_all();
         json!({"ok": true, "job": digest, "state": "received"})
     }
@@ -345,7 +436,9 @@ impl Daemon {
         let count = |stage: Stage| shared.jobs.values().filter(|j| j.stage == stage).count();
         json!({"ok": true, "party": self.config.party, "received": count(Stage::Received), "agreed": count(Stage::Agreed), "running": count(Stage::Running),
             "done": count(Stage::Done), "events": shared.events.len(), "receive_session_running": shared.receive_child.is_some(),
-            "receive_sessions_started": shared.receive_generation})
+            "receive_sessions_started": shared.receive_generation, "send_sessions_started": shared.send_generation,
+            "send_session": shared.send.as_ref().map(|s| json!({"pid": s.pid, "ready": s.ready, "serving": s.job.is_some(), "messages": s.messages, "jobs": s.jobs,
+                "seconds": s.started.elapsed().as_secs(), "megabytes": s.rss_megabytes, "ending": s.stop_asked}))})
     }
 
     // ---- Messages of the other daemon (authenticated before they get here).
@@ -368,6 +461,34 @@ impl Daemon {
             "peer-start" => {
                 if self.leader() {
                     return json!({"ok": false, "error": "only party 0 starts sessions"});
+                }
+                let notify = self.lock().jobs.get(&digest).is_some_and(|job| job.request.kind == Kind::Notify);
+                if self.config.long_lived && notify {
+                    // Hand the notify to this node's long-lived session, which must be the one
+                    // party 0 names and be idle.
+                    let Some(session) = message.get("session").and_then(Value::as_str) else {
+                        return json!({"ok": false, "error": "peer-start: session"});
+                    };
+                    {
+                        let shared = self.lock();
+                        if shared.busy || !shared.send.as_ref().is_some_and(|s| s.name == session && s.job.is_none() && s.stop_asked.is_none()) {
+                            return json!({"ok": false, "busy": true, "error": "not this node's idle send session"});
+                        }
+                        let fresh = match shared.jobs.get(&digest) {
+                            Some(job) if job.stage == Stage::Received || job.stage == Stage::Agreed => job.request.check_freshness(unix_now(), self.config.max_age).is_ok(),
+                            _ => return json!({"ok": false, "error": "not a request this node holds"}),
+                        };
+                        if !fresh {
+                            return json!({"ok": false, "error": "expired"});
+                        }
+                    }
+                    return match self.hand_over(&digest) {
+                        Ok(()) => json!({"ok": true}),
+                        Err(why) => {
+                            log(&format!("notify {}: {why}", &digest[..16]));
+                            json!({"ok": false, "error": "this node could not hand the request to its session"})
+                        }
+                    };
                 }
                 let (Some(session), Some(port)) = (message.get("session").and_then(Value::as_str), message.get("port").and_then(Value::as_u64)) else {
                     return json!({"ok": false, "error": "peer-start: session and port"});
@@ -402,6 +523,44 @@ impl Daemon {
                 }
                 let (daemon, session) = (self.clone(), session.to_string());
                 thread::spawn(move || daemon.receive_session(&session, port));
+                json!({"ok": true})
+            }
+            // Party 0 starts a (new) long-lived send session; this node's previous one goes.
+            "peer-serve" => {
+                if self.leader() || !self.config.long_lived {
+                    return json!({"ok": false, "error": "no long-lived send session here"});
+                }
+                let (Some(session), Some(port)) = (message.get("session").and_then(Value::as_str), message.get("port").and_then(Value::as_u64)) else {
+                    return json!({"ok": false, "error": "peer-serve: session and port"});
+                };
+                let old = self.lock().send.as_ref().and_then(|s| s.pid);
+                if let Some(pid) = old {
+                    kill_tree(pid);
+                }
+                let (daemon, session) = (self.clone(), session.to_string());
+                thread::spawn(move || daemon.serve_session(&session, port));
+                json!({"ok": true})
+            }
+            // The other node's send session ended (failed, stopped, or was killed): this node's
+            // session of the same name cannot go on, and is ended now instead of at the workers'
+            // bounded wait (TLS_WORKER_PEER_WAIT).
+            "peer-ended" => {
+                let Some(session) = message.get("session").and_then(Value::as_str) else {
+                    return json!({"ok": false, "error": "peer-ended: session"});
+                };
+                let pid = self.lock().send.as_ref().filter(|s| s.name == session).and_then(|s| s.pid);
+                if let Some(pid) = pid {
+                    log(&format!("send session {}: the other node's ended; ending this one", &session[..16.min(session.len())]));
+                    kill_tree(pid);
+                }
+                json!({"ok": true})
+            }
+            // Party 0 gave a notify up (no attempts left): the same status here.
+            "peer-finish" => {
+                let waiting = self.lock().jobs.get(&digest).is_some_and(|job| job.stage == Stage::Received || job.stage == Stage::Agreed);
+                if waiting {
+                    self.finish(&digest, "failed", json!([]), "the sessions it was handed to ended before it completed", None, 0.0);
+                }
                 json!({"ok": true})
             }
             _ => json!({"ok": false, "error": "unknown peer message"}),
@@ -471,8 +630,13 @@ impl Daemon {
         self.database_environment(&mut command, work);
         for name in ["SIGNAL_LOCAL_CREDENTIALS", "SIGNAL_LOCAL_RECEIVE", "SIGNAL_LOCAL_EXPECT", "SIGNAL_LOCAL_EXTRA_CONTACTS", "SIGNAL_LOCAL_NEW_CONTACT",
             "SIGNAL_LOCAL_STORE", "SIGNAL_LOCAL_BROADCASTS", "SIGNAL_LOCAL_PAUSE_AFTER", "SIGNAL_LOCAL_PAUSE_REFRESH", "SIGNAL_LOCAL_TIMESTAMP",
-            "SIGNAL_DB_REQUEST", "SIGNAL_NOTIFY_ID", "SIGNAL_NOTIFY_JOURNAL", "SIGNAL_NOTIFY_MESSAGE_FILE", "SIGNAL_LOCAL_EVENTS", "SIGNAL_RECOVERY"] {
+            "SIGNAL_DB_REQUEST", "SIGNAL_NOTIFY_ID", "SIGNAL_NOTIFY_JOURNAL", "SIGNAL_NOTIFY_MESSAGE_FILE", "SIGNAL_LOCAL_EVENTS", "SIGNAL_RECOVERY",
+            "SIGNAL_SERVE_DIR"] {
             command.env_remove(name);   // a session's kind is decided here, not by the daemon's own environment
+        }
+        // The workers' bounded wait for each other at every request (tls_worker_v3.cpp, `await_peer`).
+        if !self.config.environment.iter().any(|(name, _)| name == "TLS_WORKER_PEER_WAIT") {
+            command.env("TLS_WORKER_PEER_WAIT", self.config.peer_wait_seconds.to_string());
         }
         if let Some(export) = &self.config.export {
             command.env("SIGNAL_LOCAL_EXPORT", export);
@@ -491,20 +655,26 @@ impl Daemon {
 
     /// Run a controller to its end or to `limit`. Its standard output is read line by line
     /// (`on_line`); its standard error goes to the node's log file `log_name`.
-    fn supervise(&self, mut command: Command, log_name: &str, limit: Duration, receive: bool, mut on_line: impl FnMut(&str)) -> Result<Outcome, String> {
+    /// `stall`: a controller whose log (its worker logs every operation) has not grown for this
+    /// long is stopped like one at its time limit.
+    fn supervise(&self, mut command: Command, log_name: &str, limit: Duration, role: Role, stall: Option<Duration>, mut on_line: impl FnMut(&str)) -> Result<Outcome, String> {
         let logs = self.config.state.join("logs");
         fs::create_dir_all(&logs).map_err(|e| format!("{}: {e}", logs.display()))?;
-        let file = fs::File::create(logs.join(log_name)).map_err(|e| format!("{log_name}: {e}"))?;
+        let log_path = logs.join(log_name);
+        let file = fs::File::create(&log_path).map_err(|e| format!("{log_name}: {e}"))?;
         let started = Instant::now();
         let mut child = command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(file).spawn().map_err(|e| format!("controller: {e}"))?;
         let pid = child.id();
         {
             let mut shared = self.lock();
             shared.children.push(pid);
-            if receive {
-                shared.receive_child = Some(pid);
+            match role {
+                Role::Receive => shared.receive_child = Some(pid),
+                Role::Send => if let Some(session) = shared.send.as_mut() { session.pid = Some(pid) },
+                Role::Job => {}
             }
         }
+        let (mut grown, mut size) = (Instant::now(), 0u64);
         let (sender, lines) = mpsc::channel::<String>();
         let output = child.stdout.take();
         thread::spawn(move || {
@@ -536,9 +706,19 @@ impl Daemon {
                 // After the exit: what is still in the pipe, for at most two seconds.
                 Some((_, at)) => if at.elapsed() > Duration::from_secs(2) { break },
                 None => {
+                    let stalled = stall.is_some_and(|stall| {
+                        let now = fs::metadata(&log_path).map(|m| m.len()).unwrap_or(0);
+                        if now != size {
+                            (grown, size) = (Instant::now(), now);
+                        }
+                        grown.elapsed() > stall
+                    });
+                    if stalled {
+                        log(&format!("{log_name}: no progress for {} s; stopping it", stall.map(|s| s.as_secs()).unwrap_or(0)));
+                    }
                     if let Ok(Some(status)) = child.try_wait() {
                         exited = Some((status.code(), Instant::now()));
-                    } else if started.elapsed() > limit || STOP.load(Ordering::SeqCst) {
+                    } else if started.elapsed() > limit || stalled || STOP.load(Ordering::SeqCst) {
                         timed_out = !STOP.load(Ordering::SeqCst);
                         kill_tree(pid);
                         let status = child.wait().ok();
@@ -592,7 +772,7 @@ impl Daemon {
             .env("SIGNAL_NOTIFY_ID", digest).env("SIGNAL_NOTIFY_JOURNAL", &journal);
         let limit = Duration::from_secs(self.config.send_seconds + self.config.send_seconds_per_id * request.ids.len() as u64);
         log(&format!("notify {} session {} starts on port {port}", &digest[..16], &session[..16.min(session.len())]));
-        let outcome = self.supervise(command, &format!("send-{}.log", &digest[..16]), limit, false, |_| {})?;
+        let outcome = self.supervise(command, &format!("send-{}.log", &digest[..16]), limit, Role::Job, None, |_| {})?;
         let report = outcome.lines.iter().rev().filter_map(|line| serde_json::from_str::<Value>(line).ok()).find(|v| v.get("passed").is_some());
         let passed = outcome.code == Some(0) && report.as_ref().is_some_and(|r| r["passed"] == json!(true));
         let Some(report) = report.filter(|_| passed) else {
@@ -600,24 +780,7 @@ impl Daemon {
             self.finish(digest, "failed", json!([]), &detail, None, outcome.seconds);
             return Ok(());
         };
-        // Per id, from what the two controllers agreed on (they compare a digest of these before
-        // reporting them): the send's result, or that the database nodes do not have the id.
-        let listed = |name: &str| -> Vec<String> {
-            report.get(name).and_then(Value::as_array).map(|l| l.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()).unwrap_or_default()
-        };
-        let (unknown, waiting) = (listed("unknown"), listed("not_yet_readable"));
-        let rows = report.get("results").and_then(Value::as_array).cloned().unwrap_or_default();
-        let results: Vec<Value> = request.ids.iter().map(|id| {
-            let id = id.to_string();
-            let row = rows.iter().find(|r| r["id"].as_str() == Some(&id) && r["message"].as_u64() == Some(0));
-            let (result, reason) = match row {
-                Some(row) => (row["result"].as_str().unwrap_or("fault").to_string(), row["reason"].as_str().unwrap_or("").to_string()),
-                None if unknown.contains(&id) => ("unknown contact".to_string(), String::new()),
-                None if waiting.contains(&id) => ("retry later".to_string(), "not readable until the database nodes' next epoch".to_string()),
-                None => ("fault".to_string(), "the session reported no result for this id".to_string()),
-            };
-            json!({"id": id, "result": result, "reason": reason})
-        }).collect();
+        let results = notify_results(request, &report);
         let _ = fs::remove_file(&journal);
         self.finish(digest, "completed", json!(results), "", None, outcome.seconds);
         Ok(())
@@ -632,7 +795,7 @@ impl Daemon {
         let mut command = Command::new(&self.config.controller);
         command.args(["db-delete", &self.config.party.to_string(), &request_file.display().to_string()]);
         self.database_environment(&mut command, &work);
-        let outcome = self.supervise(command, &format!("delete-{}.log", &digest[..16]), Duration::from_secs(self.config.delete_seconds), false, |_| {})?;
+        let outcome = self.supervise(command, &format!("delete-{}.log", &digest[..16]), Duration::from_secs(self.config.delete_seconds), Role::Job, None, |_| {})?;
         // The database client's report: which nodes committed, with each node's signature over
         // the request's digest. Public, and checkable by anyone with the network config.
         let evidence = fs::read_to_string(&evidence_file).ok().and_then(|text| serde_json::from_str::<Value>(&text).ok());
@@ -661,7 +824,7 @@ impl Daemon {
                 shared.receive_generation
             };
             log(&format!("receive session {} starts on port {port}", &session[..16.min(session.len())]));
-            self.supervise(command, &format!("receive-{generation}.log"), Duration::from_secs(u64::MAX / 4), true, |line| {
+            self.supervise(command, &format!("receive-{generation}.log"), Duration::from_secs(u64::MAX / 4), Role::Receive, None, |line| {
                 let Ok(event) = serde_json::from_str::<Value>(line) else { return };
                 if event["event"] != json!("signup") {
                     return;
@@ -680,6 +843,210 @@ impl Daemon {
         match run() {
             Ok(outcome) => log(&format!("receive session ended after {:.0} s with status {:?}", outcome.seconds, outcome.code)),
             Err(why) => log(&format!("receive session: {why}")),
+        }
+    }
+
+    // ---- The long-lived send session (README, "The long-lived send session").
+
+    /// A notify handed to a session that ended before reporting it: back in the queue (party 0
+    /// sends it to the next session, which resumes from the journals) unless no attempts are left.
+    fn requeue(&self, shared: &mut Shared, digest: &str) {
+        let Some(job) = shared.jobs.get_mut(digest) else { return };
+        if job.stage != Stage::Running {
+            return;
+        }
+        job.stage = Stage::Agreed;
+        if self.leader() && !shared.queue.iter().any(|d| d == digest) {
+            shared.queue.insert(0, digest.to_string());
+        }
+        log(&format!("notify {}: its session ended before it completed (attempt {})", &digest[..16], job.attempts));
+    }
+
+    /// This node's long-lived send session, to its end. Both nodes run it under the name party 0
+    /// chose. `true`: it ended because a daemon asked it to (a planned restart).
+    fn serve_session(&self, session: &str, port: u64) -> bool {
+        let generation = {
+            let mut shared = self.lock();
+            shared.send_generation += 1;
+            shared.send_generation
+        };
+        let run = || -> Result<Outcome, String> {
+            let work = self.work("send")?;
+            let serve = work.join("serve");
+            let _ = fs::remove_dir_all(&serve);
+            fs::create_dir_all(serve.join("jobs")).map_err(|e| format!("{}: {e}", serve.display()))?;
+            let mut command = self.session_command(&self.config.send_directory, session, port, &work)?;
+            command.env("SIGNAL_SERVE_DIR", &serve);
+            {
+                let mut shared = self.lock();
+                let previous = shared.send.replace(SendSession { name: session.to_string(), serve: serve.clone(), pid: None, ready: false, job: None,
+                    started: Instant::now(), messages: 0, jobs: 0, stop_asked: None, rss_checked: None, rss_megabytes: 0, rss_logged: None });
+                if let Some(digest) = previous.and_then(|s| s.job) {
+                    self.requeue(&mut shared, &digest);
+                }
+            }
+            log(&format!("send session {} starts on port {port} (long-lived)", &session[..16.min(session.len())]));
+            let stall = Duration::from_secs(self.config.stall_seconds.max(60));
+            self.supervise(command, &format!("send-session-{generation}.log"), Duration::from_secs(u64::MAX / 4), Role::Send, Some(stall),
+                |line| self.send_line(session, line))
+        };
+        let outcome = run();
+        let mut planned = false;
+        {
+            let mut shared = self.lock();
+            if shared.send.as_ref().is_some_and(|s| s.name == session) {
+                let ended = shared.send.take();
+                planned = ended.as_ref().is_some_and(|s| s.stop_asked.is_some() || s.serve.join("stop").exists());
+                if let Some(digest) = ended.as_ref().and_then(|s| s.job.clone()) {
+                    self.requeue(&mut shared, &digest);
+                }
+                if let Some(ended) = ended {
+                    log(&format!("send session {} ended: {} jobs, {} messages in {} s{}", &session[..16.min(session.len())], ended.jobs, ended.messages,
+                        ended.started.elapsed().as_secs(), ended.stop_asked.map(|why| format!(" (asked to end: {why})")).unwrap_or_default()));
+                }
+            }
+            self.changed.notify_all();
+        }
+        match outcome {
+            Ok(outcome) => log(&format!("send session {} exited with status {:?}{}", &session[..16.min(session.len())], outcome.code,
+                if outcome.timed_out { " (stopped: no progress)" } else { "" })),
+            Err(why) => log(&format!("send session: {why}")),
+        }
+        // The other node's session of this name is waiting for this one's worker: end it now.
+        // (After a planned end both controllers end by themselves.)
+        if !planned {
+            let _ = self.peer_call(json!({"op": "peer-ended", "session": session}));
+        }
+        planned
+    }
+
+    /// A line of the send session's standard output: `ready`, or one job's agreed results.
+    fn send_line(&self, session: &str, line: &str) {
+        let Ok(report) = serde_json::from_str::<Value>(line) else { return };
+        if report["event"] == json!("ready") {
+            let mut shared = self.lock();
+            if let Some(s) = shared.send.as_mut().filter(|s| s.name == session) {
+                s.ready = true;
+                log(&format!("send session {} ready ({} connections)", &session[..16.min(session.len())], report["connections"]));
+            }
+            self.changed.notify_all();
+            return;
+        }
+        let Some(digest) = report["job"].as_str().map(str::to_string) else { return };
+        let (request, serve) = {
+            let shared = self.lock();
+            (shared.jobs.get(&digest).map(|j| j.request.clone()), shared.send.as_ref().filter(|s| s.name == session).map(|s| s.serve.clone()))
+        };
+        let Some(request) = request else { return };
+        let results = notify_results(&request, &report);
+        let _ = fs::remove_file(self.config.state.join("journal").join(format!("{digest}.jsonl")));
+        if let Some(serve) = serve {
+            let _ = fs::remove_file(serve.join("job.json"));
+        }
+        {
+            let mut shared = self.lock();
+            if let Some(s) = shared.send.as_mut().filter(|s| s.name == session) {
+                if s.job.as_deref() == Some(digest.as_str()) {
+                    s.job = None;
+                }
+                s.messages += report["messages"].as_u64().unwrap_or(0);
+                s.jobs += 1;
+            }
+        }
+        let seconds = report["milliseconds"].as_f64().unwrap_or(0.0) / 1000.0;
+        self.finish(&digest, "completed", json!(results), "", None, seconds);
+    }
+
+    /// Give the session a notify: its request and text as files, then DIR/job.json (written whole).
+    fn hand_over(&self, digest: &str) -> Result<(), String> {
+        let (request, message, serve) = {
+            let shared = self.lock();
+            let job = shared.jobs.get(digest).ok_or("unknown request")?;
+            let serve = shared.send.as_ref().ok_or("no send session")?.serve.clone();
+            (job.request.clone(), job.message.clone().unwrap_or_default(), serve)
+        };
+        let write = |path: &Path, bytes: &[u8]| fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()));
+        let request_file = serve.join("jobs").join(format!("{digest}-request.json"));
+        let message_file = serve.join("jobs").join(format!("{digest}-message.txt"));
+        write(&request_file, request.file_json().to_string().as_bytes())?;
+        write(&message_file, message.as_bytes())?;
+        // The journal of what this notify settled, owned by the daemon: one file per notify,
+        // named by the request's digest, removed when the notify completes.
+        let journals = self.config.state.join("journal");
+        fs::create_dir_all(&journals).map_err(|e| format!("{}: {e}", journals.display()))?;
+        let staged = serve.join("job.staged");
+        write(&staged, json!({"job": digest, "request": request_file, "message": message_file,
+            "journal": journals.join(format!("{digest}.jsonl"))}).to_string().as_bytes())?;
+        fs::rename(&staged, serve.join("job.json")).map_err(|e| format!("job file: {e}"))?;
+        let mut shared = self.lock();
+        if let Some(job) = shared.jobs.get_mut(digest) {
+            job.stage = Stage::Running;
+            job.attempts += 1;
+        }
+        if let Some(s) = shared.send.as_mut() {
+            s.job = Some(digest.to_string());
+        }
+        shared.queue.retain(|d| d != digest);
+        self.changed.notify_all();
+        Ok(())
+    }
+
+    /// Party 0: keep one long-lived send session running on both nodes; when it ends, start the next.
+    fn keep_sending(self: &Arc<Self>) {
+        let mut pause = 2u64;
+        while !STOP.load(Ordering::SeqCst) {
+            let Ok((session, count)) = self.session_name() else { return };
+            let port = self.config.port_base + 40 * (count % 8);
+            let started = Instant::now();
+            let planned = match self.peer_call(json!({"op": "peer-serve", "session": session, "port": port})) {
+                Ok(reply) if reply["ok"] == json!(true) => self.serve_session(&session, port),
+                _ => false,
+            };
+            // A session that ended at once is not restarted in a tight loop; a planned end is
+            // followed at once (the other node's session ends at the same tick).
+            pause = if planned { 1 } else if started.elapsed() > Duration::from_secs(120) { 2 } else { (pause * 2).min(60) };
+            for _ in 0..pause * 5 {
+                if STOP.load(Ordering::SeqCst) {
+                    return;
+                }
+                thread::sleep(Duration::from_millis(200));
+            }
+        }
+    }
+
+    /// Both nodes: ask the send session to end, between jobs, when it reached a limit (messages,
+    /// age, memory). Either node asking is enough: the two controllers end together.
+    fn maintain_send(&self) {
+        let mut shared = self.lock();
+        let Some(s) = shared.send.as_mut() else { return };
+        if !s.ready || s.stop_asked.is_some() {
+            return;
+        }
+        if let Some(pid) = s.pid.filter(|_| s.rss_checked.is_none_or(|at| at.elapsed() > Duration::from_secs(10))) {
+            s.rss_checked = Some(Instant::now());
+            s.rss_megabytes = tree_megabytes(pid);
+            // Logged when it sent something since, and every five minutes while idle.
+            if s.rss_logged.is_none_or(|(at, messages)| messages != s.messages || at.elapsed() > Duration::from_secs(300)) {
+                s.rss_logged = Some((Instant::now(), s.messages));
+                log(&format!("send session memory: {} MB after {} messages, {} jobs, {} s", s.rss_megabytes, s.messages, s.jobs, s.started.elapsed().as_secs()));
+            }
+        }
+        if s.job.is_some() {
+            return;
+        }
+        let c = &self.config;
+        let why = if c.max_messages > 0 && s.messages >= c.max_messages {
+            format!("{} messages", s.messages)
+        } else if c.max_seconds > 0 && s.started.elapsed() >= Duration::from_secs(c.max_seconds) {
+            format!("{} s old", s.started.elapsed().as_secs())
+        } else if c.max_megabytes > 0 && s.rss_megabytes >= c.max_megabytes {
+            format!("{} MB resident", s.rss_megabytes)
+        } else {
+            return;
+        };
+        if fs::write(s.serve.join("stop"), &why).is_ok() {
+            log(&format!("send session: asked to end ({why})"));
+            s.stop_asked = Some(why);
         }
     }
 
@@ -702,7 +1069,12 @@ impl Daemon {
                 if job.stage == Stage::Received && job.received.elapsed() > patience {
                     Some((digest.clone(), "rejected", "the other node did not confirm that it received this request"))
                 } else if (job.stage == Stage::Received || job.stage == Stage::Agreed) && now + margin > job.request.issued_at + self.config.max_age {
-                    Some((digest.clone(), "expired", "the request's lifetime ended before its turn came"))
+                    if job.attempts > 0 {
+                        // Handed to a session that ended before it completed; no further one in time.
+                        Some((digest.clone(), "failed", "its session ended before it completed, and the request's lifetime is over"))
+                    } else {
+                        Some((digest.clone(), "expired", "the request's lifetime ended before its turn came"))
+                    }
                 } else {
                     None
                 }
@@ -733,9 +1105,36 @@ impl Daemon {
         }
         let next = {
             let shared = self.lock();
-            if shared.busy { None } else { shared.queue.first().cloned() }
+            if shared.busy || shared.send.as_ref().is_some_and(|s| s.job.is_some()) { None } else { shared.queue.first().cloned() }
         };
         let Some(digest) = next else { return };
+        let (notify, attempts, fresh) = self.lock().jobs.get(&digest).map(|job| (job.request.kind == Kind::Notify, job.attempts,
+            job.request.issued_at + self.config.max_age >= unix_now() + 5)).unwrap_or((false, 0, false));
+        if self.config.long_lived && notify {
+            // To the long-lived session, once it is ready (both nodes'), one notify at a time.
+            if attempts >= self.config.attempts {
+                self.finish(&digest, "failed", json!([]), "the sessions it was handed to ended before it completed", None, 0.0);
+                let _ = self.peer_call(json!({"op": "peer-finish", "job": digest}));
+                return;
+            }
+            let session = self.lock().send.as_ref().filter(|s| s.ready && s.job.is_none() && s.stop_asked.is_none()).map(|s| s.name.clone());
+            let Some(session) = session else { return };
+            if !fresh {
+                return;   // `expire` reports it
+            }
+            if self.peer_call(json!({"op": "peer-start", "job": digest, "session": session})).is_ok_and(|r| r["ok"] == json!(true)) {
+                if let Err(why) = self.hand_over(&digest) {
+                    // The other node's session holds it and this one cannot: both sessions end
+                    // (`peer-ended`), and the next one is handed it again.
+                    log(&format!("notify {}: {why}", &digest[..16]));
+                    let pid = self.lock().send.as_ref().and_then(|s| s.pid);
+                    if let Some(pid) = pid {
+                        kill_tree(pid);
+                    }
+                }
+            }
+            return;
+        }
         let Ok((session, count)) = self.session_name() else { return };
         let port = self.config.port_base + 40 * (count % 8);
         let reply = self.peer_call(json!({"op": "peer-start", "job": digest, "session": session, "port": port}));
@@ -867,8 +1266,13 @@ fn main() {
         let daemon = daemon.clone();
         thread::spawn(move || daemon.keep_receiving());
     }
+    if daemon.leader() && daemon.config.long_lived {
+        let daemon = daemon.clone();
+        thread::spawn(move || daemon.keep_sending());
+    }
     while !STOP.load(Ordering::SeqCst) {
         daemon.expire();
+        daemon.maintain_send();
         if daemon.leader() {
             daemon.schedule();
         }

@@ -4,6 +4,7 @@ the parameters the two-party client offers (TLS 1.3, TLS_AES_128_GCM_SHA256, X25
 http/1.1, SNI), and nothing after the handshake (no HTTP request; the connection is closed).
 
     measure_handshake.py local OUT.json
+    measure_handshake.py local-compact OUT.json      (the second local instance, production's shape)
     measure_handshake.py production OUT.json --i-have-the-go-ahead     (contacts chat.signal.org)
 
 Why: `tls-open-handshake N` is one circuit per encrypted server handshake record size N (the
@@ -27,6 +28,9 @@ ROOT = HERE.parent
 OPENSSL = '/opt/homebrew/opt/openssl@3/bin/openssl'
 TARGETS = {
     'local': dict(host='127.0.0.1', port=18443, name='server.example', ca=ROOT / 'local_signal_server/state/tls/ca.pem'),
+    # The second local instance (local_signal_server/scripts/start_compact_server.sh): production's
+    # handshake shape from scripts/coalesced_terminator.py.
+    'local-compact': dict(host='127.0.0.1', port=19443, name='server.example', ca=ROOT / 'local_signal_server/state/tls/ca.pem'),
     'production': dict(host='chat.signal.org', port=443, name='chat.signal.org', ca=HERE / 'signal-root-ca.pem'),
 }
 

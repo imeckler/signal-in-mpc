@@ -327,6 +327,57 @@ fn content_with(text: &str, timestamp: u64, profile_key: Option<Vec<u8>>) -> Vec
     }
     v
 }
+/// The data-message layout a sender emits (`LSS_DATA_LAYOUT`, read by the sealed sends that carry a
+/// profile key): `legacy` (default; prost: body, profileKey, timestamp; padded to 80k; no content
+/// hint), `android` (Signal-Android's Wire encoder, fields in DECLARATION order: body,
+/// expireTimer 0, expireTimerVersion 1, profileKey, timestamp, isViewOnce false; padded to
+/// 80k - 1; content hint RESENDABLE), `android-tag` (the same fields in tag order, so
+/// expireTimerVersion comes last), `android-timer` (Wire order with a one-week timer and timer
+/// version 2). See handshake_backend/EmpHybridWork/CLIENT_FINGERPRINT.md (e).
+fn data_layout() -> String {
+    std::env::var("LSS_DATA_LAYOUT").unwrap_or_else(|_| "legacy".into())
+}
+fn proto_varint(mut n: u64, out: &mut Vec<u8>) {
+    while n >= 128 {
+        out.push((n as u8 & 127) | 128);
+        n >>= 7;
+    }
+    out.push(n as u8);
+}
+fn proto_bytes(tag: u8, data: &[u8], out: &mut Vec<u8>) {
+    out.push(tag);
+    proto_varint(data.len() as u64, out);
+    out.extend_from_slice(data);
+}
+/// Content bytes of an official-client layout (see `data_layout`), padded to 80k - 1.
+fn official_content(layout: &str, text: &str, timestamp: u64, profile_key: &[u8]) -> R<Vec<u8>> {
+    let (timer, version): (u64, u64) = if layout == "android-timer" { (604800, 2) } else { (0, 1) };
+    let mut dm = vec![];
+    proto_bytes(0x0a, text.as_bytes(), &mut dm);
+    dm.push(0x28);
+    proto_varint(timer, &mut dm);
+    let mut timer_version = vec![0xb8, 0x01];
+    proto_varint(version, &mut timer_version);
+    match layout {
+        "android" | "android-timer" => dm.extend_from_slice(&timer_version),
+        "android-tag" => {}
+        other => return Err(format!("unknown LSS_DATA_LAYOUT {other}").into()),
+    }
+    proto_bytes(0x32, profile_key, &mut dm);
+    dm.push(0x38);
+    proto_varint(timestamp, &mut dm);
+    dm.extend_from_slice(&[0x70, 0x00]);
+    if layout == "android-tag" {
+        dm.extend_from_slice(&timer_version);
+    }
+    let mut v = vec![];
+    proto_bytes(0x0a, &dm, &mut v);
+    v.push(0x80);
+    while v.len() % 80 != 79 {
+        v.push(0);
+    }
+    Ok(v)
+}
 fn parse_content(padded: &[u8]) -> R<(String, u64)> {
     let mut end = padded.len();
     while end > 0 && padded[end - 1] == 0 {
@@ -643,8 +694,21 @@ async fn sealed_send_content(from: &mut Account, to: &Account, text: &str, with_
     let ts = now_ms();
     let cert = SenderCertificate::deserialize(from.sender_certificate.as_ref().ok_or("sender has no certificate")?)?;
     let profile = if with_profile_key { Some(from.profile_key.to_vec()) } else { None };
-    let wire = sealed_sender_encrypt(&to.address(), &cert, &content_with(text, ts, profile),
-        &mut from.store.session_store, &mut from.store.identity_store, SystemTime::now(), &mut rng).await?;
+    let layout = data_layout();
+    let wire = if with_profile_key && layout != "legacy" {
+        // As Signal-Android sends a 1:1 text: its own content layout, sealed with hint RESENDABLE.
+        let content = official_content(&layout, text, ts, &from.profile_key)?;
+        let sender = ProtocolAddress::new(cert.sender_uuid()?.to_owned(), cert.sender_device_id()?);
+        let message = message_encrypt(&content, &to.address(), &sender, &mut from.store.session_store,
+            &mut from.store.identity_store, SystemTime::now(), &mut rng).await?;
+        let usmc = UnidentifiedSenderMessageContent::new(message.message_type(), cert.clone(),
+            message.serialize().to_vec(), ContentHint::Resendable, None)?;
+        eprintln!("  data layout {layout}: content {} bytes, hint resendable", content.len());
+        sealed_sender_encrypt_from_usmc(&to.address(), &usmc, &from.store.identity_store, &mut rng).await?
+    } else {
+        sealed_sender_encrypt(&to.address(), &cert, &content_with(text, ts, profile),
+            &mut from.store.session_store, &mut from.store.identity_store, SystemTime::now(), &mut rng).await?
+    };
     let mut chat = Chat::connect(None)?;
     let body = json!({
         "messages": [{"type": 6, "destinationDeviceId": 1, "destinationRegistrationId": to.registration_id, "content": b64(&wire)}],

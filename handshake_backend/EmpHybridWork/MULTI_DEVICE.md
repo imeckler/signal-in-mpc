@@ -535,6 +535,9 @@ deletion; by its source a sealed send to a missing account gets 401); 429, 5xx, 
 bundles as the server itself would produce them (they are injected on the plain side of a second
 TLS terminator by `local_signal_server/scripts/fault_proxy.py`, which answers the chosen request
 instead of forwarding it); a connection lost during a refresh; a lost connection that cannot be
-re-established; more than three devices; a cheating party. A node whose controller dies while its
-worker stays alive leaves the other node waiting without limit (the link between the workers
-has no timeout): the `resume` stage kills both.
+re-established; more than three devices; a cheating party. A node whose controller dies or hangs
+while its worker stays alive no longer leaves the other node waiting without limit: the workers
+give up on each other at the next request after `TLS_WORKER_PEER_WAIT` seconds (default 180;
+stage `hang`, 2026-11-11: party 1's controller stopped, party 0's session ended 20 s after its
+next request with "the other party did not reach operation 39 within 20 s", and the next
+session resumed from the journals). The `resume` stage still kills both.

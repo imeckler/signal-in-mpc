@@ -576,72 +576,35 @@ def run_ceremony(mode, texts):
     return result
 
 
-def run_app(export, mode):
-    """--app: the application end to end, through the two node daemons and the application
-    stand-in only (node_daemon/README.md). After the fixtures below, nothing here starts a
-    controller or signs anything: `notify-app` does what an application server would.
-      A. both daemons start; they keep a receive session running;
-      B. the application issues a signup token for a new id; a new libsignal user sends it to the
-         account; the application learns the id from both daemons;
-      C. notify([the new id, two pre-provisioned contacts], a 200-byte text): all three decrypt
-         it and both daemons report them delivered;
-      D. the same again, every contact's state reloaded from the database nodes;
-      E. delete([the new id]), with the database nodes' signatures checked by the application;
-      F. notify to all three ids: the deleted one is reported unknown, the others are delivered.
-    TEST fixtures (not the daemons' work): the account's row on the database nodes is created by
-    a harness-run session from the export's credentials; the two pre-provisioned contacts are
-    created on the database nodes from the export by the first notify, under tokens issued
-    here; `refresh` stands for a database epoch passing."""
-    import secrets, shutil, signal
-    cluster = Cluster()
-    result, daemons, logs = {}, [], []
-    binaries = ROOT / 'node_daemon/target/debug'
-    directory = STATE / 'app'
-    tool = HERE / 'provision/target/debug/lss-provision'
-    addresses = ['127.0.0.1:19700', '127.0.0.1:19701']
+class AppNodes:
+    """The two node daemons (node_daemon/) over the database nodes of `cluster`, and the
+    application stand-in `notify-app`. TEST fixture (not the daemons' work): the account's row on
+    the database nodes is created first by a harness-run session from the export's credentials.
+    `send_session`: the daemons' settings of their long-lived send session (README)."""
+    ADDRESSES = ['127.0.0.1:19700', '127.0.0.1:19701']
 
-    def app(command, *args):
-        started = time.monotonic()
-        r = subprocess.run([str(binaries / 'notify-app'), command, *map(str, args), '--daemons', ','.join(addresses), '--db-client', cluster.BIN / 'handoff_client',
-                            '--work', directory / 'application', '--key', cluster.config / 'app-server/notify-key.json',
-                            '--app-config', cluster.config / 'app-server/config.json', '--network', cluster.network], capture_output=True, text=True)
-        lines = r.stdout.strip().splitlines()
-        return r.returncode == 0, json.loads(lines[-1]) if lines else {}, round(time.monotonic() - started, 1)
-
-    def notify(label, contacts, text, expected, readers, absent=()):
-        """One notify; `expected`: {id: result}; `readers` must decrypt the text, `absent` must not get it."""
-        (directory / 'message.txt').write_text(text)
-        good, report, seconds = app('notify', '--ids', ','.join(str(c) for c in contacts), '--message-file', directory / 'message.txt', '--timeout', 420)
-        got = {r['id']: r['result'] for r in ((report.get('result') or {}).get('results') or [])}
-        recipients = {}
-        for name in list(readers) + list(absent):
-            seen = receive(name, 4)
-            attributed = [g for g in seen if g['envelope'].get('source_service_id') or g['envelope'].get('source_device')]
-            has = text in [g['text'] for g in seen]
-            recipients[name] = dict(received=len(seen), has_text=has, envelopes_with_source_fields=len(attributed),
-                                    passed=(has == (name in readers)) and not attributed)
-        passed = good and report.get('agreed') and got == {str(c): r for c, r in expected.items()} and all(r['passed'] for r in recipients.values())
-        result[label] = dict(passed=bool(passed), seconds=seconds, results=got, expected={str(c): r for c, r in expected.items()},
-                             agreed=report.get('agreed'), recipients=recipients, application=report)
-        cluster.refresh()
-        return bool(passed)
-
-    try:
+    def __init__(self, export, mode, cluster, send_session=None):
+        import secrets, shutil
+        self.cluster, self.daemons, self.logs = cluster, [], []
+        self.binaries = ROOT / 'node_daemon/target/debug'
+        self.directory = STATE / 'app'
+        tool = HERE / 'provision/target/debug/lss-provision'
         ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
         for contact in ids + [ACCOUNT]:
             cluster.token(contact)
-        # TEST fixture: the account's row. A receive session with the export's credentials, split
-        # between the parties, stores it and ends at once (it expects no message).
+        # The account's row: a receive session with the export's credentials, split between the
+        # parties, stores it and ends at once (it expects no message).
         credentials = bytes.fromhex(export['sender']['upgrade_credentials_hex'])
         share = secrets.token_bytes(len(credentials))
         shares = [share.hex(), bytes(a ^ b for a, b in zip(credentials, share)).hex()]
         fixture = run_mpc(export, mode, {}, party_env=lambda party: dict(
             cluster.env(party), SIGNAL_LOCAL_CREDENTIALS=shares[party], SIGNAL_LOCAL_EXPECT='0', SIGNAL_LOCAL_KEM=str(tool)))
-        result['account_fixture'] = dict(seconds=round(fixture['elapsed_seconds'], 1), passed=True)
+        self.fixture_seconds = round(fixture['elapsed_seconds'], 1)
         cluster.refresh()
-        # A. The daemons. What run_mpc prepared for its session is reused: the certificate checker
+        # The daemons. What run_mpc prepared for its session is reused: the certificate checker
         # and the workers' key material (one directory per kind of session).
         run(['bash', ROOT / 'node_daemon/build.sh'])
+        directory = self.directory
         shutil.rmtree(directory, ignore_errors=True)
         directory.mkdir(parents=True)
         (directory / 'peer.key').write_text(secrets.token_hex(32))
@@ -649,6 +612,7 @@ def run_app(export, mode):
         for kind in ('send', 'receive'):
             shutil.copytree(prepared / 'work', directory / f'worker-{kind}')
         base = ROOT / '.deps/two-party-comparison'
+        addresses = self.ADDRESSES
         for party in range(2):
             config = dict(
                 party=party, listen=addresses[party], peer=addresses[1 - party], peer_key_file=str(directory / 'peer.key'),
@@ -663,13 +627,138 @@ def run_app(export, mode):
                               key=str(cluster.config / f'compute-nodes/{party}/key.json')),
                 test=dict(export=str(EXPORT), tokens=str(cluster.dir / 'tokens'), kem_tool=str(tool)),
                 environment=dict(DYLD_LIBRARY_PATH=str(base / 'data61-MP-SPDZ-113c4e4'), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG)),
-                timeouts=dict(send_seconds=360, send_seconds_per_id=30))
+                timeouts=dict(send_seconds=360, send_seconds_per_id=30),
+                send_session=dict(send_session or {}))
             (directory / f'node-{party}.json').write_text(json.dumps(config, indent=1))
-            logs.append(open(directory / f'daemon-{party}.log', 'w'))
-            daemons.append(subprocess.Popen([str(binaries / 'node-daemon'), str(directory / f'node-{party}.json')], cwd=ROOT,
-                                            stdout=subprocess.PIPE, stderr=logs[-1], text=True))
-        if not all(d.stdout.readline().startswith('listening') for d in daemons):
+            self.logs.append(open(directory / f'daemon-{party}.log', 'w'))
+            self.daemons.append(subprocess.Popen([str(self.binaries / 'node-daemon'), str(directory / f'node-{party}.json')], cwd=ROOT,
+                                                 stdout=subprocess.PIPE, stderr=self.logs[-1], text=True))
+        if not all(d.stdout.readline().startswith('listening') for d in self.daemons):
             raise RuntimeError('a node daemon did not start')
+        self.started = time.monotonic()
+
+    def command(self, command, *args):
+        c = self.cluster
+        return [str(self.binaries / 'notify-app'), command, *map(str, args), '--daemons', ','.join(self.ADDRESSES), '--db-client', c.BIN / 'handoff_client',
+                '--work', self.directory / 'application', '--key', c.config / 'app-server/notify-key.json',
+                '--app-config', c.config / 'app-server/config.json', '--network', c.network]
+
+    def app(self, command, *args):
+        started = time.monotonic()
+        r = subprocess.run([str(a) for a in self.command(command, *args)], capture_output=True, text=True)
+        lines = r.stdout.strip().splitlines()
+        return r.returncode == 0, json.loads(lines[-1]) if lines else {}, round(time.monotonic() - started, 1)
+
+    def status(self):
+        return [n for n in self.app('status')[1].get('nodes', [{}, {}])]
+
+    def daemon_log(self, party):
+        return (self.directory / f'daemon-{party}.log').read_text(errors='replace')
+
+    def stop(self):
+        import signal
+        for d in self.daemons:
+            d.send_signal(signal.SIGTERM)
+        for d in self.daemons:
+            try:
+                d.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                d.kill()
+        for log in self.logs:
+            log.close()
+
+
+def run_app(export, mode):
+    """--app: the application end to end, through the two node daemons and the application
+    stand-in only (node_daemon/README.md). After the fixtures below, nothing here starts a
+    controller or signs anything: `notify-app` does what an application server would.
+      A. both daemons start; they keep a receive session and a long-lived send session running;
+      B. the application issues a signup token for a new id; a new libsignal user sends it to the
+         account; the application learns the id from both daemons;
+      C. notify([the new id, two pre-provisioned contacts], a 200-byte text): all three decrypt
+         it and both daemons report them delivered;
+      D. the same again, in the same send session (the contacts' state kept in the engines: the
+         version the database nodes hold is the one the session stored);
+      E. a notify during which one node's controller is killed while its worker lives on: the
+         daemons end both sessions, start a new one and hand it the notify again; it resumes from
+         the journals (what both nodes settled is not sent again) and every contact gets the text;
+      F. delete([the new id]), with the database nodes' signatures checked by the application;
+      G. notify to all three ids: the deleted one is reported unknown, the others are delivered.
+    Then: exactly two send sessions were started (the first, and the one after E).
+    TEST fixtures (not the daemons' work): the account's row on the database nodes is created by
+    a harness-run session from the export's credentials; the two pre-provisioned contacts are
+    created on the database nodes from the export by the first notify, under tokens issued
+    here; `refresh` stands for a database epoch passing."""
+    import secrets
+    cluster = Cluster()
+    result, nodes = {}, None
+
+    def app(command, *args):
+        return nodes.app(command, *args)
+
+    def readers_check(text, readers, absent=()):
+        recipients = {}
+        for name in list(readers) + list(absent):
+            seen = receive(name, 4)
+            attributed = [g for g in seen if g['envelope'].get('source_service_id') or g['envelope'].get('source_device')]
+            count = [g['text'] for g in seen].count(text)
+            recipients[name] = dict(received=len(seen), has_text=count > 0, copies=count, envelopes_with_source_fields=len(attributed),
+                                    passed=((count > 0) == (name in readers)) and not attributed)
+        return recipients
+
+    def notify(label, contacts, text, expected, readers, absent=()):
+        """One notify; `expected`: {id: result}; `readers` must decrypt the text, `absent` must not get it."""
+        (nodes.directory / 'message.txt').write_text(text)
+        good, report, seconds = app('notify', '--ids', ','.join(str(c) for c in contacts), '--message-file', nodes.directory / 'message.txt', '--timeout', 420)
+        got = {r['id']: r['result'] for r in ((report.get('result') or {}).get('results') or [])}
+        recipients = readers_check(text, readers, absent)
+        passed = good and report.get('agreed') and got == {str(c): r for c, r in expected.items()} and all(r['passed'] for r in recipients.values())
+        result[label] = dict(passed=bool(passed), seconds=seconds, results=got, expected={str(c): r for c, r in expected.items()},
+                             agreed=report.get('agreed'), recipients=recipients, application=report)
+        cluster.refresh()
+        return bool(passed)
+
+    def notify_losing_controller(label, contacts, text, readers):
+        """E: party 1's send-session controller is killed (SIGKILL; its worker lives on) once its
+        journal holds the notify's first settled result."""
+        (nodes.directory / 'message.txt').write_text(text)
+        started = time.monotonic()
+        process = subprocess.Popen([str(a) for a in nodes.command('notify', '--ids', ','.join(str(c) for c in contacts), '--message-file',
+                                                                  nodes.directory / 'message.txt', '--timeout', 600)],
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        journal = nodes.directory / 'node-1' / 'journal'
+        killed, workers = None, []
+        while process.poll() is None and time.monotonic() - started < 300:
+            if any(p.stat().st_size > 0 for p in journal.glob('*.jsonl')):
+                pid = ((nodes.status()[1].get('send_session')) or {}).get('pid')
+                if pid:
+                    workers = [int(p) for p in subprocess.run(['pgrep', '-P', str(pid)], capture_output=True, text=True).stdout.split()]
+                    os.kill(pid, 9)
+                    killed = round(time.monotonic() - started, 1)
+                    break
+            time.sleep(0.1)
+        out, _ = process.communicate(timeout=900)
+        lines = out.strip().splitlines()
+        report = json.loads(lines[-1]) if lines else {}
+        good = process.returncode == 0
+        rows = (report.get('result') or {}).get('results') or []
+        got = {r['id']: r['result'] for r in rows}
+        recipients = readers_check(text, readers)
+        time.sleep(2)
+        alive = [w for w in workers if subprocess.run(['ps', '-p', str(w)], capture_output=True).returncode == 0]
+        passed = good and report.get('agreed') and killed is not None and got == {str(c): 'delivered' for c in contacts} and \
+            all(r['passed'] for r in recipients.values()) and not alive and \
+            any('settled by an earlier session' in r.get('reason', '') for r in rows)
+        result[label] = dict(passed=bool(passed), seconds=round(time.monotonic() - started, 1), killed_after=killed, orphaned_workers_left=alive,
+                             results=got, reasons=[r.get('reason') for r in rows], recipients=recipients, application=report)
+        cluster.refresh()
+        return bool(passed)
+
+    try:
+        ids = [int(c['contact_id_u128_hex'], 16) for c in export['contacts']]
+        # A. The daemons.
+        nodes = AppNodes(export, mode, cluster)
+        result['account_fixture'] = dict(seconds=nodes.fixture_seconds, passed=True)
         # B. Signup.
         new = secrets.randbits(100)
         good, issued, _ = app('token', '--id', new)
@@ -683,29 +772,121 @@ def run_app(export, mode):
         text = lambda label: (f'Application notify {label}: ' + 'x' * 200)[:200]
         # C, D.
         ok = ok and notify('notify', everyone, text('one'), {c: delivered for c in everyone}, CONTACTS + ['newuser'])
-        ok = ok and notify('notify_reloaded', everyone, text('two'), {c: delivered for c in everyone}, CONTACTS + ['newuser'])
+        ok = ok and notify('notify_again', everyone, text('two'), {c: delivered for c in everyone}, CONTACTS + ['newuser'])
+        sessions_before = [(n.get('send_sessions_started'), (n.get('send_session') or {}).get('jobs')) for n in nodes.status()]
+        # E.
+        ok = ok and notify_losing_controller('notify_controller_lost', everyone, text('lost'), CONTACTS + ['newuser'])
         if ok:
-            # E.
+            # F.
             good, report, seconds = app('delete', '--ids', new, '--timeout', 120)
             result['delete'] = dict(passed=good and bool(report.get('agreed')) and report.get('evidence_verified') == [True, True], seconds=seconds,
                                     application=report)
             ok = result['delete']['passed']
-        # F.
+        # G.
         ok = ok and notify('notify_after_delete', everyone, text('three'), {c: 'unknown contact' if c == new else delivered for c in everyone},
                            CONTACTS, absent=['newuser'])
-        good, status, _ = app('status')
+        status = nodes.status()
         result['daemons'] = status
+        # One send session served C and D; after E exactly one more.
+        sessions = [n.get('send_sessions_started') for n in status]
+        result['send_sessions'] = dict(before_e=sessions_before, at_end=sessions,
+                                       passed=sessions_before == [(1, 2), (1, 2)] and sessions == [2, 2])
+        ok = ok and result['send_sessions']['passed']
         result['passed'] = bool(ok)
     finally:
-        for d in daemons:
-            d.send_signal(signal.SIGTERM)
-        for d in daemons:
-            try:
-                d.wait(timeout=15)
-            except subprocess.TimeoutExpired:
-                d.kill()
-        for log in logs:
-            log.close()
+        if nodes:
+            nodes.stop()
+        cluster.stop()
+    return result
+
+
+SUSTAINED_NAMES = ['recipient', 'recipient2'] + [f'recipient{i}' for i in range(3, 9)]
+
+
+def run_sustained(mode, total, restart_after):
+    """--sustained N: N messages through the daemons' long-lived send session, as the application
+    would send them (one signed notify of every contact at a time, `notify-app`), with eight
+    contacts. Measured: each notify's time inside the session and as the application sees it,
+    the resident memory of each node's session over time, and the cost of starting a session.
+    `restart_after` (the daemons' send_session.max_messages): the session is ended between two
+    notifies after that many messages and a new one started. Required: every notify completes
+    with every contact delivered, both nodes agree, and every recipient decrypts every text
+    exactly once (a planned restart loses and repeats nothing)."""
+    import re
+    lss('provision')
+    for index, name in enumerate(SUSTAINED_NAMES[2:]):
+        lss('register', name, '+120255502%02d' % (10 + index))
+        lss('establish', 'sender', name)
+    lss('export-mpc', 'sender', *SUSTAINED_NAMES)
+    export = json.loads(EXPORT.read_text())
+    cluster = Cluster()
+    nodes, result = None, dict(mode=mode, contacts=len(SUSTAINED_NAMES), restart_after=restart_after)
+    try:
+        nodes = AppNodes(export, mode, cluster, send_session=dict(max_messages=restart_after))
+        ids = sorted(int(c['contact_id_u128_hex'], 16) for c in export['contacts'])
+        rounds = -(-total // len(ids))
+        jobs, texts, ok = [], [], True
+        started = time.monotonic()
+        for k in range(rounds):
+            text = f'Sustained notify {k:04d} ' + 'y' * 40
+            (nodes.directory / 'message.txt').write_text(text)
+            good, report, seconds = nodes.app('notify', '--ids', ','.join(map(str, ids)), '--message-file', nodes.directory / 'message.txt',
+                                              '--timeout', 600)
+            rows = (report.get('result') or {}).get('results') or []
+            delivered = sum(r['result'] == 'delivered' for r in rows)
+            inside = [((n.get('reply') or {}).get('result') or {}).get('node', {}).get('seconds') for n in report.get('nodes', [])]
+            memory = [(n.get('send_session') or {}).get('megabytes') for n in nodes.status()]
+            jobs.append(dict(k=k, passed=good and delivered == len(ids), delivered=delivered, seconds=seconds, session_seconds=inside, megabytes=memory))
+            texts.append(text)
+            if not jobs[-1]['passed']:
+                ok = False
+                jobs[-1]['application'] = report
+                break
+            if k == 0:
+                cluster.refresh()   # the contacts created by the first notify (TEST, from the export) become readable
+        wall = time.monotonic() - started
+        recipients = {}
+        for name in SUSTAINED_NAMES:
+            seen = [g['text'] for g in receive(name, 8)]
+            missing = [t for t in texts if t not in seen]
+            recipients[name] = dict(received=len(seen), missing=len(missing), duplicates=len(seen) - len(set(seen)))
+        messages = sum(j['delivered'] for j in jobs)
+        inside = sum(j['session_seconds'][0] or 0 for j in jobs)
+        # Each node's log: when its sessions became ready, and their memory as sampled by the daemon.
+        timeline = []
+        for party in range(2):
+            log = nodes.daemon_log(party)
+            timeline.append(dict(
+                ready=[int(t) for t in re.findall(r'^(\d+) node-daemon: send session \w+ ready', log, re.M)],
+                starts=[int(t) for t in re.findall(r'^(\d+) node-daemon: send session \w+ starts', log, re.M)],
+                ended=re.findall(r'node-daemon: send session \w+ ended: [^\n]*', log),
+                memory=[(int(m), int(n)) for m, n in re.findall(r'send session memory: (\d+) MB after (\d+) messages', log)]))
+        # Traffic between the two workers (party 0's worker, each direction about the same): the
+        # cumulative counters of each send session's last logged operation, and per message.
+        traffic = []
+        for path in sorted((nodes.directory / 'node-0' / 'logs').glob('send-session-*.log')):
+            rows = re.findall(r'and_gates=(\d+) emp_sent_bytes=(\d+) field_sent_bytes=(\d+) field_products=(\d+)', path.read_text(errors='replace'))
+            if rows:
+                gates, emp, field, products = map(int, rows[-1])
+                traffic.append(dict(log=path.name, and_gates=gates, boolean_bytes=emp, field_bytes=field, field_products=products))
+        sent = sum(t['boolean_bytes'] + t['field_bytes'] for t in traffic)
+        result['traffic'] = dict(sessions=traffic, bytes_per_message_one_direction=round(sent / messages) if messages else None,
+                                 and_gates_per_message=round(sum(t['and_gates'] for t in traffic) / messages) if messages else None)
+        status = nodes.status()
+        sessions = [n.get('send_sessions_started') for n in status]
+        expected_sessions = 1 + (max(0, (messages - 1)) // restart_after if restart_after else 0)
+        result.update(
+            notifies=len(jobs), messages=messages, wall_seconds=round(wall, 1), session_seconds=round(inside, 1),
+            messages_per_second_wall=round(messages / wall, 3) if wall else None,
+            messages_per_second_in_session=round(messages / inside, 3) if inside else None,
+            send_sessions=sessions, expected_sessions=expected_sessions, recipients=recipients, jobs=jobs, timeline=timeline,
+            fixture_seconds=nodes.fixture_seconds,
+            # (A restart asked for after the last notify may or may not have begun yet.)
+            passed=ok and all(r['missing'] == 0 and r['duplicates'] == 0 for r in recipients.values()) and sessions[0] == sessions[1]
+            and sessions[0] in (expected_sessions, expected_sessions + 1))
+    finally:
+        if nodes:
+            nodes.stop()
         cluster.stop()
     return result
 
@@ -936,7 +1117,7 @@ D, RF, IC = 'delivered', 'delivered after device refresh', 'delivered after iden
 RL, NS, FAULT = 'retry later', 'needs re-signup', 'fault'
 TEXTS = ['MPC broadcast one', 'MPC broadcast two ☕']
 FAULT_PLAIN, FAULT_TLS = 18090, 18444
-RECOVERY_STAGES = ['classify', 'devices', 'refresh-retry', 'identity', 'unauthorized', 'drop', 'throttle', 'bundle-fault', 'resume']
+RECOVERY_STAGES = ['classify', 'devices', 'refresh-retry', 'identity', 'unauthorized', 'drop', 'throttle', 'bundle-fault', 'resume', 'hang']
 
 
 def wait_for(path, text, processes, seconds=400):
@@ -1277,9 +1458,60 @@ def stage_resume(mode):
     return finish(out)
 
 
+def stage_hang(mode):
+    """One party's controller stops (SIGSTOP: hung; its worker lives on and keeps its links to the
+    other worker open) after the first broadcast. The other party must not wait without end: its
+    worker gives up at the next request after TLS_WORKER_PEER_WAIT (20 s here) and its session
+    fails with that reason. A new session for the same notify then resumes from the journals."""
+    import re, secrets, signal
+    r, out = Recovery(mode), {}
+    both = {'recipient': [D, D], 'recipient2': [D, D]}
+    notify = 'notify-' + secrets.token_hex(4)
+    journals = [STATE / f'notify-journal-{party}.jsonl' for party in range(2)]
+    for path in journals:
+        path.write_text('')
+    wait = 20
+    env = lambda party: dict(r.pause, SIGNAL_NOTIFY_ID=notify, SIGNAL_NOTIFY_JOURNAL=str(journals[party]), TLS_WORKER_PEER_WAIT=str(wait))
+    marks = {}
+
+    def hang_party(processes, output):
+        processes[1].send_signal(signal.SIGSTOP)
+        marks['stopped'] = time.monotonic()
+        deadline = marks['stopped'] + 300
+        while processes[0].poll() is None and time.monotonic() < deadline:
+            time.sleep(0.2)
+        marks['other_ended'] = time.monotonic()
+        # The hung node is then cleared away (by its supervisor, in a deployment): worker and controller.
+        for pid in subprocess.run(['pgrep', '-P', str(processes[1].pid)], capture_output=True, text=True).stdout.split():
+            os.kill(int(pid), 9)
+        processes[1].kill()
+    try:
+        out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
+        try:
+            r.session(env=env, during=mid(hang_party))
+            died = dict(passed=False, error='the session should have failed')
+        except RuntimeError as e:
+            failed = json.loads(str(e).split(': ', 1)[1])
+            log = (Path(failed['logs']) / 'party-0.log').read_text(errors='replace')
+            reason = re.findall(r'operation \d+ rejected: the other party did not reach operation \d+ within \d+ s', log)
+            lines = [len(path.read_text().splitlines()) for path in journals]
+            # Party 0 was in its TEST pause (16 s) when party 1 stopped; then the bounded wait.
+            seconds = round(marks.get('other_ended', 0) - marks.get('stopped', 0), 1)
+            died = dict(passed=bool(reason) and lines == [2, 2] and seconds < 16 + wait + 30, reason=reason[:1], journal_lines=lines,
+                        seconds_until_the_other_party_ended=seconds, exit_codes=failed['exit_codes'],
+                        errors=[c.get('error') for c in failed.get('controllers', [])])
+        out['party_hung'] = died
+        run = r.session(env=lambda party: dict(SIGNAL_NOTIFY_ID=notify, SIGNAL_NOTIFY_JOURNAL=str(journals[party])))
+        out['resumed'] = r.check(run, both, {'recipient': TEXTS, 'recipient2': TEXTS}, exactly=True,
+                                 events=['2 results settled by an earlier session'])
+    finally:
+        r.stop()
+    return finish(out)
+
+
 STAGES = {'classify': stage_classify, 'devices': stage_devices, 'refresh-retry': stage_refresh_retry, 'identity': stage_identity,
           'unauthorized': stage_unauthorized, 'drop': stage_drop, 'throttle': stage_throttle, 'bundle-fault': stage_bundle_fault,
-          'resume': stage_resume}
+          'resume': stage_resume, 'hang': stage_hang}
 
 
 def run_recovery(mode, stages):
@@ -1323,6 +1555,10 @@ def main():
     p.add_argument('--multi-device', action='store_true', help='also link a second device to a contact and require both devices to decrypt (database nodes)')
     p.add_argument('--app', action='store_true', help='also the application end to end through the node daemons and the application stand-in '
                    '(node_daemon/; --runs 0 --app runs only this): signup, notify, notify again, delete, notify')
+    p.add_argument('--sustained', type=int, default=0, help='also N messages through the daemons\' long-lived send session (eight contacts, '
+                   'one notify of all of them at a time), measuring throughput and memory (--runs 0 --sustained 160 runs only this)')
+    p.add_argument('--restart-after', type=int, default=0, help='with --sustained: the daemons end the send session after this many messages '
+                   'and start a new one (send_session.max_messages); 0: never')
     p.add_argument('--ceremony', action='store_true', help='also REGISTER a new account in two-party sessions (CEREMONY.md: the password is '
                    'made and used only inside the engines), store it on the database nodes, then receive a signup and send with it '
                    '(--runs 0 --ceremony runs only this)')
@@ -1438,6 +1674,10 @@ def main():
                 export = json.loads(EXPORT.read_text())
             report['app'] = run_app(export, a.mode)
             ok = report['app']['passed']
+        if ok and a.sustained:
+            # Its own accounts (eight contacts) and export.
+            report['sustained'] = run_sustained(a.mode, a.sustained, a.restart_after)
+            ok = report['sustained']['passed']
         if ok and a.ceremony:
             # Its own account, registered by the two nodes; it replaces the export.
             report['ceremony'] = run_ceremony(a.mode, texts)

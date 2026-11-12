@@ -95,7 +95,7 @@ last and are not in a deployment's manifest.
 | `tls-derive`, `tls-verify-finished`, `tls-update`, `tls-parser-initial` | none | constant | 1 each |
 | `gcm-key-share`, `gcm-multiply`, `gcm-tag`, `gcm-check` | none | constant | 1 each |
 | `tls-finish C` | client certificate message bytes | deployment (`client_certificate`, 0: none) | 1 |
-| `tls-open-handshake N` | size of each encrypted server handshake record | deployment (`handshake`): the server's certificate chain, signature algorithm and how it splits its flight | one per record (4 locally: 43, 58, 94, 922). **Data-dependent if the server signs with ECDSA** (DER signatures vary by a byte or two): list each size, or give this kernel classes too (it authenticates with in-circuit GHASH, so that is a larger change than for application records). Must be measured against the real server before a real run. |
+| `tls-open-handshake N` | size of each encrypted server handshake record | deployment (`handshake`): the server's certificate chain, signature algorithm and how it splits its flight | one per record (4 locally: 43, 58, 94, 922; chat.signal.org, measured 2026-11-12: ONE record of 1122 bytes, the whole flight coalesced and padded, Ed25519; the compact local instance reproduces that shape: 621). **Data-dependent if the server signs with ECDSA** (DER signatures vary by a byte or two): list each size, or give this kernel classes too (it authenticates with in-circuit GHASH, so that is a larger change than for application records). Must be measured against the real server before a real run. |
 | `tls-seal-ctr 22 5 0`, `tls-seal-ctr 21 2 0` | KeyUpdate, close_notify | constant | 2 |
 | `tls-open-application-class CAP` | record size class | **data** → ladder | every class up to `record_max` |
 | `tls-reveal-masked CAP−21` | content capacity | follows the record's class | one per class |
@@ -175,9 +175,14 @@ well (see "Not done").
 ## The deployment description
 
 `{"settings": {...}}`, the settings of `circuit_inventory` (each documented at the top of
-`CircuitInventory.lean`): `certificate`, `password`, `client_certificate`, `handshake`,
+`CircuitInventory.lean`): `profile`, `certificate`, `password`, `client_certificate`, `handshake`,
 `record_max`, `seal_max`, `sends`, `devices`, `bundle_items`, `bundle_max`, and the `signup_*`
-lists. `local_signal_server/deployment.json` is the test deployment.
+lists. `local_signal_server/deployment.json` is the test deployment;
+`local_signal_server/deployment-compact.json` the compact-certificate local one (libsignal profile,
+the second server instance); `real_signal/deployment-production.json` the real account's.
+`profile` (`legacy` or `libsignal`) must be the sessions' `SIGNAL_CLIENT_PROFILE`: with `libsignal`
+the sends are `signal-seal-official` and `bundle-seal … 80c−1`, and `produce_circuits.py` names
+the request kernels with the same profile (the frames differ).
 
 ## Producing and pinning
 

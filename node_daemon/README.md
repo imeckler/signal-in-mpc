@@ -28,8 +28,10 @@ Checked end to end by `local_signal_server/check_signal_service_local.py --runs 
 - Confirms with the other daemon that it holds the SAME request (the request's digest, which
   covers ids, message hash, nonce and time) before a session starts. Neither daemon can be driven
   alone: a daemon answers "yes" only for a request it verified itself.
-- Runs one controller (`public_service_controller`) per session and supervises it: time limit,
-  kill of the whole process tree on a hang or on shutdown, the next request after a failure.
+- Keeps one long-lived send session running and hands it one notify after another (below);
+  supervises it: memory and message limits, a stall check, kill of the whole process tree on a
+  hang or on shutdown, a new session (resuming the notify) after a failure. A delete runs its own
+  short controller (`db-delete`) between notifies.
 - Keeps a receive session running at all times and turns each new user it stores into an event.
 - Returns only what the two controllers agreed on as public results. It never holds, logs or
   returns a share; it does not read Signal traffic. Its own secrets are the path of this node's
@@ -119,8 +121,63 @@ within 60 s) and `mac` = HMAC-SHA256 over the message under a key the two nodes 
   session name (32 random bytes) and worker port party 0 chose. Party 1 refuses a request it does
   not hold, one that is no longer fresh, and anything while it is busy.
 - `peer-receive {session, port}`: both (re)start the receive session.
+- `peer-serve {session, port}`: both (re)start the long-lived send session (below); party 1's
+  previous one is ended first.
+- `peer-ended {session}`: "my send session of this name ended" (it failed, was asked to end, or
+  its controller died). The receiver ends its own session of that name at once instead of
+  waiting for the workers' bounded wait. Sent by both parties.
+- `peer-finish {job}`: party 0 gave a notify up (its attempts are used up); party 1 reports it
+  `failed` too.
 
 Only public values cross this link: request digests, session names, ports.
+
+## The long-lived send session (default; `send_session.long_lived: false` for one per notify)
+
+Each node runs one send session (controller and worker) for many notifies, under the session
+name party 0 chose (`peer-serve`). It is started when the daemons start and opens its
+connections to the Signal server once (handshake, unauthenticated WebSocket, one per Tor circuit
+with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
+
+- **Jobs.** Party 0 hands each agreed notify, in order and one at a time, to the session: it asks
+  party 1 (`peer-start {job, session}`, refused unless party 1's session has that name and is
+  idle, and the request is fresh), then both daemons write the job into the session's directory
+  (`SIGNAL_SERVE_DIR`: `jobs/DIGEST-request.json`, `jobs/DIGEST-message.txt`, then `job.json`
+  = `{"job","request","message","journal"}`, renamed into place whole). The two controllers run a
+  job when both were handed the same one (they compare its name's hash at each tick) and print one
+  line with its agreed per-id results, `{"job","status":"completed","results","unknown",
+  "not_yet_readable","recovery","messages","delivered","milliseconds"}`; the daemon turns it into
+  the request's result exactly as for a one-notify session and removes the job file and journal.
+- **What the session keeps between jobs**: the connections and their request counters, the
+  contacts' loaded state and per-session preparation (a contact is reloaded only when the version
+  the database nodes hold is not the one the session stored), the account, the circuits. Every job
+  still reads its ids from the database nodes under its own signed request (which also authorises
+  that job's write-backs), so a deleted id is `unknown contact` and leaves the engines.
+- **Between jobs** the controllers tick every quarter second (an exchange through the workers:
+  the job each holds, whether its daemon asks the session to end, the clocks), poll each
+  connection (one the server or the proxy closed is replaced at once; a ping or pong is answered),
+  and keep each connection alive after 25 s without traffic (a WebSocket ping under the
+  libsignal profile, as libsignal does; otherwise a `GET /v1/keepalive`, awaited). The triple
+  stocks refill in the background as in any session.
+- **Ending a session cleanly.** Each daemon asks its session to end, between jobs, by creating
+  `stop` in the session's directory when it has sent `send_session.max_messages` messages (default
+  5,000), is `max_seconds` old (default 6 hours) or its process tree's resident memory reaches
+  `max_megabytes` (default 0: no limit; sampled every 10 s and logged as `send session memory`).
+  The two controllers see either daemon's request at the same tick and end together; party 0 then
+  starts the next session. Nothing is in flight at that point, so nothing is lost or repeated.
+- **A session that fails.** A job's failure is the session's (as for a one-notify session). The
+  daemon whose session ended tells the other (`peer-ended`), both sessions end, party 0 starts a
+  new one, and the unfinished notify is handed to it again (at most `send_session.attempts`
+  sessions, default 3, while the request is fresh). The new session reads the contacts from the
+  database nodes and does not resend what both journals show as settled (at least once; the
+  contact whose send was in flight may get the message twice). A notify whose request expires
+  before another session could take it ends `failed` on both nodes.
+- **A party that stops responding.** The workers wait for each other at the start of every
+  request for at most `timeouts.peer_wait_seconds` (default 180; `TLS_WORKER_PEER_WAIT`), so a
+  node whose controller hangs or died while its worker lives ends the other node's session with a
+  reported reason ("the other party did not reach operation N within S s" in the session's log)
+  instead of a wait without end. A session whose log has not grown for
+  `send_session.stall_seconds` (default 900; an idle session logs several lines a second) is
+  stopped by its daemon.
 
 ## Sessions and ordering
 
@@ -160,7 +217,10 @@ Only public values cross this link: request digests, session names, ports.
   "test": { "export": "…/mpc-export.json", "tokens": "…/tokens", "kem_tool": "…/lss-provision" },   // scaffolding, below
   "environment": { "DYLD_LIBRARY_PATH": "…" },        // passed to the controller as is
   "receive": true,
-  "timeouts": { "agree_seconds": 30, "start_margin_seconds": 30, "send_seconds": 600, "send_seconds_per_id": 60, "delete_seconds": 120 } }
+  "timeouts": { "agree_seconds": 30, "start_margin_seconds": 30, "send_seconds": 600, "send_seconds_per_id": 60, "delete_seconds": 120,
+                "peer_wait_seconds": 180 },                // TLS_WORKER_PEER_WAIT for the workers
+  "send_session": { "long_lived": true, "max_messages": 5000, "max_seconds": 21600, "max_megabytes": 0,
+                    "stall_seconds": 900, "attempts": 3 } }   // README, "The long-lived send session"
 ```
 
 The controller inherits the daemon's working directory (the repository root, for `circuit_cache.py`).
@@ -227,11 +287,17 @@ Honest list; PRODUCT_TODO.md section 7 has the same items as work.
 
 ## Not done
 
-- Batching and scheduling for thousands of ids: one request is one session, and a request must
-  start within its lifetime (120 s). No progress reports during a session.
+- Batching and scheduling for thousands of ids: one request is one job, and it must start within
+  its lifetime (120 s). No progress reports during a job. A notify of thousands of ids keeps all
+  their contacts in the session's memory until it ends (PRODUCT_TODO.md section 4): split it.
 - A `failed` notify reports no per-id results (the journal knows what was settled; the next
-  session for the same request uses it). After the request has expired the application must sign
-  a new one, which the journal does not cover: duplicates are then possible.
+  session for the same request uses it, and the daemons hand it to that session themselves while
+  the request is fresh). After the request has expired the application must sign a new one,
+  which the journal does not cover: duplicates are then possible.
+- The connections of the long-lived session are kept across notifies: the server can link the
+  recipients of different notifies sent on one connection (NEEDS_REVIEW.md 3d; owner's decision).
+- The receive session's worker pair runs beside the send session's: two worker pairs per node
+  (about 1 GB idle each in semi-honest mode, 3 GB in malicious mode, mostly triple stocks).
 - The daemon keeps requests and results in memory (signup events are also on disk). After a
   daemon restart the application must ask again; a result that was not fetched is gone.
 - If one node's daemon holds a `completed` result and the other's a `failed` one, resubmitting is

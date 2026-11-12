@@ -37,8 +37,10 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 from guarded import tree_rss_gb
 
 
-def lean(binary, *args):
-    r = subprocess.run([str(BIN / binary), *map(str, args)], capture_output=True, text=True, cwd=ROOT)
+def lean(binary, *args, profile=None):
+    # `request-shape` builds frames as the sessions will: with the deployment's SIGNAL_CLIENT_PROFILE.
+    env = dict(os.environ, SIGNAL_CLIENT_PROFILE=profile) if profile else None
+    r = subprocess.run([str(BIN / binary), *map(str, args)], capture_output=True, text=True, cwd=ROOT, env=env)
     if r.returncode:
         raise SystemExit(f'{binary} {" ".join(map(str, args))}: {r.stderr.strip()}')
     return [line.split()[1:] for line in r.stdout.splitlines() if line.startswith('kernel ')]
@@ -128,24 +130,26 @@ def main():
         ensure(name)
     # The request frames, from the envelope sizes the seal kernels declare (see the top of this file).
     certificate = settings.get('certificate', '244')
+    profile = settings.get('profile', 'legacy')
     rows = {}   # (class, widths) -> envelope bytes of [an established device, a pending one without / with a one-time prekey]
     for name in names:
-        if name[0] == 'signal-seal-built':
+        if name[0] in ('signal-seal-built', 'signal-seal-official'):
             rows.setdefault((int(name[2]), tuple(name[3:])), {})[0] = output_bytes(ensure(name)['flat'], 'envelope')
         if name[0] == 'bundle-seal':
-            rows.setdefault((int(name[3]) // 80, tuple(name[4:])), {})[1 + int(name[2])] = output_bytes(ensure(name)['flat'], 'envelope')
+            # 80c padded bytes, or 80c - 1 under the libsignal profile.
+            rows.setdefault(((int(name[3]) + 1) // 80, tuple(name[4:])), {})[1 + int(name[2])] = output_bytes(ensure(name)['flat'], 'envelope')
     requests = []
     for sizes in rows.values():
-        requests += lean('public_service_controller', 'request-shape', 'send', certificate, sizes[0])
+        requests += lean('public_service_controller', 'request-shape', 'send', certificate, sizes[0], profile=profile)
     if any(len(sizes) > 1 for sizes in rows.values()):
-        requests += lean('public_service_controller', 'request-shape', 'fetch')
+        requests += lean('public_service_controller', 'request-shape', 'fetch', profile=profile)
         # One message per device; the devices of a contact may be at different counters (a new device
         # beside an old one), so every combination of the covered rows of one size class.
         for size_class in sorted({key[0] for key in rows}):
             choices = sorted({size for key, sizes in rows.items() if key[0] == size_class for size in sizes.values()})
             for count in range(1, int(settings.get('devices', '1')) + 1):
                 for envelopes in itertools.product(choices, repeat=count):
-                    requests += lean('public_service_controller', 'request-shape', 'devices', *envelopes)
+                    requests += lean('public_service_controller', 'request-shape', 'devices', *envelopes, profile=profile)
     for name in requests:
         ensure(name)
     kernels = [dict((k, v) for k, v in row.items() if k != 'flat') for _, row in sorted(produced.items())]
