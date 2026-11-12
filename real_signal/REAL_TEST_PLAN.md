@@ -21,6 +21,19 @@ Tools (all new except the first):
 | `SIGNAL_RECORD=FILE` (controller) | one JSON line per exchange with the server, with time |
 | `SIGNAL_ACK_REFUSED=0` (controller) | refused messages stay on the server (recorded, not acknowledged) |
 
+## 0a. The second real run (2026-11-12, 08:40 local): passed
+
+Run `state/runs/20261112-164009-production` (malicious, strict with the 414-kernel manifest,
+libsignal profile, real database nodes kept under the run directory). The owner ran it and
+confirmed the text arrived.
+- Receive, 56.4 s: one 2,265-byte envelope delivered and accepted (the phone's second signup,
+  taken with `SIGNAL_RECEIVE_JUMP=3`), 484 bytes revealed, nothing refused, 2 keepalives.
+- Send, 44.8 s: the reply was answered 409, one refresh, 3 sessions established, the reply sent
+  again: "delivered after device refresh". 647 bytes revealed, nothing refused, no unknown
+  events, certificate verified in both sessions.
+- The contact is stored in that run's database, so `--resume` on this run directory sends again
+  without a new signup.
+
 ## 0. The first real run (2026-11-12) and what changed after it
 
 Run `state/runs/20261112-074913-production` (malicious, strict with the 436-kernel manifest,
@@ -496,11 +509,26 @@ receive session with `--ack-refused` clears them (each is still recorded).
     Postgres data with `run_real_test.reopen_cluster` (10.3 s), an epoch applied after the restart
     (48.6 s), same tables (`.deps/lowering-scratch/test_db_restart.py`, 141 s).
   - `public_service_controller recovery-check`: passes (29 checks).
-  - **NOT RUN: the local 2/3/4-device reproduction and the local `--resume` test.** The local
-    Signal-Server instances need Docker (Testcontainers for DynamoDB and Redis), and OrbStack's
-    Docker daemon stopped answering at about 01:00 (OrbStack restarted at 00:15; `docker ps` and a
-    raw `GET /_ping` on its socket time out for hours since). Every local harness on this machine
-    is blocked by it. After Docker is back, in this order (each one heavy job, about 3–5 minutes):
+  - **Run 2026-11-12 (afternoon), all passed: the local 2/3/4-device reproduction and the local
+    `--resume` test** (logs `.deps/lowering-scratch/out/h1…h11-*.log`). They had been blocked in
+    the morning by OrbStack's Docker daemon not answering; once it was back, the commands below
+    were run in this order:
+    - malicious, 3 / 2 / 4 devices (h1–h3; 92 s, 57 s, 89 s, peak 14.1–14.9 GB) and semi-honest,
+      3 / 2 / 4 devices (h4–h6; 36 s, 27 s, 43 s, peak 7.6–8.9 GB): in each, the Android-layout
+      signup received (both parties passed), the devices linked, the reply answered 409, the
+      contact refreshed, the resend `delivered after device refresh`, and the account and every
+      linked device (`signup-…-u0`, `.2`, `.3`, `.4`) decrypted the reply; `kernels_refused` empty;
+    - `android again:android`, malicious (h7, 28 s): the second signup with the same token was
+      refused at the token step (`envelope-refused`: "the new contact could not take the token's id
+      …"), no second contact; the first reply `delivered`;
+    - the resume test (h8, h9): the first run stopped after receive (`stopped-after-receive`), the
+      account got a linked device, and the resumed run (database nodes restarted from their data,
+      10.2 s) sent with the send answered 409, `delivered after device refresh`, and `realtest-user`
+      decrypted it; passed;
+    - and, after them, two `check_signal_service_local.py` runs (h10 `local-signup`, 140 s; h11
+      `local-db`, 173 s), both passed.
+
+    The commands (each one heavy job, about 1–2 minutes):
 
         python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt --devices 3
         python3 scripts/guarded.py --heavy 20 600 python3 local_signal_server/check_signal_service_local_signup.py malicious --compact --manifest local_signal_server/state/circuits-compact/manifest.txt --devices 2 --one-time 0
