@@ -31,14 +31,22 @@ touch no C++ and can start at once.
 2. **The harness passes at the end of every stage**, in both modes. The test sets are defined in
    section 10.1.
 3. **Never two heavy jobs at once on this machine** (owner's memory: parallel lowering used over
-   100 GB). Heavy jobs:
-   - circuit lowering or manifest production;
-   - a full `lake build` of `TlsMpc`;
-   - the C++ or Rust worker build;
-   - any harness run.
+   100 GB). Heavy jobs are those that genuinely conflict:
+   - harness runs (they share the local server, its ports, the database nodes);
+   - builds that replace binaries a harness run uses: `lake build` of an executable or of the
+     `TlsMpc` library, `build_hybrid_v3.py`, cargo builds of `node_daemon` or the provision tool;
+   - circuit lowering or manifest production.
 
-   Stage S0 adds `scripts/heavy.sh`, which runs a command under one machine-wide `flock`. Every
-   heavy job goes through it. At most two engineers work at a time.
+   Light jobs never take the lock and run at any time under plain `guarded.py` with a cap of at
+   most 12 GB: `lake env lean ONE_FILE` (reads `.olean` files, writes nothing shared), the lints,
+   read-only scripts, `cargo check` in a separate target directory, kernel checks that start no
+   server.
+
+   Stage S0 adds the lock: `guarded.py --heavy MAX_GB MAX_SECONDS CMD…` (or `scripts/heavy.sh`,
+   which forwards to it). macOS has no `flock(1)`, so it is Python's `fcntl.flock` on
+   `.deps/heavy.lock`. Every heavy job goes through it, with a realistic cap (harness runs peak
+   around 10 GB: declare 16–20) and kept short (one stage set, under about 8 minutes) so the lock
+   turns over. A waiting job names the holder and how long it has held the lock every minute.
 4. **Emitter isolation.** No module under `TlsMpc/Node/` may be imported by an emitter
    (`EmitFlatKernel`, `EmitWordMask`, `EmitKemKernel`, `EmitCeremonyKernel`, `CircuitInventory`).
    - The circuit cache is keyed by the emitter binary's hash (`kernel.h:127-133`), and a
@@ -53,8 +61,16 @@ touch no C++ and can start at once.
    (and `Lean.ofReduceBool` for the 5 `bv_decide` uses, if a build shows they need it).
    - Not allowed: `sorry`, `native_decide`, `implemented_by`, `extern`, `unsafe`, `opaque`.
    - No new `partial def` in `TlsMpc/Node`.
-   - Mathlib is **not** added. Probability is stated as bijections between randomness (section
-     7.0).
+   - **Superseded 2026-11-12 (owner asked "why not use mathlib?"; decision: use it for proofs).**
+     Mathlib is added as a dependency of a separate proof-only library that no executable
+     imports (node binaries, the kernel emitter and the circuit cache key must not depend on
+     it). Use it to turn the quadratic-residue hypotheses of the hinted lift into theorems, to
+     state hiding as real probability where that is clearer than the bijection form of section
+     7.0, and for the cut-and-choose counting bound (P7 is no longer "not done" by default).
+     The Edwards group law stays a hypothesis unless proved separately (Mathlib has it for
+     Weierstrass curves only). The bijection statements of section 7.0 remain acceptable and
+     need not be redone. Also: the stage sizes in this document are human-engineer estimates;
+     the owner expects agents to go much faster, so do not treat them as schedule.
 
 ---
 
@@ -1042,6 +1058,23 @@ Tests: lints on today's tree pass in baseline mode; `compare_records.py` on two 
 tree passes.
 
 Depends on nothing. **3–4 days. Mechanical.**
+
+**Status (2026-11-12).** Done:
+- the lock is `guarded.py --heavy` (rule 3; `heavy.sh` forwards to it, as macOS has no `flock(1)`);
+- `scripts/lint_node.py` with `scripts/lint_node_baseline.json` (127 I/O sites in 4 files of the
+  controller's 122-module import closure); checks (d) behind `--enable`;
+- `scripts/compare_records.py` (`--mask` writes the golden form);
+- `check_signal_service_local.py --record DIR` writes each session's `SIGNAL_RECORD` per party
+  (the harness wrote none before); golden records in `tests/golden/`;
+- the manifest for `--strict-produced` already existed in `local_signal_server/state/circuits`.
+
+Brought forward from later stages, small and independent of the reorganisation:
+- `Policy/Clock.lean` (S4): `agreedClock` now has the two-minute check, with `agreed_within`;
+- the daemon link fixes 1 and 2 of S3 (sealed replies, nonce and replay cache, and refusal of a
+  reflected message), and **one listener per channel**: `peer_listen` for the other daemon,
+  separate from the application's `listen` (this replaces S3's default 3 of one listener);
+- R14: the production field-engine objects are built without `EMP_HYBRID_TEST_FAULTS`; only the
+  test object `field_engine.o` (for `field-roundtrip-fixture`) keeps the hook.
 
 ---
 
