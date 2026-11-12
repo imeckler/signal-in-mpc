@@ -18,8 +18,9 @@ Checks:
                         once in the closure: in `Config.read`, TlsMpc/Node/Channels.lean.
                         Since S5 (strict): the controller's own file and every other module under
                         TlsMpc/Node may have NO site, and the baseline may not list them; what is
-                        left in the baseline is the worker pipe (TlsWorker, TlsWorkerProcess: later
-                        `Worker.lean` and the flow API, stages S6-S9). A `Namespace.metadata`-style
+                        left in the baseline is the worker spawn (TlsWorkerProcess: later
+                        `Worker.lean`, stages S8-S9; since S6 TlsWorker has none, its polling
+                        transports being in the flow API). A `Namespace.metadata`-style
                         call (an uppercase qualifier) is not counted as a FilePath dot call.
   escape-hatches (b)    No sorry, admit, native_decide, bv_decide, ofReduceBool, implemented_by,
                         extern, unsafe, opaque, axiom, csimp, skipKernelTC or partial def in
@@ -36,6 +37,16 @@ Checks:
                         comments and strings (plan 3.1). Inside Lean, `Messages.checkPublic` (run at
                         the end of Messages.lean, so the build fails) checks the same by type,
                         transitively through every repository type a message field uses.
+  flow-calls            On since S6. In the controller and every TlsMpc/Node module of its import
+                        closure, the worker is reached only through the flow API
+                        (TlsMpc/Node/Flow.lean): a call on the worker pipe (`.call`, `.pipe`,
+                        `.recording`), the old `TlsWorker` bindings (`emptyReply`, `backend`,
+                        `connectVia`, `onConnection`, ...), an operation code (`TlsWorkerPipe.code`),
+                        `Legacy.*`, `inputOwn` (own private input, Secret.lean's eliminator) and the
+                        `Reveal.*` wrappers (the only makers of `Opened`) appear only in the legacy
+                        flow implementations (TlsMpc/Node/Flows/*Legacy.lean, Flows/Legacy.lean) and
+                        where they are defined (Secret.lean, Reveal.lean; Channels.lean for
+                        operation 39, the peer channel).
 
 Comments and string literals are ignored. Patterns are textual: an `open IO.FS` (or similar)
 followed by an unprefixed call would hide a site, so such an `open` is itself reported as a
@@ -50,8 +61,16 @@ NODE_DIR = 'TlsMpc/Node'
 IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
 CONFIG_READER = 'TlsMpc/Node/Channels.lean'   # Config.read, the one IO.getEnv (stage S4)
 SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
-ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
-DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields']
+ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls']
+# Stage S6: where the worker may be called directly, and `Opened` / own input made (check flow-calls).
+FLOW_ALLOWED = re.compile(r'^TlsMpc/Node/Flows/(\w*Legacy)\.lean$|^TlsMpc/Node/(Secret|Reveal|Channels)\.lean$')
+FLOW_SCOPE = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
+FLOW_PATTERN = re.compile(
+    r'\.(call|pipe|recording)\b'
+    r'|\bTlsWorker\.(emptyReply|backend|applicationBackend|applicationSession|transport|applicationTransport|'
+    r'waitingTransport|pollRecordLoop|awaitRecord|connect|connectVia|onConnection)\b'
+    r'|\bTlsWorkerPipe\.code\b|\bLegacy\.(call|empty|inputOwn|handle)\b|\binputOwn\b|\bReveal\.[a-z]\w*')
 # Stage S5 (strict): files that may have no I/O site at all, whatever the baseline says: the
 # controller and every module under TlsMpc/Node except the allowed ones.
 STRICT_FILES = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
@@ -368,6 +387,24 @@ def check_message_fields(report):
     return findings
 
 
+def check_flow_calls(report):
+    findings = []
+    files = sorted(rel for rel in set(controller_files().values()) if FLOW_SCOPE.search(rel))
+    allowed_sites = 0
+    for rel in files:
+        text = source(rel)
+        for m in FLOW_PATTERN.finditer(text):
+            if FLOW_ALLOWED.search(rel):
+                allowed_sites += 1
+                continue
+            findings.append(f'flow-calls: {rel}:{line_of(text, m.start())}: `{m.group(0)}` outside the legacy flow '
+                            f'implementations (call the flow API, TlsMpc/Node/Flow.lean)')
+    if report:
+        print(f'[flow-calls] {len(files)} files (the controller and TlsMpc/Node in its closure); '
+              f'{allowed_sites} sites in the allowed files; {len(findings)} findings')
+    return findings
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('--report', action='store_true')
@@ -403,6 +440,8 @@ def main():
             findings += check_secret_val(a.report)
         elif check == 'message-fields':
             findings += check_message_fields(a.report)
+        elif check == 'flow-calls':
+            findings += check_flow_calls(a.report)
     for line in findings:
         print('FAIL', line)
     print(f'lint_node: {len(findings)} findings ({", ".join(checks)})')

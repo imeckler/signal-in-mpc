@@ -25,6 +25,7 @@ import TlsMpc.Node.Config
 import TlsMpc.Node.Secret
 import TlsMpc.Node.Messages
 import TlsMpc.Node.Channels
+import TlsMpc.Node.Flow
 
 /-!
 Service controller for the public-receive profile.
@@ -81,7 +82,7 @@ open TlsMpc.Node
 -- Stage S4: every environment variable is read once, by `Config.read` (`TlsMpc/Node/Channels.lean`),
 -- into the typed `Config` of `TlsMpc/Node/Config.lean`; the TEST hooks are in force only when the
 -- controller is started with `--test` (anywhere in its arguments). Secret material held here is
--- `Secret` (`TlsMpc/Node/Secret.lean`): it reaches the engines through `Secret.inputOwn`, this node's
+-- `Secret` (`TlsMpc/Node/Secret.lean`): it reaches the engines through the flow API (S6), this node's
 -- disk through `Channels.saveShare`, the KEM tool through its standard input.
 --
 -- Stage S5: this file has no I/O primitive. Everything it sends or writes is a message of
@@ -89,29 +90,22 @@ open TlsMpc.Node
 -- `JournalLine`, `PublicFile`, `ShareFile`, `CertificateQuery`, `ChildSession`), performed by the
 -- channel record `ch` (`Channels.real`, `TlsMpc/Node/Channels.lean`); the subcommands that run
 -- before a configuration exists use `Channels.Real` directly. The worker pipe is the exception
--- (`TlsWorkerProcess`, later `Worker.lean` and the flow API).
+-- (`TlsWorkerProcess`, later `Worker.lean`).
+--
+-- Stage S6: this file names no worker operation. Every operation is a function of the flow API
+-- (`TlsMpc/Node/Flow.lean`: `Flow.Tls.*`, `Flow.Contacts.*`, ...) on the session's `Flow.Worker`
+-- `w` (`w.on i`: on connection i). What a flow opens comes back as `Opened r _` (`.val` is public;
+-- the kinds are listed in `TlsMpc/Node/Reveal.lean`); own private inputs go in as `Secret`.
 open TlsMpc.Node.Channels.Real (inBand)
 
 
 /-- One masking key per queued control reply (`PublicReceive.replies`), each the first 4 bytes of
 its own joint randomness: RFC 6455 section 5.3 requires a fresh key for each frame. None when
 nothing is queued. -/
-def controlMasks (on : TlsWorker.Rpc) (s : PublicReceive.State) : TlsClient.M (List (List (BitVec 8))) :=
+def controlMasks (on : Flow.Worker) (s : PublicReceive.State) : TlsClient.M (List (List (BitVec 8))) :=
   (List.range (PublicReceive.queuedReplies s)).mapM fun _ => do
-    let random ← on.call .publicRandom []
-    TlsClient.insist (random.length == 32) "invalid joint randomness"
-    pure (toBits (random.take 4))
-
-/-- The end of operation 60 (`bundleEstablish`) for an item with digit counts `w`: the counts,
-and with `slots` (`SIGNAL_BUNDLE_SLOTS`, on unless `0`) the splice that turns the item into the
-fixed-width layout of `bundle-slot` (`BundleSlots.splice`: a count, then per run zeros 1 byte,
-copy 2 bytes), so that one circuit serves every digit count (CIRCUIT_SHAPES.md). -/
-def establishTail (slots : Bool) (w : BundleResponse.Widths) : List UInt8 :=
-  [w.device, w.registration, w.signed, w.oneTime, w.kyber].map UInt8.ofNat ++
-    (if slots then
-      let runs := BundleSlots.splice w
-      UInt8.ofNat runs.length :: runs.flatMap fun (zeros, copy) => [UInt8.ofNat zeros, UInt8.ofNat (copy / 256), UInt8.ofNat (copy % 256)]
-    else [])
+    let random ← Flow.Random.joint on
+    pure (toBits (random.val.take 4))
 
 
 
@@ -265,7 +259,6 @@ def main (arguments : List String) : IO Unit := do
     if official then RelayUpgrade.anonymousRequest PublicReceive.fast nonce
     else RelayUpgrade.legacyAnonymousRequest PublicReceive.fast nonce
   let certificate ← IO.mkRef false
-  let operations ← IO.mkRef ([] : List Nat)
   let revealed ← IO.mkRef 0
   -- Authenticated-socket session (`Config.Account.share`: this party's XOR share of the account
   -- id and password): wait for delivered messages instead of sending. `.stored`
@@ -315,39 +308,37 @@ def main (arguments : List String) : IO Unit := do
       liftM (ch.record (.serverCertificate name trust scheme hash chain valid checkerError))
       liftM (certificate.set valid : IO Unit);return valid)
   try
-    let rpc : TlsWorker.Rpc := {running.rpc with call := fun op input => do
-      liftM (operations.modify (fun codes => if codes.contains (TlsWorkerPipe.code op) then codes else codes ++ [TlsWorkerPipe.code op]) : IO Unit)
-      running.rpc.call op input}
+    -- The flow API's handle on the engines (`TlsMpc/Node/Flow.lean`): every worker operation of
+    -- this session is a `Flow.*` function of it; it records the operations used (the final check).
+    let w ← Flow.Worker.start running.rpc ch.random
     let action : M Nat := do
       -- The settings agreement (SECURITY_MAP D.11; plan 3.1 `PeerMsg.settingsDigest`): before
       -- anything else, each controller sends the other the SHA-256 of the settings that must be
       -- the same on both nodes (`Config.agreedText`), and the session ends on a difference.
       let settings := Config.digest config
-      let theirSettings ← match ← ch.exchange rpc (.settingsDigest settings) with
+      let theirSettings ← match ← ch.exchange w.link (.settingsDigest settings) with
         | .settingsDigest digest => pure digest
         | _ => throw "invalid settings digest reply"
       insist (theirSettings == settings)
         s!"the two nodes' settings differ (SECURITY_MAP D.11); this node's: {Config.agreedText config}"
       liftM (ch.record (.connect endpoint port hostname authenticated (socks.map (·.1)) circuits official))
-      TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if authenticated then none else some 0))
+      Flow.Server.connect w endpoint (← liftM (natural port)) (proxyFor (if authenticated then none else some 0))
       liftM (ch.record .connected)
-      let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) tlsConfig
+      let handshake ← Flow.Tls.handshake w tlsConfig
       liftM (ch.record (.handshake handshake.serverCertificateVerified handshake.serverFinishedVerified))
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
-      -- The worker's selected connection (`active`) and the one this controller is using
-      -- (`current`, its TLS session in `apps`). Connection 0 never selects unless there are more.
-      let active ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
-      let app ← liftM (TlsWorker.applicationSession (TlsWorker.onConnection rpc active 0) handshake
-        (some (TlsWorker.waitingTransport (TlsWorker.onConnection rpc active 0) kept)))
+      -- The worker's selected connection (kept by `w`; `w.on i` selects connection i first) and
+      -- the one this controller is using (`current`, its TLS session in `apps`). Connection 0
+      -- never selects unless there are more.
+      let app ← liftM (Flow.Tls.application (w.on 0) handshake kept)
       let apps ← liftM (IO.mkRef #[app] : IO (IO.Ref (Array (TlsApplication.Session TlsWorker.BufferHandle))))
       let current ← liftM (IO.mkRef 0 : IO (IO.Ref Nat))
       let appNow : M (TlsApplication.Session TlsWorker.BufferHandle) := do
         pure ((← liftM (apps.get : IO (Array (TlsApplication.Session TlsWorker.BufferHandle)))).getD (← liftM (current.get : IO Nat)) app)
       let sendPublic (bytes : Bytes) : M Unit := do
         liftM (ch.record (.sentPublic (← liftM (current.get : IO Nat)) bytes))
-        let handle ← rpc.call .publicBuffer bytes
-        insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ bytes.length
+        let handle ← Flow.Tls.publicBuffer w bytes
+        TlsApplication.send (← appNow) handle bytes.length
       -- Two ways to start. Fixture: state admitted by the worker, authenticated upgrade
       -- with private credentials. Local Signal server (SIGNAL_LOCAL_EXPORT): contacts
       -- admitted from the export, and the UNAUTHENTICATED socket, whose upgrade request is
@@ -386,7 +377,7 @@ def main (arguments : List String) : IO Unit := do
       let db (call : DbCall) : M Unit := do
         insist (← dbTry call) s!"database client failed: {call.command}"
       -- The other node (`PeerMsg`, through the worker's exchange): its message of the same kind.
-      let peer (msg : PeerMsg) : M PeerMsg := ch.exchange rpc msg
+      let peer (msg : PeerMsg) : M PeerMsg := ch.exchange w.link msg
       -- The two clocks: each controller reads its own, they tell each other, and both use the
       -- later one if the two are within two minutes (`Clock.agreed_within`).
       let peerClock : M Nat := do
@@ -402,8 +393,8 @@ def main (arguments : List String) : IO Unit := do
         | none => peerClock
       -- A new nonce for each seal of a contact's state: joint randomness.
       let nonce : M Bytes := do
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32 && random.take 8 != List.replicate 8 255) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
+        insist (random.take 8 != List.replicate 8 255) "invalid joint randomness"
         pure (random.take 8)
       -- A contact with a device list (MULTI_DEVICE.md, section 4): the kinds of its devices'
       -- entries, in order (0: a 319-byte record; 1, 2: record and pending, 1935 bytes). They are
@@ -424,7 +415,7 @@ def main (arguments : List String) : IO Unit := do
         insist (← liftM (unreadable.get : IO (List Nat))).isEmpty "contact key does not match the stored state"
       let openState (contact : Nat) (stored : Bytes) : M Unit := do
         if stored.length == 24 + 319 then
-          if (← rpc.call .contactOpen (uint 16 contact ++ stored)) == [0] then
+          if !(← Flow.Contacts.load w contact stored).val then
             liftM (unreadable.modify (· ++ [contact]) : IO Unit)
         else
           let count := (stored.getLast?.getD 0).toNat
@@ -433,13 +424,12 @@ def main (arguments : List String) : IO Unit := do
           let kinds := ((stored.drop body.length).take count).map (·.toNat)
           insist (kinds.all (· ≤ 2) && body.length == 24 + (kinds.map (fun k => if k == 0 then 319 else 1935)).foldl (· + ·) 0)
             "stored contact shape"
-          if (← rpc.call .devicesOpen (uint 16 contact ++ [UInt8.ofNat count] ++ kinds.map UInt8.ofNat ++ body)) == [0] then
+          if !(← Flow.Contacts.loadDevices w contact kinds body).val then
             liftM (unreadable.modify (· ++ [contact]) : IO Unit)
           setKinds contact kinds
       -- Seal a contact's current state under a new nonce: `check ‖ ciphertext (‖ kinds ‖ count)`.
       let sealState (contact : Nat) (fresh : Bytes) : M Bytes := do
-        let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
-        insist (stored.length > 16) "invalid stored contact state"
+        let stored := (← Flow.Contacts.seal w contact fresh).val
         let kinds ← kindsOf contact
         pure (if kinds == [0] then stored else stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
       -- Store a contact's sealed state as blob `version`. Counts once all but one node committed it.
@@ -486,8 +476,7 @@ def main (arguments : List String) : IO Unit := do
       -- Deal this party's half of a new contact's key under the application's signup token
       -- for that id. The dealt summand is this party's share of the key.
       let dbDeal (contact : Nat) (token : String) : M (Option (Secret Bytes)) := do
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
         let dealt ← dbTry (.deal token contact (random.take 16))
         let (committed, summand) ← if dealt then do
             let (nodes, summand) ← ch.readDealt contact
@@ -512,43 +501,36 @@ def main (arguments : List String) : IO Unit := do
       let ceremonyUpgrade (stage : String) : M (Bytes × List (Nat × Secret Bytes × Nat) × Bool) := do
         if stage == "certificate" then
           let .share share := config.account | throw "the certificate stage needs this node's credentials share"
-          let _ ← Secret.inputOwn rpc .accountCredentials share
-          let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
-          insist (upgrade.length == 38) "invalid upgrade receipt"
-          TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
-          pure (upgrade.drop 10, [], true)
+          Flow.Account.credentials w share
+          let (request, size, accept) ← Flow.Upgrade.authenticated w 1
+          TlsApplication.send app request size
+          pure (accept.val, [], true)
         else
-          let upgrade ← rpc.call .publicUpgrade []
-          insist (upgrade.length == 44) "invalid public upgrade receipt"
-          sendPublic (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
-          pure (upgrade.drop 16, [], true)
+          let upgrade ← Flow.Upgrade.anonymous w
+          sendPublic (toBytes (anonymousUpgrade (toBits upgrade.val.1)))
+          pure (upgrade.val.2, [], true)
       let (accept, known, keyed) ← match ceremony, exportPath with
         | some stage, _ => ceremonyUpgrade stage
         | none, none => do
-          let catalogue ← rpc.call .providerCatalogue []
-          insist (catalogue.length ≥ 10) "invalid provider catalogue"
-          let state := number (catalogue.take 8)
-          let count := number ((catalogue.drop 8).take 2)
-          insist (state != 0 && count == 4 && catalogue.length == 10+8*count) "fixture catalogue changed"
+          let state ← Flow.Fixture.catalogue w
           -- Private upgrade request; the expected accept value is public.
-          let upgrade ← rpc.call .providerUpgradeOpen (uint 8 state)
-          insist (upgrade.length == 38) "invalid upgrade receipt"
-          TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
-          pure (upgrade.drop 10, [(1, ← freshShare, 0), (2, ← freshShare, 0)], false)
+          let (request, size, accept) ← Flow.Upgrade.authenticated w state
+          TlsApplication.send app request size
+          pure (accept.val, [(1, ← freshShare, 0), (2, ← freshShare, 0)], false)
         | none, some path => do
           let (certificate, identity, records) ← liftResult (← liftM (ch.readExport path))
           let accountStored ← if dbClient.isSome then do
               let (accountRead, accountShares) ← dbRead .account "account"
               match dbShare accountShares accountId, dbBlob accountRead accountId with
               | some share, some (_, blob) =>
-                let _ ← Secret.inputOwn rpc .accountKey share
-                let _ ← rpc.call .accountOpen (← liftResult (fromHex blob))
+                Flow.Account.key w share
+                Flow.Account.load w (← liftResult (fromHex blob))
                 pure true
               | _, _ => pure false
             else pure false
           -- TEST: until the account's row exists it is admitted from the export.
           unless accountStored do
-            let _ ← Secret.inputOwn rpc .accountAdmit (identity ++ Secret.hide certificate)
+            Flow.Account.admitTest w identity certificate
           -- Per wanted contact: its TEST record from the export, if it has one.
           let records : List (Nat × Option (Secret Bytes)) := records.map fun (contact, record) => (contact, some record)
           -- Contacts that exist only in the store (received in an earlier session).
@@ -589,7 +571,7 @@ def main (arguments : List String) : IO Unit := do
               let blob := dbBlob readJson contact
               match share, blob with
               | some share, some (version, blob) =>
-                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+                Flow.Contacts.key w contact share
                 -- Both parties must have been given the same blob: the request is agreed.
                 openState contact (← liftResult (fromHex blob))
                 pure (contact, share, version)
@@ -598,8 +580,8 @@ def main (arguments : List String) : IO Unit := do
                 -- there, under a signup token the harness supplies (SIGNAL_DB_TOKENS/<id>.json).
                 let some record := record | throw "contact is not in the database"
                 let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
-                let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
-                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+                Flow.Contacts.admitTest w contact record
+                Flow.Contacts.key w contact share
                 pure (contact, share, 0))
           else wanted.mapM (fun (contact, record) => do
             let saved ← match storeDirectory with
@@ -609,39 +591,36 @@ def main (arguments : List String) : IO Unit := do
             | some (share, rest) =>
               -- A stored contact: key from the shares, then the state from its ciphertext.
               insist (share.length == 32 && rest.length > 24) "stored contact shape"
-              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+              Flow.Contacts.key w contact share
               openState contact rest
               pure (contact, share, number (rest.take 8))
             | none =>
               let some record := record | throw "contact has no stored state"
               let share ← freshShare
-              let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
-              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+              Flow.Contacts.admitTest w contact record
+              Flow.Contacts.key w contact share
               pure (contact, share, 0))
           if authenticated then
             match config.account with
             | .share share =>
               -- The password is shared: neither party can open this socket alone.
-              let _ ← Secret.inputOwn rpc .accountCredentials share
+              Flow.Account.credentials w share
               if dbClient.isSome && !accountStored then
                 -- TEST: the first session that has the account's key and credentials creates its
                 -- row on the database nodes (key dealt under a token for the reserved id).
                 let some keyShare ← dbDeal accountId s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{accountId}.json" | throw "dealing the account key failed"
-                let _ ← Secret.inputOwn rpc .accountKey keyShare
+                Flow.Account.key w keyShare
                 let fresh ← nonce
-                let stored ← rpc.call .accountSeal fresh
-                insist (stored.length > 16) "invalid stored account state"
+                let stored := (← Flow.Account.seal w fresh).val
                 insist (← dbSubmit "account" .account 1 (fresh ++ stored)) "the database did not acknowledge the account's state"
             | _ => insist accountStored "no credentials: the account is not stored and none were given"
-            let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
-            insist (upgrade.length == 38) "invalid upgrade receipt"
-            TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
-            pure (upgrade.drop 10, known, true)
+            let (request, size, accept) ← Flow.Upgrade.authenticated w 1
+            TlsApplication.send app request size
+            pure (accept.val, known, true)
           else
-            let upgrade ← rpc.call .publicUpgrade []
-            insist (upgrade.length == 44) "invalid public upgrade receipt"
-            sendPublic (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
-            pure (upgrade.drop 16, known, true)
+            let upgrade ← Flow.Upgrade.anonymous w
+            sendPublic (toBytes (anonymousUpgrade (toBits upgrade.val.1)))
+            pure (upgrade.val.2, known, true)
       let contacts := known.map (·.1)
       -- Receiving (authenticated socket with an export): a delivered sealed-sender envelope is
       -- opened in the engines as a NEW contact's first message. Public here: our prekey ids the
@@ -670,32 +649,29 @@ def main (arguments : List String) : IO Unit := do
         -- The certificate's expiry is checked against a time both controllers agree on.
         let now ← agreedNow
         let signerId := toBytes (PublicReceive.varint keys.serverId)
-        let opened ← rpc.call .envelopeOpen (keys.identityPublic ++ uint 8 now ++ keys.serverKey ++
-          uint 2 keys.serverCertificate.length ++ keys.serverCertificate ++ uint 2 signerId.length ++ signerId)
-        if opened.head? != some 255 then
-          return ← refusedBecause s!"not opened as a new contact's first message (reply {opened.headD 0}: sealed-sender layer, sender certificate, PreKey shape, or no kernel for its shape)"
-        insist (opened.length == 14 + 1568) "invalid opened prekey message"
-        let find (table : List (Nat × Secret Bytes)) (at_ : Nat) : Option (Secret Bytes) :=
-          (table.find? (·.1 == number ((opened.drop at_).take 4))).map (·.2)
-        let oneTime := if opened.getD 1 0 == 1 then find keys.oneTime 2 else some (Secret.hide (List.replicate 32 0))
-        match oneTime, find keys.signed 6, find keys.kyber 10 with
+        let opened ← match ← Flow.Receive.openFirst w keys.identityPublic now keys.serverKey keys.serverCertificate signerId with
+          | .refused status =>
+            return ← refusedBecause s!"not opened as a new contact's first message (reply {status.val}: sealed-sender layer, sender certificate, PreKey shape, or no kernel for its shape)"
+          | .opened ids => pure ids.val
+        let find (table : List (Nat × Secret Bytes)) (id : Nat) : Option (Secret Bytes) :=
+          (table.find? (·.1 == id)).map (·.2)
+        let oneTime := if opened.usesOneTime then find keys.oneTime opened.oneTime else some (Secret.hide (List.replicate 32 0))
+        match oneTime, find keys.signed opened.signed, find keys.kyber opened.kyber with
         | some oneTime, some signed, some kyber =>
-          let secret ← decapsulate kyber (opened.drop 14)
+          let secret ← decapsulate kyber opened.kyberCiphertext
           -- With the database, the contact's id is named by the message itself; until then
           -- the contact is held under a provisional id (2^128 - 1, then 2^128 - 3, 2^128 - 4, …).
           let provisional ← liftM (provisionals.modifyGet (fun n => (if n == 0 then 2 ^ 128 - 1 else 2 ^ 128 - 2 - n, n + 1)) : IO Nat)
           let contact ← if dbClient.isSome then pure provisional else liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
-          let result ← Secret.inputOwn rpc .envelopeSession
-            (Secret.hide (uint 16 contact ++ keys.address) ++ signed ++ oneTime ++ secret ++ Secret.hide (uint 8 (2 ^ 63)))
-          if result.head? != some 255 then return ← refusedBecause s!"no session from it (reply {result.headD 0}: keys, MAC, content or text shape)"
-          insist (result.length ≥ 3 && result.length == 3 + number ((result.drop 1).take 2)) "invalid received text"
-          let text := (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD ""
+          let text ← match ← Flow.Receive.session w contact keys.address signed oneTime secret with
+            | .refused status => return ← refusedBecause s!"no session from it (reply {status.val}: keys, MAC, content or text shape)"
+            | .text text => pure text.val
           if dbClient.isSome then
             -- The text is the application's signup token (JSON: id, signature). It names the
             -- contact's id and is what authorises the database nodes to create it. A token the
             -- nodes do not accept (forged, or already used) refuses the message.
             let refuse (contact : Nat) : M (Option (Nat × String)) := do
-              let _ ← rpc.call .contactEvict (uint 16 contact)
+              Flow.Contacts.evict w contact
               refusedBecause s!"the text is not a signup token the database nodes accept, or they did not store the contact ({text.length} characters)"
             -- Fixed width: base64 of the id (16 bytes) and the application's signature (64).
             db (.receivedToken text)
@@ -707,12 +683,12 @@ def main (arguments : List String) : IO Unit := do
               if id ≥ accountId then return ← refuse provisional
               let token ← ch.dbFile (DbCall.keptTokenFile id)
               db (.keptToken id text)
-              if (← rpc.call .contactAssign (uint 16 provisional ++ uint 16 id)) != [255] then
+              if !(← Flow.Contacts.assign w provisional id).val then
                 return ← refusedBecause s!"the new contact could not take the token's id {id}"
               match ← dbDeal id token with
               | none => refuse id
               | some share =>
-                let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 id) ++ share)
+                Flow.Contacts.key w id share
                 -- Stored (acknowledged by the nodes) before the message is acknowledged.
                 if !(← dbWrite id 1 (.signupToken token id)) then return ← refuse id
                 return some (id, text)
@@ -720,17 +696,16 @@ def main (arguments : List String) : IO Unit := do
           -- Stored before it is acknowledged.
           let share ← freshShare
           let fresh ← nonce
-          let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
-          let stored ← rpc.call .contactSeal (uint 16 contact ++ fresh)
-          insist (stored.length > 16) "invalid stored contact state"
+          Flow.Contacts.key w contact share
+          let stored := (← Flow.Contacts.seal w contact fresh).val
           match storeDirectory with
           | some directory => inBand (ch.saveShare directory (.testStore contact) share (fresh ++ stored))
           | none => pure ()
           return some (contact, text)
         | _, _, _ =>
           -- The message names a prekey we do not hold.
-          TlsWorker.emptyReply rpc .envelopeDrop []
-          refusedBecause s!"it names a prekey this account does not hold (one-time {opened.getD 1 0 == 1}, signed {number ((opened.drop 6).take 4)}, Kyber {number ((opened.drop 10).take 4)})"
+          Flow.Receive.drop w
+          refusedBecause s!"it names a prekey this account does not hold (one-time {opened.usesOneTime}, signed {opened.signed}, Kyber {opened.kyber})"
       -- `SIGNAL_ACK_REFUSED=0` (the same on both nodes): a delivered message this session refused
       -- is left unacknowledged, so the server keeps it for a later session (a fixed build can then
       -- process it). Default: acknowledged, as before. `refusals`: per handled envelope, in order,
@@ -755,10 +730,10 @@ def main (arguments : List String) : IO Unit := do
             else
               -- Not a sealed-sender message: not supported, dropped.
               liftM (refused.modify (· + 1) : IO Unit)
-              TlsWorker.emptyReply rpc .envelopeDrop []
+              Flow.Receive.drop w
               refusedBecause s!"not a sealed-sender message (envelope type {kind}, {size} bytes of content)"
           | none => do
-            TlsWorker.emptyReply rpc .envelopeDrop []
+            Flow.Receive.drop w
             pure none
         liftM (refusals.modify (· ++ [outcome.isNone]) : IO Unit)
         liftM (ch.record (.envelope kind size (outcome.map (·.1))))
@@ -768,9 +743,7 @@ def main (arguments : List String) : IO Unit := do
         let mut complete := false
         let mut offset := 0
         -- The length alone (an offset past any record reveals no byte).
-        let probe ← rpc.call .revealRange (uint 8 handle ++ uint 2 65535 ++ uint 2 1)
-        insist (probe.length == 2) "invalid reveal reply"
-        let mut length := number probe
+        let mut length := (← Flow.Tls.recordLength w handle).val.1
         liftM (ch.record (.record (← liftM (current.get : IO Nat)) handle length))
         while offset < length do
           if s.skip > 0 then
@@ -780,12 +753,10 @@ def main (arguments : List String) : IO Unit := do
               (if s.capture then .envelope else if s.collect then .prekeyResponse else .nowhere)))
             if s.capture then
               -- A delivered envelope's sealed content goes to the engines as it is.
-              let held ← rpc.call .envelopeTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
-              insist (held.length == 4) "invalid envelope reply"
+              Flow.Receive.take w handle offset count
             if s.collect then
               -- The body of the 200 to the pending prekey fetch goes to the engines as it is.
-              let held ← rpc.call .bundleTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
-              insist (held.length == 4) "invalid bundle reply"
+              Flow.Refresh.take w handle offset count
             -- As much of it as `passRoom` allows in one step (`passRun_bulk`: the state the byte-by-byte
             -- steps would give), the rest one byte at a time. A response may complete in its body.
             let bulk := min count (PublicReceive.passRoom s)
@@ -801,10 +772,9 @@ def main (arguments : List String) : IO Unit := do
             continue
           insist (PublicReceive.mayReveal s) "refusing to reveal a server-initiated message"
           let count := PublicReceive.budget s
-          let out ← rpc.call .revealRange (uint 8 handle ++ uint 2 offset ++ uint 2 count)
-          insist (out.length ≥ 2 && out.length ≤ 2 + count) "invalid reveal reply"
-          length := number (out.take 2)
-          let bytes := out.drop 2
+          let out ← Flow.Tls.revealRange w handle offset count
+          length := out.val.1
+          let bytes := out.val.2
           if offset < length then
             insist (!bytes.isEmpty) "missing revealed bytes"
             liftM (revealed.modify (· + bytes.length) : IO Unit)
@@ -871,17 +841,16 @@ def main (arguments : List String) : IO Unit := do
       -- on the nodes. `kinds`: its entries' kinds, stored after the ciphertext as in `sealState`.
       let commitScratch (contact : Nat) (kinds : List Nat) : M Bool := do
         let fresh ← nonce
-        let stored ← rpc.call .scratchSeal (uint 16 contact ++ fresh)
-        insist (stored.length > 16) "invalid sealed device list"
+        let stored := (← Flow.Refresh.scratchSeal w contact fresh).val
         let taken ← if dbClient.isSome then
             dbSubmitSoft (toString contact) (.request (← requestFile) contact)
               ((← versionOf contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
           else pure true
         if taken then
-          TlsWorker.emptyReply rpc .scratchCommit (uint 16 contact)
+          Flow.Refresh.scratchCommit w contact
           if dbClient.isSome then bumpVersion contact
           setKinds contact kinds
-        else TlsWorker.emptyReply rpc .bundleDrop []
+        else Flow.Refresh.drop w
         pure taken
       -- Our own address and registration id, for sessions the client starts (a contact's new device).
       let self ← match exportPath with
@@ -908,7 +877,7 @@ def main (arguments : List String) : IO Unit := do
         -- before the message is sealed and sent, as an official client's is. Once prepared, this
         -- costs one exchange; a contact with a device list is prepared by its own send.
         if (← kindsOf send.1) == [0] then
-          let _ ← rpc.call .contactsPrepare (uint 16 send.1)
+          let _ ← Flow.Curve.prepareContacts w [send.1]
         let now := max (← agreedNow) ((← liftM (lastStamp.get : IO Nat)) + 1)
         liftM (lastStamp.set now : IO Unit)
         let some (_, built) := PrivateTextNotification.buildPublicOfficial 4 (toBits body) (toBits (uint 8 now)) | throw "message text rejected"
@@ -927,46 +896,29 @@ def main (arguments : List String) : IO Unit := do
       -- before anything leaves, as for one device; then one request carries all of them.
       let sendDevices (send : Nat × Bytes) (id : Nat) : M Unit := do
         let some (address, _) := self | throw "no account address for a device list"
-        let sealed ← rpc.call .devicesSend (uint 16 send.1 ++ address ++ send.2)
-        insist (sealed.length ≥ 10) "invalid sealed envelopes reply"
-        storeAdvanced send.1
-        let timestamp := number (sealed.take 8)
         let count := (← kindsOf send.1).length
-        let mut rest := sealed.drop 8
-        let mut envelopes : List (List (BitVec 8)) := []
-        for _ in [0:count] do
-          let length := number (rest.take 2)
-          insist (0 < length && length + 2 ≤ rest.length) "invalid sealed envelope length"
-          envelopes := envelopes ++ [toBits ((rest.drop 2).take length)]
-          rest := rest.drop (2 + length)
-        insist rest.isEmpty "invalid sealed envelopes reply"
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let some (timestamp, sealed) := (← Flow.Send.sealDevices w send.1 address send.2 count).val
+          | throw "invalid sealed envelopes reply"
+        storeAdvanced send.1
+        let envelopes := sealed.map toBits
+        let random := (← Flow.Random.joint w).val
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) official)
         -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
         insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
         recordSend send.1 id timestamp frame
-        let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
-          [UInt8.ofNat count] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
-        insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        let handle ← Flow.Send.requestDevices w send.1 payloadAt offsets count (random.take 4) (toBytes frame)
+        TlsApplication.send (← appNow) handle frame.length
       let sendMessage (send : Nat × Bytes) (id : Nat) : M Unit := do
         let send ← restamp send
         liftM (lastSent.set (some send) : IO Unit)
         if (← kindsOf send.1) != [0] then return ← sendDevices send id
-        let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
-        insist (sealed.length ≥ 10) "invalid sealed envelope reply"
+        let some (timestamp, sealed) := (← Flow.Send.seal w send.1 send.2).val | throw "invalid sealed envelope reply"
         storeAdvanced send.1
-        let timestamp := number (sealed.take 8)
-        let length := number ((sealed.drop 8).take 2)
-        insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
-        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
+        let random := (← Flow.Random.joint w).val
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) official)
         recordSend send.1 id timestamp frame
-        let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
-        insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        let handle ← Flow.Send.request w send.1 offsets (random.take 4) (toBytes frame)
+        TlsApplication.send (← appNow) handle frame.length
       /- ---- A contact whose device list changed (MULTI_DEVICE.md, sections 3 and 5). ----
       The server answers a send 409 (devices missing or extra) or 410 (stale registration
       ids). Its body lists device ids and is not read. Instead every session of the contact is
@@ -980,13 +932,12 @@ def main (arguments : List String) : IO Unit := do
           match ← TlsApplication.receive (← appNow) with
           | .application handle =>
             let (s, complete) ← record handle.id s
-            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks w s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
             for request in s.requests do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
+              let random := (← Flow.Random.joint w).val
               let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
               unless message do sendPublic (toBytes frame)
             let s := { s with requests := [] }
@@ -1011,8 +962,7 @@ def main (arguments : List String) : IO Unit := do
         let now ← agreedClock
         if now < (← liftM (quiet.get : IO Nat)) + 20000 then return s
         let id ← nextId
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
         sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
         liftM (quiet.set now : IO Unit)   -- the time it was sent: reading its answer may itself take long
         let s ← awaitReply 64 (PublicReceive.expect s id)
@@ -1023,14 +973,11 @@ def main (arguments : List String) : IO Unit := do
         insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
         -- The fetch names the contact: its UUID and access key are inserted by the engines.
         let fetchId ← nextId
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
         recordFetch contact fetchId frame
-        let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
-          random.take 4 ++ toBytes frame)
-        insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        let handle ← Flow.Refresh.fetch w contact payloadAt offsets (random.take 4) (toBytes frame)
+        TlsApplication.send (← appNow) handle frame.length
         touch
         -- Its body is collected unrevealed (`PublicReceive.step`: only a 200 with this id).
         let fetched ← awaitReply 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
@@ -1041,18 +988,17 @@ def main (arguments : List String) : IO Unit := do
         insist (2540 ≤ size && size ≤ 65536) "prekey response size"
         s ← keepAlive s
         -- The one thing opened about the body: which of its bytes are JSON punctuation.
-        let flags ← rpc.call .bundleShape []
-        insist (flags.length == size && flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
+        let some flags ← Flow.Refresh.shape w | throw "invalid bundle shape"
+        insist (flags.val.length == size) "invalid bundle shape"
         -- In the clear, by both controllers: the devices' layout, if the flags are exactly a response's.
-        let some widths := BundleResponse.layout? (flags.map (· == 255)) | throw "prekey response layout refused"
+        let some widths := BundleResponse.layout? flags.val | throw "prekey response layout refused"
         let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
         insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
         let slots := config.agreed.bundleSlots
-        for ((at_, w), index) in rows.zipIdx do
+        for ((at_, item), index) in rows.zipIdx do
           for step in [0:9] do
             s ← keepAlive s
-            let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
-              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++ establishTail slots w)
+            let out := (← Flow.Refresh.establish w contact registration index rows.length step at_ slots item).val
             -- One status byte per device and not the reason: bad JSON, a bad signature, a changed
             -- identity key and a failed encapsulation look the same. The contact keeps its old state.
             -- (254 after the first step: the bundle's identity key is a new one, which is accepted.)
@@ -1071,14 +1017,14 @@ def main (arguments : List String) : IO Unit := do
       let keyContacts : M Unit := do
         unless keyed do
           for (contact, share, _) in known do
-            let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+            Flow.Contacts.key w contact share
       let reloadContacts : M Unit := do
         for (contact, share, _) in known do
           let version ← nonce
           let stored ← sealState contact version
           insist (stored.length > 16) "invalid stored contact state"
-          let _ ← rpc.call .contactEvict (uint 16 contact)
-          let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+          Flow.Contacts.evict w contact
+          Flow.Contacts.key w contact share
           openState contact (version ++ stored)
         requireLoaded
       -- Before a contact's first send of the session: its per-session curve work (the table its
@@ -1098,8 +1044,8 @@ def main (arguments : List String) : IO Unit := do
         let done ← liftM (preparedContacts.get : IO (List Nat))
         if size == 0 || done.contains contact then return
         let batch := ((contact :: upcoming).eraseDups.filter (fun c => !done.contains c)).take size
-        let statuses ← rpc.call .contactsPrepare (batch.flatMap (uint 16))
-        insist (statuses.length == batch.length) "invalid contacts-prepare reply"
+        let statuses ← Flow.Curve.prepareContacts w batch
+        insist (statuses.val.length == batch.length) "invalid contacts-prepare reply"
         liftM (preparedContacts.modify (· ++ batch) : IO Unit)
       /- ---- The long-lived session (`serve` below): one job's contacts. ----
       As the daemon's one-notify session does at its start, for the ids of the job's signed request:
@@ -1114,7 +1060,7 @@ def main (arguments : List String) : IO Unit := do
       let residentIds ← liftM (IO.mkRef ([] : List Nat) : IO (IO.Ref (List Nat)))
       let forget (contact : Nat) : M Unit := do
         if (← liftM (residentIds.get : IO (List Nat))).contains contact then
-          let _ ← rpc.call .contactEvict (uint 16 contact)
+          Flow.Contacts.evict w contact
         liftM (residentIds.modify (·.filter (· != contact)) : IO Unit)
         liftM (preparedContacts.modify (·.filter (· != contact)) : IO Unit)
         liftM (deviceKinds.modify (·.filter (·.1 != contact)) : IO Unit)
@@ -1152,7 +1098,7 @@ def main (arguments : List String) : IO Unit := do
             let held := (← liftM (residentIds.get : IO (List Nat))).contains contact
             unless held && (← versionOf contact) == version do
               forget contact
-              let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+              Flow.Contacts.key w contact share
               openState contact (← liftResult (fromHex blob))
               setVersion contact version
               -- (A blob that does not open leaves the contact unloaded: `unreadable`, its result.)
@@ -1162,8 +1108,8 @@ def main (arguments : List String) : IO Unit := do
             let some record := record | throw "contact is not in the database"
             forget contact
             let some share ← dbDeal contact s!"{← dbEnv "SIGNAL_DB_TOKENS"}/{contact}.json" | throw "dealing a contact key failed"
-            let _ ← Secret.inputOwn rpc .contactAdmit (Secret.hide (uint 16 contact) ++ record)
-            let _ ← Secret.inputOwn rpc .contactKey (Secret.hide (uint 16 contact) ++ share)
+            Flow.Contacts.admitTest w contact record
+            Flow.Contacts.key w contact share
             setVersion contact 0
             liftM (residentIds.modify (· ++ [contact]) : IO Unit)
           loaded := loaded ++ [contact]
@@ -1238,20 +1184,18 @@ def main (arguments : List String) : IO Unit := do
         -- parkedStates[i]: connection i's state while another is in use (0's is the loop's until then).
         liftM (parkedStates.set #[PublicReceive.start []] : IO Unit)
         for index in [1:sendCircuits] do
-          let on := TlsWorker.onConnection rpc active index
-          TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
-          let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) tlsConfig
+          let on := w.on index
+          Flow.Server.connect on endpoint (← liftM (natural port)) (proxyFor (some index))
+          let handshake ← Flow.Tls.handshake on tlsConfig
           insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
           let waitingFor ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
-          let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on waitingFor)))
+          let session ← liftM (Flow.Tls.application on handshake waitingFor)
           let sendOn (bytes : Bytes) : M Unit := do
-            let handle ← on.call .publicBuffer bytes
-            insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
-            TlsApplication.send session ⟨number handle⟩ bytes.length
-          let upgrade ← on.call .publicUpgrade []
-          insist (upgrade.length == 44) "invalid public upgrade receipt"
-          sendOn (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
-          let mut s : PublicReceive.State := { PublicReceive.start (toBits (upgrade.drop 16)) with lenient := exportPath.isSome }
+            let handle ← Flow.Tls.publicBuffer on bytes
+            TlsApplication.send session handle bytes.length
+          let upgrade ← Flow.Upgrade.anonymous on
+          sendOn (toBytes (anonymousUpgrade (toBits upgrade.val.1)))
+          let mut s : PublicReceive.State := { PublicReceive.start (toBits upgrade.val.2) with lenient := exportPath.isSome }
           let mut fuel := 64
           while !s.upgraded do
             insist (fuel > 0) "receive budget exhausted"
@@ -1293,14 +1237,13 @@ def main (arguments : List String) : IO Unit := do
             let wasPending := s.pending
             let (s, complete) ← record handle.id s
             -- The mask is public but must be the same for both controllers: joint randomness.
-            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks w s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
             -- Replies to completed server requests (each with its own joint mask).
             for request in s.requests do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
+              let random := (← Flow.Random.joint w).val
               let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
               -- Nothing is received on this socket: a delivered message is left unacknowledged.
               unless message do sendPublic (toBytes frame)
@@ -1359,7 +1302,7 @@ def main (arguments : List String) : IO Unit := do
       let slots ← liftM (IO.mkRef #[kept] : IO (IO.Ref (Array (IO.Ref (Option Bytes)))))
       let states ← liftM (IO.mkRef (#[] : Array PublicReceive.State) : IO (IO.Ref (Array PublicReceive.State)))
       -- The 101 to a connection's upgrade request.
-      let readUpgrade (session : TlsApplication.Session TlsWorker.BufferHandle) (on : TlsWorker.Rpc)
+      let readUpgrade (session : TlsApplication.Session TlsWorker.BufferHandle) (on : Flow.Worker)
           (expected : List (BitVec 8)) : M PublicReceive.State := do
         let mut s : PublicReceive.State := { PublicReceive.start expected with lenient := true }
         let mut fuel := 64
@@ -1372,9 +1315,8 @@ def main (arguments : List String) : IO Unit := do
             insist (!complete && next.requests.isEmpty) "unexpected server traffic during the upgrade"
             let (next, frames) ← liftResult (PublicReceive.replies next (← controlMasks on next))
             for (kind, frame) in frames do
-              let handle ← on.call .publicBuffer (toBytes frame)
-              insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
-              TlsApplication.send session ⟨number handle⟩ frame.length
+              let handle ← Flow.Tls.publicBuffer on (toBytes frame)
+              TlsApplication.send session handle frame.length
               insist (kind != 8) "WebSocket peer closed before completion"
             s := next
           | .control => pure ()
@@ -1384,46 +1326,45 @@ def main (arguments : List String) : IO Unit := do
       -- credentials), handshake, unauthenticated WebSocket and its 101. A failure here is the
       -- session's. Returns the connection's parser state.
       let openConnection (index : Nat) : M PublicReceive.State := do
-        let on := TlsWorker.onConnection rpc active index
-        TlsWorker.connectVia on endpoint (← liftM (natural port)) (proxyFor (some index))
-        let handshake ← TlsClient.run (TlsWorker.backend on) (TlsWorker.transport on) tlsConfig
+        let on := w.on index
+        Flow.Server.connect on endpoint (← liftM (natural port)) (proxyFor (some index))
+        let handshake ← Flow.Tls.handshake on tlsConfig
         insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
         let slot ← liftM (IO.mkRef (none : Option Bytes) : IO (IO.Ref (Option Bytes)))
-        let session ← liftM (TlsWorker.applicationSession on handshake (some (TlsWorker.waitingTransport on slot)))
-        let upgrade ← on.call .publicUpgrade []
-        insist (upgrade.length == 44) "invalid public upgrade receipt"
-        let request := toBytes (anonymousUpgrade (toBits (upgrade.take 16)))
-        let handle ← on.call .publicBuffer request
-        insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
-        TlsApplication.send session ⟨number handle⟩ request.length
+        let session ← liftM (Flow.Tls.application on handshake slot)
+        let upgrade ← Flow.Upgrade.anonymous on
+        let request := toBytes (anonymousUpgrade (toBits upgrade.val.1))
+        let handle ← Flow.Tls.publicBuffer on request
+        TlsApplication.send session handle request.length
         liftM (apps.modify (fun all => if index < all.size then all.set! index session else all.push session) : IO Unit)
         liftM (slots.modify (fun all => if index < all.size then all.set! index slot else all.push slot) : IO Unit)
-        readUpgrade session on (toBits (upgrade.drop 16))
+        readUpgrade session on (toBits upgrade.val.2)
       -- The next record of the connection in use, or `none`: the worker reported that the server
       -- or the proxy closed the connection (`pollRecord` replies `[0]`; both parties see it at the
       -- same request). The worker and the other connections are unaffected.
       let receiveSoft : M (Option (TlsApplication.Received TlsWorker.BufferHandle)) := do
         let index ← liftM (current.get : IO Nat)
-        let on := TlsWorker.onConnection rpc active index
+        let on := w.on index
         let slot := (← liftM (slots.get : IO (Array (IO.Ref (Option Bytes))))).getD index kept
         if (← liftM (slot.get : IO (Option Bytes))).isNone then
           let deadline := (← liftM ch.monotonic) + 30000
           let mut waitingFor := true
           while waitingFor do
             insist ((← liftM ch.monotonic) < deadline) "no record from the server within 30 seconds"
-            let wire ← on.call .pollRecord []
-            if wire == [0] then return none
-            if wire.isEmpty then liftM (ch.sleep 10)
-            else
+            match ← Flow.Server.poll on with
+            | .closed => return none
+            | .nothing => liftM (ch.sleep 10)
+            | .record wire =>
               liftM (slot.set (some wire) : IO Unit)
               waitingFor := false
         match ← TlsApplication.receive (← appNow) with
         | .closed =>
           -- close_notify: the connection itself goes next.
           for _ in [0:1000] do
-            let wire ← on.call .pollRecord []
-            if wire == [0] then return none
-            insist wire.isEmpty "a record after close_notify"
+            match ← Flow.Server.poll on with
+            | .closed => return none
+            | .nothing => pure ()
+            | .record _ => throw "a record after close_notify"
             liftM (ch.sleep 10)
           throw "the server closed TLS but kept the connection open"
         | other => return some other
@@ -1437,12 +1378,11 @@ def main (arguments : List String) : IO Unit := do
           | none => return (s, false)
           | some (.application handle) =>
             let (s, complete) ← record handle.id s
-            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks w s))
             -- A close frame from the server is answered; the closed connection is then reported by the worker.
             for (_, frame) in frames do sendPublic (toBytes frame)
             for request in s.requests do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
+              let random := (← Flow.Random.joint w).val
               let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
               unless message do sendPublic (toBytes frame)
             let s := { s with requests := [] }
@@ -1454,8 +1394,8 @@ def main (arguments : List String) : IO Unit := do
       -- on the same index (and the same proxy credentials); the other connections are kept.
       let reconnect : M Unit := do
         let index ← liftM (current.get : IO Nat)
-        TlsWorker.emptyReply rpc .bundleDrop []   -- a response body half collected on it
-        TlsWorker.emptyReply (TlsWorker.onConnection rpc active index) .resetConnection []
+        Flow.Refresh.drop w   -- a response body half collected on it
+        Flow.Server.reset (w.on index)
         let opened ← openConnection index
         liftM (states.modify (·.set! index opened) : IO Unit)
         note s!"connection {index} was closed and replaced"
@@ -1467,8 +1407,7 @@ def main (arguments : List String) : IO Unit := do
         let now ← agreedClock
         if now < (← liftM (quiet.get : IO Nat)) + 20000 then return (s, true)
         let id ← nextId
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
         sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
         liftM (quiet.set now : IO Unit)
         awaitSoft 64 (PublicReceive.expect s id)
@@ -1477,17 +1416,14 @@ def main (arguments : List String) : IO Unit := do
       let refreshSoft (contact : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Recovery.Refreshed) := do
         let some (_, registration) := self | throw "no account for a device refresh"
         insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
-        let drop : M Unit := TlsWorker.emptyReply rpc .bundleDrop []
+        let drop : M Unit := Flow.Refresh.drop w
         drop
         let fetchId ← nextId
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
+        let random := (← Flow.Random.joint w).val
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
         recordFetch contact fetchId frame
-        let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
-          random.take 4 ++ toBytes frame)
-        insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        let handle ← Flow.Refresh.fetch w contact payloadAt offsets (random.take 4) (toBytes frame)
+        TlsApplication.send (← appNow) handle frame.length
         touch
         let (fetched, alive) ← awaitSoft 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
         let mut s := { fetched with fetch := none, collect := false }
@@ -1515,14 +1451,13 @@ def main (arguments : List String) : IO Unit := do
           drop
           return (s, .lost)
         -- The one thing opened about the body: which of its bytes are JSON punctuation.
-        let flags ← rpc.call .bundleShape []
-        if flags.isEmpty then
-          -- Strict mode, and the response's size class is not in the manifest (more devices than
-          -- the deployment covers): this contact fails, the session goes on.
-          drop
-          return (s, .stop .fault s!"no circuit for a prekey response of {size} bytes (more devices than the deployment covers)")
-        insist (flags.length == size && flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
-        let layout := BundleResponse.layout? (flags.map (· == 255))
+        let some flags ← Flow.Refresh.shape w
+          | -- Strict mode, and the response's size class is not in the manifest (more devices than
+            -- the deployment covers): this contact fails, the session goes on.
+            drop
+            return (s, .stop .fault s!"no circuit for a prekey response of {size} bytes (more devices than the deployment covers)")
+        insist (flags.val.length == size) "invalid bundle shape"
+        let layout := BundleResponse.layout? flags.val
         let widths := layout.getD []
         let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
         if layout.isNone || !(1 ≤ rows.length && rows.length ≤ 6) then
@@ -1530,15 +1465,14 @@ def main (arguments : List String) : IO Unit := do
           return (s, .stop .fault "server fault: the prekey response is not a bundle")
         let mut changed := false
         let slots := config.agreed.bundleSlots
-        for ((at_, w), index) in rows.zipIdx do
+        for ((at_, item), index) in rows.zipIdx do
           for step in [0:9] do
             let (next, alive) ← keepAliveSoft s
             s := next
             if !alive then
               drop
               return (s, .lost)
-            let out ← rpc.call .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
-              [UInt8.ofNat index, UInt8.ofNat rows.length, UInt8.ofNat step] ++ uint 4 at_ ++ establishTail slots w)
+            let out := (← Flow.Refresh.establish w contact registration index rows.length step at_ slots item).val
             -- 254 (first step, first device): the bundle parsed and verified under an identity key
             -- that is not the stored one. Accepted by decision; reported.
             if out == [254] && index == 0 && step == 0 then changed := true
@@ -1564,49 +1498,30 @@ def main (arguments : List String) : IO Unit := do
         let kinds ← kindsOf send.1
         if kinds != [0] then
           let some (address, _) := self | throw "no account address for a device list"
-          let sealed ← rpc.call .devicesSend (uint 16 send.1 ++ address ++ send.2)
-          if sealed == [0] then return some refused
-          insist (sealed.length ≥ 10) "invalid sealed envelopes reply"
-          let timestamp := number (sealed.take 8)
-          let mut rest := sealed.drop 8
-          let mut envelopes : List (List (BitVec 8)) := []
-          for _ in [0:kinds.length] do
-            let length := number (rest.take 2)
-            insist (0 < length && length + 2 ≤ rest.length) "invalid sealed envelope length"
-            envelopes := envelopes ++ [toBits ((rest.drop 2).take length)]
-            rest := rest.drop (2 + length)
-          insist rest.isEmpty "invalid sealed envelopes reply"
-          let random ← rpc.call .publicRandom []
-          insist (random.length == 32) "invalid joint randomness"
+          let some (timestamp, sealed) := (← Flow.Send.sealDevices w send.1 address send.2 kinds.length).val
+            | return some refused
+          let envelopes := sealed.map toBits
+          let random := (← Flow.Random.joint w).val
           let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) official)
           -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
           if frame.length > 16384 then
             return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
           if !(← storeSoft send.1) then return some unacknowledged
           recordSend send.1 id timestamp frame
-          let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
-            [UInt8.ofNat kinds.length] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
-          insist (handle.length == 8 && number handle != 0) "invalid request handle"
-          TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+          let handle ← Flow.Send.requestDevices w send.1 payloadAt offsets kinds.length (random.take 4) (toBytes frame)
+          TlsApplication.send (← appNow) handle frame.length
           return none
-        let sealed ← rpc.call .contactSend (uint 16 send.1 ++ send.2)
-        if sealed == [0] then return some refused
-        insist (sealed.length ≥ 10) "invalid sealed envelope reply"
-        let timestamp := number (sealed.take 8)
-        let length := number ((sealed.drop 8).take 2)
-        insist (0 < length && length ≤ sealed.length - 10) "invalid sealed envelope length"
+        let some (timestamp, sealed) := (← Flow.Send.seal w send.1 send.2).val | return some refused
         if !(← storeSoft send.1) then return some unacknowledged
-        let random ← rpc.call .publicRandom []
-        insist (random.length == 32) "invalid joint randomness"
-        let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
+        let random := (← Flow.Random.joint w).val
+        let (frame, offsets) ← liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) official)
         recordSend send.1 id timestamp frame
-        let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
-        insist (handle.length == 8 && number handle != 0) "invalid request handle"
-        TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+        let handle ← Flow.Send.request w send.1 offsets (random.take 4) (toBytes frame)
+        TlsApplication.send (← appNow) handle frame.length
         return none
       -- Connection 0 is connected and its upgrade request sent; then connections 1..N-1.
       let openAll : M PublicReceive.State := do
-        let first ← readUpgrade app (TlsWorker.onConnection rpc active 0) (toBits accept)
+        let first ← readUpgrade app (w.on 0) (toBits accept)
         liftM (states.set #[first] : IO Unit)
         for index in [1:max sendCircuits 1] do
           let opened ← openConnection index
@@ -1809,11 +1724,10 @@ def main (arguments : List String) : IO Unit := do
         | some (.application handle) =>
           let (s, complete) ← record handle.id s
           insist (!complete) "unsolicited service response"
-          let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
+          let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks w s))
           for (_, frame) in frames do sendPublic (toBytes frame)
           for request in s.requests do
-            let random ← rpc.call .publicRandom []
-            insist (random.length == 32) "invalid joint randomness"
+            let random := (← Flow.Random.joint w).val
             let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
             unless message do sendPublic (toBytes frame)
           return ({ s with requests := [] }, true)
@@ -1888,12 +1802,12 @@ def main (arguments : List String) : IO Unit := do
               liftM (current.set index : IO Unit)
               let mut s := (← liftM (states.get : IO (Array PublicReceive.State))).getD index first
               -- Closed by the server or the proxy while idle: replaced now, not at the next send.
-              let wire ← (TlsWorker.onConnection rpc active index).call .pollRecord []
-              if wire == [0] then
+              let polled ← Flow.Server.poll (w.on index)
+              if let .closed := polled then
                 reconnect
                 lastUsed := lastUsed.set! index now
                 continue
-              if !wire.isEmpty then
+              if let .record wire := polled then
                 let slot := (← liftM (slots.get : IO (Array (IO.Ref (Option Bytes))))).getD index kept
                 liftM (slot.set (some wire) : IO Unit)
                 let (next, alive) ← drainOne s
@@ -1904,8 +1818,7 @@ def main (arguments : List String) : IO Unit := do
                 s := next
                 saveState s
               if now ≥ lastUsed.getD index 0 + 25000 then
-                let random ← rpc.call .publicRandom []
-                insist (random.length == 32) "invalid joint randomness"
+                let random := (← Flow.Random.joint w).val
                 if official then
                   pings := pings + 1
                   sendPublic (toBytes (PublicReceive.ping (pings % 256) (toBits (random.take 4))))
@@ -1936,8 +1849,7 @@ def main (arguments : List String) : IO Unit := do
               if !s.pending then return pings
             else
               liftM (closing.set true : IO Unit)
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
+              let random := (← Flow.Random.joint w).val
               let id := 2 ^ 63 + pings
               sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
               liftM (keepalives.modify (· + 1) : IO Unit)
@@ -1945,18 +1857,16 @@ def main (arguments : List String) : IO Unit := do
           -- libsignal profile: 31 seconds without a record, then a WebSocket ping (libsignal-net
           -- `WS_KEEP_ALIVE_INTERVAL`; its payload is a one-byte ping counter from 1). The pong
           -- is a control frame the parser skips.
-          if official && s.upgraded && !(← TlsWorker.awaitRecord rpc kept 124 250) then
-            let random ← rpc.call .publicRandom []
-            insist (random.length == 32) "invalid joint randomness"
+          if official && s.upgraded && !(← Flow.Server.awaitRecord w kept 124 250) then
+            let random := (← Flow.Random.joint w).val
             sendPublic (toBytes (PublicReceive.ping ((pings + 1) % 256) (toBits (random.take 4))))
             liftM (keepalives.modify (· + 1) : IO Unit)
             waiting fuel s (pings + 1) expected
           else
           -- 25 seconds of agreed silence, then a keepalive.
-          if !official && s.upgraded && !(← TlsWorker.awaitRecord rpc kept 100 250) then
+          if !official && s.upgraded && !(← Flow.Server.awaitRecord w kept 100 250) then
             insist (!s.pending) "keepalive was not answered"
-            let random ← rpc.call .publicRandom []
-            insist (random.length == 32) "invalid joint randomness"
+            let random := (← Flow.Random.joint w).val
             let id := 2 ^ 63 + pings
             sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
             liftM (keepalives.modify (· + 1) : IO Unit)
@@ -1965,13 +1875,12 @@ def main (arguments : List String) : IO Unit := do
           match ← TlsApplication.receive app with
           | .application handle =>
             let (s, _) ← record handle.id s
-            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks rpc s))
+            let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks w s))
             for (kind, frame) in frames do
               sendPublic (toBytes frame)
               insist (kind != 8) "WebSocket peer closed before completion"
             for request in s.requests do
-              let random ← rpc.call .publicRandom []
-              insist (random.length == 32) "invalid joint randomness"
+              let random := (← Flow.Random.joint w).val
               let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
               -- A delivered message was dealt with (stored or refused) while its record was
               -- read; acknowledging it lets the server remove it from the queue.
@@ -2040,8 +1949,7 @@ def main (arguments : List String) : IO Unit := do
         let call (s : PublicReceive.State) (verb path : String) (headers : List String) (body : String) :
             M (PublicReceive.State × Lean.Json) := do
           let id ← nextId
-          let random ← rpc.call .publicRandom []
-          insist (random.length == 32) "invalid joint randomness"
+          let random := (← Flow.Random.joint w).val
           let request := PublicRequest.field 10 [.bytes (PublicRequest.text verb)] ++ PublicRequest.field 18 [.bytes (PublicRequest.text path)] ++
             (if body.isEmpty then [] else PublicRequest.field 26 [.bytes (PublicRequest.text body)]) ++
             [PublicRequest.Piece.bytes (32 :: PublicRequest.varint id)] ++
@@ -2098,7 +2006,7 @@ def main (arguments : List String) : IO Unit := do
           -- The password and the recovery password, made in the engines. This node's XOR shares
           -- are on disk before the request leaves: a crash cannot lose what the server accepted.
           -- (Plan 4.2 row 4: the operation's reply is this party's own; held as `Secret` from here.)
-          let shares := Secret.hide (← rpc.call .ceremonySecrets [])
+          let shares ← Flow.Ceremony.secrets w
           insist (shares.length == Ceremony.passwordBytes + Ceremony.recoveryBytes) "invalid ceremony shares"
           let passwordShare := shares.map (·.take Ceremony.passwordBytes)
           inBand (ch.saveShare directory .password passwordShare [])
@@ -2106,8 +2014,7 @@ def main (arguments : List String) : IO Unit := do
           let (basicText, tail) := Ceremony.basic phone
           let (before, after) := Ceremony.registrationBody session keys
           let id ← nextId
-          let random ← rpc.call .publicRandom []
-          insist (random.length == 32) "invalid joint randomness"
+          let random := (← Flow.Random.joint w).val
           let request := PublicRequest.field 10 [.bytes (PublicRequest.text "POST")] ++
             PublicRequest.field 18 [.bytes (PublicRequest.text "/v1/registration")] ++
             PublicRequest.field 26 [.bytes (PublicRequest.text before), .slot 1 44, .bytes (PublicRequest.text after)] ++
@@ -2120,10 +2027,8 @@ def main (arguments : List String) : IO Unit := do
           -- The request as the controllers know it: the two private slots are zero bytes.
           liftM (ch.record (.ceremonyRegister id (toBytes frame) (offsets.getD 0 0) (offsets.getD 1 0) payloadAt (random.take 4)))
           s ← keepAlive s
-          let handle ← rpc.call .ceremonyRegister (uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
-            random.take 4 ++ [UInt8.ofNat tail.length] ++ toBytes tail ++ toBytes frame)
-          insist (handle.length == 8 && number handle != 0) "invalid request handle"
-          TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+          let handle ← Flow.Ceremony.register w payloadAt offsets (random.take 4) (toBytes tail) (toBytes frame)
+          TlsApplication.send (← appNow) handle frame.length
           touch
           s ← awaitReply 64 (PublicReceive.expect s id)
           liftM (ch.record (.ceremonyResponse "POST /v1/registration" s.status))
@@ -2171,10 +2076,10 @@ def main (arguments : List String) : IO Unit := do
         return finished
     let outcome ← action.run
     if !outcome.isOk then
-      let _ ← (TlsWorker.emptyReply running.rpc .abort []).run
+      let _ ← (Flow.Tls.abortWorker w).run
       pure ()
     let verified ← certificate.get
-    let codes ← operations.get
+    let codes ← w.operations
     -- (A recovery session passes when it ended in results both parties agreed on; which
     -- operations it used depends on what happened to its contacts. Operation 15, the client's
     -- own KeyUpdate, is not used under the libsignal profile.)

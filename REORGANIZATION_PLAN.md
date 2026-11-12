@@ -1407,7 +1407,77 @@ Tests: Q, F, D.
 Depends on S5. **2 weeks.** Mechanical, but **a careful API review first**: the senior engineer
 writes the signatures, the other reviews them against sections 6.2 and 7.
 
----
+**Status (2026-11-12).** Done. The API review came first: the design and the full list of
+functions are at the top of `TlsMpc/Node/Flow.lean`, checked against every worker call site of
+the controller (117 lines naming the worker at `7bd9aa9`: 72 `.call`, 19 `Secret.inputOwn`, 9
+`emptyReply`, 8 `onConnection`, the TLS backends, transports and `connectVia`) before any moved.
+- **The API.** `TlsMpc/Node/Flow.lean` (imports only; the design section) over
+  `Flows/Context.lean` (`Flow.Worker`: the pipe, the operations used, the selected connection,
+  this party's randomness for S9's scripts; `w.on i` is connection i's view, selecting it first
+  with op 90 as `onConnection` did; the result types `Polled`, `FirstMessage`, `Received`) and
+  the legacy implementations `Flows/{Tls,Random,Upgrade,Contacts,Account,Send,Receive,Refresh,
+  Ceremony}Legacy.lean` through `Flows/Legacy.lean` (`Legacy.call/empty/inputOwn/handle`). Groups
+  as in 6.2: `Server.connect/poll/reset/awaitRecord`, `Tls.handshake/application/publicBuffer/
+  recordLength/revealRange/abortWorker` (+ `legacyBackend`, `legacyApplicationBackend`),
+  `Random.joint`, `Upgrade.anonymous/authenticated`, `Contacts.key/load/loadDevices/seal/evict/
+  assign/admitTest`, `Curve.prepareContacts`, `Account.key/load/seal/credentials/admitTest`,
+  `Send.seal/sealDevices/request/requestDevices`, `Receive.take/drop/openFirst/session`,
+  `Refresh.fetch/take/drop/shape/establish/scratchSeal/scratchCommit` (with `establishTail`, moved
+  from the controller), `Ceremony.secrets/register`, `Fixture.catalogue` (op 19, S7 removes it).
+  Inputs: `ContactId`, public values, `Secret`; outputs: `Opened r α`, `Secret`, buffer handles,
+  typed results; replies are parsed and checked in the flow with the controller's error texts.
+- **`Reveal.lean`**: `Opened` (private constructor, moved from `Types.lean`), one wrapper per kind
+  reached by a legacy flow (20; `maskedPassword` is returned as `Secret`), and the table of all 49 kinds (flow, what it reveals, bounding
+  theorem or "none yet"). `RevealKind` (Types.lean) has 49 constructors with fixed codes grouped
+  by tens (`code`, `all`, `codes_distinct`, `mem_all`, `code_ne_zero` by `decide`, restated in
+  `Security.lean` 7-reveal). Engine/Labels.lean's provisional codes are to be mapped to these.
+- **Controller:** 0 lines naming the worker (`scripts/lint_node.py` check `flow-calls`, on by
+  default: `.call`/`.pipe`/`.recording`, the old `TlsWorker` bindings, `TlsWorkerPipe.code`,
+  `Legacy.*`, `inputOwn` and `Reveal.*` only in `Flows/*Legacy.lean`, `Flows/Legacy.lean`,
+  `Secret.lean`, `Reveal.lean`, `Channels.lean` (op 39)).
+- **`TlsWorker.lean`**: no I/O site any more (baseline 8 → 3, only `TlsWorkerProcess`). Its
+  polling transports (`pollRecordLoop`, `applicationTransport`, `waitingTransport`, `awaitRecord`,
+  `applicationSession`) moved to the new `TlsMpc/TlsWorkerPoll.lean`, which only the two fixtures
+  that use them import (`NativeApplicationFixture`, `ProviderController`: one import line each);
+  the controller's copies are `Flow.Server.waitingTransport/awaitRecord`, with the clock and sleep
+  of `Channels.Real`. `backend`, `applicationBackend`, `transport`, `connect(Via)`,
+  `onConnection` stay in `TlsWorker.lean` for the fixtures; the controller no longer uses them.
+- **Deviations.** (1) The API namespace is `TlsMpc.Node.Flow` (singular): `TlsMpc.Node.Flows.*` is
+  S9's scripts (`Flows.Random.joint` is a script), and both must be importable together; files are
+  `Flows/<Group>Legacy.lean`. (2) Lean keywords: `open` → `Contacts.load`, `loadDevices`,
+  `Account.load`, `Receive.openFirst`; `public` → `Upgrade.anonymous`; `seal` is written `«seal»`
+  in its definitions (callers write `Flow.Contacts.seal`). (3) Kinds added to 4.3's list:
+  `handshakeShare` (op 1), `upgradeNonce` (op 45), `upgradeAccept` (op 32), `assignStatus` (op 52),
+  `prepareStatus` (op 66). (4) The TLS backends keep `TlsClient`/`TlsApplication`'s public-bytes
+  types: their openings pass through `Reveal.*` and are handed on as `.val` (typed in S12).
+  (5) Buffer handles stay `TlsWorker.BufferHandle` (S12: `Handle .boolean`); contacts are named by
+  id, not handle (the table is the implementation's). (6) The worker spawn stays in the controller
+  (S8/S9). (7) Behaviour: same operations, order, payloads, checks and error texts; on a malformed
+  op 41/61 reply only, the non-recovery send paths now check envelope lengths before storing the
+  contact's state instead of after (the session fails either way).
+- **`Security.lean`**: 7-reveal (`revealKind_codes_distinct`, `revealKind_mem_all`,
+  `revealKind_code_ne_zero`); in 4f `receivePolicy_envelope_payload_unrevealed` and, from
+  `Policy/ReceiveInvariant.lean`, `receivePolicy_request_envelope_safe`, `envRun_safe`,
+  `payloadByte_request_envelope/skip/more`, `payloadByte_reply_skip/more`, `frameByte_frame`; the
+  25 contact/account flow entries of the S5 draft (the S9 flow files built again); T1 (all streams)
+  stays open in section 8, reworded. 431 restatements, `check_axioms.py` OK.
+- **Checks.** After each step: controller build, `recovery-check` 29/29, `policy-check` 14/14,
+  `parse-bench`, lints 0 findings, `check_axioms.py` OK. Harness (`.deps/lowering-scratch/
+  s6_harness*.py`) after the TLS/Server/Random/Upgrade group and again after the rest, on a binary
+  built after the `frameByte`/`payloadByte` split of `Policy/Receive.lean`: the compact signup check
+  (3 devices); malicious and semi-honest `--runs 2 --signup`, malicious `--runs 0 --db` (all
+  `compare_records.py` equal to `tests/golden`); semi-honest `--runs 0 --app`; malicious
+  `--ceremony`; malicious `--runs 0 --recovery devices` (passed in the final set; in the first set
+  the server did not start, then the database nodes refused the run's request as expired, the error
+  already seen in two runs of 2026-11-11/12 before this stage).
+- **What S7 should know.** Every session function takes `w : Flow.Worker` (and `ch : Channels`);
+  `ch.exchange` is given `w.link`. Connection selection is `w.on i` (the selected index lives in
+  `w`, shared by all views). The final report's operation check reads `w.operations` (codes 15,
+  18, 37, 38, 41, 42, 43): a legacy artefact to replace by explicit session facts when the flows
+  move. `Flow.Tls.abortWorker` is the unrecorded op 8 of a failed session. The controller still
+  holds `TlsWorker.BufferHandle`, `TlsWorker.Proxy` (types only) and `running` (the spawn).
+  `Policy/ReceiveTest.lean`'s header says no executable imports it; the controller does
+  (`policy-check`, since S5).
 
 **S7. Session split.**
 

@@ -1,10 +1,6 @@
 {
  "about": "I/O primitive sites per file of the controller's import closure (scripts/lint_node.py, check io-baseline). A count may only go down. Rewrite with --update-baseline after a stage moved sites into TlsMpc/Node/Channels.lean.",
  "sites": {
-  "TlsMpc/TlsWorker.lean": {
-   "IO.monoMsNow": 3,
-   "IO.sleep": 2
-  },
   "TlsMpc/TlsWorkerProcess.lean": {
    "IO.FS.Stream.ofHandle": 2,
    "IO.Process.spawn": 1

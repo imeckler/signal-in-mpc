@@ -87,12 +87,19 @@ import TlsMpc.KernelSpecs.KemCompose
 import TlsMpc.Node.Engine.Model
 import TlsMpc.Node.Flows.Random
 import TlsMpc.Node.Flows.Upgrade
+import TlsMpc.Node.Flows.Contacts
+import TlsMpc.Node.Flows.ContactsTable
+import TlsMpc.Node.Flows.Account
+import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
 import TlsMpc.KernelSpecs.ParseWebSocketReplies
 import TlsMpc.KernelSpecs.ParseChatResponse
 import TlsMpc.Node.Policy.ReceiveProofs
+import TlsMpc.Node.Policy.ReceiveEnvelope
+import TlsMpc.Node.Policy.ReceiveInvariant
+import TlsMpc.Node.Types
 import Lean.Elab.Command
 
 /-!
@@ -4104,9 +4111,10 @@ too heavy for this one. **C**. SECURITY_MAP C.4. -/
 PublicServiceController.lean): it reveals a run first and checks it after. The functions it calls
 (`scan`, `replyScan`, `budget`, `mayReveal`, `passRun`, `passBulk`) are the controller's own
 (`TlsMpc/Node/Policy/Receive.lean`). `scanBody` / `replyScanBody` are the scanners' loop bodies
-written out, proved equal to the loops by `scan_eq` / `replyScan_eq`. Not proved here: the per-byte
-glue (that `step` keeps `request`/`reply` equal to the message so far and sets `skip` from the
-scanners' answer), and `T1` for every stream (checked by `ReceiveTest`). End-to-end runs of the loop
+written out, proved equal to the loops by `scan_eq` / `replyScan_eq`. The per-byte glue (that
+`step` keeps `request`/`reply` equal to the message so far and sets `skip` from the scanners'
+answer) is proved per byte in `Policy/ReceiveInvariant.lean` (below, "4f (continued)"); `T1` for
+every stream is not (section 8; checked by `ReceiveTest`). End-to-end runs of the loop
 on the two former too-long-varint counterexamples, `ReceiveTest.overlongRequest_refused` and
 `ReceiveTest.overlongResponse_refused` (`TlsMpc/Node/Policy/ReceiveTest.lean`), are not restated: that
 file is too heavy to import here. -/
@@ -4176,6 +4184,118 @@ theorem receivePolicy_response_body_unrevealed {lw iv sv mv msg bv : List Public
     PublicReceive.replyScan (ReceiveProofs.responseHead lw iv sv mv msg bv) false false =
       (.skip n, { id := some i, status := some st, body := some n }) :=
   ReceiveProofs.response_body_unrevealed hl hl10 hi hi10 hs hs10 hm hm10 hb hb10 hn
+
+/-- **No payload byte of a delivered envelope is revealed** (scanner level, every byte string `E`,
+the body of a delivered message). Every byte the envelope walk reveals has a public class in the
+reference `ReceiveSpec.envelope`: a key, a length or a varint value, never a field's payload, never
+a byte after the envelope left the protocol. **C** (`TlsMpc/Node/Policy/ReceiveEnvelope.lean`).
+SECURITY_MAP C.4. -/
+theorem receivePolicy_envelope_payload_unrevealed (E : List PublicReceive.Byte) :
+    ReceiveProofs.SafeFor (ReceiveProofs.envWalk [] 0 0 E) (ReceiveSpec.envelope (E.length + 1) E) :=
+  ReceiveProofs.envelope_payload_unrevealed E
+
+/-! #### 4f (continued). The controller's step, byte by byte (`Policy/ReceiveInvariant.lean`)
+
+`PublicReceive.step` is `frameByte` (the WebSocket frame layer) then `payloadByte` (the message's
+own fields), proved equal to the former `step`. `EnvAt s h p k r`: the controller is walking a
+delivered envelope (revealed bytes `h`, `p` payloads passed over, `k` bytes still to pass over, `r`
+bytes of the body left). `EnvRun s E F`: any sequence of the controller's moves over the body bytes
+`E` (revealed by `step`, passed over by `stepSkipped`, frame headers and control frames between
+fragments, stopping), `F` saying which body bytes were revealed. -/
+
+section ReceiveInvariant
+open PublicReceive ReceiveProofs TlsMpc.Signal
+open TlsMpc.KernelSpecs.ParseWebSocketFrame (Shaped eventBytes)
+
+/-- **A delivered message's envelope, end to end (controller level, every byte string).** At the
+byte that completes the body's length of a server request whose path is `/api/v1/message`, and
+over the body's `n` bytes `E`, whatever the controller's moves (`EnvRun`), every body byte it
+reveals has a public class in the reference's reading of that body (`ReceiveSpec.requestBody` of
+`/api/v1/message`: an envelope): a key, a length or a varint value, never a field's payload.
+**C** (the moves are the controller's own `step`/`stepSkipped`). SECURITY_MAP C.4. -/
+theorem receivePolicy_request_envelope_safe {s s' : State} {b : Byte} {done : Bool} {flags : List Byte} {c : Bool}
+    {n : Nat} {f : Fields} {E : List Byte} {F : List Bool} (hm : s.message = [8, 1]) (hi : s.inner = none)
+    (hs : s.skip = 0)
+    (hscan : scan (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) s.bodySkipped = (.skip n, f))
+    (hpath : (f.path == "/api/v1/message".toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)) = true)
+    (hok : payloadByte s b true done false flags = .ok (s', c)) (hE : E.length = n) (hrun : EnvRun s' E F) :
+    f.path = ReceiveSpec.messagePath ∧ SafeFor F (ReceiveSpec.requestBody f.path E) :=
+  ReceiveProofs.request_envelope_safe hm hi hs hscan hpath hok hE hrun
+
+/-- **No payload byte of a delivered envelope is revealed (controller level).** From the state in
+which the controller starts walking an envelope of `E.length` bytes (`EnvAt s [] 0 0 E.length`),
+whatever moves it makes over the body (`EnvRun`), every revealed body byte has a public class in
+`ReceiveSpec.envelope`. **C**. SECURITY_MAP C.4. -/
+theorem receivePolicy_envRun_safe {s : State} {E : List Byte} {F : List Bool} (hs : EnvAt s [] 0 0 E.length)
+    (h : EnvRun s E F) : SafeFor F (ReceiveSpec.envelope (E.length + 1) E) :=
+  ReceiveProofs.envRun_safe hs h
+
+/-- **The envelope walk starts where `scan` finds a `/api/v1/message` body:** at the byte completing
+the body's length, `EnvAt s' [] 0 0 n` with `n` the body's length. **C**. -/
+theorem receivePolicy_payloadByte_request_envelope {s s' : State} {b : Byte} {done : Bool} {flags : List Byte}
+    {c : Bool} {n : Nat} {f : Fields} (hm : s.message = [8, 1]) (hi : s.inner = none) (hs : s.skip = 0)
+    (hscan : scan (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) s.bodySkipped = (.skip n, f))
+    (hpath : (f.path == "/api/v1/message".toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)) = true)
+    (hok : payloadByte s b true done false flags = .ok (s', c)) :
+    EnvAt s' [] 0 0 n ∧ s'.request = (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) :=
+  ReceiveProofs.payloadByte_request_envelope hm hi hs hscan hpath hok
+
+/-- **`skip` is set to a server request's body length exactly when `scan` asks to pass over it**
+(a body other than a delivered message's, which is walked). **C**. -/
+theorem receivePolicy_payloadByte_request_skip {s s' : State} {b : Byte} {done : Bool} {flags : List Byte} {c : Bool}
+    {n : Nat} {f : Fields} (hm : s.message = [8, 1]) (hi : s.inner = none)
+    (hscan : scan (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) s.bodySkipped = (.skip n, f))
+    (hpath : (f.path == "/api/v1/message".toUTF8.data.toList.map (fun b => BitVec.ofNat 8 b.toNat)) = false)
+    (hok : payloadByte s b true done false flags = .ok (s', c)) :
+    s'.skip = n ∧ 0 < n ∧ s'.inner = none ∧ s'.message = [8, 1] ∧ s'.bodySkipped = true ∧
+      s'.request = (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) :=
+  ReceiveProofs.payloadByte_request_skip hm hi hscan hpath hok
+
+/-- **`scan` asks for more:** the byte joins the request's revealed bytes; nothing to pass over, no
+envelope. **C**. -/
+theorem receivePolicy_payloadByte_request_more {s s' : State} {b : Byte} {done : Bool} {flags : List Byte} {c : Bool}
+    {f : Fields} (hm : s.message = [8, 1]) (hi : s.inner = none)
+    (hscan : scan (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) s.bodySkipped = (.more, f))
+    (hok : payloadByte s b true done false flags = .ok (s', c)) :
+    s'.skip = s.skip ∧ s'.inner = none ∧
+      (done = false → s'.request = (if s.request.isEmpty = true then [8, 1] else s.request ++ [b]) ∧
+        s'.message = [8, 1] ∧ s'.bodySkipped = s.bodySkipped) :=
+  ReceiveProofs.payloadByte_request_more hm hi hscan hok
+
+/-- **`skip` is set to a response body's length exactly when `replyScan` asks to pass over it**
+(the message not ending at this byte). **C**. -/
+theorem receivePolicy_payloadByte_reply_skip {s s' : State} {b : Byte} {flags : List Byte} {c : Bool}
+    {n : Nat} {f : ReplyFields} (hm : s.message = [8, 2])
+    (hscan : replyScan (if s.reply.isEmpty = true then [8, 2] else s.reply ++ [b]) s.replySkipped s.openBody =
+      (.skip n, f))
+    (hok : payloadByte s b true false false flags = .ok (s', c)) :
+    s'.skip = n ∧ s'.reply = (if s.reply.isEmpty = true then [8, 2] else s.reply ++ [b]) ∧
+      s'.replySkipped = true ∧ s'.message = [8, 2] :=
+  ReceiveProofs.payloadByte_reply_skip hm hscan hok
+
+/-- **`replyScan` asks for more:** the byte joins the response's revealed bytes; `skip` is
+unchanged. **C**. -/
+theorem receivePolicy_payloadByte_reply_more {s s' : State} {b : Byte} {flags : List Byte} {c : Bool}
+    {f : ReplyFields} (hm : s.message = [8, 2])
+    (hscan : replyScan (if s.reply.isEmpty = true then [8, 2] else s.reply ++ [b]) s.replySkipped s.openBody =
+      (.more, f))
+    (hok : payloadByte s b true false false flags = .ok (s', c)) :
+    s'.skip = s.skip ∧ s'.reply = (if s.reply.isEmpty = true then [8, 2] else s.reply ++ [b]) ∧
+      s'.replySkipped = s.replySkipped ∧ s'.message = [8, 2] :=
+  ReceiveProofs.payloadByte_reply_more hm hscan hok
+
+/-- **The frame parser's state is kept by `step`'s frame side** (once upgraded): if the controller's
+frame state serialises a shaped reference state `S`, after a revealed byte `b` it serialises
+`TlsWebSocketFrame.step S b`, and `payloadByte` is given that step's event. **C**. -/
+theorem receivePolicy_frameByte_frame {s s1 : State} {b : Byte} {ev : List Byte} {S : TlsWebSocketFrame.State Byte}
+    (hu : s.upgraded = true) (hf : s.frame = TlsWebSocketFrame.stateBytes S) (hS : Shaped S)
+    (h : frameByte s b = .ok (s1, ev)) :
+    s1.frame = TlsWebSocketFrame.stateBytes (TlsWebSocketFrame.step fast capacity S b).state ∧
+      ev = eventBytes (TlsWebSocketFrame.step fast capacity S b) ∧
+      Shaped (TlsWebSocketFrame.step fast capacity S b).state :=
+  ReceiveProofs.frameByte_frame hu hf hS h
+
+end ReceiveInvariant
 
 /-- **Fail closed: a too-long varint after a key is refused** (`scan`'s loop, at the varint's 10th
 byte: `malformed`). **C**. SECURITY_MAP C.4. -/
@@ -4674,9 +4794,9 @@ theorem offsetAgreement_candidate_needs_initial {G : Type} [Lean.Grind.IntModule
 /-! ## 7. Flows and channels
 
 The first flow theorems are in 7a (stage S9: T12, the open rule, P-RAND, T4-UPGRADE, about the
-model). The contact and account flows' T3/T4-CONTACT/T10 theorems (`Flows/Contacts*.lean`,
-`Account.lean`, under `Contacts.Loaded`) are to be restated here once those files build again (their
-engine dependency was being changed when stage S5 ended). The channels: 7-channels (stage S5; T9
+model) and the contact and account flows' T3/T4-CONTACT/T10 theorems (`Flows/Contacts*.lean`,
+`Account.lean`, under `Contacts.Loaded`; restated in stage S6 from the S5 draft). The flow API and
+the reveal list: 7-reveal (stage S6). The channels: 7-channels (stage S5; T9
 by type). The other flows have none yet (T3, T4-x, T11, section 8). Below: a structural fact about the TLS client. -/
 
 open TlsMpc.TlsClient in
@@ -4710,6 +4830,31 @@ session ends. **C**. -/
 theorem peerMsg_reply_kind {mine reply : TlsMpc.Node.PeerMsg} {theirs : TlsMpc.TlsWire.Bytes}
     (h : TlsMpc.Node.PeerMsg.decodeReply mine theirs = .ok reply) : reply.name = mine.name :=
   TlsMpc.Node.PeerMsg.decodeReply_kind h
+
+/-! ### 7-reveal. The flow API and the reveal list (stage S6; plan sections 2.1, 4.3, 6.2)
+
+`TlsMpc/Node/Flow.lean` is the only way the controller reaches the engines: one function per worker
+operation, with typed inputs (`ContactId`, public values, `Secret`) and outputs (`Opened r α`,
+`Secret`, buffer handles). `TlsMpc/Node/Reveal.lean` is the list of everything a flow may open,
+one function per kind; `Opened`'s constructor is private there, so a value of type `Opened r α` was
+made by `r`'s function (by the type system, **C**, not a theorem), and the lint's `flow-calls` check
+allows those functions, the worker pipe and `Secret.inputOwn` only in the legacy flow
+implementations. Each function's docstring names the theorems above that bound its kind (or "none
+yet"). The flows are still worker operations (C++, trusted); T3/T4 per flow come with their scripts
+(S9-S16). -/
+
+/-- **The reveal kinds' codes are pairwise distinct** (so a code, and the engine label mapped to it,
+names its kind). **C**, by `decide`. -/
+theorem revealKind_codes_distinct : (TlsMpc.Node.RevealKind.all.map TlsMpc.Node.RevealKind.code).Nodup :=
+  TlsMpc.Node.RevealKind.codes_distinct
+
+/-- **`RevealKind.all` lists every kind.** **C**, by `decide`. -/
+theorem revealKind_mem_all (r : TlsMpc.Node.RevealKind) : r ∈ TlsMpc.Node.RevealKind.all :=
+  TlsMpc.Node.RevealKind.mem_all r
+
+/-- **No kind has code 0** (the engine refuses label 0). **C**, by `decide`. -/
+theorem revealKind_code_ne_zero (r : TlsMpc.Node.RevealKind) : r.code ≠ 0 :=
+  TlsMpc.Node.RevealKind.code_ne_zero r
 
 /-! ### 7a. The engine instruction set, its model, and the first flows (stage S9)
 
@@ -4856,6 +5001,304 @@ theorem upgrade_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Na
 
 end FlowsUpgrade
 
+/-! ### 7a (continued). Contact and account state at rest (stage S9)
+
+`TlsMpc/Node/Flows/Contacts.lean` (`Contacts.key`, `Contacts.seal`, `Contacts.open`: ops 36, 38,
+37), `ContactsTable.lean` (the per-contact table, ops 36–38, 40, 52, 63), `Account.lean` (ops 53,
+54) and `ContactsWrite.lean` (T10: a state write's fresh nonce). **Trust:** statements about the
+ideal model `Engine/Model.lean`, as the rest of 7a; besides, the honest-run and seal/open disclosure
+entries assume `Loaded E`: the environment's circuits named `contact-key`, `contact-seal N`,
+`contact-open N` compute the Lean kernels (section 8, T2). Nothing else about the engines is
+assumed. -/
+
+section FlowsContacts
+open TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+
+/-! #### Well-formedness: the shell's `check` accepts every instruction -/
+
+/-- **`Contacts.key` is well formed** from any context whose handle counter `n` is fresh, when the
+signature table gives `contact-key` its widths and marks. -/
+theorem contacts_keyScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n slot : Nat) (hf : Fresh c n)
+    (hsig : sigs keyName = some ⟨512, keyMarks⟩) : WF sigs c (keyScript n slot) :=
+  TlsMpc.Node.Flows.Contacts.keyScript_wf sigs c n slot hf hsig
+
+/-- **`Contacts.seal` is well formed** on every branch, with the key (480 bits) and state (8·size
+bits) handles live below a fresh counter. -/
+theorem contacts_sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key state : BoolH) (size : Nat)
+    (version : B8) (km sm : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hsn : state.id < n)
+    (hk : c.bool? key = some ⟨km, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hkm : km.length = 480) (hsm : sm.length = 8 * size)
+    (hsig : sigs (sealName size) = some ⟨8 * (68 + size), sealMarks size⟩) :
+    WF sigs c (sealScript n key state size version) :=
+  TlsMpc.Node.Flows.Contacts.sealScript_wf sigs c n key state size version km sm hf hkn hsn hk hs hkm hsm hsig
+
+/-- **`Contacts.open` is well formed** on every branch, with the key handle live below a fresh
+counter. -/
+theorem contacts_openScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (key : BoolH)
+    (version check ct : B8)
+    (km : List Mark) (hf : Fresh c n) (hkn : key.id < n) (hk : c.bool? key = some ⟨km, false⟩)
+    (hkm : km.length = 480)
+    (hsig : sigs (openName ct.length) = some ⟨8 * (84 + ct.length), openMarks ct.length⟩) :
+    WF sigs c (openScript n key version check ct) :=
+  TlsMpc.Node.Flows.Contacts.openScript_wf sigs c n key version check ct km hf hkn hk hkm hsig
+
+/-! #### T3: what each operation releases, against any adversary -/
+
+/-- **T3 for `Contacts.key`.** Nothing is released, to either party. -/
+theorem contacts_key_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n slot : Nat) :
+    (withAdv E me adv (keyScript n slot) σ I vD).viewD = [] ∧
+      (withAdv E me adv (keyScript n slot) σ I vD).viewH = [] :=
+  TlsMpc.Node.Flows.Contacts.key_disclosure E me adv σ I vD n slot
+
+/-- **T3 for `Contacts.seal`.** At most one release, labelled `sealedBlob`: the `contact-seal`
+kernel's output (ciphertext ‖ check) on the key handle's value, the public version and the state
+handle's value. -/
+theorem contacts_seal_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (n : Nat) (key state : BoolH) (size : Nat) (version : B8)
+    (k s : Bits) (hkn : key.id < n) (hsn : state.id < n) (hk : I.bools key.id = some k)
+    (hs : I.bools state.id = some s) :
+    (withAdv E me adv (sealScript n key state size version) σ I vD).viewD <+:
+      [⟨sealedBlob, .bits (bitsOf (kernelOut (HybridKernel.contactSeal size) (bytesOf (k ++ (bitsOf version ++ s)))))⟩] :=
+  TlsMpc.Node.Flows.Contacts.seal_disclosure E me adv σ I vD hE n key state size version k s hkn hsn hk hs
+
+/-- **T3 for `Contacts.open`.** At most one release, labelled `blobAccepted`: the first byte of the
+`contact-open` kernel's output (its `accepted` field). The content never leaves the engines. -/
+theorem contacts_open_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (n : Nat) (key : BoolH) (version check ct : B8) (k : Bits)
+    (hkn : key.id < n) (hk : I.bools key.id = some k) :
+    (withAdv E me adv (openScript n key version check ct) σ I vD).viewD <+:
+      [⟨blobAccepted, .bits ((bitsOf (kernelOut (HybridKernel.contactOpen ct.length)
+        (bytesOf (k ++ bitsOf (version ++ ct ++ check))))).take 8)⟩] :=
+  TlsMpc.Node.Flows.Contacts.open_disclosure E me adv σ I vD hE n key version check ct k hkn hk
+
+/-- **What an open releases is one bit of information:** for a 60-byte key and well-formed
+arguments, the released byte is `contactMask K check`, 255 when `check` is this key's check value
+and 0 otherwise (`contactMask_accept_iff`). -/
+theorem contacts_open_released_byte (K version check ct : B8) (hK : K.length = 60)
+    (hargs : openArgsOk version check ct) :
+    (bitsOf (kernelOut (HybridKernel.contactOpen ct.length)
+      (bytesOf (bitsOf K ++ bitsOf (version ++ ct ++ check))))).take 8 =
+      bitsOf [HybridKernel.contactMask K check] :=
+  TlsMpc.Node.Flows.Contacts.open_released_byte K version check ct hK hargs
+
+/-- **T3 for op 36 on the table.** Nothing is released. -/
+theorem contactsTable_opKey_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Table) (id slot : Nat) :
+    (withAdv E me adv (opKey t id slot).script σ I vD).viewD = [] ∧
+      (withAdv E me adv (opKey t id slot).script σ I vD).viewH = [] :=
+  TlsMpc.Node.Flows.Contacts.opKey_disclosure E me adv σ I vD t id slot
+
+/-- **T3 for op 38 on the table.** At most the sealed blob of the entry's key and state handles. -/
+theorem contactsTable_opSeal_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (t : Table) (id : Nat) (version : B8) (e : Entry) (k s : BoolH)
+    (kv sv : Bits) (he : t.find? id = some e) (hk : e.key = some k) (hs : e.state = some s)
+    (hkn : k.id < t.next) (hsn : s.id < t.next) (hkv : I.bools k.id = some kv) (hsv : I.bools s.id = some sv) :
+    (withAdv E me adv (opSeal t id version).script σ I vD).viewD <+:
+      [⟨sealedBlob, .bits (bitsOf (kernelOut (HybridKernel.contactSeal e.size) (bytesOf (kv ++ (bitsOf version ++ sv)))))⟩] :=
+  TlsMpc.Node.Flows.Contacts.opSeal_disclosure E me adv σ I vD hE t id version e k s kv sv he hk hs hkn hsn hkv hsv
+
+/-- **T3 for ops 37 and 63 on the table.** At most the `accepted` byte; freeing the derived caches
+first releases nothing. -/
+theorem contactsTable_opOpen_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (t : Table) (id : Nat) (kinds : List Nat) (version check ct : B8)
+    (e : Entry) (k : BoolH) (kv : Bits) (he : t.find? id = some e) (hk : e.key = some k) (hs : e.state = none)
+    (hkn : k.id < t.next) (hkv : I.bools k.id = some kv)
+    (hd : ∀ h ∈ e.derived, h.id ≠ k.id) :
+    (withAdv E me adv (opOpen t id kinds version check ct).script σ I vD).viewD <+:
+      [⟨blobAccepted, .bits ((bitsOf (kernelOut (HybridKernel.contactOpen ct.length)
+        (bytesOf (kv ++ bitsOf (version ++ ct ++ check))))).take 8)⟩] :=
+  TlsMpc.Node.Flows.Contacts.opOpen_disclosure E me adv σ I vD hE t id kinds version check ct e k kv he hk hs hkn hkv hd
+
+/-- **T3 for op 40 (evict).** Nothing is released. -/
+theorem contactsTable_opEvict_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Table) (id : Nat) :
+    (withAdv E me adv (opEvict t id).script σ I vD).viewD = [] ∧
+      (withAdv E me adv (opEvict t id).script σ I vD).viewH = [] :=
+  TlsMpc.Node.Flows.Contacts.opEvict_disclosure E me adv σ I vD t id
+
+/-- **T3 for op 52 (assign a new id).** Nothing is released. -/
+theorem contactsTable_opAssign_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Table) (fromId toId : Nat) :
+    (withAdv E me adv (opAssign t fromId toId).script σ I vD).viewD = [] ∧
+      (withAdv E me adv (opAssign t fromId toId).script σ I vD).viewH = [] :=
+  TlsMpc.Node.Flows.Contacts.opAssign_disclosure E me adv σ I vD t fromId toId
+
+/-- **Op 40 is well formed** when the entry's handles are live and distinct. -/
+theorem contactsTable_opEvict_wf (sigs : Bytes → Option Sig) (c : Ctx) (t : Table) (id : Nat) (e : Entry)
+    (he : t.find? id = some e) (hn : (e.handles.map (·.id)).Nodup)
+    (hl : ∀ h ∈ e.handles, (c.bool? h).isSome = true) : WF sigs c (opEvict t id).script :=
+  TlsMpc.Node.Flows.Contacts.opEvict_wf sigs c t id e he hn hl
+
+/-- **T3 for op 53 (`Account.key`, which is `Contacts.key`).** Nothing is released. -/
+theorem account_accountKey_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n slot : Nat) :
+    (withAdv E me adv (Account.keyScript n slot) σ I vD).viewD = [] ∧
+      (withAdv E me adv (Account.keyScript n slot) σ I vD).viewH = [] :=
+  TlsMpc.Node.Flows.Account.accountKey_disclosure E me adv σ I vD n slot
+
+/-- **T3 for op 54's seal.** At most one release, labelled `sealedBlob`: the `contact-seal` kernel's
+output on the key, the version and the content scalar ‖ credentials ‖ certificate. -/
+theorem account_accountSeal_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (n : Nat) (key scalar cred cert : BoolH) (certLen : Nat)
+    (version : B8) (kv sv cv tv : Bits) (hkn : key.id < n)
+    (hk : I.bools key.id = some kv) (hs : I.bools scalar.id = some sv)
+    (hc : I.bools cred.id = some cv) (ht : I.bools cert.id = some tv) :
+    (withAdv E me adv (Account.sealScript n key scalar cred cert certLen version) σ I vD).viewD <+:
+      [Account.released certLen version kv sv cv tv] :=
+  TlsMpc.Node.Flows.Account.accountSeal_disclosure E me adv σ I vD hE n key scalar cred cert certLen version
+    kv sv cv tv hkn hk hs hc ht
+
+/-- **T3 for op 54, stored credentials.** At most one release, labelled `sealedBlob`, as
+`account_accountSeal_disclosure`. -/
+theorem account_opSeal_disclosure_stored (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (hE : Loaded E) (a : Account.State) (n : Nat) (version : B8)
+    (k s cr cert : BoolH) (len : Nat) (kv sv cv tv : Bits)
+    (hk : a.key = some k) (hs : a.scalar = some s) (ht : a.certificate = some (cert, len))
+    (hcr : a.credentials = some cr)
+    (hkn : k.id < n)
+    (hkv : I.bools k.id = some kv) (hsv : I.bools s.id = some sv) (hcv : I.bools cr.id = some cv)
+    (htv : I.bools cert.id = some tv) :
+    (withAdv E me adv (Account.opSeal a n version).1 σ I vD).viewD <+: [Account.released len version kv sv cv tv] :=
+  TlsMpc.Node.Flows.Account.opSeal_disclosure_stored E me adv σ I vD hE a n version k s cr cert len kv sv cv tv
+    hk hs ht hcr hkn hkv hsv hcv htv
+
+/-- **T3 for op 54, credentials from the two shares.** Their XOR stays in the engines; at most one
+release, labelled `sealedBlob`: the value of the seal kernel's output handle. (No `Loaded`
+hypothesis; the `xor-bit` circuit is not one of the `Loaded` kernels.) -/
+theorem account_opSeal_disclosure_shares (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (a : Account.State) (n : Nat) (version : B8)
+    (k s cert ca cb : BoolH) (len : Nat)
+    (hk : a.key = some k) (hs : a.scalar = some s) (ht : a.certificate = some (cert, len))
+    (hcr : a.credentials = none) (hsh : a.shares = some (ca, cb)) :
+    (withAdv E me adv (Account.opSeal a n version).1 σ I vD).viewD <+:
+      [⟨sealedBlob, .bits (openedAfter E (Account.combineBlock n ca cb ++
+        Account.accountBlock (n + 3) k s ⟨n + 2⟩ cert len version) ⟨n + 3 + 3⟩ I)⟩] :=
+  TlsMpc.Node.Flows.Account.opSeal_disclosure_shares E me adv σ I vD a n version k s cert ca cb len hk hs ht hcr hsh
+
+/-! #### T4-CONTACT: two honest parties -/
+
+/-- **T4 for `Contacts.key`.** Two honest parties with shares `a` (A) and `b` (B) below the
+modulus: the key handle `n + 3` holds `contactKey_spec`'s block (SHA-256's first 28 bytes of
+"CONTACT_STATE_KEY_V1" ‖ le32((a + b) mod (2^255 − 19)) after 32 zero bytes); handles below `n` are
+untouched. -/
+theorem contacts_key_honest (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal) (n slotA slotB : Nat)
+    (a b : B8)
+    (ha : a.length = 32) (hb : b.length = 32)
+    (haB : ModAdd.leValue a < HybridKernel.shareModulus) (hbB : ModAdd.leValue b < HybridKernel.shareModulus)
+    (hσA : σA.bits slotA = bitsOf a) (hσB : σB.bits slotB = bitsOf b) :
+    (jointRun E (keyScript n slotA) (keyScript n slotB) σA σB I).result = some (⟨n + 3⟩, ⟨n + 3⟩) ∧
+    (jointRun E (keyScript n slotA) (keyScript n slotB) σA σB I).ideal.bools (n + 3) =
+      some (bitsOf (keyBlock a b)) ∧
+    ∀ j, j < n → (jointRun E (keyScript n slotA) (keyScript n slotB) σA σB I).ideal.bools j = I.bools j :=
+  TlsMpc.Node.Flows.Contacts.key_honest E σA σB hE I n slotA slotB a b ha hb haB hbB hσA hσB
+
+/-- **T4 for `Contacts.seal`.** Both honest parties return checkOf K ‖ ctrOf K version S
+(`contactSeal_spec`). -/
+theorem contacts_seal_honest (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal) (n : Nat)
+    (key state : BoolH) (size : Nat) (version K S : B8)
+    (hkn : key.id < n) (hsn : state.id < n) (hK : K.length = 60) (hS : S.length = size)
+    (h0 : 0 < size) (h1 : size ≤ 16384) (hv : versionOk version = true)
+    (hk : I.bools key.id = some (bitsOf K)) (hs : I.bools state.id = some (bitsOf S)) :
+    (jointRun E (sealScript n key state size version) (sealScript n key state size version) σA σB I).result =
+      some (sealed K version S, sealed K version S) :=
+  TlsMpc.Node.Flows.Contacts.seal_honest E σA σB hE I n key state size version K S hkn hsn hK hS h0 h1 hv hk hs
+
+/-- **T4 for `Contacts.open`.** Accepted iff `check = checkOf K`: then the state handle `n + 4`
+holds ctrOf K version ct; otherwise the result is `none` and the content handle is freed. -/
+theorem contacts_open_honest (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal) (n : Nat) (key : BoolH)
+    (version check ct K : B8)
+    (hkn : key.id < n) (hK : K.length = 60) (hk : I.bools key.id = some (bitsOf K))
+    (hargs : openArgsOk version check ct) :
+    (check = HybridKernel.checkOf K →
+      (jointRun E (openScript n key version check ct) (openScript n key version check ct) σA σB I).result =
+        some (some ⟨n + 4⟩, some ⟨n + 4⟩) ∧
+      (jointRun E (openScript n key version check ct) (openScript n key version check ct) σA σB I).ideal.bools
+        (n + 4) = some (bitsOf (HybridKernel.ctrOf K version ct))) ∧
+    (check ≠ HybridKernel.checkOf K →
+      (jointRun E (openScript n key version check ct) (openScript n key version check ct) σA σB I).result =
+        some (none, none) ∧
+      (jointRun E (openScript n key version check ct) (openScript n key version check ct) σA σB I).ideal.bools
+        (n + 4) = none) :=
+  TlsMpc.Node.Flows.Contacts.open_honest E σA σB hE I n key version check ct K hkn hK hk hargs
+
+/-- **Opening what was sealed returns the sealed state:** opening `sealed K version S` (check value,
+then ciphertext) under the same key accepts and the state handle holds `S`. -/
+theorem contacts_open_after_seal (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal) (n : Nat) (key : BoolH)
+    (version K S : B8)
+    (hkn : key.id < n) (hK : K.length = 60) (hk : I.bools key.id = some (bitsOf K))
+    (hv : versionOk version = true) (hS0 : 0 < S.length) (hS1 : S.length ≤ 16384) :
+    (jointRun E (openScript n key version ((sealed K version S).take 16) ((sealed K version S).drop 16))
+        (openScript n key version ((sealed K version S).take 16) ((sealed K version S).drop 16)) σA σB I).result =
+      some (some ⟨n + 4⟩, some ⟨n + 4⟩) ∧
+    (jointRun E (openScript n key version ((sealed K version S).take 16) ((sealed K version S).drop 16))
+        (openScript n key version ((sealed K version S).take 16) ((sealed K version S).drop 16)) σA σB I).ideal.bools
+        (n + 4) = some (bitsOf S) :=
+  TlsMpc.Node.Flows.Contacts.open_after_seal E σA σB hE I n key version K S hkn hK hk hv hS0 hS1
+
+/-- **Key, seal, then open in a later session:** a state sealed under the key derived from shares
+`a`, `b` is opened, under a key derived again from the same shares (other slots, other stores), to
+the same state. -/
+theorem contacts_key_seal_open (E : Env) (σA σB : Store) (hE : Loaded E) (τA τB : Store) (I₁ I₂ : Ideal)
+    (n m slotA slotB slotA' slotB' : Nat)
+    (st : BoolH) (a b version S : B8) (ha : a.length = 32) (hb : b.length = 32)
+    (haB : ModAdd.leValue a < HybridKernel.shareModulus) (hbB : ModAdd.leValue b < HybridKernel.shareModulus)
+    (hσA : σA.bits slotA = bitsOf a) (hσB : σB.bits slotB = bitsOf b)
+    (hτA : τA.bits slotA' = bitsOf a) (hτB : τB.bits slotB' = bitsOf b)
+    (hst : st.id < n) (hS : I₁.bools st.id = some (bitsOf S)) (hv : versionOk version = true)
+    (hS0 : 0 < S.length) (hS1 : S.length ≤ 16384) :
+    (jointRun E (sealScript (n + 4) ⟨n + 3⟩ st S.length version) (sealScript (n + 4) ⟨n + 3⟩ st S.length version)
+        σA σB (jointRun E (keyScript n slotA) (keyScript n slotB) σA σB I₁).ideal).result =
+      some (sealed (keyBlock a b) version S, sealed (keyBlock a b) version S) ∧
+    (jointRun E
+        (openScript (m + 4) ⟨m + 3⟩ version ((sealed (keyBlock a b) version S).take 16)
+          ((sealed (keyBlock a b) version S).drop 16))
+        (openScript (m + 4) ⟨m + 3⟩ version ((sealed (keyBlock a b) version S).take 16)
+          ((sealed (keyBlock a b) version S).drop 16))
+        τA τB (jointRun E (keyScript m slotA') (keyScript m slotB') τA τB I₂).ideal).result =
+      some (some ⟨m + 4 + 4⟩, some ⟨m + 4 + 4⟩) ∧
+    (jointRun E
+        (openScript (m + 4) ⟨m + 3⟩ version ((sealed (keyBlock a b) version S).take 16)
+          ((sealed (keyBlock a b) version S).drop 16))
+        (openScript (m + 4) ⟨m + 3⟩ version ((sealed (keyBlock a b) version S).take 16)
+          ((sealed (keyBlock a b) version S).drop 16))
+        τA τB (jointRun E (keyScript m slotA') (keyScript m slotB') τA τB I₂).ideal).ideal.bools (m + 4 + 4) =
+      some (bitsOf S) :=
+  TlsMpc.Node.Flows.Contacts.key_seal_open E σA σB hE τA τB I₁ I₂ n m slotA slotB slotA' slotB' st a b version S
+    ha hb haB hbB hσA hσB hτA hτB hst hS hv hS0 hS1
+
+/-- **T4 for `Account.key`** (it is `Contacts.key`): the account key handle holds the block of
+`contactKey_spec` from the two shares. -/
+theorem account_accountKey_honest (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal) (n slotA slotB : Nat)
+    (a b : B8)
+    (ha : a.length = 32) (hb : b.length = 32)
+    (haB : ModAdd.leValue a < HybridKernel.shareModulus) (hbB : ModAdd.leValue b < HybridKernel.shareModulus)
+    (hσA : σA.bits slotA = bitsOf a) (hσB : σB.bits slotB = bitsOf b) :
+    (jointRun E (Account.keyScript n slotA) (Account.keyScript n slotB) σA σB I).ideal.bools (n + 3) =
+      some (bitsOf (keyBlock a b)) :=
+  TlsMpc.Node.Flows.Account.accountKey_honest E σA σB hE I n slotA slotB a b ha hb haB hbB hσA hσB
+
+/-! #### T10: a state write's nonce (`ContactsWrite.lean`) -/
+
+/-- **T10 (the worker flows' part).** Against any adversary and any engine state: a write's nonce
+is a valid version (8 bytes, not 2^64 − 1) not used before in the session, and its blob is the
+nonce followed by the seal's reply (check ‖ ciphertext of the opened `sealedBlob` bundle). The
+database write itself is the controller's. -/
+theorem contactsWrite_write_fresh (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release)
+    (nonceSlot valueSlot : Nat) (used : List B8) (n : Nat) (key state : BoolH) (size : Nat) (x : B8 × B8)
+    (h : (withAdv E me adv (writeScript E.hash me nonceSlot valueSlot used n key state size) σ I vD).result = some x) :
+    versionOk x.1 = true ∧ x.1 ∉ used ∧ ∃ out : Bits, x.2 = x.1 ++ sealReply size out :=
+  TlsMpc.Node.Flows.Contacts.write_fresh E me adv σ I vD nonceSlot valueSlot used n key state size x h
+
+/-- **State nonces never repeat within a session:** adding each write's nonce keeps the session's
+list duplicate free. -/
+theorem contactsWrite_used_nodup (used : List B8) (v : B8) (hu : used.Nodup) (hv : v ∉ used) :
+    (useNonce used v).Nodup :=
+  TlsMpc.Node.Flows.Contacts.used_nodup used v hu hv
+
+end FlowsContacts
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -4927,13 +5370,23 @@ the matching section above in the same commit.
   field engine (the curve computations whose outputs `rx`, `ry` and the agreements are inputs
   here). → **P6**.
 * **T3** — disclosure per flow: the released values in any trace of a flow are exactly the
-  listed `Reveal` kinds on the listed handles. → **S9–S16** (one per flow).
+  listed `Reveal` kinds on the listed handles. The list exists since S6 (`TlsMpc/Node/Reveal.lean`,
+  section 7-reveal: every `Opened` value is made there, each kind's docstring names its bounding
+  theorems or "none yet"); behind each flow is still a C++ worker operation. → **S9–S16** (one per
+  flow).
 
 ### The controller
-* **T1** — server-byte reveal policy: for every byte stream and every non-throwing run of
-  `budget`/`mayReveal`/`step`/`stepPassed`/`stepSkipped`, the revealed positions are disjoint
-  from the reference classifier's hidden set (request bodies, response bodies unless `openBody`,
-  envelope payloads, …). → **P1**.
+* **T1 (all streams)** — server-byte reveal policy: for every byte stream and every
+  non-throwing run of `budget`/`mayReveal`/`step`/`stepPassed`/`stepSkipped`, the revealed
+  positions are disjoint from the reference classifier's hidden set (request bodies, response
+  bodies unless `openBody`, envelope payloads, …). Delivered envelopes are proved at the
+  controller-step level for every byte string (section 4f: `receivePolicy_request_envelope_safe`,
+  `receivePolicy_envRun_safe`, with the pass-over across records, a request's and a response's
+  body, and fail-closed varints). T1 for all streams is still OPEN: the streaming form of the
+  reference classifier, the frame-layer simulation, `scan`/`replyScan` for every field order, the
+  loop-level run theorem, the capacity-counter invariant; the upgrade layer is outside T1. Checked
+  meanwhile by `ReceiveTest` (`policy-check`). It is the precondition of `Reveal.serverBytes`
+  (`Flow.Tls.revealRange`). → **P1**.
 * **T8** — request templates: for `build`/`buildDevices`/`buildFetch`/`assemble` the structural
   part is now proved (section 2d, about the controller's own builders in
   `TlsMpc/Node/Policy/Request.lean`): the frame is the WebSocket header and the message masked, slots
@@ -4987,7 +5440,8 @@ the matching section above in the same commit.
   → **S9** (CONTACT), **S12** (TLS), **S13** (SEND), **S14** (RECV), **S15** (REFRESH), **S16**
   (UPGRADE, CEREMONY).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
-  `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S6/S9).
+  `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
+  own-secret opening to the peer through the controller before the scripts).
 * **`Contacts.Loaded E`** (`TlsMpc/Node/Flows/ContactsBase.lean`), the trust behind every
   contact/account entry of section 7a that takes `hE : Loaded E`: the environment's circuit named
   `contact-key` is `kernelCircuit HybridKernel.contactKey 64 keyMarks` (480 output bits, never
@@ -5378,6 +5832,31 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.prand_c_copy_aborts
 #print axioms TlsMpc.Security.prand_b_ideal
 #print axioms TlsMpc.Security.upgrade_honest
+#print axioms TlsMpc.Security.contacts_keyScript_wf
+#print axioms TlsMpc.Security.contacts_sealScript_wf
+#print axioms TlsMpc.Security.contacts_openScript_wf
+#print axioms TlsMpc.Security.contacts_key_disclosure
+#print axioms TlsMpc.Security.contacts_seal_disclosure
+#print axioms TlsMpc.Security.contacts_open_disclosure
+#print axioms TlsMpc.Security.contacts_open_released_byte
+#print axioms TlsMpc.Security.contactsTable_opKey_disclosure
+#print axioms TlsMpc.Security.contactsTable_opSeal_disclosure
+#print axioms TlsMpc.Security.contactsTable_opOpen_disclosure
+#print axioms TlsMpc.Security.contactsTable_opEvict_disclosure
+#print axioms TlsMpc.Security.contactsTable_opAssign_disclosure
+#print axioms TlsMpc.Security.contactsTable_opEvict_wf
+#print axioms TlsMpc.Security.account_accountKey_disclosure
+#print axioms TlsMpc.Security.account_accountSeal_disclosure
+#print axioms TlsMpc.Security.account_opSeal_disclosure_stored
+#print axioms TlsMpc.Security.account_opSeal_disclosure_shares
+#print axioms TlsMpc.Security.contacts_key_honest
+#print axioms TlsMpc.Security.contacts_seal_honest
+#print axioms TlsMpc.Security.contacts_open_honest
+#print axioms TlsMpc.Security.contacts_open_after_seal
+#print axioms TlsMpc.Security.contacts_key_seal_open
+#print axioms TlsMpc.Security.account_accountKey_honest
+#print axioms TlsMpc.Security.contactsWrite_write_fresh
+#print axioms TlsMpc.Security.contactsWrite_used_nodup
 #print axioms TlsMpc.Security.contact_round_trip
 #print axioms TlsMpc.Security.chainSend_selectState_accept
 #print axioms TlsMpc.Security.chainSend_selectState_reject
@@ -5468,7 +5947,19 @@ inside `TlsPrivateSeal.seal_status`). Their axioms answer whether `bv_decide` ne
 #print axioms TlsMpc.Security.receivePolicy_scan_wrapper_tooLong
 #print axioms TlsMpc.Security.receivePolicy_replyScanBody_tooLong
 #print axioms TlsMpc.Security.receivePolicy_replyScan_wrapper_tooLong
+#print axioms TlsMpc.Security.receivePolicy_envelope_payload_unrevealed
+#print axioms TlsMpc.Security.receivePolicy_request_envelope_safe
+#print axioms TlsMpc.Security.receivePolicy_envRun_safe
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_request_envelope
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_request_skip
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_request_more
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_reply_skip
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_reply_more
+#print axioms TlsMpc.Security.receivePolicy_frameByte_frame
 #print axioms TlsMpc.Security.peerMsg_reply_kind
+#print axioms TlsMpc.Security.revealKind_codes_distinct
+#print axioms TlsMpc.Security.revealKind_mem_all
+#print axioms TlsMpc.Security.revealKind_code_ne_zero
 
 /-! Which restated entries depend (transitively, through any proof or definition) on a constant
 proved by `bv_decide`. Prints one line per such entry; the script records them. -/

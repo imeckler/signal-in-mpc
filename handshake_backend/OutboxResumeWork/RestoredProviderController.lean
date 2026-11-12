@@ -1,5 +1,6 @@
 import Lean
 import TlsMpc.TlsWorkerProcess
+import TlsMpc.TlsWorkerPoll
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient
 open Lean (toJson)
 
