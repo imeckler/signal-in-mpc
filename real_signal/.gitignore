@@ -1,0 +1,3 @@
+# Everything about the REAL Signal account stays on this machine: keys, password, logs.
+state/
+register/target/

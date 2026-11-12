@@ -56,6 +56,13 @@ inductive Operation where
   /- Several loaded contacts prepared for sending in one call (their per-session curve work, in
   the same field rounds). Payload: the contact ids; reply: one status byte per contact. -/
   | contactsPrepare
+  /- The registration ceremony (CEREMONY.md, `TlsMpc/CeremonyKernels.lean`). `ceremonySecrets`:
+  the account password and the recovery password are made in the engine from each party's own
+  randomness; the reply is THIS party's XOR share of each (22 and 32 bytes), different for the
+  two parties. `ceremonyRegister`: the registration request's frame, to be sealed with those
+  two values inserted. Payload: payload start 2, credential slot 2, recovery slot 2, mask 4,
+  the count (1) and bytes of the public tail of `NUMBER:`, the frame. Reply: handle 8. -/
+  | ceremonySecrets | ceremonyRegister
   deriving Repr, BEq
 
 structure Rpc where
@@ -171,6 +178,9 @@ def pollRecordLoop (rpc : Rpc) (deadline : Nat) : Nat → M Bytes
   | fuel+1 => do
       insist ((← liftM (IO.monoMsNow : IO Nat)) < deadline) "worker application receive timed out"
       let wire ← rpc.call .pollRecord []
+      -- `[0]`: the worker reports that the server or the proxy closed this connection (no record
+      -- is one byte). A caller that can replace the connection polls itself and never gets here.
+      insist (wire != [0]) "the server or the proxy closed the connection"
       if !wire.isEmpty then return wire
       liftM (IO.sleep 10)
       pollRecordLoop rpc deadline fuel
@@ -201,6 +211,7 @@ def awaitRecord (rpc : Rpc) (kept : IO.Ref (Option Bytes)) (interval : Nat) : Na
   | polls+1 => do
       if (← liftM (kept.get : IO (Option Bytes))).isSome then return true
       let wire ← rpc.call .pollRecord []
+      insist (wire != [0]) "the server or the proxy closed the connection"
       if !wire.isEmpty then
         liftM (kept.set (some wire) : IO Unit)
         return true

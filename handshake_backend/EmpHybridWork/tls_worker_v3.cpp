@@ -131,7 +131,8 @@ struct Worker {
     Bytes joint_random(){
         std::array<uint8_t,32>mine{},peer{},commit{},peer_commit{},check{};{PRG prg;prg.random_data_unaligned(mine.data(),32);}
         SHA256(mine.data(),32,commit.data());channel.transfer(commit.data(),peer_commit.data(),32);channel.transfer(mine.data(),peer.data(),32);
-        SHA256(peer.data(),32,check.data());need(check==peer_commit,"random commitment");
+        // (A copy of our own commitment is refused: opened with a copy of our value it would make the XOR zero.)
+        SHA256(peer.data(),32,check.data());need(check==peer_commit&&peer_commit!=commit,"random commitment");
         Bytes out(32);for(unsigned i=0;i<32;i++)out[i]=mine[i]^peer[i];return out;
     }
     Bytes call(uint8_t code,uint64_t sequence,const Bytes&p){
@@ -176,6 +177,15 @@ struct Worker {
         case 56:{
             need(phase==Phase::retired&&service&&p.size()>26&&p.size()<=26+16384,"bundle fetch");
             uint64_t id=service->bundle_fetch(contact(p),big(p.data()+16,2),big(p.data()+18,2),big(p.data()+20,2),Bytes(p.begin()+22,p.begin()+26),Bytes(p.begin()+26,p.end()));
+            Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
+        }
+        // The registration ceremony (service_kernels.h, CEREMONY.md).
+        // 80: no payload. Reply: THIS party's XOR share of the new password (22) and of the recovery password (32).
+        // 81: payload start 2, credential slot 2, recovery slot 2, mask 4, tail count 1, tail, the registration frame. Reply: handle 8.
+        case 80:{need(phase==Phase::retired&&service&&p.empty(),"ceremony secrets");return service->ceremony_secrets();}
+        case 81:{
+            need(phase==Phase::retired&&service&&p.size()>11&&p[10]<=2&&p.size()>size_t(11+p[10])&&p.size()<=size_t(11+p[10])+16384,"ceremony register");const size_t n=p[10];
+            uint64_t id=service->ceremony_register(big(p.data(),2),big(p.data()+2,2),big(p.data()+4,2),Bytes(p.begin()+6,p.begin()+10),Bytes(p.begin()+11,p.begin()+11+n),Bytes(p.begin()+11+n,p.end()));
             Bytes out;for(int i=7;i>=0;i--)out.push_back(uint8_t(id>>(8*i)));return out;
         }
         // 57: a range of a record (handle 8, offset 2, count 2) joins the held prekey response body; 58 drops it; 59 opens its punctuation shape.

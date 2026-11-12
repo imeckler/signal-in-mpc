@@ -1,0 +1,498 @@
+{
+ "source": "/Users/izzy/repos/tls-mpc/local_signal_server/fingerprint/reference/transcript",
+ "connections": [
+  {
+   "connection": 1,
+   "negotiated": null,
+   "client_hello": {
+    "record_version": "0x0301",
+    "record_length": 213,
+    "handshake_length": 209,
+    "legacy_version": "0x0303",
+    "session_id_length": 32,
+    "cipher_suites": [
+     "0x1301",
+     "0x1302",
+     "0x1303"
+    ],
+    "compression": [
+     0
+    ],
+    "extensions": [
+     "server_name",
+     "supported_groups",
+     "alpn",
+     "signature_algorithms",
+     "key_share",
+     "psk_key_exchange_modes",
+     "supported_versions"
+    ],
+    "extension_codes": [
+     0,
+     10,
+     16,
+     13,
+     51,
+     45,
+     43
+    ],
+    "extension_detail": {
+     "server_name": {
+      "type": 0,
+      "host_length": 15
+     },
+     "supported_groups": [
+      "0x001d",
+      "0x0017",
+      "0x0018"
+     ],
+     "alpn": [
+      "http/1.1"
+     ],
+     "signature_algorithms": [
+      "0x0807",
+      "0x0403",
+      "0x0804",
+      "0x0401",
+      "0x0503",
+      "0x0805",
+      "0x0501",
+      "0x0806",
+      "0x0601"
+     ],
+     "key_share": [
+      {
+       "group": "0x001d",
+       "length": 32
+      }
+     ],
+     "psk_key_exchange_modes": [
+      1
+     ],
+     "supported_versions": [
+      "0x0304"
+     ]
+    },
+    "ja3": "771,4865-4866-4867,0-10-16-13-51-45-43,29-23-24,",
+    "ja3_md5": "e29d030d028f5cfe3fb65f4e96924e01",
+    "ja4": "t13d0307h1_55b375c5d22e_3df4dd8a7a2a"
+   },
+   "client_records": [
+    "23:53"
+   ],
+   "seconds_to_client_finished": 0.05,
+   "upgrade": {
+    "request_line": "GET /v1/websocket/ HTTP/1.1",
+    "headers": [
+     [
+      "Host",
+      "chat.signal.org"
+     ],
+     [
+      "Connection",
+      "Upgrade"
+     ],
+     [
+      "Upgrade",
+      "websocket"
+     ],
+     [
+      "Sec-WebSocket-Version",
+      "13"
+     ],
+     [
+      "Sec-WebSocket-Key",
+      "<base64:16>"
+     ],
+     [
+      "user-agent",
+      "Signal-Android/<version> Android/35 libsignal/<version>"
+     ]
+    ]
+   },
+   "frames": [
+    {
+     "at": 0.2,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 2,
+     "length_encoding": "16-bit",
+     "masked": true,
+     "length": 1636,
+     "chat": {
+      "field_order": [
+       1,
+       2
+      ],
+      "type": "request",
+      "request": {
+       "field_order": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        5
+       ],
+       "verb": "PUT",
+       "path": "/v1/messages/{uuid}",
+       "body": {
+        "keys_in_order": [
+         "messages",
+         "messages.[].type",
+         "messages.[].destinationDeviceId",
+         "messages.[].destinationRegistrationId",
+         "messages.[].content",
+         "online",
+         "urgent",
+         "timestamp"
+        ],
+        "shape": {
+         "messages": [
+          {
+           "type": 6,
+           "destinationDeviceId": "<int>",
+           "destinationRegistrationId": "<int>",
+           "content": "<base64:1000>"
+          }
+         ],
+         "online": false,
+         "urgent": true,
+         "timestamp": "<int:13 digits>"
+        },
+        "canonical": true,
+        "space_padded_numbers": []
+       },
+       "id": 0,
+       "headers": [
+        [
+         "content-type",
+         true,
+         "application/json"
+        ],
+        [
+         "unidentified-access-key",
+         true,
+         "<base64:16>"
+        ]
+       ]
+      }
+     }
+    },
+    {
+     "at": 0.4,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 2,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 111,
+     "chat": {
+      "field_order": [
+       1,
+       2
+      ],
+      "type": "request",
+      "request": {
+       "field_order": [
+        1,
+        2,
+        4,
+        5
+       ],
+       "verb": "GET",
+       "path": "/v2/keys/{uuid}/*",
+       "id": 1,
+       "headers": [
+        [
+         "unidentified-access-key",
+         true,
+         "<base64:16>"
+        ]
+       ]
+      }
+     }
+    },
+    {
+     "at": 31.4,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 9,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 1,
+     "payload_hex": "01"
+    },
+    {
+     "at": 62.4,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 9,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 1,
+     "payload_hex": "02"
+    },
+    {
+     "at": 63.0,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 8,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 2,
+     "payload_hex": "03e8"
+    }
+   ],
+   "request_ids": [
+    "0",
+    "1"
+   ],
+   "keepalive_gaps_seconds": [
+    31.0,
+    31.0
+   ]
+  },
+  {
+   "connection": 2,
+   "negotiated": null,
+   "client_hello": {
+    "record_version": "0x0301",
+    "record_length": 213,
+    "handshake_length": 209,
+    "legacy_version": "0x0303",
+    "session_id_length": 32,
+    "cipher_suites": [
+     "0x1301",
+     "0x1302",
+     "0x1303"
+    ],
+    "compression": [
+     0
+    ],
+    "extensions": [
+     "server_name",
+     "supported_groups",
+     "alpn",
+     "signature_algorithms",
+     "key_share",
+     "psk_key_exchange_modes",
+     "supported_versions"
+    ],
+    "extension_codes": [
+     0,
+     10,
+     16,
+     13,
+     51,
+     45,
+     43
+    ],
+    "extension_detail": {
+     "server_name": {
+      "type": 0,
+      "host_length": 15
+     },
+     "supported_groups": [
+      "0x001d",
+      "0x0017",
+      "0x0018"
+     ],
+     "alpn": [
+      "http/1.1"
+     ],
+     "signature_algorithms": [
+      "0x0807",
+      "0x0403",
+      "0x0804",
+      "0x0401",
+      "0x0503",
+      "0x0805",
+      "0x0501",
+      "0x0806",
+      "0x0601"
+     ],
+     "key_share": [
+      {
+       "group": "0x001d",
+       "length": 32
+      }
+     ],
+     "psk_key_exchange_modes": [
+      1
+     ],
+     "supported_versions": [
+      "0x0304"
+     ]
+    },
+    "ja3": "771,4865-4866-4867,0-10-16-13-51-45-43,29-23-24,",
+    "ja3_md5": "e29d030d028f5cfe3fb65f4e96924e01",
+    "ja4": "t13d0307h1_55b375c5d22e_3df4dd8a7a2a"
+   },
+   "client_records": [
+    "23:53"
+   ],
+   "seconds_to_client_finished": 0.05,
+   "upgrade": {
+    "request_line": "GET /v1/websocket/ HTTP/1.1",
+    "headers": [
+     [
+      "Host",
+      "chat.signal.org"
+     ],
+     [
+      "Connection",
+      "Upgrade"
+     ],
+     [
+      "Upgrade",
+      "websocket"
+     ],
+     [
+      "Sec-WebSocket-Version",
+      "13"
+     ],
+     [
+      "Sec-WebSocket-Key",
+      "<base64:16>"
+     ],
+     [
+      "authorization",
+      "Basic <base64 of \"<uuid>.<device>:<password:24>\">"
+     ],
+     [
+      "x-signal-receive-stories",
+      "false"
+     ],
+     [
+      "user-agent",
+      "Signal-Android/<version> Android/35 libsignal/<version>"
+     ]
+    ]
+   },
+   "frames": [
+    {
+     "at": 0.3,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 2,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 13,
+     "chat": {
+      "field_order": [
+       1,
+       3
+      ],
+      "type": "response",
+      "response": {
+       "field_order": [
+        1,
+        2,
+        3
+       ],
+       "id": 7,
+       "status": 200,
+       "message": "OK"
+      }
+     }
+    },
+    {
+     "at": 31.3,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 9,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 1,
+     "payload_hex": "01"
+    }
+   ],
+   "request_ids": [],
+   "keepalive_gaps_seconds": [
+    31.0
+   ]
+  },
+  {
+   "connection": 3,
+   "negotiated": null,
+   "client_hello": {
+    "record_version": "0x0301",
+    "record_length": 212,
+    "handshake_length": 208,
+    "legacy_version": "0x0303",
+    "session_id_length": 32,
+    "cipher_suites": [
+     "0x1301",
+     "0x1302",
+     "0x1303"
+    ],
+    "compression": [
+     0
+    ],
+    "extensions": [
+     "server_name",
+     "supported_groups",
+     "alpn",
+     "signature_algorithms",
+     "key_share",
+     "psk_key_exchange_modes",
+     "supported_versions"
+    ],
+    "extension_codes": [
+     0,
+     10,
+     16,
+     13,
+     51,
+     45,
+     43
+    ],
+    "extension_detail": {
+     "server_name": {
+      "type": 0,
+      "host_length": 20
+     },
+     "supported_groups": [
+      "0x001d",
+      "0x0017",
+      "0x0018"
+     ],
+     "alpn": [
+      "h2"
+     ],
+     "signature_algorithms": [
+      "0x0807",
+      "0x0403",
+      "0x0804",
+      "0x0401",
+      "0x0503",
+      "0x0805",
+      "0x0501",
+      "0x0806",
+      "0x0601"
+     ],
+     "key_share": [
+      {
+       "group": "0x001d",
+       "length": 32
+      }
+     ],
+     "psk_key_exchange_modes": [
+      1
+     ],
+     "supported_versions": [
+      "0x0304"
+     ]
+    },
+    "ja3": "771,4865-4866-4867,0-10-16-13-51-45-43,29-23-24,",
+    "ja3_md5": "e29d030d028f5cfe3fb65f4e96924e01",
+    "ja4": "t13d0307h2_55b375c5d22e_3df4dd8a7a2a"
+   },
+   "client_records": [
+    "23:53"
+   ],
+   "seconds_to_client_finished": 0.05
+  }
+ ]
+}

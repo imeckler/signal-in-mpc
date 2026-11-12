@@ -30,6 +30,7 @@ def code : Operation → Nat
   | .useConnection => 90
   | .scratchSeal => 64 | .scratchCommit => 65 | .resetConnection => 91
   | .contactsPrepare => 66
+  | .ceremonySecrets => 80 | .ceremonyRegister => 81
 
 def maxPayload : Nat := 2 * 1024 * 1024
 

@@ -65,6 +65,12 @@ session by one party (test admission). For the product no one may ever hold the 
 - [ ] Kyber decapsulation outside the engines uses the test tool `lss-provision kem-decapsulate`;
       replace with a small audited binary or the Lean ML-KEM definition run natively.
 
+**The registration ceremony** (2026-11-11; design, value table and threat discussion in
+`CEREMONY.md`; review items in `NEEDS_REVIEW.md` 3c). Scope set by the owner the same day: only
+the password must be secret-shared; the account's keys may be in the clear on the nodes.
+
+CEREMONY_TODO_BLOCK
+
 ## 3. Signal protocol coverage
 
 - [ ] **(blocker) Contacts with more than one device.** Sends go to device 1 only. A real user
@@ -205,6 +211,16 @@ session by one party (test admission). For the product no one may ever hold the 
         until their next epoch, is that id's result ("unknown contact" / "retry later"), agreed
         by both parties. (The harness's own sessions, which take their contacts from the export,
         still end there. The "not readable yet" case is not exercised by a test.)
+  - [ ] **A party that stops without closing its link is not detected.** The link between the
+        two workers has no timeout: when one node's controller was killed and its worker stayed
+        alive, the other node's session waited indefinitely (seen in the resume test, which
+        therefore kills the worker too). A real crash closes the TCP link and the other side
+        fails at once; a hung process or a silent network does not. Needs a deadline per engine
+        operation, or a supervisor that ends a session without progress.
+  - [ ] Local-server limits of the tests: account deletion cannot be run (the local server
+        answers 500 to it), and 429, 5xx, 404 and bad prekey responses are injected by a test
+        proxy between the TLS terminator and the server (`scripts/fault_proxy.py`), not produced
+        by the server.
   - [ ] No test with a cheating party.
 - [ ] Keepalives while a long engine operation is running (sent between the steps of a
       refresh; not inside one send to many devices, and not on connections that wait while
@@ -330,8 +346,10 @@ party can block a delete by not forwarding it.
   - [ ] **Regression check:** `check_signal_service_local.py --fingerprint` captures our
         ClientHello, upgrades and frames (`scripts/fingerprint_terminator.py`) and compares them
         with `local_signal_server/fingerprint/reference/` (fails on any difference outside its
-        allow-list). Replace the synthetic reference with a real libsignal capture once BoringSSL
-        is vendored (CLIENT_FINGERPRINT.md, first section).
+        allow-list). Passes (semi-honest and malicious, 2026-11-11). Replace the synthetic reference with a real
+        libsignal capture once BoringSSL is vendored (CLIENT_FINGERPRINT.md, first section).
+  - [ ] The account password must be base64 of 18 random bytes (24 characters, as Signal-Android
+        generates); the local test account's is 22 (section 2).
   - [x] ClientHello: BoringSSL's extension order, 32-byte session id, TLS 1.0 first-record
         version, libsignal's signature algorithms, `psk_dhe_ke`.
     - [ ] **Needs new capability:** TLS_AES_256_GCM_SHA384 (SHA-384 key schedule; medium),
@@ -469,9 +487,22 @@ party can block a delete by not forwarding it.
     - [ ] Still to verify for that pair by renting and measuring inside WireGuard, both
           directions, at several times of day: median and 99th-percentile round trip, sustained
           throughput, and for Tallinn the available hardware, 10 Gbit/s ports and traffic price.
-    - [ ] At 2 ms the sequential round counts dominate (2,800 rounds for a contact's first send,
-          11,500 for a first message received): batching and stored per-contact tables are in
-          progress; see `PERFORMANCE.md`, "Rounds".
+    - [x] At 2 ms the sequential round counts dominated. Measured through a delay relay
+          (`PERFORMANCE.md`, "Rounds"): a contact's first send 12 to 16 s, the field side of a
+          first message received 22 s (28 s with the server key). With the constant-depth
+          programs (`TLS_WORKER_HINTED=1`, to be reviewed: `NEEDS_REVIEW.md` 3b) the field rounds
+          are a few dozen per batch of contacts and 167 per first message received.
+    - [ ] What then limits the pair is **bandwidth, not latency**: malicious mode moves about
+          66 KB each way per field triple and about 0.8 GB each way per message (the Boolean
+          triples of its 2.9M AND gates; so 6 to 7 s of a 1 Gbit/s link per message). A contact's
+          preparation is 0.75 GB each way (6 s of a 1 Gbit/s link), a first message received
+          about 3 GB each way (24 s). Until tables are stored across sessions (section 11), the
+          first broadcast of a session to N contacts needs N × 0.75 GB each way. Decide the port
+          speed with that in mind, and measure WireGuard's throughput on the chosen machines
+          (the engines use about 20 TCP connections, so it can spread over cores).
+    - [ ] The engines' own limits over a link, each measured and listed in `PERFORMANCE.md`
+          ("What a 2 ms link still costs"): about 100 sequential exchanges of the Boolean engine
+          per message, two round trips per reveal call, two MAC checks per field opening.
   - [ ] **Splitting the five database nodes across providers.** Three shares reconstruct a
         contact's key, so no single provider (and no realistic pair) should host three nodes;
         and since each computation node already holds one additive share of what it reads,
@@ -531,8 +562,34 @@ party can block a delete by not forwarding it.
   - [ ] Conversion masks are still made when a batch runs out (0.6 s per session).
   - [ ] More factories on real nodes; a sustained broadcast of hundreds of messages is unmeasured.
 - [x] Circuit loading 10.6 s → 2.1 s per process; record opening 1,500 → 935 AND per byte.
-- [ ] Prepare several contacts in the same field rounds (2,800 sequential rounds per contact now).
-- [ ] Keep a contact's per-session setup across sessions (it is recomputed at each load).
+- [x] Measuring with latency: `scripts/delay_relay.cpp` and the harness's `--link-delay-ms`
+      (every link between the two workers, each direction delayed); the field side alone in
+      `rounds_fixture.cpp`. Numbers at a 2 ms round trip: `PERFORMANCE.md`, "Rounds".
+- [x] Prepare several contacts in the same field rounds, in constant depth
+      (`TLS_WORKER_HINTED=1`, off by default until reviewed: `NEEDS_REVIEW.md` 3b): about 65
+      rounds per BATCH instead of 2,300 rounds and 490 openings per contact (12 s each at 2 ms);
+      worker operation 66, called by the controller before a contact's first send for it and the
+      contacts that follow (`SIGNAL_PREPARE_BATCH`, default 32).
+  - [ ] What a batch costs now is its field triples: about 11,000 per contact, 0.75 GB each way
+        (100 contacts: 3 minutes on one machine, and 10 minutes of a 1 Gbit/s link). Fewer
+        products per contact (the initial point is half of them), or stored tables (next item).
+- [x] The first message received and the device refresh in constant depth (same switch): 167
+      field rounds instead of 11,400 for a first message.
+  - [ ] Twist points and `u = 0` behave differently from libsignal under the switch
+        (`NEEDS_REVIEW.md` 3b): decide, or write a twist-capable program.
+- [ ] Keep a contact's table across sessions. Designed, not built
+      (`SEALED_SENDER_AGREEMENT.md`, "Keeping the table across sessions"): with a field-engine
+      MAC key that persists (the owner's decision), a stored table is imported with no rounds and
+      no triples; shown in the two engines by `rounds_fixture.cpp` (`store`, `load`, and a tampered
+      share stopped by the MAC check). Without a persistent key: about 1,000 products per contact
+      and session. Needs the blob format, two worker operations, and the MAC key share before the
+      field engine starts.
+- [ ] Per-message latency that remains at 2 ms (`PERFORMANCE.md`, "What a 2 ms link still costs"):
+      the Boolean engine exchanges once per about 30,000 AND gates (a message is about 100
+      sequential exchanges), every reveal call is a request agreement and an opening, and each
+      opening in the field engine carries two MAC checks.
+- [ ] `TLS_WORKER_FIELD_DIRECT=1` (one message delay per field round instead of two): built,
+      off by default, to be reviewed and then switched on.
 - [ ] One long-lived connection: the handshake and upgrade are paid once, not per broadcast.
 - [ ] Send without waiting for each response; several contacts in parallel.
 - [ ] Fewer AND gates in the send and record circuits (AES, SHA-256, large-record opens).

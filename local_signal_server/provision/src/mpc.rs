@@ -296,6 +296,163 @@ pub async fn export_mpc(sender_name: &str, contact_names: &[&str]) -> R<()> {
     Ok(())
 }
 
+/// Signal's production sealed-sender trust roots (Signal-Android's; also secret-shared-db's
+/// relay config). libsignal's KNOWN_SERVER_CERTIFICATES id 3 is signed by the second.
+pub const PRODUCTION_TRUST_ROOTS: [&str; 2] =
+    ["BXu6QIKVz5MA8gstzfOgRQGqyLqOwNKHL6INkv3IHWMF", "BUkY0I+9+oPgDCn4+Ac6Iu813yvqkDr/ga8DzLxFxuk6"];
+
+fn varint_width(mut n: u64) -> u64 {
+    let mut w = 1;
+    while n >= 128 {
+        n >>= 7;
+        w += 1;
+    }
+    w
+}
+
+fn private_write(path: &std::path::Path, text: &str) -> R<()> {
+    std::fs::write(path, text)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+    }
+    Ok(())
+}
+
+/// `export-account ACCOUNT_JSON OUT_DIR production|local`. NO NETWORK: reads one account file
+/// (real_signal/register's account.json, or an lss account file for a local test) and writes into
+/// OUT_DIR, all mode 0600:
+///   mpc-export.json         what the controllers read (SIGNAL_LOCAL_EXPORT): the account's keys,
+///                           sender certificate, prekey private keys, the sealed-sender server
+///                           certificate validated here against the target's trust roots, and NO
+///                           contacts (they arrive by signup and live on the database nodes);
+///   credentials-party-0.hex,
+///   credentials-party-1.hex XOR shares of `uuid ‖ password` (SIGNAL_LOCAL_CREDENTIALS of each party);
+///   deployment-hints.json   the circuit-inventory settings this account fixes (no secrets).
+/// `production` requires the file to say `"environment": "production"`; `local` refuses such a file.
+pub async fn export_account(account_path: &str, out_dir: &str, target: &str) -> R<()> {
+    let raw: Value = serde_json::from_str(&std::fs::read_to_string(account_path)?)?;
+    let production = raw["environment"].as_str() == Some("production");
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+    let (roots, server): (Vec<&str>, Value) = match target {
+        "production" if production => (PRODUCTION_TRUST_ROOTS.to_vec(), json!({
+            "endpoint": "chat.signal.org", "port": 443, "hostname": "chat.signal.org", "alpn": "http/1.1",
+            "tls_trust_root_pem": repo.join("real_signal/signal-root-ca.pem").display().to_string(),
+            "source": "libsignal env.rs DOMAIN_CONFIG_CHAT (PROD.chat_domain_config): chat.signal.org:443, TLS 1.3, HTTP/1.1, SIGNAL_ROOT_CERTIFICATES"})),
+        "production" => return Err("export-account production: the account file does not say \"environment\": \"production\"".into()),
+        "local" if !production => (vec![TEST_TRUST_ROOT], json!({
+            "endpoint": "127.0.0.1", "port": 18443, "hostname": "server.example", "alpn": "http/1.1",
+            "tls_trust_root_pem": repo.join("local_signal_server/state/tls/ca.pem").display().to_string()})),
+        "local" => return Err("export-account local: refusing a production account file".into()),
+        _ => return Err("export-account ACCOUNT_JSON OUT_DIR production|local".into()),
+    };
+    let sender = Account::load_path(std::path::Path::new(account_path)).await?;
+    if sender.device_id != 1 {
+        return Err("only a primary device (device 1) can be exported".into());
+    }
+    let cert = sender.sender_certificate.clone().ok_or("the account has no sender certificate")?;
+    let parsed = SenderCertificate::deserialize(&cert)?;
+    // The server certificate that signs sender certificates: embedded, or named by id and resolved
+    // from libsignal's KNOWN_SERVER_CERTIFICATES (production certificates name id 3).
+    let signer = parsed.signer()?.clone();
+    let mut matched = None;
+    for root in &roots {
+        if signer.validate(&PublicKey::deserialize(&unb64(root)?)?)? {
+            matched = Some(*root);
+        }
+    }
+    let matched = matched.ok_or("the sender certificate's server certificate validates against none of the target's trust roots")?;
+    let now = now_ms();
+    if !parsed.validate(&PublicKey::deserialize(&unb64(matched)?)?, Timestamp::from_epoch_millis(now))? {
+        return Err("the sender certificate does not validate (expired, or not signed by its server certificate)".into());
+    }
+    let expires = parsed.expiration()?.epoch_millis();
+    let identity = sender.store.get_identity_key_pair().await?;
+    let mut one_time = vec![];
+    for id in sender.store.all_pre_key_ids().cloned().collect::<Vec<_>>() {
+        one_time.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_pre_key(id).await?.private_key()?.serialize())}));
+    }
+    let mut signed = vec![];
+    for id in sender.store.all_signed_pre_key_ids().cloned().collect::<Vec<_>>() {
+        signed.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_signed_pre_key(id).await?.private_key()?.serialize())}));
+    }
+    let mut kyber = vec![];
+    for id in sender.store.all_kyber_pre_key_ids().cloned().collect::<Vec<_>>() {
+        kyber.push(json!({"id": u32::from(id), "key_hex": hex(&sender.store.get_kyber_pre_key(id).await?.secret_key()?.serialize())}));
+    }
+    if signed.is_empty() || kyber.is_empty() {
+        return Err("the account has no signed or no Kyber prekey".into());
+    }
+    let widths = |list: &[Value]| -> Vec<u64> {
+        let mut w: Vec<u64> = list.iter().map(|e| varint_width(e["id"].as_u64().unwrap_or(0))).collect();
+        w.sort();
+        w.dedup();
+        w
+    };
+    let password = sender.password.clone();
+    let credentials = [uuid_bytes(&sender.aci)?.to_vec(), password.as_bytes().to_vec()].concat();
+    let v = json!({
+        "format": "lss-mpc-export/1",
+        "WARNING": if production { "REAL Signal account (production). Contains private keys and the account password. Never commit or share." }
+                   else { "LOCAL TEST ACCOUNT on the local Signal-Server only. Contains a private key and a password." },
+        "target": target, "account_file": account_path,
+        "server": server,
+        "sealed_sender_trust_root_hex": hex(&unb64(matched)?),
+        "sealed_sender_trust_roots": roots,
+        "sealed_sender_server": {"certificate_hex": hex(signer.serialized()?), "key_id": signer.key_id()?,
+            "public_key_hex": hex(&signer.public_key()?.serialize()[1..])},
+        "sender": {
+            "name": sender.name, "aci": sender.aci, "aci_hex": hex(&uuid_bytes(&sender.aci)?), "device_id": 1,
+            "registration_id": sender.registration_id,
+            "password_bytes": password.len(),
+            "upgrade_credentials_hex": hex(&credentials),
+            "identity_private_hex": hex(&identity.private_key().serialize()),
+            "identity_public_hex": hex(&identity.public_key().serialize()[1..]),
+            "certificate_hex": hex(&cert), "certificate_bytes": cert.len(), "certificate_expires_ms": expires,
+            "one_time_prekeys": one_time, "signed_prekeys": signed, "kyber_prekeys": kyber,
+        },
+        "contacts": [],
+    });
+    let sender_v = &v["sender"];
+    let signed_w = widths(sender_v["signed_prekeys"].as_array().unwrap().as_slice());
+    let kyber_w = widths(sender_v["kyber_prekeys"].as_array().unwrap().as_slice());
+    let has_one_time = !sender_v["one_time_prekeys"].as_array().unwrap().is_empty();
+    let join = |w: &[u64]| w.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(",");
+    let signer_bytes = signer.serialized()?.to_vec();
+    let embedded = cert.windows(signer_bytes.len()).any(|w| w == signer_bytes.as_slice());
+    // A peer's certificate from the same server has our layout; with a phone number (n characters,
+    // field `0A n`) it is 2 + n bytes longer (CircuitInventory: BYTES:PRESENT:LENGTH).
+    let peer = cert.len();
+    let hints = json!({
+        "NOTE": "Settings of handshake_backend/EmpHybridWork/CircuitInventory.lean that THIS account fixes (no secrets). The server's handshake record sizes and what a real phone sends are not known until a connection (real_signal/REAL_TEST_PLAN.md).",
+        "certificate": peer, "password": password.len(),
+        "signup_signed": join(&signed_w[..]), "signup_kyber": join(&kyber_w[..]),
+        "signup_one_time": if has_one_time { "0,1" } else { "0" },
+        "signup_certificates_without_phone_number": format!("{peer}:0:0"),
+        "signup_certificates_with_phone_number_of_n_characters": format!("{}+n:255:n (e.g. +1 numbers, n = 12: {}:255:12)", peer + 2, peer + 14),
+        "certificate_signer": if embedded { "embedded" } else { "by reference (compact)" },
+        "certificate_signer_key_id": signer.key_id()?,
+        "certificate_expires_ms": expires, "certificate_hours_left": (expires.saturating_sub(now)) / 3_600_000,
+    });
+    let out = PathBuf::from(out_dir);
+    std::fs::create_dir_all(&out)?;
+    private_write(&out.join("mpc-export.json"), &(serde_json::to_string_pretty(&v)? + "\n"))?;
+    use rand::Rng as _;
+    let mut share = vec![0u8; credentials.len()];
+    rand::rng().fill(&mut share[..]);
+    let other: Vec<u8> = credentials.iter().zip(&share).map(|(a, b)| a ^ b).collect();
+    private_write(&out.join("credentials-party-0.hex"), &(hex(&share) + "\n"))?;
+    private_write(&out.join("credentials-party-1.hex"), &(hex(&other) + "\n"))?;
+    private_write(&out.join("deployment-hints.json"), &(serde_json::to_string_pretty(&hints)? + "\n"))?;
+    if expires < now + 24 * 3_600_000 {
+        eprintln!("WARNING: the sender certificate expires in under 24 hours: refresh it before a run");
+    }
+    eprintln!("wrote {}", out.display());
+    println!("{}", serde_json::to_string(&hints)?);
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------------------------
 // Reference sender: only the export file is read.
 

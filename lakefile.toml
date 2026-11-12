@@ -106,5 +106,9 @@ name = "kem_kernel_emitter"
 root = "handshake_backend.EmpHybridWork.EmitKemKernel"
 
 [[lean_exe]]
+name = "ceremony_kernel_emitter"
+root = "handshake_backend.EmpHybridWork.EmitCeremonyKernel"
+
+[[lean_exe]]
 name = "circuit_inventory"
 root = "handshake_backend.EmpHybridWork.CircuitInventory"

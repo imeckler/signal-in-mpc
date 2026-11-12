@@ -11,6 +11,7 @@ import TlsMpc.Signal.RelayEncoding
 import TlsMpc.Signal.PrivateTextNotification
 import TlsMpc.Signal.RelayUpgrade
 import TlsMpc.Signal.BundleResponse
+import TlsMpc.CeremonyRequests
 
 /-!
 Service controller for the public-receive profile.
@@ -154,6 +155,12 @@ structure State where
   status : Nat := 0
   /-- Its `Retry-After` header in seconds, if it had one (`retryAfterOf`). -/
   retryAfter : Option Nat := none
+  /-- The registration ceremony only (CEREMONY.md): a response's body is revealed like its other
+  fields. Those bodies are a verification session, the new account's ids and our own sender
+  certificate: nothing about a contact. Never set by a send or receive session. -/
+  openBody : Bool := false
+  /-- With `openBody`: the body of the last completed response. -/
+  body : List Byte := []
 
 def start (accept : List Byte) : State :=
   { upgrade := TlsWebSocketUpgrade.stateBytes (TlsWebSocketUpgrade.start PublicReceive.fast)
@@ -313,7 +320,7 @@ structure ReplyFields where
 
 /-- Walk the fields of a response from the revealed bytes (which omit the
 body's content). `bodySkipped` says whether the body has been passed over. -/
-def replyScan (bytes : List Byte) (bodySkipped : Bool) : Need × ReplyFields := Id.run do
+def replyScan (bytes : List Byte) (bodySkipped : Bool) (inline : Bool := false) : Need × ReplyFields := Id.run do
   if bytes.length < 3 then return (.more, {})
   unless bytes.take 2 == [8, 2] && get bytes 2 == 0x1a do return (.malformed, {})
   let some (_, first) := varintAt bytes 3 | return (.more, {})
@@ -334,10 +341,32 @@ def replyScan (bytes : List Byte) (bodySkipped : Bool) : Need × ReplyFields := 
       let some (count, next) := varintAt bytes (pos + 1) | return (.more, fields)
       if fields.body.isSome then return (.malformed, fields)
       fields := { fields with body := some count }
-      if next == bytes.length && !bodySkipped && count > 0 then return (.skip count, fields)
-      pos := next
+      -- (`inline`, the ceremony's `openBody`: the body's content is among the bytes, like a header's.)
+      if next == bytes.length && !bodySkipped && !inline && count > 0 then return (.skip count, fields)
+      if inline && next + count > bytes.length then return (.more, fields)
+      pos := if inline then next + count else next
     else return (.malformed, fields)
   return (.more, fields)
+
+/-- The body (field 4) of a response whose bytes were revealed with `openBody`; empty if it has
+none or it is not complete. -/
+def replyBody (bytes : List Byte) : List Byte := Id.run do
+  if bytes.length < 3 then return []
+  let some (_, first) := varintAt bytes 3 | return []
+  let mut pos := first
+  for _ in [0:bytes.length + 1] do
+    if pos ≥ bytes.length then return []
+    let tag := (get bytes pos).toNat
+    if tag == 0x08 || tag == 0x10 then
+      let some (_, next) := varintAt bytes (pos + 1) | return []
+      pos := next
+    else if tag == 0x1a || tag == 0x2a || tag == 0x22 then
+      let some (count, next) := varintAt bytes (pos + 1) | return []
+      if next + count > bytes.length then return []
+      if tag == 0x22 then return (bytes.drop next).take count
+      pos := next + count
+    else return []
+  return []
 
 /-- The headers (field 5, each `name:value`) among a response's revealed bytes. No byte is
 revealed for this: a response's headers were always revealed, like its id and status; only its
@@ -383,7 +412,7 @@ revealed bytes. A body byte can only follow the body's key (`22`) and its comple
 * inside the message or a header whose length is known: the rest of it.
 
 Anything unexpected gives 1, and `step` then refuses the byte that does not parse. -/
-def replyBudget (bytes : List Byte) : Nat := Id.run do
+def replyBudget (bytes : List Byte) (inline : Bool := false) : Nat := Id.run do
   if bytes.length < 3 then return 2
   let some (_, first) := varintAt bytes 3 | return 1
   let mut pos := first
@@ -399,9 +428,10 @@ def replyBudget (bytes : List Byte) : Nat := Id.run do
       if next + count > bytes.length then return next + count - bytes.length
       pos := next + count
     else if tag == 0x22 then
-      -- the body's length; its content is not among these bytes
-      let some (_, next) := varintAt bytes (pos + 1) | return 1
-      pos := next
+      -- the body's length; its content is not among these bytes (unless `inline`: the ceremony)
+      let some (count, next) := varintAt bytes (pos + 1) | return 1
+      if inline && next + count > bytes.length then return next + count - bytes.length
+      pos := if inline then next + count else next
     else return 1
   return 1
 
@@ -458,7 +488,7 @@ def budget (s : State) : Nat :=
   else if (get s.frame 7).toNat ≥ 8 then remaining
   -- A response used to be revealed to the end of its frame. Its body must stay unrevealed
   -- (a prekey bundle; the device ids of a 409/410), so it is now walked field by field.
-  else if s.message == [8, 2] then max 1 (min remaining (replyBudget s.reply))
+  else if s.message == [8, 2] then max 1 (min remaining (replyBudget s.reply s.openBody))
   else if s.message == [8, 1] then max 1 (min remaining (fieldMissing s.request))
   else if s.message.isEmpty then min 2 remaining
   else 1
@@ -517,7 +547,7 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
     -- The response's own fields, walked in the clear: its body is passed over, never revealed.
     let reply := if s.reply.isEmpty then [8, 2] else s.reply ++ [byte]
     s := { s with reply }
-    match replyScan reply s.replySkipped with
+    match replyScan reply s.replySkipped s.openBody with
     | (.malformed, _) => throw "malformed service response"
     | (.skip count, fields) =>
       -- Kept for the engines only if this is the 200 to the pending prekey fetch.
@@ -525,7 +555,9 @@ def step (s : State) (byte : Byte) : Except String (State × Bool) := do
       s := { s with skip := count, capture := false, collect := wanted, replySkipped := true,
                     bundle := if wanted then some count else s.bundle }
     | (.more, _) => pure ()
-    if complete then s := { s with status := ((replyScan s.reply true).2.status).getD 0, retryAfter := retryAfterOf s.reply }
+    if complete then s := { s with status := ((replyScan s.reply true s.openBody).2.status).getD 0,
+                                   retryAfter := if s.openBody then none else retryAfterOf s.reply,
+                                   body := if s.openBody then replyBody s.reply else [] }
   if data && message == [8, 1] then
     match s.inner with
     | some (header, passed, remaining) =>
@@ -1058,7 +1090,9 @@ private def readExport (text : String) : Except String (Bytes × Bytes × List (
     let metadata ← fromHex (← contact.getObjValAs? String "metadata_hex")
     unless id.length == 16 && session.length == 262 && metadata.length == 57 do throw "export contact shape"
     pure (number id, session ++ metadata))
-  unless identity.length == 32 && 0 < certificate.length && certificate.length ≤ 1024 && !records.isEmpty do
+  -- No contacts is allowed: an account exported from its registration (real_signal/, a real
+  -- account has no pre-established contacts; they arrive by signup and live on the database nodes).
+  unless identity.length == 32 && 0 < certificate.length && certificate.length ≤ 1024 do
     throw "export shape"
   pure (certificate, identity, records)
 
@@ -1126,6 +1160,17 @@ def parseBench : IO Unit := do
   time "upgrade parser" 200 (fun i => (TlsWebSocketUpgrade.runByte PublicReceive.fast (upgrade ++ List.replicate 28 65 ++ [255, BitVec.ofNat 8 (72 + i % 2)])).length)
   IO.println s!"state sizes: frame {frame.length}, control {control.length}, response {response.length}, upgrade {upgrade.length}"
 
+/-- `SIGNAL_RECORD=FILE` (real_signal/REAL_TEST_PLAN.md, "Recording"): every exchange with the
+Signal server, one JSON line per event with this party's clock in milliseconds, appended to
+FILE. Only values this controller holds in the clear: revealed server bytes, public records it
+sends, the request templates of private sends (their private slots are zero here), the server's
+certificate chain, statuses and outcomes. Nothing secret-shared reaches it. -/
+def recordEvent (event : String) (fields : List (String × Lean.Json)) : IO Unit := do
+  let some path ← IO.getEnv "SIGNAL_RECORD" | return
+  let now := (← Std.Time.Timestamp.now).toMillisecondsSinceUnixEpoch.val.toNat
+  let line := (Lean.Json.mkObj ([("time_ms", toJson now), ("event", toJson event)] ++ fields)).compress
+  IO.FS.withFile path .append (fun file => file.putStrLn line)
+
 /-- `SIGNAL_CLIENT_PROFILE` (the same on both nodes, and for circuit production):
 `libsignal` makes what the server sees follow the official clients (CLIENT_FINGERPRINT.md):
 libsignal's ClientHello layout, upgrade requests, request JSON, WebSocket pings instead of
@@ -1140,6 +1185,7 @@ def officialProfile : IO Bool := do
   | some other => throw (IO.userError s!"SIGNAL_CLIENT_PROFILE must be libsignal or legacy, not {other}")
 
 set_option maxRecDepth 16384 in   -- one long `do` block: the elaborator's default depth is not enough for it
+set_option maxHeartbeats 800000 in   -- and the compiler's default budget (200000) is not either
 def main (args : List String) : IO Unit := do
   if args == ["parse-bench"] then
     parseBench
@@ -1180,6 +1226,73 @@ def main (args : List String) : IO Unit := do
           | .error e => throw (IO.userError e)
       | _, _ => throw (IO.userError "request-shape send CERTIFICATE ENVELOPE | devices ENVELOPE ... | fetch")
     IO.println (" ".intercalate ("kernel" :: parts))
+    return
+  if let ["ceremony", configPath, name, stage] := args then
+    /- The registration ceremony, run on BOTH nodes with the same NAME (CEREMONY.md):
+         public_service_controller ceremony NODE_CONFIG.json NAME register|certificate|store
+       NODE_CONFIG is the node daemon's configuration (node_daemon/README.md). Each stage is one
+       two-party session; this node's files are in STATE/ceremony/. Before `register`, ONE
+       node's operator puts there: number.txt, keys.json (the key tool's output), captcha.txt
+       (the token is longer than a terminal line: a file, never a prompt), and, when the SMS
+       arrives, code.txt. `register` leaves this node's shares (credentials.share,
+       recovery.share) and account.json; `certificate` leaves certificate.b64; `store` puts the
+       account's row on the database nodes (it needs the sessions' export file: scaffolding). -/
+    let config ← IO.ofExcept (Lean.Json.parse (← IO.FS.readFile configPath))
+    let field (path : List String) : Option Lean.Json :=
+      path.foldl (fun json key => json.bind (fun j => (j.getObjVal? key).toOption)) (some config)
+    let text (path : List String) : IO String :=
+      match (field path).bind (fun j => j.getStr?.toOption) with
+      | some value => pure value
+      | none => throw (IO.userError s!"the node configuration has no {".".intercalate path}")
+    let count (path : List String) : IO Nat :=
+      match (field path).bind (fun j => j.getNat?.toOption) with
+      | some value => pure value
+      | none => throw (IO.userError s!"the node configuration has no {".".intercalate path}")
+    let directory := s!"{← text ["state_directory"]}/ceremony"
+    IO.FS.createDirAll directory
+    let hosts := (((field ["worker", "hosts"]).bind (fun j => j.getArr?.toOption)).getD #[]).toList.filterMap (fun j => j.getStr?.toOption)
+    IO.FS.writeFile s!"{directory}/hosts" (String.join (hosts.map (· ++ "\n")))
+    let environment := match (field ["environment"]).bind (fun j => j.getObj?.toOption) with
+      | some entries => entries.toList.filterMap (fun (key, value) => value.getStr?.toOption.map (fun v => (key, v)))
+      | none => []
+    let manifest := match (field ["circuits", "manifest"]).bind (fun j => j.getStr?.toOption) with
+      | some path => [("CIRCUIT_MANIFEST", path)]
+      | none => []
+    let share ← do
+      let path : System.FilePath := s!"{directory}/credentials.share"
+      if ← path.pathExists then pure (← IO.FS.readFile path).trimAscii.toString else pure ""
+    let (offset, workerDirectory, extra) ← match stage with
+      | "register" => pure (100, ← text ["worker", "send_directory"], [("SIGNAL_CEREMONY", "register"), ("SIGNAL_CEREMONY_DIR", directory)])
+      | "certificate" => pure (140, ← text ["worker", "receive_directory"],
+          [("SIGNAL_CEREMONY", "certificate"), ("SIGNAL_CEREMONY_DIR", directory), ("SIGNAL_LOCAL_CREDENTIALS", share)])
+      | "store" => do
+          IO.FS.createDirAll s!"{directory}/db"
+          -- The existing session that creates the account's row from the credentials in two
+          -- shares (it expects no message and ends at once).
+          pure (180, ← text ["worker", "receive_directory"], [("SIGNAL_LOCAL_CREDENTIALS", share), ("SIGNAL_LOCAL_EXPECT", "0"),
+            ("SIGNAL_LOCAL_EXPORT", ← text ["test", "export"]), ("SIGNAL_LOCAL_KEM", ← text ["test", "kem_tool"]),
+            ("SIGNAL_DB_CLIENT", ← text ["database", "client"]), ("SIGNAL_DB_NETWORK", ← text ["database", "network"]),
+            ("SIGNAL_DB_KEY", ← text ["database", "key"]), ("SIGNAL_DB_WORK", s!"{directory}/db"),
+            ("SIGNAL_DB_TOKENS", ← text ["test", "tokens"])])
+      | _ => throw (IO.userError "ceremony stages: register, certificate, store")
+    unless stage == "register" || share.length == 76 do
+      throw (IO.userError s!"{directory}/credentials.share is missing: run the register stage first")
+    let session := TlsWorkerProcess.hex (TlsWire.hash s!"ceremony {name} {stage}".toUTF8.data.toList)
+    let child ← IO.Process.output {
+      cmd := ← text ["controller"]
+      args := #[← text ["worker", "binary"], workerDirectory, toString (← count ["party"]), s!"{directory}/hosts",
+        toString ((← count ["worker", "port_base"]) + offset), ← text ["circuits", "tool"], session, ← text ["signal", "endpoint"],
+        toString (← count ["signal", "port"]), ← text ["signal", "hostname"], ← text ["signal", "certificate_checker"],
+        ← text ["signal", "trust_root"], "0"]
+      env := ((environment ++ manifest ++ [("SIGNAL_RECORD", s!"{directory}/record.jsonl")] ++ extra).map
+        (fun (key, value) => (key, some value))).toArray }
+    IO.FS.writeFile s!"{directory}/{stage}.log" child.stderr
+    IO.FS.writeFile s!"{directory}/{stage}.json" child.stdout
+    let report := (Lean.Json.parse ((child.stdout.splitOn "\n").headD "")).toOption.getD Lean.Json.null
+    let passed := child.exitCode == 0 && (report.getObjValAs? Bool "passed").toOption == some true
+    IO.println (Lean.Json.mkObj [("ceremony", toJson stage), ("passed", toJson passed), ("directory", toJson directory),
+      ("error", toJson ((report.getObjValAs? String "error").toOption.getD ""))]).compress
+    unless passed do throw (IO.userError s!"ceremony stage {stage} failed; see {directory}/{stage}.log")
     return
   if let ["db-delete", party, request] := args then
     -- The application's signed delete request: this party submits it to the database nodes,
@@ -1252,6 +1365,10 @@ def main (args : List String) : IO Unit := do
   -- Recovery (`Recovery` above): whether this session ran it, its per-id results once both
   -- parties agreed on them, and its public events in order (for the report).
   let recoveryUsed ← IO.mkRef false
+  -- The registration ceremony (CEREMONY.md): SIGNAL_CEREMONY names the stage this session runs
+  -- (`register` or `certificate`), SIGNAL_CEREMONY_DIR this node's ceremony directory.
+  let ceremony ← IO.getEnv "SIGNAL_CEREMONY"
+  let ceremonyDone ← IO.mkRef false
   let results ← IO.mkRef ([] : List Recovery.Entry)
   let recoveryLog ← IO.mkRef ([] : List String)
   -- The application's notify through the node daemon (node_daemon/README.md):
@@ -1269,14 +1386,23 @@ def main (args : List String) : IO Unit := do
         args := #[name,trust,toString scheme,TlsWorkerProcess.hex hash,TlsWorkerProcess.hex signature] ++
           (chain.map TlsWorkerProcess.hex).toArray })
       let valid := result.exitCode == 0 && result.stdout.trimAscii.toString == "authenticated"
+      liftM (recordEvent "server-certificate" [("hostname", toJson name), ("trust", toJson trust), ("scheme", toJson scheme),
+        ("transcript_sha256", toJson (TlsWorkerProcess.hex hash)), ("chain_der_hex", toJson (chain.map TlsWorkerProcess.hex)),
+        ("accepted", toJson valid), ("checker_error", toJson result.stderr.trimAscii.toString)] : IO Unit)
       liftM (certificate.set valid : IO Unit);return valid)
   try
     let rpc : TlsWorker.Rpc := {running.rpc with call := fun op input => do
       liftM (operations.modify (fun codes => if codes.contains (TlsWorkerPipe.code op) then codes else codes ++ [TlsWorkerPipe.code op]) : IO Unit)
       running.rpc.call op input}
     let action : M Nat := do
+      liftM (recordEvent "connect" [("endpoint", toJson endpoint), ("port", toJson port), ("hostname", toJson hostname),
+        ("socket", toJson (if credentials.isSome then "authenticated" else "unauthenticated")), ("proxy", toJson (socks.map (·.1))),
+        ("circuits", toJson circuits), ("profile", toJson (if official then "libsignal" else "legacy"))] : IO Unit)
       TlsWorker.connectVia rpc endpoint (← liftM (natural port)) (proxyFor (if credentials.isSome then none else some 0))
+      liftM (recordEvent "connected" [] : IO Unit)
       let handshake ← TlsClient.run (TlsWorker.backend rpc) (TlsWorker.transport rpc) tlsConfig
+      liftM (recordEvent "handshake" [("certificate_verified", toJson handshake.serverCertificateVerified),
+        ("finished_verified", toJson handshake.serverFinishedVerified)] : IO Unit)
       insist (handshake.serverCertificateVerified && handshake.serverFinishedVerified) "handshake not accepted after retirement"
       -- The worker's selected connection (`active`) and the one this controller is using
       -- (`current`, its TLS session in `apps`). Connection 0 never selects unless there are more.
@@ -1288,6 +1414,7 @@ def main (args : List String) : IO Unit := do
       let appNow : M (TlsApplication.Session TlsWorker.BufferHandle) := do
         pure ((← liftM (apps.get : IO (Array (TlsApplication.Session TlsWorker.BufferHandle)))).getD (← liftM (current.get : IO Nat)) app)
       let sendPublic (bytes : Bytes) : M Unit := do
+        liftM (recordEvent "sent-public" [("connection", toJson (← liftM (current.get : IO Nat))), ("hex", toJson (TlsWorkerProcess.hex bytes))] : IO Unit)
         let handle ← rpc.call .publicBuffer bytes
         insist (handle.length == 8 && number handle != 0) "invalid public buffer handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ bytes.length
@@ -1459,8 +1586,25 @@ def main (args : List String) : IO Unit := do
           return some (← liftResult (fromHex summand))
         | none => return none
       -- Per contact: id, key share, version of the stored state it was loaded from (0: none).
-      let (accept, known, keyed) ← match exportPath with
-        | none => do
+      -- The registration ceremony (CEREMONY.md): no account exists yet. Its `register` stage
+      -- uses the unauthenticated socket; its `certificate` stage the authenticated one, with
+      -- this node's XOR share of the new credentials (SIGNAL_LOCAL_CREDENTIALS).
+      let ceremonyUpgrade (stage : String) : M (Bytes × List (Nat × Bytes × Nat) × Bool) := do
+        if stage == "certificate" then
+          let some share := credentials | throw "the certificate stage needs this node's credentials share"
+          let _ ← rpc.call .accountCredentials (← liftResult (fromHex share))
+          let upgrade ← rpc.call .providerUpgradeOpen (uint 8 1)
+          insist (upgrade.length == 38) "invalid upgrade receipt"
+          TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
+          pure (upgrade.drop 10, [], true)
+        else
+          let upgrade ← rpc.call .publicUpgrade []
+          insist (upgrade.length == 44) "invalid public upgrade receipt"
+          sendPublic (toBytes (anonymousUpgrade (toBits (upgrade.take 16))))
+          pure (upgrade.drop 16, [], true)
+      let (accept, known, keyed) ← match ceremony, exportPath with
+        | some stage, _ => ceremonyUpgrade stage
+        | none, none => do
           let catalogue ← rpc.call .providerCatalogue []
           insist (catalogue.length ≥ 10) "invalid provider catalogue"
           let state := number (catalogue.take 8)
@@ -1471,7 +1615,7 @@ def main (args : List String) : IO Unit := do
           insist (upgrade.length == 38) "invalid upgrade receipt"
           TlsApplication.send app ⟨number (upgrade.take 8)⟩ (number ((upgrade.drop 8).take 2))
           pure (upgrade.drop 10, [(1, ← freshShare, 0), (2, ← freshShare, 0)], false)
-        | some path => do
+        | none, some path => do
           let text ← liftM (IO.FS.readFile path : IO String)
           let (certificate, identity, records) ← liftResult (readExport text)
           let accountStored ← if dbClient.isSome then do
@@ -1602,13 +1746,18 @@ def main (args : List String) : IO Unit := do
         let secret ← liftResult (fromHex out.stdout.trimAscii.toString)
         insist (secret.length == 32) "decapsulated secret shape"
         pure secret
+      -- A refusal of the envelope being handled, with its reason (SIGNAL_RECORD).
+      let refusedBecause (reason : String) : M (Option (Nat × String)) := do
+        liftM (recordEvent "envelope-refused" [("reason", toJson reason)] : IO Unit)
+        return none
       let receiveFirst (keys : ReceiveKeys) : M (Option (Nat × String)) := do
         -- The certificate's expiry is checked against a time both controllers agree on.
         let now ← agreedNow
         let signerId := toBytes (PublicReceive.varint keys.serverId)
         let opened ← rpc.call .envelopeOpen (keys.identityPublic ++ uint 8 now ++ keys.serverKey ++
           uint 2 keys.serverCertificate.length ++ keys.serverCertificate ++ uint 2 signerId.length ++ signerId)
-        if opened.head? != some 255 then return none
+        if opened.head? != some 255 then
+          return ← refusedBecause s!"not opened as a new contact's first message (reply {opened.headD 0}: sealed-sender layer, sender certificate, PreKey shape, or no kernel for its shape)"
         insist (opened.length == 14 + 1568) "invalid opened prekey message"
         let find (table : List (Nat × Bytes)) (at_ : Nat) : Option Bytes :=
           (table.find? (·.1 == number ((opened.drop at_).take 4))).map (·.2)
@@ -1621,7 +1770,7 @@ def main (args : List String) : IO Unit := do
           let provisional := 2 ^ 128 - 1
           let contact ← if dbClient.isSome then pure provisional else liftM (nextContact.modifyGet (fun n => (n, n + 1)) : IO Nat)
           let result ← rpc.call .envelopeSession (uint 16 contact ++ keys.address ++ signed ++ oneTime ++ secret ++ uint 8 (2 ^ 63))
-          if result.head? != some 255 then return none
+          if result.head? != some 255 then return ← refusedBecause s!"no session from it (reply {result.headD 0}: keys, MAC, content or text shape)"
           insist (result.length ≥ 3 && result.length == 3 + number ((result.drop 1).take 2)) "invalid received text"
           let text := (String.fromUTF8? ⟨(result.drop 3).toArray⟩).getD ""
           if dbClient.isSome then
@@ -1630,7 +1779,7 @@ def main (args : List String) : IO Unit := do
             -- nodes do not accept (forged, or already used) refuses the message.
             let refuse (contact : Nat) : M (Option (Nat × String)) := do
               let _ ← rpc.call .contactEvict (uint 16 contact)
-              return none
+              refusedBecause s!"the text is not a signup token the database nodes accept, or they did not store the contact ({text.length} characters)"
             -- Fixed width: base64 of the id (16 bytes) and the application's signature (64).
             let pasted ← dbWork "token-received"
             liftM (IO.FS.writeFile pasted text : IO Unit)
@@ -1643,7 +1792,8 @@ def main (args : List String) : IO Unit := do
               if id ≥ accountId then return ← refuse provisional
               let token ← dbWork s!"token-{id}"
               liftM (IO.FS.writeFile token text : IO Unit)
-              if (← rpc.call .contactAssign (uint 16 provisional ++ uint 16 id)) != [255] then return none
+              if (← rpc.call .contactAssign (uint 16 provisional ++ uint 16 id)) != [255] then
+                return ← refusedBecause s!"the new contact could not take the token's id {id}"
               match ← dbDeal id token with
               | none => refuse id
               | some share =>
@@ -1667,25 +1817,40 @@ def main (args : List String) : IO Unit := do
         | _, _, _ =>
           -- The message names a prekey we do not hold.
           TlsWorker.emptyReply rpc .envelopeDrop []
-          return none
+          refusedBecause s!"it names a prekey this account does not hold (one-time {opened.getD 1 0 == 1}, signed {number ((opened.drop 6).take 4)}, Kyber {number ((opened.drop 10).take 4)})"
+      -- `SIGNAL_ACK_REFUSED=0` (the same on both nodes): a delivered message this session refused
+      -- is left unacknowledged, so the server keeps it for a later session (a fixed build can then
+      -- process it). Default: acknowledged, as before. `refusals`: per handled envelope, in order,
+      -- whether it was refused (each delivered-message request carries one envelope).
+      let keepRefused := (← liftM (IO.getEnv "SIGNAL_ACK_REFUSED" : IO (Option String))) == some "0"
+      let refusals ← liftM (IO.mkRef ([] : List Bool) : IO (IO.Ref (List Bool)))
       let handleEnvelope (kind size : Nat) : M Unit := do
         liftM (envelopes.modify (· ++ [(kind, size)]) : IO Unit)
-        match receiving with
-        | some keys =>
-          if kind == 6 && size > 0 then
-            match ← receiveFirst keys with
-            | some entry =>
-              liftM (received.modify (· ++ [entry]) : IO Unit)
-              -- For the node daemon (SIGNAL_LOCAL_EVENTS): the id that signed up, as soon as it is stored.
-              if (← liftM (IO.getEnv "SIGNAL_LOCAL_EVENTS" : IO (Option String))).isSome then
-                liftM (IO.println (Lean.Json.mkObj [("event", toJson "signup"), ("id", toJson (toString entry.1))]).compress : IO Unit)
-                liftM ((do (← IO.getStdout).flush) : IO Unit)
-            | none => liftM (refused.modify (· + 1) : IO Unit)
-          else
-            -- Not a sealed-sender message: not supported, dropped.
-            liftM (refused.modify (· + 1) : IO Unit)
+        let outcome ← match receiving with
+          | some keys => do
+            if kind == 6 && size > 0 then
+              match ← receiveFirst keys with
+              | some entry =>
+                liftM (received.modify (· ++ [entry]) : IO Unit)
+                -- For the node daemon (SIGNAL_LOCAL_EVENTS): the id that signed up, as soon as it is stored.
+                if (← liftM (IO.getEnv "SIGNAL_LOCAL_EVENTS" : IO (Option String))).isSome then
+                  liftM (IO.println (Lean.Json.mkObj [("event", toJson "signup"), ("id", toJson (toString entry.1))]).compress : IO Unit)
+                  liftM ((do (← IO.getStdout).flush) : IO Unit)
+                pure (some entry)
+              | none =>
+                liftM (refused.modify (· + 1) : IO Unit)
+                pure none
+            else
+              -- Not a sealed-sender message: not supported, dropped.
+              liftM (refused.modify (· + 1) : IO Unit)
+              TlsWorker.emptyReply rpc .envelopeDrop []
+              refusedBecause s!"not a sealed-sender message (envelope type {kind}, {size} bytes of content)"
+          | none => do
             TlsWorker.emptyReply rpc .envelopeDrop []
-        | none => TlsWorker.emptyReply rpc .envelopeDrop []
+            pure none
+        liftM (refusals.modify (· ++ [outcome.isNone]) : IO Unit)
+        liftM (recordEvent "envelope" [("type", toJson kind), ("content_bytes", toJson size),
+          ("outcome", toJson (match outcome with | some entry => s!"new contact {entry.1}" | none => "refused"))] : IO Unit)
       -- Reveal and parse one authenticated record, byte by byte.
       let record (handle : Nat) (start : PublicReceive.State) : M (PublicReceive.State × Bool) := do
         let mut s := start
@@ -1695,10 +1860,14 @@ def main (args : List String) : IO Unit := do
         let probe ← rpc.call .revealRange (uint 8 handle ++ uint 2 65535 ++ uint 2 1)
         insist (probe.length == 2) "invalid reveal reply"
         let mut length := number probe
+        liftM (recordEvent "record" [("connection", toJson (← liftM (current.get : IO Nat))), ("handle", toJson handle),
+          ("content_bytes", toJson length)] : IO Unit)
         while offset < length do
           if s.skip > 0 then
             -- A server request's body: passed over, never revealed.
             let count := min s.skip (length - offset)
+            liftM (recordEvent "passed-over" [("handle", toJson handle), ("offset", toJson offset), ("bytes", toJson count),
+              ("to", toJson (if s.capture then "engines (delivered envelope)" else if s.collect then "engines (prekey response)" else "nowhere"))] : IO Unit)
             if s.capture then
               -- A delivered envelope's sealed content goes to the engines as it is.
               let held ← rpc.call .envelopeTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
@@ -1732,6 +1901,7 @@ def main (args : List String) : IO Unit := do
             -- Diagnostics: the revealed (public) bytes, on request.
             if (← liftM (IO.getEnv "SIGNAL_LOCAL_TRACE" : IO (Option String))).isSome then
               liftM (IO.eprintln s!"revealed {TlsWorkerProcess.hex bytes}" : IO Unit)
+            liftM (recordEvent "revealed" [("handle", toJson handle), ("offset", toJson offset), ("hex", toJson (TlsWorkerProcess.hex bytes))] : IO Unit)
             for (byte, index) in bytes.zipIdx do
               let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 byte.toNat))
               -- What is left of this step must still be within what may be revealed.
@@ -1830,6 +2000,13 @@ def main (args : List String) : IO Unit := do
         insist (built.length == send.2.length) "a new timestamp changed the message's size class"
         liftM (stamped.modify (fun list => toBytes built :: list) : IO Unit)
         pure (send.1, toBytes built)
+      -- A private request as far as the controllers know it (SIGNAL_RECORD): the frame with its
+      -- private slots (recipient, access key, device and registration ids) still zero. The
+      -- worker fills them in the engines and seals the record.
+      let recordSend (kind : String) (contact id timestamp : Nat) (frame : List (BitVec 8)) : M Unit := do
+        liftM (recordEvent kind [("connection", toJson (← liftM (current.get : IO Nat))), ("contact", toJson (toString contact)),
+          ("request_id", toJson (toString id)), ("timestamp", toJson timestamp), ("frame_bytes", toJson frame.length),
+          ("template_hex", toJson (TlsWorkerProcess.hex (toBytes frame)))] : IO Unit)
       -- One send to a contact with a device list (MULTI_DEVICE.md, section 5): the engines
       -- produce one envelope per device, all for the same built text; the state is stored
       -- before anything leaves, as for one device; then one request carries all of them.
@@ -1853,6 +2030,7 @@ def main (args : List String) : IO Unit := do
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) official)
         -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
         insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
+        recordSend "sent-private" send.1 id timestamp frame
         let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
           [UInt8.ofNat count] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
@@ -1870,6 +2048,7 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
+        recordSend "sent-private" send.1 id timestamp frame
         let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
@@ -1937,6 +2116,7 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+        recordSend "sent-private-prekey-fetch" contact fetchId 0 frame
         let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
           random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
@@ -2207,6 +2387,7 @@ def main (args : List String) : IO Unit := do
       let note (event : String) : M Unit := do
         liftM (recoveryLog.modify (· ++ [event]) : IO Unit)
         liftM (IO.eprintln s!"recovery: {event}" : IO Unit)
+        liftM (recordEvent "recovery" [("note", toJson event)] : IO Unit)
       -- Per connection: the slot its transport takes the next record from (connection 0's is `kept`).
       let slots ← liftM (IO.mkRef #[kept] : IO (IO.Ref (Array (IO.Ref (Option Bytes)))))
       let states ← liftM (IO.mkRef (#[] : Array PublicReceive.State) : IO (IO.Ref (Array PublicReceive.State)))
@@ -2343,6 +2524,7 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+        recordSend "sent-private-prekey-fetch" contact fetchId 0 frame
         let handle ← rpc.call .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
           random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
@@ -2437,6 +2619,7 @@ def main (args : List String) : IO Unit := do
           if frame.length > 16384 then
             return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
           if !(← storeSoft send.1) then return some unacknowledged
+          recordSend "sent-private" send.1 id timestamp frame
           let handle ← rpc.call .devicesRequest (uint 16 send.1 ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
             [UInt8.ofNat kinds.length] ++ (offsets.drop 2).flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
           insist (handle.length == 8 && number handle != 0) "invalid request handle"
@@ -2452,6 +2635,7 @@ def main (args : List String) : IO Unit := do
         let random ← rpc.call .publicRandom []
         insist (random.length == 32) "invalid joint randomness"
         let (frame, offsets) ← liftResult (PublicRequest.build (toBits ((sealed.drop 10).take length)) timestamp id (toBits (random.take 4)) official)
+        recordSend "sent-private" send.1 id timestamp frame
         let handle ← rpc.call .contactRequest (uint 16 send.1 ++ offsets.flatMap (uint 2) ++ random.take 4 ++ toBytes frame)
         insist (handle.length == 8 && number handle != 0) "invalid request handle"
         TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
@@ -2560,6 +2744,9 @@ def main (args : List String) : IO Unit := do
               break
             | none => pure ()
             let (s, alive) ← awaitSoft 64 (PublicReceive.expect s id)
+            liftM (recordEvent "response" [("contact", toJson (toString contact)), ("message", toJson message),
+              ("request_id", toJson (toString id)), ("answered", toJson alive), ("status", toJson s.status),
+              ("retry_after", toJson s.retryAfter)] : IO Unit)
             if !alive then
               -- Sent, not answered: whether the server took it is unknown. It is sent again
               -- (under new keys), accepting a duplicate.
@@ -2693,11 +2880,181 @@ def main (args : List String) : IO Unit := do
               let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
               -- A delivered message was dealt with (stored or refused) while its record was
               -- read; acknowledging it lets the server remove it from the queue.
-              if message then liftM (delivered.modify (· + 1) : IO Unit)
-              if !message || receiving.isSome then sendPublic (toBytes frame)
+              -- Whether this message's envelope was refused (`SIGNAL_ACK_REFUSED` above). One left
+              -- on the server does not count towards the messages expected: it would be delivered
+              -- first again on every connection.
+              let wasRefused ← if message then do
+                  let queue ← liftM (refusals.get : IO (List Bool))
+                  liftM (refusals.set queue.tail : IO Unit)
+                  pure (queue.headD false)
+                else pure false
+              if message && !(wasRefused && keepRefused) then liftM (delivered.modify (· + 1) : IO Unit)
+              let acknowledge := (!message || receiving.isSome) && !(wasRefused && keepRefused)
+              liftM (recordEvent "server-request" [("delivered_message", toJson message), ("refused", toJson wasRefused),
+                ("answered", toJson acknowledge)] : IO Unit)
+              if acknowledge then sendPublic (toBytes frame)
             waiting fuel { s with requests := [] } pings expected
           | .control => waiting fuel s pings expected
-          | .closed => throw "TLS closed while waiting for messages"
+          | .closed =>
+            liftM (recordEvent "closed" [("while", toJson "waiting for messages")] : IO Unit)
+            throw "TLS closed while waiting for messages"
+      /- ---- The registration ceremony (CEREMONY.md). ----
+      Stage `register` (unauthenticated socket): verification session, captcha, SMS code, then
+      `POST /v1/registration`. Public to both nodes: the number, captcha token, code, session id
+      and the account's public key material (the keys were generated in the clear). The account
+      password and the recovery password are made in the engines (`ceremonySecrets`) and enter
+      the request only there (`ceremonyRegister`); each node keeps its XOR share of each.
+      Stage `certificate` (authenticated socket, opened with those shares): the sender
+      certificate and the one-time prekeys. Response bodies are revealed here (`openBody`): they
+      are about our own account. What an operator supplies is given to ONE node, which tells the
+      other through the workers' link. -/
+      if let some stage := ceremony then
+        let directory : System.FilePath ← match ← liftM (IO.getEnv "SIGNAL_CEREMONY_DIR" : IO (Option String)) with
+          | some path => pure (path : System.FilePath)
+          | none => throw "SIGNAL_CEREMONY_DIR is required"
+        let fileText (name : String) : M String := do
+          let path := directory / name
+          if ← liftM (path.pathExists : IO Bool) then pure (← liftM (IO.FS.readFile path : IO String)).trimAscii.toString else pure ""
+        let textOf (bytes : Bytes) : String := (String.fromUTF8? ⟨bytes.toArray⟩).getD ""
+        let shared (name : String) : M String := do
+          let mine := (← fileText name).toUTF8.data.toList
+          let theirs ← swap mine
+          insist (mine.isEmpty || theirs.isEmpty || mine == theirs) s!"the two nodes were given different {name}"
+          let value := if mine.isEmpty then theirs else mine
+          insist (!value.isEmpty) s!"neither node was given {name}"
+          if mine.isEmpty then liftM (IO.FS.writeFile (directory / name) (textOf value ++ "\n") : IO Unit)
+          pure (textOf value)
+        let material (text : String) : M Ceremony.Registration := do
+          let keys ← liftResult (Lean.Json.parse text)
+          liftResult (do Ceremony.Registration.ofJson? (← keys.getObjVal? "registration"))
+        let mut s : PublicReceive.State := { PublicReceive.start (toBits accept) with lenient := true, openBody := true }
+        let mut fuel := 64
+        while !s.upgraded do
+          insist (fuel > 0) "receive budget exhausted"
+          fuel := fuel - 1
+          match ← TlsApplication.receive (← appNow) with
+          | .application handle =>
+            let (next, _) ← record handle.id s
+            s := next
+          | .control => pure ()
+          | .closed => throw "TLS closed before the upgrade"
+        -- A public request and its response (status 2xx required); the body as JSON.
+        let call (s : PublicReceive.State) (verb path : String) (headers : List String) (body : String) :
+            M (PublicReceive.State × Lean.Json) := do
+          let id ← nextId
+          let random ← rpc.call .publicRandom []
+          insist (random.length == 32) "invalid joint randomness"
+          let request := PublicRequest.field 10 [.bytes (PublicRequest.text verb)] ++ PublicRequest.field 18 [.bytes (PublicRequest.text path)] ++
+            (if body.isEmpty then [] else PublicRequest.field 26 [.bytes (PublicRequest.text body)]) ++
+            [PublicRequest.Piece.bytes (32 :: PublicRequest.varint id)] ++
+            headers.flatMap (fun header => PublicRequest.field 42 [.bytes (PublicRequest.text header)])
+          let (frame, _, _) ← liftResult (PublicRequest.assemble (PublicRequest.Piece.bytes [8, 1] :: PublicRequest.field 18 request)
+            (toBits (random.take 4)) 0)
+          insist (frame.length ≤ 16000) "a ceremony request does not fit one record"
+          sendPublic (toBytes frame)
+          touch
+          let s ← awaitReply 64 (PublicReceive.expect s id)
+          liftM (recordEvent "ceremony-response" [("request", toJson s!"{verb} {path}"), ("status", toJson s.status)] : IO Unit)
+          insist (200 ≤ s.status && s.status < 300) s!"{verb} {path} was answered {s.status}"
+          pure (s, (Lean.Json.parse (textOf (toBytes s.body))).toOption.getD Lean.Json.null)
+        let json := ["content-type: application/json"]
+        if stage == "register" then
+          let phone ← shared "number.txt"
+          insist (Ceremony.phoneNumber phone && Ceremony.basicConsistent phone) "the phone number must look like +15551234567"
+          let keys ← material (← shared "keys.json")
+          let (s1, created) ← call s "POST" "/v1/verification/session" json (Ceremony.sessionBody phone)
+          s := s1
+          let some session := (created.getObjValAs? String "id").toOption | throw "the verification session has no id"
+          insist (Ceremony.plain session) "verification session id shape"
+          let mut state := created
+          if ((state.getObjValAs? (Array String) "requestedInformation").toOption.getD #[]).contains "captcha" then
+            let given ← shared "captcha.txt"
+            let captcha := if given.startsWith "signalcaptcha://" then String.ofList (given.toList.drop 16) else given
+            insist (Ceremony.plain captcha) "captcha token shape"
+            let (s2, patched) ← call s "PATCH" s!"/v1/verification/session/{session}" json (Ceremony.captchaBody captcha)
+            s := s2
+            state := patched
+          insist ((state.getObjValAs? Bool "allowedToRequestCode").toOption == some true)
+            "the server does not allow requesting a code for this session"
+          let (s3, _) ← call s "POST" s!"/v1/verification/session/{session}/code" (json ++ ["accept-language: en"])
+            (Ceremony.requestCodeBody "ceremony")
+          s := s3
+          -- The SMS code: an operator writes it to code.txt on one node. Until then, keepalives
+          -- (the server drops a socket that is silent for 90 seconds).
+          let mut code := ""
+          let mut waited := 0
+          while code.isEmpty do
+            insist (waited < 1800) "no verification code was supplied in time"
+            let mine := (← fileText "code.txt").toUTF8.data.toList
+            let theirs ← swap mine
+            insist (mine.isEmpty || theirs.isEmpty || mine == theirs) "the two nodes were given different codes"
+            code := String.ofList ((textOf (if mine.isEmpty then theirs else mine)).toList.filter Char.isDigit)
+            if code.isEmpty then
+              liftM (IO.sleep 1000 : IO Unit)
+              waited := waited + 1
+              s ← keepAlive s
+          let (s4, checked) ← call s "PUT" s!"/v1/verification/session/{session}/code" json (Ceremony.submitCodeBody code)
+          s := s4
+          insist ((checked.getObjValAs? Bool "verified").toOption == some true)
+            "the server did not mark the session verified (wrong code?); nothing was registered"
+          -- The password and the recovery password, made in the engines. This node's XOR shares
+          -- are on disk before the request leaves: a crash cannot lose what the server accepted.
+          let shares ← rpc.call .ceremonySecrets []
+          insist (shares.length == Ceremony.passwordBytes + Ceremony.recoveryBytes) "invalid ceremony shares"
+          liftM (IO.FS.writeFile (directory / "password.share") (TlsWorkerProcess.hex (shares.take Ceremony.passwordBytes) ++ "\n") : IO Unit)
+          liftM (IO.FS.writeFile (directory / "recovery.share") (TlsWorkerProcess.hex (shares.drop Ceremony.passwordBytes) ++ "\n") : IO Unit)
+          let (basicText, tail) := Ceremony.basic phone
+          let (before, after) := Ceremony.registrationBody session keys
+          let id ← nextId
+          let random ← rpc.call .publicRandom []
+          insist (random.length == 32) "invalid joint randomness"
+          let request := PublicRequest.field 10 [.bytes (PublicRequest.text "POST")] ++
+            PublicRequest.field 18 [.bytes (PublicRequest.text "/v1/registration")] ++
+            PublicRequest.field 26 [.bytes (PublicRequest.text before), .slot 1 44, .bytes (PublicRequest.text after)] ++
+            [PublicRequest.Piece.bytes (32 :: PublicRequest.varint id)] ++
+            PublicRequest.field 42 [.bytes (PublicRequest.text "content-type: application/json")] ++
+            PublicRequest.field 42 [.bytes (PublicRequest.text ("authorization: Basic " ++ basicText)), .slot 0 32]
+          let (frame, payloadAt, offsets) ← liftResult (PublicRequest.assemble
+            (PublicRequest.Piece.bytes [8, 1] :: PublicRequest.field 18 request) (toBits (random.take 4)) 2)
+          insist (frame.length ≤ 16384) "the registration request does not fit one record"
+          -- The request as the controllers know it: the two private slots are zero bytes.
+          liftM (recordEvent "ceremony-register" [("request_id", toJson (toString id)), ("frame_hex", toJson (TlsWorkerProcess.hex (toBytes frame))),
+            ("credential_slot", toJson (offsets.getD 0 0)), ("recovery_slot", toJson (offsets.getD 1 0)), ("payload_at", toJson payloadAt),
+            ("mask_hex", toJson (TlsWorkerProcess.hex (random.take 4)))] : IO Unit)
+          s ← keepAlive s
+          let handle ← rpc.call .ceremonyRegister (uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++ uint 2 (offsets.getD 1 0) ++
+            random.take 4 ++ [UInt8.ofNat tail.length] ++ toBytes tail ++ toBytes frame)
+          insist (handle.length == 8 && number handle != 0) "invalid request handle"
+          TlsApplication.send (← appNow) ⟨number handle⟩ frame.length
+          touch
+          s ← awaitReply 64 (PublicReceive.expect s id)
+          liftM (recordEvent "ceremony-response" [("request", toJson "POST /v1/registration"), ("status", toJson s.status)] : IO Unit)
+          insist (s.status == 200) s!"the registration was answered {s.status}"
+          let registered := (Lean.Json.parse (textOf (toBytes s.body))).toOption.getD Lean.Json.null
+          let some aci := (registered.getObjValAs? String "uuid").toOption | throw "the registration response has no account id"
+          let pni := (registered.getObjValAs? String "pni").toOption.getD ""
+          let account ← liftResult (fromHex (String.ofList (aci.toList.filter (· != '-'))))
+          insist (account.length == 16) "account id shape"
+          -- XOR shares of the socket credentials (account id 16, password 22), the form the
+          -- sessions take them in: the public account id is in party 0's share.
+          let mine := (if party == "0" then account else List.replicate 16 0) ++ shares.take Ceremony.passwordBytes
+          liftM (IO.FS.writeFile (directory / "credentials.share") (TlsWorkerProcess.hex mine ++ "\n") : IO Unit)
+          liftM (IO.FS.writeFile (directory / "account.json") ((Lean.Json.mkObj [("number", toJson phone), ("aci", toJson aci),
+            ("pni", toJson pni), ("verification_session", toJson session)]).compress ++ "\n") : IO Unit)
+        else
+          insist (stage == "certificate") "SIGNAL_CEREMONY must be register or certificate"
+          let (s1, got) ← call s "GET" "/v1/certificate/delivery?includeE164=false" [] ""
+          s := s1
+          let some certificate := (got.getObjValAs? String "certificate").toOption | throw "no sender certificate in the response"
+          insist (Ceremony.plain certificate) "sender certificate shape"
+          liftM (IO.FS.writeFile (directory / "certificate.b64") (certificate ++ "\n") : IO Unit)
+          let keys ← material (← fileText "keys.json")
+          unless keys.oneTime.isEmpty do
+            let (s2, _) ← call s "PUT" "/v2/keys?identity=aci" json (Ceremony.oneTimeBody keys)
+            s := s2
+        liftM (ceremonyDone.set true : IO Unit)
+        TlsApplication.abort app
+        return 0
       match credentials with
       | some _ =>
         let expect ← liftM (IO.getEnv "SIGNAL_LOCAL_EXPECT" : IO (Option String))
@@ -2722,9 +3079,11 @@ def main (args : List String) : IO Unit := do
     let verified ← certificate.get
     let codes ← operations.get
     -- (A recovery session passes when it ended in results both parties agreed on; which
-    -- operations it used depends on what happened to its contacts.)
-    let passed := verified && outcome.isOk && !codes.contains 18 && (credentials.isSome || (← recoveryUsed.get) ||
-      (codes.contains 15 && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
+    -- operations it used depends on what happened to its contacts. Operation 15, the client's
+    -- own KeyUpdate, is not used under the libsignal profile.)
+    let passed := verified && outcome.isOk && (ceremony.isNone || (← ceremonyDone.get)) && !codes.contains 18 &&
+      (credentials.isSome || (← ceremonyDone.get) || (← recoveryUsed.get) ||
+      ((codes.contains 15 || official) && codes.contains 43 &&codes.contains 41 && codes.contains 42 && codes.contains 37 && codes.contains 38))
     IO.println (Lean.Json.mkObj [("passed",toJson passed),("certificate_verified",toJson verified),
       ("responses_completed",toJson (match outcome with | .ok n => n | .error _ => 0)),
       ("bytes_revealed",toJson (← revealed.get)),("messages_delivered",toJson (← delivered.get)),("keepalives",toJson (← keepalives.get)),

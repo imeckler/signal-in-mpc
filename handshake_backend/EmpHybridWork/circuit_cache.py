@@ -47,8 +47,11 @@ def digest(path):
     return h.hexdigest()
 def ensure_kernel(args):
     """A worker kernel, written by the Lean executable; keyed by that executable alone."""
-    binary=ROOT/'.lake/build/bin/flat_kernel_emitter'
-    if not binary.exists():subprocess.run(['lake','build','flat_kernel_emitter'],cwd=ROOT,check=True,capture_output=True)
+    # The registration ceremony's kernels (`kernel ceremony-...`, CEREMONY.md) have an emitter of their own,
+    # so that adding them left `flat_kernel_emitter`, and with it the cache of every other circuit, as it was.
+    tool='ceremony_kernel_emitter' if len(args)>1 and args[1].startswith('ceremony-') else 'flat_kernel_emitter'
+    binary=ROOT/'.lake/build/bin'/tool
+    if not binary.exists():subprocess.run(['lake','build',tool],cwd=ROOT,check=True,capture_output=True)
     CACHE=BASE/('lean-'+hashlib.sha256(binary.read_bytes()).hexdigest()[:16])
     CACHE.mkdir(parents=True,exist_ok=True);path=CACHE/('-'.join(args)+'.flat');meta=path.with_suffix('.json');layout=path.with_suffix('.layout')
     lock=open(CACHE/('.lock-'+'-'.join(args)),'w');fcntl.flock(lock,fcntl.LOCK_EX)
@@ -60,7 +63,7 @@ def ensure_kernel(args):
             counts=emit(binary,[temps[0],temps[1],*args]).split()
             if len(counts)!=4:raise ValueError('kernel emitter reply')
             info=dict(arguments=list(args),sha256=digest(temps[0]),input_bits=int(counts[0]),output_bits=int(counts[1]),and_gates=int(counts[2]),
-                gates=int(counts[3]),layout_sha256=digest(temps[1]),produced_by='flat_kernel_emitter')
+                gates=int(counts[3]),layout_sha256=digest(temps[1]),produced_by=tool)
             os.replace(temps[0],path);os.replace(temps[1],layout)
             fd,temp=tempfile.mkstemp(dir=CACHE,prefix='.tmp-');temps.append(temp)
             with os.fdopen(fd,'wb') as f:f.write((json.dumps(info,indent=2)+'\n').encode())

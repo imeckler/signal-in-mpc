@@ -97,8 +97,8 @@ GREASE, OCSP, SCT, tickets or extension permutation are enabled).
 | SNI | grpc.chat.signal.org (20 bytes) | chat.signal.org | chat.signal.org (config) |
 | padding ext | none (only after an empty last extension) | none | none |
 | GREASE | none | none | none |
-| JA3 (md5) | `771,4865-4866-4867,0-10-16-13-51-45-43,29-23-24,` (`e29d030d…`) | — | `771,4865,0-10-16-13-51-45-43,29,` |
-| JA4 | `t13d0307h2_55b375c5d22e_3df4dd8a7a2a` (direct), `t13d0307h1_…` (proxy) | `t13d0106h1_…` | `t13d0107h1_…` (cipher count/hash differ) |
+| JA3 (md5) | `771,4865-4866-4867,0-10-16-13-51-45-43,29-23-24,` (`e29d030d…`) | `771,4865,0-43-10-13-51-16,29,` | `771,4865,0-10-16-13-51-45-43,29,` (measured) |
+| JA4 | `t13d0307h2_55b375c5d22e_3df4dd8a7a2a` (direct), `t13d0307h1_55b375c5d22e_3df4dd8a7a2a` (proxy) | `t13d0106h1_…` | `t13d0107h1_0f2cb44170f4_3df4dd8a7a2a` (measured: the extension/sigalg part c now equals the official one; a and b differ by the cipher suites) |
 
 **Trade-offs for what we cannot perform** (owner's rule: never advertise what the server could
 select and we cannot do):
@@ -287,3 +287,21 @@ identities become shapes) and compares it with `fingerprint/reference/reference.
 difference not in its `ALLOWED` table (each with its reason) fails the stage. Transcripts stay in
 `local_signal_server/state/fingerprint/` (not in the repository; they hold local test
 credentials); the stored reference has no account data.
+
+**State (2026-11-11, `--runs 0 --fingerprint`, semi-honest and malicious): passes.** Residual
+timing seen in the malicious run: a message's timestamp is 1.3–2 s older than the server's receipt
+(the engines seal it after it is stamped); an official client's is tens of milliseconds old. 91 items compared over the
+send connection (4 sealed sends, both recipients decrypted both texts: libsignal accepts the
+`80k − 1` padding and the send-time timestamps) and the receive connection (one ping 32 s after
+the last frame, a message delivered and acknowledged). Remaining differences, all allow-listed:
+cipher suites, groups (and the lengths and JA3/JA4 they determine), the local hostname, the
+space-padded ids, request ids from 2^63, the closing `/v1/keepalive`, no WebSocket Close, ALPN
+`h2` of current libsignal, and the local test account's password length (22 characters; Android
+generates 24 — the product account's password must be base64 of 18 random bytes, PRODUCT_TODO
+section 2). Measured: the client Finished leaves 0.57–0.89 s after the ClientHello (semi-honest,
+local), against milliseconds for BoringSSL.
+
+Before making `libsignal` the default: run it in malicious mode and with `--db`,
+`--multi-device`, `--signup`, `--recovery`; add the official kernel names to
+`CircuitInventory.lean` (or `--strict` runs refuse `signal-seal-official`); produce circuits with
+`SIGNAL_CLIENT_PROFILE=libsignal` (request frame sizes differ).

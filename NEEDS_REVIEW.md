@@ -187,9 +187,12 @@ journal; a later session for the same notify skips an entry only if both nodes' 
 it. Entries are public values. A node that lies or loses its journal can cause a duplicate or
 (by claiming nothing) a full resend; it cannot make a message be skipped alone.
 
-**Tested.** `check_signal_service_local.py --recovery ...` (stages and results in
-`MULTI_DEVICE.md` section 9); `public_service_controller recovery-check`. No cheating-party
-test.
+**Tested.** `check_signal_service_local.py --recovery ...`: nine stages, all passing in
+semi-honest and malicious mode against the local server (stages, results and what they do not
+show in `MULTI_DEVICE.md` section 9; 429, 5xx, 404 and bad bundles are injected by a test
+proxy); `public_service_controller recovery-check` (29 checks); `bundle-rebind` against a
+reference (8 cases). The existing `--db` and `--multi-device` flows pass through the new path.
+No cheating-party test.
 
 **Switch.** `SIGNAL_RECOVERY=0` (both nodes) runs the previous send loop, where any such failure
 ends the session. The worker's replies stay as described either way.
@@ -328,11 +331,88 @@ flow with `--hinted`. No cheating-party test in the engines.
   indirect one (party 1 to party 0, sums back). One message delay per multiplication round
   instead of two. The opened values and the MAC check are the library's own in both; a reviewer
   should confirm that for two parties the two are equivalent for a deviating party.
+- *`Challenge::transfer`* (`dabit_generator.h`; always on): for messages of at most 4 KiB both
+  parties now send and then receive, where party 1 used to wait for party 0's bytes before
+  sending its own. The bytes are the same (a party's message is fixed before the call). In a
+  commit-then-open, the commitments now cross instead of party 1 seeing party 0's first; no
+  check relied on that order, but it is a change to how every commitment, request agreement
+  and challenge permutation is exchanged.
+- **Found on the way, and a check added: a mirrored commitment.** The joint random values
+  (`joint_random` in `tls_worker_v3.cpp`: the ClientHello random, upgrade nonces, WebSocket masks,
+  **the nonce of every seal of a contact's or the account's stored state**; and the public
+  offset of every sealed-sender message in `service_kernels.h`) are the XOR of two values
+  exchanged commit-then-open with `SHA256(value)` as the commitment, without the party in it.
+  A party that waits for the other's commitment and sends the same bytes back, and then does
+  the same with the opening, passes the check and makes the XOR zero. (Before today party 1
+  received first by construction; now the short transfers cross, but nothing stops a deviating
+  party from waiting.) With a zero offset every message to a contact carries the same ephemeral
+  public key; with a repeated state nonce two versions of a contact's state are sealed under
+  the same key and nonce. All three sites now refuse a commitment equal to their own
+  (`peer_commit != commit`), which closes the copy (a hash commitment cannot be related to
+  another in any other way). A reviewer should confirm that, consider putting the party into
+  the commitment as `split_ecdh.h` and the offset agreement's `K₀` exchange do, and check
+  whether the state seal should also refuse a nonce it has used (`version_ok` refuses only the
+  all-ones value).
 - *`TLS_WORKER_TEST_LINK_SHIFT`* (test only): the connecting worker dials other ports, where
   `scripts/delay_relay.cpp` adds latency. Not for deployment.
 - *Proposed, not implemented:* keeping a contact's table with its stored state
   (`SEALED_SENDER_AGREEMENT.md`, "Keeping the table across sessions"). The cheapest form needs
   a field-engine MAC key that persists across sessions; that is the owner's decision.
+
+## 3c. The registration ceremony: a password made in the engines, one opened value, revealed response bodies (2026-11-11, uncommitted)
+
+Design, who learns what, and what one node can do alone: `CEREMONY.md`. Used only by the
+`ceremony` stages (`SIGNAL_CEREMONY`); no send or receive session runs any of it.
+
+**New opened value: `masked` of `ceremony-secrets`** (`TlsMpc/CeremonyKernels.lean`, worker
+operation 80). The password is `base64(seed_A ⊕ seed_B)[0..22]`; opened is
+`password ⊕ mask_A ⊕ mask_B`, where seed and mask are private inputs each worker draws itself.
+From it node A keeps `mask_A ⊕ masked`, node B `mask_B`: XOR shares of the password.
+- *Proved* (`TlsMpc/CeremonyProofs.lean`, no `sorry`, standard axioms): `ceremonySecrets_spec`
+  (the kernel's three fields are that specification), `masked_hides` (per byte, the opened value
+  is a bijection of the other node's mask byte). *Not formalised:* that a uniform mask makes
+  `masked` independent of the password; that the password is uniform when one seed is.
+- *To check:* that both parties' private inputs to one kernel run are fixed independently in
+  the Boolean engine (a node must not choose its seed after learning anything of the other's);
+  that the worker's randomness (`emp::PRG` with a fresh seed) is good enough for a long-term
+  secret; that the reply of operation 80 (this party's shares) goes only to that party's own
+  controller and is not logged (`tls_worker_v3.cpp` logs operation numbers and counts only).
+
+**New sealing kernel: `ceremony-register-ctr`** (operation 81). It writes base64 of (0–2 public
+bytes, the password) and base64 of the recovery password into two slots of a frame both
+controllers built, and encrypts the TLS record. Like `bundle-fetch-ctr`, it places private
+values at offsets the controllers choose, so it is an encryption of the password to the server
+at a position of the frame of the caller's choosing.
+- *To check:* that nothing but the TLS record leaves (the plaintext is not an output:
+  `registerPlaintext_spec` says what it is; outputs are `header`, `ciphertext`, the private
+  `pad`); that the worker accepts the operation once per session and only on a frame both
+  workers were handed (`agree`); that the server on the other end is the authenticated one (the
+  handshake's certificate check, as for every authenticated upgrade, which sends the same
+  password). The slots are checked not to overlap and to lie in the payload (`slotsOk`).
+- The base64 split (public prefix by the controllers, the rest in the engine) is checked at run
+  time on the number in use (`Ceremony.basicConsistent`), not proved for all numbers.
+
+**Reveal policy: `PublicReceive.State.openBody`.** With it a response's body (field 4) is
+revealed like its other fields (`replyScan`, `replyBudget` take an `inline` flag; `replyBody`
+extracts it). Default false: every existing session is as before, and no response body of a
+send or receive session is revealed. It is set in one place, the ceremony branch of
+`PublicServiceController.lean`, where the bodies are a verification session, the registration
+response and our own sender certificate. A server request's body (a delivered message) is not
+affected: that path is separate and unchanged.
+- *To check:* that no path sets `openBody` outside the ceremony; that on the ceremony's
+  authenticated socket a delivered message is still passed over (it is: `scan` / `stepSkipped`).
+
+**What both nodes newly see** (public by the owner's scope): the captcha token, the SMS code,
+the verification-session id, the registration and certificate responses, and every account key
+(generated in the clear by one node and sent to the other over the workers' link, operation 39).
+
+**Known weaknesses, stated in `CEREMONY.md` section 4, for the owner to decide:** a verified
+session id lets either node register the number alone with a password of its own while the
+server keeps the session; the identity private key in the clear lets a node that colludes with
+the Signal server open the sealed-sender layer of signups (the earlier split kept it shared).
+
+**Tested.** `check_signal_service_local.py MODE --runs 0 --ceremony` (CEREMONY.md section 7).
+No cheating-party test.
 
 ## 4. Also waiting for a reviewer (pointers)
 

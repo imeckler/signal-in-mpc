@@ -217,33 +217,171 @@ and every server round trip (the handshake's two, the 101, each response) takes 
 latency instead of localhost's; neither is in these numbers.
 
 
-## Rounds (counted, not measured)
+## Rounds (measured at a 2 ms round trip)
 
-Sequential field rounds per program (multiplication levels, plus one opening per level that
-has a division): `x25519-fast` 1,016, `edwards-prepare` 1,289 + 484, `edwards-offset-sum`
-23 + 8, `xeddsa-recover` 2,537, `xeddsa-check` 2,046, `receive-torsion` 1,265.
+The two computation nodes will be about 2 ms apart (Helsinki and Tallinn). Everything above was
+measured on localhost, where a round costs nothing. This section is measured with latency.
 
-| | Field rounds | Boolean circuit runs | Openings and exchanges |
+**How.** `scripts/delay_relay.cpp` is a local TCP relay that delays every byte by a fixed time
+in each direction (no root). With `TLS_WORKER_TEST_LINK_SHIFT` the connecting worker dials the
+relay for every link to the other worker: the Boolean engine's channel and its siblings (the
+triple factories), the challenge channel, the field engine's connections and its stock lines.
+`check_signal_service_local.py --link-delay-ms 1` runs any stage that way (1 ms each way; a
+ping-pong through the relay measures 2.2 ms). The field side alone, without a server or a
+Boolean circuit: `rounds_fixture.cpp` through `build_hybrid_v3.py rounds`, which counts
+multiplication rounds, openings and input exchanges and runs the earlier and the new programs
+on the same shared inputs, comparing the opened results.
+
+**What one exchange costs** (`rounds_fixture calibrate`, 1 ms each way, no other traffic):
+
+| Exchange | Time | In round trips |
+|---|---|---|
+| One multiplication level of a field program | 2.2 ms | 1 (party 1 sends its shares, party 0 answers with the sums) |
+| One opening with its checks (`checked_open`) | 7.6 ms | 3.5 (a MAC check before, the opening, a MAC check after) |
+| One input exchange | 2.2 ms | 1 |
+| One request agreement or commitment (`Challenge::transfer`) | 2.05 ms | 1 (now one message delay: short transfers cross on the wire) |
+| One Boolean circuit run | 4 ms + 2 ms per 30,000 AND gates | 2 + one per 30,000 gates |
+
+While the triple stocks are filling through the same relay, these were 3.1, 10.2 and 3.3 ms.
+The check that the relay is honest: the earlier preparation of two contacts is 2,578
+multiplication rounds and 970 openings, 1.6 s on localhost and 19.2 s through the relay: 17.6 s
+more, where the table predicts 5.7 s for the rounds and 7.4 to 9.9 s for the openings (the
+stocks were refilling throughout).
+
+### The field programs: constant depth instead of chains
+
+The curve work was long chains (a square root by a power chain, a table by 256 successive
+doublings, a 255-step ladder per agreement, a 509-step signature check, a 253-step
+multiplication by the group order). `TlsMpc/EdwardsHinted.lean` computes the same results in a
+few dozen levels (how: its header; what it opens and where it differs on malformed keys:
+`NEEDS_REVIEW.md` section 3b). It is behind `TLS_WORKER_HINTED=1` (harness: `--hinted`), **off by
+default until reviewed**. Field side alone (`rounds_fixture`), malicious mode:
+
+| | Multiplication rounds + openings | Field products | Localhost | 2 ms round trip |
+|---|---|---|---|---|
+| A contact's table, earlier (`edwards-prepare`), per contact | 1,289 + 485 | 11,150 | 0.82 s | 9.6 s |
+| A contact's long-term agreement, earlier (ladder), per contact | 1,017 + 1 | 2,796 | 0.12 s | 2.35 s |
+| Tables, new (`lift-open`, `lift-point`, `edwards-prepare-hinted`), per BATCH of any size | 45 + 13 | 11,120 per contact | | 0.6 s + the triples |
+| Long-term agreements, new (`edwards-affine-bit-sum`, from the tables), per batch | 20 + 1 | 2,637 per contact | | 0.1 s + the triples |
+| — a batch of 4 contacts | 65 + 14 | 55,000 | 4.6 s, of which 4.3 s waiting for triples | 5.5 s, of which 4.5 s waiting for triples |
+| — a batch of 100 contacts | 65 + 14 | 1,376,000 | | 175 s, of which 165 s waiting for triples |
+| A message's agreement, earlier (`edwards-offset-sum`) | 23 + 8 | 638 | 0.02 s | 0.27 s |
+| A message's agreement, new (`edwards-offset-sum-fast`) | 17 + 1 | 608 | 0.04 s | 0.08 s |
+| First message received, earlier: server key lift (once per process) | 2,537 + 1 | 2,547 | 0.17 s | 6.1 s |
+| — unseal agreements and certificate signature | 4,080 + 2 | 16,790 | 1.3 s | 9.9 s |
+| — base key lift, torsion, seven agreements | 4,819 + 2 | 26,418 | 2.0 s | 11.7 s |
+| First message received, new: server key lift | 0 (each party evaluates the same Lean program in the clear) | 0 | | |
+| — unseal agreements and certificate signature | 111 + 21 | 18,309 | 1.5 s | 1.3 s |
+| — base key lift, torsion, seven agreements | 56 + 12 | 27,055 | 1.8 s | 1.6 to 3.1 s (waiting for triples) |
+| A stored table loaded (proposal, see below) | 0 | 0 | 0 | 0 |
+
+Semi-honest mode, the same fixture at 2 ms: the field side of a first message received is
+25.6 s with the earlier programs and 0.6 s with the new ones (its triples are cheap and its
+openings carry no MAC check).
+
+So over the link the field side of a contact's first send goes from 12 s to a share of one
+batch, and of a first message received from 22 s (28 s with the server key) to about 3 s. The
+new programs use as many triples as the old ones (the certificate signature and the torsion
+check far fewer, the agreements about twice as many: a table of `2^i·P` per private point,
+2,922 products, and a sum over it, 3,011, against a 2,794-product ladder). What they cost is
+therefore triples, and **a batch of 100 unprepared contacts is bound by triple production**:
+1.4 million field triples at 8,000 to 13,000 per second on this machine, and 66 KB each way
+per triple on the wire: 0.75 GB each way per contact, so 6 s of a 1 Gbit/s link per contact
+however short the rounds are. The target of 10 s for 100 contacts is not met and cannot be
+with this many products per contact; without the triples a batch of 100 is still about 10 s
+of local work (each party's hints, 252 point doublings per contact, are computed on one
+thread, and the evaluator handles five million shares).
+
+**Stored tables** would remove that cost for every contact after its first session. Design
+and options: `SEALED_SENDER_AGREEMENT.md`, "Keeping the table across sessions". Not built: the
+form with no cost at load needs a field-engine MAC key that persists across sessions, which
+is the owner's decision. `rounds_fixture store` / `load` shows it in the two engines: a table
+prepared in one pair of processes, each keeping its own shares and MAC shares, is imported by
+a later pair with no exchange and sends correct messages; with one share changed by one party
+the first message stops at the MAC check.
+
+### Whole sessions through the relay
+
+`check_signal_service_local.py malicious --runs 1 --broadcasts 4 --link-delay-ms 1` (2 contacts,
+8 sends, the contacts reloaded after the second send, so 4 first sends), party 0's worker:
+
+| | Localhost | 2 ms, as before | 2 ms, `--hinted` |
 |---|---|---|---|
-| Per message | about 33 | about 8 (each a small constant number of flights) | 30 to 45 |
-| Per contact, first send | about 2,800 | 2 | about 10 |
-| Per first message received | about 11,500 (was about 17,600) | about 20 | about 40 |
+| A contact's first send (the seal operation) | 0.6 to 1.0 s | 12.7 to 16.0 s | 0.9 to 1.8 s |
+| Preparing a batch of 2 contacts (operation 66) | — | — | 0.2 s |
+| A later send (the seal operation) | 0.5 to 0.7 s | 0.9 to 1.6 s | 0.8 to 1.6 s |
+| Send to send, steady state | 0.8 to 1.1 s | 1.3 to 2.2 s | 1.25 to 2.0 s |
+| Field engine time in the session | 2 s | 51 s | 2.9 s |
+| Worker time of the session | 18 s | 75 s | 26 s |
 
-The circuit-run and opening counts are estimates from the sequencing code, not counted from a
-trace. At 10 ms per round a contact's first send is about half a minute of latency alone, far
-more than its computation. What would reduce it, in order of gain:
-- Prepare several contacts in the same rounds (the programs take several instances; the
-  worker needs an operation that takes a list of contacts, and the controller must call it):
-  2,800 rounds per batch of contacts instead of per contact.
-- Keep the contact's curve table and long-term agreement with its stored state: no rounds at
-  all on later sessions (needs a larger record and a kernel change).
-- The sealed-sender server key is public, yet `xeddsa-recover` on it runs in the field engine
-  (2,537 rounds, once per key per process); a clear evaluation of the same Lean program would
-  remove them.
-- On the receive path the lift of the base key (2,537) and the agreements (1,016) do not depend
-  on each other and could share rounds if two different programs were evaluated together.
-- The three openings after the send circuit (status, timestamp, envelope) and the four width
-  openings could each be one.
+A steady-state message is 0.3 to 0.9 s slower at 2 ms than on localhost, before and after:
+its field rounds were never the larger part (0.27 s, now 0.08 s). What remains is listed below.
+The target "not slower than localhost by more than the server's latency" is not met.
+
+`... --runs 0 --signup --link-delay-ms 1` (a new contact's first message received in one
+session, then a send session to it and the two others):
+
+| | Localhost | 2 ms, as before | 2 ms, `--hinted` |
+|---|---|---|---|
+| The record that carries the envelope (2.7 KB) | 1.1 s | 3.2 s | 2.7 s |
+| Unseal, certificate, prekey part | 2.5 s | 20.9 s | 3.7 s |
+| Agreements, session, text | 2.3 s | 13.7 s | 3.1 s |
+| **A first message received** | **5.9 s** | **37.9 s** | **9.4 s** |
+| Worker time of the receiving session | 11.7 s | 49.5 s | 16.6 s |
+| Worker time of the send session after it (6 sends, 5 of them a contact's first) | | 81.3 s | 23.1 s |
+
+The target of 8 s for a first message received is missed by 1.4 s. Of the 9.4 s the field
+programs are about 1.8 s (0.6 s of it waiting for triples); the rest is Boolean circuits and
+their exchanges, the conversions, and 87 `gcm-multiply` runs for the large record's GHASH key
+powers (two round trips each, one after the other: 0.4 s that one batched run would save).
+
+**Device refresh.** Under `--hinted` the refresh uses the same programs (the bundle's identity
+key lifted once with its table; both prekey signatures as sums over it in the same rounds;
+the agreements from tables of the device's keys): per device about 100 field rounds and 25
+openings where there were 2,537 (lift) + 2,046 (signatures) + 1,016 (agreements).
+`--multi-device --hinted` passes on localhost with the database nodes (a second device linked,
+the contact refreshed, both devices decrypt, the list read back in a later session). It was
+not timed through the relay; by the counts a refresh of two devices loses about 11,000 field
+rounds, some 25 s at 2 ms.
+
+### What a 2 ms link still costs
+
+Measured in the runs above; none of it is in the field programs any more.
+
+- **Bandwidth before latency.** Malicious mode sends about 287 bytes each way per AND gate and
+  66 KB each way per field triple: 0.8 GB each way per message, 0.75 GB per contact prepared,
+  about 3 GB per first message received. A 1 Gbit/s link carries a message in 6 to 7 s; the
+  2 ms of latency matter only above about 5 Gbit/s. WireGuard's throughput on the chosen
+  machines is unmeasured; the engines use about 20 TCP connections, so it can use several cores.
+- **The Boolean engine exchanges once per about 30,000 AND gates** (and twice per circuit run):
+  `gcm-multiply` (16K gates) +4 ms, `signal-request-ctr` (330K) +22 ms, `signal-seal-built`
+  (2.2M) +165 ms. A message's 2.9M gates are about 100 sequential round trips, 0.2 s. Sending
+  the chunks without waiting for the other party's is a change inside the validated engine;
+  not attempted.
+- **Every reveal call is two round trips** (a request agreement and an opening), +4 ms; a
+  response is 26 calls, 0.1 s per message. Revealing a response's public part in fewer calls is
+  controller work; the agreement half is now one message delay (short `Challenge::transfer`s
+  cross on the wire).
+- **Every field opening carries two MAC checks** (3.5 round trips). The check after an opening
+  could be left to the check before the next one for openings that only continue a field
+  computation; that is a change to the order of checks, not made.
+- **The field engine's rounds are two message delays each.** `TLS_WORKER_FIELD_DIRECT=1` (the
+  library's direct opening: both parties send at once) makes them one; built and run in the
+  fixture, off by default, `NEEDS_REVIEW.md` 3b.
+- **Conversions between the engines** are one opening, one transfer and one circuit run each
+  (about 15 ms), one after the other: 10 per first message received, 1 per contact prepared, 1
+  per message. Batching them is not done.
+- **TCP.** Every engine link has Nagle's algorithm off (emp's `NetIO`, the field library's
+  sockets) and buffers left to the operating system; at 10 Gbit/s and 2 ms the bandwidth-delay
+  product is 2.5 MB, inside what the system grows to (emp has `SocketOptions::
+  for_bandwidth_and_rtt` if a path ever needs more). No link sets keepalive; inside WireGuard
+  between two public addresses none is needed. The field library's sockets have a 5-minute
+  receive timeout, which only a peer stalled in the middle of an exchange would meet.
+- **Memory.** The field engine never frees a share: a batch of 100 contacts creates about five
+  million (0.3 GB), and a session that prepares thousands grows without bound.
+- **The database client** was not in these runs. Per stored state it is two `exchange`
+  operations between the workers (two round trips each) beside its own traffic to the
+  database nodes.
 
 ## What remains, with estimates
 
@@ -254,7 +392,9 @@ more than its computation. What would reduce it, in order of gain:
 | The database client as a long-lived process | about 0.05–0.2 s per message |
 | More AND-triple factories on real nodes | removes the pools as the limit in long broadcasts (about 1.2 s → the circuits' own 0.5 s per message) |
 | Open "is a handshake record" first and skip the framing scan for application records | Done (see "The framing circuit"): 2.7 KB record 2.87M → 1.14M AND in its size class |
-| Prepare contacts in batches; keep their table with the stored state | rounds, see above; with stored tables also 14,000 field triples per contact per session |
+| Prepare contacts in batches | Done behind `TLS_WORKER_HINTED=1` (see "Rounds"): the rounds are per batch, not per contact |
+| Keep a contact's table with its stored state | 14,000 field triples (0.9 GB each way) per contact per session; designed, needs a decision (see "Rounds", stored tables) |
+| The Boolean engine's chunks sent without waiting; fewer reveal calls per response | about 0.2 s and 0.1 s per message at a 2 ms round trip |
 | Preload circuits at start-up beside the handshake | about 2 s per process |
 | The engine's per-circuit analysis cached | perhaps a quarter of the remaining 0.2 s per million AND |
 

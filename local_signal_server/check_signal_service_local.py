@@ -457,6 +457,125 @@ def run_db(export, mode, texts):
     return result
 
 
+def run_ceremony(mode, texts):
+    """--ceremony: the account is REGISTERED by the two nodes (CEREMONY.md), then used.
+      A. keys for a new account, generated in the clear by the key tool (no network);
+      B. `public_service_controller ceremony NODE_CONFIG NAME register` on both nodes: verification
+         session, captcha and code (the local server's stubs), the password and recovery password
+         made in the engines, `POST /v1/registration` with them inserted there. The number, the
+         captcha and the keys are given to node 0 only, the code to node 1 only;
+      C. `... certificate`: the authenticated socket opened with the two nodes' shares (so the
+         server accepted the shared password), the sender certificate, the one-time prekeys;
+      D. `... store`: the account's row on the database nodes;
+      E. a new user signs up to the account: a receive session that has only the database row;
+      F. a send session broadcasts to that user, who must decrypt.
+    Checked besides: both nodes end with the same public account; the password (recombined HERE
+    from the two share files, which no node can do) is 22 base64 characters and appears in no
+    record or log of either node, in text, hex or inside the Basic credential."""
+    import base64, re, secrets, shutil
+    name, number = 'ceremony', '+120255501%02d' % (20 + secrets.randbelow(70))
+    base = ROOT / '.deps/two-party-comparison'
+    directory = STATE / 'ceremony'
+    tool = HERE / 'provision/target/debug/lss-provision'
+    controller = ROOT / '.lake/build/bin/public_service_controller'
+    cluster = Cluster()
+    result = dict(number=number)
+    try:
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+        cluster.token(ACCOUNT)
+        run(['lake', 'build', 'public_service_controller', 'ceremony_kernel_emitter'], cwd=ROOT, capture_output=True)
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from check_full_handshake import OPENSSL
+        run(['c++', '-std=c++20', '-O2', '-I' + str(OPENSSL / 'include'), ROOT / 'handshake_backend/public_auth.cpp',
+             '-L' + str(OPENSSL / 'lib'), '-lssl', '-lcrypto', '-o', directory / 'public_auth'])
+        mp = base / 'data61-MP-SPDZ-113c4e4'
+        for kind in ('send', 'receive'):
+            (directory / f'worker-{kind}').mkdir()
+            subprocess.run(['bash', str(mp / 'Scripts/setup-ssl.sh'), '2'], cwd=directory / f'worker-{kind}', stdout=subprocess.DEVNULL,
+                           stderr=subprocess.STDOUT, check=True)
+        nodes = [directory / f'node-{party}' / 'ceremony' for party in range(2)]
+        for party in range(2):
+            nodes[party].mkdir(parents=True)
+            config = dict(
+                party=party, state_directory=str(directory / f'node-{party}'), controller=str(controller),
+                worker=dict(binary=str(base / ('tls-worker-sh-fixture-v3' if mode == 'semi-honest' else 'tls-worker-fixture-v3')),
+                            send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
+                            hosts=['127.0.0.1', '127.0.0.1'], port_base=23400),
+                circuits=dict(tool=str(CACHE), manifest=None),
+                signal=dict(endpoint='127.0.0.1', port=18443, hostname='server.example', trust_root=str(STATE / 'tls' / 'ca.pem'),
+                            certificate_checker=str(directory / 'public_auth')),
+                database=dict(client=str(cluster.BIN / 'handoff_client'), network=str(cluster.network),
+                              key=str(cluster.config / f'compute-nodes/{party}/key.json')),
+                test=dict(export=str(EXPORT), tokens=str(cluster.dir / 'tokens'), kem_tool=str(tool)),
+                environment=dict(DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000'))
+            (directory / f'node-{party}.json').write_text(json.dumps(config, indent=1))
+        # A. The operator's inputs: number, captcha and keys on node 0; the code on node 1.
+        lss('ceremony-keys', name, nodes[0] / 'keys.json')
+        (nodes[0] / 'number.txt').write_text(number + '\n')
+        (nodes[0] / 'captcha.txt').write_text('signalcaptcha://noop.noop.registration.noop\n')
+        (nodes[1] / 'code.txt').write_text('123456\n')
+
+        def stage(label):
+            started = time.monotonic()
+            parties = [subprocess.Popen([str(controller), 'ceremony', str(directory / f'node-{party}.json'), name, label], cwd=ROOT,
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for party in range(2)]
+            outputs = [p.communicate(timeout=900) for p in parties]
+            reports = [json.loads(out.strip().splitlines()[-1]) if out.strip() else {} for out, _ in outputs]
+            good = all(p.returncode == 0 for p in parties) and all(r.get('passed') for r in reports)
+            result[label] = dict(passed=good, seconds=round(time.monotonic() - started, 1), errors=[r.get('error') for r in reports if r.get('error')],
+                                 stderr=[e[-300:] for _, e in outputs if e and not good])
+            return good
+
+        ok = stage('register') and stage('certificate')
+        if ok:
+            # Test-only check of what no node can do: recombine the password from both shares.
+            shares = [bytes.fromhex((node / 'credentials.share').read_text().strip()) for node in nodes]
+            recovery = [(node / 'recovery.share').read_text().strip() for node in nodes]
+            password = bytes(a ^ b for a, b in zip(*shares))[16:].decode('latin-1')
+            needles = [password, password.encode().hex(), base64.b64encode((number + ':' + password).encode()).decode()]
+            leaked = [str(path) for path in directory.rglob('*') if path.is_file() and not path.name.endswith('.share')
+                      and path.stat().st_size < 64 * 2 ** 20 and any(n.encode() in path.read_bytes() for n in needles)]
+            accounts = [json.loads((node / 'account.json').read_text()) for node in nodes]
+            checks = dict(
+                password_is_22_base64_characters=bool(re.fullmatch(r'[A-Za-z0-9+/]{22}', password)),
+                shares_differ=shares[0][16:] != shares[1][16:] and recovery[0] != recovery[1] and len(recovery[0]) == 64,
+                same_public_account=accounts[0] == accounts[1] and accounts[0].get('number') == number and len(accounts[0].get('aci', '')) == 36,
+                same_certificate=(nodes[0] / 'certificate.b64').read_text() == (nodes[1] / 'certificate.b64').read_text(),
+                password_in_no_record_or_log=not leaked)
+            result['checks'] = dict(checks, leaked=leaked)
+            ok = all(checks.values())
+        if ok:
+            # The sessions' export (scaffolding): keys and public account, no password.
+            lss('ceremony-finish', name, nodes[0])
+            lss('export-mpc', name)
+            export = json.loads(EXPORT.read_text())
+            ok = stage('store')
+        if ok:
+            cluster.refresh()
+            # E. A new user signs up; the receive session has only the database row.
+            new = secrets.randbits(100)
+            token = cluster.token(new).read_text().strip()
+            lss('signup', 'newuser', '+12025550104', name, token)
+            receive = run_mpc(export, mode, {}, party_env=lambda party: dict(
+                cluster.env(party), SIGNAL_LOCAL_RECEIVE='1', SIGNAL_LOCAL_EXPECT='1', SIGNAL_LOCAL_KEM=str(tool)))
+            signed_up = all(c.get('received') == [[str(new), token]] for c in receive['controllers'])
+            result['receive'] = dict(passed=signed_up, contact=str(new), seconds=round(receive['elapsed_seconds'], 1), run=receive)
+            ok = signed_up
+        if ok:
+            cluster.refresh()
+            # F. An ordinary send session to that contact.
+            request = cluster.request([new], 'broadcast')
+            send = run_mpc(export, mode, texts, party_env=lambda party: dict(cluster.env(party, request), SIGNAL_LOCAL_EXTRA_CONTACTS=str(new)))
+            good, recipients = verify({'newuser': texts[CONTACTS[0]]})
+            result['send'] = dict(passed=good, recipients=recipients, seconds=round(send['elapsed_seconds'], 1), run=send)
+            ok = good
+        result['passed'] = bool(ok)
+    finally:
+        cluster.stop()
+    return result
+
+
 def run_app(export, mode):
     """--app: the application end to end, through the two node daemons and the application
     stand-in only (node_daemon/README.md). After the fixtures below, nothing here starts a
@@ -1127,10 +1246,19 @@ def stage_resume(mode):
     for path in journals:
         path.write_text('')
     env = lambda party: dict(r.pause, SIGNAL_NOTIFY_ID=notify, SIGNAL_NOTIFY_JOURNAL=str(journals[party]))
+
+    def lose_party(processes, output):
+        # The whole node goes: its worker, then its controller. (Killing the controller alone
+        # leaves its worker alive and the other party waiting on it: the link between the workers
+        # has no timeout, PRODUCT_TODO.md section 4.)
+        children = subprocess.run(['pgrep', '-P', str(processes[1].pid)], capture_output=True, text=True).stdout.split()
+        for pid in children:
+            os.kill(int(pid), 9)
+        processes[1].kill()
     try:
         out['created'] = r.check(r.session(), both, {'recipient': TEXTS, 'recipient2': TEXTS})
         try:
-            r.session(env=env, during=mid(lambda processes, output: processes[1].kill()))
+            r.session(env=env, during=mid(lose_party))
             died = dict(passed=False, error='the session should have failed')
         except RuntimeError as e:
             failed = json.loads(str(e).split(': ', 1)[1])
@@ -1195,6 +1323,9 @@ def main():
     p.add_argument('--multi-device', action='store_true', help='also link a second device to a contact and require both devices to decrypt (database nodes)')
     p.add_argument('--app', action='store_true', help='also the application end to end through the node daemons and the application stand-in '
                    '(node_daemon/; --runs 0 --app runs only this): signup, notify, notify again, delete, notify')
+    p.add_argument('--ceremony', action='store_true', help='also REGISTER a new account in two-party sessions (CEREMONY.md: the password is '
+                   'made and used only inside the engines), store it on the database nodes, then receive a signup and send with it '
+                   '(--runs 0 --ceremony runs only this)')
     p.add_argument('--recovery', default='', help='fault-injection stages, comma separated, each with its own accounts and database nodes '
                    '(--runs 0 --recovery devices runs only that one): ' + ', '.join(RECOVERY_STAGES))
     p.add_argument('--broadcasts', type=int, default=2, help='broadcasts per send session (more than 2: to measure the cost per message)')
@@ -1307,6 +1438,10 @@ def main():
                 export = json.loads(EXPORT.read_text())
             report['app'] = run_app(export, a.mode)
             ok = report['app']['passed']
+        if ok and a.ceremony:
+            # Its own account, registered by the two nodes; it replaces the export.
+            report['ceremony'] = run_ceremony(a.mode, texts)
+            ok = report['ceremony']['passed']
         if ok and a.circuits:
             # Its own accounts and export (four contacts); runs last.
             report['tor_circuits'] = run_circuits(a.mode, texts, [int(n) for n in a.circuits.split(',')], a.db or a.circuits_db)

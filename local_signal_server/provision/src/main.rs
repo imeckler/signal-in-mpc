@@ -32,6 +32,10 @@
 //!                                  send + receive one text
 //!   export-mpc [SENDER CONTACT..]  write ../state/mpc-export.json: everything the MPC client needs
 //!                                  (credentials, identity secret, conversation records); see mpc.rs
+//!   export-account ACCOUNT_JSON OUT_DIR production|local
+//!                                  NO NETWORK. The same export (no contacts) from an account file in
+//!                                  real_signal/register's format, for Signal's service or the local
+//!                                  server, plus each party's credential share; see mpc.rs
 //!   ref-send  TEXT                 reference sender reading ONLY the export: one MPC-shaped send per
 //!                                  contact on an UNAUTHENTICATED socket; writes the advanced records back
 //!   probe-sockets DIR [IDLE_SECS]  unauthenticated vs authenticated socket: queue/empty, keepalive
@@ -434,7 +438,13 @@ impl Account {
     }
 
     async fn load(name: &str) -> R<Account> {
-        let v: Value = serde_json::from_str(&std::fs::read_to_string(Self::path(name))?)?;
+        Self::load_path(&Self::path(name)).await
+    }
+
+    /// An account file anywhere: also real_signal/register's account.json, whose fields are a
+    /// superset of these (export-account).
+    async fn load_path(path: &std::path::Path) -> R<Account> {
+        let v: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
         let st = |k: &str| -> R<String> { Ok(v[k].as_str().ok_or(format!("missing {k}"))?.to_string()) };
         let identity = IdentityKeyPair::try_from(&unb64(&st("aci_identity_key_pair")?)?[..])?;
         let mut store = InMemSignalProtocolStore::new(identity, v["registration_id"].as_u64().ok_or("registration_id")? as u32)?;
@@ -1025,9 +1035,90 @@ async fn keys_dump(name: &str, out: &str) -> R<()> {
     Ok(())
 }
 
+// ---- The registration ceremony (CEREMONY.md). The account's KEYS are generated here,
+// conventionally and in the clear (owner's decision: only the password is secret-shared); the
+// two-party session does the registration itself and makes the password. No network here.
+
+/// `ceremony-keys NAME OUT`: new identity keys (ACI, PNI), signed prekeys, Kyber last-resort
+/// prekeys with their signatures, one-time prekeys, registration ids and a profile key. Saved as
+/// account NAME (no account id, number or password yet) and written to OUT with the public
+/// material the registration request carries under `registration`
+/// (`TlsMpc/CeremonyRequests.lean`, `Registration.ofJson?`).
+async fn ceremony_keys(name: &str, out: &str) -> R<()> {
+    let mut rng = rand::rng();
+    let aci_identity = IdentityKeyPair::generate(&mut rng);
+    let pni_identity = IdentityKeyPair::generate(&mut rng);
+    // Five-digit registration ids and an eight-digit key id: the registration request then has
+    // the same length in every ceremony, so its circuit (`ceremony-register-ctr`, whose shape is
+    // the frame's layout) is one shape that can be produced ahead. (6,384 and 6.8 million values.)
+    let registration_id = rng.random_range(10_000..=0x3fff_u32);
+    let pni_registration_id = rng.random_range(10_000..=0x3fff_u32);
+    let profile_key: [u8; 32] = rng.random();
+    let key_id = rng.random_range(10_000_000..0x00ff_ffff_u32);
+    let aci_spk = signed_prekey(&aci_identity, key_id, &mut rng)?;
+    let pni_spk = signed_prekey(&pni_identity, key_id, &mut rng)?;
+    let aci_kyber = kyber_prekey(&aci_identity, key_id)?;
+    let pni_kyber = kyber_prekey(&pni_identity, key_id)?;
+    let mut store = InMemSignalProtocolStore::new(aci_identity.clone(), registration_id)?;
+    store.save_signed_pre_key(key_id.into(), &aci_spk).await?;
+    store.save_kyber_pre_key(key_id.into(), &aci_kyber).await?;
+    let mut one_time = vec![];
+    for i in 0..ONE_TIME_PREKEYS {
+        let pid = 100 + i;
+        let pair = KeyPair::generate(&mut rng);
+        store.save_pre_key(pid.into(), &PreKeyRecord::new(pid.into(), &pair)).await?;
+        one_time.push(json!({"keyId": pid, "publicKey": b64(&pair.public_key.serialize())}));
+    }
+    let registration = json!({
+        "registrationId": registration_id, "pniRegistrationId": pni_registration_id,
+        "unidentifiedAccessKey": b64(&access_key(&profile_key)),
+        "aciIdentityKey": b64(&aci_identity.identity_key().serialize()),
+        "pniIdentityKey": b64(&pni_identity.identity_key().serialize()),
+        "aciSignedPreKey": ec_signed_json(&aci_spk)?, "pniSignedPreKey": ec_signed_json(&pni_spk)?,
+        "aciPqLastResortPreKey": kem_signed_json(&aci_kyber)?, "pniPqLastResortPreKey": kem_signed_json(&pni_kyber)?,
+        "oneTime": one_time,
+    });
+    Account {
+        name: name.into(), number: String::new(), aci: String::new(), pni: String::new(), password: String::new(),
+        registration_id, pni_registration_id, profile_key, pni_identity, store, sender_certificate: None, peers: vec![], device_id: 1,
+    }
+    .save()
+    .await?;
+    let mut v: Value = serde_json::from_str(&std::fs::read_to_string(Account::path(name))?)?;
+    v["registration"] = registration;
+    v["WARNING"] = json!("Account keys generated in the clear for the registration ceremony. Contains private keys. No password: that exists only as the two nodes' shares.");
+    std::fs::write(out, serde_json::to_string_pretty(&v)? + "\n")?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(out, std::fs::Permissions::from_mode(0o600))?;
+    }
+    println!("{}", json!({"keys": out, "account": name, "registration_id": registration_id, "signed_prekey_id": key_id}));
+    Ok(())
+}
+
+/// `ceremony-finish NAME DIR`: after the ceremony, put what it made public (DIR/account.json:
+/// number, account ids; DIR/certificate.b64: the sender certificate) into account NAME, so that
+/// `export-mpc NAME` can write the sessions' export. The account keeps NO password.
+fn ceremony_finish(name: &str, dir: &str) -> R<()> {
+    let dir = PathBuf::from(dir);
+    let public: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("account.json"))?)?;
+    let certificate = std::fs::read_to_string(dir.join("certificate.b64"))?.trim().to_string();
+    let mut v: Value = serde_json::from_str(&std::fs::read_to_string(Account::path(name))?)?;
+    for key in ["number", "aci", "pni"] {
+        v[key] = public[key].clone();
+    }
+    v["sender_certificate"] = json!(certificate);
+    std::fs::write(Account::path(name), serde_json::to_string_pretty(&v)? + "\n")?;
+    println!("{}", json!({"account": name, "aci": v["aci"], "certificate_bytes": unb64(&certificate)?.len()}));
+    Ok(())
+}
+
 async fn run(args: &[String]) -> R<()> {
     let a: Vec<&str> = args.iter().map(String::as_str).collect();
     match a.as_slice() {
+        ["ceremony-keys", name, out] => ceremony_keys(name, out).await,
+        ["ceremony-finish", name, dir] => ceremony_finish(name, dir),
         ["link", name] => link(name, 0).await,
         ["link", name, count] => link(name, count.parse()?).await,
         ["keys-dump", name, out] => keys_dump(name, out).await,
@@ -1036,6 +1127,8 @@ async fn run(args: &[String]) -> R<()> {
         ["delete", name] => delete_account(name).await,
         ["rotate-access", name] => rotate_access(name).await,
         ["register", name, number] => register(name, number).await,
+        // As real_signal/register registers: sealed-sender messages accepted from anyone.
+        ["register", name, number, "unrestricted"] => register_with(name, number, true).await,
         ["establish", from, to] => establish(from, to).await,
         ["send", from, to, text] => {
             let mut f = Account::load(from).await?;
@@ -1048,6 +1141,7 @@ async fn run(args: &[String]) -> R<()> {
         ["mpc-send", from, to, text] => mpc_send(from, to, text).await,
         ["signup", name, number, to, text] => signup(name, number, to, text).await,
         ["kem-decapsulate", key, ciphertext] => mpc::kem_decapsulate(key, ciphertext),
+        ["export-account", account, out_dir, target] => mpc::export_account(account, out_dir, target).await,
         ["export-mpc"] => mpc::export_mpc("sender", &["recipient", "recipient2"]).await,
         ["export-mpc", sender, contacts @ ..] => mpc::export_mpc(sender, contacts).await,
         ["ref-send", text] => mpc::ref_send(text, None).await,

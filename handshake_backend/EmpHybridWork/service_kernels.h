@@ -533,7 +533,7 @@ public:
             // Joint public offset: commit, then open, then XOR.
             std::array<uint8_t,32>mine{},peer{},commit{},peer_commit{},check{};{emp::PRG prg;prg.random_data_unaligned(mine.data(),32);}
             SHA256(mine.data(),32,commit.data());k.channel.transfer(commit.data(),peer_commit.data(),32);k.channel.transfer(mine.data(),peer.data(),32);
-            SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
+            SHA256(peer.data(),32,check.data());need(check==peer_commit&&peer_commit!=commit,"offset commitment");   // not a copy of ours
             for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
         }
         auto pair=hinted?fast().step(c.offset,f,k.channel,offset):c.offset.step(offset_programs,f,offset);
@@ -657,7 +657,7 @@ private:
         if(!c.offset.prepared())c.offset.prepare(offset_programs,f,k.channel,k.party,c.recipient);
         std::array<uint8_t,32>offset{},mine{},peer{},commit{},peer_commit{},check{};{emp::PRG prg;prg.random_data_unaligned(mine.data(),32);}
         SHA256(mine.data(),32,commit.data());k.channel.transfer(commit.data(),peer_commit.data(),32);k.channel.transfer(mine.data(),peer.data(),32);
-        SHA256(peer.data(),32,check.data());need(check==peer_commit,"offset commitment");
+        SHA256(peer.data(),32,check.data());need(check==peer_commit&&peer_commit!=commit,"offset commitment");   // not a copy of ours
         for(unsigned i=0;i<32;i++)offset[i]=mine[i]^peer[i];
         auto pair=hinted?fast().step(c.offset,f,k.channel,offset):c.offset.step(offset_programs,f,offset);
         std::vector<uint8_t>public_bits(255);for(unsigned i=0;i<255;i++)public_bits[i]=(pair.first[i/8]>>(i%8))&1;
@@ -672,6 +672,37 @@ public:
         TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
         buffer.sealer="bundle-fetch-ctr "+std::to_string(frame.size())+" "+std::to_string(payload_at)+" "+std::to_string(uuid_at)+" "+std::to_string(key_at);
         buffer.extra["record"]=it->second.record;buffer.extra["mask"]=k.constant(mask);
+        return k.retain(std::move(buffer));
+    }
+    // ---- The registration ceremony (CEREMONY.md; kernels in TlsMpc/CeremonyKernels.lean).
+    // The account password and the recovery password exist only as wires here. Each party enters
+    // its own randomness (a seed and a mask for the password, its half of the recovery password);
+    // the one opened value is the password XOR both masks. Reply: THIS party's XOR share of the
+    // password (22) and of the recovery password (32); the two parties' replies differ.
+    Wires ceremony_password,ceremony_recovery;bool ceremony_sealed=false;
+    std::vector<uint8_t> ceremony_secrets(){
+        need(!closed&&!ceremony_password.size(),"ceremony secrets unavailable");
+        std::vector<uint8_t>seed(18),mask(PASSWORD),recovery(32);
+        {emp::PRG prg;prg.random_data_unaligned(seed.data(),int(seed.size()));prg.random_data_unaligned(mask.data(),int(mask.size()));prg.random_data_unaligned(recovery.data(),int(recovery.size()));}
+        auto own=[&](int party,const std::vector<uint8_t>&value){return s.input_private(party,byte_bits(k.party==party?value:std::vector<uint8_t>(value.size(),0)));};
+        auto seed_a=own(emp::ALICE,seed),seed_b=own(emp::BOB,seed),mask_a=own(emp::ALICE,mask),mask_b=own(emp::BOB,mask),recovery_a=own(emp::ALICE,recovery),recovery_b=own(emp::BOB,recovery);
+        auto&kernel=k.cache.get("ceremony-secrets");
+        auto out=kernel.run(s,{{"seedA",&seed_a},{"seedB",&seed_b},{"maskA",&mask_a},{"maskB",&mask_b},{"recoveryA",&recovery_a},{"recoveryB",&recovery_b}});
+        auto masked=kernel.open(s,out,"masked");need(masked.size()==PASSWORD,"ceremony secrets shape");
+        ceremony_password=std::move(out.at("password"));ceremony_recovery=std::move(out.at("recovery"));
+        std::vector<uint8_t>reply=mask;if(k.party==emp::ALICE)for(size_t i=0;i<PASSWORD;i++)reply[i]^=masked[i];
+        reply.insert(reply.end(),recovery.begin(),recovery.end());return reply;
+    }
+    // The registration request: a frame built in the clear; the sealer inserts the end of the Basic
+    // credential (`tail`: the last 0..2 bytes of "NUMBER:", public, then the password) and the
+    // recovery password, both in base64. Once per session. Returns the handle of the request to seal.
+    uint64_t ceremony_register(size_t payload_at,size_t auth_at,size_t recovery_at,const std::vector<uint8_t>&mask,const std::vector<uint8_t>&tail,const std::vector<uint8_t>&frame){
+        need(public_receive&&!closed&&ceremony_password.size()&&!ceremony_sealed&&mask.size()==4&&tail.size()<=2&&!frame.empty(),"ceremony register unavailable");ceremony_sealed=true;
+        TlsKernels::PrivateBuffer buffer;buffer.content=k.constant(frame);
+        buffer.sealer="ceremony-register-ctr "+std::to_string(frame.size())+" "+std::to_string(payload_at)+" "+std::to_string(auth_at)+" "+std::to_string(tail.size())+" "+std::to_string(recovery_at);
+        if(tail.empty())buffer.extra["secrets"]=DynSession::concat({&ceremony_password,&ceremony_recovery});
+        else{auto open_tail=k.constant(tail);buffer.extra["secrets"]=DynSession::concat({&open_tail,&ceremony_password,&ceremony_recovery});}
+        buffer.extra["mask"]=k.constant(mask);
         return k.retain(std::move(buffer));
     }
     // The response body, collected unopened from the records that carried it. Reply: bytes held (4).

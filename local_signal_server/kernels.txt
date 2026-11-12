@@ -4,33 +4,47 @@ kernel bundle-device 5092 73 1 4 1 3 1
 kernel bundle-device 5094 2556 1 4 1 3 1
 kernel bundle-device 5094 73 1 4 8 0 8
 kernel bundle-fetch-ctr 126 6 26 102
+kernel bundle-item 0 0 1 4 1 3 1
+kernel bundle-item 0 0 1 4 8 0 8
 kernel bundle-item 0 1 1 4 1 3 1
+kernel bundle-item 0 1 1 4 8 0 8
 kernel bundle-item 0 1 1 5 1 3 1
+kernel bundle-item 0 1 1 5 7 0 7
 kernel bundle-item 0 1 1 5 8 0 8
+kernel bundle-item 1 0 1 4 1 3 1
+kernel bundle-item 1 0 1 4 7 0 7
 kernel bundle-item 1 0 1 4 8 0 8
 kernel bundle-item 1 0 1 5 1 3 1
+kernel bundle-item 1 0 1 5 7 0 7
 kernel bundle-item 1 0 1 5 8 0 8
+kernel bundle-item 1 1 1 4 1 0 1
 kernel bundle-item 1 1 1 4 1 3 1
 kernel bundle-item 1 1 1 5 1 3 1
 kernel bundle-rebind
 kernel bundle-request-ctr 3280 8 33 3256 3077 3109
 kernel bundle-request-ctr 6305 8 33 6281 3069 3101 6102 6134
 kernel bundle-request-ctr 6305 8 33 6281 3077 3109 6102 6134
+kernel bundle-request-ctr 9330 8 33 9306 3069 3101 6094 6126 9127 9159
+kernel bundle-request-ctr 9330 8 33 9306 3069 3101 6102 6134 9127 9159
 kernel bundle-seal 244 0 80 1 1 1 1
 kernel bundle-seal 244 1 80 1 1 1 1
+kernel bundle-shape 2560
 kernel bundle-shape 3072
 kernel bundle-shape 5092
 kernel bundle-shape 5094
 kernel bundle-shape 5120
+kernel bundle-shape 8192
 kernel contact-key
 kernel contact-open 1935
 kernel contact-open 314
 kernel contact-open 319
 kernel contact-open 3870
+kernel contact-open 5805
 kernel contact-seal 1935
 kernel contact-seal 314
 kernel contact-seal 319
 kernel contact-seal 3870
+kernel contact-seal 5805
 kernel establish-challenges
 kernel establish-points 0
 kernel establish-points 1
@@ -68,33 +82,40 @@ kernel receive-certificate 244 1 0 0
 kernel receive-certificate-verified
 kernel receive-content 2130 244 1 0
 kernel receive-content 2211 244 1 0
+kernel receive-content 2217 244 1 0
 kernel receive-content 2371 244 1 0
 kernel receive-content 2451 244 1 0
 kernel receive-content 404 244 1 0
 kernel receive-content-shape 2130 244 1
 kernel receive-content-shape 2211 244 1
+kernel receive-content-shape 2217 244 1
 kernel receive-content-shape 2371 244 1
 kernel receive-content-shape 2451 244 1
 kernel receive-content-shape 404 244 1
 kernel receive-envelope-point 2224
 kernel receive-envelope-point 2305
+kernel receive-envelope-point 2311
 kernel receive-envelope-point 2465
 kernel receive-envelope-point 2545
 kernel receive-envelope-point 498
 kernel receive-prekey-open 1878 1 2 1 1
 kernel receive-prekey-open 1959 1 2 1 1
+kernel receive-prekey-open 1965 1 2 4 4
 kernel receive-prekey-open 2119 1 2 1 1
 kernel receive-prekey-open 2199 1 2 1 1
 kernel receive-prekey-shape 1878
 kernel receive-prekey-shape 1959
+kernel receive-prekey-shape 1965
 kernel receive-prekey-shape 2119
 kernel receive-prekey-shape 2199
 kernel receive-session 244 1878 1 2 1 1 1 1 96 0 1 0
 kernel receive-session 244 1959 1 2 1 1 1 1 176 1 1 0
+kernel receive-session 244 1965 1 2 4 4 1 1 176 1 1 0
 kernel receive-session 244 2119 1 2 1 1 1 1 208 2 1 0
 kernel receive-session 244 2199 1 2 1 1 1 1 160 3 1 0
 kernel receive-signal-shape 1878 1 2 1 1
 kernel receive-signal-shape 1959 1 2 1 1
+kernel receive-signal-shape 1965 1 2 4 4
 kernel receive-signal-shape 2119 1 2 1 1
 kernel receive-signal-shape 2199 1 2 1 1
 kernel receive-text 176 170
@@ -103,20 +124,24 @@ kernel receive-text 416 410
 kernel receive-text 96 90
 kernel receive-unseal-message 2224
 kernel receive-unseal-message 2305
+kernel receive-unseal-message 2311
 kernel receive-unseal-message 2465
 kernel receive-unseal-message 2545
 kernel receive-unseal-message 498
 kernel receive-unseal-static 2224
 kernel receive-unseal-static 2305
+kernel receive-unseal-static 2311
 kernel receive-unseal-static 2465
 kernel receive-unseal-static 2545
 kernel receive-unseal-static 498
 kernel signal-conversation-view 244
 kernel signal-request-ctr 244 1000 33 976 797 829
 kernel signal-request-ctr 244 1216 33 1192 1013 1045
+kernel signal-request-ctr 244 968 33 944 117 149
 kernel signal-seal-built 244 1 1 1 1
 kernel signal-seal-built 244 1 1 1 1 1
 kernel signal-seal-built 244 3 1 1 1 1
+kernel signal-seal-official 244 1 1 1 1 1
 kernel signal-upgrade 22
 kernel signal-upgrade-shared 22
 kernel signal-widths 244
@@ -153,8 +178,14 @@ kernel tls-open-typed 224
 kernel tls-open-typed 256
 kernel tls-open-typed 2560
 kernel tls-open-typed 3072
+kernel tls-open-typed 32
 kernel tls-open-typed 6144
+kernel tls-open-typed 768
+kernel tls-open-typed 80
+kernel tls-open-typed 8192
+kernel tls-open-typed 96
 kernel tls-parser-initial
+kernel tls-reveal-masked 11
 kernel tls-reveal-masked 132
 kernel tls-reveal-masked 139
 kernel tls-reveal-masked 160
@@ -172,9 +203,13 @@ kernel tls-reveal-masked 28
 kernel tls-reveal-masked 3051
 kernel tls-reveal-masked 5209
 kernel tls-reveal-masked 5211
+kernel tls-reveal-masked 59
 kernel tls-reveal-masked 6123
 kernel tls-reveal-masked 674
+kernel tls-reveal-masked 747
+kernel tls-reveal-masked 75
 kernel tls-reveal-masked 77
+kernel tls-reveal-masked 8171
 kernel tls-reveal-masked 91
 kernel tls-seal-class 256
 kernel tls-seal-class 32

@@ -21,6 +21,7 @@ kernels exist).
 Settings (lists are comma separated; a tuple's parts are separated by `:`):
 
 * `certificate` (244): bytes of OUR sender certificate. `password` (22): bytes of the socket password.
+  `ceremony` (0): 1 also lists `ceremony-secrets` (the registration ceremony, CEREMONY.md).
 * `client_certificate` (0): bytes of the TLS client certificate message (`tls-finish`).
 * `handshake`: sizes of the server's encrypted handshake records (`tls-open-handshake`).
 * `record_max`: the largest TLS record the server sends, in bytes; `seal_max`: the largest content
@@ -87,7 +88,11 @@ def always (s : Settings) : Except String (List String) := do
     [named "tls-finish" [client], named "tls-seal-ctr" [22, 5, 0], named "tls-seal-ctr" [21, 2, 0],
       named "signal-upgrade" [password], named "signal-upgrade-shared" [password],
       named "signal-conversation-view" [certificate], named "signal-widths" [certificate]] ++
-    handshake.map (named "tls-open-handshake" [·])
+    handshake.map (named "tls-open-handshake" [·]) ++
+    -- `ceremony=1`: the registration ceremony (CEREMONY.md). Its second kernel,
+    -- `ceremony-register-ctr`, is not printed: its parameters are frame offsets the controller
+    -- computes from the number, the verification session's id and the key ids.
+    (if (← number s "ceremony" "0") == 0 then [] else [kernel ["ceremony-secrets"]])
 
 def records (s : Settings) : Except String (List String) := do
   let opened := ladder 22 (← number s "record_max" "4096")

@@ -6,7 +6,8 @@ session per device in the engines, stores the device list and sends one message 
 devices decrypt (a conventional libsignal client per device), in that session and in the next one
 with the list read back from the database nodes: `check_signal_service_local.py --multi-device`
 passes in semi-honest and in malicious mode. Section 7 says what is bound and what is not; section 6
-has the measured cost. Never run against Signal's own service.
+has the measured cost; section 9 is what happens when something fails (per-contact results,
+retries, a changed identity key, the delivery guarantee). Never run against Signal's own service.
 
 Files: `TlsMpc/Signal/BundleResponse.lean` (definitions), `TlsMpc/BundleKernels.lean` (kernels, `find`),
 `TlsMpc/BundleProofs.lean` (theorems), `check_bundle_kernels.py` (check), `bundle-kernels-report.json`.
@@ -508,4 +509,32 @@ request, `SIGNAL_LOCAL_PAUSE_AFTER`), and a plain session afterwards. Required o
 both controllers end normally with the same results, the results are the expected ones, the
 recipients (libsignal clients) decrypt what was reported delivered, sealed.
 
-RESULTS_TABLE
+| Stage | What goes wrong | Result for the affected contact | Also checked |
+|---|---|---|---|
+| `classify` | (unit check, `public_service_controller recovery-check`: the table, the back-off, the response parser on 429 with `Retry-After`, 503, and a 409 whose body is passed over) | 29 checks | |
+| `devices` | a device is linked between the broadcasts; in the next session it is removed | 409, refresh: `delivered after device refresh` both times | the new device decrypts; after the removal one session is established; plain session after |
+| `refresh-retry` | a third device is linked after the first refresh was stored and before the resend | second 409, refresh 2 (three sessions): `delivered after device refresh` | all three devices decrypt, and again in the next session |
+| `identity` | the contact registers again (new identity key, same account id and access key) | 410, refresh under the new key: `delivered after identity change` | the new installation decrypts, and again in the next session |
+| `unauthorized` | the contact's profile key (so its access key) changes | 401: `needs re-signup`, also in the next session | nothing more reaches it |
+| `drop` | two circuits; the SOCKS test proxy closes one right after a send left on it | connection replaced, sent again: `delivered` | the other connection is kept; that text arrived twice (the expected duplicate) |
+| `throttle` | test proxy: one send answered 429 with `Retry-After: 2`; one contact always 503; one always 404 | `delivered` on the retry; `retry later` after 3 retries; `gone` | the 503 and 404 contacts receive nothing; in the next session, direct, all three are delivered (the state stored for sends that never arrived is consistent) |
+| `bundle-fault` | test proxy: a prekey response that is not a bundle; one that is well formed with random keys and signatures | `fault` for both, nothing stored | in the next session, direct, both are refreshed from the real bundles and delivered |
+| `resume` | one node (worker and controller) is killed after the first broadcast | the session fails; both journals have two lines | a new session for the same notify skips those two, sends the rest; each text arrives exactly once |
+
+In every faulted session the other contacts were delivered and neither controller ended early.
+
+Results on 2026-11-11: all nine stages pass in semi-honest and in malicious mode (two or three
+stages per harness run, each run under `scripts/guarded.py 24 900`). Session times with the
+fault, semi-honest / malicious: link 36 s / 59 s, unlink 30 s / 51 s, second 409 with three
+devices 179 s / 161 s (34 s of it the test's pauses; not broken down further),
+identity change 45 s / 44 s (16 s of it the test's pause), dropped circuit 5 s / 13 s, the
+429/503/404 session 19 s / 31 s (13 s of back-off), bad bundles 33 s / 59 s.
+
+What these do not show: an account that was deleted (the local server answers 500 to the
+deletion; by its source a sealed send to a missing account gets 401); 429, 5xx, 404 and bad
+bundles as the server itself would produce them (they are injected on the plain side of a second
+TLS terminator by `local_signal_server/scripts/fault_proxy.py`, which answers the chosen request
+instead of forwarding it); a connection lost during a refresh; a lost connection that cannot be
+re-established; more than three devices; a cheating party. A node whose controller dies while its
+worker stays alive leaves the other node waiting without limit (the link between the workers
+has no timeout): the `resume` stage kills both.
