@@ -78,7 +78,9 @@ See `TlsMpc/Security.lean` section 7c and section 8. In short (all standard axio
 * **`commit_open_sound` for `pointExchange`** (F25, `Flows/CurveCommit.lean`):
   `pointExchange_sound` (an accepted exchange used the adversary's commitment chosen from its view
   and our commitment only, opened under its own frame, different from ours; the points returned
-  are our continuation `pointsOf` on the two openings), `pointExchange_copy_aborts`.
+  are our continuation `pointsOf` on the two openings), `pointExchange_copy_aborts`; value-level
+  T3 for it (F24, part): `pointExchange_disclosure` (the adversary's view is a prefix of [our
+  commitment, our opening]). Value-level T3 for the other curve flows stays open.
 * **Liveness** (F33, F28, `Flows/CurveLive.lean`): `sqrt_complete` (`FieldInverse`,
   `EulerCriterion`), `root_isSome`/`roots_isSome` (with `TwoNonSquare`: the lift's root never
   fails), `addU_den_ne_zero` (`CompleteAddition`, discharged by `proofs/` `edwards_complete`).

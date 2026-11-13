@@ -154,6 +154,69 @@ theorem pointExchange_copy_aborts (tag : Bytes) (nonce points count : Nat) (σ :
     cases e1
     exact absurd hcopy hne
 
+/-! ## Value-level disclosure of the point exchange (F24, the commit-then-open of points) -/
+
+theorem exchange_viewD (len : Nat) (l : Label) (p : Payload) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Script.exchange len l p) σ I vD).viewD <+: [⟨l, .bytes (p.eval E.hash me σ)⟩] := by
+  unfold Script.exchange
+  by_cases hl : (p.eval E.hash me σ).length = len
+  · cases ha : adv.act (vD ++ [⟨l, .bytes (p.eval E.hash me σ)⟩]) (InstrP.exchange len l p : Instr).skel with
+    | none => simp_all [withAdv, fill, Wire.early]
+    | some part =>
+      by_cases hp : part.bytes.length = len
+      · simp_all [withAdv, fill, Wire.early, idealStep, absorb]
+      · simp_all [withAdv, fill, Wire.early, idealStep]
+  · simp_all [withAdv, fill]
+
+theorem pointsOf_viewD (count : Nat) (o o' : Bytes) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (pointsOf me count o o') σ I vD).viewD = [] := by
+  unfold pointsOf
+  dsimp only
+  repeat' split
+  all_goals rfl
+
+theorem ensure_then_viewD (b : Bool) (r : String) (count : Nat) (o o' : Bytes) (σ : Store) (I : Ideal)
+    (vD : List Release) :
+    (withAdv E me adv ((Script.ensure b r).bind fun _ => pointsOf me count o o') σ I vD).viewD = [] := by
+  unfold Script.ensure
+  cases b
+  · rfl
+  · exact pointsOf_viewD E me adv count o o' σ I vD
+
+/-- **F24 for the point exchange: what the honest party releases, with its values.** Against any
+adversary the adversary's view of `pointExchange` is a prefix of [our commitment
+`H(tag ‖ me ‖ nonce ‖ points)`, our opening `nonce ‖ points`]: nothing else (in particular no
+private value) leaves; the decoding, validity checks and sums are local. -/
+theorem pointExchange_disclosure (tag : Bytes) (nonce points count : Nat) (σ : Store) (I : Ideal)
+    (vD : List Release) :
+    (withAdv E me adv (pointExchange E.hash me tag nonce points count) σ I vD).viewD <+:
+      [⟨commitLabel, .bytes (ourCommitP E me σ tag nonce points)⟩,
+       ⟨Label.ownPublicPoint, .bytes (ourOpeningP σ nonce points)⟩] := by
+  have eO : Payload.eval E.hash me σ (.opening [nonce, points]) = ourOpeningP σ nonce points := by
+    simp [Payload.eval, ourOpeningP]
+  have eC : Payload.eval E.hash me σ (.commitment tag nonce points) = ourCommitP E me σ tag nonce points := rfl
+  rw [pointExchange_eq, viewD_bind]
+  have h1 := exchange_viewD E me adv 32 commitLabel (.commitment tag nonce points) σ I vD
+  rw [eC] at h1
+  split
+  · next x hx =>
+    obtain ⟨c, c'⟩ := x
+    obtain ⟨p1, a1, a2, a3, a4, a5, a6⟩ := exchange_returned E me adv _ _ _ σ I vD c c' hx
+    rw [a6, a4, a5, viewD_bind]
+    have h2 := exchange_viewD E me adv (32 + 32 * count) Label.ownPublicPoint (.opening [nonce, points]) σ I
+      (vD ++ [⟨commitLabel, .bytes (ourCommitP E me σ tag nonce points)⟩])
+    rw [eO] at h2
+    rw [eC]
+    refine (List.prefix_append_right_inj _).mpr ?_
+    split
+    · next y hy =>
+      obtain ⟨o, o'⟩ := y
+      obtain ⟨p2, b1, b2, b3, b4, b5, b6⟩ := exchange_returned E me adv _ _ _ σ I _ o o' hy
+      rw [b6, b4, b5, ensure_then_viewD, eO]
+      simp
+    · simpa using h2
+  · simpa using h1.trans (List.prefix_append _ _)
+
 end Adversary
 
 end TlsMpc.Node.Flows.Curve

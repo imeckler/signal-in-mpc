@@ -6369,6 +6369,16 @@ theorem s11_liveness (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hE : Curve.EulerC
   ⟨Curve.sqrt_complete hinv hE, Curve.roots_isSome hinv hE hQR,
    fun hC x1 y1 x2 y2 h1 h2 => Curve.addU_den_ne_zero hinv hC x1 y1 x2 y2 h1 h2⟩
 
+/-- **Value-level disclosure of the point exchanges** [M] (F24, part): against any adversary, the
+adversary's view of `pointExchange` (hence of `splitBegin`'s and the offset preparation's K₀
+exchange) is a prefix of [our commitment, our opening]. -/
+theorem s11_pointExchange_disclosure (E : Env) (me : Party) (adv : Adversary) (tag : Bytes)
+    (nonce points count : Nat) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).viewD <+:
+      [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+       ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩] :=
+  Curve.pointExchange_disclosure E me adv tag nonce points count σ I vD
+
 end FlowsS11
 
 /-! ## 8. NOT YET PROVED
@@ -6543,12 +6553,14 @@ the matching section above in the same commit.
   `s11_wf_hinted`, `s11_prepareContacts_wf`); `splitBegin` through `jointRun`
   (`s11_splitBegin_honest`) and the split agreement's value with the denominator discharged
   (`s11_splitAgree_montU`, `CompleteAddition` ← `proofs/` `edwards_complete`); the model form of
-  `commit_open_sound` for the point exchanges (`s11_pointExchange_sound`); `sqrt` and the lift's
+  `commit_open_sound` for the point exchanges (`s11_pointExchange_sound`) and their value-level
+  disclosure (`s11_pointExchange_disclosure`: a prefix of [our commitment, our opening]); `sqrt` and the lift's
   roots never fail (`s11_liveness`). OPEN: honest runs through `jointRun` of `agree`,
   `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`, `agreeHinted`, `agreeAffine`,
   `signatures`, `torsion`, `prepareContacts` (checked executably:
   `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
-  for the curve flows beyond the kinds; P-HINT (c), (d) composed with the runs (`entries_sound`,
+  for the curve flows other than the point exchanges (the opened checks, `w`, `Z`, the masked
+  denominators: only their kinds are proved); P-HINT (c), (d) composed with the runs (`entries_sound`,
   `curve_hinted_Z_uniform` are about the program); that the local step's mask points are uniform
   on the curve group (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/`
   `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points and the
@@ -7136,6 +7148,7 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s11_splitAgree_montU
 #print axioms TlsMpc.Security.s11_pointExchange_sound
 #print axioms TlsMpc.Security.s11_liveness
+#print axioms TlsMpc.Security.s11_pointExchange_disclosure
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
