@@ -678,4 +678,121 @@ theorem send_accepted (certB record text : B8) (w : Bits) (hcB : certB.length = 
 
 end Headline
 
+/-! ## Well-formedness -/
+
+/-- **`requestScript` is well formed** (op 42): the certificate and the state live and not once (the
+state at least one record wide), the counter fresh. It leaves the request's conversation. -/
+theorem requestScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (cert state : BoolH)
+    (cm sm : List Mark) (hf : Fresh c n) (hcn : cert.id < n)
+    (hc : c.bool? cert = some ⟨cm, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hsm : 8 * recordBytes ≤ sm.length) (hw : cm.length + 8 * recordBytes ≤ maxWidth) :
+    WF sigs c (requestScript n cert state) := by
+  unfold requestScript
+  simp only [seqs_cons, seqs_nil]
+  have c0 : cert.id ≠ n := by omega
+  have hwM := maxWidth_eq
+  refine WF_seq sigs c _ _ _ (check_slice sigs (useBool_keep hs rfl) ⟨Nat.zero_le _, hsm⟩ hf
+    (by simp only [recordBytes] at hw ⊢; omega)) ?_
+  have hf1 := hf.push n (Nat.le_refl n) ⟨(sm.drop 0).take (8 * recordBytes - 0), false⟩
+  refine WF_seq sigs _ _ _ _ (check_concat sigs
+    (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ c0).trans hc) rfl)
+      (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl) (useBools_nil _))) hf1
+    (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+          List.length_append, List.length_take, List.drop_zero, Nat.sub_zero, recordBytes] at hw ⊢; omega)) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    rw [bool?_push_of_ne _ _ _ _ (show n ≠ n + 1 by omega), bool?_push_self]; rfl)) (WF.done _ _)
+
+/-- **`requestCtrScript` is well formed** (the request's record, first phase): the traffic block
+(480 private bits) and the request's conversation (any marks, `8 · C` bits) live and not once, the
+counter fresh, the request kernel's signature (inputs 68 + C + |frame| + 4 bytes; accepted, header,
+ciphertext public, the pad private). -/
+theorem requestCtrScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic conv : BoolH)
+    (seq frame mask : B8) (name : Bytes) (C : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n)
+    (hcn : conv.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? conv = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * C) (hs : seq.length = 8) (hm : mask.length = 4) (hsize : C + frame.length ≤ 65536)
+    (hsig : sigs name = some ⟨8 * (68 + C + frame.length + 4),
+      List.replicate (8 * (1 + 5 + innerOf frame.length)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (requestCtrScript n traffic conv seq frame mask name) := by
+  unfold requestCtrScript
+  simp only [seqs_cons, seqs_nil, innerOf] at hsig ⊢
+  have t0 : traffic.id ≠ n := by omega
+  have t1 : traffic.id ≠ n + 1 := by omega
+  have k0 : conv.id ≠ n := by omega
+  have k1 : conv.id ≠ n + 1 := by omega
+  have hwM := maxWidth_eq
+  generalize hH : 8 * (1 + 5 + (frame.length + 1)) = H at hsig ⊢
+  have hHv : H = 8 * (7 + frame.length) := by rw [← hH]; omega
+  refine WF_seq sigs c _ _ _ (check_boolPublic sigs hf _ (by simp [hs, hwM])) ?_
+  have hf1 := hf.push n (Nat.le_refl n) ⟨List.replicate (bitsOf seq).length .pub, false⟩
+  refine WF_seq sigs _ _ _ _ (check_boolPublic sigs hf1 _ (by simp [hm, hwM]; omega)) ?_
+  have hf2 := hf1.push (n + 1) (Nat.le_refl _) ⟨List.replicate (bitsOf frame ++ bitsOf mask).length .pub, false⟩
+  refine WF_seq sigs _ _ _ _ (check_concat sigs
+    (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ t1).trans ((bool?_push_of_ne _ _ _ _ t0).trans ht)) rfl)
+      (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ (show n ≠ n + 1 by omega)).trans
+          (bool?_push_self _ _ _)) rfl)
+        (useBools_cons (useBool_keep ((bool?_push_of_ne _ _ _ _ k1).trans ((bool?_push_of_ne _ _ _ _ k0).trans hc)) rfl)
+          (useBools_cons (useBool_keep (bool?_push_self _ _ _) rfl) (useBools_nil _))))) hf2
+    (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+          List.length_append, List.length_replicate, length_bitsOf, hs, hm, hcm, hwM]; omega)) ?_
+  have hf3 := hf2.push (n + 2) (Nat.le_refl _) ⟨(List.map BoolInfo.marks [⟨List.replicate 480 Mark.never, false⟩,
+    ⟨List.replicate (bitsOf seq).length .pub, false⟩, ⟨cm, false⟩,
+    ⟨List.replicate (bitsOf frame ++ bitsOf mask).length .pub, false⟩]).flatten, false⟩
+  refine WF_seq sigs _ _ _ _ (check_run sigs hsig Nat.one_pos (useBool_keep (bool?_push_self _ _ _) rfl)
+    (by simp only [List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil,
+          List.length_append, List.length_replicate, length_bitsOf, hs, hm, hcm]; omega) hf3 (by decide)
+    (by simp only [List.length_append, List.length_replicate, hwM]; omega)) ?_
+  have hL : (List.replicate 1 (List.replicate H Mark.pub ++ List.replicate 128 Mark.never)).flatten =
+      List.replicate H Mark.pub ++ List.replicate 128 Mark.never := by simp
+  have hf4 := hf3.push (n + 3) (Nat.le_refl _) ⟨(List.replicate 1 (List.replicate H Mark.pub ++
+    List.replicate 128 Mark.never)).flatten, false⟩
+  refine WF_seq sigs _ _ _ _ (check_slice sigs (useBool_keep (bool?_push_self _ _ _) rfl)
+    (by simp only [hL, List.length_append, List.length_replicate]; omega) hf4 (by rw [hwM]; omega)) ?_
+  have hf5 := hf4.push (n + 4) (Nat.le_refl _) ⟨(((List.replicate 1 (List.replicate H Mark.pub ++
+    List.replicate 128 Mark.never)).flatten).drop H).take (H + 128 - H), false⟩
+  refine WF_seq sigs _ _ _ _ (check_slice sigs
+    (useBool_keep ((bool?_push_of_ne _ _ _ _ (show n + 3 ≠ n + 4 by omega)).trans (bool?_push_self _ _ _)) rfl)
+    (by simp only [hL, List.length_append, List.length_replicate]; omega) hf5 (by rw [hwM]; omega)) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_push, show n ≠ n + 5 by omega, show n ≠ n + 4 by omega, show n ≠ n + 3 by omega,
+      show n ≠ n + 2 by omega, show n ≠ n + 1 by omega, if_false, if_true]; rfl)) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_drop, bool?_push, show n + 1 ≠ n by omega, show n + 1 ≠ n + 5 by omega,
+      show n + 1 ≠ n + 4 by omega, show n + 1 ≠ n + 3 by omega, show n + 1 ≠ n + 2 by omega, if_false, if_true]
+    rfl)) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_drop, bool?_push, show n + 2 ≠ n by omega, show n + 2 ≠ n + 1 by omega,
+      show n + 2 ≠ n + 5 by omega, show n + 2 ≠ n + 4 by omega, show n + 2 ≠ n + 3 by omega, if_false, if_true]
+    rfl)) ?_
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_drop, bool?_push, show n + 3 ≠ n by omega, show n + 3 ≠ n + 1 by omega,
+      show n + 3 ≠ n + 2 by omega, show n + 3 ≠ n + 5 by omega, show n + 3 ≠ n + 4 by omega, if_false, if_true]
+    rfl)) ?_
+  have kk : conv.id ≠ n + 2 := by omega
+  have kk3 : conv.id ≠ n + 3 := by omega
+  have kk4 : conv.id ≠ n + 4 := by omega
+  have kk5 : conv.id ≠ n + 5 := by omega
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_drop, bool?_push, k0, k1, kk, kk3, kk4, kk5, if_false, hc]; rfl)) ?_
+  refine WF_openThen sigs _ _ _ _ ?_
+  have p5 : n + 5 ≠ n := by omega
+  have p51 : n + 5 ≠ n + 1 := by omega
+  have p52 : n + 5 ≠ n + 2 := by omega
+  have p53 : n + 5 ≠ n + 3 := by omega
+  have p5c : n + 5 ≠ conv.id := by omega
+  rw [check_openBool sigs (by decide) (useBool_keep (by
+      simp only [bool?_drop, bool?_push, p5, p51, p52, p53, p5c, if_false, if_true]; rfl) rfl) (by
+    rw [List.all_eq_true]
+    intro x hx
+    simp only [hL, List.drop_zero, Nat.sub_zero] at hx
+    rw [List.take_left' (by simp)] at hx
+    rw [(List.mem_replicate.mp hx).2]
+    rfl)]
+  intro bits _
+  refine WF_seq sigs _ _ _ _ (check_freeBool' sigs (by
+    simp only [bool?_drop, bool?_push, p5, p51, p52, p53, p5c, if_false, if_true]; rfl)) ?_
+  split
+  · exact WF.done _ _
+  · exact WF.abort _ _
+
 end TlsMpc.Node.Flows.Send
