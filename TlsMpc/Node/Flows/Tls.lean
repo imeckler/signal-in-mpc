@@ -63,7 +63,8 @@ connection's handles and its two directions' GHASH `Secret` shares) and `Buffers
 private buffers by public id, with the 64-record window `Window` and the drop-after-seal rule).
 
 PROVED (ideal model; the kernels' circuits compute their Lean definitions; S12_NOTES.md lists
-what is open):
+what is open). Here: the kinds, `seal_is_record`, the window and `Buffers.remove_gone`; the open,
+reveal, handshake and WF statements below are in `Flows/TlsProofs.lean`:
   T3: `*_reveals` for every script (the kinds of `tlsKinds`; registered in Flows/Registry.lean).
   T4-TLS, seal: `seal_is_record`: header ‖ ciphertext of `tls-seal-ctr` followed by `gcm-tag` on
     its pad and the two parties' halves `Local.Ghash.half` of shares that share H¹ … Hⁿ (P-GHASH
