@@ -1631,7 +1631,7 @@ mask pool meanwhile: **separate pools**):
   P-W2F, P-F2W (a) through `jointRun`, (b), T3; P-B2F, P-BITS at the protocol level with T3 for
   B2F; P-INV as a flow (T3, (a) through `jointRun`). Open (Security.lean section 8): P-CUT (a),
   (b) values, (c) composition, (f), (g) at the level of a whole `generate` run; WF theorems except
-  the challenge's.
+  the challenge's and the quotient's.
 - Deviations: the field-to-word opening through the natively written V3 program `field-mask-sub`
   (the open rule refuses `openField` of `v − f`); inversion masks are fresh field randomness, not
   word masks; conversions free their masks (single use enforced by `check` too).

@@ -89,9 +89,10 @@ See `TlsMpc/Security.lean` section 7b and the open list in section 8. In short:
 * P-BITS (a) (with `FieldInverse`), (b), (c), protocol level.
 * P-INV: T3 against any adversary (only z·m and the flag), (a) through `jointRun`, (b), (c), (d).
 * Op 55: `Reveals` (`blobAccepted`, `maskedBit`), `swapBits_spec`, pool freshness.
-* `_wf`: `challenge_wf` only. For the other flows the shell's `check` admits every batch of the
-  test instance (the vectors' `verdict ok` on all batches, also checked by `s10_pair.rs`); a
-  general WF theorem is open.
+* `_wf`: `challenge_wf` (every context) and `quotient_wf` (x, z live, fresh ids, the program
+  loaded). For `generate` and the conversions the shell's `check` admits every batch of the test
+  instance (the vectors' `verdict ok` on all batches, also asserted by `s10_pair.rs`); general WF
+  theorems for them are open.
 
 The correspondence with the Mathlib counting model (`proofs/TlsMpcProofs/CutAndChoose*.lean`):
 its "bad" set S is the candidates with error ≠ 0 (`Vals.err`), fixed before the challenge
