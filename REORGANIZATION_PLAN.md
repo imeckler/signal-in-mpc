@@ -1617,6 +1617,34 @@ reference ≥ p, a wrong bit block; each must abort), D.
 Depends on S9. **8–10 weeks.** Strong (P-CUT (c), (e), (g) are the hard ones). Split: one
 engineer on scripts and fixtures, one on proofs.
 
+**Status (2026-11-12, branch `s10-conversions`; details in `S10_NOTES.md`).** Scripts done, not
+yet called by the controller (the flow API switches in S11–S16; the legacy library keeps its own
+mask pool meanwhile: **separate pools**):
+- `Flows/Challenge.lean` (`Random.challenge` on `Random.joint`: P-CHAL (a), (b), (c),
+  `commit_open_sound`, disclosure, wf); `Flows/Masks.lean` (`generate`, deployed profiles,
+  `testParams` for the vectors only), `MasksProofs.lean`, `MasksRun.lean`; `Flows/Convert.lean`
+  (word ↔ field, bits to field, shared bits); `Flows/Inversion.lean` (the masked quotient through
+  `field-quotient`); `Account.openStep` (op 55). Labels for the kinds 80–87 and 90; no new kind.
+- Proved: P-CUT (a) and (c) at the protocol level (the core shift lemma and its bijection), (d) and
+  (e) at protocol and run level (the counting model's detection rules: `cutCheck_iff`,
+  `cutPhase_sound`, `bucket_mixed_fails`, `bucketPhase_sound`), (f), (g) with `FieldInverse`, (h);
+  P-W2F, P-F2W (a) through `jointRun`, (b), T3; P-B2F, P-BITS at the protocol level with T3 for
+  B2F; P-INV as a flow (T3, (a) through `jointRun`). Open (Security.lean section 8): P-CUT (a),
+  (b) values, (c) composition, (f), (g) at the level of a whole `generate` run; WF theorems except
+  the challenge's.
+- Deviations: the field-to-word opening through the natively written V3 program `field-mask-sub`
+  (the open rule refuses `openField` of `v − f`); inversion masks are fresh field randomness, not
+  word masks; conversions free their masks (single use enforced by `check` too).
+- Rust: loader entries (word circuits with their existing pins; `field-bit-check`, `-xor`,
+  `-recompose` with placeholder pins that fail closed until the V3 re-export; `field-mask-sub`
+  pinned by Lean's render); Lean vectors (`tests/lean/S10Vectors.lean`, test parameters) and the
+  stand-in two-party test `tests/s10_pair.rs` (honest flows and the five cheating cases). The
+  real-engine fixture `tests/e2e_s10.py` is written, not run (needs the re-export and the heavy
+  lock).
+- Not run in the branch: `scripts/check_axioms.py` (rebuilding `KernelSpecs/SlotEncoders` for
+  Security.lean's closure needs more than the 4 GB cap of this stage); the S10 restatements were
+  checked in a standalone file (33 entries, standard axioms only).
+
 ---
 
 **S11. Local arithmetic and the curve helpers.**

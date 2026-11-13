@@ -92,6 +92,8 @@ import TlsMpc.Node.Flows.Contacts
 import TlsMpc.Node.Flows.ContactsTable
 import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
+import TlsMpc.Node.Flows.MasksRun
+import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -5462,6 +5464,317 @@ theorem contactsWrite_used_nodup (used : List B8) (v : B8) (hu : used.Nodup) (hv
 
 end FlowsContacts
 
+/-! ### 7b. Conversions, masks, inversion (stage S10; plan 7.1 P-CHAL, P-CUT, P-PAIR/P-B2F, P-W2F, P-F2W, P-BITS, P-INV)
+
+Status per entry: **M** (in the ideal model of `Engine/Model.lean`) or **K** (a statement about
+values, independent of the model); hypotheses named `[hyp: …]`. `WordLoaded E` / `ProgsLoaded E`
+(`Flows/ConvertBase.lean`): the environment's word circuits and field programs under the S10 names
+compute their Lean specifications — the T2 trust in the pinned files (the word circuits' exact
+specifications on every input are `modAdd_exact`, `condSub_exact`, `reduceOnce_exact`).
+`FieldInverse` (Fermat for p) is the named hypothesis of FieldDagV3; the Mathlib package discharges
+it. SECURITY_MAP: the conversions (B.5–B.6 rows of the conversion kinds 80–87, 90). -/
+
+section FlowsS10
+open TlsMpc.Node.Engine TlsMpc.Node.Flows
+open TlsMpc.FieldDag (F)
+
+/-- **P-CHAL (b).** [K] The challenge's expansion yields a permutation of [0, n) whenever it
+succeeds. -/
+theorem s10_pchal_permutation (hash : Bytes → Bytes) (domain seed : Bytes) (n : Nat) (π : List Nat)
+    (h : Random.permOf hash domain seed n = some π) : π.Perm (List.range n) :=
+  Random.permOf_perm hash domain seed n π h
+
+/-- **P-CHAL (a).** [M] Two honest parties compute the same permutation, that of r_A ⊕ r_B (or
+both abort). -/
+theorem s10_pchal_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat) (domain : Bytes) (n : Nat)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame Random.tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes nB) (σB.bytes vB))) :
+    (jointRun E (Random.challenge E.hash .a nA vA domain n) (Random.challenge E.hash .b nB vB domain n) σA σB I).result =
+      (Random.permOf E.hash domain (Random.xorBytes (σA.bytes vA) (σB.bytes vB)) n).map fun π => (π, π) :=
+  Random.challenge_honest E σA σB I nA vA nB vB domain n hh hnA hvA hnB hvB hc
+
+/-- **P-CHAL (c).** [M; hyp: `IdealCommit`] Every accepted challenge is the permutation of r ⊕ v
+for one adversary value v, and r ↦ r ⊕ v is injective on 32-byte strings. -/
+theorem s10_pchal_seed_injective (E : Env) (me : Party) (adv : Adversary) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (domain : Bytes) (n : Nat) (hh : ∀ m, (E.hash m).length = 32) (S : Store → Prop)
+    (hS : ∀ σ', S σ' → (σ'.bytes nonce).length = 32 ∧ (σ'.bytes value).length = 32)
+    (v : Bytes) (hic : Random.IdealCommit E me adv I vD nonce value S v) :
+    (∀ σ', S σ' → ∀ π, (withAdv E me adv (Random.challenge E.hash me nonce value domain n) σ' I vD).result = some π →
+        Random.permOf E.hash domain (Random.xorBytes (σ'.bytes value) v) n = some π) ∧
+      ∀ r r' : Bytes, r.length = 32 → r'.length = 32 → v.length = 32 → Random.xorBytes r v = Random.xorBytes r' v → r = r' :=
+  Random.challenge_seed_injective E me adv I vD nonce value domain n hh S hS v hic
+
+/-- **`commit_open_sound`** [M] (every commit-then-open site of the S10 flows is a `Random.joint`):
+an accepted run means the adversary's opening matches the commitment it sent before seeing ours,
+which differs from ours; a commitment equal to ours aborts. -/
+theorem s10_commit_open_sound (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) :
+    (∀ x, (withAdv E me adv (Random.joint E.hash me nonce value) σ I vD).result = some x →
+      ∃ p1 p2, adv.act (vD ++ [Random.e1 E me σ nonce value]) Random.skel1 = some p1 ∧
+        adv.act (vD ++ [Random.e1 E me σ nonce value, Random.e2 σ nonce value]) Random.skel2 = some p2 ∧
+        E.hash (commitFrame Random.tag me.other (p2.bytes.take 32) (p2.bytes.drop 32)) = p1.bytes ∧
+        p1.bytes ≠ Random.ourCommit E me σ nonce value ∧ x = Random.xorBytes (σ.bytes value) (p2.bytes.drop 32)) ∧
+    (∀ p1, adv.act (vD ++ [Random.e1 E me σ nonce value]) Random.skel1 = some p1 →
+      p1.bytes = Random.ourCommit E me σ nonce value →
+      (withAdv E me adv (Random.joint E.hash me nonce value) σ I vD).result = none) :=
+  Random.commit_open_sound E me adv σ I vD nonce value hh hn hv
+
+/-- **The word circuits' exact specification** [K]: `modAdd` computes `addModSpec` on every pair
+of 255-bit words (canonical or not), which is what `WordLoaded` asks of the pinned file. -/
+theorem s10_modAdd_exact (env : Nat → Bool) (x y : List TlsMpc.BoolDag.Expr) (hx : x.length = 255) (hy : y.length = 255) :
+    TlsMpc.WordMask.val env (TlsMpc.WordMask.modAdd x y) =
+      Conv.addModSpec (TlsMpc.WordMask.val env x) (TlsMpc.WordMask.val env y) :=
+  Conv.modAdd_exact env x y hx hy
+
+/-- **P-CUT (d), protocol level** [K]: the cut check passes iff every cut candidate of both owners
+is canonical with error 0. -/
+theorem s10_pcut_d_cut (x : Masks.Vals) (hw : x.Wide) (cut : List Nat) :
+    Masks.cutCheck ((Masks.cutRel x cut).map Prod.fst).flatten ((Masks.cutRel x cut).map Prod.snd) = true ↔
+      ∀ o ∈ Masks.owners, ∀ c ∈ cut, x.val o c < Conv.P ∧ x.err o c = 0 :=
+  Masks.cutCheck_iff x hw cut
+
+/-- **P-CUT (d), run level** [M]: against any adversary, getting past the cut means every cut
+candidate of both owners, in the engines' values, is canonical with error 0. -/
+theorem s10_pcut_d_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ : List Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W)) (hπ : ∀ c ∈ Masks.cutOf p π₁, c < p.M)
+    (hf : ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁, (I.fields (Masks.fOf p f o c).id).isSome)
+    (h : (withAdv E me adv (Masks.cutPhase p b f π₁) σ I vD).result = some ()) :
+    ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁,
+      (Masks.valsOf p f v I).val o c < Conv.P ∧ (Masks.valsOf p f v I).err o c = 0 :=
+  Masks.cutPhase_sound E me adv p b f π₁ σ I vD v hv hlen hπ hf h
+
+/-- **P-CUT (b) for the cut** [M]: the adversary's view of the cut phase is a prefix of [the cut
+candidates' elements, their words], labelled `cutCandidates`. -/
+theorem s10_pcut_b_cut (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ : List Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W)) (hπ : ∀ c ∈ Masks.cutOf p π₁, c < p.M)
+    (hf : ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁, (I.fields (Masks.fOf p f o c).id).isSome) :
+    (withAdv E me adv (Masks.cutPhase p b f π₁) σ I vD).viewD <+:
+      [⟨Label.cutCandidates, .elems ((Masks.cutRel (Masks.valsOf p f v I) (Masks.cutOf p π₁)).map Prod.snd)⟩,
+       ⟨Label.cutCandidates, .bits ((Masks.cutRel (Masks.valsOf p f v I) (Masks.cutOf p π₁)).map Prod.fst).flatten⟩] :=
+  Masks.cutPhase_disclosure E me adv p b f π₁ σ I vD v hv hlen hπ hf
+
+/-- **P-CUT (b): kept candidates are never cut** [K]: the cut is disjoint from the remaining
+candidates (every reference and member). -/
+theorem s10_pcut_b_disjoint (p : Masks.Params) (π₁ : List Nat) (hn : π₁.Nodup) :
+    ∀ c ∈ Masks.cutOf p π₁, c ∉ Masks.remainOf p π₁ :=
+  Masks.cut_disjoint p π₁ hn
+
+/-- **P-CUT (e), protocol level** [K]: for a canonical reference, the bucket check of (reference,
+member) passes iff val(ref) + val(member) < 2p and the errors cancel mod p. -/
+theorem s10_pcut_e_bucket (vr vm : Nat) (er em : F) (hr : vr < Conv.P) (hm : vm < 2 ^ 255) :
+    Masks.bucketOk vr vm er em = true ↔
+      vr + vm < 2 * Conv.P ∧ ((vr + (Conv.P - er.val)) % Conv.P + (vm + (Conv.P - em.val)) % Conv.P) % Conv.P = 0 :=
+  Masks.bucketOk_iff vr vm er em hr hm
+
+/-- **The counting model's detection rule** [K] (proofs/ `CutAndChoose`: a mixed bucket aborts):
+with a canonical reference, a pair of which exactly one has error 0 fails. -/
+theorem s10_pcut_e_mixed (x : Masks.Vals) (o r m : Nat) (hr : x.val o r < Conv.P) (hm : x.val o m < 2 ^ 255)
+    (hmix : (x.err o r = 0 ∧ x.err o m ≠ 0) ∨ (x.err o r ≠ 0 ∧ x.err o m = 0)) :
+    Masks.bucketOk (x.val o r) (x.val o m) (x.elem o r) (x.elem o m) = false :=
+  Masks.bucket_mixed_fails x o r m hr hm hmix
+
+/-- **P-CUT (e), run level** [M; hyp: `WordLoaded`]: getting past the buckets means every pair of
+both owners passes `bucketOk` in the engines' values. -/
+theorem s10_pcut_e_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ π₂ : List Nat)
+    (hW : Conv.WordLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W))
+    (hπ₁ : ∀ x ∈ π₁, x < p.M) (hM : 0 < p.M)
+    (hf : ∀ o < 2, ∀ c < p.M, (I.fields (Masks.fOf p f o c).id).isSome)
+    (h : (withAdv E me adv (Masks.bucketPhase p b f π₁ π₂) σ I vD).result = some ()) :
+    ∀ e ∈ Masks.pairs p, Masks.bucketOk ((Masks.valsOf p f v I).val e.1 (Masks.memOf p π₁ π₂ e.2.1 0))
+      ((Masks.valsOf p f v I).val e.1 (Masks.memOf p π₁ π₂ e.2.1 e.2.2))
+      ((Masks.valsOf p f v I).elem e.1 (Masks.memOf p π₁ π₂ e.2.1 0))
+      ((Masks.valsOf p f v I).elem e.1 (Masks.memOf p π₁ π₂ e.2.1 e.2.2)) = true :=
+  Masks.bucketPhase_sound E me adv p b f π₁ π₂ hW σ I vD v hv hlen hπ₁ hM hf h
+
+/-- **P-CUT (f)** [K]: the flag of a word mask is "both references canonical"; of a bit block,
+also "both at least 32". -/
+theorem s10_pcut_f_flags (a b : Bits) (ha : a.length = Masks.W) (hb : b.length = Masks.W) :
+    (Conv.finalizeMaskEval (a ++ b)).getD 255 false = (decide (Conv.natOf a < Conv.P) && decide (Conv.natOf b < Conv.P)) ∧
+    (Conv.finalizeBitsEval (a ++ b)).getD 255 false =
+      (decide (Conv.natOf a < Conv.P) && decide (Conv.natOf b < Conv.P) && decide (32 ≤ Conv.natOf a) &&
+        decide (32 ≤ Conv.natOf b)) :=
+  ⟨Masks.finalizeMask_flag a b ha hb, Masks.finalizeBits_flag a b ha hb⟩
+
+/-- **P-CUT (g)** [K; hyp: `FieldInverse`]: field inputs whose bit checks are 0 and whose
+recomposition is the reference's value, with 19 ≤ val(b) < p, are exactly the bits of b. -/
+theorem s10_pcut_g_bitblock (hinv : TlsMpc.FieldDag.V3.FieldInverse) (cs : List F) (b : Bits) (v : F)
+    (hl : cs.length = 255) (hb : b.length = 255)
+    (hcheck : ∀ c ∈ cs, c * (c - TlsMpc.FieldDag.ofNat 1) = 0)
+    (hrec : TlsMpc.FieldBits.hornerValue cs - v = 0)
+    (hv : v.val = Conv.natOf b) (h19 : 19 ≤ Conv.natOf b) (hP : Conv.natOf b < Conv.P) :
+    cs = b.map TlsMpc.X25519.bitValue :=
+  Masks.bitBlock_unique hinv cs b v hl hb hcheck hrec hv h19 hP
+
+/-- **P-CUT (a)** [K]: from honest references, the word mask is (word of (r_A + r_B) mod p,
+r_A + r_B) with val(word) = the field value, and the flag is set. -/
+theorem s10_pcut_a_mask (rA rB : Nat) (hA : rA < Conv.P) (hB : rB < Conv.P) :
+    (Conv.finalizeMaskEval ((Masks.honest rA).1 ++ (Masks.honest rB).1)).take 255 = Conv.word ((rA + rB) % Conv.P) ∧
+      Conv.natOf (Conv.word ((rA + rB) % Conv.P)) = ((Masks.honest rA).2 + (Masks.honest rB).2).val ∧
+      (Conv.finalizeMaskEval ((Masks.honest rA).1 ++ (Masks.honest rB).1)).getD 255 false = true :=
+  Masks.honest_mask rA rB hA hB
+
+/-- **P-CUT (c), the core lemma** [K]: the cut and bucket releases and the word-mask flags are
+unchanged when the honest party's candidates are shifted by d with d ≡ 0 on the cut and
+d(ref) + d(member) ≡ 0 in each bucket (a bijection: `Masks.shift_shift`; any target reference:
+`Masks.shift_ref`). -/
+theorem s10_pcut_c_core (x : Masks.Vals) (oH : Nat) (d : Nat → Nat) (h : Masks.HonestAt x oH) (cut : List Nat)
+    (mem : Nat → Nat → Nat) (ps : List (Nat × Nat × Nat))
+    (hcut : ∀ c ∈ cut, d c % Conv.P = 0)
+    (hbk : ∀ e ∈ ps, (d (mem e.2.1 0) + d (mem e.2.1 e.2.2)) % Conv.P = 0) :
+    Masks.cutRel (Masks.shift x oH d) cut = Masks.cutRel x cut ∧
+      Masks.bucketRel (Masks.shift x oH d) mem ps = Masks.bucketRel x mem ps ∧
+      ∀ c, decide ((Masks.shift x oH d).val oH c < Conv.P) = decide (x.val oH c < Conv.P) :=
+  Masks.hiding_releases x oH d h cut mem ps hcut hbk
+
+/-- **P-CUT (h)** [K]: masks taken one after the other are pairwise distinct and leave the pool. -/
+theorem s10_pcut_h_takes (k : Nat) (p p' : Conv.MaskPool) (ms : List Conv.WordMask) (hd : p.Distinct)
+    (h : Conv.MaskPool.takes k p = some (ms, p')) :
+    ms.Nodup ∧ (∀ m ∈ ms, m ∉ p'.words) ∧ p'.Distinct ∧ p.words = ms ++ p'.words :=
+  Conv.MaskPool.takes_distinct k p p' ms hd h
+
+/-- **P-W2F (a)** [M; hyp: `WordLoaded`]: two honest parties with a consistent mask end with
+u mod p in the field. -/
+theorem s10_pw2f_honest (E : Env) (n0 f0 : Nat) (u : BoolH) (m : Conv.WordMask) (hW : Conv.WordLoaded E)
+    (σA σB : Store) (I : Ideal) (ub wb : Bits) (fv : F)
+    (hu : I.bools u.id = some ub) (hm : I.bools m.bits.id = some wb) (hlu : ub.length = 255) (hlw : wb.length = 255)
+    (hf : I.fields m.field.id = some fv) (hcons : Conv.natOf wb = fv.val)
+    (hf0 : m.field.id ≠ f0) (hf1 : m.field.id ≠ f0 + 1) :
+    (jointRun E (Convert.wordToField n0 f0 u m) (Convert.wordToField n0 f0 u m) σA σB I).result = some (⟨f0 + 1⟩, ⟨f0 + 1⟩) ∧
+      (jointRun E (Convert.wordToField n0 f0 u m) (Convert.wordToField n0 f0 u m) σA σB I).ideal.fields (f0 + 1) =
+        some (TlsMpc.FieldDag.ofNat (Conv.natOf ub)) :=
+  Convert.w2f_honest E n0 f0 u m hW σA σB I ub wb fv hu hm hlu hlw hf hcons hf0 hf1
+
+/-- **T3 for word to field** [M; hyp: `WordLoaded`]: the adversary sees c and its re-comparison. -/
+theorem s10_pw2f_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (u : BoolH) (m : Conv.WordMask)
+    (hW : Conv.WordLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (ub wb : Bits)
+    (hu : I.bools u.id = some ub) (hm : I.bools m.bits.id = some wb) (hlu : ub.length = 255) (hlw : wb.length = 255) :
+    (withAdv E me adv (Convert.wordToField n0 f0 u m) σ I vD).viewD <+:
+      [⟨Label.maskedWord, .bits (Conv.intoFieldEval (ub ++ wb))⟩,
+       ⟨Label.maskedWord, .bytes (le 32 (Conv.natOf (Conv.intoFieldEval (ub ++ wb))))⟩] :=
+  Convert.w2f_disclosure E me adv n0 f0 u m hW σ I vD ub wb hu hm hlu hlw
+
+/-- **P-W2F (b)** [K] (plan 7.0's form): for any two words the opened values correspond under a
+bijection of the mask. -/
+theorem s10_pw2f_hides (u u' : Nat) :
+    ∃ σ : Nat → Nat, (∀ r < Conv.P, σ r < Conv.P) ∧ (∃ τ : Nat → Nat, ∀ r < Conv.P, τ (σ r) = r) ∧
+      ∀ r < Conv.P, Convert.w2fOpen u r = Convert.w2fOpen u' (σ r) :=
+  Convert.w2f_hides u u'
+
+/-- **P-F2W (a)** [M; hyp: `WordLoaded`, `ProgsLoaded`]: two honest parties end with the word of
+v's canonical value. -/
+theorem s10_pf2w_honest (E : Env) (n0 f0 : Nat) (v : FieldH) (m : Conv.WordMask) (hW : Conv.WordLoaded E)
+    (hP : Conv.ProgsLoaded E) (σA σB : Store) (I : Ideal) (vv fv : F) (wb : Bits)
+    (hv : I.fields v.id = some vv) (hf : I.fields m.field.id = some fv) (hm : I.bools m.bits.id = some wb)
+    (hlw : wb.length = 255) (hcons : Conv.natOf wb = fv.val) (hb0 : m.bits.id ≠ n0) (hb2 : m.bits.id ≠ n0 + 2) :
+    (jointRun E (Convert.fieldToWord n0 f0 v m) (Convert.fieldToWord n0 f0 v m) σA σB I).result = some (⟨n0 + 2⟩, ⟨n0 + 2⟩) ∧
+      (jointRun E (Convert.fieldToWord n0 f0 v m) (Convert.fieldToWord n0 f0 v m) σA σB I).ideal.bools (n0 + 2) =
+        some (Conv.word vv.val) :=
+  Convert.f2w_honest E n0 f0 v m hW hP σA σB I vv fv wb hv hf hm hlw hcons hb0 hb2
+
+/-- **T3 for field to word** [M; hyp: `ProgsLoaded`]: the adversary sees the program's empty
+openings, c = v − f, and its re-comparison. -/
+theorem s10_pf2w_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (v : FieldH) (m : Conv.WordMask)
+    (hP : Conv.ProgsLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (vv fv : F)
+    (hv : I.fields v.id = some vv) (hf : I.fields m.field.id = some fv) :
+    (withAdv E me adv (Convert.fieldToWord n0 f0 v m) σ I vD).viewD <+:
+      [⟨Label.maskedFieldValue, .elems []⟩, ⟨Label.maskedFieldValue, .elems [vv - fv]⟩,
+       ⟨Label.maskedFieldValue, .bytes (le 32 (vv - fv).val)⟩] :=
+  Convert.f2w_disclosure E me adv n0 f0 v m hP σ I vD vv fv hv hf
+
+/-- **P-F2W (b)** [K]: f ↦ v − f is a bijection of F. -/
+theorem s10_pf2w_hides (vv : F) : (∀ f f' : F, vv - f = vv - f' → f = f') ∧ ∀ f : F, vv - (vv - f) = f :=
+  Convert.f2w_hides vv
+
+/-- **P-B2F (a), (b)** [K]: for a consistent pair the result is x's bit; ρ ↦ x ⊕ ρ is a bijection. -/
+theorem s10_pb2f (x ρ : Bool) :
+    ((if (x ^^ ρ) then TlsMpc.FieldDag.ofNat 1 - TlsMpc.X25519.bitValue ρ else TlsMpc.X25519.bitValue ρ - TlsMpc.FieldDag.ofNat 0) =
+      TlsMpc.X25519.bitValue x) ∧ (∀ ρ ρ' : Bool, (x ^^ ρ) = (x ^^ ρ') → ρ = ρ') :=
+  ⟨Convert.b2f_value x ρ, (Convert.b2f_hides x).1⟩
+
+/-- **T3 for bits to field** [M]: at most one release, `maskedBit`: the xor output. -/
+theorem s10_pb2f_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (x : BoolH) (ps : List Conv.BitPair)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Convert.bitsToField n0 f0 x ps) σ I vD).viewD <+:
+      [⟨Label.maskedBit, .bits (Contacts.openedAfter E (Convert.b2fBlock n0 x ps) ⟨n0 + 3⟩ I)⟩] :=
+  Convert.b2f_disclosure E me adv n0 f0 x ps σ I vD
+
+/-- **P-BITS (a)** [K; hyp: `FieldInverse`]: the checks open to 0 iff every input is 0 or 1. -/
+theorem s10_pbits_checks (hinv : TlsMpc.FieldDag.V3.FieldInverse) (cs : List F) :
+    (cs.map fun c => c * (c - TlsMpc.FieldDag.ofNat 1)).all (· == 0) = true ↔
+      ∀ c ∈ cs, c = 0 ∨ c = TlsMpc.FieldDag.ofNat 1 :=
+  Convert.bits_checks_zero_iff hinv cs
+
+/-- **P-BITS (b)** [K]: honest inputs give the bits of the XOR. -/
+theorem s10_pbits_xor (a b : Bits) :
+    (List.zipWith (fun x y => Conv.bitXorValue (TlsMpc.X25519.bitValue x) (TlsMpc.X25519.bitValue y)) a b) =
+      (List.zipWith (· ^^ ·) a b).map TlsMpc.X25519.bitValue :=
+  Convert.bits_xor a b
+
+/-- **T3 for the masked quotient** [M]: the adversary sees z·m and the zero flag only. -/
+theorem s10_pinv_disclosure (E : Env) (me : Party) (adv : Adversary) (f0 slot : Nat) (x z : FieldH)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient) (σ : Store) (I : Ideal)
+    (vD : List Release) (xv zv : F) (hx : I.fields x.id = some xv) (hz : I.fields z.id = some zv)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2) :
+    ∃ mv : F, (withAdv E me adv (Inversion.quotientScript f0 slot x z) σ I vD).viewD <+:
+      [⟨Label.maskedDenominator, .elems [zv * mv]⟩,
+       ⟨Label.maskedDenominator, .elems [if zv * mv = 0 then TlsMpc.FieldDag.ofNat 1 else TlsMpc.FieldDag.ofNat 0]⟩] :=
+  Inversion.quotient_disclosure E me adv f0 slot x z hq σ I vD xv zv hx hz hfx hfz
+
+/-- **P-INV (a), run level** [M; hyp: `FieldInverse`]: two honest parties with a nonzero mask end
+with x·z⁻¹ and the flag "z = 0". -/
+theorem s10_pinv_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 slot : Nat) (x z : FieldH) (xv zv mA mB : F)
+    (hx : I.fields x.id = some xv) (hz : I.fields z.id = some zv)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2)
+    (hA : σA.elems slot = [mA]) (hB : σB.elems slot = [mB]) (hm : mA + mB ≠ 0) :
+    (jointRun E (Inversion.quotientScript f0 slot x z) (Inversion.quotientScript f0 slot x z) σA σB I).result =
+      some ((⟨f0 + 3⟩, decide (zv = 0)), (⟨f0 + 3⟩, decide (zv = 0))) ∧
+    (jointRun E (Inversion.quotientScript f0 slot x z) (Inversion.quotientScript f0 slot x z) σA σB I).ideal.fields (f0 + 3) =
+      some (xv * TlsMpc.FieldDag.inverse zv) :=
+  Inversion.quotient_honest hinv E hq σA σB I f0 slot x z xv zv mA mB hx hz hfx hfz hA hB hm
+
+/-- **Op 55 (T3 in the reveal list's vocabulary)** [M]: every release is the accepted byte or a
+masked bit. -/
+theorem s10_account_open_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (a : Account.State) (n f : Nat) (pool : Conv.MaskPool) (hinted : Bool) (version check ct : Contacts.B8) :
+    ∀ r ∈ (withAdv E me adv (Account.openStep a n f pool hinted version check ct) σ I vD).viewD,
+      ∃ k ∈ Account.openKinds55, r.label = Label.ofKind k :=
+  Account.openStep_viewD_kinds E me adv σ I vD a n f pool hinted version check ct
+
+/-- **Op 55's swap bits** [K]: the `swap-bits` circuit's output k is the swap bit of ladder step
+k + 2 (`X25519Fast.swapBitSpec`). -/
+theorem s10_swapBits_spec (v : Bits) :
+    Conv.swapBitsEval v = (List.range 252).map fun k => X25519Fast.swapBitSpec (fun i => v.getD i false) (k + 2) :=
+  Account.swapBits_spec v
+
+/-- **The S10 flows declare their kinds** [M] (`Reveals`, on every branch). -/
+theorem s10_flows_reveal :
+    (∀ hash me nonce value dom n, Reveals Random.jointKinds (Random.challenge hash me nonce value dom n)) ∧
+    (∀ p b f hash me s, Reveals Masks.generateKinds (Masks.generate p b f hash me s)) ∧
+    (∀ n0 f0 u m, Reveals Convert.w2fKinds (Convert.wordToField n0 f0 u m)) ∧
+    (∀ n0 f0 v m, Reveals Convert.f2wKinds (Convert.fieldToWord n0 f0 v m)) ∧
+    (∀ n0 f0 x ps, Reveals Convert.b2fKinds (Convert.bitsToField n0 f0 x ps)) ∧
+    (∀ f0 n slot, Reveals Convert.bitsKinds (Convert.sharedBits f0 n slot)) ∧
+    (∀ f0 slot x z, Reveals Inversion.inversionKinds (Inversion.quotientScript f0 slot x z)) ∧
+    (∀ a n f pool hinted version check ct,
+      Reveals Account.openKinds55 (Account.openStep a n f pool hinted version check ct)) :=
+  Registry.s10_flows_reveal
+
+/-- **The challenge is well formed** [K] (the shell's `check` accepts it in every context). -/
+theorem s10_challenge_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (nonce value : Nat)
+    (domain : Bytes) (n : Nat) (c : Ctx) : WF sigs c (Random.challenge hash me nonce value domain n) :=
+  Random.challenge_wf sigs hash me nonce value domain n c
+
+end FlowsS10
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -5583,19 +5896,38 @@ the matching section above in the same commit.
 * **P-RAND** (joint randomness): (a), (b) under `IdealCommit`, (c), disclosure and commit before
   open are proved in the model (section 7a). Still open: that the running code is the script (S9
   wiring). → **S9**.
-* **P-CHAL** (challenge permutation: agreement, is a permutation, injective seed). → **S10**.
-* **P-CUT** (cut-and-choose word masks: correctness, disclosure, hiding, detection, bit blocks,
-  single use). → **S10**.
-* **P-PAIR / P-B2F**, **P-W2F**, **P-F2W** (conversions: value, bijection, single use). → **S10**.
-* **P-BITS** (shared scalars as field bits; needs the converse of `fieldBits_bitCheck_bit`).
-  → **S10**.
+* **P-CHAL**: (a), (b), (c) and `commit_open_sound` proved in the model (section 7b). Open: that the
+  running code is the script (the S10 scripts are not yet called by the controller; S11–S16).
+* **P-CUT** (section 7b). Proved: (a) at the protocol level (honest candidates pass, the mask and
+  pair values); (b) `Reveals` of the whole `generate` (labels), the cut phase's disclosure with
+  values, the cut disjoint from the kept candidates; (c) the core lemma (cut and bucket releases and
+  word-mask flags unchanged under the cancelling shift; the shift a bijection reaching any target
+  reference); (d) protocol and run level (`cutPhase_sound`); (e) protocol level exactly (pass ⟺
+  val(ref) + val(member) < 2p and the errors cancel, for a canonical reference), the counting
+  model's mixed-bucket rule, and the run level (`bucketPhase_sound`); (f) the flags' meaning; (g)
+  `bitBlock_unique` with `FieldInverse`; (h) the pool and the frees. OPEN: (a) for a whole honest
+  `generate` run in the model (checked executably for the test parameters: the vectors'
+  `check mask … ok`); (b) a value-level disclosure for the bucket, flag and bit-block phases and
+  the whole run; (c) the composition with the model (the adversary's whole view of `generate` as a
+  function of these releases and the challenges), and the bit-block flags (the ≥ 32 condition of
+  the shifted reference); (f), (g) at run level; a WF theorem for `generate` (every batch of the
+  test instance is admitted: the vectors' `verdict ok`). → **S10 follow-up**.
+* **P-PAIR / P-B2F**, **P-W2F**, **P-F2W**: (a), (b), T3, (c) proved (section 7b; W2F and F2W (a)
+  through `jointRun`, B2F (a) per bit). Open: B2F (a) through `jointRun` for the whole bundle; WF
+  theorems for the conversion scripts.
+* **P-BITS**: (a) with `FieldInverse` (the converse of `fieldBits_bitCheck_bit`), (b), (c) at the
+  protocol level. Open: the run-level statement through the program instructions.
 * **P-INV** (masked inversion `D`/`Z` nodes), **P-FIELDPROG** (what a program releases). → **S9**,
   **S11**.
 * **P-GHASH** (incl. (c): `sealCtr_with_tag_is_seal`'s `halves` discharged for the running
   code). → **S12**.
 * **P-SPLIT** (split ECDH), **P-OFFSET** (offset agreement about `step`, incl. the digit
   recoding lemma), **P-HINT** (lift and tables, under H-QR). → **S11**.
-* `commit_open_sound` (one commitment for all commit-then-open sites). → **S9–S11**.
+* `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
+  7b, `s10_commit_open_sound`). Open: the point exchanges of P-SPLIT and P-OFFSET (S11).
+* **P-INV** as a flow (section 7b): T3 against any adversary (only z·m and the zero flag), (a)
+  through `jointRun`, the mask's uniformity, (c). The masks are fresh field randomness of both
+  parties (never cut-and-choose word masks: a program mask must be marked never).
 
 ### Flows and channels
 * **T4-x** — composition per flow (CONTACT, UPGRADE, TLS, SEND, RECV, REFRESH, CEREMONY): under
@@ -6093,6 +6425,40 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.offsetAgreement_public_key_independent
 #print axioms TlsMpc.Security.offsetAgreement_candidate_needs_initial
 #print axioms TlsMpc.Security.tlsClient_accepted_session_authenticated
+
+#print axioms TlsMpc.Security.s10_pchal_permutation
+#print axioms TlsMpc.Security.s10_pchal_honest
+#print axioms TlsMpc.Security.s10_pchal_seed_injective
+#print axioms TlsMpc.Security.s10_commit_open_sound
+#print axioms TlsMpc.Security.s10_modAdd_exact
+#print axioms TlsMpc.Security.s10_pcut_d_cut
+#print axioms TlsMpc.Security.s10_pcut_d_run
+#print axioms TlsMpc.Security.s10_pcut_b_cut
+#print axioms TlsMpc.Security.s10_pcut_b_disjoint
+#print axioms TlsMpc.Security.s10_pcut_e_bucket
+#print axioms TlsMpc.Security.s10_pcut_e_mixed
+#print axioms TlsMpc.Security.s10_pcut_e_run
+#print axioms TlsMpc.Security.s10_pcut_f_flags
+#print axioms TlsMpc.Security.s10_pcut_g_bitblock
+#print axioms TlsMpc.Security.s10_pcut_a_mask
+#print axioms TlsMpc.Security.s10_pcut_c_core
+#print axioms TlsMpc.Security.s10_pcut_h_takes
+#print axioms TlsMpc.Security.s10_pw2f_honest
+#print axioms TlsMpc.Security.s10_pw2f_disclosure
+#print axioms TlsMpc.Security.s10_pw2f_hides
+#print axioms TlsMpc.Security.s10_pf2w_honest
+#print axioms TlsMpc.Security.s10_pf2w_disclosure
+#print axioms TlsMpc.Security.s10_pf2w_hides
+#print axioms TlsMpc.Security.s10_pb2f
+#print axioms TlsMpc.Security.s10_pb2f_disclosure
+#print axioms TlsMpc.Security.s10_pbits_checks
+#print axioms TlsMpc.Security.s10_pbits_xor
+#print axioms TlsMpc.Security.s10_pinv_disclosure
+#print axioms TlsMpc.Security.s10_pinv_honest
+#print axioms TlsMpc.Security.s10_account_open_kinds
+#print axioms TlsMpc.Security.s10_swapBits_spec
+#print axioms TlsMpc.Security.s10_flows_reveal
+#print axioms TlsMpc.Security.s10_challenge_wf
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
