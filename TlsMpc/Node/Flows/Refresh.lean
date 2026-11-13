@@ -107,10 +107,12 @@ def maxBody : Nat := 65536
 def minBody : Nat := 2540
 
 /-- **The splice's filler byte**: what the runtime inserts before each number of an item to reach
-its slot (`BundleSlots.splice`; `bundle_establish`'s `'0'`). ONE place: another branch changes the
-kernel's padding to NUL; the theorems used depend on the kernel theorems' names only, and this
-constant is the one line to follow it (S15_NOTES.md, merge notes). -/
-def slotFiller : BitVec 8 := 48
+its slot (`BundleSlots.splice`). ONE place; the theorems used depend on the kernel theorems' names
+only, and this constant is the one line to follow the kernel (S15_NOTES.md, merge notes).
+JOIN NOTE (`scripts-stack`, STACK_NOTES.md): NUL (0) since the main line's emitter batch (commit
+5c047ac, bundle-slot padding `'0'` → NUL) was merged into the stack; it was `'0'` (48) on the S15
+branch, as the C++ `bundle_establish`. -/
+def slotFiller : BitVec 8 := 0
 
 /-- `bundle-slot`'s outputs (byte widths): valid, identityKey, deviceId, registrationId,
 signedPrekeyId, signedPrekey, signedPrekeySignature, kyberPrekeyId, kyberPrekey,
