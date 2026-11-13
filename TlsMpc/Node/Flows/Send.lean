@@ -73,8 +73,8 @@ open Std.Tactic.BVDecide
 
 /-! ## Names -/
 
-/-- A kernel's cache name: its words separated by single spaces. -/
-def joinName (parts : List String) : Bytes := ascii (" ".intercalate parts)
+/-- A kernel's cache name: its words separated by single spaces (the ASCII of `" ".intercalate`). -/
+def joinName (parts : List String) : Bytes := ((parts.map ascii).intersperse (ascii " ")).flatten
 
 def widthsName (cert : Nat) : Bytes := joinName ["signal-widths", toString cert]
 
@@ -123,6 +123,42 @@ def widthsOf (flags : B8) : Option (Nat × Nat × Nat × Nat) :=
     | _, _, _, _ => none
   else none
 
+theorem textClass_le {t : Nat} {p : Bool × Nat} (h : textClass t = some p) : t ≤ 330 ∧ p.2 ≤ 4 := by
+  unfold textClass at h
+  split at h
+  · simp only [Option.some.injEq] at h; subst h; constructor <;> omega
+  · split at h
+    · simp only [Option.some.injEq] at h; subst h; constructor <;> omega
+    · cases h
+
+theorem widthOf_le {f : B8} {w : Nat} (h : widthOf f = some w) : w ≤ 1 + f.length := by
+  unfold widthOf at h
+  split at h
+  · simp only [Option.some.injEq] at h
+    subst h
+    have := List.length_filter_le (· == (255 : BitVec 8)) f
+    omega
+  · cases h
+
+/-- **The widths read from flags are small** (at most 10), so every seal kernel name is in `find`'s
+ranges and short. -/
+theorem widthsOf_le {f : B8} {cw pw ew iw : Nat} (h : widthsOf f = some (cw, pw, ew, iw)) :
+    cw ≤ 10 ∧ pw ≤ 10 ∧ ew ≤ 10 ∧ iw ≤ 10 := by
+  unfold widthsOf at h
+  split at h
+  · split at h
+    · rename_i c p e i h1 h2 h3 h4
+      simp only [Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := h
+      have := widthOf_le h1
+      have := widthOf_le h2
+      have := widthOf_le h3
+      have := widthOf_le h4
+      simp only [List.length_take] at *
+      omega
+    · cases h
+  · cases h
+
 /-- The all-zero input assignment (every variable 0). -/
 def zeroA : BVExpr.Assignment := .leaf ⟨(0 : BitVec 8)⟩
 
@@ -147,6 +183,11 @@ def bundleEnvBytes (cert : Nat) (oneTime : Bool) (content cw pw ew iw : Nat) : N
     ((record.drop cert).take 262) ((record.drop (cert + 262)).take 57) (get "pending") ((record.drop 0).take cert)
     (get "localAddress") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
     (get "staticAgreement")).getD 2 []).length
+
+/-- A public sanity bound on an envelope's length (a sealed-sender envelope of a 330-byte text and a
+1024-byte certificate is under 2 KiB): a larger computed length aborts (so every number the script
+sends fits the pipe, `Wire.Bounded`). -/
+def maxEnvelope : Nat := 65536
 
 /-- A 32-byte public key as the 255-bit word a `.word` input takes (`s.public_bits`: bit `i` of byte
 `i / 8`, the top bit dropped). -/
@@ -213,9 +254,11 @@ def afterStatus (n : Nat) (a : SealArgs) (st : Bits) : Script (Option Sealed) :=
 def afterWidths (n : Nat) (a : SealArgs) (official : Bool) (classes : Nat) (flags : Bits) : Script (Option Sealed) :=
   match widthsOf (bytesOf flags) with
   | some (cw, pw, ew, iw) =>
-    seqs (sealBlock n a (sealName official a.certLen classes cw pw ew iw)
-        (sealEnvBytes a.certLen classes official cw pw ew iw))
-      (openThen ⟨n + 5⟩ envelopeLabel (afterStatus n a))
+    if sealEnvBytes a.certLen classes official cw pw ew iw ≤ maxEnvelope then
+      seqs (sealBlock n a (sealName official a.certLen classes cw pw ew iw)
+          (sealEnvBytes a.certLen classes official cw pw ew iw))
+        (openThen ⟨n + 5⟩ envelopeLabel (afterStatus n a))
+    else .abort "envelope size"
   | none => .abort "width flag"
 
 /-- **Op 41** (`seal_open` with a built text): `none` when the contact's state cannot produce a
@@ -469,8 +512,10 @@ theorem afterWidths_reveals (n : Nat) (a : SealArgs) (official : Bool) (classes 
     Reveals sealKinds (afterWidths n a official classes flags) := by
   unfold afterWidths
   split
-  · exact every_seqs (every_openThen (LabelIn.of_mem (k := .sealedEnvelope) (by simp [sealKinds]) rfl)
-      (afterStatus_reveals n a)) _ (labelIn_plain (sealBlock_plain _ _ _ _))
+  · split
+    · exact every_seqs (every_openThen (LabelIn.of_mem (k := .sealedEnvelope) (by simp [sealKinds]) rfl)
+        (afterStatus_reveals n a)) _ (labelIn_plain (sealBlock_plain _ _ _ _))
+    · exact Every.abort _
   · exact Every.abort _
 
 /-- **T3 for op 41**: every release is labelled counterWidths or sealedEnvelope. -/

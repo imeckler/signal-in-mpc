@@ -992,14 +992,6 @@ properties `c` has. -/
 theorem wf_ctx {α : Type} {sigs : Bytes → Option Sig} {P : Ctx → Prop} {s : Script α} (c : Ctx) (hP : P c)
     (h : ∀ c', P c' → WF sigs c' s) : WF sigs c s := h c hP
 
-theorem textClass_le {t : Nat} {p : Bool × Nat} (h : textClass t = some p) : t ≤ 330 := by
-  unfold textClass at h
-  split at h
-  · omega
-  · split at h
-    · omega
-    · cases h
-
 set_option linter.unusedSimpArgs false in
 /-- **`sealScript` is well formed** (op 41): from any context with the counter fresh; the
 certificate (`8 · cert` bits), the state (one record), the sender key, the static agreement and the
@@ -1069,7 +1061,10 @@ theorem sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (a : Sea
       · rename_i cw pw ew iw _
         have hsg := hsig.sealing official classes cw pw ew iw hcls
         have hbd := hsig.bound official classes cw pw ew iw
-        generalize sealEnvBytes a.certLen classes official cw pw ew iw = E at hsg hbd
+        generalize sealEnvBytes a.certLen classes official cw pw ew iw = E at hsg hbd ⊢
+        rcases Nat.lt_or_ge maxEnvelope E with hE | hE
+        · rw [if_neg (by omega)]; exact WF.abort _ _
+        rw [if_pos hE]
         simp only [sealBlock, seqs_cons, seqs_nil]
         -- the context so far, abstracted
         refine wf_ctx (P := fun c1 => c1.bool? ⟨n⟩ = some ⟨cm ++ sm, false⟩ ∧
