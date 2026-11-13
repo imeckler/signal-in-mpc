@@ -102,6 +102,7 @@ import TlsMpc.Node.Flows.MasksHides
 import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Flows.TlsProofs
 import TlsMpc.Node.Flows.SendProofs
+import TlsMpc.Node.Flows.ReceiveFlowProofs
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6629,6 +6630,113 @@ theorem s13_sealScript_bounded (n : Nat) (a : Send.SealArgs) (hn : n + 8 < B64)
 
 end FlowsS13
 
+/-! ### 7f. Receive a first message (stage S14; plan 8.1 T3, T4-RECV, T13; numbered 7d on the S14
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S14 scripts (`TlsMpc/Node/Flows/Receive.lean`, proofs `Flows/ReceiveFlowProofs.lean`, the IO
+glue `Flows/ReceiveBackend.lean`; S14_NOTES.md). **F** marks a statement at the function level: the
+kernels' specifications (`ReceiveProofs.*_spec`) connected by the scripts' own wiring functions
+(`Receive.staticIn` … `sessionInOf`), not yet through `jointRun`. -/
+
+section FlowsS14
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Receive
+open TlsMpc.Signal TlsMpc.Signal.ReceiveFirst TlsMpc.KernelSpecs.ReceiveAccept
+
+/-- **T3, kinds, op 50** [K]: every release of `Receive.openFirst`, on every branch, from every
+state, carries the label of `certificateLength`, `contentShape`, `prekeyShape`, `prekeyIds`, a
+conversion's masked value, or one of the curve parameter's kinds; so in any run against any
+adversary the adversary's view carries nothing else (`viewD_kinds`). -/
+theorem s14_openFirst_reveals (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (env : BoolH) (size : Nat) :
+    RevealsG (allFirst cv) (Receive.openFirst cv loaded fi env size) :=
+  Receive.openFirst_reveals cv loaded fi env size
+
+/-- **T3, kinds, op 51** [K]: the same for `Receive.session` (`signalShape`, `sessionStatus`,
+`receivedText`, `accessKeyStatus`, masked field values, the curve's kinds). -/
+theorem s14_session_reveals (cv : Curve) (loaded : Bytes → Bool) (a : Arrival) (sp : SessionPublic)
+    (ss : SessionSecrets) : RevealsG (allSession cv) (Receive.session cv loaded a sp ss) :=
+  Receive.session_reveals cv loaded a sp ss
+
+/-- **Gating** [K]: once `receive-session`'s status opens to anything but 255, the script frees the
+conversation and the plaintext and releases nothing more (`receive-text` is not run). -/
+theorem s14_sessionRest_refused (loaded : Bytes → Bool) (cert ct : Nat) (se : List BoolH) (status : Bits)
+    (h : Contacts.bytesOf status ≠ [255]) :
+    sessionRest loaded cert ct se status = refuse [at! se 1, at! se 3] [] ∧ SilentG (sessionRest loaded cert ct se status) :=
+  Receive.sessionRest_refused loaded cert ct se status h
+
+/-- **The wiring, by definition** [F]: the session's `verified` input is
+`receive-certificate-verified` on `receive-certificate`'s validity and signature (the hypothesis
+`session_accept_certificate` takes about the controller holds for the scripts' wiring). -/
+theorem s14_verified_wiring (i : Proofs.Pipeline.In) :
+    (Proofs.Pipeline.sin i).verified =
+      (certificateVerified ByteAuth.concrete
+        ((certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+          (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 0 [])
+        ((certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+          (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 3 [])
+        i.serverValid i.rx i.ry).getD 0 [] :=
+  Proofs.pipeline_verified_wiring i
+
+/-- **T13 for the scripts' wiring** [F]: an accepted session (status 255) means the message MAC
+verified under libsignal's keys, the sender certificate's identity is the decrypted static key, its
+signer is the trusted one, it has not expired, the server key is a curve point and the signature's
+`R` is the compression of the field engine's `[s]B − [h]A`. -/
+theorem s14_accept_certificate (i : Proofs.Pipeline.In) (hjump : i.jump ≤ 16)
+    (h : (Proofs.Pipeline.se i).getD 0 [] = [255]) :
+    (certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+      (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 0 [] =
+      [255] ∧
+    Establish.part (Proofs.Pipeline.certBytes i)
+      (if i.c.embedded then bodyAt i.cert + i.c.e164 + 48 else bodyAt i.cert + i.c.e164 + 46 + 2 + i.c.uuidSize + 1)
+      i.c.signerSize = i.signer ∧
+    i.serverValid = ByteAuth.concrete.const 1 :: List.replicate 31 (ByteAuth.concrete.const 0) ∧
+    (Establish.part (Proofs.Pipeline.certBytes i) (bodyAt i.cert + i.c.body + 2) 64).take 32 =
+      XEdDsa.compress ByteAuth.concrete i.rx i.ry := by
+  obtain ⟨_, h1, _, h2, _, h3, _, h4⟩ := Proofs.pipeline_accept_certificate i hjump h
+  exact ⟨h1, h2, h3, h4⟩
+
+/-- **T4-RECV, the text** [F]: with the session's and `receive-text`'s statuses 255, the opened text
+is exactly the body of the decrypted content (the session's plaintext, which
+`pipeline_accept_outputs` says is libsignal's AES-256-CBC decryption under the message keys). -/
+theorem s14_text (i : Proofs.Pipeline.In) (hcap : i.cap < 65536) (ht : (Proofs.Pipeline.tx i).getD 0 [] = [255]) :
+    TlsMpc.KernelSpecs.ReceiveAcceptText.Accepted (((Proofs.Pipeline.se i).getD 3 []).drop 8) i.cap ∧
+    (Proofs.Pipeline.tx i).getD 2 [] = (List.range i.cap).map (fun j =>
+      if j < TlsMpc.KernelSpecs.ReceiveAcceptText.bodyLength (((Proofs.Pipeline.se i).getD 3 []).drop 8) then
+        TlsMpc.KernelSpecs.ReceiveAcceptText.g (((Proofs.Pipeline.se i).getD 3 []).drop 8)
+          (TlsMpc.KernelSpecs.ReceiveAcceptText.bodyStart (((Proofs.Pipeline.se i).getD 3 []).drop 8) + j)
+      else 0) :=
+  Proofs.pipeline_text i hcap ht
+
+/-- **T4-RECV, the stored record** [F]: with `receive-access-key`'s status 255 the conversation it
+outputs (whose bytes `cert .. cert + 319` the script stores) is the session's with the access key
+derived from the message's profile key, for one of the 72 layouts. -/
+theorem s14_record (i : Proofs.Pipeline.In) (hlen : i.ownCert + 294 ≤ ((Proofs.Pipeline.se i).getD 1 []).length)
+    (hk : (Proofs.Pipeline.ak i).getD 0 [] = [255]) :
+    ∃ g ∈ gaps, (Proofs.Pipeline.ak i).getD 1 [] = ((Proofs.Pipeline.se i).getD 1 []).take (i.ownCert + 278) ++
+        TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.accessKeyOf
+          (TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.profileKey (((Proofs.Pipeline.se i).getD 3 []).drop 8) i.offset g) ++
+        ((Proofs.Pipeline.se i).getD 1 []).drop (i.ownCert + 294) :=
+  Proofs.pipeline_record i hlen hk
+
+/-- **A refused session opens no text** [F]: unless the session's status is 255, every output of
+`receive-text` on its plaintext is zero. -/
+theorem s14_refused_text_zero (i : Proofs.Pipeline.In) (h : (Proofs.Pipeline.se i).getD 0 [] ≠ [255]) :
+    ∀ field ∈ text ByteAuth.concrete i.cap ((Proofs.Pipeline.se i).getD 3 []), ∀ b ∈ field, b = 0 :=
+  Proofs.pipeline_refused_text_zero i h
+
+/-- **A refused envelope opens a zero certificate length** [F] (`unsealMessage_rejects`). -/
+theorem s14_certificateLength_zero (i : Proofs.Pipeline.In) (h : (Proofs.Pipeline.um i).getD 0 [] = [0]) :
+    ∀ b ∈ (Proofs.Pipeline.um i).getD 2 [], b = 0 :=
+  Proofs.pipeline_certificateLength_zero i h
+
+/-- **Provisional ids** [K]: distinct within a session, and never an application id (those are below
+2^128 − 2^64), for fewer than 2^64 − 2 messages. -/
+theorem s14_provisional_ids (j k : Nat) (hj : j + 2 < 2 ^ 64) (hk : k + 2 < 2 ^ 64) :
+    (provisionalId j = provisionalId k → j = k) ∧ 2 ^ 128 - 2 ^ 64 ≤ provisionalId k :=
+  ⟨provisionalId_inj j k (by omega) (by omega), provisionalId_high k hk⟩
+
+end FlowsS14
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -6698,7 +6806,9 @@ the matching section above in the same commit.
   `canonicalRange`, `Unpad.decode` and the layout masks (stated today as byte computations); an
   accept-direction value theorem for `contentShape`'s flags and for `receive-content`; and the
   field engine (the curve computations whose outputs `rx`, `ry` and the agreements are inputs
-  here). → **P6**.
+  here). → **P6**. S14 (section 7f): the controller's wiring is now the scripts' own (`Receive.*In`,
+  `s14_verified_wiring`), so T13 holds for it without the wiring hypothesis (`s14_accept_certificate`,
+  function level); open: the same through `jointRun` (S14_NOTES.md, F22).
 * **T3** — disclosure per flow: the released values in any trace of a flow are exactly the
   listed `Reveal` kinds on the listed handles. The list exists since S6 (`TlsMpc/Node/Reveal.lean`,
   section 7-reveal: every `Opened` value is made there, each kind's docstring names its bounding
@@ -6838,6 +6948,11 @@ the matching section above in the same commit.
 * **T6 / ORD-1** restated over the Lean flow: the Lean send scripts do not change the ordering
   argument (P4's theorem is about the session's Seal/StoreAck/Send events, unchanged since the
   backend keeps the legacy results and call order); not restated here (P4 not done).
+* **T4-RECV** (S14, section 7f): at the
+  function level (`s14_accept_certificate`, `s14_text`, `s14_record`); open: through `jointRun`
+  (needs S10's conversions' and S11's agreements' run-level specifications and the receive kernels
+  as model circuits with word inputs), the whole flows' WF, a value-level T3 for every release of a
+  run (S14_NOTES.md, F22-F27).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -7429,6 +7544,16 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s12_tls_openHandshake_value
 #print axioms TlsMpc.Security.s12_tls_window_bound
 #print axioms TlsMpc.Security.s12_tls_sealCtr_wf
+#print axioms TlsMpc.Security.s14_openFirst_reveals
+#print axioms TlsMpc.Security.s14_session_reveals
+#print axioms TlsMpc.Security.s14_sessionRest_refused
+#print axioms TlsMpc.Security.s14_verified_wiring
+#print axioms TlsMpc.Security.s14_accept_certificate
+#print axioms TlsMpc.Security.s14_text
+#print axioms TlsMpc.Security.s14_record
+#print axioms TlsMpc.Security.s14_refused_text_zero
+#print axioms TlsMpc.Security.s14_certificateLength_zero
+#print axioms TlsMpc.Security.s14_provisional_ids
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

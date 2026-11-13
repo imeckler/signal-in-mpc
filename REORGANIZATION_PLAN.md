@@ -1835,6 +1835,29 @@ Tests: Q, F (signup, ceremony), K (`check_receive_kernels.py`), D.
 Depends on S12. **3 weeks. Medium.** Concurrent with S13 and S15 if two engineers take one each
 (separate flow files; builds take turns).
 
+**Status (2026-11-12, branch `s14-receive` from `s12-tls`; details in `S14_NOTES.md`).** Scripts and
+IO glue done, not selected (the controller-side runner and S11's agreements are parameters):
+- `Flows/Receive.lean`: `takeScript`, `dropScript`, `openFirst` (steps 1-12), `session` (13-17), the
+  13 receive kernels by cache name in the C++ order, each stage gated on what the previous one
+  opened (a refusal frees every handle and opens nothing more); `xeddsa-check`, `xeddsa-recover`,
+  `receive-torsion` through the `program` instruction (`Curve.withPrograms`); S11's agreements and
+  hinted variants are the `Curve` parameter; the provisional ids (`provisionalId_inj`,
+  `provisionalId_high`). `Flows/ReceiveBackend.lean`: `scriptApi` with exactly the legacy
+  `Flow.Receive.*` types (`legacyApi` checks them), the server point computed locally, the KEM
+  decapsulation left to the local tool.
+- Proved: T3 kinds for every script (`openFirst_reveals`, `session_reveals`, registered:
+  `s14_flows_reveal`); gating (`sessionRest_refused`); the wiring by shared definitions (the scripts'
+  stage inputs are polymorphic functions the byte pipeline uses too: `pipeline_verified_wiring`),
+  so T13 (`pipeline_accept_certificate`) and T4-RECV (`pipeline_accept_outputs`, `pipeline_text`,
+  `pipeline_record`) hold at the function level with no wiring hypothesis; the refusals' zero
+  openings; `stageInstrs_bounded`. Restated in Security.lean section 7d. Open: through `jointRun`,
+  the flows' WF, value-level T3 for a whole run (S14_NOTES.md, F35-F41).
+- No new kind (kinds 50-57 existed); their labels added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `receive_kernels_check` (fail closed) and placeholder pins of the three receive
+  programs; Lean vectors with STAND-IN kernel tables and the stand-in pair test `s14_pair.rs` (an
+  accepted and a refused first message, 43 rounds, every reply equal to Lean's model);
+  `e2e_s14.py` written, not run.
+
 ---
 
 **S15. Device refresh.**

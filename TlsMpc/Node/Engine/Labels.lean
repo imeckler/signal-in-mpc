@@ -143,6 +143,29 @@ def counterWidths : Label := ofKind .counterWidths
 accepted status its timestamp and envelope (ops 41, 61). Kind `sealedEnvelope` (41). -/
 def sealedEnvelope : Label := ofKind .sealedEnvelope
 
+/-! Receive a first message (stage S14, kinds 50-57). -/
+
+/-- `receive-unseal-message`'s opened certificate length prefix (two bytes, zero unless the
+sealed-sender layer verified). Kind `certificateLength` (50). -/
+def certificateLength : Label := ofKind .certificateLength
+/-- `receive-content-shape`'s four bytes (plain / hinted, phone number and its length). Kind
+`contentShape` (51). -/
+def contentShape : Label := ofKind .contentShape
+/-- `receive-prekey-shape`'s 21 width flags. Kind `prekeyShape` (52). -/
+def prekeyShape : Label := ofKind .prekeyShape
+/-- `receive-prekey-open`'s prekey ids and Kyber ciphertext (one opening). Kind `prekeyIds` (53). -/
+def prekeyIds : Label := ofKind .prekeyIds
+/-- `receive-signal-shape`'s 13 bytes (counter widths, ciphertext length, addresses). Kind
+`signalShape` (54). -/
+def signalShape : Label := ofKind .signalShape
+/-- The status byte of `receive-session` and of `receive-text`. Kind `sessionStatus` (55). -/
+def sessionStatus : Label := ofKind .sessionStatus
+/-- `receive-text`'s length, body and layout flags (one opening, after its status). Kind
+`receivedText` (56). -/
+def receivedText : Label := ofKind .receivedText
+/-- `receive-access-key`'s status byte. Kind `accessKeyStatus` (57). -/
+def accessKeyStatus : Label := ofKind .accessKeyStatus
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
@@ -150,7 +173,9 @@ def kinds : List RevealKind :=
    .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
    .curveChecks, .liftW, .liftZ, .pointValid, .linkChecks, .ownPublicPoint,
    .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
-   .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope]
+   .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope,
+   .certificateLength, .contentShape, .prekeyShape, .prekeyIds, .signalShape, .sessionStatus,
+   .receivedText, .accessKeyStatus]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
@@ -159,7 +184,9 @@ def all : List Label :=
    bitBlockChecks, scalarBitChecks, maskedDenominator,
    curveChecks, liftW, liftZ, pointValid, linkChecks, ownPublicPoint,
    handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
-   serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope]
+   serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope,
+   certificateLength, contentShape, prekeyShape, prekeyIds, signalShape, sessionStatus,
+   receivedText, accessKeyStatus]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -186,6 +213,6 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) =
     [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102,
-     2, 3, 4, 5, 6, 7, 8, 9, 40, 41] := rfl
+     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57] := rfl
 
 end TlsMpc.Node.Engine.Label
