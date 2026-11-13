@@ -1672,6 +1672,38 @@ R2).
 
 Depends on S10. **5–6 weeks. Strong.**
 
+**Status (2026-11-12, branch `s11-curve`; details in `S11_NOTES.md`).** Scripts done, not yet
+called by the controller (the flow API switches with S12–S16; the legacy library keeps its C++):
+- `Local/Field.lean`, `Local/Edwards.lean`: square-and-multiply powers and inverses, square root,
+  Legendre symbol, encodings, affine/extended arithmetic in the programs' own formulas
+  (`add_eq`: `pointAddValue`; `extAdd` is `extAddValue`; `toAffine_eq`), scalar multiplication,
+  the Montgomery map, validity, hints, the lift's root, public tables, `recoverPublic`
+  (`xeddsa-recover` on a public input evaluated locally, `recoverPublic_eq`: replaces
+  `evaluate_clear`). Checked against curve25519-dalek on Lean vectors (`tests/s11_curve.rs`; no
+  libsodium binding offline). R2: interpreted timings (`lake env lean --run`) 1.3 ms per scalar
+  multiplication, 2.2 ms hints per point, 0.6 ms per lift root: a message's local work (the
+  ephemeral key) about 1.5 ms, a contact's preparation about 6 ms: far below the 50 ms threshold.
+- `Flows/CurveBase.lean`, `Flows/Curve.lean`: `splitBegin`/`splitAgree`, `agree`,
+  `offsetPrepare`/`offsetStep`/`offsetStepFast` (the recoding `recode` in Lean),
+  `lift`/`hintsLocal`/`tables`/`agreeHinted`/`agreeAffine`/`signatures`/`torsionLocal`/`torsion`/
+  `sharedBits`, `prepareContacts` (op 66, a `Staged` flow: script, local step, script). Every field
+  program runs through `program` (V3; masks as `sharedBlock` sums); the `D` rows stay `D` (owner).
+- Proved (`Flows/CurveProofs.lean`, Security.lean 7c): the recoding lemma and the step's inputs
+  (P-OFFSET (a)), the returned key (b), gates (c), (d); P-SPLIT (a) through `jointRun` for the
+  agreement and algebraically (`addU_montU`), (b), (c), (d); P-HINT (a) (order of openings), (b)
+  soundness, and completeness under H-QR/Euler as named hypotheses: op 66's status is exactly "q(u)
+  is a nonzero square" (`prepareStatus_iff`); T3 kinds for every flow (`*_reveals`,
+  `Staged.viewD_kinds`). Open: honest runs of the other flows through `jointRun`, value-level T3,
+  `_wf` theorems (vectors admit every batch), the model form of `commit_open_sound` for the point
+  exchanges. No new kind (labels for 91–95 and 102 added).
+- Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
+  engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
+  with an invalid key, four cheating cases) passes; `tests/e2e_s11.py` (real engines) written, not
+  run; `tests/s11_program_checks.py` passes on Lean's renders (`--from-vectors`).
+- Not done in the branch: deleting `field_program.h` and the V2 files (the legacy library still
+  uses them until its callers switch); `scripts/check_axioms.py` (4 GB cap; the 14 S11 entries
+  checked standalone).
+
 ---
 
 **S12. GHASH shares and TLS.**
