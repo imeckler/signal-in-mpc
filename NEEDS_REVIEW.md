@@ -573,8 +573,12 @@ worker rebuilt from the same tree).
    `Send.bundleOut_record_length` (branch `s13-send`). Effect: a multi-device send (a contact
    with an unanswered device) of such a text aborts — the script after the width flags and
    before any status is opened; the C++ `seal_devices` aborts the session too
-   (`need(... "conversation shape")`). Nothing wrong is released. The product's texts are at
-   least 200 bytes (owner decision), so this class should not occur; confirm, then either fix
+   (`need(... "conversation shape")`). Nothing wrong is released. **It is reachable today:** the
+   harness stage `--recovery devices` under `--profile libsignal` fails exactly here (worker
+   operation 61, "conversation shape", `service_kernels.h:960`, after `bundle-seal` with the
+   official 80c−1 padding; seen 2026-11-12; the legacy profile's recovery run passes; the second
+   real-service run, with a longer text, passed its three-device refresh). The product's texts are at
+   least 200 bytes (owner decision), so this class should not occur in production; confirm, then either fix
    `BundleKernel.bundleSeal` (an emitter input: needs a re-lowering, batch it) or refuse that
    class early in the send.
 
