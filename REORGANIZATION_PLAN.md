@@ -1931,6 +1931,18 @@ signature and specification the notes give for the join):
   for seven scripts (the seal's two phases among them); the window. Restated in Security.lean section 7c. Open: T4 through `jointRun`,
   WF for the open/seal/round/handshake scripts (the vectors pass `checkBatch`), the derive script's
   word input, the class seal's composition (S12_NOTES.md, gaps F13-F21).
+- Second pass (2026-11-12; S12_NOTES.md "Second pass"): gaps F13-F16, F18, F20 closed in new files
+  `Flows/{TlsWF,TlsBounded,TlsRun,TlsOpenRun,TlsGhashRun,TlsClassSeal,TlsDerive,TlsT3}.lean`: WF and
+  `Wire.Bounded` for every S12 script; T4-TLS through `jointRun` for the seal (`seal_honest`: each
+  party's half from its own shares, the record is `sealCore`), the open (`open_class`: the event and
+  kept values are the class kernel's fields whichever bit; the `gcm-check` → `tls-open-typed` binding
+  proved, `open_binding`), the class seal (`sealClass_is_record`), the derive step (`derive_honest`,
+  word input through `shapedCircuit`); P-GHASH (a) over a whole `ensure` (`ensure_shared`), (d) value
+  level for a round with A honest, (e) for the scripts; value-level T3 for a whole seal and open
+  against any adversary (`open_disclosure_A`: the bit and the class kernel's event, nothing else).
+  Restated in Security.lean section 7c (continued). No counterexample; no script changed. Open:
+  F13a (handshake/reveal/update scripts through `jointRun`), F14a (signatures as hypotheses), F20a
+  (B-honest T3 for the open and tag), F17, F19, F21.
 - No new kind (all S12 kinds existed); labels for kinds 2-9 added in `Engine/Labels.lean`.
 - Rust: `loader.rs` `TLS_SCRIPT_KERNELS` (fail closed); Lean vectors and the stand-in pair test
   `s12_pair.rs` (GHASH shares, a seal, an open, a forged open: every reply equals Lean's model);
