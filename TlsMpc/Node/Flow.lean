@@ -9,6 +9,7 @@ import TlsMpc.Node.Flows.SendLegacy
 import TlsMpc.Node.Flows.ReceiveLegacy
 import TlsMpc.Node.Flows.RefreshLegacy
 import TlsMpc.Node.Flows.CeremonyLegacy
+import TlsMpc.Node.Flows.Select
 
 /-!
 # The flow API (REORGANIZATION_PLAN.md stage S6)
@@ -52,6 +53,11 @@ At `7bd9aa9` the controller named the worker on 117 lines (the plan's "108 RPC l
    `Flow.Tls.application`; `TlsApplication.send/receive/keyUpdate/abort` stay as they are.
 5. **Not flows:** operation 39 (the peer exchange) is a channel, `Channels.exchange` (plan 6.2),
    given `w.link`; the worker spawn stays in the controller (`TlsWorkerProcess`, S8/S9).
+7. **The selection (S9 onward, `Flows/Select.lean`).** Each flow function first consults
+   `w.overrides` (`Flows/Context.lean`): `some` runs the flow's Lean scripts through the session's
+   script runner (`Flows/Runner.lean`, op 93), `none` the legacy operation. The overrides come from
+   the AGREED setting `SIGNAL_SCRIPTS` (`Config.Agreed.scripts`) through `Worker.startWith`; with
+   no group named (the default) every flow is legacy and nothing below changes.
 6. **Behaviour.** Same operations, same order, same payloads, same checks and error texts as
    before. One difference, on a malformed worker reply only: the non-recovery send paths
    (`sendMessage`, `sendDevices`) now check the envelope lengths of an op 41/61 reply before the

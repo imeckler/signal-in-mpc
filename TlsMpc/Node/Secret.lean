@@ -14,6 +14,8 @@ OUT is what this file controls. The **eliminators** are:
 - `inputOwn` (here): own private input to the engines. Until the engine's instruction set exists
   (plan section 5.1, `Engine.inputOwn*`) this is the worker operations that take this party's
   private input, `OwnInput`; the worker keeps the value in the engines.
+- `stash` (here, next to `inputOwn`): own private input for the script flows, put in this party's
+  script store (`Flows/Runner.lean`), from which only `Engine.fill` reads it into a batch.
 - `expose` (here), used ONLY by the eliminators' files of plan 4.1: `Channels.lean`
   (`saveShare`, `loadShare` round trip, `kemDecapsulate`: the key on the tool's stdin), and later
   `Engine.lean`, `Reveal.lean`, `Local/*`. `scripts/lint_node.py` check `secret-val` (on from S4)
@@ -93,6 +95,13 @@ def OwnInput.operation : OwnInput → TlsWorker.Operation
 instruction set exists, the worker operation `op`). The reply is the operation's public reply. -/
 def inputOwn (rpc : TlsWorker.Rpc) (op : OwnInput) (input : Secret Bytes) : TlsClient.M Bytes :=
   rpc.call op.operation input.val
+
+/-- **Eliminator: own private data into this party's script store** (the script flows' private
+input, plan 4.1 `Engine.inputOwn*`; decision D1 of `TlsMpc/Node/Engine.lean`: a script carries no
+private data, an input instruction names a store slot, and only `Engine.fill` reads the slot into
+the batch this party sends). `put` writes the value under a slot of the store `σ`
+(`Flows/Runner.lean`, the only caller); the value is not returned. -/
+def stash {σ : Type} (put : α → σ → σ) (s : Secret α) (store : σ) : σ := put s.val store
 
 end Secret
 end TlsMpc.Node

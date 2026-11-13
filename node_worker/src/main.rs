@@ -6,7 +6,7 @@
 use node_worker::config::Config;
 use node_worker::engines::Engines;
 use node_worker::link::Link;
-use node_worker::loader::{Circuits, Kernels};
+use node_worker::loader::{Circuits, Kernels, Programs};
 use node_worker::pipe::{self, ABORT, Latch, PipeError};
 use node_worker::profile::{PREFIX, Profile};
 use node_worker::shell::Shell;
@@ -65,6 +65,9 @@ fn run() -> i32 {
             Circuits::Unpinned => Kernels::default(),
         };
         let words = kernels.add_word_circuits(&node_worker::loader::word_circuit_dir())?;
+        // The V3 field programs `program` may name (loader.rs FIELD_PROGRAMS, pinned).
+        let mut programs = Programs::default();
+        let loaded = programs.add_pinned(&node_worker::loader::word_circuit_dir(), node_worker::loader::FIELD_PROGRAMS)?;
         let port = u16::try_from(config.link_port()).map_err(|_| "port")?;
         let mut link = if config.leader() {
             Link::listen(config.listen, port)
@@ -75,7 +78,7 @@ fn run() -> i32 {
         link.hello(&config.session_id, config.peer_wait)?;
         // The circuit manifest (and the word circuits added), agreed once before anything else
         // (kernel.h's agreement, moved).
-        let digest = node_worker::loader::agreement_digest(&circuits, &words);
+        let digest = node_worker::loader::agreement_digest(&circuits, &words, &loaded);
         link.send(&node_worker::link::PeerFrame::Agreement(digest)).map_err(|e| format!("control link: {e}"))?;
         match link.recv(config.peer_wait) {
             Ok(node_worker::link::PeerFrame::Agreement(peer)) if peer == digest => {}
@@ -85,6 +88,7 @@ fn run() -> i32 {
         let engines = NativeEngines::open(&config, matches!(circuits, Circuits::Pinned(_)) || !cfg!(feature = "test-engine"))?;
         let mut shell = Shell::new(config.leader(), config.session.clone(), link, engines, config.peer_wait);
         shell.kernels = kernels;
+        shell.set_programs(programs);
         Ok(shell)
     };
     let mut shell = match setup() {

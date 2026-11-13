@@ -4,6 +4,7 @@ import TlsMpc.ByteCircuit
 import TlsMpc.BoolDag
 import TlsMpc.FieldDag
 import TlsMpc.FieldDagMulti
+import TlsMpc.FieldProgramsV3
 import TlsMpc.HybridKernelsProofs
 import TlsMpc.SealCtrProofs
 import TlsMpc.GcmShareKernelsProofs
@@ -95,7 +96,39 @@ import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Engine.Labels
 import TlsMpc.Node.Engine.Reveal
+import TlsMpc.Node.Flows.MasksRun
+import TlsMpc.Node.Flows.ConvertRun
+import TlsMpc.Node.Flows.ConvertWF
+import TlsMpc.Node.Flows.MasksWF
+import TlsMpc.Node.Flows.MasksModel
+import TlsMpc.Node.Flows.MasksHonest
+import TlsMpc.Node.Flows.MasksHides
 import TlsMpc.Node.Flows.Registry
+import TlsMpc.Node.Flows.TlsProofs
+import TlsMpc.Node.Flows.SendProofs
+import TlsMpc.Node.Flows.ReceiveFlowProofs
+import TlsMpc.Node.Flows.RefreshFirstProofs
+import TlsMpc.Node.Flows.RefreshWF
+import TlsMpc.Node.Flows.CurveWF
+import TlsMpc.Node.Flows.CurveLive
+import TlsMpc.Node.Flows.CurveCommit
+import TlsMpc.Node.Flows.CurveHonest
+import TlsMpc.Node.Flows.Join
+import TlsMpc.Node.Flows.JoinBackend
+import TlsMpc.Node.Flows.JoinOnce
+import TlsMpc.Node.Flows.Runner
+import TlsMpc.Node.Flows.Select
+import TlsMpc.Node.Flows.JoinIdentity
+import TlsMpc.Node.Flows.CurveRunI
+import TlsMpc.Node.Flows.CurveRunJ
+import TlsMpc.Node.Flows.CurveRunK
+import TlsMpc.Node.Flows.CurveLocalLive
+import TlsMpc.Node.Flows.TlsBounded
+import TlsMpc.Node.Flows.TlsClassSeal
+import TlsMpc.Node.Flows.TlsDerive
+import TlsMpc.Node.Flows.TlsT3
+import TlsMpc.Node.Flows.SendRecordRun
+import TlsMpc.Node.Flows.SendDevicesBounded
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -366,6 +399,125 @@ theorem fieldDag_compileAll_correct (es : List Expr) (a : MultiArtifact) (compil
     (input : Nat → F) :
     a.outputs.map (result (concrete input) a.nodes) = es.map (Expr.eval input) :=
   TlsMpc.FieldDag.compileAll_correct es a compiled input
+
+/-! ### 1a. Field programs, format V3 (`TlsMpc/FieldDagV3.lean`, plan 5.5)
+
+**Trust:** the evaluator (`node_worker/src/program.rs`) and the engines are outside the theorems;
+`FieldInverse` (Fermat for p) is a named hypothesis, true because p is prime. -/
+
+open TlsMpc.FieldDag.V3 in
+/-- **V3 round trip**: a valid program's text parses back to it. -/
+theorem fieldDagV3_parse_render (p : Program) (hp : p.valid = true) : parse (render p) = some p :=
+  TlsMpc.FieldDag.V3.parse_render p hp
+
+open TlsMpc.FieldDag.V3 in
+/-- **One text per program**: the parser accepts only rendered texts (so a pin names a program). -/
+theorem fieldDagV3_render_parse (s : String) (p : Program) (h : parse s = some p) : render p = s :=
+  TlsMpc.FieldDag.V3.render_parse s p h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **V3 evaluation agrees with FieldDag**: a translated artifact that does not abort outputs the
+FieldDag results, so every theorem about a compiled field program carries over to its V3 file. -/
+theorem fieldDagV3_eval_ofArtifact (hinv : FieldInverse) (inputs : Nat) (a : MultiArtifact)
+    (marks : Nat → OMark) (input mask : Nat → F) (outs opened : List F)
+    (h : V3.eval (ofArtifact inputs a marks) input mask = some (outs, opened)) :
+    outs = a.outputs.map (result (concrete input) a.nodes) :=
+  TlsMpc.FieldDag.V3.eval_ofArtifact hinv inputs a marks input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- With nonzero masks, a translated artifact aborts only on a zero FieldDag denominator. -/
+theorem fieldDagV3_eval_ofArtifact_some (hinv : FieldInverse) (inputs : Nat) (a : MultiArtifact)
+    (marks : Nat → OMark) (input mask : Nat → F) (hm : ∀ j, mask j ≠ 0)
+    (hd : DivisorsNonzero input #[] a.nodes) :
+    (V3.eval (ofArtifact inputs a marks) input mask).isSome :=
+  TlsMpc.FieldDag.V3.eval_ofArtifact_some hinv inputs a marks input mask hm hd
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- The V3 program of `compileAll es` outputs the source expressions' values. -/
+theorem fieldDagV3_eval_compileAll (hinv : FieldInverse) (inputs : Nat) (es : List Expr)
+    (a : MultiArtifact) (hc : compileAll es = some a) (marks : Nat → OMark)
+    (input mask : Nat → F) (outs opened : List F)
+    (h : V3.eval (ofArtifact inputs a marks) input mask = some (outs, opened)) :
+    outs = es.map (Expr.eval input) :=
+  TlsMpc.FieldDag.V3.eval_compileAll hinv inputs es a hc marks input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (d)** for every translated program: each mask feeds exactly one `D` row. -/
+theorem fieldDagV3_ofArtifact_masksOk (inputs : Nat) (a : MultiArtifact) (marks : Nat → OMark) :
+    (ofArtifact inputs a marks).masksOk = true :=
+  TlsMpc.FieldDag.V3.ofArtifact_masksOk inputs a marks
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-INV (d)** for every loaded program (the parser checks it). -/
+theorem fieldDagV3_parse_masksOk (s : String) (p : Program) (h : parse s = some p) : p.masksOk = true :=
+  TlsMpc.FieldDag.V3.parse_masksOk s p h
+
+open TlsMpc.FieldDag.V3 in
+/-- What `masksOk` means: mask `j` is named by exactly one `D`/`Z` row iff `j < masks`. -/
+theorem fieldDagV3_masksOk_once (p : Program) (h : p.masksOk = true) (j : Nat) :
+    p.maskUses.count j = if j < p.masks then 1 else 0 :=
+  TlsMpc.FieldDag.V3.masksOk_once p h j
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (a)**: a nonzero opening gives the true quotient. -/
+theorem fieldDagV3_masked_div (hinv : FieldInverse) (a b m : F) (h : b * m ≠ 0) :
+    a * m * inverse (b * m) = a * inverse b :=
+  TlsMpc.FieldDag.V3.masked_div hinv a b m h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (b)**: the opening is 0 iff the denominator or the mask is. -/
+theorem fieldDagV3_opening_zero_iff (hinv : FieldInverse) (b m : F) : b * m = 0 ↔ b = 0 ∨ m = 0 :=
+  TlsMpc.FieldDag.V3.opening_zero_iff hinv b m
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- **P-INV (c)**: for `b ≠ 0`, `m ↦ b·m` is a bijection (the opening is uniform for a uniform mask). -/
+theorem fieldDagV3_opening_bijective (hinv : FieldInverse) (b : F) (hb : b ≠ 0) :
+    (∀ m m' : F, b * m = b * m' → m = m') ∧ (∀ o : F, b * (inverse b * o) = o) :=
+  TlsMpc.FieldDag.V3.opening_bijective hinv b hb
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-FIELDPROG** for every translated program: its public outputs are its declared checks. -/
+theorem fieldDagV3_ofArtifact_declares (inputs : Nat) (a : TlsMpc.FieldDag.MultiArtifact) (roles : List Role)
+    (hl : a.outputs.length = roles.length) (hf : Role.flag ∉ roles) :
+    (ofArtifact inputs a (marksOf roles)).declares roles = true :=
+  TlsMpc.FieldDag.V3.ofArtifact_declares inputs a roles hl hf
+
+open TlsMpc.FieldDag.V3 in
+/-- **P-INV (d) and P-FIELDPROG for the quotient program** (`decide` on its rows). -/
+theorem fieldDagV3_quotient_checks :
+    quotient.masksOk = true ∧ quotient.declares [.secret, .flag] = true ∧ quotient.publicOutputs = [1] :=
+  ⟨TlsMpc.FieldDag.V3.quotient_masksOk, TlsMpc.FieldDag.V3.quotient_declares⟩
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 in
+/-- The quotient program computes `x·z⁻¹` and the zero flag of `z`, opening only `z·m`. -/
+theorem fieldDagV3_quotient_spec (hinv : FieldInverse) (input mask : Nat → F) (hm : mask 0 ≠ 0) :
+    V3.eval quotient input mask =
+      some ([input 0 * inverse (input 1), if input 1 = 0 then ofNat 1 else ofNat 0], [input 1 * mask 0]) :=
+  TlsMpc.FieldDag.V3.quotient_spec hinv input mask hm
+
+open TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- **P-INV (d) and P-FIELDPROG for every exported declaration** (`TlsMpc/FieldProgramsV3.lean`):
+masks used once, public outputs exactly the declared checks. -/
+theorem fieldProgramsV3_decl_checks (d : Decl) (hd : d.ok = true) (p : Program) (hp : d.program = some p) :
+    p.masksOk = true ∧ p.declares d.roles = true ∧
+      p.publicOutputs = publicPositions (d.roles.map Role.mark) :=
+  TlsMpc.FieldProgramsV3.Decl.checks d hd p hp
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- **P-FIELDPROG (values)**: an exported program's outputs are its source expressions' values. -/
+theorem fieldProgramsV3_decl_values (hinv : FieldInverse) (d : Decl) (p : Program) (hp : d.program = some p)
+    (input mask : Nat → F) (outs opened : List F) (h : V3.eval p input mask = some (outs, opened)) :
+    outs = d.exprs.map (Expr.eval input) :=
+  TlsMpc.FieldProgramsV3.Decl.values hinv d p hp input mask outs opened h
+
+open TlsMpc.FieldDag TlsMpc.FieldDag.V3 TlsMpc.FieldProgramsV3 in
+/-- `field-bit-check` in V3: one public output, `b·(b − 1)`, zero on bits. -/
+theorem fieldProgramsV3_bitCheck (hinv : FieldInverse) (p : Program) (hp : bitCheck.program = some p) :
+    p.masksOk = true ∧ p.declares [.check] = true ∧ p.publicOutputs = [0] ∧
+      ∀ input mask outs opened, V3.eval p input mask = some (outs, opened) →
+        outs = [input 0 * (input 0 - ofNat 1)] ∧
+        ∀ b : Bool, input 0 = X25519.bitValue b → outs = [0] :=
+  TlsMpc.FieldProgramsV3.bitCheck_fieldprog hinv p hp
 
 /-! ## 2. Kernels compute their specification (SECURITY_MAP C.2)
 
@@ -5229,9 +5381,10 @@ theorem gcmMultiply_reshare (assign : BVExpr.Assignment) (masked : List (BitVec 
 open TlsMpc.HybridKernel Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **`tls-seal-ctr` + `gcm-tag` produce the AES-GCM TLS record** — header ‖ ciphertext ‖ tag
 equals `TlsRecord.sealCore` — **provided the two GHASH halves XOR to GHASH** of the header and
-ciphertext (hypothesis `halves`). **K**, but `halves` is discharged only for a modelled schedule
-(`gcm_scheduled_halves_are_ghash`), not for the C++ `gcm_shares.h` (P-GHASH(c), section 8).
-SECURITY_MAP C.3. -/
+ciphertext (hypothesis `halves`). **K**; `halves` is discharged for a modelled schedule
+(`gcm_scheduled_halves_are_ghash`) and, since S12, for the Lean code that replaces `gcm_shares.h`
+(`s12_tls_seal_is_record`, section 7d: P-GHASH (c)); the C++ `gcm_shares.h` itself stays outside
+until the controller switches to the script backend. SECURITY_MAP C.3. -/
 theorem sealCtr_with_tag_is_seal (kind size padding : Nat) (sealing tagging : BVExpr.Assignment)
     (header ciphertext pad tag : List (BitVec 8))
     (sealed : (tlsSealCtr kind size padding).outputs.map (fun field => field.value.map (BVExpr.eval sealing)) =
@@ -5535,6 +5688,49 @@ theorem engine_skeletonBytes_inj (b₁ b₂ : List Wire) (h₁ : b₁.length < B
 theorem engine_check_label (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (s : Skel) (l : Label)
     (h : check sigs c s = some (c', sh)) (hl : s.label? = some l) : l.code ≠ 0 :=
   TlsMpc.Node.Engine.check_label sigs c c' sh s l h hl
+
+/-- **The program instruction in the shell** (opcode 22, P-FIELDPROG shell side): accepted only
+for a loaded program with matching counts; the masks were live, marked `never`, and are consumed;
+every input is live; every output gets the mark its V3 file declares (so it is openable later
+exactly when the file marks it public, `Mark.ofOMark_openable`). -/
+theorem engine_check_program (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label)
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∃ s c₁, c.progs name = some s ∧ sh = .unit ∧ l.code ≠ 0 ∧ 0 < copies ∧
+      ins.length = copies * s.inputs ∧ masks.length = copies * s.masks ∧
+      outs.length = copies * s.outMarks.length ∧
+      c.useMasks masks = some c₁ ∧
+      (∀ m ∈ masks, c.field? m = some .never ∧ c₁.field? m = none) ∧
+      (∀ x ∈ ins, (c₁.field? x).isSome) ∧
+      (∀ e ∈ outs.zip (List.replicate copies s.outMarks).flatten, c'.field? e.1 = some e.2) :=
+  TlsMpc.Node.Engine.check_program sigs c c' sh name copies ins masks outs l h
+
+/-- **P-FIELDPROG, the open rule**: after an accepted program step, an output is openable exactly
+when the program's V3 file marks it public. -/
+theorem engine_check_program_openable (sigs : Bytes → Option Sig) (c c' : Ctx) (sh : Shape) (name : Bytes)
+    (copies : Nat) (ins masks outs : List FieldH) (l : Label) (p : TlsMpc.FieldDag.V3.Program)
+    (hp : c.progs name = some (ProgSig.ofProgram p))
+    (h : check sigs c (.program name copies ins masks outs l) = some (c', sh)) :
+    ∀ e ∈ outs.zip (List.replicate copies (p.outputs.map (·.2))).flatten,
+      (c'.field? e.1).map Mark.openable = some (e.2 == .pub) :=
+  TlsMpc.Node.Engine.check_program_openable sigs c c' sh name copies ins masks outs l p hp h
+
+/-- **What a program step releases** (P-FIELDPROG / P-INV, model side): exactly the openings
+`b·m` of its instances' `D`/`Z` rows (V3 semantics), labelled, the same to both parties. -/
+theorem engine_idealStep_program (E : Env) (me : Party) (name : Bytes) (copies : Nat)
+    (ins masks outs : List FieldH) (l : Label) (peer : PeerPart) (I I' : Ideal) (toH toD : Option Release)
+    (h : idealStep E me (.program name copies ins masks outs l) peer I = some (I', toH, toD)) :
+    ∃ p vi vm vo opened, E.programs name = some p ∧ ins.mapM (fun h => I.fields h.id) = some vi ∧
+      masks.mapM (fun h => I.fields h.id) = some vm ∧ runProgram p copies vi vm = some (vo, opened) ∧
+      vo.length = outs.length ∧ I' = I.setFields outs vo ∧
+      toH = some ⟨l, .elems opened⟩ ∧ toD = some ⟨l, .elems opened⟩ :=
+  TlsMpc.Node.Engine.idealStep_program E me name copies ins masks outs l peer I I' toH toD h
+
+/-- A program step opens exactly one value per `D`/`Z` row per instance. -/
+theorem engine_runProgram_lengths (p : TlsMpc.FieldDag.V3.Program) (copies : Nat)
+    (vi vm vo opened : List TlsMpc.FieldDag.F) (h : runProgram p copies vi vm = some (vo, opened)) :
+    opened.length = copies * p.openings ∧ vo.length = copies * p.outputs.length :=
+  TlsMpc.Node.Engine.runProgram_lengths p copies vi vm vo opened h
 
 /-- **`withAdv` over `bind`.** A run of `s.bind f` is the run of `s`, then (if `s` returned `a`)
 the run of `f a` from the store and ideal state `s` left, against the same adversary, whose view
@@ -6081,7 +6277,2897 @@ theorem account_sealStep_eq (a : Account.State) (version : B8) :
 
 end FlowsContacts
 
-/-! ### 7b. Labels, the reveal registry and the engine's batching (stages S9, S6)
+/-! ### 7b. Conversions, masks, inversion (stage S10; plan 7.1 P-CHAL, P-CUT, P-PAIR/P-B2F, P-W2F, P-F2W, P-BITS, P-INV)
+
+Status per entry: **M** (in the ideal model of `Engine/Model.lean`) or **K** (a statement about
+values, independent of the model); hypotheses named `[hyp: …]`. `WordLoaded E` / `ProgsLoaded E`
+(`Flows/ConvertBase.lean`): the environment's word circuits and field programs under the S10 names
+compute their Lean specifications — the T2 trust in the pinned files (the word circuits' exact
+specifications on every input are `modAdd_exact`, `condSub_exact`, `reduceOnce_exact`).
+`FieldInverse` (Fermat for p) is the named hypothesis of FieldDagV3; the Mathlib package discharges
+it. SECURITY_MAP: the conversions (B.5–B.6 rows of the conversion kinds 80–87, 90). -/
+
+section FlowsS10
+open TlsMpc.Node.Engine TlsMpc.Node.Flows
+open TlsMpc.FieldDag (F)
+
+/-- **P-CHAL (b).** [K] The challenge's expansion yields a permutation of [0, n) whenever it
+succeeds. -/
+theorem s10_pchal_permutation (hash : Bytes → Bytes) (domain seed : Bytes) (n : Nat) (π : List Nat)
+    (h : Random.permOf hash domain seed n = some π) : π.Perm (List.range n) :=
+  Random.permOf_perm hash domain seed n π h
+
+/-- **P-CHAL (a).** [M] Two honest parties compute the same permutation, that of r_A ⊕ r_B (or
+both abort). -/
+theorem s10_pchal_honest (E : Env) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat) (domain : Bytes) (n : Nat)
+    (hh : ∀ m, (E.hash m).length = 32)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame Random.tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes nB) (σB.bytes vB))) :
+    (jointRun E (Random.challenge E.hash .a nA vA domain n) (Random.challenge E.hash .b nB vB domain n) σA σB I).result =
+      (Random.permOf E.hash domain (Random.xorBytes (σA.bytes vA) (σB.bytes vB)) n).map fun π => (π, π) :=
+  Random.challenge_honest E σA σB I nA vA nB vB domain n hh hnA hvA hnB hvB hc
+
+/-- **P-CHAL (c).** [M; hyp: `IdealCommit`] Every accepted challenge is the permutation of r ⊕ v
+for one adversary value v, and r ↦ r ⊕ v is injective on 32-byte strings. -/
+theorem s10_pchal_seed_injective (E : Env) (me : Party) (adv : Adversary) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (domain : Bytes) (n : Nat) (hh : ∀ m, (E.hash m).length = 32) (S : Store → Prop)
+    (hS : ∀ σ', S σ' → (σ'.bytes nonce).length = 32 ∧ (σ'.bytes value).length = 32)
+    (v : Bytes) (hic : Random.IdealCommit E me adv I vD nonce value S v) :
+    (∀ σ', S σ' → ∀ π, (withAdv E me adv (Random.challenge E.hash me nonce value domain n) σ' I vD).result = some π →
+        Random.permOf E.hash domain (Random.xorBytes (σ'.bytes value) v) n = some π) ∧
+      ∀ r r' : Bytes, r.length = 32 → r'.length = 32 → v.length = 32 → Random.xorBytes r v = Random.xorBytes r' v → r = r' :=
+  Random.challenge_seed_injective E me adv I vD nonce value domain n hh S hS v hic
+
+/-- **`commit_open_sound`** [M] (every commit-then-open site of the S10 flows is a `Random.joint`):
+an accepted run means the adversary's opening matches the commitment it sent before seeing ours,
+which differs from ours; a commitment equal to ours aborts. -/
+theorem s10_commit_open_sound (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (nonce value : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hn : (σ.bytes nonce).length = 32) (hv : (σ.bytes value).length = 32) :
+    (∀ x, (withAdv E me adv (Random.joint E.hash me nonce value) σ I vD).result = some x →
+      ∃ p1 p2, adv.act (vD ++ [Random.e1 E me σ nonce value]) Random.skel1 = some p1 ∧
+        adv.act (vD ++ [Random.e1 E me σ nonce value, Random.e2 σ nonce value]) Random.skel2 = some p2 ∧
+        E.hash (commitFrame Random.tag me.other (p2.bytes.take 32) (p2.bytes.drop 32)) = p1.bytes ∧
+        p1.bytes ≠ Random.ourCommit E me σ nonce value ∧ x = Random.xorBytes (σ.bytes value) (p2.bytes.drop 32)) ∧
+    (∀ p1, adv.act (vD ++ [Random.e1 E me σ nonce value]) Random.skel1 = some p1 →
+      p1.bytes = Random.ourCommit E me σ nonce value →
+      (withAdv E me adv (Random.joint E.hash me nonce value) σ I vD).result = none) :=
+  Random.commit_open_sound E me adv σ I vD nonce value hh hn hv
+
+/-- **The word circuits' exact specification** [K]: `modAdd` computes `addModSpec` on every pair
+of 255-bit words (canonical or not), which is what `WordLoaded` asks of the pinned file. -/
+theorem s10_modAdd_exact (env : Nat → Bool) (x y : List TlsMpc.BoolDag.Expr) (hx : x.length = 255) (hy : y.length = 255) :
+    TlsMpc.WordMask.val env (TlsMpc.WordMask.modAdd x y) =
+      Conv.addModSpec (TlsMpc.WordMask.val env x) (TlsMpc.WordMask.val env y) :=
+  Conv.modAdd_exact env x y hx hy
+
+/-- **P-CUT (d), protocol level** [K]: the cut check passes iff every cut candidate of both owners
+is canonical with error 0. -/
+theorem s10_pcut_d_cut (x : Masks.Vals) (hw : x.Wide) (cut : List Nat) :
+    Masks.cutCheck ((Masks.cutRel x cut).map Prod.fst).flatten ((Masks.cutRel x cut).map Prod.snd) = true ↔
+      ∀ o ∈ Masks.owners, ∀ c ∈ cut, x.val o c < Conv.P ∧ x.err o c = 0 :=
+  Masks.cutCheck_iff x hw cut
+
+/-- **P-CUT (d), run level** [M]: against any adversary, getting past the cut means every cut
+candidate of both owners, in the engines' values, is canonical with error 0. -/
+theorem s10_pcut_d_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ : List Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W)) (hπ : ∀ c ∈ Masks.cutOf p π₁, c < p.M)
+    (hf : ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁, (I.fields (Masks.fOf p f o c).id).isSome)
+    (h : (withAdv E me adv (Masks.cutPhase p b f π₁) σ I vD).result = some ()) :
+    ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁,
+      (Masks.valsOf p f v I).val o c < Conv.P ∧ (Masks.valsOf p f v I).err o c = 0 :=
+  Masks.cutPhase_sound E me adv p b f π₁ σ I vD v hv hlen hπ hf h
+
+/-- **P-CUT (b) for the cut** [M]: the adversary's view of the cut phase is a prefix of [the cut
+candidates' elements, their words], labelled `cutCandidates`. -/
+theorem s10_pcut_b_cut (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ : List Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W)) (hπ : ∀ c ∈ Masks.cutOf p π₁, c < p.M)
+    (hf : ∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁, (I.fields (Masks.fOf p f o c).id).isSome) :
+    (withAdv E me adv (Masks.cutPhase p b f π₁) σ I vD).viewD <+:
+      [⟨Label.cutCandidates, .elems ((Masks.cutRel (Masks.valsOf p f v I) (Masks.cutOf p π₁)).map Prod.snd)⟩,
+       ⟨Label.cutCandidates, .bits ((Masks.cutRel (Masks.valsOf p f v I) (Masks.cutOf p π₁)).map Prod.fst).flatten⟩] :=
+  Masks.cutPhase_disclosure E me adv p b f π₁ σ I vD v hv hlen hπ hf
+
+/-- **P-CUT (b): kept candidates are never cut** [K]: the cut is disjoint from the remaining
+candidates (every reference and member). -/
+theorem s10_pcut_b_disjoint (p : Masks.Params) (π₁ : List Nat) (hn : π₁.Nodup) :
+    ∀ c ∈ Masks.cutOf p π₁, c ∉ Masks.remainOf p π₁ :=
+  Masks.cut_disjoint p π₁ hn
+
+/-- **P-CUT (e), protocol level** [K]: for a canonical reference, the bucket check of (reference,
+member) passes iff val(ref) + val(member) < 2p and the errors cancel mod p. -/
+theorem s10_pcut_e_bucket (vr vm : Nat) (er em : F) (hr : vr < Conv.P) (hm : vm < 2 ^ 255) :
+    Masks.bucketOk vr vm er em = true ↔
+      vr + vm < 2 * Conv.P ∧ ((vr + (Conv.P - er.val)) % Conv.P + (vm + (Conv.P - em.val)) % Conv.P) % Conv.P = 0 :=
+  Masks.bucketOk_iff vr vm er em hr hm
+
+/-- **The counting model's detection rule** [K] (proofs/ `CutAndChoose`: a mixed bucket aborts):
+with a canonical reference, a pair of which exactly one has error 0 fails. -/
+theorem s10_pcut_e_mixed (x : Masks.Vals) (o r m : Nat) (hr : x.val o r < Conv.P) (hm : x.val o m < 2 ^ 255)
+    (hmix : (x.err o r = 0 ∧ x.err o m ≠ 0) ∨ (x.err o r ≠ 0 ∧ x.err o m = 0)) :
+    Masks.bucketOk (x.val o r) (x.val o m) (x.elem o r) (x.elem o m) = false :=
+  Masks.bucket_mixed_fails x o r m hr hm hmix
+
+/-- **P-CUT (e), run level** [M; hyp: `WordLoaded`]: getting past the buckets means every pair of
+both owners passes `bucketOk` in the engines' values. -/
+theorem s10_pcut_e_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat) (π₁ π₂ : List Nat)
+    (hW : Conv.WordLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (v : Bits)
+    (hv : I.bools (b + 2) = some v) (hlen : v.length = 2 * (p.M * Masks.W))
+    (hπ₁ : ∀ x ∈ π₁, x < p.M) (hM : 0 < p.M)
+    (hf : ∀ o < 2, ∀ c < p.M, (I.fields (Masks.fOf p f o c).id).isSome)
+    (h : (withAdv E me adv (Masks.bucketPhase p b f π₁ π₂) σ I vD).result = some ()) :
+    ∀ e ∈ Masks.pairs p, Masks.bucketOk ((Masks.valsOf p f v I).val e.1 (Masks.memOf p π₁ π₂ e.2.1 0))
+      ((Masks.valsOf p f v I).val e.1 (Masks.memOf p π₁ π₂ e.2.1 e.2.2))
+      ((Masks.valsOf p f v I).elem e.1 (Masks.memOf p π₁ π₂ e.2.1 0))
+      ((Masks.valsOf p f v I).elem e.1 (Masks.memOf p π₁ π₂ e.2.1 e.2.2)) = true :=
+  Masks.bucketPhase_sound E me adv p b f π₁ π₂ hW σ I vD v hv hlen hπ₁ hM hf h
+
+/-- **P-CUT (f)** [K]: the flag of a word mask is "both references canonical"; of a bit block,
+also "both at least 32". -/
+theorem s10_pcut_f_flags (a b : Bits) (ha : a.length = Masks.W) (hb : b.length = Masks.W) :
+    (Conv.finalizeMaskEval (a ++ b)).getD 255 false = (decide (Conv.natOf a < Conv.P) && decide (Conv.natOf b < Conv.P)) ∧
+    (Conv.finalizeBitsEval (a ++ b)).getD 255 false =
+      (decide (Conv.natOf a < Conv.P) && decide (Conv.natOf b < Conv.P) && decide (32 ≤ Conv.natOf a) &&
+        decide (32 ≤ Conv.natOf b)) :=
+  ⟨Masks.finalizeMask_flag a b ha hb, Masks.finalizeBits_flag a b ha hb⟩
+
+/-- **P-CUT (g)** [K; hyp: `FieldInverse`]: field inputs whose bit checks are 0 and whose
+recomposition is the reference's value, with 19 ≤ val(b) < p, are exactly the bits of b. -/
+theorem s10_pcut_g_bitblock (hinv : TlsMpc.FieldDag.V3.FieldInverse) (cs : List F) (b : Bits) (v : F)
+    (hl : cs.length = 255) (hb : b.length = 255)
+    (hcheck : ∀ c ∈ cs, c * (c - TlsMpc.FieldDag.ofNat 1) = 0)
+    (hrec : TlsMpc.FieldBits.hornerValue cs - v = 0)
+    (hv : v.val = Conv.natOf b) (h19 : 19 ≤ Conv.natOf b) (hP : Conv.natOf b < Conv.P) :
+    cs = b.map TlsMpc.X25519.bitValue :=
+  Masks.bitBlock_unique hinv cs b v hl hb hcheck hrec hv h19 hP
+
+/-- **P-CUT (a)** [K]: from honest references, the word mask is (word of (r_A + r_B) mod p,
+r_A + r_B) with val(word) = the field value, and the flag is set. -/
+theorem s10_pcut_a_mask (rA rB : Nat) (hA : rA < Conv.P) (hB : rB < Conv.P) :
+    (Conv.finalizeMaskEval ((Masks.honest rA).1 ++ (Masks.honest rB).1)).take 255 = Conv.word ((rA + rB) % Conv.P) ∧
+      Conv.natOf (Conv.word ((rA + rB) % Conv.P)) = ((Masks.honest rA).2 + (Masks.honest rB).2).val ∧
+      (Conv.finalizeMaskEval ((Masks.honest rA).1 ++ (Masks.honest rB).1)).getD 255 false = true :=
+  Masks.honest_mask rA rB hA hB
+
+/-- **P-CUT (c), the core lemma** [K]: the cut and bucket releases and the word-mask flags are
+unchanged when the honest party's candidates are shifted by d with d ≡ 0 on the cut and
+d(ref) + d(member) ≡ 0 in each bucket (a bijection: `Masks.shift_shift`; any target reference:
+`Masks.shift_ref`). -/
+theorem s10_pcut_c_core (x : Masks.Vals) (oH : Nat) (d : Nat → Nat) (h : Masks.HonestAt x oH) (cut : List Nat)
+    (mem : Nat → Nat → Nat) (ps : List (Nat × Nat × Nat))
+    (hcut : ∀ c ∈ cut, d c % Conv.P = 0)
+    (hbk : ∀ e ∈ ps, (d (mem e.2.1 0) + d (mem e.2.1 e.2.2)) % Conv.P = 0) :
+    Masks.cutRel (Masks.shift x oH d) cut = Masks.cutRel x cut ∧
+      Masks.bucketRel (Masks.shift x oH d) mem ps = Masks.bucketRel x mem ps ∧
+      ∀ c, decide ((Masks.shift x oH d).val oH c < Conv.P) = decide (x.val oH c < Conv.P) :=
+  Masks.hiding_releases x oH d h cut mem ps hcut hbk
+
+/-- **P-CUT (h)** [K]: masks taken one after the other are pairwise distinct and leave the pool. -/
+theorem s10_pcut_h_takes (k : Nat) (p p' : Conv.MaskPool) (ms : List Conv.WordMask) (hd : p.Distinct)
+    (h : Conv.MaskPool.takes k p = some (ms, p')) :
+    ms.Nodup ∧ (∀ m ∈ ms, m ∉ p'.words) ∧ p'.Distinct ∧ p.words = ms ++ p'.words :=
+  Conv.MaskPool.takes_distinct k p p' ms hd h
+
+/-- **P-W2F (a)** [M; hyp: `WordLoaded`]: two honest parties with a consistent mask end with
+u mod p in the field. -/
+theorem s10_pw2f_honest (E : Env) (n0 f0 : Nat) (u : BoolH) (m : Conv.WordMask) (hW : Conv.WordLoaded E)
+    (σA σB : Store) (I : Ideal) (ub wb : Bits) (fv : F)
+    (hu : I.bools u.id = some ub) (hm : I.bools m.bits.id = some wb) (hlu : ub.length = 255) (hlw : wb.length = 255)
+    (hf : I.fields m.field.id = some fv) (hcons : Conv.natOf wb = fv.val)
+    (hf0 : m.field.id ≠ f0) (hf1 : m.field.id ≠ f0 + 1) :
+    (jointRun E (Convert.wordToField n0 f0 u m) (Convert.wordToField n0 f0 u m) σA σB I).result = some (⟨f0 + 1⟩, ⟨f0 + 1⟩) ∧
+      (jointRun E (Convert.wordToField n0 f0 u m) (Convert.wordToField n0 f0 u m) σA σB I).ideal.fields (f0 + 1) =
+        some (TlsMpc.FieldDag.ofNat (Conv.natOf ub)) :=
+  Convert.w2f_honest E n0 f0 u m hW σA σB I ub wb fv hu hm hlu hlw hf hcons hf0 hf1
+
+/-- **T3 for word to field** [M; hyp: `WordLoaded`]: the adversary sees c and its re-comparison. -/
+theorem s10_pw2f_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (u : BoolH) (m : Conv.WordMask)
+    (hW : Conv.WordLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (ub wb : Bits)
+    (hu : I.bools u.id = some ub) (hm : I.bools m.bits.id = some wb) (hlu : ub.length = 255) (hlw : wb.length = 255) :
+    (withAdv E me adv (Convert.wordToField n0 f0 u m) σ I vD).viewD <+:
+      [⟨Label.maskedWord, .bits (Conv.intoFieldEval (ub ++ wb))⟩,
+       ⟨Label.maskedWord, .bytes (le 32 (Conv.natOf (Conv.intoFieldEval (ub ++ wb))))⟩] :=
+  Convert.w2f_disclosure E me adv n0 f0 u m hW σ I vD ub wb hu hm hlu hlw
+
+/-- **P-W2F (b)** [K] (plan 7.0's form): for any two words the opened values correspond under a
+bijection of the mask. -/
+theorem s10_pw2f_hides (u u' : Nat) :
+    ∃ σ : Nat → Nat, (∀ r < Conv.P, σ r < Conv.P) ∧ (∃ τ : Nat → Nat, ∀ r < Conv.P, τ (σ r) = r) ∧
+      ∀ r < Conv.P, Convert.w2fOpen u r = Convert.w2fOpen u' (σ r) :=
+  Convert.w2f_hides u u'
+
+/-- **P-F2W (a)** [M; hyp: `WordLoaded`, `ProgsLoaded`]: two honest parties end with the word of
+v's canonical value. -/
+theorem s10_pf2w_honest (E : Env) (n0 f0 : Nat) (v : FieldH) (m : Conv.WordMask) (hW : Conv.WordLoaded E)
+    (hP : Conv.ProgsLoaded E) (σA σB : Store) (I : Ideal) (vv fv : F) (wb : Bits)
+    (hv : I.fields v.id = some vv) (hf : I.fields m.field.id = some fv) (hm : I.bools m.bits.id = some wb)
+    (hlw : wb.length = 255) (hcons : Conv.natOf wb = fv.val) (hb0 : m.bits.id ≠ n0) (hb2 : m.bits.id ≠ n0 + 2) :
+    (jointRun E (Convert.fieldToWord n0 f0 v m) (Convert.fieldToWord n0 f0 v m) σA σB I).result = some (⟨n0 + 2⟩, ⟨n0 + 2⟩) ∧
+      (jointRun E (Convert.fieldToWord n0 f0 v m) (Convert.fieldToWord n0 f0 v m) σA σB I).ideal.bools (n0 + 2) =
+        some (Conv.word vv.val) :=
+  Convert.f2w_honest E n0 f0 v m hW hP σA σB I vv fv wb hv hf hm hlw hcons hb0 hb2
+
+/-- **T3 for field to word** [M; hyp: `ProgsLoaded`]: the adversary sees the program's empty
+openings, c = v − f, and its re-comparison. -/
+theorem s10_pf2w_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (v : FieldH) (m : Conv.WordMask)
+    (hP : Conv.ProgsLoaded E) (σ : Store) (I : Ideal) (vD : List Release) (vv fv : F)
+    (hv : I.fields v.id = some vv) (hf : I.fields m.field.id = some fv) :
+    (withAdv E me adv (Convert.fieldToWord n0 f0 v m) σ I vD).viewD <+:
+      [⟨Label.maskedFieldValue, .elems []⟩, ⟨Label.maskedFieldValue, .elems [vv - fv]⟩,
+       ⟨Label.maskedFieldValue, .bytes (le 32 (vv - fv).val)⟩] :=
+  Convert.f2w_disclosure E me adv n0 f0 v m hP σ I vD vv fv hv hf
+
+/-- **P-F2W (b)** [K]: f ↦ v − f is a bijection of F. -/
+theorem s10_pf2w_hides (vv : F) : (∀ f f' : F, vv - f = vv - f' → f = f') ∧ ∀ f : F, vv - (vv - f) = f :=
+  Convert.f2w_hides vv
+
+/-- **P-B2F (a), (b)** [K]: for a consistent pair the result is x's bit; ρ ↦ x ⊕ ρ is a bijection. -/
+theorem s10_pb2f (x ρ : Bool) :
+    ((if (x ^^ ρ) then TlsMpc.FieldDag.ofNat 1 - TlsMpc.X25519.bitValue ρ else TlsMpc.X25519.bitValue ρ - TlsMpc.FieldDag.ofNat 0) =
+      TlsMpc.X25519.bitValue x) ∧ (∀ ρ ρ' : Bool, (x ^^ ρ) = (x ^^ ρ') → ρ = ρ') :=
+  ⟨Convert.b2f_value x ρ, (Convert.b2f_hides x).1⟩
+
+/-- **T3 for bits to field** [M]: at most one release, `maskedBit`: the xor output. -/
+theorem s10_pb2f_disclosure (E : Env) (me : Party) (adv : Adversary) (n0 f0 : Nat) (x : BoolH) (ps : List Conv.BitPair)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Convert.bitsToField n0 f0 x ps) σ I vD).viewD <+:
+      [⟨Label.maskedBit, .bits (Contacts.openedAfter E (Convert.b2fBlock n0 x ps) ⟨n0 + 3⟩ I)⟩] :=
+  Convert.b2f_disclosure E me adv n0 f0 x ps σ I vD
+
+/-- **P-BITS (a)** [K; hyp: `FieldInverse`]: the checks open to 0 iff every input is 0 or 1. -/
+theorem s10_pbits_checks (hinv : TlsMpc.FieldDag.V3.FieldInverse) (cs : List F) :
+    (cs.map fun c => c * (c - TlsMpc.FieldDag.ofNat 1)).all (· == 0) = true ↔
+      ∀ c ∈ cs, c = 0 ∨ c = TlsMpc.FieldDag.ofNat 1 :=
+  Convert.bits_checks_zero_iff hinv cs
+
+/-- **P-BITS (b)** [K]: honest inputs give the bits of the XOR. -/
+theorem s10_pbits_xor (a b : Bits) :
+    (List.zipWith (fun x y => Conv.bitXorValue (TlsMpc.X25519.bitValue x) (TlsMpc.X25519.bitValue y)) a b) =
+      (List.zipWith (· ^^ ·) a b).map TlsMpc.X25519.bitValue :=
+  Convert.bits_xor a b
+
+/-- **T3 for the masked quotient** [M]: the adversary sees z·m and the zero flag only. -/
+theorem s10_pinv_disclosure (E : Env) (me : Party) (adv : Adversary) (f0 slot : Nat) (x z : FieldH)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient) (σ : Store) (I : Ideal)
+    (vD : List Release) (xv zv : F) (hx : I.fields x.id = some xv) (hz : I.fields z.id = some zv)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2) :
+    ∃ mv : F, (withAdv E me adv (Inversion.quotientScript f0 slot x z) σ I vD).viewD <+:
+      [⟨Label.maskedDenominator, .elems [zv * mv]⟩,
+       ⟨Label.maskedDenominator, .elems [if zv * mv = 0 then TlsMpc.FieldDag.ofNat 1 else TlsMpc.FieldDag.ofNat 0]⟩] :=
+  Inversion.quotient_disclosure E me adv f0 slot x z hq σ I vD xv zv hx hz hfx hfz
+
+/-- **P-INV (a), run level** [M; hyp: `FieldInverse`]: two honest parties with a nonzero mask end
+with x·z⁻¹ and the flag "z = 0". -/
+theorem s10_pinv_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 slot : Nat) (x z : FieldH) (xv zv mA mB : F)
+    (hx : I.fields x.id = some xv) (hz : I.fields z.id = some zv)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2)
+    (hA : σA.elems slot = [mA]) (hB : σB.elems slot = [mB]) (hm : mA + mB ≠ 0) :
+    (jointRun E (Inversion.quotientScript f0 slot x z) (Inversion.quotientScript f0 slot x z) σA σB I).result =
+      some ((⟨f0 + 3⟩, decide (zv = 0)), (⟨f0 + 3⟩, decide (zv = 0))) ∧
+    (jointRun E (Inversion.quotientScript f0 slot x z) (Inversion.quotientScript f0 slot x z) σA σB I).ideal.fields (f0 + 3) =
+      some (xv * TlsMpc.FieldDag.inverse zv) :=
+  Inversion.quotient_honest hinv E hq σA σB I f0 slot x z xv zv mA mB hx hz hfx hfz hA hB hm
+
+/-- **Op 55 (T3 in the reveal list's vocabulary)** [M]: every release is the accepted byte or a
+masked bit. -/
+theorem s10_account_open_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (a : Account.State) (n f : Nat) (pool : Conv.MaskPool) (hinted : Bool) (version check ct : Contacts.B8) :
+    ∀ r ∈ (withAdv E me adv (Account.openStep a n f pool hinted version check ct) σ I vD).viewD,
+      ∃ k ∈ Account.openKinds55, r.label = Label.ofKind k :=
+  Account.openStep_viewD_kinds E me adv σ I vD a n f pool hinted version check ct
+
+/-- **Op 55's swap bits** [K]: the `swap-bits` circuit's output k is the swap bit of ladder step
+k + 2 (`X25519Fast.swapBitSpec`). -/
+theorem s10_swapBits_spec (v : Bits) :
+    Conv.swapBitsEval v = (List.range 252).map fun k => X25519Fast.swapBitSpec (fun i => v.getD i false) (k + 2) :=
+  Account.swapBits_spec v
+
+/-- **The S10 flows declare their kinds** [M] (`Reveals`, on every branch). -/
+theorem s10_flows_reveal :
+    (∀ hash me nonce value dom n, Reveals Random.jointKinds (Random.challenge hash me nonce value dom n)) ∧
+    (∀ p b f hash me s, Reveals Masks.generateKinds (Masks.generate p b f hash me s)) ∧
+    (∀ n0 f0 u m, Reveals Convert.w2fKinds (Convert.wordToField n0 f0 u m)) ∧
+    (∀ n0 f0 v m, Reveals Convert.f2wKinds (Convert.fieldToWord n0 f0 v m)) ∧
+    (∀ n0 f0 x ps, Reveals Convert.b2fKinds (Convert.bitsToField n0 f0 x ps)) ∧
+    (∀ f0 n slot, Reveals Convert.bitsKinds (Convert.sharedBits f0 n slot)) ∧
+    (∀ f0 slot x z, Reveals Inversion.inversionKinds (Inversion.quotientScript f0 slot x z)) ∧
+    (∀ a n f pool hinted version check ct,
+      Reveals Account.openKinds55 (Account.openStep a n f pool hinted version check ct)) :=
+  Registry.s10_flows_reveal
+
+/-- **The challenge is well formed** [K] (the shell's `check` accepts it in every context). -/
+theorem s10_challenge_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (nonce value : Nat)
+    (domain : Bytes) (n : Nat) (c : Ctx) : WF sigs c (Random.challenge hash me nonce value domain n) :=
+  Random.challenge_wf sigs hash me nonce value domain n c
+
+/-- **The masked quotient is well formed** [K]: from any context where x and z are live, the five
+field ids from `f0` fresh and `field-quotient` loaded, the shell's `check` accepts every
+instruction on every branch. -/
+theorem s10_quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) (x z : FieldH)
+    (hp : c.progs Inversion.quotientName = some (ProgSig.ofProgram TlsMpc.FieldDag.V3.quotient))
+    (hx : (c.field? x).isSome) (hz : (c.field? z).isSome)
+    (hfx : x.id ≠ f0 ∧ x.id ≠ f0 + 1 ∧ x.id ≠ f0 + 2) (hfz : z.id ≠ f0 ∧ z.id ≠ f0 + 1 ∧ z.id ≠ f0 + 2)
+    (hfresh : ∀ k < 5, f0 + k ∉ c.seenF) :
+    WF sigs c (Inversion.quotientScript f0 slot x z) :=
+  Inversion.quotient_wf sigs c f0 slot x z hp hx hz hfx hfz hfresh
+
+/-! #### 7b (continued). P-CUT at the level of whole runs of `Masks.generate` (S10 follow-up)
+
+`Run.Agree o o'` (`Flows/RunAgree.lean`): two runs with the same views of BOTH parties, the same
+trace, replies and result. `Masks.HonestStore p s σ r`: the honest party's store holds the
+candidates `r` (canonical), as bits, elements and coins, and 32-byte challenge randomness.
+`Masks.Holds p b f I v x`: the engines hold the candidates `x`. -/
+
+/-- **P-CUT (c), composed with the model** [M; hyp: `WordLoaded`, `ProgsLoaded`]: against any
+adversary, two runs of `generate` whose honest stores hold candidates `r`, `r'` (same challenge
+randomness) agree, when for the challenges the first run reaches `r' = r` on the cut, every
+bucket pair has the same sum mod p, and each bit block's reference is at least 32 in both or in
+neither. -/
+theorem s10_pcut_c_agree (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots) (σ σ' : Store) (I : Ideal) (vD : List Release)
+    (r r' : Nat → Nat) (hσ : Masks.HonestStore p s σ r) (hσ' : Masks.HonestStore p s σ' r')
+    (hbytes : σ'.bytes = σ.bytes)
+    (hcut : ∀ π₁, (withAdv E me adv (Masks.cutChallenge p b f E.hash me s) σ I vD).result = some π₁ →
+      ∀ c ∈ Masks.cutOf p π₁, r' c = r c)
+    (hbk : ∀ π₁ π₂, (withAdv E me adv (Masks.bucketChallenge p b f E.hash me s) σ I vD).result = some (π₁, π₂) →
+      (∀ e ∈ Masks.pairs p, (r' (Masks.member p π₁ π₂ e.2.1 0) + r' (Masks.member p π₁ π₂ e.2.1 e.2.2)) % Conv.P =
+        (r (Masks.member p π₁ π₂ e.2.1 0) + r (Masks.member p π₁ π₂ e.2.1 e.2.2)) % Conv.P) ∧
+      (∀ j, j < p.bits → (32 ≤ r' (Masks.refOf p π₁ π₂ j) ↔ 32 ≤ r (Masks.refOf p π₁ π₂ j)))) :
+    Run.Agree (fun _ _ _ _ _ => True) (withAdv E me adv (Masks.generate p b f E.hash me s) σ I vD)
+      (withAdv E me adv (Masks.generate p b f E.hash me s) σ' I vD) :=
+  Masks.generate_agree E me adv p b f hh hW hP hM hbits s σ σ' I vD r r' hσ hσ' hbytes hcut hbk
+
+/-- **P-CUT (c) in plan 7.0's form: `generate_hides`** [M; hyp: `WordLoaded`, `ProgsLoaded`]:
+against any adversary, the adversary's view of a run of `generate` with honest candidates `r`,
+together with the honest kept references moved by `δ` (`Masks.moveRef`), equals its view of the run
+with the re-randomised candidates `reRand π δ r` together with their kept references; π are the
+challenges of r's run. The form `proofs/` `hiding_of_bijection` consumes (view := `hideView`,
+s := δ, s′ := 0, σ := `reRand π δ`; bijection: `s10_reRand_bijection`). -/
+theorem s10_generate_hides (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots)
+    (hslots : s.elems < s.coins ∨ s.coins + p.M ≤ s.elems) (σ : Store) (h32 : Masks.Bytes32 s σ) (I : Ideal)
+    (vD : List Release) (δ : Nat → Nat) (r : Nat → Nat) (hr : ∀ c, c < p.M → r c < Conv.P) :
+    Masks.hideView E me adv p b f s σ I vD δ r =
+      Masks.hideView E me adv p b f s σ I vD (fun _ => 0)
+        (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r) :=
+  Masks.generate_hides E me adv p b f hh hW hP hM hbits s hslots σ h32 I vD δ r hr
+
+/-- **The re-randomisation is a bijection of the canonical candidate vectors** [M]: it yields
+canonical values, and `reRand (negShift δ)`, for the challenges of the re-randomised run, undoes
+it. -/
+theorem s10_reRand_bijection (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E)
+    (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots)
+    (hslots : s.elems < s.coins ∨ s.coins + p.M ≤ s.elems) (σ : Store) (h32 : Masks.Bytes32 s σ) (I : Ideal)
+    (vD : List Release) (δ : Nat → Nat) (r : Nat → Nat) (hr : ∀ c, c < p.M → r c < Conv.P) :
+    (∀ c, c < p.M →
+      Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r c < Conv.P) ∧
+    (∀ c, c < p.M →
+      Masks.reRand p (Masks.permsOf E me adv p b f s
+          (Masks.setCands p s σ (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r))
+          I vD) (Masks.negShift p δ)
+        (Masks.reRand p (Masks.permsOf E me adv p b f s (Masks.setCands p s σ r) I vD) δ r) c = r c) :=
+  ⟨fun c hc => Masks.reRand_lt _ δ r c (hr c hc),
+    fun c hc => Masks.reRand_inverse E me adv p b f hh hW hP hM hbits s hslots σ h32 I vD δ r hr c hc⟩
+
+/-- **`moveRef`, the move of a kept reference** [K]: canonical, undone by `negAmt`, and for a bit
+block it keeps "at least 32" (the bit-block flag under a shift). -/
+theorem s10_moveRef (b : Bool) (δ v : Nat) (hv : v < Conv.P) :
+    Masks.moveRef b δ v < Conv.P ∧ Masks.moveRef b (Masks.negAmt b δ) (Masks.moveRef b δ v) = v ∧
+      Masks.moveRef b (Masks.negAmt b (Masks.negAmt b δ)) v = Masks.moveRef b δ v ∧
+      (32 ≤ Masks.moveRef true δ v ↔ 32 ≤ v) :=
+  ⟨Masks.moveRef_lt b δ v hv, Masks.moveRef_neg b δ v hv, Masks.moveRef_negneg b δ v, Masks.moveRef_32 δ v⟩
+
+/-- **Any target reference is reached** [K]: any canonical value for a word mask; any value in
+[32, p) for a bit block. -/
+theorem s10_moveRef_reach (v t : Nat) (hv : v < Conv.P) (ht : t < Conv.P) :
+    Masks.moveRef false ((t + (Conv.P - v)) % Conv.P) v = t ∧
+      (32 ≤ v → 32 ≤ t → Masks.moveRef true ((t - 32 + (Conv.P - 32 - (v - 32))) % (Conv.P - 32)) v = t) :=
+  ⟨Masks.moveRef_reach_word v t hv ht, fun h1 h2 => Masks.moveRef_reach_bits v t hv h1 ht h2⟩
+
+/-- **P-CUT (f), (g), run level** [M; hyp: `WordLoaded`, `ProgsLoaded`, `FieldInverse`]: against any
+adversary, if `finishPhase` returns a pool from a state holding the candidates `x`, every kept
+reference of both owners is canonical (at least 32 for bit blocks), the pool is
+`maskList`/`pairList`, each word mask's handles hold `modAdd` of the references' words and the sum
+of their elements, and each bit pair of a bit block whose references have error 0 holds the XOR of
+the references' bits in both engines. -/
+theorem s10_pcut_fg_run (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E) (s : Masks.Slots)
+    (π₁ π₂ : List Nat) (σ : Store) (I : Ideal) (vD : List Release) (v : Bits) (x : Masks.Vals)
+    (pool : Conv.MaskPool) (h : Masks.Holds p b f I v x) (hπ₁ : ∀ c ∈ π₁, c < p.M) (hM : 0 < p.M)
+    (hbits : p.bits ≤ p.N)
+    (hres : (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).result = some pool) :
+    pool = ⟨Masks.maskList p b f, Masks.pairList p b f⟩ ∧
+    (∀ j, j < p.N → x.val 0 (Masks.refOf p π₁ π₂ j) < Conv.P ∧ x.val 1 (Masks.refOf p π₁ π₂ j) < Conv.P ∧
+      (j < p.bits → 32 ≤ x.val 0 (Masks.refOf p π₁ π₂ j) ∧ 32 ≤ x.val 1 (Masks.refOf p π₁ π₂ j))) ∧
+    (∀ j, j < p.words →
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.bools (b + 12 + j) =
+        some (Conv.word (Conv.addModSpec (x.val 0 (Masks.refOf p π₁ π₂ (p.bits + j)))
+          (x.val 1 (Masks.refOf p π₁ π₂ (p.bits + j))))) ∧
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.fields (Masks.maskBase p f + j) =
+        some (x.elem 0 (Masks.refOf p π₁ π₂ (p.bits + j)) + x.elem 1 (Masks.refOf p π₁ π₂ (p.bits + j)))) ∧
+    (∀ j, j < p.bits → x.err 0 (Masks.refOf p π₁ π₂ j) = 0 → x.err 1 (Masks.refOf p π₁ π₂ j) = 0 →
+      ∀ i, i < Masks.W →
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.bools (Masks.bitBase p b + j * Masks.W + i) =
+        some [(x.bits 0 (Masks.refOf p π₁ π₂ j)).getD i false ^^ (x.bits 1 (Masks.refOf p π₁ π₂ j)).getD i false] ∧
+      (withAdv E me adv (Masks.finishPhase p b f s π₁ π₂) σ I vD).ideal.fields
+          (Masks.xorH p f (j * Masks.W + i)).id =
+        some (TlsMpc.X25519.bitValue
+          ((x.bits 0 (Masks.refOf p π₁ π₂ j)).getD i false ^^ (x.bits 1 (Masks.refOf p π₁ π₂ j)).getD i false))) :=
+  Masks.finishPhase_sound E me adv p b f hinv hW hP s π₁ π₂ σ I vD v x pool h hπ₁ hM hbits hres
+
+/-- **A mask from two error-free canonical references is consistent** [K]: val(w) = f =
+(val_A + val_B) mod p. -/
+theorem s10_mask_consistent (x : Masks.Vals) (cA cB : Nat) (hA : x.val 0 cA < Conv.P) (hB : x.val 1 cB < Conv.P)
+    (eA : x.err 0 cA = 0) (eB : x.err 1 cB = 0) :
+    Conv.natOf (Conv.word (Conv.addModSpec (x.val 0 cA) (x.val 1 cB))) = (x.elem 0 cA + x.elem 1 cB).val ∧
+      (x.elem 0 cA + x.elem 1 cB).val = (x.val 0 cA + x.val 1 cB) % Conv.P :=
+  Masks.mask_consistent x cA cB hA hB eA eB
+
+/-- **P-CUT (a) for a whole honest run, deployed profiles** [M; hyp: `WordLoaded`, `ProgsLoaded`]:
+two honest parties running `generate` for `profile N bits` both return the pool, keep their stores,
+and every word mask is a Boolean word and a field element of the same value `(rA c + rB c) mod p`,
+every bit pair the XOR of the references' bits in both engines. [hyp: the challenges' commitments
+differ, their expansions succeed, the bit blocks' references are at least 32.] -/
+theorem s10_pcut_a_run (E : Env) (p : Masks.Params) (b f : Nat) (hh : ∀ m, (E.hash m).length = 32)
+    (hW : Conv.WordLoaded E) (hP : Conv.ProgsLoaded E) (N nbits : Nat) (hprof : Masks.profile N nbits = some p)
+    (sA sB : Masks.Slots) (σA σB : Store) (I : Ideal) (rA rB : Nat → Nat)
+    (hA : Masks.HonestStore p sA σA rA) (hB : Masks.HonestStore p sB σB rB)
+    (hc1 : E.hash (commitFrame Random.tag .a (σA.bytes sA.cutNonce) (σA.bytes sA.cutValue)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes sB.cutNonce) (σB.bytes sB.cutValue)))
+    (hc2 : E.hash (commitFrame Random.tag .a (σA.bytes sA.bucketNonce) (σA.bytes sA.bucketValue)) ≠
+      E.hash (commitFrame Random.tag .b (σB.bytes sB.bucketNonce) (σB.bytes sB.bucketValue)))
+    (π₁ π₂ : List Nat)
+    (hπ₁ : Random.permOf E.hash (Masks.domain p "cut")
+      (Random.xorBytes (σA.bytes sA.cutValue) (σB.bytes sB.cutValue)) p.M = some π₁)
+    (hπ₂ : Random.permOf E.hash (Masks.domain p "bucket")
+      (Random.xorBytes (σA.bytes sA.bucketValue) (σB.bytes sB.bucketValue)) p.K = some π₂)
+    (h32 : ∀ j, j < p.bits → 32 ≤ rA (Masks.refOf p π₁ π₂ j) ∧ 32 ≤ rB (Masks.refOf p π₁ π₂ j)) :
+    ∃ J, Run.JRet (jointRun E (Masks.generate p b f E.hash .a sA) (Masks.generate p b f E.hash .b sB) σA σB I)
+        ⟨Masks.maskList p b f, Masks.pairList p b f⟩ ⟨Masks.maskList p b f, Masks.pairList p b f⟩ J σA σB ∧
+      (∀ j, j < p.words →
+        J.bools (b + 12 + j) = some (Conv.word
+          ((rA (Masks.refOf p π₁ π₂ (p.bits + j)) + rB (Masks.refOf p π₁ π₂ (p.bits + j))) % Conv.P)) ∧
+        J.fields (Masks.maskBase p f + j) = some (TlsMpc.FieldDag.ofNat
+          ((rA (Masks.refOf p π₁ π₂ (p.bits + j)) + rB (Masks.refOf p π₁ π₂ (p.bits + j))) % Conv.P))) ∧
+      (∀ j, j < p.bits → ∀ i, i < Masks.W →
+        J.bools (Masks.bitBase p b + j * Masks.W + i) =
+          some [(Conv.word (rA (Masks.refOf p π₁ π₂ j))).getD i false ^^
+            (Conv.word (rB (Masks.refOf p π₁ π₂ j))).getD i false] ∧
+        J.fields (Masks.xorH p f (j * Masks.W + i)).id = some (TlsMpc.X25519.bitValue
+          ((Conv.word (rA (Masks.refOf p π₁ π₂ j))).getD i false ^^
+            (Conv.word (rB (Masks.refOf p π₁ π₂ j))).getD i false))) :=
+  Masks.generate_honest_profile E p b f hh hW hP N nbits hprof sA sB σA σB I rA rB hA hB hc1 hc2 π₁ π₂ hπ₁ hπ₂ h32
+
+/-- **`generate` is well formed** [K]: from a context where the Boolean ids from `b` and the field
+ids from `f` were never defined, with the circuits' and programs' signatures and the widths within
+the shell's limit (`Sizes`; `Masks.profile_sizes`: every deployed profile), the shell's `check`
+accepts every instruction on every branch. -/
+theorem s10_generate_wf (sigs : Bytes → Option Sig) (ws : Masks.WordSigs sigs) (p : Masks.Params)
+    (sz : Masks.Sizes p) (b f : Nat) (hash : Bytes → Bytes) (me : Party) (s : Masks.Slots) (c : Ctx)
+    (hfb : Contacts.Fresh c b) (hff : ∀ j, f ≤ j → j ∉ c.seenF) (hp : Masks.ProgSigs c) :
+    WF sigs c (Masks.generate p b f hash me s) :=
+  Masks.generate_wf sigs ws p sz b f hash me s c hfb hff hp
+
+/-- **The deployed profiles are within the shell's limits** [K]. -/
+theorem s10_profile_sizes (N bits : Nat) (p : Masks.Params) (h : Masks.profile N bits = some p) : Masks.Sizes p :=
+  Masks.profile_sizes N bits p h
+
+/-- **`sharedBits` is well formed** [K]. -/
+theorem s10_sharedBits_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 n slot : Nat) (hn : 0 < n)
+    (hw : 2 * n ≤ maxWidth) (hfresh : ∀ j, f0 ≤ j → j < f0 + 5 * n → j ∉ c.seenF)
+    (hp1 : c.progs Conv.bitCheckName = some ⟨1, 0, [.pub]⟩) (hp2 : c.progs Conv.bitXorName = some ⟨2, 0, [.never]⟩) :
+    WF sigs c (Convert.sharedBits f0 n slot) :=
+  Convert.sharedBits_wf sigs c f0 n slot hn hw hfresh hp1 hp2
+
+/-- **The counting model's hypotheses, for any run of `generate` that returns** [M; hyp:
+`WordLoaded`, `ProgsLoaded`, `FieldInverse`] (`Flows/MasksModel.lean`): the other party's candidates
+are its choice from its view BEFORE the run (so the bad set is fixed before the challenges); every
+cut candidate of both owners is canonical with error 0 (d); every bucket pair passes `bucketOk` (e);
+every kept reference is canonical, at least 32 for a bit block (f); the pool is
+`maskList`/`pairList`. (The masks' values in the final state: `Masks.generate_sound`'s last two
+conjuncts, not restated; with `s10_mask_consistent`.) -/
+theorem s10_generate_sound (E : Env) (me : Party) (adv : Adversary) (p : Masks.Params) (b f : Nat)
+    (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hh : ∀ m, (E.hash m).length = 32) (hW : Conv.WordLoaded E)
+    (hP : Conv.ProgsLoaded E) (hM : 0 < p.M) (hbits : p.bits ≤ p.N) (s : Masks.Slots) (σ : Store) (I : Ideal)
+    (vD : List Release) (r : Nat → Nat) (hσ : Masks.HonestStore p s σ r) (pool : Conv.MaskPool)
+    (hres : (withAdv E me adv (Masks.generate p b f E.hash me s) σ I vD).result = some pool) :
+    ∃ (pb pe : PeerPart) (π₁ π₂ : List Nat),
+      adv.act vD (.boolInputBoth ⟨b⟩ ⟨b + 1⟩ (p.M * Masks.W) false true ()) = some pb ∧
+      adv.act vD (.fieldInput ((List.range p.M).map (Masks.fOf p f 0)) ((List.range p.M).map (Masks.fOf p f 1))
+        .elements true ()) = some pe ∧
+      Masks.Perms p π₁ π₂ ∧
+      (∀ o ∈ Masks.owners, ∀ c ∈ Masks.cutOf p π₁,
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val o c < Conv.P ∧
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).err o c = 0) ∧
+      (∀ e ∈ Masks.pairs p, Masks.bucketOk
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val e.1
+          (Masks.member p π₁ π₂ e.2.1 0))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val e.1
+          (Masks.member p π₁ π₂ e.2.1 e.2.2))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).elem e.1
+          (Masks.member p π₁ π₂ e.2.1 0))
+        ((Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).elem e.1
+          (Masks.member p π₁ π₂ e.2.1 e.2.2)) = true) ∧
+      (∀ j, j < p.N →
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 0 (Masks.refOf p π₁ π₂ j) <
+          Conv.P ∧
+        (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 1 (Masks.refOf p π₁ π₂ j) <
+          Conv.P ∧
+        (j < p.bits →
+          32 ≤ (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 0
+            (Masks.refOf p π₁ π₂ j) ∧
+          32 ≤ (Masks.inVals p me r (Masks.inBundle me (σ.bits s.bits) pb.bits) pe.elems).val 1
+            (Masks.refOf p π₁ π₂ j))) ∧
+      pool = ⟨Masks.maskList p b f, Masks.pairList p b f⟩ := by
+  obtain ⟨pb, pe, π₁, π₂, h1, h2, h3, h4, h5, h6, h7, -, -⟩ :=
+    Masks.generate_sound E me adv p b f hinv hh hW hP hM hbits s σ I vD r hσ pool hres
+  exact ⟨pb, pe, π₁, π₂, h1, h2, h3, h4, h5, h6, h7⟩
+
+/-- **The model's rule in its own words** [K]: when every bucket pair passes and the reference is
+canonical, a bucket member is good exactly when its reference is: no mixed bucket survives. -/
+theorem s10_bucket_uniform (x : Masks.Vals) (hw : x.Wide) (p : Masks.Params) (π₁ π₂ : List Nat)
+    (he : ∀ e ∈ Masks.pairs p, Masks.bucketOk (x.val e.1 (Masks.member p π₁ π₂ e.2.1 0))
+      (x.val e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2)) (x.elem e.1 (Masks.member p π₁ π₂ e.2.1 0))
+      (x.elem e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2)) = true)
+    (e : Nat × Nat × Nat) (hmem : e ∈ Masks.pairs p) (hc : x.val e.1 (Masks.member p π₁ π₂ e.2.1 0) < Conv.P) :
+    x.err e.1 (Masks.member p π₁ π₂ e.2.1 0) = 0 ↔ x.err e.1 (Masks.member p π₁ π₂ e.2.1 e.2.2) = 0 :=
+  Masks.bucket_uniform x hw p π₁ π₂ he e hmem hc
+
+/-- **The two challenge permutations as the model's one arrangement** [K]: `arrangement π₁ π₂`
+(the cut, then the bucket slots in order) is a permutation of the candidates [0, M); its first K
+entries are the cut; its entry K + B·j + k is member k of bucket j. (That it is uniform for uniform
+π₁, π₂ is argued, not proved: section 8.) -/
+theorem s10_arrangement (p : Masks.Params) (π₁ π₂ : List Nat) (h1 : π₁.Perm (List.range p.M))
+    (h2 : π₂.Perm (List.range p.K)) :
+    (Masks.arrangement p π₁ π₂).Perm (List.range p.M) ∧
+      (Masks.arrangement p π₁ π₂).take p.K = Masks.cutOf p π₁ ∧
+      ∀ j k, p.B * j + k < π₂.length →
+        (Masks.arrangement p π₁ π₂).getD (p.K + (p.B * j + k)) 0 = Masks.member p π₁ π₂ j k :=
+  ⟨Masks.arrangement_perm p π₁ π₂ h1 h2,
+    Masks.arrangement_cut p π₁ π₂ (by rw [h1.length_eq, List.length_range]),
+    fun j k h => Masks.arrangement_slot p π₁ π₂ (by rw [h1.length_eq, List.length_range]) j k h⟩
+
+/-- **P-BITS (a), (b) at run level, against any adversary** [M; hyp: `ProgsLoaded`, `FieldInverse`]:
+if `sharedBits` returns, it returns `bitsOuts`; every input of BOTH parties in the engines is 0 or 1;
+and output `i` holds the field XOR of the two parties' inputs `i`. -/
+theorem s10_pbits_run (E : Env) (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hP : Conv.ProgsLoaded E) (me : Party)
+    (adv : Adversary) (f0 n slot : Nat) (σ : Store) (I : Ideal) (vD : List Release) (outs : List FieldH)
+    (hres : (withAdv E me adv (Convert.sharedBits f0 n slot) σ I vD).result = some outs) :
+    outs = Convert.bitsOuts f0 n ∧ ∃ pe : List F, pe.length = n ∧ (σ.elems slot).length = n ∧
+      (∀ c ∈ σ.elems slot ++ pe, c = 0 ∨ c = TlsMpc.FieldDag.ofNat 1) ∧
+      ∀ i, i < n → (withAdv E me adv (Convert.sharedBits f0 n slot) σ I vD).ideal.fields (f0 + 4 * n + i) =
+        some (Conv.bitXorValue ((if me = .a then σ.elems slot else pe).getD i 0)
+          ((if me = .a then pe else σ.elems slot).getD i 0)) :=
+  Convert.sharedBits_sound E hinv hP me adv f0 n slot σ I vD outs hres
+
+/-- **P-BITS (b), two honest parties** [M; hyp: `ProgsLoaded`]: with local bits `as`, `bs` as 0/1
+coins, both return `bitsOuts`, keep their stores, and output `i` holds the field bit of
+`as_i ⊕ bs_i`. -/
+theorem s10_pbits_honest (E : Env) (hP : Conv.ProgsLoaded E) (f0 n slotA slotB : Nat) (σA σB : Store)
+    (I : Ideal) (as bs : Bits) (hla : as.length = n) (hlb : bs.length = n)
+    (hA : σA.elems slotA = as.map TlsMpc.X25519.bitValue) (hB : σB.elems slotB = bs.map TlsMpc.X25519.bitValue) :
+    ∃ J, Run.JRet (jointRun E (Convert.sharedBits f0 n slotA) (Convert.sharedBits f0 n slotB) σA σB I)
+        (Convert.bitsOuts f0 n) (Convert.bitsOuts f0 n) J σA σB ∧
+      ∀ i, i < n → J.fields (f0 + 4 * n + i) =
+        some (TlsMpc.X25519.bitValue (as.getD i false ^^ bs.getD i false)) :=
+  Convert.sharedBits_honest E hP f0 n slotA slotB σA σB I as bs hla hlb hA hB
+
+/-- **P-B2F (a) through `jointRun`, the whole bundle** [M; hyp: `WordLoaded`]: two honest parties
+convert the bits `xb` behind `x` with consistent pairs (pair `i`: the Boolean bit `ρ_i` and the field
+bit of `ρ_i`, on handles other than the script's own): both return `b2fOuts`, keep their stores, and
+output `i` holds the field bit of `xb_i`. -/
+theorem s10_pb2f_honest (E : Env) (hW : Conv.WordLoaded E) (n0 f0 : Nat) (x : BoolH) (ps : List Conv.BitPair)
+    (σA σB : Store) (I : Ideal) (xb ρ : Bits) (hx : I.bools x.id = some xb) (hxl : xb.length = ps.length)
+    (hρl : ρ.length = ps.length)
+    (hbits : (ps.map (·.bit)).mapM (fun h => I.bools h.id) = some (ρ.map fun r => [r]))
+    (hflds : ∀ i, i < ps.length →
+      I.fields (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id = some (TlsMpc.X25519.bitValue (ρ.getD i false)))
+    (hx0 : x.id ≠ n0)
+    (hfid : ∀ i, i < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 ∧
+      (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 1 ∧
+      ∀ j, j < ps.length → (ps.getD i ⟨⟨0⟩, ⟨0⟩⟩).field.id ≠ f0 + 2 + j) :
+    ∃ J, Run.JRet (jointRun E (Convert.bitsToField n0 f0 x ps) (Convert.bitsToField n0 f0 x ps) σA σB I)
+        (Convert.b2fOuts f0 ps.length) (Convert.b2fOuts f0 ps.length) J σA σB ∧
+      ∀ i, i < ps.length → J.fields (f0 + 2 + i) = some (TlsMpc.X25519.bitValue (xb.getD i false)) :=
+  Convert.b2f_honest E hW n0 f0 x ps σA σB I xb ρ hx hxl hρl hbits hflds hx0 hfid
+
+end FlowsS10
+
+/-! ### 7c. Local arithmetic and the curve flows (stage S11; plan 7.1 P-SPLIT, P-OFFSET, P-HINT)
+
+Status per entry: **M** (ideal model of `Engine/Model.lean`) or **K** (values, independent of the
+model); hypotheses named `[hyp: …]`. `FieldInverse` (Fermat for p) is FieldDagV3's named
+hypothesis (discharged in `proofs/`: `FieldBridge.toZMod_inverse`). H-QR (`Curve.TwoNonSquare`)
+and Euler's criterion (`Curve.EulerCriterion`) are named hypotheses here, discharged in `proofs/`
+by `two_not_square` and `euler_criterion` (with `Local.Field.pow_eq`). H-GROUP enters only as named
+hypotheses of the liveness entries (`Curve.CompleteAddition` ← `edwards_complete`, `Curve.AddClosed` ←
+`pointAddValue_is_group_add`, `Curve.ExtClosed` ← `extAddValue_is_group_add`,
+`Curve.RecipientOnCurve` ← `recipient_on_curve`); otherwise the entries state the main-package
+values the `proofs/` group-law theorems
+(`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `window_table`, `bitTable_entries`,
+`offsetSum_scalar_mult`/`offsetSum_recoded`, `bitSum_is_x25519`, `prepareHinted_initial_point`,
+`montQ_square_iff`, `liftPoint_valid_point`) are about. SECURITY_MAP: the curve kinds 91–95, 102.
+Checked standalone in the S11 branch (the full closure needs more than 4 GB): standard axioms only. -/
+
+section FlowsS11
+open TlsMpc.Node.Engine TlsMpc.Node.Flows
+open TlsMpc.FieldDag (F ofNat inverse)
+
+/-- **`Local/Edwards` uses the programs' formulas** [K]: affine addition is
+`EdwardsAffine.pointAddValue`, extended to affine is `EdwardsHinted.toAffineValue`, the Montgomery
+map is `(1 + y)·(1 − y)⁻¹` (the form `offsetSum` outputs). -/
+theorem s11_local_formulas (p q : TlsMpc.Node.Local.Edwards.Value) (e : TlsMpc.Node.Local.Edwards.ExtV) :
+    TlsMpc.Node.Local.Edwards.add p q = TlsMpc.EdwardsAffine.pointAddValue p q ∧
+    TlsMpc.Node.Local.Edwards.toAffine e = TlsMpc.EdwardsHinted.toAffineValue e ∧
+    TlsMpc.Node.Local.Edwards.montU p = (ofNat 1 + p.2) * inverse (ofNat 1 - p.2) :=
+  ⟨TlsMpc.Node.Local.Edwards.add_eq p q, TlsMpc.Node.Local.Edwards.toAffine_eq e, TlsMpc.Node.Local.Edwards.montU_eq p⟩
+
+/-- **`xeddsa-recover` on a public input, locally** [K] (replaces `field_program.h` `evaluate_clear`):
+the local evaluation is the program's expressions at that input. -/
+theorem s11_recoverPublic (u : F) :
+    TlsMpc.Node.Local.Edwards.recoverPublic u =
+      TlsMpc.EstablishField.recover.map (TlsMpc.FieldDag.Expr.eval (fun _ => u)) :=
+  TlsMpc.Node.Local.Edwards.recoverPublic_eq u
+
+/-- **A local square root squares to its argument** [K]. -/
+theorem s11_sqrt_sq (x r : F) (h : TlsMpc.Node.Local.Field.sqrt x = some r) : r * r = x :=
+  TlsMpc.Node.Local.Field.sqrt_sq x r h
+
+/-- **P-OFFSET (a): the recoding lemma** [K], about the flow's own `recode` (the C++ rule): for an
+offset below 2^252 the 64 digits encode it exactly, lie in −8 … 8, and leave no carry. -/
+theorem s11_recode64 (n : Nat) (hn : n < 2 ^ 252) :
+    Curve.digitsValue (Curve.recode 0 n 64).1 = n ∧ (Curve.recode 0 n 64).2 = 0 ∧
+      (Curve.recode 0 n 64).1.length = 64 ∧ ∀ d ∈ (Curve.recode 0 n 64).1, -8 ≤ d ∧ d ≤ 8 :=
+  Curve.recode64_value n hn
+
+/-- **P-OFFSET (a): the selected multiples** [K]: in any commutative group, the step's digits select
+multiples summing to τ·R (`OffsetAgreement.table_sum_correct`). -/
+theorem s11_step_tableSum {G : Type} [Lean.Grind.IntModule G] (R : G) (n : Nat) (hn : n < 2 ^ 252) :
+    TlsMpc.OffsetAgreement.tableSum R 0 (Curve.recode 0 n 64).1 = (n : Int) • R :=
+  Curve.step_tableSum R n hn
+
+/-- **P-OFFSET (a): the step's program inputs** [K]: window `w`'s three inputs are the table entry
+`entryAt w d` (x, y) and the sign, or the neutral element: what `proofs/` `offsetSum_recoded`
+assumes. -/
+theorem s11_stepIns_window (f0 : Nat) (st : Curve.OffsetState) (τ w : Nat) (hw : w < 64) :
+    ((Curve.stepIns f0 st τ).drop (2 + 3 * w)).take 3 =
+      (let d := (Curve.recode 0 τ 64).1.getD w 0
+       if d = 0 then [⟨f0⟩, ⟨f0 + 1⟩, ⟨f0 + 1⟩]
+       else [st.table.getD (Curve.entryAt w d) ⟨f0⟩, st.table.getD (Curve.entryAt w d + 1) ⟨f0⟩,
+         if 0 < d then ⟨f0 + 1⟩ else ⟨f0 + 2⟩]) :=
+  Curve.stepIns_window f0 st τ w hw
+
+/-- **P-OFFSET (b) on the script's output** [K]: the ephemeral key a step returns is
+`montU (K₀ + τ·B)` (a valid point): a function of the public K₀ and τ only. -/
+theorem s11_ephemeralKey (key : TlsMpc.Node.Local.Edwards.Value) (τ : Nat) (u : F)
+    (h : Curve.ephemeralKey key τ = some u) :
+    u = TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add key
+      (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+    TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add key
+      (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) = true :=
+  Curve.ephemeralKey_spec key τ u h
+
+/-- **P-HINT (a): the order of the lift's openings** [K]: checks (all zero) before `w`, `w` before
+`Z`. -/
+theorem s11_lift_order (f0 : Nat) (s : Curve.LiftSlots) (us : List FieldH) (hn : us.length ≠ 0) :
+    Curve.lift f0 s us = Contacts.seqs (Curve.liftBlock f0 s us) (Run.openFieldThen (Curve.liftChecks f0 us.length)
+      Label.curveChecks (Curve.liftAfterChecks f0 s us)) ∧
+    (∀ z, ¬ (z.length = 4 * us.length ∧ Curve.allZero z = true) → ∃ r, Curve.liftAfterChecks f0 s us z = .abort r) ∧
+    (∀ z, z.length = 4 * us.length ∧ Curve.allZero z = true →
+      Curve.liftAfterChecks f0 s us z = Run.openFieldThen (Curve.liftWs f0 us.length) Label.liftW (Curve.liftAfterW f0 s us)) ∧
+    (∀ ws rs, ws.length = us.length → Curve.roots ws = some rs →
+      Curve.liftAfterW f0 s us ws = Contacts.seqs (Curve.pointBlock f0 s us rs)
+        (Run.openFieldThen (Curve.liftZs f0 us.length) Label.liftZ (Curve.liftAfterZ f0 us.length rs))) :=
+  Curve.lift_order f0 s us hn
+
+/-- **P-HINT (b), soundness** [K; hyp: `FieldInverse`]: a valid lift bit means `q` is a square. -/
+theorem s11_lift_valid_sound (hinv : TlsMpc.FieldDag.V3.FieldInverse) (q r w : F) (b sel : Bool) (c : F)
+    (hw : w = q * r * r * (ofNat 1 + TlsMpc.X25519.bitValue b)) (hr : r ≠ 0)
+    (hroot : TlsMpc.Node.Local.Edwards.root w = some (sel, c)) (hvalid : (sel ^^ b) = true) : ∃ v, v * v = q :=
+  Curve.lift_valid_sound hinv q r w b sel c hw hr hroot hvalid
+
+/-- **The op 66 status reveals only curve membership** [K; hyp: `FieldInverse`, H-QR, Euler]: 255
+exactly when `q(u) = u(u² + 486662u + 1)` is a nonzero square (with `proofs/` `montQ_square_iff`:
+when `u ≠ 0` is the Montgomery coordinate of a curve point). -/
+theorem s11_prepareStatus_iff (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hE : Curve.EulerCriterion)
+    (hQR : Curve.TwoNonSquare) (u r w : F) (b sel : Bool) (c : F)
+    (hw : w = u * (u * u + ofNat 486662 * u + ofNat 1) * r * r * (ofNat 1 + TlsMpc.X25519.bitValue b)) (hr : r ≠ 0)
+    (hroot : w ≠ 0 → TlsMpc.Node.Local.Edwards.root w = some (sel, c)) :
+    (TlsMpc.X25519.bitValue (sel ^^ b) == ofNat 1 && !(w == 0)) = true ↔
+      (u * (u * u + ofNat 486662 * u + ofNat 1) ≠ 0 ∧ ∃ v, v * v = u * (u * u + ofNat 486662 * u + ofNat 1)) :=
+  Curve.prepareStatus_iff hinv hE hQR u r w b sel c hw hr hroot
+
+/-- **P-SPLIT (a), algebraic** [K; hyp: `FieldInverse`]: the agreement's quotient is the Montgomery
+coordinate of `T_A + T_B`. -/
+theorem s11_addU_montU (hinv : TlsMpc.FieldDag.V3.FieldInverse) (x1 y1 x2 y2 : F)
+    (hden : ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) ≠ 0) :
+    (ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) + ofNat 121666 * (x1 * x2 + y1 * y2)) *
+      inverse (ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) - ofNat 121666 * (x1 * x2 + y1 * y2)) =
+    TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add (x1, y1) (x2, y2)) :=
+  Curve.addU_montU hinv x1 y1 x2 y2 hden
+
+/-- **P-SPLIT (a), run level** [M; hyp: `FieldInverse`, the programs loaded]: two honest parties
+end with `(den + num)/(den − num)` of their points (= `montU (T_A + T_B)` by `s11_addU_montU`). -/
+theorem s11_splitAgree_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env) (pOn pAdd : TlsMpc.FieldDag.V3.Program)
+    (hOn : E.programs Curve.onCurveName = some pOn) (hAdd : E.programs Curve.addUName = some pAdd)
+    (hOnC : Conv.Computes pOn 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i]))
+    (hAddC : Conv.Computes pAdd 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 tSlot maskSlot : Nat) (xA yA xB yB mA mB : F)
+    (hA : σA.elems tSlot = [xA, yA]) (hB : σB.elems tSlot = [xB, yB])
+    (hmA : σA.elems maskSlot = [mA]) (hmB : σB.elems maskSlot = [mB]) (hm : mA + mB ≠ 0)
+    (hcA : TlsMpc.Node.Local.Edwards.curveValue (xA, yA) = 0) (hcB : TlsMpc.Node.Local.Edwards.curveValue (xB, yB) = 0) :
+    let den := ofNat 121666 + ofNat 121665 * (xA * xB * (yA * yB))
+    let num := ofNat 121666 * (xA * xB + yA * yB)
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).result =
+      some ((⟨f0 + 11⟩, decide (den - num = 0)), (⟨f0 + 11⟩, decide (den - num = 0))) ∧
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).ideal.fields (f0 + 11) =
+      some ((den + num) * inverse (den - num)) :=
+  Curve.splitAgree_honest hinv E pOn pAdd hOn hAdd hOnC hAddC hq σA σB I f0 tSlot maskSlot xA yA xB yB mA mB hA hB hmA hmB hm hcA hcB
+
+/-- **T3 for op 66** [M]: every release of `prepareContacts` (both scripts and the local step between
+them), against any adversary, carries one of `prepareKinds`; the validity bits only under
+`pointValid`. -/
+theorem s11_prepareContacts_kinds (E : Env) (me : Party) (adv : Adversary) (hash : Bytes → Bytes) (f0 : Nat)
+    (s : Curve.PrepareSlots) (us identityBits : List FieldH) (σ : Store) (I : Ideal) (vD : List Release) :
+    ∀ r ∈ ((Curve.prepareContacts hash me f0 s us identityBits).withAdv E me adv σ I vD).viewD,
+      ∃ k ∈ Curve.prepareKinds, r.label = Label.ofKind k :=
+  Curve.prepareContacts_viewD_kinds E me adv hash f0 s us identityBits σ I vD
+
+/-- **The S11 curve flows declare their kinds** [M] (`Reveals`, on every branch). -/
+theorem s11_flows_reveal :
+    (∀ hash me nonce share, Reveals Curve.splitKinds (Curve.splitBegin hash me nonce share)) ∧
+    (∀ f0 tSlot maskSlot, Reveals Curve.splitKinds (Curve.splitAgree f0 tSlot maskSlot)) ∧
+    (∀ f0 slot jobs, Reveals Curve.agreeKinds (Curve.agree f0 slot jobs)) ∧
+    (∀ hash me f0 s u, Reveals Curve.offsetKinds (Curve.offsetPrepare hash me f0 s u)) ∧
+    (∀ f0 maskSlot st τ, Reveals Curve.offsetKinds (Curve.offsetStep f0 maskSlot st τ)) ∧
+    (∀ f0 slot st τ, Reveals Curve.offsetKinds (Curve.offsetStepFast f0 slot st τ)) ∧
+    (∀ f0 s us, Reveals Curve.liftKinds (Curve.lift f0 s us)) ∧
+    (∀ f0 s pts, Reveals Curve.tableKinds (Curve.tables f0 s pts)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeHinted f0 rho qslot jobs)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeAffine f0 rho qslot jobs)) ∧
+    (∀ f0 maskSlot baseT jobs, Reveals Curve.signatureKinds (Curve.signatures f0 maskSlot baseT jobs)) ∧
+    (∀ f0 hintSlot rSlot maskSlot pts, Reveals Curve.signatureKinds (Curve.torsion f0 hintSlot rSlot maskSlot pts)) ∧
+    (∀ f0 slot, Reveals Convert.bitsKinds (Curve.sharedBits f0 slot)) ∧
+    (∀ hash me f0 s us ids, Reveals Curve.prepareKinds (Curve.prepareContacts hash me f0 s us ids).first) ∧
+    (∀ hash me f0 s us ids r, Reveals Curve.prepareKinds ((Curve.prepareContacts hash me f0 s us ids).second r)) :=
+  Registry.s11_flows_reveal
+
+/-- **The curve scripts are well formed** [M] (F23): from any context whose field counter is ahead
+of `f0`, with the curve programs loaded under their V3 signatures (`Curve.WFB.CurveProgs`) and the
+handles each script reads live below `f0`, the shell's `check` admits every instruction on every
+branch. (Split ECDH, the ladders, the offset preparation and step.) -/
+theorem s11_wf_split_offset (sigs : Bytes → Option Sig) (c : Ctx) (f0 : Nat)
+    (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF) (hP : Curve.WFB.CurveProgs c.progs) :
+    (∀ tSlot maskSlot, WF sigs c (Curve.splitAgree f0 tSlot maskSlot)) ∧
+    (∀ hash me nonce share, WF sigs c (Curve.splitBegin hash me nonce share)) ∧
+    (∀ slot (jobs : List (List FieldH × FieldH)), jobs.length ≤ maxWidth →
+      (∀ jb ∈ jobs, (∀ x ∈ jb.1, (c.field? x).isSome = true ∧ x.id < f0) ∧
+        (c.field? jb.2).isSome = true ∧ jb.2.id < f0) → WF sigs c (Curve.agree f0 slot jobs)) ∧
+    (∀ hash me s u, (c.field? u).isSome = true ∧ u.id < f0 → WF sigs c (Curve.offsetPrepare hash me f0 s u)) ∧
+    (∀ maskSlot st τ, Curve.StateLive c f0 st → WF sigs c (Curve.offsetStep f0 maskSlot st τ)) ∧
+    (∀ slot st τ, Curve.StateLive c f0 st → WF sigs c (Curve.offsetStepFast f0 slot st τ)) :=
+  ⟨fun tSlot maskSlot => Curve.splitAgree_wf sigs c f0 tSlot maskSlot hfresh hP,
+   fun hash me nonce share => Curve.splitBegin_wf sigs c hash me nonce share,
+   fun slot jobs hw hj => Curve.agree_wf sigs c f0 slot jobs hfresh hP hw hj,
+   fun hash me s u hu => Curve.offsetPrepare_wf sigs c hash me f0 s u hfresh hP hu,
+   fun maskSlot st τ hst => Curve.offsetStep_wf sigs c f0 maskSlot st τ hfresh hP hst,
+   fun slot st τ hst => Curve.offsetStepFast_wf sigs c f0 slot st τ hfresh hP hst⟩
+
+/-- **The hinted scripts are well formed** [M] (F23): the lift, bit tables, agreements from tables,
+signatures, torsion, shared bits. -/
+theorem s11_wf_hinted (sigs : Bytes → Option Sig) (c : Ctx) (f0 : Nat)
+    (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF) (hP : Curve.WFB.CurveProgs c.progs) :
+    (∀ s (us : List FieldH), us.length ≤ maxWidth → (∀ u ∈ us, (c.field? u).isSome = true ∧ u.id < f0) →
+      WF sigs c (Curve.lift f0 s us)) ∧
+    (∀ s (pts : List Curve.Lifted), pts.length ≤ maxWidth →
+      (∀ l ∈ pts, (c.field? l.x).isSome = true ∧ (c.field? l.y).isSome = true ∧ l.x.id < f0 ∧ l.y.id < f0) →
+      WF sigs c (Curve.tables f0 s pts) ∧ ∀ hintSlot rSlot maskSlot, WF sigs c (Curve.torsion f0 hintSlot rSlot maskSlot pts)) ∧
+    (∀ rho qslot (jobs : List Curve.HintedJob), jobs.length ≤ maxWidth → (∀ jb ∈ jobs, Curve.JobLive c f0 jb) →
+      WF sigs c (Curve.agreeHinted f0 rho qslot jobs)) ∧
+    (∀ rho qslot (jobs : List (List FieldH × List FieldH)), jobs.length ≤ maxWidth →
+      (∀ jb ∈ jobs, ∀ x ∈ jb.1 ++ jb.2, (c.field? x).isSome = true ∧ x.id < f0) →
+      WF sigs c (Curve.agreeAffine f0 rho qslot jobs)) ∧
+    (∀ maskSlot (baseT : List FieldH) (jobs : List (List FieldH × List FieldH)), jobs.length ≤ maxWidth →
+      (∀ x ∈ baseT, (c.field? x).isSome = true ∧ x.id < f0) →
+      (∀ jb ∈ jobs, ∀ x ∈ jb.1 ++ jb.2, (c.field? x).isSome = true ∧ x.id < f0) →
+      WF sigs c (Curve.signatures f0 maskSlot baseT jobs)) ∧
+    (∀ slot, c.progs Conv.bitCheckName = some ⟨1, 0, [.pub]⟩ → c.progs Conv.bitXorName = some ⟨2, 0, [.never]⟩ →
+      WF sigs c (Curve.sharedBits f0 slot)) :=
+  ⟨fun s us hw hus => Curve.lift_wf sigs c f0 s us hfresh hP hw hus,
+   fun s pts hw hp => ⟨Curve.tables_wf sigs c f0 s pts hfresh hP hw hp,
+     fun hintSlot rSlot maskSlot => Curve.torsion_wf sigs c f0 hintSlot rSlot maskSlot pts hfresh hP hw hp⟩,
+   fun rho qslot jobs hw hj => Curve.agreeHinted_wf sigs c f0 rho qslot jobs hfresh hP hw hj,
+   fun rho qslot jobs hw hj => Curve.agreeAffine_wf sigs c f0 rho qslot jobs hfresh hP hw hj,
+   fun maskSlot baseT jobs hw hb hj => Curve.signatures_wf sigs c f0 maskSlot baseT jobs hfresh hP hw hb hj,
+   fun slot hp1 hp2 => Curve.sharedBits_wf sigs c f0 slot hfresh hp1 hp2⟩
+
+/-- **Op 66 is well formed as a staged flow** [M] (F23): the first script with the lift's
+postcondition, the second script (after the local step, which does not touch the handle table)
+from every context satisfying it; at most 2047 recipients (one point exchange carries every K₀). -/
+theorem s11_prepareContacts_wf (sigs : Bytes → Option Sig) (c : Ctx) (hash : Bytes → Bytes) (me : Party) (f0 : Nat)
+    (s : Curve.PrepareSlots) (us identityBits : List FieldH) (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF)
+    (hP : Curve.WFB.CurveProgs c.progs) (hw : us.length ≤ 2047)
+    (hus : ∀ u ∈ us, (c.field? u).isSome = true ∧ u.id < f0)
+    (hid : ∀ x ∈ identityBits, (c.field? x).isSome = true ∧ x.id < f0) :
+    Curve.Staged.WellFormed sigs (fun c' r => Curve.LiftPost (fun j => c.field? ⟨j⟩) f0 us.length c.progs c' r.1) c
+      (Curve.prepareContacts hash me f0 s us identityBits) :=
+  Curve.prepareContacts_wf sigs c hash me f0 s us identityBits hfresh hP hw hus hid
+
+/-- **Split ECDH key generation, two honest parties** [M] (F22): both obtain the same key share
+`u(P_A + P_B)` (32 bytes), engines and stores unchanged. -/
+theorem s11_splitBegin_honest (E : Env) (hh : ∀ m, (E.hash m).length = 32) (σA σB : Store) (I : Ideal)
+    (nA sA nB sB : Nat) (PA PB : TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes nA).length = 32) (hsA : (σA.bytes sA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hsB : (σB.bytes sB).length = 32)
+    (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes sA) = some PA)
+    (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes sB) = some PB)
+    (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+    (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+    (hc : E.hash (commitFrame Curve.splitTag .a (σA.bytes nA) (σA.bytes sA)) ≠
+      E.hash (commitFrame Curve.splitTag .b (σB.bytes nB) (σB.bytes sB))) :
+    Run.JRet (jointRun E (Curve.splitBegin E.hash .a nA sA) (Curve.splitBegin E.hash .b nB sB) σA σB I)
+      (TlsMpc.Node.Local.Field.toBytes (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add PA PB)))
+      (TlsMpc.Node.Local.Field.toBytes (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add PA PB)))
+      I σA σB :=
+  Curve.splitBegin_honest E hh σA σB I nA sA nB sB PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
+/-- **The split agreement, no denominator hypothesis** [M] (F22, F28 with `CompleteAddition`
+[hyp: discharged by `proofs/` `edwards_complete`]): the handle holds `montU (T_A + T_B)`. -/
+theorem s11_splitAgree_montU (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hC : Curve.CompleteAddition) (E : Env)
+    (pOn pAdd : TlsMpc.FieldDag.V3.Program)
+    (hOn : E.programs Curve.onCurveName = some pOn) (hAdd : E.programs Curve.addUName = some pAdd)
+    (hOnC : Conv.Computes pOn 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i]))
+    (hAddC : Conv.Computes pAdd 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 tSlot maskSlot : Nat) (xA yA xB yB mA mB : F)
+    (hA : σA.elems tSlot = [xA, yA]) (hB : σB.elems tSlot = [xB, yB])
+    (hmA : σA.elems maskSlot = [mA]) (hmB : σB.elems maskSlot = [mB]) (hm : mA + mB ≠ 0)
+    (hcA : TlsMpc.Node.Local.Edwards.curveValue (xA, yA) = 0) (hcB : TlsMpc.Node.Local.Edwards.curveValue (xB, yB) = 0) :
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).ideal.fields (f0 + 11) =
+      some (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add (xA, yA) (xB, yB))) :=
+  Curve.splitAgree_montU hinv hC E pOn pAdd hOn hAdd hOnC hAddC hq σA σB I f0 tSlot maskSlot xA yA xB yB mA mB
+    hA hB hmA hmB hm hcA hcB
+
+/-- **`commit_open_sound` for the point exchanges** [M] (F25): an accepted exchange used the
+adversary's commitment chosen before our opening, opened under its own frame, different from ours,
+and the returned points are our continuation on the two openings; a copied commitment aborts. -/
+theorem s11_pointExchange_sound (E : Env) (me : Party) (adv : Adversary) (tag : Bytes) (nonce points count : Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    (∀ xs, (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).result = some xs →
+      ∃ p1 p2,
+        adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩])
+            (InstrP.exchange 32 Curve.commitLabel (Payload.commitment tag nonce points) : Instr).skel = some p1 ∧
+        adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+            ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩])
+            (InstrP.exchange (32 + 32 * count) Label.ownPublicPoint (Payload.opening [nonce, points]) : Instr).skel =
+          some p2 ∧
+        E.hash (commitFrame tag me.other (p2.bytes.take 32) (p2.bytes.drop 32)) = p1.bytes ∧
+        p1.bytes ≠ Curve.ourCommitP E me σ tag nonce points ∧
+        (withAdv E me adv (Curve.pointsOf me count (Curve.ourOpeningP σ nonce points) p2.bytes) σ I
+          (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+            ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩])).result = some xs) ∧
+    (∀ p1, adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩])
+        (InstrP.exchange 32 Curve.commitLabel (Payload.commitment tag nonce points) : Instr).skel = some p1 →
+      p1.bytes = Curve.ourCommitP E me σ tag nonce points →
+      (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).result = none) :=
+  ⟨fun xs h => Curve.pointExchange_sound E me adv tag nonce points count σ I vD xs h,
+   fun p1 h1 hc => Curve.pointExchange_copy_aborts E me adv tag nonce points count σ I vD p1 h1 hc⟩
+
+/-- **Liveness facts** [K] (F33): under `FieldInverse`, `EulerCriterion` [hyp: `proofs/`
+`euler_criterion`] and `TwoNonSquare` [hyp: `proofs/` `two_not_square`], `sqrt` finds a root of
+every square and the lift's public roots never fail (its "lift root" abort cannot fire); F28: the
+split agreement's denominator is nonzero on curve points under `CompleteAddition`. -/
+theorem s11_liveness (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hE : Curve.EulerCriterion) (hQR : Curve.TwoNonSquare) :
+    (∀ x : F, (∃ r, r * r = x) → (TlsMpc.Node.Local.Field.sqrt x).isSome = true) ∧
+    (∀ ws : List F, (Curve.roots ws).isSome = true) ∧
+    (Curve.CompleteAddition → ∀ x1 y1 x2 y2 : F, TlsMpc.Node.Local.Edwards.curveValue (x1, y1) = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue (x2, y2) = 0 → ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) ≠ 0) :=
+  ⟨Curve.sqrt_complete hinv hE, Curve.roots_isSome hinv hE hQR,
+   fun hC x1 y1 x2 y2 h1 h2 => Curve.addU_den_ne_zero hinv hC x1 y1 x2 y2 h1 h2⟩
+
+/-- **Value-level disclosure of the point exchanges** [M] (F24, part): against any adversary, the
+adversary's view of `pointExchange` (hence of `splitBegin`'s and the offset preparation's K₀
+exchange) is a prefix of [our commitment, our opening]. -/
+theorem s11_pointExchange_disclosure (E : Env) (me : Party) (adv : Adversary) (tag : Bytes)
+    (nonce points count : Nat) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).viewD <+:
+      [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+       ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩] :=
+  Curve.pointExchange_disclosure E me adv tag nonce points count σ I vD
+
+/-- **n masked quotients in one round, two honest parties** [M] (F22, the block-level lemma):
+with the pairs' values below `f`, nonzero mask sums and `field-quotient` loaded, both return
+`(quotResult f n j, z_j = 0)`, handle `f + 3n + 2j` holds `x_j · z_j⁻¹`, nothing outside the
+block changes. [hyp: `FieldInverse`] -/
+theorem s11_quotientMany_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f slot : Nat) (pairs : List (FieldH × FieldH)) (x z mA mB : Nat → F)
+    (hx : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).1.id = some (x j))
+    (hz : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).2.id = some (z j))
+    (hlo : ∀ p ∈ pairs, p.1.id < f ∧ p.2.id < f)
+    (hA : σA.elems slot = (List.range pairs.length).map mA) (hB : σB.elems slot = (List.range pairs.length).map mB)
+    (hm : ∀ j, j < pairs.length → mA j + mB j ≠ 0) :
+    ∃ J, Run.JRet (jointRun E (Curve.quotientMany f slot pairs) (Curve.quotientMany f slot pairs) σA σB I)
+        ((List.range pairs.length).map fun j => (Curve.quotResult f pairs.length j, decide (z j = 0)))
+        ((List.range pairs.length).map fun j => (Curve.quotResult f pairs.length j, decide (z j = 0))) J σA σB ∧
+      (∀ j, j < pairs.length → J.fields (f + 3 * pairs.length + 2 * j) = some (x j * inverse (z j))) ∧
+      (∀ k, (k < f ∨ f + 5 * pairs.length ≤ k) → J.fields k = I.fields k) :=
+  Curve.quotientMany_honest E hinv hq σA σB I f slot pairs x z mA mB hx hz hlo hA hB hm
+
+/-- **n X25519 agreements, two honest parties** [M] (F22): with job `j`'s swap-bit handles holding
+the RFC swap bits of `bits_j` and its point handle `u_j`, `x25519-fast` computing its expressions,
+the quotient handle of job `j` holds `X25519.spec bits_j u_j` (`X25519Fast.spec_eq_quotient`,
+`Curve.x25519_inverse_eq`). [hyp: `FieldInverse`; programs loaded; mask sums nonzero] -/
+theorem s11_agree_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env) (px : TlsMpc.FieldDag.V3.Program)
+    (hP : E.programs Curve.x25519Name = some px)
+    (hPC : Conv.Computes px 257 [.never, .never] (fun i => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 slot : Nat) (jobs : List (List FieldH × FieldH))
+    (bits : Nat → Nat → Bool) (u mA mB : Nat → F)
+    (hsw : ∀ j, j < jobs.length → (jobs.getD j ([], ⟨0⟩)).1.length = 252 ∧
+      ∀ k, k < 252 → I.fields ((jobs.getD j ([], ⟨0⟩)).1.getD k ⟨0⟩).id =
+        some (X25519.bitValue (X25519Fast.swapBitSpec (bits j) (k + 2))))
+    (hu : ∀ j, j < jobs.length → I.fields (jobs.getD j ([], ⟨0⟩)).2.id = some (u j))
+    (hlo : ∀ j, j < jobs.length → (∀ h ∈ (jobs.getD j ([], ⟨0⟩)).1, h.id < f0) ∧ (jobs.getD j ([], ⟨0⟩)).2.id < f0)
+    (hA : σA.elems slot = (List.range jobs.length).map mA) (hB : σB.elems slot = (List.range jobs.length).map mB)
+    (hm : ∀ j, j < jobs.length → mA j + mB j ≠ 0) :
+    ∃ (J : Ideal) (zf : Nat → Bool), Run.JRet (jointRun E (Curve.agree f0 slot jobs) (Curve.agree f0 slot jobs) σA σB I)
+        ((List.range jobs.length).map fun j => (Curve.quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j))
+        ((List.range jobs.length).map fun j => (Curve.quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j))
+        J σA σB ∧
+      (∀ j, j < jobs.length →
+        J.fields (f0 + 1 + 2 * jobs.length + 3 * jobs.length + 2 * j) = some (X25519.spec (bits j) (u j))) ∧
+      (∀ k, k < f0 → J.fields k = I.fields k) :=
+  Curve.agree_honest E hinv px hP hPC hq σA σB I f0 slot jobs bits u mA mB hsw hu hlo hA hB hm
+
+/-- **The offset agreement, two honest parties** [M] (F22; P-OFFSET at run level). Preparation:
+both return `prepState f0 (P_A + P_B)` (K₀ = P_A + P_B, the initial point and table handles holding
+`edwards-prepare`'s outputs 505 … on the honest inputs) when the 505 checks vanish there. Step: both
+return `(u, f0 + 387)`, `u = montU (K₀ + τ·B)`, the handle holding `(1 + y)/(1 − y)` of the sum of
+the initial point and the signed entries the recoded digits select (`offsetSum_eval`; with
+`s11_step_tableSum`, `u((k₀ + τ)·R)` when the table holds the multiples of R). Fast step: handle
+`f0 + 8` holds `X · Z⁻¹` of the projective sum. [hyp: `ComputesD`, `Live` (discharged for translated
+artifacts by `FieldDagV3.eval_compileAll`, `eval_ofArtifact_some`); `FieldInverse` for the fast step;
+the byte slots as `s11_splitBegin_honest`] -/
+theorem s11_offset_honest (E : Env) :
+    (∀ (hh : ∀ m, (E.hash m).length = 32) (pp : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.prepareName = some pp) (hC : Curve.ComputesD pp 506 2031 1531 f)
+      (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.OffsetSlots) (u : FieldH) (uv : F)
+      (hu : I.fields u.id = some uv) (hul : u.id < f0)
+      (rA rB : F) (hrA : σA.elems s.r = [rA]) (hrB : σB.elems s.r = [rB])
+      (bA bB : Nat → Bool) (hbA : σA.elems s.bits = (List.range 252).map fun i => X25519.bitValue (bA i))
+      (hbB : σB.elems s.bits = (List.range 252).map fun i => X25519.bitValue (bB i))
+      (mA mB : Nat → F) (hmA : σA.elems s.masks = (List.range 2031).map mA)
+      (hmB : σB.elems s.masks = (List.range 2031).map mB) (hm : ∀ i, i < 2031 → mA i + mB i ≠ 0)
+      (hL : Curve.Live pp (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))
+      (hck : ∀ i, i < 505 → (f (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0)).getD i 0 = 0)
+      (PA PB : TlsMpc.Node.Local.Edwards.Value)
+      (hnA : (σA.bytes s.nonce).length = 32) (hsA : (σA.bytes s.share).length = 32)
+      (hnB : (σB.bytes s.nonce).length = 32) (hsB : (σB.bytes s.share).length = 32)
+      (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes s.share) = some PA)
+      (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes s.share) = some PB)
+      (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+      (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+      (hc : E.hash (commitFrame Curve.offsetTag .a (σA.bytes s.nonce) (σA.bytes s.share)) ≠
+        E.hash (commitFrame Curve.offsetTag .b (σB.bytes s.nonce) (σB.bytes s.share))),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetPrepare E.hash .a f0 s u) (Curve.offsetPrepare E.hash .b f0 s u) σA σB I)
+          (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB))
+          (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB)) J σA σB ∧
+        (∀ i, i < 1026 → J.fields (Curve.prepOuts f0 + 505 + i) =
+          some ((f (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0)).getD (505 + i) 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (po : TlsMpc.FieldDag.V3.Program) (hP : E.programs Curve.offsetSumName = some po)
+      (hC : Curve.ComputesD po 194 128 1 (fun i => TlsMpc.EdwardsAffine.offsetSum.map (TlsMpc.FieldDag.Expr.eval i)))
+      (σA σB : Store) (I : Ideal) (f0 maskSlot : Nat) (st : Curve.OffsetState) (τ : Nat)
+      (u : F) (hkey : Curve.ephemeralKey st.key τ = some u) (hτ : τ < 2 ^ 252) (hst : Curve.StateBelow I f0 st)
+      (mA mB : Nat → F) (hA : σA.elems maskSlot = (List.range 128).map mA)
+      (hB : σB.elems maskSlot = (List.range 128).map mB) (hm : ∀ i, i < 128 → mA i + mB i ≠ 0)
+      (hL : Curve.Live po (fun i => (Curve.stepVals I f0 st τ).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetStep f0 maskSlot st τ) (Curve.offsetStep f0 maskSlot st τ) σA σB I)
+          (u, ⟨f0 + 387⟩) (u, ⟨f0 + 387⟩) J σA σB ∧
+        J.fields (f0 + 387) = some
+          (let input := fun i => (Curve.stepVals I f0 st τ).getD i 0
+           let sum := TlsMpc.EdwardsAffine.sumTreeValue ((input 0, input 1) :: (List.range TlsMpc.EdwardsAffine.windows).map
+              (fun w => (input (2 + 3 * w + 2) * input (2 + 3 * w), input (2 + 3 * w + 1))))
+           (ofNat 1 + sum.2) * inverse (ofNat 1 - sum.2)) ∧
+        u = TlsMpc.Node.Local.Edwards.montU
+          (TlsMpc.Node.Local.Edwards.add st.key (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (hinv : TlsMpc.FieldDag.V3.FieldInverse) (po : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.offsetSumFastName = some po) (hC : Conv.Computes po 194 [.never, .never] f)
+      (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+      (σA σB : Store) (I : Ideal) (f0 slot : Nat) (st : Curve.OffsetState) (τ : Nat) (u : F)
+      (hkey : Curve.ephemeralKey st.key τ = some u) (hτ : τ < 2 ^ 252) (hst : Curve.StateBelow I f0 st)
+      (mA mB : F) (hA : σA.elems slot = [mA]) (hB : σB.elems slot = [mB]) (hm : mA + mB ≠ 0)
+      (hz : (f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 1 0 ≠ 0),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetStepFast f0 slot st τ) (Curve.offsetStepFast f0 slot st τ) σA σB I)
+          (u, ⟨f0 + 8⟩) (u, ⟨f0 + 8⟩) J σA σB ∧
+        J.fields (f0 + 8) = some ((f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 0 0 *
+          inverse ((f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 1 0)) ∧
+        u = TlsMpc.Node.Local.Edwards.montU
+          (TlsMpc.Node.Local.Edwards.add st.key (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) :=
+  ⟨fun hh pp f hP hC σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB mA mB hmA hmB hm hL hck PA PB hnA hsA hnB
+      hsB hdA hdB hvA hvB hvS hc =>
+    Curve.offsetPrepare_honest E hh pp f hP hC σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB mA mB hmA hmB hm
+      hL hck PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc,
+   fun po hP hC σA σB I f0 maskSlot st τ u hkey hτ hst mA mB hA hB hm hL =>
+    Curve.offsetStep_value E po hP hC σA σB I f0 maskSlot st τ u hkey hτ hst mA mB hA hB hm hL,
+   fun hinv po f hP hC hq σA σB I f0 slot st τ u hkey hτ hst mA mB hA hB hm hz =>
+    Curve.offsetStepFast_honest E hinv po f hP hC hq σA σB I f0 slot st τ u hkey hτ hst mA mB hA hB hm hz⟩
+
+/-- **The hinted programs, two honest parties** [M] (F22): `tables` (the link checks open to zero;
+point `j`'s 1024 table handles hold `edwards-bit-table`'s outputs 126 …), `agreeAffine` (job `j`'s
+quotient handle holds `X_j · Z_j⁻¹` of `edwards-affine-bit-sum`), `signatures` and `torsion` (the
+output handles hold their programs' outputs on each instance's values). Each run returns the
+handles the script names, leaves both stores unchanged and nothing below `f0` changed. [hyp:
+`ComputesD`/`Conv.Computes`, `Live`; mask sums nonzero; for `tables`, the honest hints make the link
+checks vanish (`EdwardsHinted.bitTable_sound`); `FieldInverse` for `agreeAffine`] -/
+theorem s11_hinted_honest (E : Env) :
+    (∀ (pb : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.bitTableName = some pb)
+      (hC : Curve.ComputesD pb 380 252 1150 f) (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.TableSlots)
+      (pts : List Curve.Lifted)
+      (hpts : ∀ j, j < pts.length → (pts.getD j Curve.liftedD).x.id < f0 ∧ (pts.getD j Curve.liftedD).y.id < f0 ∧
+        (I.fields (pts.getD j Curve.liftedD).x.id).isSome ∧ (I.fields (pts.getD j Curve.liftedD).y.id).isSome)
+      (ha hb lA lB mA mB : Nat → F)
+      (hhA : σA.elems s.hints = (List.range (126 * pts.length)).map ha)
+      (hhB : σB.elems s.hints = (List.range (126 * pts.length)).map hb)
+      (hlA : σA.elems s.links = (List.range (126 * pts.length)).map lA)
+      (hlB : σB.elems s.links = (List.range (126 * pts.length)).map lB)
+      (hmA : σA.elems s.masks = (List.range (252 * pts.length)).map mA)
+      (hmB : σB.elems s.masks = (List.range (252 * pts.length)).map mB)
+      (hm : ∀ i, i < 252 * pts.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < pts.length →
+        Curve.Live pb (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0))
+      (hck : ∀ j, j < pts.length → ∀ i, i < 126 →
+        (f (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0)).getD i 0 = 0),
+      ∃ J, Run.JRet (jointRun E (Curve.tables f0 s pts) (Curve.tables f0 s pts) σA σB I)
+          ((List.range pts.length).map fun j =>
+            Curve.hs (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126) 1024)
+          ((List.range pts.length).map fun j =>
+            Curve.hs (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126) 1024) J σA σB ∧
+        (∀ j t, j < pts.length → t < 1024 →
+          J.fields (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126 + t) =
+            some ((f (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0)).getD
+              (126 + t) 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (hinv : TlsMpc.FieldDag.V3.FieldInverse) (pa : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.affineBitSumName = some pa) (hC : Conv.Computes pa 757 [.never, .never] f)
+      (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+      (σA σB : Store) (I : Ideal) (f0 rho qslot : Nat) (jobs : List (List FieldH × List FieldH))
+      (hjobs : ∀ j, j < jobs.length → (jobs.getD j ([], [])).1.length = 251 ∧ (jobs.getD j ([], [])).2.length = 504)
+      (hdef : ∀ j, j < jobs.length → ∀ h ∈ (jobs.getD j ([], [])).2 ++ (jobs.getD j ([], [])).1,
+        h.id < f0 ∧ (I.fields h.id).isSome)
+      (ρA ρB qA qB : Nat → F) (hrA : σA.elems rho = (List.range jobs.length).map ρA)
+      (hrB : σB.elems rho = (List.range jobs.length).map ρB)
+      (hqA : σA.elems qslot = (List.range jobs.length).map qA) (hqB : σB.elems qslot = (List.range jobs.length).map qB)
+      (hqm : ∀ j, j < jobs.length → qA j + qB j ≠ 0),
+      ∃ (J : Ideal) (zf : Nat → Bool),
+        Run.JRet (jointRun E (Curve.agreeAffine f0 rho qslot jobs) (Curve.agreeAffine f0 rho qslot jobs) σA σB I)
+          ((List.range jobs.length).map fun j =>
+            (Curve.quotResult (f0 + 1 + 3 * jobs.length + 2 * jobs.length) jobs.length j, zf j))
+          ((List.range jobs.length).map fun j =>
+            (Curve.quotResult (f0 + 1 + 3 * jobs.length + 2 * jobs.length) jobs.length j, zf j)) J σA σB ∧
+        (∀ j, j < jobs.length →
+          J.fields (f0 + 1 + 3 * jobs.length + 2 * jobs.length + 3 * jobs.length + 2 * j) =
+            some ((f (fun i => (Curve.affineVals I (jobs.getD j ([], [])) (ρA j + ρB j)).getD i 0)).getD 0 0 *
+              inverse ((f (fun i => (Curve.affineVals I (jobs.getD j ([], [])) (ρA j + ρB j)).getD i 0)).getD 1 0))) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (ps : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.signatureSumName = some ps)
+      (hC : Curve.ComputesD ps 2546 2 2 f) (σA σB : Store) (I : Ideal) (f0 maskSlot : Nat) (baseT : List FieldH)
+      (jobs : List (List FieldH × List FieldH))
+      (hjobs : ∀ j, j < jobs.length → (jobs.getD j ([], [])).1.length = 1024 ∧ (jobs.getD j ([], [])).2.length = 510)
+      (hbase : baseT.length = 1024)
+      (hdef : ∀ j, j < jobs.length → ∀ h ∈ Curve.sigIns baseT (jobs.getD j ([], [])), h.id < f0 ∧ (I.fields h.id).isSome)
+      (mA mB : Nat → F) (hA : σA.elems maskSlot = (List.range (2 * jobs.length)).map mA)
+      (hB : σB.elems maskSlot = (List.range (2 * jobs.length)).map mB)
+      (hm : ∀ i, i < 2 * jobs.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < jobs.length →
+        Curve.Live ps (fun i => (Curve.valsOf I (Curve.sigIns baseT (jobs.getD j ([], [])))).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.signatures f0 maskSlot baseT jobs) (Curve.signatures f0 maskSlot baseT jobs) σA σB I)
+          ((List.range jobs.length).map fun j => (⟨f0 + 6 * jobs.length + 2 * j⟩, ⟨f0 + 6 * jobs.length + 2 * j + 1⟩))
+          ((List.range jobs.length).map fun j => (⟨f0 + 6 * jobs.length + 2 * j⟩, ⟨f0 + 6 * jobs.length + 2 * j + 1⟩))
+          J σA σB ∧
+        (∀ j t, j < jobs.length → t < 2 → J.fields (f0 + 6 * jobs.length + (j * 2 + t)) =
+          some ((f (fun i => (Curve.valsOf I (Curve.sigIns baseT (jobs.getD j ([], [])))).getD i 0)).getD t 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (pt : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.torsionName = some pt)
+      (hC : Curve.ComputesD pt 7 4 2 f) (σA σB : Store) (I : Ideal) (f0 hintSlot rSlot maskSlot : Nat)
+      (pts : List Curve.Lifted)
+      (hpts : ∀ j, j < pts.length → (pts.getD j Curve.liftedD).x.id < f0 ∧ (pts.getD j Curve.liftedD).y.id < f0 ∧
+        (I.fields (pts.getD j Curve.liftedD).x.id).isSome ∧ (I.fields (pts.getD j Curve.liftedD).y.id).isSome)
+      (ha hb rA rB mA mB : Nat → F)
+      (hhA : σA.elems hintSlot = (List.range (2 * pts.length)).map ha)
+      (hhB : σB.elems hintSlot = (List.range (2 * pts.length)).map hb)
+      (hrA : σA.elems rSlot = (List.range pts.length).map rA) (hrB : σB.elems rSlot = (List.range pts.length).map rB)
+      (hmA : σA.elems maskSlot = (List.range (4 * pts.length)).map mA)
+      (hmB : σB.elems maskSlot = (List.range (4 * pts.length)).map mB)
+      (hm : ∀ i, i < 4 * pts.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < pts.length →
+        Curve.Live pt (fun i => (Curve.torsionVals I (pts.getD j Curve.liftedD) ha hb (fun j => rA j + rB j) j).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.torsion f0 hintSlot rSlot maskSlot pts) (Curve.torsion f0 hintSlot rSlot maskSlot pts)
+          σA σB I)
+          ((List.range pts.length).map fun j =>
+            (⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j⟩,
+             ⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j + 1⟩))
+          ((List.range pts.length).map fun j =>
+            (⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j⟩,
+             ⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j + 1⟩)) J σA σB ∧
+        (∀ j t, j < pts.length → t < 2 →
+          J.fields (f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + (j * 2 + t)) =
+            some ((f (fun i => (Curve.torsionVals I (pts.getD j Curve.liftedD) ha hb (fun j => rA j + rB j) j).getD i 0)).getD
+              t 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) :=
+  ⟨fun pb f hP hC σA σB I f0 s pts hpts ha hb lA lB mA mB hhA hhB hlA hlB hmA hmB hm hL hck =>
+    Curve.tables_honest E pb f hP hC σA σB I f0 s pts hpts ha hb lA lB mA mB hhA hhB hlA hlB hmA hmB hm hL hck,
+   fun hinv pa f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm =>
+    Curve.agreeAffine_honest E hinv pa f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm,
+   fun ps f hP hC σA σB I f0 maskSlot baseT jobs hjobs hbase hdef mA mB hA hB hm hL =>
+    Curve.signatures_honest E ps f hP hC σA σB I f0 maskSlot baseT jobs hjobs hbase hdef mA mB hA hB hm hL,
+   fun pt f hP hC σA σB I f0 hintSlot rSlot maskSlot pts hpts ha hb rA rB mA mB hhA hhB hrA hrB hmA hmB hm hL =>
+    Curve.torsion_honest E pt f hP hC σA σB I f0 hintSlot rSlot maskSlot pts hpts ha hb rA rB mA mB hhA hhB hrA hrB
+      hmA hmB hm hL⟩
+
+/-- **The hinted lift and the agreements from bit tables, two honest parties** [M] (F22).
+`lift`: the four checks per point open to zero, the `w_j` are opened, their public roots `rs`,
+`lift-point`, the `Z_j` are opened and are curve points; both return `liftResult` with the opened
+`Z_j` and the zero flags of `rs`, the validity/`x`/`y` handles hold `lift-point`'s outputs.
+`agreeHinted`: the result in job order (`assembleH`), handle `f0` holds 0, live job `i`'s quotient
+handle holds `X_i · Z_i⁻¹` of `edwards-bit-sum`. [hyp: `Conv.Computes`/`ComputesD`, `Live`; the
+honest checks vanish (`hchk`), the roots exist (`hroots`, never fails: `s11_liveness`), the `Z_j` on
+the curve (`hZ`); mask sums nonzero; `FieldInverse` for `agreeHinted`] -/
+theorem s11_lift_agreeHinted_honest (E : Env) :
+    (∀ (po pp : TlsMpc.FieldDag.V3.Program) (fO fP : (Nat → F) → List F) (mk : List TlsMpc.FieldDag.V3.OMark)
+      (hPo : E.programs Curve.liftOpenName = some po) (hCo : Conv.Computes po 8 mk fO) (hmk : mk.length = 6)
+      (hPp : E.programs Curve.liftPointName = some pp) (hCp : Curve.ComputesD pp 9 5 5 fP)
+      (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.LiftSlots) (us : List FieldH)
+      (uv rA rB pA pB mA mB : Nat → F) (bA bB : Nat → Bool)
+      (hu : ∀ j, j < us.length → (us.getD j ⟨0⟩).id < f0 ∧ I.fields (us.getD j ⟨0⟩).id = some (uv j))
+      (hcA : σA.elems s.coins = (List.range us.length).map fun j => X25519.bitValue (bA j))
+      (hcB : σB.elems s.coins = (List.range us.length).map fun j => X25519.bitValue (bB j))
+      (hpA : σA.elems s.points = (List.range (2 * us.length)).map pA)
+      (hpB : σB.elems s.points = (List.range (2 * us.length)).map pB)
+      (hrA : σA.elems s.r = (List.range us.length).map rA) (hrB : σB.elems s.r = (List.range us.length).map rB)
+      (hmA : σA.elems s.masks = (List.range (5 * us.length)).map mA)
+      (hmB : σB.elems s.masks = (List.range (5 * us.length)).map mB)
+      (hm : ∀ i, i < 5 * us.length → mA i + mB i ≠ 0)
+      (ov : Nat → List F) (hov : ∀ j, ov j = fO (fun i => (Curve.liftOpenVals uv rA rB pA pB bA bB j).getD i 0))
+      (hchk : ∀ j, j < us.length → ∀ i, i < 4 → (ov j).getD (1 + i) 0 = 0)
+      (rs : List (F × F × Bool)) (hroots : Curve.roots ((List.range us.length).map fun j => (ov j).getD 0 0) = some rs)
+      (pv : Nat → List F) (hpv : ∀ j, pv j = fP (fun i => (Curve.liftPointVals uv rA rB pA pB ov rs j).getD i 0))
+      (hL : ∀ j, j < us.length → Curve.Live pp (fun i => (Curve.liftPointVals uv rA rB pA pB ov rs j).getD i 0))
+      (hZ : ∀ j, j < us.length → TlsMpc.Node.Local.Edwards.onCurve ((pv j).getD 3 0, (pv j).getD 4 0) = true),
+      ∃ J, Run.JRet (jointRun E (Curve.lift f0 s us) (Curve.lift f0 s us) σA σB I)
+          (Curve.liftResult f0 us.length ((List.range us.length).map fun j => [(pv j).getD 3 0, (pv j).getD 4 0]).flatten rs)
+          (Curve.liftResult f0 us.length ((List.range us.length).map fun j => [(pv j).getD 3 0, (pv j).getD 4 0]).flatten rs)
+          J σA σB ∧
+        (∀ j t, j < us.length → t < 3 → J.fields (Curve.lfl f0 us.length + 5 * j + t) = some ((pv j).getD t 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (hinv : TlsMpc.FieldDag.V3.FieldInverse) (pb : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.bitSumName = some pb) (hC : Conv.Computes pb 1261 [.never, .never] f)
+      (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+      (σA σB : Store) (I : Ideal) (f0 rho qslot : Nat) (jobs : List Curve.HintedJob)
+      (hjobs : ∀ i, i < (Curve.liveJobs jobs).length → ((Curve.liveJobs jobs).getD i Curve.liveD).1.bits.length = 251 ∧
+        ((Curve.liveJobs jobs).getD i Curve.liveD).2.length = 1024)
+      (hdef : ∀ i, i < (Curve.liveJobs jobs).length → ∀ h ∈ ((Curve.liveJobs jobs).getD i Curve.liveD).1.valid ::
+        ((((Curve.liveJobs jobs).getD i Curve.liveD).2.drop 12).take 1008 ++ ((Curve.liveJobs jobs).getD i Curve.liveD).1.bits),
+        h.id < f0 ∧ (I.fields h.id).isSome)
+      (ρA ρB qA qB : Nat → F) (hrA : σA.elems rho = (List.range (Curve.liveJobs jobs).length).map ρA)
+      (hrB : σB.elems rho = (List.range (Curve.liveJobs jobs).length).map ρB)
+      (hqA : σA.elems qslot = (List.range (Curve.liveJobs jobs).length).map qA)
+      (hqB : σB.elems qslot = (List.range (Curve.liveJobs jobs).length).map qB)
+      (hqm : ∀ i, i < (Curve.liveJobs jobs).length → qA i + qB i ≠ 0),
+      ∃ (J : Ideal) (zf : Nat → Bool),
+        Run.JRet (jointRun E (Curve.agreeHinted f0 rho qslot jobs) (Curve.agreeHinted f0 rho qslot jobs) σA σB I)
+          (Curve.assembleH f0 jobs ((List.range (Curve.liveJobs jobs).length).map fun i =>
+            (Curve.quotResult (f0 + 1 + 3 * (Curve.liveJobs jobs).length + 2 * (Curve.liveJobs jobs).length)
+              (Curve.liveJobs jobs).length i, zf i)))
+          (Curve.assembleH f0 jobs ((List.range (Curve.liveJobs jobs).length).map fun i =>
+            (Curve.quotResult (f0 + 1 + 3 * (Curve.liveJobs jobs).length + 2 * (Curve.liveJobs jobs).length)
+              (Curve.liveJobs jobs).length i, zf i)))
+          J σA σB ∧
+        J.fields f0 = some (ofNat 0) ∧
+        (∀ i, i < (Curve.liveJobs jobs).length →
+          J.fields (f0 + 1 + 3 * (Curve.liveJobs jobs).length + 2 * (Curve.liveJobs jobs).length +
+              3 * (Curve.liveJobs jobs).length + 2 * i) =
+            some ((f (fun k => (Curve.hintedVals I ((Curve.liveJobs jobs).getD i Curve.liveD) (ρA i + ρB i)).getD k 0)).getD 0 0 *
+              inverse ((f (fun k => (Curve.hintedVals I ((Curve.liveJobs jobs).getD i Curve.liveD) (ρA i + ρB i)).getD k 0)).getD
+                1 0))) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) :=
+  ⟨fun po pp fO fP mk hPo hCo hmk hPp hCp σA σB I f0 s us uv rA rB pA pB mA mB bA bB hu hcA hcB hpA hpB hrA hrB hmA hmB
+      hm ov hov hchk rs hroots pv hpv hL hZ =>
+    Curve.lift_honest E po pp fO fP mk hPo hCo hmk hPp hCp σA σB I f0 s us uv rA rB pA pB mA mB bA bB hu hcA hcB hpA hpB
+      hrA hrB hmA hmB hm ov hov hchk rs hroots pv hpv hL hZ,
+   fun hinv pb f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm =>
+    Curve.agreeHinted_honest E hinv pb f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm⟩
+
+/-- **Value-level disclosure of the quotient round** [M] (F24, part): against any adversary, the
+adversary's view of `quotientMany` (the last step of `agree`, `offsetStepFast`, `agreeHinted`,
+`agreeAffine`) is a prefix of [the masked denominators `z_j · m_j`, the zero flags], for the masks
+`m_j` the engines hold; each flag is 1 exactly when its denominator opening is 0. -/
+theorem s11_quotientMany_disclosure (E : Env) (me : Party) (adv : Adversary)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient) (σ : Store) (I : Ideal)
+    (vD : List Release) (f slot : Nat) (pairs : List (FieldH × FieldH)) (x z : Nat → F)
+    (hx : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).1.id = some (x j))
+    (hz : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).2.id = some (z j))
+    (hlo : ∀ p ∈ pairs, p.1.id < f ∧ p.2.id < f) :
+    ∃ mv : Nat → F, (withAdv E me adv (Curve.quotientMany f slot pairs) σ I vD).viewD <+:
+      [⟨Label.maskedDenominator, .elems ((List.range pairs.length).map fun j => z j * mv j)⟩,
+       ⟨Label.maskedDenominator, .elems ((List.range pairs.length).map fun j =>
+          if z j * mv j = 0 then ofNat 1 else ofNat 0)⟩] :=
+  Curve.quotientMany_disclosure E me adv hq σ I vD f slot pairs x z hx hz hlo
+
+/-! #### F22a, F22b, F25b, F22 (part): the programs as loaded, honest inputs, the local inversions
+
+Named hypotheses added (each a theorem of `proofs/`, SecurityMathlib section 7): `Curve.AddClosed`
+(`pointAddValue_is_group_add` with `curveCheck_zero_iff`), `Curve.ExtClosed`
+(`extAddValue_is_group_add`; `Curve.ExtGood` is `ExtRep` in field elements),
+`Curve.RecipientOnCurve` (`recipient_on_curve`), with `Curve.CompleteAddition` (`edwards_complete`)
+and `FieldInverse`. The loader's facts are hypotheses `dX.program = some p` (the text under the
+name is the declaration's validated compilation: pins, `parse_render`) and `p.masks = m` (the
+count the shell checks, F25c). -/
+
+/-- **A compiled program is live where its SOURCE divisions are nonzero** [K] (F22a, generic): every
+node of an accepted `compileAll` is a subterm of the source expressions (an invariant of the
+memoising generator), so a declaration's V3 program never aborts, with masks nonzero below its mask
+count, on an input where every division `a / b` of its expressions has `b ≠ 0` (`DivOk`). -/
+theorem s11_decl_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (d : TlsMpc.FieldProgramsV3.Decl)
+    (p : TlsMpc.FieldDag.V3.Program) (hp : d.program = some p) (input : Nat → F)
+    (hd : ∀ e ∈ d.exprs, TlsMpc.FieldDag.Compiled.DivOk input e) (mask : Nat → F)
+    (hm : ∀ j, j < p.masks → mask j ≠ 0) : (TlsMpc.FieldDag.V3.eval p input mask).isSome :=
+  TlsMpc.FieldDag.Compiled.Decl.live hinv d p hp input hd mask hm
+
+/-- **F22a: every masked curve program computes its declaration and is live on its honest inputs**
+[K; hyp: `FieldInverse`, `CompleteAddition`, `AddClosed`, `ExtClosed`, `RecipientOnCurve`]. The
+input conditions (`Curve.PL.*In`): `edwards-prepare` — `u + 1`, `121666 − 121665·y²`, `2·x²` nonzero,
+the recipient check zero, the 504 scalar inputs bits; `edwards-offset-sum` — the initial and the 64
+signed window points on the curve, the sum's `y ≠ 1`; `lift-point` — both mask points and the
+selected point on the curve, `1 + valid·u ≠ 0`; `edwards-prepare-hinted` and `edwards-bit-table` —
+the point and the 2·63 hint points on the curve (and the scalar bits bits); `edwards-signature-sum` —
+the selection bits and `flip` bits, the 509 entries represented points; `edwards-torsion-hinted` —
+both hint points on the curve. -/
+theorem s11_programs_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hC : Curve.CompleteAddition)
+    (hA : Curve.AddClosed) (hX : Curve.ExtClosed) (hR : Curve.RecipientOnCurve) (p : TlsMpc.FieldDag.V3.Program)
+    (input : Nat → F) :
+    (Curve.dPrepare.program = some p → p.masks = 2031 →
+      Curve.ComputesD p 506 2031 1531 (fun i => TlsMpc.EdwardsAffine.prepare.map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.PrepareIn input → Curve.Live p input)) ∧
+    (Curve.dOffsetSum.program = some p → p.masks = 128 →
+      Curve.ComputesD p 194 128 1 (fun i => TlsMpc.EdwardsAffine.offsetSum.map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.OffsetSumIn input → Curve.Live p input)) ∧
+    (Curve.dLiftPoint.program = some p → p.masks = 5 →
+      Curve.ComputesD p 9 5 5 (fun i => (TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.LiftPointIn input → Curve.Live p input)) ∧
+    (Curve.dPrepareHinted.program = some p → p.masks = 1150 →
+      Curve.ComputesD p 884 1150 1656 (fun i => (TlsMpc.EdwardsHinted.prepareHinted ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.PrepareHintedIn input → Curve.Live p input)) ∧
+    (Curve.dBitTable.program = some p → p.masks = 252 →
+      Curve.ComputesD p 380 252 1150 (fun i => (TlsMpc.EdwardsHinted.bitTable ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.BitTableIn input → Curve.Live p input)) ∧
+    (Curve.dSignatureSum.program = some p → p.masks = 2 →
+      Curve.ComputesD p 2546 2 2 (fun i => (TlsMpc.EdwardsHinted.signatureSum ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.SignatureIn input → Curve.Live p input)) ∧
+    (Curve.dTorsion.program = some p → p.masks = 4 →
+      Curve.ComputesD p 7 4 2 (fun i => (TlsMpc.EdwardsHinted.torsionHinted ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.TorsionIn input → Curve.Live p input)) :=
+  ⟨fun hd hm => ⟨Curve.prepare_computesD hinv p hd hm, Curve.prepare_live hinv hC hA hR p hd input⟩,
+   fun hd hm => ⟨Curve.offsetSum_computesD hinv p hd hm, Curve.offsetSum_live hinv hC hA p hd input⟩,
+   fun hd hm => ⟨Curve.liftPoint_computesD hinv p hd hm, Curve.liftPoint_live hinv hC hA p hd input⟩,
+   fun hd hm => ⟨Curve.prepareHinted_computesD hinv p hd hm, Curve.prepareHinted_live hinv hC hA hX p hd input⟩,
+   fun hd hm => ⟨Curve.bitTable_computesD hinv p hd hm, Curve.bitTable_live hinv hC hA hX p hd input⟩,
+   fun hd hm => ⟨Curve.signatureSum_computesD hinv p hd hm, Curve.signatureSum_live hinv hX p hd input⟩,
+   fun hd hm => ⟨Curve.torsion_computesD hinv p hd hm, Curve.torsion_live hinv hC hA hX p hd input⟩⟩
+
+/-- **F22a: the mask-free curve programs compute their declarations on every input** [K; hyp:
+`FieldInverse`] (`x25519-fast`, `edwards-offset-sum-fast`, `edwards-bit-sum`,
+`edwards-affine-bit-sum`, `lift-open`, `edwards-on-curve`, `edwards-add-u`; `Live` is then
+automatic: `Curve.live_of_computes`). -/
+theorem s11_maskfree_computes (hinv : TlsMpc.FieldDag.V3.FieldInverse) (p : TlsMpc.FieldDag.V3.Program)
+    (hm : p.masks = 0) :
+    (Curve.dX25519.program = some p →
+      Conv.Computes p 257 [.never, .never] (fun i => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dOffsetSumFast.program = some p →
+      Conv.Computes p 194 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.offsetSumFast ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dBitSum.program = some p →
+      Conv.Computes p 1261 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.bitSum ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dAffineBitSum.program = some p →
+      Conv.Computes p 757 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.affineBitSum ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dLiftOpen.program = some p →
+      Conv.Computes p 8 [.pub, .pub, .pub, .pub, .pub, .never]
+        (fun i => (TlsMpc.EdwardsHinted.liftOpen ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dOnCurve.program = some p → Conv.Computes p 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i])) ∧
+    (Curve.dAddU.program = some p →
+      Conv.Computes p 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i))) :=
+  ⟨fun hd => Curve.x25519_computes hinv p hd hm, fun hd => Curve.offsetSumFast_computes hinv p hd hm,
+   fun hd => Curve.bitSum_computes hinv p hd hm, fun hd => Curve.affineBitSum_computes hinv p hd hm,
+   fun hd => Curve.liftOpen_computes hinv p hd hm, fun hd => Curve.onCurve_computes hinv p hd hm,
+   fun hd => Curve.addU_computes hinv p hd hm⟩
+
+/-- **F22b: the checks vanish on honest inputs** [K; hyp: `AddClosed`]. `edwards-prepare`'s 505
+leading outputs (the masked recipient check, the bit checks) are zero on `PrepareIn` inputs;
+`lift-open`'s four checks are zero for bits and curve mask points; `lift-point`'s opened
+`Z = M_A + M_B + P` is a curve point on `LiftPointIn` inputs; `edwards-bit-table`'s 126 link checks are
+zero when its window bases are linked (`EdwardsHinted.LinkedFrom`, `bitTable_sound`'s hypothesis;
+for honest hints this is the group law, `proofs/` `bitTable_entries`). -/
+theorem s11_checks_vanish (hA : Curve.AddClosed) (input : Nat → F) :
+    (Curve.PL.PrepareIn input → ∀ i, i < 505 →
+      (TlsMpc.EdwardsAffine.prepare.map (TlsMpc.FieldDag.Expr.eval input)).getD i 0 = 0) ∧
+    (Curve.PL.IsBit (input 2) → Curve.PL.IsBit (input 3) →
+      TlsMpc.Node.Local.Edwards.curveValue (input 4, input 5) = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue (input 6, input 7) = 0 → ∀ i, i < 4 →
+      ((TlsMpc.EdwardsHinted.liftOpen ()).map (TlsMpc.FieldDag.Expr.eval input)).getD (1 + i) 0 = 0) ∧
+    (Curve.PL.LiftPointIn input →
+      TlsMpc.Node.Local.Edwards.onCurve (((TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval input)).getD 3 0,
+        ((TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval input)).getD 4 0) = true) ∧
+    (Curve.TableLinked input → ∀ i, i < 126 →
+      ((TlsMpc.EdwardsHinted.bitTable ()).map (TlsMpc.FieldDag.Expr.eval input)).getD i 0 = 0) :=
+  ⟨Curve.prepare_checks input, Curve.liftOpen_checks input, Curve.liftPoint_Z_onCurve hA input,
+   Curve.bitTable_checks input⟩
+
+/-- **F22a + F22b, `offsetPrepare` through `jointRun` without program hypotheses** [M; hyp:
+`FieldInverse`, `CompleteAddition`, `AddClosed`, `RecipientOnCurve`]: `edwards-prepare` loaded as its
+declaration's program (2031 masks), the honest inputs `PrepareIn`; the 505 checks are derived. Both
+parties return `prepState f0 (P_A + P_B)`; the table handles hold the program's outputs 505 … 1530.
+(The other restated runs, same composition: `Curve.agree_honest'`, `offsetStep_value'`,
+`offsetStepFast_honest'`, `signatures_honest'`, `torsion_honest'`, `agreeAffine_honest'`,
+`agreeHinted_honest'`, `tables_honest'` (link checks from `TableLinked`), `splitAgree_montU'`, in
+`Flows/CurveRunJ.lean`.) Named `s11_offsetPrepare_honest'` on `s11-curve`; renamed on the merge
+because `scripts/check_axioms.py` reads names between single quotes from Lean's output. -/
+theorem s11_offsetPrepare_honest_derived (E : Env) (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hCA : Curve.CompleteAddition)
+    (hAC : Curve.AddClosed) (hR : Curve.RecipientOnCurve)
+    (hh : ∀ m, (E.hash m).length = 32) (pp : TlsMpc.FieldDag.V3.Program)
+    (hP : E.programs Curve.prepareName = some pp) (hd : Curve.dPrepare.program = some pp) (hm2031 : pp.masks = 2031)
+    (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.OffsetSlots) (u : FieldH) (uv : F)
+    (hu : I.fields u.id = some uv) (hul : u.id < f0)
+    (rA rB : F) (hrA : σA.elems s.r = [rA]) (hrB : σB.elems s.r = [rB])
+    (bA bB : Nat → Bool) (hbA : σA.elems s.bits = (List.range 252).map fun i => TlsMpc.X25519.bitValue (bA i))
+    (hbB : σB.elems s.bits = (List.range 252).map fun i => TlsMpc.X25519.bitValue (bB i))
+    (mA mB : Nat → F) (hmA : σA.elems s.masks = (List.range 2031).map mA)
+    (hmB : σB.elems s.masks = (List.range 2031).map mB) (hm : ∀ i, i < 2031 → mA i + mB i ≠ 0)
+    (hin : Curve.PL.PrepareIn (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))
+    (PA PB : TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes s.nonce).length = 32) (hsA : (σA.bytes s.share).length = 32)
+    (hnB : (σB.bytes s.nonce).length = 32) (hsB : (σB.bytes s.share).length = 32)
+    (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes s.share) = some PA)
+    (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes s.share) = some PB)
+    (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+    (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+    (hc : E.hash (commitFrame Curve.offsetTag .a (σA.bytes s.nonce) (σA.bytes s.share)) ≠
+      E.hash (commitFrame Curve.offsetTag .b (σB.bytes s.nonce) (σB.bytes s.share))) :
+    ∃ J, Run.JRet (jointRun E (Curve.offsetPrepare E.hash .a f0 s u) (Curve.offsetPrepare E.hash .b f0 s u) σA σB I)
+        (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB)) (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB))
+        J σA σB ∧
+      (∀ i, i < 1026 → J.fields (Curve.prepOuts f0 + 505 + i) =
+        some ((TlsMpc.EdwardsAffine.prepare.map
+          (TlsMpc.FieldDag.Expr.eval (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))).getD (505 + i) 0)) ∧
+      (∀ k, k < f0 → J.fields k = I.fields k) :=
+  Curve.offsetPrepare_honest' E hinv hCA hAC hR hh pp hP hd hm2031 σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB
+    mA mB hmA hmB hm hin PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
+/-- **F25b: the batched inversion, the hints and the public table never fail on curve points** [K;
+hyp: `FieldInverse`, `AddClosed`, `ExtClosed`]: `invAll` returns the inverses of nonzero elements
+(its check passes), `toAffineAll` succeeds on nonzero `Z`; a party's hints succeed when `Z` and its
+mask point are curve points; the public table of a curve point succeeds. -/
+theorem s11_toAffineAll_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hA : Curve.AddClosed) (hX : Curve.ExtClosed) :
+    (∀ zs : List F, (∀ z ∈ zs, z ≠ 0) → TlsMpc.Node.Local.Edwards.invAll zs = some (zs.map inverse)) ∧
+    (∀ es : List TlsMpc.Node.Local.Edwards.ExtV, (∀ e ∈ es, e.z ≠ 0) →
+      (TlsMpc.Node.Local.Edwards.toAffineAll es).isSome = true) ∧
+    (∀ (me : Party) (z mask : TlsMpc.Node.Local.Edwards.Value), TlsMpc.Node.Local.Edwards.curveValue z = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue mask = 0 → (TlsMpc.Node.Local.Edwards.hints me z mask).isSome = true) ∧
+    (∀ p : TlsMpc.Node.Local.Edwards.Value, TlsMpc.Node.Local.Edwards.curveValue p = 0 →
+      (TlsMpc.Node.Local.Edwards.publicTable p).isSome = true) :=
+  ⟨Curve.LL.invAll_some hinv, Curve.LL.toAffineAll_isSome hinv, Curve.LL.hints_isSome hinv hA hX,
+   Curve.LL.publicTable_isSome hinv hX⟩
+
+/-- **F22 (part): the point exchange with `m` points each** [M]: every chunk decodes, the points and
+the sums are valid, the commitments differ ⇒ both parties return the `m` sums `P_A,j + P_B,j`
+(the K₀ exchange of `prepareSecond`). -/
+theorem s11_pointExchange_many_honest (E : Env) (hh : ∀ m, (E.hash m).length = 32) (tag : Bytes)
+    (σA σB : Store) (I : Ideal) (nA sA nB sB m : Nat) (PA PB : Nat → TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes nA).length = 32) (hsA : (σA.bytes sA).length = 32 * m)
+    (hnB : (σB.bytes nB).length = 32) (hsB : (σB.bytes sB).length = 32 * m)
+    (hdA : ∀ j, j < m → TlsMpc.Node.Local.Edwards.decode (((σA.bytes sA).drop (32 * j)).take 32) = some (PA j))
+    (hdB : ∀ j, j < m → TlsMpc.Node.Local.Edwards.decode (((σB.bytes sB).drop (32 * j)).take 32) = some (PB j))
+    (hvA : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (PA j) = true)
+    (hvB : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (PB j) = true)
+    (hvS : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add (PA j) (PB j)) = true)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes sA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes sB))) :
+    Run.JRet (jointRun E (Curve.pointExchange E.hash .a tag nA sA m) (Curve.pointExchange E.hash .b tag nB sB m) σA σB I)
+      ((List.range m).map fun j => TlsMpc.Node.Local.Edwards.add (PA j) (PB j))
+      ((List.range m).map fun j => TlsMpc.Node.Local.Edwards.add (PA j) (PB j)) I σA σB :=
+  Curve.pointExchange_many_honest E hh tag σA σB I nA sA nB sB m PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
+end FlowsS11
+
+/-! ### 7d. GHASH key-power shares and TLS (stage S12; plan 7.1 P-GHASH, 8.1 T3/T4-TLS; numbered 7c
+on the S12 branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S12 scripts (`TlsMpc/Node/Flows/{Ghash,Tls,TlsProofs}.lean`, the local arithmetic
+`TlsMpc/Node/Local/Ghash.lean`, the backends `Flows/TlsBackend.lean`; S12_NOTES.md). Status letters
+as above; **M** marks statements about the Lean model of the engines (`Engine/Model.lean`) or about
+a kernel's output read through the script's layout. The kernels' circuits computing their Lean
+definitions (`TlsBase.circuitOf`, `Ghash.GhashLoaded`) is T2's trust, as for the contact kernels. -/
+
+section FlowsS12
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **P-GHASH (a), one round of the doubling schedule** [M]: shares of H¹ … Hᵐ, extended by local
+squares and the engines' odd powers (whose two values XOR to the product of the parties' inputs),
+share H¹ … Hᵗ for m ≤ t ≤ 2m. No multiplication is evaluated; `GhashField.laws`. -/
+theorem s12_ghash_shared_extend (a b : List (BitVec 128)) (h : BitVec 128) (m t : Nat) (oa ob : List (BitVec 128))
+    (hs : Local.Ghash.Shared a b h m) (hm : 1 ≤ m) (hmt : m ≤ t) (ht : t ≤ 2 * m)
+    (hodd : ∀ i, i < t - m → (m + 1 + i) % 2 = 1 →
+      oa.getD (i / 2) 0 ^^^ ob.getD (i / 2) 0 =
+        Local.Ghash.mul (Local.Ghash.left a (m + 1 + i) ^^^ Local.Ghash.left b (m + 1 + i)) (a.getD 0 0 ^^^ b.getD 0 0)) :
+    Local.Ghash.Shared (Local.Ghash.extend a t oa) (Local.Ghash.extend b t ob) h t :=
+  Local.Ghash.shared_extend a b h m t oa ob hs hm hmt ht hodd
+
+/-- **P-GHASH (a), the first share** [K]: A's mask and the `gcm-key-share` output opened to B share
+H = `hashKeyOf K` (`gcmKeyShare_reshare`). -/
+theorem s12_ghash_keyShare_shared (K m : List (BitVec 8)) (hK : K.length = 60) (hm : m.length = 16) :
+    Local.Ghash.Shared [Local.Ghash.ofBytes m] [Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K ++ m))]
+      (HybridKernel.hashKeyOf K) 1 :=
+  Ghash.keyShare_shared K m hK hm
+
+/-- **P-GHASH (a), a round with the engines' values** [K]: A's masks and the `gcm-multiply` outputs
+of the round (`Ghash.roundOpened`) keep the sharing (`gcmMultiply_reshare`). -/
+theorem s12_ghash_round_shared (a b : List (BitVec 128)) (h : BitVec 128) (m t : Nat) (masks : List (List (BitVec 8)))
+    (hs : Local.Ghash.Shared a b h m) (hm : 1 ≤ m) (hmt : m ≤ t) (ht : t ≤ 2 * m)
+    (hmask : ∀ x ∈ masks, x.length = 16) (hcount : masks.length = Local.Ghash.oddCount m t) :
+    Local.Ghash.Shared (Local.Ghash.extend a t (masks.map Local.Ghash.ofBytes))
+      (Local.Ghash.extend b t ((Ghash.roundOpened a b t masks).map Local.Ghash.ofBytes)) h t :=
+  Ghash.round_shared a b h m t masks hs hm hmt ht hmask hcount
+
+/-- **P-GHASH (b) and the halves of (c)** [M]: halves of shared shares with enough powers XOR to
+GCM's GHASH of the header and ciphertext (`shared_halves_are_ghash_proved`). -/
+theorem s12_ghash_halves_xor (traffic aad ct : List (BitVec 8)) (a b : List (BitVec 128)) (n : Nat)
+    (hs : Local.Ghash.Shared a b (HybridKernel.hashKeyOf traffic) n) (hn : (Local.Ghash.blocks aad ct).length ≤ n) :
+    Aes.addRoundKey Gcm.concrete.aes (Local.Ghash.toBytes (Local.Ghash.half a aad ct))
+        (Local.Ghash.toBytes (Local.Ghash.half b aad ct)) =
+      HybridKernel.ghashOf traffic aad ct :=
+  Local.Ghash.halves_xor traffic aad ct a b n hs hn
+
+/-- **P-GHASH (d), the key share hides H** [K]: for any two traffic keys, shifting A's mask by
+H ⊕ H' (an involution) gives B the same opened value. The bijection form `proofs/` consumes. -/
+theorem s12_ghash_keyShare_hides (K K' m : List (BitVec 8)) (hK : K.length = 60) (hK' : K'.length = 60)
+    (hm : m.length = 16) :
+    Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K' ++ Local.Ghash.toBytes
+        (Local.Ghash.ofBytes m ^^^ HybridKernel.hashKeyOf K ^^^ HybridKernel.hashKeyOf K'))) =
+      Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K ++ m)) :=
+  (Ghash.keyShare_hides K K' m hK hK' hm).1
+
+/-- **P-GHASH (d), a product's opening hides the product** [K]: whatever B supplied, exactly one of
+A's masks gives B any given value. -/
+theorem s12_ghash_multiply_hides (la lb ra rb : List (BitVec 8)) (h1 : la.length = 16) (h2 : lb.length = 16)
+    (h3 : ra.length = 16) (h4 : rb.length = 16) (seen : BitVec 128) :
+    ∃ mask : BitVec 128, ∀ m : List (BitVec 8), m.length = 16 →
+      (Local.Ghash.ofBytes (kernelOut HybridKernel.gcmMultiply (la ++ lb ++ ra ++ rb ++ m)) = seen ↔
+        Local.Ghash.ofBytes m = mask) :=
+  Ghash.multiply_hides la lb ra rb h1 h2 h3 h4 seen
+
+/-- **T3, GHASH shares, B honest** [M]: the adversary A's view of a key share is empty, against any
+adversary (everything is opened to B). -/
+theorem s12_ghash_keyShare_viewD_B (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (n : Nat) (traffic : BoolH) (maskSlot dst : Nat) :
+    (withAdv E .b adv (Ghash.keyShareScript n traffic maskSlot dst) σ I vD).viewD = [] :=
+  Ghash.keyShare_viewD_B E adv σ I vD n traffic maskSlot dst
+
+/-- **T3, GHASH shares, B honest, a round** [M]: the adversary A's view is empty. -/
+theorem s12_ghash_round_viewD_B (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (n c l r m dst : Nat) :
+    (withAdv E .b adv (Ghash.roundScript n c l r m dst) σ I vD).viewD = [] :=
+  Ghash.round_viewD_B E adv σ I vD n c l r m dst
+
+/-- **T3, GHASH shares, A honest** [M]: the adversary B receives at most one value, labelled
+ghashMaskedPower: `gcm-key-share` on the traffic block and A's mask (`H ⊕ mask`). -/
+theorem s12_ghash_keyShare_disclosure_A (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (hE : Ghash.GhashLoaded E) (n : Nat) (traffic : BoolH) (maskSlot dst : Nat)
+    (K m : List (BitVec 8)) (hK : K.length = 60) (hm : m.length = 16) (htn : traffic.id < n)
+    (hk : I.bools traffic.id = some (bitsOf K)) (hσ : σ.bits maskSlot = bitsOf m) :
+    (withAdv E .a adv (Ghash.keyShareScript n traffic maskSlot dst) σ I vD).viewD <+:
+      [⟨Ghash.masked, .bits (bitsOf (kernelOut HybridKernel.gcmKeyShare (K ++ m)))⟩] :=
+  Ghash.keyShare_disclosure_A E adv σ I vD hE n traffic maskSlot dst K m hK hm htn hk hσ
+
+/-- **T4-TLS, the seal: `sealCtr_with_tag_is_seal` with its halves DISCHARGED** [K]: `tls-seal-ctr`'s
+header ‖ ciphertext and `gcm-tag` on its pad and the two parties' halves of shares of H¹ … Hⁿ
+(n covering the record) is `TlsRecord.sealCore`. Closes P-GHASH (c) for the Lean code. -/
+theorem s12_tls_seal_is_record (kind size padding : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) :
+    let out := kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))
+    let hc := out.take (5 + Tls.innerLength size padding)
+    let pad := (out.drop (5 + Tls.innerLength size padding)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Tls.seal_is_record kind size padding K seqB C hK hs hC a b nPow hsh hn
+
+/-- **T4-TLS, the tag check** [K]: with honest halves the private acceptance byte is 255 exactly
+when the received tag is GCM's tag of the received header and ciphertext under the server key. -/
+theorem s12_tls_check_accepts (K seqB hdr ct tag : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (ht : tag.length = 16) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes (Local.Ghash.half a hdr ct) ++
+        (Local.Ghash.toBytes (Local.Ghash.half b hdr ct) ++ tag)))) =
+      [if Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) = tag
+        then 255 else 0] :=
+  Tls.check_accepts K seqB hdr ct tag hK hs ht a b nPow hsh hn
+
+open TlsMpc.TypedOpenKernel in
+open TlsMpc.HybridKernel (lookup) in
+/-- **T4-TLS, the typed open** [K] (`typed_pair_refines`, `class_fields`): the opened bit is 0 or
+255; on 0 the typed kernel's event and fields, on 255 `tls-frame`'s, are the class kernel's,
+`fields (classSpec …)`. -/
+theorem s12_tls_open_event_refines (cap : Nat) (typed frame : BVExpr.Assignment)
+    (hp : (lookup (frameInputs cap) "parser").map (BVExpr.eval frame) =
+      (lookup (typedInputs cap) "parser").map (BVExpr.eval typed))
+    (hq : (lookup (frameInputs cap) "parsed").map (BVExpr.eval frame) = (typedParsed cap).map (BVExpr.eval typed)) :
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [0] ∨ (fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [255]) ∧
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [0] →
+      ((fieldValues (tlsOpenTyped cap) typed).drop 1).take 4 = fields (classSpec cap typed)) ∧
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [255] →
+      fieldValues (tlsFrame cap) frame = fields (classSpec cap typed)) :=
+  Tls.open_event_refines cap typed frame hp hq
+
+/-- **What the reveal kernel opens through `revealScript`** [K] (`tlsRevealMasked_value`). -/
+theorem s12_tls_reveal_value (cap : Nat) (hcap : cap < 65536) (len content : List (BitVec 8)) (hl : len.length = 2)
+    (hc : content.length = cap) :
+    kernelOut (HybridKernel.tlsRevealMasked cap) (len ++ content) =
+      len ++ (if Tls.lengthOf len ≤ cap then content.take (Tls.lengthOf len) ++ List.replicate (cap - Tls.lengthOf len) 0
+        else List.replicate cap 0) :=
+  Tls.reveal_value cap hcap len content hl hc
+
+/-- **A revealed range below the length is the server's bytes** [K-fn]. -/
+theorem s12_tls_range_value (content : List (BitVec 8)) (n lo hi : Nat) (hhi : hi ≤ n) (hn : n ≤ content.length) :
+    (((content.take n ++ List.replicate (content.length - n) 0).drop lo).take (hi - lo)) =
+      (content.drop lo).take (hi - lo) :=
+  Tls.range_value content n lo hi hhi hn
+
+/-- **The Finished check through `verifyScript`** [K] (`tlsVerifyFinished_spec`). -/
+theorem s12_tls_verify_value (S hash message : List (BitVec 8)) (hS : S.length = 60) (hh : hash.length = 32)
+    (hm : message.length = 36) :
+    kernelOut HybridKernel.tlsVerifyFinished (S ++ (hash ++ message)) =
+      [if TlsHandshake.finishedMessage Sha256.concrete (S.take 32) hash = message then 255 else 0] :=
+  Tls.verify_value S hash message hS hh hm
+
+/-- **The handshake record opening through `openHandshakeScript`** [K] (`tlsOpenHandshake_spec`). -/
+theorem s12_tls_openHandshake_value (size : Nat) (S seqB record : List (BitVec 8)) (hS : S.length = 60)
+    (hs : seqB.length = 8) (hr : record.length = size) :
+    kernelOut (HybridKernel.tlsOpenHandshake size) (S ++ (seqB ++ record)) =
+      TlsPublicHandshake.gate ByteAuth.concrete
+        (TlsReceive.spec ((S.drop 32).take 16) ((S.drop 48).take 12) seqB record) :=
+  Tls.openHandshake_value size S seqB record hS hs hr
+
+/-- **The 64-record window keeps at most 64** [K-fn] (`tls_worker_v3.cpp:321-329`). -/
+theorem s12_tls_window_bound (w : Tls.Window) (id : Nat) : (w.push id).1.length ≤ Tls.keptRecords :=
+  Tls.Window.push_bound w id
+
+/-- **The seal's first phase is well formed** [K]: the shell's `check` accepts every instruction of
+`sealCtrScript` on every branch, given the traffic block and content live and `tls-seal-ctr`'s
+signature. -/
+theorem s12_tls_sealCtr_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic content : BoolH)
+    (seq : List (BitVec 8)) (kind size padding : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n)
+    (hcn : content.id < n) (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩)
+    (hc : c.bool? content = some ⟨cm, false⟩) (hcm : cm.length = 8 * size) (hs : seq.length = 8)
+    (hsize : size + 1 + padding ≤ 16385)
+    (hsig : sigs (Tls.sealCtrName kind size padding) =
+      some ⟨8 * (68 + size), List.replicate (8 * (5 + Tls.innerLength size padding)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Tls.sealCtrScript n traffic content seq kind size padding) :=
+  Tls.sealCtrScript_wf sigs c n traffic content seq kind size padding cm hf htn hcn ht hc hcm hs hsize hsig
+
+end FlowsS12
+
+/-! ### 7d (continued). S12 closed gaps: WF, the pipe, T4-TLS and P-GHASH through `jointRun`, value-level T3
+(numbered 7c continued on the S12 branch, renumbered when merged into `scripts-stack`)
+
+The second S12 pass (`TlsMpc/Node/Flows/{TlsWF,TlsBounded,TlsRun,TlsOpenRun,TlsGhashRun,TlsClassSeal,
+TlsDerive,TlsT3}.lean`; S12_NOTES.md, "Second pass"). Closes PROOF_GAPS F13, F14, F15, F16, F18, F20.
+Status letters as above (**M**: about the Lean model of the engines, `Engine/Model.lean`; the kernels'
+circuits computing their Lean definitions, `TlsBase.circuitOf` / `Ghash.GhashLoaded`, is T2's trust). -/
+
+section FlowsS12b
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **WF, the open** [M] (F14): the shell's `check` accepts every instruction of `openScript` on every
+branch (bit 0: the typed kernel's fields; bit 255: `tls-frame`; any other bit: abort), given the
+parser state and traffic block live and the three kernels' signatures. -/
+theorem s12_tls_open_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (parser traffic : BoolH)
+    (seq tag recordPadded size : List (BitVec 8)) (cap halfSlot : Nat) (pm : List Mark) (hf : Fresh c n)
+    (hpn : parser.id < n) (htn : traffic.id < n) (hp : c.bool? parser = some ⟨pm, false⟩) (hpm : pm.length = 88)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hs : seq.length = 8)
+    (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2) (hcap : cap ≤ 65536)
+    (hcheck : sigs Tls.checkName = some ⟨8 * 116, List.replicate 8 .never⟩)
+    (htyped : sigs (Tls.typedName cap) = some ⟨8 * (82 + cap), Tls.typedMarks cap⟩)
+    (hframe : sigs (Tls.frameName cap) = some ⟨8 * (11 + (cap - 17)), Tls.frameMarks cap⟩) :
+    WF sigs c (Tls.openScript n parser traffic seq tag recordPadded size cap halfSlot) :=
+  Tls.openScript_wf sigs c n parser traffic seq tag recordPadded size cap halfSlot pm hf hpn htn hp hpm ht hs htag hr hz
+    hcap hcheck htyped hframe
+
+/-- **WF, the class seal** [M] (F14). -/
+theorem s12_tls_sealClass_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic content : BoolH)
+    (seq : List (BitVec 8)) (size : Nat) (cm : List Mark) (hf : Fresh c n) (htn : traffic.id < n) (hcn : content.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? content = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * size) (hs : seq.length = 8) (hcap : Tls.capacity size ≤ 65536)
+    (hsig : sigs (Tls.sealClassName (Tls.capacity size)) = some ⟨8 * (70 + Tls.capacity size),
+      List.replicate (8 * (1 + 5 + Tls.capacity size + 1)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Tls.sealClassScript n traffic content seq size) :=
+  Tls.sealClassScript_wf sigs c n traffic content seq size cm hf htn hcn ht hc hcm hs hcap hsig
+
+/-- **WF, a doubling round** [M] (F14): every input `once`, each mask reaching one copy. -/
+theorem s12_ghash_round_wf (sigs : Bytes → Option Sig) (ctx : Ctx) (n c leftSlot rightSlot maskSlot dst : Nat)
+    (hf : Fresh ctx n) (hsig : sigs Ghash.multiplyName = some ⟨8 * 80, List.replicate 128 .toB⟩) :
+    WF sigs ctx (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) :=
+  Ghash.roundScript_wf sigs ctx n c leftSlot rightSlot maskSlot dst hf hsig
+
+/-- **WF, the server-byte reveal** [M] (F14). -/
+theorem s12_tls_reveal_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (length content : BoolH) (cap : Nat)
+    (lm cm : List Mark) (hf : Fresh c n) (hln : length.id < n) (hcn : content.id < n)
+    (hl : c.bool? length = some ⟨lm, false⟩) (hc : c.bool? content = some ⟨cm, false⟩)
+    (hlm : lm.length = 16) (hcm : cm.length = 8 * cap) (hcap : cap ≤ 65536)
+    (hsig : sigs (Tls.revealName cap) = some ⟨8 * (2 + cap), List.replicate (16 + 8 * cap) .pub⟩) :
+    WF sigs c (Tls.revealScript n length content cap) :=
+  Tls.revealScript_wf sigs c n length content cap lm cm hf hln hcn hl hc hlm hcm hcap hsig
+
+/-- **WF, the handshake** [M] (F14): `tls-derive` (the agreement word consumed and freed). The parser,
+the handshake record, the Finished check, the client Finished and the agreement are
+`Tls.parserScript_wf`, `openHandshakeScript_wf`, `verifyScript_wf`, `finishScript_wf`, `agreeScript_wf`. -/
+theorem s12_tls_derive_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (agreement : BoolH) (helloHash : List (BitVec 8))
+    (hf : Fresh c n) (han : agreement.id < n)
+    (ha : c.bool? agreement = some ⟨List.replicate 255 .never, false⟩) (hh : helloHash.length = 32)
+    (hsig : sigs Tls.deriveName = some ⟨511, List.replicate 1216 .never⟩) :
+    WF sigs c (Tls.deriveScript n agreement helloHash) :=
+  Tls.deriveScript_wf sigs c n agreement helloHash hf han ha hh hsig
+
+/-- **WF, the client Finished** [M] (F14). -/
+theorem s12_tls_finish_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (main clientHs : BoolH)
+    (serverHash clientHash certificate : List (BitVec 8)) (hf : Fresh c n) (hmn : main.id < n) (hcn : clientHs.id < n)
+    (hm : c.bool? main = some ⟨List.replicate 256 .never, false⟩)
+    (hch : c.bool? clientHs = some ⟨List.replicate 480 .never, false⟩)
+    (hsh : serverHash.length = 32) (hchl : clientHash.length = 32) (hcert : certificate.length ≤ 16384)
+    (hsig : sigs (Tls.finishName certificate.length) = some ⟨8 * (156 + certificate.length),
+      List.replicate 960 .never ++ List.replicate (8 * Tls.finishedLength certificate.length) .pub⟩) :
+    WF sigs c (Tls.finishScript n main clientHs serverHash clientHash certificate) :=
+  Tls.finishScript_wf sigs c n main clientHs serverHash clientHash certificate hf hmn hcn hm hch hsh hchl hcert hsig
+
+/-- **The pipe, the open** [M] (F18): every instruction of `openScript` on every branch is
+`Instr.Bounded`, so the batch encoding round-trips (`nextBatch_bounded`). All 17 S12 scripts:
+`Tls.*_bounded`, `Ghash.keyShare_bounded`, `Ghash.round_bounded` (TlsBounded.lean). -/
+theorem s12_tls_open_bounded (n : Nat) (parser traffic : BoolH) (seq tag recordPadded size : List (BitVec 8))
+    (cap halfSlot : Nat) (hn : n + 16 < B64) (hp : parser.id < B64) (ht : traffic.id < B64) (hs : seq.length = 8)
+    (htag : tag.length = 16) (hr : recordPadded.length < 4294967296) (hz : size.length = 2) (hcap : cap < 4294967296) :
+    Every Instr.Bounded (Tls.openScript n parser traffic seq tag recordPadded size cap halfSlot) :=
+  Tls.open_bounded n parser traffic seq tag recordPadded size cap halfSlot hn hp ht hs htag hr hz hcap
+
+/-- **The pipe, a doubling round** [M] (F18). -/
+theorem s12_ghash_round_bounded (n c leftSlot rightSlot maskSlot dst : Nat) (hn : n + 7 < B64) :
+    Every Instr.Bounded (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) :=
+  Ghash.round_bounded n c leftSlot rightSlot maskSlot dst hn
+
+/-- **T4-TLS for the seal, through `jointRun`** [M] (F13 (a)): two honest parties run the seal's first
+phase; each then computes its OWN half from its own shares over the opened header and ciphertext; the
+second phase returns to both a tag such that header ‖ ciphertext ‖ tag is `TlsRecord.sealCore` of the
+key, IV, sequence, content, kind and padding (P-GHASH (a) for the shares). -/
+theorem s12_tls_seal_honest (E : Env) (kind size padding : Nat)
+    (hctr : E.circuits (Tls.sealCtrName kind size padding) =
+      some (TlsBase.circuitOf (HybridKernel.tlsSealCtr kind size padding)))
+    (htag : E.circuits Tls.tagName = some (TlsBase.circuitOf HybridKernel.gcmTag))
+    (n m : Nat) (hm : n + 3 < m) (traffic content : BoolH) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (htn : traffic.id < n) (hcn : content.id < n)
+    (σA σB : Store) (I : Ideal) (hIt : I.bools traffic.id = some (bitsOf K)) (hIc : I.bools content.id = some (bitsOf C))
+    (halfSlot : Nat) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) :
+    let hc := (kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))).take
+      (5 + Tls.innerLength size padding)
+    ∃ J, Run.JRet (jointRun E (Tls.sealCtrScript n traffic content seqB kind size padding)
+        (Tls.sealCtrScript n traffic content seqB kind size padding) σA σB I) (hc, ⟨n + 3⟩) (hc, ⟨n + 3⟩) J σA σB ∧
+      ∀ σA' σB' : Store,
+        σA'.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half a (hc.take 5) (hc.drop 5)) →
+        σB'.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half b (hc.take 5) (hc.drop 5)) →
+        ∃ J' tag, Run.JRet (jointRun E (Tls.tagScript m ⟨n + 3⟩ halfSlot) (Tls.tagScript m ⟨n + 3⟩ halfSlot) σA' σB' J)
+            tag tag J' σA' σB' ∧
+          hc ++ tag = TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Tls.seal_honest E kind size padding hctr htag n m hm traffic content K seqB C hK hs hC htn hcn σA σB I hIt hIc
+    halfSlot a b nPow hsh hn
+
+/-- **The binding the vectors only tested** [K] (F13 (b)): the byte `openScript` binds to
+`tls-open-typed`'s `accepted` input is `gcm-check`'s output on the two halves, and with honest halves
+of shared key powers it is 255 exactly when the received tag is GCM's tag. -/
+theorem s12_tls_open_binding_honest (cap : Nat) (P K seqB recordPadded size hdr ct tag : List (BitVec 8))
+    (hP : P.length = 11) (hK : K.length = 60) (hs : seqB.length = 8) (hr : recordPadded.length = cap)
+    (hz : size.length = 2) (ht : tag.length = 16) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) :
+    (HybridKernel.lookup (TypedOpenKernel.typedInputs cap) "accepted").map (BVExpr.eval (assignOf
+      (Tls.typedInput P K seqB recordPadded size (kernelOut HybridKernel.gcmCheck
+        (Tls.checkInput K seqB (Local.Ghash.half a hdr ct) (Local.Ghash.half b hdr ct) tag))))) =
+      [if Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) = tag
+        then 255 else 0] :=
+  Tls.open_binding_honest cap P K seqB recordPadded size hdr ct tag hP hK hs hr hz ht a b nPow hsh hn
+
+/-- **T4-TLS for the open, through `jointRun`** [M] (F13 (b)): two honest parties' run of `openScript`
+RETURNS the same opening to both, and whichever handshake bit was opened, the event and the values
+behind the parser, length and content handles are exactly the four fields of the single class kernel
+`tls-open-application-class CAP` (`classSpec`: the post-handshake parser on the record's parse). -/
+theorem s12_tls_open_class (E : Env) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σA σB : Store) (I : Ideal) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (xa xb : BitVec 128)
+    (hA : σA.bits halfSlot = TlsBase.bitsOfW xa) (hB : σB.bits halfSlot = TlsBase.bitsOfW xb) :
+    ∃ o J, Run.JRet (jointRun E (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot)
+        (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σA σB I) o o J σA σB ∧
+      ∃ vp vl vc, J.bools o.parser.id = some (bitsOf vp) ∧ J.bools o.length.id = some (bitsOf vl) ∧
+        J.bools o.content.id = some (bitsOf vc) ∧
+        [o.event, vp, vl, vc] = TypedOpenKernel.fields (TypedOpenKernel.classSpec cap (assignOf (Tls.typedInput P K seqB
+          recordPadded size (kernelOut HybridKernel.gcmCheck (Tls.checkInput K seqB xa xb tag))))) :=
+  Tls.open_class E cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag hr hz
+    halfSlot σA σB I hIp hIt xa xb hA hB
+
+/-- **A forged record, through `jointRun`** [M] (F13 (b)): with honest halves and a tag that is not
+GCM's, the run returns the event `[0, 0]` after the bit 0. -/
+theorem s12_tls_open_rejected_run (E : Env) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σA σB : Store) (I : Ideal) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (hdr ct : List (BitVec 8)) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow)
+    (hA : σA.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half a hdr ct))
+    (hB : σB.bits halfSlot = TlsBase.bitsOfW (Local.Ghash.half b hdr ct))
+    (hforged : Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) ≠ tag) :
+    ∃ o J, Run.JRet (jointRun E (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot)
+        (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σA σB I) o o J σA σB ∧
+      o.event = [0, 0] ∧
+      (Tls.openOut cap P K seqB tag recordPadded size (Local.Ghash.half a hdr ct) (Local.Ghash.half b hdr ct)).take 1 = [0] :=
+  Tls.open_rejected_run E cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag
+    hr hz halfSlot σA σB I hIp hIt hdr ct a b nPow hsh hn hA hB hforged
+
+/-- **P-GHASH (a) over a whole `ensure`, through `jointRun`** [M] (F20): after the first resharing and
+any sequence of doubling rounds (and the local square), each a returning joint run of the scripts,
+the two parties' share lists are XOR shares of H¹ … Hⁿ for the traffic block's GHASH key. -/
+theorem s12_ghash_ensure_shared (E : Env) (hE : Ghash.GhashLoaded E) (K : List (BitVec 8)) (hK : K.length = 60)
+    (a b : List (BitVec 128)) (h : Ghash.EnsureRuns E K a b) :
+    Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) a.length :=
+  Ghash.ensure_shared E hE K hK a b h
+
+/-- **Value-level T3 for a round, A honest** [M] (F20): against any adversary B, B's view of a round is
+at most one `ghashMaskedPower` release whose value is, copy by copy, `gcm-multiply` on A's inputs,
+B's chosen inputs and A's fresh mask `j` (with `s12_ghash_multiply_hides`: a bijection of the mask). -/
+theorem s12_ghash_round_disclosure_A (E : Env) (hE : Ghash.GhashLoaded E) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n c leftSlot rightSlot maskSlot dst : Nat) (hc : 0 < c ∧ c ≤ 1024)
+    (la mw : List (BitVec 128)) (ra : BitVec 128) (hla : la.length = c) (hmw : mw.length = c)
+    (hL : σ.bits leftSlot = TlsBase.bitsOfWs la) (hR : σ.bits rightSlot = TlsBase.bitsOfW ra)
+    (hM : σ.bits maskSlot = TlsBase.bitsOfWs mw) :
+    ∃ (lb : List (List (BitVec 8))) (rb : List (BitVec 8)), (∀ x ∈ lb, x.length = 16) ∧ lb.length = c ∧ rb.length = 16 ∧
+      (withAdv E .a adv (Ghash.roundScript n c leftSlot rightSlot maskSlot dst) σ I vD).viewD <+:
+        [⟨Ghash.masked, .bits (bitsOf ((List.range c).map fun j => kernelOut HybridKernel.gcmMultiply
+          (Local.Ghash.toBytes (la.getD j 0) ++ lb.getD j [] ++ Local.Ghash.toBytes ra ++ rb ++
+            Local.Ghash.toBytes (mw.getD j 0))).flatten)⟩] :=
+  Ghash.round_disclosure_A E hE adv σ I vD n c leftSlot rightSlot maskSlot dst hc la mw ra hla hmw hL hR hM
+
+/-- **P-GHASH (e) for the seal** [K] (F20): a half that deviates by a nonzero δ makes the record the
+parties produce NOT `TlsRecord.sealCore` (the server rejects it). -/
+theorem s12_ghash_seal_deviation_rejected (kind size padding : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) (δ : BitVec 128) (hδ : δ ≠ 0) :
+    let out := kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))
+    let hc := out.take (5 + Tls.innerLength size padding)
+    let pad := (out.drop (5 + Tls.innerLength size padding)).take 16
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5)) ++
+        Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5) ^^^ δ))) ≠
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Ghash.seal_deviation_rejected kind size padding K seqB C hK hs hC a b nPow hsh hn δ hδ
+
+/-- **P-GHASH (e) for the open** [K] (F20): a half that deviates by a nonzero δ makes the tag check
+refuse the GENUINE tag. -/
+theorem s12_ghash_check_deviation (K seqB hdr ct : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (a b : List (BitVec 128)) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) (δ : BitVec 128) (hδ : δ ≠ 0) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes (Local.Ghash.half a hdr ct) ++
+        (Local.Ghash.toBytes (Local.Ghash.half b hdr ct ^^^ δ) ++
+          Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB))))) = [0] :=
+  Ghash.check_deviation K seqB hdr ct hK hs a b nPow hsh hn δ hδ
+
+/-- **The class seal's composition** [K] (F16): through `sealClassScript`'s layout the acceptance byte
+is 255 and header ‖ ciphertext with the tag on its pad and honest halves is the exact-size record
+`TlsRecord.sealCore … C 23 0`. -/
+theorem s12_tls_sealClass_is_record (size : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (hb : Tls.capacity size + 17 < 65536) (a b : List (BitVec 128))
+    (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (size + 1) ≤ nPow) :
+    let out := kernelOut (RecordClassKernel.tlsSealClass (Tls.capacity size))
+      (K ++ (seqB ++ (C ++ (List.replicate (Tls.capacity size - size) 0 ++ Tls.sizeBytes size))))
+    let opened := out.take (1 + 5 + Tls.capacity size + 1)
+    let hc := (opened.drop 1).take (5 + size + 1)
+    let pad := (out.drop (1 + 5 + Tls.capacity size + 1)).take 16
+    opened.take 1 = [255] ∧
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5)) ++
+        Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5)))) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C 23 0 :=
+  Tls.sealClass_is_record size K seqB C hK hs hC hb a b nPow hsh hn
+
+/-- **`deriveScript`'s value** [M] (F15): with the word input read through the shaped model circuit
+(`Tls.shapedCircuit`, as S13's), two honest parties' run returns the handshake traffic blocks and the
+main secret of the RFC 8446 schedule on the agreement's bytes and the hello hash. -/
+theorem s12_tls_derive_honest (E : Env)
+    (hE : E.circuits Tls.deriveName = some (Tls.shapedCircuit HybridKernel.tlsDerive (List.replicate 1216 .never)))
+    (n : Nat) (agreement : BoolH) (han : agreement.id < n) (aw : Bits) (haw : aw.length = 255) (H : List (BitVec 8))
+    (hH : H.length = 32) (σA σB : Store) (I : Ideal) (hIa : I.bools agreement.id = some aw) :
+    ∃ J, Run.JRet (jointRun E (Tls.deriveScript n agreement H) (Tls.deriveScript n agreement H) σA σB I)
+        ⟨⟨n + 3⟩, ⟨n + 4⟩, ⟨n + 5⟩⟩ ⟨⟨n + 3⟩, ⟨n + 4⟩, ⟨n + 5⟩⟩ J σA σB ∧
+      J.bools (n + 3) = some (bitsOf (KernelSpecs.TlsHandshake.trafficBlockValue
+        (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).client)) ∧
+      J.bools (n + 4) = some (bitsOf (KernelSpecs.TlsHandshake.trafficBlockValue
+        (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).server)) ∧
+      J.bools (n + 5) = some (bitsOf (TlsKdf.handshakeSecrets Sha256.concrete (Tls.agreementBytes aw) H).main) ∧
+      J.bools agreement.id = none :=
+  Tls.derive_honest E hE n agreement han aw haw H hH σA σB I hIa
+
+/-- **Value-level T3, the seal's first phase** [M]: against any adversary, at most one `sealedRecord`
+release: the header ‖ ciphertext of `tls-seal-ctr` (the pad stays private). -/
+theorem s12_tls_sealCtr_disclosure (E : Env) (me : Party) (adv : Adversary) (kind size padding : Nat)
+    (hE : E.circuits (Tls.sealCtrName kind size padding) =
+      some (TlsBase.circuitOf (HybridKernel.tlsSealCtr kind size padding)))
+    (n : Nat) (traffic content : BoolH) (K seqB C : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hC : C.length = size) (htn : traffic.id < n) (hcn : content.id < n) (σ : Store) (I : Ideal) (vD : List Release)
+    (hIt : I.bools traffic.id = some (bitsOf K)) (hIc : I.bools content.id = some (bitsOf C)) :
+    (withAdv E me adv (Tls.sealCtrScript n traffic content seqB kind size padding) σ I vD).viewD <+:
+      [⟨Label.sealedRecord, .bits (bitsOf ((kernelOut (HybridKernel.tlsSealCtr kind size padding)
+        (K ++ (seqB ++ C))).take (5 + Tls.innerLength size padding)))⟩] :=
+  Tls.sealCtr_disclosure E me adv kind size padding hE n traffic content K seqB C hK hs hC htn hcn σ I vD hIt hIc
+
+/-- **Value-level T3, the open, A honest** [M]: against any adversary B (whatever 16 bytes `hb` it
+input as its half), at most two releases: the bit, which is 0 or 255, and the event, exactly the class
+kernel's event (`classSpec`), whichever branch ran. A refused record: `Tls.open_disclosure_rejected`. -/
+theorem s12_tls_open_disclosure_A (E : Env) (adv : Adversary) (cap : Nat)
+    (hcE : E.circuits Tls.checkName = some (TlsBase.circuitOf HybridKernel.gcmCheck))
+    (htE : E.circuits (Tls.typedName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsOpenTyped cap)))
+    (hfE : E.circuits (Tls.frameName cap) = some (TlsBase.circuitOf (TypedOpenKernel.tlsFrame cap)))
+    (n : Nat) (hcap : 21 ≤ cap) (parser traffic : BoolH) (hpn : parser.id < n) (htn : traffic.id < n)
+    (P K seqB tag recordPadded size : List (BitVec 8)) (hP : P.length = 11) (hK : K.length = 60)
+    (hs : seqB.length = 8) (htag : tag.length = 16) (hr : recordPadded.length = cap) (hz : size.length = 2)
+    (halfSlot : Nat) (σ : Store) (I : Ideal) (vD : List Release) (hIp : I.bools parser.id = some (bitsOf P))
+    (hIt : I.bools traffic.id = some (bitsOf K)) (xa : BitVec 128) (hA : σ.bits halfSlot = TlsBase.bitsOfW xa) :
+    ∃ hb : List (BitVec 8), (hb.length = 16 ∧
+      ((kernelOut (TypedOpenKernel.tlsOpenTyped cap) (Tls.typedInput P K seqB recordPadded size
+        (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1 = [0] ∨
+       (kernelOut (TypedOpenKernel.tlsOpenTyped cap) (Tls.typedInput P K seqB recordPadded size
+        (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1 = [255])) ∧
+      (withAdv E .a adv (Tls.openScript n parser traffic seqB tag recordPadded size cap halfSlot) σ I vD).viewD <+:
+        [⟨Label.recordKindBit, .bits (bitsOf ((kernelOut (TypedOpenKernel.tlsOpenTyped cap)
+            (Tls.typedInput P K seqB recordPadded size
+              (kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag))))))).take 1))⟩,
+         ⟨Label.recordEvent, .bits (bitsOf ((TypedOpenKernel.classSpec cap (assignOf (Tls.typedInput P K seqB
+            recordPadded size (kernelOut HybridKernel.gcmCheck
+              (K ++ (seqB ++ (Local.Ghash.toBytes xa ++ (hb ++ tag)))))))).take 2))⟩] :=
+  Tls.open_disclosure_A E adv cap hcE htE hfE n hcap parser traffic hpn htn P K seqB tag recordPadded size hP hK hs htag
+    hr hz halfSlot σ I vD hIp hIt xa hA
+
+end FlowsS12b
+
+/-! ### 7e. Send (stage S13; plan 8.1 T3, T4-SEND, T7 through the scripts; numbered 7d on the S13
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S13 scripts (`TlsMpc/Node/Flows/{Send,SendProofs}.lean`, the backend `Flows/SendBackend.lean`;
+S13_NOTES.md). **M**: a kernel's output read through the script's layout; the kernels' circuits
+computing their Lean definitions (`SendProofs.shapedCircuit`, `Contacts.kernelCircuit`) is T2's
+trust. The four words of a seal (ephemeral public key, sender key, ephemeral and static agreements)
+are S11's (E4). Compiled standalone in the S13 branch (scratch file with this text: standard axioms
+only). -/
+
+section FlowsS13
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+open TlsMpc.Signal
+
+/-- **T3 for the send scripts** [K]: every release of op 41 and op 61 is labelled counterWidths or
+sealedEnvelope, ops 42 and 62 release nothing, the request's record phase releases under
+sealedRecord only (on every branch, for every argument; with `viewD_kinds`, against any adversary). -/
+theorem s13_send_reveal :
+    (∀ n a, Reveals Send.sealKinds (Send.sealScript n a)) ∧
+    (∀ n a, Reveals Send.sealKinds (Send.devicesScript n a)) ∧
+    (∀ n cert state, Reveals [] (Send.requestScript n cert state)) ∧
+    (∀ n state ats, Reveals [] (Send.requestDevicesScript n state ats)) ∧
+    (∀ n traffic conv seq frame mask name,
+      Reveals Send.requestSealKinds (Send.requestCtrScript n traffic conv seq frame mask name)) :=
+  Registry.s13_flows_reveal
+
+/-- **The status gate** [K]: after a seal's status other than 255 is opened, the script releases
+nothing more (no envelope, no timestamp) and returns `none` with the state kept. -/
+theorem s13_seal_refused_silent (n : Nat) (a : Send.SealArgs) (st : Bits) (h : st ≠ bitsOf [255]) :
+    Silent (Send.afterStatus n a st) ∧ Send.afterStatus n a st =
+      seqs [.freeBool ⟨n + 5⟩, .freeBool ⟨n + 6⟩, .freeBool ⟨n + 7⟩] (.done none) :=
+  Send.seal_refused_silent n a st h
+
+/-- **An accepted seal, as the script opens and keeps it** [M] (`SealSend.signalSeal_value`,
+`sealValue_accepted` read through `sealScript`'s layout). -/
+theorem s13_seal_accepted_value (cert cw pw ew iw classes : Nat) (official : Bool) (conv text : List (BitVec 8))
+    (w : Bits) (hc : conv.length = Send.convBytes cert) (ht : text.length = Send.textBytes classes official)
+    (hb : Send.SealBound cert cw pw ew iw classes official) (hcl : 1 ≤ classes) :
+    let v := bitsOf conv ++ (bitsOf text ++ w)
+    let a := Send.shapedAssign (Send.sealK cert cw pw ew iw classes official).inputs v
+    let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+      (BVExpr.eval a)
+    let out := Send.shapedOut (Send.sealK cert cw pw ew iw classes official) v
+    out.take 1 = [255] →
+    let content := KernelSpecs.SealFixed.contentBytes classes official
+    let shape : Serialization.Shape := ⟨cw, pw, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨ew, iw, 1, false⟩
+    let staged := KernelSpecs.SealFixed.stagedOf ((conv.drop cert).take (182 + 80)) text
+    let i := KernelSpecs.SealFixed.inputOf 0 staged text content
+    let p := SpqrSend.canonical shape pqShape i
+    SpqrSend.accepted shape pqShape i ∧
+    ((out.drop (1 + cert)).take Send.recordBytes).length = Send.recordBytes ∧
+    conv.take cert ++ (out.drop (1 + cert)).take Send.recordBytes = KernelSpecs.SealSend.advancedRecord cert conv staged p ∧
+    (out.drop (1 + Send.convBytes cert)).take (8 + Send.sealEnvBytes cert classes official cw pw ew iw) =
+      (text.drop (2 + content)).take 8 ++
+        KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+          (get "ephemeralAgreement") (get "staticAgreement") (conv.take cert) p.wire :=
+  Send.seal_accepted_value cert cw pw ew iw classes official conv text w hc ht hb hcl
+
+/-- **`signal-request-ctr` on the script's bundle** [M]: `RequestFrame.signalRequestCtr_built` with
+`hframe`, `hmask` discharged by `requestCtrScript`'s layout (E2 for the send path). -/
+theorem s13_requestCtr_value (cert : Nat) (env : List (BitVec 8)) (ts id : Nat) (mask frame : List (BitVec 8))
+    (official : Bool) (offsets : List Nat)
+    (hb : PublicRequest.build env ts id mask official = .ok (frame, offsets))
+    (K seqB conv : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8) (hc : conv.length = Send.convBytes cert) :
+    let msg := PublicRequest.sendMessage env ts id official
+    (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
+        (offsets.getD 3 0)).outputs.map
+        (fun f => f.value.map (BVExpr.eval (assignOf (Send.requestIn K seqB conv frame mask)))) =
+      KernelSpecs.sealedRequest K seqB
+        (KernelSpecs.RequestFrame.buildHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.requestValues cert conv) msg))
+        (KernelSpecs.signalRequestSlots cert 0 0 0 0 conv).1 :=
+  Send.requestCtr_value cert env ts id mask frame official offsets hb K seqB conv hK hs hc
+
+/-- **`bundle-request-ctr` on the script's bundle** [M]: `RequestFrame.bundleRequestCtr_built` with
+`hframe`, `hmask` discharged by the layout; `paired` is the script path's own pairing
+(`Send.devicesName_paired`). -/
+theorem s13_bundleRequestCtr_value (envs : List (List (BitVec 8))) (ts id : Nat) (mask frame : List (BitVec 8))
+    (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (hb : PublicRequest.buildDevices envs ts id mask official = .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (hp : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (K seqB records : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hr : records.length = Send.recordBytes * devices.length) :
+    let msg := PublicRequest.devicesMessage envs ts id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun f => f.value.map (BVExpr.eval (assignOf (Send.requestIn K seqB records frame mask)))) =
+      KernelSpecs.sealedRequest K seqB
+        (KernelSpecs.RequestFrame.assembleHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.devicesValues records) msg))
+        (KernelSpecs.bundleRequestValue records (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  Send.bundleRequestCtr_value envs ts id mask frame official payloadAt offsets hb devices hp K seqB records hK hs hr
+
+/-- **The request's TLS record** [M] (P-GHASH (c) for the request sealer): header ‖ ciphertext of an
+accepted request and `gcm-tag`'s tag over its pad and both parties' halves of shared key powers is
+`TlsRecord.sealCore` of the plaintext. -/
+theorem s13_request_record (K seqB P : List (BitVec 8)) (hK : K.length = 60) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Send.innerOf P.length) ≤ nPow) :
+    let o := KernelSpecs.sealedRequest K seqB P 255
+    let hc := o.getD 1 [] ++ o.getD 2 []
+    let pad := o.getD 3 []
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB P 23 0 :=
+  Send.request_record K seqB P hK a b nPow hsh hn
+
+/-- **T4-SEND / T7 on the script path, the headline** [M]: op 41, op 42 and the record seal with NO
+worker-wiring hypothesis (`built`, `hframe`, `hmask` of `SealFrame.serverReceives_accepted` hold by
+the scripts' construction: the frame is `frameFor` of the script's own openings, the kernels' inputs
+are its concatenations). On an accepted send (status 255, request accepted 255): the reference send
+step accepts; the kept state is the advanced record; the opened envelope is the reference
+sealed-sender v1 envelope; what leaves for the server is the AES-GCM TLS record of the WebSocket frame
+of `sendMessage` carrying that envelope with the contact's fields in their slots. -/
+theorem s13_send_accepted (cert cw pw ew iw classes : Nat) (official : Bool) (certB record text : List (BitVec 8))
+    (w : Bits) (hcB : certB.length = cert)
+    (hr : record.length = Send.recordBytes) (ht : text.length = Send.textBytes classes official)
+    (hb : Send.SealBound cert cw pw ew iw classes official) (hcl : 1 ≤ classes)
+    (id : Nat) (mask frame : List (BitVec 8)) (offsets : List Nat) (K seqB : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8)
+    (a b : List (BitVec 128)) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) :
+    let conv := certB ++ record
+    let v := bitsOf conv ++ (bitsOf text ++ w)
+    let sa := Send.shapedAssign (Send.sealK cert cw pw ew iw classes official).inputs v
+    let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+      (BVExpr.eval sa)
+    let out := Send.shapedOut (Send.sealK cert cw pw ew iw classes official) v
+    let te := (out.drop (1 + Send.convBytes cert)).take (8 + Send.sealEnvBytes cert classes official cw pw ew iw)
+    let newRecord := (out.drop (1 + cert)).take Send.recordBytes
+    let ctr := kernelOut (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+      (offsets.getD 2 0) (offsets.getD 3 0)) (Send.requestIn K seqB (certB ++ newRecord) frame mask)
+    let hc := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    out.take 1 = [255] →
+    Send.frameFor (te.drop 8) (te.take 8) id mask official = .ok (frame, offsets) →
+    ctr.take 1 = [255] →
+    Local.Ghash.needed 5 (Send.innerOf frame.length) ≤ nPow →
+    let content := KernelSpecs.SealFixed.contentBytes classes official
+    let shape : Serialization.Shape := ⟨cw, pw, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨ew, iw, 1, false⟩
+    let staged := KernelSpecs.SealFixed.stagedOf ((conv.drop cert).take (182 + 80)) text
+    let i := KernelSpecs.SealFixed.inputOf 0 staged text content
+    let p := SpqrSend.canonical shape pqShape i
+    let envelope := KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+      (get "ephemeralAgreement") (get "staticAgreement") certB p.wire
+    let msg := PublicRequest.sendMessage envelope (Send.beNat (te.take 8)) id official
+    SpqrSend.accepted shape pqShape i ∧
+    certB ++ newRecord = KernelSpecs.SealSend.advancedRecord cert conv staged p ∧
+    te.drop 8 = envelope ∧
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB
+        (KernelSpecs.RequestFrame.buildHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.requestValues cert (certB ++ newRecord)) msg))
+        23 0 :=
+  Send.send_accepted cert cw pw ew iw classes official certB record text w hcB hr ht hb hcl id mask frame offsets K seqB
+    hK hs a b nPow hsh
+
+/-- **Op 41 is well formed** [K]: every branch's instructions pass the shell's `check`, given the
+handles live and the loaded signatures (`SealSigs`). -/
+theorem s13_sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (a : Send.SealArgs)
+    (cm sm dm tm em : List Mark) (hf : Fresh c n)
+    (hcn : a.cert.id < n) (hsn : a.state.id < n) (hdn : a.sender.id < n) (htn : a.static.id < n)
+    (hen : a.ephAgreement.id < n)
+    (hes : a.ephAgreement.id ≠ a.state.id) (hec : a.ephAgreement.id ≠ a.cert.id)
+    (hed : a.ephAgreement.id ≠ a.sender.id) (het : a.ephAgreement.id ≠ a.static.id)
+    (hc : c.bool? a.cert = some ⟨cm, false⟩) (hs : c.bool? a.state = some ⟨sm, false⟩)
+    (hd : c.bool? a.sender = some ⟨dm, false⟩) (ht : c.bool? a.static = some ⟨tm, false⟩)
+    (he : c.bool? a.ephAgreement = some ⟨em, false⟩)
+    (hcm : cm.length = 8 * a.certLen) (hsm : sm.length = 8 * Send.recordBytes) (hdm : dm.length = 255)
+    (htm : tm.length = 255) (hem : em.length = 255) (hpk : a.ephPublic.length = 32)
+    (hsig : Send.SealSigs sigs a.certLen) :
+    WF sigs c (Send.sealScript n a) :=
+  Send.sealScript_wf sigs c n a cm sm dm tm em hf hcn hsn hdn htn hen hes hec hed het hc hs hd ht he hcm hsm hdm htm
+    hem hpk hsig
+
+/-- **Op 42 is well formed** [K]. -/
+theorem s13_requestScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (cert state : BoolH)
+    (cm sm : List Mark) (hf : Fresh c n) (hcn : cert.id < n)
+    (hc : c.bool? cert = some ⟨cm, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hsm : 8 * Send.recordBytes ≤ sm.length) (hw : cm.length + 8 * Send.recordBytes ≤ maxWidth) :
+    WF sigs c (Send.requestScript n cert state) :=
+  Send.requestScript_wf sigs c n cert state cm sm hf hcn hc hs hsm hw
+
+/-- **The request's record phase is well formed** [K]. -/
+theorem s13_requestCtrScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic conv : BoolH)
+    (seq frame mask : List (BitVec 8)) (name : Bytes) (C : Nat) (cm : List Mark) (hf : Fresh c n)
+    (htn : traffic.id < n) (hcn : conv.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? conv = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * C) (hs : seq.length = 8) (hm : mask.length = 4) (hsize : C + frame.length ≤ 65536)
+    (hsig : sigs name = some ⟨8 * (68 + C + frame.length + 4),
+      List.replicate (8 * (1 + 5 + Send.innerOf frame.length)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Send.requestCtrScript n traffic conv seq frame mask name) :=
+  Send.requestCtrScript_wf sigs c n traffic conv seq frame mask name C cm hf htn hcn ht hc hcm hs hm hsize hsig
+
+/-- **Op 41's wires fit the pipe** [K] (`Wire.Bounded`). -/
+theorem s13_sealScript_bounded (n : Nat) (a : Send.SealArgs) (hn : n + 8 < B64)
+    (hids : a.cert.id < B64 ∧ a.state.id < B64 ∧ a.sender.id < B64 ∧ a.static.id < B64 ∧ a.ephAgreement.id < B64)
+    (hpk : a.ephPublic.length = 32) : Every Instr.Bounded (Send.sealScript n a) :=
+  Registry.send_sealScript_bounded n a hn hids hpk
+
+end FlowsS13
+
+/-! ### 7e. Send, continued (stage S13 follow-up: F51, F52, F54 in part, F57, F58, F59)
+
+`TlsMpc/Node/Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean` (S13_NOTES.md). **M**
+as in 7e: the kernels' circuits computing their Lean definitions (`shapedCircuit` for kernels with
+word inputs, `Contacts.kernelCircuit` for byte kernels) is T2's trust; the words of a seal are S11's
+(E4). Compiled standalone in the S13 branch (scratch file with this text: standard axioms only). -/
+
+section FlowsS13b
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+open TlsMpc.Signal
+
+/-- **F58: `bundleEnvBytes` is `bundle-seal`'s envelope length** [K], on every assignment, under the
+kernel's own parameter bound. -/
+theorem s13_bundleEnvBytes_eq (cert content : Nat) (oneTime : Bool) (cw pw ew iw : Nat) (a : BVExpr.Assignment)
+    (hb : Send.BundleBound cert content cw pw ew iw) :
+    ((ReceiveKernel.values (BundleKernel.bundleSeal cert oneTime content cw pw ew iw) a).getD 3 []).length =
+      Send.bundleEnvBytes cert oneTime content cw pw ew iw :=
+  Send.bundleEnvBytes_eq cert content oneTime cw pw ew iw a hb
+
+/-- **`bundle-seal`'s conversation field** [K]: `cert + min 262 (182 + content) + 57` bytes. For an
+official 89-byte text (content 79) this is `cert + 318`, one byte short of what `devicesScript`
+slices: such a send to an unanswered device aborts before any status is opened (gap S13-10). -/
+theorem s13_bundleOut_record_length (cert content : Nat) (oneTime : Bool) (cw pw ew iw : Nat)
+    (a : BVExpr.Assignment) (hb : Send.BundleBound cert content cw pw ew iw) :
+    ((ReceiveKernel.values (BundleKernel.bundleSeal cert oneTime content cw pw ew iw) a).getD 1 []).length =
+      cert + min 262 (182 + content) + 57 :=
+  Send.bundleOut_record_length cert content oneTime cw pw ew iw a hb
+
+/-- **F52: op 61 + op 62 + the record seal on the script path** [M]. When the one opening of all
+statuses is all 255 and the request's accepted byte is 255: every device's status is 255 and its
+kept record the advanced one; the envelopes `splitEnvelopes` cuts out of the one opening of all
+timestamps ‖ envelopes are, in device order, the reference envelopes (`sealV1` for kind 0,
+`EstablishSeal.envelopeOf` for kinds 1, 2); op 62 reads the advanced records from the new state;
+the bytes for the server are `TlsRecord.sealCore` of the frame of `devicesMessage` holding those
+envelopes. No `built`, `hframe`, `hmask`, `paired` hypothesis. -/
+theorem s13_devices_accepted (c : Send.DevCtx) (ds : List Send.DevSend) (hc : c.Ok) (hd : ∀ d ∈ ds, d.Ok c)
+    (hne : ds ≠ []) (id : Nat) (mask frame : List (BitVec 8)) (payloadAt : Nat) (offsets : List Nat)
+    (devices : List (Nat × Nat)) (K seqB : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (a b : List Tls.W) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) :
+    let statuses := (ds.map (Send.DevSend.status c)).flatten
+    let parts := Send.splitEnvelopes (ds.map (Send.DevSend.env c)) (ds.map (Send.DevSend.sealed c)).flatten
+    let envelopes := parts.map (·.2)
+    let timestamp := (parts.headD ([], [])).1
+    let newState := (ds.map fun d => d.kept c ++ (if d.kind = 0 then [] else d.pending)).flatten
+    let records := ((deviceSpans 0 (ds.map (·.kind))).map fun s =>
+      (newState.drop s.1.1).take Send.recordBytes).flatten
+    let ctr := kernelOut (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0)
+      devices) (Send.requestIn K seqB records frame mask)
+    let head := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (head.take 5) (head.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (head.take 5) (head.drop 5))
+    statuses = List.replicate ds.length 255 →
+    PublicRequest.buildDevices envelopes (Send.beNat timestamp) id mask c.official = .ok (frame, payloadAt, offsets) →
+    BundleKernel.pairs (offsets.drop 2) = some devices →
+    ctr.take 1 = [255] →
+    Local.Ghash.needed 5 (Send.innerOf frame.length) ≤ nPow →
+    let msg := PublicRequest.devicesMessage (ds.map (Send.DevSend.reference c)) (Send.beNat c.timestamp) id c.official
+    (∀ d ∈ ds, d.status c = [255] ∧ d.kept c = d.advanced c) ∧
+    envelopes = ds.map (Send.DevSend.reference c) ∧
+    timestamp = c.timestamp ∧
+    records = (ds.map (Send.DevSend.advanced c)).flatten ∧
+    head ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB
+        (KernelSpecs.RequestFrame.assembleHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render
+              (KernelSpecs.RequestFrame.devicesValues (ds.map (Send.DevSend.advanced c)).flatten) msg))
+        23 0 :=
+  Send.devices_accepted c ds hc hd hne id mask frame payloadAt offsets devices K seqB hK hs a b nPow hsh
+
+/-- **F52: all or nothing** [K]: when some device's status is not 255, the opened statuses are not
+all 255, and the rest of op 61 is silent: against any adversary nothing more is released to anyone,
+no envelope of any device is opened, and the stored state is kept. -/
+theorem s13_devices_refused_view (E : Env) (me : Party) (adv : Adversary) (c : Send.DevCtx) (ds : List Send.DevSend)
+    (hc : c.Ok) (hd : ∀ d ∈ ds, d.Ok c) (hbad : ∃ d ∈ ds, d.status c ≠ [255])
+    (n : Nat) (a : Send.DevicesArgs) (envs : List Nat) (σ : Store) (I : Ideal) (vD : List Release) :
+    let st := bitsOf (ds.map (Send.DevSend.status c)).flatten
+    st ≠ bitsOf (List.replicate ds.length 255) ∧
+    Silent (Send.afterStatuses n ds.length a envs st) ∧
+    (withAdv E me adv (Send.afterStatuses n ds.length a envs st) σ I vD).viewD = [] ∧
+    (withAdv E me adv (Send.afterStatuses n ds.length a envs st) σ I vD).viewH = [] :=
+  Send.devices_refused_view E me adv c ds hc hd hbad n a envs σ I vD
+
+/-- **Public scripts, two honest parties** [K]: a script of plain instructions and openings run by
+both parties in lockstep ends with `pubRun`'s result for both, its ideal state, and both views equal
+to its releases. -/
+theorem s13_jointRun_pub (E : Env) {α : Type} {s : Script α} (hs : Every (fun i => Send.pubInstr i = true) s)
+    (σA σB : Store) (I : Ideal) :
+    (jointRun E s s σA σB I).result = (Send.pubRun E s I).1.map (fun a => (a, a)) ∧
+    (jointRun E s s σA σB I).ideal = (Send.pubRun E s I).2.1 ∧
+    (jointRun E s s σA σB I).viewA = (Send.pubRun E s I).2.2 ∧
+    (jointRun E s s σA σB I).viewB = (Send.pubRun E s I).2.2 :=
+  Send.jointRun_pub E hs σA σB I
+
+/-- **Public scripts, any adversary** [K]: the views are prefixes of `pubRun`'s releases and a result
+is `pubRun`'s. -/
+theorem s13_withAdv_pub (E : Env) (me : Party) (adv : Adversary) {α : Type} {s : Script α}
+    (hs : Every (fun i => Send.pubInstr i = true) s) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv s σ I vD).viewD <+: (Send.pubRun E s I).2.2 ∧
+    (withAdv E me adv s σ I vD).viewH <+: (Send.pubRun E s I).2.2 ∧
+    ∀ x, (withAdv E me adv s σ I vD).result = some x → (Send.pubRun E s I).1 = some x :=
+  Send.withAdv_pub E me adv hs σ I vD
+
+/-- **F57: op 41's view by value, against any adversary** [M]: a prefix of [flags, status] when the
+status is not 255 (and the result, if any, is `none`), of [flags, status, timestamp ‖ envelope]
+otherwise; the values: the widths kernel's output on certificate ‖ record, the seal kernel's slices
+(`sealOut_values`: the envelope is `sealV1` of the reference message). -/
+theorem s13_seal_view (E : Env) (me : Party) (adv : Adversary) (σ : Store) (vD : List Release)
+    (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8)) (db eb tb : Bits) (I : Ideal)
+    (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let o := withAdv E me adv (Send.sealScript n a) σ I vD
+    (out.take 1 = [255] →
+      o.viewD <+: [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨Send.envelopeLabel, .bits (bitsOf te)⟩]) ∧
+    (out.take 1 ≠ [255] →
+      o.viewD <+: [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      ∀ x, o.result = some x → x = none) :=
+  Send.seal_view E me adv σ vD n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+
+/-- **F51 for op 41** [M]: two honest parties end with the same result; on 255 the timestamp, the
+envelope and the new state `n + 6` holding the kept record, both views [flags, status, timestamp ‖
+envelope], every other handle below the counter untouched; otherwise `none`, views [flags, status],
+the stored state's value kept. -/
+theorem s13_seal_joint (E : Env) (σA σB : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let sd : Send.Sealed := ⟨te.take 8, [te.drop 8], ⟨n + 6⟩⟩
+    let o := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    (out.take 1 = [255] →
+      o.result = some (some sd, some sd) ∧
+      o.viewA = [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨Send.envelopeLabel, .bits (bitsOf te)⟩] ∧ o.viewB = o.viewA ∧
+      o.ideal.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take Send.recordBytes)) ∧
+      ∀ x, x < n → x ≠ a.ephAgreement.id → x ≠ a.state.id → o.ideal.bools x = I.bools x) ∧
+    (out.take 1 ≠ [255] →
+      o.result = some (none, none) ∧
+      o.viewA = [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      o.viewB = o.viewA ∧ o.ideal.bools a.state.id = some (bitsOf record)) :=
+  Send.seal_joint E σA σB n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+
+/-- **F51: a whole single-device send through `jointRun`** [M]: op 41 (accepted), op 42 on op 41's new
+state handle, the request's CTR phase, S12's tag phase; the same results at every phase for both
+parties, and header ‖ ciphertext ‖ tag are exactly the bytes `s13_send_accepted` characterises
+(`TlsRecord.sealCore` of the request frame carrying the reference sealed-sender envelope). -/
+theorem s13_send_joint (E : Env) (σA σB σA' σB' : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk))
+    (traffic : BoolH) (K seqB : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (htn : traffic.id < n) (hte : traffic.id ≠ a.ephAgreement.id) (hts : traffic.id ≠ a.state.id)
+    (hKv : I.bools traffic.id = some (bitsOf K))
+    (m p q : Nat) (hm : n + 8 ≤ m) (hp : m + 2 ≤ p) (hq : p + 6 ≤ q)
+    (id : Nat) (mask frame : List (BitVec 8)) (offsets : List Nat) (marksR marksT : List Mark) (halfSlot : Nat)
+    (hR : E.circuits (Send.requestNameOf a.certLen frame offsets) =
+      some (kernelCircuit (HybridKernel.signalRequestCtr a.certLen frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+        (offsets.getD 2 0) (offsets.getD 3 0)) (68 + Send.convBytes a.certLen + frame.length + 4) marksR))
+    (hT : E.circuits Tls.tagName = some (kernelCircuit HybridKernel.gcmTag 48 marksT))
+    (ga gb : List Tls.W) :
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let newRecord := (out.drop (1 + a.certLen)).take Send.recordBytes
+    let ctr := kernelOut (HybridKernel.signalRequestCtr a.certLen frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+      (offsets.getD 2 0) (offsets.getD 3 0)) (Send.requestIn K seqB (certB ++ newRecord) frame mask)
+    let hc := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half ga (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half gb (hc.take 5) (hc.drop 5))
+    out.take 1 = [255] →
+    Send.frameFor (te.drop 8) (te.take 8) id mask official = .ok (frame, offsets) →
+    ctr.take 1 = [255] →
+    σA'.bits halfSlot = bitsOf hA → σB'.bits halfSlot = bitsOf hB →
+    let o1 := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    let o2 := jointRun E (Send.requestScript m a.cert ⟨n + 6⟩) (Send.requestScript m a.cert ⟨n + 6⟩) σA σB o1.ideal
+    let o3 := jointRun E
+      (Send.requestCtrScript p traffic ⟨m + 1⟩ seqB frame mask (Send.requestNameOf a.certLen frame offsets))
+      (Send.requestCtrScript p traffic ⟨m + 1⟩ seqB frame mask (Send.requestNameOf a.certLen frame offsets))
+      σA σB o2.ideal
+    let o4 := jointRun E (Tls.tagScript q ⟨p + 4⟩ halfSlot) (Tls.tagScript q ⟨p + 4⟩ halfSlot) σA' σB' o3.ideal
+    ∃ (sd : Send.Sealed) (hc' tag : List (BitVec 8)),
+      o1.result = some (some sd, some sd) ∧ sd.state = ⟨n + 6⟩ ∧ sd.envelopes = [te.drop 8] ∧
+      o1.ideal.bools (n + 6) = some (bitsOf newRecord) ∧
+      o2.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧
+      o3.result = some ((hc', ⟨p + 4⟩), (hc', ⟨p + 4⟩)) ∧
+      o4.result = some (tag, tag) ∧
+      hc' ++ tag = hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) :=
+  Send.send_joint E σA σB σA' σB' n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS traffic
+    K seqB hK hs htn hte hts hKv m p q hm hp hq id mask frame offsets marksR marksT halfSlot hR hT ga gb
+
+/-- **F59: ORD-1 at script level** [M]: on the accepted path op 41 returns the new state handle
+`n + 6` (defined by the seal kernel's run before the envelope's opening), and op 42 run on that
+handle reads exactly the kept record: the request is built from the state op 41 produced. -/
+theorem s13_send_state_order (E : Env) (σA σB : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk))
+    (m : Nat) (hm : n + 8 ≤ m) (σA' σB' : Store) :
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let newRecord := (out.drop (1 + a.certLen)).take Send.recordBytes
+    let o := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    out.take 1 = [255] →
+    (∃ sd : Send.Sealed, o.result = some (some sd, some sd) ∧ sd.state = ⟨n + 6⟩) ∧
+    let o2 := jointRun E (Send.requestScript m a.cert ⟨n + 6⟩) (Send.requestScript m a.cert ⟨n + 6⟩) σA' σB' o.ideal
+    o2.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧ o2.viewA = [] ∧
+    o2.ideal.bools (m + 1) = some (bitsOf (certB ++ newRecord)) :=
+  Send.send_state_order E σA σB n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS m hm σA' σB'
+
+/-- **F54 in part: op 62's wires fit the pipe** [K] (`Wire.Bounded`). -/
+theorem s13_requestDevicesScript_bounded (n : Nat) (state : BoolH) (ats : List Nat) (hn : n + ats.length < B64)
+    (hs : state.id < B64) (hat : ∀ x ∈ ats, 8 * (x + Send.recordBytes) < B64) :
+    Every Instr.Bounded (Send.requestDevicesScript n state ats) :=
+  Registry.requestDevicesScript_bounded n state ats hn hs hat
+
+end FlowsS13b
+
+/-! ### 7f. Receive a first message (stage S14; plan 8.1 T3, T4-RECV, T13; numbered 7d on the S14
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S14 scripts (`TlsMpc/Node/Flows/Receive.lean`, proofs `Flows/ReceiveFlowProofs.lean`, the IO
+glue `Flows/ReceiveBackend.lean`; S14_NOTES.md). **F** marks a statement at the function level: the
+kernels' specifications (`ReceiveProofs.*_spec`) connected by the scripts' own wiring functions
+(`Receive.staticIn` … `sessionInOf`), not yet through `jointRun`. -/
+
+section FlowsS14
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Receive
+open TlsMpc.Signal TlsMpc.Signal.ReceiveFirst TlsMpc.KernelSpecs.ReceiveAccept
+
+/-- **T3, kinds, op 50** [K]: every release of `Receive.openFirst`, on every branch, from every
+state, carries the label of `certificateLength`, `contentShape`, `prekeyShape`, `prekeyIds`, a
+conversion's masked value, or one of the curve parameter's kinds; so in any run against any
+adversary the adversary's view carries nothing else (`viewD_kinds`). -/
+theorem s14_openFirst_reveals (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (env : BoolH) (size : Nat) :
+    RevealsG (allFirst cv) (Receive.openFirst cv loaded fi env size) :=
+  Receive.openFirst_reveals cv loaded fi env size
+
+/-- **T3, kinds, op 51** [K]: the same for `Receive.session` (`signalShape`, `sessionStatus`,
+`receivedText`, `accessKeyStatus`, masked field values, the curve's kinds). -/
+theorem s14_session_reveals (cv : Curve) (loaded : Bytes → Bool) (a : Arrival) (sp : SessionPublic)
+    (ss : SessionSecrets) : RevealsG (allSession cv) (Receive.session cv loaded a sp ss) :=
+  Receive.session_reveals cv loaded a sp ss
+
+/-- **Gating** [K]: once `receive-session`'s status opens to anything but 255, the script frees the
+conversation and the plaintext and releases nothing more (`receive-text` is not run). -/
+theorem s14_sessionRest_refused (loaded : Bytes → Bool) (cert ct : Nat) (se : List BoolH) (status : Bits)
+    (h : Contacts.bytesOf status ≠ [255]) :
+    sessionRest loaded cert ct se status = refuse [at! se 1, at! se 3] [] ∧ SilentG (sessionRest loaded cert ct se status) :=
+  Receive.sessionRest_refused loaded cert ct se status h
+
+/-- **The wiring, by definition** [F]: the session's `verified` input is
+`receive-certificate-verified` on `receive-certificate`'s validity and signature (the hypothesis
+`session_accept_certificate` takes about the controller holds for the scripts' wiring). -/
+theorem s14_verified_wiring (i : Proofs.Pipeline.In) :
+    (Proofs.Pipeline.sin i).verified =
+      (certificateVerified ByteAuth.concrete
+        ((certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+          (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 0 [])
+        ((certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+          (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 3 [])
+        i.serverValid i.rx i.ry).getD 0 [] :=
+  Proofs.pipeline_verified_wiring i
+
+/-- **T13 for the scripts' wiring** [F]: an accepted session (status 255) means the message MAC
+verified under libsignal's keys, the sender certificate's identity is the decrypted static key, its
+signer is the trusted one, it has not expired, the server key is a curve point and the signature's
+`R` is the compression of the field engine's `[s]B − [h]A`. -/
+theorem s14_accept_certificate (i : Proofs.Pipeline.In) (hjump : i.jump ≤ 16)
+    (h : (Proofs.Pipeline.se i).getD 0 [] = [255]) :
+    (certificate ByteAuth.concrete XEdDsaSha512.concrete XEdDsaScalar.concrete i.cert i.c (Proofs.Pipeline.certBytes i)
+      (Proofs.Pipeline.contentValid i) (Proofs.Pipeline.senderIdentity i) i.signer i.now i.serverX i.serverY).getD 0 [] =
+      [255] ∧
+    Establish.part (Proofs.Pipeline.certBytes i)
+      (if i.c.embedded then bodyAt i.cert + i.c.e164 + 48 else bodyAt i.cert + i.c.e164 + 46 + 2 + i.c.uuidSize + 1)
+      i.c.signerSize = i.signer ∧
+    i.serverValid = ByteAuth.concrete.const 1 :: List.replicate 31 (ByteAuth.concrete.const 0) ∧
+    (Establish.part (Proofs.Pipeline.certBytes i) (bodyAt i.cert + i.c.body + 2) 64).take 32 =
+      XEdDsa.compress ByteAuth.concrete i.rx i.ry := by
+  obtain ⟨_, h1, _, h2, _, h3, _, h4⟩ := Proofs.pipeline_accept_certificate i hjump h
+  exact ⟨h1, h2, h3, h4⟩
+
+/-- **T4-RECV, the text** [F]: with the session's and `receive-text`'s statuses 255, the opened text
+is exactly the body of the decrypted content (the session's plaintext, which
+`pipeline_accept_outputs` says is libsignal's AES-256-CBC decryption under the message keys). -/
+theorem s14_text (i : Proofs.Pipeline.In) (hcap : i.cap < 65536) (ht : (Proofs.Pipeline.tx i).getD 0 [] = [255]) :
+    TlsMpc.KernelSpecs.ReceiveAcceptText.Accepted (((Proofs.Pipeline.se i).getD 3 []).drop 8) i.cap ∧
+    (Proofs.Pipeline.tx i).getD 2 [] = (List.range i.cap).map (fun j =>
+      if j < TlsMpc.KernelSpecs.ReceiveAcceptText.bodyLength (((Proofs.Pipeline.se i).getD 3 []).drop 8) then
+        TlsMpc.KernelSpecs.ReceiveAcceptText.g (((Proofs.Pipeline.se i).getD 3 []).drop 8)
+          (TlsMpc.KernelSpecs.ReceiveAcceptText.bodyStart (((Proofs.Pipeline.se i).getD 3 []).drop 8) + j)
+      else 0) :=
+  Proofs.pipeline_text i hcap ht
+
+/-- **T4-RECV, the stored record** [F]: with `receive-access-key`'s status 255 the conversation it
+outputs (whose bytes `cert .. cert + 319` the script stores) is the session's with the access key
+derived from the message's profile key, for one of the 72 layouts. -/
+theorem s14_record (i : Proofs.Pipeline.In) (hlen : i.ownCert + 294 ≤ ((Proofs.Pipeline.se i).getD 1 []).length)
+    (hk : (Proofs.Pipeline.ak i).getD 0 [] = [255]) :
+    ∃ g ∈ gaps, (Proofs.Pipeline.ak i).getD 1 [] = ((Proofs.Pipeline.se i).getD 1 []).take (i.ownCert + 278) ++
+        TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.accessKeyOf
+          (TlsMpc.KernelSpecs.ReceiveAcceptAccessKey.profileKey (((Proofs.Pipeline.se i).getD 3 []).drop 8) i.offset g) ++
+        ((Proofs.Pipeline.se i).getD 1 []).drop (i.ownCert + 294) :=
+  Proofs.pipeline_record i hlen hk
+
+/-- **A refused session opens no text** [F]: unless the session's status is 255, every output of
+`receive-text` on its plaintext is zero. -/
+theorem s14_refused_text_zero (i : Proofs.Pipeline.In) (h : (Proofs.Pipeline.se i).getD 0 [] ≠ [255]) :
+    ∀ field ∈ text ByteAuth.concrete i.cap ((Proofs.Pipeline.se i).getD 3 []), ∀ b ∈ field, b = 0 :=
+  Proofs.pipeline_refused_text_zero i h
+
+/-- **A refused envelope opens a zero certificate length** [F] (`unsealMessage_rejects`). -/
+theorem s14_certificateLength_zero (i : Proofs.Pipeline.In) (h : (Proofs.Pipeline.um i).getD 0 [] = [0]) :
+    ∀ b ∈ (Proofs.Pipeline.um i).getD 2 [], b = 0 :=
+  Proofs.pipeline_certificateLength_zero i h
+
+/-- **Provisional ids** [K]: distinct within a session, and never an application id (those are below
+2^128 − 2^64), for fewer than 2^64 − 2 messages. -/
+theorem s14_provisional_ids (j k : Nat) (hj : j + 2 < 2 ^ 64) (hk : k + 2 < 2 ^ 64) :
+    (provisionalId j = provisionalId k → j = k) ∧ 2 ^ 128 - 2 ^ 64 ≤ provisionalId k :=
+  ⟨provisionalId_inj j k (by omega) (by omega), provisionalId_high k hk⟩
+
+end FlowsS14
+
+/-! ### 7g. Device refresh (stage S15; plan 8.1 T3, T4-REFRESH, ORD-2; numbered 7d on the S15
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S15 scripts (`TlsMpc/Node/Flows/Refresh.lean`, proofs `RefreshFlowProofs.lean`,
+`RefreshSlotProofs.lean`, `RefreshKemProofs.lean`, `RefreshFirstProofs.lean`, `RefreshWF.lean`;
+S15_NOTES.md). Status letters as above. S11's curve operations are a parameter (`Refresh.CurveOps`)
+whose own `Reveals` is a hypothesis; the circuits computing their Lean kernels is T2's trust; the
+KEM and session kernels' output widths (`KemWidths`, `SessionWidths`) are the pinned layouts.
+Compiled standalone in this stage (the whole file exceeds the stage's 4 GB cap): standard axioms. -/
+
+section FlowsS15
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **T3 for the establishment** [M; hyp: S11's `Reveals`]: against any adversary, every release of a
+refresh step carries the label of `sealedRecord`, `bundleShape`, `identityChanged`, `deviceStatus`,
+`sealedBlob` or one of S11's kinds: the keys response body is opened only as its punctuation flags,
+the first device's `changed` byte and each device's status. -/
+theorem s15_refresh_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (cv : Refresh.CurveOps)
+    (hcv : cv.Reveals) (acct : Refresh.Account) (t : Contacts.Table) (st : Refresh.RState)
+    (id registration index count step start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (slot : Nat) (σ : Store)
+    (I : Ideal) (vD : List Release) :
+    ∀ r ∈ (withAdv E me adv (Refresh.opEstablish cv acct t st id registration index count step start w slot).script
+      σ I vD).viewD, ∃ k ∈ Refresh.refreshKinds cv.kinds, r.label = Label.ofKind k :=
+  Refresh.refresh_viewD_kinds E me adv cv hcv acct t st id registration index count step start w slot σ I vD
+
+/-- **T3, the other refresh scripts** [M]: each declares its kinds (`Registry.s15_flows_reveal`). -/
+theorem s15_flows_reveal_restated :
+    (∀ n body size, Reveals Refresh.shapeKinds (Refresh.shapeScript n body size)) ∧
+    (∀ t st, Reveals [] (Refresh.opDrop t st).script) ∧ (∀ t st id, Reveals [] (Refresh.opCommit t st id).script) :=
+  ⟨Registry.s15_flows_reveal.2.2.1, Registry.s15_flows_reveal.2.2.2.2.2.2.2.2.1,
+    Registry.s15_flows_reveal.2.2.2.2.2.2.2.2.2⟩
+
+/-- **ORD-2 on the table** [K]: `opCommit` is the only refresh operation that changes a contact's
+entry, and only to the content the scratch's seal sealed, when the scratch is complete and sealed
+for that contact. -/
+theorem s15_ord2_commit (t : Contacts.Table) (st : Refresh.RState) (id : Nat) (r : Unit)
+    (h : ((Refresh.opCommit t st id).commit r).1.entries ≠ t.entries) :
+    ∃ e content size kinds, t.find? id = some e ∧ st.contact = some id ∧ st.sealed = some (content, size, kinds) ∧
+      st.ready = true ∧
+      ((Refresh.opCommit t st id).commit r).1 = t.put id (Refresh.committed e content size kinds st.changed) :=
+  Refresh.opCommit_entry t st id r h
+
+/-- **ORD-2: a dropped scratch leaves the table unchanged** [K]. -/
+theorem s15_ord2_drop (t : Contacts.Table) (st : Refresh.RState) (r : Unit) :
+    ((Refresh.opDrop t st).commit r) = (t, {}) := Refresh.opDrop_table t st r
+
+/-- **ORD-2: the establishment changes no entry** [K] (likewise fetch, take, shape, scratch seal:
+`opFetch_entries`, `opTake_entries`, `opShape_entries`, `opScratchSeal_entries`). -/
+theorem s15_ord2_establish (cv : Refresh.CurveOps) (acct : Refresh.Account) (t : Contacts.Table)
+    (st : Refresh.RState) (id registration index count step start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths)
+    (slot : Nat) (r : Refresh.Status × Refresh.RState) :
+    ((Refresh.opEstablish cv acct t st id registration index count step start w slot).commit r).1.entries = t.entries :=
+  Refresh.opEstablish_entries cv acct t st id registration index count step start w slot r
+
+/-- **The splice and the digit counts from one source** [M]: from the held body, `bundle-slot`'s
+input is the cut with the item spliced by `BundleSlots.splice w` followed by `widthsOf w` of the
+SAME `w` (the `inconsistent_width_*` combination cannot be formed). -/
+theorem s15_slot_one_source (E : Env) (n : Nat) (body : BoolH) (X : B8) (start : Nat)
+    (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool) (I : Ideal) (hb : I.bools body.id = some (bitsOf X))
+    (hbn : body.id < n) (hp : Refresh.placedOk X.length start w first last = true) :
+    ∃ I', runPlain E (Refresh.slotInput n body X.length start w first last) I = some I' ∧
+      I'.bools (n + 4) = some (bitsOf (Refresh.slotBytes X start w first last ++ Refresh.widthsOf w)) ∧
+      ∀ j, j < n → I'.bools j = I.bools j :=
+  Refresh.slotInput_value E n body X start w first last I hb hbn hp
+
+/-- **T4, the parse** [K]: the kernel the script feeds outputs `BundleResponse.device` on the body
+the server sent (`bundleSlot_device`). -/
+theorem s15_parse_device (X : B8) (start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool)
+    (hp : Refresh.placedOk X.length start w first last = true) :
+    let out := TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X
+    TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+        (Refresh.slotAssign X start w first last) =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []]) :=
+  Refresh.parse_device X start w first last hp
+
+/-- **T4, the parse, any counts: device or refused** [K] (`bundleSlot_parses_or_refuses`). -/
+theorem s15_parse_or_refuse (X : B8) (start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool)
+    (hp : Refresh.placedOk X.length start w first last = true) :
+    ((TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X).getD 0 [] = [255] ∧
+      (∀ w', (TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w' X).getD 0 [] = [255] →
+        w' = w) ∧
+      let out := TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X
+      TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+          (Refresh.slotAssign X start w first last) =
+        [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+          out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+        (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
+    (∀ field ∈ TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+        (Refresh.slotAssign X start w first last), ∀ byte ∈ field, byte = 0) :=
+  Refresh.parse_parses_or_refuses X start w first last hp
+
+/-- **T4, the encapsulation** [K; hyp: `KemWidths`]: every name binding of `kernels_compose` holds
+for the script's wiring, so the script's encapsulation is `pipeline`. -/
+theorem s15_kem_pipeline (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) : Refresh.kemFlow K eA eB = (TlsMpc.KernelSpecs.KemCompose.pipeline true K eA eB).flatten :=
+  Refresh.kemFlow_pipeline K eA eB hW hK hA hB
+
+/-- **T4, the encapsulation, valid key** [K; hyp: `KemWidths`]: status 255, the reference ciphertext
+and secret. -/
+theorem s15_kem_accept (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) (hvalid : TlsMpc.KernelSpecs.KemCompose.KeyValid K)
+    (hs : (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).success = 255) :
+    Refresh.kemFlow K eA eB = [255] ++ (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).bytes.take 1568 ++
+      (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).bytes.drop 1568 :=
+  Refresh.kemFlow_accept K eA eB hW hK hA hB hvalid hs
+
+/-- **T4, the encapsulation, invalid key: nothing released** [K; hyp: `KemWidths`]. -/
+theorem s15_kem_invalid (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) (h : ¬ TlsMpc.KernelSpecs.KemCompose.KeyValid K) : ∀ b ∈ Refresh.kemFlow K eA eB, b = 0 :=
+  Refresh.kemFlow_invalid K eA eB hW hK hA hB h
+
+/-- **T4, the first message: `wired` for the script** [K; hyp: `SessionWidths`, the send binds the
+handed records]: the scratch hands the send `establish-session`'s outputs 1 and 2, so
+`firstMessage_envelope` / `openedEnvelopes_first` apply. -/
+theorem s15_first_wired (cert content : Nat) (s : TlsMpc.KernelSpecs.EstablishDevices.DeviceSession)
+    (d : TlsMpc.KernelSpecs.EstablishDevices.DeviceSeal) (hW : Refresh.SessionWidths cert d.withOneTime)
+    (established : (s.outputs cert d.withOneTime).getD 0 [] = [255])
+    (hconv : d.input cert content "conversation" = Refresh.keptConversation (s.outputs cert d.withOneTime).flatten cert)
+    (hpend : d.input cert content "pending" = Refresh.keptPending (s.outputs cert d.withOneTime).flatten cert)
+    (opened : (d.outputs cert content).getD 0 [] = [255]) :
+    TlsMpc.KernelSpecs.EstablishDevices.wired cert content (s, d) :=
+  Refresh.first_wired cert content s d hW established hconv hpend opened
+
+/-- **A drop keeps the table's invariant** [M] (`opDrop_inv`). -/
+theorem s15_drop_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Contacts.Table) (st : Refresh.RState)
+    (hT : t.Inv c) (hR : st.Inv c t) :
+    WFP sigs (fun c' r => ((Refresh.opDrop t st).commit r).1.Inv c' ∧ ((Refresh.opDrop t st).commit r).2.Inv c' t) c
+      (Refresh.opDrop t st).script :=
+  Refresh.opDrop_inv sigs c t st hT hR
+
+end FlowsS15
+
+/-! ### 7h. The joins: S11's curve flows as the parameters of S12–S15 (`scripts-stack`)
+
+`TlsMpc/Node/Flows/Join.lean` (scripts and proofs) and `Flows/JoinBackend.lean` (IO glue, no
+theorems); STACK_NOTES.md has the join table. The parameters the branches left open are
+instantiated with S11's flows and S10's conversions; each composed script declares the union of
+its parts' kinds, and S15's hypothesis `CurveOps.Reveals` is DISCHARGED for the joined
+operations. **M** as above. -/
+
+section FlowsJoin
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **S12's key agreement, joined** [M]: the agreement script (`Curve.splitAgree`, zero check,
+`Convert.fieldToWord`) releases only P-SPLIT's and P-F2W's kinds. -/
+theorem join_splitAgreeWord_reveals (f0 tSlot maskSlot n0 f1 : Nat) (m : Conv.WordMask) :
+    Reveals Join.keyAgreementKinds (Join.splitAgreeWord f0 tSlot maskSlot n0 f1 m) :=
+  Join.splitAgreeWord_reveals f0 tSlot maskSlot n0 f1 m
+
+/-- **S13's ephemeral pair, joined** [M]: the offset step and field to word release only P-OFFSET's
+and P-F2W's kinds. -/
+theorem join_ephemeralWord_reveals (f0 maskSlot n0 f1 : Nat) (st : Curve.OffsetState) (τ : Nat)
+    (m : Conv.WordMask) :
+    Reveals Join.ephemeralKinds (Join.ephemeralWord f0 maskSlot n0 f1 st τ m) :=
+  Join.ephemeralWord_reveals f0 maskSlot n0 f1 st τ m
+
+/-- **S14's curve parameter, joined** [M]: S11's ladder agreements on P-BITS swap bits declare
+their kinds from every state; with S14's program-based signature and base check, ops 50 and 51
+release only registered kinds (S14's `openFirst_reveals`, `session_reveals` instantiated). -/
+theorem join_receive_reveals (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool) :
+    (∀ fi env size, Receive.RevealsG (Receive.firstKinds ++ .maskedDenominator :: Join.receiveAgreeKinds)
+      (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size)) ∧
+    (∀ a sp ss, Receive.RevealsG (Receive.sessionKinds ++ .maskedDenominator :: Join.receiveAgreeKinds)
+      (Receive.session (Join.receiveCurve sl pm) loaded a sp ss)) ∧
+    (∀ k ∈ Receive.firstKinds ++ Receive.sessionKinds ++ .maskedDenominator :: Join.receiveAgreeKinds,
+      k ∈ Label.kinds) :=
+  Join.receive_joined_reveals sl pm loaded
+
+/-- **S15's `CurveOps.Reveals`, discharged** [M]. -/
+theorem join_refreshOps_reveals (rc : Join.RefreshCurve) : (Join.refreshOps rc).Reveals :=
+  Join.refreshOps_reveals rc
+
+/-- **T3 for the joined establishment, no hypothesis on the curve** [M]. -/
+theorem join_refresh_reveals (rc : Join.RefreshCurve) (acct : Refresh.Account) (t : Contacts.Table)
+    (st : Refresh.RState) (id registration index count step start : Nat)
+    (w : TlsMpc.Signal.BundleResponse.Widths) (slot : Nat) :
+    Reveals (Refresh.refreshKinds Join.refreshCurveKinds)
+      (Refresh.opEstablish (Join.refreshOps rc) acct t st id registration index count step start w slot).script ∧
+    ∀ k ∈ Refresh.refreshKinds Join.refreshCurveKinds, k ∈ Label.kinds :=
+  Join.refresh_joined_reveals rc acct t st id registration index count step start w slot
+
+open TlsMpc.KernelSpecs.EstablishDevices (DeviceSession DeviceSeal wired) in
+/-- **S15's `first_wired` bindings from S13's `bundle-seal` layout** [K]: for the bundle S13's
+`devicesScript` builds, `wired` holds given only that the certificate bytes are the session's
+certificate input (`hcert`) and the pending block is the session's (`hpend`). -/
+theorem join_first_wired (cert content : Nat) (s : DeviceSession) (oneTime : Bool) (cw pw ew iw : Nat)
+    (certBytes pending address text : Contacts.B8) (w : Bits)
+    (hW : Refresh.SessionWidths cert oneTime)
+    (established : (s.outputs cert oneTime).getD 0 [] = [255])
+    (hcert : certBytes = s.input cert oneTime "certificate")
+    (hpend : pending = (s.outputs cert oneTime).getD 2 [])
+    (hc : (certBytes ++ ((s.outputs cert oneTime).getD 1 []).drop cert).length = Send.convBytes cert)
+    (hp : pending.length = TlsMpc.EstablishKernel.pendingBytes) (ha : address.length = 17)
+    (ht : text.length = content + 10) (d : DeviceSeal)
+    (hd : d = ⟨oneTime, cw, pw, ew, iw, Send.shapedAssign (TlsMpc.BundleKernel.sealInputs cert content)
+      (Contacts.bitsOf (certBytes ++ ((s.outputs cert oneTime).getD 1 []).drop cert) ++
+        (Contacts.bitsOf pending ++ (Contacts.bitsOf address ++ (Contacts.bitsOf text ++ w))))⟩)
+    (opened : (d.outputs cert content).getD 0 [] = [255]) :
+    wired cert content (s, d) :=
+  Join.join_first_wired cert content s oneTime cw pw ew iw certBytes pending address text w hW established
+    hcert hpend hc hp ha ht d hd opened
+
+/-- **Every kind the joined scripts release is a registered label.** -/
+theorem join_kinds_registered :
+    ∀ k ∈ Join.keyAgreementKinds ++ Curve.splitKinds ++ Join.ephemeralKinds ++ Random.jointKinds ++
+      Join.receiveAgreeKinds ++ Join.refreshCurveKinds, k ∈ Label.kinds :=
+  Join.join_kinds_registered
+
+end FlowsJoin
+
+/-! ### 7i. J1 (no slot of fresh randomness read twice) and the controller-side script runner
+
+`TlsMpc/Node/Flows/JoinOnce.lean`: every field-element input of the joined receive and refresh
+flows reads a store slot TAKEN from the state's supply (`Receive.St.slots`, `Gen.takeSlot`), so on
+every run no slot of fresh mask contributions is read twice (two openings `z·m`, `z'·m` with one
+mask `m` would reveal `z / z'`; before J1's fix op 50's two agreements shared one slot).
+`TlsMpc/Node/Flows/Runner.lean`: the runner's pure core `drive` (what the controller sends as
+op 93, batch by batch) against the model's honest party. **M** as above; the runner's IO loop is
+`drive`'s steps (unverified glue, like the backends). -/
+
+section FlowsRunner
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **J1, op 50 joined** [M]: whatever the replies, the slots a run of the joined `openFirst` reads
+are slots of the supply it started with, none twice (its two agreements and `xeddsa-check`). -/
+theorem j1_openFirst_reads_once (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool)
+    (fi : Receive.FirstIn) (env : BoolH) (size : Nat) (st : Receive.St) (h : (JoinOnce.supply st).Nodup) :
+    ∀ rs, (JoinOnce.readsAlong (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size st) rs).Nodup ∧
+      ∀ x ∈ JoinOnce.readsAlong (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size st) rs,
+        x ∈ JoinOnce.supply st :=
+  JoinOnce.openFirst_reads_once sl pm loaded fi env size st h
+
+/-- **J1, op 51 joined** [M]: the same for the session (`xeddsa-recover`, `receive-torsion`, the six
+or seven agreements). -/
+theorem j1_session_reads_once (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool)
+    (a : Receive.Arrival) (sp : Receive.SessionPublic) (ss : Receive.SessionSecrets) (st : Receive.St)
+    (h : (JoinOnce.supply st).Nodup) :
+    ∀ rs, (JoinOnce.readsAlong (Receive.session (Join.receiveCurve sl pm) loaded a sp ss st) rs).Nodup ∧
+      ∀ x ∈ JoinOnce.readsAlong (Receive.session (Join.receiveCurve sl pm) loaded a sp ss st) rs,
+        x ∈ JoinOnce.supply st :=
+  JoinOnce.session_reads_once sl pm loaded a sp ss st h
+
+/-- **J1, the joined agreements** [M]: they take their quotient-mask slot from the supply and read it
+once (from every state whose supply and reads have no slot twice). -/
+theorem j1_receiveAgree_once (U : List Nat) (sl : Join.AgreeSlots) (jobs : List Receive.Job) :
+    JoinOnce.OnceG U (Join.receiveAgree sl jobs) :=
+  JoinOnce.receiveAgree_once U sl jobs
+
+/-- **J1, S15's joined curve operations** [M]: `lift`, `check`, `agree` each read only slots of
+their own supply, none twice. -/
+theorem j1_refreshOps_reads_once (rc : Join.RefreshCurve) (c : Counters) :
+    ((rc.liftSlots.map Prod.fst).Nodup → ∀ p rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).lift c p) rs).Nodup ∧
+        ∀ x ∈ JoinOnce.readsAlong ((Join.refreshOps rc).lift c p) rs, x ∈ rc.liftSlots.map Prod.fst) ∧
+    ((rc.checkSlots.map Prod.fst).Nodup → ∀ x y ec pq rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).check c x y ec pq) rs).Nodup ∧
+        ∀ s ∈ JoinOnce.readsAlong ((Join.refreshOps rc).check c x y ec pq) rs, s ∈ rc.checkSlots.map Prod.fst) ∧
+    ((rc.agreeSlots.map Prod.fst).Nodup → ∀ ip sp o rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).agree c ip sp o) rs).Nodup ∧
+        ∀ s ∈ JoinOnce.readsAlong ((Join.refreshOps rc).agree c ip sp o) rs, s ∈ rc.agreeSlots.map Prod.fst) :=
+  JoinOnce.refreshOps_reads_once rc c
+
+/-- **J1's sibling in the S15 join** [M]: the three calls' mask pools cut from one share no mask. -/
+theorem j1_refresh_pools_disjoint (p : Conv.MaskPool) (hd : p.Distinct) :
+    let s := Join.splitPool p
+    (s.1.words ++ s.2.1.words ++ s.2.2.1.words ++ s.2.2.2.words).Nodup ∧
+      (s.1.bits ++ s.2.1.bits ++ s.2.2.1.bits ++ s.2.2.2.bits).Nodup :=
+  Join.split_disjoint p hd
+
+/-- **The controller sends exactly the batches the model says** [M]: if the honest party's model run
+of `s` returns `a`, the runner's pure core fed the values the model released to it (as the worker's
+reply items) sends batches whose instructions are the model run's trace, in order, and returns `a`
+with the model's final store. -/
+theorem runner_drive_model (E : Env) (me : Party) (adv : Adversary) {α : Type} (fuel : Nat) (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) (a : α)
+    (hr : (withAdv E me adv s σ I vD).result = some a) (hl : (withAdv E me adv s σ I vD).trace.length < fuel) :
+    (Runner.drive E.hash me fuel s σ ((withAdv E me adv s σ I vD).viewH.map (·.datum))).2 =
+        (some a, (withAdv E me adv s σ I vD).store) ∧
+      (Runner.drive E.hash me fuel s σ ((withAdv E me adv s σ I vD).viewH.map (·.datum))).1.flatten.map InstrP.skel =
+        (withAdv E me adv s σ I vD).trace :=
+  Runner.drive_model E me adv fuel s σ I vD a hr hl
+
+/-- **The runner sends only bounded wires** [M] (so every batch round-trips through the encoding). -/
+theorem runner_drive_bounded (hash : Bytes → Bytes) (me : Party) {α : Type} (fuel : Nat) (s : Script α)
+    (σ : Store) (ds : List Datum) (hs : Every Instr.Bounded s) :
+    ∀ b ∈ (Runner.drive hash me fuel s σ ds).1, ∀ w ∈ b, w.Bounded :=
+  Runner.drive_bounded hash me fuel s σ ds hs
+
+/-- **The batches depend on the store only through `fill`** [M]. -/
+theorem runner_nextBatch_fill_only (hash : Bytes → Bytes) (me : Party) {α : Type} (σ₁ σ₂ : Store)
+    (h : ∀ i, fill hash me σ₁ i = fill hash me σ₂ i) (s : Script α) :
+    nextBatch hash me σ₁ s = nextBatch hash me σ₂ s :=
+  Runner.nextBatch_fill_only hash me σ₁ σ₂ h s
+
+end FlowsRunner
+
+/-! ### 7j. The contact set made selectable: J8, J11, J12, J13, F32
+
+`TlsMpc/Node/Flows/Account.lean` (ops 47, 46 as scripts; the account state keeps the identity's
+swap-bit handles and the sender key word), `Flows/UpgradeAuth.lean` (op 32 on the script account
+state), `Flows/Join.lean` + `Flows/JoinIdentity.lean` (J8: the identity scalar's swap bits as field
+handles in the joined agreements, spared by every run), `Flows/ContactsPrepare.lean` (F32: op 66's
+contact-table glue; J12: the sender key), `Flows/Select.lean` (the contact set switches as one),
+`Flows/Runner.lean` (J13: slots released). **M** as above; the kernels' values through `Signal`'s
+specifications (the upgrade kernels, T2 for their circuits as `Contacts.Loaded`'s). -/
+
+section FlowsContactSet
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **Op 47 releases nothing** [M]. -/
+theorem s16_credentials_reveals (a : Account.State) (slot : Nat) :
+    Reveals [] (Account.credentialsStep a slot).1 :=
+  Account.credentialsStep_reveals a slot
+
+/-- **Op 46 (TEST) releases only the conversions' masked bits** [M]. -/
+theorem s16_admit_reveals (a : Account.State) (n f : Nat) (pool : Conv.MaskPool) (hinted : Bool)
+    (scalarSlot certSlot certLen : Nat) :
+    Reveals Account.openKinds55 (Account.admitStep a n f pool hinted scalarSlot certSlot certLen) :=
+  Account.admitStep_reveals a n f pool hinted scalarSlot certSlot certLen
+
+/-- **Op 32 releases only the joint nonce's commitment and opening** [M]: the credentials and the
+request are never opened. -/
+theorem s16_upgrade_reveals (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot n : Nat)
+    (cr : UpgradeAuth.Creds) :
+    Reveals Random.jointKinds (UpgradeAuth.authenticated hash me nonceSlot valueSlot n cr) :=
+  UpgradeAuth.authenticated_reveals hash me nonceSlot valueSlot n cr
+
+/-- **Op 32 is well formed** [M] from a context holding the credential handles with their marks. -/
+theorem s16_upgrade_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot n : Nat)
+    (cr : UpgradeAuth.Creds) (c : Ctx) (outM : List Mark) (hf : Contacts.Fresh c n)
+    (hp : ∀ p ∈ cr.parts, p.id < n ∧ c.bool? p = some UpgradeAuth.credInfo)
+    (hsig : sigs cr.name = some ⟨8 * (Account.credentialBytes * cr.parts.length + 16), outM⟩)
+    (hout : outM.length ≤ maxWidth) : WF sigs c (UpgradeAuth.authenticated hash me nonceSlot valueSlot n cr) :=
+  UpgradeAuth.authenticated_wf sigs hash me nonceSlot valueSlot n cr c outM hf hp hsig hout
+
+/-- **The shared upgrade kernel on the bundle op 32 builds** is the relay's request on the XOR of
+the credential shares and the nonce (`signalUpgradeShared_spec`) [K]. -/
+theorem s16_request_shared_value (a b nonce : Contacts.B8) (ha : a.length = 16 + UpgradeAuth.passwordBytes)
+    (hb : b.length = 16 + UpgradeAuth.passwordBytes) (hn : nonce.length = 16) :
+    Contacts.kernelOut (HybridKernel.signalUpgradeShared UpgradeAuth.passwordBytes) (a ++ b ++ nonce) =
+      Signal.RelayUpgrade.request ByteAuth.concrete UpgradeAuth.passwordBytes (List.zipWith (· ^^^ ·) a b ++ nonce) :=
+  UpgradeAuth.requestShared_value a b nonce ha hb hn
+
+/-- **The plain upgrade kernel** (credentials combined, op 55) [K]. -/
+theorem s16_request_plain_value (cred nonce : Contacts.B8) (hc : cred.length = 16 + UpgradeAuth.passwordBytes)
+    (hn : nonce.length = 16) :
+    Contacts.kernelOut (HybridKernel.signalUpgrade UpgradeAuth.passwordBytes) (cred ++ nonce) =
+      Signal.RelayUpgrade.request ByteAuth.concrete UpgradeAuth.passwordBytes (cred ++ nonce) :=
+  UpgradeAuth.requestPlain_value cred nonce hc hn
+
+/-- **J8** [M]: a job whose scalar has swap-bit handles runs nothing and makes nothing. -/
+theorem j8_jobBits_swaps (sl : Join.AgreeSlots) (j : Receive.Job) (hs : List FieldH) (h : sl.swaps j.scalar = some hs)
+    (st : Receive.St) : Join.jobBits sl j st = .done ((hs, []), st) :=
+  Join.jobBits_swaps sl j hs h st
+
+/-- **J8: the joined agreements spare the identity's swap-bit handles** [M]: along every branch no
+instruction frees them or consumes them as a program mask (handles allocated before the run, none a
+pool mask's). -/
+theorem j8_receiveAgree_spares (sl : Join.AgreeSlots) (jobs : List Receive.Job) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (Join.receiveAgree sl jobs st) :=
+  JoinIdentity.receiveAgree_spares sl jobs st S hbelow hpool
+
+/-- **J8 for S15's agreement step** [M]. -/
+theorem j8_agreeG_spares (sl : Join.AgreeSlots) (ip sp : BoolH) (o : Option BoolH) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (Join.agreeG sl ip sp o st) :=
+  JoinIdentity.agreeG_spares sl ip sp o st S hbelow hpool
+
+/-- **J12 and J8: the sender key's agreement spares them** [M]. -/
+theorem j12_senderPublic_spares (sl : Join.AgreeSlots) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (ContactsPrepare.senderPublicG sl st) :=
+  JoinIdentity.senderPublicG_spares sl st S hbelow hpool
+
+/-- **J12: the sender key releases only the joined agreements' kinds** [M]. -/
+theorem j12_senderPublic_reveals (sl : Join.AgreeSlots) :
+    Receive.RevealsG Join.receiveAgreeKinds (ContactsPrepare.senderPublicG sl) :=
+  ContactsPrepare.senderPublicG_reveals sl
+
+/-- **F32: one contact's preparation releases only P-W2F's, P-OFFSET's and the agreements' kinds**
+[M], all registered. -/
+theorem f32_prepare_reveals (hash : Bytes → Bytes) (me : Party) (cert : BoolH) (certLen : Nat) (sl : Join.AgreeSlots)
+    (os : Curve.OffsetSlots) (state : BoolH) :
+    Receive.RevealsG ContactsPrepare.prepareKinds (ContactsPrepare.prepareOneG hash me cert certLen sl os state) ∧
+      ∀ k ∈ ContactsPrepare.prepareKinds, k ∈ Label.kinds :=
+  ⟨ContactsPrepare.prepareOneG_reveals hash me cert certLen sl os state, ContactsPrepare.prepareKinds_registered⟩
+
+/-- **F32: the status byte means "prepared"** [M]. -/
+theorem f32_prepareStatus_iff (t : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat) :
+    ContactsPrepare.statusByte t cache id = 255 ↔ ∃ p, ContactsPrepare.prepared? t cache id = some p :=
+  ContactsPrepare.prepareStatus_iff t cache id
+
+/-- **F32: after the commit the contact is prepared with its run's results, no other contact
+changes** [M]. -/
+theorem f32_commit (t : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat) (p : ContactsPrepare.Prepared)
+    (e : Contacts.Entry) (he : t.find? id = some e) :
+    ContactsPrepare.prepared? (ContactsPrepare.commit t cache id p).1 (ContactsPrepare.commit t cache id p).2 id = some p ∧
+      ∀ id', id' ≠ id → ContactsPrepare.prepared? (ContactsPrepare.commit t cache id p).1
+        (ContactsPrepare.commit t cache id p).2 id' = ContactsPrepare.prepared? t cache id' :=
+  ⟨ContactsPrepare.commit_prepared t cache id p e he, fun id' h => ContactsPrepare.commit_other t cache id id' p h⟩
+
+/-- **F32: the commit keeps the contact table's invariant** [M], given what the run leaves. -/
+theorem f32_commit_inv {c c' : Ctx} (t t' : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat)
+    (p : ContactsPrepare.Prepared) (e : Contacts.Entry)
+    (hI : t.Inv c) (he : t.find? id = some e) (hent : t'.entries = t.entries) (hn : t.next ≤ t'.next)
+    (hf : Contacts.Fresh c' t'.next)
+    (hold : ∀ q ∈ t.entries, ∀ g ∈ q.2.handles, c'.bool? g = c.bool? g)
+    (hnew : t.next ≤ p.static.id) (hbelow : p.static.id < t'.next) (hlive : (c'.bool? p.static).isSome = true) :
+    (ContactsPrepare.commit t' cache id p).1.Inv c' :=
+  ContactsPrepare.commit_inv t t' cache id p e hI he hent hn hf hold hnew hbelow hlive
+
+/-- **The contact set is selectable, and only whole** (with `tls` and `masks`). -/
+theorem select_contactSet :
+    (Select.check (Select.contactSet ++ ["tls", "masks"])).toBool = true ∧
+      ∀ g ∈ Select.contactSet ++ ["tls", "masks"],
+        (Select.check ((Select.contactSet ++ ["tls", "masks"]).erase g)).toBool = false :=
+  ⟨Select.check_contactSet, Select.check_contactSet_partial⟩
+
+/-- **J13: a released slot reads as the base store** (so a script naming it fails the payload check)
+and the runner's `fresh` never hands out a released slot. -/
+theorem j13_release (m : Runner.Slots) (base : Store) (ns : List Nat) (s : Nat) (hs : s ∈ ns)
+    (l : Runner.Ledger) (hl : l.Inv) :
+    (((m.release ns).over base).bits s = base.bits s ∧ ((m.release ns).over base).elems s = base.elems s ∧
+      ((m.release ns).over base).bytes s = base.bytes s) ∧
+    (l.fresh.1 ∉ l.released ∧ l.fresh.2.Inv) ∧ (l.release ns).Inv :=
+  ⟨Runner.release_reads_base m base ns s hs, Runner.Ledger.fresh_not_released l hl, Runner.Ledger.release_inv l ns hl⟩
+
+end FlowsContactSet
+
+/-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
+on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
 
 `TlsMpc/Node/Engine/Labels.lean` (the release labels are the reveal kinds' codes),
 `Engine/Reveal.lean` (`Reveals ks s`: every release instruction of `s` carries the label of a
@@ -6336,7 +9422,9 @@ the matching section above in the same commit.
   `canonicalRange`, `Unpad.decode` and the layout masks (stated today as byte computations); an
   accept-direction value theorem for `contentShape`'s flags and for `receive-content`; and the
   field engine (the curve computations whose outputs `rx`, `ry` and the agreements are inputs
-  here). → **P6**.
+  here). → **P6**. S14 (section 7f): the controller's wiring is now the scripts' own (`Receive.*In`,
+  `s14_verified_wiring`), so T13 holds for it without the wiring hypothesis (`s14_accept_certificate`,
+  function level); open: the same through `jointRun` (S14_NOTES.md, F22).
 * **T3** — disclosure per flow: the released values in any trace of a flow are exactly the
   listed `Reveal` kinds on the listed handles. The list exists since S6 (`TlsMpc/Node/Reveal.lean`,
   section 7-reveal: every `Opened` value is made there, each kind's docstring names its bounding
@@ -6394,25 +9482,176 @@ the matching section above in the same commit.
 * **P-RAND** (joint randomness): (a), (b) under `IdealCommit`, (c), disclosure and commit before
   open are proved in the model (section 7a). Still open: that the running code is the script (S9
   wiring). → **S9**.
-* **P-CHAL** (challenge permutation: agreement, is a permutation, injective seed). → **S10**.
-* **P-CUT** (cut-and-choose word masks: correctness, disclosure, hiding, detection, bit blocks,
-  single use). → **S10**.
-* **P-PAIR / P-B2F**, **P-W2F**, **P-F2W** (conversions: value, bijection, single use). → **S10**.
-* **P-BITS** (shared scalars as field bits; needs the converse of `fieldBits_bitCheck_bit`).
-  → **S10**.
+* **P-CHAL**: (a), (b), (c) and `commit_open_sound` proved in the model (section 7b). Open: that the
+  running code is the script (the S10 scripts are not yet called by the controller; S11–S16).
+* **P-CUT** (section 7b). Proved: (a) at the protocol level (honest candidates pass, the mask and
+  pair values); (b) `Reveals` of the whole `generate` (labels), the cut phase's disclosure with
+  values, the cut disjoint from the kept candidates; (c) the core lemma (cut and bucket releases and
+  word-mask flags unchanged under the cancelling shift; the shift a bijection reaching any target
+  reference); (d) protocol and run level (`cutPhase_sound`); (e) protocol level exactly (pass ⟺
+  val(ref) + val(member) < 2p and the errors cancel, for a canonical reference), the counting
+  model's mixed-bucket rule, and the run level (`bucketPhase_sound`); (f) the flags' meaning; (g)
+  `bitBlock_unique` with `FieldInverse`; (h) the pool and the frees. Proved since (section 7b
+  continued, S10 follow-up): (a) for a whole honest run through `jointRun`, every parameter set
+  with 0 < M and bits ≤ N, so the deployed profiles (`s10_pcut_a_run`); (c) composed with the model:
+  two runs against the same adversary agree under the bucket-cancelling change of the honest
+  candidates (`s10_pcut_c_agree`), plan 7.0's form `s10_generate_hides` with the re-randomisation a
+  bijection (`s10_reRand_bijection`), the bit-block flag under the move (`s10_moveRef`: a bit block's
+  reference is moved inside [32, p)); (f), (g) at run level (`s10_pcut_fg_run`,
+  `s10_mask_consistent`); a WF theorem for `generate` (`s10_generate_wf`, `s10_profile_sizes`); the
+  counting model's hypotheses for any run that returns (`s10_generate_sound`, `s10_bucket_uniform`)
+  and the two challenge permutations as one arrangement (`s10_arrangement`). OPEN: (b) a value-level
+  disclosure of the whole run as ONE prefix statement (the releases are characterised phase by
+  phase inside `s10_pcut_c_agree`'s proof: `Twin.cut_same`, `bucket_same`, `flags_same`,
+  `bitZ_same`); the PROBABILITY part of the correspondence with `proofs/` `CutAndChoose`: that the
+  arrangement is uniform when the two permutations are (a K!-to-one counting fact), and that the
+  permutations are uniform and independent of the bad set (`IdealCommit` for the seeds, SHA-256 as
+  a random oracle in `permOf`); what `generate_hides` does not say: it is about the honest party's
+  candidates for FIXED challenge randomness, and a bit block's reference below 32 (probability
+  32/p) is revealed by the abort of its own run.
+* **P-PAIR / P-B2F**, **P-W2F**, **P-F2W**: (a), (b), T3, (c) proved (section 7b; W2F and F2W (a)
+  through `jointRun`; B2F (a) per bit and, for the whole bundle through `jointRun`,
+  `s10_pb2f_honest`). Open: WF theorems for `wordToField`, `fieldToWord`, `bitsToField`, `Account.openStep` (`sharedBits`:
+  `s10_sharedBits_wf`).
+* **P-BITS**: (a) with `FieldInverse` (the converse of `fieldBits_bitCheck_bit`), (b), (c) at the
+  protocol level; at run level `s10_pbits_run` (any adversary: every input of both parties is a bit
+  and the outputs are the field XORs) and `s10_pbits_honest` (`jointRun`).
 * **P-INV** (masked inversion `D`/`Z` nodes), **P-FIELDPROG** (what a program releases). → **S9**,
   **S11**.
-* **P-GHASH** (incl. (c): `sealCtr_with_tag_is_seal`'s `halves` discharged for the running
-  code). → **S12**.
-* **P-SPLIT** (split ECDH), **P-OFFSET** (offset agreement about `step`, incl. the digit
-  recoding lemma), **P-HINT** (lift and tables, under H-QR). → **S11**.
-* `commit_open_sound` (one commitment for all commit-then-open sites). → **S9–S11**.
+* **P-SPLIT**, **P-OFFSET**, **P-HINT** (section 7c, stage S11). Proved: P-SPLIT (a) through
+  `jointRun` for the agreement (`s11_splitAgree_honest`, `s11_addU_montU`; the group law itself is
+  `proofs/` R7), (b) the gate (`Curve.splitAgree_gate`, checks = `curveValue`), (c) the kinds
+  (`Curve.splitKinds`), (d) `s11_local_formulas`; P-OFFSET (a) the recoding lemma about the flow's
+  own `recode` (`s11_recode64`, `s11_step_tableSum`) and the step's program inputs
+  (`s11_stepIns_window`: exactly `offsetSum_recoded`'s hypothesis; there is no C++ `step`), (b) the
+  key the script returns (`s11_ephemeralKey`), (c), (d) gates (`Curve.offsetPrepare_gate`,
+  `Curve.pointExchange_gate`); P-HINT (a) (`s11_lift_order`), (b) soundness with `FieldInverse` and
+  completeness under H-QR/Euler as named hypotheses (`s11_prepareStatus_iff`). Since the S11
+  follow-up: `_wf` for every curve script and op 66 as a staged flow (`s11_wf_split_offset`,
+  `s11_wf_hinted`, `s11_prepareContacts_wf`); `splitBegin` through `jointRun`
+  (`s11_splitBegin_honest`) and the split agreement's value with the denominator discharged
+  (`s11_splitAgree_montU`, `CompleteAddition` ← `proofs/` `edwards_complete`); the model form of
+  `commit_open_sound` for the point exchanges (`s11_pointExchange_sound`) and their value-level
+  disclosure (`s11_pointExchange_disclosure`: a prefix of [our commitment, our opening]); `sqrt` and the lift's
+  roots never fail (`s11_liveness`). Since the second follow-up (F22): the block-level lemma for
+  n masked quotients (`s11_quotientMany_honest`) and honest runs through `jointRun` of `agree`
+  (the handles hold `X25519.spec`: `s11_agree_honest`), `offsetPrepare`, `offsetStep`,
+  `offsetStepFast` (`s11_offset_honest`), `tables`, `agreeAffine`, `signatures`, `torsion`
+  (`s11_hinted_honest`), `lift`, `agreeHinted` (`s11_lift_agreeHinted_honest`), under the named
+  program hypotheses `Curve.ComputesD` / `Curve.Live` (discharged for translated artifacts by
+  `FieldDagV3.eval_compileAll`, `eval_ofArtifact_some` given nonzero honest denominators) and
+  nonzero mask sums. Since the third follow-up (F22a, F22b, F25b): those program hypotheses are
+  DISCHARGED (`s11_decl_live`: a compiled program is live where its source divisions are nonzero;
+  `s11_programs_live`, `s11_maskfree_computes`: every curve program the flows run, from the loader's
+  facts and per-program input conditions, under the named group facts `AddClosed`, `ExtClosed`,
+  `RecipientOnCurve`, `CompleteAddition`, theorems of `proofs/`), the runs restated without them
+  (`Curve.*_honest'`, headline `s11_offsetPrepare_honest_derived`), the checks derived on honest inputs
+  for `offsetPrepare` and `lift` and the lift's `Z` on the curve (`s11_checks_vanish`); the batched
+  inversion, the hints and the public table never fail on curve points (`s11_toAffineAll_live`);
+  the point exchange with m points (`s11_pointExchange_many_honest`). OPEN: the bit table's link
+  checks from honest hints (reduced to `EdwardsHinted.LinkedFrom`, the group law for the hints'
+  multiples: `proofs/` `bitTable_entries`); the input conditions from the state the earlier flows
+  leave (e.g. the offset table's entries are curve points); honest runs of `prepareSecond` and
+  `prepareContacts` as a staged flow (checked executably:
+  `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
+  for the curve flows other than the point exchanges and the quotient round
+  (`s11_quotientMany_disclosure`: [z_j·m_j, flags] for the masks the engines hold): the opened
+  checks, `w`, `Z` and the programs' own `D` openings are proved only at the level of kinds; P-HINT (c), (d) composed with the runs (`entries_sound`,
+  `curve_hinted_Z_uniform` are about the program); that the local step's mask points are uniform
+  on the curve group (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/`
+  `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points (liveness of
+  decoding; tested against curve25519-dalek, not proved). → **S11 follow-up**.
+* **P-GHASH**: (a) for the doubling schedule (`s12_ghash_shared_extend`, the kernels' resharing
+  `s12_ghash_keyShare_shared`, `s12_ghash_round_shared`), (b) (`s12_ghash_halves_xor`), (c) for the
+  Lean code (`s12_tls_seal_is_record`, `s12_tls_check_accepts`), (d) (`s12_ghash_keyShare_hides`,
+  `s12_ghash_multiply_hides`, the views `s12_ghash_keyShare_viewD_B`, `s12_ghash_round_viewD_B`,
+  `s12_ghash_keyShare_disclosure_A`) proved in section 7d (S12). Second S12 pass (section 7d
+  continued): (a) over a whole `ensure` through `jointRun` (`s12_ghash_ensure_shared`: the key share,
+  the local square and the doubling rounds, each a returning joint run of the scripts), (d) for a
+  round with A honest at value level against any adversary (`s12_ghash_round_disclosure_A`), (e) for
+  the scripts (`s12_ghash_seal_deviation_rejected`, `s12_ghash_check_deviation`), `roundScript`'s WF
+  (`s12_ghash_round_wf`). Open: that the controller-side runner (`Flows/Runner.lean`, section 7i:
+  its pure core is proved against the model) executes `TlsBackend.ensure` as written (`EnsureRuns`
+  is the model of its steps; the IO glue is unverified, F17).
+* `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
+  7b, `s10_commit_open_sound`). The S11 point exchanges (`Curve.pointExchange`, same frame
+  `tag ‖ party ‖ nonce ‖ value`): the gate only (`Curve.pointExchange_gate`); the model statement
+  as `Random.commit_open_sound` is OPEN (S11 follow-up).
+* **P-INV** as a flow (section 7b): T3 against any adversary (only z·m and the zero flag), (a)
+  through `jointRun`, the mask's uniformity, (c). The masks are fresh field randomness of both
+  parties (never cut-and-choose word masks: a program mask must be marked never).
 
 ### Flows and channels
 * **T4-x** — composition per flow (CONTACT, UPGRADE, TLS, SEND, RECV, REFRESH, CEREMONY): under
   the ideal model with both parties honest, the flow's result equals its specification.
   → **S9** (CONTACT), **S12** (TLS), **S13** (SEND), **S14** (RECV), **S15** (REFRESH), **S16**
-  (UPGRADE, CEREMONY).
+  (UPGRADE, CEREMONY). TLS (S12, section 7d): at the function level (each kernel's output read
+  through the script's layout: `s12_tls_seal_is_record`, `s12_tls_check_accepts`,
+  `s12_tls_open_event_refines`, `s12_tls_reveal_value`, `s12_tls_verify_value`,
+  `s12_tls_openHandshake_value`); since the second S12 pass through `jointRun` for the seal
+  (`s12_tls_seal_honest`, the class seal's composition `s12_tls_sealClass_is_record`), the open
+  (`s12_tls_open_class`, `s12_tls_open_rejected_run`, the binding `s12_tls_open_binding_honest`) and
+  the derive step (`s12_tls_derive_honest`, the agreement word read through `Tls.shapedCircuit`; the
+  word itself is S11's, `TlsBackend.KeyAgreement`); value-level T3 against any adversary for the seal
+  and the open (`s12_tls_sealCtr_disclosure`, `Tls.tag_disclosure_A`, `s12_tls_open_disclosure_A`,
+  `Tls.open_disclosure_rejected`). Open for TLS: the handshake record / Finished / client Finished /
+  reveal / update scripts are at the function level (their WF is proved), T3 with B honest for the
+  open and the tag (symmetric scripts; not written), and the IO glue `TlsBackend` (F17). SEND (S13, section 7e): at
+  the function level, composed with the kernel theorems and WITHOUT the worker-wiring hypotheses
+  (`s13_send_accepted`, `s13_requestCtr_value`, `s13_bundleRequestCtr_value`, `s13_request_record`,
+  `s13_seal_accepted_value`); T3 (`s13_send_reveal`, `s13_seal_refused_silent`); WF of ops 41, 42 and
+  the request's record phase. Section 7e (S13 follow-up): T4-SEND through `jointRun` for one device
+  (`s13_seal_joint`, `s13_send_joint`: op 41, op 42, the CTR phase and the tag, both parties the
+  same results, the bytes those of `s13_send_accepted`); the devices path's composed headline
+  (`s13_devices_accepted`, no wiring hypothesis) and all-or-nothing (`s13_devices_refused_view`);
+  the `bundle-seal` slicing (`s13_bundleEnvBytes_eq`, `s13_bundleOut_record_length`); op 41's view
+  by value against any adversary (`s13_seal_view`). Open (S13_NOTES.md, gaps S13-1 … S13-13): the
+  devices path through `jointRun`; `Table.Inv` for the send's table commit; WF of ops 61 and 62
+  and `Wire.Bounded` of op 61 (op 62's: `s13_requestDevicesScript_bounded`); `wired` (S15's); the
+  four words are S11's (E4); an official 89-byte text cannot be sent to an unanswered device (the
+  run aborts: `s13_bundleOut_record_length`).
+* **T6 / ORD-1** restated over the Lean flow: the script-level facts are proved
+  (`s13_send_state_order`: the accepted op 41 returns the new state handle, defined by the seal
+  kernel's run before the envelope is opened; op 42 on that handle reads exactly the kept record;
+  `s13_seal_joint`: on refusal the stored state's value is kept). The session-level ORD-1 theorem
+  (P4: the session's Seal/StoreAck/Send events) is unchanged since the backend keeps the legacy
+  results and call order; its restatement over the Lean flow waits for the controller switch.
+* **T4-RECV** (S14, section 7f): at the
+  function level (`s14_accept_certificate`, `s14_text`, `s14_record`); open: through `jointRun`
+  (needs S10's conversions' and S11's agreements' run-level specifications and the receive kernels
+  as model circuits with word inputs), the whole flows' WF, a value-level T3 for every release of a
+  run (S14_NOTES.md, F22-F27).
+* **T4-REFRESH** (S15, section 7g):
+  the parse in the model (`s15_slot_one_source`, `s15_parse_device`, `s15_parse_or_refuse`), the
+  encapsulation's wiring at the function level (`s15_kem_pipeline`, `s15_kem_accept`,
+  `s15_kem_invalid`, hyp. `KemWidths`), the first message's `wired` (`s15_first_wired`, hyp.
+  `SessionWidths` and the send's binding). Open: the KEM block and the session step through
+  `runPlain`/`jointRun`, the signature verification (S11's `check`), the agreements (S11's
+  `agree`), WF of the fetch, establishment and scratch-seal scripts (tested by the vectors), and
+  `opCommit`'s preservation of `Table.Inv` (S15_NOTES.md, gaps).
+* **ORD-2** — a refresh's scratch becomes the contact's state only by `opCommit`
+  (`s15_ord2_commit`, `s15_ord2_establish`, `s15_ord2_drop`: S15, section 7g, script level); that
+  the controllers call it only after both saw the nodes acknowledge the sealed scratch is the
+  session-level ORD-2 (P4, `Session/RefreshProofs.lean` on the main line), unchanged by the switch.
+* **The joins** (section 7h, `scripts-stack`): the S12–S15 curve parameters instantiated with S11's
+  flows; proved: the composed kinds, S15's `CurveOps.Reveals` (discharged), S15's `first_wired`
+  bindings from S13's `bundle-seal` layout. Open: the joined flows through `jointRun` (values: S11's
+  `agree`/`offsetStep` honest runs are themselves open); the handle-content facts `hcert`/`hpend`
+  of `join_first_wired`; the IO glue (`JoinBackend`, `RefreshBackend`, `Select`, unverified, as
+  every backend); `_wf` of the joined scripts (their id blocks are counted, not proved). J1 (one
+  mask slot for op 50's two agreements) is RESOLVED: section 7i (`j1_openFirst_reads_once`,
+  `j1_session_reads_once`, `j1_refreshOps_reads_once`). J8 (the identity scalar's swap bits are
+  field handles, not coins) is RESOLVED: section 7j (`j8_jobBits_swaps`, `j8_receiveAgree_spares`).
+* **The contact set** (section 7j): ops 47, 46, 32 as scripts (`s16_*`), op 66's glue (`f32_*`),
+  the sender key (`j12_*`), slot release (`j13_release`), the selection (`select_contactSet`).
+  Open: the joined scripts' `_wf` (op 66's glue: `f32_commit_inv` assumes what the run leaves);
+  `prepareOneG`, `senderPublicG` through `jointRun` (values: S11's `offsetPrepare` and `agree`
+  honest runs, the view kernel's `signalConversationView_spec`); op 32's request through
+  `jointRun` (the function-level values `s16_request_*` are proved); the hinted op 66 path (J3).
+* **The script runner** (section 7i): its pure core against the model (`runner_drive_model`,
+  `runner_drive_bounded`, `runner_nextBatch_fill_only`). Open: the IO loop is `drive`'s steps by
+  construction, not by a theorem (an IO function); the fake-pair test
+  (`node_worker/tests/lean/RunnerTest.lean`) runs it against the model's shells.
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -6471,14 +9710,19 @@ changes the following items:
     within (ℓ − 2²⁵²)/ℓ of uniform on G (`deployed_key_close_uniform`); ℓ prime (`prime_order`,
     Pocklington); (ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷ (`order_gap_lt`), so `ed25519_key_close`,
     `ed25519_key_close_uniform` (2⁻¹²⁷) and `ed25519_keys_close` (k messages, k·2⁻¹²⁷).
-    Hypotheses: `idealCommit`; `P ≠ 0`, `ℓ·P = 0` for the recipient point. Open: P-OFFSET about the
-    C++ `step` (the digit recoding).
+    Hypotheses: `idealCommit`; `P ≠ 0`, `ℓ·P = 0` for the recipient point. The digit recoding is
+    now the flow's own `Curve.recode` (section 7c, `s11_recode64`, `s11_stepIns_window`); open:
+    the `proofs/` statement that `TlsMpcProofs.Ed25519.recode` equals `Curve.recode` (same equations,
+    `Curve.recode_zero` / `recode_succ`; by induction) once `proofs/` imports the S11 modules.
   - Receive: `Unpad.decode` is PKCS#7 unpadding (`unpad_decode_padded`, `unpad_decode_unpadded`,
     `unpad_decode_accepts_iff`). Open: value forms of `varintValue` (widths 2–5) and
     `canonicalRange` (ReceiveFirst's import closure is not compiled into proofs/).
   - Cut-and-choose, for the model: `cut_and_bucket_probability`, `cut_bound_le_bound_one`,
     `*_bound_all_t`, `*_undetected_lt` (every bad set < 2⁻¹²⁸ for 2¹⁹/8, 256/14, 512/13,
-    1024/12). P-CUT(d)–(f), i.e. that the C++ generators implement the model, remain (S10).
+    1024/12). The model's hypotheses are theorems about the Lean script `Masks.generate` since S10
+    (`s10_generate_sound`: bad set fixed before the challenges, (d), (e), (f); `s10_arrangement`:
+    the two challenge permutations are one arrangement of the model's shape); that this
+    arrangement is uniform, and the legacy C++ generators, are not covered.
   - H-GROUP (section 7): the group law, the main-package formulas in it, base point of order
     exactly ℓ, the offset and masked-point theorems instantiated
     (`curve_deployed_key_close_uniform`, `base_deployed_key_close_uniform`,
@@ -6499,6 +9743,28 @@ end TlsMpc.Security
 `scripts/check_axioms.py` parses the lines below. Allowed: `propext`, `Classical.choice`,
 `Quot.sound` (and `Lean.ofReduceBool` only if a `bv_decide` proof needs it). -/
 
+#print axioms TlsMpc.Security.s13_send_reveal
+#print axioms TlsMpc.Security.s13_seal_refused_silent
+#print axioms TlsMpc.Security.s13_seal_accepted_value
+#print axioms TlsMpc.Security.s13_requestCtr_value
+#print axioms TlsMpc.Security.s13_bundleRequestCtr_value
+#print axioms TlsMpc.Security.s13_request_record
+#print axioms TlsMpc.Security.s13_send_accepted
+#print axioms TlsMpc.Security.s13_sealScript_wf
+#print axioms TlsMpc.Security.s13_requestScript_wf
+#print axioms TlsMpc.Security.s13_requestCtrScript_wf
+#print axioms TlsMpc.Security.s13_sealScript_bounded
+#print axioms TlsMpc.Security.s13_bundleEnvBytes_eq
+#print axioms TlsMpc.Security.s13_bundleOut_record_length
+#print axioms TlsMpc.Security.s13_devices_accepted
+#print axioms TlsMpc.Security.s13_devices_refused_view
+#print axioms TlsMpc.Security.s13_jointRun_pub
+#print axioms TlsMpc.Security.s13_withAdv_pub
+#print axioms TlsMpc.Security.s13_seal_view
+#print axioms TlsMpc.Security.s13_seal_joint
+#print axioms TlsMpc.Security.s13_send_joint
+#print axioms TlsMpc.Security.s13_send_state_order
+#print axioms TlsMpc.Security.s13_requestDevicesScript_bounded
 #print axioms TlsMpc.Security.lower_sound
 #print axioms TlsMpc.Security.lower_correct
 #print axioms TlsMpc.Security.lowerExpr_correct
@@ -6820,6 +10086,27 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.engine_decodeBatch_encodeBatch
 #print axioms TlsMpc.Security.engine_skeletonBytes_inj
 #print axioms TlsMpc.Security.engine_check_label
+#print axioms TlsMpc.Security.engine_check_program
+#print axioms TlsMpc.Security.engine_check_program_openable
+#print axioms TlsMpc.Security.engine_idealStep_program
+#print axioms TlsMpc.Security.engine_runProgram_lengths
+#print axioms TlsMpc.Security.fieldDagV3_parse_render
+#print axioms TlsMpc.Security.fieldDagV3_render_parse
+#print axioms TlsMpc.Security.fieldDagV3_eval_ofArtifact
+#print axioms TlsMpc.Security.fieldDagV3_eval_ofArtifact_some
+#print axioms TlsMpc.Security.fieldDagV3_eval_compileAll
+#print axioms TlsMpc.Security.fieldDagV3_ofArtifact_masksOk
+#print axioms TlsMpc.Security.fieldDagV3_parse_masksOk
+#print axioms TlsMpc.Security.fieldDagV3_masksOk_once
+#print axioms TlsMpc.Security.fieldDagV3_masked_div
+#print axioms TlsMpc.Security.fieldDagV3_opening_zero_iff
+#print axioms TlsMpc.Security.fieldDagV3_opening_bijective
+#print axioms TlsMpc.Security.fieldDagV3_ofArtifact_declares
+#print axioms TlsMpc.Security.fieldDagV3_quotient_checks
+#print axioms TlsMpc.Security.fieldDagV3_quotient_spec
+#print axioms TlsMpc.Security.fieldProgramsV3_decl_checks
+#print axioms TlsMpc.Security.fieldProgramsV3_decl_values
+#print axioms TlsMpc.Security.fieldProgramsV3_bitCheck
 #print axioms TlsMpc.Security.prand_a_honest
 #print axioms TlsMpc.Security.prand_disclosure
 #print axioms TlsMpc.Security.prand_commit_before_open
@@ -6942,6 +10229,186 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.offsetAgreement_public_key_independent
 #print axioms TlsMpc.Security.offsetAgreement_candidate_needs_initial
 #print axioms TlsMpc.Security.tlsClient_accepted_session_authenticated
+
+#print axioms TlsMpc.Security.s10_pchal_permutation
+#print axioms TlsMpc.Security.s10_pchal_honest
+#print axioms TlsMpc.Security.s10_pchal_seed_injective
+#print axioms TlsMpc.Security.s10_commit_open_sound
+#print axioms TlsMpc.Security.s10_modAdd_exact
+#print axioms TlsMpc.Security.s10_pcut_d_cut
+#print axioms TlsMpc.Security.s10_pcut_d_run
+#print axioms TlsMpc.Security.s10_pcut_b_cut
+#print axioms TlsMpc.Security.s10_pcut_b_disjoint
+#print axioms TlsMpc.Security.s10_pcut_e_bucket
+#print axioms TlsMpc.Security.s10_pcut_e_mixed
+#print axioms TlsMpc.Security.s10_pcut_e_run
+#print axioms TlsMpc.Security.s10_pcut_f_flags
+#print axioms TlsMpc.Security.s10_pcut_g_bitblock
+#print axioms TlsMpc.Security.s10_pcut_a_mask
+#print axioms TlsMpc.Security.s10_pcut_c_core
+#print axioms TlsMpc.Security.s10_pcut_h_takes
+#print axioms TlsMpc.Security.s10_pw2f_honest
+#print axioms TlsMpc.Security.s10_pw2f_disclosure
+#print axioms TlsMpc.Security.s10_pw2f_hides
+#print axioms TlsMpc.Security.s10_pf2w_honest
+#print axioms TlsMpc.Security.s10_pf2w_disclosure
+#print axioms TlsMpc.Security.s10_pf2w_hides
+#print axioms TlsMpc.Security.s10_pb2f
+#print axioms TlsMpc.Security.s10_pb2f_disclosure
+#print axioms TlsMpc.Security.s10_pbits_checks
+#print axioms TlsMpc.Security.s10_pbits_xor
+#print axioms TlsMpc.Security.s10_pinv_disclosure
+#print axioms TlsMpc.Security.s10_pinv_honest
+#print axioms TlsMpc.Security.s10_account_open_kinds
+#print axioms TlsMpc.Security.s10_swapBits_spec
+#print axioms TlsMpc.Security.s10_flows_reveal
+#print axioms TlsMpc.Security.s10_challenge_wf
+#print axioms TlsMpc.Security.s10_quotient_wf
+#print axioms TlsMpc.Security.s10_pb2f_honest
+#print axioms TlsMpc.Security.s10_pbits_run
+#print axioms TlsMpc.Security.s10_pbits_honest
+#print axioms TlsMpc.Security.s10_pcut_c_agree
+#print axioms TlsMpc.Security.s10_generate_hides
+#print axioms TlsMpc.Security.s10_reRand_bijection
+#print axioms TlsMpc.Security.s10_moveRef
+#print axioms TlsMpc.Security.s10_moveRef_reach
+#print axioms TlsMpc.Security.s10_pcut_fg_run
+#print axioms TlsMpc.Security.s10_mask_consistent
+#print axioms TlsMpc.Security.s10_pcut_a_run
+#print axioms TlsMpc.Security.s10_generate_wf
+#print axioms TlsMpc.Security.s10_profile_sizes
+#print axioms TlsMpc.Security.s10_sharedBits_wf
+#print axioms TlsMpc.Security.s10_generate_sound
+#print axioms TlsMpc.Security.s10_bucket_uniform
+#print axioms TlsMpc.Security.s10_arrangement
+#print axioms TlsMpc.Security.s11_local_formulas
+#print axioms TlsMpc.Security.s11_recoverPublic
+#print axioms TlsMpc.Security.s11_sqrt_sq
+#print axioms TlsMpc.Security.s11_recode64
+#print axioms TlsMpc.Security.s11_step_tableSum
+#print axioms TlsMpc.Security.s11_stepIns_window
+#print axioms TlsMpc.Security.s11_ephemeralKey
+#print axioms TlsMpc.Security.s11_lift_order
+#print axioms TlsMpc.Security.s11_lift_valid_sound
+#print axioms TlsMpc.Security.s11_prepareStatus_iff
+#print axioms TlsMpc.Security.s11_addU_montU
+#print axioms TlsMpc.Security.s11_splitAgree_honest
+#print axioms TlsMpc.Security.s11_prepareContacts_kinds
+#print axioms TlsMpc.Security.s11_flows_reveal
+#print axioms TlsMpc.Security.s12_ghash_shared_extend
+#print axioms TlsMpc.Security.s12_ghash_keyShare_shared
+#print axioms TlsMpc.Security.s12_ghash_round_shared
+#print axioms TlsMpc.Security.s12_ghash_halves_xor
+#print axioms TlsMpc.Security.s12_ghash_keyShare_hides
+#print axioms TlsMpc.Security.s12_ghash_multiply_hides
+#print axioms TlsMpc.Security.s12_ghash_keyShare_viewD_B
+#print axioms TlsMpc.Security.s12_ghash_round_viewD_B
+#print axioms TlsMpc.Security.s12_ghash_keyShare_disclosure_A
+#print axioms TlsMpc.Security.s12_tls_seal_is_record
+#print axioms TlsMpc.Security.s12_tls_check_accepts
+#print axioms TlsMpc.Security.s12_tls_open_event_refines
+#print axioms TlsMpc.Security.s12_tls_reveal_value
+#print axioms TlsMpc.Security.s12_tls_range_value
+#print axioms TlsMpc.Security.s12_tls_verify_value
+#print axioms TlsMpc.Security.s12_tls_openHandshake_value
+#print axioms TlsMpc.Security.s12_tls_window_bound
+#print axioms TlsMpc.Security.s12_tls_sealCtr_wf
+#print axioms TlsMpc.Security.s14_openFirst_reveals
+#print axioms TlsMpc.Security.s14_session_reveals
+#print axioms TlsMpc.Security.s14_sessionRest_refused
+#print axioms TlsMpc.Security.s14_verified_wiring
+#print axioms TlsMpc.Security.s14_accept_certificate
+#print axioms TlsMpc.Security.s14_text
+#print axioms TlsMpc.Security.s14_record
+#print axioms TlsMpc.Security.s14_refused_text_zero
+#print axioms TlsMpc.Security.s14_certificateLength_zero
+#print axioms TlsMpc.Security.s14_provisional_ids
+#print axioms TlsMpc.Security.s15_refresh_viewD_kinds
+#print axioms TlsMpc.Security.s15_flows_reveal_restated
+#print axioms TlsMpc.Security.s15_ord2_commit
+#print axioms TlsMpc.Security.s15_ord2_drop
+#print axioms TlsMpc.Security.s15_ord2_establish
+#print axioms TlsMpc.Security.s15_slot_one_source
+#print axioms TlsMpc.Security.s15_parse_device
+#print axioms TlsMpc.Security.s15_parse_or_refuse
+#print axioms TlsMpc.Security.s15_kem_pipeline
+#print axioms TlsMpc.Security.s15_kem_accept
+#print axioms TlsMpc.Security.s15_kem_invalid
+#print axioms TlsMpc.Security.s15_first_wired
+#print axioms TlsMpc.Security.s15_drop_inv
+#print axioms TlsMpc.Security.s11_wf_split_offset
+#print axioms TlsMpc.Security.s11_wf_hinted
+#print axioms TlsMpc.Security.s11_prepareContacts_wf
+#print axioms TlsMpc.Security.s11_splitBegin_honest
+#print axioms TlsMpc.Security.s11_splitAgree_montU
+#print axioms TlsMpc.Security.s11_pointExchange_sound
+#print axioms TlsMpc.Security.s11_liveness
+#print axioms TlsMpc.Security.s11_pointExchange_disclosure
+#print axioms TlsMpc.Security.join_splitAgreeWord_reveals
+#print axioms TlsMpc.Security.join_ephemeralWord_reveals
+#print axioms TlsMpc.Security.join_receive_reveals
+#print axioms TlsMpc.Security.join_refreshOps_reveals
+#print axioms TlsMpc.Security.join_refresh_reveals
+#print axioms TlsMpc.Security.join_first_wired
+#print axioms TlsMpc.Security.join_kinds_registered
+#print axioms TlsMpc.Security.j1_openFirst_reads_once
+#print axioms TlsMpc.Security.j1_session_reads_once
+#print axioms TlsMpc.Security.j1_receiveAgree_once
+#print axioms TlsMpc.Security.j1_refreshOps_reads_once
+#print axioms TlsMpc.Security.j1_refresh_pools_disjoint
+#print axioms TlsMpc.Security.runner_drive_model
+#print axioms TlsMpc.Security.s16_credentials_reveals
+#print axioms TlsMpc.Security.s16_admit_reveals
+#print axioms TlsMpc.Security.s16_upgrade_reveals
+#print axioms TlsMpc.Security.s16_upgrade_wf
+#print axioms TlsMpc.Security.s16_request_shared_value
+#print axioms TlsMpc.Security.s16_request_plain_value
+#print axioms TlsMpc.Security.j8_jobBits_swaps
+#print axioms TlsMpc.Security.j8_receiveAgree_spares
+#print axioms TlsMpc.Security.j8_agreeG_spares
+#print axioms TlsMpc.Security.j12_senderPublic_spares
+#print axioms TlsMpc.Security.j12_senderPublic_reveals
+#print axioms TlsMpc.Security.f32_prepare_reveals
+#print axioms TlsMpc.Security.f32_prepareStatus_iff
+#print axioms TlsMpc.Security.f32_commit
+#print axioms TlsMpc.Security.f32_commit_inv
+#print axioms TlsMpc.Security.select_contactSet
+#print axioms TlsMpc.Security.j13_release
+#print axioms TlsMpc.Security.runner_drive_bounded
+#print axioms TlsMpc.Security.runner_nextBatch_fill_only
+#print axioms TlsMpc.Security.s11_quotientMany_honest
+#print axioms TlsMpc.Security.s11_agree_honest
+#print axioms TlsMpc.Security.s11_offset_honest
+#print axioms TlsMpc.Security.s11_hinted_honest
+#print axioms TlsMpc.Security.s11_lift_agreeHinted_honest
+#print axioms TlsMpc.Security.s11_quotientMany_disclosure
+#print axioms TlsMpc.Security.s11_decl_live
+#print axioms TlsMpc.Security.s11_programs_live
+#print axioms TlsMpc.Security.s11_maskfree_computes
+#print axioms TlsMpc.Security.s11_checks_vanish
+#print axioms TlsMpc.Security.s11_offsetPrepare_honest_derived
+#print axioms TlsMpc.Security.s11_toAffineAll_live
+#print axioms TlsMpc.Security.s11_pointExchange_many_honest
+#print axioms TlsMpc.Security.s12_tls_open_wf
+#print axioms TlsMpc.Security.s12_tls_sealClass_wf
+#print axioms TlsMpc.Security.s12_ghash_round_wf
+#print axioms TlsMpc.Security.s12_tls_reveal_wf
+#print axioms TlsMpc.Security.s12_tls_derive_wf
+#print axioms TlsMpc.Security.s12_tls_finish_wf
+#print axioms TlsMpc.Security.s12_tls_open_bounded
+#print axioms TlsMpc.Security.s12_ghash_round_bounded
+#print axioms TlsMpc.Security.s12_tls_seal_honest
+#print axioms TlsMpc.Security.s12_tls_open_binding_honest
+#print axioms TlsMpc.Security.s12_tls_open_class
+#print axioms TlsMpc.Security.s12_tls_open_rejected_run
+#print axioms TlsMpc.Security.s12_ghash_ensure_shared
+#print axioms TlsMpc.Security.s12_ghash_round_disclosure_A
+#print axioms TlsMpc.Security.s12_ghash_seal_deviation_rejected
+#print axioms TlsMpc.Security.s12_ghash_check_deviation
+#print axioms TlsMpc.Security.s12_tls_sealClass_is_record
+#print axioms TlsMpc.Security.s12_tls_derive_honest
+#print axioms TlsMpc.Security.s12_tls_sealCtr_disclosure
+#print axioms TlsMpc.Security.s12_tls_open_disclosure_A
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

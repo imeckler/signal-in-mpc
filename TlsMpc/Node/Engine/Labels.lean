@@ -73,11 +73,132 @@ def blobAccepted : Label := ofKind .blobAccepted
 /-- Ciphertext and check value of `contact-seal` (ops 38, 54, 64). Kind `sealedBlob` (code 31). -/
 def sealedBlob : Label := ofKind .sealedBlob
 
+/-! Conversions and masks (stage S10, kinds 80–87; masked inversion, kind 90). -/
+
+/-- Bits to field (P-B2F): the opened `x ⊕ ρ`. Kind `maskedBit` (code 80). -/
+def maskedBit : Label := ofKind .maskedBit
+/-- Word to field (P-W2F): the opened `(u mod p + r) mod p` and its re-comparison. Kind `maskedWord` (81). -/
+def maskedWord : Label := ofKind .maskedWord
+/-- Field to word (P-F2W): the opened `v − f` and its re-comparison. Kind `maskedFieldValue` (82). -/
+def maskedFieldValue : Label := ofKind .maskedFieldValue
+/-- Mask generation (P-CUT): the opened cut candidates, both engines. Kind `cutCandidates` (83). -/
+def cutCandidates : Label := ofKind .cutCandidates
+/-- Mask generation: per bucket member the two sums. Kind `bucketSums` (84). -/
+def bucketSums : Label := ofKind .bucketSums
+/-- Mask generation: one flag bit per kept reference. Kind `referenceFlags` (85). -/
+def referenceFlags : Label := ofKind .referenceFlags
+/-- Mask generation, bit blocks: the recomposition and bit checks. Kind `bitBlockChecks` (86). -/
+def bitBlockChecks : Label := ofKind .bitBlockChecks
+/-- Shared scalars as field bits (P-BITS): the bit checks. Kind `scalarBitChecks` (87). -/
+def scalarBitChecks : Label := ofKind .scalarBitChecks
+/-- Masked inversion (P-INV): the openings `b·m` of the `D`/`Z` rows and the zero flag. Kind
+`maskedDenominator` (90). -/
+def maskedDenominator : Label := ofKind .maskedDenominator
+
+/-! The curve flows (stage S11, kinds 91–95 and 102; `Flows/Curve.lean`). -/
+
+/-- Check values that must open to zero: curve checks of input points (split ECDH, the lift's mask
+points), the scalar-bit and curve checks of `edwards-prepare`; also the (empty) release of a
+program without `D`/`Z` rows in a curve flow. Kind `curveChecks` (91). -/
+def curveChecks : Label := ofKind .curveChecks
+/-- The lift's opened `w = q·r²·2^b`. Kind `liftW` (92). -/
+def liftW : Label := ofKind .liftW
+/-- The lift's opened masked point `Z = P + M_A + M_B`. Kind `liftZ` (93). -/
+def liftZ : Label := ofKind .liftZ
+/-- The lift's validity bit, opened only by contact preparation (op 66). Kind `pointValid` (94). -/
+def pointValid : Label := ofKind .pointValid
+/-- The masked links of hinted tables, with the scalar-bit checks of `edwards-prepare-hinted`
+(opened together, all must be zero). Kind `linkChecks` (95). -/
+def linkChecks : Label := ofKind .linkChecks
+/-- This party's public point of its own scalar (the split-ECDH share k·B, the K₀ half), opened
+after its commitment (`commitment`). Kind `ownPublicPoint` (102). -/
+def ownPublicPoint : Label := ofKind .ownPublicPoint
+
+/-! TLS and GHASH shares (stage S12, kinds 2-9). -/
+
+/-- `tls-open-handshake`'s gated result (type 21/22 and plaintext only). Kind `handshakeRecord` (2). -/
+def handshakeRecord : Label := ofKind .handshakeRecord
+/-- `tls-verify-finished`'s acceptance byte. Kind `finishedAccepted` (3). -/
+def finishedAccepted : Label := ofKind .finishedAccepted
+/-- `tls-finish`'s sealed client Finished record. Kind `clientFinished` (4). -/
+def clientFinished : Label := ofKind .clientFinished
+/-- `tls-open-typed`'s one bit "authenticated handshake record". Kind `recordKindBit` (5). -/
+def recordKindBit : Label := ofKind .recordKindBit
+/-- A received record's event bytes (`tls-open-typed` or `tls-frame`). Kind `recordEvent` (6). -/
+def recordEvent : Label := ofKind .recordEvent
+/-- A sealed record's header and ciphertext (`tls-seal-*`), its tag (`gcm-tag`), and a class
+kernel's `accepted` byte. Kind `sealedRecord` (7). -/
+def sealedRecord : Label := ofKind .sealedRecord
+/-- An authenticated record's length and revealed bytes (`tls-reveal-masked`). Kind `serverBytes` (8). -/
+def serverBytes : Label := ofKind .serverBytes
+/-- A GHASH key power (or product) masked by A's fresh mask, opened to B only (`gcm-key-share`,
+`gcm-multiply`). Kind `ghashMaskedPower` (9). -/
+def ghashMaskedPower : Label := ofKind .ghashMaskedPower
+
+/-! Send (stage S13, kinds 40-41). -/
+
+/-- `signal-widths`'s width flags of a send's counters (ops 41, 61). Kind `counterWidths` (40). -/
+def counterWidths : Label := ofKind .counterWidths
+/-- A seal kernel's gated status (`signal-seal-official` / `-built`, `bundle-seal`), and after an
+accepted status its timestamp and envelope (ops 41, 61). Kind `sealedEnvelope` (41). -/
+def sealedEnvelope : Label := ofKind .sealedEnvelope
+
+/-! Receive a first message (stage S14, kinds 50-57). -/
+
+/-- `receive-unseal-message`'s opened certificate length prefix (two bytes, zero unless the
+sealed-sender layer verified). Kind `certificateLength` (50). -/
+def certificateLength : Label := ofKind .certificateLength
+/-- `receive-content-shape`'s four bytes (plain / hinted, phone number and its length). Kind
+`contentShape` (51). -/
+def contentShape : Label := ofKind .contentShape
+/-- `receive-prekey-shape`'s 21 width flags. Kind `prekeyShape` (52). -/
+def prekeyShape : Label := ofKind .prekeyShape
+/-- `receive-prekey-open`'s prekey ids and Kyber ciphertext (one opening). Kind `prekeyIds` (53). -/
+def prekeyIds : Label := ofKind .prekeyIds
+/-- `receive-signal-shape`'s 13 bytes (counter widths, ciphertext length, addresses). Kind
+`signalShape` (54). -/
+def signalShape : Label := ofKind .signalShape
+/-- The status byte of `receive-session` and of `receive-text`. Kind `sessionStatus` (55). -/
+def sessionStatus : Label := ofKind .sessionStatus
+/-- `receive-text`'s length, body and layout flags (one opening, after its status). Kind
+`receivedText` (56). -/
+def receivedText : Label := ofKind .receivedText
+/-- `receive-access-key`'s status byte. Kind `accessKeyStatus` (57). -/
+def accessKeyStatus : Label := ofKind .accessKeyStatus
+
+/-! Device refresh (stage S15, kinds 60-62). -/
+
+/-- `bundle-shape`'s one flag per body byte (JSON punctuation or not). Kind `bundleShape` (60). -/
+def bundleShape : Label := ofKind .bundleShape
+/-- `bundle-rebind`'s `changed` byte (the bundle's identity key is a new one), first device only.
+Kind `identityChanged` (61). -/
+def identityChanged : Label := ofKind .identityChanged
+/-- `establish-session`'s `status` byte, one per device. Kind `deviceStatus` (62). -/
+def deviceStatus : Label := ofKind .deviceStatus
+
 /-- The kinds the script flows release under, in the order of `all`. -/
-def kinds : List RevealKind := [.commitment, .commitOpening, .blobAccepted, .sealedBlob]
+def kinds : List RevealKind :=
+  [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
+   .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
+   .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
+   .curveChecks, .liftW, .liftZ, .pointValid, .linkChecks, .ownPublicPoint,
+   .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
+   .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope,
+   .certificateLength, .contentShape, .prekeyShape, .prekeyIds, .signalShape, .sessionStatus,
+   .receivedText, .accessKeyStatus,
+   .bundleShape, .identityChanged, .deviceStatus]
 
 /-- Every label a flow uses. -/
-def all : List Label := [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob]
+def all : List Label :=
+  [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob,
+   maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
+   bitBlockChecks, scalarBitChecks, maskedDenominator,
+   curveChecks, liftW, liftZ, pointValid, linkChecks, ownPublicPoint,
+   handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
+   serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope,
+   certificateLength, contentShape, prekeyShape, prekeyIds, signalShape, sessionStatus,
+   receivedText, accessKeyStatus,
+   bundleShape, identityChanged, deviceStatus]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -101,7 +222,9 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
   obtain ⟨k, -, rfl⟩ := (mem_all_iff l).mp hl
   exact ofKind_ne_zero k
 
-/-- The codes, for the record (the Rust test vectors carry them): 100, 101, 30, 31. -/
-theorem all_codes : all.map (·.code) = [100, 101, 30, 31] := rfl
+/-- The codes, for the record (the Rust test vectors carry them). -/
+theorem all_codes : all.map (·.code) =
+    [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102,
+     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62] := rfl
 
 end TlsMpc.Node.Engine.Label

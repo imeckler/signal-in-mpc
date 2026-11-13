@@ -1,4 +1,5 @@
 import TlsMpc.Node.Flows.ContactsTable
+import TlsMpc.Node.Flows.Convert
 
 /-!
 # `Account.key`, `Account.seal`: the account's own record at rest (ops 53, 54)
@@ -43,8 +44,15 @@ namespace TlsMpc.Node.Flows.Account
 open TlsMpc.Node.Engine
 open TlsMpc.Node.Flows.Contacts
 
-/-- The account's handles (all Boolean). `certificate`: handle and byte length. `ctr`: the session's
-handle counters (Engine.lean decision D12), from which `keyStep` and `sealStep` take their blocks. -/
+/-- The account's handles. `certificate`: handle and byte length. `ctr`: the session's handle
+counters (Engine.lean decision D12), from which `keyStep` and `sealStep` take their blocks.
+`identity` (J8, J12): the identity scalar's 252 ladder swap bits as FIELD handles (op 55's
+`bitsToField`, or op 46's), the C++'s `account.identity`: what every agreement with the identity key
+uses; field handles have no `once` (Engine.lean D3), so they stay for the session.
+`senderPublic` (J12): the account's identity public key as the 255-bit word X25519 uses, the
+C++'s `account.sender_public` = `agreement_word(identity, 9)` (`service_kernels.h` line 62): made
+once from `identity` by an agreement with the base point (`Flows/ContactsPrepare.lean`
+`senderPublicG`), kept for the session (live, not once). -/
 structure State where
   key : Option BoolH := none
   scalar : Option BoolH := none
@@ -52,6 +60,8 @@ structure State where
   shares : Option (BoolH × BoolH) := none
   certificate : Option (BoolH × Nat) := none
   ctr : Counters := {}
+  identity : Option (List FieldH) := none
+  senderPublic : Option BoolH := none
 
 /-- Account id (16) and password (22). -/
 def credentialBytes : Nat := 16 + 22
@@ -118,7 +128,7 @@ theorem sealStep_eq (a : State) (version : B8) :
     (sealStep a version).1 = (opSeal a a.ctr.bool version).1 ∧
       (sealStep a version).2 =
         { (opSeal a a.ctr.bool version).2.2 with ctr := { a.ctr with bool := (opSeal a a.ctr.bool version).2.1 } } := by
-  obtain ⟨key, scalar, cred, shares, cert, ctr⟩ := a
+  obtain ⟨key, scalar, cred, shares, cert, ctr, _, _⟩ := a
   cases key <;> cases scalar <;> cases cert <;> cases cred <;> cases shares <;> exact ⟨rfl, rfl⟩
 
 /-- **Op 53 on the counters.** Frees the previous account key (as `Contacts.opKey` does), then
@@ -252,5 +262,232 @@ theorem accountKey_honest (E : Env) (σA σB : Store) (hE : Loaded E) (I : Ideal
     (jointRun E (keyScript n slotA) (keyScript n slotB) σA σB I).ideal.bools (n + 3) =
       some (bitsOf (keyBlock a b)) :=
   (key_honest E σA σB hE I n slotA slotB a b ha hb haB hbB hσA hσB).2.1
+
+/-! ## Op 55: `Account.open` (stage S10)
+
+Replaces `service_kernels.h` `account_open` (232-243). Loads the account's record from its stored
+ciphertext under the account key (op 53): `contact-open N` (N = the ciphertext's length), the
+`accepted` byte opened (label `blobAccepted`) and required to be 255 (the C++ aborts otherwise:
+"account key does not match the stored state"); the content is split into the scalar (256 bits),
+the credentials (8·38) and the certificate. Then the ladder's swap bits: the `swap-bits` circuit
+(`X25519SwapBits.circuit`, 252 outputs, private) on the scalar, into the field engine through
+`Convert.bitsToField` with 252 bit pairs from the pool; with `hinted`, also the scalar's bits
+3 … 253 (251 pairs). Nothing else is opened.
+
+Handles: Boolean from `n` (`n … n + 8`, then `bitsToField`'s four from `n + 9`, the hinted slice
+`n + 13`, its four from `n + 14`); field from `f` (the swap bits' `bitsToField` uses `f … f + 253`,
+the hinted one `f + 254 … f + 506`). -/
+
+open TlsMpc.Node.Flows.Conv in
+/-- The stored record's fixed part: scalar 32, account id 16, password 22. -/
+def fixedBytes : Nat := 32 + credentialBytes
+
+def openArgs55 (version check ct : B8) : Prop :=
+  versionOk version = true ∧ check.length = 16 ∧ fixedBytes < ct.length ∧ ct.length ≤ fixedBytes + 1024
+
+instance (version check ct : B8) : Decidable (openArgs55 version check ct) := by
+  unfold openArgs55; infer_instance
+
+/-- What op 55 leaves: the account state (scalar, credentials, certificate), the swap bits in the
+field engine, the hinted bits when asked, and the pool without the pairs used. -/
+structure Opened where
+  state : State
+  swaps : List FieldH
+  hintedBits : Option (List FieldH)
+  pool : Conv.MaskPool
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+/-- The split of the content handle `c` and the swap bits (after the key check). -/
+def splitBlock (n : Nat) (c : BoolH) (len : Nat) : List Instr :=
+  [.slice ⟨n + 5⟩ c 0 256, .slice ⟨n + 6⟩ c 256 (8 * fixedBytes), .slice ⟨n + 7⟩ c (8 * fixedBytes) (8 * len),
+   .freeBool c, .run ⟨n + 8⟩ swapBitsName 1 ⟨n + 5⟩]
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+/-- The hinted bits (scalar bits 3 … 253), when asked. -/
+def hintedStep (n f : Nat) (pool : MaskPool) (hinted : Bool) : Script (Option (List FieldH) × MaskPool) :=
+  if hinted then
+    match pool.takeBits 251 with
+    | some (ps, pool') =>
+      seqs [.slice ⟨n + 13⟩ ⟨n + 5⟩ 3 254] <|
+      (bitsToField (n + 14) (f + 254) ⟨n + 13⟩ ps).bind fun hs => .done (some hs, pool')
+    | none => .abort "bit pairs exhausted"
+  else .done (none, pool)
+
+/-- The account state after op 55: the scalar, the credentials and the certificate handles. -/
+def openedState (a : State) (n len : Nat) : State :=
+  { a with scalar := some ⟨n + 5⟩, credentials := some ⟨n + 6⟩, certificate := some (⟨n + 7⟩, len - fixedBytes) }
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+/-- **Op 55** on the account state `a` (its key from op 53), the stored record (version, check,
+ciphertext), the pool, and whether the hinted bits are needed. -/
+def openStep (a : State) (n f : Nat) (pool : MaskPool) (hinted : Bool) (version check ct : B8) : Script Opened :=
+  match a.key with
+  | none => .abort "account open unavailable"
+  | some k =>
+    if openArgs55 version check ct then
+      (Contacts.openScript n k version check ct).bind fun c? =>
+      match c? with
+      | none => .abort "account key does not match the stored state"
+      | some c =>
+        match pool.takeBits 252 with
+        | none => .abort "bit pairs exhausted"
+        | some (ps, pool1) =>
+          seqs (splitBlock n c ct.length) <|
+          (bitsToField (n + 9) f ⟨n + 8⟩ ps).bind fun swaps =>
+          (hintedStep n f pool1 hinted).bind fun r =>
+          .done ⟨{ openedState a n ct.length with identity := some swaps }, swaps, r.1, r.2⟩
+    else .abort "account open arguments"
+
+/-- The kinds op 55 declares: the `accepted` byte and the masked bits of the conversions. -/
+def openKinds55 : List TlsMpc.Node.RevealKind := [.blobAccepted, .maskedBit]
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+theorem openStep_reveals (a : State) (n f : Nat) (pool : MaskPool) (hinted : Bool) (version check ct : B8) :
+    Reveals openKinds55 (openStep a n f pool hinted version check ct) := by
+  have hb2f : ∀ n0 f0 x ps, Reveals openKinds55 (bitsToField n0 f0 x ps) := fun n0 f0 x ps =>
+    (b2f_reveals n0 f0 x ps).mono (by simp [b2fKinds, openKinds55])
+  unfold openStep
+  split
+  · exact Every.abort _
+  · split
+    · refine Every.bind ((openScript_reveals _ _ _ _ _).mono (by simp [openKinds, openKinds55])) fun c? => ?_
+      split
+      · exact Every.abort _
+      · split
+        · exact Every.abort _
+        · refine every_seqs (Every.bind (hb2f _ _ _ _) fun swaps => Every.bind ?_ fun r => Every.done _) _
+            (fun i hi => ?_)
+          · unfold hintedStep
+            split
+            · split
+              · exact every_seqs (Every.bind (hb2f _ _ _ _) fun _ => Every.done _) _ (fun i hi => by
+                  simp at hi; subst hi; exact LabelIn.of_none rfl)
+              · exact Every.abort _
+            · exact Every.done _
+          · simp only [splitBlock, List.mem_cons, List.not_mem_nil, or_false] at hi
+            rcases hi with rfl | rfl | rfl | rfl | rfl <;> exact LabelIn.of_none rfl
+    · exact Every.abort _
+
+/-- **T3 for op 55 in the reveal list's vocabulary**: every release the adversary receives is the
+`accepted` byte (`blobAccepted`) or a masked bit of a conversion (`maskedBit`): nothing of the
+scalar, the credentials or the certificate. -/
+theorem openStep_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (a : State) (n f : Nat) (pool : Conv.MaskPool) (hinted : Bool) (version check ct : B8) :
+    ∀ r ∈ (withAdv E me adv (openStep a n f pool hinted version check ct) σ I vD).viewD,
+      ∃ k ∈ openKinds55, r.label = Label.ofKind k :=
+  viewD_kinds E me adv _ _ (openStep_reveals a n f pool hinted version check ct) σ I vD
+
+open TlsMpc.Node.Flows.Conv in
+/-- **Correctness of the swap bits (op 55)**: the `swap-bits` circuit's output k is the swap bit of
+ladder step k + 2 of the scalar whose bits are the input (`X25519Fast.swapBitSpec`, through
+`X25519SwapBits.swapBit_eval`); bits to field then carries each into the field engine
+(`Convert.b2f_value`). -/
+theorem swapBits_spec (v : Bits) :
+    swapBitsEval v = (List.range 252).map fun k => X25519Fast.swapBitSpec (fun i => v.getD i false) (k + 2) := by
+  unfold swapBitsEval
+  apply List.map_congr_left
+  intro k hk
+  rw [List.mem_range] at hk
+  rw [← X25519SwapBits.swapBit_eval (fun i => v.getD i false) (k + 2) (by omega) (by omega)]
+  unfold swapBit X25519SwapBits.swapBit
+  split
+  · rfl
+  · split
+    · simp [TlsMpc.WordMask.not', TlsMpc.BoolDag.Expr.eval]
+    · simp [TlsMpc.BoolDag.Expr.eval]
+
+/-- **The pairs op 55 uses are not left in the pool** (P-PAIR (c), `MaskPool.takeBits_fresh`). -/
+theorem openStep_pool (pool pool1 : Conv.MaskPool) (ps : List Conv.BitPair) (hd : pool.Distinct)
+    (h : pool.takeBits 252 = some (ps, pool1)) : (∀ q ∈ ps, q ∉ pool1.bits) ∧ pool1.Distinct :=
+  ⟨(Conv.MaskPool.takeBits_fresh hd h).1, (Conv.MaskPool.takeBits_fresh hd h).2.2.2.1⟩
+
+/-! ## Op 47: `Account.credentials` (stage S16, J11)
+
+Replaces `service_kernels.h` `account_credentials` (252-257): each party's XOR share of the account
+id and password (38 bytes) is its own private input (`input_private(ALICE, …)`,
+`input_private(BOB, …)`), neither party can open the authenticated socket alone. Here one
+`boolInputBoth` (A's share at `n`, B's at `n + 1`, 304 bits each, private, NOT once: the authenticated
+upgrade and the account seal both read them). Refused when the shares are already in (the C++'s
+`!credentials_a.size()`). Releases nothing. -/
+
+/-- **Op 47's engine part**: both shares from this party's store slot `slot`. -/
+def credentialsScript (n slot : Nat) : Script (BoolH × BoolH) :=
+  seqs [.boolInputBoth ⟨n⟩ ⟨n + 1⟩ (8 * credentialBytes) false false slot] (.done (⟨n⟩, ⟨n + 1⟩))
+
+/-- **Op 47 on the counters**: a block of 2 ids; the state after it holds the two shares. -/
+def credentialsStep (a : State) (slot : Nat) : Script (BoolH × BoolH) × (BoolH × BoolH → State) :=
+  match a.shares with
+  | some _ => (.abort "account credentials", fun _ => a)
+  | none => (credentialsScript (a.ctr.allocB 2).1 slot,
+      fun p => { a with shares := some p, ctr := (a.ctr.allocB 2).2 })
+
+theorem credentialsStep_reveals (a : State) (slot : Nat) : Reveals [] (credentialsStep a slot).1 := by
+  unfold credentialsStep
+  split
+  · exact Every.abort _
+  · exact every_seqs (Every.done _) _ (fun i hi => by simp at hi; subst hi; exact LabelIn.of_none rfl)
+
+/-- The credential shares are two fresh handles of the step's block, side by side. -/
+theorem credentialsStep_shares (a : State) (slot : Nat) (p : BoolH × BoolH) (h : a.shares = none) :
+    ((credentialsStep a slot).2 p).shares = some p ∧ ((credentialsStep a slot).2 p).ctr.bool = a.ctr.bool + 2 := by
+  simp [credentialsStep, h, Counters.allocB]
+
+/-! ## Op 46 (TEST): `Account.admitTest` (stage S16, J11)
+
+Replaces `service_kernels.h` `admit_account` (204-211): the account from a local-server export, both
+controllers hold the same disposable test state and party A enters it as private wires: the
+identity key's 32 bytes (A's input; B sends none) and the sender certificate (A's input, its exact
+length, 1 … 1024 bytes). The identity's ladder swap bits as op 55 makes them (`swap-bits`, then
+bits to field with 252 pairs from the pool; with `hinted` the scalar's bits 3 … 253 too). Same
+handle layout as `openStep` (scalar `n + 5`, certificate `n + 7`, swap bits `n + 8`, conversions
+from `n + 9`; field ids from `f`), so the same blocks (19 Boolean ids, 507 field ids) serve.
+Releases only the conversions' masked bits. -/
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+/-- **Op 46.** `scalarSlot`: this party's 256 bits of the identity key (A's are read); `certSlot`:
+the certificate's bits (A's are read). -/
+def admitStep (a : State) (n f : Nat) (pool : MaskPool) (hinted : Bool) (scalarSlot certSlot certLen : Nat) :
+    Script Opened :=
+  if 0 < certLen ∧ certLen ≤ 1024 ∧ a.scalar.isNone then
+    match pool.takeBits 252 with
+    | none => .abort "bit pairs exhausted"
+    | some (ps, pool1) =>
+      seqs [.boolInput ⟨n + 5⟩ .a 256 false false scalarSlot, .boolInput ⟨n + 7⟩ .a (8 * certLen) false false certSlot,
+        .run ⟨n + 8⟩ swapBitsName 1 ⟨n + 5⟩] <|
+      (bitsToField (n + 9) f ⟨n + 8⟩ ps).bind fun swaps =>
+      (hintedStep n f pool1 hinted).bind fun r =>
+      .done ⟨{ a with scalar := some ⟨n + 5⟩, certificate := some (⟨n + 7⟩, certLen), identity := some swaps },
+        swaps, r.1, r.2⟩
+  else .abort "account admission"
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+theorem hintedStep_reveals (n f : Nat) (pool : MaskPool) (hinted : Bool) :
+    Reveals openKinds55 (hintedStep n f pool hinted) := by
+  have hb2f : ∀ n0 f0 x ps, Reveals openKinds55 (bitsToField n0 f0 x ps) := fun n0 f0 x ps =>
+    (b2f_reveals n0 f0 x ps).mono (by simp [b2fKinds, openKinds55])
+  unfold hintedStep
+  split
+  · split
+    · exact every_seqs (Every.bind (hb2f _ _ _ _) fun _ => Every.done _) _ (fun i hi => by
+        simp at hi; subst hi; exact LabelIn.of_none rfl)
+    · exact Every.abort _
+  · exact Every.done _
+
+open TlsMpc.Node.Flows.Conv TlsMpc.Node.Flows.Convert in
+/-- **T3 for op 46 in the reveal list's vocabulary**: only the conversions' masked bits
+(`openKinds55`'s `maskedBit`; the key and the certificate are never opened). -/
+theorem admitStep_reveals (a : State) (n f : Nat) (pool : MaskPool) (hinted : Bool) (scalarSlot certSlot certLen : Nat) :
+    Reveals openKinds55 (admitStep a n f pool hinted scalarSlot certSlot certLen) := by
+  have hb2f : ∀ n0 f0 x ps, Reveals openKinds55 (bitsToField n0 f0 x ps) := fun n0 f0 x ps =>
+    (b2f_reveals n0 f0 x ps).mono (by simp [b2fKinds, openKinds55])
+  unfold admitStep
+  split
+  · split
+    · exact Every.abort _
+    · refine every_seqs (Every.bind (hb2f _ _ _ _) fun swaps =>
+        Every.bind (hintedStep_reveals _ _ _ _) fun r => Every.done _) _ (fun i hi => ?_)
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+      rcases hi with rfl | rfl | rfl <;> exact LabelIn.of_none rfl
+  · exact Every.abort _
 
 end TlsMpc.Node.Flows.Account

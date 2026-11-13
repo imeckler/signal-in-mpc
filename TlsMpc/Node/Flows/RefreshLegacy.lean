@@ -20,6 +20,7 @@ with `mask`; the contact's UUID and access key are inserted at its slots. The re
 request's buffer handle, to seal and send. -/
 def fetch (w : Worker) (contact : ContactId) (payloadAt : Nat) (offsets : List Nat) (mask frame : Bytes) :
     M TlsWorker.BufferHandle := do
+  if let some f := w.overrides.refreshFetch then return ← f contact payloadAt offsets mask frame
   Legacy.handle (← Legacy.call w .bundleFetch (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++
       uint 2 (offsets.getD 1 0) ++ mask ++ frame))
     "invalid request handle"
@@ -27,15 +28,19 @@ def fetch (w : Worker) (contact : ContactId) (payloadAt : Nat) (offsets : List N
 /-- **Collect `count` bytes of an authenticated record from `offset` into the held prekey response,
 unopened** (op 57). -/
 def take (w : Worker) (handle offset count : Nat) : M Unit := do
+  if let some f := w.overrides.refreshTake then return ← f handle offset count
   let held ← Legacy.call w .bundleTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
   insist (held.length == 4) "invalid bundle reply"
 
 /-- **Discard the held response and any scratch device list** (op 58). -/
-def drop (w : Worker) : M Unit := Legacy.empty w .bundleDrop []
+def drop (w : Worker) : M Unit := do
+  if let some f := w.overrides.refreshDrop then return ← f
+  Legacy.empty w .bundleDrop []
 
 /-- **The held response's shape** (op 59): per byte, whether it is JSON punctuation. `none` in
 strict mode when no circuit covers the response's size class. -/
 def shape (w : Worker) : M (Option (Opened .bundleShape (List Bool))) := do
+  if let some f := w.overrides.refreshShape then return ← f
   let flags ← Legacy.call w .bundleShape []
   if flags.isEmpty then return none
   insist (flags.all (fun b => b == 0 || b == 255)) "invalid bundle shape"
@@ -58,17 +63,21 @@ registration id and the request counter's start. One status byte: 255 done, 254 
 the first device) the bundle's identity key is a new one, anything else refused. -/
 def establish (w : Worker) (contact : ContactId) (registration index devices step at_ : Nat) (slots : Bool)
     (widths : BundleResponse.Widths) : M (Opened .deviceStatus Bytes) := do
+  if let some f := w.overrides.refreshEstablish then return ← f contact registration index devices step at_ slots widths
   let out ← Legacy.call w .bundleEstablish (uint 16 contact ++ uint 8 (2 ^ 63) ++ uint 4 registration ++
     [UInt8.ofNat index, UInt8.ofNat devices, UInt8.ofNat step] ++ uint 4 at_ ++ establishTail slots widths)
   pure (Reveal.deviceStatus out)
 
 /-- **Seal the scratch device list under the nonce `version`** (op 64): `check ‖ ciphertext`. -/
 def scratchSeal (w : Worker) (contact : ContactId) (version : Bytes) : M (Opened .sealedBlob Bytes) := do
+  if let some f := w.overrides.refreshScratchSeal then return ← f contact version
   let stored ← Legacy.call w .scratchSeal (uint 16 contact ++ version)
   insist (stored.length > 16) "invalid sealed device list"
   pure (Reveal.sealedBlob stored)
 
 /-- **Make the scratch device list the contact's state** (op 65), once the database nodes stored it. -/
-def scratchCommit (w : Worker) (contact : ContactId) : M Unit := Legacy.empty w .scratchCommit (uint 16 contact)
+def scratchCommit (w : Worker) (contact : ContactId) : M Unit := do
+  if let some f := w.overrides.refreshScratchCommit then return ← f contact
+  Legacy.empty w .scratchCommit (uint 16 contact)
 
 end TlsMpc.Node.Flow.Refresh

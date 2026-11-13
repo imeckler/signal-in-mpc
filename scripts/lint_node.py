@@ -44,9 +44,10 @@ Checks:
                         `connectVia`, `onConnection`, ...), an operation code (`TlsWorkerPipe.code`),
                         `Legacy.*`, `inputOwn` (own private input, Secret.lean's eliminator) and the
                         `Reveal.*` wrappers (the only makers of `Opened`) appear only in the legacy
-                        flow implementations (TlsMpc/Node/Flows/*Legacy.lean, Flows/Legacy.lean) and
-                        where they are defined (Secret.lean, Reveal.lean; Channels.lean for
-                        operation 39, the peer channel).
+                        flow implementations (TlsMpc/Node/Flows/*Legacy.lean, Flows/Legacy.lean),
+                        since S9 in the script implementations of the same flows (Flows/*Backend.lean,
+                        Flows/Runner.lean, Flows/Select.lean) and where they are defined
+                        (Secret.lean, Reveal.lean; Channels.lean for operation 39, the peer channel).
   session-state         On since S7. The controller's executable root
                         (handshake_backend/EmpHybridWork/PublicServiceController.lean) is only
                         `import TlsMpc.Node.Main` and `def main := TlsMpc.Node.Main.main`; the session
@@ -103,13 +104,21 @@ SESSION_DIR = 'TlsMpc/Node/Session'
 SESSION_REF_ALLOWED = {'TlsMpc/Node/Session/State.lean', 'TlsMpc/Node/Session/Pool.lean', 'TlsMpc/Node/Session/Start.lean'}
 SESSION_REF = re.compile(r'\b(IO\.Ref|IO\.mkRef|ST\.Ref|mkRef)\b')
 # Stage S6: where the worker may be called directly, and `Opened` / own input made (check flow-calls).
-FLOW_ALLOWED = re.compile(r'^TlsMpc/Node/Flows/(\w*Legacy)\.lean$|^TlsMpc/Node/(Secret|Reveal|Channels)\.lean$')
+# Stage S9 (STACK_NOTES J4): also the script implementations of the same flow functions: the script
+# backends (Flows/*Backend.lean), the script runner (Flows/Runner.lean: op 93 through Legacy.call) and
+# the selection (Flows/Select.lean). They make their `Opened` values with the same `Reveal.*` makers
+# as the legacy implementations (no second set of makers in Reveal.lean).
+FLOW_ALLOWED = re.compile(r'^TlsMpc/Node/Flows/(\w*Legacy|\w*Backend|Runner|Select)\.lean$'
+                          r'|^TlsMpc/Node/(Secret|Reveal|Channels)\.lean$')
 FLOW_SCOPE = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
 FLOW_PATTERN = re.compile(
     r'\.(call|pipe|recording)\b'
     r'|\bTlsWorker\.(emptyReply|backend|applicationBackend|applicationSession|transport|applicationTransport|'
     r'waitingTransport|pollRecordLoop|awaitRecord|connect|connectVia|onConnection)\b'
-    r'|\bTlsWorkerPipe\.code\b|\bLegacy\.(call|empty|inputOwn|handle)\b|\binputOwn\b|\bReveal\.[a-z]\w*')
+    r'|\bTlsWorkerPipe\.code\b|\bLegacy\.(call|empty|inputOwn|handle)\b|\binputOwn\b'
+    # (`KernelSpecs.Reveal.*`, the reveal kernel's specification, is another namespace: since S9 the
+    # TLS proofs that use it are in the controller's closure through the script backends.)
+    r'|(?<!KernelSpecs\.)\bReveal\.[a-z]\w*')
 # Stage S5 (strict): files that may have no I/O site at all, whatever the baseline says: the
 # controller and every module under TlsMpc/Node except the allowed ones.
 STRICT_FILES = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')

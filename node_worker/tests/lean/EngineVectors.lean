@@ -28,7 +28,18 @@ Format (one item per line, `key value`):
   agreed a|b HEX HEX                   agreedBytes for that party of the request bytes (the
                                        skeleton bytes, or `unusable`)
   replies HEX                          encodeReplies of a fixed datum list
+  prog NAME_HEX TEXT_HEX IN MASKS MARKS OPENINGS
+                                       a loaded V3 field program (FieldDagV3.render) and its
+                                       signature; every case and flow starts from the context
+                                       with these programs (`start`, Ctx.progs)
+  v3eval NAME_HEX COPIES INS MASKS ok OUTS OPENED | abort
+                                       Model.runProgram (lists as Enc.felts hex)
+  v3parse TEXT_HEX ok RENDERED_HEX | none
+                                       FieldDagV3.parse
 Marks: 0 never, 1 pub, 2 toA, 3 toB, 4 revealable.
+
+The vector run computes no FieldDag compilation (the V3 programs here are written as rows), so it
+is not an export.
 -/
 
 open TlsMpc.Node.Engine
@@ -112,8 +123,30 @@ def emitBatches (c : Ctx) : List (List Wire) → List String
     let r := emitBatch c b
     r.2 ++ emitBatches r.1 rest
 
+/-! ## V3 field programs (opcode 22): the loaded programs and the start context -/
+
+open TlsMpc.FieldDag.V3 (Program render parse) in
+/-- A test program with every kind of row: inputs, a small and a wide constant, sum, difference,
+a secret product, products with a small constant (left and right) and with a wide one, a `D` row,
+a `Z` row and its flag; outputs naming an input row and the same row twice. -/
+def allRows : Program where
+  inputs := 3
+  masks := 2
+  rows := [.input 0, .input 1, .input 2, .const 5, .const (2 ^ 200 + 7), .add 0 1, .sub 0 2, .mul 0 1,
+    .mul 3 5, .mul 5 4, .div 5 1 0, .zdiv 6 2 1, .flag 11, .mul 10 3, .add 12 13]
+  outputs := [(14, .never), (12, .pub), (0, .never), (7, .never), (7, .pub), (9, .never), (11, .never), (8, .never)]
+
+def progTable : List (String × TlsMpc.FieldDag.V3.Program) :=
+  [("field-quotient", TlsMpc.FieldDag.V3.quotient), ("test-allrows", allRows)]
+
+def programs (n : Bytes) : Option TlsMpc.FieldDag.V3.Program :=
+  (progTable.find? (fun e => ascii e.1 == n)).map (·.2)
+
+/-- The context every case and flow starts from: no handle, the programs loaded (`Ctx.progs`). -/
+def start : Ctx := { progs := fun n => (programs n).map ProgSig.ofProgram }
+
 def runCase (name : String) (batches : List (List Wire)) : List String :=
-  [s!"case {name}"] ++ emitBatches {} batches ++ ["end"]
+  [s!"case {name}"] ++ emitBatches start batches ++ ["end"]
 
 /-! ## Every instruction once (party A's and party B's wires of the same skeletons) -/
 
@@ -254,7 +287,45 @@ def cases : List (String × List (List Wire)) :=
    ("width-run-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "noin") (2 ^ 25 + 1) ⟨1⟩]]),
    ("copies-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") (2 ^ 26 + 1) ⟨1⟩]]),
    ("copies-u32-over", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") (2 ^ 32) ⟨1⟩]]),
-   ("copies-nothing-ok", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") 5 ⟨1⟩]])]
+   ("copies-nothing-ok", [[.concat ⟨1⟩ [], .run ⟨2⟩ (ascii "nothing") 5 ⟨1⟩]])] ++ programCases
+-- The program instruction (opcode 22): accepted and refused batches.
+where
+  q : Bytes := ascii "field-quotient"
+  all : Bytes := ascii "test-allrows"
+  /-- Data 1, 2, 3 (A) and 4, 5, 6 (B), marked never; mask 7 = 3 + 6 (never). -/
+  setup : List Wire :=
+    [.fieldInput [⟨1⟩, ⟨2⟩, ⟨3⟩] [⟨4⟩, ⟨5⟩, ⟨6⟩] .elements false [fe 11, fe 7, fe 9], .fieldAdd ⟨7⟩ ⟨3⟩ ⟨6⟩]
+  hs (l : List Nat) : List FieldH := l.map (⟨·⟩)
+  programCases : List (String × List (List Wire)) :=
+    [("program-ok", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 11]) ⟨6⟩, .fieldCheck,
+        .openField (hs [11]) ⟨4⟩], [.openField (hs [10]) ⟨4⟩]]),
+     ("program-mask-consumed", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 11]) ⟨6⟩],
+        [.program q 1 (hs [1, 2]) (hs [7]) (hs [12, 13]) ⟨6⟩], [.freeField ⟨7⟩]]),
+     ("program-mask-twice", [setup ++ [.fieldAdd ⟨8⟩ ⟨1⟩ ⟨4⟩,
+        .program q 2 (hs [1, 2, 4, 5]) (hs [7, 7]) (hs [10, 11, 12, 13]) ⟨6⟩]]),
+     ("program-mask-is-input", [setup ++ [.program q 1 (hs [7, 2]) (hs [7]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-mask-revealable", [[.fieldInput [⟨1⟩, ⟨2⟩, ⟨3⟩] [⟨4⟩, ⟨5⟩, ⟨6⟩] .elements true [fe 1, fe 2, fe 3],
+        .program q 1 (hs [1, 2]) (hs [3]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-mask-public", [setup ++ [.fieldPublic ⟨8⟩ (fe 5), .program q 1 (hs [1, 2]) (hs [8]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-mask-dead", [setup ++ [.program q 1 (hs [1, 2]) (hs [9]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-input-dead", [setup ++ [.program q 1 (hs [1, 99]) (hs [7]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-unknown", [setup ++ [.program (ascii "nope") 1 (hs [1, 2]) (hs [7]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-label0", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 11]) ⟨0⟩]]),
+     ("program-copies0", [setup ++ [.program q 0 [] [] [] ⟨6⟩]]),
+     ("program-copies-over", [setup ++ [.program q (2 ^ 26 + 1) [] [] [] ⟨6⟩]]),
+     ("program-ins-count", [setup ++ [.program q 1 (hs [1]) (hs [7]) (hs [10, 11]) ⟨6⟩]]),
+     ("program-masks-count", [setup ++ [.program q 1 (hs [1, 2]) [] (hs [10, 11]) ⟨6⟩]]),
+     ("program-outs-count", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 11, 12]) ⟨6⟩]]),
+     ("program-out-reuse", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 1]) ⟨6⟩]]),
+     ("program-out-is-mask", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 7]) ⟨6⟩]]),
+     ("program-out-dup", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 10]) ⟨6⟩]]),
+     ("program-two-copies-ok", [setup ++ [.fieldAdd ⟨8⟩ ⟨1⟩ ⟨4⟩, .fieldAdd ⟨9⟩ ⟨2⟩ ⟨5⟩, .fieldAdd ⟨20⟩ ⟨3⟩ ⟨5⟩,
+        .fieldAdd ⟨21⟩ ⟨6⟩ ⟨4⟩,
+        .program all 2 (hs [1, 2, 3, 4, 5, 6]) (hs [7, 8, 9, 20]) (hs (List.range' 30 16)) ⟨6⟩,
+        .openField (hs [31, 34, 39, 42]) ⟨4⟩],
+        [.openField (hs [30]) ⟨4⟩]]),
+     ("program-not-last-ok", [setup ++ [.program q 1 (hs [1, 2]) (hs [7]) (hs [10, 11]) ⟨6⟩,
+        .fieldMul (hs [12]) [(⟨10⟩, ⟨11⟩)], .exchange 1 ⟨9⟩ [1]]])]
 
 /-! ## Two-party runs: the flows, and the engine round trips of the end-to-end test -/
 
@@ -288,7 +359,7 @@ partial def runPair {α : Type} (showR : α → String) (sa sb : Script α) (ca 
   | _, _ => ["error shape"]
 
 def flowLines {α : Type} (name : String) (showR : α → String) (mk : Party → Script α) : List String :=
-  [s!"flow {name}"] ++ runPair showR (mk .a) (mk .b) {} {} ++ ["endflow"]
+  [s!"flow {name}"] ++ runPair showR (mk .a) (mk .b) start start ++ ["endflow"]
 
 /-- Fixed two-party rounds: each party's batch and the datums released to it. -/
 def fixedFlow (name : String) (rounds : List ((Party → List Wire) × List Datum × List Datum)) : List String :=
@@ -299,7 +370,7 @@ def fixedFlow (name : String) (rounds : List ((Party → List Wire) × List Datu
       let eb := emitBatch cb (mk .b)
       ["round", "party a"] ++ ea.2 ++ [s!"reply {hex (encodeReplies da)}"] ++
         ["party b"] ++ eb.2 ++ [s!"reply {hex (encodeReplies db)}"] ++ go ea.1 eb.1 rest
-  [s!"flow {name}"] ++ go {} {} rounds ++ ["endflow"]
+  [s!"flow {name}"] ++ go start start rounds ++ ["endflow"]
 
 /-- Boolean round trip: A inputs the length and content of `tls-reveal 7`, B the one-hot select
 mask; the circuit opens the length and the selected byte (HybridKernels.tlsReveal). Then both
@@ -384,6 +455,96 @@ def fieldRounds : List ((Party → List Wire) × List Datum × List Datum) :=
        .openField [⟨8⟩, ⟨11⟩, ⟨14⟩, ⟨15⟩] ⟨5⟩],
     [.elems [fe 5, f11, f14, f15]], [.elems [fe 5, f11, f14, f15]])]
 
+/-- Two parties run V3 programs (opcode 22): both parties' shares of the data and of the masks are
+input, summed, and given to the program; the replies are the program's openings (an elements item
+that does not end the batch) and the opened public outputs, computed by the Lean model
+(`runProgram`, through `FieldDagV3.eval`). Round 1: `field-quotient` (x/z, flag). Round 2: two
+instances of `test-allrows`, the second with a zero Z denominator. -/
+def xA : F := fe (2 ^ 254 + 5)
+def xB : F := fe 123456789
+def zA : F := fe (2 ^ 251 + 77)
+def zB : F := fe 999
+def mA : F := fe (2 ^ 253 + 3)
+def mB : F := fe 424242
+
+def round1 : List F × List F :=
+  (runProgram TlsMpc.FieldDag.V3.quotient 1 [xA + xB, zA + zB] [mA + mB]).getD ([], [])
+
+def dataA : List F := [fe 31, fe 41, fe 59, fe (2 ^ 240 + 26), fe 53, fe 0]
+def dataB : List F := [fe 2, fe 7, fe 18, fe 28, fe 18, fe 28]
+def masksA : List F := [fe 271, fe (2 ^ 249 + 8), fe 28182, fe 845]
+def masksB : List F := [fe 9045, fe 2353, fe (2 ^ 230 + 602), fe 87]
+
+def round2 : List F × List F :=
+  (runProgram allRows 2 dataA (masksA.zipWith (· + ·) masksB)).getD ([], [])
+
+def programRounds : List ((Party → List Wire) × List Datum × List Datum) :=
+  let hs (l : List Nat) : List FieldH := l.map (⟨·⟩)
+  let opened1 := [round1.1.getD 1 0]
+  let opened2 := [1, 4, 9, 12].map fun j => round2.1.getD j 0
+  [(fun me =>
+      [.fieldInput (hs [1, 2]) (hs [3, 4]) .elements false (if me = .a then [xA, zA] else [xB, zB]),
+       .fieldAdd ⟨5⟩ ⟨1⟩ ⟨3⟩,
+       .fieldAdd ⟨6⟩ ⟨2⟩ ⟨4⟩,
+       .fieldInput (hs [7]) (hs [8]) .elements false (if me = .a then [mA] else [mB]),
+       .fieldAdd ⟨9⟩ ⟨7⟩ ⟨8⟩,
+       .program (ascii "field-quotient") 1 (hs [5, 6]) (hs [9]) (hs [10, 11]) ⟨6⟩,
+       .fieldCheck,
+       .openField (hs [11]) ⟨4⟩],
+    [.elems round1.2, .elems opened1], [.elems round1.2, .elems opened1]),
+   (fun me =>
+      [.fieldInput (hs (List.range' 20 6)) (hs (List.range' 26 6)) .elements false (if me = .a then dataA else dataB),
+       .fieldInput (hs (List.range' 40 4)) (hs (List.range' 44 4)) .elements false (if me = .a then masksA else masksB),
+       .fieldAdd ⟨48⟩ ⟨40⟩ ⟨44⟩, .fieldAdd ⟨49⟩ ⟨41⟩ ⟨45⟩, .fieldAdd ⟨50⟩ ⟨42⟩ ⟨46⟩, .fieldAdd ⟨51⟩ ⟨43⟩ ⟨47⟩,
+       .program (ascii "test-allrows") 2 (hs (List.range' 20 6)) (hs [48, 49, 50, 51]) (hs (List.range' 60 16)) ⟨6⟩,
+       .freeField ⟨62⟩,
+       .openField (hs [61, 64, 69, 72]) ⟨4⟩],
+    [.elems round2.2, .elems opened2], [.elems round2.2, .elems opened2])]
+
+/-! ## V3 texts, evaluations and parser vectors (tests/program_vectors.rs) -/
+
+def feltsHex (v : List F) : String := hex (Enc.felts v)
+
+/-- `prog NAME_HEX TEXT_HEX INPUTS MASKS MARKS OPENINGS`: a loaded program's V3 text and its signature. -/
+def progLine (e : String × TlsMpc.FieldDag.V3.Program) : String :=
+  s!"prog {hex (ascii e.1)} {hex (ascii (TlsMpc.FieldDag.V3.render e.2))} {e.2.inputs} {e.2.masks} " ++
+    s!"{marksStr (ProgSig.ofProgram e.2).outMarks} {e.2.openings}"
+
+/-- `v3eval NAME_HEX COPIES INPUTS MASKS ok OUTPUTS OPENINGS | abort`: the model's `runProgram`. -/
+def evalLine (name : String) (copies : Nat) (vi vm : List F) : String :=
+  let p := (programs (ascii name)).getD TlsMpc.FieldDag.V3.quotient
+  let head := s!"v3eval {hex (ascii name)} {copies} {feltsHex vi} {feltsHex vm}"
+  match runProgram p copies vi vm with
+  | some (o, ops) => s!"{head} ok {feltsHex o} {feltsHex ops}"
+  | none => s!"{head} abort"
+
+def evalVectors : List String :=
+  [evalLine "field-quotient" 1 [fe 10, fe 4] [fe 7],
+   evalLine "field-quotient" 1 [fe 10, fe 0] [fe 7],
+   evalLine "field-quotient" 3 [xA, zA, fe 0, fe 0, fe (modulus - 1), fe 2] [mA, mB, fe 1],
+   evalLine "test-allrows" 1 [fe 3, fe 5, fe 7] [fe 11, fe 13],
+   evalLine "test-allrows" 2 dataA (masksA.zipWith (· + ·) masksB),
+   -- a D row whose denominator (input 1) is zero: the program aborts
+   evalLine "test-allrows" 1 [fe 3, fe 0, fe 7] [fe 11, fe 13],
+   -- a zero mask makes the D opening zero too
+   evalLine "test-allrows" 1 [fe 3, fe 5, fe 7] [fe 0, fe 13]]
+
+/-- `v3parse TEXT_HEX ok RENDERED_HEX | none`: Lean's `parse` (with `render` of the result). -/
+def parseLine (s : String) : String :=
+  match TlsMpc.FieldDag.V3.parse s with
+  | some p => s!"v3parse {hex (ascii s)} ok {hex (ascii (TlsMpc.FieldDag.V3.render p))}"
+  | none => s!"v3parse {hex (ascii s)} none"
+
+def parseVectors : List String :=
+  let t := TlsMpc.FieldDag.V3.render TlsMpc.FieldDag.V3.quotient
+  let a := TlsMpc.FieldDag.V3.render allRows
+  [t, a, t ++ "x", t ++ "\n", String.ofList t.toList.dropLast, t.replace "O 3 1" "O 3 2", t.replace "F 2" "F 1",
+   t.replace "Z 0 1 0" "Z 0 1 1", t.replace "2 1 4 2" "2 2 4 2", t.replace "2 1 4 2" "1 1 4 2",
+   t.replace "I 1" "I 01", t.replace "I 1" "I  1", t.replace "O 2 0" "O 4 0", t.replace "Z 0 1 0" "Z 0 2 0",
+   t.replace "2 1 4 2" "2 1 5 2", t.replace "2 1 4 2" "2 1 4 1", t.replace "\n" "\r\n",
+   t.replace "819949" "819948", t.replace "V3" "V2", a.replace "D 5 1 0" "D 5 1 1",
+   a.replace "C 5" "C 05", a.replace "Z 6 2 1" "D 6 2 1"]
+
 /-! ## Decoder vectors -/
 
 def decodeLine (s : Bytes) : String :=
@@ -429,7 +590,14 @@ def decodeVectors : List Bytes :=
    -- a list count larger than the input
    Enc.u64 1 ++ [5] ++ Enc.u64 1 ++ Enc.u64 (2 ^ 63) ++ Enc.u64 1,
    -- a field element cut short
-   pub0.dropLast]
+   pub0.dropLast,
+   -- the program instruction (opcode 22), whole and cut short; opcode 23 is unknown
+   prog1,
+   prog1.dropLast,
+   Enc.u64 1 ++ [23]]
+where
+  prog1 : Bytes := encodeBatch [.program (ascii "field-quotient") 2 [⟨1⟩, ⟨2⟩, ⟨3⟩, ⟨4⟩] [⟨5⟩, ⟨6⟩]
+    [⟨7⟩, ⟨8⟩, ⟨9⟩, ⟨10⟩] ⟨6⟩]
 
 /-! ## Agreement vectors (design note item 4: the agreed bytes, `unusable` for an unusable batch) -/
 
@@ -467,6 +635,7 @@ def replyVectors : List (List Datum) :=
 
 def allLines : List String :=
   sigTable.map (fun e => s!"sig {hex (ascii e.1)} {e.2.inWidth} {marksStr e.2.outMarks}") ++
+  progTable.map progLine ++
   [s!"sha256-abc {hex (sha256 (ascii "abc"))}"] ++
   runCase "all-a" (allBatches .a) ++
   runCase "all-b" (allBatches .b) ++
@@ -477,6 +646,9 @@ def allLines : List String :=
   fixedFlow "bool" boolRounds ++
   fixedFlow "field" fieldRounds ++
   fixedFlow "xor" xorRounds ++
+  fixedFlow "program" programRounds ++
+  evalVectors ++
+  parseVectors.map parseLine ++
   decodeVectors.map decodeLine ++
   agreedVectors.map agreedLine ++
   replyVectors.map (fun r => s!"replies {hex (encodeReplies r)}")

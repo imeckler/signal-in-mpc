@@ -5,7 +5,8 @@
 //! payload checks, the skeleton agreement, `check` before execution, the handle mapping, the
 //! engine calls each opcode makes, the exchange, and the reply items, which must equal the
 //! replies the Lean model computes for honest parties (`Random.joint`, `Upgrade.publicUpgrade`,
-//! the Boolean and field round trips). The real engines run the same flows in
+//! the Boolean and field round trips, and two V3 field programs through opcode 22 and program.rs,
+//! with the openings and opened outputs the Lean `runProgram` computes). The real engines run the same flows in
 //! tests/e2e_batches.py (two node-worker processes; not a cargo test: it needs the engines'
 //! links, MP-SPDZ certificates and the heavy-job lock).
 mod common;
@@ -20,84 +21,7 @@ use std::net::{Ipv4Addr, TcpListener};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 
-// ---- integers mod p = 2^255 - 19, four little-endian 64-bit limbs (test arithmetic only)
-
-type Fe = [u64; 4];
-const P: Fe = [0xffff_ffff_ffff_ffed, u64::MAX, u64::MAX, 0x7fff_ffff_ffff_ffff];
-
-fn ge(a: &Fe, b: &Fe) -> bool {
-    for i in (0..4).rev() {
-        if a[i] != b[i] {
-            return a[i] > b[i];
-        }
-    }
-    true
-}
-fn raw_sub(a: &Fe, b: &Fe) -> Fe {
-    let mut r = [0u64; 4];
-    let mut borrow = 0u64;
-    for i in 0..4 {
-        let (d, b1) = a[i].overflowing_sub(b[i]);
-        let (d, b2) = d.overflowing_sub(borrow);
-        r[i] = d;
-        borrow = (b1 || b2) as u64;
-    }
-    r
-}
-fn raw_add(a: &Fe, b: &Fe) -> Fe {
-    let mut r = [0u64; 4];
-    let mut carry = 0u64;
-    for i in 0..4 {
-        let (s, c1) = a[i].overflowing_add(b[i]);
-        let (s, c2) = s.overflowing_add(carry);
-        r[i] = s;
-        carry = (c1 || c2) as u64;
-    }
-    r
-}
-/// a + b mod p for a, b < p (the sum is below 2^256).
-fn add(a: &Fe, b: &Fe) -> Fe {
-    let s = raw_add(a, b);
-    if ge(&s, &P) { raw_sub(&s, &P) } else { s }
-}
-fn sub(a: &Fe, b: &Fe) -> Fe {
-    if ge(a, b) { raw_sub(a, b) } else { raw_sub(&raw_add(a, &P), b) }
-}
-fn mul(a: &Fe, b: &Fe) -> Fe {
-    let mut r = [0u64; 4];
-    for i in (0..256).rev() {
-        r = add(&r, &r);
-        if (b[i / 64] >> (i % 64)) & 1 == 1 {
-            r = add(&r, a);
-        }
-    }
-    r
-}
-fn inv(a: &Fe) -> Fe {
-    let e = raw_sub(&P, &[2, 0, 0, 0]);
-    let mut r = [1, 0, 0, 0];
-    for i in (0..256).rev() {
-        r = mul(&r, &r);
-        if (e[i / 64] >> (i % 64)) & 1 == 1 {
-            r = mul(&r, a);
-        }
-    }
-    r
-}
-fn fe_of(b: &[u8; 32]) -> Fe {
-    let mut r = [0u64; 4];
-    for (i, limb) in r.iter_mut().enumerate() {
-        *limb = u64::from_le_bytes(b[8 * i..8 * i + 8].try_into().unwrap());
-    }
-    r
-}
-fn bytes_of(f: &Fe) -> [u8; 32] {
-    let mut out = [0u8; 32];
-    for i in 0..4 {
-        out[8 * i..8 * i + 8].copy_from_slice(&f[i].to_le_bytes());
-    }
-    out
-}
+use common::field::{Fe, add, bytes_of, fe_of, inv, mul, sub};
 
 // ---- the ideal functionality, one stand-in per party
 
@@ -379,6 +303,10 @@ fn pair() -> Pair {
     let mut sb = Shell::new(false, "s".into(), b, Ideal::new(1, meeting), wait);
     sa.kernels = kernels();
     sb.kernels = kernels();
+    // The V3 programs of the vectors, loaded at session start (Lean `start`, Ctx.progs).
+    let text = common::text();
+    sa.set_programs(common::programs(&text));
+    sb.set_programs(common::programs(&text));
     (sa, sb)
 }
 
@@ -401,7 +329,7 @@ fn both(p: Pair, code: u8, seq: u64, pa: Vec<u8>, pb: Vec<u8>) -> (Pair, Results
 fn lean_flows_on_two_shells() {
     let text = common::text();
     let flows = common::flows(&text);
-    assert_eq!(flows.iter().map(|f| f.name.as_str()).collect::<Vec<_>>(), ["random-joint", "upgrade-public", "bool", "field", "xor"]);
+    assert_eq!(flows.iter().map(|f| f.name.as_str()).collect::<Vec<_>>(), ["random-joint", "upgrade-public", "bool", "field", "xor", "program"]);
     for flow in flows {
         let mut p = pair();
         for (seq, round) in flow.rounds.iter().enumerate() {

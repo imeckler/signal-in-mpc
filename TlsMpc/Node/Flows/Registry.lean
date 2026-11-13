@@ -1,6 +1,12 @@
 import TlsMpc.Node.Flows.Upgrade
 import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
+import TlsMpc.Node.Flows.Inversion
+import TlsMpc.Node.Flows.CurveProofs
+import TlsMpc.Node.Flows.Tls
+import TlsMpc.Node.Flows.Send
+import TlsMpc.Node.Flows.Receive
+import TlsMpc.Node.Flows.RefreshFlowProofs
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -20,6 +26,10 @@ this module.
     `writeScript_bounded`, `account_sealScript_bounded`, `account_opSeal_bounded`, and on the
     contact table (handle ids from `Table.Inv`, the counter below 2^64 − 5) `opKey_bounded`,
     `opSeal_bounded`, `opOpen_bounded`, `opEvict_bounded`, `opAssign_bounded`, `opWrite_bounded`.
+  * Stage S13 (the send scripts, Flows/Send.lean): `s13_flows_reveal`; `send_sealScript_bounded` (op
+    41), `requestScript_bounded` (op 42), `requestCtrScript_bounded` (the request's record phase), with
+    `joinName_length`, `sealName_lt`, `widthsName_lt`. Ops 61 and 62 (device lists): not shown
+    (S13_NOTES.md).
 -/
 
 namespace TlsMpc.Node.Flows.Registry
@@ -34,7 +44,38 @@ def declared : List (String × List RevealKind) :=
   [("Random.joint", Random.jointKinds), ("Upgrade.publicUpgrade", Random.jointKinds),
    ("Contacts.key", keyKinds), ("Contacts.seal", sealKinds), ("Contacts.open", openKinds),
    ("Contacts.write", writeKinds), ("Contacts.evict", []), ("Contacts.assign", []),
-   ("Account.key", keyKinds), ("Account.seal", sealKinds)]
+   ("Account.key", keyKinds), ("Account.seal", sealKinds),
+   -- stage S10
+   ("Random.challenge", Random.jointKinds), ("Masks.generate", Masks.generateKinds),
+   ("Convert.wordToField", Convert.w2fKinds), ("Convert.fieldToWord", Convert.f2wKinds),
+   ("Convert.bitsToField", Convert.b2fKinds), ("Convert.sharedBits", Convert.bitsKinds),
+   ("Inversion.quotient", Inversion.inversionKinds), ("Account.open", Account.openKinds55),
+   -- stage S11
+   ("Curve.splitBegin", Curve.splitKinds), ("Curve.splitAgree", Curve.splitKinds),
+   ("Curve.agree", Curve.agreeKinds), ("Curve.offsetPrepare", Curve.offsetKinds),
+   ("Curve.offsetStep", Curve.offsetKinds), ("Curve.offsetStepFast", Curve.offsetKinds),
+   ("Curve.lift", Curve.liftKinds), ("Curve.tables", Curve.tableKinds),
+   ("Curve.agreeHinted", Curve.agreeKinds), ("Curve.agreeAffine", Curve.agreeKinds),
+   ("Curve.signatures", Curve.signatureKinds), ("Curve.torsion", Curve.signatureKinds),
+   ("Curve.sharedBits", Convert.bitsKinds), ("Curve.prepareContacts", Curve.prepareKinds),
+   -- stage S12
+   ("Ghash.keyShare", Ghash.ghashKinds), ("Ghash.round", Ghash.ghashKinds),
+   ("Tls.sealCtr", Tls.sealKinds), ("Tls.sealClass", Tls.sealKinds), ("Tls.tag", Tls.sealKinds),
+   ("Tls.open", Tls.openKinds), ("Tls.parser", []), ("Tls.update", []), ("Tls.reveal", Tls.revealKinds),
+   ("Tls.range", Tls.revealKinds), ("Tls.public", []), ("Tls.drop", []), ("Tls.derive", []),
+   ("Tls.openHandshake", Tls.handshakeKinds), ("Tls.verify", Tls.handshakeKinds),
+   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", []),
+   -- stage S13
+   ("Send.seal", Send.sealKinds), ("Send.devices", Send.sealKinds), ("Send.request", []),
+   ("Send.requestDevices", []), ("Send.requestCtr", Send.requestSealKinds),
+   -- stage S14 (plus the curve parameter's own kinds, S11's to register)
+   ("Receive.take", []), ("Receive.drop", []), ("Receive.openFirst", Receive.firstKinds),
+   ("Receive.session", Receive.sessionKinds), ("Receive.programs", [.maskedDenominator]),
+   -- stage S15 (S11's curve parameter declares its own kinds, registered with S11)
+   ("Refresh.fetch", Refresh.fetchKinds), ("Refresh.take", []), ("Refresh.shape", Refresh.shapeKinds),
+   ("Refresh.parse", []), ("Refresh.challenges", []), ("Refresh.verify", Refresh.establishKinds),
+   ("Refresh.kem", []), ("Refresh.session", Refresh.establishKinds), ("Refresh.scratchSeal", Refresh.scratchKinds),
+   ("Refresh.drop", []), ("Refresh.commit", [])]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/
@@ -63,6 +104,102 @@ theorem script_flows_reveal :
     openScript_reveals, writeScript_reveals, opKey_reveals, opSeal_reveals, opOpen_reveals,
     opEvict_reveals, opAssign_reveals, opWrite_reveals, Account.keyStep_reveals, Account.opSeal_reveals,
     Account.sealStep_reveals⟩
+
+/-- **Every S10 script flow declares its kinds** (on every branch, for every argument). -/
+theorem s10_flows_reveal :
+    (∀ hash me nonce value dom n, Reveals Random.jointKinds (Random.challenge hash me nonce value dom n)) ∧
+    (∀ p b f hash me s, Reveals Masks.generateKinds (Masks.generate p b f hash me s)) ∧
+    (∀ n0 f0 u m, Reveals Convert.w2fKinds (Convert.wordToField n0 f0 u m)) ∧
+    (∀ n0 f0 v m, Reveals Convert.f2wKinds (Convert.fieldToWord n0 f0 v m)) ∧
+    (∀ n0 f0 x ps, Reveals Convert.b2fKinds (Convert.bitsToField n0 f0 x ps)) ∧
+    (∀ f0 n slot, Reveals Convert.bitsKinds (Convert.sharedBits f0 n slot)) ∧
+    (∀ f0 slot x z, Reveals Inversion.inversionKinds (Inversion.quotientScript f0 slot x z)) ∧
+    (∀ a n f pool hinted version check ct,
+      Reveals Account.openKinds55 (Account.openStep a n f pool hinted version check ct)) :=
+  ⟨Random.challenge_reveals, Masks.generate_reveals, Convert.w2f_reveals, Convert.f2w_reveals,
+    Convert.b2f_reveals, Convert.bits_reveals, Inversion.quotient_reveals, Account.openStep_reveals⟩
+
+/-- **Every S11 curve flow declares its kinds** (on every branch, for every argument; op 66's two
+scripts, around its local step). -/
+theorem s11_flows_reveal :
+    (∀ hash me nonce share, Reveals Curve.splitKinds (Curve.splitBegin hash me nonce share)) ∧
+    (∀ f0 tSlot maskSlot, Reveals Curve.splitKinds (Curve.splitAgree f0 tSlot maskSlot)) ∧
+    (∀ f0 slot jobs, Reveals Curve.agreeKinds (Curve.agree f0 slot jobs)) ∧
+    (∀ hash me f0 s u, Reveals Curve.offsetKinds (Curve.offsetPrepare hash me f0 s u)) ∧
+    (∀ f0 maskSlot st τ, Reveals Curve.offsetKinds (Curve.offsetStep f0 maskSlot st τ)) ∧
+    (∀ f0 slot st τ, Reveals Curve.offsetKinds (Curve.offsetStepFast f0 slot st τ)) ∧
+    (∀ f0 s us, Reveals Curve.liftKinds (Curve.lift f0 s us)) ∧
+    (∀ f0 s pts, Reveals Curve.tableKinds (Curve.tables f0 s pts)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeHinted f0 rho qslot jobs)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeAffine f0 rho qslot jobs)) ∧
+    (∀ f0 maskSlot baseT jobs, Reveals Curve.signatureKinds (Curve.signatures f0 maskSlot baseT jobs)) ∧
+    (∀ f0 hintSlot rSlot maskSlot pts, Reveals Curve.signatureKinds (Curve.torsion f0 hintSlot rSlot maskSlot pts)) ∧
+    (∀ f0 slot, Reveals Convert.bitsKinds (Curve.sharedBits f0 slot)) ∧
+    (∀ hash me f0 s us ids, Reveals Curve.prepareKinds (Curve.prepareContacts hash me f0 s us ids).first) ∧
+    (∀ hash me f0 s us ids r, Reveals Curve.prepareKinds ((Curve.prepareContacts hash me f0 s us ids).second r)) :=
+  ⟨Curve.splitBegin_reveals, Curve.splitAgree_reveals, Curve.agree_reveals, Curve.offsetPrepare_reveals,
+    Curve.offsetStep_reveals, Curve.offsetStepFast_reveals, Curve.lift_reveals, Curve.tables_reveals,
+    Curve.agreeHinted_reveals, Curve.agreeAffine_reveals, Curve.signatures_reveals, Curve.torsion_reveals,
+    Curve.sharedBits_reveals, fun _ _ f0 s us _ => Curve.prepareFirst_reveals f0 s.lift us,
+    Curve.prepareContacts_second_reveals⟩
+
+/-- **Every S12 script flow declares its kinds** (on every branch, for every argument). -/
+theorem s12_flows_reveal :
+    (∀ n traffic maskSlot dst, Reveals Ghash.ghashKinds (Ghash.keyShareScript n traffic maskSlot dst)) ∧
+    (∀ n c l r m dst, Reveals Ghash.ghashKinds (Ghash.roundScript n c l r m dst)) ∧
+    (∀ n traffic content seq kind size padding,
+      Reveals Tls.sealKinds (Tls.sealCtrScript n traffic content seq kind size padding)) ∧
+    (∀ n traffic content seq size, Reveals Tls.sealKinds (Tls.sealClassScript n traffic content seq size)) ∧
+    (∀ n pad halfSlot, Reveals Tls.sealKinds (Tls.tagScript n pad halfSlot)) ∧
+    (∀ n parser traffic seq tag record size cap halfSlot,
+      Reveals Tls.openKinds (Tls.openScript n parser traffic seq tag record size cap halfSlot)) ∧
+    (∀ n, Reveals [] (Tls.parserScript n)) ∧
+    (∀ n traffic, Reveals [] (Tls.updateScript n traffic)) ∧
+    (∀ n length content cap, Reveals Tls.revealKinds (Tls.revealScript n length content cap)) ∧
+    (∀ n bytes lo hi, Reveals Tls.revealKinds (Tls.rangeScript n bytes lo hi)) ∧
+    (∀ n bytes, Reveals [] (Tls.publicScript n bytes)) ∧
+    (∀ hs, Reveals [] (Tls.dropScript hs)) ∧
+    (∀ n agreement hash, Reveals [] (Tls.deriveScript n agreement hash)) ∧
+    (∀ n serverHs seq record, Reveals Tls.handshakeKinds (Tls.openHandshakeScript n serverHs seq record)) ∧
+    (∀ n serverHs hash message, Reveals Tls.handshakeKinds (Tls.verifyScript n serverHs hash message)) ∧
+    (∀ n main clientHs sh ch cert, Reveals Tls.handshakeKinds (Tls.finishScript n main clientHs sh ch cert)) ∧
+    (∀ n digest valid, Reveals [] (Tls.agreeScript n digest valid)) :=
+  ⟨Ghash.keyShare_reveals, Ghash.round_reveals, Tls.sealCtr_reveals, Tls.sealClass_reveals, Tls.tag_reveals,
+    Tls.open_reveals, Tls.parser_reveals, Tls.update_reveals, Tls.reveal_reveals, Tls.range_reveals,
+    Tls.public_reveals, Tls.drop_reveals, Tls.derive_reveals, Tls.openHandshake_reveals, Tls.verify_reveals,
+    Tls.finish_reveals, Tls.agree_reveals⟩
+
+/-- **Every S14 script flow declares its kinds** (on every branch, for every argument and state):
+take and drop release nothing; `openFirst` and `session` release under their kinds and the curve
+parameter's (`Receive.Curve.kinds`); the program-based curve pieces under `maskedDenominator` and
+the agreements' kinds. -/
+theorem s14_flows_reveal :
+    (∀ env bytes offset count, Receive.RevealsG [] (Receive.takeScript env bytes offset count)) ∧
+    (∀ env a, Receive.RevealsG [] (Receive.dropScript env a)) ∧
+    (∀ cv loaded fi env size, Receive.RevealsG (Receive.firstKinds ++ cv.kinds) (Receive.openFirst cv loaded fi env size)) ∧
+    (∀ cv loaded a sp ss, Receive.RevealsG (Receive.sessionKinds ++ cv.kinds) (Receive.session cv loaded a sp ss)) ∧
+    (∀ agree ks h pm, (Receive.Curve.withPrograms agree ks h pm).kinds = .maskedDenominator :: ks) :=
+  ⟨Receive.take_reveals, Receive.drop_reveals, fun cv loaded fi env size => Receive.openFirst_reveals cv loaded fi env size,
+    fun cv loaded a sp ss => Receive.session_reveals cv loaded a sp ss, fun _ _ _ _ => rfl⟩
+
+/-- **Every S15 script flow declares its kinds** (on every branch, for every argument; the
+establishment's operation with S11's parameter: `Refresh.opEstablish_reveals`). -/
+theorem s15_flows_reveal :
+    (∀ n traffic state seq frame mask p u k,
+      Reveals Refresh.fetchKinds (Refresh.fetchScript n traffic state seq frame mask p u k)) ∧
+    (∀ n body content offset count, Reveals [] (Refresh.takeScript n body content offset count)) ∧
+    (∀ n body size, Reveals Refresh.shapeKinds (Refresh.shapeScript n body size)) ∧
+    (∀ n body total start w first last, Reveals [] (Refresh.parseScript n body total start w first last)) ∧
+    (∀ n fields l, Reveals [] (Refresh.challengeScript n fields l)) ∧
+    (∀ n state fields l r first, Reveals Refresh.establishKinds (Refresh.verifyScript n state fields l r first)) ∧
+    (∀ n acct reg parsed bound kem ag oneTime,
+      Reveals Refresh.establishKinds (Refresh.sessionScript n acct reg parsed bound kem ag oneTime)) ∧
+    (∀ n key cert ds version, Reveals Refresh.scratchKinds (Refresh.scratchSealScript n key cert ds version)) ∧
+    (∀ t st, Reveals [] (Refresh.opDrop t st).script) ∧
+    (∀ t st id, Reveals [] (Refresh.opCommit t st id).script) :=
+  ⟨Refresh.fetch_reveals, Refresh.take_reveals, Refresh.shape_reveals, Refresh.parse_reveals,
+    Refresh.challenge_reveals, Refresh.verify_reveals, Refresh.session_reveals, Refresh.scratchSeal_reveals,
+    Refresh.opDrop_reveals, Refresh.opCommit_reveals⟩
 
 /-- **Registered labels only**: in any run of a script that declares registered kinds, against any
 adversary, every release the adversary receives carries a label of `Label.all`. -/
@@ -370,5 +507,221 @@ theorem opWrite_bounded (c : Ctx) (t : Table) (id : Nat) (hash : Bytes → Bytes
       | some s =>
         exact writeScript_bounded _ _ _ _ _ _ k s _ (by simp only [Table.alloc_fst]; omega)
           (entry_bounded hI ht hf k (Entry.mem_key hk)) (entry_bounded hI ht hf s (Entry.mem_state hs))
+
+/-! ## Stage S13: the send scripts -/
+
+set_option linter.unusedSimpArgs false
+
+/-- **Every S13 script flow declares its kinds** (on every branch, for every argument). -/
+theorem s13_flows_reveal :
+    (∀ n a, Reveals Send.sealKinds (Send.sealScript n a)) ∧
+    (∀ n a, Reveals Send.sealKinds (Send.devicesScript n a)) ∧
+    (∀ n cert state, Reveals [] (Send.requestScript n cert state)) ∧
+    (∀ n state ats, Reveals [] (Send.requestDevicesScript n state ats)) ∧
+    (∀ n traffic conv seq frame mask name,
+      Reveals Send.requestSealKinds (Send.requestCtrScript n traffic conv seq frame mask name)) :=
+  ⟨Send.seal_reveals, Send.devices_reveals, Send.request_reveals, Send.requestDevices_reveals,
+    Send.requestCtr_reveals⟩
+
+theorem length_intersperse_flatten (sep : Bytes) :
+    ∀ (l : List Bytes), ((l.intersperse sep).flatten).length ≤ (l.map List.length).sum + l.length * sep.length
+  | [] => by simp
+  | [x] => by simp
+  | x :: y :: rest => by
+    have ih := length_intersperse_flatten sep (y :: rest)
+    simp only [List.intersperse_cons_cons, List.flatten_cons, List.length_append, List.map_cons, List.sum_cons,
+      List.length_cons] at ih ⊢
+    rw [Nat.add_mul] at ⊢
+    omega
+
+/-- A kernel name's length: its words' lengths plus the spaces. -/
+theorem joinName_length (parts : List String) :
+    (Send.joinName parts).length ≤ (parts.map String.length).sum + parts.length := by
+  have h := length_intersperse_flatten (ascii " ") (parts.map ascii)
+  have hs : (ascii " ").length = 1 := by simp only [length_ascii]; decide
+  rw [hs, Nat.mul_one, List.map_map, List.length_map] at h
+  have e : (List.map (List.length ∘ ascii) parts) = parts.map String.length := by
+    apply List.map_congr_left
+    intro p _
+    simp [length_ascii]
+  rw [e] at h
+  exact h
+
+theorem sealName_lt (official : Bool) (cert classes cw pw ew iw : Nat) (h : cert ≤ 1024) (hc : classes ≤ 4)
+    (hw : cw ≤ 10 ∧ pw ≤ 10 ∧ ew ≤ 10 ∧ iw ≤ 10) : (Send.sealName official cert classes cw pw ew iw).length < B64 := by
+  have hB := big_lt_B64
+  have hl := joinName_length [if official then "signal-seal-official" else "signal-seal-built", toString cert,
+    toString classes, toString cw, toString pw, toString ew, toString iw]
+  have h1 : (if official then "signal-seal-official" else "signal-seal-built").length ≤ 20 := by
+    cases official <;> decide
+  have := length_toString cert
+  have := length_toString classes
+  have := length_toString cw
+  have := length_toString pw
+  have := length_toString ew
+  have := length_toString iw
+  simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, List.length_cons, List.length_nil] at hl
+  show (Send.joinName _).length < B64
+  omega
+
+theorem widthsName_lt (cert : Nat) (h : cert ≤ 1024) : (Send.widthsName cert).length < B64 := by
+  have hB := big_lt_B64
+  have hl := joinName_length ["signal-widths", toString cert]
+  have := length_toString cert
+  have h1 : "signal-widths".length = 13 := by decide
+  simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, List.length_cons, List.length_nil, h1] at hl
+  show (Send.joinName _).length < B64
+  omega
+
+theorem sealBlock_bounded (n : Nat) (a : Send.SealArgs) (name : Bytes) (env : Nat) (hn : n + 8 < B64)
+    (hids : a.sender.id < B64 ∧ a.static.id < B64 ∧ a.ephAgreement.id < B64) (hname : name.length < B64)
+    (hcert : a.certLen ≤ 1024) (henv : env ≤ Send.maxEnvelope) (htext : a.text.length ≤ 330)
+    (hpk : a.ephPublic.length = 32) :
+    ∀ i ∈ Send.sealBlock n a name env, Instr.Bounded i := by
+  have hB := big_lt_B64
+  intro i hi
+  simp only [Send.sealBlock, List.mem_cons, List.not_mem_nil, or_false] at hi
+  rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.wordBits, hpk, Send.statusEnd,
+      Send.recordFrom, Send.recordEnd, Send.envelopeEnd, Send.convBytes, Send.recordBytes, Send.maxEnvelope] at * <;>
+    omega
+
+/-- **Op 41's wires fit the pipe** (`Wire.Bounded` through `nextBatch_bounded`): the ids below 2^64,
+every name, width and slice bound small (the certificate at most 1024 bytes, the widths at most 10,
+the envelope at most `maxEnvelope`: the script aborts otherwise). -/
+theorem send_sealScript_bounded (n : Nat) (a : Send.SealArgs) (hn : n + 8 < B64)
+    (hids : a.cert.id < B64 ∧ a.state.id < B64 ∧ a.sender.id < B64 ∧ a.static.id < B64 ∧ a.ephAgreement.id < B64)
+    (hpk : a.ephPublic.length = 32) : Every Instr.Bounded (Send.sealScript n a) := by
+  have hB := big_lt_B64
+  obtain ⟨hc, hs, hd, ht, he⟩ := hids
+  unfold Send.sealScript
+  split
+  · rename_i official classes hcl
+    obtain ⟨hT, hcls⟩ := Send.textClass_le hcl
+    split
+    · rename_i hcert
+      refine every_seqs (every_openThen ?_ (fun flags => every_seqs ?_ _ ?_)) _ ?_
+      · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+      · unfold Send.afterWidths
+        split
+        · rename_i cw pw ew iw hw
+          have hw' := Send.widthsOf_le hw
+          split
+          · rename_i henv
+            refine every_seqs (every_openThen ?_ (fun st => ?_)) _
+              (sealBlock_bounded n a _ _ hn ⟨hd, ht, he⟩ (sealName_lt _ _ _ _ _ _ _ hcert hcls hw') hcert henv hT hpk)
+            · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+            · unfold Send.afterStatus
+              split
+              · refine every_seqs (every_openThen ?_ (fun _ => every_seqs (Every.done _) _ ?_)) _ ?_
+                · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+                · intro i hi
+                  simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+                  rcases hi with rfl | rfl <;> simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map,
+                    InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind] <;> omega
+                · intro i hi
+                  simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+                  rcases hi with rfl
+                  simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+              · refine every_seqs (Every.done _) _ ?_
+                intro i hi
+                simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+                rcases hi with rfl | rfl | rfl <;> simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map,
+                  InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind] <;> omega
+          · exact Every.abort _
+        · exact Every.abort _
+      · intro i hi
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+        rcases hi with rfl
+        simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+      · intro i hi
+        simp only [Send.widthsBlock, List.mem_cons, List.not_mem_nil, or_false] at hi
+        rcases hi with rfl | rfl
+        · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+        · have := widthsName_lt a.certLen hcert
+          simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+    · exact Every.abort _
+  · exact Every.abort _
+
+/-- **Op 42's wires fit the pipe.** -/
+theorem requestScript_bounded (n : Nat) (cert state : BoolH) (hn : n + 2 < B64) (hc : cert.id < B64)
+    (hs : state.id < B64) : Every Instr.Bounded (Send.requestScript n cert state) := by
+  have hB := big_lt_B64
+  refine every_seqs (Every.done _) _ ?_
+  intro i hi
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+  rcases hi with rfl | rfl | rfl <;>
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.recordBytes] <;> omega
+
+/-- **The request's record phase fits the pipe** (a frame of at most 65 535 bytes, `PublicRequest.build`'s
+bound; the kernel's name short). -/
+theorem requestCtrScript_bounded (n : Nat) (traffic conv : BoolH) (seq frame mask : B8) (name : Bytes)
+    (hn : n + 6 < B64) (ht : traffic.id < B64) (hc : conv.id < B64) (hs : seq.length = 8) (hm : mask.length = 4)
+    (hf : frame.length < 65536) (hname : name.length < B64) :
+    Every Instr.Bounded (Send.requestCtrScript n traffic conv seq frame mask name) := by
+  have hB := big_lt_B64
+  refine every_seqs (every_openThen ?_ (fun _ => every_seqs ?_ _ ?_)) _ ?_
+  · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+  · split
+    · exact Every.done _
+    · exact Every.abort _
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind]; omega
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+      simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, hs, hm, Send.innerOf, Send.widthsLabel, Send.envelopeLabel, Label.counterWidths, Label.sealedEnvelope, Label.sealedRecord, Label.ofKind] <;>
+      omega
+
+/-! ## S15: the refresh scripts' wires fit the pipe -/
+
+theorem length_shapeName (cap : Nat) : (Refresh.shapeName cap).length ≤ cap + 14 := by
+  have h1 := length_toString cap
+  have h2 : "bundle-shape".length = 12 := by decide
+  have h3 : " ".length = 1 := by decide
+  simp only [Refresh.shapeName, TlsBase.name1, length_ascii, String.length_append]
+  omega
+
+/-- **The take script's wires are bounded** (ids below 2^64; offsets below 2^32). -/
+theorem takeScript_bounded (n : Nat) (body : Option BoolH) (content : BoolH) (offset count : Nat)
+    (hn : n + 2 < B64) (hc : content.id < B64) (hb : ∀ b, body = some b → b.id < B64)
+    (ho : 8 * (offset + count) < 4294967296) : Every Instr.Bounded (Refresh.takeScript n body content offset count) := by
+  have hB := big_lt_B64
+  unfold Refresh.takeScript
+  split
+  · refine every_seqs (Every.done _) _ ?_
+    intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    subst hi
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank]
+    omega
+  · next b =>
+    have hb' := hb b rfl
+    refine every_seqs (Every.done _) _ ?_
+    intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl | rfl | rfl | rfl <;>
+      simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank] <;> omega
+
+/-- **The shape script's wires are bounded.** -/
+theorem shapeScript_bounded (n : Nat) (body : BoolH) (size : Nat) (hn : n + 3 < B64) (hb : body.id < B64)
+    (hcap : 8 * Refresh.shapeCapacity size < 4294967296) :
+    Every Instr.Bounded (Refresh.shapeScript n body size) := by
+  have hB := big_lt_B64
+  have hname := length_shapeName (Refresh.shapeCapacity size)
+  refine every_seqs (every_openThen ?_ (fun b => every_seqs (Every.done _) _ ?_)) _ ?_
+  · simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank, Label.bundleShape]
+    omega
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    subst hi
+    simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank]
+    omega
+  · intro i hi
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
+    rcases hi with rfl | rfl | rfl | rfl | rfl <;>
+      simp [Instr.Bounded, Wire.Bounded, InstrP.skel, InstrP.map, InstrP.blank] <;> omega
 
 end TlsMpc.Node.Flows.Registry

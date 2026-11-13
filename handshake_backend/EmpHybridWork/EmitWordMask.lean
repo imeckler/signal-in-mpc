@@ -6,6 +6,7 @@ import TlsMpc.EdwardsAffine
 import TlsMpc.EstablishField
 import TlsMpc.ReceiveField
 import TlsMpc.EdwardsHinted
+import TlsMpc.FieldProgramsV3
 open TlsMpc TlsMpc.WordMask TlsMpc.BoolDag
 
 /-! Export the conversion-mask circuits as flat gate lists.
@@ -101,6 +102,16 @@ def renderFieldAll (inputs : Nat) (es : List FieldDag.Expr) : Except String Stri
     "O " ++ " ".intercalate (artifact.outputs.map toString) ++ "\n")
 
 def main (args : List String) : IO Unit := do
+  -- V3 field programs (TlsMpc/FieldDagV3.lean, FIELD_PROGRAMS_V3.md): `v3 NAME` prints the V3 text
+  -- of a declared program (TlsMpc/FieldProgramsV3.lean `v3Text`); `v3 list` its names. Every
+  -- mode below is unchanged, so the V2 (and Boolean) outputs stay byte-identical.
+  if let ["v3", "list"] := args then
+    (← IO.getStdout).putStr (String.join (FieldProgramsV3.names.map (· ++ "\n")))
+    return
+  if let ["v3", name] := args then
+    match FieldProgramsV3.v3Text name with
+    | .ok text => (← IO.getStdout).putStr text; return
+    | .error message => throw (IO.userError message)
   if let ["equal", size] := args then
     let some n := size.toNat? | throw (IO.userError "equal N")
     unless 0 < n && n ≤ 4096 do throw (IO.userError "equal width 1..4096")

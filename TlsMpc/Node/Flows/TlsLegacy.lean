@@ -201,13 +201,14 @@ def legacyApplicationBackend (w : Worker) : TlsApplication.Backend TlsWorker.Buf
 /-- **A TLS session with the server** on the selected connection (ops 1-11): the handshake on the
 engines, records through the leader's socket. -/
 def handshake (w : Worker) (config : TlsWire.Config) : M (TlsClient.Session Unit) :=
-  TlsClient.run (legacyBackend w) (Server.handshakeTransport w) config
+  TlsClient.run ((w.overrides.tlsBackend.map (· w.connection)).getD (legacyBackend w)) (Server.handshakeTransport w) config
 
 /-- **The application session after `handshake`** (ops 12-17), records received through
 `Server.waitingTransport` with `kept` (the slot `Server.awaitRecord` and the session loops fill). -/
 def application (w : Worker) (handshake : TlsClient.Session Unit) (kept : IO.Ref (Option Bytes)) :
     IO (TlsApplication.Session TlsWorker.BufferHandle) :=
-  TlsApplication.make (legacyApplicationBackend w) (Server.waitingTransport w kept) {
+  TlsApplication.make ((w.overrides.tlsApplicationBackend.map (· w.connection)).getD (legacyApplicationBackend w))
+      (Server.waitingTransport w kept) {
     keys := applicationHandleKeys, hostname := handshake.hostname, alpn := handshake.alpn
     sendSequence := handshake.sendSequence, receiveSequence := handshake.receiveSequence
     serverCertificateVerified := handshake.serverCertificateVerified
@@ -216,10 +217,12 @@ def application (w : Worker) (handshake : TlsClient.Session Unit) (kept : IO.Ref
 /-- **Public bytes into the engines, to be sealed and sent** (op 30): a WebSocket frame or request
 built here in the clear. The reply is the payload's buffer handle. -/
 def publicBuffer (w : Worker) (bytes : Bytes) : M TlsWorker.BufferHandle := do
+  if let some f := w.overrides.tlsPublicBuffer then return ← f w.connection bytes
   Legacy.handle (← Legacy.call w .publicBuffer bytes) "invalid public buffer handle"
 
 /-- **The length of an authenticated record** (op 43 at an offset past any record): no byte. -/
 def recordLength (w : Worker) (handle : Nat) : M (Opened .serverBytes (Nat × Bytes)) := do
+  if let some f := w.overrides.tlsRecordLength then return ← f w.connection handle
   let probe ← Legacy.call w .revealRange (uint 8 handle ++ uint 2 65535 ++ uint 2 1)
   insist (probe.length == 2) "invalid reveal reply"
   pure (Reveal.serverBytes (number probe) [])
@@ -228,6 +231,7 @@ def recordLength (w : Worker) (handle : Nat) : M (Opened .serverBytes (Nat × By
 and the bytes (none past the length). The caller keeps to T1's budget (`PublicReceive.mayReveal`,
 `PublicReceive.budget`). -/
 def revealRange (w : Worker) (handle offset count : Nat) : M (Opened .serverBytes (Nat × Bytes)) := do
+  if let some f := w.overrides.tlsRevealRange then return ← f w.connection handle offset count
   let out ← Legacy.call w .revealRange (uint 8 handle ++ uint 2 offset ++ uint 2 count)
   insist (out.length ≥ 2 && out.length ≤ 2 + count) "invalid reveal reply"
   pure (Reveal.serverBytes (number (out.take 2)) (out.drop 2))

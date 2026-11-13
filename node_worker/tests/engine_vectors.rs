@@ -42,10 +42,13 @@ fn rust_equals_lean_on_every_vector() {
     let sig_table = common::sigs(&text);
     assert_eq!(sig_table.len(), 5);
     let sigs = |n: &[u8]| sig_table.iter().find(|(k, _)| k == n).map(|(_, s)| s.clone());
+    // Lean `start`: the empty context with the loaded V3 programs (Ctx.progs).
+    let start = Ctx { progs: common::programs(&text).sigs(), ..Ctx::default() };
+    assert_eq!(start.progs.len(), 2);
 
     // State: the context per party (a case uses slot 0), the batch under test, and the outcome
     // of `check` on it.
-    let mut ctx = [Ctx::default(), Ctx::default()];
+    let mut ctx = [start.clone(), start.clone()];
     let mut party = 0usize;
     let mut batch: Vec<Wire> = vec![];
     let mut outcome: Option<Result<(Ctx, Vec<Shape>), usize>> = None;
@@ -61,17 +64,19 @@ fn rust_equals_lean_on_every_vector() {
         let (key, rest) = line.split_once(' ').unwrap_or((line, ""));
         match key {
             "sig" => {}
+            // V3 programs: tests/program_vectors.rs
+            "prog" | "v3eval" | "v3parse" => {}
             "sha256-abc" => assert_eq!(rest, hex(&Sha256::digest(b"abc")), "{at}: the Lean SHA-256 used by the flows"),
             "case" => {
                 cases += 1;
-                ctx = [Ctx::default(), Ctx::default()];
+                ctx = [start.clone(), start.clone()];
                 party = 0;
                 skeletons_by_case.push((rest.to_string(), vec![]));
             }
             "flow" => {
                 flows += 1;
                 in_flow = true;
-                ctx = [Ctx::default(), Ctx::default()];
+                ctx = [start.clone(), start.clone()];
                 skeletons_by_case.push((format!("flow {rest}"), vec![]));
             }
             "round" => round_skeleton = None,
@@ -149,10 +154,10 @@ fn rust_equals_lean_on_every_vector() {
     // The two parties' wires of the same instructions have the same skeletons.
     let skel = |name: &str| skeletons_by_case.iter().find(|(n, _)| n == name).unwrap().1.clone();
     assert_eq!(skel("all-a"), skel("all-b"));
-    assert!(opcodes == (1..=21).collect::<BTreeSet<u8>>(), "every opcode is covered: {opcodes:?}");
+    assert!(opcodes == (1..=22).collect::<BTreeSet<u8>>(), "every opcode is covered: {opcodes:?}");
     // Every vector was looked at (counts as generated; see s9r_vectors.py's summary).
-    assert_eq!((cases, flows, agreed, unusable), (98, 5, 18, 9));
-    assert!(batches >= 137 && refusals >= 74 && decodes >= 26 && replies >= 19, "{batches} {refusals} {decodes} {replies}");
+    assert_eq!((cases, flows, agreed, unusable), (118, 6, 18, 9));
+    assert!(batches >= 165 && refusals >= 94 && decodes >= 29 && replies >= 25, "{batches} {refusals} {decodes} {replies}");
     eprintln!(
         "lean vectors: {cases} cases, {flows} flows, {batches} batches ({refusals} refused), {decodes} decoder inputs, \
          {agreed} agreements ({unusable} unusable), {replies} reply encodings"

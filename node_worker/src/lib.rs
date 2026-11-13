@@ -19,6 +19,9 @@
 //! - [`interp`] (S9): pipe operation 93, a batch of the engine instruction set of
 //!   `TlsMpc/Node/Engine.lean` (its design note is the specification): the batch and reply
 //!   encodings, the skeleton agreement, and execution through the engine ABI.
+//! - [`program`] (S9): V3 field programs (`TlsMpc/FieldDagV3.lean`): the parser and the
+//!   evaluator of the `program` instruction over the engine ABI's field operations (it replaces
+//!   `field_program.h` for the script flows; the legacy library keeps the C++ one).
 //! - [`handles`] (S9): the handle table and the open rule, the Lean `check` transcribed.
 //!   `tests/engine_vectors.rs` compares both with vectors computed by the Lean definitions
 //!   (`tests/lean/EngineVectors.lean`).
@@ -59,6 +62,7 @@ pub mod link;
 pub mod loader;
 pub mod pipe;
 pub mod profile;
+pub mod program;
 pub mod server;
 pub mod shell;
 pub mod socks;

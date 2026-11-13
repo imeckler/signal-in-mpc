@@ -94,6 +94,15 @@ pub struct Sig {
     pub out_marks: Vec<Mark>,
 }
 
+/// Lean `ProgSig`: a V3 field program's data inputs, masks, and the marks of one instance's
+/// outputs (program.rs `Program::sig`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProgSig {
+    pub inputs: u64,
+    pub masks: u64,
+    pub out_marks: Vec<Mark>,
+}
+
 /// Lean `Shape`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Shape {
@@ -117,6 +126,9 @@ pub struct Ctx {
     /// Every Boolean handle id ever defined (ids are never reused).
     pub seen_b: BTreeSet<u64>,
     pub seen_f: BTreeSet<u64>,
+    /// Lean `Ctx.progs`: the V3 programs the worker loaded, by name (fixed at session start,
+    /// [`crate::shell::Shell::set_programs`]; not part of [`Ctx::canonical`]).
+    pub progs: BTreeMap<Vec<u8>, ProgSig>,
 }
 
 /// Lean `guard`.
@@ -180,6 +192,14 @@ impl Ctx {
         guard(hs.len() == ms.len())?;
         for (&h, &m) in hs.iter().zip(ms) {
             self.def_field(h, m)?;
+        }
+        Some(())
+    }
+    /// Lean `Ctx.useMasks`: each mask, in order, live with mark `never`, then dropped.
+    fn use_masks(&mut self, hs: &[u64]) -> Option<()> {
+        for &h in hs {
+            guard(self.field(h) == Some(Mark::Never))?;
+            self.drop_field(h);
         }
         Some(())
     }
@@ -350,6 +370,25 @@ pub fn check(sigs: &dyn Fn(&[u8]) -> Option<Sig>, c: &mut Ctx, s: &Wire) -> Opti
         Wire::Exchange { len, label, .. } => {
             guard(*label != 0 && 0 < *len && *len <= MAX_EXCHANGE)?; // guard (l.code ≠ 0 ∧ 0 < len ∧ len ≤ maxExchange)
             Some(Shape::Bytes(*len))
+        }
+        // | .program name copies ins masks outs l
+        Wire::Program { name, copies, ins, masks, outs, label } => {
+            guard(*label != 0)?; // guard (l.code ≠ 0)
+            let s = c.progs.get(name)?.clone(); // let s ← c.progs name
+            guard(0 < *copies && *copies <= MAX_WIDTH)?; // guard (0 < copies ∧ copies ≤ maxWidth)
+            // guard (ins.length = copies * s.inputs ∧ masks.length = copies * s.masks ∧
+            //   outs.length = copies * s.outMarks.length); an overflowing product fits no list
+            guard(
+                copies.checked_mul(s.inputs) == Some(ins.len() as u64)
+                    && copies.checked_mul(s.masks) == Some(masks.len() as u64)
+                    && copies.checked_mul(s.out_marks.len() as u64) == Some(outs.len() as u64),
+            )?;
+            c.use_masks(masks)?; // let c ← c.useMasks masks
+            guard(ins.iter().all(|&h| c.field(h).is_some()))?; // guard (ins.all fun h => (c.field? h).isSome)
+            // let c ← c.defFields outs (List.replicate copies s.outMarks).flatten (as long as outs)
+            let marks: Vec<Mark> = (0..*copies).flat_map(|_| s.out_marks.iter().copied()).collect();
+            c.def_fields(outs, &marks)?;
+            Some(Shape::Unit)
         }
     }
 }

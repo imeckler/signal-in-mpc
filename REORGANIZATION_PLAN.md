@@ -1709,6 +1709,25 @@ Tests:
 Depends on S8. **5–6 weeks. Strong** (the semantics and model must be right; everything after
 builds on them).
 
+**Status of "what remains" (2026-11-12, branch `scripts-stack`; STACK_NOTES.md sections 6-8).**
+- `runIO` exists as `TlsMpc/Node/Flows/Runner.lean` (not `Worker.lean`: the worker spawn stays in
+  `TlsWorkerProcess`): batch by batch `nextBatch` → `fill` from this party's store → `encodeBatch` →
+  pipe operation 93 (`TlsWorker.Operation.batch`, added with 92 `closeConnection`) →
+  `decodeReplies` → `resume`. Its pure core `drive` is proved equal to the model's honest party
+  (`runner_drive_model`: the batches' instructions are `withAdv`'s trace, the result and store its
+  own), bounded (`runner_drive_bounded`), and reading the store only through `fill`
+  (`runner_nextBatch_fill_only`). SHA-256 is `Env.hash` (`TlsWire.hash`).
+- The `Secret` → `Store` eliminator is `Secret.stash`, next to `Secret.inputOwn`; the runner is its
+  only caller.
+- The selection: the agreed setting `SIGNAL_SCRIPTS` (`Config.Agreed.scripts`) installs the
+  script implementations of the named flow groups (`Flows/Select.lean`, consulted by every flow
+  function; default none). Available today: `random`; `masks`, `tls`, `upgrade` after the V3
+  re-export; the rest blocked by op 66's table glue (F32) and the authenticated upgrade (S16).
+  `Main.session` still calls `Worker.start` (the one-line switch to `Worker.startWith` is written
+  in Select.lean's doc; `Main.lean` was being refactored on the main line).
+- Not done: the handle sharing with the legacy library (`legacy_get` / `legacy_put`): the
+  selection instead requires every group that reads a table to switch together.
+
 ---
 
 **S10. Conversions, masks, inversion.**
@@ -1734,6 +1753,49 @@ reference ≥ p, a wrong bit block; each must abort), D.
 
 Depends on S9. **8–10 weeks.** Strong (P-CUT (c), (e), (g) are the hard ones). Split: one
 engineer on scripts and fixtures, one on proofs.
+
+**Status (2026-11-12, branch `s10-conversions`; details in `S10_NOTES.md`).** Scripts done, not
+yet called by the controller (the flow API switches in S11–S16; the legacy library keeps its own
+mask pool meanwhile: **separate pools**):
+- `Flows/Challenge.lean` (`Random.challenge` on `Random.joint`: P-CHAL (a), (b), (c),
+  `commit_open_sound`, disclosure, wf); `Flows/Masks.lean` (`generate`, deployed profiles,
+  `testParams` for the vectors only), `MasksProofs.lean`, `MasksRun.lean`; `Flows/Convert.lean`
+  (word ↔ field, bits to field, shared bits); `Flows/Inversion.lean` (the masked quotient through
+  `field-quotient`); `Account.openStep` (op 55). Labels for the kinds 80–87 and 90; no new kind.
+- Proved: P-CUT (a) and (c) at the protocol level (the core shift lemma and its bijection), (d) and
+  (e) at protocol and run level (the counting model's detection rules: `cutCheck_iff`,
+  `cutPhase_sound`, `bucket_mixed_fails`, `bucketPhase_sound`), (f), (g) with `FieldInverse`, (h);
+  P-W2F, P-F2W (a) through `jointRun`, (b), T3; P-B2F, P-BITS at the protocol level with T3 for
+  B2F; P-INV as a flow (T3, (a) through `jointRun`). Open (Security.lean section 8): P-CUT (a),
+  (b) values, (c) composition, (f), (g) at the level of a whole `generate` run; WF theorems except
+  the challenge's and the quotient's.
+- Deviations: the field-to-word opening through the natively written V3 program `field-mask-sub`
+  (the open rule refuses `openField` of `v − f`); inversion masks are fresh field randomness, not
+  word masks; conversions free their masks (single use enforced by `check` too).
+- Rust: loader entries (word circuits with their existing pins; `field-bit-check`, `-xor`,
+  `-recompose` with placeholder pins that fail closed until the V3 re-export; `field-mask-sub`
+  pinned by Lean's render); Lean vectors (`tests/lean/S10Vectors.lean`, test parameters) and the
+  stand-in two-party test `tests/s10_pair.rs` (honest flows and the five cheating cases). The
+  real-engine fixture `tests/e2e_s10.py` is written, not run (needs the re-export and the heavy
+  lock).
+- Not run in the branch: `scripts/check_axioms.py` (rebuilding `KernelSpecs/SlotEncoders` for
+  Security.lean's closure needs more than the 4 GB cap of this stage); the S10 restatements were
+  checked in a standalone file (33 entries, standard axioms only).
+- **Follow-up (2026-11-12, same branch; proofs only, no script changed).** Closed: P-CUT (c)
+  composed with the model (`RunAgree.lean`; `generate_agree`; `generate_hides` in 7.0's form with
+  the bijection `reRand` and the bit-block move `moveRef` on [32, p)); (f), (g) at run level
+  (`finishPhase_sound`, `mask_consistent`); (a) for a whole honest run through `jointRun`, deployed
+  profiles included (`generate_honest_profile`); `generate_wf` (every deployed profile:
+  `profile_sizes`) and `sharedBits_wf`; P-BITS at run level (`sharedBits_sound`,
+  `sharedBits_honest`); P-B2F (a) through `jointRun` for the whole bundle (`b2f_honest`); the counting model's hypotheses as theorems (`generate_sound`: the bad set
+  is the other party's choice from its view before the run, (d), (e), (f); `bucket_uniform`) and the
+  two challenge permutations as the model's one arrangement (`arrangement_perm`). Still open:
+  `_wf` for `wordToField`, `fieldToWord`,
+  `bitsToField`, `Account.openStep`; a one-statement value disclosure (P-CUT (b)) for the whole
+  run; and, argued only, that the arrangement is uniform when the two permutations are and that the
+  permutations are uniform and independent of the bad set (probability; `IdealCommit`, SHA-256 as a
+  random oracle). Security.lean section 7b now has 51 entries, compiled on their own (standard
+  axioms only); `scripts/lint_node.py`: 0 findings.
 
 ---
 
@@ -1761,6 +1823,66 @@ nine agreements, a signature point, torsion, tables, an invalid key in a batch),
 R2).
 
 Depends on S10. **5–6 weeks. Strong.**
+
+**Status (2026-11-12, branch `s11-curve`; details in `S11_NOTES.md`).** Scripts done, not yet
+called by the controller (the flow API switches with S12–S16; the legacy library keeps its C++):
+- `Local/Field.lean`, `Local/Edwards.lean`: square-and-multiply powers and inverses, square root,
+  Legendre symbol, encodings, affine/extended arithmetic in the programs' own formulas
+  (`add_eq`: `pointAddValue`; `extAdd` is `extAddValue`; `toAffine_eq`), scalar multiplication,
+  the Montgomery map, validity, hints, the lift's root, public tables, `recoverPublic`
+  (`xeddsa-recover` on a public input evaluated locally, `recoverPublic_eq`: replaces
+  `evaluate_clear`). Checked against curve25519-dalek on Lean vectors (`tests/s11_curve.rs`; no
+  libsodium binding offline). R2: interpreted timings (`lake env lean --run`) 1.3 ms per scalar
+  multiplication, 2.2 ms hints per point, 0.6 ms per lift root: a message's local work (the
+  ephemeral key) about 1.5 ms, a contact's preparation about 6 ms: far below the 50 ms threshold.
+- `Flows/CurveBase.lean`, `Flows/Curve.lean`: `splitBegin`/`splitAgree`, `agree`,
+  `offsetPrepare`/`offsetStep`/`offsetStepFast` (the recoding `recode` in Lean),
+  `lift`/`hintsLocal`/`tables`/`agreeHinted`/`agreeAffine`/`signatures`/`torsionLocal`/`torsion`/
+  `sharedBits`, `prepareContacts` (op 66, a `Staged` flow: script, local step, script). Every field
+  program runs through `program` (V3; masks as `sharedBlock` sums); the `D` rows stay `D` (owner).
+- Proved (`Flows/CurveProofs.lean`, Security.lean 7c): the recoding lemma and the step's inputs
+  (P-OFFSET (a)), the returned key (b), gates (c), (d); P-SPLIT (a) through `jointRun` for the
+  agreement and algebraically (`addU_montU`), (b), (c), (d); P-HINT (a) (order of openings), (b)
+  soundness, and completeness under H-QR/Euler as named hypotheses: op 66's status is exactly "q(u)
+  is a nonzero square" (`prepareStatus_iff`); T3 kinds for every flow (`*_reveals`,
+  `Staged.viewD_kinds`). No new kind (labels for 91–95 and 102 added).
+- Follow-up (same branch, after merging `s10-conversions`): `_wf` for every curve script and op 66
+  as a `Staged` flow (`Flows/CurveWF.lean`, `Security.lean` `s11_wf_split_offset`, `s11_wf_hinted`,
+  `s11_prepareContacts_wf`); `splitBegin` through `jointRun` and the split agreement's value with
+  no denominator hypothesis (`s11_splitBegin_honest`, `s11_splitAgree_montU`; `CompleteAddition` ←
+  `proofs/` `edwards_complete`); the model form of `commit_open_sound` for the point exchanges
+  (`s11_pointExchange_sound`); liveness: `sqrt` finds roots of squares and the lift's roots never
+  fail (`s11_liveness`, under `FieldInverse`/Euler/H-QR).
+- Second follow-up (F22, `Flows/CurveRun*.lean`): the block-level lemma for n masked quotients
+  (`s11_quotientMany_honest`); honest runs through `jointRun` of `agree` (handles hold
+  `X25519.spec`; `x25519_inverse_eq` in the main package), `offsetPrepare`, `offsetStep` (the
+  agreement value via `offsetSum_eval`), `offsetStepFast`, `tables`, `agreeAffine`, `signatures`,
+  `torsion`, `lift`, `agreeHinted` (`s11_agree_honest`, `s11_offset_honest`, `s11_hinted_honest`,
+  `s11_lift_agreeHinted_honest`), under the named program hypotheses `ComputesD`/`Live`. Open:
+  honest runs of `prepareSecond` (m-point K₀ exchange) and op 66 as a staged flow; value-level
+  T3 beyond the point exchanges and the quotient round (`s11_quotientMany_disclosure`); P-HINT
+  (c), (d) with the runs; `decode ∘ encode` and `toAffineAll` liveness (tested only).
+- Third follow-up (F22a, F22b, F25b, F22 part; `Flows/CurveCompiled.lean`, `CurveProgLive.lean`,
+  `CurveRunJ.lean`, `CurveLocalLive.lean`, `CurveRunK.lean`): `ComputesD`/`Live` discharged for
+  every curve program the flows run — generically, a compiled program is live where its SOURCE
+  divisions are nonzero (`s11_decl_live`: the memoising generator keeps only subterms), then per
+  program from its definition with explicit input conditions (`s11_programs_live`,
+  `s11_maskfree_computes`) under the named group facts `CompleteAddition`, `AddClosed`,
+  `ExtClosed`, `RecipientOnCurve` (each a `proofs/` theorem); every honest run restated without
+  program hypotheses (`Curve.*_honest'`, `s11_offsetPrepare_honest'`); checks derived on honest
+  inputs for `offsetPrepare` and `lift`, the lift's `Z` on the curve, the bit table's link checks
+  reduced to `LinkedFrom` (`s11_checks_vanish`); `toAffineAll`, the hints and the public table never
+  fail on curve points (`s11_toAffineAll_live`); the m-point exchange
+  (`s11_pointExchange_many_honest`). Open: `prepareSecond`/op 66 through `jointRun`, the links
+  from honest hints, `decode ∘ encode`, value-level T3 beyond the point exchanges and the quotient
+  round, P-HINT (c), (d) with the runs.
+- Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
+  engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
+  with an invalid key, four cheating cases) passes; `tests/e2e_s11.py` (real engines) written, not
+  run; `tests/s11_program_checks.py` passes on Lean's renders (`--from-vectors`).
+- Not done in the branch: deleting `field_program.h` and the V2 files (the legacy library still
+  uses them until its callers switch); `scripts/check_axioms.py` (4 GB cap; the 14 S11 entries
+  checked standalone).
 
 ---
 
@@ -1791,6 +1913,42 @@ Tests: Q, F, K (`check_typed_open.py`, `check_tls_worker_v3.py`), D.
 
 Depends on S11. **4–5 weeks. Medium–strong.**
 
+**Status (2026-11-12, branch `s12-tls`, started early in parallel with S11; details in
+`S12_NOTES.md`).** Scripts and backends done, not selected (the controller-side runner sending op 93
+batches does not exist yet; S11's X25519 agreement is a parameter, `TlsBackend.KeyAgreement`, whose
+signature and specification the notes give for the join):
+- `Local/Ghash.lean` (local GF(2¹²⁸) arithmetic, `half`, the doubling schedule),
+  `Flows/Ghash.lean` (key share; doubling rounds: every odd power of a round in one `gcm-multiply`
+  run, 1 + ⌈log₂ n⌉ rounds instead of ~n/2), `Flows/Tls.lean` (seal ctr / class + tag, typed open,
+  parser, key update, reveal and ranges, public buffers, handshake scripts, the `Conn`/`Buffers`
+  state for `Session/Pool`, the 64-record window, drop-after-seal), `Flows/TlsProofs.lean`,
+  `Flows/TlsBackend.lean` (`scriptBackend`, `scriptApplicationBackend`: the legacy backends' types).
+- Proved: P-GHASH (a) per round with the kernels' resharing, (b), (c) (`seal_is_record`:
+  `sealCtr_with_tag_is_seal` with `halves` discharged; `check_accepts`), (d) (bijection form; B
+  honest: empty view; A honest: exactly the masked value); T3 kinds for every script (registered);
+  T4-TLS at the function level (seal, tag check, typed open with `typed_pair_refines` /
+  `class_fields` / `tlsOpenTyped_gated`, reveal, handshake record, Finished, client Finished); WF
+  for seven scripts (the seal's two phases among them); the window. Restated in Security.lean section 7c. Open: T4 through `jointRun`,
+  WF for the open/seal/round/handshake scripts (the vectors pass `checkBatch`), the derive script's
+  word input, the class seal's composition (S12_NOTES.md, gaps F13-F21).
+- Second pass (2026-11-12; S12_NOTES.md "Second pass"): gaps F13-F16, F18, F20 closed in new files
+  `Flows/{TlsWF,TlsBounded,TlsRun,TlsOpenRun,TlsGhashRun,TlsClassSeal,TlsDerive,TlsT3}.lean`: WF and
+  `Wire.Bounded` for every S12 script; T4-TLS through `jointRun` for the seal (`seal_honest`: each
+  party's half from its own shares, the record is `sealCore`), the open (`open_class`: the event and
+  kept values are the class kernel's fields whichever bit; the `gcm-check` → `tls-open-typed` binding
+  proved, `open_binding`), the class seal (`sealClass_is_record`), the derive step (`derive_honest`,
+  word input through `shapedCircuit`); P-GHASH (a) over a whole `ensure` (`ensure_shared`), (d) value
+  level for a round with A honest, (e) for the scripts; value-level T3 for a whole seal and open
+  against any adversary (`open_disclosure_A`: the bit and the class kernel's event, nothing else).
+  Restated in Security.lean section 7c (continued). No counterexample; no script changed. Open:
+  F13a (handshake/reveal/update scripts through `jointRun`), F14a (signatures as hypotheses), F20a
+  (B-honest T3 for the open and tag), F17, F19, F21.
+- No new kind (all S12 kinds existed); labels for kinds 2-9 added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `TLS_SCRIPT_KERNELS` (fail closed); Lean vectors and the stand-in pair test
+  `s12_pair.rs` (GHASH shares, a seal, an open, a forged open: every reply equals Lean's model);
+  `e2e_s12.py` written, not run (needs the kernels lowered and the heavy lock; its handshake mode
+  needs the runner and S11).
+
 ---
 
 **S13. Send.**
@@ -1808,6 +1966,41 @@ Theorems:
 Tests: Q, F, D.
 
 Depends on S12. **3–4 weeks. Medium.** T7 (P5) is separate and can trail.
+
+**Status (2026-11-12, branch `s13-send`, on `s12-tls`; details in `S13_NOTES.md`).** Scripts and
+backend done, not selected (the controller-side runner and S11's curve half are parameters,
+`SendBackend.Curve`, whose signatures the notes give for the join):
+- `Flows/Send.lean`: `sealScript` (op 41), `devicesScript` (op 61), `requestScript` (op 42),
+  `requestDevicesScript` (op 62), `requestCtrScript` (the request's record phase before S12's
+  `Tls.tagScript`); the widths opening, kernel selection by name (`signal-seal-official|built`,
+  `bundle-seal`, `signal-request-ctr`, `bundle-request-ctr`), the status gate, `frameFor` (the frame
+  built from the script's own openings). `Flows/SendBackend.lean`: the legacy `Flow.Send` results.
+- Proved (function level, as S12): `send_accepted` (op 41 + op 42 + the record seal: on an accepted
+  send the record that leaves is `TlsRecord.sealCore` of the request frame carrying the reference
+  `sealV1` envelope of the reference `SpqrSend.canonical` step, the kept state is `advancedRecord`),
+  WITHOUT E2's `built`, `hframe`, `hmask` (the scripts do the wiring); `bundleRequestCtr_value`
+  (`hframe`, `hmask` discharged, `paired` the script's own); T3 kinds for every script
+  (`s13_flows_reveal`), `seal_refused_silent` (the gate); WF of ops 41 (every branch), 42 and the record
+  phase; `Wire.Bounded` for the same. Restated in Security.lean section 7d (11 entries, compiled
+  standalone). Open: T4 through `jointRun`; op 61's composed headline; WF/bounded of 61 and 62
+  (the vectors pass `checkBatch`); ORD-1 restatement (P4).
+- Kinds: none added (`counterWidths`, `sealedEnvelope`, `ephemeralPublic`, `sealedRecord` existed);
+  labels for 40 and 41 added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `send_script_kernels_check` (fails closed) with a unit test; Lean vectors
+  (`tests/lean/S13Vectors.lean`: one single-device send, one two-device send, every check ok) and the
+  stand-in pair test `tests/s13_pair.rs` (every reply equals Lean's model); `tests/e2e_s13.py`
+  written, not run.
+- Follow-up (same branch; `Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean`,
+  Security.lean section 7e, 11 entries compiled standalone): op 61's composed headline
+  `devices_accepted` (op 61 + op 62 + the record seal, no wiring hypothesis) and all-or-nothing
+  `devices_refused_view`; the `bundle-seal` slicing (`bundleEnvBytes_eq`, `bundleOut_lengths`); the
+  single-device send through `jointRun` (`seal_joint`, `send_joint`: both parties the same results,
+  the bytes those of `send_accepted`); op 41's view by value against any adversary (`seal_view`);
+  ORD-1's script-level facts (`send_state_order`); `Wire.Bounded` of op 62. Finding: an official
+  89-byte text to an unanswered device aborts (the `bundle-seal` record field is one byte short,
+  `bundleOut_record_length`; the C++ aborted the session too). Open: the devices path through
+  `jointRun`; `Table.Inv` for the send's commit; WF of 61 and 62, `Wire.Bounded` of 61 (op 61 has no
+  envelope-size check).
 
 ---
 
@@ -1830,6 +2023,29 @@ Tests: Q, F (signup, ceremony), K (`check_receive_kernels.py`), D.
 Depends on S12. **3 weeks. Medium.** Concurrent with S13 and S15 if two engineers take one each
 (separate flow files; builds take turns).
 
+**Status (2026-11-12, branch `s14-receive` from `s12-tls`; details in `S14_NOTES.md`).** Scripts and
+IO glue done, not selected (the controller-side runner and S11's agreements are parameters):
+- `Flows/Receive.lean`: `takeScript`, `dropScript`, `openFirst` (steps 1-12), `session` (13-17), the
+  13 receive kernels by cache name in the C++ order, each stage gated on what the previous one
+  opened (a refusal frees every handle and opens nothing more); `xeddsa-check`, `xeddsa-recover`,
+  `receive-torsion` through the `program` instruction (`Curve.withPrograms`); S11's agreements and
+  hinted variants are the `Curve` parameter; the provisional ids (`provisionalId_inj`,
+  `provisionalId_high`). `Flows/ReceiveBackend.lean`: `scriptApi` with exactly the legacy
+  `Flow.Receive.*` types (`legacyApi` checks them), the server point computed locally, the KEM
+  decapsulation left to the local tool.
+- Proved: T3 kinds for every script (`openFirst_reveals`, `session_reveals`, registered:
+  `s14_flows_reveal`); gating (`sessionRest_refused`); the wiring by shared definitions (the scripts'
+  stage inputs are polymorphic functions the byte pipeline uses too: `pipeline_verified_wiring`),
+  so T13 (`pipeline_accept_certificate`) and T4-RECV (`pipeline_accept_outputs`, `pipeline_text`,
+  `pipeline_record`) hold at the function level with no wiring hypothesis; the refusals' zero
+  openings; `stageInstrs_bounded`. Restated in Security.lean section 7d. Open: through `jointRun`,
+  the flows' WF, value-level T3 for a whole run (S14_NOTES.md, F35-F41).
+- No new kind (kinds 50-57 existed); their labels added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `receive_kernels_check` (fail closed) and placeholder pins of the three receive
+  programs; Lean vectors with STAND-IN kernel tables and the stand-in pair test `s14_pair.rs` (an
+  accepted and a refused first message, 43 rounds, every reply equal to Lean's model);
+  `e2e_s14.py` written, not run.
+
 ---
 
 **S15. Device refresh.**
@@ -1849,6 +2065,29 @@ Tests: Q, F (`--multi-device`, `--recovery devices,refresh-retry,identity,bundle
 (`check_bundle_kernels.py`), D.
 
 Depends on S12. **3 weeks. Medium–strong.**
+
+**Status (2026-11-12, branch `s15-refresh`, from `s12-tls`, in parallel with S11 and S13; details in
+`S15_NOTES.md`).** Scripts and proofs done, not selected (no IO layer: the controller-side runner
+does not exist yet; S11's curve operations are a parameter, `Refresh.CurveOps`, and S13's send the
+consumer of the committed records, signatures in the notes):
+- `Flows/Refresh.lean`: `fetchScript` (with `bundle-fetch-ctr`, the record seal's first phase),
+  `takeScript`, `shapeScript`, the nine establishment steps (`parseScript` — `bundle-slot` fed by ONE
+  `pick` whose positions and `widths` come from the same `Widths` —, S11's lift/check/agree,
+  `challengeScript`, `verifyScript`, the twelve KEM runs wired by the script, `sessionScript`),
+  `scratchSealScript`, and the operations `opFetch/opTake/opShape/opEstablish/opScratchSeal/
+  opCommit/opDrop` on the contact table and the refresh state `RState` (invariant `RState.Inv`).
+- Proved: T3 for every script and operation (`refresh_viewD_kinds`, against any adversary, S11's
+  kinds as hypothesis); T4 parse in the model (`slotInput_value`, `parse_device`,
+  `parse_parses_or_refuses`, `parse_fields`); T4 KEM: all name bindings of `kernels_compose` for the
+  script's wiring (`kemFlow_pipeline`, `kemFlow_accept`, `kemFlow_invalid`; output widths a
+  hypothesis); the first message's `wired` (`first_wired`, `stored_record`); ORD-2 at the script
+  level (`opCommit_entry`, `opDrop_table`, `op*_entries`); WF of shape and take, `opDrop_inv`.
+  Restated in Security.lean section 7d (compiled standalone: standard axioms). Open: the KEM block
+  through `runPlain`, WF of the establishment (tested), `opCommit`'s `Table.Inv` (notes, F42–F50).
+- No new kind (60–62 existed); labels added in `Engine/Labels.lean`, registered in `Registry`.
+- Rust: `loader.rs` `REFRESH_SCRIPT_KERNELS` (fail closed); Lean vectors of a two-device refresh
+  with labelled stand-in circuits (every batch admitted) and the pair test `s15_pair.rs`;
+  `e2e_s15.py` written, not run.
 
 ---
 
