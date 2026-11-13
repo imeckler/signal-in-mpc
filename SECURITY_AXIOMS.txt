@@ -743,11 +743,27 @@ j21_receiverBytes: []
 j22_check_closed: [Classical.choice, Quot.sound, propext]
 j22_tls_needs_closedSet: [Classical.choice, Quot.sound, propext]
 j22_refusals: [Classical.choice, Quot.sound, propext]
+j22_ceremony_needs: [Classical.choice, Quot.sound, propext]
 j23_admit_disclosure: [Quot.sound, propext]
 j23_admit_reveals: [Quot.sound, propext]
 j23_admit_inv: [Classical.choice, Quot.sound, propext]
 j23_admit_bounded: [Classical.choice, Quot.sound, propext]
 j23_admit_honest: [Classical.choice, Quot.sound, propext]
+s16_ceremony_secrets_reveals: [Classical.choice, Quot.sound, propext]
+s16_ceremony_secrets_viewD_kinds: [Classical.choice, Quot.sound, propext]
+s16_ceremony_register_viewD: [Quot.sound, propext]
+s16_ceremony_flows_reveal: [Classical.choice, Quot.sound, propext]
+s16_ceremony_secrets_wf: [Classical.choice, Quot.sound, propext]
+s16_ceremony_register_wf: [Classical.choice, Quot.sound, propext]
+s16_ceremony_bounded: [Classical.choice, Quot.sound, propext]
+s16_ceremony_masked_hides: [Classical.choice, Quot.sound, propext]
+s16_ceremony_shares_xor: [Classical.choice, Quot.sound, propext]
+s16_ceremony_secretsOut_value: [Classical.choice, Quot.sound, propext]
+s16_ceremony_secrets_honest: [Classical.choice, Quot.sound, propext]
+s16_ceremony_register_honest: [Classical.choice, Quot.sound, propext]
+s16_ceremony_registerCtr_spec: [Classical.choice, Quot.sound, propext]
+s16_ceremony_honest: [Classical.choice, Quot.sound, propext]
+s16_ceremony_select: [propext]
 engine_label_ofKind_inj: [Quot.sound, propext]
 engine_label_all_distinct: [Quot.sound, propext]
 engine_label_all_nonzero: [Quot.sound, propext]
@@ -783,4 +799,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
 depends: s12_tls_sealClass_is_record
-# 3 of 769 entries
+# 3 of 785 entries

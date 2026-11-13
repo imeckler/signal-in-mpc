@@ -5,6 +5,7 @@ import TlsMpc.Node.Flows.UpgradeAuth
 import TlsMpc.Node.Flows.ContactsPrepare
 import TlsMpc.Node.Flows.ContactsAdmit
 import TlsMpc.Node.Flows.Masks
+import TlsMpc.Node.Flows.Ceremony
 
 /-!
 # The selection: legacy operations or Lean scripts, flow group by flow group (agreed)
@@ -40,6 +41,7 @@ THE GROUPS (`Config.scriptNames`), what each replaces, what it needs, and whethe
   | `send` | `Send.seal/sealDevices/request/requestDevices` (ops 41, 42, 61, 62) | the contact set | yes |
   | `receive` | `Receive.take/drop/openFirst/session` (ops 48-51) | the contact set | yes (J8) |
   | `refresh` | `Refresh.*` (ops 56-60, 64, 65) | the contact set | yes (J8, J12) |
+  | `ceremony` | `Ceremony.secrets/register` (ops 80, 81, `Flows/Ceremony.lean`, S16) | `tls`, `masks`, `random`, `upgrade` | yes |
 
 THE CONTACT SET (`contactSet`: `contacts`, `account`, `curve`, `send`, `receive`, `refresh`) switches
 AS ONE: its handles cannot be shared with the legacy library (the legacy worker's contact table,
@@ -51,7 +53,8 @@ start, with the reason. Every override is written (the switch is a setting, not 
 J22: `check` also refuses a selection with `tls` that leaves a legacy operation needing the legacy
 library's TLS phase (`tlsDependent`, `stranded`) without its script; for every session but a
 registration ceremony the smallest accepted selection with `tls` is all ten groups (`closedSet`,
-`tls_needs_closedSet`), and a ceremony session cannot select `tls` until S16 (`check_ceremony_tls`).
+`tls_needs_closedSet`); for a ceremony session it is all eleven (`ceremonySet`,
+`ceremony_needs_ceremonySet`; without `ceremony`: `check_ceremony_tls`).
 
 What remains OUTSIDE this module for the contact set to RUN (STACK_NOTES section 6): the V3
 field-program re-export and its pins; `Main.session` calling `Worker.startWith` (J9); the
@@ -88,6 +91,10 @@ def requires (g : String) : List String :=
   match g with
   | "tls" => ["masks"]
   | "upgrade" => ["tls"]
+  -- S16: ops 80, 81. The request is sealed by the scripted record layer (`tls`). Everything else a
+  -- ceremony session needs selected with it is not asserted here but follows from the closure
+  -- (J22, `stranded`; PROOF_GAPS K12): `ceremony_needs_ceremonySet`.
+  | "ceremony" => ["tls"]
   | _ => []
 
 /-- The groups whose script implementation cannot run yet, and why: none since J8, J11, J12, F32. -/
@@ -100,65 +107,73 @@ phase to be `retired` (`need(phase==Phase::retired && service, …)`; op 91 thro
 `legacy_abi.cpp`). Only the legacy handshake (ops 1-7, `Tls.legacyBackend`) moves that phase; with
 `tls` selected the handshake is a script and the legacy phase of every connection stays `fresh`, so
 every legacy operation below is refused by the legacy library. A selection with `tls` is therefore
-CLOSED only if every one of them is replaced by a selected script (or, for the ceremony's, the
-session is not a ceremony session: only `Session/Ceremony.lean` calls them, and a ceremony session
-is part of the agreed settings, `Config.agreedText`'s `ceremony=`). No C++ bridges script state into
-the legacy library (the owner's rule): the selection refuses what it cannot close. STACK_NOTES.md
-section 10 has the same table with each script's file. -/
+CLOSED only if every one of them that the session can issue is replaced by a selected script. Which
+operations a session can issue depends on its kind, part of the agreed settings
+(`Config.agreedText`'s `ceremony=`): a registration ceremony session (`Session/Ceremony.lean`, both
+stages: `register` issues 33, 45, 80, 81 and the record layer's; `certificate` issues 47, 32 and the
+record layer's) issues no contact, account-state, curve, send, receive or refresh operation and no
+op 91; every other session issues no ceremony operation. No C++ bridges script state into the legacy
+library (the owner's rule): the selection refuses what it cannot close. STACK_NOTES.md section 10 has
+the same table with each script's file. -/
 
 /-- A legacy worker operation that needs the legacy library's retired TLS phase: its code, the flow
 function that issues it, the selection name whose script replaces it (`none`: no script yet), and
-whether only a registration ceremony session issues it. -/
+whether a service session (send, receive, the long-lived session) and a registration ceremony
+session can issue it. -/
 structure LegacyOp where
   code : Nat
   flow : String
   group : Option String
-  ceremonyOnly : Bool := false
+  inService : Bool
+  inCeremony : Bool
   deriving DecidableEq, Repr
 
-/-- **The table** (STACK_NOTES.md section 10). -/
+/-- Whether a session of this kind (`ceremony`: a registration ceremony) can issue the operation. -/
+def LegacyOp.issued (o : LegacyOp) (ceremony : Bool) : Bool := if ceremony then o.inCeremony else o.inService
+
+/-- **The table** (STACK_NOTES.md section 10; S16_NOTES.md section 4 for the ceremony's). -/
 def tlsDependent : List LegacyOp :=
-  [⟨12, "Tls.application (open record)", some "tls", false⟩,
-   ⟨13, "Tls.application (seal record)", some "tls", false⟩,
-   ⟨14, "Tls.application (seal control)", some "tls", false⟩,
-   ⟨15, "Tls.application (rotate send key)", some "tls", false⟩,
-   ⟨16, "Tls.application (rotate receive key)", some "tls", false⟩,
-   ⟨30, "Tls.publicBuffer", some "tls", false⟩,
-   ⟨43, "Tls.recordLength/revealRange", some "tls", false⟩,
-   ⟨91, "Server.reset", some "tls", false⟩,
-   ⟨33, "Random.joint", some "random", false⟩,
-   ⟨45, "Upgrade.anonymous", some "upgrade", false⟩,
-   ⟨32, "Upgrade.authenticated", some "account", false⟩,
-   ⟨36, "Contacts.key", some "contacts", false⟩,
-   ⟨37, "Contacts.load", some "contacts", false⟩,
-   ⟨38, "Contacts.seal", some "contacts", false⟩,
-   ⟨40, "Contacts.evict", some "contacts", false⟩,
-   ⟨44, "Contacts.admitTest (TEST)", some "contacts", false⟩,
-   ⟨52, "Contacts.assign", some "contacts", false⟩,
-   ⟨63, "Contacts.loadDevices", some "contacts", false⟩,
-   ⟨46, "Account.admitTest (TEST)", some "account", false⟩,
-   ⟨47, "Account.credentials", some "account", false⟩,
-   ⟨53, "Account.key", some "account", false⟩,
-   ⟨54, "Account.seal", some "account", false⟩,
-   ⟨55, "Account.load", some "account", false⟩,
-   ⟨66, "Curve.prepareContacts", some "curve", false⟩,
-   ⟨41, "Send.seal", some "send", false⟩,
-   ⟨42, "Send.request", some "send", false⟩,
-   ⟨61, "Send.sealDevices", some "send", false⟩,
-   ⟨62, "Send.requestDevices", some "send", false⟩,
-   ⟨48, "Receive.take", some "receive", false⟩,
-   ⟨49, "Receive.drop", some "receive", false⟩,
-   ⟨50, "Receive.openFirst", some "receive", false⟩,
-   ⟨51, "Receive.session", some "receive", false⟩,
-   ⟨56, "Refresh.fetch", some "refresh", false⟩,
-   ⟨57, "Refresh.take", some "refresh", false⟩,
-   ⟨58, "Refresh.drop", some "refresh", false⟩,
-   ⟨59, "Refresh.shape", some "refresh", false⟩,
-   ⟨60, "Refresh.establish", some "refresh", false⟩,
-   ⟨64, "Refresh.scratchSeal", some "refresh", false⟩,
-   ⟨65, "Refresh.scratchCommit", some "refresh", false⟩,
-   ⟨80, "Ceremony.secrets", none, true⟩,
-   ⟨81, "Ceremony.register", none, true⟩]
+  [⟨12, "Tls.application (open record)", some "tls", true, true⟩,
+   ⟨13, "Tls.application (seal record)", some "tls", true, true⟩,
+   ⟨14, "Tls.application (seal control)", some "tls", true, true⟩,
+   ⟨15, "Tls.application (rotate send key)", some "tls", true, true⟩,
+   ⟨16, "Tls.application (rotate receive key)", some "tls", true, true⟩,
+   ⟨30, "Tls.publicBuffer", some "tls", true, true⟩,
+   ⟨43, "Tls.recordLength/revealRange", some "tls", true, true⟩,
+   ⟨91, "Server.reset", some "tls", true, false⟩,
+   ⟨33, "Random.joint", some "random", true, true⟩,
+   ⟨45, "Upgrade.anonymous", some "upgrade", true, true⟩,
+   ⟨32, "Upgrade.authenticated", some "account", true, true⟩,
+   ⟨36, "Contacts.key", some "contacts", true, false⟩,
+   ⟨37, "Contacts.load", some "contacts", true, false⟩,
+   ⟨38, "Contacts.seal", some "contacts", true, false⟩,
+   ⟨40, "Contacts.evict", some "contacts", true, false⟩,
+   ⟨44, "Contacts.admitTest (TEST)", some "contacts", true, false⟩,
+   ⟨52, "Contacts.assign", some "contacts", true, false⟩,
+   ⟨63, "Contacts.loadDevices", some "contacts", true, false⟩,
+   ⟨46, "Account.admitTest (TEST)", some "account", true, false⟩,
+   ⟨47, "Account.credentials", some "account", true, true⟩,
+   ⟨53, "Account.key", some "account", true, false⟩,
+   ⟨54, "Account.seal", some "account", true, false⟩,
+   ⟨55, "Account.load", some "account", true, false⟩,
+   ⟨66, "Curve.prepareContacts", some "curve", true, false⟩,
+   ⟨41, "Send.seal", some "send", true, false⟩,
+   ⟨42, "Send.request", some "send", true, false⟩,
+   ⟨61, "Send.sealDevices", some "send", true, false⟩,
+   ⟨62, "Send.requestDevices", some "send", true, false⟩,
+   ⟨48, "Receive.take", some "receive", true, false⟩,
+   ⟨49, "Receive.drop", some "receive", true, false⟩,
+   ⟨50, "Receive.openFirst", some "receive", true, false⟩,
+   ⟨51, "Receive.session", some "receive", true, false⟩,
+   ⟨56, "Refresh.fetch", some "refresh", true, false⟩,
+   ⟨57, "Refresh.take", some "refresh", true, false⟩,
+   ⟨58, "Refresh.drop", some "refresh", true, false⟩,
+   ⟨59, "Refresh.shape", some "refresh", true, false⟩,
+   ⟨60, "Refresh.establish", some "refresh", true, false⟩,
+   ⟨64, "Refresh.scratchSeal", some "refresh", true, false⟩,
+   ⟨65, "Refresh.scratchCommit", some "refresh", true, false⟩,
+   ⟨80, "Ceremony.secrets", some "ceremony", false, true⟩,
+   ⟨81, "Ceremony.register", some "ceremony", false, true⟩]
 
 /-- Whether a selected script replaces the operation. -/
 def scripted (names : List String) (o : LegacyOp) : Bool :=
@@ -170,7 +185,7 @@ def scripted (names : List String) (o : LegacyOp) : Bool :=
 session can issue (`ceremony`: the session is a registration ceremony) that no selected script
 replaces. Without `tls` the legacy handshake runs and nothing is stranded. -/
 def stranded (names : List String) (ceremony : Bool) : List LegacyOp :=
-  if names.contains "tls" then tlsDependent.filter fun o => (ceremony || !o.ceremonyOnly) && !scripted names o
+  if names.contains "tls" then tlsDependent.filter fun o => o.issued ceremony && !scripted names o
   else []
 
 /-- The refusal's text: each stranded operation, and the names to select (or "S16"). -/
@@ -181,7 +196,7 @@ def strandedMessage (ops : List LegacyOp) : String :=
   String.intercalate ", " (ops.map fun o => s!"op {o.code} {o.flow}" ++
     (match o.group with
      | some g => s!" (select {g})"
-     | none => " (no script yet: S16)")) ++
+     | none => " (no script yet)")) ++
   (if want.isEmpty then "" else s!"; select also: {String.intercalate "," want}")
 
 /-- The named groups that are unavailable, with the reason. -/
@@ -227,7 +242,7 @@ selection with `tls`, every legacy operation of the table that this session can 
 a script of a selected group. -/
 theorem check_closed (names : List String) (ceremony : Bool) (h : (check names ceremony).toBool = true)
     (htls : names.contains "tls" = true) :
-    ∀ o ∈ tlsDependent, (ceremony || !o.ceremonyOnly) = true → ∃ g, o.group = some g ∧ names.contains g = true := by
+    ∀ o ∈ tlsDependent, o.issued ceremony = true → ∃ g, o.group = some g ∧ names.contains g = true := by
   intro o ho hk
   have hs := (check_ok names ceremony h).2.2
   simp only [stranded, htls, ↓reduceIte, List.filter_eq_nil_iff] at hs
@@ -260,9 +275,10 @@ group of `closedSet`. -/
 theorem tls_needs_closedSet (names : List String) (h : (check names false).toBool = true)
     (htls : names.contains "tls" = true) : ∀ g ∈ closedSet, names.contains g = true := by
   have hc := check_closed names false h htls
-  have via : ∀ code flow g, (⟨code, flow, some g, false⟩ : LegacyOp) ∈ tlsDependent → names.contains g = true := by
-    intro code flow g hm
-    obtain ⟨g', hg', hc'⟩ := hc _ hm rfl
+  have via : ∀ code flow g b, (⟨code, flow, some g, true, b⟩ : LegacyOp) ∈ tlsDependent →
+      names.contains g = true := by
+    intro code flow g b hm
+    obtain ⟨g', hg', hc'⟩ := hc _ hm (by simp [LegacyOp.issued])
     simp only [Option.some.injEq] at hg'
     subst hg'
     exact hc'
@@ -270,17 +286,17 @@ theorem tls_needs_closedSet (names : List String) (h : (check names false).toBoo
   simp only [closedSet, contactSet, List.cons_append, List.nil_append, List.mem_cons, List.not_mem_nil,
     or_false] at hg
   rcases hg with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-  · exact via 36 "Contacts.key" _ (by decide)
-  · exact via 53 "Account.key" _ (by decide)
-  · exact via 66 "Curve.prepareContacts" _ (by decide)
-  · exact via 41 "Send.seal" _ (by decide)
-  · exact via 48 "Receive.take" _ (by decide)
-  · exact via 56 "Refresh.fetch" _ (by decide)
+  · exact via 36 "Contacts.key" _ false (by decide)
+  · exact via 53 "Account.key" _ false (by decide)
+  · exact via 66 "Curve.prepareContacts" _ false (by decide)
+  · exact via 41 "Send.seal" _ false (by decide)
+  · exact via 48 "Receive.take" _ false (by decide)
+  · exact via 56 "Refresh.fetch" _ false (by decide)
   · exact htls
   · have := check_needs names false h "tls" (by simpa using htls) "masks" (by decide)
     exact this
-  · exact via 33 "Random.joint" _ (by decide)
-  · exact via 45 "Upgrade.anonymous" _ (by decide)
+  · exact via 33 "Random.joint" _ true (by decide)
+  · exact via 45 "Upgrade.anonymous" _ true (by decide)
 
 /-- **The closed selection is accepted** (any session but a ceremony). -/
 theorem check_contactSet : (check closedSet false).toBool = true := by decide
@@ -294,15 +310,64 @@ theorem check_contactSet_partial :
 `masks` only strands op 33 (`Random.joint`) and op 45 (`Upgrade.anonymous`), so it is refused. -/
 theorem check_contactSet_unclosed : (check (contactSet ++ ["tls", "masks"]) false).toBool = false := by decide
 
-/-- **J22: no selection with `tls` is accepted for a registration ceremony session** until S16
-scripts ops 80 and 81 (`Ceremony.secrets`, `Ceremony.register`). -/
-theorem check_ceremony_tls (names : List String) (htls : names.contains "tls" = true) :
-    (check names true).toBool = false := by
+/-- **J22: no selection with `tls` but without `ceremony` is accepted for a registration ceremony
+session** (ops 80 and 81, `Ceremony.secrets` / `Ceremony.register`, would be stranded). Before S16
+this read: no selection with `tls` at all. -/
+theorem check_ceremony_tls (names : List String) (htls : names.contains "tls" = true)
+    (hno : names.contains "ceremony" = false) : (check names true).toBool = false := by
   cases h : (check names true).toBool with
   | false => rfl
   | true =>
-    obtain ⟨g, hg, -⟩ := check_closed names true h htls ⟨80, "Ceremony.secrets", none, true⟩ (by decide) rfl
-    cases hg
+    obtain ⟨g, hg, hc⟩ := check_closed names true h htls ⟨80, "Ceremony.secrets", some "ceremony", false, true⟩
+      (by decide) (by simp [LegacyOp.issued])
+    simp only [Option.some.injEq] at hg
+    subst hg
+    rw [hno] at hc
+    cases hc
+
+/-- **The closed selection of a registration ceremony session** (K12): `ceremony` and every group of
+`closedSet`. Not asserted: it follows from the closure (`ceremony_needs_ceremonySet`): the ceremony's
+`certificate` stage issues ops 47 and 32 (`account`, which needs the contact set), its `register`
+stage ops 33 and 45 (`random`, `upgrade`), both the record layer's (`tls`, which needs `masks`). -/
+def ceremonySet : List String := closedSet ++ ["ceremony"]
+
+/-- **K12: what a ceremony session with `tls` must select follows from the closure**: any accepted
+selection with `tls` for a ceremony session contains every group of `ceremonySet`. -/
+theorem ceremony_needs_ceremonySet (names : List String) (h : (check names true).toBool = true)
+    (htls : names.contains "tls" = true) : ∀ g ∈ ceremonySet, names.contains g = true := by
+  have hc := check_closed names true h htls
+  have via : ∀ code flow g b, (⟨code, flow, some g, b, true⟩ : LegacyOp) ∈ tlsDependent →
+      names.contains g = true := by
+    intro code flow g b hm
+    obtain ⟨g', hg', hc'⟩ := hc _ hm (by simp [LegacyOp.issued])
+    simp only [Option.some.injEq] at hg'
+    subst hg'
+    exact hc'
+  have hacc : names.contains "account" = true := via 47 "Account.credentials" _ true (by decide)
+  have viaAcc : ∀ m ∈ requires "account", names.contains m = true :=
+    check_needs names true h "account" (by simpa using hacc)
+  intro g hg
+  simp only [ceremonySet, closedSet, contactSet, List.cons_append, List.nil_append, List.mem_cons,
+    List.not_mem_nil, or_false] at hg
+  rcases hg with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  · exact viaAcc "contacts" (by decide)
+  · exact hacc
+  · exact viaAcc "curve" (by decide)
+  · exact viaAcc "send" (by decide)
+  · exact viaAcc "receive" (by decide)
+  · exact viaAcc "refresh" (by decide)
+  · exact htls
+  · exact check_needs names true h "tls" (by simpa using htls) "masks" (by decide)
+  · exact via 33 "Random.joint" _ true (by decide)
+  · exact via 45 "Upgrade.anonymous" _ true (by decide)
+  · exact via 80 "Ceremony.secrets" _ false (by decide)
+
+/-- **The ceremony's closed selection is accepted** for a ceremony session. -/
+theorem check_ceremonySet : (check ceremonySet true).toBool = true := by decide
+
+/-- **…and only whole**: without any one of its eleven groups it is refused. -/
+theorem check_ceremonySet_partial : ∀ g ∈ ceremonySet, (check (ceremonySet.erase g) true).toBool = false := by
+  decide
 
 /-- Without `tls` nothing is stranded (the legacy handshake runs as before). -/
 theorem stranded_without_tls (names : List String) (ceremony : Bool) (h : names.contains "tls" = false) :
@@ -330,6 +395,8 @@ structure Session where
   hinted : Bool
   /-- `SIGNAL_RECEIVE_JUMP`. -/
   jump : Nat
+  /-- S16: the ceremony's handles between ops 80 and 81 (`Ceremony.State`). -/
+  ceremony : IO.Ref Ceremony.State
 
 def get {α : Type} (r : IO.Ref α) : M α := (r.get : IO α)
 def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
@@ -339,7 +406,8 @@ def Session.start (r : Runner) (agreed : Config.Agreed) : IO Session := do
            buffers := ← IO.mkRef {}, requests := ← IO.mkRef [],
            receive := { envelope := ← IO.mkRef none, arrival := ← IO.mkRef none },
            refresh := { state := ← IO.mkRef {}, fetches := ← IO.mkRef [] }, hinted := agreed.hinted,
-           jump := ((agreed.receiveJump.bind String.toNat?).getD 0) }
+           jump := ((agreed.receiveJump.bind String.toNat?).getD 0),
+           ceremony := ← IO.mkRef {} }
 
 /-- A connection's TLS state (connection 0 when no connection is selected), made on first use. -/
 def Session.tlsRefs (s : Session) (connection : Option Nat) : M (TlsBackend.Refs JoinBackend.SplitState) := do
@@ -525,6 +593,47 @@ def upgradeAuthenticated (s : Session) (c : Option Nat) (state : Nat) :
   set refs.buffers b'
   return (⟨id⟩, UpgradeAuth.requestBytes, Reveal.upgradeAccept accept)
 
+/-- **S16: op 80** (`Ceremony.secretsStep`): this party's seed, mask and recovery half from its own
+randomness (rule 5) into fresh store slots, the script, the slots released; the two kept handles go
+to the ceremony state; the reply is this party's shares (`Ceremony.shareOf`, the C++'s reply),
+computed from its own mask and recovery half and the opened masked password. -/
+def ceremonySecrets (s : Session) : M (Secret Bytes) := do
+  let r := s.runner
+  let st ← get s.ceremony
+  insist (!st.made) "ceremony secrets unavailable"
+  let seed ← r.randomM Ceremony.seedBytes
+  let mask ← r.randomM Ceremony.passwordBytes
+  let recovery ← r.randomM Ceremony.recoveryBytes
+  let seedSlot ← r.stashBits (seed.map fun b => bitsOf (toB8 b))
+  let maskSlot ← r.stashBits (mask.map fun b => bitsOf (toB8 b))
+  let recoverySlot ← r.stashBits (recovery.map fun b => bitsOf (toB8 b))
+  let n ← r.allocB 11
+  let m ← r.runReleasing (Ceremony.secretsStep st n seedSlot maskSlot recoverySlot) [seedSlot, maskSlot, recoverySlot]
+  set s.ceremony (Ceremony.State.afterSecrets m)
+  return Secret.zipWith (fun mk rc => ofB8 (Ceremony.shareOf r.me (toB8 mk) (toB8 rc) m.masked)) mask recovery
+
+/-- **S16: op 81** (`Ceremony.registerStep`): the secrets handle tail ‖ password ‖ recovery, kept as a
+request buffer (`SendBackend.Request`) whose record seal is `Send.requestCtrScript` with
+`ceremony-register-ctr SIZE PAYLOAD AUTH TAIL RECOVERY` (sealed by the record layer's
+`sealApplication`, as op 42's requests). `find`'s ranges are checked here. -/
+def ceremonyRegister (s : Session) (payloadAt : Nat) (offsets : List Nat) (mask tail frame : Bytes) :
+    M TlsWorker.BufferHandle := do
+  let r := s.runner
+  let st ← get s.ceremony
+  let authAt := offsets.getD 0 0
+  let recoveryAt := offsets.getD 1 0
+  insist (mask.length == 4 && offsets.length == 2 &&
+    Ceremony.registerOk frame.length payloadAt authAt tail.length recoveryAt) "ceremony register unavailable"
+  let n ← r.allocB 2
+  let conv ← r.run (Ceremony.registerStep st n (toB8 tail))
+  set s.ceremony st.afterRegister
+  let b ← get s.buffers
+  set s.buffers { b with next := b.next + 1 }
+  let rq : SendBackend.Request :=
+    ⟨conv, Ceremony.registerName frame.length payloadAt authAt tail.length recoveryAt, toB8 frame, toB8 mask⟩
+  set s.requests ((b.next, rq) :: (← get s.requests))
+  return ⟨b.next⟩
+
 /-- **The overrides of the selected groups.** -/
 def overrides (s : Session) (names : List String) : Flow.Overrides :=
   let r := s.runner
@@ -657,6 +766,9 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
       let st ← Runner.get r.state
       let cache ← get s.prepared
       return Reveal.prepareStatus (ids.map fun id => UInt8.ofNat (ContactsPrepare.statusByte st.table cache id))
+    ceremonySecrets := on "ceremony" (ceremonySecrets s)
+    ceremonyRegister := on "ceremony" fun payloadAt offsets mask tail frame =>
+      ceremonyRegister s payloadAt offsets mask tail frame
     sendSeal := on "send" fun id built => do SendBackend.seal r.tls sendCurve (← sendRefs none) id built
     sendSealDevices := on "send" fun id address built devices => do
       SendBackend.sealDevices r.tls sendCurve (← sendRefs none) id address built devices

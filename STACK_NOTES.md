@@ -423,8 +423,18 @@ selected the phase stays `fresh` and the legacy library refuses each of them. Th
 | 41, 42, 61, 62 | `Send.seal/request/sealDevices/requestDevices` | retired, contacts, account | `SendBackend` | `send` |
 | 48-51 | `Receive.take/drop/openFirst/session` | retired, account, records | `ReceiveBackend` | `receive` |
 | 56-60, 64, 65 | `Refresh.*` | retired, contacts | `RefreshBackend` | `refresh` |
-| 80, 81 | `Ceremony.secrets/register` (ceremony sessions only) | retired + service | none | **S16** |
+| 80, 81 | `Ceremony.secrets/register` (ceremony sessions only) | retired + service | `Ceremony.secretsStep` / `registerStep` (S16, merged from `s16-remaining`) | `ceremony` |
 | 18-29, 31, 34, 35, 19 | retired fixture / private-profile ops | — | — | not forwarded by node_worker (S8) |
+
+After the S16 merge (S16_NOTES.md section 4 was the starting point; its row for 91 says "Rust shell",
+but the shell's op 91 calls `ea_legacy_reset`, which needs the legacy retired phase, hence the
+`[1]` form above). Which session kind can issue each op (`LegacyOp.inService` / `inCeremony`): a
+ceremony session (`Session/Ceremony.lean`, both stages) issues 12-16, 30, 43 (record layer), 33, 45
+(`register` stage), 47, 32 (`certificate` stage), 80, 81; every other session issues all the others
+and never 80, 81. So for a ceremony session the closure gives `ceremonySet` = all eleven groups
+(`ceremony_needs_ceremonySet`: `account` from ops 47/32, and `account` needs the contact set): K12's
+asserted list (`tls`, `masks`, `random`, `upgrade`) missed `account` (the `certificate` stage), and
+`requires "ceremony"` is now only `["tls"]` (the request is sealed by the scripted record layer).
 
 The selection (`Flows/Select.lean`): `check names ceremony` refuses, at start agreement, a selection
 with `tls` that strands an operation of the table this session can issue (`stranded`; `ceremony` =

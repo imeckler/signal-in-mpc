@@ -7,6 +7,7 @@ import TlsMpc.Node.Flows.Tls
 import TlsMpc.Node.Flows.Send
 import TlsMpc.Node.Flows.Receive
 import TlsMpc.Node.Flows.RefreshFlowProofs
+import TlsMpc.Node.Flows.Ceremony
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -75,7 +76,9 @@ def declared : List (String × List RevealKind) :=
    ("Refresh.fetch", Refresh.fetchKinds), ("Refresh.take", []), ("Refresh.shape", Refresh.shapeKinds),
    ("Refresh.parse", []), ("Refresh.challenges", []), ("Refresh.verify", Refresh.establishKinds),
    ("Refresh.kem", []), ("Refresh.session", Refresh.establishKinds), ("Refresh.scratchSeal", Refresh.scratchKinds),
-   ("Refresh.drop", []), ("Refresh.commit", [])]
+   ("Refresh.drop", []), ("Refresh.commit", []),
+   -- stage S16 (the ceremony, ops 80 and 81; the request's record phase is `Send.requestCtr`)
+   ("Ceremony.secrets", Ceremony.secretsKinds), ("Ceremony.register", [])]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/

@@ -83,6 +83,10 @@ structure Overrides where
   upgradeAuthenticated :
     Option (Option Nat → Nat → TlsClient.M (TlsWorker.BufferHandle × Nat × Opened .upgradeAccept Bytes)) := none
   curvePrepareContacts : Option (List ContactId → TlsClient.M (Opened .prepareStatus Bytes)) := none
+  /-- Op 80 (S16, `Flows/Ceremony.lean`): this party's XOR shares of the two passwords. -/
+  ceremonySecrets : Option (TlsClient.M (Secret Bytes)) := none
+  /-- Op 81 (S16): `payloadAt offsets mask tail frame`, the request's buffer handle. -/
+  ceremonyRegister : Option (Nat → List Nat → Bytes → Bytes → Bytes → TlsClient.M TlsWorker.BufferHandle) := none
   sendSeal : Option (ContactId → Bytes → TlsClient.M (Opened .sealedEnvelope (Option (Nat × List Bytes)))) := none
   sendSealDevices :
     Option (ContactId → Bytes → Bytes → Nat → TlsClient.M (Opened .sealedEnvelope (Option (Nat × List Bytes)))) := none

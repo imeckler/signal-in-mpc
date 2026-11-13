@@ -31,7 +31,10 @@ S10's stand-in programs and circuits from the shared `TlsMpc/Node/TestStandIns.l
 credential shares (op 47) and the AUTHENTICATED upgrade (op 32, `UpgradeAuth`, stand-in
 `signal-upgrade-shared 22` = (shareA ⊕ shareB) ‖ nonce: the request's value and RFC 6455's accept of
 its nonce); the TEST admission (op 46): the identity's swap bits as field handles with the ladder's
-values (J8's handles).
+values (J8's handles); the ceremony (S16, ops 80 and 81, group `ceremony`; stand-in `ceremony-secrets`
+= its reference `Ceremony.secrets`): the parties' replies XOR to the password and recovery handles'
+values, the password is base64, op 81's request buffer holds tail ‖ password ‖ recovery under the
+register kernel's name, each operation runs once per session.
 
 Not covered here (STACK_NOTES J14, open): a record seal and open, a send, an accepted receive, a
 refresh, op 66 — their stand-in tables (S11–S15) are still inline in their vector files. Nothing
@@ -83,6 +86,12 @@ def circuits (n : Bytes) : Option Circuit :=
   | ["contact-open", s] => s.toNat?.map fun size => byteCircuit (84 + size) (Contacts.openMarks size)
       fun v => openOut (v.take 60) ((v.drop 60).take 8) ((v.drop 68).take size) (v.drop (68 + size))
   | ["signal-upgrade-shared", "22"] => some (byteCircuit 92 (List.replicate (8 * 54) .never) upgradeOut)
+  -- S16: `ceremony-secrets` as its reference (`Ceremony.secrets` on the six input fields; the kernel
+  -- computes it, `ceremonySecrets_spec`).
+  | ["ceremony-secrets"] => some (byteCircuit 144 Ceremony.secretsMarks fun v =>
+      ofB8 (TlsMpc.Ceremony.secrets TlsMpc.ByteAuth.concrete (toB8 (v.take 18)) (toB8 ((v.drop 18).take 18))
+        (toB8 ((v.drop 36).take 22)) (toB8 ((v.drop 58).take 22)) (toB8 ((v.drop 80).take 32))
+        (toB8 ((v.drop 112).take 32))).flatten)
   -- S10's word circuits (the vector files' table, `TestStandIns`).
   | _ => TestStandIns.lookup TestStandIns.s10Circuits n
 
@@ -174,7 +183,7 @@ def both {α : Type} (fa fb : M α) : IO (Except String α × Except String α) 
 
 def main : IO Unit := do
   let st ← IO.mkRef ({ ctxA := { progs := env.progs }, ctxB := { progs := env.progs } } : PairState)
-  let names := ["random", "upgrade", "contacts", "account"]
+  let names := ["random", "upgrade", "contacts", "account", "ceremony"]
   let (wA, rA, sA) ← party env st .a 1 names
   let (wB, rB, _sB) ← party env st .b 2 names
   -- 1. Joint randomness (op 33 as a script): both get the XOR of the two values (P-RAND (a)).
@@ -185,7 +194,9 @@ def main : IO Unit := do
     check "random-value" (a.val == xorB (draw 1 1 32) (draw 2 1 32))
   | .error e, _ => IO.println s!"check random FAIL {e}"
   | _, .error e => IO.println s!"check random FAIL {e}"
-  check "random-op93-recorded" ((← wA.operations) == [93])
+  -- (J26: a scripted flow operation is recorded under its legacy code, `Legacy.note`, before its op 93
+  -- batches; the fake worker refuses every operation but 93, so nothing else reached the pipe.)
+  check "random-op93-recorded" ((← wA.operations) == [33, 93])
   -- 2. The anonymous upgrade (op 45 as a script): nonce = the first 16 bytes of the joint value,
   -- accept = RFC 6455's (WebSocketAccept.upgradePublic, upgrade_honest).
   let (ua, ub) ← both (Flow.Upgrade.anonymous wA) (Flow.Upgrade.anonymous wB)
@@ -333,8 +344,53 @@ def main : IO Unit := do
       check "account-identity-swaps" (ids.length == 252 && ids.map (fun h => I.fields h.id) == want.map some)
     | none => IO.println "check account-identity-swaps FAIL none"
   else IO.println s!"info admit skipped: {poolA.bits.length} bit pairs"
+  -- 8. S16: the ceremony (op 80 then op 81 as scripts, group `ceremony`). Op 80: both parties' replies
+  -- (their XOR shares) XOR to the password and recovery handles' model values (`shares_xor`); the
+  -- password is 22 base64 characters (no ':'); a second op 80 is refused. Op 81: the request buffer's
+  -- secrets handle holds tail ‖ password ‖ recovery (`register_honest`), its kernel name is
+  -- `ceremony-register-ctr SIZE PAYLOAD AUTH TAIL RECOVERY`; a second op 81 is refused.
+  let (cea, ceb) ← both (Flow.Ceremony.secrets wA) (Flow.Ceremony.secrets wB)
+  match cea, ceb with
+  | .ok shA, .ok shB =>
+    match (← sA.ceremony.get).secrets with
+    | some (pwH, rcH) =>
+      let I := (← st.get).ideal
+      let pw := ((I.bools pwH.id).map fun b => ofB8 (bytesOf b)).getD []
+      let rc := ((I.bools rcH.id).map fun b => ofB8 (bytesOf b)).getD []
+      let joint := xorB shA.expose shB.expose
+      check "ceremony-secrets-shares" (shA.length == 54 && shB.length == 54 && joint == pw ++ rc && pw.length == 22)
+      let b64 : List UInt8 := ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toList.map
+        fun c => UInt8.ofNat c.toNat)
+      check "ceremony-password-base64" (pw.all fun c => b64.contains c)
+      let (againA, againB) ← both (Flow.Ceremony.secrets wA) (Flow.Ceremony.secrets wB)
+      check "ceremony-secrets-once" (againA matches .error _ && againB matches .error _)
+      -- op 81 on a frame of 120 bytes (payload at 8, the credential slot at 20, the recovery slot at 60)
+      let frame : Bytes := (List.range 120).map fun i =>
+        if (20 ≤ i ∧ i < 52) ∨ (60 ≤ i ∧ i < 104) then 0 else UInt8.ofNat ((i * 7 + 3) % 256)
+      let tail : Bytes := [0x3a]
+      let (rga, rgb) ← both (Flow.Ceremony.register wA 8 [20, 60] [1, 2, 3, 4] tail frame)
+        (Flow.Ceremony.register wB 8 [20, 60] [1, 2, 3, 4] tail frame)
+      match rga, rgb with
+      | .ok ha, .ok hb =>
+        match (← sA.requests.get).lookup ha.id with
+        | some rq =>
+          let I := (← st.get).ideal
+          let secrets := ((I.bools rq.conv.id).map fun b => ofB8 (bytesOf b)).getD []
+          check "ceremony-register-secrets" (ha.id == hb.id && secrets == tail ++ pw ++ rc)
+          check "ceremony-register-name" (rq.name == Ceremony.registerName 120 8 20 1 60 && ofB8 rq.frame == frame)
+          check "ceremony-register-freed" (I.bools pwH.id == none && I.bools rcH.id == none)
+        | none => IO.println "check ceremony-register-buffer FAIL"
+      | .error e, _ => IO.println s!"check ceremony-register FAIL {e}"
+      | _, .error e => IO.println s!"check ceremony-register FAIL {e}"
+      let (r2a, r2b) ← both (Flow.Ceremony.register wA 8 [20, 60] [1, 2, 3, 4] tail frame)
+        (Flow.Ceremony.register wB 8 [20, 60] [1, 2, 3, 4] tail frame)
+      check "ceremony-register-once" (r2a matches .error _ && r2b matches .error _)
+    | none => IO.println "check ceremony-secrets FAIL no handles"
+  | .error e, _ => IO.println s!"check ceremony-secrets FAIL {e}"
+  | _, .error e => IO.println s!"check ceremony-secrets FAIL {e}"
   IO.println s!"info batches {(← st.get).batches}"
-  check "ops-recorded" ((← wA.operations) == [93] && (← wB.operations) == [93])
+  IO.println s!"info operations {(← wA.operations)}"
+  check "ops-recorded" ((← wA.operations) == (← wB.operations) && (← wA.operations).contains 93)
 
 end RT
 
