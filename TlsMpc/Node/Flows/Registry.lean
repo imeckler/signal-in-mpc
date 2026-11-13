@@ -3,6 +3,7 @@ import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Flows.Inversion
 import TlsMpc.Node.Flows.Tls
+import TlsMpc.Node.Flows.Receive
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -48,7 +49,10 @@ def declared : List (String × List RevealKind) :=
    ("Tls.open", Tls.openKinds), ("Tls.parser", []), ("Tls.update", []), ("Tls.reveal", Tls.revealKinds),
    ("Tls.range", Tls.revealKinds), ("Tls.public", []), ("Tls.drop", []), ("Tls.derive", []),
    ("Tls.openHandshake", Tls.handshakeKinds), ("Tls.verify", Tls.handshakeKinds),
-   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", [])]
+   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", []),
+   -- stage S14 (plus the curve parameter's own kinds, S11's to register)
+   ("Receive.take", []), ("Receive.drop", []), ("Receive.openFirst", Receive.firstKinds),
+   ("Receive.session", Receive.sessionKinds), ("Receive.programs", [.maskedDenominator])]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/
@@ -117,6 +121,19 @@ theorem s12_flows_reveal :
     Tls.open_reveals, Tls.parser_reveals, Tls.update_reveals, Tls.reveal_reveals, Tls.range_reveals,
     Tls.public_reveals, Tls.drop_reveals, Tls.derive_reveals, Tls.openHandshake_reveals, Tls.verify_reveals,
     Tls.finish_reveals, Tls.agree_reveals⟩
+
+/-- **Every S14 script flow declares its kinds** (on every branch, for every argument and state):
+take and drop release nothing; `openFirst` and `session` release under their kinds and the curve
+parameter's (`Receive.Curve.kinds`); the program-based curve pieces under `maskedDenominator` and
+the agreements' kinds. -/
+theorem s14_flows_reveal :
+    (∀ env bytes offset count, Receive.RevealsG [] (Receive.takeScript env bytes offset count)) ∧
+    (∀ env a, Receive.RevealsG [] (Receive.dropScript env a)) ∧
+    (∀ cv loaded fi env size, Receive.RevealsG (Receive.firstKinds ++ cv.kinds) (Receive.openFirst cv loaded fi env size)) ∧
+    (∀ cv loaded a sp ss, Receive.RevealsG (Receive.sessionKinds ++ cv.kinds) (Receive.session cv loaded a sp ss)) ∧
+    (∀ agree ks h pm, (Receive.Curve.withPrograms agree ks h pm).kinds = .maskedDenominator :: ks) :=
+  ⟨Receive.take_reveals, Receive.drop_reveals, fun cv loaded fi env size => Receive.openFirst_reveals cv loaded fi env size,
+    fun cv loaded a sp ss => Receive.session_reveals cv loaded a sp ss, fun _ _ _ _ => rfl⟩
 
 /-- **Registered labels only**: in any run of a script that declares registered kinds, against any
 adversary, every release the adversary receives carries a label of `Label.all`. -/
