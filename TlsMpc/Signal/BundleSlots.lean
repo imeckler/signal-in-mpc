@@ -8,16 +8,15 @@ circuit serves every digit count (`handshake_backend/EmpHybridWork/CIRCUIT_SHAPE
 `BundleResponse.device` reads an item laid out for its digit counts `w`, so `bundle-item` is one
 circuit per `(D, R, S, P, K)`: thousands for realistic ranges (registration ids of 1–5 digits,
 key ids of 1–8). Here the runtime first SPLICES the item: before each number it inserts as many
-public `0` characters as the number is shorter than its slot (device id 3, registration id 5,
-key ids 10: the bounds `Widths.ok` allows), and copies everything else unchanged
-(`splice` says how, from the public widths). The result has the layout of `item (slots oneTime)`
-whatever the digit counts. The circuit also receives the five digit counts (`widths`, one byte
-each, public: they are the ones `layout?` read off the opened punctuation flags) and checks
-each slot against its count: the padding is `0`, the number itself is a decimal as JSON writes
-it (no leading zero unless it is the only digit), and its value is below the same bound as in
-`device`. Leading `0`s do not change a decimal's value, so the decoded fields are those of
-`device` on the original item (tested against a JSON parse, `check_bundle_slots.py`; like
-`number_spec` for `device`, not proved).
+public `filler` bytes (0, NUL; `0` characters before the emitter batch) as the number is shorter
+than its slot (device id 3, registration id 5, key ids 10: the bounds `Widths.ok` allows), and
+copies everything else unchanged (`splice` says how, from the public widths). The result has the
+layout of `item (slots oneTime)` whatever the digit counts. The circuit also receives the five
+digit counts (`widths`, one byte each, public: they are the ones `layout?` read off the opened
+punctuation flags) and checks each slot against its count: the padding is the filler, the number
+itself is a decimal as JSON writes it (no leading zero unless it is the only digit), and its value
+is below the same bound as in `device`. The filler's low four bits are 0, so the decoded fields
+are those of `device` on the original item (`BundleSlotWhole.deviceSlots_splice`).
 
 `deviceSlots` is `BundleResponse.device` at the slot widths with `numberValid` replaced by
 `slotValid`: the same template checks, separators, base64 decoding, key types and outputs.
@@ -34,18 +33,28 @@ open BundleResponse (Widths Piece fieldOf literals decode decodeValid numberBits
 /-- The slot sizes: the largest digit counts `Widths.ok` allows. -/
 def slots (oneTime : Bool) : Widths := ⟨3, 5, 10, if oneTime then 10 else 0, 10⟩
 
+/-- The byte the runtime puts in front of a number to fill its slot: 0 (NUL), not `0` (48). It is
+not a digit, so a slot's padding cannot be mistaken for digits of the number (with `0` padding,
+`05` spliced with two digits and `5` spliced with one were the same slot, so a `widths` input that
+disagreed with the splice could make the kernel accept the non-canonical `05`; NEEDS_REVIEW.md
+3f, defect 2). Its low four bits are 0, so `numberBits` reads it as a leading zero. -/
+def filler : Nat := 0
+
 /-- 255 exactly when `width` (a byte) is between 1 and the slot's size `chars.length`, the
-slot's first `chars.length − width` bytes are `0`, the remaining `width` bytes are a decimal as
-JSON writes it (digits only, no leading zero unless it is the only digit), and the slot's value
-is below `2^limit`. -/
+slot's first `chars.length − width` bytes are the `filler` byte, the remaining `width` bytes are a
+decimal as JSON writes it (digits only, no leading zero unless it is the only digit), and the
+slot's value is below `2^limit`. Since the filler is not a digit, the width that passes is the
+number of bytes after the filler: a slot is accepted exactly when it is the filler-padding of a
+canonical decimal, whatever the width byte says. -/
 def slotValid (a : ByteAuth.Ops B) (limit : Nat) (width : B) (chars : List B) : B :=
   let n := chars.length
   let is := fun k => ByteAuth.eqMask a width (a.const k)
   let zero := fun j => ByteAuth.eqMask a (OpenResult.get a chars j) (a.const 48)
   all a ([any a ((List.range n).map (fun k => is (k + 1)))] ++
-    chars.map (digitValid a) ++
-    -- position j is padding when the width is below n − j: then it must be `0`
-    (List.range n).map (fun j => either a (a.not (any a ((List.range (n - j)).map is))) (zero j)) ++
+    -- position j is padding when the width is below n − j: then it must be the filler, else a digit
+    (List.range n).map (fun j =>
+      either a (a.and (any a ((List.range (n - j)).map is)) (ByteAuth.eqMask a (OpenResult.get a chars j) (a.const filler)))
+        (a.and (a.not (any a ((List.range (n - j)).map is))) (digitValid a (OpenResult.get a chars j)))) ++
     -- position j is the number's first digit when the width is n − j: then not `0`, unless n − j = 1
     (List.range (n - 1)).map (fun j => a.not (a.and (is (n - j)) (zero j))) ++
     ((numberBits a chars).drop limit).map a.not)
@@ -98,8 +107,8 @@ def merge : List (Nat × Nat) → List (Nat × Nat)
 termination_by xs => xs.length
 
 /-- How the runtime builds the `item` input of `bundle-slot` from the item as it is in the body
-(digit counts `w`): for each `(zeros, copy)`, `zeros` bytes `0` (48), then the next `copy` bytes
-of the item. Copies add up to `size (item w)`; zeros and copies to `size (item (slots _))`. -/
+(digit counts `w`): for each `(zeros, copy)`, `zeros` bytes `filler` (0), then the next `copy`
+bytes of the item. Copies add up to `size (item w)`; zeros and copies to `size (item (slots _))`. -/
 def splice (w : Widths) : List (Nat × Nat) := merge (runs (item w) (item (slots (w.oneTime != 0))))
 
 /-- The splice applied to concrete bytes (what the runtime does; for the checks). -/

@@ -1,4 +1,5 @@
 import TlsMpc.FlatLowering
+import TlsMpc.FlatKernelLayout
 import TlsMpc.ByteCircuit
 import TlsMpc.BoolDag
 import TlsMpc.FieldDag
@@ -144,10 +145,11 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
 
 ## What every entry silently relies on (trusted, not proved)
 
-* The circuit printers (`Flat.print`, `EmitWordMask.render`/`renderField`), the layout text with
-  its open/private marks, and the choice of which flat outputs form which named field
-  (SECURITY_MAP C.1). A kernel theorem is about the Lean term; the file the worker loads reaches
-  it only through these printers.
+* The field-program printers (`EmitWordMask.render`/`renderField`), the choice of which flat
+  outputs form which named field (`selection`), and that the engines' loaders parse the files as
+  `parseFlat`/`parseLayout` do (SECURITY_MAP C.1). Since the emitter batch the flat circuit
+  printer and the layout text with its open/private marks are proved (section 1b: what they
+  print parses back to the gate list and to the kernel's declared fields and marks).
 * `ShareCommon.shareCommon'` (used by the translation validators), the Lean compiler and runtime.
 * The engines (emp-ag2pc, the MP-SPDZ-based field engine) compute ideally; the C++ worker's
   sequencing (SECURITY_MAP D.5, D.6). None of the C++ is modelled here except where an entry says
@@ -181,7 +183,9 @@ namespace TlsMpc.Security
 /-! ## 1. Lowering and artifacts (SECURITY_MAP C.1)
 
 How a Lean circuit term becomes the gate list the worker loads, and why the gate list computes the
-term. The printers that turn the gate list into text are NOT covered (see the header). -/
+term. Since the emitter batch the printers that turn the gate list and the kernel's fields into
+text are covered too (section 1b): parsing the printed text gives back what was printed. The V3
+field-program printer (`EmitWordMask`) is not (stage S9/S10). -/
 
 open TlsMpc.FlatLowering Std.Sat Std.Tactic.BVDecide in
 open scoped Std.Sat.AIG in
@@ -232,6 +236,72 @@ SECURITY_MAP C.1. -/
 theorem flat_run_eq_eval (f : Flat) (inp : Nat → Bool) (hwf : f.wellFormed = true) (w : Nat)
     (hw : w < f.inputs + f.opa.size) : (f.run inp)[w]? = some (f.eval inp w) :=
   TlsMpc.FlatLowering.Flat.run_eq_eval f inp hwf w hw
+
+/-! ### 1b. Printers and marks (T2, proof track P3; emitter batch)
+
+The circuit text and the layout file the four kernel emitters write. The printers print what they
+always printed (`layoutText_eq_before`; `Flat.print` uses the same `++` chains); the theorems
+below say what they print. -/
+
+open TlsMpc.FlatLowering in
+/-- **What the circuit printer writes is `Flat.render`** (run with a `write` that appends; the
+emitters run the same `printWith` in `IO`). **K** (generic). -/
+theorem flat_printWith_render (f : Flat) : ((f.printWith appendOut).run "").2 = f.render :=
+  TlsMpc.FlatLowering.printWith_render f
+
+open TlsMpc.FlatLowering in
+/-- **A loader's parse of the printed text gives back the gate list**, for every well-formed one
+(every `lower` result). **K** (generic). Trusted: the engines' loaders parse as `parseFlat`. -/
+theorem flat_parse_render (f : Flat) (hwf : f.wellFormed = true) : parseFlat f.render.toList = some f :=
+  TlsMpc.FlatLowering.parseFlat_render f hwf
+
+open TlsMpc.FlatLowering Std.Tactic.BVDecide in
+/-- **The text the engines load denotes the lowered expression**: it parses back to the gate list,
+and output `k` of that list is bit `sel[k]` of the expression's value. **K** (generic). -/
+theorem flat_lowerExpr_loaded (expr : BVExpr w) (widths : Array Nat) (sel : Array (Fin w)) (flat : Flat)
+    (h : lowerExpr expr widths sel = .ok flat) :
+    parseFlat ((flat.printWith appendOut).run "").2.toList = some flat ∧ flat.outputs.size = sel.size ∧
+      ∀ (assign : BVExpr.Assignment) (inp : Nat → Bool),
+        (∀ (v off b : Nat) (width : Nat), widths[v]? = some width → (offsets widths)[v]? = some off →
+          b < width → inp (off + b) = (assign.get v).bv.getLsbD b) →
+        ∀ (k out : Nat) (hk : k < sel.size), flat.outputs[k]? = some out →
+          flat.eval inp out = (expr.eval assign).getLsbD sel[k].val :=
+  TlsMpc.FlatLowering.lowerExpr_loaded expr widths sel flat h
+
+open TlsMpc.FlatKernelLayout in
+/-- **The layout file is byte for byte what the emitters wrote before the batch.** -/
+theorem layoutText_unchanged (k : HybridKernel.Kernel) : layoutText k = layoutTextBefore k :=
+  TlsMpc.FlatKernelLayout.layoutText_eq_before k
+
+open TlsMpc.FlatKernelLayout in
+/-- **The layout file lists exactly the kernel's declared fields and open marks** (alphanumeric
+names, which `lowerKernel` checks). **K** (generic). -/
+theorem layout_parse (k : HybridKernel.Kernel) (hin : ∀ f ∈ k.inputs, ValidName f.1)
+    (hout : ∀ o ∈ k.outputs, ValidName o.name) :
+    parseLayout (layoutText k).toList = some (inputFields k, outputFields k) :=
+  TlsMpc.FlatKernelLayout.parseLayout_layoutText k hin hout
+
+open TlsMpc.FlatKernelLayout in
+/-- **The open mark says who may see an output**: 2 / 3 exactly for party 1 / 2 only, 1 exactly
+for an `opened` output with no single audience, 0 for a private one. -/
+theorem layout_openCode (o : HybridKernel.Output) :
+    (openCode o = 2 ↔ o.audience = 1) ∧ (openCode o = 3 ↔ o.audience = 2) ∧
+      (openCode o = 1 ↔ o.opened = true ∧ o.audience ≠ 1 ∧ o.audience ≠ 2) ∧
+      (openCode o = 0 ↔ o.opened = false ∧ o.audience ≠ 1 ∧ o.audience ≠ 2) :=
+  TlsMpc.FlatKernelLayout.openCode_spec o
+
+open TlsMpc.FlatKernelLayout in
+/-- **What the engines load for a kernel is that kernel (T2 for every kernel the four kernel
+emitters lower).** If `lowerKernel k` returns `flat`: the circuit text parses back to `flat`, the
+layout file to the kernel's fields and marks, and `flat` is `lowerExpr` of the kernel's joined
+outputs (so `flat_lowerExpr_loaded` and `joinExpr_correct` give each output wire's value). Not
+covered: `selection` (which named output bit is which bit of the joined value). -/
+theorem kernel_loaded (k : HybridKernel.Kernel) (flat : TlsMpc.FlatLowering.Flat) (h : lowerKernel k = .ok flat) :
+    TlsMpc.FlatLowering.parseFlat ((flat.printWith TlsMpc.FlatLowering.appendOut).run "").2.toList = some flat ∧
+      parseLayout (layoutText k).toList = some (inputFields k, outputFields k) ∧
+      ∃ chosen, TlsMpc.FlatLowering.lowerExpr (ByteCircuit.joinExpr (k.outputs.flatMap (·.value)))
+        (inputWidths k) chosen = .ok flat :=
+  TlsMpc.FlatKernelLayout.lowerKernel_loaded k flat h
 
 open TlsMpc.ByteCircuit Std.Tactic.BVDecide in
 /-- **Joining a kernel's byte outputs into one bit vector is faithful:** the joined expression
@@ -1912,18 +1982,22 @@ theorem bundleSlot_whole (first last oneTime : Bool) (assign : BVExpr.Assignment
 /-! `bundle-slot` against `BundleResponse.device` on the body the server sent
 (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). The slot check, the splice, the item: **K-fn**; the
 kernel on the cut of the body: **K**. Trusted: the C++ worker binds `head`/`before`/`item`/`after`/
-`end` as stated and passes the splice and `widths` from the same digit counts. Caveat
-`inconsistent_width_accepts` (section 8). -/
+`end` as stated and pads the splice with the filler byte 0 (`service_kernels.h`,
+`bundle_establish`). Since the emitter batch (effective after the re-lowering) the padding is the
+filler 0, not `0`, and a `widths` input that disagrees with the splice no longer matters:
+`bundleSlot_any_widths` holds for any item, not only one `device` accepts, and the former caveat
+`inconsistent_width_accepts` is `bundleSlot_inconsistent_width_refused` (NEEDS_REVIEW.md 3f,
+defect 2). -/
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.Signal.Establish (part) in
 open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
   numberBytes digitValid pushDigit) in
-/-- **A slot of `m` bytes holding `m − n` zeros and then `n` characters, checked with the declared
-width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
+/-- **A slot of `m` bytes holding `m − n` filler bytes (0) and then `n` characters, checked with
+the declared width `n`, is accepted exactly when `numberValid` accepts the `n` characters.** -/
 theorem slotValid_pad (limit : Nat) (cs : List Byte) (m : Nat) (h1 : 1 ≤ cs.length) (hnm : cs.length ≤ m)
     (hm : m < 256) :
-    BundleSlots.slotValid ByteAuth.concrete limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 48 ++ cs) =
+    BundleSlots.slotValid ByteAuth.concrete limit (BitVec.ofNat 8 cs.length) (List.replicate (m - cs.length) 0 ++ cs) =
       numberValid ByteAuth.concrete limit cs :=
   TlsMpc.KernelSpecs.BundleSlotWhole.slotValid_pad limit cs m h1 hnm hm
 
@@ -1937,9 +2011,9 @@ the item, `post` what follows it). -/
 theorem deviceSlots_splice (w : Widths) (ok : w.ok = true) (pre I post : List Byte)
     (hI : I.length = size (item w)) (hpre : firstItem ≤ pre.length) (hpost : 2 ≤ post.length) :
     BundleSlots.deviceSlots ByteAuth.concrete
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post).length
         pre.length (w.oneTime != 0) (widthBytes w)
-        (pre ++ applyRuns 48 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
+        (pre ++ applyRuns 0 (BundleSlots.runs (item w) (item (BundleSlots.slots (w.oneTime != 0)))) I ++ post) =
       BundleResponse.device ByteAuth.concrete (pre ++ I ++ post).length pre.length w (pre ++ I ++ post) :=
   TlsMpc.KernelSpecs.BundleSlotWhole.deviceSlots_splice w ok pre I post hI hpre hpost
 
@@ -1981,7 +2055,7 @@ theorem bundleSlot_device (first last : Bool) (w : Widths) (ok : w.ok = true) (a
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w) :
@@ -2007,7 +2081,7 @@ theorem bundleSlot_eq_bundleItem (first last : Bool) (w : Widths) (ok : w.ok = t
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w)
@@ -2046,7 +2120,7 @@ theorem bundleSlot_wrong_counts (first last : Bool) (w w' : Widths) (ok' : w'.ok
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w')
@@ -2072,7 +2146,7 @@ theorem bundleSlot_parses_or_refuses (first last : Bool) (w' : Widths) (ok' : w'
         (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w' (part X start (size (item w'))) 48 ++
+          BundleSlots.spliced w' (part X start (size (item w'))) 0 ++
           (if last then [] else part X (start + size (item w')) 1) ++ part X (X.length - 2) 2)
     (widths : (lookup (BundleSlotKernel.slotInputs first last (w'.oneTime != 0)) "widths").map (BVExpr.eval assign) =
       widthBytes w') :
@@ -2092,26 +2166,59 @@ open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header fir
   numberBytes digitValid pushDigit) in
 open TlsMpc.HybridKernel (lookup) in
 open TlsMpc.ReceiveKernel (values) in
-/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If `device`
-accepts the item at `start` of `X` with digit counts `w` and the runtime splices it with `w`,
-then for ANY five bytes as `widths` the kernel either gives exactly `device`'s outputs (those of
-`bundle-item`) or releases nothing at all. -/
+/-- **`bundle-slot` on an item the server wrote, whatever the `widths` input.** If the runtime
+splices the item at `start` of `X` with digit counts `w` (no field of the item starting with a NUL
+byte, the filler), then for ANY five bytes as `widths` the kernel either gives exactly `device`'s
+outputs with `w` (those of `bundle-item`; all zero when `device` refuses) or releases nothing at
+all. Since the emitter batch: no longer needs `device` to accept the item. -/
 theorem bundleSlot_any_widths (first last : Bool) (w : Widths) (ok : w.ok = true) (assign : BVExpr.Assignment)
     (X : List Byte) (start : Nat) (placed : BundleItemWhole.Placed X.length first last start (size (item w)))
     (inputs : let get := fun name =>
         (lookup (BundleSlotKernel.slotInputs first last (w.oneTime != 0)) name).map (BVExpr.eval assign)
       get "head" ++ get "before" ++ get "item" ++ get "after" ++ get "end" =
         part X 0 firstItem ++ (if first then [] else part X (start - 1) 1) ++
-          BundleSlots.spliced w (part X start (size (item w))) 48 ++
+          BundleSlots.spliced w (part X start (size (item w))) 0 ++
           (if last then [] else part X (start + size (item w)) 1) ++ part X (X.length - 2) 2)
-    (accepted : (BundleResponse.device ByteAuth.concrete X.length start w X).getD 0 [] = [255]) :
+    (lead : ∀ k, 1 ≤ (fieldOf X start (item w) k).length →
+      OpenResult.get ByteAuth.concrete (fieldOf X start (item w) k) 0 ≠ 0) :
     (let out := BundleResponse.device ByteAuth.concrete X.length start w X;
       values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign =
         [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
           out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
         (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
     (∀ field ∈ values (BundleSlotKernel.bundleSlot first last (w.oneTime != 0)) assign, ∀ byte ∈ field, byte = 0) :=
-  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_any_widths first last w ok assign X start placed inputs accepted
+  TlsMpc.KernelSpecs.BundleSlotWhole.bundleSlot_any_widths first last w ok assign X start placed inputs lead
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **A slot accepts only its true width byte** (filler padding; the number's first byte not the
+filler), whatever the number: the `widths` input cannot disagree with the splice. -/
+theorem bundleSlot_slotValid_width (L : Nat) (cs : List Byte) (m : Nat) (v : Byte) (h1 : 1 ≤ cs.length)
+    (hnm : cs.length ≤ m) (hm : m < 256) (hfirst : OpenResult.get ByteAuth.concrete cs 0 ≠ 0)
+    (acc : BundleSlots.slotValid ByteAuth.concrete L v (List.replicate (m - cs.length) 0 ++ cs) = 255) :
+    v = BitVec.ofNat 8 cs.length :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.slotValid_width L cs m v h1 hnm hm hfirst acc
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+open TlsMpc.Signal.BundleResponse (Widths Piece literals fieldOf item header firstItem size numberBits numberValid
+  numberBytes digitValid pushDigit) in
+/-- **The former DEFECT (`inconsistent_width_accepts`), now refused (emitter batch; NEEDS_REVIEW.md
+3f, defect 2).** The non-canonical device id `05` spliced with its two digits is refused by the
+slot check for every width byte. -/
+theorem bundleSlot_inconsistent_width_refused :
+    (∀ v : Byte, BundleSlots.slotValid ByteAuth.concrete 7 v (List.replicate (3 - 2) 0 ++ [48, 53]) = 0) ∧
+      numberValid ByteAuth.concrete 7 [48, 53] = 0 :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.inconsistent_width_refused
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.BundleSlotWhole Std.Tactic.BVDecide TlsMpc.Signal in
+/-- **Why the padding byte changed**: with `0` padding, `05` spliced with two digits and `5` with
+one were the same slot (so no kernel on the same inputs could tell them apart); with the filler 0
+they differ. -/
+theorem bundleSlot_zero_padding_ambiguous :
+    List.replicate (3 - 2) (48 : Byte) ++ [48, 53] = List.replicate (3 - 1) 48 ++ [53] ∧
+      List.replicate (3 - 2) (0 : Byte) ++ [48, 53] ≠ List.replicate (3 - 1) 0 ++ [53] :=
+  TlsMpc.KernelSpecs.BundleSlotWhole.zero_padding_ambiguous
 
 open TlsMpc.KernelSpecs.WidthFlags TlsMpc.KernelSpecs.SignalKernels in
 /-- **A width flag is 255 exactly when the big-endian value is at least 2^(7(k+1))** (flag k,
@@ -2249,7 +2356,8 @@ end KemCompose
 failed check reveals nothing but the failure. Only `typedOpen_gated` quantifies over a
 deployed kernel's opened-field flags; the rest are at function or spec level and reach kernels
 through the `_spec` theorems of section 2. The open marks themselves (which outputs the worker
-lets out) are printed by unproved code (T2, section 8). -/
+lets out) are printed as the kernels declare them (section 1b, `layout_parse`,
+`layout_openCode`; emitter batch). -/
 
 open TlsMpc.TypedOpenKernel Std.Tactic.BVDecide TlsMpc.Signal in
 open TlsMpc.HybridKernel (Kernel Shape lookup lookupFrom pub priv sl) in
@@ -2584,9 +2692,11 @@ theorem preKeyValidation_finish_spec (constructed : List (BitVec 8)) (trust ec p
 other checks passed; with the controller's wiring it also implies the certificate checks; every
 receive kernel's refusal releases nothing, and what an accepted one opens is stated. The opened
 field names of every receive kernel are listed (`receiveAccept_opened_*`). **K** (the session,
-text and access-key kernels on concrete values), **K-fn** where stated. One DEFECT is recorded
-as a counterexample pair: `receive-text` accepts a body longer than its DataMessage
-(`receiveAcceptText_overlongBody_*`; NEEDS_REVIEW.md 3f). -/
+text and access-key kernels on concrete values), **K-fn** where stated. The DEFECT recorded here
+before (`receive-text` accepted a body longer than its DataMessage) is fixed in the emitter batch
+and takes effect after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+`receive-text` now accepts exactly what the reference parse accepts for covered widths
+(`receiveAcceptText_accepted_iff_reference`; NEEDS_REVIEW.md 3f). -/
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
 open TlsMpc.ReceiveKernel (values) in
@@ -3088,20 +3198,46 @@ theorem receiveAcceptText_text_reference (capacity : Nat) (hcap : capacity < 655
   TlsMpc.KernelSpecs.ReceiveAcceptText.text_reference capacity hcap plain body href hw₁ hw₂ hfit
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
-/-- **DEFECT (counterexample, with `receiveAcceptText_overlongBody_reference`): `receive-text`
-accepts a body longer than its DataMessage.** On this plaintext the kernel opens status 255 and the
-5-byte text `abcde`, while the reference parse of the same content refuses it (NEEDS_REVIEW.md 3f).
-A statement of what the kernel does today, not a property to keep. -/
-theorem receiveAcceptText_overlongBody_accepted :
+/-- **The former DEFECT, now refused (emitter batch; NEEDS_REVIEW.md 3f, defect 1).** A content
+whose 3-byte DataMessage claims a 5-byte body (`0A 03 0A 05 abcde`): `receive-text` opens status 0
+and nothing else. Before the batch it opened status 255 and `abcde`. -/
+theorem receiveAcceptText_overlongBody_refused :
     text ByteAuth.concrete 10 overlongBodyPlain =
-      [[255], [0, 5], [0x61, 0x62, 0x63, 0x64, 0x65, 0, 0, 0, 0, 0], [255, 0, 0]] :=
-  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_accepted
+      [[0], [0, 0], List.replicate 10 0, [0, 0, 0]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_refused
 
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
-/-- **DEFECT, the other half:** the reference parse refuses the plaintext that `receive-text`
-accepts in `receiveAcceptText_overlongBody_accepted` (NEEDS_REVIEW.md 3f). -/
+/-- The reference parse refuses the same plaintext (`receiveAcceptText_overlongBody_refused`). -/
 theorem receiveAcceptText_overlongBody_reference : referenceBody (overlongBodyPlain.drop 8) = none :=
   TlsMpc.KernelSpecs.ReceiveAcceptText.overlongBody_reference
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text` accepts exactly what the reference protobuf reading accepts**, for length
+prefixes of at most two bytes (`Covered`) and a body of at most `capacity` bytes. -/
+theorem receiveAcceptText_accepted_iff_reference (capacity : Nat) (c : List (BitVec 8)) :
+    Accepted c capacity ↔ (∃ body, referenceBody c = some body ∧ body.length ≤ capacity) ∧ Covered c :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.accepted_iff_reference capacity c
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **`receive-text`'s status is 255 exactly when the reference parses the content** (covered
+widths, body within `capacity`); otherwise 0 (`receiveAcceptText_text_rejects`: nothing opened). -/
+theorem receiveAcceptText_text_status_iff_reference (capacity : Nat) (hcap : capacity < 65536)
+    (plain : List (BitVec 8)) :
+    (text ByteAuth.concrete capacity plain).getD 0 [] = [255] ↔
+      (∃ body, referenceBody (plain.drop 8) = some body ∧ body.length ≤ capacity) ∧ Covered (plain.drop 8) :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_status_iff_reference capacity hcap plain
+
+open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptText TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
+/-- **Accept direction, outputs**: whenever `receive-text`'s status is 255, the reference parses
+the content and the opened length and text are exactly the reference body's. -/
+theorem receiveAcceptText_text_accepted_reference (capacity : Nat) (hcap : capacity < 65536)
+    (plain : List (BitVec 8)) (h : (text ByteAuth.concrete capacity plain).getD 0 [] = [255]) :
+    ∃ body, referenceBody (plain.drop 8) = some body ∧ body.length ≤ capacity ∧ Covered (plain.drop 8) ∧
+      text ByteAuth.concrete capacity plain =
+        [[255], [BitVec.ofNat 8 (body.length / 256), BitVec.ofNat 8 (body.length % 256)],
+          (List.range capacity).map (fun i => body.getD i 0),
+          [mk (bodyStart (plain.drop 8) = 4), mk (bodyStart (plain.drop 8) = 5), mk (bodyStart (plain.drop 8) = 6)]] :=
+  TlsMpc.KernelSpecs.ReceiveAcceptText.text_accepted_reference capacity hcap plain h
 open TlsMpc.KernelSpecs TlsMpc.KernelSpecs.ReceiveAcceptAccessKey TlsMpc.KernelSpecs.ReceiveAccept Std.Tactic.BVDecide TlsMpc.Signal TlsMpc.Signal.ReceiveFirst in
 /-- **Two layouts never both match** (at the same offset in the same content). -/
 theorem receiveAccessKey_gap_unique (c : List (BitVec 8)) (off : Nat) (g g' : Gap)
@@ -5649,11 +5785,16 @@ and the stage or proof track that delivers it. When one is proved, its restateme
 the matching section above in the same commit.
 
 ### Lowering and artifacts
-* **T2** — open marks and printers: for every kernel name the inventory can emit, the printed
-  layout's rows and open flags equal the kernel's declared fields and marks; parsing the printed
-  `.flat` gives back `Flat`; the V3 field-program printer likewise. Also: a composed theorem
-  "the loaded flat file computes the kernel spec" (`lowerExpr_correct` + `joinExpr_correct` +
-  `_spec`). → **P3** (touches the emitters; one re-lowering, alone).
+* **T2** — open marks and printers. DONE for the flat kernels in the emitter batch (section 1b,
+  effective once the emitters are rebuilt; the printed bytes do not change): for every kernel
+  `lowerKernel` lowers (all four kernel emitters now share `TlsMpc/FlatKernelLayout.lean`), the
+  printed layout's rows and open marks are the kernel's declared fields and marks
+  (`layout_parse`, `layout_openCode`), parsing the printed `.flat` gives back `Flat`
+  (`flat_printWith_render`, `flat_parse_render`), and the flat is `lowerExpr` of the joined
+  outputs (`kernel_loaded`, `flat_lowerExpr_loaded`). Still open: `selection` (which named output
+  bit is which bit of the joined value; with it, "the loaded file computes the kernel's `_spec`"
+  per named field); that the C++/Rust loaders parse as `parseFlat`/`parseLayout` do; the V3
+  field-program printer (`EmitWordMask`; scheduled with S9/S10). → **P3** (rest), **S9/S10**.
 
 ### Kernels compute their specification
 * Kernel-level specs: now proved for every kernel this item used to list (section 2c). Closed in
@@ -5664,12 +5805,15 @@ the matching section above in the same commit.
   Also closed: `bundle-slot` against `device` on the body the server sent (section 2d:
   `bundleSlot_device`, `bundleSlot_eq_bundleItem`, `deviceSlots_splice`, `spliced_layout`,
   `slotValid_pad`; wrong digit counts refuse: `device_unique`, `bundleSlot_wrong_counts`,
-  `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). Still open for `bundle-slot`: the
-  caveat `inconsistent_width_accepts` (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`): a body whose
-  number has a leading zero, spliced with one digit count but declared with another in `widths`,
-  is accepted where `device` refuses (the released value is still that number's value); still
-  trusted: that the C++ worker binds `head`/`before`/`item`/`after`/`end` as stated and passes the
-  splice and `widths` from the same counts, and that the template is what Signal-Server writes.
+  `bundleSlot_parses_or_refuses`, `bundleSlot_any_widths`). The caveat `inconsistent_width_accepts`
+  (a body whose number has a leading zero, spliced with one digit count but declared with another
+  in `widths`, was accepted where `device` refuses) is fixed in the emitter batch, effective after
+  the re-lowering together with the C++ worker's new filler byte: the splice pads with the byte 0
+  instead of `0`, `bundleSlot_inconsistent_width_refused`, and `bundleSlot_any_widths` now holds
+  for every item whose fields do not start with a NUL byte (`bundleSlot_zero_padding_ambiguous`:
+  with `0` padding no kernel change alone could have fixed it). Still trusted: that the C++ worker
+  binds `head`/`before`/`item`/`after`/`end` as stated and pads with the filler 0, and that the
+  template is what Signal-Server writes.
   → no stage assigned; candidate for **P5**.
 * ML-KEM: Kyber-1024 (round 3, rank 4; libsignal key type 8). The `kem-*` kernels equal the
   repository's reference `MlKem.encapsulate` on valid keys and are zero on invalid keys (proved,
@@ -5704,9 +5848,14 @@ the matching section above in the same commit.
 * **T13** — receive gating, accept direction: now proved for the kernels on concrete values
   (section 3a: `receive-session` status 255 iff the MAC verified and the other checks passed, with
   the certificate checks under the controller's wiring; `receive-text` zero unless the session
-  accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). One DEFECT
-  recorded: `receive-text` accepts a body longer than its DataMessage
-  (`receiveAcceptText_overlongBody_*`, NEEDS_REVIEW.md 3f). Still open: the converse for a genuine
+  accepted; the `_rejects` lemmas; what `receive-text` and `receive-access-key` open). The DEFECT
+  recorded here (`receive-text` accepted a body longer than its DataMessage) is fixed in the
+  emitter batch, effective after the re-lowering: `receiveAcceptText_overlongBody_refused`, and
+  `receive-text` accepts exactly what the reference protobuf reading accepts for length prefixes of
+  at most two bytes (`receiveAcceptText_accepted_iff_reference`,
+  `receiveAcceptText_text_status_iff_reference`, `receiveAcceptText_text_accepted_reference`;
+  NEEDS_REVIEW.md 3f). Still open: prefixes of three or more bytes (refused by the kernel, accepted
+  by a protobuf decoder: a completeness gap, not a leak); the converse for a genuine
   sender's envelope (that it is accepted); Prop forms for the multi-byte counters,
   `canonicalRange`, `Unpad.decode` and the layout masks (stated today as byte computations); an
   accept-direction value theorem for `contentShape`'s flags and for `receive-content`; and the
@@ -5793,8 +5942,13 @@ the matching section above in the same commit.
   `contact-open N` is `kernelCircuit (HybridKernel.contactOpen N) (84 + N) (openMarks N)` (8 public
   bits, then 8N never opened). That is, the pinned circuits the worker loads under those names
   compute their Lean kernels with these open marks: the T2 correspondence for these three kernels.
-  Open. → **P3** (with T2). Not covered by `Loaded`: the `xor-bit` circuit that `Account.opSeal`
-  runs on two credential shares.
+  Partly discharged by the emitter batch: for a circuit `lowerKernel` produced from the kernel,
+  the file the engine loads parses back to that circuit and its layout to the kernel's fields and
+  open marks (`kernel_loaded`, `layout_openCode`), and the circuit computes `lowerExpr` of the
+  joined outputs. What `Loaded` still assumes: that the cache entry under that name is the
+  emitter's output for that kernel (cache/manifest integrity), that the engine's loader parses as
+  `parseFlat`/`parseLayout`, and `selection`. → **P3** (rest). Not covered by `Loaded`: the
+  `xor-bit` circuit that `Account.opSeal` runs on two credential shares.
 * **T12** — skeleton determinism of scripts: proved for the model (section 7a,
   `engine_T12_skeleton_determinism`); T4-UPGRADE for honest parties likewise (`upgrade_honest`).
 
@@ -5866,6 +6020,13 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.lower_sound
 #print axioms TlsMpc.Security.lower_correct
 #print axioms TlsMpc.Security.lowerExpr_correct
+#print axioms TlsMpc.Security.flat_printWith_render
+#print axioms TlsMpc.Security.flat_parse_render
+#print axioms TlsMpc.Security.flat_lowerExpr_loaded
+#print axioms TlsMpc.Security.layoutText_unchanged
+#print axioms TlsMpc.Security.layout_parse
+#print axioms TlsMpc.Security.layout_openCode
+#print axioms TlsMpc.Security.kernel_loaded
 #print axioms TlsMpc.Security.flat_run_eq_eval
 #print axioms TlsMpc.Security.joinExpr_correct
 #print axioms TlsMpc.Security.kernel_compiled_correct
@@ -6005,6 +6166,9 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.bundleSlot_wrong_counts
 #print axioms TlsMpc.Security.bundleSlot_parses_or_refuses
 #print axioms TlsMpc.Security.bundleSlot_any_widths
+#print axioms TlsMpc.Security.bundleSlot_slotValid_width
+#print axioms TlsMpc.Security.bundleSlot_inconsistent_width_refused
+#print axioms TlsMpc.Security.bundleSlot_zero_padding_ambiguous
 #print axioms TlsMpc.Security.receiveAccept_session_status_iff
 #print axioms TlsMpc.Security.receiveAccept_session_accept_outputs
 #print axioms TlsMpc.Security.receiveAccept_session_status_cases
@@ -6042,8 +6206,11 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.receiveAcceptText_text_accepted
 #print axioms TlsMpc.Security.receiveAcceptText_text_of_reference
 #print axioms TlsMpc.Security.receiveAcceptText_text_reference
-#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_accepted
+#print axioms TlsMpc.Security.receiveAcceptText_overlongBody_refused
 #print axioms TlsMpc.Security.receiveAcceptText_overlongBody_reference
+#print axioms TlsMpc.Security.receiveAcceptText_accepted_iff_reference
+#print axioms TlsMpc.Security.receiveAcceptText_text_status_iff_reference
+#print axioms TlsMpc.Security.receiveAcceptText_text_accepted_reference
 #print axioms TlsMpc.Security.receiveAccessKey_gap_unique
 #print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_status
 #print axioms TlsMpc.Security.receiveAccessKey_withAccessKey_accepted

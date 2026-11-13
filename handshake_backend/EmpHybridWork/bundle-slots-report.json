@@ -1,25 +1,25 @@
 {
  "kernels": {
   "bundle-slot 1 1 0": {
-   "and_gates": 102560
+   "and_gates": 102684
   },
   "bundle-slot 1 0 1": {
-   "and_gates": 105518
+   "and_gates": 105688
   },
   "bundle-slot 0 1 1": {
-   "and_gates": 105518
+   "and_gates": 105688
   },
   "bundle-slot 1 0 0": {
-   "and_gates": 102567
+   "and_gates": 102691
   },
   "bundle-slot 0 0 1": {
-   "and_gates": 105525
+   "and_gates": 105695
   },
   "bundle-slot 0 1 0": {
-   "and_gates": 102567
+   "and_gates": 102691
   },
   "bundle-slot 0 0 0": {
-   "and_gates": 102574
+   "and_gates": 102698
   }
  },
  "cases": [
@@ -186,5 +186,5 @@
    ]
   }
  ],
- "rejected": 251
+ "rejected": 283
 }

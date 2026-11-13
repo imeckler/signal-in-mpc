@@ -746,7 +746,7 @@ public:
     // sealed, stored and only then committed; otherwise it is dropped.
     // `runs` (non-empty: the controllers chose `bundle-slot`, TlsMpc/BundleSlotKernels.lean): how to
     // build the kernel's `item` from the item in the body, Lean's `BundleSlots.splice` for the widths:
-    // per run, that many public `0` characters, then that many bytes of the item.
+    // per run, that many public filler bytes 0 (`BundleSlots.filler`), then that many bytes of the item.
     std::vector<uint8_t> bundle_establish(const ContactId&id,size_t index,size_t count,unsigned step,const std::array<size_t,6>&layout,
             const std::vector<uint8_t>&local_registration,const std::vector<uint8_t>&request_id,
             const std::vector<std::pair<size_t,size_t>>&runs={}){
@@ -777,10 +777,11 @@ public:
                 auto before=bundle.slice(8*(start-1),8*start),after=bundle.slice(8*(start+width),8*(start+width+1));
                 Wires digits;
                 if(slots){
-                    // Splice: public `0` characters before each number, the item's own bytes otherwise.
+                    // Splice: public filler bytes 0 (NUL, Lean's `BundleSlots.filler`; not the character `0`)
+                    // before each number, the item's own bytes otherwise.
                     std::vector<Wires>parts;size_t at=0;
                     for(auto&r:runs){
-                        if(r.first)parts.push_back(k.constant(std::vector<uint8_t>(r.first,'0')));
+                        if(r.first)parts.push_back(k.constant(std::vector<uint8_t>(r.first,0)));
                         if(r.second)parts.push_back(item_bytes.slice(8*at,8*(at+r.second)));
                         at+=r.second;
                     }

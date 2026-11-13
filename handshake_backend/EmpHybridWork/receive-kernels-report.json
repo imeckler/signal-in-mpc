@@ -210,7 +210,7 @@
       ]
     },
     "receive-text 160 154": {
-      "and_gates": 5693,
+      "and_gates": 5821,
       "opened": [
         "layout",
         "length",
@@ -219,7 +219,7 @@
       ]
     },
     "receive-text 320 314": {
-      "and_gates": 11531,
+      "and_gates": 11661,
       "opened": [
         "layout",
         "length",
@@ -228,7 +228,7 @@
       ]
     },
     "receive-text 80 74": {
-      "and_gates": 2775,
+      "and_gates": 2901,
       "opened": [
         "layout",
         "length",
