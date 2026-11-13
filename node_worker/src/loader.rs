@@ -220,6 +220,70 @@ pub fn tls_script_kernels_check(k: &Kernels) -> Vec<String> {
     bad
 }
 
+/// Stage S13 (TlsMpc/Node/Flows/Send.lean): a contact record's bytes (`service_kernels.h` CONTACT).
+pub const SEND_RECORD_BYTES: u64 = 319;
+
+/// The prefix of a seal kernel's name for this certificate size (`Send.sealName`, `bundleSealName`).
+const SEND_SEAL_KERNELS: &[&str] = &["signal-seal-official", "signal-seal-built", "bundle-seal"];
+const SEND_REQUEST_KERNELS: &[&str] = &["signal-request-ctr", "bundle-request-ctr"];
+
+/// Stage S13: the manifest kernels the Lean send scripts name, with the layouts their WF theorems
+/// assume (`SendProofs.SealSigs`, `requestCtrScript_wf`). The names carry shape parameters, so the
+/// check is by family: `signal-widths CERT` must be present (conversation in, 21 public flag bytes
+/// out); every seal kernel of this certificate size (`signal-seal-official|built CERT …`,
+/// `bundle-seal CERT …`) must output a public status byte, the private conversation (certificate ‖
+/// record) and a public timestamp ‖ envelope; every request sealer (`signal-request-ctr …`,
+/// `bundle-request-ctr …`) public accepted ‖ header ‖ ciphertext and a private 16-byte pad; and at
+/// least one seal kernel and one request sealer must be present. A worker that would run the send
+/// scripts must not start unless this is empty (fails closed).
+pub fn send_script_kernels_check(k: &Kernels, cert: u64) -> Vec<String> {
+    let mut bad = Vec::new();
+    let conv = 8 * (cert + SEND_RECORD_BYTES);
+    let widths = format!("signal-widths {cert}");
+    match k.sig(widths.as_bytes()) {
+        None => bad.push(format!("{widths}: missing")),
+        Some(s) => {
+            if s.in_width != conv || s.out_marks.len() != 168 || s.out_marks.iter().any(|m| *m != Mark::Pub) {
+                bad.push(format!("{widths}: signature"));
+            }
+        }
+    }
+    let (mut seals, mut requests) = (0, 0);
+    for (name, kernel) in &k.entries {
+        let name = String::from_utf8_lossy(name).to_string();
+        let words: Vec<&str> = name.split(' ').collect();
+        let family = words.first().copied().unwrap_or("");
+        if SEND_SEAL_KERNELS.contains(&family) && words.get(1).and_then(|c| c.parse::<u64>().ok()) == Some(cert) {
+            seals += 1;
+            let m = &kernel.sig.out_marks;
+            let ok = m.len() as u64 >= 8 + conv + 64
+                && m[..8].iter().all(|x| *x == Mark::Pub)
+                && m[8..8 + conv as usize].iter().all(|x| *x == Mark::Never)
+                && m[8 + conv as usize..].iter().all(|x| *x == Mark::Pub)
+                && kernel.sig.in_width >= conv + 4 * 255;
+            if !ok {
+                bad.push(format!("{name}: signature"));
+            }
+        } else if SEND_REQUEST_KERNELS.contains(&family) {
+            requests += 1;
+            let m = &kernel.sig.out_marks;
+            let ok = m.len() > 128 + 8 + 40
+                && m[..m.len() - 128].iter().all(|x| *x == Mark::Pub)
+                && m[m.len() - 128..].iter().all(|x| *x == Mark::Never);
+            if !ok {
+                bad.push(format!("{name}: signature"));
+            }
+        }
+    }
+    if seals == 0 {
+        bad.push(format!("seal kernels for certificate {cert}: missing"));
+    }
+    if requests == 0 {
+        bad.push("request sealers: missing".into());
+    }
+    bad
+}
+
 /// A Lean word circuit outside the kernel manifest, which the engines load from its own pinned
 /// file exactly as the legacy library does (`word_mask.h` line 27: `LeanCircuit{
 /// EMP_WORD_CIRCUIT_DIR "/xor-bit.flat", WORD_XOR_BIT_SHA}`; `ea_circuit_load` builds the same
@@ -619,6 +683,37 @@ mod tests {
         let sig = Sig { in_width: 8 * 76, out_marks: vec![Mark::Pub; 128] };
         k.insert(b"gcm-key-share", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
         assert_eq!(tls_script_kernels_check(&k), vec!["gcm-key-share: signature".to_string()]);
+    }
+
+    #[test]
+    fn s13_send_kernels_fail_closed() {
+        let cert = 8u64;
+        let conv = 8 * (cert + SEND_RECORD_BYTES);
+        let put = |k: &mut Kernels, name: &str, in_width: u64, out_marks: Vec<Mark>| {
+            k.insert(name.as_bytes(), Kernel { flat: PathBuf::new(), sha256: String::new(), sig: Sig { in_width, out_marks } });
+        };
+        // Nothing loaded: the widths kernel, the seal kernels and the request sealers are missing.
+        assert_eq!(send_script_kernels_check(&Kernels::default(), cert).len(), 3);
+        // The layouts the scripts assume: accepted.
+        let mut k = Kernels::default();
+        put(&mut k, "signal-widths 8", conv, vec![Mark::Pub; 168]);
+        let env = 261u64;
+        let seal: Vec<Mark> = [vec![Mark::Pub; 8], vec![Mark::Never; conv as usize], vec![Mark::Pub; (64 + 8 * env) as usize]].concat();
+        put(&mut k, "signal-seal-built 8 1 1 1 1 1", conv + 8 * 90 + 1020, seal.clone());
+        let req: Vec<Mark> = [vec![Mark::Pub; 8 * 230], vec![Mark::Never; 128]].concat();
+        put(&mut k, "signal-request-ctr 8 223 40 80 120 130", 8 * (68 + 327 + 223 + 4), req.clone());
+        assert!(send_script_kernels_check(&k, cert).is_empty(), "{:?}", send_script_kernels_check(&k, cert));
+        // A seal kernel whose conversation output is public is refused.
+        put(&mut k, "signal-seal-official 8 1 1 1 1 1", conv + 8 * 89 + 1020, vec![Mark::Pub; seal.len()]);
+        assert_eq!(send_script_kernels_check(&k, cert), vec!["signal-seal-official 8 1 1 1 1 1: signature".to_string()]);
+        // A request sealer whose pad is public is refused.
+        let mut k2 = Kernels::default();
+        put(&mut k2, "signal-widths 8", conv, vec![Mark::Pub; 168]);
+        put(&mut k2, "signal-seal-built 8 1 1 1 1 1", conv + 8 * 90 + 1020, seal);
+        put(&mut k2, "bundle-request-ctr 300 8 20 60 100 110", 8 * (68 + 319 + 300 + 4), vec![Mark::Pub; req.len()]);
+        assert_eq!(send_script_kernels_check(&k2, cert), vec!["bundle-request-ctr 300 8 20 60 100 110: signature".to_string()]);
+        // Another certificate size: its widths kernel is missing.
+        assert!(send_script_kernels_check(&k, 9).iter().any(|e| e == "signal-widths 9: missing"));
     }
 
     #[test]
