@@ -104,6 +104,7 @@ import TlsMpc.Node.Flows.CurveWF
 import TlsMpc.Node.Flows.CurveLive
 import TlsMpc.Node.Flows.CurveCommit
 import TlsMpc.Node.Flows.CurveHonest
+import TlsMpc.Node.Flows.CurveRunF
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6379,6 +6380,239 @@ theorem s11_pointExchange_disclosure (E : Env) (me : Party) (adv : Adversary) (t
        ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩] :=
   Curve.pointExchange_disclosure E me adv tag nonce points count σ I vD
 
+/-- **n masked quotients in one round, two honest parties** [M] (F22, the block-level lemma):
+with the pairs' values below `f`, nonzero mask sums and `field-quotient` loaded, both return
+`(quotResult f n j, z_j = 0)`, handle `f + 3n + 2j` holds `x_j · z_j⁻¹`, nothing outside the
+block changes. [hyp: `FieldInverse`] -/
+theorem s11_quotientMany_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f slot : Nat) (pairs : List (FieldH × FieldH)) (x z mA mB : Nat → F)
+    (hx : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).1.id = some (x j))
+    (hz : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).2.id = some (z j))
+    (hlo : ∀ p ∈ pairs, p.1.id < f ∧ p.2.id < f)
+    (hA : σA.elems slot = (List.range pairs.length).map mA) (hB : σB.elems slot = (List.range pairs.length).map mB)
+    (hm : ∀ j, j < pairs.length → mA j + mB j ≠ 0) :
+    ∃ J, Run.JRet (jointRun E (Curve.quotientMany f slot pairs) (Curve.quotientMany f slot pairs) σA σB I)
+        ((List.range pairs.length).map fun j => (Curve.quotResult f pairs.length j, decide (z j = 0)))
+        ((List.range pairs.length).map fun j => (Curve.quotResult f pairs.length j, decide (z j = 0))) J σA σB ∧
+      (∀ j, j < pairs.length → J.fields (f + 3 * pairs.length + 2 * j) = some (x j * inverse (z j))) ∧
+      (∀ k, (k < f ∨ f + 5 * pairs.length ≤ k) → J.fields k = I.fields k) :=
+  Curve.quotientMany_honest E hinv hq σA σB I f slot pairs x z mA mB hx hz hlo hA hB hm
+
+/-- **n X25519 agreements, two honest parties** [M] (F22): with job `j`'s swap-bit handles holding
+the RFC swap bits of `bits_j` and its point handle `u_j`, `x25519-fast` computing its expressions,
+the quotient handle of job `j` holds `X25519.spec bits_j u_j` (`X25519Fast.spec_eq_quotient`,
+`Curve.x25519_inverse_eq`). [hyp: `FieldInverse`; programs loaded; mask sums nonzero] -/
+theorem s11_agree_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env) (px : TlsMpc.FieldDag.V3.Program)
+    (hP : E.programs Curve.x25519Name = some px)
+    (hPC : Conv.Computes px 257 [.never, .never] (fun i => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 slot : Nat) (jobs : List (List FieldH × FieldH))
+    (bits : Nat → Nat → Bool) (u mA mB : Nat → F)
+    (hsw : ∀ j, j < jobs.length → (jobs.getD j ([], ⟨0⟩)).1.length = 252 ∧
+      ∀ k, k < 252 → I.fields ((jobs.getD j ([], ⟨0⟩)).1.getD k ⟨0⟩).id =
+        some (X25519.bitValue (X25519Fast.swapBitSpec (bits j) (k + 2))))
+    (hu : ∀ j, j < jobs.length → I.fields (jobs.getD j ([], ⟨0⟩)).2.id = some (u j))
+    (hlo : ∀ j, j < jobs.length → (∀ h ∈ (jobs.getD j ([], ⟨0⟩)).1, h.id < f0) ∧ (jobs.getD j ([], ⟨0⟩)).2.id < f0)
+    (hA : σA.elems slot = (List.range jobs.length).map mA) (hB : σB.elems slot = (List.range jobs.length).map mB)
+    (hm : ∀ j, j < jobs.length → mA j + mB j ≠ 0) :
+    ∃ (J : Ideal) (zf : Nat → Bool), Run.JRet (jointRun E (Curve.agree f0 slot jobs) (Curve.agree f0 slot jobs) σA σB I)
+        ((List.range jobs.length).map fun j => (Curve.quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j))
+        ((List.range jobs.length).map fun j => (Curve.quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j))
+        J σA σB ∧
+      (∀ j, j < jobs.length →
+        J.fields (f0 + 1 + 2 * jobs.length + 3 * jobs.length + 2 * j) = some (X25519.spec (bits j) (u j))) ∧
+      (∀ k, k < f0 → J.fields k = I.fields k) :=
+  Curve.agree_honest E hinv px hP hPC hq σA σB I f0 slot jobs bits u mA mB hsw hu hlo hA hB hm
+
+/-- **The offset agreement, two honest parties** [M] (F22; P-OFFSET at run level). Preparation:
+both return `prepState f0 (P_A + P_B)` (K₀ = P_A + P_B, the initial point and table handles holding
+`edwards-prepare`'s outputs 505 … on the honest inputs) when the 505 checks vanish there. Step: both
+return `(u, f0 + 387)`, `u = montU (K₀ + τ·B)`, the handle holding `(1 + y)/(1 − y)` of the sum of
+the initial point and the signed entries the recoded digits select (`offsetSum_eval`; with
+`s11_step_tableSum`, `u((k₀ + τ)·R)` when the table holds the multiples of R). Fast step: handle
+`f0 + 8` holds `X · Z⁻¹` of the projective sum. [hyp: `ComputesD`, `Live` (discharged for translated
+artifacts by `FieldDagV3.eval_compileAll`, `eval_ofArtifact_some`); `FieldInverse` for the fast step;
+the byte slots as `s11_splitBegin_honest`] -/
+theorem s11_offset_honest (E : Env) :
+    (∀ (hh : ∀ m, (E.hash m).length = 32) (pp : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.prepareName = some pp) (hC : Curve.ComputesD pp 506 2031 1531 f)
+      (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.OffsetSlots) (u : FieldH) (uv : F)
+      (hu : I.fields u.id = some uv) (hul : u.id < f0)
+      (rA rB : F) (hrA : σA.elems s.r = [rA]) (hrB : σB.elems s.r = [rB])
+      (bA bB : Nat → Bool) (hbA : σA.elems s.bits = (List.range 252).map fun i => X25519.bitValue (bA i))
+      (hbB : σB.elems s.bits = (List.range 252).map fun i => X25519.bitValue (bB i))
+      (mA mB : Nat → F) (hmA : σA.elems s.masks = (List.range 2031).map mA)
+      (hmB : σB.elems s.masks = (List.range 2031).map mB) (hm : ∀ i, i < 2031 → mA i + mB i ≠ 0)
+      (hL : Curve.Live pp (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))
+      (hck : ∀ i, i < 505 → (f (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0)).getD i 0 = 0)
+      (PA PB : TlsMpc.Node.Local.Edwards.Value)
+      (hnA : (σA.bytes s.nonce).length = 32) (hsA : (σA.bytes s.share).length = 32)
+      (hnB : (σB.bytes s.nonce).length = 32) (hsB : (σB.bytes s.share).length = 32)
+      (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes s.share) = some PA)
+      (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes s.share) = some PB)
+      (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+      (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+      (hc : E.hash (commitFrame Curve.offsetTag .a (σA.bytes s.nonce) (σA.bytes s.share)) ≠
+        E.hash (commitFrame Curve.offsetTag .b (σB.bytes s.nonce) (σB.bytes s.share))),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetPrepare E.hash .a f0 s u) (Curve.offsetPrepare E.hash .b f0 s u) σA σB I)
+          (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB))
+          (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB)) J σA σB ∧
+        (∀ i, i < 1026 → J.fields (Curve.prepOuts f0 + 505 + i) =
+          some ((f (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0)).getD (505 + i) 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (po : TlsMpc.FieldDag.V3.Program) (hP : E.programs Curve.offsetSumName = some po)
+      (hC : Curve.ComputesD po 194 128 1 (fun i => TlsMpc.EdwardsAffine.offsetSum.map (TlsMpc.FieldDag.Expr.eval i)))
+      (σA σB : Store) (I : Ideal) (f0 maskSlot : Nat) (st : Curve.OffsetState) (τ : Nat)
+      (u : F) (hkey : Curve.ephemeralKey st.key τ = some u) (hτ : τ < 2 ^ 252) (hst : Curve.StateBelow I f0 st)
+      (mA mB : Nat → F) (hA : σA.elems maskSlot = (List.range 128).map mA)
+      (hB : σB.elems maskSlot = (List.range 128).map mB) (hm : ∀ i, i < 128 → mA i + mB i ≠ 0)
+      (hL : Curve.Live po (fun i => (Curve.stepVals I f0 st τ).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetStep f0 maskSlot st τ) (Curve.offsetStep f0 maskSlot st τ) σA σB I)
+          (u, ⟨f0 + 387⟩) (u, ⟨f0 + 387⟩) J σA σB ∧
+        J.fields (f0 + 387) = some
+          (let input := fun i => (Curve.stepVals I f0 st τ).getD i 0
+           let sum := TlsMpc.EdwardsAffine.sumTreeValue ((input 0, input 1) :: (List.range TlsMpc.EdwardsAffine.windows).map
+              (fun w => (input (2 + 3 * w + 2) * input (2 + 3 * w), input (2 + 3 * w + 1))))
+           (ofNat 1 + sum.2) * inverse (ofNat 1 - sum.2)) ∧
+        u = TlsMpc.Node.Local.Edwards.montU
+          (TlsMpc.Node.Local.Edwards.add st.key (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (hinv : TlsMpc.FieldDag.V3.FieldInverse) (po : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.offsetSumFastName = some po) (hC : Conv.Computes po 194 [.never, .never] f)
+      (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+      (σA σB : Store) (I : Ideal) (f0 slot : Nat) (st : Curve.OffsetState) (τ : Nat) (u : F)
+      (hkey : Curve.ephemeralKey st.key τ = some u) (hτ : τ < 2 ^ 252) (hst : Curve.StateBelow I f0 st)
+      (mA mB : F) (hA : σA.elems slot = [mA]) (hB : σB.elems slot = [mB]) (hm : mA + mB ≠ 0)
+      (hz : (f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 1 0 ≠ 0),
+      ∃ J, Run.JRet (jointRun E (Curve.offsetStepFast f0 slot st τ) (Curve.offsetStepFast f0 slot st τ) σA σB I)
+          (u, ⟨f0 + 8⟩) (u, ⟨f0 + 8⟩) J σA σB ∧
+        J.fields (f0 + 8) = some ((f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 0 0 *
+          inverse ((f (fun i => (Curve.stepVals I f0 st τ).getD i 0)).getD 1 0)) ∧
+        u = TlsMpc.Node.Local.Edwards.montU
+          (TlsMpc.Node.Local.Edwards.add st.key (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) :=
+  ⟨fun hh pp f hP hC σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB mA mB hmA hmB hm hL hck PA PB hnA hsA hnB
+      hsB hdA hdB hvA hvB hvS hc =>
+    Curve.offsetPrepare_honest E hh pp f hP hC σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB mA mB hmA hmB hm
+      hL hck PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc,
+   fun po hP hC σA σB I f0 maskSlot st τ u hkey hτ hst mA mB hA hB hm hL =>
+    Curve.offsetStep_value E po hP hC σA σB I f0 maskSlot st τ u hkey hτ hst mA mB hA hB hm hL,
+   fun hinv po f hP hC hq σA σB I f0 slot st τ u hkey hτ hst mA mB hA hB hm hz =>
+    Curve.offsetStepFast_honest E hinv po f hP hC hq σA σB I f0 slot st τ u hkey hτ hst mA mB hA hB hm hz⟩
+
+/-- **The hinted programs, two honest parties** [M] (F22): `tables` (the link checks open to zero;
+point `j`'s 1024 table handles hold `edwards-bit-table`'s outputs 126 …), `agreeAffine` (job `j`'s
+quotient handle holds `X_j · Z_j⁻¹` of `edwards-affine-bit-sum`), `signatures` and `torsion` (the
+output handles hold their programs' outputs on each instance's values). Each run returns the
+handles the script names, leaves both stores unchanged and nothing below `f0` changed. [hyp:
+`ComputesD`/`Conv.Computes`, `Live`; mask sums nonzero; for `tables`, the honest hints make the link
+checks vanish (`EdwardsHinted.bitTable_sound`); `FieldInverse` for `agreeAffine`] -/
+theorem s11_hinted_honest (E : Env) :
+    (∀ (pb : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.bitTableName = some pb)
+      (hC : Curve.ComputesD pb 380 252 1150 f) (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.TableSlots)
+      (pts : List Curve.Lifted)
+      (hpts : ∀ j, j < pts.length → (pts.getD j Curve.liftedD).x.id < f0 ∧ (pts.getD j Curve.liftedD).y.id < f0 ∧
+        (I.fields (pts.getD j Curve.liftedD).x.id).isSome ∧ (I.fields (pts.getD j Curve.liftedD).y.id).isSome)
+      (ha hb lA lB mA mB : Nat → F)
+      (hhA : σA.elems s.hints = (List.range (126 * pts.length)).map ha)
+      (hhB : σB.elems s.hints = (List.range (126 * pts.length)).map hb)
+      (hlA : σA.elems s.links = (List.range (126 * pts.length)).map lA)
+      (hlB : σB.elems s.links = (List.range (126 * pts.length)).map lB)
+      (hmA : σA.elems s.masks = (List.range (252 * pts.length)).map mA)
+      (hmB : σB.elems s.masks = (List.range (252 * pts.length)).map mB)
+      (hm : ∀ i, i < 252 * pts.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < pts.length →
+        Curve.Live pb (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0))
+      (hck : ∀ j, j < pts.length → ∀ i, i < 126 →
+        (f (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0)).getD i 0 = 0),
+      ∃ J, Run.JRet (jointRun E (Curve.tables f0 s pts) (Curve.tables f0 s pts) σA σB I)
+          ((List.range pts.length).map fun j =>
+            Curve.hs (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126) 1024)
+          ((List.range pts.length).map fun j =>
+            Curve.hs (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126) 1024) J σA σB ∧
+        (∀ j t, j < pts.length → t < 1024 →
+          J.fields (f0 + 252 * pts.length + 378 * pts.length + 756 * pts.length + 1150 * j + 126 + t) =
+            some ((f (fun i => (Curve.tableVals I (pts.getD j Curve.liftedD) ha hb (fun i => lA i + lB i) j).getD i 0)).getD
+              (126 + t) 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (hinv : TlsMpc.FieldDag.V3.FieldInverse) (pa : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F)
+      (hP : E.programs Curve.affineBitSumName = some pa) (hC : Conv.Computes pa 757 [.never, .never] f)
+      (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+      (σA σB : Store) (I : Ideal) (f0 rho qslot : Nat) (jobs : List (List FieldH × List FieldH))
+      (hjobs : ∀ j, j < jobs.length → (jobs.getD j ([], [])).1.length = 251 ∧ (jobs.getD j ([], [])).2.length = 504)
+      (hdef : ∀ j, j < jobs.length → ∀ h ∈ (jobs.getD j ([], [])).2 ++ (jobs.getD j ([], [])).1,
+        h.id < f0 ∧ (I.fields h.id).isSome)
+      (ρA ρB qA qB : Nat → F) (hrA : σA.elems rho = (List.range jobs.length).map ρA)
+      (hrB : σB.elems rho = (List.range jobs.length).map ρB)
+      (hqA : σA.elems qslot = (List.range jobs.length).map qA) (hqB : σB.elems qslot = (List.range jobs.length).map qB)
+      (hqm : ∀ j, j < jobs.length → qA j + qB j ≠ 0),
+      ∃ (J : Ideal) (zf : Nat → Bool),
+        Run.JRet (jointRun E (Curve.agreeAffine f0 rho qslot jobs) (Curve.agreeAffine f0 rho qslot jobs) σA σB I)
+          ((List.range jobs.length).map fun j =>
+            (Curve.quotResult (f0 + 1 + 3 * jobs.length + 2 * jobs.length) jobs.length j, zf j))
+          ((List.range jobs.length).map fun j =>
+            (Curve.quotResult (f0 + 1 + 3 * jobs.length + 2 * jobs.length) jobs.length j, zf j)) J σA σB ∧
+        (∀ j, j < jobs.length →
+          J.fields (f0 + 1 + 3 * jobs.length + 2 * jobs.length + 3 * jobs.length + 2 * j) =
+            some ((f (fun i => (Curve.affineVals I (jobs.getD j ([], [])) (ρA j + ρB j)).getD i 0)).getD 0 0 *
+              inverse ((f (fun i => (Curve.affineVals I (jobs.getD j ([], [])) (ρA j + ρB j)).getD i 0)).getD 1 0))) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (ps : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.signatureSumName = some ps)
+      (hC : Curve.ComputesD ps 2546 2 2 f) (σA σB : Store) (I : Ideal) (f0 maskSlot : Nat) (baseT : List FieldH)
+      (jobs : List (List FieldH × List FieldH))
+      (hjobs : ∀ j, j < jobs.length → (jobs.getD j ([], [])).1.length = 1024 ∧ (jobs.getD j ([], [])).2.length = 510)
+      (hbase : baseT.length = 1024)
+      (hdef : ∀ j, j < jobs.length → ∀ h ∈ Curve.sigIns baseT (jobs.getD j ([], [])), h.id < f0 ∧ (I.fields h.id).isSome)
+      (mA mB : Nat → F) (hA : σA.elems maskSlot = (List.range (2 * jobs.length)).map mA)
+      (hB : σB.elems maskSlot = (List.range (2 * jobs.length)).map mB)
+      (hm : ∀ i, i < 2 * jobs.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < jobs.length →
+        Curve.Live ps (fun i => (Curve.valsOf I (Curve.sigIns baseT (jobs.getD j ([], [])))).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.signatures f0 maskSlot baseT jobs) (Curve.signatures f0 maskSlot baseT jobs) σA σB I)
+          ((List.range jobs.length).map fun j => (⟨f0 + 6 * jobs.length + 2 * j⟩, ⟨f0 + 6 * jobs.length + 2 * j + 1⟩))
+          ((List.range jobs.length).map fun j => (⟨f0 + 6 * jobs.length + 2 * j⟩, ⟨f0 + 6 * jobs.length + 2 * j + 1⟩))
+          J σA σB ∧
+        (∀ j t, j < jobs.length → t < 2 → J.fields (f0 + 6 * jobs.length + (j * 2 + t)) =
+          some ((f (fun i => (Curve.valsOf I (Curve.sigIns baseT (jobs.getD j ([], [])))).getD i 0)).getD t 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) ∧
+    (∀ (pt : TlsMpc.FieldDag.V3.Program) (f : (Nat → F) → List F) (hP : E.programs Curve.torsionName = some pt)
+      (hC : Curve.ComputesD pt 7 4 2 f) (σA σB : Store) (I : Ideal) (f0 hintSlot rSlot maskSlot : Nat)
+      (pts : List Curve.Lifted)
+      (hpts : ∀ j, j < pts.length → (pts.getD j Curve.liftedD).x.id < f0 ∧ (pts.getD j Curve.liftedD).y.id < f0 ∧
+        (I.fields (pts.getD j Curve.liftedD).x.id).isSome ∧ (I.fields (pts.getD j Curve.liftedD).y.id).isSome)
+      (ha hb rA rB mA mB : Nat → F)
+      (hhA : σA.elems hintSlot = (List.range (2 * pts.length)).map ha)
+      (hhB : σB.elems hintSlot = (List.range (2 * pts.length)).map hb)
+      (hrA : σA.elems rSlot = (List.range pts.length).map rA) (hrB : σB.elems rSlot = (List.range pts.length).map rB)
+      (hmA : σA.elems maskSlot = (List.range (4 * pts.length)).map mA)
+      (hmB : σB.elems maskSlot = (List.range (4 * pts.length)).map mB)
+      (hm : ∀ i, i < 4 * pts.length → mA i + mB i ≠ 0)
+      (hL : ∀ j, j < pts.length →
+        Curve.Live pt (fun i => (Curve.torsionVals I (pts.getD j Curve.liftedD) ha hb (fun j => rA j + rB j) j).getD i 0)),
+      ∃ J, Run.JRet (jointRun E (Curve.torsion f0 hintSlot rSlot maskSlot pts) (Curve.torsion f0 hintSlot rSlot maskSlot pts)
+          σA σB I)
+          ((List.range pts.length).map fun j =>
+            (⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j⟩,
+             ⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j + 1⟩))
+          ((List.range pts.length).map fun j =>
+            (⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j⟩,
+             ⟨f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + 2 * j + 1⟩)) J σA σB ∧
+        (∀ j t, j < pts.length → t < 2 →
+          J.fields (f0 + 4 * pts.length + 3 * pts.length + 12 * pts.length + (j * 2 + t)) =
+            some ((f (fun i => (Curve.torsionVals I (pts.getD j Curve.liftedD) ha hb (fun j => rA j + rB j) j).getD i 0)).getD
+              t 0)) ∧
+        (∀ k, k < f0 → J.fields k = I.fields k)) :=
+  ⟨fun pb f hP hC σA σB I f0 s pts hpts ha hb lA lB mA mB hhA hhB hlA hlB hmA hmB hm hL hck =>
+    Curve.tables_honest E pb f hP hC σA σB I f0 s pts hpts ha hb lA lB mA mB hhA hhB hlA hlB hmA hmB hm hL hck,
+   fun hinv pa f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm =>
+    Curve.agreeAffine_honest E hinv pa f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm,
+   fun ps f hP hC σA σB I f0 maskSlot baseT jobs hjobs hbase hdef mA mB hA hB hm hL =>
+    Curve.signatures_honest E ps f hP hC σA σB I f0 maskSlot baseT jobs hjobs hbase hdef mA mB hA hB hm hL,
+   fun pt f hP hC σA σB I f0 hintSlot rSlot maskSlot pts hpts ha hb rA rB mA mB hhA hhB hrA hrB hmA hmB hm hL =>
+    Curve.torsion_honest E pt f hP hC σA σB I f0 hintSlot rSlot maskSlot pts hpts ha hb rA rB mA mB hhA hhB hrA hrB
+      hmA hmB hm hL⟩
+
 end FlowsS11
 
 /-! ## 8. NOT YET PROVED
@@ -6555,9 +6789,14 @@ the matching section above in the same commit.
   (`s11_splitAgree_montU`, `CompleteAddition` ← `proofs/` `edwards_complete`); the model form of
   `commit_open_sound` for the point exchanges (`s11_pointExchange_sound`) and their value-level
   disclosure (`s11_pointExchange_disclosure`: a prefix of [our commitment, our opening]); `sqrt` and the lift's
-  roots never fail (`s11_liveness`). OPEN: honest runs through `jointRun` of `agree`,
-  `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`, `agreeHinted`, `agreeAffine`,
-  `signatures`, `torsion`, `prepareContacts` (checked executably:
+  roots never fail (`s11_liveness`). Since the second follow-up (F22): the block-level lemma for
+  n masked quotients (`s11_quotientMany_honest`) and honest runs through `jointRun` of `agree`
+  (the handles hold `X25519.spec`: `s11_agree_honest`), `offsetPrepare`, `offsetStep`,
+  `offsetStepFast` (`s11_offset_honest`), `tables`, `agreeAffine`, `signatures`, `torsion`
+  (`s11_hinted_honest`), under the named program hypotheses `Curve.ComputesD` / `Curve.Live`
+  (discharged for translated artifacts by `FieldDagV3.eval_compileAll`, `eval_ofArtifact_some`
+  given nonzero honest denominators) and nonzero mask sums. OPEN: honest runs of `lift`,
+  `agreeHinted`, `prepareContacts` (checked executably:
   `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
   for the curve flows other than the point exchanges (the opened checks, `w`, `Z`, the masked
   denominators: only their kinds are proved); P-HINT (c), (d) composed with the runs (`entries_sound`,
@@ -7149,6 +7388,10 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s11_pointExchange_sound
 #print axioms TlsMpc.Security.s11_liveness
 #print axioms TlsMpc.Security.s11_pointExchange_disclosure
+#print axioms TlsMpc.Security.s11_quotientMany_honest
+#print axioms TlsMpc.Security.s11_agree_honest
+#print axioms TlsMpc.Security.s11_offset_honest
+#print axioms TlsMpc.Security.s11_hinted_honest
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

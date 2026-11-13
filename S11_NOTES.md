@@ -75,6 +75,22 @@ See `TlsMpc/Security.lean` section 7c and section 8. In short (all standard axio
   holds `montU (T_A + T_B)`, the denominator from `CompleteAddition`), `pointExchange_honest`,
   `splitBegin_honest` (both parties get `u(P_A + P_B)`). The other flows are checked executably
   (`tests/s11_vectors.txt`: 51 `check … ok` lines against `Local/Edwards` and `X25519.spec`).
+* **Honest runs, second follow-up** (F22, `Flows/CurveRun.lean` … `CurveRunF.lean`, imported by
+  `Security.lean` only): `quotientMany_honest` (the block-level ideal-state lemma: n quotients in
+  one round, handle `f + 3n + 2j` holds `x_j·z_j⁻¹`, nothing outside the block changes);
+  `agree_honest` (n X25519 agreements: the quotient handles hold `X25519.spec bits_j u_j`, via
+  `X25519Fast.spec_eq_quotient` and `x25519_inverse_eq`); `offsetPrepare_honest` (both return
+  `prepState f0 (P_A + P_B)`, the table handles hold `edwards-prepare`'s outputs);
+  `offsetStep_honest`/`offsetStep_value` (`u = montU (K₀ + τ·B)`, the agreement handle holds the
+  Montgomery u of the selected sum, `offsetSum_eval`); `offsetStepFast_honest`; `tables_honest`;
+  `agreeAffine_honest`; `signatures_honest`; `torsion_honest`. Block tools: `inputs_run`,
+  `sharedBlock_run`, `runProgram_one`, `runProgram_live`, `outs_value`. Program hypotheses (named):
+  `ComputesD p k m o f` (every evaluation that returns gives `f input`: `FieldDagV3.eval_compileAll`
+  for a translated artifact; `computesD_of_computes` for mask-free programs) and `Live p input`
+  (nonzero masks never abort: `FieldDagV3.eval_ofArtifact_some` with nonzero honest denominators).
+  Security.lean: `s11_quotientMany_honest`, `s11_agree_honest`, `s11_offset_honest`,
+  `s11_hinted_honest` (compiled standalone: standard axioms only). Still open: `lift`,
+  `agreeHinted`, `prepareContacts` through `jointRun`.
 * **`commit_open_sound` for `pointExchange`** (F25, `Flows/CurveCommit.lean`):
   `pointExchange_sound` (an accepted exchange used the adversary's commitment chosen from its view
   and our commitment only, opened under its own frame, different from ours; the points returned
@@ -141,7 +157,8 @@ the links in one opening, as the C++).
 
 * New Lean: `TlsMpc/Node/Local/{Field,Edwards}.lean`, `TlsMpc/Node/Flows/{CurveBase,Curve,CurveProofs}.lean`,
   and (follow-up) `TlsMpc/Node/Flows/{CurveWFBase,CurveWF,CurveLive,CurveCommit,CurveHonest}.lean`
-  (imported by `Security.lean` only). The branch merged `s10-conversions` (its `WFP` machinery).
+  (imported by `Security.lean` only), and (second follow-up) `TlsMpc/Node/Flows/CurveRun{,B,C,D,E,F}.lean`
+  (a chain; `Security.lean` imports `CurveRunF`). The branch merged `s10-conversions` (its `WFP` machinery).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (six labels, `kinds`, `all`, `all_codes`),
   `TlsMpc/Node/Flows/Registry.lean` (S11 entries, `s11_flows_reveal`; imports CurveProofs),
   `TlsMpc/Security.lean` (section 7c, section 8 items, `#print axioms` lines),
