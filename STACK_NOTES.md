@@ -107,7 +107,7 @@ and S13 is F51–F59. The table uses PROOF_GAPS.md's numbers; "join" marks what 
 | F27 | P-HINT (c), (d) composed with the runs | open |
 | F28, F33 | complete addition, liveness of local hints | closed in part (`addU_den_ne_zero` with `proofs/` `edwards_complete`; `sqrt_complete`, `roots_isSome`); `decode (encode P)`, `toAffineAll` tested only |
 | F29, F30, F34 | local arithmetic vs a reference (tested); `shapeOf` counts; `recode` equality in `proofs/` | tested / open (small) |
-| F32 | op 66's contact-table glue | open; **join**: `JoinBackend.SendSources` needs its outputs (offset states, static words) |
+| F32 | op 66's contact-table glue | **closed** (section 8): `Flows/ContactsPrepare.lean` (`prepareOneG`, `commit`, `prepareStatus_iff`, `commit_prepared`, `commit_other`, `commit_inv`, `prepareOneG_reveals`); `SendSources` filled from the table (Select). Non-hinted path only (J3) |
 | F36, F47 | value-level T3 for whole receive / refresh runs | open |
 | F38, F43 | output widths (receive kernels; `KemWidths`, `SessionWidths`) assumed / loader-checked | conditional |
 | F41, F57 | `Reveal` wrappers applied in glue; `seal_refused_silent` structural | note / open |
@@ -119,12 +119,14 @@ and S13 is F51–F59. The table uses PROOF_GAPS.md's numbers; "join" marks what 
 | J3 | the joins use the non-hinted path only (S11's hinted `lift`, `signatures`, `torsion` return field handles and need the `Staged` local step; not wired to S14/S15) | open |
 | J4 | `flow-calls` lint vs the script backends' `Reveal.*` | **closed**: allowlist widened to `Flows/*Backend.lean`, `Flows/Runner.lean`, `Flows/Select.lean` (same makers as the legacy flows; no second set in Reveal.lean); the pattern no longer matches `KernelSpecs.Reveal.*` |
 | J5 | S12 spec text vs join: the agreement also opens P-F2W's masked value (`maskedFieldValue`), not only P-SPLIT's kinds; u = 0 without the zero flag not rejected (impossible for an honest server's subgroup share) | note |
-| J8 (new) | the joined agreements take the identity scalar as a COINS slot of this party's swap-bit shares, but op 55 (`Account.openStep`) leaves the identity's swap bits as FIELD HANDLES (`Opened.swaps`); the controller holds no share to make coins from. Receive and refresh cannot run until `Scalar.identity` maps to those handles (an S14/S15 `Job` change) | open (design) |
+| J8 (new) | the joined agreements take the identity scalar as a COINS slot of this party's swap-bit shares, but op 55 (`Account.openStep`) leaves the identity's swap bits as FIELD HANDLES (`Opened.swaps`); the controller holds no share to make coins from. Receive and refresh cannot run until `Scalar.identity` maps to those handles (an S14/S15 `Job` change) | **closed** (section 8): `AgreeSlots.swaps`, `jobBits_swaps`, `JoinIdentity.receiveAgree_spares` / `agreeG_spares` / `senderPublicG_spares` |
 | J9 (new) | `Main.session` still calls `Worker.start`; the switch is `Worker.startWith … config.agreed …` (one line, Select.lean's doc), and the manifest's kernel names / V3 mask counts must be passed for receive | open (main line) |
 | J10 (new) | the runner's IO loop is `drive`'s steps by construction (an IO function), not by a theorem; the fake-pair test runs it against the model's shells | note |
-| J11 (new) | `account` cannot be selected: the authenticated upgrade (op 32, S16) reads the credentials from the legacy worker; `contacts`, `send`, `receive`, `refresh` need `account` and `curve` (F32) with them (no handle sharing with the legacy library: `legacy_get`/`legacy_put` not built) | open |
-| J12 (new) | the script account state (`Account.State`) has no sender-key word; the send's `senderPublic` and the refresh's `Refresh.Account` need it | open (engineering) |
-| J13 (new) | the runner's store never frees a slot (stashed values stay for the session) | open (small) |
+| J11 (new) | `account` cannot be selected: the authenticated upgrade (op 32, S16) reads the credentials from the legacy worker; `contacts`, `send`, `receive`, `refresh` need `account` and `curve` (F32) with them (no handle sharing with the legacy library: `legacy_get`/`legacy_put` not built) | **closed** (section 8): ops 47, 46, 32 as scripts; the contact set selectable as one |
+| J12 (new) | the script account state (`Account.State`) has no sender-key word; the send's `senderPublic` and the refresh's `Refresh.Account` need it | **closed** (section 8): `State.senderPublic`, `ContactsPrepare.senderPublicG` |
+| J13 (new) | the runner's store never frees a slot (stashed values stay for the session) | **closed** (section 8): `Runner.release`, `release_reads_base`, `Ledger.fresh_not_released` |
+| J14 | the runner test covers only random, upgrade, contacts, a refused receive | **narrowed** (section 8): + masks with a conversion, ops 47/32/46; open: record seal/open, send, accepted receive, refresh, op 66 |
+| J15–J20 | new gaps of section 8 | see section 8 |
 
 ## 5. When this stack meets the main line
 
@@ -161,8 +163,36 @@ column at session start.
 | 1 | `masks` (S10 pool, refilled on demand) | — | the V3 re-export (`field-mask-sub` and S10's programs pinned); the legacy C++ pool keeps running beside it (R5) |
 | 2 | `tls` (S12 + split ECDH, `JoinBackend.keyAgreement`) | `masks` | the re-export (split ECDH's programs); `e2e_s12.py`; the per-connection state moves into `Session/Pool` (S12_NOTES "The Session/Pool change"; kept in `Select.Session.conns` until then) |
 | 3 | `upgrade` (op 45) | `tls` | none beyond 2 (op 45's legacy receive state is read only by the legacy record layer) |
-| 4 | `curve` (op 66) | `contacts`, `masks` | F32: op 66's contact-table glue (offset states and static words into the contact entries) |
-| 5 | `contacts`, `account`, `send`, `receive`, `refresh` (together) | each other, `curve`, `tls`, `masks` | J11 (op 32 reads the legacy credentials: S16, or handle sharing with the legacy library), J12 (the sender-key word), J8 (identity coins for receive and refresh), the receive manifest names (J9), ORD-2 rerun for refresh, `e2e_s13.py`/`e2e_s14.py`/`e2e_s15.py` |
+| 4 | the CONTACT SET: `contacts`, `account`, `curve`, `send`, `receive`, `refresh` (together, `Select.contactSet`) | each other, `tls`, `masks` (`Select.check`: `check_contactSet`, `check_contactSet_partial`) | J8, J11, J12, F32 done on this branch (section 8). Outside it: the preconditions below |
+
+**Preconditions OUTSIDE this branch for the contact set to run in a real session** (nothing in the
+Lean flows; all must hold before `SIGNAL_SCRIPTS` names the set):
+1. **The V3 field-program re-export and its pins** (FIELD_PROGRAMS_V3.md; one heavy run of
+   `export_field_v3.py`): every program the set runs must be loaded with its pin in `loader.rs`
+   `FIELD_PROGRAMS`: S10's `field-bit-check`, `field-bit-xor`, `field-recompose`, `field-mask-sub`
+   (`field-mask-sub.v3` from the S10 vectors' `native` line), `field-quotient`; S11's
+   `edwards-on-curve`, `edwards-add-u`, `x25519-fast`, `edwards-prepare`, `edwards-offset-sum`
+   (op 66 and the send's ephemeral pair, non-hinted); S14's `xeddsa-check`, `xeddsa-recover`,
+   `receive-torsion` (receive and refresh). Today their pins are `PIN_FROM_REEXPORT` placeholders
+   (the worker fails closed).
+2. **`Main.session` calls `Flow.Worker.startWith`** (J9; `TlsMpc/Node/Main.lean`, not edited here):
+   `Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed loaded programMasks`
+   instead of `Flow.Worker.start running.rpc ch.random`.
+3. **`loaded` and `programMasks` from the worker's manifest**, passed to `startWith`: `loaded` = the
+   manifest's kernel names (a receive kernel the manifest lacks then REFUSES the message instead of
+   aborting the session; `fun _ => true` aborts); `programMasks` = the V3 programs' mask counts
+   (`ProgSig.masks`) for `xeddsa-check`, `xeddsa-recover`, `receive-torsion` (receive op 50/51 and
+   refresh step 0/1 take them, `ReceiveBackend.programMasks`, `RefreshBackend.counts`); `fun _ =>
+   none` makes every receive/refresh abort ("receive program shape").
+4. **The manifest kernels the set names by run** (looked up by name, a missing one refuses the
+   batch): `contact-key`, `contact-seal N`, `contact-open N`, `xor-bit` (pinned word circuit),
+   `swap-bits`, S10's word circuits (`modadd`, `modadd-open`, `finalize-mask`, `finalize-bits`,
+   `into-field-open`, `xor-bit-open`), **`signal-upgrade 22` and `signal-upgrade-shared 22`** (op
+   32), **`signal-conversation-view CERT`** for the account certificate's length (op 66), and the
+   send/receive/refresh families (`loader.rs` `send_script_kernels_check`, the receive manifest
+   names, `REFRESH_SCRIPT_KERNELS`).
+5. ORD-2 rerun for refresh (`Session/RefreshProofs.lean`) and the real-engine fixtures
+   `e2e_s13.py`, `e2e_s14.py`, `e2e_s15.py` (not run here).
 
 ## 7. J1, the runner, the selection, the tests (this agent's work on `scripts-stack`)
 
@@ -202,3 +232,88 @@ refused open. Not covered (their stand-in tables live inline in the S10–S15 ve
 generation with a conversion, a record seal/open, a send, an accepted receive, a refresh. The S10,
 S12, S14, S15 vectors regenerated after J1: byte-identical. Harness: `--scripts NAME,NAME` written,
 not run.
+
+## 8. The contact set made selectable: J11, J12, J8, F32, J13, J14 (second agent on `scripts-stack`)
+
+**J11 (account).** `Flows/Account.lean`: op 47 `credentialsStep` (one `boolInputBoth`, A's share at
+`n`, B's at `n + 1`, 304 private bits, not once; refused when shares are in;
+`credentialsStep_reveals`: nothing released), op 46 `admitStep` (TEST: A enters the identity key and
+the certificate; `swap-bits`, B2F of 252 pairs; same handle layout as op 55; `admitStep_reveals`:
+`maskedBit` only). `State` gains `identity` (the swap-bit FIELD handles; op 55 and 46 set it) and
+`senderPublic` (J12). `Flows/UpgradeAuth.lean`: op 32 `authenticated` — `Random.joint`, the nonce's
+public bits, `signal-upgrade 22` on credentials ‖ nonce (op 55's combined credentials) or
+`signal-upgrade-shared 22` on shareA ‖ shareB ‖ nonce (op 47's shares), the accept value locally;
+`requestScript_wf` / `authenticated_wf`, `authenticated_reveals` (`Random.jointKinds` only),
+`requestShared_value` / `requestPlain_value` (the kernel's output on the script's bundle is
+`RelayUpgrade.request` on (shareA ⊕ shareB) ‖ nonce / credentials ‖ nonce, composed with
+`signalUpgradeShared_spec` / `signalUpgrade_spec`), `accept_value`. Select: the request handle
+becomes a buffer of the connection (S12's `Buffers`), sealed by the record layer. The legacy
+C++'s `public_receive`/`ws-initial` state of op 32 is not made (nothing reads it with `tls`).
+`Context.Overrides` gains `accountCredentials`, `accountAdmitTest`, `upgradeAuthenticated`,
+`curvePrepareContacts`; `Flow.Account.credentials/admitTest`, `Flow.Upgrade.authenticated`,
+`Flow.Curve.prepareContacts` consult them.
+
+**J12 (sender key).** The C++ makes `sender_public = agreement_word(identity, 9)` (line 62) once.
+`ContactsPrepare.senderPublicG`: `Join.receiveAgree` on `[⟨.identity, .base⟩]` with the identity's
+handles; Select keeps the word in `Account.State.senderPublic` (made on first use) and gives it to
+the send (`SendSources.senderPublic`) and the refresh (`Refresh.Account.senderPublic`).
+
+**J8 (identity scalar).** `Join.AgreeSlots` gains `swaps : Scalar → Option (List FieldH)`
+(default `none`); `jobBits` returns (bits, made): with swap handles the handles and nothing made
+(`jobBits_swaps`: no instruction, no slot, no id), otherwise P-BITS as before (bits made);
+`jobsIn` frees only what was made. `Flows/JoinIdentity.lean`: `receiveAgree_spares` — along every
+branch no instruction frees, or takes as a `program` mask, a handle allocated before the run that
+is not a pool word mask's (the run frees only its own block and the masks it took, `PostG`), with
+`agreeG_spares` (S15) and `senderPublicG_spares`. The marks: B2F outputs (private); field handles
+have no `once`; program inputs are only required live. The IO side stashes COINS for `own` and
+`fresh` scalars (`ReceiveBackend.swapCoins`, moved from RefreshBackend which keeps the name;
+`ownCoins`: A the scalar's swap-bit shares, B the zero share's); `RefreshBackend.Sources.identitySwaps`
+replaces `identityCoins`. Once-only discipline: `openFirst_reads_once`, `session_reads_once`,
+`refreshOps_reads_once` unchanged (statements and proofs; only `jobBits_keeps`' proof splits).
+
+**F32 (op 66).** `Flows/ContactsPrepare.lean`, non-hinted (`prepare` + `prepare_batch`): the
+record (state's first 319 bytes) after the certificate through `signal-conversation-view CERT`, P-W2F,
+`Curve.offsetPrepare` (fresh slots per contact), the static agreement on the identity's handles,
+the view's request id and the recipient freed. Kept: the static word in the entry's `derived`
+(covered by `Table.Inv`; freed by ops 37/40/52/63), the offset state in `Cache` next to the table,
+valid only while its word is in `derived` (`prepared?`). Status 255 prepared / 1 not loaded
+(`prepareStatus_iff`); `commit_prepared`, `commit_other`, `commit_inv`; `prepareOneG_reveals`
+(`prepareKinds`, registered). Select: op 66 prepares the listed contacts (at most 64); the send's
+`statics`/`offsets` prepare on first use (the C++'s `prepare(c)` in a send).
+
+**Selection.** `Select.contactSet` = contacts, account, curve, send, receive, refresh; each needs the
+whole set, `tls` and `masks`; `unavailable` is empty. Only these can run in a real session once the
+section 6 preconditions hold.
+
+**J13.** `Runner.release` / `runReleasing`; `release_reads_base` (a released slot reads as the base
+store: a script naming it fails the payload check, both reject the batch), `Ledger.fresh_not_released`
+/ `release_inv`. Select releases the J1 supply after each agreement run, commitment nonces/values,
+key and credential shares, op 46's inputs, the mask generation's contributions, op 66's slots.
+
+**J14 (part).** `TlsMpc/Node/TestStandIns.lean`: S10's stand-in programs/circuits and SHA-256 moved
+from `S10Vectors.lean` (imports it; `s10_vectors.txt` regenerated byte-identical). RunnerTest (29
+checks ok): + mask generation through `Select.generatePool` and W2F/F2W on the pool, op 47 + op 32
+(stand-in upgrade kernel: request value, RFC 6455 accept), op 46 (the identity's swap-bit handles hold
+the ladder's swap bits in the model).
+
+**Build, tests, axioms.** All modules rebuilt one at a time (41 + 21 importers, no error);
+`Security.lean` as a whole: exit 0, 10 s, 1.77 GB; check_axioms: 661 restated theorems (section 7j:
+17 new), only `propext`, `Classical.choice`, `Quot.sound`; lint 0 findings; vectors engine, s10,
+s12, s13, s14, s15 regenerated byte-identical; RunnerTest 29/29.
+
+**Statements changed (names kept).** `Join.jobBits_reveals`, `JoinOnce.jobBits_keeps`: same
+statements, `jobBits` now returns a pair. `Account.sealStep_eq`: same statement (proof destructures
+the two new fields). `RefreshBackend.swapCoins`: now an `abbrev` of `ReceiveBackend.swapCoins` (same
+type). No theorem statement changed otherwise.
+
+**New gaps** (PROOF_GAPS.md style):
+
+| # | Gap | Status |
+|---|---|---|
+| J15 | `_wf` not proved for the new glue scripts: `ContactsPrepare.prepareOneG`, `senderPublicG`, `Account.admitStep`, `credentialsScript` (trivial); `commit_inv` takes what the run leaves as hypotheses | open |
+| J16 | values through `jointRun`: op 32's request (function level proved), op 66's offset state and static word, the sender key (need S11's honest `offsetPrepare`/`agree` runs, F22, and `signalConversationView_spec`) | open |
+| J17 | an evicted / re-opened / re-assigned contact's prepared offset state (2 + 1024 field handles) is never freed (the cache entry is invalid, never used; the C++ reset it) | open (small) |
+| J18 | op 32: S12's `.publicBytes` buffer holds the PRIVATE request (sealed by `sealClassScript`, never opened; naming only); `requestBytes` assumes both kernels' outputs have the same length (true by definition, not proved); one upgrade per socket (C++ `started`) not enforced | note |
+| J19 | slots stashed inside `ReceiveBackend` (op 51's coins), `JoinBackend` (TLS/send masks) and `RefreshBackend` (curve supplies, coins) are not released (their runner interfaces have no `release`) | open (small) |
+| J20 | op 55/46 still convert the hinted bits with `TLS_WORKER_HINTED`; the scripts never use them (op 66 is non-hinted, J3) | note |
+| J14 (rest) | record seal/open, a send, an accepted receive, a two-device refresh and op 66 are not driven through the runner; S11–S15 stand-in tables are still inline in their vector files | open |

@@ -120,7 +120,7 @@ S11 (branch `s11-curve`, not merged; local arithmetic and curve flows as scripts
 | F29 | Local arithmetic agrees with a reference library only on vectors (curve25519-dalek; no libsodium binding offline): encode/decode, validity, lift. | tested |
 | F30 | `shapeOf` mask counts are read from compilations (a wrong count fails closed). | tested |
 | F31 | `e2e_s11.py` not run; S11's field-program pins are placeholders until the V3 re-export. | pending |
-| F32 | Op 66's contact-table glue (view kernel, word/field conversions, `sender_public`) is not scripted; left for the flow-API switch. | open |
+| F32 | Op 66's contact-table glue (view kernel, word/field conversions, `sender_public`) is not scripted; left for the flow-API switch. | closed on `scripts-stack` (STACK_NOTES section 8): `Flows/ContactsPrepare.lean` (`prepareStatus_iff`, `commit_prepared`, `commit_other`, `commit_inv`, `prepareOneG_reveals`, `senderPublicG`); non-hinted path; WF and values through `jointRun` open (stack J15, J16) |
 | F33 | Local functions return `none` on an impossible zero Z or a `sqrt` failure: liveness rests on facts proved in `proofs/`. | conditional |
 | F34 | `proofs/` should state `Ed25519.recode = Curve.recode` once it imports the S11 modules (same equations; by induction). | open (small) |
 
