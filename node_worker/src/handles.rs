@@ -129,6 +129,20 @@ pub struct Ctx {
     /// Lean `Ctx.progs`: the V3 programs the worker loaded, by name (fixed at session start,
     /// [`crate::shell::Shell::set_programs`]; not part of [`Ctx::canonical`]).
     pub progs: BTreeMap<Vec<u8>, ProgSig>,
+    /// While a batch is checked in place ([`Ctx::begin`]): how to undo each change, so that a
+    /// refused batch leaves the context as it was ([`Ctx::rollback`]) without copying the whole
+    /// context for every batch (the copy grew with the session: every id ever seen). `None` at
+    /// rest; not part of the Lean context.
+    pub journal: Option<Vec<Undo>>,
+}
+
+/// One change to a [`Ctx`], as [`Ctx::rollback`] undoes it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Undo {
+    DefBool(u64),
+    DefField(u64),
+    DropBool(u64, BoolInfo),
+    DropField(u64, Mark),
 }
 
 /// Lean `guard`.
@@ -152,6 +166,9 @@ impl Ctx {
         }
         self.bools.insert(h, i);
         self.seen_b.insert(h);
+        if let Some(j) = &mut self.journal {
+            j.push(Undo::DefBool(h));
+        }
         Some(())
     }
     /// Lean `Ctx.defField`.
@@ -161,15 +178,58 @@ impl Ctx {
         }
         self.fields.insert(h, m);
         self.seen_f.insert(h);
+        if let Some(j) = &mut self.journal {
+            j.push(Undo::DefField(h));
+        }
         Some(())
     }
     /// Lean `Ctx.dropBool`.
     fn drop_bool(&mut self, h: u64) {
-        self.bools.remove(&h);
+        if let Some(old) = self.bools.remove(&h) {
+            if let Some(j) = &mut self.journal {
+                j.push(Undo::DropBool(h, old));
+            }
+        }
     }
     /// Lean `Ctx.dropField`.
     fn drop_field(&mut self, h: u64) {
-        self.fields.remove(&h);
+        if let Some(old) = self.fields.remove(&h) {
+            if let Some(j) = &mut self.journal {
+                j.push(Undo::DropField(h, old));
+            }
+        }
+    }
+    /// Start recording changes (a batch is about to be checked in place).
+    pub fn begin(&mut self) {
+        self.journal = Some(Vec::new());
+    }
+    /// Keep the changes since [`Ctx::begin`].
+    pub fn commit(&mut self) {
+        self.journal = None;
+    }
+    /// Undo every change since [`Ctx::begin`], newest first: the context is again exactly what it
+    /// was (a `def` always added an id absent from both the map and the seen set: `defBool` /
+    /// `defField` refuse a seen id, and every live id is seen).
+    pub fn rollback(&mut self) {
+        let Some(j) = self.journal.take() else { return };
+        for u in j.into_iter().rev() {
+            match u {
+                Undo::DefBool(h) => {
+                    self.bools.remove(&h);
+                    self.seen_b.remove(&h);
+                }
+                Undo::DefField(h) => {
+                    self.fields.remove(&h);
+                    self.seen_f.remove(&h);
+                }
+                Undo::DropBool(h, i) => {
+                    self.bools.insert(h, i);
+                }
+                Undo::DropField(h, m) => {
+                    self.fields.insert(h, m);
+                }
+            }
+        }
     }
     /// Lean `Ctx.useBool`: read a Boolean operand; a `once` handle is consumed.
     fn use_bool(&mut self, h: u64) -> Option<BoolInfo> {

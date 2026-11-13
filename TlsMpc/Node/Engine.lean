@@ -1305,6 +1305,90 @@ def fromLE : Bytes → Nat
   | [] => 0
   | b :: l => b.toNat + 256 * fromLE l
 
+/-! ### `fromLE` and `le`, seven bytes at a time
+
+`fromLE` and `le` work byte by byte on arbitrary-precision numbers: every step on a field element
+(32 bytes) or a 64-byte candidate is a big-number operation. The controller decodes and encodes
+thousands of field elements per message (a contact's preparation: about 2,000 mask contributions),
+so the runner's codecs (`encodeBatchFast`, `decodeRepliesFast`, below) and the IO glue's candidate
+cutting use `fromLEFast` / `leFast`, which do seven bytes at a time with machine-word arithmetic
+(below 2⁵⁶) and one big-number step per seven bytes. Same functions (`fromLEFast_eq`, `leFast_eq`);
+`fromLE` and `le`, and everything proved about them, are unchanged. -/
+
+/-- `fromLE`, seven bytes at a time. -/
+def fromLEFast : Bytes → Nat
+  | b0 :: b1 :: b2 :: b3 :: b4 :: b5 :: b6 :: rest =>
+    (b0.toNat + 256 * (b1.toNat + 256 * (b2.toNat + 256 * (b3.toNat + 256 * (b4.toNat + 256 *
+      (b5.toNat + 256 * b6.toNat)))))) + 72057594037927936 * fromLEFast rest
+  | l => fromLE l
+
+theorem fromLEFast_eq (l : Bytes) : fromLEFast l = fromLE l := by
+  match l with
+  | b0 :: b1 :: b2 :: b3 :: b4 :: b5 :: b6 :: rest =>
+    simp only [fromLEFast, fromLE, fromLEFast_eq rest]
+    omega
+  | [] => rfl
+  | [_] => rfl
+  | [_, _] => rfl
+  | [_, _, _] => rfl
+  | [_, _, _, _] => rfl
+  | [_, _, _, _, _] => rfl
+  | [_, _, _, _, _, _] => rfl
+
+/-- `le a n` depends on `n` only modulo `256^a`. -/
+theorem le_eq_le_mod (a n : Nat) : le a n = le a (n % 256 ^ a) := by
+  induction a generalizing n with
+  | zero => rfl
+  | succ a ih =>
+    simp only [le]
+    rw [ih (n / 256), ih (n % 256 ^ (a + 1) / 256)]
+    have h1 : n % 256 ^ (a + 1) % 256 = n % 256 := by
+      rw [Nat.pow_succ, Nat.mod_mul_left_mod]
+    have h2 : n % 256 ^ (a + 1) / 256 % 256 ^ a = n / 256 % 256 ^ a := by
+      rw [Nat.pow_succ, Nat.mul_comm, Nat.mod_mul_right_div_self, Nat.mod_mod]
+    rw [h1, h2]
+
+theorem le_add_split (a b n : Nat) : le (a + b) n = le a n ++ le b (n / 256 ^ a) := by
+  induction a generalizing n with
+  | zero => simp [le]
+  | succ a ih =>
+    rw [Nat.add_right_comm, le, ih, le, List.cons_append, Nat.div_div_eq_div_mul, Nat.pow_succ,
+      Nat.mul_comm (256 ^ a)]
+
+/-- `le`, seven bytes at a time. -/
+def leFast : Nat → Nat → Bytes
+  | k + 7, n => le 7 (n % 72057594037927936) ++ leFast k (n / 72057594037927936)
+  | k, n => le k n
+
+theorem leFast_eq (k n : Nat) : leFast k n = le k n := by
+  match k with
+  | k + 7 => rw [leFast, leFast_eq k, Nat.add_comm k 7, le_add_split 7 k n, ← le_eq_le_mod]
+  | 0 => rfl
+  | 1 => rfl
+  | 2 => rfl
+  | 3 => rfl
+  | 4 => rfl
+  | 5 => rfl
+  | 6 => rfl
+
+/-- The first `count` blocks of `size` bytes of `b`, in ONE pass over `b` (`byteBlocks_eq`: block
+`i` is `(b.drop (size * i)).take size`, the form the IO glue used to write, which walks `b` again
+for every block). The glue cuts its randomness into field-element candidates with it. -/
+def byteBlocks (size : Nat) : Nat → Bytes → List Bytes
+  | 0, _ => []
+  | count + 1, b => b.take size :: byteBlocks size count (b.drop size)
+
+theorem byteBlocks_eq (size count : Nat) (b : Bytes) :
+    byteBlocks size count b = (List.range count).map fun i => (b.drop (size * i)).take size := by
+  induction count generalizing b with
+  | zero => rfl
+  | succ n ih =>
+    rw [byteBlocks, ih, List.range_succ_eq_map, List.map_cons, List.map_map]
+    simp only [Nat.mul_zero, List.drop_zero, Function.comp_def, List.drop_drop, List.cons.injEq, true_and]
+    apply List.map_congr_left
+    intro i _
+    rw [Nat.mul_succ, Nat.add_comm]
+
 namespace Enc
 def u64 (n : Nat) : Bytes := le 8 n
 def flag (b : Bool) : Bytes := [if b then 1 else 0]
@@ -1403,6 +1487,31 @@ def byte : Dec UInt8 := fun s =>
   | b :: s => some (b, s)
   | [] => none
 def take (n : Nat) : Dec Bytes := fun s => if n ≤ s.length then some (s.take n, s.drop n) else none
+
+/-- `take` walking only the `n` bytes it takes (`take` measures the WHOLE rest of the input for
+every field, which made the runner's decoding of a reply quadratic in its size: a program's
+openings, thousands of field elements, took about 0.15 s per reply; PERFORMANCE.md "The script
+path's cost"). The runner decodes with it (`decodeRepliesFast`). -/
+def takeList : Nat → Bytes → Option (Bytes × Bytes)
+  | 0, s => some ([], s)
+  | _ + 1, [] => none
+  | n + 1, b :: s =>
+    match takeList n s with
+    | some (t, r) => some (b :: t, r)
+    | none => none
+
+theorem takeList_eq (n : Nat) (s : Bytes) :
+    takeList n s = if n ≤ s.length then some (s.take n, s.drop n) else none := by
+  induction n generalizing s with
+  | zero => simp [takeList]
+  | succ n ih =>
+    cases s with
+    | nil => simp [takeList]
+    | cons b s =>
+      by_cases h : n ≤ s.length <;> simp [takeList, ih, h]
+
+theorem take_eq_takeList (n : Nat) (s : Bytes) : take n s = takeList n s := (takeList_eq n s).symm
+
 def u64 : Dec Nat := fun s =>
   match take 8 s with
   | some (b, s) => some (fromLE b, s)
@@ -1548,6 +1657,130 @@ def decodeReplies (s : Bytes) : Option (List Datum) :=
   match Dec.list decDatum s with
   | some (r, []) => some r
   | _ => none
+
+/-! ### The runner's codecs (`encodeBatchFast`, `decodeRepliesFast`)
+
+The same functions as `encodeBatch` and `decodeReplies` (`encodeBatchFast_eq`,
+`decodeRepliesFast_eq`), with numbers written by `leFast`, read by `fromLEFast`, and fields taken
+by `takeList` (linear in the input instead of quadratic). The runner (`Flows/Runner.lean`, IO glue)
+encodes and decodes with them; every theorem is about `encodeBatch` / `decodeReplies`. -/
+
+namespace EncF
+def u64 (n : Nat) : Bytes := leFast 8 n
+def felt (v : F) : Bytes := leFast 32 v.val
+def list {α : Type} (e : α → Bytes) (l : List α) : Bytes := u64 l.length ++ (l.map e).flatten
+def bytes (b : Bytes) : Bytes := list (fun x => [x]) b
+def bits (b : Bits) : Bytes := list Enc.flag b
+def felts (v : List F) : Bytes := list felt v
+def boolH (h : BoolH) : Bytes := u64 h.id
+def fieldH (h : FieldH) : Bytes := u64 h.id
+def label (l : Label) : Bytes := u64 l.code
+def pair (p : FieldH × FieldH) : Bytes := fieldH p.1 ++ fieldH p.2
+
+theorem u64_eq : u64 = Enc.u64 := by funext n; simp only [u64, Enc.u64, leFast_eq]
+theorem felt_eq : felt = Enc.felt := by funext v; simp only [felt, Enc.felt, leFast_eq]
+theorem list_eq {α : Type} : @list α = @Enc.list α := by funext e l; simp only [list, Enc.list, u64_eq]
+theorem bytes_eq : bytes = Enc.bytes := by funext b; simp only [bytes, Enc.bytes, list_eq]
+theorem bits_eq : bits = Enc.bits := by funext b; simp only [bits, Enc.bits, list_eq]
+theorem felts_eq : felts = Enc.felts := by funext v; simp only [felts, Enc.felts, list_eq, felt_eq]
+theorem boolH_eq : boolH = Enc.boolH := by funext h; simp only [boolH, Enc.boolH, u64_eq]
+theorem fieldH_eq : fieldH = Enc.fieldH := by funext h; simp only [fieldH, Enc.fieldH, u64_eq]
+theorem label_eq : label = Enc.label := by funext l; simp only [label, Enc.label, u64_eq]
+theorem pair_eq : pair = Enc.pair := by funext p; simp only [pair, Enc.pair, fieldH_eq]
+end EncF
+
+/-- `encWire` with `EncF` (`encWireFast_eq`). -/
+def encWireFast : Wire → Bytes
+  | .boolInput out owner w once rev v =>
+    1 :: (EncF.boolH out ++ Enc.party owner ++ EncF.u64 w ++ Enc.flag once ++ Enc.flag rev ++ EncF.bits v)
+  | .boolInputBoth oa ob w once rev v =>
+    2 :: (EncF.boolH oa ++ EncF.boolH ob ++ EncF.u64 w ++ Enc.flag once ++ Enc.flag rev ++ EncF.bits v)
+  | .boolPublic out v => 3 :: (EncF.boolH out ++ EncF.bits v)
+  | .run out name n input => 4 :: (EncF.boolH out ++ EncF.bytes name ++ EncF.u64 n ++ EncF.boolH input)
+  | .concat out ps => 5 :: (EncF.boolH out ++ EncF.list EncF.boolH ps)
+  | .slice out h lo hi => 6 :: (EncF.boolH out ++ EncF.boolH h ++ EncF.u64 lo ++ EncF.u64 hi)
+  | .pick out h is => 7 :: (EncF.boolH out ++ EncF.boolH h ++ EncF.list EncF.u64 is)
+  | .openBool h l => 8 :: (EncF.boolH h ++ EncF.label l)
+  | .openBoolTo h r l _ => 9 :: (EncF.boolH h ++ Enc.party r ++ EncF.label l)
+  | .freeBool h => 10 :: EncF.boolH h
+  | .fieldInput oa ob k rev v =>
+    11 :: (EncF.list EncF.fieldH oa ++ EncF.list EncF.fieldH ob ++ Enc.kind k ++ Enc.flag rev ++ EncF.felts v)
+  | .fieldPublic out v => 12 :: (EncF.fieldH out ++ EncF.felt v)
+  | .fieldAdd out a b => 13 :: (EncF.fieldH out ++ EncF.fieldH a ++ EncF.fieldH b)
+  | .fieldSub out a b => 14 :: (EncF.fieldH out ++ EncF.fieldH a ++ EncF.fieldH b)
+  | .fieldScale out a k => 15 :: (EncF.fieldH out ++ EncF.fieldH a ++ EncF.u64 k)
+  | .fieldDivide out a k => 16 :: (EncF.fieldH out ++ EncF.fieldH a ++ EncF.felt k)
+  | .fieldMul outs ps => 17 :: (EncF.list EncF.fieldH outs ++ EncF.list EncF.pair ps)
+  | .fieldCheck => [18]
+  | .openField hs l => 19 :: (EncF.list EncF.fieldH hs ++ EncF.label l)
+  | .freeField h => 20 :: EncF.fieldH h
+  | .exchange len l p => 21 :: (EncF.u64 len ++ EncF.label l ++ EncF.bytes p)
+  | .program name k ins ms outs l =>
+    22 :: (EncF.bytes name ++ EncF.u64 k ++ EncF.list EncF.fieldH ins ++ EncF.list EncF.fieldH ms ++
+      EncF.list EncF.fieldH outs ++ EncF.label l)
+
+theorem encWireFast_eq : encWireFast = encWire := by
+  funext w
+  cases w <;> simp only [encWireFast, encWire, EncF.u64_eq, EncF.felt_eq, EncF.list_eq, EncF.bytes_eq,
+    EncF.bits_eq, EncF.felts_eq, EncF.boolH_eq, EncF.fieldH_eq, EncF.label_eq, EncF.pair_eq]
+
+/-- `encodeBatch` with `EncF` (`encodeBatchFast_eq`): what the runner sends. -/
+def encodeBatchFast (b : List Wire) : Bytes := EncF.list encWireFast b
+
+theorem encodeBatchFast_eq (b : List Wire) : encodeBatchFast b = encodeBatch b := by
+  simp only [encodeBatchFast, encodeBatch, EncF.list_eq, encWireFast_eq]
+
+namespace DecF
+def u64 : Dec Nat := fun s =>
+  match Dec.takeList 8 s with
+  | some (b, s) => some (fromLEFast b, s)
+  | none => none
+def felt : Dec F := fun s =>
+  match Dec.takeList 32 s with
+  | some (b, s) => if h : fromLEFast b < modulus then some (⟨fromLEFast b, h⟩, s) else none
+  | none => none
+def list {α : Type} (d : Dec α) : Dec (List α) := fun s =>
+  match u64 s with
+  | some (n, s) => Dec.count d n s
+  | none => none
+def bytes : Dec Bytes := list Dec.byte
+def bits : Dec Bits := list Dec.flag
+def felts : Dec (List F) := list felt
+
+theorem u64_eq : u64 = Dec.u64 := by
+  funext s
+  simp only [u64, Dec.u64, ← Dec.take_eq_takeList, fromLEFast_eq]
+theorem felt_eq : felt = Dec.felt := by
+  funext s
+  simp only [felt, Dec.felt, ← Dec.take_eq_takeList, fromLEFast_eq]
+theorem list_eq {α : Type} (d : Dec α) : list d = Dec.list d := by
+  funext s
+  simp only [list, Dec.list, u64_eq]
+theorem bytes_eq : bytes = Dec.bytes := by simp only [bytes, Dec.bytes, list_eq]
+theorem bits_eq : bits = Dec.bits := by simp only [bits, Dec.bits, list_eq]
+theorem felts_eq : felts = Dec.felts := by simp only [felts, Dec.felts, list_eq, felt_eq]
+end DecF
+
+/-- `decDatum` with `DecF` (`decDatumFast_eq`). -/
+def decDatumFast : Dec Datum := do
+  let t ← Dec.byte
+  match t.toNat with
+  | 1 => do let b ← DecF.bits; Pure.pure (.bits b)
+  | 2 => do let v ← DecF.felts; Pure.pure (.elems v)
+  | 3 => do let b ← DecF.bytes; Pure.pure (.bytes b)
+  | _ => Dec.fail
+
+theorem decDatumFast_eq : decDatumFast = decDatum := by
+  simp only [decDatumFast, decDatum, DecF.bits_eq, DecF.felts_eq, DecF.bytes_eq]
+
+/-- `decodeReplies` with `DecF` (`decodeRepliesFast_eq`): how the runner reads a reply. -/
+def decodeRepliesFast (s : Bytes) : Option (List Datum) :=
+  match DecF.list decDatumFast s with
+  | some (r, []) => some r
+  | _ => none
+
+theorem decodeRepliesFast_eq (s : Bytes) : decodeRepliesFast s = decodeReplies s := by
+  simp only [decodeRepliesFast, decodeReplies, DecF.list_eq, decDatumFast_eq]
 
 /-! ### The agreement on a batch (design note item 4) -/
 

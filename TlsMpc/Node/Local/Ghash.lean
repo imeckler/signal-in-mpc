@@ -55,6 +55,65 @@ abbrev B8 := List (BitVec 8)
 `gf_multiply`): the repository's `Ghash.multiply Ghash.concrete`. -/
 def mul (x y : W) : W := Ghash.multiply Ghash.concrete x y
 
+/-! ### The multiplication the controller runs
+
+`Ghash.concrete.maskBit x i` builds a 128-bit mask with `BitVec.replicate` (128 one-bit appends),
+256 times per product: a record's half took about 0.1 s (PERFORMANCE.md, "The script path's cost").
+`mulFast` is the same algorithm with `maskAnd` (the selected bit decides between `v` and 0) instead
+of the mask (`mul_eq_mulFast`); the IO glue computes with `halfFastOf`, `leftsFastOf`,
+`extendFastOf` (below), which are `halfOf`, `leftsOf`, `extendOf` with `mulFast` (`halfFast_eq`,
+`lefts_fast_eq`, `extendFast_eq`). `mul` itself, and everything proved about it, is unchanged. -/
+
+/-- `concrete.and (concrete.maskBit x i) v`, without building the mask (`maskAnd_eq`). -/
+def maskAnd (x : W) (i : Nat) (v : W) : W := if x.getLsbD i then v else Ghash.concrete.const 0
+
+theorem maskAnd_eq (x : W) (i : Nat) (v : W) :
+    Ghash.concrete.and (Ghash.concrete.maskBit x i) v = maskAnd x i v := by
+  simp only [Ghash.concrete, maskAnd]
+  ext j hj
+  rw [BitVec.getElem_and, BitVec.getElem_replicate]
+  by_cases h : x.getLsbD i
+  · simp only [h, if_true, Nat.mod_one]
+    simp [h]
+  · simp only [h, Nat.mod_one]
+    simp [h]
+
+/-- `Ghash.nextPower Ghash.concrete` with `maskAnd`. -/
+def nextPowerFast (v : W) : W :=
+  Ghash.concrete.xor (Ghash.concrete.shr v) (maskAnd v 0 (Ghash.concrete.const Ghash.reduction))
+
+/-- `Ghash.powers Ghash.concrete` with `nextPowerFast`. -/
+def powersFast : Nat → W → List W
+  | 0, _ => []
+  | n + 1, v => v :: powersFast n (nextPowerFast v)
+
+/-- `Ghash.multiplyLoop Ghash.concrete` with `maskAnd`. -/
+def loopFast (x : W) : List W → Nat → W → W
+  | [], _, z => z
+  | v :: rest, i, z => loopFast x rest (i + 1) (Ghash.concrete.xor z (maskAnd x (127 - i) v))
+
+/-- `mul`, computed without the masks. -/
+def mulFast (x y : W) : W := loopFast x (powersFast 128 y) 0 (Ghash.concrete.const 0)
+
+theorem nextPowerFast_eq (v : W) : nextPowerFast v = Ghash.nextPower Ghash.concrete v := by
+  simp only [nextPowerFast, Ghash.nextPower, maskAnd_eq]
+
+theorem powersFast_eq (n : Nat) (v : W) : powersFast n v = Ghash.powers Ghash.concrete n v := by
+  induction n generalizing v with
+  | zero => rfl
+  | succ n ih => simp only [powersFast, Ghash.powers, ih, nextPowerFast_eq]
+
+theorem loopFast_eq (x : W) (l : List W) (i : Nat) (z : W) :
+    loopFast x l i z = Ghash.multiplyLoop Ghash.concrete x l i z := by
+  induction l generalizing i z with
+  | nil => rfl
+  | cons v rest ih => simp only [loopFast, Ghash.multiplyLoop, ih, maskAnd_eq]
+
+/-- **`mulFast` is `mul`.** -/
+theorem mul_eq_mulFast : @mul = @mulFast := by
+  funext x y
+  simp only [mul, mulFast, Ghash.multiply, Ghash.multiplyPrepared, powersFast_eq, loopFast_eq]
+
 /-- Squaring (each party squares its own share of an even power's half). -/
 def square (x : W) : W := mul x x
 
@@ -159,6 +218,50 @@ def leftsOf (shares : Secret (List W)) (t : Nat) : Secret (List W) := shares.map
 /-- A round's result, from this party's secret shares and its secret engine values. -/
 def extendOf (shares : Secret (List W)) (t : Nat) (odd : Secret (List W)) : Secret (List W) :=
   Secret.zipWith (fun b o => extend b t o) shares odd
+
+/-! ### The same, computed with `mulFast` (what the IO glue runs) -/
+
+/-- `half` with `mulFast`. -/
+def halfFast (shares : List W) (aad ct : B8) : W :=
+  GhashShares.localTag mulFast (blocks aad ct) ((shares.take (blocks aad ct).length).reverse)
+
+theorem halfFast_eq (shares : List W) (aad ct : B8) : halfFast shares aad ct = half shares aad ct := by
+  simp only [halfFast, half, mul_eq_mulFast]
+
+/-- `extend` with `mulFast` (its squares). -/
+def extendFast (base : List W) (t : Nat) (odd : List W) : List W :=
+  base ++ (List.range (t - base.length)).map fun i =>
+    if (base.length + 1 + i) % 2 = 0 then mulFast (base.getD ((base.length + 1 + i) / 2 - 1) 0)
+      (base.getD ((base.length + 1 + i) / 2 - 1) 0)
+    else odd.getD (i / 2) 0
+
+theorem extendFast_eq (base : List W) (t : Nat) (odd : List W) : extendFast base t odd = extend base t odd := by
+  simp only [extendFast, extend, square, mul_eq_mulFast]
+
+/-- `lefts` with `mulFast`. -/
+def leftsFast (base : List W) (t : Nat) : List W :=
+  (oddPowers base.length t).map fun k => mulFast (base.getD ((k - 1) / 2 - 1) 0) (base.getD ((k - 1) / 2 - 1) 0)
+
+theorem lefts_fast_eq (base : List W) (t : Nat) : leftsFast base t = lefts base t := by
+  simp only [leftsFast, lefts]
+  apply List.map_congr_left
+  intro k _
+  simp only [left, square, mul_eq_mulFast]
+
+def halfFastOf (shares : Secret (List W)) (aad ct : B8) : Secret W := shares.map (halfFast · aad ct)
+def leftsFastOf (shares : Secret (List W)) (t : Nat) : Secret (List W) := shares.map (leftsFast · t)
+def extendFastOf (shares : Secret (List W)) (t : Nat) (odd : Secret (List W)) : Secret (List W) :=
+  Secret.zipWith (fun b o => extendFast b t o) shares odd
+
+theorem halfFastOf_eq (shares : Secret (List W)) (aad ct : B8) : halfFastOf shares aad ct = halfOf shares aad ct := by
+  simp only [halfFastOf, halfOf, halfFast_eq]
+
+theorem leftsFastOf_eq (shares : Secret (List W)) (t : Nat) : leftsFastOf shares t = leftsOf shares t := by
+  simp only [leftsFastOf, leftsOf, lefts_fast_eq]
+
+theorem extendFastOf_eq (shares : Secret (List W)) (t : Nat) (odd : Secret (List W)) :
+    extendFastOf shares t odd = extendOf shares t odd := by
+  simp only [extendFastOf, extendOf, extendFast_eq]
 
 /-! ## P-GHASH (a): the two parties' shares XOR to the key powers -/
 

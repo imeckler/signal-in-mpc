@@ -89,6 +89,8 @@ fn run() -> i32 {
         let mut shell = Shell::new(config.leader(), config.session.clone(), link, engines, config.peer_wait);
         shell.kernels = kernels;
         shell.set_programs(programs);
+        // Measurements only (counts and durations, never a value): one line per batch.
+        shell.batch_log = std::env::var("TLS_WORKER_BATCH_LOG").is_ok_and(|v| v == "1");
         Ok(shell)
     };
     let mut shell = match setup() {
@@ -122,6 +124,9 @@ fn run() -> i32 {
         if request.code == ABORT {
             // Local and idempotent; not an erasure receipt.
             shell.engines.profile_report(&format!("{PREFIX} profile"));
+            if shell.batch_stats.batches > 0 {
+                eprintln!("{}", shell.batch_stats.line());
+            }
             shell.abort();
             latch.fail();
             eprintln!("{PREFIX} operation 8 ok (local abort)");
@@ -159,6 +164,9 @@ fn run() -> i32 {
     shell.engines.profile_report(&format!("{PREFIX} profile"));
     for line in Profile::totals(&shell.engines.counters(), config.stock_factories) {
         eprintln!("{line}");
+    }
+    if shell.batch_stats.batches > 0 {
+        eprintln!("{}", shell.batch_stats.line());
     }
     let _ = std::io::stderr().flush();
     0

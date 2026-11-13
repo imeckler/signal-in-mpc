@@ -702,7 +702,20 @@ impl Interp {
     /// with the widths `openBoolTo` needs). On success the context moves past the batch; on a
     /// refusal nothing changes and the batch must not run.
     pub fn admit(&mut self, sigs: &dyn Fn(&[u8]) -> Option<Sig>, batch: &[Wire]) -> Result<Vec<Step>, String> {
-        let mut work = self.ctx.clone();
+        // Checked in place with an undo journal (a refusal rolls the context back), not on a copy:
+        // the copy held every id the session ever used and grew with it.
+        self.ctx.begin();
+        let r = self.admit_in_place(sigs, batch);
+        if r.is_ok() {
+            self.ctx.commit();
+        } else {
+            self.ctx.rollback();
+        }
+        r
+    }
+
+    fn admit_in_place(&mut self, sigs: &dyn Fn(&[u8]) -> Option<Sig>, batch: &[Wire]) -> Result<Vec<Step>, String> {
+        let work = &mut self.ctx;
         let mut steps = Vec::with_capacity(batch.len());
         for (i, w) in batch.iter().enumerate() {
             let width = match w {
@@ -721,7 +734,7 @@ impl Interp {
                 ),
                 _ => String::new(),
             };
-            let shape = handles::check(sigs, &mut work, w).ok_or_else(|| {
+            let shape = handles::check(sigs, work, w).ok_or_else(|| {
                 let skel = format!("{:?}", w.blank());
                 format!("instruction {i} refused by check: {}{widths}", &skel[..skel.len().min(240)])
             })?;
@@ -730,7 +743,6 @@ impl Interp {
             }
             steps.push(Step { shape, width });
         }
-        self.ctx = work;
         Ok(steps)
     }
 
@@ -912,20 +924,58 @@ impl Interp {
             }
         }
         // Engine values whose Lean handles are no longer live (consumed `once` handles, and the
-        // masks a program consumed).
-        let dead: Vec<u64> = self.bools.keys().filter(|id| !self.ctx.bools.contains_key(id)).copied().collect();
-        for id in dead {
-            if let Some(h) = self.bools.remove(&id) {
-                engines.bool_free(h)?;
+        // masks a program consumed). Only a handle the batch names can have changed (`check`
+        // defines, uses and drops only the handles an instruction names), and before the batch
+        // every engine value's handle was live: so the batch's own handles are the only
+        // candidates (scanning every engine value cost a lookup per live handle per batch).
+        let (mut nb, mut nf) = (Vec::new(), Vec::new());
+        for w in batch {
+            named_handles(w, &mut nb, &mut nf);
+        }
+        for id in nb {
+            if !self.ctx.bools.contains_key(&id) {
+                if let Some(h) = self.bools.remove(&id) {
+                    engines.bool_free(h)?;
+                }
             }
         }
-        let dead: Vec<u64> = self.fields.keys().filter(|id| !self.ctx.fields.contains_key(id)).copied().collect();
-        for id in dead {
-            if let Some(h) = self.fields.remove(&id) {
-                engines.field_free(h)?;
+        for id in nf {
+            if !self.ctx.fields.contains_key(&id) {
+                if let Some(h) = self.fields.remove(&id) {
+                    engines.field_free(h)?;
+                }
             }
         }
         Ok(replies)
+    }
+}
+
+/// Every Boolean and field handle an instruction names (defined, read or dropped).
+fn named_handles(w: &Wire, b: &mut Vec<u64>, f: &mut Vec<u64>) {
+    match w {
+        Wire::BoolInput { out, .. } | Wire::BoolPublic { out, .. } => b.push(*out),
+        Wire::BoolInputBoth { out_a, out_b, .. } => b.extend([*out_a, *out_b]),
+        Wire::Run { out, input, .. } => b.extend([*out, *input]),
+        Wire::Concat { out, parts } => {
+            b.push(*out);
+            b.extend(parts.iter().copied());
+        }
+        Wire::Slice { out, h, .. } | Wire::Pick { out, h, .. } => b.extend([*out, *h]),
+        Wire::OpenBool { h, .. } | Wire::OpenBoolTo { h, .. } | Wire::FreeBool { h } => b.push(*h),
+        Wire::FieldInput { outs_a, outs_b, .. } => f.extend(outs_a.iter().chain(outs_b).copied()),
+        Wire::FieldPublic { out, .. } => f.push(*out),
+        Wire::FieldAdd { out, a, b: c } | Wire::FieldSub { out, a, b: c } => f.extend([*out, *a, *c]),
+        Wire::FieldScale { out, a, .. } | Wire::FieldDivide { out, a, .. } => f.extend([*out, *a]),
+        Wire::FieldMul { outs, pairs } => {
+            f.extend(outs.iter().copied());
+            for p in pairs {
+                f.extend([p.0, p.1]);
+            }
+        }
+        Wire::FieldCheck | Wire::Exchange { .. } => {}
+        Wire::OpenField { hs, .. } => f.extend(hs.iter().copied()),
+        Wire::FreeField { h } => f.push(*h),
+        Wire::Program { ins, masks, outs, .. } => f.extend(ins.iter().chain(masks).chain(outs).copied()),
     }
 }
 
@@ -1035,6 +1085,30 @@ mod tests {
         assert!(i.admit(&none, &batch).is_err());
         assert_eq!(i.ctx, Ctx::default(), "a refused batch leaves the context");
         assert!(i.admit(&none, &batch[..2]).is_ok());
+    }
+
+    #[test]
+    fn refused_batch_rolls_back_drops_and_definitions() {
+        let none = |_: &[u8]| None;
+        let mut i = Interp::default();
+        let def = [
+            Wire::BoolInput { out: 1, owner: Party::A, width: 2, once: true, revealable: false, bits: vec![] },
+            Wire::FieldPublic { out: 5, v: felt(3) },
+        ];
+        assert!(i.admit(&none, &def).is_ok());
+        let before = i.ctx.clone();
+        // Uses (consumes) 1, frees 5, defines 6 and 7, then names an unknown handle: refused.
+        let bad = [
+            Wire::Slice { out: 6, h: 1, lo: 0, hi: 1 },
+            Wire::FreeField { h: 5 },
+            Wire::FieldPublic { out: 7, v: felt(4) },
+            Wire::FreeBool { h: 99 },
+        ];
+        assert!(i.admit(&none, &bad).is_err());
+        assert_eq!(i.ctx, before, "every change of the refused batch is undone");
+        assert!(i.ctx.journal.is_none());
+        // The same handles can still be used, and 6, 7 were never seen.
+        assert!(i.admit(&none, &bad[..3]).is_ok());
     }
 
     #[test]

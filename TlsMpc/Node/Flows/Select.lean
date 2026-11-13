@@ -424,14 +424,14 @@ def Session.tlsRefs (s : Session) (connection : Option Nat) : M (TlsBackend.Refs
 
 /-- A uniform field element and its 255 bits, from 64 random bytes (statistical distance below
 2⁻²⁵⁰ from uniform). -/
-def candidate (b : Bytes) : F := TlsMpc.FieldDag.ofNat (Engine.fromLE b)
+def candidate (b : Bytes) : F := TlsMpc.FieldDag.ofNat (Engine.fromLEFast b)
 
 /-- **Generate `p`'s pool** (`Masks.generate`): this party's `M` canonical random candidates (bits,
 elements, coins) and its challenge nonces and values in fresh store slots, the handle blocks from
 the counters; the new masks join the session's pool. -/
 def generatePool (r : Runner) (p : Masks.Params) : M Unit := do
   let raw ← r.randomM (64 * p.M)
-  let cands : Secret (List F) := raw.map fun b => (List.range p.M).map fun j => candidate ((b.drop (64 * j)).take 64)
+  let cands : Secret (List F) := raw.map fun b => (Engine.byteBlocks 64 p.M b).map candidate
   let bits ← r.stashBits (cands.map fun cs => (cs.map fun c => Conv.word c.val).flatten)
   let elems ← r.stashElems cands
   let coins ← r.next.get

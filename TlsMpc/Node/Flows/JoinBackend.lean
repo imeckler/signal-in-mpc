@@ -45,8 +45,7 @@ structure FieldRunner where
 `ReceiveBackend.elems`. -/
 def elems (r : Runner) (k : Nat) : M (Secret (List F)) := do
   let bytes ← r.random (64 * k)
-  return bytes.map fun b => (List.range k).map fun i =>
-    TlsMpc.FieldDag.ofNat (Engine.fromLE ((b.drop (64 * i)).take 64))
+  return bytes.map fun b => (Engine.byteBlocks 64 k b).map fun c => TlsMpc.FieldDag.ofNat (Engine.fromLEFast c)
 
 /-! ## S12: the TLS key agreement -/
 

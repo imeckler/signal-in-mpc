@@ -539,6 +539,27 @@ structure Runner where
   bound : Nat := 1000000
   /-- What the store holds before anything was stashed (empty in a session; TEST: a fixed store). -/
   base : Store := {}
+  /-- Frees a finished script left for the next batch (`Runner.run`: a script's last batch that
+  only frees handles is not sent alone; it opens the next batch). -/
+  pending : IO.Ref (List Wire)
+
+/-- A batch that only frees handles (`freeBool` / `freeField`): it releases nothing, reads nothing
+and gives no reply item. -/
+def freesOnly (ws : List Wire) : Bool :=
+  ws.all fun w => match w with
+    | .freeBool _ => true
+    | .freeField _ => true
+    | _ => false
+
+theorem itemCount_append_frees (me : Party) (fs ws : List Wire) (h : freesOnly fs = true) :
+    itemCount me (fs ++ ws) = itemCount me ws := by
+  induction fs with
+  | nil => rfl
+  | cons f fs ih =>
+    simp only [freesOnly, List.all_cons, Bool.and_eq_true] at h
+    obtain ⟨hf, hfs⟩ := h
+    rw [List.cons_append, itemCount_cons, ih hfs]
+    cases f <;> simp_all [InstrP.releasesTo]
 
 namespace Runner
 
@@ -550,18 +571,29 @@ def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
 def start (w : Flow.Worker) (me : Party) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat)
     (base : Store := {}) (first : Nat := 1) : IO Runner := do
   return { me, hash := TlsMpc.TlsWire.hash, worker := { w with connection := none }, state := ← IO.mkRef {},
-           slots := ← IO.mkRef {}, next := ← IO.mkRef first, random := w.random, loaded, programMasks, base }
+           slots := ← IO.mkRef {}, next := ← IO.mkRef first, random := w.random, loaded, programMasks, base,
+           pending := ← IO.mkRef [] }
 
-/-- One batch on the pipe (op 93): its encoding out, its reply items in (as many as `itemCount`). -/
+/-- One batch on the pipe (op 93): the pending frees (`pending`) and then `ws`, encoded, out; the
+reply items in (as many as `itemCount`; the frees give none, `itemCount_append_frees`). The bytes are
+`encodeBatch` / `decodeReplies` of them, computed by `encodeBatchFast` / `decodeRepliesFast`
+(`encodeBatchFast_eq`, `decodeRepliesFast_eq`: the same functions, linear and word-at-a-time). -/
 def batch (r : Runner) (ws : List Wire) : M (List Datum) := do
-  let reply ← Flow.Legacy.call r.worker .batch (encodeBatch ws)
-  let some items := decodeReplies reply | throw "undecodable batch reply"
-  insist (items.length == itemCount r.me ws) "batch reply count"
+  let fs ← get r.pending
+  set r.pending []
+  let all := fs ++ ws
+  let reply ← Flow.Legacy.call r.worker .batch (encodeBatchFast all)
+  let some items := decodeRepliesFast reply | throw "undecodable batch reply"
+  insist (items.length == itemCount r.me all) "batch reply count"
   return items
 
 /-- **Run a script** (the IO loop of `drive`): batch by batch, `nextBatch` on this party's store,
 op 93, `resume` on the reply items; an `openBoolTo`'s bits go into its slot (the one store write of a
-script, decision D1). An abort is an error. -/
+script, decision D1). An abort is an error. A finished script's last batch that only frees handles
+(`freesOnly`) is not sent on its own: it is kept in `pending` and sent at the head of the next batch
+(the same instructions in the same order, one pipe operation and one agreement fewer; the handles
+are released in the engines one batch later). Any other last batch, and the pending frees with it,
+is sent at once. -/
 def run (r : Runner) {α : Type} (s : Script α) : M α := loop r.bound s
 where
   loop : Nat → Script α → M α
@@ -573,7 +605,10 @@ where
     | ⟨_, .aborted reason⟩ => throw s!"script aborted: {reason}"
     | ⟨ws, .finished a⟩ =>
       unless ws.isEmpty do
-        let _ ← r.batch ws
+        if freesOnly ws then
+          set r.pending ((← get r.pending) ++ ws)
+        else
+          let _ ← r.batch ws
       return a
     | ⟨ws, .waiting i k⟩ =>
       let items ← r.batch ws

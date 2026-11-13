@@ -261,7 +261,7 @@ theorem sealOut_lengths (a : BVExpr.Assignment) (hb : SealBound cert cw pw ew iw
   · rw [l2]; simp only [KernelSpecs.SealSend.sealValue]; rw [if_neg hrej]
     simp only [List.getD_cons_succ, List.getD_cons_zero, List.length_take, List.length_drop, List.length_replicate]
     omega
-  · rw [l3]; rfl
+  · rw [l3, sealEnvBytes_value]
 
 end Seal
 

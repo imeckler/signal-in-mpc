@@ -162,15 +162,97 @@ theorem widthsOf_le {f : B8} {cw pw ew iw : Nat} (h : widthsOf f = some (cw, pw,
 /-- The all-zero input assignment (every variable 0). -/
 def zeroA : BVExpr.Assignment := .leaf ⟨(0 : BitVec 8)⟩
 
-/-- The envelope length of `signal-seal-official|built` with these public parameters: its value
-function `SealSend.sealValue` on the all-zero assignment's inputs (equal to the kernel's own output
-length, `SendProofs.sealEnvBytes_eq`). -/
+/-! ### The envelope length of a seal
+
+`sealEnvBytes` is the envelope length of `signal-seal-official|built`: its value function
+`SealSend.sealValue` on the all-zero assignment's inputs, output 3 (`sealEnvBytes_value`; equal to
+the kernel's own output length, `SendProofs.sealOut_lengths`). Until 2026-11-13 it was DEFINED as
+that evaluation, which runs the whole sealed-sender encryption (two HKDFs, AES-CTR, two HMACs) only
+to measure its output: about 20 ms of the controller's time per message (PERFORMANCE.md, "The
+script path's cost"). It is now defined from lengths (`sealV1_length`: the envelope's length is a
+function of its inputs' lengths); the Signal message is still built (its length depends on the
+public widths through the ciphertext's padding), the encryption around it is not. Same function;
+statements about `sealEnvBytes` are unchanged. -/
+
+section SealLength
+open TlsMpc.KernelSpecs.SealValue TlsMpc.KernelSpecs.SealValue.Reference
+
+/-- The length of `lengthDelimited f b`, from `b`'s length. -/
+def ldLen (f n : Nat) : Nat := (key f 2).length + (varint n).length + n
+
+theorem lengthDelimited_length (f : Nat) (b : List Byte) : (lengthDelimited f b).length = ldLen f b.length := by
+  simp [lengthDelimited, ldLen]
+  omega
+
+theorem keystream_length (k : List Byte) (hk : k.length = 32) (n : Nat) : (keystream k n).length = 16 * n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    have h16 : ∀ i, (aes256 k (counterBlock i)).length = 16 := fun i =>
+      Aes.encryptCore_length Aes.concrete 8 14 k _ (by omega) (by omega)
+    simp only [keystream, List.range_succ, List.flatMap_append, List.length_append] at ih ⊢
+    rw [ih]
+    simp [h16]
+    omega
+
+theorem aes256Ctr_length (k plain : List Byte) (hk : k.length = 32) : (aes256Ctr k plain).length = plain.length := by
+  simp only [aes256Ctr, List.length_zipWith, keystream_length k hk]
+  omega
+
+theorem encrypt_length (plain c m : List Byte) (hc : c.length = 32) :
+    (aes256CtrHmacSha256Encrypt plain c m).length = plain.length + 10 := by
+  simp only [aes256CtrHmacSha256Encrypt, List.length_append, List.length_take, aes256Ctr_length _ _ hc, hmacSha256,
+    Sha256.hmac_length]
+  omega
+
+/-- The envelope length `sealV1` gives, from the lengths of its public inputs. -/
+def sealV1Len (ephemeral sender certificate content : Nat) : Nat :=
+  1 + ldLen 1 (ephemeral + 1) + ldLen 2 (sender + 1 + 10) +
+    ldLen 3 ((varintField 1 2).length + ldLen 2 certificate + ldLen 3 content + 10)
+
+theorem sealV1_length (r e s ea sa c m : List Byte) :
+    (sealV1 r e s ea sa c m).length = sealV1Len e.length s.length c.length m.length := by
+  simp only [sealV1, List.length_cons, List.length_append, lengthDelimited_length, djb, sealV1Len]
+  rw [encrypt_length _ _ _ (key32 _ _ 32 (by omega)), encrypt_length _ _ _ (key32 _ _ 32 (by omega))]
+  simp only [messageContent, List.length_append, lengthDelimited_length, List.length_cons]
+  omega
+
+/-- The envelope of `sealValue` (output 3) has `sealV1Len` of the lengths, accepted or not. -/
+theorem sealValue_envelope_length (cert cw pw ew iw content : Nat)
+    (record text e s ea sa : List Byte) :
+    ((KernelSpecs.SealSend.sealValue cert cw pw ew iw content record text e s ea sa).getD 3 []).length =
+      sealV1Len e.length s.length ((record.drop 0).take cert).length
+        (Signal.SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩
+          (KernelSpecs.SealFixed.inputOf 0 (KernelSpecs.SealFixed.stagedOf ((record.drop cert).take (182 + 80)) text)
+            text content)).wire.length := by
+  simp only [KernelSpecs.SealSend.sealValue]
+  split <;> simp [sealV1_length]
+
+/-- The envelope length of `signal-seal-official|built` with these public parameters (see the
+section note; `sealEnvBytes_value`). -/
 def sealEnvBytes (cert classes : Nat) (official : Bool) (cw pw ew iw : Nat) : Nat :=
   let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
     (BVExpr.eval zeroA)
-  ((KernelSpecs.SealSend.sealValue cert cw pw ew iw (KernelSpecs.SealFixed.contentBytes classes official)
-    (get "conversation") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
-    (get "staticAgreement")).getD 3 []).length
+  let record := get "conversation"
+  let text := get "text"
+  sealV1Len (get "ephemeralPublic").length (get "senderPublic").length ((record.drop 0).take cert).length
+    (Signal.SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩
+      (KernelSpecs.SealFixed.inputOf 0 (KernelSpecs.SealFixed.stagedOf ((record.drop cert).take (182 + 80)) text) text
+        (KernelSpecs.SealFixed.contentBytes classes official))).wire.length
+
+/-- **`sealEnvBytes` is the value function's envelope length** on the all-zero inputs (its
+definition until 2026-11-13). -/
+theorem sealEnvBytes_value (cert classes : Nat) (official : Bool) (cw pw ew iw : Nat) :
+    sealEnvBytes cert classes official cw pw ew iw =
+      let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+        (BVExpr.eval zeroA)
+      ((KernelSpecs.SealSend.sealValue cert cw pw ew iw (KernelSpecs.SealFixed.contentBytes classes official)
+        (get "conversation") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
+        (get "staticAgreement")).getD 3 []).length := by
+  simp only [sealEnvBytes]
+  exact (sealValue_envelope_length _ _ _ _ _ _ _ _ _ _ _ _).symm
+
+end SealLength
 
 /-- The padded content of a `bundle-seal` (`80c − 1` official, `80c` otherwise). -/
 def bundleContent (classes : Nat) (official : Bool) : Nat := if official then 80 * classes - 1 else 80 * classes
