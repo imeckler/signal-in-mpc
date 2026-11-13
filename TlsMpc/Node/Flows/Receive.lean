@@ -239,6 +239,115 @@ def publicField (v : F) : Gen FieldH := do
   Gen.instrs [.fieldPublic ⟨f⟩ v]
   pure ⟨f⟩
 
+/-! ## The wiring: which stage output feeds which stage input
+
+Each function below gives a kernel's input parts, in its declared input order
+(`ReceiveKernels.lean`: `staticInputs`, `messageInputs`, ...), from earlier stages' output lists
+(each list in its kernel's output order). They are POLYMORPHIC: the scripts use them on handles
+(`BoolH`), the function-level pipeline of `Flows/ReceiveFlowProofs.lean` on bytes; so what the
+pipeline's theorems assume about the wiring (e.g. `ReceiveAccept.session_accept_certificate`'s
+"`verified` is `receive-certificate-verified` on `receive-certificate`'s validity and signature")
+is the script's own wiring, by definition. -/
+
+section Wiring
+
+variable {α : Type} [Inhabited α]
+
+/-- `receive-unseal-static`: envelope, ourIdentity, agreement. -/
+def staticIn (env ours agreement : α) : List α := [env, ours, agreement]
+/-- `receive-unseal-message`: envelope, staticValid (`us[0]`), chain (`us[3]`), agreement. -/
+def messageIn (env : α) (us : List α) (agreement : α) : List α :=
+  [env, us.getD 0 default, us.getD 3 default, agreement]
+/-- `receive-content-shape` and `receive-content`: content (`um[1]`), valid (`um[0]`). -/
+def contentIn (um : List α) : List α := [um.getD 1 default, um.getD 0 default]
+/-- `receive-certificate`: certificate (`ct[2]`), valid (`ct[0]`), senderIdentity (`us[1]`), the
+public signer, time and server key words. -/
+def certificateIn (ct us : List α) (signer now serverX serverY : α) : List α :=
+  [ct.getD 2 default, ct.getD 0 default, us.getD 1 default, signer, now, serverX, serverY]
+/-- `receive-certificate-verified`: certificateValid (`ce[0]`), signature (`ce[3]`), serverValid, rx,
+ry. -/
+def verifiedIn (ce : List α) (serverValid rx ry : α) : List α :=
+  [ce.getD 0 default, ce.getD 3 default, serverValid, rx, ry]
+/-- The challenge bits of `xeddsa-check`: flip (`ce[4]`), challenge (`ce[5]`), scalar (`ce[6]`). -/
+def challengeIn (ce : List α) : List α := [ce.getD 4 default, ce.getD 5 default, ce.getD 6 default]
+/-- `receive-prekey-shape`: message (`ct[3]`), valid (`ct[0]`). -/
+def prekeyShapeIn (ct : List α) : List α := [ct.getD 3 default, ct.getD 0 default]
+/-- `receive-prekey-open`: message, valid, messageType (`ct[1]`), senderIdentity (`us[1]`). -/
+def prekeyOpenIn (ct us : List α) : List α :=
+  [ct.getD 3 default, ct.getD 0 default, ct.getD 1 default, us.getD 1 default]
+
+/-- What the session needs from steps 1-12 in the Boolean engine (`Arrival`'s wires). -/
+structure Held (α : Type) where
+  message : α
+  prekeyValid : α
+  verified : α
+  senderIdentity : α
+  uuid : α
+  device : α
+  ours : α
+
+/-- The held wires from the stages' outputs: message `ct[3]`, prekeyValid `po[0]`, verified
+`ve[0]`, senderIdentity `us[1]`, uuid `ce[1]`, deviceId `ce[2]`, our identity key. -/
+def heldOf (us ct ce ve po : List α) (ours : α) : Held α :=
+  ⟨ct.getD 3 default, po.getD 0 default, ve.getD 0 default, us.getD 1 default, ce.getD 1 default,
+    ce.getD 2 default, ours⟩
+
+def Held.list (h : Held α) : List α := [h.message, h.prekeyValid, h.verified, h.senderIdentity, h.uuid, h.device, h.ours]
+
+/-- `receive-signal-shape`: message, valid (= prekeyValid). -/
+def signalShapeIn (h : Held α) : List α := [h.message, h.prekeyValid]
+
+/-- **The session kernel's inputs, in its declared order** (`ReceiveKernels.sessionInputs`). -/
+structure SessionIn (α : Type) where
+  message : α
+  prekeyValid : α
+  verified : α
+  senderIdentity : α
+  ourIdentity : α
+  localAddress : α
+  uuid : α
+  deviceId : α
+  dh1 : α
+  dh2 : α
+  dh3 : α
+  dh4 : Option α
+  kemSecret : α
+  receiveAgreement : α
+  sendAgreement : α
+  ratchetPublic : α
+  baseValid : α
+  torsionX : α
+  torsionY : α
+  certificate : α
+  accessKey : α
+  requestId : α
+
+def SessionIn.parts (x : SessionIn α) : List α :=
+  [x.message, x.prekeyValid, x.verified, x.senderIdentity, x.ourIdentity, x.localAddress, x.uuid, x.deviceId,
+    x.dh1, x.dh2, x.dh3] ++ x.dh4.toList ++
+  [x.kemSecret, x.receiveAgreement, x.sendAgreement, x.ratchetPublic, x.baseValid, x.torsionX, x.torsionY,
+    x.certificate, x.accessKey, x.requestId]
+
+/-- **The session's wiring**: the held wires, the agreements in `sessionJobs`' order (dh1, dh2, dh3,
+receiving, sending, ratchet public, dh4), the base key's checks, our inputs. `verified` is
+`receive-certificate-verified`'s output (`heldOf`). -/
+def sessionInOf (h : Held α) (ag : List α) (oneTime : Bool) (baseValid torsionX torsionY kem address accessKey
+    requestId certificate : α) : SessionIn α :=
+  { message := h.message, prekeyValid := h.prekeyValid, verified := h.verified, senderIdentity := h.senderIdentity,
+    ourIdentity := h.ours, localAddress := address, uuid := h.uuid, deviceId := h.device,
+    dh1 := ag.getD 0 default, dh2 := ag.getD 1 default, dh3 := ag.getD 2 default,
+    dh4 := if oneTime then some (ag.getD 6 default) else none, kemSecret := kem,
+    receiveAgreement := ag.getD 3 default, sendAgreement := ag.getD 4 default, ratchetPublic := ag.getD 5 default,
+    baseValid := baseValid, torsionX := torsionX, torsionY := torsionY, certificate := certificate,
+    accessKey := accessKey, requestId := requestId }
+
+/-- `receive-text`: the session's plaintext (`se[3]`). -/
+def textIn (se : List α) : List α := [se.getD 3 default]
+/-- `receive-access-key`: the session's conversation (`se[1]`) and plaintext (`se[3]`). -/
+def accessKeyIn (se : List α) : List α := [se.getD 1 default, se.getD 3 default]
+
+end Wiring
+
 /-! ### The conversions (S10), masks from the pool -/
 
 /-- Word to field (P-W2F): the word's value mod p as a field handle; the word is not freed. -/
@@ -608,14 +717,8 @@ def takeScript (env : Option (BoolH × Nat)) (bytes : BoolH) (offset count : Nat
 /-- What steps 13-17 need from steps 1-12 (`service_kernels.h` `Arrival`): handles of private
 values, and the public layout of the PreKey message. -/
 structure Arrival where
-  message : BoolH
-  prekeyValid : BoolH
-  verified : BoolH
-  senderIdentity : BoolH
-  uuid : BoolH
-  device : BoolH
-  /-- Our identity public key (public bits, the kernels' `ourIdentity`). -/
-  ours : BoolH
+  /-- The Boolean wires (`heldOf`; `ours` is our identity public key as public bits). -/
+  held : Held BoolH
   senderPoint : FieldH
   base : FieldH
   ratchet : FieldH
@@ -624,8 +727,7 @@ structure Arrival where
   widths : List Nat
   oneTime : Bool
 
-def Arrival.bools (a : Arrival) : List BoolH :=
-  [a.message, a.prekeyValid, a.verified, a.senderIdentity, a.uuid, a.device, a.ours]
+def Arrival.bools (a : Arrival) : List BoolH := a.held.list
 def Arrival.fields (a : Arrival) : List FieldH := [a.senderPoint, a.base, a.ratchet]
 
 /-- **Drop** (op 49): the held envelope and arrival, freed. -/
@@ -656,21 +758,21 @@ structure FirstIn where
 Kyber id (4), Kyber ciphertext (1568). -/
 abbrev FirstOpened := Bool × B8
 
-/-- **Steps 7-12**: the prekey message's shape and its public part, the base and ratchet keys into
-the field engine. Live on entry: `oursH`, `sender` (identity key), `cv0` / `ct0` (validity),
-`ct1` (message type), `ct3` (message), `uuid`, `device`, `verified`; `senderF`. -/
-def firstPrekey (loaded : Bytes → Bool) (oursH senderId valid messageType message uuid device verified : BoolH)
-    (senderF : FieldH) (n : Nat) : Gen (Option (FirstOpened × Arrival)) := do
-  let live := [oursH, senderId, valid, messageType, message, uuid, device, verified]
+/-- **Steps 11-12**: the prekey message's shape and its public part, the base and ratchet keys into
+the field engine. Live on entry: `oursH`, `us[1]`, the content parts `ct[0]`, `ct[1]`, `ct[3]`,
+`ce[1]`, `ce[2]`, `ve[0]`; `senderF`. -/
+def firstPrekey (loaded : Bytes → Bool) (us ct ce ve : List BoolH) (oursH : BoolH) (senderF : FieldH) (n : Nat) :
+    Gen (Option (FirstOpened × Arrival)) := do
+  let live := [oursH, at! us 1, at! ct 0, at! ct 1, at! ct 3, at! ce 1, at! ce 2, at! ve 0]
   if !(1800 ≤ n + 80 && 1720 ≤ n && n ≤ 16384 && loaded (prekeyShapeName n)) then refuse live [senderF] else
-  let ps ← stage (prekeyShapeName n) [message, valid] prekeyShapeOut
+  let ps ← stage (prekeyShapeName n) (prekeyShapeIn ct) prekeyShapeOut
   let flags ← openFree (at! ps 0) Label.prekeyShape
   match prekeyWidths (bytesOf flags) with
   | none => refuse live [senderF]
   | some (one, w) =>
     if !((ReceiveKernel.preKeyShape? n w).isSome && loaded (prekeyOpenName n w)) then refuse live [senderF] else
-    let po ← stage (prekeyOpenName n w) [message, valid, messageType, senderId] prekeyOpenOut
-    Gen.freeAll [valid, messageType]
+    let po ← stage (prekeyOpenName n w) (prekeyOpenIn ct us) prekeyOpenOut
+    Gen.freeAll [at! ct 0, at! ct 1]
     let ids ← join [at! po 3, at! po 4, at! po 5, at! po 6]
     Gen.freeAll [at! po 3, at! po 4, at! po 5, at! po 6]
     let opened ← openFree ids Label.prekeyIds
@@ -678,32 +780,32 @@ def firstPrekey (loaded : Bytes → Bool) (oursH senderId valid messageType mess
     let ratchetF ← toField (at! po 2)
     Gen.freeAll [at! po 1, at! po 2]
     pure (some ((one, bytesOf opened),
-      { message, prekeyValid := at! po 0, verified, senderIdentity := senderId, uuid, device, ours := oursH,
-        senderPoint := senderF, base := baseF, ratchet := ratchetF, size := n, widths := w, oneTime := one }))
+      { held := heldOf us ct ce ve po oursH, senderPoint := senderF, base := baseF, ratchet := ratchetF,
+        size := n, widths := w, oneTime := one }))
 
 /-- **Steps 7-10**: the sender certificate (everything but the signature in the Boolean engine), the
 signature's point in the field engine, `receive-certificate-verified`. Live on entry: `oursH`,
 `senderId`, the content parts `ct0 … ct3`; `senderF`. -/
-def firstCertificate (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (oursH senderId : BoolH)
-    (ct : List BoolH) (senderF : FieldH) (c0 c1 cert : Nat) (shape : B8) (msg : Nat) :
+def firstCertificate (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (us ct : List BoolH) (oursH : BoolH)
+    (senderF : FieldH) (c0 c1 cert : Nat) (shape : B8) (msg : Nat) :
     Gen (Option (FirstOpened × Arrival)) := do
   match certShapeOf cert shape with
-  | none => refuse [oursH, senderId, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF]
+  | none => refuse [oursH, at! us 1, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF]
   | some c =>
     match signerOf c fi.signerCertificate fi.signerId with
-    | none => refuse [oursH, senderId, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF]
+    | none => refuse [oursH, at! us 1, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF]
     | some signer =>
       if !(loaded (certificateName c0 c1 (shape.getD 2 0).toNat (shape.getD 3 0).toNat) && loaded verifiedName) then
-        refuse [oursH, senderId, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF] else
+        refuse [oursH, at! us 1, at! ct 0, at! ct 1, at! ct 2, at! ct 3] [senderF] else
       let signerH ← publicBits (bitsOf signer)
       let nowH ← publicBits (bitsOf fi.now)
       let sx ← publicBits (Conv.word fi.serverX)
       let sy ← publicBits (Conv.word fi.serverY)
       let ce ← stage (certificateName c0 c1 (shape.getD 2 0).toNat (shape.getD 3 0).toNat)
-        [at! ct 2, at! ct 0, senderId, signerH, nowH, sx, sy] certificateOut
+        (certificateIn ct us signerH nowH sx sy) certificateOut
       Gen.freeAll [at! ct 2, signerH, nowH, sx, sy]
-      let challenge ← join [at! ce 4, at! ce 5, at! ce 6]
-      Gen.freeAll [at! ce 4, at! ce 5, at! ce 6]
+      let challenge ← join (challengeIn ce)
+      Gen.freeAll (challengeIn ce)
       let bits ← toFieldBits challenge 510
       Gen.freeAll [challenge]
       let sxF ← publicField (TlsMpc.FieldDag.ofNat fi.serverX)
@@ -714,15 +816,15 @@ def firstCertificate (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (ours
       let ryW ← toWord ry
       Gen.freeFields [rx, ry]
       let valid ← publicBits (Conv.word 1)
-      let ve ← stage verifiedName [at! ce 0, at! ce 3, valid, rxW, ryW] verifiedOut
-      Gen.freeAll [at! ce 0, at! ce 3, valid, rxW, ryW]
-      firstPrekey loaded oursH senderId (at! ct 0) (at! ct 1) (at! ct 3) (at! ce 1) (at! ce 2) (at! ve 0) senderF msg
+      let ve ← stage verifiedName (verifiedIn ce valid rxW ryW) verifiedOut
+      Gen.freeAll (verifiedIn ce valid rxW ryW)
+      firstPrekey loaded us ct ce ve oursH senderF msg
 
-/-- **Steps 5-6**: the content's shape and its parts. Live on entry: `oursH`, `senderId`, `valid`,
-`content`; `senderF`. -/
-def firstContent (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (oursH senderId valid content : BoolH)
+/-- **Steps 5-6**: the content's shape and its parts. Live on entry: `oursH`, `us[1]`, `um[0]`,
+`um[1]`; `senderF`. -/
+def firstContent (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (us um : List BoolH) (oursH : BoolH)
     (senderF : FieldH) (u : Nat) (prefix_ : B8) : Gen (Option (FirstOpened × Arrival)) := do
-  let live := [oursH, senderId, valid, content]
+  let live := [oursH, at! us 1, at! um 0, at! um 1]
   let c0 := (prefix_.getD 0 0).toNat
   let c1 := (prefix_.getD 1 0).toNat
   match ReceiveKernel.certLength c0 c1 with
@@ -730,16 +832,16 @@ def firstContent (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (oursH se
   | some cert =>
     if !(ReceiveKernel.contentOk u cert false && u ≤ 16384 && loaded (contentShapeName u c0 c1)) then
       refuse live [senderF] else
-    let cs ← stage (contentShapeName u c0 c1) [content, valid] contentShapeOut
+    let cs ← stage (contentShapeName u c0 c1) (contentIn um) contentShapeOut
     let shape ← openFree (at! cs 0) Label.contentShape
     match flagAt (bytesOf shape) 0, flagAt (bytesOf shape) 1 with
     | some plain, some hint =>
       if plain == hint || (bytesOf shape).length != 4 then refuse live [senderF] else
       if !(ReceiveKernel.contentOk u cert hint && loaded (contentName u c0 c1 (if hint then 1 else 0))) then
         refuse live [senderF] else
-      let ct ← stage (contentName u c0 c1 (if hint then 1 else 0)) [content, valid] (contentOut u cert hint)
-      Gen.freeAll [valid, content]
-      firstCertificate cv loaded fi oursH senderId ct senderF c0 c1 cert (bytesOf shape) (messageBytes u cert hint)
+      let ct ← stage (contentName u c0 c1 (if hint then 1 else 0)) (contentIn um) (contentOut u cert hint)
+      Gen.freeAll (contentIn um)
+      firstCertificate cv loaded fi us ct oursH senderF c0 c1 cert (bytesOf shape) (messageBytes u cert hint)
     | _, _ => refuse live [senderF]
 
 /-- **Op 50: open the held envelope (`size` bytes) as a new contact's first message.** Refused
@@ -756,52 +858,18 @@ def openFirst (cv : Curve) (loaded : Bytes → Bool) (fi : FirstIn) (env : BoolH
   Gen.freeFields [ephF]
   -- step 3: the sender's identity key
   let oursH ← publicBits (bitsOf fi.ours)
-  let us ← stage (unsealStaticName size) [env, oursH, at! a1 0] unsealStaticOut
+  let us ← stage (unsealStaticName size) (staticIn env oursH (at! a1 0)) unsealStaticOut
   Gen.freeAll a1
   let senderF ← toField (at! us 2)
   Gen.freeAll [at! us 2]
   -- steps 4-5: the second agreement, the content; open the certificate's length prefix
   let a2 ← cv.agree [⟨.identity, .handle senderF⟩]
-  let um ← stage (unsealMessageName size) [env, at! us 0, at! us 3, at! a2 0] (unsealMessageOut size)
+  let um ← stage (unsealMessageName size) (messageIn env us (at! a2 0)) (unsealMessageOut size)
   Gen.freeAll ([env, at! us 0, at! us 3] ++ a2)
   let prefix_ ← openFree (at! um 2) Label.certificateLength
-  firstContent cv loaded fi oursH (at! us 1) (at! um 0) (at! um 1) senderF (ReceiveKernel.contentBytes size)
-    (bytesOf prefix_)
+  firstContent cv loaded fi us um oursH senderF (ReceiveKernel.contentBytes size) (bytesOf prefix_)
 
 /-! ## Op 51: the new contact's session (steps 13-17) -/
-
-/-- **The session kernel's inputs, in its declared order** (`ReceiveKernels.sessionInputs`): the
-wiring, shared by the script (handles) and the function-level pipeline (bytes,
-`Flows/ReceiveFlowProofs.lean`). `verified` is `receive-certificate-verified`'s output. -/
-structure SessionIn (α : Type) where
-  message : α
-  prekeyValid : α
-  verified : α
-  senderIdentity : α
-  ourIdentity : α
-  localAddress : α
-  uuid : α
-  deviceId : α
-  dh1 : α
-  dh2 : α
-  dh3 : α
-  dh4 : Option α
-  kemSecret : α
-  receiveAgreement : α
-  sendAgreement : α
-  ratchetPublic : α
-  baseValid : α
-  torsionX : α
-  torsionY : α
-  certificate : α
-  accessKey : α
-  requestId : α
-
-def SessionIn.parts {α : Type} (x : SessionIn α) : List α :=
-  [x.message, x.prekeyValid, x.verified, x.senderIdentity, x.ourIdentity, x.localAddress, x.uuid, x.deviceId,
-    x.dh1, x.dh2, x.dh3] ++ x.dh4.toList ++
-  [x.kemSecret, x.receiveAgreement, x.sendAgreement, x.ratchetPublic, x.baseValid, x.torsionX, x.torsionY,
-    x.certificate, x.accessKey, x.requestId]
 
 /-- The public inputs of `session`. -/
 structure SessionPublic where
@@ -833,13 +901,15 @@ def sessionJobs (a : Arrival) (ss : SessionSecrets) : List Job :=
 /-- **Steps 16-17 after the session's status was opened**: if it is not 255 the message is refused
 and nothing more is opened (`sessionRest_refused`). Otherwise `receive-text` (status first, then
 length ‖ text ‖ layout), `receive-access-key` (status), the contact record. -/
-def sessionRest (loaded : Bytes → Bool) (cert ct : Nat) (conversation plaintext : BoolH) (status : Bits) :
+def sessionRest (loaded : Bytes → Bool) (cert ct : Nat) (se : List BoolH) (status : Bits) :
     Gen (Option (B8 × BoolH)) := do
+  let conversation := at! se 1
+  let plaintext := at! se 3
   if bytesOf status != [255] then refuse [conversation, plaintext] [] else
   let cap := ct - 6
   if !(16 ≤ ct && ct % 16 == 0 && ct ≤ 16384 && 0 < cap && loaded (textName ct cap)) then
     refuse [conversation, plaintext] [] else
-  let tx ← stage (textName ct cap) [plaintext] (textOut cap)
+  let tx ← stage (textName ct cap) (textIn se) (textOut cap)
   let s2 ← openFree (at! tx 0) Label.sessionStatus
   if bytesOf s2 != [255] then refuse [conversation, plaintext, at! tx 1, at! tx 2, at! tx 3] [] else
   let body ← join [at! tx 1, at! tx 2, at! tx 3]
@@ -850,7 +920,7 @@ def sessionRest (loaded : Bytes → Bool) (cert ct : Nat) (conversation plaintex
   | some (text, start) =>
     if !(cert ≤ 1024 && start + text.length + 34 ≤ ct && loaded (accessKeyName cert ct (start + text.length))) then
       refuse [conversation, plaintext] [] else
-    let ak ← stage (accessKeyName cert ct (start + text.length)) [conversation, plaintext] (accessKeyOut cert)
+    let ak ← stage (accessKeyName cert ct (start + text.length)) (accessKeyIn se) (accessKeyOut cert)
     Gen.freeAll [conversation, plaintext]
     let s3 ← openFree (at! ak 0) Label.accessKeyStatus
     if bytesOf s3 != [255] then refuse [at! ak 1] [] else
@@ -878,7 +948,7 @@ def session (cv : Curve) (loaded : Bytes → Bool) (a : Arrival) (sp : SessionPu
   let live := a.bools ++ [bvW, txW, tyW, kemH, addrH, accH, reqH] ++ ag
   -- step 15: the Signal message's shape
   if !(loaded (signalShapeName a.size a.widths)) then refuse live [] else
-  let sh ← stage (signalShapeName a.size a.widths) [a.message, a.prekeyValid] signalShapeOut
+  let sh ← stage (signalShapeName a.size a.widths) (signalShapeIn a.held) signalShapeOut
   let shape ← openFree (at! sh 0) Label.signalShape
   match signalValues (bytesOf shape) with
   | none => refuse live []
@@ -893,18 +963,12 @@ def session (cv : Curve) (loaded : Bytes → Bool) (a : Arrival) (sp : SessionPu
           (vs.getD 4 0) sp.jump
         if !(ss.cert ≤ 1024 && sp.jump ≤ 16 && loaded name) then refuse live [] else
         -- step 16: the session; its status
-        let x : SessionIn BoolH :=
-          { message := a.message, prekeyValid := a.prekeyValid, verified := a.verified,
-            senderIdentity := a.senderIdentity, ourIdentity := a.ours, localAddress := addrH, uuid := a.uuid,
-            deviceId := a.device, dh1 := at! ag 0, dh2 := at! ag 1, dh3 := at! ag 2,
-            dh4 := if a.oneTime then some (at! ag 6) else none, kemSecret := kemH,
-            receiveAgreement := at! ag 3, sendAgreement := at! ag 4, ratchetPublic := at! ag 5,
-            baseValid := bvW, torsionX := txW, torsionY := tyW, certificate := ss.certificate,
-            accessKey := accH, requestId := reqH }
-        let se ← stage name x.parts (sessionOut ss.cert q.ciphertext)
+        let se ← stage name
+          (sessionInOf a.held ag a.oneTime bvW txW tyW kemH addrH accH reqH ss.certificate).parts
+          (sessionOut ss.cert q.ciphertext)
         Gen.freeAll (live ++ [at! se 2])
         let status ← openFree (at! se 0) Label.sessionStatus
-        sessionRest loaded ss.cert q.ciphertext (at! se 1) (at! se 3) status
+        sessionRest loaded ss.cert q.ciphertext se status
 
 /-! ## The provisional ids (next to `Contacts.assign`, plan S14) -/
 
@@ -958,9 +1022,8 @@ def allFirst : List TlsMpc.Node.RevealKind := firstKinds ++ cv.kinds
 theorem mem_allFirst (k : TlsMpc.Node.RevealKind) (hk : k ∈ firstKinds) : k ∈ allFirst cv :=
   List.mem_append_left _ hk
 
-theorem firstPrekey_reveals (oursH senderId valid messageType message uuid device verified : BoolH)
-    (senderF : FieldH) (n : Nat) :
-    RevealsG (allFirst cv) (firstPrekey loaded oursH senderId valid messageType message uuid device verified senderF n) := by
+theorem firstPrekey_reveals (us ct ce ve : List BoolH) (oursH : BoolH) (senderF : FieldH) (n : Nat) :
+    RevealsG (allFirst cv) (firstPrekey loaded us ct ce ve oursH senderF n) := by
   unfold firstPrekey
   dsimp only
   refine RevealsG.ite (refuse_reveals _ _) ?_
@@ -978,9 +1041,9 @@ theorem firstPrekey_reveals (oursH senderId valid messageType message uuid devic
     refine RevealsG.bind (toField_reveals (mem_allFirst cv _ (by simp [firstKinds])) _) fun _ => ?_
     exact RevealsG.bind (RevealsG.freeAll _) fun _ => RevealsG.pure _
 
-theorem firstCertificate_reveals (oursH senderId : BoolH) (ct : List BoolH) (senderF : FieldH) (c0 c1 cert : Nat)
+theorem firstCertificate_reveals (us ct : List BoolH) (oursH : BoolH) (senderF : FieldH) (c0 c1 cert : Nat)
     (shape : B8) (msg : Nat) :
-    RevealsG (allFirst cv) (firstCertificate cv loaded fi oursH senderId ct senderF c0 c1 cert shape msg) := by
+    RevealsG (allFirst cv) (firstCertificate cv loaded fi us ct oursH senderF c0 c1 cert shape msg) := by
   unfold firstCertificate
   split
   · exact refuse_reveals _ _
@@ -1008,10 +1071,10 @@ theorem firstCertificate_reveals (oursH senderId : BoolH) (ct : List BoolH) (sen
       refine RevealsG.bind (publicBits_reveals _) fun _ => ?_
       refine RevealsG.bind (stage_reveals _ _ _) fun _ => ?_
       refine RevealsG.bind (RevealsG.freeAll _) fun _ => ?_
-      exact firstPrekey_reveals cv loaded _ _ _ _ _ _ _ _ _ _
+      exact firstPrekey_reveals cv loaded _ _ _ _ _ _ _
 
-theorem firstContent_reveals (oursH senderId valid content : BoolH) (senderF : FieldH) (u : Nat) (prefix_ : B8) :
-    RevealsG (allFirst cv) (firstContent cv loaded fi oursH senderId valid content senderF u prefix_) := by
+theorem firstContent_reveals (us um : List BoolH) (oursH : BoolH) (senderF : FieldH) (u : Nat) (prefix_ : B8) :
+    RevealsG (allFirst cv) (firstContent cv loaded fi us um oursH senderF u prefix_) := by
   unfold firstContent
   dsimp only
   split
@@ -1047,7 +1110,7 @@ theorem openFirst_reveals (env : BoolH) (size : Nat) :
   refine RevealsG.bind (stage_reveals _ _ _) fun _ => ?_
   refine RevealsG.bind (RevealsG.freeAll _) fun _ => ?_
   refine RevealsG.bind (openFree_reveals _ .certificateLength (mem_allFirst cv _ (by simp [firstKinds]))) fun _ => ?_
-  exact firstContent_reveals cv loaded fi _ _ _ _ _ _ _
+  exact firstContent_reveals cv loaded fi _ _ _ _ _ _
 
 end KindsFirst
 
@@ -1060,8 +1123,8 @@ def allSession : List TlsMpc.Node.RevealKind := sessionKinds ++ cv.kinds
 theorem mem_allSession (k : TlsMpc.Node.RevealKind) (hk : k ∈ sessionKinds) : k ∈ allSession cv :=
   List.mem_append_left _ hk
 
-theorem sessionRest_reveals (cert ct : Nat) (conversation plaintext : BoolH) (status : Bits) :
-    RevealsG (allSession cv) (sessionRest loaded cert ct conversation plaintext status) := by
+theorem sessionRest_reveals (cert ct : Nat) (se : List BoolH) (status : Bits) :
+    RevealsG (allSession cv) (sessionRest loaded cert ct se status) := by
   unfold sessionRest
   dsimp only
   refine RevealsG.ite (refuse_reveals _ _) ?_
@@ -1115,7 +1178,7 @@ theorem session_reveals (a : Arrival) (sp : SessionPublic) (ss : SessionSecrets)
         refine RevealsG.bind (stage_reveals _ _ _) fun _ => ?_
         refine RevealsG.bind (RevealsG.freeAll _) fun _ => ?_
         refine RevealsG.bind (openFree_reveals _ .sessionStatus (mem_allSession cv _ (by simp [sessionKinds]))) fun _ => ?_
-        exact sessionRest_reveals cv loaded _ _ _ _ _
+        exact sessionRest_reveals cv loaded _ _ _ _
 
 end KindsSession
 
@@ -1128,12 +1191,13 @@ def SilentG {α : Type} (g : Gen α) : Prop := RevealsG [] g
 255, the rest of the script releases nothing (it frees the conversation and the plaintext and
 returns `none`); in particular `receive-text` is not even run, so its outputs (zero anyway,
 `ReceiveAccept.receiveText_gated`) are not opened. -/
-theorem sessionRest_refused (loaded : Bytes → Bool) (cert ct : Nat) (conversation plaintext : BoolH) (status : Bits)
+theorem sessionRest_refused (loaded : Bytes → Bool) (cert ct : Nat) (se : List BoolH) (status : Bits)
     (h : bytesOf status ≠ [255]) :
-    sessionRest loaded cert ct conversation plaintext status = refuse [conversation, plaintext] [] ∧
-      SilentG (sessionRest loaded cert ct conversation plaintext status) := by
-  have e : sessionRest loaded cert ct conversation plaintext status = refuse [conversation, plaintext] [] := by
+    sessionRest loaded cert ct se status = refuse [at! se 1, at! se 3] [] ∧
+      SilentG (sessionRest loaded cert ct se status) := by
+  have e : sessionRest loaded cert ct se status = refuse [at! se 1, at! se 3] [] := by
     unfold sessionRest
+    dsimp only
     rw [if_pos (by simpa using h)]
   exact ⟨e, by rw [e]; exact refuse_reveals _ _⟩
 
