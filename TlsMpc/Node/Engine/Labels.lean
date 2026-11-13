@@ -95,17 +95,38 @@ def scalarBitChecks : Label := ofKind .scalarBitChecks
 `maskedDenominator` (90). -/
 def maskedDenominator : Label := ofKind .maskedDenominator
 
+/-! The curve flows (stage S11, kinds 91–95 and 102; `Flows/Curve.lean`). -/
+
+/-- Check values that must open to zero: curve checks of input points (split ECDH, the lift's mask
+points), the scalar-bit and curve checks of `edwards-prepare`; also the (empty) release of a
+program without `D`/`Z` rows in a curve flow. Kind `curveChecks` (91). -/
+def curveChecks : Label := ofKind .curveChecks
+/-- The lift's opened `w = q·r²·2^b`. Kind `liftW` (92). -/
+def liftW : Label := ofKind .liftW
+/-- The lift's opened masked point `Z = P + M_A + M_B`. Kind `liftZ` (93). -/
+def liftZ : Label := ofKind .liftZ
+/-- The lift's validity bit, opened only by contact preparation (op 66). Kind `pointValid` (94). -/
+def pointValid : Label := ofKind .pointValid
+/-- The masked links of hinted tables, with the scalar-bit checks of `edwards-prepare-hinted`
+(opened together, all must be zero). Kind `linkChecks` (95). -/
+def linkChecks : Label := ofKind .linkChecks
+/-- This party's public point of its own scalar (the split-ECDH share k·B, the K₀ half), opened
+after its commitment (`commitment`). Kind `ownPublicPoint` (102). -/
+def ownPublicPoint : Label := ofKind .ownPublicPoint
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
    .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
-   .bitBlockChecks, .scalarBitChecks, .maskedDenominator]
+   .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
+   .curveChecks, .liftW, .liftZ, .pointValid, .linkChecks, .ownPublicPoint]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
   [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob,
    maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
-   bitBlockChecks, scalarBitChecks, maskedDenominator]
+   bitBlockChecks, scalarBitChecks, maskedDenominator,
+   curveChecks, liftW, liftZ, pointValid, linkChecks, ownPublicPoint]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -130,6 +151,7 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
   exact ofKind_ne_zero k
 
 /-- The codes, for the record (the Rust test vectors carry them). -/
-theorem all_codes : all.map (·.code) = [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90] := rfl
+theorem all_codes : all.map (·.code) =
+    [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102] := rfl
 
 end TlsMpc.Node.Engine.Label
