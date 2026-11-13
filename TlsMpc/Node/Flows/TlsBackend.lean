@@ -114,6 +114,10 @@ def ensure (r : Runner) (d : Tls.Direction) (need : Nat) : M Tls.Direction := do
       let m := d.powers
       let t := min (2 * m) maxPowers
       let c := Local.Ghash.oddCount m t
+      if c = 0 then
+        -- No odd power in (m, t] (only m = 1, t = 2): the square is local.
+        d := { d with shares := Local.Ghash.extendOf d.shares t (Secret.hide []), powers := t }
+        continue
       let leftSlot ← r.stashBits ((Local.Ghash.leftsOf d.shares t).map bitsOfWs)
       let rightSlot ← r.stashBits (d.shares.map fun l => bitsOfW (l.getD 0 0))
       let masks ← r.random (16 * c)

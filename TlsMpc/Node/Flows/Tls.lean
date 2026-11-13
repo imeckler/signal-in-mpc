@@ -179,8 +179,7 @@ def typedBlock (n : Nat) (parser traffic : BoolH) (recordPadded size : B8) (cap 
    .concat ⟨n + 7⟩ [parser, traffic, ⟨n⟩, ⟨n + 6⟩, ⟨n + 5⟩],
    .run ⟨n + 8⟩ (typedName cap) 1 ⟨n + 7⟩,
    .slice ⟨n + 9⟩ ⟨n + 8⟩ 0 8,
-   .freeBool ⟨n⟩, .freeBool ⟨n + 3⟩, .freeBool ⟨n + 4⟩, .freeBool ⟨n + 5⟩, .freeBool ⟨n + 6⟩,
-   .freeBool ⟨n + 7⟩]
+   .freeBool ⟨n⟩, .freeBool ⟨n + 3⟩, .freeBool ⟨n + 5⟩, .freeBool ⟨n + 6⟩, .freeBool ⟨n + 7⟩]
 
 /-- Bit 0: the typed kernel's own event and fields (output layout: handshake 1, event 2, parser 11,
 length 2, content `cap − 21`, parsed `cap − 17` bytes). -/
