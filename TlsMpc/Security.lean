@@ -94,6 +94,7 @@ import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Flows.MasksRun
 import TlsMpc.Node.Flows.Registry
+import TlsMpc.Node.Flows.TlsProofs
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -4736,9 +4737,10 @@ theorem gcmMultiply_reshare (assign : BVExpr.Assignment) (masked : List (BitVec 
 open TlsMpc.HybridKernel Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **`tls-seal-ctr` + `gcm-tag` produce the AES-GCM TLS record** — header ‖ ciphertext ‖ tag
 equals `TlsRecord.sealCore` — **provided the two GHASH halves XOR to GHASH** of the header and
-ciphertext (hypothesis `halves`). **K**, but `halves` is discharged only for a modelled schedule
-(`gcm_scheduled_halves_are_ghash`), not for the C++ `gcm_shares.h` (P-GHASH(c), section 8).
-SECURITY_MAP C.3. -/
+ciphertext (hypothesis `halves`). **K**; `halves` is discharged for a modelled schedule
+(`gcm_scheduled_halves_are_ghash`) and, since S12, for the Lean code that replaces `gcm_shares.h`
+(`s12_tls_seal_is_record`, section 7c: P-GHASH (c)); the C++ `gcm_shares.h` itself stays outside
+until the controller switches to the script backend. SECURITY_MAP C.3. -/
 theorem sealCtr_with_tag_is_seal (kind size padding : Nat) (sealing tagging : BVExpr.Assignment)
     (header ciphertext pad tag : List (BitVec 8))
     (sealed : (tlsSealCtr kind size padding).outputs.map (fun field => field.value.map (BVExpr.eval sealing)) =
@@ -5786,6 +5788,174 @@ theorem s10_quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) 
 
 end FlowsS10
 
+/-! ### 7c. GHASH key-power shares and TLS (stage S12; plan 7.1 P-GHASH, 8.1 T3/T4-TLS)
+
+The S12 scripts (`TlsMpc/Node/Flows/{Ghash,Tls,TlsProofs}.lean`, the local arithmetic
+`TlsMpc/Node/Local/Ghash.lean`, the backends `Flows/TlsBackend.lean`; S12_NOTES.md). Status letters
+as above; **M** marks statements about the Lean model of the engines (`Engine/Model.lean`) or about
+a kernel's output read through the script's layout. The kernels' circuits computing their Lean
+definitions (`TlsBase.circuitOf`, `Ghash.GhashLoaded`) is T2's trust, as for the contact kernels. -/
+
+section FlowsS12
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **P-GHASH (a), one round of the doubling schedule** [M]: shares of H¹ … Hᵐ, extended by local
+squares and the engines' odd powers (whose two values XOR to the product of the parties' inputs),
+share H¹ … Hᵗ for m ≤ t ≤ 2m. No multiplication is evaluated; `GhashField.laws`. -/
+theorem s12_ghash_shared_extend (a b : List (BitVec 128)) (h : BitVec 128) (m t : Nat) (oa ob : List (BitVec 128))
+    (hs : Local.Ghash.Shared a b h m) (hm : 1 ≤ m) (hmt : m ≤ t) (ht : t ≤ 2 * m)
+    (hodd : ∀ i, i < t - m → (m + 1 + i) % 2 = 1 →
+      oa.getD (i / 2) 0 ^^^ ob.getD (i / 2) 0 =
+        Local.Ghash.mul (Local.Ghash.left a (m + 1 + i) ^^^ Local.Ghash.left b (m + 1 + i)) (a.getD 0 0 ^^^ b.getD 0 0)) :
+    Local.Ghash.Shared (Local.Ghash.extend a t oa) (Local.Ghash.extend b t ob) h t :=
+  Local.Ghash.shared_extend a b h m t oa ob hs hm hmt ht hodd
+
+/-- **P-GHASH (a), the first share** [K]: A's mask and the `gcm-key-share` output opened to B share
+H = `hashKeyOf K` (`gcmKeyShare_reshare`). -/
+theorem s12_ghash_keyShare_shared (K m : List (BitVec 8)) (hK : K.length = 60) (hm : m.length = 16) :
+    Local.Ghash.Shared [Local.Ghash.ofBytes m] [Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K ++ m))]
+      (HybridKernel.hashKeyOf K) 1 :=
+  Ghash.keyShare_shared K m hK hm
+
+/-- **P-GHASH (a), a round with the engines' values** [K]: A's masks and the `gcm-multiply` outputs
+of the round (`Ghash.roundOpened`) keep the sharing (`gcmMultiply_reshare`). -/
+theorem s12_ghash_round_shared (a b : List (BitVec 128)) (h : BitVec 128) (m t : Nat) (masks : List (List (BitVec 8)))
+    (hs : Local.Ghash.Shared a b h m) (hm : 1 ≤ m) (hmt : m ≤ t) (ht : t ≤ 2 * m)
+    (hmask : ∀ x ∈ masks, x.length = 16) (hcount : masks.length = Local.Ghash.oddCount m t) :
+    Local.Ghash.Shared (Local.Ghash.extend a t (masks.map Local.Ghash.ofBytes))
+      (Local.Ghash.extend b t ((Ghash.roundOpened a b t masks).map Local.Ghash.ofBytes)) h t :=
+  Ghash.round_shared a b h m t masks hs hm hmt ht hmask hcount
+
+/-- **P-GHASH (b) and the halves of (c)** [M]: halves of shared shares with enough powers XOR to
+GCM's GHASH of the header and ciphertext (`shared_halves_are_ghash_proved`). -/
+theorem s12_ghash_halves_xor (traffic aad ct : List (BitVec 8)) (a b : List (BitVec 128)) (n : Nat)
+    (hs : Local.Ghash.Shared a b (HybridKernel.hashKeyOf traffic) n) (hn : (Local.Ghash.blocks aad ct).length ≤ n) :
+    Aes.addRoundKey Gcm.concrete.aes (Local.Ghash.toBytes (Local.Ghash.half a aad ct))
+        (Local.Ghash.toBytes (Local.Ghash.half b aad ct)) =
+      HybridKernel.ghashOf traffic aad ct :=
+  Local.Ghash.halves_xor traffic aad ct a b n hs hn
+
+/-- **P-GHASH (d), the key share hides H** [K]: for any two traffic keys, shifting A's mask by
+H ⊕ H' (an involution) gives B the same opened value. The bijection form `proofs/` consumes. -/
+theorem s12_ghash_keyShare_hides (K K' m : List (BitVec 8)) (hK : K.length = 60) (hK' : K'.length = 60)
+    (hm : m.length = 16) :
+    Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K' ++ Local.Ghash.toBytes
+        (Local.Ghash.ofBytes m ^^^ HybridKernel.hashKeyOf K ^^^ HybridKernel.hashKeyOf K'))) =
+      Local.Ghash.ofBytes (kernelOut HybridKernel.gcmKeyShare (K ++ m)) :=
+  (Ghash.keyShare_hides K K' m hK hK' hm).1
+
+/-- **P-GHASH (d), a product's opening hides the product** [K]: whatever B supplied, exactly one of
+A's masks gives B any given value. -/
+theorem s12_ghash_multiply_hides (la lb ra rb : List (BitVec 8)) (h1 : la.length = 16) (h2 : lb.length = 16)
+    (h3 : ra.length = 16) (h4 : rb.length = 16) (seen : BitVec 128) :
+    ∃ mask : BitVec 128, ∀ m : List (BitVec 8), m.length = 16 →
+      (Local.Ghash.ofBytes (kernelOut HybridKernel.gcmMultiply (la ++ lb ++ ra ++ rb ++ m)) = seen ↔
+        Local.Ghash.ofBytes m = mask) :=
+  Ghash.multiply_hides la lb ra rb h1 h2 h3 h4 seen
+
+/-- **T3, GHASH shares, B honest** [M]: the adversary A's view of a key share is empty, against any
+adversary (everything is opened to B). -/
+theorem s12_ghash_keyShare_viewD_B (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (n : Nat) (traffic : BoolH) (maskSlot dst : Nat) :
+    (withAdv E .b adv (Ghash.keyShareScript n traffic maskSlot dst) σ I vD).viewD = [] :=
+  Ghash.keyShare_viewD_B E adv σ I vD n traffic maskSlot dst
+
+/-- **T3, GHASH shares, B honest, a round** [M]: the adversary A's view is empty. -/
+theorem s12_ghash_round_viewD_B (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (n c l r m dst : Nat) :
+    (withAdv E .b adv (Ghash.roundScript n c l r m dst) σ I vD).viewD = [] :=
+  Ghash.round_viewD_B E adv σ I vD n c l r m dst
+
+/-- **T3, GHASH shares, A honest** [M]: the adversary B receives at most one value, labelled
+ghashMaskedPower: `gcm-key-share` on the traffic block and A's mask (`H ⊕ mask`). -/
+theorem s12_ghash_keyShare_disclosure_A (E : Env) (adv : Adversary) (σ : Store) (I : Ideal) (vD : List Release)
+    (hE : Ghash.GhashLoaded E) (n : Nat) (traffic : BoolH) (maskSlot dst : Nat)
+    (K m : List (BitVec 8)) (hK : K.length = 60) (hm : m.length = 16) (htn : traffic.id < n)
+    (hk : I.bools traffic.id = some (bitsOf K)) (hσ : σ.bits maskSlot = bitsOf m) :
+    (withAdv E .a adv (Ghash.keyShareScript n traffic maskSlot dst) σ I vD).viewD <+:
+      [⟨Ghash.masked, .bits (bitsOf (kernelOut HybridKernel.gcmKeyShare (K ++ m)))⟩] :=
+  Ghash.keyShare_disclosure_A E adv σ I vD hE n traffic maskSlot dst K m hK hm htn hk hσ
+
+/-- **T4-TLS, the seal: `sealCtr_with_tag_is_seal` with its halves DISCHARGED** [K]: `tls-seal-ctr`'s
+header ‖ ciphertext and `gcm-tag` on its pad and the two parties' halves of shares of H¹ … Hⁿ
+(n covering the record) is `TlsRecord.sealCore`. Closes P-GHASH (c) for the Lean code. -/
+theorem s12_tls_seal_is_record (kind size padding : Nat) (K seqB C : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8) (hC : C.length = size) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Tls.innerLength size padding) ≤ nPow) :
+    let out := kernelOut (HybridKernel.tlsSealCtr kind size padding) (K ++ (seqB ++ C))
+    let hc := out.take (5 + Tls.innerLength size padding)
+    let pad := (out.drop (5 + Tls.innerLength size padding)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB C kind padding :=
+  Tls.seal_is_record kind size padding K seqB C hK hs hC a b nPow hsh hn
+
+/-- **T4-TLS, the tag check** [K]: with honest halves the private acceptance byte is 255 exactly
+when the received tag is GCM's tag of the received header and ciphertext under the server key. -/
+theorem s12_tls_check_accepts (K seqB hdr ct tag : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (ht : tag.length = 16) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) (hn : (Local.Ghash.blocks hdr ct).length ≤ nPow) :
+    kernelOut HybridKernel.gcmCheck (K ++ (seqB ++ (Local.Ghash.toBytes (Local.Ghash.half a hdr ct) ++
+        (Local.Ghash.toBytes (Local.Ghash.half b hdr ct) ++ tag)))) =
+      [if Aes.addRoundKey Gcm.concrete.aes (HybridKernel.ghashOf K hdr ct) (HybridKernel.padOf K seqB) = tag
+        then 255 else 0] :=
+  Tls.check_accepts K seqB hdr ct tag hK hs ht a b nPow hsh hn
+
+open TlsMpc.TypedOpenKernel in
+open TlsMpc.HybridKernel (lookup) in
+/-- **T4-TLS, the typed open** [K] (`typed_pair_refines`, `class_fields`): the opened bit is 0 or
+255; on 0 the typed kernel's event and fields, on 255 `tls-frame`'s, are the class kernel's,
+`fields (classSpec …)`. -/
+theorem s12_tls_open_event_refines (cap : Nat) (typed frame : BVExpr.Assignment)
+    (hp : (lookup (frameInputs cap) "parser").map (BVExpr.eval frame) =
+      (lookup (typedInputs cap) "parser").map (BVExpr.eval typed))
+    (hq : (lookup (frameInputs cap) "parsed").map (BVExpr.eval frame) = (typedParsed cap).map (BVExpr.eval typed)) :
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [0] ∨ (fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [255]) ∧
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [0] →
+      ((fieldValues (tlsOpenTyped cap) typed).drop 1).take 4 = fields (classSpec cap typed)) ∧
+    ((fieldValues (tlsOpenTyped cap) typed).getD 0 [] = [255] →
+      fieldValues (tlsFrame cap) frame = fields (classSpec cap typed)) :=
+  Tls.open_event_refines cap typed frame hp hq
+
+/-- **What the reveal kernel opens through `revealScript`** [K] (`tlsRevealMasked_value`). -/
+theorem s12_tls_reveal_value (cap : Nat) (hcap : cap < 65536) (len content : List (BitVec 8)) (hl : len.length = 2)
+    (hc : content.length = cap) :
+    kernelOut (HybridKernel.tlsRevealMasked cap) (len ++ content) =
+      len ++ (if Tls.lengthOf len ≤ cap then content.take (Tls.lengthOf len) ++ List.replicate (cap - Tls.lengthOf len) 0
+        else List.replicate cap 0) :=
+  Tls.reveal_value cap hcap len content hl hc
+
+/-- **A revealed range below the length is the server's bytes** [K-fn]. -/
+theorem s12_tls_range_value (content : List (BitVec 8)) (n lo hi : Nat) (hhi : hi ≤ n) (hn : n ≤ content.length) :
+    (((content.take n ++ List.replicate (content.length - n) 0).drop lo).take (hi - lo)) =
+      (content.drop lo).take (hi - lo) :=
+  Tls.range_value content n lo hi hhi hn
+
+/-- **The Finished check through `verifyScript`** [K] (`tlsVerifyFinished_spec`). -/
+theorem s12_tls_verify_value (S hash message : List (BitVec 8)) (hS : S.length = 60) (hh : hash.length = 32)
+    (hm : message.length = 36) :
+    kernelOut HybridKernel.tlsVerifyFinished (S ++ (hash ++ message)) =
+      [if TlsHandshake.finishedMessage Sha256.concrete (S.take 32) hash = message then 255 else 0] :=
+  Tls.verify_value S hash message hS hh hm
+
+/-- **The handshake record opening through `openHandshakeScript`** [K] (`tlsOpenHandshake_spec`). -/
+theorem s12_tls_openHandshake_value (size : Nat) (S seqB record : List (BitVec 8)) (hS : S.length = 60)
+    (hs : seqB.length = 8) (hr : record.length = size) :
+    kernelOut (HybridKernel.tlsOpenHandshake size) (S ++ (seqB ++ record)) =
+      TlsPublicHandshake.gate ByteAuth.concrete
+        (TlsReceive.spec ((S.drop 32).take 16) ((S.drop 48).take 12) seqB record) :=
+  Tls.openHandshake_value size S seqB record hS hs hr
+
+/-- **The 64-record window keeps at most 64** [K-fn] (`tls_worker_v3.cpp:321-329`). -/
+theorem s12_tls_window_bound (w : Tls.Window) (id : Nat) : (w.push id).1.length ≤ Tls.keptRecords :=
+  Tls.Window.push_bound w id
+
+end FlowsS12
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -5930,8 +6100,15 @@ the matching section above in the same commit.
   protocol level. Open: the run-level statement through the program instructions.
 * **P-INV** (masked inversion `D`/`Z` nodes), **P-FIELDPROG** (what a program releases). → **S9**,
   **S11**.
-* **P-GHASH** (incl. (c): `sealCtr_with_tag_is_seal`'s `halves` discharged for the running
-  code). → **S12**.
+* **P-GHASH**: (a) for the doubling schedule (`s12_ghash_shared_extend`, the kernels' resharing
+  `s12_ghash_keyShare_shared`, `s12_ghash_round_shared`), (b) (`s12_ghash_halves_xor`), (c) for the
+  Lean code (`s12_tls_seal_is_record`, `s12_tls_check_accepts`), (d) (`s12_ghash_keyShare_hides`,
+  `s12_ghash_multiply_hides`, the views `s12_ghash_keyShare_viewD_B`, `s12_ghash_round_viewD_B`,
+  `s12_ghash_keyShare_disclosure_A`) proved in section 7c (S12). Open: (a) through `jointRun` for a
+  whole `ensure` (the per-round statements are at kernel level; the stand-in pair test checks a run);
+  (e) is `ghash_genuine_rejected` / `ghash_accept_unique_pad` (section 6c), not restated about the
+  scripts; `roundScript`'s WF; that the controller-side runner executes `TlsBackend.ensure` as
+  written (the runner does not exist yet).
 * **P-SPLIT** (split ECDH), **P-OFFSET** (offset agreement about `step`, incl. the digit
   recoding lemma), **P-HINT** (lift and tables, under H-QR). → **S11**.
 * `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
@@ -5944,7 +6121,11 @@ the matching section above in the same commit.
 * **T4-x** — composition per flow (CONTACT, UPGRADE, TLS, SEND, RECV, REFRESH, CEREMONY): under
   the ideal model with both parties honest, the flow's result equals its specification.
   → **S9** (CONTACT), **S12** (TLS), **S13** (SEND), **S14** (RECV), **S15** (REFRESH), **S16**
-  (UPGRADE, CEREMONY).
+  (UPGRADE, CEREMONY). TLS (S12, section 7c): at the function level (each kernel's output read
+  through the script's layout: `s12_tls_seal_is_record`, `s12_tls_check_accepts`,
+  `s12_tls_open_event_refines`, `s12_tls_reveal_value`, `s12_tls_verify_value`,
+  `s12_tls_openHandshake_value`); not yet through `jointRun` (S12_NOTES.md, gaps), and the
+  derive step's agreement input is S11's (`TlsBackend.KeyAgreement`).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -6471,6 +6652,23 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s10_flows_reveal
 #print axioms TlsMpc.Security.s10_challenge_wf
 #print axioms TlsMpc.Security.s10_quotient_wf
+#print axioms TlsMpc.Security.s12_ghash_shared_extend
+#print axioms TlsMpc.Security.s12_ghash_keyShare_shared
+#print axioms TlsMpc.Security.s12_ghash_round_shared
+#print axioms TlsMpc.Security.s12_ghash_halves_xor
+#print axioms TlsMpc.Security.s12_ghash_keyShare_hides
+#print axioms TlsMpc.Security.s12_ghash_multiply_hides
+#print axioms TlsMpc.Security.s12_ghash_keyShare_viewD_B
+#print axioms TlsMpc.Security.s12_ghash_round_viewD_B
+#print axioms TlsMpc.Security.s12_ghash_keyShare_disclosure_A
+#print axioms TlsMpc.Security.s12_tls_seal_is_record
+#print axioms TlsMpc.Security.s12_tls_check_accepts
+#print axioms TlsMpc.Security.s12_tls_open_event_refines
+#print axioms TlsMpc.Security.s12_tls_reveal_value
+#print axioms TlsMpc.Security.s12_tls_range_value
+#print axioms TlsMpc.Security.s12_tls_verify_value
+#print axioms TlsMpc.Security.s12_tls_openHandshake_value
+#print axioms TlsMpc.Security.s12_tls_window_bound
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
