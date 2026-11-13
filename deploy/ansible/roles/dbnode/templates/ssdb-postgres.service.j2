@@ -1,0 +1,20 @@
+[Unit]
+Description=Postgres of database node {{ node }} (data on {{ data_root }}/ssdb/postgres)
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker rm -f ssdb-postgres
+ExecStart=/usr/bin/docker run --rm --name ssdb-postgres --network host \
+  -e POSTGRES_USER=dbuser -e POSTGRES_DB=ssdb -e POSTGRES_PASSWORD_FILE=/run/secrets/pg \
+  -v {{ data_root }}/ssdb/postgres:/var/lib/postgresql/data \
+  -v {{ data_root }}/ssdb/pg-password:/run/secrets/pg:ro \
+  --log-driver json-file --log-opt max-size=50m --log-opt max-file=5 \
+  {{ postgres_image }} postgres -c listen_addresses=127.0.0.1 -c max_connections=120
+ExecStop=/usr/bin/docker stop -t 60 ssdb-postgres
+Restart=always
+RestartSec=10
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=tls-mpc monitoring page on {{ node }}
+After=network-online.target pb-health.service wg-quick@wg0.service
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/pb/pb_health.py page /etc/pb/health.json
+Restart=always
+RestartSec=10
+DynamicUser=yes
+
+[Install]
+WantedBy=multi-user.target

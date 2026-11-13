@@ -1,0 +1,182 @@
+# deploy.py testapp: a TEST application server on the local provider (local-test only). It holds
+# the application's notify and signup keys (made on it), reaches the two daemons over the tunnel,
+# and runs the image's notify-app stand-in. Never used with a real Signal endpoint.
+- name: Test application server
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    app: /srv/data/app
+    notify_app: >-
+      docker run --rm --network host --user 10001:10001 -v {{ app }}/keys:/k:ro -v {{ app }}/work:/w
+      sha256:{{ image_id }} notify-app
+    common: >-
+      --daemons 10.77.0.1:19700,10.77.0.2:19700 --db-client /opt/tls-mpc/bin/handoff_client --work /w/session
+      --key /k/notify-key.json --app-config /k/signup-key.json --network /w/network.json
+  tasks:
+    - name: Prepare the machine (as for any node)
+      when: action == 'up'
+      block:
+        - name: Wait until ssh answers
+          ansible.builtin.wait_for_connection:
+            timeout: 300
+        - name: Packages
+          ansible.builtin.apt:
+            name: [docker.io, wireguard-tools, python3, openssl]
+            update_cache: true
+            cache_valid_time: 3600
+            install_recommends: false
+        - name: Docker settings (the classic image store, whose ids are configuration digests)
+          ansible.builtin.copy:
+            dest: /etc/docker/daemon.json
+            mode: "0644"
+            content: '{"features": {"containerd-snapshotter": false}}'
+          register: docker_settings
+        - name: Docker
+          ansible.builtin.systemd_service:
+            name: docker
+            state: "{{ 'restarted' if docker_settings.changed else 'started' }}"
+            enabled: true
+        - name: Directories
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: directory
+            mode: "0755"
+          loop: [/opt/pb, /srv/data/pb/keys, "{{ app }}"]
+        - name: Helper
+          ansible.builtin.copy:
+            src: /deploy/node/pb_node.py
+            dest: /opt/pb/pb_node.py
+            mode: "0755"
+        - name: Is the image loaded?
+          ansible.builtin.command: docker image inspect sha256:{{ image.id }} --format ok
+          register: present
+          changed_when: false
+          failed_when: false
+        - name: Copy the image
+          ansible.builtin.copy:
+            src: "{{ image.tar }}"
+            dest: /srv/data/pb/image.tar
+            mode: "0600"
+          when: present.rc != 0
+        - name: Load the image
+          ansible.builtin.command: docker image load -i /srv/data/pb/image.tar
+          when: present.rc != 0
+          changed_when: true
+        - name: Make the application's keys and its tunnel key (kept if they exist)
+          ansible.builtin.command: python3 /opt/pb/pb_node.py keys app /srv/data --image sha256:{{ image.id }}
+          register: keys
+          changed_when: false
+        - name: Remember the image
+          ansible.builtin.copy:
+            dest: "{{ app }}/image-id"
+            content: "{{ image.id }}"
+            mode: "0644"
+        - name: Work directory
+          ansible.builtin.file:
+            path: "{{ app }}/work"
+            state: directory
+            owner: "10001"
+            mode: "0700"
+        - name: Public keys
+          ansible.builtin.copy:
+            dest: /state/fetched/app-public.json
+            content: "{{ {'wireguard_public_key': (keys.stdout | from_json).wireguard_public_key} | combine((keys.stdout | from_json).app) | to_nice_json }}"
+            mode: "0644"
+          delegate_to: localhost
+          become: false
+
+    - name: The image in use
+      ansible.builtin.slurp:
+        src: "{{ app }}/image-id"
+      register: image_file
+      when: action != 'up'
+
+    - name: Image id
+      ansible.builtin.set_fact:
+        image_id: "{{ image_file.content | b64decode | trim }}"
+      when: action != 'up'
+
+    - name: Connect to the computation nodes
+      when: action == 'start'
+      block:
+        - name: Tunnel
+          ansible.builtin.copy:
+            dest: /etc/wireguard/wg0.conf
+            mode: "0600"
+            content: |
+              [Interface]
+              Address = 10.77.0.100/24
+              PostUp = wg set %i private-key /srv/data/pb/keys/wg.key
+              {% for p in peers %}
+
+              [Peer]
+              # {{ p.node }}
+              PublicKey = {{ p.public_key }}
+              AllowedIPs = {{ p.address }}/32
+              Endpoint = {{ p.endpoint }}
+              PersistentKeepalive = 25
+              {% endfor %}
+          register: wg
+        - name: Tunnel up
+          ansible.builtin.systemd_service:
+            name: wg-quick@wg0
+            enabled: true
+            state: "{{ 'restarted' if wg.changed else 'started' }}"
+        - name: Network configuration
+          ansible.builtin.copy:
+            dest: "{{ app }}/work/network.json"
+            content: "{{ network_config | to_nice_json }}"
+            owner: "10001"
+            mode: "0644"
+
+    - name: Signup tokens for the account's contacts and the account
+      when: action == 'tokens'
+      block:
+        - name: Token directory
+          ansible.builtin.file:
+            path: "{{ app }}/work/tokens"
+            state: directory
+            owner: "10001"
+            mode: "0700"
+        - name: Sign
+          ansible.builtin.command: >-
+            docker run --rm --network none --user 10001:10001 -v {{ app }}/keys:/k:ro -v {{ app }}/work:/w
+            --entrypoint /opt/tls-mpc/bin/handoff_client sha256:{{ image_id }}
+            sign-signup --app-config /k/signup-key.json --id {{ item }} --out /w/tokens/{{ item }}.json
+          args:
+            creates: "{{ app }}/work/tokens/{{ item }}.json"
+          loop: "{{ ids }}"
+        - name: Fetch
+          ansible.builtin.fetch:
+            src: "{{ app }}/work/tokens/{{ item }}.json"
+            dest: "/state/fetched/tokens/{{ item }}.json"
+            flat: true
+          loop: "{{ ids }}"
+
+    - name: The notify-app commands (token, events, notify)
+      when: action in ['token', 'events', 'notify']
+      block:
+        - name: Message
+          ansible.builtin.copy:
+            dest: "{{ app }}/work/message.txt"
+            content: "{{ text }}"
+            owner: "10001"
+            mode: "0600"
+          when: action == 'notify'
+        - name: Run
+          ansible.builtin.command: >-
+            {{ notify_app }}
+            {{ {'token': 'token --id ' ~ id, 'events': 'events --wait 300 --until-id ' ~ id,
+                'notify': 'notify --ids ' ~ id ~ ' --message-file /w/message.txt --timeout 420'}[action] }}
+            {{ common }}
+          register: out
+          changed_when: true
+          failed_when: false
+        - name: Keep the answer (the last JSON line)
+          ansible.builtin.copy:
+            dest: "/state/fetched/{{ action }}.json"
+            content: "{{ (out.stdout_lines | select('match', '^\\{') | list | last) | default('{}') }}"
+            mode: "0644"
+          delegate_to: localhost
+          become: false

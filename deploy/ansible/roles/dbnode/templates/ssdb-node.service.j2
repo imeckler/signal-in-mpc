@@ -1,0 +1,23 @@
+[Unit]
+Description=secret-shared-db node {{ node }} (index {{ me.db_index }})
+After=docker.service ssdb-postgres.service wg-quick@wg0.service
+Requires=docker.service ssdb-postgres.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker rm -f ssdb-node
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 60); do docker exec ssdb-postgres pg_isready -q -h 127.0.0.1 -U dbuser -d ssdb && exit 0; sleep 2; done; exit 1'
+# Start together with the other database nodes (the server dials its peers only once).
+ExecStartPre=/usr/bin/python3 /opt/pb/pb_health.py db-barrier /etc/pb/health.json 1800
+ExecStart=/usr/bin/docker run --rm --name ssdb-node --network host --read-only \
+  --security-opt no-new-privileges:true --cap-drop ALL \
+  -e RUST_LOG=info,sqlx=warn,tarpc=warn -e RAYON_NUM_THREADS=2 \
+  -v {{ data_root }}/ssdb/config:/srv/ssdb/config:ro \
+  --log-driver json-file --log-opt max-size=100m --log-opt max-file=10 \
+  sha256:{{ me.image_id }}
+ExecStop=/usr/bin/docker stop -t 30 ssdb-node
+Restart=always
+RestartSec=15
+TimeoutStartSec=2100
+
+[Install]
+WantedBy=multi-user.target

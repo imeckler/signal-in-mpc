@@ -1,0 +1,25 @@
+# Every private key is made here, on the node, and kept on its data disk (so a replaced machine
+# keeps its identity); only the public parts are fetched.
+- name: Make this node's keys (kept if they exist)
+  ansible.builtin.command: >-
+    python3 /opt/pb/pb_node.py keys {{ node_role }} {{ data_root }}
+    {{ '--party ' ~ party if node_role == 'mpc' else '' }}
+    {{ '--image sha256:' ~ images.node.id if node_role in ['mpc', 'app'] else '' }}
+    {{ '--dbimage sha256:' ~ images.dbnode.id if node_role == 'db' else '' }}
+  register: keys_out
+  changed_when: false
+
+- name: The public facts of this node
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/pb/public/facts.json"
+    mode: "0644"
+    content: >-
+      {{ {'node': node, 'keys': keys_out.stdout | from_json,
+          'digests': (digests_out.stdout | from_json) if node_role == 'mpc' else None}
+         | combine(image_facts_out.stdout | from_json) | to_nice_json }}
+
+- name: Fetch the public facts
+  ansible.builtin.fetch:
+    src: "{{ data_root }}/pb/public/facts.json"
+    dest: "/state/facts/{{ node }}.json"
+    flat: true

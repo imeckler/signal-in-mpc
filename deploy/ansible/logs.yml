@@ -1,0 +1,22 @@
+# deploy.py logs: the services' logs, redacted ON the node (deploylib.redact), then fetched.
+- name: Logs of this operator's nodes
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Collect and redact
+      ansible.builtin.command: python3 /opt/pb/pb_health.py logs {{ lines }} /tmp/pb-logs
+      register: collected
+      changed_when: false
+
+    - name: Fetch
+      ansible.builtin.fetch:
+        src: "/tmp/pb-logs/{{ item }}"
+        dest: "/state/logs/nodes/{{ node }}/{{ item }}"
+        flat: true
+      loop: "{{ collected.stdout | from_json }}"
+
+    - name: Remove the node-side copy
+      ansible.builtin.file:
+        path: /tmp/pb-logs
+        state: absent

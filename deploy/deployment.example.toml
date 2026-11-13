@@ -1,0 +1,91 @@
+# THE SHARED DEPLOYMENT FILE (deployment.toml). Public: no secrets. Every operator uses the SAME
+# file; send it by any means (email, chat, a shared git repository). Any change to it changes
+# the deployment fingerprint, so everyone must have the identical file.
+#
+#   python3 deploy/deploy.py init      copies this file to deploy/deployment.toml
+#
+# The things to fill in are marked FILL.
+
+# A short name for this deployment: lower-case letters, digits and "-".
+name = "example"                                  # FILL
+
+# "malicious" (default): secure even if one computation node cheats (statistical security 128).
+# "semi-honest": assumes both computation nodes follow the protocol; about 8 times less traffic
+# between them and roughly twice the throughput. Both nodes always run the same mode.
+security = "malicious"
+
+# Which logic the computation nodes run between the engines:
+#   "legacy" (default)  the C++ logic inside the worker: the tested production path.
+#   "lean"              the Lean scripts (SIGNAL_SCRIPTS = the closed selection). Slower until parity
+#                       and NOT yet the tested production path.
+worker_logic = "legacy"
+
+# The two computation nodes should be on different providers (otherwise that provider could read
+# both). Set true only if you accept that.
+allow_same_provider = false
+
+[application-server]
+# The application server's public keys (base64, 44 characters each), from its operator:
+#   handoff_client gen-key --out notify-key.json   (prints the notify public key)
+#   handoff_client gen-key --out signup-key.json   (prints the signup public key)
+# A local test makes test ones: `python3 deploy/deploy.py testapp up` fills all three.
+notify_public_key = "FILL-the-application-servers-notify-public-key"     # FILL
+signup_public_key = "FILL-the-application-servers-signup-public-key"     # FILL
+# Its WireGuard public key (`wg genkey | wg pubkey` on the application server): it reaches the two
+# daemons through the tunnel at 10.77.0.1:19700 and 10.77.0.2:19700. Empty: no application yet.
+wireguard_public_key = ""
+
+[signal]
+# "local-test" (default): the test Signal server on THIS computer (provider "local" only).
+# "none": deploy everything but never start a Signal session (try the cloud without any risk).
+# "production": the real Signal service. Owner only: `join`/`start`/`up` then need
+#               --i-have-the-go-ahead, and nothing connects before the account step.
+endpoint = "local-test"
+# Refresh the sender certificate (valid 7 days) when fewer than this many hours remain.
+certificate_margin_hours = 48
+
+[database]
+# FIVE database nodes (db-node-0 ... db-node-4) is what the system runs. Any `threshold` of them
+# together can reconstruct a contact's key: no operator may run that many.
+threshold = 3
+# An epoch needs threshold + max_malicious signatures: 1 lets the database go on with one node down.
+max_malicious = 1
+# Seconds per epoch, identical on every node (120 is the database's default).
+epoch_seconds = 120
+
+[monitoring]
+# Each operator gets a page for their own nodes. Name a node here to also host a COMBINED page
+# of every node (its operator opens it with `deploy.py monitor`). Empty: per-operator pages only.
+combined_page_on = ""
+
+# Who operates which node: a short name per operator. In the example: alice runs computation
+# node 0 and two database nodes, bob computation node 1 and two, carol one database node.
+# One person running everything: put the same name everywhere and use `deploy.py up`.
+[nodes.mpc-node-0]
+operator = "alice"                                # FILL
+[nodes.mpc-node-1]
+operator = "bob"                                  # FILL
+[nodes.db-node-0]
+operator = "alice"
+[nodes.db-node-1]
+operator = "alice"
+[nodes.db-node-2]
+operator = "bob"
+[nodes.db-node-3]
+operator = "bob"
+[nodes.db-node-4]
+operator = "carol"
+
+[software]
+# What every node must run. The builder fills these with `deploy.py build` (or `build --record`);
+# every operator runs the deploy tool itself from `commit`, obtained from the repository, never
+# from another operator.
+commit = ""
+# "one-builder": everyone runs the images built by one builder (digests below, enforced).
+# "each-operator": each operator builds from `commit` themselves; image digests then differ
+# (builds are not reproducible yet) and only the commit, circuits, pins and settings are compared.
+builds = "one-builder"
+node_image = ""
+dbnode_image = ""
+manifest_sha256 = ""
+word_dir_sha256 = ""

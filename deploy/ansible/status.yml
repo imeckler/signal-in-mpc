@@ -1,0 +1,38 @@
+# deploy.py status: each node's health (public data only) and a copy of the monitoring page.
+- name: Status of this operator's nodes
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Health
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9100/health
+        return_content: true
+        timeout: 20
+      register: health
+      failed_when: false
+
+    - name: Keep it
+      ansible.builtin.copy:
+        dest: "/state/status/{{ node }}.json"
+        content: "{{ health.content | default('{\"summary\": \"no health endpoint (not started yet?)\", \"level\": \"bad\"}') }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+
+    - name: The monitoring page, where this node serves it
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8088/
+        return_content: true
+        timeout: 20
+      register: page
+      failed_when: false
+
+    - name: Keep the page
+      ansible.builtin.copy:
+        dest: /state/status/page.html
+        content: "{{ page.content }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: false
+      when: page.status | default(0) == 200

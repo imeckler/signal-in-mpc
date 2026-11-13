@@ -1,0 +1,11 @@
+[Unit]
+Description=tls-mpc sender-certificate check, hourly with jitter ({{ node }})
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

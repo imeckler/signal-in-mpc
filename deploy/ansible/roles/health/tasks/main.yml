@@ -1,0 +1,36 @@
+# The health endpoint (every node: tunnel address and localhost, port 9100) and, on the page
+# hosts, the monitoring page (localhost:8088; public only to monitoring_allow_ips if set).
+- name: Configuration directory
+  ansible.builtin.file:
+    path: /etc/pb
+    state: directory
+    mode: "0755"
+
+- name: Health configuration (public data only)
+  ansible.builtin.copy:
+    dest: /etc/pb/health.json
+    mode: "0644"
+    content: "{{ me.health | combine({'data_root': data_root}) | to_nice_json }}"
+  register: healthconf
+
+- name: Units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [pb-health.service, pb-page.service]
+  register: healthunits
+
+- name: Health endpoint
+  ansible.builtin.systemd_service:
+    name: pb-health
+    enabled: true
+    daemon_reload: true
+    state: restarted
+
+- name: Monitoring page
+  ansible.builtin.systemd_service:
+    name: pb-page
+    enabled: "{{ me.health.page_nodes is not none }}"
+    daemon_reload: true
+    state: "{{ 'restarted' if me.health.page_nodes is not none else 'stopped' }}"

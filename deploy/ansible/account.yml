@@ -1,0 +1,79 @@
+# deploy.py account install: the account material onto the computation node(s), the account's row
+# on the database nodes (the ceremony's `store` stage, run by BOTH nodes at the same time), then
+# the daemon. The credentials share is deleted once the row exists (the row holds it).
+- name: The account step
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    scaffold: "{{ data_root }}/tls-mpc/scaffold"
+    ceremony: "{{ data_root }}/tls-mpc/state/daemon/ceremony"
+  tasks:
+    - name: Account material (scaffolding the sessions still read; DEPLOYMENT.md "Not yet ready")
+      ansible.builtin.copy:
+        src: /in/account/common/
+        dest: "{{ scaffold }}/"
+        owner: "10001"
+        group: "10001"
+        mode: u=rwX,go=
+
+    - name: Ceremony directory
+      ansible.builtin.file:
+        path: "{{ ceremony }}"
+        state: directory
+        owner: "10001"
+        group: "10001"
+        mode: "0700"
+
+    - name: Is the account's row already made (a re-run)?
+      ansible.builtin.stat:
+        path: "{{ scaffold }}/ACCOUNT_READY"
+      register: ready
+
+    - name: This party's credentials share (only this party's)
+      ansible.builtin.copy:
+        src: "/in/account/party-{{ party }}/credentials.share"
+        dest: "{{ ceremony }}/credentials.share"
+        owner: "10001"
+        group: "10001"
+        mode: "0600"
+      when: not ready.stat.exists
+      no_log: true
+
+    - name: The account's row on the database nodes (both nodes at once; up to 10 minutes)
+      ansible.builtin.command: >-
+        docker run --rm --name tls-mpc-ceremony --network host --read-only --tmpfs /tmp
+        --env-file /etc/pb/tls-mpc-node.env
+        -v {{ data_root }}/tls-mpc/config:/srv/tls-mpc/config:ro -v {{ data_root }}/tls-mpc/secrets:/srv/tls-mpc/secrets:ro
+        -v {{ data_root }}/tls-mpc/state:/srv/tls-mpc/state -v {{ scaffold }}:/srv/tls-mpc/shared:ro
+        -v {{ data_root }}/tls-mpc/circuits:/srv/tls-mpc/circuits:ro -v {{ data_root }}/tls-mpc/word:/opt/tls-mpc/word:ro
+        sha256:{{ image_ids[node] }}
+        ceremony {{ name }}-account store
+      register: store
+      when: not ready.stat.exists
+      changed_when: true
+      async: 900
+      poll: 10
+
+    - name: Let the database nodes make the new row readable (it is readable 1.5 to 2.5 epochs after it was dealt)
+      ansible.builtin.pause:
+        seconds: "{{ settle_seconds }}"
+      when: not ready.stat.exists
+
+    - name: Delete the credentials share (the row on the database nodes now holds the credentials)
+      ansible.builtin.file:
+        path: "{{ ceremony }}/credentials.share"
+        state: absent
+
+    - name: Mark the account installed
+      ansible.builtin.file:
+        path: "{{ scaffold }}/ACCOUNT_READY"
+        state: touch
+        mode: "0644"
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Start the daemon
+      ansible.builtin.systemd_service:
+        name: tls-mpc-node
+        state: started

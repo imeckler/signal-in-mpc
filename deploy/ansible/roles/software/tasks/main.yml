@@ -1,0 +1,98 @@
+# The images (by digest, from `docker save` files: no registry needed), and on a computation node
+# the circuit set and the word circuits / field programs, checked after copying.
+- name: The images this node runs
+  ansible.builtin.set_fact:
+    my_images: "{{ ([images.node] if node_role in ['mpc', 'app'] else []) + ([images.dbnode] if node_role == 'db' else []) }}"
+
+- name: Is the image already loaded?
+  ansible.builtin.command: docker image inspect sha256:{{ item.id }} --format ok
+  loop: "{{ my_images }}"
+  register: present
+  changed_when: false
+  failed_when: false
+
+- name: Copy the image files
+  ansible.builtin.copy:
+    src: "{{ item.item.tar }}"
+    dest: "{{ data_root }}/pb/images/{{ item.item.id[:16] }}.tar"
+    mode: "0600"
+  loop: "{{ present.results }}"
+  when: item.rc != 0
+
+- name: Load the images
+  ansible.builtin.command: docker image load -i {{ data_root }}/pb/images/{{ item.item.id[:16] }}.tar
+  loop: "{{ present.results }}"
+  when: item.rc != 0
+  changed_when: true
+
+- name: The loaded images have the agreed digests
+  ansible.builtin.command: docker image inspect sha256:{{ item.id }} --format ok
+  loop: "{{ my_images }}"
+  changed_when: false
+
+- name: Remove the copied image files
+  ansible.builtin.file:
+    path: "{{ data_root }}/pb/images/{{ item.id[:16] }}.tar"
+    state: absent
+  loop: "{{ my_images }}"
+
+- name: Postgres (pinned digest) for a database node
+  ansible.builtin.command: docker pull {{ postgres_image }}
+  register: pulled
+  changed_when: "'Downloaded newer image' in pulled.stdout"
+  when: node_role == 'db'
+  retries: 3
+  delay: 15
+  until: pulled is succeeded
+
+- name: Facts of the image
+  ansible.builtin.command: python3 /opt/pb/pb_node.py image-facts sha256:{{ my_images[0].id }} {{ 'node' if node_role in ['mpc', 'app'] else 'dbnode' }}
+  register: image_facts_out
+  changed_when: false
+
+- name: Computation node files
+  when: node_role == 'mpc'
+  block:
+    - name: Directories for circuits and word circuits
+      ansible.builtin.file:
+        path: "{{ data_root }}/tls-mpc/{{ item }}"
+        state: directory
+        mode: "0755"
+      loop: ['', circuits, word, config, scaffold]
+
+    - name: Copy the circuit set (rsync; tens of GB the first time)
+      ansible.posix.synchronize:
+        src: "{{ circuits_in }}/"
+        dest: "{{ data_root }}/tls-mpc/circuits/"
+        delete: true
+        checksum: false
+        use_ssh_args: true
+        rsync_opts: ["--no-owner", "--no-group", "--chmod=D755,F644"]
+
+    - name: Copy the word circuits and field programs
+      ansible.posix.synchronize:
+        src: "{{ word_in }}/"
+        dest: "{{ data_root }}/tls-mpc/word/"
+        delete: true
+        use_ssh_args: true
+        rsync_opts: ["--no-owner", "--no-group", "--chmod=D755,F644"]
+
+    - name: The image's field-program pins
+      ansible.builtin.shell: >-
+        docker run --rm --network none --entrypoint cat sha256:{{ images.node.id }} /opt/tls-mpc/share/pins.json
+        > {{ data_root }}/pb/pins.json
+      changed_when: false
+
+    - name: Check every circuit file and the word dir against the pins
+      ansible.builtin.command: python3 /opt/pb/pb_node.py digests {{ data_root }}/tls-mpc/circuits {{ data_root }}/tls-mpc/word {{ data_root }}/pb/pins.json
+      register: digests_out
+      changed_when: false
+
+    - name: The copied circuit set is the agreed one
+      ansible.builtin.assert:
+        that:
+          - (digests_out.stdout | from_json).manifest_sha256 == manifest_sha256
+          - (digests_out.stdout | from_json).circuit_problems | length == 0
+          - (digests_out.stdout | from_json).word_problems | length == 0
+        fail_msg: "{{ node }}: circuits or word files differ after copying: {{ digests_out.stdout }}"
+        quiet: true

@@ -1,0 +1,19 @@
+# deploy.py join: prepare this operator's machines and make every private key ON the node.
+# Nothing secret leaves a node: the last play fetches only public facts (public keys, digests).
+- name: Wait for the machines
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wait until ssh answers
+      ansible.builtin.wait_for_connection:
+        timeout: 600
+
+- name: Prepare the nodes
+  hosts: all
+  become: true
+  roles:
+    - base
+    - datadisk
+    - firewall
+    - software
+    - identity

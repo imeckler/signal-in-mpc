@@ -1,0 +1,104 @@
+# The machine: operating system, requirements, packages, the deploy tool's node-side files.
+- name: Check the operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in ['Ubuntu', 'Debian']
+      - (ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('22.04', '>=')) or
+        (ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 12)
+      - ansible_architecture in ['x86_64', 'aarch64']
+    fail_msg: >-
+      {{ node }} runs {{ ansible_distribution }} {{ ansible_distribution_version }} on {{ ansible_architecture }};
+      this tool supports Ubuntu 22.04 or later, or Debian 12 or later, on x86-64 or arm64
+    quiet: true
+
+- name: Read the CPU flags
+  ansible.builtin.command: grep -m1 -E '^(flags|Features)' /proc/cpuinfo
+  register: cpu_flags
+  changed_when: false
+
+- name: Check what a computation node needs (DEPLOYMENT.md "Hardware")
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= (30000 if security == 'malicious' else 15000)
+      - ansible_processor_vcpus >= 8
+      - ansible_architecture != 'x86_64' or ('avx2' in cpu_flags.stdout and 'aes' in cpu_flags.stdout and 'pclmulqdq' in cpu_flags.stdout)
+    fail_msg: >-
+      {{ node }}: {{ ansible_memtotal_mb }} MB memory, {{ ansible_processor_vcpus }} vCPUs; a computation node in {{ security }} mode
+      needs {{ '32 GB' if security == 'malicious' else '16 GB' }} and 8 vCPUs, and on x86-64 the aes, pclmulqdq and avx2 CPU flags
+    quiet: true
+  when: node_role == 'mpc' and requirements == 'strict'
+
+- name: Check what a database node needs
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 3500
+      - ansible_processor_vcpus >= 2
+    fail_msg: "{{ node }}: {{ ansible_memtotal_mb }} MB, {{ ansible_processor_vcpus }} vCPUs; a database node needs 4 GB and 2 vCPUs"
+    quiet: true
+  when: node_role == 'db' and requirements == 'strict'
+
+- name: Install Docker, WireGuard, the firewall and tools
+  ansible.builtin.apt:
+    name: [docker.io, wireguard-tools, ufw, rsync, openssl, python3, ca-certificates, curl]
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+  register: packages
+  retries: 3
+  delay: 10
+  until: packages is succeeded
+
+- name: Keep the clock synchronised
+  ansible.builtin.apt:
+    name: chrony
+    install_recommends: false
+  when: not local_machine
+
+- name: Docker configuration directory
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+
+# The classic image store: an image's id is then its configuration digest, the same on every
+# machine and in `docker save` files, which is what deployment.toml and the bundles compare.
+- name: Docker settings
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+    content: |
+      {"features": {"containerd-snapshotter": false},
+       "log-driver": "json-file", "log-opts": {"max-size": "100m", "max-file": "5"}}
+  register: docker_settings
+
+- name: Docker runs at boot (restarted if its settings changed)
+  ansible.builtin.systemd_service:
+    name: docker
+    state: "{{ 'restarted' if docker_settings.changed else 'started' }}"
+    enabled: true
+
+- name: The deploy tool's node-side directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [/opt/pb/scripts, /etc/pb]
+
+- name: The node-side helpers
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0755"
+  loop:
+    - {src: /deploy/node/pb_node.py, dest: /opt/pb/pb_node.py}
+    - {src: /deploy/node/pb_health.py, dest: /opt/pb/pb_health.py}
+    - {src: /deploy/node/pb_certificate.py, dest: /opt/pb/pb_certificate.py}
+    - {src: /deploy/scripts/deploylib.py, dest: /opt/pb/deploylib.py}
+    - {src: /extra/bench_certs.sh, dest: /opt/pb/bench_certs.sh}
+
+- name: The deployment scripts (preflight runs this version, mounted into the image)
+  ansible.builtin.copy:
+    src: "/deploy/scripts/{{ item }}"
+    dest: "/opt/pb/scripts/{{ item }}"
+    mode: "0644"
+  loop: [deploylib.py, preflight.py, verify_artifacts.py, collect_logs.py]

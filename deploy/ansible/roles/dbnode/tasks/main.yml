@@ -1,0 +1,72 @@
+# A database node: its own Postgres (data on the data disk) and the secret-shared-db server, both
+# as systemd units running pinned images. The node's seed and Postgres password were made on this
+# machine by `join`; the network configuration is assembled from the compared bundles.
+- name: Directories
+  ansible.builtin.file:
+    path: "{{ data_root }}/ssdb/{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    mode: "0700"
+  loop:
+    - {path: config, owner: "10002"}
+    - {path: postgres, owner: "999"}
+
+- name: Read this node's seed and Postgres password (stay on this machine)
+  ansible.builtin.slurp:
+    src: "{{ data_root }}/ssdb/keys/{{ item }}"
+  loop: [seed.json, pg-password]
+  register: db_secrets
+  no_log: true
+
+- name: The server's configuration (secret, owner-only)
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/ssdb/config/config.json"
+    owner: "10002"
+    mode: "0600"
+    content: >-
+      {{ {'node_id': me.db_index,
+          'database_url': 'postgresql://dbuser:' ~ (db_secrets.results[1].content | b64decode | trim) ~ '@127.0.0.1:5432/ssdb',
+          'secret_seed': (db_secrets.results[0].content | b64decode | from_json).secret_seed,
+          'port': me.db_ports.peer, 'tarpc_port': me.db_ports.sync, 'relay_port': me.db_ports.relay,
+          'compute_port': me.db_ports.compute} | to_nice_json }}
+  no_log: true
+  register: dbconfig
+
+- name: The network configuration (public)
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/ssdb/config/network-config.json"
+    owner: "10002"
+    mode: "0644"
+    content: "{{ me.network_config | to_nice_json }}"
+  register: dbnetwork
+
+- name: The Postgres password file for the Postgres container (its user 999)
+  ansible.builtin.copy:
+    src: "{{ data_root }}/ssdb/keys/pg-password"
+    dest: "{{ data_root }}/ssdb/pg-password"
+    remote_src: true
+    owner: "999"
+    mode: "0600"
+
+- name: Units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [ssdb-postgres.service, ssdb-node.service]
+  register: dbunits
+
+- name: Start Postgres
+  ansible.builtin.systemd_service:
+    name: ssdb-postgres
+    enabled: true
+    daemon_reload: true
+    state: started
+
+- name: Start the database node (restarted when its configuration changed; it waits for the other database nodes)
+  ansible.builtin.systemd_service:
+    name: ssdb-node
+    enabled: true
+    daemon_reload: true
+    no_block: true
+    state: "{{ 'restarted' if (dbconfig.changed or dbnetwork.changed or dbunits.changed) else 'started' }}"

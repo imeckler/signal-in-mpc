@@ -1,0 +1,24 @@
+# deploy.py start: after the fingerprint was compared. Tunnels to every peer from the bundles,
+# firewall rules per sender on the tunnel, the services, health, monitoring page, the
+# certificate timer; then pre-flight and the two-node comparison.
+- name: Start this operator's nodes
+  hosts: all
+  become: true
+  vars:
+    me: "{{ per_node[node] }}"
+  roles:
+    - wireguard
+    - meshfw
+    - health
+    - role: dbnode
+      when: node_role == 'db'
+    - role: mpcnode
+      when: node_role == 'mpc'
+    - role: certrefresh
+      when: node_role == 'mpc'
+  post_tasks:
+    - name: Pre-flight and the two-node comparison (computation nodes)
+      ansible.builtin.include_role:
+        name: mpcnode
+        tasks_from: preflight
+      when: node_role == 'mpc'

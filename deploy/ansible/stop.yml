@@ -1,0 +1,21 @@
+# deploy.py destroy on a machine of provider `existing`: stop and disable this tool's services.
+# The machine stays; its data stays unless --delete-data.
+- name: Stop this operator's services
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Stop and disable
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop: [tls-mpc-node, ssdb-node, ssdb-postgres, pb-page, pb-health, pb-certificate.timer, wg-quick@wg0]
+      failed_when: false
+
+    - name: Remove the data (only with --delete-data)
+      ansible.builtin.file:
+        path: "{{ data_root }}/{{ item }}"
+        state: absent
+      loop: [tls-mpc, ssdb, pb, app]
+      when: delete_data | bool

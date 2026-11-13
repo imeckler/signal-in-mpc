@@ -1,0 +1,73 @@
+# YOUR PRIVATE OPERATOR FILE (operator.toml). Never send it to anyone: it says where your nodes
+# run and how to reach your cloud accounts. Credentials are given as "env:VARIABLE" (read from
+# your environment) or "file:/path" (read from a file); a value written inline works but the
+# tool warns, because then this file is a secret too.
+#
+#   python3 deploy/deploy.py init      copies this file to deploy/operator.toml
+
+# Your short name, exactly as deployment.toml writes it for your nodes.
+operator = "alice"                                # FILL
+
+# The shared deployment file (relative to this file).
+deployment = "deployment.toml"
+
+# Who may ssh to your machines. "auto" = the address this computer connects from, as each
+# machine sees it (nothing is looked up on the internet). Add networks to keep access from
+# elsewhere, e.g. "198.51.100.7/32".
+admin_ips = ["auto"]
+
+# The monitoring page is reachable only through an ssh tunnel (`deploy.py monitor`). To open it
+# directly to some addresses instead (plain HTTP, no secrets on it), list them here.
+monitoring_allow_ips = []
+
+[software]
+# "prebuilt": load the images whose digests deployment.toml lists, from images_dir (the files
+#             the builder sent) or from this computer's Docker.
+# "build-here": build them yourself from deployment.toml's commit (see DEPLOYMENT.md "Who builds").
+images = "prebuilt"
+images_dir = ""
+# Computation-node operators only: the circuit set (manifest.txt + gate lists) and the word dir
+# (word circuits + field programs) whose digests deployment.toml lists.
+circuits_dir = "../local_signal_server/state/circuits"
+word_dir = "../.deps/emp-hybrid-word-v1"
+
+# One table per node you operate. Providers:
+#   hetzner   Hetzner Cloud (region hel1, fsn1, nbg1, ...; size e.g. ccx43 for a computation node,
+#             cx43 for a database node). Dedicated servers: use "existing".
+#   upcloud   UpCloud (region fi-hel1, de-fra1, ...; size e.g. 16xCPU-64GB, 4xCPU-8GB)
+#   ovh       OVHcloud Public Cloud (region SBG5, GRA11, ...; size e.g. b3-64, b3-16).
+#             OVH VPS and dedicated servers: use "existing".
+#   existing  a machine you already have (any provider, Ubuntu 22.04+/Debian 12+): give
+#             ssh = "user@address", optionally ssh_port and ssh_key, and EITHER data_device
+#             (a whole spare disk, formatted only if blank) OR data_path (a directory).
+#   local     a container on this computer standing in for a machine (tests only).
+# data_disk_gb: the separate data disk (kept by `destroy`): 200 for a computation node, 40 for
+# a database node by default.
+[nodes.mpc-node-0]
+provider = "hetzner"
+region = "hel1"
+size = "ccx43"
+data_disk_gb = 200
+
+[nodes.db-node-0]
+provider = "upcloud"
+region = "fi-hel1"
+size = "4xCPU-8GB"
+
+[nodes.db-node-1]
+provider = "existing"
+ssh = "root@203.0.113.10"                         # FILL (an example address)
+data_device = "/dev/sdb"
+
+[credentials.hetzner]
+token = "env:HCLOUD_TOKEN"
+
+[credentials.upcloud]
+username = "env:UPCLOUD_USERNAME"
+password = "env:UPCLOUD_PASSWORD"
+
+# [credentials.ovh]   (the values of your Public Cloud project's openrc file)
+# auth_url = "env:OS_AUTH_URL"
+# username = "env:OS_USERNAME"
+# password = "env:OS_PASSWORD"
+# project_id = "env:OS_PROJECT_ID"

@@ -1,0 +1,28 @@
+[Unit]
+Description=tls-mpc computation node {{ node }} (party {{ party }})
+After=docker.service wg-quick@wg0.service
+Requires=docker.service
+# Starts only after the account step; never with [signal] endpoint = "none".
+ConditionPathExists={{ data_root }}/tls-mpc/scaffold/ACCOUNT_READY
+
+[Service]
+EnvironmentFile=/etc/pb/tls-mpc-node.env
+ExecStartPre=-/usr/bin/docker rm -f tls-mpc-node
+ExecStart=/usr/bin/docker run --rm --name tls-mpc-node --network host --read-only --tmpfs /tmp \
+  --security-opt no-new-privileges:true --cap-drop ALL --ulimit core=0 --memory {{ mpc_memory | default('28g') }} \
+  -e EXPECTED_MANIFEST_SHA256 -e EXPECTED_WORD_DIR_SHA256{% if me.lean %} -e TLS_MPC_ALLOW_SCRIPTS{% endif %} \
+  -v {{ data_root }}/tls-mpc/config:/srv/tls-mpc/config:ro \
+  -v {{ data_root }}/tls-mpc/secrets:/srv/tls-mpc/secrets:ro \
+  -v {{ data_root }}/tls-mpc/state:/srv/tls-mpc/state \
+  -v {{ data_root }}/tls-mpc/scaffold:/srv/tls-mpc/shared:ro \
+  -v {{ data_root }}/tls-mpc/circuits:/srv/tls-mpc/circuits:ro \
+  -v {{ data_root }}/tls-mpc/word:/opt/tls-mpc/word:ro \
+  --log-driver json-file --log-opt max-size=200m --log-opt max-file=10 \
+  sha256:{{ me.image_id }} daemon
+ExecStop=/usr/bin/docker stop -t 90 tls-mpc-node
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

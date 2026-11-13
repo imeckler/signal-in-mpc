@@ -1,0 +1,30 @@
+# The sender-certificate timer on a computation node: hourly with jitter, it reads the
+# certificate's expiry and, inside the margin, calls the refresh entry point. The joint refresh job
+# does not exist yet (DEPLOYMENT.md "Proposed changes", P-CERT): today the timer records
+# "refresh due" for the page and the status command, and never contacts Signal itself.
+- name: Timer configuration
+  ansible.builtin.copy:
+    dest: /etc/pb/certificate.json
+    mode: "0644"
+    content: >-
+      {{ {'node': node, 'party': party, 'data_root': data_root, 'margin_hours': me.health.certificate_margin_hours,
+          'endpoint': me.endpoint} | to_nice_json }}
+
+- name: Units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [pb-certificate.service, pb-certificate.timer]
+
+- name: The timer runs
+  ansible.builtin.systemd_service:
+    name: pb-certificate.timer
+    enabled: true
+    daemon_reload: true
+    state: started
+
+- name: One check now (so the page has a value)
+  ansible.builtin.systemd_service:
+    name: pb-certificate.service
+    state: started

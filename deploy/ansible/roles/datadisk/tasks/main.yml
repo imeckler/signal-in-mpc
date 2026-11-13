@@ -1,0 +1,30 @@
+# The data disk: a dedicated provider disk (data_device) is formatted ONLY if it is blank and is
+# mounted at data_root; it survives upgrades, reboots and machine replacement. With data_path
+# (provider `existing` or `local`) the directory is used as it is.
+- name: Is the data disk formatted?
+  ansible.builtin.command: blkid -o value -s TYPE {{ data_device }}
+  register: disk_type
+  changed_when: false
+  failed_when: disk_type.rc not in [0, 2]
+  when: data_device | length > 0
+
+- name: Format the blank data disk
+  ansible.builtin.command: mkfs.ext4 -q -L pbdata {{ data_device }}
+  when: data_device | length > 0 and disk_type.rc == 2
+  changed_when: true
+
+- name: Mount the data disk
+  ansible.posix.mount:
+    path: "{{ data_root }}"
+    src: "{{ data_device }}"
+    fstype: ext4
+    opts: defaults,nofail
+    state: mounted
+  when: data_device | length > 0
+
+- name: The data directories
+  ansible.builtin.file:
+    path: "{{ data_root }}/{{ item }}"
+    state: directory
+    mode: "0700"
+  loop: [pb, pb/keys, pb/public, pb/status, pb/images]

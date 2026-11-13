@@ -1,0 +1,7 @@
+[Unit]
+Description=tls-mpc sender-certificate check and refresh trigger ({{ node }})
+After=docker.service wg-quick@wg0.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/pb/pb_certificate.py /etc/pb/certificate.json

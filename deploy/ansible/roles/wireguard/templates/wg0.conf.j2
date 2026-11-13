@@ -1,0 +1,17 @@
+# {{ node }} of deployment {{ deployment }}: written by deploy/deploy.py start from the compared
+# bundles. The private key is loaded from {{ data_root }}/pb/keys/wg.key (never in this file).
+[Interface]
+Address = {{ wg_address }}/24
+ListenPort = 51820
+PostUp = wg set %i private-key {{ data_root }}/pb/keys/wg.key
+{% for p in me.peers %}
+
+[Peer]
+# {{ p.node }}
+PublicKey = {{ p.public_key }}
+AllowedIPs = {{ p.address }}/32
+{% if p.endpoint %}
+Endpoint = {{ p.endpoint }}
+{% endif %}
+PersistentKeepalive = 25
+{% endfor %}

@@ -1,0 +1,88 @@
+# A computation node: the daemon's configuration, the daemon-link key (derived here from this
+# node's link key and the other node's public one), the other party's field-engine certificate,
+# and the daemon's unit. The unit starts only after the account step (ACCOUNT_READY), and never
+# with [signal] endpoint = "none".
+- name: Configuration directory content (public)
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/tls-mpc/config/{{ item.name }}"
+    mode: "0644"
+    content: "{{ item.content | to_nice_json }}"
+  loop:
+    - {name: node.json, content: "{{ me.node_config }}"}
+    - {name: network.json, content: "{{ me.network_config }}"}
+  register: mpcconfig
+
+- name: The real service's pinned root certificate (endpoint = production only)
+  ansible.builtin.copy:
+    src: /in/signal-root-ca.pem
+    dest: "{{ data_root }}/tls-mpc/config/signal-root-ca.pem"
+    mode: "0644"
+  when: me.endpoint == 'production'
+
+- name: The other node's public keys (from its compared bundle)
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/pb/{{ item.name }}"
+    mode: "0644"
+    content: "{{ item.content }}"
+  loop:
+    - {name: peer-link.pem, content: "{{ me.peer_link }}"}
+    - {name: peer-field.pem, content: "{{ me.peer_certificate }}"}
+  register: peerfiles
+
+- name: Derive the daemon-link key (the same on both nodes; never transmitted)
+  ansible.builtin.command: python3 /opt/pb/pb_node.py peer-key {{ data_root }} {{ data_root }}/pb/peer-link.pem {{ deployment }}
+  register: peerkey
+  changed_when: (peerkey.stdout | from_json).changed
+
+- name: Is the receive workers' directory there?
+  ansible.builtin.stat:
+    path: "{{ data_root }}/tls-mpc/state/worker-receive/Player-Data"
+  register: receive_dir
+
+- name: Is the account installed?
+  ansible.builtin.stat:
+    path: "{{ data_root }}/tls-mpc/scaffold/ACCOUNT_READY"
+  register: account_ready
+
+- name: Trust the other party's field-engine certificate
+  ansible.builtin.command: python3 /opt/pb/pb_node.py trust {{ data_root }} {{ data_root }}/pb/peer-field.pem
+  when: peerfiles.results[1].changed or not receive_dir.stat.exists
+  changed_when: true
+
+- name: Daemon state directory
+  ansible.builtin.file:
+    path: "{{ data_root }}/tls-mpc/state/daemon"
+    state: directory
+    owner: "10001"
+    group: "10001"
+    mode: "0700"
+
+- name: The daemon's environment (the digests both nodes agreed on)
+  ansible.builtin.copy:
+    dest: /etc/pb/tls-mpc-node.env
+    mode: "0644"
+    content: |
+      EXPECTED_MANIFEST_SHA256={{ me.manifest_sha256 }}
+      EXPECTED_WORD_DIR_SHA256={{ me.word_dir_sha256 }}
+      {% if me.lean %}TLS_MPC_ALLOW_SCRIPTS=1
+      {% endif %}
+  register: mpcenv
+
+- name: The daemon's unit
+  ansible.builtin.template:
+    src: tls-mpc-node.service.j2
+    dest: /etc/systemd/system/tls-mpc-node.service
+    mode: "0644"
+  register: mpcunit
+
+- name: Enable the daemon (it starts once the account step has been done)
+  ansible.builtin.systemd_service:
+    name: tls-mpc-node
+    enabled: true
+    daemon_reload: true
+
+- name: Restart a running daemon whose configuration changed
+  ansible.builtin.systemd_service:
+    name: tls-mpc-node
+    state: restarted
+  when: (mpcconfig.changed or peerkey.changed or mpcenv.changed or mpcunit.changed) and account_ready.stat.exists

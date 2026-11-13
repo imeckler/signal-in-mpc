@@ -1,0 +1,96 @@
+# Pre-flight on this computation node (deploy/scripts/preflight.py, this tool's version mounted
+# into the image), then the two-node comparison against the other node's facts, fetched over the
+# tunnel from its health endpoint. A difference between the two nodes FAILS the start.
+- name: Pre-flight (writes this node's public facts)
+  ansible.builtin.command: >-
+    docker run --rm --network host --user 10001:10001
+    -v {{ data_root }}/tls-mpc/config:/srv/tls-mpc/config:ro -v {{ data_root }}/tls-mpc/secrets:/srv/tls-mpc/secrets:ro
+    -v {{ data_root }}/tls-mpc/state:/srv/tls-mpc/state -v {{ data_root }}/tls-mpc/scaffold:/srv/tls-mpc/shared:ro
+    -v {{ data_root }}/tls-mpc/circuits:/srv/tls-mpc/circuits:ro -v {{ data_root }}/tls-mpc/word:/opt/tls-mpc/word:ro
+    -v /opt/pb/scripts:/opt/tls-mpc/share/deploy/scripts:ro
+    sha256:{{ me.image_id }} preflight --export /srv/tls-mpc/state/facts.json {{ '--allow-scripts' if me.lean else '' }}
+  register: preflight_out
+  changed_when: false
+  failed_when: false
+
+- name: Keep the pre-flight output
+  ansible.builtin.copy:
+    dest: "{{ data_root }}/pb/status/preflight.txt"
+    content: "{{ preflight_out.stdout }}\n"
+    mode: "0644"
+
+- name: Publish this node's facts (public, hashes and settings text)
+  ansible.builtin.copy:
+    src: "{{ data_root }}/tls-mpc/state/facts.json"
+    dest: "{{ data_root }}/pb/public/preflight-facts.json"
+    remote_src: true
+    mode: "0644"
+
+- name: Judge the pre-flight (what only the account step can fix is expected now)
+  ansible.builtin.command: >-
+    python3 /opt/pb/pb_health.py verdict {{ data_root }}/pb/status/preflight.txt
+    {{ 'relaxed' if requirements == 'relaxed' else 'strict' }} {{ data_root }}
+  register: verdict
+  changed_when: false
+
+- name: The other computation node's facts, over the tunnel
+  ansible.builtin.uri:
+    url: "http://{{ me.peer_address }}:9100/facts"
+    return_content: true
+    timeout: 5
+  register: peer_facts
+  retries: 12
+  delay: 10
+  until: peer_facts.status == 200
+  failed_when: false
+
+- name: Two-node comparison
+  when: peer_facts.status | default(0) == 200
+  block:
+    - name: Save the other node's facts
+      ansible.builtin.copy:
+        dest: "{{ data_root }}/pb/peer-facts.json"
+        content: "{{ peer_facts.content }}"
+        mode: "0644"
+
+    - name: Compare (preflight --peer)
+      ansible.builtin.command: >-
+        docker run --rm --network host --user 10001:10001
+        -v {{ data_root }}/tls-mpc/config:/srv/tls-mpc/config:ro -v {{ data_root }}/tls-mpc/secrets:/srv/tls-mpc/secrets:ro
+        -v {{ data_root }}/tls-mpc/state:/srv/tls-mpc/state -v {{ data_root }}/tls-mpc/scaffold:/srv/tls-mpc/shared:ro
+        -v {{ data_root }}/tls-mpc/circuits:/srv/tls-mpc/circuits:ro -v {{ data_root }}/tls-mpc/word:/opt/tls-mpc/word:ro
+        -v /opt/pb/scripts:/opt/tls-mpc/share/deploy/scripts:ro -v {{ data_root }}/pb/peer-facts.json:/peer.json:ro
+        sha256:{{ me.image_id }} preflight --peer /peer.json --no-network {{ '--allow-scripts' if me.lean else '' }}
+      register: pair_out
+      changed_when: false
+      failed_when: false
+
+    - name: Keep the comparison
+      ansible.builtin.copy:
+        dest: "{{ data_root }}/pb/status/pair.txt"
+        content: "{{ pair_out.stdout }}\n"
+        mode: "0644"
+
+    - name: Judge the comparison
+      ansible.builtin.command: >-
+        python3 /opt/pb/pb_health.py verdict {{ data_root }}/pb/status/pair.txt
+        {{ 'pair-relaxed' if requirements == 'relaxed' else 'pair-strict' }} {{ data_root }}
+      register: pair_verdict
+      changed_when: false
+
+- name: Report
+  ansible.builtin.debug:
+    msg: >-
+      {{ node }} pre-flight: {{ (verdict.stdout | from_json).summary }};
+      two-node comparison: {{ (pair_verdict.stdout | from_json).summary if pair_verdict is defined and pair_verdict.stdout is defined
+         else 'waiting for the other node (its operator has not run start yet); `deploy.py status` repeats it' }}
+
+- name: Stop on a real pre-flight failure or a difference between the two nodes
+  ansible.builtin.assert:
+    that:
+      - (verdict.stdout | from_json).fails | length == 0
+      - pair_verdict is not defined or pair_verdict.stdout is not defined or (pair_verdict.stdout | from_json).fails | length == 0
+    fail_msg: >-
+      {{ node }}: {{ ((verdict.stdout | from_json).fails + ((pair_verdict.stdout | from_json).fails
+         if pair_verdict is defined and pair_verdict.stdout is defined else [])) | join('; ') }}
+    quiet: true

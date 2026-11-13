@@ -1,0 +1,8 @@
+# Generated state of deploy/deploy.py: tofu state (may hold secrets; mode 600), ssh keys of the
+# deployment, rendered inventories, collected public bundles, logs.
+.state/
+# Each operator's own files (operator.toml is private; deployment.toml is shared by other means).
+operator.toml
+deployment.toml
+bundles/
+__pycache__/

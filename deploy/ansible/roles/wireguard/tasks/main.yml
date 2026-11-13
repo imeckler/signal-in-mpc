@@ -1,0 +1,14 @@
+# The tunnel mesh. The private key never appears in the configuration file: wg-quick loads it
+# from the data disk (PostUp), where `join` made it.
+- name: WireGuard configuration
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  register: wgconf
+
+- name: The tunnel is up and comes back at boot
+  ansible.builtin.systemd_service:
+    name: wg-quick@wg0
+    enabled: true
+    state: "{{ 'restarted' if wgconf.changed else 'started' }}"
