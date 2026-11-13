@@ -1781,6 +1781,17 @@ backend done, not selected (the controller-side runner and S11's curve half are 
   (`tests/lean/S13Vectors.lean`: one single-device send, one two-device send, every check ok) and the
   stand-in pair test `tests/s13_pair.rs` (every reply equals Lean's model); `tests/e2e_s13.py`
   written, not run.
+- Follow-up (same branch; `Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean`,
+  Security.lean section 7e, 11 entries compiled standalone): op 61's composed headline
+  `devices_accepted` (op 61 + op 62 + the record seal, no wiring hypothesis) and all-or-nothing
+  `devices_refused_view`; the `bundle-seal` slicing (`bundleEnvBytes_eq`, `bundleOut_lengths`); the
+  single-device send through `jointRun` (`seal_joint`, `send_joint`: both parties the same results,
+  the bytes those of `send_accepted`); op 41's view by value against any adversary (`seal_view`);
+  ORD-1's script-level facts (`send_state_order`); `Wire.Bounded` of op 62. Finding: an official
+  89-byte text to an unanswered device aborts (the `bundle-seal` record field is one byte short,
+  `bundleOut_record_length`; the C++ aborted the session too). Open: the devices path through
+  `jointRun`; `Table.Inv` for the send's commit; WF of 61 and 62, `Wire.Bounded` of 61 (op 61 has no
+  envelope-size check).
 
 ---
 
