@@ -1,5 +1,6 @@
 import TlsMpc.Node.Flows.Registry
 import TlsMpc.Sha256
+import TlsMpc.Node.TestStandIns
 
 /-!
 Test vectors of the S10 flows (masks, conversions, inversion) for the stand-in two-party test
@@ -39,9 +40,7 @@ def digit (n : Nat) : Char := "0123456789abcdef".toList.getD n '0'
 def hexByte (b : UInt8) : String := String.ofList [digit (b.toNat / 16), digit (b.toNat % 16)]
 def hex (bs : Bytes) : String := String.join (bs.map hexByte)
 
-def sha256 (m : Bytes) : Bytes :=
-  (TlsMpc.Sha256.hash TlsMpc.Sha256.concrete (m.map fun b => BitVec.ofNat 8 b.toNat)).map
-    fun b => UInt8.ofNat b.toNat
+def sha256 (m : Bytes) : Bytes := TlsMpc.Node.TestStandIns.sha256 m
 
 def fe (n : Nat) : F := TlsMpc.FieldDag.ofNat n
 
@@ -52,39 +51,14 @@ def markCode : Mark → String
   | .toB => "3"
   | .revealable => "4"
 
-/-! ## Stand-in programs -/
+/-! ## Stand-in programs (moved to `TlsMpc/Node/TestStandIns.lean`, shared with RunnerTest) -/
 
-def bitCheckP : Program :=
-  { inputs := 1, masks := 0, rows := [.input 0, .const 1, .sub 0 1, .mul 0 2], outputs := [(3, .pub)] }
-
-def bitXorP : Program :=
-  { inputs := 2, masks := 0, rows := [.input 0, .input 1, .add 0 1, .mul 0 1, .const 2, .mul 4 3, .sub 2 5],
-    outputs := [(6, .never)] }
-
-/-- Horner: acc₂₅₄ = in₂₅₄, accᵢ = inᵢ + 2·accᵢ₊₁, then acc₀ − in₂₅₅. -/
-def recomposeRows : List Row × Nat :=
-  (List.range 254).foldl (fun (st : List Row × Nat) k =>
-    let n := st.1.length
-    (st.1 ++ [Row.mul 256 st.2, Row.add (253 - k) n], n + 1))
-    ((List.range 256).map Row.input ++ [Row.const 2], 254)
-
-def recomposeP : Program :=
-  { inputs := 256, masks := 0, rows := recomposeRows.1 ++ [Row.sub recomposeRows.2 255],
-    outputs := [(recomposeRows.1.length, .pub)] }
-
-def progTable : List (String × Program) :=
-  [("field-bit-check", bitCheckP), ("field-bit-xor", bitXorP), ("field-recompose", recomposeP),
-   ("field-mask-sub", maskSub), ("field-quotient", TlsMpc.FieldDag.V3.quotient)]
-
-def circuitTable : List (String × Circuit) :=
-  [("modadd", modaddC), ("modadd-open", modaddOpenC), ("finalize-mask", finalizeMaskC),
-   ("finalize-bits", finalizeBitsC), ("into-field-open", intoFieldOpenC), ("xor-bit", xorBitC),
-   ("xor-bit-open", xorBitOpenC), ("swap-bits", swapBitsC)]
-
-def env : Env :=
-  { circuits := fun n => (circuitTable.find? (fun e => ascii e.1 == n)).map (·.2),
-    hash := sha256,
-    programs := fun n => (progTable.find? (fun e => ascii e.1 == n)).map (·.2) }
+def bitCheckP : Program := TlsMpc.Node.TestStandIns.bitCheckP
+def bitXorP : Program := TlsMpc.Node.TestStandIns.bitXorP
+def recomposeP : Program := TlsMpc.Node.TestStandIns.recomposeP
+def progTable : List (String × Program) := TlsMpc.Node.TestStandIns.s10Programs
+def circuitTable : List (String × Circuit) := TlsMpc.Node.TestStandIns.s10Circuits
+def env : Env := TlsMpc.Node.TestStandIns.s10Env
 
 def start : Ctx := { progs := env.progs }
 

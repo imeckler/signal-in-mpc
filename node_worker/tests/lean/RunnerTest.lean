@@ -1,5 +1,6 @@
 import TlsMpc.Node.Flows.Select
 import TlsMpc.Node.Flow
+import TlsMpc.Node.TestStandIns
 
 /-!
 The script RUNNER (`TlsMpc/Node/Flows/Runner.lean`) and the selection (`Flows/Select.lean`) driven
@@ -24,11 +25,17 @@ values, P-RAND (a)); the anonymous upgrade (`Flow.Upgrade.anonymous`: RFC 6455's
 nonce, `upgrade_honest`); contacts key, load (accepted, refused with a wrong check), seal (the
 stand-in's sealed blob of the loaded content), evict, re-key, assign, the state handle's value in the
 model, one `Counters` for runner and table on both parties; S14's backend on the runner: op 48 then a
-refused op 50 (no receive kernel loaded).
+refused op 50 (no receive kernel loaded); mask generation (`Select.generatePool`, test parameters,
+S10's stand-in programs and circuits from the shared `TlsMpc/Node/TestStandIns.lean`, the tables
+`S10Vectors.lean` uses) and a W2F then F2W conversion on the pool (model values); the account's
+credential shares (op 47) and the AUTHENTICATED upgrade (op 32, `UpgradeAuth`, stand-in
+`signal-upgrade-shared 22` = (shareA ⊕ shareB) ‖ nonce: the request's value and RFC 6455's accept of
+its nonce); the TEST admission (op 46): the identity's swap bits as field handles with the ladder's
+values (J8's handles).
 
-Not covered here (they need their stage's stand-in tables as a module; the S10–S15 vector files
-hold them inline): mask generation with a conversion, a record seal and open, a send, an accepted
-receive, a refresh. Nothing imports this file.
+Not covered here (STACK_NOTES J14, open): a record seal and open, a send, an accepted receive, a
+refresh, op 66 — their stand-in tables (S11–S15) are still inline in their vector files. Nothing
+imports this file.
 -/
 
 open TlsMpc.Node
@@ -65,6 +72,9 @@ def byteCircuit (inBytes : Nat) (marks : List Mark) (f : Bytes → Bytes) : Circ
 
 def nameString (n : Bytes) : String := String.ofList (n.map fun b => Char.ofNat b.toNat)
 
+/-- The stand-in upgrade request: (shareA ⊕ shareB) ‖ nonce (the kernel's widths: 38 + 38 + 16 in). -/
+def upgradeOut (v : Bytes) : Bytes := xorB (v.take 38) ((v.drop 38).take 38) ++ v.drop 76
+
 def circuits (n : Bytes) : Option Circuit :=
   match (nameString n).splitOn " " with
   | ["contact-key"] => some (byteCircuit 64 Contacts.keyMarks fun v => keyOf (v.take 32) (v.drop 32))
@@ -72,11 +82,13 @@ def circuits (n : Bytes) : Option Circuit :=
       fun v => sealOut (v.take 60) ((v.drop 60).take 8) (v.drop 68)
   | ["contact-open", s] => s.toNat?.map fun size => byteCircuit (84 + size) (Contacts.openMarks size)
       fun v => openOut (v.take 60) ((v.drop 60).take 8) ((v.drop 68).take size) (v.drop (68 + size))
-  | _ => none
+  | ["signal-upgrade-shared", "22"] => some (byteCircuit 92 (List.replicate (8 * 54) .never) upgradeOut)
+  -- S10's word circuits (the vector files' table, `TestStandIns`).
+  | _ => TestStandIns.lookup TestStandIns.s10Circuits n
 
 def sha256 (m : Bytes) : Bytes := TlsMpc.TlsWire.hash m
 
-def env : Env := { circuits, hash := sha256 }
+def env : Env := { circuits, hash := sha256, programs := TestStandIns.lookup TestStandIns.s10Programs }
 
 /-! ## The fake worker pair -/
 
@@ -144,12 +156,12 @@ def agreed (names : List String) : Config.Agreed :=
 /-- A party's flow context with the selection's overrides installed (as `Worker.startWith`, without
 `Select.check`: the test also runs groups that cannot be selected in a session yet). -/
 def party (E : Env) (st : IO.Ref PairState) (me : Party) (seed : Nat) (names : List String) :
-    IO (Flow.Worker × Runner.Runner) := do
+    IO (Flow.Worker × Runner.Runner × Select.Session) := do
   let ctr ← IO.mkRef 0
   let w ← Flow.Worker.start (rpc E st me) (randomOf seed ctr)
   let r ← Runner.Runner.start w me (fun _ => true) (fun _ => none)
   let s ← Select.Session.start r (agreed names)
-  return ({ w with overrides := Select.overrides s names }, r)
+  return ({ w with overrides := Select.overrides s names }, r, s)
 
 /-- Run both parties' actions concurrently (A in its own thread). -/
 def both {α : Type} (fa fb : M α) : IO (Except String α × Except String α) := do
@@ -161,10 +173,10 @@ def both {α : Type} (fa fb : M α) : IO (Except String α × Except String α) 
   | .error e => return (.error s!"thread: {e}", b)
 
 def main : IO Unit := do
-  let st ← IO.mkRef ({ ctxA := {}, ctxB := {} } : PairState)
-  let names := ["random", "upgrade", "contacts"]
-  let (wA, rA) ← party env st .a 1 names
-  let (wB, rB) ← party env st .b 2 names
+  let st ← IO.mkRef ({ ctxA := { progs := env.progs }, ctxB := { progs := env.progs } } : PairState)
+  let names := ["random", "upgrade", "contacts", "account"]
+  let (wA, rA, sA) ← party env st .a 1 names
+  let (wB, rB, _sB) ← party env st .b 2 names
   -- 1. Joint randomness (op 33 as a script): both get the XOR of the two values (P-RAND (a)).
   let (ja, jb) ← both (Flow.Random.joint wA) (Flow.Random.joint wB)
   match ja, jb with
@@ -256,6 +268,71 @@ def main : IO Unit := do
   check "receive-refused" (match fa, fb with
     | .ok (.refused a), .ok (.refused b) => a.val == 0 && b.val == 0
     | _, _ => false)
+  -- 5. Masks (S10's `Masks.generate` through the selection's `generatePool`, test parameters
+  -- `Masks.testParams 3 1`, the vector files' stand-in programs) and a conversion on the pool:
+  -- W2F of a public word, then F2W of the element (the model's values).
+  let p := Masks.testParams 3 1
+  let (ga, gb) ← both (Select.generatePool rA p) (Select.generatePool rB p)
+  check "masks-generate" (ga matches .ok _ && gb matches .ok _)
+  let poolA := (← (rA.state.get : IO _)).pool
+  let poolB := (← (rB.state.get : IO _)).pool
+  check "masks-pool-agree" (poolA.words.length == poolB.words.length && poolA.bits.length == poolB.bits.length &&
+    0 < poolA.words.length)
+  let v := 2 ^ 250 + 424242
+  let conv (r : Runner.Runner) : M (FieldH × BoolH) := ReceiveBackend.runGen r.receive do
+    let u ← Receive.publicBits (Conv.word v)
+    let f ← Receive.toField u
+    let w ← Receive.toWord f
+    pure (f, w)
+  let (ca, cb) ← both (conv rA) (conv rB)
+  match ca, cb with
+  | .ok (fa, wa), .ok (fb, wb) =>
+    let I := (← st.get).ideal
+    check "convert-agree" (fa == fb && wa == wb)
+    check "convert-w2f-value" (I.fields fa.id == some (TlsMpc.FieldDag.ofNat v))
+    check "convert-f2w-value" (I.bools wa.id == some (Conv.word v))
+  | .error e, _ => IO.println s!"check convert FAIL {e}"
+  | _, .error e => IO.println s!"check convert FAIL {e}"
+  -- 6. The account's credential shares (op 47) and the AUTHENTICATED upgrade (op 32) on the script
+  -- account state (`UpgradeAuth`, stand-in `signal-upgrade-shared 22`: (shareA ⊕ shareB) ‖ nonce).
+  let credA := draw 14 0 38
+  let credB := draw 15 0 38
+  let (cra, crb) ← both (Flow.Account.credentials wA (Secret.hide credA)) (Flow.Account.credentials wB (Secret.hide credB))
+  check "account-credentials" (cra matches .ok _ && crb matches .ok _)
+  let (upa, upb) ← both (Flow.Upgrade.authenticated (wA.on 0) 1) (Flow.Upgrade.authenticated (wB.on 0) 1)
+  match upa, upb with
+  | .ok (ha, na, acca), .ok (hb, nb, accb) =>
+    check "upgrade-auth-agree" (ha.id == hb.id && na == nb && acca.val == accb.val && na == UpgradeAuth.requestBytes)
+    match (← sA.buffers.get).find? ha.id with
+    | some (.publicBytes h _) =>
+      let I := (← st.get).ideal
+      match (I.bools h.id).map (fun b => ofB8 (bytesOf b)) with
+      | some req =>
+        let nonce := req.drop 38
+        check "upgrade-auth-request" (req.take 38 == xorB credA credB && nonce.length == 16)
+        check "upgrade-auth-accept" (match TlsMpc.Local.WebSocketAccept.upgradePublic (nonce.map Upgrade.toBV) with
+          | .ok reply => acca.val == (reply.drop 16).map Upgrade.toU8
+          | .error _ => false)
+      | none => IO.println "check upgrade-auth-request FAIL no value"
+    | _ => IO.println "check upgrade-auth-buffer FAIL"
+  | .error e, _ => IO.println s!"check upgrade-auth FAIL {e}"
+  | _, .error e => IO.println s!"check upgrade-auth FAIL {e}"
+  -- 7. Op 46 (TEST admission): the identity's swap bits into the field engine (J8's handles) with
+  -- the pool's bit pairs; their model values are the ladder's swap bits of the key.
+  let identity := draw 16 0 32
+  let certificate := draw 17 0 10
+  if 252 ≤ poolA.bits.length then
+    let (ada, adb) ← both (Flow.Account.admitTest wA (Secret.hide identity) certificate)
+      (Flow.Account.admitTest wB (Secret.hide identity) certificate)
+    check "account-admit" (ada matches .ok _ && adb matches .ok _)
+    let acc ← sA.account.get
+    match acc.identity with
+    | some ids =>
+      let I := (← st.get).ideal
+      let want := (Conv.swapBitsEval (bitsOf (toB8 identity))).map TlsMpc.X25519.bitValue
+      check "account-identity-swaps" (ids.length == 252 && ids.map (fun h => I.fields h.id) == want.map some)
+    | none => IO.println "check account-identity-swaps FAIL none"
+  else IO.println s!"info admit skipped: {poolA.bits.length} bit pairs"
   IO.println s!"info batches {(← st.get).batches}"
   check "ops-recorded" ((← wA.operations) == [93] && (← wB.operations) == [93])
 
