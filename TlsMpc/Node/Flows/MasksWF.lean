@@ -123,6 +123,16 @@ theorem defFields_append : ∀ (hs₁ : List FieldH) (ms₁ : List Mark) (hs₂ 
   | [], _ :: _, _, _, _, hl => by simp at hl
   | _ :: _, [], _, _, _, hl => by simp at hl
 
+/-- Two lists of `n` handles each, defined one after the other with the same mark. -/
+theorem defFields_two (c c1 c2 : Ctx) (hs₁ hs₂ : List FieldH) (n : Nat) (m : Mark) (h1 : hs₁.length = n)
+    (h2 : hs₂.length = n) (d1 : c.defFields hs₁ (List.replicate n m) = some c1)
+    (d2 : c1.defFields hs₂ (List.replicate n m) = some c2) :
+    c.defFields (hs₁ ++ hs₂) (List.replicate (hs₁.length + hs₂.length) m) = some c2 := by
+  rw [h1, h2, ← List.replicate_append_replicate,
+    defFields_append _ _ _ _ _ (by rw [List.length_replicate, h1]), d1]
+  simp only [Option.bind_some]
+  exact d2
+
 /-- **A block of `n` consecutive fresh field handles**, all with mark `m`: `defFields` accepts it;
 the block's handles then carry `m`, every other field handle is as before, and nothing else
 changes. -/
@@ -524,5 +534,402 @@ theorem bucketPhase_wfp (ws : WordSigs sigs) (g : Gen p b f c (b + 4) (f + 2 * p
   · exact WFP.abort _ _
 
 end Phases
+
+/-! ## Marks of the finalize bundle; more generic blocks -/
+
+/-- The marks of `n` finalize outputs: 255 never, then the public flag, `n` times. -/
+def FM (n : Nat) : List Mark := (List.replicate n finalMarks).flatten
+
+theorem finalMarks_length : finalMarks.length = 256 := by
+  show (List.replicate 255 Mark.never ++ [Mark.pub]).length = 256
+  rw [List.length_append, List.length_replicate]
+  rfl
+
+theorem finalMarks_each (n : Nat) : ∀ y ∈ List.replicate n finalMarks, y.length = 256 := by
+  intro y hy
+  rw [List.eq_of_mem_replicate hy]
+  exact finalMarks_length
+
+theorem FM_length (n : Nat) : (FM n).length = n * 256 := by
+  unfold FM
+  rw [length_flatten_eq 256 _ (finalMarks_each n), List.length_replicate]
+
+theorem FM_add (a b : Nat) : FM a ++ FM b = FM (a + b) := by
+  unfold FM
+  rw [← List.replicate_append_replicate, List.flatten_append]
+
+theorem finalMarks_flag : finalMarks.getD 255 Mark.never = Mark.pub := by
+  show (List.replicate 255 Mark.never ++ [Mark.pub]).getD 255 Mark.never = Mark.pub
+  rw [List.getD_eq_getElem?_getD, List.getElem?_append_right (by rw [List.length_replicate]; exact Nat.le_refl _),
+    List.length_replicate]
+  rfl
+
+theorem FM_flag (n j : Nat) (hj : j < n) : (FM n).getD (256 * j + 255) Mark.never = Mark.pub := by
+  unfold FM
+  have := flatten_getD 256 (List.replicate n finalMarks) j 255 Mark.never (finalMarks_each n) (by simpa using hj)
+    (by omega)
+  rw [Nat.mul_comm] at this
+  rw [this]
+  have e : (List.replicate n finalMarks).getD j [] = finalMarks := by
+    simp [List.getD_eq_getElem?_getD, hj]
+  rw [e]
+  exact finalMarks_flag
+
+theorem flatten_replicate_singleton {α : Type} (n : Nat) (a : α) :
+    (List.replicate n [a]).flatten = List.replicate n a := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [List.replicate_succ, ih]
+
+theorem frees_wfp' {α : Type} (sigs : Bytes → Option Sig) {Q : Ctx → α → Prop} (s : Script α) :
+    ∀ (hs : List BoolH) (c : Ctx), (hs.map (·.id)).Nodup → (∀ h ∈ hs, (c.bool? h).isSome = true) →
+      (∀ c' : Ctx, (∀ g : BoolH, c'.bool? g = if g.id ∈ hs.map (·.id) then none else c.bool? g) →
+        c'.seenB = c.seenB → c'.fields = c.fields → c'.seenF = c.seenF → c'.progs = c.progs → WFP sigs Q c' s) →
+      WFP sigs Q c (seqs (frees hs) s)
+  | [], c, _, _, hk => hk c (fun g => by simp) rfl rfl rfl rfl
+  | h :: hs, c, hn, hl, hk => by
+    simp only [List.map_cons, List.nodup_cons, List.mem_map] at hn
+    refine WFP_seq sigs c _ _ _ (check_freeBool' sigs (hl h (by simp))) ?_
+    refine frees_wfp' sigs s hs _ hn.2 (fun g hg => ?_) (fun c' h1 h2 h3 h4 h5 => hk c' (fun g => ?_) h2 h3 h4 h5)
+    · have hne : g.id ≠ h.id := fun e => hn.1 ⟨g, hg, e⟩
+      rw [bool?_drop_of_ne _ _ _ hne]
+      exact hl g (by simp [hg])
+    · rw [h1 g, bool?_drop]
+      by_cases e : g.id = h.id
+      · simp [e]
+      · by_cases m : g.id ∈ hs.map (·.id)
+        · simp [m]
+        · simp only [m, if_false, e, List.map_cons, List.mem_cons, false_or]
+
+/-- **A block of slices of one live bundle** into the consecutive fresh handles `base + j`. -/
+theorem checkAll_slices (sigs : Bytes → Option Sig) (src : BoolH) (info : BoolInfo) (ho : info.once = false)
+    (lo hi : Nat → Nat) (base : Nat) :
+    ∀ (n k : Nat) (c : Ctx), c.bool? src = some info → src.id < base + k → Fresh c (base + k) →
+      (∀ j, k ≤ j → j < k + n → lo j ≤ hi j ∧ hi j ≤ info.marks.length ∧ hi j - lo j ≤ maxWidth) →
+      ∃ c', checkAll sigs c ((List.range' k n).map fun j => (.slice ⟨base + j⟩ src (lo j) (hi j) : Instr)) = some c' ∧
+        c'.fields = c.fields ∧ c'.seenF = c.seenF ∧ c'.progs = c.progs ∧ Fresh c' (base + k + n) ∧
+        (∀ x : BoolH, x.id < base + k → c'.bool? x = c.bool? x)
+  | 0, k, c, _, _, hf, _ => ⟨c, rfl, rfl, rfl, rfl, hf, fun _ _ => rfl⟩
+  | n + 1, k, c, hb, hs, hf, hr => by
+    obtain ⟨h1, h2, h3⟩ := hr k (Nat.le_refl _) (by omega)
+    have hck := check_slice sigs (useBool_keep hb ho) ⟨h1, h2⟩ hf h3
+    obtain ⟨c', e1, e2, e3, e4, e5, e6⟩ := checkAll_slices sigs src info ho lo hi base n (k + 1)
+      (push c (base + k) ⟨(info.marks.drop (lo k)).take (hi k - lo k), info.once⟩)
+      (by rw [bool?_push_of_ne _ _ _ _ (by omega)]; exact hb) (by omega)
+      (hf.push (base + k) (Nat.le_refl _) _) (fun j hj1 hj2 => hr j (by omega) (by omega))
+    refine ⟨c', ?_, e2, e3, e4, ?_, fun x hx => ?_⟩
+    · rw [List.range'_succ, List.map_cons,
+        checkAll_cons sigs c _ (.slice ⟨base + k⟩ src (lo k) (hi k)) _ hck]
+      exact e1
+    · have e : base + (k + 1) + n = base + k + (n + 1) := by omega
+      rw [← e]
+      exact e5
+    · rw [e6 x (by omega), bool?_push_of_ne _ _ _ _ (by omega)]
+
+/-! ## The bit-block phase -/
+
+/-- The shell's context at the bit-block phase. -/
+structure BitCtx (p : Params) (b f : Nat) (c : Ctx) : Prop where
+  fresh : Fresh c (bitBase p b)
+  hb10 : c.bool? ⟨b + 10⟩ = some ⟨FM p.N, false⟩
+  cand : ∀ o, o < 2 → ∀ k, k < p.M → (c.field? (fOf p f o k)).isSome = true
+  progs : ProgSigs c
+
+theorem BitCtx.ofFields {p : Params} {b f : Nat} {c c' : Ctx} (h : BitCtx p b f c) (hb : c'.bools = c.bools)
+    (hs : c'.seenB = c.seenB) (hp : c'.progs = c.progs)
+    (hc : ∀ o, o < 2 → ∀ k, k < p.M → (c'.field? (fOf p f o k)).isSome = true) : BitCtx p b f c' :=
+  ⟨h.fresh.of_seenB hs, by rw [bool?_congr hb]; exact h.hb10, hc,
+    ⟨by rw [hp]; exact h.progs.recompose, by rw [hp]; exact h.progs.bitCheck, by rw [hp]; exact h.progs.bitXor⟩⟩
+
+/-- The context after the coin inputs of the first `k` bit blocks. -/
+structure CoinCtx (p : Params) (b f : Nat) (c : Ctx) (k : Nat) : Prop where
+  base : BitCtx p b f c
+  coins : ∀ o, o < 2 → ∀ j, j < k → ∀ i, i < W → c.field? (coinH p f o j i) = some .never
+  seen : ∀ id, id ∈ c.seenF → id < coinBase p f + k * W ∨
+    (coinBase p f + p.bits * W ≤ id ∧ id < coinBase p f + p.bits * W + k * W)
+
+theorem coinBase_ge (p : Params) (f : Nat) : f + 2 * p.M ≤ coinBase p f := by
+  unfold coinBase maskBase
+  omega
+
+theorem coinStep_ctx (sigs : Bytes → Option Sig) {p : Params} {b f : Nat} {c : Ctx} {k : Nat}
+    (h : CoinCtx p b f c k) (hk : k < p.bits) (slot : Nat) :
+    ∃ c', check sigs c (InstrP.skel (.fieldInput ((List.range W).map (coinH p f 0 k))
+        ((List.range W).map (coinH p f 1 k)) .coins false slot : Instr)) = some (c', .unit) ∧
+      CoinCtx p b f c' (k + 1) := by
+  have hkW := mul_step k p.bits hk
+  have hcb := coinBase_ge p f
+  obtain ⟨c1, d1, b1, s1, p1, f1, n1⟩ := defBlock c (coinH p f 0 k) (coinBase p f + k * W) W (Mark.ofInput false)
+    (fun i _ => by simp [coinH]) (fun j hj1 hj2 hmem => by rcases h.seen j hmem with h' | h' <;> omega)
+  obtain ⟨c2, d2, b2, s2, p2, f2, n2⟩ := defBlock c1 (coinH p f 1 k) (coinBase p f + p.bits * W + k * W) W
+    (Mark.ofInput false) (fun i _ => by simp [coinH]) (fun j hj1 hj2 hmem => by
+      rcases (n1 j).mp hmem with h' | h'
+      · rcases h.seen j h' with h'' | h'' <;> omega
+      · omega)
+  have hd := defFields_two c c1 c2 _ _ W (Mark.ofInput false)
+    (by rw [List.length_map, List.length_range]) (by rw [List.length_map, List.length_range]) d1 d2
+  refine ⟨c2, check_fieldInput' sigs c c2 _ _ _ _ (by rw [List.length_map, List.length_map]) hd, ?_, ?_, ?_⟩
+  · refine h.base.ofFields (b2.trans b1) (s2.trans s1) (p2.trans p1) (fun o ho j hj => ?_)
+    have := fOf_id_lt p f o j ho hj
+    rw [f2, if_neg (by omega), f1, if_neg (by omega)]
+    exact h.base.cand o ho j hj
+  · intro o ho j hj i hi
+    rw [f2, f1]
+    by_cases hjk : j = k
+    · subst hjk
+      have ho' : o = 0 ∨ o = 1 := by omega
+      rcases ho' with rfl | rfl
+      · have e : (coinH p f 0 j i).id = coinBase p f + j * W + i := by simp [coinH]
+        rw [e, if_neg (by omega), if_pos (by omega)]
+        rfl
+      · have e : (coinH p f 1 j i).id = coinBase p f + p.bits * W + j * W + i := by simp [coinH]
+        rw [e, if_pos (by omega)]
+        rfl
+    · have hfr := coin_frame p f o j k i ho (by omega) hk hi
+      rw [if_neg (by omega), if_neg (by omega)]
+      exact h.coins o ho j (by omega) i hi
+  · intro id hid
+    have e1 : (k + 1) * W = k * W + W := Nat.succ_mul k W
+    rcases (n2 id).mp hid with h' | h'
+    · rcases (n1 id).mp h' with h'' | h''
+      · rcases h.seen id h'' with h3 | h3 <;> omega
+      · omega
+    · omega
+
+theorem coin_inputs_wfp {α : Type} (sigs : Bytes → Option Sig) {Q : Ctx → α → Prop} {p : Params} {b f : Nat}
+    (s : Slots) (π₁ π₂ : List Nat) (rest : Script α) (hrest : ∀ c, CoinCtx p b f c p.bits → WFP sigs Q c rest) :
+    ∀ n, n ≤ p.bits → ∀ c, CoinCtx p b f c (p.bits - n) →
+      WFP sigs Q c (seqs ((List.range' (p.bits - n) n).map fun j =>
+        (.fieldInput ((List.range W).map (coinH p f 0 j)) ((List.range W).map (coinH p f 1 j)) .coins false
+          (s.coins + member p π₁ π₂ j 0) : Instr)) rest)
+  | 0, _, c, h => by
+    simp only [List.range'_zero, List.map_nil, seqs_nil]
+    exact hrest c (by simpa using h)
+  | n + 1, hn, c, h => by
+    have e : List.range' (p.bits - (n + 1)) (n + 1) = (p.bits - (n + 1)) :: List.range' (p.bits - n) n := by
+      rw [List.range'_succ]
+      congr 1
+      congr 1
+      omega
+    rw [e, List.map_cons, seqs_cons]
+    obtain ⟨c', hck, h'⟩ := coinStep_ctx sigs h (by omega) (s.coins + member p π₁ π₂ (p.bits - (n + 1)) 0)
+    refine WFP_seq sigs c c' _ _ hck ?_
+    have e2 : p.bits - (n + 1) + 1 = p.bits - n := by omega
+    rw [e2] at h'
+    exact coin_inputs_wfp sigs s π₁ π₂ rest hrest n (by omega) c' h'
+
+theorem recIns_length (p : Params) (f : Nat) (π₁ π₂ : List Nat) : (recIns p f π₁ π₂).length = 2 * p.bits * 256 := by
+  unfold recIns
+  rw [length_flatMap_const _ (p.bits * 256) owners (fun o _ => by
+    rw [length_flatMap_const _ 256 _ (fun j _ => by
+      rw [List.length_append, List.length_map, List.length_range]
+      rfl), List.length_range])]
+  show 2 * (p.bits * 256) = 2 * p.bits * 256
+  rw [Nat.mul_assoc]
+
+theorem allCoins_length (p : Params) (f : Nat) : (allCoins p f).length = 2 * (p.bits * W) * 1 := by
+  unfold allCoins
+  rw [length_flatMap_const _ (p.bits * W) owners (fun o _ => by
+    rw [length_flatMap_const _ W _ (fun j _ => by rw [List.length_map, List.length_range]), List.length_range])]
+  show 2 * (p.bits * W) = 2 * (p.bits * W) * 1
+  rw [Nat.mul_one]
+
+theorem xorIns_length (p : Params) (f : Nat) : (xorIns p f).length = p.bits * W * 2 := by
+  unfold xorIns
+  rw [length_flatMap_const _ (W * 2) _ (fun j _ => by
+    rw [length_flatMap_const _ 2 _ (fun i _ => rfl), List.length_range]), List.length_range, Nat.mul_assoc]
+
+theorem pairSlices_eq (p : Params) (b : Nat) :
+    pairSlices p b = (List.range' 0 (p.bits * W)).map fun q =>
+      (.slice ⟨bitBase p b + q⟩ ⟨b + 10⟩ (256 * (q / W) + q % W) (256 * (q / W) + q % W + 1) : Instr) := by
+  unfold pairSlices
+  rw [← List.range_eq_range', ← flatMap_range_mul (fun q =>
+    (.slice ⟨bitBase p b + q⟩ ⟨b + 10⟩ (256 * (q / W) + q % W) (256 * (q / W) + q % W + 1) : Instr)) W p.bits]
+  apply flatMap_congr'
+  intro j _
+  apply List.map_congr_left
+  intro i hi
+  have hi' : i < 255 := List.mem_range.mp hi
+  have h1 : (j * W + i) / W = j := by
+    show (j * 255 + i) / 255 = j
+    omega
+  have h2 : (j * W + i) % W = i := by
+    show (j * 255 + i) % 255 = i
+    omega
+  rw [h1, h2, Nat.add_assoc]
+
+/-- Sizes the bit blocks need, from `Sizes`. -/
+theorem Sizes.small {p : Params} (sz : Sizes p) :
+    2 * p.bits ≤ maxWidth ∧ 2 * (p.bits * W) ≤ maxWidth ∧ p.bits * W ≤ maxWidth ∧ p.N ≤ maxWidth ∧
+      p.N * 256 ≤ maxWidth := by
+  have hb := sz.hbits
+  have hN : p.bits * 510 ≤ p.N * 510 := Nat.mul_le_mul_right 510 hb
+  have h3 : p.bits * W ≤ p.N * 510 :=
+    Nat.le_trans (Nat.mul_le_mul_left p.bits (by decide : W ≤ 510)) hN
+  have h2 : 2 * (p.bits * W) ≤ p.N * 510 := by
+    have e : 2 * (p.bits * W) = p.bits * 510 := by
+      show 2 * (p.bits * 255) = p.bits * 510
+      rw [Nat.mul_comm 2, Nat.mul_assoc]
+    rw [e]
+    exact hN
+  have h1 : 2 * p.bits ≤ p.N * 510 :=
+    Nat.le_trans (by rw [Nat.mul_comm]; exact Nat.mul_le_mul_left p.bits (by decide : 2 ≤ 510)) hN
+  have h4 : p.N ≤ p.N * 510 := Nat.le_mul_of_pos_right p.N (by decide)
+  have h5 : p.N * 256 ≤ p.N * 510 := Nat.mul_le_mul_left p.N (by decide)
+  exact ⟨Nat.le_trans h1 sz.final, Nat.le_trans h2 sz.final, Nat.le_trans h3 sz.final, Nat.le_trans h4 sz.final,
+    Nat.le_trans h5 sz.final⟩
+
+theorem bitPhase_wfp (sigs : Bytes → Option Sig) {p : Params} {b f : Nat} {c : Ctx} (h : BitCtx p b f c)
+    (hfresh : ∀ j, coinBase p f ≤ j → j ∉ c.seenF) (sz : Sizes p) (s : Slots) (π₁ π₂ : List Nat)
+    (hπ₁ : ∀ k ∈ π₁, k < p.M) :
+    WFP sigs (fun _ _ => True) c (bitPhase p b f s π₁ π₂) := by
+  have hml := member_lt p π₁ π₂ hπ₁ sz.hM
+  obtain ⟨z1, z2, z3, z4, z5⟩ := sz.small
+  have hbits := sz.hbits
+  clear sz
+  unfold bitPhase
+  split
+  · exact WFP.done _ _ trivial
+  · next hb0 =>
+    have key := coin_inputs_wfp sigs (Q := fun _ _ => True) (p := p) (b := b) (f := f) s π₁ π₂
+      (seq (.program recomposeName (2 * p.bits) (recIns p f π₁ π₂) [] (recOuts p f) Label.bitBlockChecks) <|
+        seq (.program bitCheckName (2 * (p.bits * W)) (allCoins p f) [] (chkOuts p f) Label.bitBlockChecks) <|
+        openFieldThen (recOuts p f ++ chkOuts p f) Label.bitBlockChecks fun z =>
+        if z.all (· == 0) then
+          seq (.program bitXorName (p.bits * W) (xorIns p f) [] (xorOuts p f) Label.bitBlockChecks) <|
+          seqs (pairSlices p b) (.done ())
+        else .abort "bit block inconsistent with verified reference")
+      (fun c6 h6 => ?_) p.bits (Nat.le_refl _) c
+      ⟨h, fun o _ j hj => absurd hj (by omega), fun id hid => Or.inl (by
+        apply Classical.byContradiction
+        intro hc
+        exact hfresh id (by omega) hid)⟩
+    · unfold coinInputs
+      rw [Nat.sub_self, ← List.range_eq_range'] at key
+      exact key
+    · have hcb := coinBase_ge p f
+      have hseen : ∀ id, id ∈ c6.seenF → id < coinBase p f + 2 * (p.bits * W) := by
+        intro id hid
+        rcases h6.seen id hid with h' | h' <;> omega
+      have hcoin : ∀ o, o < 2 → ∀ j, j < p.bits → ∀ i, i < W →
+          (coinH p f o j i).id < coinBase p f + 2 * (p.bits * W) := by
+        intro o ho j hj i hi
+        have := coin_lt p o j i ho hj hi
+        rw [coin_id]
+        omega
+      -- the recomposition
+      obtain ⟨c7, d7, b7, s7, p7, f7, n7⟩ := defBlock c6
+        (fun q => (⟨coinBase p f + 2 * (p.bits * W) + q⟩ : FieldH)) (coinBase p f + 2 * (p.bits * W)) (2 * p.bits)
+        .pub (fun _ _ => rfl) (fun j hj1 _ hmem => by have := hseen j hmem; omega)
+      refine WFP_seq sigs c6 c7 _ _ (check_program' sigs c6 c7 recomposeName (2 * p.bits) (recIns p f π₁ π₂)
+        (recOuts p f) Label.bitBlockChecks ⟨256, 0, [.pub]⟩ (by decide) h6.base.progs.recompose rfl (by omega) z1
+        (recIns_length p f π₁ π₂) (by
+          rw [recOuts_block, List.length_map, List.length_range]
+          show _ = 2 * p.bits * 1
+          rw [Nat.mul_one]) (fun g hg => ?_) (by
+          rw [recOuts_block]
+          show c6.defFields _ (List.replicate (2 * p.bits) [Mark.pub]).flatten = some c7
+          rw [flatten_replicate_singleton]
+          exact d7)) ?_
+      · simp only [recIns, List.mem_flatMap, List.mem_append, List.mem_map, List.mem_range, List.mem_singleton] at hg
+        obtain ⟨o, ho, j, hj, hg | hg⟩ := hg
+        · obtain ⟨i, hi, rfl⟩ := hg
+          rw [h6.coins o (owners_lt ho) j hj i hi]
+          rfl
+        · subst hg
+          exact h6.base.cand o (owners_lt ho) _ (hml j 0)
+      -- the bit checks
+      obtain ⟨c8, d8, b8, s8, p8, f8, n8⟩ := defBlock c7 (chkH p f)
+        (coinBase p f + 2 * (p.bits * W) + 2 * p.bits) (2 * (p.bits * W)) .pub (fun _ _ => rfl)
+        (fun j hj1 _ hmem => by
+          rcases (n7 j).mp hmem with h' | h'
+          · have := hseen j h'
+            omega
+          · omega)
+      have hcoin7 : ∀ o, o < 2 → ∀ j, j < p.bits → ∀ i, i < W → c7.field? (coinH p f o j i) = some .never := by
+        intro o ho j hj i hi
+        have := hcoin o ho j hj i hi
+        rw [f7, if_neg (by omega)]
+        exact h6.coins o ho j hj i hi
+      refine WFP_seq sigs c7 c8 _ _ (check_program' sigs c7 c8 bitCheckName (2 * (p.bits * W)) (allCoins p f)
+        (chkOuts p f) Label.bitBlockChecks ⟨1, 0, [.pub]⟩ (by decide) (by rw [p7]; exact h6.base.progs.bitCheck) rfl
+        (by have : 0 < p.bits * W := Nat.mul_pos (by omega) (by decide); omega) z2
+        (allCoins_length p f) (by simp [chkOuts]) (fun g hg => ?_) (by
+          show c7.defFields ((List.range (2 * (p.bits * W))).map (chkH p f))
+            (List.replicate (2 * (p.bits * W)) [Mark.pub]).flatten = some c8
+          rw [flatten_replicate_singleton]
+          exact d8)) ?_
+      · simp only [allCoins, List.mem_flatMap, List.mem_map, List.mem_range] at hg
+        obtain ⟨o, ho, j, hj, i, hi, rfl⟩ := hg
+        rw [hcoin7 o (owners_lt ho) j hj i hi]
+        rfl
+      -- the opening
+      refine WFP_openFieldThen sigs c8 c8 _ _ _ _ (check_openField' sigs c8 _ _ (by decide) (fun x hx => ?_))
+        (fun z _ => ?_)
+      · rw [List.mem_append] at hx
+        rcases hx with hx | hx
+        · rw [recOuts_block] at hx
+          simp only [List.mem_map, List.mem_range] at hx
+          obtain ⟨q, hq, rfl⟩ := hx
+          refine ⟨.pub, ?_, rfl⟩
+          have e8 := f8 ⟨coinBase p f + 2 * (p.bits * W) + q⟩
+          have e7 := f7 ⟨coinBase p f + 2 * (p.bits * W) + q⟩
+          dsimp only at e8 e7
+          rw [e8, if_neg (by omega), e7, if_pos (by omega)]
+        · simp only [chkOuts, List.mem_map, List.mem_range] at hx
+          obtain ⟨q, hq, rfl⟩ := hx
+          refine ⟨.pub, ?_, rfl⟩
+          have e8 := f8 (chkH p f q)
+          have hid : (chkH p f q).id = coinBase p f + 2 * (p.bits * W) + 2 * p.bits + q := rfl
+          rw [hid] at e8
+          rw [e8, if_pos (by omega)]
+      split
+      · -- the XOR
+        obtain ⟨c9, d9, b9, s9, p9, f9, n9⟩ := defBlock c8 (xorH p f)
+          (coinBase p f + 4 * (p.bits * W) + 2 * p.bits) (p.bits * W) .never (fun _ _ => rfl)
+          (fun j hj1 _ hmem => by
+            rcases (n8 j).mp hmem with h' | h'
+            · rcases (n7 j).mp h' with h'' | h''
+              · have := hseen j h''
+                omega
+              · omega
+            · omega)
+        refine WFP_seq sigs c8 c9 _ _ (check_program' sigs c8 c9 bitXorName (p.bits * W) (xorIns p f)
+          (xorOuts p f) Label.bitBlockChecks ⟨2, 0, [.never]⟩ (by decide)
+          (by rw [p8, p7]; exact h6.base.progs.bitXor) rfl (Nat.mul_pos (by omega) (by decide)) z3
+          (xorIns_length p f) (by simp [xorOuts]) (fun g hg => ?_) (by
+            show c8.defFields ((List.range (p.bits * W)).map (xorH p f))
+              (List.replicate (p.bits * W) [Mark.never]).flatten = some c9
+            rw [flatten_replicate_singleton]
+            exact d9)) ?_
+        · simp only [xorIns, List.mem_flatMap, List.mem_range, List.mem_cons, List.not_mem_nil, or_false] at hg
+          obtain ⟨j, hj, i, hi, hg | hg⟩ := hg
+          · subst hg
+            have := hcoin 0 (by omega) j hj i hi
+            rw [f8, if_neg (by omega), hcoin7 0 (by omega) j hj i hi]
+            rfl
+          · subst hg
+            have := hcoin 1 (by omega) j hj i hi
+            rw [f8, if_neg (by omega), hcoin7 1 (by omega) j hj i hi]
+            rfl
+        -- the slices
+        have hb10 : c9.bool? ⟨b + 10⟩ = some ⟨FM p.N, false⟩ := by
+          rw [bool?_congr (b9.trans (b8.trans b7))]
+          exact h6.base.hb10
+        have hfr9 : Fresh c9 (bitBase p b + 0) :=
+          h6.base.fresh.of_seenB (s9.trans (s8.trans s7))
+        obtain ⟨c10, e10, -⟩ := checkAll_slices sigs ⟨b + 10⟩ ⟨FM p.N, false⟩ rfl
+          (fun q => 256 * (q / W) + q % W) (fun q => 256 * (q / W) + q % W + 1) (bitBase p b) (p.bits * W) 0 c9 hb10
+          (by show b + 10 < bitBase p b + 0; unfold bitBase; omega) hfr9
+          (fun q _ hq => by
+            refine ⟨by omega, ?_, by rw [maxWidth_eq]; omega⟩
+            show 256 * (q / W) + q % W + 1 ≤ (FM p.N).length
+            rw [FM_length]
+            have hq' : q < p.bits * 255 := by simpa using hq
+            show 256 * (q / 255) + q % 255 + 1 ≤ p.N * 256
+            omega)
+        rw [pairSlices_eq]
+        exact WFP_seqs sigs _ _ _ c10 e10 (WFP.done _ _ trivial)
+      · exact WFP.abort _ _
 
 end TlsMpc.Node.Flows.Masks
