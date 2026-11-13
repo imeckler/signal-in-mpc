@@ -95,8 +95,9 @@ def native(a):
                                                                '--quiet', '--ignore-rust-version', '--manifest-path', crate / 'Cargo.toml'], a.no_guard),
                   'native-provision.log'))
     steps.append(('database client', guarded(12, 3600, ['cargo', 'build', '--locked', '--release', '--manifest-path', SSDB / 'Cargo.toml',
-                                                        '--target-dir', ROOT / '.deps/deploy-ssdb-target', '-p', 'server', '--bin', 'handoff_client',
-                                                        '--bin', 'server', '-p', 'pki'], a.no_guard), 'native-ssdb.log'))
+                                                        '--target-dir', ROOT / '.deps/deploy-ssdb-target', '-p', 'server', '-p', 'pki',
+                                                        '--bin', 'handoff_client', '--bin', 'server', '--bin', 'pki'], a.no_guard),
+                  'native-ssdb.log'))
     ssl = openssl_prefix()
     public_auth = ['c++', '-std=c++20', '-O2', ROOT / 'handshake_backend/public_auth.cpp', '-lssl', '-lcrypto', '-o', out / 'bin/public_auth']
     if ssl:

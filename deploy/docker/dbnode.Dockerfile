@@ -34,7 +34,7 @@ ENV PATH=/root/.cargo/bin:$PATH
 COPY src/.deps/secret-shared-db-handoff /src/ssdb
 # Not vendored: fetches crates.io and the forks on github.com its Cargo.toml names. --locked.
 RUN set -eux; cargo build --locked --release --manifest-path /src/ssdb/Cargo.toml --target-dir /build \
-      -p server --bin server --bin handoff_client -p pki; \
+      -p server -p pki --bin server --bin handoff_client --bin pki; \
     mkdir -p /out; for b in server handoff_client pki; do install -D /build/release/$b /out/$b; done; \
     install -D /src/ssdb/server/init.sql /out/init.sql
 
