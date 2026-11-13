@@ -573,9 +573,12 @@ section Agree
 
 open TlsMpc.Node.Flows.Join
 
-theorem jobBits_keeps (sl : AgreeSlots) (j : Job) : KeepsG (jobBits sl j) :=
-  KeepsG.bind (KeepsG.allocF _) fun f => KeepsG.bind (KeepsG.lift (bits_noReads f 252 _)) fun _ =>
-    KeepsG.bind (KeepsG.freeFields _) fun _ => KeepsG.pure _
+theorem jobBits_keeps (sl : AgreeSlots) (j : Job) : KeepsG (jobBits sl j) := by
+  unfold jobBits
+  split
+  · exact KeepsG.pure _
+  · exact KeepsG.bind (KeepsG.allocF _) fun f => KeepsG.bind (KeepsG.lift (bits_noReads f 252 _)) fun _ =>
+      KeepsG.bind (KeepsG.freeFields _) fun _ => KeepsG.pure _
 
 theorem jobPoint_keeps (p : Receive.Point) : KeepsG (jobPoint p) := by
   cases p with

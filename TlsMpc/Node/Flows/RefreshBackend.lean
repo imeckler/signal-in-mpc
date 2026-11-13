@@ -63,8 +63,9 @@ structure Sources (Sc : Type) where
   table : SendBackend.TableRef
   /-- The account's handles the establishment reads (`Refresh.Account`). -/
   account : M Refresh.Account
-  /-- A store slot of coins: this party's swap-bit shares of the account's identity scalar. -/
-  identityCoins : M Nat
+  /-- J8: the account's identity scalar's 252 swap bits as field handles (`Account.State.identity`,
+  op 55's); no coins slot for the identity scalar. -/
+  identitySwaps : M (List FieldH)
   /-- S12's connection and buffers (the received records, the send direction's key). -/
   tls : TlsBackend.Refs Sc
 
@@ -95,12 +96,7 @@ def legacyApi (w : Flow.Worker) : Api where
 steps 2 … 253 of `X25519SwapBits` on the share's 256 bits, the top step's negation (the clamped
 scalar's bit 254) on party A's side only, so the two parties' coins XOR to the swap bits of the
 XOR of their shares (`X25519SwapBits.swapBit_shares`). -/
-def swapCoins (me : Party) (share : Bytes) : List F :=
-  let v := bitsOf (toB8 share)
-  (List.range 252).map fun k =>
-    let t := k + 2
-    let b := if t = 253 then (if me = .a then !(v.getD 253 false) else v.getD 253 false) else Conv.swapBit v t
-    if b then TlsMpc.FieldDag.ofNat 1 else TlsMpc.FieldDag.ofNat 0
+abbrev swapCoins (me : Party) (share : Bytes) : List F := ReceiveBackend.swapCoins me share
 
 /-- Take `words` word masks and `bits` bit pairs from the session's pool (each handed out once). -/
 def takePool (r : Runner) (words bits : Nat) : M Conv.MaskPool := do
@@ -132,18 +128,21 @@ def curveFor {Sc : Type} (r : Runner) (src : Sources Sc) (st : Refresh.RState) (
   let oneTime := (st.progress.map (·.oneTime)).getD false
   let agreePool ← if step = 1 then takePool r Join.agreeWords 0 else pure {}
   let agreeSlots ← if step = 1 then r.supply [if oneTime then 7 else 6] else pure []
-  let coins ← if step = 1 then do
-      let identity ← src.identityCoins
+  let (coins, swaps) ← if step = 1 then do
+      let identity ← src.identitySwaps
       let base ← r.stashElems ((← r.randomM 32).map (swapCoins r.me))
       let ratchet ← r.stashElems ((← r.randomM 32).map (swapCoins r.me))
-      pure fun (s : Receive.Scalar) => match s with
-        | .identity => identity
+      pure ((fun (s : Receive.Scalar) => match s with
+        | .identity => 0
         | .fresh 0 => base
         | .fresh _ => ratchet
-        | .own slot => slot
-    else pure fun _ => 0
+        | .own slot => slot),
+        (fun (s : Receive.Scalar) => match s with
+        | .identity => some identity
+        | _ => none))
+    else pure ((fun _ => 0), (fun _ => none))
   return { liftPool, checkPool, agreePool, recover := { recover }, check1 := { check }, check2 := { check },
-           agree := ⟨coins⟩, liftSlots, checkSlots, agreeSlots }
+           agree := { coins, swaps }, liftSlots, checkSlots, agreeSlots }
 
 /-- Run one refresh operation: the step's script on the runner, then its commit (table, state). -/
 def runStep {Sc : Type} {α : Type} (r : Runner) (src : Sources Sc) (s : Refs)

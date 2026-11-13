@@ -104,6 +104,25 @@ def serverPoint (key : Bytes) : Option (Nat × Nat) :=
     else none
   else none
 
+/-- **This party's swap-bit shares of a scalar share** (coins for `Convert.sharedBits`): ladder
+steps 2 … 253 of `X25519SwapBits` on the share's 256 bits, the top step's negation (the clamped
+scalar's bit 254) on party A's side only, so the two parties' coins XOR to the swap bits of the
+XOR of their shares (`X25519SwapBits.swapBit_shares`). (Moved here from `RefreshBackend`, which
+keeps its name for it.) -/
+def swapCoins (me : Party) (share : Bytes) : List F :=
+  let v := bitsOf (toB8 share)
+  (List.range 252).map fun k =>
+    let t := k + 2
+    let b := if t = 253 then (if me = .a then !(v.getD 253 false) else v.getD 253 false) else Conv.swapBit v t
+    if b then TlsMpc.FieldDag.ofNat 1 else TlsMpc.FieldDag.ofNat 0
+
+/-- **The coins of an OWN scalar** (both parties hold it, `Receive.Scalar.own`): party A's are the
+scalar's swap-bit shares, party B's those of the zero share, so they XOR to the scalar's swap bits
+(J8's companion: the IO side stashes coins for `own` and `fresh` scalars; `identity` has field
+handles instead). -/
+def ownCoins (me : Party) (scalar : Bytes) : List F :=
+  if me = .a then swapCoins .a scalar else swapCoins .b (List.replicate 32 0)
+
 /-- The three programs' mask counts (the pinned programs', fixed at session start). -/
 def programMasks (r : Runner) : M ProgramMasks := do
   let one (name : Bytes) : M Nat := do
@@ -214,10 +233,12 @@ def scriptApi (r : Runner) (curve : Op → M (Curve × List (Nat × Nat))) (reve
     insist (address.length == 17 && signed.length == 32 && oneTime.length == 32 && secret.length == 32 &&
       (st.table.find? contact).isNone) "envelope session"
     let (certificate, cert) ← account
-    let signedSlot ← r.stashBytes signed
-    let oneTimeSlot ← r.stashBytes oneTime
+    -- The scalars' slots hold this party's COINS (the swap-bit shares `Convert.sharedBits` reads,
+    -- J8's companion): the agreements' `AgreeSlots.coins` maps `.own s` / `.fresh s` to `s`.
+    let signedSlot ← r.stashElems (signed.map (ownCoins r.me))
+    let oneTimeSlot ← r.stashElems (oneTime.map (ownCoins r.me))
     let kemSlot ← r.stashBits (secret.map fun b => bitsOf (toB8 b))
-    let ratchetSlot ← r.stashBytes (← r.random 32)
+    let ratchetSlot ← r.stashElems ((← r.random 32).map (swapCoins r.me))
     let (cv, supply) ← curve (.session a.oneTime)
     let sp : SessionPublic := { address := toB8 address, requestId := toB8 (TlsMpc.TlsWire.uint 8 (2 ^ 63)), jump }
     let ss : SessionSecrets := { certificate, cert, signedSlot, oneTimeSlot, kemSlot, ratchetSlot }

@@ -102,14 +102,33 @@ from the state's supply (`Receive.St.slots`, `Receive.Gen.takeSlot`): every agre
 no other step took (`JoinOnce.receiveAgree_once`, `openFirst_reads_once`). -/
 structure AgreeSlots where
   coins : Scalar → Nat
+  /-- **J8**: the scalars whose 252 ladder swap bits are ALREADY field handles in the engine: the
+  identity scalar's (`Account.State.identity`, from op 55's / op 46's `bitsToField`, the C++'s
+  `account.identity`). A job on such a scalar reads no coins slot and makes no bits: the handles
+  are the ladder's inputs as they are, and they are not freed (they are not among the handles the
+  agreement made; field handles have no `once`, and a `program` instruction consumes only its
+  masks, Engine.lean design note item 5): the identity scalar serves every message. -/
+  swaps : Scalar → Option (List FieldH) := fun _ => none
 
-/-- One job's swap bits as field bits (P-BITS; handles `f … f + 5·252 − 1`, the inputs and checks
-freed). -/
-def jobBits (sl : AgreeSlots) (j : Job) : Gen (List FieldH) := do
-  let f ← Receive.Gen.allocF (5 * 252)
-  let bs ← Receive.Gen.lift (Convert.sharedBits f 252 (sl.coins j.scalar))
-  Receive.Gen.freeFields (Convert.bitsA f 252 ++ Convert.bitsB f 252 ++ Convert.bitsChk f 252)
-  pure bs
+/-- One job's swap bits as field bits, and the handles made for them (to free after the ladder).
+With swap-bit handles for the job's scalar (J8): those handles, nothing made. Otherwise P-BITS from
+the coins slot (handles `f … f + 5·252 − 1`, the inputs and checks freed; the bits are made). -/
+def jobBits (sl : AgreeSlots) (j : Job) : Gen (List FieldH × List FieldH) :=
+  match sl.swaps j.scalar with
+  | some hs => pure (hs, [])
+  | none => do
+    let f ← Receive.Gen.allocF (5 * 252)
+    let bs ← Receive.Gen.lift (Convert.sharedBits f 252 (sl.coins j.scalar))
+    Receive.Gen.freeFields (Convert.bitsA f 252 ++ Convert.bitsB f 252 ++ Convert.bitsChk f 252)
+    pure (bs, bs)
+
+/-- **J8: a job on a scalar with swap-bit handles runs no instruction**, reads no slot, takes no id
+and makes nothing: its ladder inputs are those handles, and none of them is among what the
+agreement frees. -/
+theorem jobBits_swaps (sl : AgreeSlots) (j : Job) (hs : List FieldH) (h : sl.swaps j.scalar = some hs) (st : Receive.St) :
+    jobBits sl j st = .done ((hs, []), st) := by
+  simp [jobBits, h]
+  rfl
 
 /-- The point of a job, and the handles made for it (the public 9 for `.base`). -/
 def jobPoint : Point → Gen (FieldH × List FieldH)
@@ -125,7 +144,7 @@ def jobsIn (sl : AgreeSlots) : List Job → Gen (List (List FieldH × FieldH) ×
     let b ← jobBits sl j
     let p ← jobPoint j.point
     let rest ← jobsIn sl js
-    pure ((b, p.1) :: rest.1, b ++ p.2 ++ rest.2)
+    pure ((b.1, p.1) :: rest.1, b.2 ++ p.2 ++ rest.2)
 
 /-- The agreements as words (S14's `toWord`: masks from the pool). -/
 def wordsOf : List (FieldH × Bool) → Gen (List BoolH)
@@ -160,9 +179,11 @@ def receiveAgreeKinds : List RevealKind := Curve.agreeKinds ++ Convert.bitsKinds
 
 theorem jobBits_reveals (sl : AgreeSlots) (j : Job) : RevealsG receiveAgreeKinds (jobBits sl j) := by
   unfold jobBits
-  refine RevealsG.bind (RevealsG.allocF _) fun f => ?_
-  refine RevealsG.bind (RevealsG.lift ((Convert.bits_reveals f 252 _).mono (by decide))) fun bs => ?_
-  exact RevealsG.bind (Receive.RevealsG.freeFields _) fun _ => RevealsG.pure _
+  split
+  · exact RevealsG.pure _
+  · refine RevealsG.bind (RevealsG.allocF _) fun f => ?_
+    refine RevealsG.bind (RevealsG.lift ((Convert.bits_reveals f 252 _).mono (by decide))) fun bs => ?_
+    exact RevealsG.bind (Receive.RevealsG.freeFields _) fun _ => RevealsG.pure _
 
 theorem jobPoint_reveals (p : Point) : RevealsG receiveAgreeKinds (jobPoint p) := by
   cases p with
