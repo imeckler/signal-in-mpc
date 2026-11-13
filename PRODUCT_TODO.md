@@ -888,6 +888,24 @@ compute the multiples inside the engine and need no new argument); (b) change an
 programs (on-curve check per hinted point from its owner's input only; links opened as one masked
 random combination; a link failure fatal and reported) and then prove it.
 
+## 11e. DEFECT: contact preparation (op 66) aborts selectively on a contact's key — found 2026-11-14
+
+Found by the check-value proof work (`CHECK_VALUES_AUDIT.md` §4b–4d and
+`TlsMpc/Node/TopLine/Checks/PrepareLeak.lean`, branch `check-values`). Default path, scripts:
+op 66 → `ContactsPrepare.prepareOneG` → `Curve.offsetPrepare` → `Curve.prepBlock` runs the field
+program `edwards-prepare` on the contact's key and on both parties' 504 scalar coins BEFORE the
+coins' bit checks are opened; coins are only checked to be below 2^64. The program's divisions
+abort on a zero denominator, and a cheating node can choose non-bit coins (e.g. 2 and 7 at its
+first two positions) so that a denominator is zero for some valid contact keys and not for others.
+The run then stops at the program for those keys: the cheating node learns a predicate of the
+contact's key from whether the run aborts. A concrete pair of keys is checked in Lean by `decide`.
+How precisely the test can be aimed at one candidate key is not established. Whether the legacy
+C++ op 66 has the same ordering is being checked.
+
+Fix being implemented (branch `prepare-fix`): open a mask-free bit check on the coins before
+`edwards-prepare` runs (one more round), then prove op 66 simulatable from its accepted leak.
+To check with it: `Curve.torsion` on the hinted path has the same shape (see 11d: hinted stays off).
+
 ## 12. Testing still owed
 
 - [ ] Rerun the older fixture checks (`check_tls_worker_v3.py`, `check_tls_application_v3.py`,
