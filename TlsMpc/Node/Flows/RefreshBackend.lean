@@ -20,8 +20,9 @@ runner (`Flows/Runner.lean`), on the runner's contact table (one `Counters`).
     OWN word masks and bit pairs taken from the session pool (`takePool`: each mask handed out once,
     P-CUT (h); the J1 sibling fixed in `Join.RefreshCurve`) and its own supply of NEW store slots of
     fresh field contributions (`Runner.supply`, J1), only for the calls the step makes (step 0:
-    `lift` on the first device or a new identity, `check`; step 1: `agree`). The agreements' coins:
-    the account's identity scalar's swap-bit shares (`Sources.identityCoins`) and this party's
+    `lift` on the first device or a new identity, `check`; step 1: `agree`). The agreements' scalars:
+    the account's identity scalar's swap bits as field handles (J8, `Sources.identitySwaps`, no
+    coins), and as coins this party's
     swap-bit shares of two fresh random scalars (`swapCoins`, X25519SwapBits.swapBit_shares: the
     shares' XOR is the swap bit of the XORed scalar, party A with the top bit). Step 2's entropy:
     32 fresh random bytes of this party.
