@@ -1,4 +1,5 @@
 import TlsMpc.Node.Session.State
+import TlsMpc.Node.Policy.RecordLoop
 
 /-!
 # What every session kind uses (REORGANIZATION_PLAN.md stage S7)
@@ -7,7 +8,9 @@ import TlsMpc.Node.Session.State
   `nextId` (request ids outside the sends' counter);
 - the server's records: `record` (reveal and parse one authenticated record byte by byte, within
   the reveal policy `PublicReceive.mayReveal` / `budget`; a completed envelope is handed to the
-  context's `envelope`), `sendPublic`;
+  context's `envelope`): the policy core `RecordLoop.run` (`Policy/RecordLoop.lean`, the
+  definition T1 is proved about: `ReceiveLoop.t1_all`) at this session's operations
+  (`recordOps`); `sendPublic`;
 - waiting for a response: `awaitReply`, `keepAlive` (a failure ends the session) and their
   recovery forms `receiveSoft`, `awaitSoft`, `keepAliveSoft`, `drainOne` (a closed connection is
   an outcome);
@@ -31,10 +34,12 @@ def controlMasks (on : Flow.Worker) (s : PublicReceive.State) : M (List (List (B
 /-- The connection in use. -/
 def current : SessionM Nat := return (← get).pool.current
 
-/-- The TLS session of the connection in use. -/
-def appNow : SessionM (TlsApplication.Session TlsWorker.BufferHandle) := do
+/-- The TLS session of the connection in use (monad-generic: the send functions' definitions use it). -/
+def appNowG {m : Type → Type} [Monad m] [MonadStateOf State m] : m (TlsApplication.Session TlsWorker.BufferHandle) := do
   let pool := (← get).pool
   return (pool.connection pool.current).session
+
+abbrev appNow : SessionM (TlsApplication.Session TlsWorker.BufferHandle) := appNowG
 
 /-- Public bytes (a frame or request built here) to the server on the connection in use. -/
 def sendPublic (bytes : Bytes) : SessionM Unit := do
@@ -95,67 +100,43 @@ def note (event : String) : SessionM Unit := do
   c.ch.log (.recovery event)
   c.ch.record (.recovery event)
 
-/-- Reveal and parse one authenticated record, byte by byte. A server request's body is passed
-over unrevealed; a delivered envelope's sealed content and a prekey response's body go to the
-engines as they are. A completed envelope is dealt with (`Context.envelope`) before anything
-further is read. -/
+/-- The effects of one record's loop (`RecordLoop.Ops`): the engines' length probe and reveal of
+record `handle`, the passed-over bytes to the engines, the bookkeeping of a revealed run, and the
+context's envelope callback. -/
+def recordOps (c : Context) (handle : Nat) : RecordLoop.Ops SessionM UInt8 where
+  length := do
+    -- The length alone (an offset past any record reveals no byte).
+    let length := (← Flow.Tls.recordLength c.w handle).val.1
+    c.ch.record (.record (← current) handle length)
+    pure length
+  reveal offset count := do
+    let out ← Flow.Tls.revealRange c.w handle offset count
+    pure out.val
+  passed offset count capture collect := do
+    c.ch.record (.passedOver handle offset count
+      (if capture then .envelope else if collect then .prekeyResponse else .nowhere))
+    if capture then
+      -- A delivered envelope's sealed content goes to the engines as it is.
+      Flow.Receive.take c.w handle offset count
+    if collect then
+      -- The body of the 200 to the pending prekey fetch goes to the engines as it is.
+      Flow.Refresh.take c.w handle offset count
+  revealed offset bytes := do
+    modifyReport fun r => { r with revealed := r.revealed + bytes.length }
+    -- Diagnostics: the revealed (public) bytes, on request.
+    if c.hooks.trace then
+      c.ch.log (.revealed bytes)
+    c.ch.record (.revealed handle offset bytes)
+  envelope kind size := do c.envelope kind size
+  byte b := BitVec.ofNat 8 b.toNat
+
+/-- Reveal and parse one authenticated record, byte by byte: the policy core `RecordLoop.run`
+(`TlsMpc/Node/Policy/RecordLoop.lean`, the definition T1 is proved about) with this session's
+operations. A server request's body is passed over unrevealed; a delivered envelope's sealed content
+and a prekey response's body go to the engines as they are. A completed envelope is dealt with
+(`Context.envelope`) before anything further is read. -/
 def record (handle : Nat) (start : PublicReceive.State) : SessionM (PublicReceive.State × Bool) := do
-  let c ← read
-  let w := c.w
-  let mut s := start
-  let mut complete := false
-  let mut offset := 0
-  -- The length alone (an offset past any record reveals no byte).
-  let mut length := (← Flow.Tls.recordLength w handle).val.1
-  c.ch.record (.record (← current) handle length)
-  while offset < length do
-    if s.skip > 0 then
-      -- A server request's body: passed over, never revealed.
-      let count := min s.skip (length - offset)
-      c.ch.record (.passedOver handle offset count
-        (if s.capture then .envelope else if s.collect then .prekeyResponse else .nowhere))
-      if s.capture then
-        -- A delivered envelope's sealed content goes to the engines as it is.
-        Flow.Receive.take w handle offset count
-      if s.collect then
-        -- The body of the 200 to the pending prekey fetch goes to the engines as it is.
-        Flow.Refresh.take w handle offset count
-      -- As much of it as `passRoom` allows in one step (`passRun_bulk`: the state the byte-by-byte
-      -- steps would give), the rest one byte at a time. A response may complete in its body.
-      let bulk := min count (PublicReceive.passRoom s)
-      s := PublicReceive.passBulk bulk s
-      for _ in [0:count - bulk] do
-        let (next, done) ← liftResult (PublicReceive.passOne s)
-        s := next
-        complete := complete || done
-      offset := offset + count
-      -- A completed envelope is dealt with before anything further is read.
-      for (kind, size) in s.envelopes do c.envelope kind size
-      s := { s with envelopes := [] }
-      continue
-    insist (PublicReceive.mayReveal s) "refusing to reveal a server-initiated message"
-    let count := PublicReceive.budget s
-    let out ← Flow.Tls.revealRange w handle offset count
-    length := out.val.1
-    let bytes := out.val.2
-    if offset < length then
-      insist (!bytes.isEmpty) "missing revealed bytes"
-      modifyReport fun r => { r with revealed := r.revealed + bytes.length }
-      -- Diagnostics: the revealed (public) bytes, on request.
-      if c.hooks.trace then
-        c.ch.log (.revealed bytes)
-      c.ch.record (.revealed handle offset bytes)
-      for (byte, index) in bytes.zipIdx do
-        let (next, done) ← liftResult (PublicReceive.step s (BitVec.ofNat 8 byte.toNat))
-        -- What is left of this step must still be within what may be revealed.
-        insist (bytes.length - (index + 1) == 0 || (PublicReceive.mayReveal next && bytes.length - (index + 1) ≤ PublicReceive.budget next))
-          "revealed range went past what may be revealed"
-        s := next
-        complete := complete || done
-    offset := offset + (if bytes.isEmpty then 1 else bytes.length)
-    for (kind, size) in s.envelopes do c.envelope kind size
-    s := { s with envelopes := [] }
-  return (s, complete)
+  RecordLoop.run (recordOps (← read) handle) start
 
 /-- Wait for the pending response; records are read and answered as in the send loop. -/
 def awaitReply : Nat → PublicReceive.State → SessionM PublicReceive.State

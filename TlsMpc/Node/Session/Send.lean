@@ -23,6 +23,13 @@ Two loops over the sends:
   per job of the long-lived session (`Serve.serve`).
 
 Moved from the controller's `main` (stage S7), same operations and order. No I/O primitive.
+
+The sends, the refreshes and both loops are monad-generic definitions (`sendSoftG`, …,
+`deliverJobG`, effects the fields of `SendOps`, `RefreshOps`, `LoopOps`, `DeliverOps`); the
+deployed functions are those definitions at `SessionM` and the deployed records (`sendReal`, …):
+`abbrev f := fG realOps` (2026-11-12, PROOF_GAPS C3; `Session/Events.lean`, header). The only
+call sites of `Flow.Send.request` / `requestDevices` are in `sendReal` (`lint_node.py`,
+`ordering-sites`).
 -/
 
 namespace TlsMpc.Node.Session.Send
@@ -103,85 +110,299 @@ def recordSend (contact id timestamp : Nat) (frame : List (BitVec 8)) : SessionM
 def recordFetch (contact id : Nat) (frame : List (BitVec 8)) : SessionM Unit := do
   (← read).ch.record (.sentPrekeyFetch (← current) contact id (toBytes frame))
 
+/-! ### One send: operations and monad-generic definitions
+
+`sendDevices`, `sendMessage`, `sendSoft` are defined once over any monad with the session's classes,
+their effects being the fields of `SendOps` (the store's are `StoreOps`); the deployed functions are
+these definitions at `SessionM` and `sendReal`. ORD-1 is proved about them
+(`Session/SendProofs.lean`). -/
+
+/-- Every effect of one send besides the store's (`StoreOps`), `State` and `Context`. -/
+structure SendOps (m : Type → Type) where
+  store : StoreOps m
+  liftResult : {α : Type} → Except String α → m α
+  restamp : Nat × Bytes → m (Nat × Bytes)
+  sealOne : Flow.Worker → Nat → Bytes → m (Opened .sealedEnvelope (Option (Nat × List Bytes)))
+  sealDevices : Flow.Worker → Nat → Bytes → Bytes → Nat → m (Opened .sealedEnvelope (Option (Nat × List Bytes)))
+  joint : Flow.Worker → m (Opened .jointRandom Bytes)
+  recordSend : Nat → Nat → Nat → List (BitVec 8) → m Unit
+  request : Flow.Worker → Nat → List Nat → Bytes → Bytes → m TlsWorker.BufferHandle
+  requestDevices : Flow.Worker → Nat → Nat → List Nat → Nat → Bytes → Bytes → m TlsWorker.BufferHandle
+  appSend : TlsApplication.Session TlsWorker.BufferHandle → TlsWorker.BufferHandle → Nat → m Unit
+
+/-- The deployed operations of one send. -/
+def sendReal : SendOps SessionM where
+  store := storeReal
+  liftResult x := liftResult x
+  restamp := restamp
+  sealOne w c b := Flow.Send.«seal» w c b
+  sealDevices w c a b n := Flow.Send.sealDevices w c a b n
+  joint w := Flow.Random.joint w
+  recordSend := recordSend
+  request w c o m f := Flow.Send.request w c o m f
+  requestDevices w c p o n m f := Flow.Send.requestDevices w c p o n m f
+  appSend s h n := TlsApplication.send s h n
+
+section Generic
+variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
+
 /-- One send to a contact with a device list (MULTI_DEVICE.md, section 5): the engines produce one
 envelope per device, all for the same built text; the state is stored before anything leaves, as
 for one device; then one request carries all of them. -/
-def sendDevices (send : Nat × Bytes) (id : Nat) : SessionM Unit := do
+def sendDevicesG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m Unit := do
   let c ← read
   let some (address, _) := c.self | throw "no account address for a device list"
-  let count := (← kindsOf send.1).length
-  let some (timestamp, sealed) := (← Flow.Send.sealDevices c.w send.1 address send.2 count).val
+  let count := (← kindsOfG send.1).length
+  let some (timestamp, sealed) := (← o.sealDevices c.w send.1 address send.2 count).val
     | throw "invalid sealed envelopes reply"
-  storeAdvanced send.1
+  storeAdvancedG o.store send.1
   let envelopes := sealed.map toBits
-  let random := (← Flow.Random.joint c.w).val
-  let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
+  let random := (← o.joint c.w).val
+  let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
   -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
-  insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
-  recordSend send.1 id timestamp frame
-  let handle ← Flow.Send.requestDevices c.w send.1 payloadAt offsets count (random.take 4) (toBytes frame)
-  TlsApplication.send (← appNow) handle frame.length
+  o.store.insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
+  o.recordSend send.1 id timestamp frame
+  let handle ← o.requestDevices c.w send.1 payloadAt offsets count (random.take 4) (toBytes frame)
+  o.appSend (← appNowG) handle frame.length
 
 /-- One send (a failure is the session's): sealed, the state stored, the request sent. -/
-def sendMessage (send : Nat × Bytes) (id : Nat) : SessionM Unit := do
+def sendMessageG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m Unit := do
   let c ← read
-  let send ← restamp send
+  let send ← o.restamp send
   modify fun st => { st with lastSent := some send }
-  if (← kindsOf send.1) != [0] then return ← sendDevices send id
-  let some (timestamp, sealed) := (← Flow.Send.seal c.w send.1 send.2).val | throw "invalid sealed envelope reply"
-  storeAdvanced send.1
-  let random := (← Flow.Random.joint c.w).val
-  let (frame, offsets) ← liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
-  recordSend send.1 id timestamp frame
-  let handle ← Flow.Send.request c.w send.1 offsets (random.take 4) (toBytes frame)
-  TlsApplication.send (← appNow) handle frame.length
+  if (← kindsOfG send.1) != [0] then return ← sendDevicesG o send id
+  let some (timestamp, sealed) := (← o.sealOne c.w send.1 send.2).val | throw "invalid sealed envelope reply"
+  storeAdvancedG o.store send.1
+  let random := (← o.joint c.w).val
+  let (frame, offsets) ← o.liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
+  o.recordSend send.1 id timestamp frame
+  let handle ← o.request c.w send.1 offsets (random.take 4) (toBytes frame)
+  o.appSend (← appNowG) handle frame.length
+
+/-- `sendMessage` with the contact's failures as outcomes. `none`: the request left. Otherwise
+nothing was sent: the result, the reason, and whether to stop sending to this contact. -/
+def sendSoftG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m (Option (Recovery.Result × String × Bool)) := do
+  let c ← read
+  let send ← o.restamp send
+  let unacknowledged := (Recovery.Result.retryLater, "the database nodes did not acknowledge the contact's state", false)
+  let refused := (Recovery.Result.fault, "the contact's stored state cannot produce a message", true)
+  let kinds ← kindsOfG send.1
+  if kinds != [0] then
+    let some (address, _) := c.self | throw "no account address for a device list"
+    let some (timestamp, sealed) := (← o.sealDevices c.w send.1 address send.2 kinds.length).val
+      | return some refused
+    let envelopes := sealed.map toBits
+    let random := (← o.joint c.w).val
+    let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
+    -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
+    if frame.length > 16384 then
+      return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
+    if !(← storeSoftG o.store send.1) then return some unacknowledged
+    o.recordSend send.1 id timestamp frame
+    let handle ← o.requestDevices c.w send.1 payloadAt offsets kinds.length (random.take 4) (toBytes frame)
+    o.appSend (← appNowG) handle frame.length
+    return none
+  let some (timestamp, sealed) := (← o.sealOne c.w send.1 send.2).val | return some refused
+  if !(← storeSoftG o.store send.1) then return some unacknowledged
+  let random := (← o.joint c.w).val
+  let (frame, offsets) ← o.liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
+  o.recordSend send.1 id timestamp frame
+  let handle ← o.request c.w send.1 offsets (random.take 4) (toBytes frame)
+  o.appSend (← appNowG) handle frame.length
+  return none
+
+end Generic
+
+abbrev sendDevices (send : Nat × Bytes) (id : Nat) : SessionM Unit := sendDevicesG sendReal send id
+abbrev sendMessage (send : Nat × Bytes) (id : Nat) : SessionM Unit := sendMessageG sendReal send id
+abbrev sendSoft (send : Nat × Bytes) (id : Nat) : SessionM (Option (Recovery.Result × String × Bool)) :=
+  sendSoftG sendReal send id
+
+/-! ### A device refresh: operations and monad-generic definitions (ORD-2 inside it:
+`Session/RefreshProofs.lean`, `LoopProofs.lean`) -/
+
+/-- Every effect of a device refresh besides `State` and `Context`. -/
+structure RefreshOps (m : Type → Type) where
+  insist : Bool → String → m Unit
+  liftResult : {α : Type} → Except String α → m α
+  nextId : m Nat
+  joint : Flow.Worker → m (Opened .jointRandom Bytes)
+  recordFetch : Nat → Nat → List (BitVec 8) → m Unit
+  fetch : Flow.Worker → Nat → Nat → List Nat → Bytes → Bytes → m TlsWorker.BufferHandle
+  appSend : TlsApplication.Session TlsWorker.BufferHandle → TlsWorker.BufferHandle → Nat → m Unit
+  touch : m Unit
+  awaitReply : Nat → PublicReceive.State → m PublicReceive.State
+  keepAlive : PublicReceive.State → m PublicReceive.State
+  shape : Flow.Worker → m (Option (Opened .bundleShape (List Bool)))
+  establish : Flow.Worker → Nat → Nat → Nat → Nat → Nat → Nat → Bool → BundleResponse.Widths →
+    m (Opened .deviceStatus Bytes)
+  log : Channels → LogLine → m Unit
+  commitScratch : Nat → List Nat → m Bool
+  drop : Flow.Worker → m Unit
+  awaitSoft : Nat → PublicReceive.State → m (PublicReceive.State × Bool)
+  keepAliveSoft : PublicReceive.State → m (PublicReceive.State × Bool)
+  note : String → m Unit
+  sleep : Channels → Nat → m Unit
+
+/-- The deployed operations of a refresh. -/
+def refreshReal : RefreshOps SessionM where
+  insist b e := insist b e
+  liftResult x := liftResult x
+  nextId := nextId
+  joint w := Flow.Random.joint w
+  recordFetch := recordFetch
+  fetch w c p o k f := Flow.Refresh.fetch w c p o k f
+  appSend s h n := TlsApplication.send s h n
+  touch := touch
+  awaitReply := awaitReply
+  keepAlive := keepAlive
+  shape w := Flow.Refresh.shape w
+  establish w c r i d s a sl it := Flow.Refresh.establish w c r i d s a sl it
+  log ch line := ch.log line
+  commitScratch := commitScratch
+  drop w := Flow.Refresh.drop w
+  awaitSoft := awaitSoft
+  keepAliveSoft := keepAliveSoft
+  note := note
+  sleep ch ms := ch.sleep ms
+
+section Generic
+variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
 
 /-- A contact whose device list changed (MULTI_DEVICE.md, sections 3 and 5). The server answers a
 send 409 (devices missing or extra) or 410 (stale registration ids). Its body lists device ids and
 is not read. Instead every session of the contact is replaced: fetch all its devices' prekey
 bundles, establish a session per device in the engines, store the new device list, send the message
 again. -/
-def refreshContact (contact : Nat) (start : PublicReceive.State) : SessionM PublicReceive.State := do
+def refreshContactG (o : RefreshOps m) (contact : Nat) (start : PublicReceive.State) : m PublicReceive.State := do
   let c ← read
   let some (_, registration) := c.self | throw "no account for a device refresh"
-  insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
+  o.insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
   -- The fetch names the contact: its UUID and access key are inserted by the engines.
-  let fetchId ← nextId
-  let random := (← Flow.Random.joint c.w).val
-  let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
-  recordFetch contact fetchId frame
-  let handle ← Flow.Refresh.fetch c.w contact payloadAt offsets (random.take 4) (toBytes frame)
-  TlsApplication.send (← appNow) handle frame.length
-  touch
+  let fetchId ← o.nextId
+  let random := (← o.joint c.w).val
+  let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+  o.recordFetch contact fetchId frame
+  let handle ← o.fetch c.w contact payloadAt offsets (random.take 4) (toBytes frame)
+  o.appSend (← appNowG) handle frame.length
+  o.touch
   -- Its body is collected unrevealed (`PublicReceive.step`: only a 200 with this id).
-  let fetched ← awaitReply 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
+  let fetched ← o.awaitReply 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
   let mut s := { fetched with fetch := none }
   -- 404: the account is gone; 401: the access key no longer matches. Neither is retried.
-  insist (s.status == 200) s!"the prekey fetch was answered {s.status}"
+  o.insist (s.status == 200) s!"the prekey fetch was answered {s.status}"
   let some size := s.bundle | throw "prekey response without a body"
-  insist (2540 ≤ size && size ≤ 65536) "prekey response size"
-  s ← keepAlive s
+  o.insist (2540 ≤ size && size ≤ 65536) "prekey response size"
+  s ← o.keepAlive s
   -- The one thing opened about the body: which of its bytes are JSON punctuation.
-  let some flags ← Flow.Refresh.shape c.w | throw "invalid bundle shape"
-  insist (flags.val.length == size) "invalid bundle shape"
+  let some flags ← o.shape c.w | throw "invalid bundle shape"
+  o.insist (flags.val.length == size) "invalid bundle shape"
   -- In the clear, by both controllers: the devices' layout, if the flags are exactly a response's.
   let some widths := BundleResponse.layout? flags.val | throw "prekey response layout refused"
   let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
-  insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
+  o.insist (1 ≤ rows.length && rows.length ≤ 6) "device count"
   let slots := c.config.agreed.bundleSlots
   for ((at_, item), index) in rows.zipIdx do
     for step in [0:9] do
-      s ← keepAlive s
-      let out := (← Flow.Refresh.establish c.w contact registration index rows.length step at_ slots item).val
+      s ← o.keepAlive s
+      let out := (← o.establish c.w contact registration index rows.length step at_ slots item).val
       -- One status byte per device and not the reason: bad JSON, a bad signature, a changed
       -- identity key and a failed encapsulation look the same. The contact keeps its old state.
       -- (254 after the first step: the bundle's identity key is a new one, which is accepted.)
-      insist (out == [255] || (out == [254] && index == 0 && step == 0)) "a device's session could not be established"
-  c.ch.log (.deviceRefresh rows.length)
+      o.insist (out == [255] || (out == [254] && index == 0 && step == 0)) "a device's session could not be established"
+  o.log c.ch (.deviceRefresh rows.length)
   -- The new device list is stored, and only then becomes the contact's state (`commitScratch`).
-  insist (← commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2)))
+  o.insist (← o.commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2)))
     "the database did not acknowledge a contact's new device list"
-  keepAlive s
+  o.keepAlive s
+
+/-- `refreshContact` with every failure as an outcome (`Recovery.Refreshed`). Nothing of the
+contact changes, in the engines or on the database nodes, unless it returns `ok`. -/
+def refreshSoftG (o : RefreshOps m) (contact : Nat) (start : PublicReceive.State) :
+    m (PublicReceive.State × Recovery.Refreshed) := do
+  let c ← read
+  let some (_, registration) := c.self | throw "no account for a device refresh"
+  o.insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
+  let drop : m Unit := o.drop c.w
+  drop
+  let fetchId ← o.nextId
+  let random := (← o.joint c.w).val
+  let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
+  o.recordFetch contact fetchId frame
+  let handle ← o.fetch c.w contact payloadAt offsets (random.take 4) (toBytes frame)
+  o.appSend (← appNowG) handle frame.length
+  o.touch
+  let (fetched, alive) ← o.awaitSoft 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
+  let mut s := { fetched with fetch := none, collect := false }
+  if !alive then
+    drop
+    return (s, .lost)
+  match Recovery.onFetch s.status with
+  | .done => pure ()
+  | .backOff =>
+    drop
+    return (s, .transient s.status s.retryAfter)
+  | .stop result =>
+    drop
+    return (s, .stop result s!"the prekey fetch was answered {s.status}")
+  | .refresh =>
+    drop
+    return (s, .stop .fault s!"the prekey fetch was answered {s.status}")
+  let size := s.bundle.getD 0
+  if !(2540 ≤ size && size ≤ 65536) then
+    drop
+    return (s, .stop .fault "server fault: the prekey response has no body of a possible size")
+  let (next, alive) ← o.keepAliveSoft s
+  s := next
+  if !alive then
+    drop
+    return (s, .lost)
+  -- The one thing opened about the body: which of its bytes are JSON punctuation.
+  let some flags ← o.shape c.w
+    | -- Strict mode, and the response's size class is not in the manifest (more devices than the
+      -- deployment covers): this contact fails, the session goes on.
+      drop
+      return (s, .stop .fault s!"no circuit for a prekey response of {size} bytes (more devices than the deployment covers)")
+  o.insist (flags.val.length == size) "invalid bundle shape"
+  let layout := BundleResponse.layout? flags.val
+  let widths := layout.getD []
+  let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
+  if layout.isNone || !(1 ≤ rows.length && rows.length ≤ 6) then
+    drop
+    return (s, .stop .fault "server fault: the prekey response is not a bundle")
+  let mut changed := false
+  let slots := c.config.agreed.bundleSlots
+  for ((at_, item), index) in rows.zipIdx do
+    for step in [0:9] do
+      let (next, alive) ← o.keepAliveSoft s
+      s := next
+      if !alive then
+        drop
+        return (s, .lost)
+      let out := (← o.establish c.w contact registration index rows.length step at_ slots item).val
+      -- 254 (first step, first device): the bundle parsed and verified under an identity key that
+      -- is not the stored one. Accepted by decision; reported.
+      if out == [254] && index == 0 && step == 0 then changed := true
+      else if out != [255] then
+        -- One status byte and not the reason: bad JSON, a bad signature, a failed agreement or
+        -- encapsulation look the same. Nothing is stored.
+        drop
+        return (s, .stop .fault "server fault: a device's bundle did not verify")
+  -- Stored on the database nodes, then (and only then) the contact's state.
+  if !(← o.commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2))) then
+    return (s, .stop .retryLater "the database nodes did not acknowledge the new device list")
+  o.note s!"contact {contact}: {rows.length} sessions established{if changed then " under a new identity key" else ""}"
+  -- TEST hook: a pause here lets the harness change the contact's devices again before the resend.
+  if let some pause := c.hooks.pauseRefresh then
+    o.sleep c.ch pause
+  return (s, .ok changed)
+
+end Generic
+
+abbrev refreshContact (contact : Nat) (start : PublicReceive.State) : SessionM PublicReceive.State :=
+  refreshContactG refreshReal contact start
+abbrev refreshSoft (contact : Nat) (start : PublicReceive.State) : SessionM (PublicReceive.State × Recovery.Refreshed) :=
+  refreshSoftG refreshReal contact start
 
 /-- Before a contact's first send of the session: its per-session curve work (the table its
 messages' key agreements are summed from) together with that of the contacts that follow it, in one
@@ -203,178 +424,171 @@ def ensurePrepared (contact : Nat) (upcoming : List Nat) : SessionM Unit := do
   insist (statuses.val.length == batch.length) "invalid contacts-prepare reply"
   modifyContacts fun k => { k with prepared := k.prepared ++ batch }
 
+/-! ### The send loop without recovery: operations and monad-generic definition (ORD-1, ORD-2 over
+every run: `Session/LoopProofs.lean`) -/
+
+/-- Every effect of `loop` besides `State` and `Context`. -/
+structure LoopOps (m : Type → Type) where
+  insist : Bool → String → m Unit
+  liftResult : {α : Type} → Except String α → m α
+  receive : TlsApplication.Session TlsWorker.BufferHandle → m (TlsApplication.Received TlsWorker.BufferHandle)
+  record : Nat → PublicReceive.State → m (PublicReceive.State × Bool)
+  controlMasks : Flow.Worker → PublicReceive.State → m (List (List (BitVec 8)))
+  sendPublic : Bytes → m Unit
+  joint : Flow.Worker → m (Opened .jointRandom Bytes)
+  refreshContact : Nat → PublicReceive.State → m PublicReceive.State
+  nextId : m Nat
+  sendMessage : Nat × Bytes → Nat → m Unit
+  awaitReply : Nat → PublicReceive.State → m PublicReceive.State
+  keyUpdate : TlsApplication.Session TlsWorker.BufferHandle → Bool → m Unit
+  reloadContacts : List (Nat × Secret Bytes × Nat) → m Unit
+  ensurePrepared : Nat → List Nat → m Unit
+  toCircuit : List Nat → PublicReceive.State → Nat → Nat → m (PublicReceive.State × Nat)
+
+/-- The deployed operations of `loop`. -/
+def loopReal : LoopOps SessionM where
+  insist b e := insist b e
+  liftResult x := liftResult x
+  receive s := TlsApplication.receive s
+  record := record
+  controlMasks w s := controlMasks w s
+  sendPublic := sendPublic
+  joint w := Flow.Random.joint w
+  refreshContact := refreshContact
+  nextId := nextId
+  sendMessage := sendMessage
+  awaitReply := awaitReply
+  keyUpdate s b := TlsApplication.keyUpdate s b
+  reloadContacts := reloadContacts
+  ensurePrepared := ensurePrepared
+  toCircuit := toCircuit
+
 /-- The send loop without recovery (`known`: the contacts loaded, reloaded after two sends;
 `recipients`: the session's contacts, for `Circuits.assign`). Against a Signal server a send may be
 answered 409/410 (the contact's devices changed): such a response is completed and handled here
 instead of ending the session. Returns the responses completed. -/
-def loop (known : List (Nat × Secret Bytes × Nat)) (recipients : List Nat) :
-    Nat → PublicReceive.State → List (Nat × Bytes) → Nat → SessionM Nat
+def loopG {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
+    (o : LoopOps m) (known : List (Nat × Secret Bytes × Nat)) (recipients : List Nat) :
+    Nat → PublicReceive.State → List (Nat × Bytes) → Nat → m Nat
   | 0, _, _, _ => throw "receive budget exhausted"
   | fuel+1, s, inputs, completed => do
     let c ← read
-    match ← TlsApplication.receive (← appNow) with
+    match ← o.receive (← appNowG) with
     | .application handle =>
       let wasPending := s.pending
-      let (s, complete) ← record handle.id s
+      let (s, complete) ← o.record handle.id s
       -- The mask is public but must be the same for both controllers: joint randomness.
-      let (s, frames) ← liftResult (PublicReceive.replies s (← controlMasks c.w s))
+      let (s, frames) ← o.liftResult (PublicReceive.replies s (← o.controlMasks c.w s))
       for (kind, frame) in frames do
-        sendPublic (toBytes frame)
-        insist (kind != 8) "WebSocket peer closed before completion"
+        o.sendPublic (toBytes frame)
+        o.insist (kind != 8) "WebSocket peer closed before completion"
       -- Replies to completed server requests (each with its own joint mask).
       for request in s.requests do
-        let random := (← Flow.Random.joint c.w).val
-        let (frame, message) ← liftResult (PublicReceive.reply request (toBits (random.take 4)))
+        let random := (← o.joint c.w).val
+        let (frame, message) ← o.liftResult (PublicReceive.reply request (toBits (random.take 4)))
         -- Nothing is received on this socket: a delivered message is left unacknowledged.
-        unless message do sendPublic (toBytes frame)
+        unless message do o.sendPublic (toBytes frame)
       let s := { s with requests := [] }
-      insist (!complete || wasPending) "unsolicited service response"
+      o.insist (!complete || wasPending) "unsolicited service response"
       -- A send refused for the contact's device list (409, 410): the contact's sessions are
       -- replaced and the message is sent again. Bounded: one refresh and one resend per message;
       -- a second refusal ends the session.
       let s ← if complete && s.lenient && (s.status == 409 || s.status == 410) then do
           let some input := (← get).lastSent | throw "no send to repeat"
-          let refreshed ← refreshContact input.1 s
-          let id ← nextId
-          sendMessage input id
-          let answered ← awaitReply 64 (PublicReceive.expect refreshed id)
-          insist (200 ≤ answered.status && answered.status < 300) s!"the resend after a device refresh was answered {answered.status}"
+          let refreshed ← o.refreshContact input.1 s
+          let id ← o.nextId
+          o.sendMessage input id
+          let answered ← o.awaitReply 64 (PublicReceive.expect refreshed id)
+          o.insist (200 ≤ answered.status && answered.status < 300) s!"the resend after a device refresh was answered {answered.status}"
           pure answered
         else do
           -- (Without `lenient` the parser has already refused anything but a success.)
-          insist (!complete || !s.lenient || (200 ≤ s.status && s.status < 300)) s!"service response was not a success: {s.status}"
+          o.insist (!complete || !s.lenient || (200 ≤ s.status && s.status < 300)) s!"service response was not a success: {s.status}"
           pure s
       let finished := completed + (if complete then 1 else 0)
       -- (No KeyUpdate of our own under the libsignal profile: BoringSSL never sends one.)
-      if complete && finished == 1 && !c.official then TlsApplication.keyUpdate (← appNow) false
+      if complete && finished == 1 && !c.official then o.keyUpdate (← appNowG) false
       if s.upgraded && !s.pending then
         match inputs with
-        | [] => insist (finished > 0) "private provider supplied no requests"; return finished
+        | [] => o.insist (finished > 0) "private provider supplied no requests"; return finished
         | input::tail =>
           -- Request ids are public: a counter from 2^63, as the service expects.
           let id := 2 ^ 63 + finished
-          if finished == 2 then reloadContacts known
-          if finished == 2 then modifyContacts fun k => { k with prepared := [] }   -- reloaded contacts are unprepared
-          ensurePrepared input.1 (tail.map (·.1))
+          if finished == 2 then o.reloadContacts known
+          if finished == 2 then modifyContactsG fun k => { k with prepared := [] }   -- reloaded contacts are unprepared
+          o.ensurePrepared input.1 (tail.map (·.1))
           -- Several circuits: the contact's connection, its parser state and request id.
-          let (s, id) ← toCircuit recipients s input.1 id
-          sendMessage input id
-          loop known recipients fuel (PublicReceive.expect s id) tail finished
-      else loop known recipients fuel s inputs finished
-    | .control => loop known recipients fuel s inputs completed
+          let (s, id) ← o.toCircuit recipients s input.1 id
+          o.sendMessage input id
+          loopG o known recipients fuel (PublicReceive.expect s id) tail finished
+      else loopG o known recipients fuel s inputs finished
+    | .control => loopG o known recipients fuel s inputs completed
     | .closed => throw "TLS closed before private responses"
 
-/-- `refreshContact` with every failure as an outcome (`Recovery.Refreshed`). Nothing of the
-contact changes, in the engines or on the database nodes, unless it returns `ok`. -/
-def refreshSoft (contact : Nat) (start : PublicReceive.State) : SessionM (PublicReceive.State × Recovery.Refreshed) := do
-  let c ← read
-  let some (_, registration) := c.self | throw "no account for a device refresh"
-  insist (0 < registration && registration < 2 ^ 32) "the export has no registration id for the account"
-  let drop : SessionM Unit := Flow.Refresh.drop c.w
-  drop
-  let fetchId ← nextId
-  let random := (← Flow.Random.joint c.w).val
-  let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildFetch fetchId (toBits (random.take 4)))
-  recordFetch contact fetchId frame
-  let handle ← Flow.Refresh.fetch c.w contact payloadAt offsets (random.take 4) (toBytes frame)
-  TlsApplication.send (← appNow) handle frame.length
-  touch
-  let (fetched, alive) ← awaitSoft 64 { PublicReceive.expect start fetchId with fetch := some fetchId, bundle := none }
-  let mut s := { fetched with fetch := none, collect := false }
-  if !alive then
-    drop
-    return (s, .lost)
-  match Recovery.onFetch s.status with
-  | .done => pure ()
-  | .backOff =>
-    drop
-    return (s, .transient s.status s.retryAfter)
-  | .stop result =>
-    drop
-    return (s, .stop result s!"the prekey fetch was answered {s.status}")
-  | .refresh =>
-    drop
-    return (s, .stop .fault s!"the prekey fetch was answered {s.status}")
-  let size := s.bundle.getD 0
-  if !(2540 ≤ size && size ≤ 65536) then
-    drop
-    return (s, .stop .fault "server fault: the prekey response has no body of a possible size")
-  let (next, alive) ← keepAliveSoft s
-  s := next
-  if !alive then
-    drop
-    return (s, .lost)
-  -- The one thing opened about the body: which of its bytes are JSON punctuation.
-  let some flags ← Flow.Refresh.shape c.w
-    | -- Strict mode, and the response's size class is not in the manifest (more devices than the
-      -- deployment covers): this contact fails, the session goes on.
-      drop
-      return (s, .stop .fault s!"no circuit for a prekey response of {size} bytes (more devices than the deployment covers)")
-  insist (flags.val.length == size) "invalid bundle shape"
-  let layout := BundleResponse.layout? flags.val
-  let widths := layout.getD []
-  let rows := (BundleResponse.starts BundleResponse.firstItem widths).zip widths
-  if layout.isNone || !(1 ≤ rows.length && rows.length ≤ 6) then
-    drop
-    return (s, .stop .fault "server fault: the prekey response is not a bundle")
-  let mut changed := false
-  let slots := c.config.agreed.bundleSlots
-  for ((at_, item), index) in rows.zipIdx do
-    for step in [0:9] do
-      let (next, alive) ← keepAliveSoft s
-      s := next
-      if !alive then
-        drop
-        return (s, .lost)
-      let out := (← Flow.Refresh.establish c.w contact registration index rows.length step at_ slots item).val
-      -- 254 (first step, first device): the bundle parsed and verified under an identity key that
-      -- is not the stored one. Accepted by decision; reported.
-      if out == [254] && index == 0 && step == 0 then changed := true
-      else if out != [255] then
-        -- One status byte and not the reason: bad JSON, a bad signature, a failed agreement or
-        -- encapsulation look the same. Nothing is stored.
-        drop
-        return (s, .stop .fault "server fault: a device's bundle did not verify")
-  -- Stored on the database nodes, then (and only then) the contact's state.
-  if !(← commitScratch contact (widths.map (fun w => if w.oneTime == 0 then 1 else 2))) then
-    return (s, .stop .retryLater "the database nodes did not acknowledge the new device list")
-  note s!"contact {contact}: {rows.length} sessions established{if changed then " under a new identity key" else ""}"
-  -- TEST hook: a pause here lets the harness change the contact's devices again before the resend.
-  if let some pause := c.hooks.pauseRefresh then
-    c.ch.sleep pause
-  return (s, .ok changed)
+abbrev loop (known : List (Nat × Secret Bytes × Nat)) (recipients : List Nat) :
+    Nat → PublicReceive.State → List (Nat × Bytes) → Nat → SessionM Nat :=
+  loopG loopReal known recipients
 
-/-- `sendMessage` with the contact's failures as outcomes. `none`: the request left. Otherwise
-nothing was sent: the result, the reason, and whether to stop sending to this contact. -/
-def sendSoft (send : Nat × Bytes) (id : Nat) : SessionM (Option (Recovery.Result × String × Bool)) := do
-  let c ← read
-  let send ← restamp send
-  let unacknowledged := (Recovery.Result.retryLater, "the database nodes did not acknowledge the contact's state", false)
-  let refused := (Recovery.Result.fault, "the contact's stored state cannot produce a message", true)
-  let kinds ← kindsOf send.1
-  if kinds != [0] then
-    let some (address, _) := c.self | throw "no account address for a device list"
-    let some (timestamp, sealed) := (← Flow.Send.sealDevices c.w send.1 address send.2 kinds.length).val
-      | return some refused
-    let envelopes := sealed.map toBits
-    let random := (← Flow.Random.joint c.w).val
-    let (frame, payloadAt, offsets) ← liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
-    -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
-    if frame.length > 16384 then
-      return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
-    if !(← storeSoft send.1) then return some unacknowledged
-    recordSend send.1 id timestamp frame
-    let handle ← Flow.Send.requestDevices c.w send.1 payloadAt offsets kinds.length (random.take 4) (toBytes frame)
-    TlsApplication.send (← appNow) handle frame.length
-    return none
-  let some (timestamp, sealed) := (← Flow.Send.seal c.w send.1 send.2).val | return some refused
-  if !(← storeSoft send.1) then return some unacknowledged
-  let random := (← Flow.Random.joint c.w).val
-  let (frame, offsets) ← liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
-  recordSend send.1 id timestamp frame
-  let handle ← Flow.Send.request c.w send.1 offsets (random.take 4) (toBytes frame)
-  TlsApplication.send (← appNow) handle frame.length
-  return none
+/-! ### The recovery path's loop: operations and monad-generic definition
+
+`deliverJob` is defined once over any monad (`deliverJobG`, its effects the fields of
+`DeliverOps`); the deployed `deliverJob` is that definition at `SessionM` and `deliverReal`. ORD-1,
+ORD-2 over every run and T11 are proved about it (`Session/DeliverProofs.lean`, `LoopProofs.lean`). -/
+
+/-- Every effect of `deliverJob` besides `State` and `Context`. -/
+structure DeliverOps (m : Type → Type) where
+  insist : Bool → String → m Unit
+  peer : PeerMsg → m PeerMsg
+  note : String → m Unit
+  readJournal : Channels → String → String → m (List JournalEntry)
+  sleep : Channels → Nat → m Unit
+  agreedClock : m Nat
+  ensurePrepared : Nat → List Nat → m Unit
+  sendSoft : Nat × Bytes → Nat → m (Option (Recovery.Result × String × Bool))
+  awaitSoft : Nat → PublicReceive.State → m (PublicReceive.State × Bool)
+  record : Channels → RecordEvent → m Unit
+  reconnect : m Unit
+  saveState : PublicReceive.State → m Unit
+  refreshSoft : Nat → PublicReceive.State → m (PublicReceive.State × Recovery.Refreshed)
+  keyUpdate : TlsApplication.Session TlsWorker.BufferHandle → Bool → m Unit
+  journal : Channels → String → JournalLine → m Unit
+
+/-- The deployed operations of `deliverJob`. -/
+def deliverReal : DeliverOps SessionM where
+  insist b e := insist b e
+  peer := peer
+  note := note
+  readJournal ch path named := ch.readJournal path named
+  sleep ch ms := ch.sleep ms
+  agreedClock := agreedClock
+  ensurePrepared := ensurePrepared
+  sendSoft := sendSoft
+  awaitSoft := awaitSoft
+  record ch e := ch.record e
+  reconnect := reconnect
+  saveState := saveState
+  refreshSoft := refreshSoft
+  keyUpdate s b := TlsApplication.keyUpdate s b
+  journal ch path line := ch.journal path line
+
+section Generic
+variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
+
+/-- `deliverJob`'s tail: the per-id results, agreed by digest, then reported (T11). -/
+def resultsTailG (o : DeliverOps m) (inputs : List (Nat × Bytes)) (messageOf contactOf : Nat → Nat)
+    (outcomes : Array (Option (Recovery.Result × String))) (delivered : Nat) : m Nat := do
+  -- The per-id results. Both controllers computed them from agreed values: they compare a digest
+  -- (through the worker's exchange) and report only what both arrived at.
+  let entries : List Recovery.Entry := (List.range inputs.length).map (fun index =>
+    let (result, reason) := (outcomes.getD index none).getD (.fault, "no outcome")
+    (messageOf index, contactOf index, result, reason))
+  let digest := TlsWire.hash (Recovery.canonical entries).toUTF8.data.toList
+  let theirDigest ← match ← o.peer (.resultsDigest digest) with
+    | .resultsDigest theirs => pure theirs
+    | _ => throw "invalid results-digest reply"
+  o.insist (theirDigest == digest) "the two parties' per-id results differ"
+  modifyReportG fun r => { r with results := entries }
+  return delivered
 
 /-- **One notify's sends on the recovery path** (`inputs`, to the contacts `recipients`) on the
 open connections (`Pool.openAll`; `first`: connection 0's parser state). Every input ends in a
@@ -391,20 +605,20 @@ party's journal): an entry counts only when both parties' journals have it: a pa
 journal, or lies, can cause a duplicate, never a message left out. Entries are public values
 (message number, id, result). Returns the inputs delivered; the per-id results (agreed by digest)
 are in `Report.results`. -/
-def deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
-    (first : PublicReceive.State) : SessionM Nat := do
+def deliverJobG (o : DeliverOps m) (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+    (first : PublicReceive.State) : m Nat := do
   let c ← read
-  modifyReport fun r => { r with recoveryUsed := true }
+  modifyReportG fun r => { r with recoveryUsed := true }
   let count := max c.sendCircuits 1
   let settled ← match notifyId, journal with
     | some named, some path => do
-      let mine ← c.ch.readJournal path named
-      let theirs ← match ← peer (.journal mine) with
+      let mine ← o.readJournal c.ch path named
+      let theirs ← match ← o.peer (.journal mine) with
         | .journal entries => pure entries
         | _ => throw "invalid journal reply"
       -- The same entry: the same 21 bytes on the link (`JournalEntry.encode`).
       let both := mine.filter (fun entry => theirs.any (fun other => other.encode == entry.encode))
-      if !mine.isEmpty then note s!"{both.length} results settled by an earlier session of this notify"
+      if !mine.isEmpty then o.note s!"{both.length} results settled by an earlier session of this notify"
       pure both
     | _, _ => pure []
   let contactOf (index : Nat) : Nat := (inputs.getD index (0, [])).1
@@ -430,19 +644,19 @@ def deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId 
   let mut paused := false
   while !queue.isEmpty do
     rounds := rounds + 1
-    insist (rounds ≤ 64 + 8 * inputs.length) "delivery budget exhausted"
+    o.insist (rounds ≤ 64 + 8 * inputs.length) "delivery budget exhausted"
     if let some (after, pause) := pauseAfter then
       if !paused && (outcomes.toList.filter Option.isSome).length ≥ after then
         paused := true
-        note s!"TEST pause of {pause} ms after {after} results"
-        c.ch.sleep pause
-    let now ← agreedClock
+        o.note s!"TEST pause of {pause} ms after {after} results"
+        o.sleep c.ch pause
+    let now ← o.agreedClock
     let (index, retries, _) ← match queue.find? (fun (_, _, notBefore) => notBefore ≤ now) with
       | some item => pure item
       | none => do
         -- Everything left is backing off: both controllers wait for the soonest.
         let soonest := (queue.map (·.2.2)).foldl min (now + Recovery.longestWait)
-        c.ch.sleep (soonest - now)
+        o.sleep c.ch (soonest - now)
         pure ((queue.find? (fun (_, _, notBefore) => notBefore == soonest)).getD (0, 0, 0))
     queue := queue.filter (·.1 != index)
     let input := inputs.getD index (0, [])
@@ -466,29 +680,29 @@ def deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId 
         break
       -- The contact's connection, its parser state and the request's id.
       let target := Circuits.assign recipients count contact
-      modifyReport fun r => { r with circuitSends := r.circuitSends ++ [(contact, target)] }
-      modifyPool fun p => { p with current := target }
+      modifyReportG fun r => { r with circuitSends := r.circuitSends ++ [(contact, target)] }
+      modifyPoolG fun p => { p with current := target }
       let sent := (← get).pool.counters.getD target 0
-      modifyPool fun p => { p with counters := p.counters.set! target (sent + 1) }
+      modifyPoolG fun p => { p with counters := p.counters.set! target (sent + 1) }
       let id := 2 ^ 63 + sent
       let s := (← get).pool.states.getD target first
-      ensurePrepared contact (queue.map (fun (later, _, _) => contactOf later))   -- with the contacts that follow, in the same field rounds
-      match ← sendSoft input id with
+      o.ensurePrepared contact (queue.map (fun (later, _, _) => contactOf later))   -- with the contacts that follow, in the same field rounds
+      match ← o.sendSoft input id with
       | some (result, reason, stop) =>
         final := some (result, reason)
         if stop && !result.stops then stopped := stopped ++ [(contact, result, reason)]
         break
       | none => pure ()
-      let (s, alive) ← awaitSoft 64 (PublicReceive.expect s id)
-      c.ch.record (.response contact message id alive s.status s.retryAfter)
+      let (s, alive) ← o.awaitSoft 64 (PublicReceive.expect s id)
+      o.record c.ch (.response contact message id alive s.status s.retryAfter)
       if !alive then
         -- Sent, not answered: whether the server took it is unknown. It is sent again (under new
         -- keys), accepting a duplicate.
-        reconnect
+        o.reconnect
         lost := lost + 1
         if lost > Recovery.reconnects then final := some (.retryLater, s!"the connection was closed {lost} times")
         continue
-      saveState s
+      o.saveState s
       match Recovery.onSend s.status with
       | .done =>
         final := some (if changedInputs.contains index then .deliveredAfterIdentityChange
@@ -500,63 +714,58 @@ def deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId 
           final := some (.retryLater, s!"the device list was refused again after {refreshes} refreshes")
         else
           refreshes := refreshes + 1
-          note s!"contact {contact}: send answered {s.status}, refresh {refreshes}"
-          let (s, outcome) ← refreshSoft contact s
+          o.note s!"contact {contact}: send answered {s.status}, refresh {refreshes}"
+          let (s, outcome) ← o.refreshSoft contact s
           match outcome with
           | .ok changed =>
-            saveState s
+            o.saveState s
             refreshedInputs := refreshedInputs ++ [index]
             if changed then changedInputs := changedInputs ++ [index]
           | .lost =>
-            reconnect
+            o.reconnect
             refreshes := refreshes - 1
             lost := lost + 1
             if lost > Recovery.reconnects then final := some (.retryLater, s!"the connection was closed {lost} times")
           | .stop result reason =>
-            saveState s
+            o.saveState s
             final := some (result, reason)
           | .transient status retryAfter =>
-            saveState s
+            o.saveState s
             again := some (status, retryAfter)
     match final, again with
     | some (result, reason), _ =>
       outcomes := outcomes.set! index (some (result, reason))
-      if !reason.isEmpty then note s!"contact {contact}, message {message}: {result.text} ({reason})"
+      if !reason.isEmpty then o.note s!"contact {contact}, message {message}: {result.text} ({reason})"
       if result.stops then stopped := stopped ++ [(contact, result, reason)]
       if result.isDelivered then
         delivered := delivered + 1
         if !rotated then
           rotated := true
           -- (Not under the libsignal profile: BoringSSL never sends a KeyUpdate of its own.)
-          unless c.official do TlsApplication.keyUpdate (← appNow) false
+          unless c.official do o.keyUpdate (← appNowG) false
       if result.settled then
         match notifyId, journal with
         | some named, some path =>
-          c.ch.journal path { notify := named, entry := (message, contact, result, reason) }
+          o.journal c.ch path { notify := named, entry := (message, contact, result, reason) }
         | _, _ => pure ()
     | none, some (status, retryAfter) =>
       match Recovery.delay retries retryAfter with
       | some wait =>
-        note s!"contact {contact}, message {message}: answered {status}, retry {retries + 1} in {wait} ms"
-        queue := queue ++ [(index, retries + 1, (← agreedClock) + wait)]
+        o.note s!"contact {contact}, message {message}: answered {status}, retry {retries + 1} in {wait} ms"
+        queue := queue ++ [(index, retries + 1, (← o.agreedClock) + wait)]
       | none =>
         let reason := s!"answered {status}" ++ (match retryAfter with | some seconds => s!", Retry-After {seconds} s" | none => "") ++
           s!", after {retries} retries"
-        note s!"contact {contact}, message {message}: retry later ({reason})"
+        o.note s!"contact {contact}, message {message}: retry later ({reason})"
         outcomes := outcomes.set! index (some (.retryLater, reason))
     | none, none => pure ()
-  -- The per-id results. Both controllers computed them from agreed values: they compare a digest
-  -- (through the worker's exchange) and report only what both arrived at.
-  let entries : List Recovery.Entry := (List.range inputs.length).map (fun index =>
-    let (result, reason) := (outcomes.getD index none).getD (.fault, "no outcome")
-    (messageOf index, contactOf index, result, reason))
-  let digest := TlsWire.hash (Recovery.canonical entries).toUTF8.data.toList
-  let theirDigest ← match ← peer (.resultsDigest digest) with
-    | .resultsDigest theirs => pure theirs
-    | _ => throw "invalid results-digest reply"
-  insist (theirDigest == digest) "the two parties' per-id results differ"
-  modifyReport fun r => { r with results := entries }
-  return delivered
+  resultsTailG o inputs messageOf contactOf outcomes delivered
+
+end Generic
+
+abbrev deliverJob (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+    (first : PublicReceive.State) : SessionM Nat :=
+  deliverJobG deliverReal inputs recipients notifyId journal first
 
 /-- **The one-notify send session on the recovery path**: open every connection, deliver. -/
 def deliver (accept : Bytes) (inputs : List (Nat × Bytes)) : SessionM Nat := do

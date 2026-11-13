@@ -22,6 +22,10 @@ submit the same bytes as the next version.
 Not a module of the plan's list (which names Common, Pool, Send, Serve, Receive, Ceremony,
 Delete): these are shared by the send, serve and receive kinds and by `Start`. Moved from the
 controller's `main` (stage S7), same operations and order. No I/O primitive.
+
+The functions on the ORD-1 / ORD-2 paths are monad-generic definitions (`kindsOfG` …
+`commitScratchG`, effects the fields of `StoreOps`); the deployed ones are those definitions at
+`SessionM` and `storeReal` (2026-11-12, PROOF_GAPS C3; `Session/Events.lean`, header).
 -/
 
 namespace TlsMpc.Node.Session
@@ -47,18 +51,158 @@ def dbTry (call : DbCall) : SessionM Bool := do
   if !out.ok then c.ch.log (.dbClientFailed call.command out.stderr)
   pure out.ok
 
-def db (call : DbCall) : SessionM Unit := do
-  insist (← dbTry call) s!"database client failed: {call.command}"
+/-! ### The store's operations and its monad-generic definitions
+
+The functions on the ORD-1 / ORD-2 paths (`kindsOf` … `commitScratch`) are defined once over any
+monad with the session's classes, their effects being the fields of `StoreOps`; the deployed
+function is that definition at `SessionM` and `storeReal` (`abbrev f := fG storeReal`). The
+ordering theorems (`Session/StoreProofs.lean`) are about these definitions. -/
+
+/-- Every effect `Store`'s ORD-1 / ORD-2 functions perform, besides `State` and `Context`. -/
+structure StoreOps (m : Type → Type) where
+  insist : Bool → String → m Unit
+  dbTry : DbCall → m Bool
+  peer : PeerMsg → m PeerMsg
+  writeAcknowledged : Channels → String → m Bool
+  nonce : m Bytes
+  contactSeal : Flow.Worker → Nat → Bytes → m (Opened .sealedBlob Bytes)
+  requestFile : m String
+  scratchSeal : Flow.Worker → Nat → Bytes → m (Opened .sealedBlob Bytes)
+  scratchCommit : Flow.Worker → Nat → m Unit
+  drop : Flow.Worker → m Unit
+
+/-- The deployed operations. -/
+def storeReal : StoreOps SessionM where
+  insist b e := insist b e
+  dbTry := dbTry
+  peer := peer
+  writeAcknowledged ch n := ch.writeAcknowledged n
+  nonce := nonce
+  contactSeal w c f := Flow.Contacts.seal w c f
+  requestFile := requestFile
+  scratchSeal w c f := Flow.Refresh.scratchSeal w c f
+  scratchCommit w c := Flow.Refresh.scratchCommit w c
+  drop w := Flow.Refresh.drop w
+
+section Generic
+variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
 
 /-- A contact with a device list (MULTI_DEVICE.md, section 4): the kinds of its devices' entries,
 in order (0: a 319-byte record; 1, 2: record and pending, 1935 bytes). They are public (every
 send's length shows them) and are stored in the clear after the ciphertext, as `kinds ‖ count`. A
 contact that is one established record has kinds [0] and is stored as before, without them. -/
-def kindsOf (contact : Nat) : SessionM (List Nat) := do
+def kindsOfG (contact : Nat) : m (List Nat) := do
   pure ((((← get).contacts.kinds.find? (·.1 == contact)).map (·.2)).getD [0])
 
-def setKinds (contact : Nat) (kinds : List Nat) : SessionM Unit :=
-  modifyContacts fun k => { k with kinds := k.kinds.filter (·.1 != contact) ++ [(contact, kinds)] }
+def setKindsG (contact : Nat) (kinds : List Nat) : m Unit :=
+  modifyContactsG fun k => { k with kinds := k.kinds.filter (·.1 != contact) ++ [(contact, kinds)] }
+
+/-- The version of a contact's state this session holds (0: none). -/
+def versionOfG (contact : Nat) : m Nat := do
+  pure (((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0)
+
+def bumpVersionG (contact : Nat) : m Unit := do
+  let version ← versionOfG contact
+  modifyContactsG fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
+
+/-- Seal a contact's current state under a new nonce: `check ‖ ciphertext (‖ kinds ‖ count)`. -/
+def sealStateG (o : StoreOps m) (contact : Nat) (fresh : Bytes) : m Bytes := do
+  let stored := (← o.contactSeal (← read).w contact fresh).val
+  let kinds ← kindsOfG contact
+  pure (if kinds == [0] then stored else stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
+
+def dbG (o : StoreOps m) (call : DbCall) : m Unit := do
+  o.insist (← o.dbTry call) s!"database client failed: {call.command}"
+
+/-- Store a contact's sealed state as blob `version`. Counts once all but one node committed it. -/
+def dbSubmitG (o : StoreOps m) (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : m Bool := do
+  dbG o (.blob name blob)
+  dbG o (.writeBlob name authority version)
+  let _ ← o.peer .submitted   -- both parties have submitted
+  dbG o (.writeBlob name authority version)   -- repeating it reports the commit to whichever party was first
+  o.writeAcknowledged (← read).ch name
+
+def dbWriteG (o : StoreOps m) (contact version : Nat) (authority : WriteAuthority) : m Bool := do
+  let fresh ← o.nonce
+  let stored ← sealStateG o contact fresh
+  o.insist (stored.length > 16) "invalid stored contact state"
+  dbSubmitG o (toString contact) authority version (fresh ++ stored)
+
+/-- With the database: the contact's advanced state is stored (and acknowledged by the nodes)
+BEFORE its message leaves. If the session dies afterwards the stored state is never behind what was
+sent, so no message key or counter can be used twice; at worst a message that was stored for but
+never sent leaves a gap in the counter. -/
+def storeAdvancedG (o : StoreOps m) (contact : Nat) : m Unit := do
+  if (← read).dbClient.isSome then
+    let version := ((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0
+    o.insist (← dbWriteG o contact (version + 1) (.request (← o.requestFile) contact)) "the database did not acknowledge a contact's state"
+    modifyContactsG fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
+
+/-- As `dbSubmit`, for a write whose failure is one contact's and not the session's: a client that
+fails, or nodes that do not acknowledge, give `false`. The two parties tell each other what they
+saw and both use the conjunction, so they take the same branch. -/
+def dbSubmitSoftG (o : StoreOps m) (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : m Bool := do
+  dbG o (.blob name blob)
+  let first ← o.dbTry (.writeBlob name authority version)
+  let _ ← o.peer .submitted   -- both parties have submitted
+  let second ← o.dbTry (.writeBlob name authority version)
+  let acknowledged ← o.writeAcknowledged (← read).ch name
+  let mine := first && second && acknowledged
+  let theirs ← match ← o.peer (.acknowledged mine) with
+    | .acknowledged yes => pure yes
+    | _ => throw "invalid acknowledgement reply"
+  pure (mine && theirs)
+
+/-- `storeAdvanced` as an outcome: `false` when the database nodes did not take the state. -/
+def storeSoftG (o : StoreOps m) (contact : Nat) : m Bool := do
+  if (← read).dbClient.isNone then return true
+  let fresh ← o.nonce
+  let stored ← sealStateG o contact fresh
+  o.insist (stored.length > 16) "invalid stored contact state"
+  let taken ← dbSubmitSoftG o (toString contact) (.request (← o.requestFile) contact)
+    ((← versionOfG contact) + 1) (fresh ++ stored)
+  if taken then bumpVersionG contact
+  pure taken
+
+/-- A refresh's new device list is SCRATCH in the worker (operation 60 no longer touches the
+contact). Here it becomes the contact's state: sealed, stored on the database nodes as the
+contact's next version, and only when they acknowledged it committed in the engines. Otherwise the
+scratch is dropped: the contact is exactly as before, in the engines and on the nodes. `kinds`: its
+entries' kinds, stored after the ciphertext as in `sealState`. -/
+def commitScratchG (o : StoreOps m) (contact : Nat) (kinds : List Nat) : m Bool := do
+  let c ← read
+  let fresh ← o.nonce
+  let stored := (← o.scratchSeal c.w contact fresh).val
+  let taken ← if c.dbClient.isSome then
+      dbSubmitSoftG o (toString contact) (.request (← o.requestFile) contact)
+        ((← versionOfG contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
+    else pure true
+  if taken then
+    o.scratchCommit c.w contact
+    if c.dbClient.isSome then bumpVersionG contact
+    setKindsG contact kinds
+  else o.drop c.w
+  pure taken
+
+end Generic
+
+/-! The deployed functions: the definitions above at `SessionM` and `storeReal`. -/
+
+abbrev db (call : DbCall) : SessionM Unit := dbG storeReal call
+abbrev kindsOf (contact : Nat) : SessionM (List Nat) := kindsOfG contact
+abbrev setKinds (contact : Nat) (kinds : List Nat) : SessionM Unit := setKindsG contact kinds
+abbrev versionOf (contact : Nat) : SessionM Nat := versionOfG contact
+abbrev bumpVersion (contact : Nat) : SessionM Unit := bumpVersionG contact
+abbrev sealState (contact : Nat) (fresh : Bytes) : SessionM Bytes := sealStateG storeReal contact fresh
+abbrev dbSubmit (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : SessionM Bool :=
+  dbSubmitG storeReal name authority version blob
+abbrev dbWrite (contact version : Nat) (authority : WriteAuthority) : SessionM Bool :=
+  dbWriteG storeReal contact version authority
+abbrev storeAdvanced (contact : Nat) : SessionM Unit := storeAdvancedG storeReal contact
+abbrev dbSubmitSoft (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : SessionM Bool :=
+  dbSubmitSoftG storeReal name authority version blob
+abbrev storeSoft (contact : Nat) : SessionM Bool := storeSoftG storeReal contact
+abbrev commitScratch (contact : Nat) (kinds : List Nat) : SessionM Bool := commitScratchG storeReal contact kinds
 
 /-- Every path but the recovery path refuses to go on with a contact whose state did not open. -/
 def requireLoaded : SessionM Unit := do
@@ -83,26 +227,6 @@ def openState (contact : Nat) (stored : Bytes) : SessionM Unit := do
     if !(← Flow.Contacts.loadDevices w contact kinds body).val then
       modifyContacts fun k => { k with unreadable := k.unreadable ++ [contact] }
     setKinds contact kinds
-
-/-- Seal a contact's current state under a new nonce: `check ‖ ciphertext (‖ kinds ‖ count)`. -/
-def sealState (contact : Nat) (fresh : Bytes) : SessionM Bytes := do
-  let stored := (← Flow.Contacts.seal (← read).w contact fresh).val
-  let kinds ← kindsOf contact
-  pure (if kinds == [0] then stored else stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
-
-/-- Store a contact's sealed state as blob `version`. Counts once all but one node committed it. -/
-def dbSubmit (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : SessionM Bool := do
-  db (.blob name blob)
-  db (.writeBlob name authority version)
-  let _ ← peer .submitted   -- both parties have submitted
-  db (.writeBlob name authority version)   -- repeating it reports the commit to whichever party was first
-  (← read).ch.writeAcknowledged name
-
-def dbWrite (contact version : Nat) (authority : WriteAuthority) : SessionM Bool := do
-  let fresh ← nonce
-  let stored ← sealState contact fresh
-  insist (stored.length > 16) "invalid stored contact state"
-  dbSubmit (toString contact) authority version (fresh ++ stored)
 
 /-- Read this party's shares (under the application's request, or of the account's own row), check
 them against the other party's with the parity shares, and combine. Returns the read (public:
@@ -162,72 +286,8 @@ def dbDeal (contact : Nat) (token : String) : SessionM (Option (Secret Bytes)) :
     return some summand
   | none => return none
 
-/-- The version of a contact's state this session holds (0: none). -/
-def versionOf (contact : Nat) : SessionM Nat := do
-  pure (((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0)
-
-def bumpVersion (contact : Nat) : SessionM Unit := do
-  let version ← versionOf contact
-  modifyContacts fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
-
 def setVersion (contact version : Nat) : SessionM Unit :=
   modifyContacts fun k => { k with versions := k.versions.filter (·.1 != contact) ++ [(contact, version)] }
-
-/-- With the database: the contact's advanced state is stored (and acknowledged by the nodes)
-BEFORE its message leaves. If the session dies afterwards the stored state is never behind what was
-sent, so no message key or counter can be used twice; at worst a message that was stored for but
-never sent leaves a gap in the counter. -/
-def storeAdvanced (contact : Nat) : SessionM Unit := do
-  if (← read).dbClient.isSome then
-    let version := ((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0
-    insist (← dbWrite contact (version + 1) (.request (← requestFile) contact)) "the database did not acknowledge a contact's state"
-    modifyContacts fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
-
-/-- As `dbSubmit`, for a write whose failure is one contact's and not the session's: a client that
-fails, or nodes that do not acknowledge, give `false`. The two parties tell each other what they
-saw and both use the conjunction, so they take the same branch. -/
-def dbSubmitSoft (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : SessionM Bool := do
-  db (.blob name blob)
-  let first ← dbTry (.writeBlob name authority version)
-  let _ ← peer .submitted   -- both parties have submitted
-  let second ← dbTry (.writeBlob name authority version)
-  let acknowledged ← (← read).ch.writeAcknowledged name
-  let mine := first && second && acknowledged
-  let theirs ← match ← peer (.acknowledged mine) with
-    | .acknowledged yes => pure yes
-    | _ => throw "invalid acknowledgement reply"
-  pure (mine && theirs)
-
-/-- `storeAdvanced` as an outcome: `false` when the database nodes did not take the state. -/
-def storeSoft (contact : Nat) : SessionM Bool := do
-  if (← read).dbClient.isNone then return true
-  let fresh ← nonce
-  let stored ← sealState contact fresh
-  insist (stored.length > 16) "invalid stored contact state"
-  let taken ← dbSubmitSoft (toString contact) (.request (← requestFile) contact)
-    ((← versionOf contact) + 1) (fresh ++ stored)
-  if taken then bumpVersion contact
-  pure taken
-
-/-- A refresh's new device list is SCRATCH in the worker (operation 60 no longer touches the
-contact). Here it becomes the contact's state: sealed, stored on the database nodes as the
-contact's next version, and only when they acknowledged it committed in the engines. Otherwise the
-scratch is dropped: the contact is exactly as before, in the engines and on the nodes. `kinds`: its
-entries' kinds, stored after the ciphertext as in `sealState`. -/
-def commitScratch (contact : Nat) (kinds : List Nat) : SessionM Bool := do
-  let c ← read
-  let fresh ← nonce
-  let stored := (← Flow.Refresh.scratchSeal c.w contact fresh).val
-  let taken ← if c.dbClient.isSome then
-      dbSubmitSoft (toString contact) (.request (← requestFile) contact)
-        ((← versionOf contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
-    else pure true
-  if taken then
-    Flow.Refresh.scratchCommit c.w contact
-    if c.dbClient.isSome then bumpVersion contact
-    setKinds contact kinds
-  else Flow.Refresh.drop c.w
-  pure taken
 
 /-- The long-lived session: nothing of a contact stays in the engines or in this session's
 bookkeeping (evicted if held). -/

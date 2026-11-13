@@ -57,6 +57,18 @@ Checks:
                         `Connection` type: a connection's receive slot), Pool.lean and Start.lean
                         (where a connection and its slot are made); Main.lean may hold the worker
                         spawn's certificate result.
+  ordering-sites        On since 2026-11-12 (PROOF_GAPS.md C3; Session/Events.lean, header, item 2).
+                        The ordering theorems (ORD-1, ORD-2) are about the session's monad-generic
+                        definitions, whose message requests and scratch commits are fields of the
+                        operations records; they say nothing about a request or commit made
+                        elsewhere. So, in the controller and every TlsMpc/Node module of its import
+                        closure: `Flow.Send.request` and `Flow.Send.requestDevices` appear exactly
+                        once each, in TlsMpc/Node/Session/Send.lean (the record `sendReal`), and
+                        `Flow.Refresh.scratchCommit` exactly once, in TlsMpc/Node/Session/Store.lean
+                        (`storeReal`); no file but the flows that define them names them unqualified
+                        (`Send.request` …) or opens `TlsMpc.Node.Flow`, `Flow.Send` or `Flow.Refresh`.
+                        (The operation codes behind them are reachable only through `Legacy.call`,
+                        which flow-calls confines to the legacy flow files.)
 
 Comments and string literals are ignored. Patterns are textual: an `open IO.FS` (or similar)
 followed by an unprefixed call would hide a site, so such an `open` is itself reported as a
@@ -71,8 +83,19 @@ NODE_DIR = 'TlsMpc/Node'
 IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
 CONFIG_READER = 'TlsMpc/Node/Channels.lean'   # Config.read, the one IO.getEnv (stage S4)
 SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
-ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state']
-DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state']
+ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state',
+              'ordering-sites']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state',
+              'ordering-sites']
+# 2026-11-12 (check ordering-sites): the one call site of each effect the ordering theorems constrain.
+ORDERING_SITES = {
+    'Flow.Send.request': 'TlsMpc/Node/Session/Send.lean',
+    'Flow.Send.requestDevices': 'TlsMpc/Node/Session/Send.lean',
+    'Flow.Refresh.scratchCommit': 'TlsMpc/Node/Session/Store.lean',
+}
+ORDERING_DEFINED = {'TlsMpc/Node/Flows/SendLegacy.lean', 'TlsMpc/Node/Flows/RefreshLegacy.lean'}
+ORDERING_BARE = re.compile(r'(?<![\w.])(?:Send\.(?:request|requestDevices)|Refresh\.scratchCommit)\b')
+ORDERING_OPEN = re.compile(r'^\s*open\b[^\n]*\bFlow(?:\.Send|\.Refresh)?\b(?![\w.])', re.M)
 # Stage S7: the executable root, and where a session may hold a reference (check session-state).
 CONTROLLER_ROOT = 'handshake_backend/EmpHybridWork/PublicServiceController.lean'
 CONTROLLER_ROOT_TEXT = ['import TlsMpc.Node.Main', 'def main := TlsMpc.Node.Main.main']
@@ -441,6 +464,33 @@ def check_session_state(report):
     return findings
 
 
+def check_ordering_sites(report):
+    findings = []
+    files = sorted(rel for rel in set(controller_files().values()) if FLOW_SCOPE.search(rel))
+    sites = {name: [] for name in ORDERING_SITES}
+    for rel in files:
+        if rel in ORDERING_DEFINED:
+            continue
+        text = source(rel)
+        for name in ORDERING_SITES:
+            for m in re.finditer(re.escape(name) + r'\b', text):
+                sites[name].append((rel, line_of(text, m.start())))
+        for m in ORDERING_BARE.finditer(text):
+            findings.append(f'ordering-sites: {rel}:{line_of(text, m.start())}: `{m.group(0)}` unqualified (write Flow.…, '
+                            f'in the operations record only)')
+        for m in ORDERING_OPEN.finditer(text):
+            findings.append(f'ordering-sites: {rel}:{line_of(text, m.start())}: `{m.group(0).strip()}` hides flow calls '
+                            f'from this check')
+    for name, where in sites.items():
+        if [rel for rel, _ in where] != [ORDERING_SITES[name]]:
+            findings.append(f'ordering-sites: `{name}` must appear exactly once, in {ORDERING_SITES[name]} (its operations '
+                            f'record); found at {where}')
+    if report:
+        print(f'[ordering-sites] {len(files)} files; sites: ' +
+              ', '.join(f'{name} {where}' for name, where in sites.items()) + f'; {len(findings)} findings')
+    return findings
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('--report', action='store_true')
@@ -480,6 +530,8 @@ def main():
             findings += check_flow_calls(a.report)
         elif check == 'session-state':
             findings += check_session_state(a.report)
+        elif check == 'ordering-sites':
+            findings += check_ordering_sites(a.report)
     for line in findings:
         print('FAIL', line)
     print(f'lint_node: {len(findings)} findings ({", ".join(checks)})')

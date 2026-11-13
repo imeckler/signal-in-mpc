@@ -10,7 +10,9 @@ New file; it changes no definition. No emitter or executable imports it. Standar
   public in the reference, except that the run's last byte may be the reference's first `error`.
 * The record loop (`ReceiveProofs.recordLoop`, `streamRun`) composed with `sim_step` (every byte of a
   run it accepts), `sim_pass` (every byte it passes over, `passBulk` being a run of `passOne`:
-  `passRun_bulk`), across any cut into records: **`t1_frames`**, and **`t1_all`**.
+  `passRun_bulk`), across any cut into records: **`t1_frames`**, and **`t1_model`** (formerly
+  `t1_all`). The same for the loop the session runs (`RecordLoop.run`), with the session's steps
+  between records: `ReceiveSession.lean` (`t1_session`, **`t1_all`**).
 -/
 
 open TlsMpc TlsMpc.Signal
@@ -586,7 +588,7 @@ theorem view_expect (s : State) (id : Nat) : view s = view (expect s id) := by
   rfl
 
 /-- `replies` returns `{ s with control := _ }` (its only result), so it keeps the view too (`rfl` on that
-state; the lemma about `replies` itself is not proved here). -/
+state; the lemma about `replies` itself: `view_replies`, `ReceiveSession.lean`). -/
 theorem view_control (s : State) (c : List Byte) : view s = view { s with control := c } := rfl
 
 theorem drop_run (r : List Byte) (o m : Nat) : (r.drop o).drop m = r.drop (o + ((r.drop o).take m).length) := by
@@ -717,11 +719,13 @@ theorem start_sim (ob : Bool) (accept : List Byte) (lenient : Bool) (n : Nat) :
         (TlsMpc.KernelSpecs.ParseWebSocketFrame.start_boundary capacity).2⟩⟩,
     MsgSim.empty rfl ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩, trivial⟩
 
-/-- **T1 for every stream and every cut into records** (`ReceiveProofs.T1`, with its one-byte
-allowance), from the upgraded starting state `ReceiveTest.upgraded openBody` (any `accept`, any
-`lenient`): every stream position the record loop reveals is public in
-`ReceiveSpec.classifyFrames openBody records.flatten`, or is that list's first `error`. -/
-theorem t1_all : ∀ (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte)),
+/-- **T1 for every stream and every cut into records, about the model loop** (`ReceiveProofs.T1`,
+with its one-byte allowance), from the upgraded starting state `ReceiveTest.upgraded openBody` (any
+`accept`, any `lenient`): every stream position `streamRun` reveals is public in
+`ReceiveSpec.classifyFrames openBody records.flatten`, or is that list's first `error`. (Called
+`t1_all` until 2026-11-12; `t1_all` is now the statement about the loop the session runs,
+`ReceiveSession.lean`.) -/
+theorem t1_model : ∀ (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte)),
     T1 openBody { PublicReceive.start accept with upgraded := true, lenient := lenient, openBody } records :=
   fun openBody accept lenient records => t1_frames openBody _ records (start_sim openBody accept lenient _)
 

@@ -83,15 +83,78 @@ def loadJob (requestPath text : String) : SessionM (List Nat) := do
     loaded := loaded ++ [contact]
   pure loaded
 
+/-! ### `serve`: operations and monad-generic definition
+
+Defined once over any monad (`serveG`, its effects the fields of `ServeOps`); the deployed `serve`
+is that definition at `SessionM` and `serveReal`. ORD-1 and ORD-2 over every run are proved about it
+(`Session/ServeProofs.lean`). -/
+
+/-- Every effect of `serve` besides `State` and `Context`. -/
+structure ServeOps (m : Type → Type) where
+  liftResult : {α : Type} → Except String α → m α
+  openAll : Bytes → m PublicReceive.State
+  report : Channels → DaemonLine → m Unit
+  agreedClock : m Nat
+  nextJob : Channels → String → m (Option Channels.Real.Job)
+  stopAsked : Channels → String → m Bool
+  clock : Channels → m Nat
+  peer : PeerMsg → m PeerMsg
+  monotonic : Channels → m Nat
+  readMessage : Channels → String → m String
+  loadJob : String → String → m (List Nat)
+  notify : List Nat → String → Nat → m (List (Nat × Bytes))
+  agreedNow : m Nat
+  deliverJob : List (Nat × Bytes) → List Nat → Option String → Option String → PublicReceive.State → m Nat
+  poll : Flow.Worker → m Flow.Polled
+  reconnect : m Unit
+  setSlot : Connection → Option Bytes → m Unit
+  drainOne : PublicReceive.State → m (PublicReceive.State × Bool)
+  saveState : PublicReceive.State → m Unit
+  joint : Flow.Worker → m (Opened .jointRandom Bytes)
+  sendPublic : Bytes → m Unit
+  nextId : m Nat
+  awaitSoft : Nat → PublicReceive.State → m (PublicReceive.State × Bool)
+  sleep : Channels → Nat → m Unit
+  log : Channels → LogLine → m Unit
+
+/-- The deployed operations of `serve`. -/
+def serveReal : ServeOps SessionM where
+  liftResult x := liftResult x
+  openAll := openAll
+  report ch line := ch.report line
+  agreedClock := agreedClock
+  nextJob ch d := ch.nextJob d
+  stopAsked ch d := ch.stopAsked d
+  clock ch := ch.clock
+  peer := peer
+  monotonic ch := ch.monotonic
+  readMessage ch path := ch.readMessage path
+  loadJob := loadJob
+  notify := Send.notify
+  agreedNow := agreedNow
+  deliverJob := Send.deliverJob
+  poll w := Flow.Server.poll w
+  reconnect := reconnect
+  setSlot conn v := io (conn.slot.set v)
+  drainOne := drainOne
+  saveState := saveState
+  joint w := Flow.Random.joint w
+  sendPublic := sendPublic
+  nextId := nextId
+  awaitSoft := awaitSoft
+  sleep ch ms := ch.sleep ms
+  log ch line := ch.log line
+
 /-- **The long-lived send session** (DIR: SIGNAL_SERVE_DIR; `accept`: connection 0's expected
 accept value). Returns the messages served. -/
-def serve (directory : String) (accept : Bytes) : SessionM Nat := do
+def serveG {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
+    (o : ServeOps m) (directory : String) (accept : Bytes) : m Nat := do
   let c ← read
-  let first ← openAll accept
+  let first ← o.openAll accept
   let count := max c.sendCircuits 1
-  modifyReport fun r => { r with recoveryUsed := true }
-  c.ch.report (.ready count)
-  let opened ← agreedClock
+  modifyReportG fun r => { r with recoveryUsed := true }
+  o.report c.ch (.ready count)
+  let opened ← o.agreedClock
   let mut lastUsed : Array Nat := Array.replicate count opened
   let mut lastJob := opened
   let mut finishedJobs : List String := []
@@ -102,35 +165,35 @@ def serve (directory : String) (accept : Bytes) : SessionM Nat := do
   while running do
     -- The job this party's daemon handed over, if any (one already served is ignored until the
     -- daemon removes its file).
-    let job := (← c.ch.nextJob directory).filter (fun job => !finishedJobs.contains job.name)
-    let stopping ← c.ch.stopAsked directory
-    let clock ← c.ch.clock
+    let job := (← o.nextJob c.ch directory).filter (fun job => !finishedJobs.contains job.name)
+    let stopping ← o.stopAsked c.ch directory
+    let clock ← o.clock c.ch
     let named := job.map (fun job => TlsWire.hash job.name.toUTF8.data.toList)
-    let (theirJob, theirStop, theirClock) ← match ← peer (.serveTick named stopping clock) with
+    let (theirJob, theirStop, theirClock) ← match ← o.peer (.serveTick named stopping clock) with
       | .serveTick theirJob theirStop theirClock => pure (theirJob, theirStop, theirClock)
       | _ => throw "invalid serve tick"
-    let now ← liftResult (Node.Policy.Clock.agree clock theirClock)
+    let now ← o.liftResult (Node.Policy.Clock.agree clock theirClock)
     if named.isSome && theirJob == named then
       let (jobName, requestPath, messagePath, journalPath) :=
         match job with | some j => (j.name, j.request, j.message, j.journal) | none => ("", "", "", "")
-      let begun ← c.ch.monotonic
-      let text ← c.ch.readMessage messagePath
+      let begun ← o.monotonic c.ch
+      let text ← o.readMessage c.ch messagePath
       modify fun st => { st with
         jobRequest := some requestPath, bodies := [], stamped := []
         report := { st.report with results := [], recoveryLog := [], circuitSends := [] } }
-      let contactsOfJob ← loadJob requestPath text
-      let jobInputs ← Send.notify contactsOfJob text (← agreedNow)
+      let contactsOfJob ← o.loadJob requestPath text
+      let jobInputs ← o.notify contactsOfJob text (← o.agreedNow)
       let delivered ← if jobInputs.isEmpty then pure 0
-        else Send.deliverJob jobInputs contactsOfJob (some jobName) (some journalPath) first
+        else o.deliverJob jobInputs contactsOfJob (some jobName) (some journalPath) first
       modify fun st => { st with jobRequest := none }
       served := served + jobInputs.length
       jobsDone := jobsDone + 1
       finishedJobs := (jobName :: finishedJobs).take 64
-      let after ← agreedClock
+      let after ← o.agreedClock
       lastUsed := Array.replicate count after
       lastJob := after
       let report := (← get).report
-      let ended ← c.ch.monotonic
+      let ended ← o.monotonic c.ch
       let jobResult : JobResult := {
         job := jobName
         results := report.results
@@ -142,43 +205,44 @@ def serve (directory : String) (accept : Bytes) : SessionM Nat := do
         milliseconds := ended - begun
         sessionMessages := served
         sessionJobs := jobsDone }
-      c.ch.report (.jobResult jobResult)
+      o.report c.ch (.jobResult jobResult)
     else if stopping || theirStop then
       running := false
     else
       for index in [0:count] do
-        modifyPool fun p => { p with current := index }
+        modifyPoolG fun p => { p with current := index }
         let mut s := (← get).pool.states.getD index first
         -- Closed by the server or the proxy while idle: replaced now, not at the next send.
-        let polled ← Flow.Server.poll (c.w.on index)
+        let polled ← o.poll (c.w.on index)
         if let .closed := polled then
-          reconnect
+          o.reconnect
           lastUsed := lastUsed.set! index now
           continue
         if let .record wire := polled then
-          let slot := ((← get).pool.connection index).slot
-          io (slot.set (some wire))
-          let (next, alive) ← drainOne s
+          o.setSlot ((← get).pool.connection index) (some wire)
+          let (next, alive) ← o.drainOne s
           if !alive then
-            reconnect
+            o.reconnect
             lastUsed := lastUsed.set! index now
             continue
           s := next
-          saveState s
+          o.saveState s
         if now ≥ lastUsed.getD index 0 + 25000 then
-          let random := (← Flow.Random.joint c.w).val
+          let random := (← o.joint c.w).val
           if c.official then
             pings := pings + 1
-            sendPublic (toBytes (PublicReceive.ping (pings % 256) (toBits (random.take 4))))
+            o.sendPublic (toBytes (PublicReceive.ping (pings % 256) (toBits (random.take 4))))
           else
-            let id ← nextId
-            sendPublic (toBytes (← liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
-            let (next, alive) ← awaitSoft 64 (PublicReceive.expect s id)
-            if alive then saveState next else reconnect
+            let id ← o.nextId
+            o.sendPublic (toBytes (← o.liftResult (PublicReceive.keepalive id (toBits (random.take 4)))))
+            let (next, alive) ← o.awaitSoft 64 (PublicReceive.expect s id)
+            if alive then o.saveState next else o.reconnect
           lastUsed := lastUsed.set! index now
       -- A quarter of a second between ticks; a second after a minute without a job.
-      c.ch.sleep (if now > lastJob + 60000 then 1000 else 250)
-  c.ch.log (.serveEnded jobsDone served)
+      o.sleep c.ch (if now > lastJob + 60000 then 1000 else 250)
+  o.log c.ch (.serveEnded jobsDone served)
   pure served
+
+abbrev serve (directory : String) (accept : Bytes) : SessionM Nat := serveG serveReal directory accept
 
 end TlsMpc.Node.Session.Serve

@@ -4,10 +4,11 @@ import TlsMpc.Node.Session.Events
 /-!
 # P4: the contact store before a send (ORD-1's store half) and a refresh's commit (ORD-2)
 
-Twins (`Events.lean`, design note) of `Session/Store.lean`'s `kindsOf`, `setKinds`, `versionOf`,
-`bumpVersion`, `sealState`, `db`, `dbSubmit`, `dbWrite`, `storeAdvanced`, `dbSubmitSoft`,
-`storeSoft`, `commitScratch`, each proved equal to the deployed definition by `rfl`
-(`*_deployed`), and their properties in `Model`:
+About the definitions of `Session/Store.lean` (`kindsOfG`, `setKindsG`, `versionOfG`,
+`bumpVersionG`, `sealStateG`, `dbG`, `dbSubmitG`, `dbWriteG`, `storeAdvancedG`, `dbSubmitSoftG`,
+`storeSoftG`, `commitScratchG`), whose instances at `SessionM` and `storeReal` ARE the deployed
+`kindsOf` … `commitScratch` (`abbrev f := fG storeReal`), run in `Model` at any environment
+(`storeModel E`; `Events.lean`, header, for what this says about a real run):
 
 - `storeAdvanced_acked` (the non-recovery path's store, ORD-1): with the database, if it returns,
   the contact's phase went from `sealed` to `pending` (this party's nodes acknowledged a blob sealed
@@ -26,138 +27,10 @@ No I/O primitive; no emitter imports this module.
 namespace TlsMpc.Node.Session.Events
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Node TlsMpc.Node.Session
 
-/-! ### The operations of the store functions -/
-
-/-- Every effect `Store`'s ORD-1 / ORD-2 functions perform, besides `State` and `Context`. -/
-structure StoreOps (m : Type → Type) where
-  insist : Bool → String → m Unit
-  dbTry : DbCall → m Bool
-  peer : PeerMsg → m PeerMsg
-  writeAcknowledged : Channels → String → m Bool
-  nonce : m Bytes
-  contactSeal : Flow.Worker → Nat → Bytes → m (Opened .sealedBlob Bytes)
-  requestFile : m String
-  scratchSeal : Flow.Worker → Nat → Bytes → m (Opened .sealedBlob Bytes)
-  scratchCommit : Flow.Worker → Nat → m Unit
-  drop : Flow.Worker → m Unit
-
-/-- The deployed operations. -/
-def storeReal : StoreOps SessionM where
-  insist b e := insist b e
-  dbTry := dbTry
-  peer := peer
-  writeAcknowledged ch n := ch.writeAcknowledged n
-  nonce := nonce
-  contactSeal w c f := Flow.Contacts.seal w c f
-  requestFile := requestFile
-  scratchSeal w c f := Flow.Refresh.scratchSeal w c f
-  scratchCommit w c := Flow.Refresh.scratchCommit w c
-  drop w := Flow.Refresh.drop w
-
-/-- `insist`, lifted into a session, is `if ok then pure () else throw error`: what the model uses. -/
+/-- `insist`, lifted into a session, is `if ok then pure () else throw error`: what the model uses
+for `StoreOps.insist` (the deployed `storeReal.insist`). -/
 theorem insist_session (b : Bool) (e : String) : (insist b e : SessionM Unit) = (if b then pure () else throw e) := by
   cases b <;> rfl
-
-/-! ### The twins -/
-
-section Twins
-variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
-
-def modifyContactsG (f : Contacts → Contacts) : m Unit := modify fun s => { s with contacts := f s.contacts }
-
-def kindsOfG (contact : Nat) : m (List Nat) := do
-  pure ((((← get).contacts.kinds.find? (·.1 == contact)).map (·.2)).getD [0])
-
-def setKindsG (contact : Nat) (kinds : List Nat) : m Unit :=
-  modifyContactsG fun k => { k with kinds := k.kinds.filter (·.1 != contact) ++ [(contact, kinds)] }
-
-def versionOfG (contact : Nat) : m Nat := do
-  pure (((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0)
-
-def bumpVersionG (contact : Nat) : m Unit := do
-  let version ← versionOfG contact
-  modifyContactsG fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
-
-def sealStateG (o : StoreOps m) (contact : Nat) (fresh : Bytes) : m Bytes := do
-  let stored := (← o.contactSeal (← read).w contact fresh).val
-  let kinds ← kindsOfG contact
-  pure (if kinds == [0] then stored else stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
-
-def dbG (o : StoreOps m) (call : DbCall) : m Unit := do
-  o.insist (← o.dbTry call) s!"database client failed: {call.command}"
-
-def dbSubmitG (o : StoreOps m) (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : m Bool := do
-  dbG o (.blob name blob)
-  dbG o (.writeBlob name authority version)
-  let _ ← o.peer .submitted   -- both parties have submitted
-  dbG o (.writeBlob name authority version)   -- repeating it reports the commit to whichever party was first
-  o.writeAcknowledged (← read).ch name
-
-def dbWriteG (o : StoreOps m) (contact version : Nat) (authority : WriteAuthority) : m Bool := do
-  let fresh ← o.nonce
-  let stored ← sealStateG o contact fresh
-  o.insist (stored.length > 16) "invalid stored contact state"
-  dbSubmitG o (toString contact) authority version (fresh ++ stored)
-
-def storeAdvancedG (o : StoreOps m) (contact : Nat) : m Unit := do
-  if (← read).dbClient.isSome then
-    let version := ((← get).contacts.versions.find? (·.1 == contact)).map (·.2) |>.getD 0
-    o.insist (← dbWriteG o contact (version + 1) (.request (← o.requestFile) contact)) "the database did not acknowledge a contact's state"
-    modifyContactsG fun k => { k with versions := k.versions.map (fun (c, v) => if c == contact then (c, version + 1) else (c, v)) }
-
-def dbSubmitSoftG (o : StoreOps m) (name : String) (authority : WriteAuthority) (version : Nat) (blob : Bytes) : m Bool := do
-  dbG o (.blob name blob)
-  let first ← o.dbTry (.writeBlob name authority version)
-  let _ ← o.peer .submitted   -- both parties have submitted
-  let second ← o.dbTry (.writeBlob name authority version)
-  let acknowledged ← o.writeAcknowledged (← read).ch name
-  let mine := first && second && acknowledged
-  let theirs ← match ← o.peer (.acknowledged mine) with
-    | .acknowledged yes => pure yes
-    | _ => throw "invalid acknowledgement reply"
-  pure (mine && theirs)
-
-def storeSoftG (o : StoreOps m) (contact : Nat) : m Bool := do
-  if (← read).dbClient.isNone then return true
-  let fresh ← o.nonce
-  let stored ← sealStateG o contact fresh
-  o.insist (stored.length > 16) "invalid stored contact state"
-  let taken ← dbSubmitSoftG o (toString contact) (.request (← o.requestFile) contact)
-    ((← versionOfG contact) + 1) (fresh ++ stored)
-  if taken then bumpVersionG contact
-  pure taken
-
-def commitScratchG (o : StoreOps m) (contact : Nat) (kinds : List Nat) : m Bool := do
-  let c ← read
-  let fresh ← o.nonce
-  let stored := (← o.scratchSeal c.w contact fresh).val
-  let taken ← if c.dbClient.isSome then
-      dbSubmitSoftG o (toString contact) (.request (← o.requestFile) contact)
-        ((← versionOfG contact) + 1) (fresh ++ stored ++ kinds.map UInt8.ofNat ++ [UInt8.ofNat kinds.length])
-    else pure true
-  if taken then
-    o.scratchCommit c.w contact
-    if c.dbClient.isSome then bumpVersionG contact
-    setKindsG contact kinds
-  else o.drop c.w
-  pure taken
-
-end Twins
-
-/-! ### The twins at the deployed operations are the deployed functions -/
-
-theorem kindsOf_deployed : @kindsOf = kindsOfG (m := SessionM) := rfl
-theorem setKinds_deployed : @setKinds = setKindsG (m := SessionM) := rfl
-theorem versionOf_deployed : @versionOf = versionOfG (m := SessionM) := rfl
-theorem bumpVersion_deployed : @bumpVersion = bumpVersionG (m := SessionM) := rfl
-theorem sealState_deployed : @sealState = sealStateG (m := SessionM) storeReal := rfl
-theorem db_deployed : @db = dbG (m := SessionM) storeReal := rfl
-theorem dbSubmit_deployed : @dbSubmit = dbSubmitG (m := SessionM) storeReal := rfl
-theorem dbWrite_deployed : @dbWrite = dbWriteG (m := SessionM) storeReal := rfl
-theorem storeAdvanced_deployed : @storeAdvanced = storeAdvancedG (m := SessionM) storeReal := rfl
-theorem dbSubmitSoft_deployed : @dbSubmitSoft = dbSubmitSoftG (m := SessionM) storeReal := rfl
-theorem storeSoft_deployed : @storeSoft = storeSoftG (m := SessionM) storeReal := rfl
-theorem commitScratch_deployed : @commitScratch = commitScratchG (m := SessionM) storeReal := rfl
 
 /-! ### The model of the store operations -/
 
@@ -405,7 +278,7 @@ theorem bumpIn_absent (versions : List (Nat × Nat)) (contact v : Nat) (h : cont
 
 /-- **`storeSoft`'s versions.** The version list moves to the contact's next version exactly when
 the store was taken (and is unchanged otherwise, failures included). The write it submits is that
-next version (`versionOf + 1`: the twin's text). -/
+next version (`versionOf + 1`: the definition's text). -/
 theorem storeSoft_versions (E : StoreEnv) (contact : Nat) (c : Context) (st : State) (w : World)
     (hdb : c.dbClient.isSome) :
     Model.wp (storeSoftG (storeModel E) contact) (fun r st' _ =>

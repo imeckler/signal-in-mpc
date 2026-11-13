@@ -177,10 +177,27 @@ def anonymousUpgrade (nonce : List (BitVec 8)) : List (BitVec 8) :=
   else RelayUpgrade.legacyAnonymousRequest PublicReceive.fast nonce
 end Context
 
+/-! ### Monad-generic definitions
+
+The session functions that the ordering proofs speak about (ORD-1, ORD-2, T11:
+`Session/Events.lean`) are defined once, over any monad with the session's classes, and the
+deployed function is that definition at `SessionM` and the deployed operations (`abbrev f := fG
+realOps`). These three are the first of them. -/
+
+section Generic
+variable {m : Type → Type} [Monad m] [MonadStateOf State m]
+
 /-- Change the pool, the report or the contacts. -/
-def modifyPool (f : Pool → Pool) : SessionM Unit := modify fun s => { s with pool := f s.pool }
-def modifyReport (f : Report → Report) : SessionM Unit := modify fun s => { s with report := f s.report }
-def modifyContacts (f : Contacts → Contacts) : SessionM Unit := modify fun s => { s with contacts := f s.contacts }
+def modifyPoolG (f : Pool → Pool) : m Unit := modify fun s => { s with pool := f s.pool }
+def modifyReportG (f : Report → Report) : m Unit := modify fun s => { s with report := f s.report }
+def modifyContactsG (f : Contacts → Contacts) : m Unit := modify fun s => { s with contacts := f s.contacts }
+
+end Generic
+
+/-- Change the pool, the report or the contacts (the generic definitions at `SessionM`). -/
+abbrev modifyPool (f : Pool → Pool) : SessionM Unit := modifyPoolG f
+abbrev modifyReport (f : Report → Report) : SessionM Unit := modifyReportG f
+abbrev modifyContacts (f : Contacts → Contacts) : SessionM Unit := modifyContactsG f
 
 /-- Lift an `IO` action of a channel (named, for readability where Lean cannot infer the monad). -/
 def io (action : IO α) : SessionM α := liftM action

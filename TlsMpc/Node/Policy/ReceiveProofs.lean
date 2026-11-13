@@ -56,7 +56,11 @@ byte; it stays: a response's next key and the byte after it are revealed in one 
 
 ## What is proved elsewhere, and what is not proved
 
-**`T1` for every stream is proved: `ReceiveLoop.t1_all`** (standard axioms only):
+**`T1` for every stream is proved about the loop the session runs: `ReceiveLoop.t1_all`**
+(`Policy/ReceiveSession.lean`; the session's `record` is `RecordLoop.run`, `Policy/RecordLoop.lean`,
+and the theorem is about `RecordLoop.run` at any operations satisfying `ReceiveLoop.Faithful`, with
+any steps between records that keep the view). For the model loop of this file
+(`ReceiveLoop.t1_model`, standard axioms only):
 
     ∀ (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte)),
       T1 openBody { PublicReceive.start accept with upgraded := true, lenient, openBody } records
@@ -75,18 +79,16 @@ every accepted and every passed byte); `ReceiveComplete` (`complete = true`); `R
   against `ReceiveSpec.classify` (head, then frames). `ReceiveHead` has the head's runs
   (`upgrade_run_safe`, `frameByte_terminator`); still missing are that the frame parser is at a
   frame boundary when the head ends (the head's bytes leave it alone) and the composition of the two.
-* `recordLoop` is a pure model of the controller's loop (`TlsMpc/Node/Session/Common.lean`,
-  `record`, in `SessionM`); the theorems are about the model. The real loop has the same structure
-  (`passBulk (min count passRoom)` then `passOne` one at a time; `insist mayReveal`; a run of
-  `budget s` bytes; `step` on each, with the same check of the rest of the run; `envelopes := []`
-  after each step), and differs in: the engines' `revealRange` returns the run and the record's
-  length (the model takes `(bytes.drop offset).take (budget s)` of a known record); a completed
-  envelope is handed to `Context.envelope` (which may throw) before `envelopes := []`; it has no fuel.
-  Between records the session also applies `replies`, `requests := []` and `expect`; `Sim` depends
-  on the state only through `view` (`ReceiveSim.sim_congr`), which `requests := []` and `expect` keep
-  (`ReceiveLoop.view_requests`, `view_expect`) and `replies` keeps by construction (it returns
-  `{ s with control := _ }`: `view_control`; the lemma about `replies` itself is not proved), but
-  `t1_all` is stated for `streamRun`, which does not apply them.
+* (Closed 2026-11-12, PROOF_GAPS C1, C2.) `recordLoop` is a pure model of the controller's loop;
+  the loop the session runs is `RecordLoop.run` (`Session/Common.lean`'s `record` at the session's
+  operations). `ReceiveLoop.loop_sub` relates the two under `ReceiveLoop.Faithful` (the engines'
+  `revealRange` returns the record's length and exactly the bytes asked for: a theorem for the S12
+  script backend on its branch, an assumption for the legacy operation 43), whatever the envelope
+  callback does (it may fail; the state passed on is `{ s with envelopes := [] }` as here), and
+  `loop_fuel` shows the loop's fuel never runs out. Between records the session applies `replies`,
+  `requests := []`, `expect` and the prekey fetch's fields, all of which keep the view
+  (`ReceiveLoop.view_replies`, `keeps_afterRecord`, `keeps_expect`, `view_fetch`); `t1_all` is
+  stated with any such steps between records.
 
 The parts, in the files that prove them:
 

@@ -4,9 +4,10 @@ import TlsMpc.Node.Session.StoreProofs
 /-!
 # P4, ORD-1: one send (`sendDevices`, `sendMessage`, `sendSoft`)
 
-Twins (`Events.lean`, design note) of `Session/Send.lean`'s `sendDevices`, `sendMessage` (the path
-without recovery) and `sendSoft` (the recovery path), each proved equal to the deployed definition by
-`rfl` (`*_deployed`), and in `Model`:
+About the definitions of `Session/Send.lean`, `Send.sendDevicesG`, `Send.sendMessageG` (the path
+without recovery) and `Send.sendSoftG` (the recovery path), whose instances at `SessionM` and
+`Send.sendReal` ARE the deployed `sendDevices`, `sendMessage`, `sendSoft`; in `Model`, at any
+environment (`sendModel E`):
 
 - `sendSoft_agreed`: with the database nodes, a run of `sendSoft` keeps `SendsAgreed`: its request
   (`Flow.Send.request` / `requestDevices`) is handed to the worker only after the contact's message
@@ -24,110 +25,13 @@ No I/O primitive; no emitter imports this module.
 
 namespace TlsMpc.Node.Session.Events
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Signal TlsMpc.Node TlsMpc.Node.Bytes TlsMpc.Node.Session
+open TlsMpc.Node.Session.Send (SendOps sendReal sendDevicesG sendMessageG sendSoftG)
 
-/-- Every effect of one send besides the store's (`StoreOps`), `State` and `Context`. -/
-structure SendOps (m : Type → Type) where
-  store : StoreOps m
-  liftResult : {α : Type} → Except String α → m α
-  restamp : Nat × Bytes → m (Nat × Bytes)
-  sealOne : Flow.Worker → Nat → Bytes → m (Opened .sealedEnvelope (Option (Nat × List Bytes)))
-  sealDevices : Flow.Worker → Nat → Bytes → Bytes → Nat → m (Opened .sealedEnvelope (Option (Nat × List Bytes)))
-  joint : Flow.Worker → m (Opened .jointRandom Bytes)
-  recordSend : Nat → Nat → Nat → List (BitVec 8) → m Unit
-  request : Flow.Worker → Nat → List Nat → Bytes → Bytes → m TlsWorker.BufferHandle
-  requestDevices : Flow.Worker → Nat → Nat → List Nat → Nat → Bytes → Bytes → m TlsWorker.BufferHandle
-  appSend : TlsApplication.Session TlsWorker.BufferHandle → TlsWorker.BufferHandle → Nat → m Unit
-
-/-- The deployed operations. -/
-def sendReal : SendOps SessionM where
-  store := storeReal
-  liftResult x := liftResult x
-  restamp := Send.restamp
-  sealOne w c b := Flow.Send.«seal» w c b
-  sealDevices w c a b n := Flow.Send.sealDevices w c a b n
-  joint w := Flow.Random.joint w
-  recordSend := Send.recordSend
-  request w c o m f := Flow.Send.request w c o m f
-  requestDevices w c p o n m f := Flow.Send.requestDevices w c p o n m f
-  appSend s h n := TlsApplication.send s h n
-
-/-- `liftResult`, lifted into a session, is `match`: what the model uses. -/
+/-- `liftResult`, lifted into a session, is `match`: what the model uses for `SendOps.liftResult`
+(the deployed `sendReal.liftResult`). -/
 theorem liftResult_session {α : Type} (x : Except String α) :
     (liftResult x : SessionM α) = (match x with | .ok a => pure a | .error e => throw e) := by
   cases x <;> rfl
-
-section Twins
-variable {m : Type → Type} [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
-
-def appNowG : m (TlsApplication.Session TlsWorker.BufferHandle) := do
-  let pool := (← get).pool
-  return (pool.connection pool.current).session
-
-def sendDevicesG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m Unit := do
-  let c ← read
-  let some (address, _) := c.self | throw "no account address for a device list"
-  let count := (← kindsOfG send.1).length
-  let some (timestamp, sealed) := (← o.sealDevices c.w send.1 address send.2 count).val
-    | throw "invalid sealed envelopes reply"
-  storeAdvancedG o.store send.1
-  let envelopes := sealed.map toBits
-  let random := (← o.joint c.w).val
-  let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
-  -- Both request kernels seal one TLS record (about five unanswered devices; section 5).
-  o.store.insist (frame.length ≤ 16384) "a send to this many devices does not fit one record"
-  o.recordSend send.1 id timestamp frame
-  let handle ← o.requestDevices c.w send.1 payloadAt offsets count (random.take 4) (toBytes frame)
-  o.appSend (← appNowG) handle frame.length
-
-def sendMessageG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m Unit := do
-  let c ← read
-  let send ← o.restamp send
-  modify fun st => { st with lastSent := some send }
-  if (← kindsOfG send.1) != [0] then return ← sendDevicesG o send id
-  let some (timestamp, sealed) := (← o.sealOne c.w send.1 send.2).val | throw "invalid sealed envelope reply"
-  storeAdvancedG o.store send.1
-  let random := (← o.joint c.w).val
-  let (frame, offsets) ← o.liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
-  o.recordSend send.1 id timestamp frame
-  let handle ← o.request c.w send.1 offsets (random.take 4) (toBytes frame)
-  o.appSend (← appNowG) handle frame.length
-
-def sendSoftG (o : SendOps m) (send : Nat × Bytes) (id : Nat) : m (Option (Recovery.Result × String × Bool)) := do
-  let c ← read
-  let send ← o.restamp send
-  let unacknowledged := (Recovery.Result.retryLater, "the database nodes did not acknowledge the contact's state", false)
-  let refused := (Recovery.Result.fault, "the contact's stored state cannot produce a message", true)
-  let kinds ← kindsOfG send.1
-  if kinds != [0] then
-    let some (address, _) := c.self | throw "no account address for a device list"
-    let some (timestamp, sealed) := (← o.sealDevices c.w send.1 address send.2 kinds.length).val
-      | return some refused
-    let envelopes := sealed.map toBits
-    let random := (← o.joint c.w).val
-    let (frame, payloadAt, offsets) ← o.liftResult (PublicRequest.buildDevices envelopes timestamp id (toBits (random.take 4)) c.official)
-    -- Both request kernels seal one TLS record: about five unanswered devices (MULTI_DEVICE.md, section 5).
-    if frame.length > 16384 then
-      return some (.retryLater, s!"a message to {kinds.length} devices does not fit one request (not supported yet)", true)
-    if !(← storeSoftG o.store send.1) then return some unacknowledged
-    o.recordSend send.1 id timestamp frame
-    let handle ← o.requestDevices c.w send.1 payloadAt offsets kinds.length (random.take 4) (toBytes frame)
-    o.appSend (← appNowG) handle frame.length
-    return none
-  let some (timestamp, sealed) := (← o.sealOne c.w send.1 send.2).val | return some refused
-  if !(← storeSoftG o.store send.1) then return some unacknowledged
-  let random := (← o.joint c.w).val
-  let (frame, offsets) ← o.liftResult (PublicRequest.build (toBits (sealed.headD [])) timestamp id (toBits (random.take 4)) c.official)
-  o.recordSend send.1 id timestamp frame
-  let handle ← o.request c.w send.1 offsets (random.take 4) (toBytes frame)
-  o.appSend (← appNowG) handle frame.length
-  return none
-
-end Twins
-
-theorem appNow_deployed : @appNow = appNowG (m := SessionM) := rfl
-theorem sendDevices_deployed : @Send.sendDevices = sendDevicesG (m := SessionM) sendReal := rfl
-theorem sendMessage_deployed : @Send.sendMessage = sendMessageG (m := SessionM) sendReal := rfl
-theorem sendSoft_deployed : @Send.sendSoft = sendSoftG (m := SessionM) sendReal := rfl
 
 /-! ### The model of one send -/
 

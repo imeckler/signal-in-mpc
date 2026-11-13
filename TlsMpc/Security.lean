@@ -104,6 +104,12 @@ import TlsMpc.Node.Policy.ReceiveProofs
 import TlsMpc.Node.Policy.ReceiveEnvelope
 import TlsMpc.Node.Policy.ReceiveInvariant
 import TlsMpc.Node.Types
+import TlsMpc.Node.Policy.ReceiveSession
+import TlsMpc.Node.Policy.ReceiveHead
+import TlsMpc.Node.Policy.ReceiveFrame
+import TlsMpc.Node.Session.ServeProofs
+import TlsMpc.Node.Policy.Rotation
+import TlsMpc.Node.Stock.Use
 import Lean.Elab.Command
 
 /-!
@@ -142,6 +148,12 @@ The order follows the catalogue of REORGANIZATION_PLAN.md section 8.2:
   deployment file does.
 * **ceremony** — used only by the registration ceremony (`ceremony=1`), a separate run; no
   standing deployment lists the ceremony kernels.
+* **C-gen** — about a monad-generic definition that the controller executes (the deployed
+  function IS that definition at `SessionM` and the deployed operations record), proved at a pure
+  model monad for every operations record satisfying the entry's assumptions. Carried to the
+  running code by the free theorem of the definition's type (one text, two monads; Lean does not
+  state free theorems: trusted with the compiler, PROOF_GAPS.md A8) and by the entry's
+  assumptions on the real operations (`Session/Events.lean` header; `ReceiveSession.Faithful`).
 
 ## What every entry silently relies on (trusted, not proved)
 
@@ -4253,7 +4265,7 @@ PublicServiceController.lean): it reveals a run first and checks it after. The f
 written out, proved equal to the loops by `scan_eq` / `replyScan_eq`. The per-byte glue (that
 `step` keeps `request`/`reply` equal to the message so far and sets `skip` from the scanners'
 answer) is proved per byte in `Policy/ReceiveInvariant.lean` (below, "4f (continued)"); `T1` for
-every stream is not (section 8; checked by `ReceiveTest`). End-to-end runs of the loop
+every stream, about the loop the session runs, is 4g. End-to-end runs of the loop
 on the two former too-long-varint counterexamples, `ReceiveTest.overlongRequest_refused` and
 `ReceiveTest.overlongResponse_refused` (`TlsMpc/Node/Policy/ReceiveTest.lean`), are not restated: that
 file is too heavy to import here. -/
@@ -4436,6 +4448,177 @@ theorem receivePolicy_frameByte_frame {s s1 : State} {b : Byte} {ev : List Byte}
 
 end ReceiveInvariant
 
+/-! #### 4g. T1 for every stream (proof track P1; PROOF_GAPS.md C1, C2)
+
+`ReceiveLoop.t1_all` (`TlsMpc/Node/Policy/ReceiveSession.lean`) is about the loop the session runs:
+`Session/Common.lean`'s `record` is `RecordLoop.run` (`Policy/RecordLoop.lean`) at the session's
+operations, and the theorem is about `RecordLoop.run` at every operations record of a pure monad that
+satisfies `Faithful` (the engines' length probe and reveal return the record's length and exactly the
+bytes asked for; a theorem for the S12 script backend on its branch, an assumption on the engines for
+the legacy operation 43), over every stream, every cut into records, with any steps between records
+that keep the policy's view (`replies` then `requests := []`, `expect`, the fetch fields: C2). The
+model loop `recordLoop` / `streamRun` (4f) is what the proof runs through (`loop_sub`). Its parts:
+`run_safe` (one run, every reachable state, every byte string), `t1_frames` (the model loop), the
+simulation (`sim_step`, `sim_pass`), the reference read byte by byte (`classifyFrames_stream`,
+`classify_stream`, `message_prefix`), the message level (`rshape_run_c`, `qshape_run_c`,
+`reply_run_safe`, `request_run_safe`, `envelope_noErr`), the frame layer (`frameByte_reject`), and the
+HTTP head before the upgrade (`upgrade_run_safe`, `frameByte_terminator`; not yet joined with the
+frames: PROOF_GAPS D1). -/
+
+section T1All
+open PublicReceive ReceiveProofs TlsMpc.Signal
+open TlsMpc.KernelSpecs.ParseWebSocketFrame (Shaped)
+
+/-- **T1 for every stream, about the record loop the session runs.** From the upgraded starting
+state (any `accept`, `lenient`, `openBody`), over every stream of frames cut into records in any way,
+with the engines as assumed (`Faithful`) and any steps between records that keep the view, every
+stream position the loop has the engines reveal is public in `ReceiveSpec.classifyFrames`, or is
+its first `error` (the one-byte allowance). **C-gen**. PROOF_GAPS C1, C2. -/
+theorem receivePolicy_t1_all (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte))
+    {β : Type} (O : Nat → List Byte → RecordLoop.Ops ReceiveLoop.RevealM β)
+    (hO : ∀ base r, ReceiveLoop.Faithful r base (O base r))
+    (g : Nat → State → Except String State) (hg : ∀ i, ReceiveLoop.Keeps (g i)) :
+    ∀ q ∈ (ReceiveLoop.sessionRun O g { PublicReceive.start accept with upgraded := true, lenient := lenient, openBody }
+        records).1,
+      ReceiveSpec.allowedIn (ReceiveSpec.classifyFrames openBody records.flatten) q = true ∨
+        ReceiveSpec.firstError (ReceiveSpec.classifyFrames openBody records.flatten) = some q :=
+  ReceiveLoop.t1_all openBody accept lenient records O hO g hg
+
+/-- **The loop the session runs, against the model loop** (C1): under `Faithful`, every position
+`RecordLoop.loop` reveals is one `recordLoop` reveals, and when it returns a state the model returns
+the same state (envelopes handed on before `envelopes := []` do not change it). **C-gen**. -/
+theorem receivePolicy_loop_sub {β : Type} {o : RecordLoop.Ops ReceiveLoop.RevealM β} {r : List Byte} {base : Nat}
+    (hO : ReceiveLoop.Faithful r base o) (fuel : Nat) (s : State) (cpl : Bool) (off : Nat) (acc : List Nat) :
+    (∀ q ∈ (RecordLoop.loop o fuel s cpl off r.length acc).2, q ∈ (recordLoop fuel s r off base acc).1) ∧
+      (∀ s' c', (RecordLoop.loop o fuel s cpl off r.length acc).1 = .ok (s', c') →
+        (recordLoop fuel s r off base acc).2 = .ok s') :=
+  ReceiveLoop.loop_sub hO fuel s cpl off acc
+
+/-- **The record loop's fuel never runs out** (C1): `RecordLoop.run` (fuel: the record's length plus
+one) gives the same run as any larger fuel, so it behaves as the unbounded loop. **C-gen**. -/
+theorem receivePolicy_run_fuel {β : Type} {o : RecordLoop.Ops ReceiveLoop.RevealM β} {r : List Byte} {base : Nat}
+    (hO : ReceiveLoop.Faithful r base o) (s : State) (acc : List Nat) (k : Nat) :
+    RecordLoop.loop o (r.length + 1 + k) s false 0 r.length acc = RecordLoop.run o s acc :=
+  ReceiveLoop.run_fuel hO s acc k
+
+/-- **`replies` keeps the policy's view** (C2): it changes only the control queue. **C**. -/
+theorem receivePolicy_view_replies {s s' : State} {masks : List (List Byte)} {frames : List (Nat × List Byte)}
+    (h : replies s masks = .ok (s', frames)) : ReceiveSimByte.view s' = ReceiveSimByte.view s :=
+  ReceiveLoop.view_replies h
+
+/-- **The session's step after a record keeps the view** (C2): the control replies (any masks), then
+`requests := []`. **C**. -/
+theorem receivePolicy_keeps_afterRecord (masks : List (List Byte)) :
+    ReceiveLoop.Keeps (fun s => (replies s masks).map (fun p => { p.1 with requests := [] })) :=
+  ReceiveLoop.keeps_afterRecord masks
+
+/-- **T1 for the model loop, from any state that simulates the reference's initial state.** **M**. -/
+theorem receivePolicy_t1_frames (ob : Bool) (s : State) (records : List (List Byte))
+    (hs : ReceiveSim.Sim ob s ReceiveStream.Stream.init records.flatten.length) : T1 ob s records :=
+  ReceiveLoop.t1_frames ob s records hs
+
+/-- **One run, every state the controller reaches, every byte string**: with nothing to pass over,
+every byte of the run it reveals next is public in the reference, or is its first `error`. **C**. -/
+theorem receivePolicy_run_safe {ob : Bool} {s : State} {st1 : ReceiveStream.Stream.St} (Y Z : List Byte)
+    (hs : ReceiveSim.Sim ob s (st1, false) (Y.length + Z.length)) (hsk : s.skip = 0)
+    (hY : Y.length ≤ budget s) :
+    ∀ i < Y.length, ReceiveLoop.SafeR (ReceiveStream.Stream.runF ob (st1, false) (Y ++ Z)) i :=
+  ReceiveLoop.run_safe Y Z hs hsk hY
+
+/-- **Every byte the controller accepts keeps the simulation.** **C**. -/
+theorem receivePolicy_sim_step {ob : Bool} {s s' : State} {st1 : ReceiveStream.Stream.St} {n : Nat} {b : Byte} {c : Bool}
+    (hs : ReceiveSim.Sim ob s (st1, false) (n + 1)) (h : step s b = .ok (s', c)) :
+    ReceiveSim.Sim ob s' (ReceiveStream.Stream.stepF ob (st1, false) b n).2 n :=
+  ReceiveSim.sim_step hs h
+
+/-- **Every byte the controller passes over keeps the simulation.** **C**. -/
+theorem receivePolicy_sim_pass {ob : Bool} {s s' : State} {st1 : ReceiveStream.Stream.St} {n : Nat} {b : Byte} {d : Bool}
+    (hs : ReceiveSim.Sim ob s (st1, false) (n + 1)) (h : passOne s = .ok (s', d)) :
+    ReceiveSim.Sim ob s' (ReceiveStream.Stream.stepF ob (st1, false) b n).2 n :=
+  ReceiveSim.sim_pass hs h
+
+/-- **A delivered envelope walked past its end has no `error` class.** **C**. -/
+theorem receivePolicy_envelope_noErr (E : List Byte) (L : List Bool) (hd : List Byte) (p k : Nat)
+    (hL : L.length = E.length) (hw : envWalk [] 0 0 (E ++ [0]) = L ++ envWalk hd p k [0]) :
+    ∀ x ∈ ReceiveSpec.envelope (E.length + 1) E, x ≠ .error :=
+  ReceiveEnvDone.envelope_noErr E L hd p k hL hw
+
+/-- **The response half of T1 at the message level, both values of `complete`.** **C**. -/
+theorem receivePolicy_rshape_run_c {ob c : Bool} {H : List Byte} {sk : Bool} {P : List Byte}
+    (h : ReceiveReply.RShape ob H sk P)
+    (Y Z : List Byte) (hY : Y.length ≤ replyBudget H ob) (hfit : c = true → replyMissing H ob ≤ (Y ++ Z).length)
+    (i : Nat) (hi : i < Y.length) :
+    ReceiveComplete.Strong (ReceiveSpec.message ob c (8 :: 2 :: (P ++ (Y ++ Z)))) (2 + P.length + i) (i + 1 = Y.length) :=
+  ReceiveComplete.rshape_run_c h Y Z hY hfit i hi
+
+/-- **The request half of T1 at the message level, both values of `complete`.** **C**. -/
+theorem receivePolicy_qshape_run_c {H : List Byte} {bs : Bool} {P : List Byte} (h : ReceiveRequestScan.QShape H bs P)
+    (ob c : Bool) (Y Z : List Byte)
+    (hY : Y.length ≤ max 1 (fieldMissing H)) (hfit : c = true → fieldMissing H ≤ (Y ++ Z).length)
+    (i : Nat) (hi : i < Y.length) :
+    ReceiveRequestScan.PubAt (ReceiveSpec.message ob c (8 :: 1 :: (P ++ (Y ++ Z)))) (2 + P.length + i) :=
+  ReceiveComplete.qshape_run_c h ob c Y Z hY hfit i hi
+
+/-- **The frame reference read byte by byte** is the recursive one, for every byte string. **C**. -/
+theorem receivePolicy_classifyFrames_stream (ob : Bool) (bytes : List Byte) :
+    ReceiveSpec.classifyFrames ob bytes = ReceiveStream.Stream.classes ob bytes :=
+  ReceiveStream.Stream.classifyFrames_stream ob bytes
+
+/-- **The whole-stream reference read byte by byte** (head, then frames). **C**. -/
+theorem receivePolicy_classify_stream (ob : Bool) (stream : List Byte) :
+    ReceiveSpec.classify ob stream = ReceiveStream.classifyStream ob stream :=
+  ReceiveStream.classify_stream ob stream
+
+/-- **A message's classes depend only on the bytes before** (with `complete = false`). **C**. -/
+theorem receivePolicy_message_prefix (ob : Bool) (A B : List Byte) :
+    (ReceiveSpec.message ob false (A ++ B)).take A.length = ReceiveSpec.message ob false A :=
+  ReceiveStream.message_prefix ob A B
+
+/-- **The response half of T1 at the controller level.** **C**. -/
+theorem receivePolicy_reply_run_safe {s : State} {P : List Byte} (hs : ReceiveReply.ReplyIn s P) (hk : s.skip = 0)
+    (hu : s.upgraded = true)
+    (h0 : (PublicReceive.get s.frame 0 == on) = false) (h2 : (PublicReceive.get s.frame 2 == on) = false)
+    (h4 : (PublicReceive.get s.frame 4 == on) = true)
+    (hr : (PublicReceive.get s.frame 10).toNat * 256 + (PublicReceive.get s.frame 11).toNat ≠ 0)
+    (ho : (PublicReceive.get s.frame 7).toNat < 8) (Y : List Byte) (hY : Y.length ≤ budget s)
+    (i : Nat) (hi : i < Y.length) :
+    ReceiveReply.SafeAt (ReceiveSpec.message s.openBody false (8 :: 2 :: (P ++ Y))) (2 + P.length + i) :=
+  ReceiveReply.reply_run_safe hs hk hu h0 h2 h4 hr ho Y hY i hi
+
+/-- **The request half of T1 at the controller level.** **C**. -/
+theorem receivePolicy_request_run_safe {s : State} {P : List Byte} (hs : ReceiveRequestScan.QIn s P) (hk : s.skip = 0)
+    (hu : s.upgraded = true)
+    (h0 : (PublicReceive.get s.frame 0 == on) = false) (h2 : (PublicReceive.get s.frame 2 == on) = false)
+    (h4 : (PublicReceive.get s.frame 4 == on) = true)
+    (hr : (PublicReceive.get s.frame 10).toNat * 256 + (PublicReceive.get s.frame 11).toNat ≠ 0)
+    (ho : (PublicReceive.get s.frame 7).toNat < 8) (ob : Bool) (Y : List Byte) (hY : Y.length ≤ budget s)
+    (i : Nat) (hi : i < Y.length) :
+    ReceiveRequestScan.PubAt (ReceiveSpec.message ob false (8 :: 1 :: (P ++ Y))) (2 + P.length + i) :=
+  ReceiveRequestScan.request_run_safe hs hk hu h0 h2 h4 hr ho ob Y hY i hi
+
+/-- **A byte the frame parser rejects is refused by `frameByte`.** **C**. -/
+theorem receivePolicy_frameByte_reject {s : State} {b : Byte} {S : TlsWebSocketFrame.State Byte}
+    (hu : s.upgraded = true)
+    (hf : s.frame = TlsWebSocketFrame.stateBytes S) (hS : Shaped S)
+    (hv : (TlsWebSocketFrame.step fast capacity S b).state.valid = 0#8) : ∀ r, frameByte s b ≠ .ok r :=
+  ReceiveFrame.frameByte_reject hu hf hS hv
+
+/-- **Before the upgrade, every run stays inside the HTTP head.** **C**. -/
+theorem receivePolicy_upgrade_run_safe (ob : Bool) {s : State} (hu : s.upgraded = false) (S : List Byte)
+    (hS : ReceiveStream.Head.find 0 S = none) (ht : s.terminator = ReceiveHead.after 0 S) (Y Z : List Byte)
+    (hY : Y.length ≤ budget s) (i : Nat) (hi : i < Y.length) :
+    (ReceiveSpec.classify ob (S ++ (Y ++ Z)))[S.length + i]? = some .head :=
+  ReceiveHead.upgrade_run_safe ob hu S hS ht Y Z hY i hi
+
+/-- **Before the upgrade, `frameByte` counts CR LF CR LF as the reference does.** **C**. -/
+theorem receivePolicy_frameByte_terminator {s s1 : State} {b : Byte} {ev : List Byte} (hu : s.upgraded = false)
+    (h : frameByte s b = .ok (s1, ev)) :
+    s1.terminator = ReceiveStream.Head.next s.terminator b ∧
+      (s1.upgraded = true ↔ ReceiveStream.Head.next s.terminator b = 4) :=
+  ReceiveHead.frameByte_terminator hu h
+
+end T1All
+
 /-- **Fail closed: a too-long varint after a key is refused** (`scan`'s loop, at the varint's 10th
 byte: `malformed`). **C**. SECURITY_MAP C.4. -/
 theorem receivePolicy_scanBody_tooLong {bytes rest : List PublicReceive.Byte} {tag : PublicReceive.Byte} {b : Bool}
@@ -4472,8 +4655,230 @@ theorem receivePolicy_replyScan_wrapper_tooLong (bytes : List PublicReceive.Byte
 /-! ## 5. State and ordering (SECURITY_MAP C.4, C.5)
 
 What is stored, when state advances, and that sequence numbers are not reused. The send-side
-ordering (ORD-1: store acknowledged before send; ORD-2) and the database nonce rule (T10) are
-NOT proved (section 8). -/
+ordering (ORD-1: store acknowledged before send; ORD-2) and T11 are in 5b; the stock (T14) and
+the connection rotation (T15) in 5c; the database nonce rule (T10) is NOT proved (section 8). -/
+
+/-! ### 5b. Ordering: ORD-1, ORD-2, T11 (proof track P4; `TlsMpc/Node/Session/*Proofs.lean`)
+
+The session functions on these paths are defined once, monad-generically (`Session/Store.lean`,
+`Send.lean`, `Serve.lean`); the deployed function IS the definition at `SessionM` and the deployed
+operations record (`abbrev f := fG realOps`: `storeSoft = storeSoftG storeReal`, `Send.deliverJob =
+Send.deliverJobG Send.deliverReal`, …). The theorems are about those definitions run in the model
+monad `Events.Model` at every environment (`storeModel E`, `sendModel E`), and for the loops in the
+guarded model at every operations record whose other operations keep the property, with the
+operations that matter (`sendSoft`, `sendMessage`, the refreshes, `commitScratch`) the definitions'
+own instances. What carries a theorem to a real run (`Session/Events.lean`, header): the real
+operations do what their events name; no code but the deployed records hands a message request to
+the worker or commits a scratch (`scripts/lint_node.py`, `ordering-sites`); the free theorem of the
+generic definition (A8). **C-gen**. PROOF_GAPS.md C3. -/
+
+section Ordering
+open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Signal TlsMpc.Node TlsMpc.Node.Bytes TlsMpc.Node.Session
+open TlsMpc.Node.Session.Events
+
+/-- **ORD-1, `sendSoft` (the recovery path).** With the database nodes, every run keeps
+`SendsAgreed`: the request it hands to the worker comes after the contact's message was sealed, its
+advanced state sealed for storage, acknowledged by this party's nodes and reported acknowledged by the
+other party, with no seal of the contact in between. **C-gen**. -/
+theorem ord1_sendSoft_agreed (E : SendEnv) (send : Nat × Bytes) (id : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : SendsAgreed w.log) :
+    Model.wp (Send.sendSoftG (sendModel E) send id) (fun _ _ w' => SendsAgreed w'.log) c st w :=
+  Events.sendSoft_agreed E send id c st w hdb hw
+
+/-- **ORD-1, `sendMessage` (the path without recovery):** every request after its own seal, storage
+seal and this party's nodes' acknowledgement. **C-gen**. -/
+theorem ord1_sendMessage_acked (E : SendEnv) (send : Nat × Bytes) (id : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : SendsAcked w.log) :
+    Model.wp (Send.sendMessageG (sendModel E) send id) (fun _ _ w' => SendsAcked w'.log) c st w :=
+  Events.sendMessage_acked E send id c st w hdb hw
+
+/-- **ORD-1 over every run of `deliverJob`, its refreshes included** (the recovery path; `deliver`
+and every job of `serve`). **C-gen**. -/
+theorem ord1_deliverJob_sendsAgreed (E : SendEnv) (rest : Send.DeliverOps (Guarded SendsAgreed))
+    (R : Send.RefreshOps (Guarded SendsAgreed))
+    (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+    (first : PublicReceive.State) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : SendsAgreed w.log) :
+    SendsAgreed ((Send.deliverJobG (deliverSends E rest R) inputs recipients notifyId journal first).1 c st w).2.2.log :=
+  Events.deliverJob_sendsAgreed' E rest R inputs recipients notifyId journal first c st w hdb hw
+
+/-- **ORD-1 over every run of `loop`** (the path without recovery), its refresh-and-resend
+included. **C-gen**. -/
+theorem ord1_loop_sendsAcked (E : SendEnv) (rest : Send.LoopOps (Guarded SendsAcked)) (R : Send.RefreshOps (Guarded SendsAcked))
+    (known : List (Nat × Secret Bytes × Nat)) (recipients : List Nat) (fuel : Nat) (s : PublicReceive.State)
+    (inputs : List (Nat × Bytes)) (completed : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : SendsAcked w.log) :
+    SendsAcked ((Send.loopG (loopSends E rest R) known recipients fuel s inputs completed).1 c st w).2.2.log :=
+  Events.loop_sendsAcked E rest R known recipients fuel s inputs completed c st w hdb hw
+
+/-- **ORD-1 over every run of `serve`** (each job through `deliverJob`). **C-gen**. -/
+theorem ord1_serve_sendsAgreed (E : SendEnv) (rest : Serve.ServeOps (Guarded SendsAgreed))
+    (D : Send.DeliverOps (Guarded SendsAgreed))
+    (R : Send.RefreshOps (Guarded SendsAgreed)) (directory : String) (accept : Bytes) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : SendsAgreed w.log) :
+    SendsAgreed ((Serve.serveG (serveSends E rest D R) directory accept).1 c st w).2.2.log :=
+  Events.serve_sendsAgreed E rest D R directory accept c st w hdb hw
+
+/-- **ORD-2 (`commitScratch`).** With the database nodes, every run keeps `CommitsAgreed`: a
+refresh's scratch is committed only after it was sealed for storage, this party's nodes acknowledged
+that write and the other party reported its nodes' acknowledgement right after. **C-gen**. -/
+theorem ord2_commitScratch_agreed (E : StoreEnv) (contact : Nat) (kinds : List Nat) (c : Context) (st : State)
+    (w : World) (hdb : c.dbClient.isSome) (hw : CommitsAgreed w.log) :
+    Model.wp (commitScratchG (storeModel E) contact kinds) (fun _ _ w' => CommitsAgreed w'.log) c st w :=
+  Events.commitScratch_agreed E contact kinds c st w hdb hw
+
+/-- **ORD-2, the outcome:** `true` exactly after the commit, `false` after the drop. **C-gen**. -/
+theorem ord2_commitScratch_outcome (E : StoreEnv) (contact : Nat) (kinds : List Nat) (c : Context) (st : State)
+    (w : World) (hdb : c.dbClient.isSome) :
+    Model.wp (commitScratchG (storeModel E) contact kinds) (fun r _ w' =>
+      (r = .ok true → w'.log.head? = some (.scratchCommit contact)) ∧
+      (r = .ok false → w'.log.head? = some .scratchDrop)) c st w :=
+  Events.commitScratch_outcome E contact kinds c st w hdb
+
+/-- **ORD-2 over every run of `deliverJob`.** **C-gen**. -/
+theorem ord2_deliverJob_commitsAgreed (E : SendEnv) (rest : Send.DeliverOps (Guarded CommitsAgreed))
+    (R : Send.RefreshOps (Guarded CommitsAgreed))
+    (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+    (first : PublicReceive.State) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : CommitsAgreed w.log) :
+    CommitsAgreed ((Send.deliverJobG (deliverCommits E rest R) inputs recipients notifyId journal first).1 c st w).2.2.log :=
+  Events.deliverJob_commitsAgreed E rest R inputs recipients notifyId journal first c st w hdb hw
+
+/-- **ORD-2 over every run of `loop`.** **C-gen**. -/
+theorem ord2_loop_commitsAgreed (E : SendEnv) (rest : Send.LoopOps (Guarded CommitsAgreed))
+    (R : Send.RefreshOps (Guarded CommitsAgreed))
+    (known : List (Nat × Secret Bytes × Nat)) (recipients : List Nat) (fuel : Nat) (s : PublicReceive.State)
+    (inputs : List (Nat × Bytes)) (completed : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : CommitsAgreed w.log) :
+    CommitsAgreed ((Send.loopG (loopCommits E rest R) known recipients fuel s inputs completed).1 c st w).2.2.log :=
+  Events.loop_commitsAgreed E rest R known recipients fuel s inputs completed c st w hdb hw
+
+/-- **ORD-2 over every run of `serve`.** **C-gen**. -/
+theorem ord2_serve_commitsAgreed (E : SendEnv) (rest : Serve.ServeOps (Guarded CommitsAgreed))
+    (D : Send.DeliverOps (Guarded CommitsAgreed))
+    (R : Send.RefreshOps (Guarded CommitsAgreed)) (directory : String) (accept : Bytes) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) (hw : CommitsAgreed w.log) :
+    CommitsAgreed ((Serve.serveG (serveCommits E rest D R) directory accept).1 c st w).2.2.log :=
+  Events.serve_commitsAgreed E rest D R directory accept c st w hdb hw
+
+/-- **T11 (`deliverJob`).** Whatever the delivery loops did and whatever every operation but the
+peer exchange does: when `deliverJob` returns, the newest event is the results-digest exchange in
+which the other party's digest is our own, the digest of the results the state reports. **C-gen**. -/
+theorem t11_deliverJob_results (P : PeerMsg → Context → Nat → Except String PeerMsg) (o : Send.DeliverOps Model)
+    (inputs : List (Nat × Bytes)) (recipients : List Nat) (notifyId journal : Option String)
+    (first : PublicReceive.State) (c : Context) (st : State) (w : World) :
+    Model.wp (Send.deliverJobG (deliverT11 P o) inputs recipients notifyId journal first)
+      (fun r st' w' => ∀ n, r = .ok n → ResultsAgreed st' w') c st w :=
+  Events.deliverJob_results P o inputs recipients notifyId journal first c st w
+
+/-- **T11, the tail:** when it returns, `ResultsAgreed`; when it fails, the state (the reported
+results included) is unchanged. **C-gen**. -/
+theorem t11_resultsTail_spec (P : PeerMsg → Context → Nat → Except String PeerMsg) (o : Send.DeliverOps Model)
+    (inputs : List (Nat × Bytes)) (messageOf contactOf : Nat → Nat)
+    (outcomes : Array (Option (Recovery.Result × String))) (delivered : Nat) (c : Context) (st : State) (w : World) :
+    Model.wp (Send.resultsTailG (deliverT11 P o) inputs messageOf contactOf outcomes delivered) (fun r st' w' =>
+      (∀ n, r = .ok n → ResultsAgreed st' w') ∧ (∀ e, r = .error e → st' = st)) c st w :=
+  Events.resultsTail_spec P o inputs messageOf contactOf outcomes delivered c st w
+
+/-- **`storeSoft`'s versions:** the version list moves to the contact's next version exactly when
+the store was taken. **C-gen**. -/
+theorem versions_storeSoft (E : StoreEnv) (contact : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) :
+    Model.wp (storeSoftG (storeModel E) contact) (fun r st' _ =>
+      (r = .ok true → st'.contacts.versions =
+        bumpIn st.contacts.versions contact (versionIn st.contacts.versions contact)) ∧
+      (r ≠ .ok true → st'.contacts.versions = st.contacts.versions)) c st w :=
+  Events.storeSoft_versions E contact c st w hdb
+
+/-- **`storeAdvanced`'s versions.** **C-gen**. -/
+theorem versions_storeAdvanced (E : StoreEnv) (contact : Nat) (c : Context) (st : State) (w : World)
+    (hdb : c.dbClient.isSome) :
+    Model.wp (storeAdvancedG (storeModel E) contact) (fun r st' _ =>
+      (r = .ok () → st'.contacts.versions =
+        bumpIn st.contacts.versions contact (versionIn st.contacts.versions contact)) ∧
+      (r ≠ .ok () → st'.contacts.versions = st.contacts.versions)) c st w :=
+  Events.storeAdvanced_versions E contact c st w hdb
+
+/-- **A contact the version list holds gets the next version.** **C**. -/
+theorem versions_versionIn_bumpIn (versions : List (Nat × Nat)) (contact : Nat) (h : contact ∈ versions.map (·.1)) :
+    versionIn (bumpIn versions contact (versionIn versions contact)) contact = versionIn versions contact + 1 :=
+  Events.versionIn_bumpIn versions contact h
+
+end Ordering
+
+/-! ### 5c. The stock (T14, proof track X1) and the connection rotation (T15, X2)
+
+`TlsMpc/Node/Stock/Use.lean`: the journal and use model of the precomputed stock (**M**: the engine
+instruction and the C ABI are specified, not built; PROOF_GAPS C5). `TlsMpc/Node/Policy/Rotation.lean`:
+the rotation planner (**M** until the session uses it). -/
+
+/-- **T14 (stock used once).** In production (journal and key chain), in every trace of the use
+rule, with crashes at any step, restarts, reboots, lying or vanishing peers, and a rollback of
+either the disk or the boot memory (not both), no item reaches the engine twice. **M**. -/
+theorem stock_T14 (evs : List TlsMpc.Node.Stock.Ev)
+    (h : (∀ i, TlsMpc.Node.Stock.Ev.restoreBoot i ∉ evs) ∨ (∀ i, TlsMpc.Node.Stock.Ev.restoreDisk i ∉ evs)) :
+    (TlsMpc.Node.Stock.run TlsMpc.Node.Stock.production TlsMpc.Node.Stock.init evs).handed.Nodup :=
+  TlsMpc.Node.Stock.T14 evs h
+
+open TlsMpc.Node.Stock in
+/-- **The boot id:** every item handed to the engine belongs to a stock made in the boot during which
+it was handed, and a stock is made in exactly one boot. **M**. -/
+theorem stock_T14_boot (cfg : Barriers) (evs : List Ev) :
+    ∀ b s j, (b, s, j) ∈ (run cfg init evs).handed →
+      (s, b) ∈ (run cfg init evs).stocks ∧ ∀ b', (s, b') ∈ (run cfg init evs).stocks → b' = b :=
+  TlsMpc.Node.Stock.T14_boot cfg evs
+
+open TlsMpc.Node.Stock in
+/-- **Never back:** the agreed index is at or above this node's next index. **M**. -/
+theorem stock_agreeIndex_never_back {mine j : Nat} {claim : Option Nat} (h : agreeIndex (some mine) claim = some j) :
+    mine ≤ j :=
+  TlsMpc.Node.Stock.agreeIndex_never_back h
+
+open TlsMpc.Node.Stock in
+/-- **Waste bound:** each node's next index exceeds the items it handed by at most the number of
+interruptions. **M**. -/
+theorem stock_waste_bound (rs : List (RoundEnd × RoundEnd)) :
+    let p := pairRounds ⟨0, 0, 0, 0, 0⟩ rs
+    p.nA ≤ p.uA + p.cuts ∧ p.nB ≤ p.uB + p.cuts :=
+  TlsMpc.Node.Stock.waste_bound rs
+
+open TlsMpc.Node.Stock TlsMpc.Node.Engine in
+/-- **Within a session, no (shape, index) is used twice.** **M**. -/
+theorem stock_stockUses_nodup (sigs : Bytes → Option Sig) :
+    ∀ (us : List StockUse) (c : StockCtx), acceptsAll sigs c us →
+      (us.map fun u => (u.shape.enc, u.index)).Nodup :=
+  TlsMpc.Node.Stock.stockUses_nodup sigs
+
+open Rotation in
+/-- **T15 (the actions):** for two input lists of the same length, the composed sender performs
+the same actions once the payloads are erased. **M**. -/
+theorem rotation_t15_erase {β : Type} (H : Bytes → Bytes) (seed : Bytes) (cfg : Config) (base : Nat)
+    (xs ys : List β) (dx dy : β) (h : xs.length = ys.length) :
+    (compose H seed cfg base xs dx).map Action.erase = (compose H seed cfg base ys dy).map Action.erase :=
+  Rotation.t15_erase H seed cfg base xs ys dx dy h
+
+open Rotation in
+/-- **Every position is sent exactly once.** **M**. -/
+theorem rotation_plan_sends_perm (H : Bytes → Bytes) (seed : Bytes) (n : Nat) (cfg : Config) (base : Nat) :
+    List.Perm (sendsOf (plan H seed n cfg base).actions) (List.range n) :=
+  Rotation.plan_sends_perm H seed n cfg base
+
+open Rotation in
+/-- **At most `poolSize` connections are open at once.** **M**. -/
+theorem rotation_plan_pool_bound (H : Bytes → Bytes) (seed : Bytes) (n : Nat) (cfg : Config) (base : Nat)
+    (hpool : 0 < cfg.poolSize) (hmax : 0 < cfg.maxLen) (j : Nat) :
+    ∃ mj, Mon.run cfg.maxLen (Mon.init cfg.poolSize base) ((plan H seed n cfg base).actions.take j) = some mj ∧
+      openCount mj.slots ≤ cfg.poolSize :=
+  Rotation.plan_pool_bound H seed n cfg base hpool hmax j
+
+open Rotation in
+/-- **No generation is reused.** **M**. -/
+theorem rotation_plan_generations (H : Bytes → Bytes) (seed : Bytes) (n : Nat) (cfg : Config) (base : Nat)
+    (hpool : 0 < cfg.poolSize) (hmax : 0 < cfg.maxLen) :
+    opensOf (plan H seed n cfg base).actions =
+      List.range' base (opensOf (plan H seed n cfg base).actions).length ∧
+    (opensOf (plan H seed n cfg base).actions).Nodup :=
+  Rotation.plan_generations H seed n cfg base hpool hmax
 
 open TlsMpc.HybridKernel Std.Tactic.BVDecide TlsMpc.Signal in
 /-- **A sealed contact state opens to itself:** if `contact-seal` produced the stored ciphertext
@@ -5868,17 +6273,16 @@ the matching section above in the same commit.
   flow).
 
 ### The controller
-* **T1 (all streams)** — server-byte reveal policy: for every byte stream and every
-  non-throwing run of `budget`/`mayReveal`/`step`/`stepPassed`/`stepSkipped`, the revealed
-  positions are disjoint from the reference classifier's hidden set (request bodies, response
-  bodies unless `openBody`, envelope payloads, …). Delivered envelopes are proved at the
-  controller-step level for every byte string (section 4f: `receivePolicy_request_envelope_safe`,
-  `receivePolicy_envRun_safe`, with the pass-over across records, a request's and a response's
-  body, and fail-closed varints). T1 for all streams is still OPEN: the streaming form of the
-  reference classifier, the frame-layer simulation, `scan`/`replyScan` for every field order, the
-  loop-level run theorem, the capacity-counter invariant; the upgrade layer is outside T1. Checked
-  meanwhile by `ReceiveTest` (`policy-check`). It is the precondition of `Reveal.serverBytes`
-  (`Flow.Tls.revealRange`). → **P1**.
+* **T1 (all streams)** — DONE after the upgrade, about the loop the session runs (section 4g:
+  `receivePolicy_t1_all`, `receivePolicy_loop_sub`, `receivePolicy_run_fuel`,
+  `receivePolicy_view_replies`; PROOF_GAPS C1, C2 closed 2026-11-12). Still open: the start of a
+  connection — from `PublicReceive.start accept` (the HTTP head, then frames) against
+  `ReceiveSpec.classify`; the head's runs are proved (`receivePolicy_upgrade_run_safe`,
+  `receivePolicy_frameByte_terminator`) but not joined with the frames (needs: the head's bytes
+  leave the frame parser at a boundary; `payloadByte` keeps `upgraded`/`terminator`): PROOF_GAPS D1.
+  Assumed: `Faithful` (the engines' `revealRange` returns exactly the bytes asked for; a theorem for
+  the S12 script backend on its branch, an assumption for the legacy operation 43). It is the
+  precondition of `Reveal.serverBytes` (`Flow.Tls.revealRange`). → **P1** (D1).
 * **T8** — request templates: for `build`/`buildDevices`/`buildFetch`/`assemble` the structural
   part is now proved (section 2d, about the controller's own builders in
   `TlsMpc/Node/Policy/Request.lean`): the frame is the WebSocket header and the message masked, slots
@@ -5888,9 +6292,12 @@ the matching section above in the same commit.
   `t8_*`). Still open: the id `reply` answers is shown to be the one `varintAt` reads only under a
   hypothesis (`scan`'s loop invariant is not proved); `replies` (pong/close echoes) is covered
   by section 4c only. → **P2**.
-* **T11** — application results: every `jobResult` line carries exactly the entries both
-  controllers agreed on; each result is `Recovery.onSend`/`onFetch` of revealed statuses or a
-  fixed reason. → **P4**.
+* **T11** — application results: at `deliverJob`'s level DONE (section 5b:
+  `t11_deliverJob_results`, `t11_resultsTail_spec`: when it returns, the reported results are the
+  ones whose digest both controllers exchanged). Still open: the `DaemonLine.jobResult` / final
+  report level (argued: results are written in one place, `serve` resets them per job), and that
+  each result is `Recovery.onSend`/`onFetch` of revealed statuses or a fixed reason. PROOF_GAPS I2.
+  → **P4** (rest).
 * Parsers vs RFC 6455 / HTTP: the frame parser's extents and refusals, the control queue, the
   TLS record splitter and the upgrade's accept value now have references (section 4c). Still
   open: `TlsChatResponse` (the chat-response parser) has no reference yet; nor has the upgrade
@@ -5899,14 +6306,19 @@ the matching section above in the same commit.
   → no stage assigned.
 
 ### State and ordering
-* **T6 / ORD-1** — send ordering: every Send(c) is preceded by a StoreAck(c) after the last
-  Seal(c); no two Sends carry the same sealed envelope. → **P4** (after S7; restated after S13).
-* **ORD-2** — a refresh's scratch becomes state only after both parties saw the nodes
-  acknowledge it. → **P4**, **S15**.
+* **T6 / ORD-1**, **ORD-2** — DONE for the deployed definitions (section 5b, **C-gen**:
+  `ord1_*`, `ord2_*`; PROOF_GAPS C3 closed 2026-11-12: the definitions are the deployed functions;
+  the remaining trust is A8, the free theorem of a generic definition, and the operations doing what
+  their events name, `Session/Events.lean` header). Still open: ORD-1 for the S13 send scripts and
+  ORD-2 after S15 (device refresh as scripts; PROOF_GAPS F59, I4). → **S13**, **S15**.
 * **T10** — database writes: every blob = nonce ‖ sealed blob with the nonce fresh joint
-  randomness unused in the session; versions increase by one per acknowledged write. → **S9**.
-* **T14** — stock used once. → **X1** (after S16).
-* **T15** — connection rotation reveals nothing about ids. → **X2**.
+  randomness unused in the session; versions increase by one per acknowledged write (the version
+  half for the store functions: section 5b, `versions_*`). → **S9**.
+* **T14** — stock used once: DONE for the journal/use model (section 5c, `stock_*`, **M**); the
+  engine instruction and the C ABI are specified, not built (PROOF_GAPS C5). → **X1** (rest).
+* **T15** — connection rotation reveals nothing about ids: the planner's action sequence is
+  independent of the payloads (section 5c, `rotation_*`, **M**); not yet used by the session.
+  → **X2** (rest).
 
 ### Conversions and helper protocols (T5)
 * **P-RAND** (joint randomness): (a), (b) under `IdealCommit`, (c), disclosure and commit before
@@ -6509,6 +6921,50 @@ inside `TlsPrivateSeal.seal_status`). Their axioms answer whether `bv_decide` ne
 #print axioms TlsMpc.Security.revealKind_codes_distinct
 #print axioms TlsMpc.Security.revealKind_mem_all
 #print axioms TlsMpc.Security.revealKind_code_ne_zero
+#print axioms TlsMpc.Security.receivePolicy_t1_all
+#print axioms TlsMpc.Security.receivePolicy_loop_sub
+#print axioms TlsMpc.Security.receivePolicy_run_fuel
+#print axioms TlsMpc.Security.receivePolicy_view_replies
+#print axioms TlsMpc.Security.receivePolicy_keeps_afterRecord
+#print axioms TlsMpc.Security.receivePolicy_t1_frames
+#print axioms TlsMpc.Security.receivePolicy_run_safe
+#print axioms TlsMpc.Security.receivePolicy_sim_step
+#print axioms TlsMpc.Security.receivePolicy_sim_pass
+#print axioms TlsMpc.Security.receivePolicy_envelope_noErr
+#print axioms TlsMpc.Security.receivePolicy_rshape_run_c
+#print axioms TlsMpc.Security.receivePolicy_qshape_run_c
+#print axioms TlsMpc.Security.receivePolicy_classifyFrames_stream
+#print axioms TlsMpc.Security.receivePolicy_classify_stream
+#print axioms TlsMpc.Security.receivePolicy_message_prefix
+#print axioms TlsMpc.Security.receivePolicy_reply_run_safe
+#print axioms TlsMpc.Security.receivePolicy_request_run_safe
+#print axioms TlsMpc.Security.receivePolicy_frameByte_reject
+#print axioms TlsMpc.Security.receivePolicy_upgrade_run_safe
+#print axioms TlsMpc.Security.receivePolicy_frameByte_terminator
+#print axioms TlsMpc.Security.ord1_sendSoft_agreed
+#print axioms TlsMpc.Security.ord1_sendMessage_acked
+#print axioms TlsMpc.Security.ord1_deliverJob_sendsAgreed
+#print axioms TlsMpc.Security.ord1_loop_sendsAcked
+#print axioms TlsMpc.Security.ord1_serve_sendsAgreed
+#print axioms TlsMpc.Security.ord2_commitScratch_agreed
+#print axioms TlsMpc.Security.ord2_commitScratch_outcome
+#print axioms TlsMpc.Security.ord2_deliverJob_commitsAgreed
+#print axioms TlsMpc.Security.ord2_loop_commitsAgreed
+#print axioms TlsMpc.Security.ord2_serve_commitsAgreed
+#print axioms TlsMpc.Security.t11_deliverJob_results
+#print axioms TlsMpc.Security.t11_resultsTail_spec
+#print axioms TlsMpc.Security.versions_storeSoft
+#print axioms TlsMpc.Security.versions_storeAdvanced
+#print axioms TlsMpc.Security.versions_versionIn_bumpIn
+#print axioms TlsMpc.Security.stock_T14
+#print axioms TlsMpc.Security.stock_T14_boot
+#print axioms TlsMpc.Security.stock_agreeIndex_never_back
+#print axioms TlsMpc.Security.stock_waste_bound
+#print axioms TlsMpc.Security.stock_stockUses_nodup
+#print axioms TlsMpc.Security.rotation_t15_erase
+#print axioms TlsMpc.Security.rotation_plan_sends_perm
+#print axioms TlsMpc.Security.rotation_plan_pool_bound
+#print axioms TlsMpc.Security.rotation_plan_generations
 
 /-! Which restated entries depend (transitively, through any proof or definition) on a constant
 proved by `bv_decide`. Prints one line per such entry; the script records them. -/

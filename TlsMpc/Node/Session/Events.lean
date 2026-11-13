@@ -3,70 +3,78 @@ import TlsMpc.Node.Session.State
 /-!
 # The event abstraction of a session (REORGANIZATION_PLAN.md proof track P4: ORD-1, ORD-2, T11)
 
-## Design note: are the session functions parametric? No. What P4 does instead.
+## The deployed functions are monad-generic definitions; what the theorems say about a real run
 
-Every session function is a `SessionM` action, `SessionM = ReaderT Context (ExceptT String (StateT
-State IO))`, and it reaches the outside through `Context.ch : Channels` (fields in `IO` and
-`TlsClient.M = ExceptT String IO`), the flow API (`Flow.*` on `Context.w : Flow.Worker`, all in `M`;
-the worker holds two references and the pipe) and `TlsApplication.*` (in `M`). So the deployed
-definitions are fixed to `IO`: a run cannot be observed except through `IO`, which the logic cannot
-reason about. They are **not** parametric in the monad, and the channel record and the flow backend
-cannot be swapped for a recording implementation in a pure monad.
+Since 2026-11-12 (PROOF_GAPS C3) every session function on the ORD-1 / ORD-2 / T11 paths is
+defined ONCE, over any monad `m` with `[Monad m] [MonadExceptOf String m] [MonadStateOf State m]
+[MonadReaderOf Context m]`, its effects being the fields of an operations record:
 
-They are, however, parametric *in fact*: below the session code, every effect is a call of a
-`Flow.*` function, a `Channels` field, an `M` helper (`insist`, `liftResult`) or another session
-function; everything else is `pure`, `bind`, `get`/`set`/`modify` of `State`, `read` of `Context`,
-`throw`, `Loop.forIn` (`while`) and `List.forIn` (`for`). P4 therefore works with **twins**:
-- for each session function on the ORD-1 / ORD-2 / T11 paths, a definition with the same text over
-  any monad `m` with `[Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf
-  Context m]`, whose effects are the fields of an operations record (`*Ops m`);
-- a theorem `deployed = twin realOps`, proved by `rfl`: instantiating the twin at `SessionM` with
-  the deployed operations IS the deployed definition (definitionally; a change to either text
-  breaks the build, so the twin cannot silently diverge);
-- the properties are proved for the twin instantiated in `Model` (below): a pure monad in which
-  each operation that matters is an *atom* that prepends its `Event` to a log and returns whatever an
-  arbitrary environment answers, and every other operation is a black box (any answer, any change
-  of the session state) that logs nothing. The theorems quantify over every environment: "the
-  deployed function's text, run against ANY channel / flow behaviour, logs events in this order".
+| definition | operations | deployed function (`abbrev`) |
+|---|---|---|
+| `State`: `modifyReportG`, `modifyPoolG`, `modifyContactsG`; `Common`: `appNowG` | none | `modifyReport`, … , `appNow` |
+| `Store`: `kindsOfG` … `storeSoftG`, `commitScratchG` | `StoreOps` | `fG storeReal` |
+| `Send`: `sendDevicesG`, `sendMessageG`, `sendSoftG` | `Send.SendOps` | `fG Send.sendReal` |
+| `Send`: `refreshContactG`, `refreshSoftG` | `Send.RefreshOps` | `fG Send.refreshReal` |
+| `Send`: `loopG` | `Send.LoopOps` | `Send.loop = loopG Send.loopReal` |
+| `Send`: `deliverJobG` (tail `resultsTailG`) | `Send.DeliverOps` | `Send.deliverJob = deliverJobG Send.deliverReal` |
+| `Serve`: `serveG` | `Serve.ServeOps` | `Serve.serve = serveG Serve.serveReal` |
 
-The environment answers the i-th call (`World.calls`) of each operation as an arbitrary function of
-the context, the call's arguments and `i` (black boxes: and the session state). That covers every
-run of every environment: for a given run, answer the i-th call as that run did. The properties are
-all of one run (safety properties of a log), so quantifying over these oracles quantifies over all
-runs of all environments, adversarial ones included.
+The deployed function IS the definition at `SessionM` and the deployed record (`abbrev f := fG
+realOps`; callers unchanged). There is no second copy of any text: the theorems in
+`StoreProofs`, `SendProofs`, `DeliverProofs`, `LoopProofs`, `ServeProofs` are about these constants,
+instantiated at a record of the model monad `Model` (below), and quantify over that record:
+`storeModel E`, `sendModel E` for every environment `E`, and in the guarded theorems any record
+`rest` / `R` / `D` of computations that keep the property, with the operations that matter (the
+sends, `commitScratch`, the peer exchange) fixed to the definitions' own instances.
 
-The one step that is not a Lean theorem: that a property of the twin in `Model` transfers to the
-twin in `SessionM` (= the deployed function). That is parametricity of the twin's text in the monad,
-which Lean does not internalise; it holds because the twin's body uses only the class operations
-listed above. `while` loops (`Loop.forIn`, a `partial def`, opaque to proofs) are handled by the
-guarded monad `Guarded` (below): a computation that carries a proof that it preserves an invariant
-of the log, so whatever the loop does, its result preserves the invariant, by its type.
+**What a theorem says about a real run.** A run of a deployed function is a run of the generic
+definition at `SessionM` and the deployed record. The theorem says: at EVERY operations record of
+`Model` whose calls are logged as modelled, every run of the same definition logs its events in the
+stated order. The environment answers the i-th call (`World.calls`) of each operation as an arbitrary
+function of the context, the call's arguments and `i` (black boxes: and the session state), so for a
+given real run there is an environment that answers every call as that run's operation did; the
+property holds of that environment's run, which performs the same calls in the same order with the
+same answers. What carries this over to the real run, and is therefore still trusted:
 
-**The minimal behaviour-preserving change that makes the session functions monad-parametric**
-(a follow-up; the Session modules were frozen during P4): make each twin the definition. For each
-function `f` among `Store`'s `kindsOf setKinds versionOf bumpVersion sealState db dbSubmit dbWrite
-storeAdvanced dbSubmitSoft storeSoft commitScratch`, `Common`'s `appNow`, `State`'s
-`modifyReport modifyPool modifyContacts`, `Send`'s `sendDevices sendMessage sendSoft refreshContact
-refreshSoft deliverJob loop` and `Serve`'s `serve`, replace
-`def f (args) : SessionM α := body` by
-`def fG [Monad m] [MonadExceptOf String m] [MonadStateOf State m] [MonadReaderOf Context m]
-  (o : Ops m) (args) : m α := body'` (where `body'` is `body` with each `Flow.X w ...`,
-`c.ch.X ...`, `insist`, `liftResult`, `TlsApplication.X` and each called session function `g`
-replaced by `o.X ...` / `gG o ...`; `deliverJob`'s tail as `resultsTailG`) and
-`abbrev f := fG realOps` (callers unchanged). The operations records needed are exactly
-`StoreOps`, `SendOps`, `DeliverOps`, `RefreshOps`, `LoopOps`, `ServeOps` of the `*Proofs.lean`
-files (each field is one effect the deployed code performs), with the deployed instances
-`storeReal`, `sendReal`, `deliverReal`, `refreshReal`, `loopReal`, `serveReal`; the twins are the
-bodies to move, verbatim. Then the `*_deployed` theorems become definitional unfoldings and the P4
-theorems are about the deployed constants themselves. A deeper alternative (not needed for P4):
-make `Channels` and `Flow.Worker` records over a monad parameter (`Channels m`), so `SessionM`
-itself becomes `ReaderT (Context m) (ExceptT String (StateT State m))`.
+1. **The real operations perform the effect their event names** ("logged as modelled"). For
+   `Channels`: `writeAcknowledged name` returns `true` only when this party's database nodes
+   acknowledged write `name` (event `acked`); `exchange` (`Common.peer`) sends our message and
+   returns the other party's reply (`peer`); `db call` runs that client command (`db`). For `Flow`:
+   `Send.seal` / `sealDevices` advance the contact's ratchet state in the engines (`seal c`);
+   `Contacts.seal` seals the contact's CURRENT state for storage (`blobSeal c`); `Send.request` /
+   `requestDevices` hand that contact's message request to the worker (`request c`), and nothing
+   else does; `Refresh.scratchSeal` seals the scratch device list (`scratchSeal c`),
+   `Refresh.scratchCommit` makes it the contact's state (`scratchCommit c`), `Refresh.drop` drops it
+   (`scratchDrop`), and nothing else commits a scratch. These are the engines' and the worker's
+   behaviour (A1, A2, A5 of PROOF_GAPS.md).
+2. **What the model leaves to black boxes performs none of the logged effects that a property
+   constrains**: no operation other than the records' `request` / `requestDevices` fields hands a
+   message request to the worker, and none other than `scratchCommit` commits a scratch. In the
+   code: `Flow.Send.request`, `Flow.Send.requestDevices` appear only in `Send.sendReal` and
+   `Flow.Refresh.scratchCommit` only in `storeReal`; `scripts/lint_node.py` (rule `ordering-sites`)
+   fails otherwise.
+3. **The operations the model treats as atoms do not change the session `State`.** True of the
+   deployed ones by their definitions: each is a `Flow.*` / `Channels` / `TlsApplication` action in
+   `M` or `IO`, lifted into `SessionM` by `StateT.lift` (state unchanged), or `peer`, `dbTry`,
+   `nonce`, which only read the context. `requestFile`, `recordSend` read the state (`rbox`);
+   `restamp` changes it (`box`); the guarded theorems allow any change.
+4. **Instantiation.** That the generic definition, run at `SessionM`, makes the calls its `Model`
+   instance makes when every call is answered alike. Both are the same constant applied to two
+   monad dictionaries; the definition uses nothing of the monad but `pure`, `bind`, `throw`,
+   `tryCatch`, `get`/`set`/`modifyGet`, `read`, `Loop.forIn` and `List.forIn`, so this is the
+   free theorem of its type. Lean does not state free theorems (and cannot observe `IO`); it is the
+   one step that is argued, not proved, and it is about the compiler running the definition as
+   written (A5), not about two texts agreeing: there is one text.
+
+`while` loops (`Loop.forIn`, a `partial def`, opaque to proofs) are handled by the guarded monad
+`Guarded` (below): a computation that carries a proof that it preserves an invariant of the log, so
+whatever the loop does, its result preserves the invariant, by its type.
 
 **The files.** `Events.lean` (this: events, model, automata, guarded monad); `StoreProofs.lean`
 (the store before a send, ORD-2's commit, versions); `SendProofs.lean` (one send, ORD-1);
-`DeliverProofs.lean` (`deliverJob`: ORD-1 over its loops, T11); `RefreshProofs.lean` (the
-refreshes' twins); `LoopProofs.lean` (`loop`, and ORD-1/ORD-2 over `deliverJob` and `loop` with
-their refreshes); `ServeProofs.lean` (`serve`: ORD-1/ORD-2).
+`DeliverProofs.lean` (`deliverJob`: ORD-1 over its loops, T11); `RefreshProofs.lean` (notes on the
+refreshes); `LoopProofs.lean` (`loop`, and ORD-1/ORD-2 over `deliverJob` and `loop` with their
+refreshes); `ServeProofs.lean` (`serve`: ORD-1/ORD-2).
 
 ## The abstraction
 
@@ -85,6 +93,10 @@ their refreshes); `ServeProofs.lean` (`serve`: ORD-1/ORD-2).
 
 No I/O primitive; no emitter imports this module (nothing in the controller does: proofs only).
 -/
+
+/-! (Before 2026-11-12 the proof files held monad-generic *twins* of the session functions, proved
+equal to the deployed definitions by `rfl` (`*_deployed`); the twins are now the definitions, and
+those theorems are gone.) -/
 
 namespace TlsMpc.Node.Session.Events
 open TlsMpc TlsMpc.TlsWire TlsMpc.TlsClient TlsMpc.Node TlsMpc.Node.Session

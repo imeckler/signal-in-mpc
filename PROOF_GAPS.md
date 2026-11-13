@@ -25,6 +25,7 @@ and commit, do not delete it.
 | A5 | The Lean compiler and runtime; the I/O code in `TlsMpc/Node/Channels.lean`. | assumed |
 | A6 | The five database nodes (`secret-shared-db`), a separate Rust project. | outside this repository |
 | A7 | No end-to-end theorem: there are theorems per kernel, per flow and per channel and one reveal list, but no single statement "the server plus one corrupted node learn nothing about the contact list beyond the reveal list", with a simulator. | open |
+| A8 | Instantiation of a monad-generic definition (what remains of C1 and C3): the session's ordering functions (`storeSoftG` … `serveG`) and its record loop (`RecordLoop.run`) are each ONE definition, deployed at `SessionM` with the real operations and proved about at a pure model monad for every operations record. That the definition, run at `SessionM`, makes the calls its model instance makes when every call is answered alike is the free theorem of its type (it uses only `pure`, `bind`, `throw`/`tryCatch`, `get`/`set`, `read`, `for`/`while`); Lean does not state free theorems and cannot observe `IO`. Trusted with the compiler (A5). Also trusted there: the real operations do what their events name (`Session/Events.lean`, header, items 1 and 3; item 2 is checked by `lint_node.py` `ordering-sites`). | assumed |
 
 ## B. Rust code that implements a Lean definition
 
@@ -41,24 +42,26 @@ and commit, do not delete it.
 
 | # | Gap | Status |
 |---|---|---|
-| C1 | Reveal policy `t1_all` is about `recordLoop`/`streamRun`, a pure transcription of the session's record loop (`Session/Common.lean` `record`, in `SessionM`). Differences: the real loop gets bytes from the engines' `revealRange` (assumes nothing is revealed beyond the record's end); completed envelopes go to `c.envelope` before being cleared; no fuel. | model |
-| C2 | Between records the session applies `replies`, `requests := []`, `expect`; the last two keep the policy's view by `rfl`; the lemma that `replies` keeps it timed out and is not proved. | open (small) |
-| C3 | Ordering (ORD-1, ORD-2, T11): proved about monad-generic twins shown equal to the deployed definitions (`*_deployed`); carrying a property from the model monad to `SessionM` relies on parametricity, which Lean does not state. Fix specified in `Session/Events.lean`: make each twin the definition. One piece of work with C1. | model |
+| C1 | closed (see Closed): T1 is about the loop the session runs (`RecordLoop.run`); the instantiation step is A8, the engines' reveal assumption is D8. | closed |
+| C2 | closed (see Closed). | closed |
+| C3 | closed (see Closed): the ordering theorems are about the deployed definitions; the instantiation step is A8. | closed |
 | C4 | Cut-and-choose counting bound (`proofs/`): proved for a model (one uniform permutation, detection rules). That `dyn_word_mask.h` / `dabit_generator.h` implement it — P-CUT (d), (e), and the composition of the two challenge permutations — is S10's job. | model |
 | C5 | Stock T14: about the journal/use model; the engine instruction `stockUse` and the C ABI export/import are specified, not built. Restoring disk AND boot memory together defeats both barriers (`full_rollback_reuse`): deployment must forbid whole-machine snapshots or add the peer cross-check. | model; one known limit |
-| C6 | Envelope walk `envelope_payload_unrevealed` is about `envWalk`; linked to the controller's steps by `ReceiveInvariant` (`env_reveal`, `env_pass`). Covered by `t1_all` now; listed for completeness. | closed by `t1_all` (model, see C1) |
+| C6 | Envelope walk `envelope_payload_unrevealed` is about `envWalk`; linked to the controller's steps by `ReceiveInvariant` (`env_reveal`, `env_pass`). Covered by `t1_all` now (about the deployed loop since C1 closed); listed for completeness. | closed by `t1_all` |
 
 ## D. The reveal policy and parsers (what the nodes see of server bytes)
 
 | # | Gap | Status |
 |---|---|---|
-| D1 | Start of a connection: `t1_all` starts after the upgrade; the HTTP head is proved separately (`upgrade_run_safe`); not joined (missing: the head bytes leave the frame parser at a boundary; `payloadByte` keeping `upgraded`/`terminator` in general). | open |
+| D1 | Start of a connection: `t1_all` starts after the upgrade (from `{ start accept with upgraded := true }`); the HTTP head is proved separately (`upgrade_run_safe`, `frameByte_terminator`); not joined. Missing: a two-phase invariant for the record loop (head phase: `upgraded = false`, `terminator = Head.after 0 S`, frame state at its start and message side clean; the byte that completes CR LF CR LF ends a run, `find_ge`), for which one needs that the head's bytes leave the frame parser at a boundary (inactive bytes keep `TlsWebSocketFrame` at `start`) and that `payloadByte` keeps `upgraded`/`terminator` and the clean message side; then `loop_good`/`sessionGo_good` over it against `ReceiveSpec.classify`. Not attempted on 2026-11-12 (not cheap: a second `loop_good`). | open |
 | D2 | The one-byte allowance: the byte right after the first malformed byte can be revealed. By design (removing it costs a round trip per response field). | accepted |
 | D3 | WebSocket frame parser: "accepted only if well-formed" as one whole-frame theorem (each malformation has its rejecting step); `drun 0 r = some 0 → Utf8 r` (only the converse is proved). | open |
 | D4 | Chat-response parser (`TlsChatResponse`): general decoding of id, status, message, headers and `finish`'s checks are pinned by three kernel-checked vectors only; a general fail-closed statement for malformed responses (two cases proved). | tested / open |
 | D5 | TLS record splitter applies the 2^14+256 limit to plaintext handshake records (RFC says 2^14); `receiveHello` checks it. | minor |
 | D6 | Request builders: the 200 reply theorem is conditional on the id found by `scan` being in range (loop invariant not proved); `replies` (pong/close echoes) not covered in `RequestProofs` (covered per frame in `ParseWebSocketControl*`). | conditional |
 | D7 | Hardening not done because proofs unfold these definitions: `varint` emits a malformed value at ≥ 2^70; `clientFrame` writes a one-byte length unchecked; builders accept an empty envelope; slot ranges exceed the server's types. | open (hardening) |
+| D8 | `t1_all` assumes `ReceiveLoop.Faithful` of the engines: the length probe returns the record's length, `revealRange offset count` returns that length and exactly `(record.drop offset).take count`, revealing those positions and no others, and the other record operations reveal nothing. A theorem for the S12 script backend (`reveal_value`, `range_value`, branch `s12-tls`, not merged); an assumption on the engines (A1) for the legacy operation 43 the controller uses today. | assumed (legacy) |
+| D9 | Behaviour note (C1's refactor): the record loop now has fuel, the record's length plus one steps (`RecordLoop.run`), which never runs out when the engines report the same length at every reveal (`loop_fuel`, `run_fuel`). If an engine reported a longer record at a later reveal than at its length probe, the loop now fails ("the record's length changed while it was read") where the old `while` loop read on. | accepted (fails closed) |
 
 ## E. Kernels (what the circuits compute)
 
@@ -110,18 +113,24 @@ S11 (branch `s11-curve`, not merged; local arithmetic and curve flows as scripts
 
 | # | Gap | Status |
 |---|---|---|
-| F22 | Honest runs through `jointRun` proved only for `splitAgree`; for `splitBegin`, `agree`, `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`, `agreeHinted`, `agreeAffine`, `signatures`, `torsion`, `prepareContacts` they are checked by Lean model vectors (51 value checks) only. | tested |
-| F23 | No `_wf` theorem for any S11 script (every batch of the vectors is admitted). | tested |
-| F24 | Value-level T3 for the curve flows (only the kinds each flow releases under are proved). | open |
-| F25 | Model form of `commit_open_sound` for `pointExchange` (the gate only is proved). | open |
+| F22 | Honest runs through `jointRun`: now proved for every curve flow except `prepareSecond` and `prepareContacts` (`quotientMany_honest`, `agree_honest`, `offsetPrepare_honest`, `offsetStep_honest` / `offsetStep_value`, `offsetStepFast_honest`, `lift_honest`, `tables_honest`, `agreeHinted_honest`, `agreeAffine_honest`, `signatures_honest`, `torsion_honest`, plus the earlier split ones). Remaining: an m-point `pointExchange_honest`, then `prepareSecond_honest`, then `prepareContacts` through `Staged.jointRun` (the local step needs F25b). | mostly closed |
+| F22a | The S11 honest-run theorems take per-program hypotheses `ComputesD` / `Live` (every returning evaluation gives the program's function; nonzero masks never abort on that input). They are meant to be discharged from `FieldDagV3.eval_compileAll` / `eval_ofArtifact_some` plus nonzero honest denominators (e.g. `edwards_complete`); that discharge is not written. | conditional |
+| F22b | S11 honest runs also assume "the program's checks vanish on honest inputs" (`offsetPrepare`, `tables`, `lift`) and "the opened Z is a curve point" (`lift`); to be derived from the programs' own semantics. | conditional |
+| F23 | closed (see Closed). | closed |
+| F24 | Value-level T3 for the curve flows: done for the point exchange (`pointExchange_disclosure`: the adversary sees at most our commitment then our opening, with values). Also done for the masked quotient round (`quotientMany_disclosure`: the view is a prefix of the masked denominators and the zero flags), which is the last step of `agree`, `offsetStepFast`, `agreeHinted`, `agreeAffine`. The opened checks, w, Z and the programs' own `D` openings are still proved only at the level of kinds. | partly closed |
+| F25 | closed (see Closed). | closed |
+| F25a | `decode (encode P) = some P` on curve points is tested only (also affects the liveness of `decode` and `liftU`). | tested |
+| F25b | The batched inversion `toAffineAll` succeeding on nonzero Z (used by `hints`, `publicTable`) is tested only. | tested |
+| F25c | The V3 program signatures in `WFB.CurveProgs` (hypotheses of the S11 `_wf` theorems) are read off the compiled programs, not proved. | conditional |
+| F25d | `lift-point` declares its validity bit public, so the shell would accept opening it in ANY flow that lifts; only `prepareFirst` does. By design (it reveals only whether the coordinate is on the curve: `prepareStatus_iff`); noted so a new flow does not open it by accident. | note |
 | F26 | `randomPoint` (r·B + t·T₈) is uniform on the curve group, as `curve_hinted_Z_uniform` assumes. | assumed |
 | F27 | P-HINT (c), (d) composed with the runs. | open |
-| F28 | `den ≠ 0` (complete addition on curve points) assumed in `addU_montU`; proved in `proofs/`. | conditional |
+| F28 | closed under the named hypothesis `CompleteAddition`, which `proofs/` discharges with `edwards_complete` (`addU_den_ne_zero`, `splitAgree_montU`). | closed (conditional) |
 | F29 | Local arithmetic agrees with a reference library only on vectors (curve25519-dalek; no libsodium binding offline): encode/decode, validity, lift. | tested |
 | F30 | `shapeOf` mask counts are read from compilations (a wrong count fails closed). | tested |
 | F31 | `e2e_s11.py` not run; S11's field-program pins are placeholders until the V3 re-export. | pending |
 | F32 | Op 66's contact-table glue (view kernel, word/field conversions, `sender_public`) is not scripted; left for the flow-API switch. | open |
-| F33 | Local functions return `none` on an impossible zero Z or a `sqrt` failure: liveness rests on facts proved in `proofs/`. | conditional |
+| F33 | closed for the square root and the lift's root (`sqrt_complete`, `root_isSome`, `roots_isSome`, under `FieldInverse`, `EulerCriterion`, `TwoNonSquare`, all theorems in `proofs/`). The zero-Z case is F25b. | closed (conditional) |
 | F34 | `proofs/` should state `Ed25519.recode = Curve.recode` once it imports the S11 modules (same equations; by induction). | open (small) |
 
 S14 (branch `s14-receive`, not merged; receiving a first message as scripts):
@@ -188,6 +197,22 @@ Partly closed by S12: C1's caveat "the engine reveals nothing beyond the record'
 for the script backend (`reveal_value`, `range_value`); it stays assumed for legacy op 43. G1
 `handshakeShare`: the random half is P-RAND, the key-share half is S11's P-SPLIT.
 
+The joined stack (branch `scripts-stack`, six script branches plus the main line; not merged back).
+Closed there: F10, F21, F50, F59's build part (Security.lean compiles as a whole on the stack: 636
+restated theorems, standard axioms), F49 (slot filler is NUL). Narrowed: F45 (`CurveOps.Reveals`
+discharged; S13's binding derived: `join_first_wired`), F55, F17, F39 (curve parameters
+instantiated in `Flows/Join.lean`). New gaps from the joins:
+
+| # | Gap | Status |
+|---|---|---|
+| J1 | **Not safe to run.** S14's receive builds its curve operations once per message and calls `agree` twice, but S11's ladder needs a FRESH quotient-mask slot (and a coins slot) per call; with one slot reused, the two openings `z·m` reveal a ratio. Needs a slot supply in `Receive.St` or a fresh `AgreeSlots` per call in `ReceiveBackend`. Until fixed, the S14 join is checked only at the type and reveal-kinds level. | open (must fix before switching receive) |
+| J2 | S12's `Runner` has no field ids, element slots or mask pool; a thin `FieldRunner` adapter was added. The controller-side runner must supply field ids, element slots, the mask pool and per-call agreement slots. | open (engineering) |
+| J3 | Only the non-hinted path is joined. | open |
+| J4 | The `flow-calls` lint will flag the script backends' `Reveal.*` calls once the controller imports them (allowlist to widen, or makers to move into Reveal.lean). | open (small) |
+| J5 | The joined key agreement also opens the field-to-word masked value, which S12's written `KeyAgreement` spec does not list (the reveal kinds are proved and registered; the spec wording is behind). | note |
+| J6 | `join_first_wired` still assumes `hcert` / `hpend`: the bytes in the handles S13 concatenates are the session's certificate input and pending block (a fact across scripts, not proved through `jointRun`). | conditional |
+| J7 | The joins' values are not proved through `jointRun`; S15's id blocks are counted, not proved (no WF); the per-contact offset states the send needs depend on op 66's contact-table glue (F32). | open |
+
 ## G. The reveal list (`TlsMpc/Node/Reveal.lean`): kinds with no bounding theorem
 
 | # | Kind | Status |
@@ -215,7 +240,7 @@ for the script backend (`reveal_value`, `range_value`); it stays assumed for leg
 | # | Gap | Status |
 |---|---|---|
 | I1 | Non-recovery send path checks only this party's database acknowledgement before sending; "the send is a joint computation, so it cannot leave if the other party failed" is an argument, not a theorem. | argued |
-| I2 | T11 at the `DaemonLine.jobResult` / final-report level (results are written in one place; `serve` resets them per job): argued. T11's second half (each entry comes from `Recovery.onSend` / `onFetch`): not done. | argued / open |
+| I2 | T11 at the `DaemonLine.jobResult` / final-report level (results are written in one place; `serve` resets them per job): argued. T11's second half (each entry comes from `Recovery.onSend` / `onFetch`): not done. (T11 at `deliverJob`'s level is proved about the deployed definition and restated in Security.lean 5b: `t11_deliverJob_results`, `t11_resultsTail_spec`.) | argued / open |
 | I3 | `bumpIn_absent`: a contact missing from the version list would make every store write the same version (the nodes refuse the repeat; the send fails, no key reuse). Deployed paths always add contacts first; harden. | open (hardening) |
 | I4 | ORD-2 to be rechecked after S15 (device refresh moves to scripts). | pending |
 | I5 | Settings agreement, typed messages, `Secret`, flow-calls, session-state: enforced by types and the lint (`scripts/lint_node.py`), not by theorems. | by construction / lint |
@@ -236,8 +261,13 @@ for the script backend (`reveal_value`, `range_value`); it stays assumed for leg
 |---|---|---|---|
 | F7 | P-CUT (c): the adversary's whole view of mask generation is unchanged under re-randomising the honest party's candidates while the output masks move to any target (the 7.0 bijection form); the bit-block flag under a shift. P-CUT (f), (g) at run level against any adversary. P-CUT (a) for a whole honest run, deployed profiles. | `generate_agree`, `generate_hides`, `reRand_inverse`, `reRand_lt`, `moveRef_32`; `finishPhase_sound`, `mask_consistent`; `generate_honest`, `generate_honest_profile` | branch `s10-conversions` (commits a642a82 … 4dbd7b3), not yet merged |
 | F9 | P-BITS at run level; P-B2F (a) for a whole bundle through `jointRun`. | `sharedBits_sound`, `sharedBits_honest`, `b2f_honest` | branch `s10-conversions` (50055a8, 5c66a85), not yet merged |
+| F23 | Well-formedness of every S11 script, and of `prepareContacts` as a staged flow. | `splitBegin_wf` … `sharedBits_wf`, `prepareContacts_wf` (`s11_wf_split_offset`, `s11_wf_hinted`, `s11_prepareContacts_wf`) | branch `s11-curve` (e5a5ff6 … 07501a9) |
+| F25 | Commit-then-open soundness of the point exchange in the model; copying our commitment aborts. | `pointExchange_sound`, `pointExchange_copy_aborts` | branch `s11-curve` (1c5ce9a) |
 | H4 | There is no C++ step any more: the offset flow uses the Lean `Curve.recode`, and `Local/Edwards` uses the programs' own formulas. | `recode64_value`, `stepIns_window`, `step_tableSum`; `add_eq`, `toAffine_eq`, `montU_eq` | branch `s11-curve`, not yet merged (residue: F34) |
 | H5 (part) | P-OFFSET about the step is closed; the two unmodelled aborts remain open. | `ephemeralKey_spec`, `stepIns_window` | branch `s11-curve` |
 | H6, G3 | P-HINT (b) for the script and the `prepareStatus` reveal: the status is 255 exactly when the coordinate's curve polynomial is a nonzero square. Conditional on H-QR and Euler's criterion as named hypotheses, both theorems in `proofs/`. | `lift_valid_sound`, `lift_valid_complete`, `prepareStatus_iff` | branch `s11-curve` |
 | (S12) | P-GHASH (c): the "halves" hypothesis of the record seal. | `seal_is_record`, `check_accepts` | branch `s12-tls`, not yet merged |
-| (P1) | T1 for all streams after the upgrade (about the model loop; see C1, D1 for what remains). | `ReceiveLoop.t1_all` | main tree, uncommitted pending the merge |
+| (P1) | T1 for all streams after the upgrade (about the model loop then; since C1, about the deployed loop; D1 remains). | `ReceiveLoop.t1_model` (formerly `t1_all`) | main tree, uncommitted pending the merge |
+| C1 | T1 is about the record loop the session runs. The session's `record` (`Session/Common.lean`) IS `RecordLoop.run` (`Policy/RecordLoop.lean`, monad-generic: the engines' length probe and `revealRange`, the passed-over bytes, the bookkeeping of a revealed run and the envelope callback are parameters) at the session's operations; the theorem is about `RecordLoop.run` at every operations record of a pure monad that satisfies `Faithful` (D8), over every stream, every cut into records, with any view-keeping steps between records. The three differences: bytes from the reveal parameter (hypothesis `Faithful.reveal`); envelopes to the callback before `envelopes := []` (may fail, reveals nothing, the state passed on is the model's: `loop_sub`); fuel `length + 1` never runs out (`loop_fuel`, `run_fuel`; D9). Remaining: A8, D8. | `ReceiveLoop.t1_all`, `t1_session`, `loop_sub`, `loop_fuel`, `run_fuel`, `sessionGo_good`, `stepRun_window`; Security.lean 4g `receivePolicy_t1_all`, `receivePolicy_loop_sub`, `receivePolicy_run_fuel` | main tree, 2026-11-12, uncommitted |
+| C2 | Between records: `replies` keeps the policy's view (restructured: `replies` returns `{ s with control := _ }` on every success, by three binds, no unfolding of its `mapM`); so do `requests := []`, `expect` and the prekey fetch's fields; the session's step after a record (`replies` with any masks, then `requests := []`) keeps it, and keeping it is closed under composition. `t1_all` takes any such steps between records. | `ReceiveLoop.replies_state`, `view_replies`, `keeps_afterRecord`, `keeps_expect`, `view_fetch`, `keepsView_bind`; Security.lean 4g `receivePolicy_view_replies`, `receivePolicy_keeps_afterRecord` | main tree, 2026-11-12, uncommitted |
+| C3 | Ordering (ORD-1, ORD-2, T11, versions) is about the deployed definitions: every session function on those paths is defined once over any monad (`storeSoftG`, `commitScratchG`, `Send.sendSoftG`, `sendMessageG`, `refreshContactG`, `refreshSoftG`, `loopG`, `deliverJobG`, `Serve.serveG`, …; effects the fields of `StoreOps`, `SendOps`, `RefreshOps`, `LoopOps`, `DeliverOps`, `ServeOps`), and the deployed function is that definition at `SessionM` and the real record (`abbrev f := fG realOps`); the twins and `*_deployed` are gone. The theorems quantify over the model's operations records. The call sites of `Flow.Send.request` / `requestDevices` / `Flow.Refresh.scratchCommit` are checked by `lint_node.py` `ordering-sites`. Remaining: A8. | `sendSoft_agreed`, `sendMessage_acked`, `deliverJob_sendsAgreed'`, `loop_sendsAcked`, `serve_sendsAgreed`, `commitScratch_agreed`, `commitScratch_outcome`, `deliverJob_commitsAgreed`, `loop_commitsAgreed`, `serve_commitsAgreed`, `deliverJob_results`, `resultsTail_spec`, `storeSoft_versions`, `storeAdvanced_versions`, `versionIn_bumpIn`; Security.lean 5b | main tree, 2026-11-12, uncommitted |
