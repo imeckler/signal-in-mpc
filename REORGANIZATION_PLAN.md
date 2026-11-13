@@ -2164,6 +2164,19 @@ whole test set with scripts (STACK_NOTES 11.2): every stage run passes or, under
 profile's `--recovery devices`, fails closed exactly as legacy; signup/db records equal the goldens in
 both modes; the readiness list is STACK_NOTES 11.3.
 
+**Status (2026-11-13, night, main line, commit 30c2ce3; STACK_NOTES 11.5, PERFORMANCE.md "second
+round").** The default still does not flip and no C++ is deleted. Measured with the noise first (three
+alternating runs per configuration): the gap per message is now +2.8 % (repeat sends, semi-honest),
++1.2 % (repeat sends, malicious, within the noise), +4.2 % / +2.5 % (sustained with restart,
+semi-honest / malicious); with a 2 ms round trip the script path is ahead (137.5 s vs 142.2 s).
+Changed this round, all by proved-equal functions called by name (PROOF_GAPS J31): GHASH on 64-bit
+limbs, batches encoded into a byte array (`Rpc.callArray`), the mask pool's words and checks in
+machine-size pieces, the envelope length from lengths. No script, opening or order changed. The
+whole test set passes again with scripts (both modes; semi-honest multi-device, the ten recovery
+stages, fingerprint, hinted, compact and link delay for the first time); signup/db records equal
+the goldens in both paths. Parity on one machine is not reached; the residual and what removing it
+needs are itemized in PERFORMANCE.md.
+
 ---
 
 **Proof tracks.** These are Lean-only, in new `*Proofs.lean` files, and touch no file the

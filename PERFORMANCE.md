@@ -657,6 +657,107 @@ recur. Not done: the `csimp` attribute would have let the compiled code use the 
 place of the definitions, but the plan forbids it in `TlsMpc/Node` (lint `escape-hatches`), so the
 runner and the IO glue call the proved-equal fast functions by name.
 
+### The script path's cost, second round (2026-11-13, night): the noise, then parity
+
+**How it is measured now.** Two stages, each sends through the daemons' long-lived send session
+(`--sustained`, eight contacts, the closed selection, `--strict-produced`, this machine), timed by
+the node's own seconds per notify (the report's `session_seconds`):
+
+* **repeat sends** (`--runs 0 --sustained 48`): ONE session, six notifies of the eight contacts. The
+  first notify prepares every contact; notifies 2–6 are repeat sends to prepared contacts. Per
+  message = their session seconds / 40 (the first notify is reported apart).
+* **sustained with restart** (`--runs 0 --sustained 32 --restart-after 8`): a new session for every
+  notify, so every message is a session's first send to its contact (with the contact's
+  preparation). Per message = all session seconds / 32.
+
+Each configuration (stage × mode × path) is run three times; the runs alternate legacy / scripts, and
+the order of the pair alternates between rounds; nothing else heavy runs meanwhile (the heavy-job
+lock). Tools in `.deps/lowering-scratch/`: `pq_harness.py` (one run, per-message figures into
+`out/pq-results.jsonl`), `pq_series.py` (plans `pq_plan_noise.txt`, `pq_plan_after.txt`),
+`pq_summary.py` (mean, spread, sd), and for the analysis `pq_window.py`, `pq_kinds.py` (per-batch
+shapes and the controller time before each), `pq_design.py`, `pq_profile.py` (macOS `sample` of both
+controllers during the repeat-send stage). The notify seconds have 0.1 s resolution: 2.5 ms per
+message over 40 messages, 3 ms over 32.
+
+**The noise, and parity before and after** (seconds per message; mean of three runs, spread = max −
+min, sd; before = 6642486 + J30, `pq_plan_noise.txt`; after = 30c2ce3, rounds `f1`, `f2` and a third
+round `g3` run alone — the first third round, `f3`, ran interleaved with the test set and the checks
+and was discarded: one scripts run had a 61.6 s first notify and the others were 1–2 s slower per
+notify in BOTH paths):
+
+| stage, mode | legacy before | scripts before | gap before | legacy after | scripts after | gap after |
+|---|---|---|---|---|---|---|
+| repeat sends, semi-honest | 0.751 (0.013, sd 0.006) | 0.827 (0.010, sd 0.005) | +76 ms, +10.1 % | 0.752 (0.013, sd 0.006) | 0.773 (0.020, sd 0.011) | **+21 ms, +2.8 %** |
+| repeat sends, malicious | 1.437 (0.073, sd 0.040) | 1.498 (0.043, sd 0.024) | +61 ms, +4.2 % | 1.437 (0.020, sd 0.010) | 1.454 (0.058, sd 0.029) | **+18 ms, +1.2 %** (within the scripts' sd) |
+| restart, semi-honest | 1.014 (0.013, sd 0.007) | 1.085 (0.016, sd 0.008) | +72 ms, +7.1 % | 1.009 (0.031, sd 0.016) | 1.052 (0.012, sd 0.007) | **+43 ms, +4.2 %** |
+| restart, malicious | 2.341 (0.103, sd 0.057) | 2.400 (0.109, sd 0.058) | +59 ms, +2.5 % | 2.282 (0.066, sd 0.034) | 2.339 (0.050, sd 0.028) | **+56 ms, +2.5 %** |
+
+So the noise is ~1 % semi-honest and 2–4 % malicious; the semi-honest repeat-send gap fell from 76
+to 21 ms, the malicious one into the noise. Parity (scripts ≤ legacy) is NOT reached on any stage
+on this machine. The restart stage barely moved in malicious mode: there the remaining difference
+is the contact preparation's glue and batches (below), which this round did not touch. With a 2 ms
+round trip (`--broadcasts 4 --link-delay-ms 1`, malicious) the script path stays ahead: 137.5 s
+(legacy 142.2 s earlier the same day).
+
+**Where the time was (repeat sends, semi-honest, before).** Not the engines: per message the workers
+were busy 155 ms (scripts) against 162 ms (legacy). The script path spent ~80 ms more per message
+outside the workers, and the controller profile and the per-batch log placed it: the mask pool's
+generation (every 16 messages, ~400 ms of controller time each: its 4 MB of `pick` positions built
+and encoded as a list, the candidates' words cut bit by bit, the cut and bucket checks' `natOf`), the
+seal's envelope length (the Signal message still built to measure it: ~30 ms per message in the end,
+more than the profile's 6 ms suggested), the GHASH glue on `BitVec 128` (once per notify after the
+key update), and the list-built batch encoding. The engines and the openings were never the
+difference (the script path's workers are now LESS busy per message than legacy's).
+
+| change (2026-11-13, night) | repeat sends, semi-honest, scripts per message | proof |
+|---|---|---|
+| (start) | 0.827 s | |
+| GHASH glue on two `UInt64` limbs (`Local.Ghash.mulLimb`, `*LimbOf`) and the batches written straight into a `ByteArray` (`Engine.encodeBatchArray`, sent by `Rpc.callArray`) | 0.798 s | `mul_eq_mulLimb` (`L.toW` commutes with xor, shift, bit test, the constants), `*LimbOf_eq`; `encodeBatchArray_eq` (the array's bytes ARE `encodeBatch`), `frame_header` |
+| the pool's candidate words once, 62 bits per big-number step (`Conv.wordFast`, `Select.candidateWords`) | 0.800 s (noise) | `wordFast_eq`, `candidateBits_eq`, `candidateCoins_eq` |
+| the pool's cut and bucket checks with `Conv.natOfFast` (`Masks.wordsMatch`) | 0.795 s | `natOfFast_eq`; `wordsMatch_eq` (the old body; `wordsMatch_pairs` unchanged) |
+| the seal's envelope length from lengths (`Send.sealEnvBytes`) | 0.765 s (single run; three-run mean 0.773) | `canonical_wire_length` (Cbc, protobuf and MAC lengths); `sealEnvBytes_canonical` (the old definition), `sealEnvBytes_value` unchanged |
+
+No script, instruction, opening or order changed: the batches carry the same instructions (the
+encoding's bytes are proved equal), and the two changed definitions compute the same values
+(PROOF_GAPS J31). Pipe operations per message: unchanged by this round — repeat sends 50.1 (40.4
+batches) against legacy 36.0; restart 56.0 (47.9 batches) against 34.4.
+
+**The two gate-level design choices, in ms per message** (out of scope to change; `pq_design.py` on
+the repeat-send session logs after the changes; malicious from the same stage):
+
+| design choice | semi-honest | malicious | what it is |
+|---|---|---|---|
+| GHASH doubling schedule: the last round's unneeded products | 1.6 ms | 14.3 ms | after each key update (here once per notify, 0.149 per message) a ~1 KB request needs 65 key powers; the round 64 → 128 multiplies all 32 odd powers 65 … 127 in one `gcm-multiply` run where only 65 is needed: 31 of 32 products (0.51M AND) unneeded, 10.7 ms of worker time per computation semi-honest, 95.7 ms malicious. Capping the last round at the powers the record needs would remove it, but changes what is opened to B (fewer masked products): an owner decision. The schedule's gain is rounds (7 instead of ~33 one-product rounds), which matters under link delay. |
+| S10 mask pool (cut-and-choose) | 11.0 ms (busy 2.1, controller 8.9) | 20.9 ms (busy 11.2, controller 9.7) | one generation of 16 word masks per 16 repeat-send messages: per generation 172 ms semi-honest (the bucket circuit `modadd-open`, 0.51M AND: 21 ms; the controller's permutations, `pick` positions and checks: ~139 ms), 327 ms malicious (`modadd-open` 117 ms). At every session start the pool is generated anew (the restart stage generates it while the session waits for its first notify, so it is not in the per-message figure there). The C++'s pool (`dyn_word_mask.h`) is generated inside op 41 and is not separable in the logs. |
+
+**What still separates them** (repeat sends, semi-honest, after; per message, from the per-batch log
+`pq_kinds.py` against legacy): the busy time is now LOWER with scripts (154 ms against 162 ms); the
+controller time between operations is ~24 ms higher, made of: the pool generation's controller work
+(~9 ms: SHA-256 challenge expansion on lists and `List.erase` in `Challenge.permOf`, `Masks.member`'s
+list indexing for each of 1,344 bucket members, 4.4 MB of positions encoded), the ephemeral key
+(~5 ms before the `edwards-offset-sum` batch, of which ~3 ms are `Curve.ephemeralKey`'s two scalar
+multiplications on `Fin p` inside the script), the commit-then-open exchanges and the other extra
+batches (40.4 batches against 25 non-database legacy operations, ~0.4 ms each with the agreement:
+~5 ms; 2.4 per message are finished scripts with no reply that could open the next batch as J28's
+frees do, ~1 ms), and the GHASH rounds after each key update (~1 ms). Removing the first two needs
+script definitions changed (arrays in `Masks.member` / `Challenge.select`, a faster scalar
+multiplication), each proved equal with its theorems redone; the third needs J28's relation proved for
+any trailing batch without replies. With the restart (every message a first send), the contact's
+preparation adds ~25 ms of glue per message (2,031 mask contributions cut from 130 KB of randomness
+and stashed, a 5,075-instruction batch of frees, the static agreement's batches) on top of the above.
+
+**Costs both paths pay, larger than the gap** (the controller profile, repeat sends): building the
+text notifications (`Session.Send.notify` → `PrivateTextNotification.buildPublic`, which evaluates the
+circuit's own definition with `ByteAuth` mask operations on `BitVec 8`, the UTF-8 check through
+`TlsWebSocketUpgrade.member` on mapped lists): ~2 s per notify of eight, ~240 ms per message, inside
+the node's seconds (`Serve.lean` starts the job's clock before `notify`; in the worker log it is
+the ~3 s before each notify's first operation, which the per-operation tables count as op 39's
+"outside" time, together with the harness's ~1 s between notifies); within a notify the messages are
+~340 ms apart (semi-honest). Also the response parsing between reveal steps (`PublicReceive`, same
+mask style): ~130 ms per message; the database exchanges (op 39 proper): ~60 ms per message. A
+proved-equal fast builder for the public text alone would take about a third off every message in
+both paths.
+
 ## What remains, with estimates
 
 | What | Gain |

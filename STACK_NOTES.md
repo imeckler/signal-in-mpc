@@ -591,7 +591,16 @@ functions whether or not the override is selected. Semi-honest E fixtures: see 1
 ### 11.3 Before the default flips and the C++ goes
 
 1. **Measured parity, both modes (owner decision, 2026-11-13): NOT reached on one machine; reached
-   with a 2 ms round trip.** Evidence (after 6642486 and J30): sustained with restart (every
+   with a 2 ms round trip.** UPDATE (2026-11-13, night, after 30c2ce3; section 11.5 and PERFORMANCE.md
+   "second round": three alternating runs per configuration, noise measured first): repeat sends
+   semi-honest 0.773 vs 0.752 s per message (+2.8 %, was +10.1 %), malicious 1.454 vs 1.437
+   (+1.2 %, within the scripts' sd of 0.029); sustained with restart semi-honest 1.052 vs 1.009
+   (+4.2 %, was +7.1 %), malicious 2.339 vs 2.282 (+2.5 %, unchanged); `--broadcasts 4
+   --link-delay-ms 1` malicious 137.5 s (legacy 142.2 s). The script path's workers are now less
+   busy per message than legacy's; what remains is controller time and batches, itemized there
+   (pool generation ~9 ms, ephemeral key ~5 ms, extra batches ~5 ms, GHASH rounds ~1 ms per repeat
+   send; the preparation's glue ~25 ms per first send), each needing a script definition changed or
+   J28's relation proved. Earlier evidence (after 6642486 and J30): sustained with restart (every
    message a first send): semi-honest 1.07–1.09 s vs 0.99–1.04 s per message, malicious 2.29 vs
    2.23–2.44; one session, repeat sends: semi-honest 0.96 vs 0.87 (+11 %), malicious 1.89 vs 1.81
    (+5 %); `--broadcasts 4 --link-delay-ms 1`, malicious: 140.9 s vs 142.2 s. Semi-honest with
@@ -662,3 +671,46 @@ functions whether or not the override is selected. Semi-honest E fixtures: see 1
 deviations abort), `e2e_s12.py` (vectors) pass (60.2 s), `e2e_s13.py` pass (121.3 s), `e2e_s15.py`
 (shape) pass (60.3 s); `e2e_s16.py` passed both modes before (S16). `e2e_s14.py layouts` (mode-free)
 on the sets after J29: local 96 receive kernels, compact 106, 0 differ.
+
+### 11.5 The cost, second round: noise, parity, the test set again (2026-11-13, night; commit 30c2ce3)
+
+Details, method and tables: PERFORMANCE.md, "The script path's cost, second round". The stages are
+now measured three times each, alternating legacy / scripts, over 40 repeat-send messages (one
+session) and 32 first sends (a new session per notify); the noise was measured first.
+
+What changed (no script, instruction, opening or order; no batch boundary; each fast function PROVED
+equal and called by name; PROOF_GAPS J31): GHASH glue on two `UInt64` limbs (`mul_eq_mulLimb`);
+batches encoded straight into a `ByteArray` and sent with `Rpc.callArray` (`encodeBatchArray_eq`,
+`frame_header`); the pool's candidate words once and 62 bits per step (`wordFast_eq`,
+`candidateBits_eq`, `candidateCoins_eq`); CHANGED DEFINITIONS with unchanged statements:
+`Masks.wordsMatch` with `natOfFast` (`wordsMatch_eq`), `Send.sealEnvBytes` from lengths
+(`canonical_wire_length`, `sealEnvBytes_canonical`; `sealEnvBytes_value` holds). Checks before the
+commit: `lake build` TlsMpc, TlsMpcSecurity, the controller; check_axioms (783 restated, only the
+three allowed axioms); lint 0 findings (emitter isolation included; `callArray` added to the
+flow-call patterns); recovery-check 29/29, policy-check 14/14, parse-bench; RunnerTest 37/37; the
+four node_worker variants and `cargo test`.
+
+**The test set again, after 30c2ce3** (`--strict-produced`, closed selection — eleven groups for the
+ceremony —, this machine, one stage per command; `pq_t2series.py` over `pf_harness.py`, plan
+`pq_plan_t2.txt`, logs `.deps/lowering-scratch/out/pf-h-q1*-*.log`; seconds are the harness's
+`elapsed`):
+
+| stage | malicious | semi-honest |
+|---|---|---|
+| `--runs 2 --signup` | pass, 163.7 s; equal to tests/golden (same modulo masks) | pass, 128.8 s; equal to golden |
+| `--runs 0 --db` | pass, 199.1 s; equal to golden | pass, 165.3 s; equal to golden |
+| `--runs 0 --multi-device --db` | pass, 384.6 s | pass, 316.1 s (FIRST semi-honest run) |
+| `--runs 0 --app` | pass, 162.0 s | |
+| `--runs 0 --ceremony` (`ceremonySet`) | pass, 91.2 s | |
+| compact signup `--devices 3` (libsignal) | pass (receive 12.2 s, send 50.8 s; delivered after device refresh) | pass (receive 4.8 s, send 17.0 s; delivered after device refresh) (FIRST) |
+| `--recovery devices` | pass, 205.7 s | pass, 144.3 s (FIRST) |
+| `--recovery drop` | pass, 141.2 s; "connection 1 was closed and replaced" (op 91's script half) | pass, 76.0 s (FIRST) |
+| `--runs 1 --db --hinted` | pass, 256.7 s | pass, 204.2 s (FIRST) |
+| `--runs 1 --broadcasts 4 --link-delay-ms 1` | pass, 137.5 s (before this round 140.9 s; legacy 142.2 s) | pass, 101.8 s (FIRST) |
+| `--recovery classify` / `identity` / `unauthorized` / `throttle` / `bundle-fault` / `resume` / `hang` | | pass: 32.8 / 98.3 / 90.5 / 104.6 / 147.2 / 93.0 / 98.8 s (all FIRST) |
+| `--recovery refresh-retry` | | FAILED CLOSED once, then pass, 148.1 s (FIRST): the first attempt's batch was refused by `check` (`bundle-request-ctr 9330 8 33 9306 …` with slot offsets the local strict set does not list; it lists two of the offset variants of that size, and the offsets follow the random digit counts of the run's ids) — a J29 manifest gap, nothing opened; legacy strict refuses the same names |
+| `--runs 1 --db --fingerprint` (libsignal) | | pass, 306.3 s (FIRST) |
+| legacy (default, not strict) `--runs 2 --signup` / `--runs 0 --db` | pass, 180.7 s / 220.7 s; both equal to tests/golden | |
+
+Not run this round: `--recovery devices --profile libsignal` (fails closed at op 61 in both paths:
+NEEDS_REVIEW 3f item 7), `--circuits 1,3`, semi-honest `--app` / `--ceremony` (run in 11.2).
