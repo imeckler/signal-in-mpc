@@ -116,13 +116,24 @@ def serverBytes : Label := ofKind .serverBytes
 `gcm-multiply`). Kind `ghashMaskedPower` (9). -/
 def ghashMaskedPower : Label := ofKind .ghashMaskedPower
 
+/-! Device refresh (stage S15, kinds 60-62). -/
+
+/-- `bundle-shape`'s one flag per body byte (JSON punctuation or not). Kind `bundleShape` (60). -/
+def bundleShape : Label := ofKind .bundleShape
+/-- `bundle-rebind`'s `changed` byte (the bundle's identity key is a new one), first device only.
+Kind `identityChanged` (61). -/
+def identityChanged : Label := ofKind .identityChanged
+/-- `establish-session`'s `status` byte, one per device. Kind `deviceStatus` (62). -/
+def deviceStatus : Label := ofKind .deviceStatus
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
    .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
    .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
    .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
-   .serverBytes, .ghashMaskedPower]
+   .serverBytes, .ghashMaskedPower,
+   .bundleShape, .identityChanged, .deviceStatus]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
@@ -130,7 +141,8 @@ def all : List Label :=
    maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
    bitBlockChecks, scalarBitChecks, maskedDenominator,
    handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
-   serverBytes, ghashMaskedPower]
+   serverBytes, ghashMaskedPower,
+   bundleShape, identityChanged, deviceStatus]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -156,6 +168,6 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) = [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90,
-    2, 3, 4, 5, 6, 7, 8, 9] := rfl
+    2, 3, 4, 5, 6, 7, 8, 9, 60, 61, 62] := rfl
 
 end TlsMpc.Node.Engine.Label
