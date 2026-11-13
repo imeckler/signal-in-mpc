@@ -25,8 +25,9 @@ is S11's curve half (`Curve` below; S13_NOTES.md gives the signatures to join).
     request buffer through `Send.requestCtrScript` then S12's `Tls.tagScript` (`TlsBackend.sealPhases`:
     the shares, this party's half, the tag), and dropping it (a request is sealed once).
 
-Handle ids come from the runner's `allocB` (the session's counters); the contact table's own
-`Table.ctr` must be the same counters when the two are joined (S13_NOTES.md).
+Handle ids come from the runner's `allocB` (the session's counters); the contact table is reached
+through `TableRef`, which the script runner (`Flows/Runner.lean`, `Runner.table`) points at the table
+inside its one state, so `Table.ctr` IS the runner's counters (joined on `scripts-stack`).
 -/
 
 namespace TlsMpc.Node.Flows.SendBackend

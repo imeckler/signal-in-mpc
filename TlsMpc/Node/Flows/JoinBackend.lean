@@ -19,10 +19,10 @@ the branches' or `Join.lean`'s, with its `Reveals` theorem:
 
 THE ADAPTER: S12's and S13's `Runner` (`TlsBackend.Runner`) allocates Boolean ids only and has no
 field-element slots and no mask pool; S11's flows need field ids, a store slot of this party's field
-elements, and S10 word masks. `FieldRunner` is that missing part (the runner that exists one day
-has all three: `ReceiveBackend.Runner` already has `stashElems` and the pool in its state). Its
-`allocF` must draw from the same session counters as `allocB`'s, and `takeWord` from the session's
-one pool (P-CUT (h): each mask once).
+elements, and S10 word masks. `FieldRunner` is that missing part. The script runner supplies it
+(`Flows/Runner.lean`, `Runner.field`: `allocF` from the same counters as `allocB`, `takeWord` from
+the session's one pool, each mask once: P-CUT (h)). Both functions here stash a NEW mask slot per
+call (`fr.stashElems (← elems r k)`), so no quotient or offset sum shares its masks (checked for J1).
 -/
 
 namespace TlsMpc.Node.Flows.JoinBackend

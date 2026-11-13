@@ -617,6 +617,14 @@ join_refreshOps_reveals: [Classical.choice, Quot.sound, propext]
 join_refresh_reveals: [Classical.choice, Quot.sound, propext]
 join_first_wired: [Classical.choice, Quot.sound, propext]
 join_kinds_registered: [propext]
+j1_openFirst_reads_once: [Classical.choice, Quot.sound, propext]
+j1_session_reads_once: [Classical.choice, Quot.sound, propext]
+j1_receiveAgree_once: [Classical.choice, Quot.sound, propext]
+j1_refreshOps_reads_once: [Classical.choice, Quot.sound, propext]
+j1_refresh_pools_disjoint: [propext]
+runner_drive_model: [Quot.sound, propext]
+runner_drive_bounded: [Quot.sound, propext]
+runner_nextBatch_fill_only: [Quot.sound, propext]
 engine_label_ofKind_inj: [Quot.sound, propext]
 engine_label_all_distinct: [Quot.sound, propext]
 engine_label_all_nonzero: [Quot.sound, propext]
@@ -651,4 +659,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 # Restated theorems that depend (transitively) on a bv_decide proof
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
-# 2 of 638 entries
+# 2 of 646 entries

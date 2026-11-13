@@ -8,9 +8,11 @@ import TlsMpc.Signal.XEdDsaField
 REORGANIZATION_PLAN.md stage S14: the IO glue around `Flows/Receive.lean`'s scripts, an
 ALTERNATIVE to `Flows/ReceiveLegacy.lean` (worker ops 48-51) with the same function types once the
 context is supplied (`Api`; `legacy_api_types` checks that the legacy functions have exactly these
-types). Nothing selects it yet: the controller-side runner sending script batches (op 93) is not
-in this branch, so it is a PARAMETER (`Runner`), as are S11's agreements (`Receive.Curve`) and
-S12's revealed buffers (`TlsBackend.revealed`). Do not use before all are supplied.
+types). The runner is a PARAMETER (`Runner`; the script runner's `Runner.receive` view supplies it,
+`Flows/Runner.lean`), as are S11's agreements (`Receive.Curve`) and S12's revealed buffers
+(`TlsBackend.revealed`). Selectable as `receive` (`Flows/Select.lean`), blocked until J8/J11.
+J1: every operation gets its own supply of NEW slots of fresh field contributions (`programCurve`,
+`supplyOf`, `runWith`), taken by its program steps and agreements in order (`counts`).
 
 WHAT MOVES HERE FROM THE C++ (`service_kernels.h`):
   * the held envelope (`envelope`) and arrival (`Arrival`, `arrival.held`) as `Refs`;

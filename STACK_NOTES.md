@@ -35,8 +35,8 @@ section), 7-channels, 7-reveal as before; section 8's open lists merged item by 
 |---|---|---|---|
 | S12 `TlsBackend.KeyAgreement Sc` | `JoinBackend.keyAgreement r fr : KeyAgreement SplitState`. `begin`: summand as `split_ecdh.h` (`&= 248`, `&= 31`), `Curve.splitShare` locally, `Curve.splitBegin`. `agree`: peer rejected publicly unless `liftU` gives a valid point; `Curve.splitAgreeInputs` locally; `Join.splitAgreeWord` = `Curve.splitAgree`, abort on the zero flag, `Convert.fieldToWord`, free. `erase`: nothing in the engines | the written spec's kinds: `Join.splitAgreeWord_reveals` (`keyAgreementKinds` = P-SPLIT ∪ P-F2W), `begin` = `Curve.splitBegin_reveals`; all registered (`join_kinds_registered`) | ADAPTER `FieldRunner` (`allocF`, `stashElems`, `takeWord`): S12's `Runner` has Boolean ids only, no field slots, no pool — the runner that exists one day must supply them from the same counters / the one pool. The value (`X25519(k_A + k_B, peer)` as the word) is not proved through `jointRun` (S11's `splitAgree_montU` + S10's `f2w_honest` compose, not done). S12's spec text says "no other release than P-SPLIT's": the join also opens P-F2W's masked value (`maskedFieldValue`), which S12's spec names as its conversion — say so in S12's doc when merged. A quotient whose `u` is 0 without the zero flag (num + den = 0) is not rejected (an honest server's share in the prime-order subgroup with k ≢ 0 mod ℓ never gives it) |
 | S13 `SendBackend.Curve` | `JoinBackend.sendCurve r fr src`. `ephemeral id`: τ from `Random.joint` (commit-then-open, `Curve.offsetOf`), 128 mask contributions, `Join.ephemeralWord` = `Curve.offsetStep` + `fieldToWord`; the key `toBytes u` through **`Reveal.ephemeralPublic`** (added to `Reveal.lean`, pure addition; documented bound `s11_ephemeralKey`). `staticAgreement`, `senderPublic`: `SendSources` (op 66's cached words, account state) | `ephemeralWord_reveals` (`ephemeralKinds` = P-OFFSET ∪ P-F2W, plus `Random.jointKinds`), registered; the S13 note "S11 must add `Reveal.ephemeralPublic`" is done | `SendSources.offsets` / `statics`: the per-contact caches (op 66 `Curve.prepareContacts`, `offsetPrepare`) — op 66's contact-table glue is F32 (open); the IO glue unverified (F55); `offsetStep` through `jointRun` open (F22) |
-| S14 `Receive.Curve` (`agree`, `signature`, `baseCheck`, `kinds`, the three `Reveals` fields) | `Join.receiveCurve sl pm` = S14's `Curve.withPrograms` (its own program-based `signature`, `baseCheck`) with `agree := Join.receiveAgree sl`: per job `Convert.sharedBits` (P-BITS) of the scalar's swap-bit shares, the point (handle, or public 9), S11's `Curve.agree` for all jobs in one instruction + one quotient round, abort on a zero flag, S14's `toWord`; everything made is freed, the inputs are not | the three `Reveals` fields PROVED (`receiveAgree_reveals`); `receive_joined_reveals`: `openFirst_reveals` / `session_reveals` with the curve instantiated, and every kind registered | **MISMATCH (not resolvable without changing S14 or the IO layer):** S14's `Job` names scalars by BYTE slots and `Gen` (pure, state = table + pool) has no local step, but S11's ladder needs the scalar as XOR-shared swap bits in a COINS slot (a local computation on the party's own bytes, D1) and a FRESH quotient-mask slot per call. The adapter takes them as `AgreeSlots` (`coins : Scalar → Nat`, `masks : Nat`); `ReceiveBackend.scriptApi` calls `curve : M Curve` once per message and op 50 calls `agree` twice, so one `masks` slot would be used twice (the openings `z·m` then reveal a ratio). Needed: either `Receive.St` carries a slot supply (S14 change), or `ReceiveBackend` builds a fresh `AgreeSlots` per agree call (S14's IO glue change), and the IO side stashes the coins for `identity` (the account's XOR share), `own` and `fresh` slots. Until then the S14 join is type-level and T3-level only, NOT safe to run |
-| S15 `Refresh.CurveOps` (`lift`, `check`, `agree`, id blocks, `kinds`) | `Join.refreshOps rc`: S14's `Gen` run on a table holding just the caller's counters and the masks taken for this call (`runAt`); `lift` = W2F, `xeddsa-recover`, F2W ×3; `check` = W2F ×2, B2F ×2 (510 bits each), `xeddsa-check` ×2 (separate mask slots), F2W ×4; `agree` = W2F of the points, `receiveAgree` on the seven jobs of `service_kernels.h` line 850 (dh1, dh2, dh3, ratchetAgreement, basePublic, ratchetPublic, dh4); id blocks `liftIdsOf`, `checkIdsOf`, `agreeIdsOf` | **S15's hypothesis `CurveOps.Reveals` DISCHARGED** (`refreshOps_reveals`); `refresh_joined_reveals`: `opEstablish_reveals` / T3 with no curve hypothesis, all kinds registered | the IO layer (`RefreshBackend`, F46) must prepare `RefreshCurve` per step (masks from the pool, fresh mask/coin slots: same per-call slot issue as S14, but here each `CurveOps` value is built per step so it fits); the id blocks are counted upper bounds, not proved (WF of the joined scripts open, F44); non-hinted path only (S11's hinted `lift`/`signatures` not wired: they return field handles and need the `Staged` local step) |
+| S14 `Receive.Curve` (`agree`, `signature`, `baseCheck`, `kinds`, the three `Reveals` fields) | `Join.receiveCurve sl pm` = S14's `Curve.withPrograms` (its own program-based `signature`, `baseCheck`) with `agree := Join.receiveAgree sl`: per job `Convert.sharedBits` (P-BITS) of the scalar's swap-bit shares, the point (handle, or public 9), S11's `Curve.agree` for all jobs in one instruction + one quotient round, abort on a zero flag, S14's `toWord`; everything made is freed, the inputs are not | the three `Reveals` fields PROVED (`receiveAgree_reveals`); `receive_joined_reveals`: `openFirst_reveals` / `session_reveals` with the curve instantiated, and every kind registered; **J1 RESOLVED** (section 7): every field-element input of ops 50/51 reads a slot TAKEN from `Receive.St.slots` (`Gen.takeSlot`; `programStep` and `receiveAgree` take theirs), proved read once on every run (`JoinOnce.openFirst_reads_once`, `session_reads_once`) | the coins: `AgreeSlots` keeps only `coins : Scalar → Nat` (re-reading a coins slot is harmless: P-BITS opens only the bit checks); the IO side must stash the coins for `own` and `fresh` scalars and, for `identity`, has none (J8: op 55 leaves the identity's swap bits as FIELD HANDLES, `Account.Opened.swaps`, not a coins slot) |
+| S15 `Refresh.CurveOps` (`lift`, `check`, `agree`, id blocks, `kinds`) | `Join.refreshOps rc`: S14's `Gen` run on a table holding just the caller's counters and the masks taken for this call (`runAt`); `lift` = W2F, `xeddsa-recover`, F2W ×3; `check` = W2F ×2, B2F ×2 (510 bits each), `xeddsa-check` ×2 (separate mask slots), F2W ×4; `agree` = W2F of the points, `receiveAgree` on the seven jobs of `service_kernels.h` line 850 (dh1, dh2, dh3, ratchetAgreement, basePublic, ratchetPublic, dh4); id blocks `liftIdsOf`, `checkIdsOf`, `agreeIdsOf` | **S15's hypothesis `CurveOps.Reveals` DISCHARGED** (`refreshOps_reveals`); `refresh_joined_reveals`: `opEstablish_reveals` / T3 with no curve hypothesis, all kinds registered | **SIBLING OF J1, FIXED**: one `pool` served `lift`, `check` and `agree` of a step, so step 0 of device 0 gave `check` the word masks `lift` had used and freed (the engine refuses a freed handle: that step always aborted); `RefreshCurve` now has a pool and a slot supply per call (`splitPool` / `split_disjoint`; `RefreshBackend.curveFor` takes them from the session pool and new slots, `refreshOps_reads_once`). `RefreshBackend` exists (F46); the id blocks are counted upper bounds, not proved (WF of the joined scripts open, F44); non-hinted path only (S11's hinted `lift`/`signatures` not wired: they return field handles and need the `Staged` local step) |
 | S15 send parameter (S13 `sealDevices` / `requestDevices`; `first_wired`'s `hconv`, `hpend`) | `Join.join_first_wired`: for the bundle S13's `devicesScript` builds (certificate ‖ stored record, pending, address, text, four words), `Send.bundleSeal_get` gives the kernel's `conversation`/`pending` inputs; `Refresh.stored_record` + `kept_outputs` close `first_wired` | `hconv`, `hpend` of `first_wired` (F45 send half / F46-in-branch-numbering) for S13's layout | `hcert` (the certificate bytes S13 prefixes are the session's certificate input: the same account certificate handle) and `hpend` (the pending block in the stored state is the session's), and that the record S13 slices from the committed state is `out₁.drop cert`: facts about the BYTES in handles across scripts (S13 `devicesScript` → S15 `opCommit` → S13), not proved through `jointRun` |
 
 ## 3. Build, tests, axioms
@@ -55,7 +55,8 @@ and built there were reused. Result: all 108 + the join modules compile, no erro
 **`Security.lean` as a whole**: `guarded.py --heavy 12 3600 lake env lean TlsMpc/Security.lean`:
 exit 0, no error, 11 s, peak 1.8 GB (the closure was prebuilt). `scripts/check_axioms.py
 --from-log`: **636 restated theorems, only `propext`, `Classical.choice`, `Quot.sound`** (2 entries
-depend on `bv_decide`, as before); `SECURITY_AXIOMS.txt` regenerated and committed. This closes the
+depend on `bv_decide`, as before); `SECURITY_AXIOMS.txt` regenerated and committed. (After J1 and
+the runner, section 7: 644 restated theorems, 10 s, 1.76 GB, only the three standard axioms.) This closes the
 "Security.lean not compiled as a whole" items of all six branches (PROOF_GAPS F10, F21, F50, F59).
 
 **`scripts/lint_node.py`**: 0 findings (io-baseline, escape-hatches, emitter-isolation, secret-val,
@@ -94,7 +95,7 @@ and S13 is F51–F59. The table uses PROOF_GAPS.md's numbers; "join" marks what 
 | F14, F37, F44, F54 | WF / `Wire.Bounded` not proved for: S12 `roundScript`, `sealClassScript`, `openScript`, `revealScript`, `parserScript`, handshake scripts; S14 `takeScript`, `openFirst`, `session`; S15 `fetchScript`, establishment, `scratchSealScript`, `opCommit`'s `Table.Inv`; S13 ops 61/62 | tested / open; **join**: the joined scripts' WF is open too (id blocks counted, `Join.liftIdsOf` …) |
 | F15, F53 | `.word` inputs: no model circuit for `tls-derive`; `shapedCircuit` extends T2 | open / assumed |
 | F16, F52, F58 | class-seal composition; op 61 headline and `bundle-seal` output slicing; `bundleEnvBytes` | open |
-| F17, F39, F46, F55 | IO glue unverified: `TlsBackend`, `ReceiveBackend`, `SendBackend`; no `RefreshBackend`; nothing selects them | open (engineering). **join**: the curve parameters of `TlsBackend` (`JoinBackend.keyAgreement`) and `SendBackend` (`JoinBackend.sendCurve`) are instantiated; `Reveal.ephemeralPublic` added (F55's "to be added by S11" done); the runners still lack field ids / elements / the pool (`FieldRunner` adapter) and the counters of runner and `Contacts.Table` are still to be joined |
+| F17, F39, F46, F55 | IO glue unverified: `TlsBackend`, `ReceiveBackend`, `SendBackend`; no `RefreshBackend`; nothing selects them | **F46 closed** (`Flows/RefreshBackend.lean`, `legacyApi` type check); **"nothing selects them" closed** (`Flows/Select.lean`, `SIGNAL_SCRIPTS`); the runner exists and supplies every runner interface from ONE state (`Runner.tls`, `.field`, `.receive`; `SendBackend.TableRef`: the table and the counters are the runner's: F55's counter join done). Still open: the glue is unverified (only the runner's pure core is proved) |
 | F18 | `Wire.Bounded` for S12 scripts | open (small) |
 | F19, F48, F56 | stand-in circuits in pair tests; e2e not run | tested / pending |
 | F20 | P-GHASH (e) for scripts; (a) over a whole `ensure`; A-honest value T3 for `roundScript` | open |
@@ -113,11 +114,17 @@ and S13 is F51–F59. The table uses PROOF_GAPS.md's numbers; "join" marks what 
 | F45 | S15's joins: `CurveOps` with `Reveals` as hypothesis; the send's `bundle-seal` binding | **join**: `CurveOps.Reveals` DISCHARGED (`refreshOps_reveals`, `refresh_joined_reveals`); the binding derived for S13's layout (`join_first_wired`); remaining: `hcert`/`hpend` (bytes in handles across scripts) |
 | F49 | slot filler NUL after the emitter batch | **closed** (commit 478aa86) |
 | F59 (ORD-1) | ORD-1 not restated over the Lean send flow | open |
-| J1 (new) | S14 join: per-call coin and mask slots (`Join.AgreeSlots`) — S14's `Gen` has no local step and no slot supply; reusing `masks` across the two op-50 calls leaks a ratio | open (design; needs an S14 or IO change, section 2) |
-| J2 (new) | `FieldRunner`: S12/S13 `Runner` lacks `allocF`, `stashElems`, the mask pool | open (engineering) |
-| J3 (new) | the joins use the non-hinted path only (S11's hinted `lift`, `signatures`, `torsion` return field handles and need the `Staged` local step; not wired to S14/S15) | open |
-| J4 (new) | `flow-calls` lint: once the controller imports the script backends, their `Reveal.*` calls (TlsBackend, SendBackend, ReceiveBackend, JoinBackend) are outside `FLOW_ALLOWED` and must be allowed there | engineering (lint) |
-| J5 (new) | S12 spec text vs join: the agreement also opens P-F2W's masked value (`maskedFieldValue`), not only P-SPLIT's kinds; u = 0 without the zero flag not rejected (impossible for an honest server's subgroup share) | note |
+| J1 | S14 join: one mask slot for op 50's two agreements (the openings `z·m` revealed a ratio) | **closed** (section 7): supply `Receive.St.slots`, `Gen.takeSlot`; `JoinOnce.openFirst_reads_once`, `session_reads_once`, `refreshOps_reads_once` (Security 7i `j1_*`) |
+| J2 | `FieldRunner`: S12/S13 `Runner` lacks `allocF`, `stashElems`, the mask pool | **closed** (engineering): `Runner.field` (same counters, same pool) |
+| J3 | the joins use the non-hinted path only (S11's hinted `lift`, `signatures`, `torsion` return field handles and need the `Staged` local step; not wired to S14/S15) | open |
+| J4 | `flow-calls` lint vs the script backends' `Reveal.*` | **closed**: allowlist widened to `Flows/*Backend.lean`, `Flows/Runner.lean`, `Flows/Select.lean` (same makers as the legacy flows; no second set in Reveal.lean); the pattern no longer matches `KernelSpecs.Reveal.*` |
+| J5 | S12 spec text vs join: the agreement also opens P-F2W's masked value (`maskedFieldValue`), not only P-SPLIT's kinds; u = 0 without the zero flag not rejected (impossible for an honest server's subgroup share) | note |
+| J8 (new) | the joined agreements take the identity scalar as a COINS slot of this party's swap-bit shares, but op 55 (`Account.openStep`) leaves the identity's swap bits as FIELD HANDLES (`Opened.swaps`); the controller holds no share to make coins from. Receive and refresh cannot run until `Scalar.identity` maps to those handles (an S14/S15 `Job` change) | open (design) |
+| J9 (new) | `Main.session` still calls `Worker.start`; the switch is `Worker.startWith … config.agreed …` (one line, Select.lean's doc), and the manifest's kernel names / V3 mask counts must be passed for receive | open (main line) |
+| J10 (new) | the runner's IO loop is `drive`'s steps by construction (an IO function), not by a theorem; the fake-pair test runs it against the model's shells | note |
+| J11 (new) | `account` cannot be selected: the authenticated upgrade (op 32, S16) reads the credentials from the legacy worker; `contacts`, `send`, `receive`, `refresh` need `account` and `curve` (F32) with them (no handle sharing with the legacy library: `legacy_get`/`legacy_put` not built) | open |
+| J12 (new) | the script account state (`Account.State`) has no sender-key word; the send's `senderPublic` and the refresh's `Refresh.Account` need it | open (engineering) |
+| J13 (new) | the runner's store never frees a slot (stashed values stay for the session) | open (small) |
 
 ## 5. When this stack meets the main line
 
@@ -134,31 +141,64 @@ integration engineer takes the stack:
   (S12_NOTES.md "The Session/Pool change"), and the runner's counters must be the contact table's
   `Table.ctr` (S13-5 / F55) and the source of `FieldRunner.allocF`. `Session/RefreshProofs.lean`
   (ORD-2) must be rerun when `Flow.Refresh` switches (S15's `*_entries` lemmas are its premises).
-* **The controller-side script runner** (sends Lean batches as op 93 to node_worker, writes the
-  stores, owns the counters and the mask pool) does not exist; every backend (`TlsBackend`,
-  `SendBackend`, `ReceiveBackend`, `JoinBackend`) is a parameter of it. It must also provide
-  `FieldRunner` (field ids, element slots, word masks) and per-call `AgreeSlots` (J1).
+* **The controller-side script runner** exists (`Flows/Runner.lean`, section 7); the selection
+  (`Flows/Select.lean`) needs the one line in `Main.session` (J9).
 * **The field-program re-export** (FIELD_PROGRAMS_V3.md): one heavy run of
   `export_field_v3.py`; paste the pins into `loader.rs` `FIELD_PROGRAMS` (S10's three, S11's 14,
   S14's three placeholders `PIN_FROM_REEXPORT`), write `field-mask-sub.v3` from the S10 vectors'
   `native` line; the S11 vectors' `pin` lines must equal the export's.
-* **S8 switch** (merged): the controller spawns node_worker by default; the Lean script backends
-  still need the runner above before any flow can switch.
+* **S8 switch** (merged): the controller spawns node_worker by default; with the runner and the
+  selection (section 7) a flow switches by the agreed setting `SIGNAL_SCRIPTS`.
 
-## 6. Order in which to switch flows from legacy to scripts
+## 6. Order in which to switch flows from legacy to scripts (`SIGNAL_SCRIPTS`, section 7)
 
-1. **Masks and conversions (S10)** first — no controller-visible flow; one pool per session
-   (`Masks.generate` at session start), needed by everything below; run alongside the legacy C++
-   pool (R5) until the last legacy converter is gone.
-2. **TLS (S12 + S11 split ECDH, `JoinBackend.keyAgreement`)**: the handshake and application record
-   layer; smallest join (no S14-style slot issue), proved T4 at function level, `e2e_s12.py` exists.
-   Deletes `gcm_shares.h`, most of `tls_kernels.h`, `split_ecdh.h`.
-3. **Contact preparation (S11 op 66, `prepareContacts`)** with its table glue (F32): produces the
-   offset states and static words the send needs.
-4. **Send (S13 + `JoinBackend.sendCurve`)**: ops 41/42/61/62; `send_accepted` has no wiring
-   hypothesis; needs 2 and 3.
-5. **Refresh (S15 + `Join.refreshOps`)**: needs a `RefreshBackend` (F46) that builds `RefreshCurve`
-   per step; ORD-2 rerun; `first_wired` with S13's send (4).
-6. **Receive (S14)** last: blocked on J1 (per-call agreement slots) — needs an S14/IO change first —
-   and benefits from the hinted path (J3); `receive-text` acceptance (main line) exercised by
-   `e2e_s14.py` before switching.
+Every step needs J9 first (the one line in `Main.session`). `Select.check` enforces the "needs"
+column at session start.
+
+| # | Group(s) | Needs selected with it | Precondition before switching |
+|---|---|---|---|
+| 0 | `random` (op 33) | nothing | none: exchanges only, no engine call; runnable on the real engines today (`--scripts random`) |
+| 1 | `masks` (S10 pool, refilled on demand) | — | the V3 re-export (`field-mask-sub` and S10's programs pinned); the legacy C++ pool keeps running beside it (R5) |
+| 2 | `tls` (S12 + split ECDH, `JoinBackend.keyAgreement`) | `masks` | the re-export (split ECDH's programs); `e2e_s12.py`; the per-connection state moves into `Session/Pool` (S12_NOTES "The Session/Pool change"; kept in `Select.Session.conns` until then) |
+| 3 | `upgrade` (op 45) | `tls` | none beyond 2 (op 45's legacy receive state is read only by the legacy record layer) |
+| 4 | `curve` (op 66) | `contacts`, `masks` | F32: op 66's contact-table glue (offset states and static words into the contact entries) |
+| 5 | `contacts`, `account`, `send`, `receive`, `refresh` (together) | each other, `curve`, `tls`, `masks` | J11 (op 32 reads the legacy credentials: S16, or handle sharing with the legacy library), J12 (the sender-key word), J8 (identity coins for receive and refresh), the receive manifest names (J9), ORD-2 rerun for refresh, `e2e_s13.py`/`e2e_s14.py`/`e2e_s15.py` |
+
+## 7. J1, the runner, the selection, the tests (this agent's work on `scripts-stack`)
+
+**J1 (fixed).** `Receive.St` has a supply `slots : List (Nat × Nat)` of store slots of this
+party's fresh field-element contributions; `Gen.takeSlot count` hands out the first entry and removes
+it (abort if absent or of another size). `programStep` takes its mask slot from it (`ProgramMasks`
+keeps only the counts: `checkSlot`, `recoverSlot`, `torsionSlot` removed) and `Join.receiveAgree`
+takes its quotient-mask slot (`AgreeSlots.masks` removed, `coins` kept). `ReceiveBackend` builds a
+new supply per operation (`supplyOf`, `counts`, `runWith`; `scriptApi`'s `curve` is now
+`Op → M (Curve × supply)` and `Agreements` gains `takes`). Proof (`Flows/JoinOnce.lean`): a path
+predicate `Once U Q seen s` (every `fieldInput … .elements` slot read is in `U` and not read
+before), its state-threaded form `OnceG`, and `openFirst_reads_once` / `session_reads_once` /
+`refreshOps_reads_once`: on every run, for any replies, the slots read are slots of the starting
+supply and pairwise distinct. S14's theorem names kept; statements that changed: `programStep_reveals`
+(no `slot` argument), `receiveAgree_reveals` and `receive_joined_reveals` (same statements, `AgreeSlots`
+without `masks`), `runAt_reveals` (gains the supply). Other joins checked: S12 `keyAgreement` and S13
+`sendCurve` stash a new mask slot per call (fine); S15 `refreshOps` shared ONE pool across `lift`,
+`check`, `agree` (fixed: `RefreshCurve` per-call pools and supplies, `split_disjoint`).
+
+**The runner** (`Flows/Runner.lean`): `drive` (pure core) and `Runner.run` (its IO loop through
+`Legacy.call .batch`). `Runner` holds the one `Receive.St` (the contact table with THE counters,
+the pool, the supply), this party's store (`Slots`, written by `Secret.stash`), the slot counter,
+`Channels.random`; views `tls` (S12/S13 `Runner`), `field` (J2's `FieldRunner`), `receive` (S14's,
+same state reference), `supply` (J1), `table` (`SendBackend.TableRef`). Proved: `drive_model`
+(fed the model's `viewH`, the batches' instructions are `withAdv`'s trace and the result/store are
+the model's), `drive_bounded`, `nextBatch_fill_only` (Security 7i: `runner_*`).
+
+**The selection** (`Flows/Select.lean`, `Flows/Context.lean` `Overrides`, every `*Legacy.lean`
+function consults its entry; `Config.Agreed.scripts` from `SIGNAL_SCRIPTS`, in `agreedText` only when
+non-empty). `Worker.startWith` (not yet called by Main: J9). Groups, needs and availability: section 6.
+
+**Tests.** `node_worker/tests/lean/RunnerTest.lean` (20 checks, all ok): two controllers in two
+threads, a fake worker pair answering op 93 with `checkBatch` + the model's `shellPair`; joint
+randomness, the anonymous upgrade, contacts key/load (accepted, refused)/seal/evict/re-key/assign
+(stand-in contact kernels; the state's value in the model; one `Counters`), S14's backend take +
+refused open. Not covered (their stand-in tables live inline in the S10–S15 vector files): mask
+generation with a conversion, a record seal/open, a send, an accepted receive, a refresh. The S10,
+S12, S14, S15 vectors regenerated after J1: byte-identical. Harness: `--scripts NAME,NAME` written,
+not run.

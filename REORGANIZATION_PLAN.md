@@ -1709,6 +1709,25 @@ Tests:
 Depends on S8. **5–6 weeks. Strong** (the semantics and model must be right; everything after
 builds on them).
 
+**Status of "what remains" (2026-11-12, branch `scripts-stack`; STACK_NOTES.md sections 6-8).**
+- `runIO` exists as `TlsMpc/Node/Flows/Runner.lean` (not `Worker.lean`: the worker spawn stays in
+  `TlsWorkerProcess`): batch by batch `nextBatch` → `fill` from this party's store → `encodeBatch` →
+  pipe operation 93 (`TlsWorker.Operation.batch`, added with 92 `closeConnection`) →
+  `decodeReplies` → `resume`. Its pure core `drive` is proved equal to the model's honest party
+  (`runner_drive_model`: the batches' instructions are `withAdv`'s trace, the result and store its
+  own), bounded (`runner_drive_bounded`), and reading the store only through `fill`
+  (`runner_nextBatch_fill_only`). SHA-256 is `Env.hash` (`TlsWire.hash`).
+- The `Secret` → `Store` eliminator is `Secret.stash`, next to `Secret.inputOwn`; the runner is its
+  only caller.
+- The selection: the agreed setting `SIGNAL_SCRIPTS` (`Config.Agreed.scripts`) installs the
+  script implementations of the named flow groups (`Flows/Select.lean`, consulted by every flow
+  function; default none). Available today: `random`; `masks`, `tls`, `upgrade` after the V3
+  re-export; the rest blocked by op 66's table glue (F32) and the authenticated upgrade (S16).
+  `Main.session` still calls `Worker.start` (the one-line switch to `Worker.startWith` is written
+  in Select.lean's doc; `Main.lean` was being refactored on the main line).
+- Not done: the handle sharing with the legacy library (`legacy_get` / `legacy_put`): the
+  selection instead requires every group that reads a table to switch together.
+
 ---
 
 **S10. Conversions, masks, inversion.**

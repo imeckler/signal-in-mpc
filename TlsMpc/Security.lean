@@ -114,6 +114,8 @@ import TlsMpc.Node.Flows.CurveCommit
 import TlsMpc.Node.Flows.CurveHonest
 import TlsMpc.Node.Flows.Join
 import TlsMpc.Node.Flows.JoinBackend
+import TlsMpc.Node.Flows.JoinOnce
+import TlsMpc.Node.Flows.Runner
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -7408,6 +7410,93 @@ theorem join_kinds_registered :
 
 end FlowsJoin
 
+/-! ### 7i. J1 (no slot of fresh randomness read twice) and the controller-side script runner
+
+`TlsMpc/Node/Flows/JoinOnce.lean`: every field-element input of the joined receive and refresh
+flows reads a store slot TAKEN from the state's supply (`Receive.St.slots`, `Gen.takeSlot`), so on
+every run no slot of fresh mask contributions is read twice (two openings `z·m`, `z'·m` with one
+mask `m` would reveal `z / z'`; before J1's fix op 50's two agreements shared one slot).
+`TlsMpc/Node/Flows/Runner.lean`: the runner's pure core `drive` (what the controller sends as
+op 93, batch by batch) against the model's honest party. **M** as above; the runner's IO loop is
+`drive`'s steps (unverified glue, like the backends). -/
+
+section FlowsRunner
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **J1, op 50 joined** [M]: whatever the replies, the slots a run of the joined `openFirst` reads
+are slots of the supply it started with, none twice (its two agreements and `xeddsa-check`). -/
+theorem j1_openFirst_reads_once (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool)
+    (fi : Receive.FirstIn) (env : BoolH) (size : Nat) (st : Receive.St) (h : (JoinOnce.supply st).Nodup) :
+    ∀ rs, (JoinOnce.readsAlong (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size st) rs).Nodup ∧
+      ∀ x ∈ JoinOnce.readsAlong (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size st) rs,
+        x ∈ JoinOnce.supply st :=
+  JoinOnce.openFirst_reads_once sl pm loaded fi env size st h
+
+/-- **J1, op 51 joined** [M]: the same for the session (`xeddsa-recover`, `receive-torsion`, the six
+or seven agreements). -/
+theorem j1_session_reads_once (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool)
+    (a : Receive.Arrival) (sp : Receive.SessionPublic) (ss : Receive.SessionSecrets) (st : Receive.St)
+    (h : (JoinOnce.supply st).Nodup) :
+    ∀ rs, (JoinOnce.readsAlong (Receive.session (Join.receiveCurve sl pm) loaded a sp ss st) rs).Nodup ∧
+      ∀ x ∈ JoinOnce.readsAlong (Receive.session (Join.receiveCurve sl pm) loaded a sp ss st) rs,
+        x ∈ JoinOnce.supply st :=
+  JoinOnce.session_reads_once sl pm loaded a sp ss st h
+
+/-- **J1, the joined agreements** [M]: they take their quotient-mask slot from the supply and read it
+once (from every state whose supply and reads have no slot twice). -/
+theorem j1_receiveAgree_once (U : List Nat) (sl : Join.AgreeSlots) (jobs : List Receive.Job) :
+    JoinOnce.OnceG U (Join.receiveAgree sl jobs) :=
+  JoinOnce.receiveAgree_once U sl jobs
+
+/-- **J1, S15's joined curve operations** [M]: `lift`, `check`, `agree` each read only slots of
+their own supply, none twice. -/
+theorem j1_refreshOps_reads_once (rc : Join.RefreshCurve) (c : Counters) :
+    ((rc.liftSlots.map Prod.fst).Nodup → ∀ p rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).lift c p) rs).Nodup ∧
+        ∀ x ∈ JoinOnce.readsAlong ((Join.refreshOps rc).lift c p) rs, x ∈ rc.liftSlots.map Prod.fst) ∧
+    ((rc.checkSlots.map Prod.fst).Nodup → ∀ x y ec pq rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).check c x y ec pq) rs).Nodup ∧
+        ∀ s ∈ JoinOnce.readsAlong ((Join.refreshOps rc).check c x y ec pq) rs, s ∈ rc.checkSlots.map Prod.fst) ∧
+    ((rc.agreeSlots.map Prod.fst).Nodup → ∀ ip sp o rs,
+      (JoinOnce.readsAlong ((Join.refreshOps rc).agree c ip sp o) rs).Nodup ∧
+        ∀ s ∈ JoinOnce.readsAlong ((Join.refreshOps rc).agree c ip sp o) rs, s ∈ rc.agreeSlots.map Prod.fst) :=
+  JoinOnce.refreshOps_reads_once rc c
+
+/-- **J1's sibling in the S15 join** [M]: the three calls' mask pools cut from one share no mask. -/
+theorem j1_refresh_pools_disjoint (p : Conv.MaskPool) (hd : p.Distinct) :
+    let s := Join.splitPool p
+    (s.1.words ++ s.2.1.words ++ s.2.2.1.words ++ s.2.2.2.words).Nodup ∧
+      (s.1.bits ++ s.2.1.bits ++ s.2.2.1.bits ++ s.2.2.2.bits).Nodup :=
+  Join.split_disjoint p hd
+
+/-- **The controller sends exactly the batches the model says** [M]: if the honest party's model run
+of `s` returns `a`, the runner's pure core fed the values the model released to it (as the worker's
+reply items) sends batches whose instructions are the model run's trace, in order, and returns `a`
+with the model's final store. -/
+theorem runner_drive_model (E : Env) (me : Party) (adv : Adversary) {α : Type} (fuel : Nat) (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) (a : α)
+    (hr : (withAdv E me adv s σ I vD).result = some a) (hl : (withAdv E me adv s σ I vD).trace.length < fuel) :
+    (Runner.drive E.hash me fuel s σ ((withAdv E me adv s σ I vD).viewH.map (·.datum))).2 =
+        (some a, (withAdv E me adv s σ I vD).store) ∧
+      (Runner.drive E.hash me fuel s σ ((withAdv E me adv s σ I vD).viewH.map (·.datum))).1.flatten.map InstrP.skel =
+        (withAdv E me adv s σ I vD).trace :=
+  Runner.drive_model E me adv fuel s σ I vD a hr hl
+
+/-- **The runner sends only bounded wires** [M] (so every batch round-trips through the encoding). -/
+theorem runner_drive_bounded (hash : Bytes → Bytes) (me : Party) {α : Type} (fuel : Nat) (s : Script α)
+    (σ : Store) (ds : List Datum) (hs : Every Instr.Bounded s) :
+    ∀ b ∈ (Runner.drive hash me fuel s σ ds).1, ∀ w ∈ b, w.Bounded :=
+  Runner.drive_bounded hash me fuel s σ ds hs
+
+/-- **The batches depend on the store only through `fill`** [M]. -/
+theorem runner_nextBatch_fill_only (hash : Bytes → Bytes) (me : Party) {α : Type} (σ₁ σ₂ : Store)
+    (h : ∀ i, fill hash me σ₁ i = fill hash me σ₂ i) (s : Script α) :
+    nextBatch hash me σ₁ s = nextBatch hash me σ₂ s :=
+  Runner.nextBatch_fill_only hash me σ₁ σ₂ h s
+
+end FlowsRunner
+
 /-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
 on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
 
@@ -7835,10 +7924,16 @@ the matching section above in the same commit.
 * **The joins** (section 7h, `scripts-stack`): the S12–S15 curve parameters instantiated with S11's
   flows; proved: the composed kinds, S15's `CurveOps.Reveals` (discharged), S15's `first_wired`
   bindings from S13's `bundle-seal` layout. Open: the joined flows through `jointRun` (values: S11's
-  `agree`/`offsetStep` honest runs are themselves open); S14's agreement slots (`Join.AgreeSlots`:
-  per-call coin and mask slots are an IO-side precondition nothing supplies yet); the handle-content
-  facts `hcert`/`hpend` of `join_first_wired`; the IO glue (`JoinBackend`, unverified, as every
-  backend); `_wf` of the joined scripts (their id blocks are counted, not proved).
+  `agree`/`offsetStep` honest runs are themselves open); the handle-content facts `hcert`/`hpend`
+  of `join_first_wired`; the IO glue (`JoinBackend`, `RefreshBackend`, `Select`, unverified, as
+  every backend); `_wf` of the joined scripts (their id blocks are counted, not proved); the
+  identity scalar's swap-bit coins for the joined agreements (J8: op 55 leaves the swap bits as
+  field handles). J1 (one mask slot for op 50's two agreements) is RESOLVED: section 7i
+  (`j1_openFirst_reads_once`, `j1_session_reads_once`, `j1_refreshOps_reads_once`).
+* **The script runner** (section 7i): its pure core against the model (`runner_drive_model`,
+  `runner_drive_bounded`, `runner_nextBatch_fill_only`). Open: the IO loop is `drive`'s steps by
+  construction, not by a theorem (an IO function); the fake-pair test
+  (`node_worker/tests/lean/RunnerTest.lean`) runs it against the model's shells.
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -8525,6 +8620,14 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.join_refresh_reveals
 #print axioms TlsMpc.Security.join_first_wired
 #print axioms TlsMpc.Security.join_kinds_registered
+#print axioms TlsMpc.Security.j1_openFirst_reads_once
+#print axioms TlsMpc.Security.j1_session_reads_once
+#print axioms TlsMpc.Security.j1_receiveAgree_once
+#print axioms TlsMpc.Security.j1_refreshOps_reads_once
+#print axioms TlsMpc.Security.j1_refresh_pools_disjoint
+#print axioms TlsMpc.Security.runner_drive_model
+#print axioms TlsMpc.Security.runner_drive_bounded
+#print axioms TlsMpc.Security.runner_nextBatch_fill_only
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
