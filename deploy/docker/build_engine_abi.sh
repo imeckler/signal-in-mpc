@@ -47,7 +47,11 @@ ar rcs "$OUT/libengine-abi-$VARIANT.a" "$OUT/engine-abi-$VARIANT.o" "$FIELD_OBJE
 # place of the build tree, then EMP's libraries and the C++ runtime.
 OT_OBJECTS="OT/BaseOT.o OT/BitDiagonal.o OT/MascotParams.o OT/OTExtension.o OT/OTExtensionWithMatrix.o OT/OTTripleSetup.o"
 {
-    echo "$MP/libSPDZ.so"
+    # By name, not by path: libSPDZ.so has no SONAME, so a path here would be recorded in the
+    # binary as the build tree's path (seen in the first built image: "cannot open shared object
+    # file /bundle/..."); by name it is found through the rpath below.
+    echo "-L$MP"
+    echo "-lSPDZ"
     for object in $OT_OBJECTS; do echo "$MP/$object"; done
     echo "$MP/deps/SimplestOT_C/ref10/libSimplestOT.a"
     echo "-Wl,--start-group"
