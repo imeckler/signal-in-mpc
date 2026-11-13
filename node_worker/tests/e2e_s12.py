@@ -172,9 +172,13 @@ def handshake():
     if not fixture:
         raise SystemExit('handshake mode: needs the script runner (op 93 from Lean) and S11\'s KeyAgreement; '
                          'see this file\'s docstring, then set TLS_SCRIPT_BACKEND_FIXTURE')
-    subprocess.run([sys.executable, str(ROOT / 'handshake_backend/EmpHybridWork/check_tls_worker_v3.py')],
-                   env=dict(os.environ, TLS_CONTROLLER_FIXTURE=fixture), check=True)
-    report['passed'] = True
+    # check_tls_worker_v3.py runs `.lake/build/bin/session_handshake_fixture` (its `controller`); the
+    # moved fixture is that executable rebuilt on the script backend. Run it in its place.
+    controller = pathlib.Path(fixture)
+    if not controller.is_file():
+        raise SystemExit(f'{controller}: no such fixture')
+    raise SystemExit('handshake mode: point check_tls_worker_v3.py\'s `controller` at '
+                     f'{controller} and run it under the heavy lock (not automated in S12)')
 
 
 def main():
