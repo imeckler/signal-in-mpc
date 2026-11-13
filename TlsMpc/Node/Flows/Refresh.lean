@@ -575,6 +575,12 @@ def opScratchSeal (t : Contacts.Table) (st : RState) (id : Nat) (cert : Nat) (ve
     | none => { script := .abort "scratch seal unavailable", commit := fun _ => (t, st) }
   | _, _ => { script := .abort "scratch seal unavailable", commit := fun _ => (t, st) }
 
+/-- The contact's entry after a commit: the sealed content as its state (with its size and kinds);
+with a new identity key, no derived values. -/
+def committed (e : Contacts.Entry) (content : BoolH) (size : Nat) (kinds : List Nat) (changed : Bool) :
+    Contacts.Entry :=
+  { e with state := some content, size := size, kinds := kinds, derived := if changed then [] else e.derived }
+
 /-- **Op 65: the ONLY change of a contact's entry by the refresh.** Once the database nodes
 acknowledged the sealed scratch (the caller's precondition: ORD-2), the contact's state becomes the
 sealed content; its old state is freed, and with a new identity key also the values derived from
@@ -586,9 +592,7 @@ def opCommit (t : Contacts.Table) (st : RState) (id : Nat) : RStep Unit :=
     if st.ready = true ∧ c = id then
       { script := seqs (frees (e.state.toList ++ (if st.changed then e.derived else []) ++ st.scratchHandles))
           (.done ())
-        commit := fun _ =>
-          let e' : Contacts.Entry := { e with state := some content, size := size, kinds := kinds }
-          (t.put id { e' with derived := if st.changed then [] else e.derived }, {}) }
+        commit := fun _ => (t.put id (committed e content size kinds st.changed), {}) }
     else { script := .abort "scratch commit unavailable", commit := fun _ => (t, st) }
   | _, _, _ => { script := .abort "scratch commit unavailable", commit := fun _ => (t, st) }
 
