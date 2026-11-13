@@ -5786,6 +5786,165 @@ theorem s10_quotient_wf (sigs : Bytes → Option Sig) (c : Ctx) (f0 slot : Nat) 
 
 end FlowsS10
 
+/-! ### 7c. Local arithmetic and the curve flows (stage S11; plan 7.1 P-SPLIT, P-OFFSET, P-HINT)
+
+Status per entry: **M** (ideal model of `Engine/Model.lean`) or **K** (values, independent of the
+model); hypotheses named `[hyp: …]`. `FieldInverse` (Fermat for p) is FieldDagV3's named
+hypothesis (discharged in `proofs/`: `FieldBridge.toZMod_inverse`). H-QR (`Curve.TwoNonSquare`)
+and Euler's criterion (`Curve.EulerCriterion`) are named hypotheses here, discharged in `proofs/`
+by `two_not_square` and `euler_criterion` (with `Local.Field.pow_eq`). H-GROUP is not assumed by any
+entry here: the entries state the main-package values the `proofs/` group-law theorems
+(`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `window_table`, `bitTable_entries`,
+`offsetSum_scalar_mult`/`offsetSum_recoded`, `bitSum_is_x25519`, `prepareHinted_initial_point`,
+`montQ_square_iff`, `liftPoint_valid_point`) are about. SECURITY_MAP: the curve kinds 91–95, 102.
+Checked standalone in the S11 branch (the full closure needs more than 4 GB): standard axioms only. -/
+
+section FlowsS11
+open TlsMpc.Node.Engine TlsMpc.Node.Flows
+open TlsMpc.FieldDag (F ofNat inverse)
+
+/-- **`Local/Edwards` uses the programs' formulas** [K]: affine addition is
+`EdwardsAffine.pointAddValue`, extended to affine is `EdwardsHinted.toAffineValue`, the Montgomery
+map is `(1 + y)·(1 − y)⁻¹` (the form `offsetSum` outputs). -/
+theorem s11_local_formulas (p q : TlsMpc.Node.Local.Edwards.Value) (e : TlsMpc.Node.Local.Edwards.ExtV) :
+    TlsMpc.Node.Local.Edwards.add p q = TlsMpc.EdwardsAffine.pointAddValue p q ∧
+    TlsMpc.Node.Local.Edwards.toAffine e = TlsMpc.EdwardsHinted.toAffineValue e ∧
+    TlsMpc.Node.Local.Edwards.montU p = (ofNat 1 + p.2) * inverse (ofNat 1 - p.2) :=
+  ⟨TlsMpc.Node.Local.Edwards.add_eq p q, TlsMpc.Node.Local.Edwards.toAffine_eq e, TlsMpc.Node.Local.Edwards.montU_eq p⟩
+
+/-- **`xeddsa-recover` on a public input, locally** [K] (replaces `field_program.h` `evaluate_clear`):
+the local evaluation is the program's expressions at that input. -/
+theorem s11_recoverPublic (u : F) :
+    TlsMpc.Node.Local.Edwards.recoverPublic u =
+      TlsMpc.EstablishField.recover.map (TlsMpc.FieldDag.Expr.eval (fun _ => u)) :=
+  TlsMpc.Node.Local.Edwards.recoverPublic_eq u
+
+/-- **A local square root squares to its argument** [K]. -/
+theorem s11_sqrt_sq (x r : F) (h : TlsMpc.Node.Local.Field.sqrt x = some r) : r * r = x :=
+  TlsMpc.Node.Local.Field.sqrt_sq x r h
+
+/-- **P-OFFSET (a): the recoding lemma** [K], about the flow's own `recode` (the C++ rule): for an
+offset below 2^252 the 64 digits encode it exactly, lie in −8 … 8, and leave no carry. -/
+theorem s11_recode64 (n : Nat) (hn : n < 2 ^ 252) :
+    Curve.digitsValue (Curve.recode 0 n 64).1 = n ∧ (Curve.recode 0 n 64).2 = 0 ∧
+      (Curve.recode 0 n 64).1.length = 64 ∧ ∀ d ∈ (Curve.recode 0 n 64).1, -8 ≤ d ∧ d ≤ 8 :=
+  Curve.recode64_value n hn
+
+/-- **P-OFFSET (a): the selected multiples** [K]: in any commutative group, the step's digits select
+multiples summing to τ·R (`OffsetAgreement.table_sum_correct`). -/
+theorem s11_step_tableSum {G : Type} [Lean.Grind.IntModule G] (R : G) (n : Nat) (hn : n < 2 ^ 252) :
+    TlsMpc.OffsetAgreement.tableSum R 0 (Curve.recode 0 n 64).1 = (n : Int) • R :=
+  Curve.step_tableSum R n hn
+
+/-- **P-OFFSET (a): the step's program inputs** [K]: window `w`'s three inputs are the table entry
+`entryAt w d` (x, y) and the sign, or the neutral element: what `proofs/` `offsetSum_recoded`
+assumes. -/
+theorem s11_stepIns_window (f0 : Nat) (st : Curve.OffsetState) (τ w : Nat) (hw : w < 64) :
+    ((Curve.stepIns f0 st τ).drop (2 + 3 * w)).take 3 =
+      (let d := (Curve.recode 0 τ 64).1.getD w 0
+       if d = 0 then [⟨f0⟩, ⟨f0 + 1⟩, ⟨f0 + 1⟩]
+       else [st.table.getD (Curve.entryAt w d) ⟨f0⟩, st.table.getD (Curve.entryAt w d + 1) ⟨f0⟩,
+         if 0 < d then ⟨f0 + 1⟩ else ⟨f0 + 2⟩]) :=
+  Curve.stepIns_window f0 st τ w hw
+
+/-- **P-OFFSET (b) on the script's output** [K]: the ephemeral key a step returns is
+`montU (K₀ + τ·B)` (a valid point): a function of the public K₀ and τ only. -/
+theorem s11_ephemeralKey (key : TlsMpc.Node.Local.Edwards.Value) (τ : Nat) (u : F)
+    (h : Curve.ephemeralKey key τ = some u) :
+    u = TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add key
+      (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) ∧
+    TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add key
+      (TlsMpc.Node.Local.Edwards.mul τ TlsMpc.Node.Local.Edwards.base)) = true :=
+  Curve.ephemeralKey_spec key τ u h
+
+/-- **P-HINT (a): the order of the lift's openings** [K]: checks (all zero) before `w`, `w` before
+`Z`. -/
+theorem s11_lift_order (f0 : Nat) (s : Curve.LiftSlots) (us : List FieldH) (hn : us.length ≠ 0) :
+    Curve.lift f0 s us = Contacts.seqs (Curve.liftBlock f0 s us) (Run.openFieldThen (Curve.liftChecks f0 us.length)
+      Label.curveChecks (Curve.liftAfterChecks f0 s us)) ∧
+    (∀ z, ¬ (z.length = 4 * us.length ∧ Curve.allZero z = true) → ∃ r, Curve.liftAfterChecks f0 s us z = .abort r) ∧
+    (∀ z, z.length = 4 * us.length ∧ Curve.allZero z = true →
+      Curve.liftAfterChecks f0 s us z = Run.openFieldThen (Curve.liftWs f0 us.length) Label.liftW (Curve.liftAfterW f0 s us)) ∧
+    (∀ ws rs, ws.length = us.length → Curve.roots ws = some rs →
+      Curve.liftAfterW f0 s us ws = Contacts.seqs (Curve.pointBlock f0 s us rs)
+        (Run.openFieldThen (Curve.liftZs f0 us.length) Label.liftZ (Curve.liftAfterZ f0 us.length rs))) :=
+  Curve.lift_order f0 s us hn
+
+/-- **P-HINT (b), soundness** [K; hyp: `FieldInverse`]: a valid lift bit means `q` is a square. -/
+theorem s11_lift_valid_sound (hinv : TlsMpc.FieldDag.V3.FieldInverse) (q r w : F) (b sel : Bool) (c : F)
+    (hw : w = q * r * r * (ofNat 1 + TlsMpc.X25519.bitValue b)) (hr : r ≠ 0)
+    (hroot : TlsMpc.Node.Local.Edwards.root w = some (sel, c)) (hvalid : (sel ^^ b) = true) : ∃ v, v * v = q :=
+  Curve.lift_valid_sound hinv q r w b sel c hw hr hroot hvalid
+
+/-- **The op 66 status reveals only curve membership** [K; hyp: `FieldInverse`, H-QR, Euler]: 255
+exactly when `q(u) = u(u² + 486662u + 1)` is a nonzero square (with `proofs/` `montQ_square_iff`:
+when `u ≠ 0` is the Montgomery coordinate of a curve point). -/
+theorem s11_prepareStatus_iff (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hE : Curve.EulerCriterion)
+    (hQR : Curve.TwoNonSquare) (u r w : F) (b sel : Bool) (c : F)
+    (hw : w = u * (u * u + ofNat 486662 * u + ofNat 1) * r * r * (ofNat 1 + TlsMpc.X25519.bitValue b)) (hr : r ≠ 0)
+    (hroot : w ≠ 0 → TlsMpc.Node.Local.Edwards.root w = some (sel, c)) :
+    (TlsMpc.X25519.bitValue (sel ^^ b) == ofNat 1 && !(w == 0)) = true ↔
+      (u * (u * u + ofNat 486662 * u + ofNat 1) ≠ 0 ∧ ∃ v, v * v = u * (u * u + ofNat 486662 * u + ofNat 1)) :=
+  Curve.prepareStatus_iff hinv hE hQR u r w b sel c hw hr hroot
+
+/-- **P-SPLIT (a), algebraic** [K; hyp: `FieldInverse`]: the agreement's quotient is the Montgomery
+coordinate of `T_A + T_B`. -/
+theorem s11_addU_montU (hinv : TlsMpc.FieldDag.V3.FieldInverse) (x1 y1 x2 y2 : F)
+    (hden : ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) ≠ 0) :
+    (ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) + ofNat 121666 * (x1 * x2 + y1 * y2)) *
+      inverse (ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) - ofNat 121666 * (x1 * x2 + y1 * y2)) =
+    TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add (x1, y1) (x2, y2)) :=
+  Curve.addU_montU hinv x1 y1 x2 y2 hden
+
+/-- **P-SPLIT (a), run level** [M; hyp: `FieldInverse`, the programs loaded]: two honest parties
+end with `(den + num)/(den − num)` of their points (= `montU (T_A + T_B)` by `s11_addU_montU`). -/
+theorem s11_splitAgree_honest (hinv : TlsMpc.FieldDag.V3.FieldInverse) (E : Env) (pOn pAdd : TlsMpc.FieldDag.V3.Program)
+    (hOn : E.programs Curve.onCurveName = some pOn) (hAdd : E.programs Curve.addUName = some pAdd)
+    (hOnC : Conv.Computes pOn 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i]))
+    (hAddC : Conv.Computes pAdd 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 tSlot maskSlot : Nat) (xA yA xB yB mA mB : F)
+    (hA : σA.elems tSlot = [xA, yA]) (hB : σB.elems tSlot = [xB, yB])
+    (hmA : σA.elems maskSlot = [mA]) (hmB : σB.elems maskSlot = [mB]) (hm : mA + mB ≠ 0)
+    (hcA : TlsMpc.Node.Local.Edwards.curveValue (xA, yA) = 0) (hcB : TlsMpc.Node.Local.Edwards.curveValue (xB, yB) = 0) :
+    let den := ofNat 121666 + ofNat 121665 * (xA * xB * (yA * yB))
+    let num := ofNat 121666 * (xA * xB + yA * yB)
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).result =
+      some ((⟨f0 + 11⟩, decide (den - num = 0)), (⟨f0 + 11⟩, decide (den - num = 0))) ∧
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).ideal.fields (f0 + 11) =
+      some ((den + num) * inverse (den - num)) :=
+  Curve.splitAgree_honest hinv E pOn pAdd hOn hAdd hOnC hAddC hq σA σB I f0 tSlot maskSlot xA yA xB yB mA mB hA hB hmA hmB hm hcA hcB
+
+/-- **T3 for op 66** [M]: every release of `prepareContacts` (both scripts and the local step between
+them), against any adversary, carries one of `prepareKinds`; the validity bits only under
+`pointValid`. -/
+theorem s11_prepareContacts_kinds (E : Env) (me : Party) (adv : Adversary) (hash : Bytes → Bytes) (f0 : Nat)
+    (s : Curve.PrepareSlots) (us identityBits : List FieldH) (σ : Store) (I : Ideal) (vD : List Release) :
+    ∀ r ∈ ((Curve.prepareContacts hash me f0 s us identityBits).withAdv E me adv σ I vD).viewD,
+      ∃ k ∈ Curve.prepareKinds, r.label = Label.ofKind k :=
+  Curve.prepareContacts_viewD_kinds E me adv hash f0 s us identityBits σ I vD
+
+/-- **The S11 curve flows declare their kinds** [M] (`Reveals`, on every branch). -/
+theorem s11_flows_reveal :
+    (∀ hash me nonce share, Reveals Curve.splitKinds (Curve.splitBegin hash me nonce share)) ∧
+    (∀ f0 tSlot maskSlot, Reveals Curve.splitKinds (Curve.splitAgree f0 tSlot maskSlot)) ∧
+    (∀ f0 slot jobs, Reveals Curve.agreeKinds (Curve.agree f0 slot jobs)) ∧
+    (∀ hash me f0 s u, Reveals Curve.offsetKinds (Curve.offsetPrepare hash me f0 s u)) ∧
+    (∀ f0 maskSlot st τ, Reveals Curve.offsetKinds (Curve.offsetStep f0 maskSlot st τ)) ∧
+    (∀ f0 slot st τ, Reveals Curve.offsetKinds (Curve.offsetStepFast f0 slot st τ)) ∧
+    (∀ f0 s us, Reveals Curve.liftKinds (Curve.lift f0 s us)) ∧
+    (∀ f0 s pts, Reveals Curve.tableKinds (Curve.tables f0 s pts)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeHinted f0 rho qslot jobs)) ∧
+    (∀ f0 rho qslot jobs, Reveals Curve.agreeKinds (Curve.agreeAffine f0 rho qslot jobs)) ∧
+    (∀ f0 maskSlot baseT jobs, Reveals Curve.signatureKinds (Curve.signatures f0 maskSlot baseT jobs)) ∧
+    (∀ f0 hintSlot rSlot maskSlot pts, Reveals Curve.signatureKinds (Curve.torsion f0 hintSlot rSlot maskSlot pts)) ∧
+    (∀ f0 slot, Reveals Convert.bitsKinds (Curve.sharedBits f0 slot)) ∧
+    (∀ hash me f0 s us ids, Reveals Curve.prepareKinds (Curve.prepareContacts hash me f0 s us ids).first) ∧
+    (∀ hash me f0 s us ids r, Reveals Curve.prepareKinds ((Curve.prepareContacts hash me f0 s us ids).second r)) :=
+  Registry.s11_flows_reveal
+
+end FlowsS11
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -5932,10 +6091,27 @@ the matching section above in the same commit.
   **S11**.
 * **P-GHASH** (incl. (c): `sealCtr_with_tag_is_seal`'s `halves` discharged for the running
   code). → **S12**.
-* **P-SPLIT** (split ECDH), **P-OFFSET** (offset agreement about `step`, incl. the digit
-  recoding lemma), **P-HINT** (lift and tables, under H-QR). → **S11**.
+* **P-SPLIT**, **P-OFFSET**, **P-HINT** (section 7c, stage S11). Proved: P-SPLIT (a) through
+  `jointRun` for the agreement (`s11_splitAgree_honest`, `s11_addU_montU`; the group law itself is
+  `proofs/` R7), (b) the gate (`Curve.splitAgree_gate`, checks = `curveValue`), (c) the kinds
+  (`Curve.splitKinds`), (d) `s11_local_formulas`; P-OFFSET (a) the recoding lemma about the flow's
+  own `recode` (`s11_recode64`, `s11_step_tableSum`) and the step's program inputs
+  (`s11_stepIns_window`: exactly `offsetSum_recoded`'s hypothesis; there is no C++ `step`), (b) the
+  key the script returns (`s11_ephemeralKey`), (c), (d) gates (`Curve.offsetPrepare_gate`,
+  `Curve.pointExchange_gate`); P-HINT (a) (`s11_lift_order`), (b) soundness with `FieldInverse` and
+  completeness under H-QR/Euler as named hypotheses (`s11_prepareStatus_iff`). OPEN: honest runs
+  through `jointRun` of `agree`, `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`,
+  `agreeHinted`, `agreeAffine`, `signatures`, `torsion`, `prepareContacts` (checked executably:
+  `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
+  for the curve flows beyond the kinds; `_wf` theorems for the curve scripts (every batch of the
+  vector instances admitted: `verdict ok`); P-HINT (d) composed with the runs (`entries_sound` is
+  about the program); that the local step's mask points are uniform on the curve group
+  (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/` `curve_hinted_Z_uniform` assumes it).
+  → **S11 follow-up**.
 * `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
-  7b, `s10_commit_open_sound`). Open: the point exchanges of P-SPLIT and P-OFFSET (S11).
+  7b, `s10_commit_open_sound`). The S11 point exchanges (`Curve.pointExchange`, same frame
+  `tag ‖ party ‖ nonce ‖ value`): the gate only (`Curve.pointExchange_gate`); the model statement
+  as `Random.commit_open_sound` is OPEN (S11 follow-up).
 * **P-INV** as a flow (section 7b): T3 against any adversary (only z·m and the zero flag), (a)
   through `jointRun`, the mask's uniformity, (c). The masks are fresh field randomness of both
   parties (never cut-and-choose word masks: a program mask must be marked never).
@@ -5998,8 +6174,10 @@ changes the following items:
     within (ℓ − 2²⁵²)/ℓ of uniform on G (`deployed_key_close_uniform`); ℓ prime (`prime_order`,
     Pocklington); (ℓ − 2²⁵²)/2²⁵² < 2⁻¹²⁷ (`order_gap_lt`), so `ed25519_key_close`,
     `ed25519_key_close_uniform` (2⁻¹²⁷) and `ed25519_keys_close` (k messages, k·2⁻¹²⁷).
-    Hypotheses: `idealCommit`; `P ≠ 0`, `ℓ·P = 0` for the recipient point. Open: P-OFFSET about the
-    C++ `step` (the digit recoding).
+    Hypotheses: `idealCommit`; `P ≠ 0`, `ℓ·P = 0` for the recipient point. The digit recoding is
+    now the flow's own `Curve.recode` (section 7c, `s11_recode64`, `s11_stepIns_window`); open:
+    the `proofs/` statement that `TlsMpcProofs.Ed25519.recode` equals `Curve.recode` (same equations,
+    `Curve.recode_zero` / `recode_succ`; by induction) once `proofs/` imports the S11 modules.
   - Receive: `Unpad.decode` is PKCS#7 unpadding (`unpad_decode_padded`, `unpad_decode_unpadded`,
     `unpad_decode_accepts_iff`). Open: value forms of `varintValue` (widths 2–5) and
     `canonicalRange` (ReceiveFirst's import closure is not compiled into proofs/).
@@ -6471,6 +6649,20 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s10_flows_reveal
 #print axioms TlsMpc.Security.s10_challenge_wf
 #print axioms TlsMpc.Security.s10_quotient_wf
+#print axioms TlsMpc.Security.s11_local_formulas
+#print axioms TlsMpc.Security.s11_recoverPublic
+#print axioms TlsMpc.Security.s11_sqrt_sq
+#print axioms TlsMpc.Security.s11_recode64
+#print axioms TlsMpc.Security.s11_step_tableSum
+#print axioms TlsMpc.Security.s11_stepIns_window
+#print axioms TlsMpc.Security.s11_ephemeralKey
+#print axioms TlsMpc.Security.s11_lift_order
+#print axioms TlsMpc.Security.s11_lift_valid_sound
+#print axioms TlsMpc.Security.s11_prepareStatus_iff
+#print axioms TlsMpc.Security.s11_addU_montU
+#print axioms TlsMpc.Security.s11_splitAgree_honest
+#print axioms TlsMpc.Security.s11_prepareContacts_kinds
+#print axioms TlsMpc.Security.s11_flows_reveal
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
