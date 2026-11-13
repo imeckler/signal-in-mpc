@@ -517,7 +517,7 @@ theorem seal_outcome (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (db 
       r.2.2 = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩,
         ⟨envelopeLabel, .bits (bitsOf te)⟩] ∧
       r.2.1.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
-      r.2.1.bools a.cert.id = some (bitsOf certB)) ∧
+      ∀ x, x < n → x ≠ a.ephAgreement.id → x ≠ a.state.id → r.2.1.bools x = I.bools x) ∧
     (out.take 1 ≠ [255] →
       r.1 = some none ∧ r.2.2 = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
       r.2.1.bools a.state.id = some (bitsOf record)) := by
@@ -541,8 +541,8 @@ theorem seal_outcome (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (db 
   obtain ⟨kA, kR⟩ := key
   refine ⟨fun hacc => ?_, fun hrej => ?_⟩
   · obtain ⟨e1, e2, e3, e4⟩ := kA hacc
-    refine ⟨e1, by rw [e2], e3, ?_⟩
-    rw [e4 _ h.cn (fun e => h.ec e.symm) h.cs, hJ _ h.cn, h.vc]
+    refine ⟨e1, by rw [e2], e3, fun x hx hxe hxs => ?_⟩
+    rw [e4 x hx hxe hxs, hJ x hx]
   · obtain ⟨e1, e2, e3⟩ := kR hrej
     refine ⟨e1, by rw [e2], ?_⟩
     rw [e3 _ h.sn (fun e => h.es e.symm), hJ _ h.sn, h.vs]
@@ -665,7 +665,7 @@ theorem seal_joint (E : Env) (σA σB : Store) (n : Nat) (a : SealArgs) (certB r
       o.viewA = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩,
         ⟨envelopeLabel, .bits (bitsOf te)⟩] ∧ o.viewB = o.viewA ∧
       o.ideal.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
-      o.ideal.bools a.cert.id = some (bitsOf certB)) ∧
+      ∀ x, x < n → x ≠ a.ephAgreement.id → x ≠ a.state.id → o.ideal.bools x = I.bools x) ∧
     (out.take 1 ≠ [255] →
       o.result = some (none, none) ∧
       o.viewA = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧ o.viewB = o.viewA ∧
@@ -675,7 +675,8 @@ theorem seal_joint (E : Env) (σA σB : Store) (n : Nat) (a : SealArgs) (certB r
   obtain ⟨kA, kR⟩ := seal_outcome E n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
   refine ⟨fun hacc => ?_, fun hrej => ?_⟩
   · obtain ⟨e1, e2, e3, e4⟩ := kA hacc
-    refine ⟨by rw [r1, e1]; rfl, by rw [r3, e2], by rw [r4, r3], by rw [r2, e3], by rw [r2, e4]⟩
+    refine ⟨by rw [r1, e1]; rfl, by rw [r3, e2], by rw [r4, r3], by rw [r2, e3], fun x hx hxe hxs => by
+      rw [r2, e4 x hx hxe hxs]⟩
   · obtain ⟨e1, e2, e3⟩ := kR hrej
     refine ⟨by rw [r1, e1]; rfl, by rw [r3, e2], by rw [r4, r3], by rw [r2, e3]⟩
 
@@ -747,8 +748,10 @@ theorem send_state_order (E : Env) (σA σB : Store) (n : Nat) (a : SealArgs) (c
       (sealBound_of a.certLen cw pw ew iw classes official h.certLe hcls4 (widthsOf_le hw)) (textClass_pos h.cls)
     simp only [List.length_take, List.length_drop, hl, convBytes]
     omega
+  have e5' : (jointRun E (sealScript n a) (sealScript n a) σA σB I).ideal.bools a.cert.id = some (bitsOf certB) := by
+    rw [e5 _ h.cn (fun e => h.ec e.symm) h.cs, h.vc]
   obtain ⟨q1, q2, -, q4, -⟩ := request_joint E σA' σB' m a.cert ⟨n + 6⟩ certB _ _ (by have := h.cn; omega)
-    hlen e5 e4
+    hlen e5' e4
   refine ⟨q1, q2, ?_⟩
   rw [q4, List.take_of_length_le (by
     simp only [List.length_take]; omega)]
