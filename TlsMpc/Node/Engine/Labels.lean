@@ -116,13 +116,21 @@ def serverBytes : Label := ofKind .serverBytes
 `gcm-multiply`). Kind `ghashMaskedPower` (9). -/
 def ghashMaskedPower : Label := ofKind .ghashMaskedPower
 
+/-! Send (stage S13, kinds 40-41). -/
+
+/-- `signal-widths`'s width flags of a send's counters (ops 41, 61). Kind `counterWidths` (40). -/
+def counterWidths : Label := ofKind .counterWidths
+/-- A seal kernel's gated status (`signal-seal-official` / `-built`, `bundle-seal`), and after an
+accepted status its timestamp and envelope (ops 41, 61). Kind `sealedEnvelope` (41). -/
+def sealedEnvelope : Label := ofKind .sealedEnvelope
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
    .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
    .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
    .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
-   .serverBytes, .ghashMaskedPower]
+   .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
@@ -130,7 +138,7 @@ def all : List Label :=
    maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
    bitBlockChecks, scalarBitChecks, maskedDenominator,
    handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
-   serverBytes, ghashMaskedPower]
+   serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -156,6 +164,6 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) = [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90,
-    2, 3, 4, 5, 6, 7, 8, 9] := rfl
+    2, 3, 4, 5, 6, 7, 8, 9, 40, 41] := rfl
 
 end TlsMpc.Node.Engine.Label
