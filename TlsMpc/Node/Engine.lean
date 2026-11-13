@@ -1730,6 +1730,148 @@ def encodeBatchFast (b : List Wire) : Bytes := EncF.list encWireFast b
 theorem encodeBatchFast_eq (b : List Wire) : encodeBatchFast b = encodeBatch b := by
   simp only [encodeBatchFast, encodeBatch, EncF.list_eq, encWireFast_eq]
 
+/-! ### `encodeBatch` into a byte array (2026-11-13, later)
+
+`encodeBatchFast` still builds the batch as a list of bytes, which the pipe then measures and copies
+into an array: one list cell per byte. The mask pool's batches carry about 4 MB (the cut's and the
+buckets' `pick` positions, eight bytes each), a GHASH round's up to 170 KB: ~13 ms of the
+controller's time per message (PERFORMANCE.md, "The script path's cost", second round).
+`encodeBatchArray` writes the same bytes straight into a `ByteArray` (each `EncA.*` appends what the
+`Enc.*` of the same name returns: `EncA.*_spec`), so `(encodeBatchArray b).data.toList = encodeBatch b`
+(`encodeBatchArray_eq`); the runner sends it with `Rpc.callArray`. -/
+
+namespace EncA
+
+/-- The bytes an array holds. -/
+abbrev bl (a : ByteArray) : Bytes := a.data.toList
+
+theorem bl_push (a : ByteArray) (b : UInt8) : bl (a.push b) = bl a ++ [b] := by
+  cases a
+  simp [bl, ByteArray.push]
+
+/-- `le k n`, appended. -/
+def le : Nat → Nat → ByteArray → ByteArray
+  | 0, _, acc => acc
+  | k + 1, n, acc => le k (n / 256) (acc.push (UInt8.ofNat (n % 256)))
+
+theorem le_spec (k n : Nat) (acc : ByteArray) : bl (le k n acc) = bl acc ++ Engine.le k n := by
+  induction k generalizing n acc with
+  | zero => simp [le, Engine.le]
+  | succ k ih => simp [le, Engine.le, ih, bl_push]
+
+/-- `leFast k n` (seven bytes per big-number step), appended. -/
+def leFast : Nat → Nat → ByteArray → ByteArray
+  | k + 7, n, acc => leFast k (n / 72057594037927936) (le 7 (n % 72057594037927936) acc)
+  | k, n, acc => le k n acc
+
+theorem leFast_spec (k n : Nat) (acc : ByteArray) : bl (leFast k n acc) = bl acc ++ Engine.le k n := by
+  rw [← Engine.leFast_eq]
+  match k with
+  | k + 7 =>
+    simp only [leFast, Engine.leFast]
+    rw [leFast_spec k, le_spec, List.append_assoc, Engine.leFast_eq]
+  | 0 => simp only [leFast, Engine.leFast, le_spec]
+  | 1 => simp only [leFast, Engine.leFast, le_spec]
+  | 2 => simp only [leFast, Engine.leFast, le_spec]
+  | 3 => simp only [leFast, Engine.leFast, le_spec]
+  | 4 => simp only [leFast, Engine.leFast, le_spec]
+  | 5 => simp only [leFast, Engine.leFast, le_spec]
+  | 6 => simp only [leFast, Engine.leFast, le_spec]
+
+def u64 (n : Nat) (acc : ByteArray) : ByteArray := leFast 8 n acc
+def flag (b : Bool) (acc : ByteArray) : ByteArray := acc.push (if b then 1 else 0)
+def party (p : Party) (acc : ByteArray) : ByteArray := acc.push (match p with | .a => 0 | .b => 1)
+def kind (k : FieldIn) (acc : ByteArray) : ByteArray := acc.push (match k with | .coins => 0 | .elements => 1)
+def felt (v : F) (acc : ByteArray) : ByteArray := leFast 32 v.val acc
+/-- A list: its length, then each element (`foldl`, appending in place). -/
+def list {α : Type} (e : α → ByteArray → ByteArray) (l : List α) (acc : ByteArray) : ByteArray :=
+  l.foldl (fun a x => e x a) (u64 l.length acc)
+def bytes (b : Bytes) (acc : ByteArray) : ByteArray := list (fun x a => a.push x) b acc
+def bits (b : Bits) (acc : ByteArray) : ByteArray := list flag b acc
+def felts (v : List F) (acc : ByteArray) : ByteArray := list felt v acc
+def boolH (h : BoolH) (acc : ByteArray) : ByteArray := u64 h.id acc
+def fieldH (h : FieldH) (acc : ByteArray) : ByteArray := u64 h.id acc
+def label (l : Label) (acc : ByteArray) : ByteArray := u64 l.code acc
+def pair (p : FieldH × FieldH) (acc : ByteArray) : ByteArray := fieldH p.2 (fieldH p.1 acc)
+
+theorem u64_spec (n : Nat) (acc : ByteArray) : bl (u64 n acc) = bl acc ++ Enc.u64 n := leFast_spec 8 n acc
+theorem flag_spec (b : Bool) (acc : ByteArray) : bl (flag b acc) = bl acc ++ Enc.flag b := by
+  simp only [flag, Enc.flag, bl_push]
+theorem party_spec (p : Party) (acc : ByteArray) : bl (party p acc) = bl acc ++ Enc.party p := by
+  cases p <;> simp only [party, Enc.party, bl_push]
+theorem kind_spec (k : FieldIn) (acc : ByteArray) : bl (kind k acc) = bl acc ++ Enc.kind k := by
+  cases k <;> simp only [kind, Enc.kind, bl_push]
+theorem felt_spec (v : F) (acc : ByteArray) : bl (felt v acc) = bl acc ++ Enc.felt v := leFast_spec 32 v.val acc
+
+theorem foldl_spec {α : Type} (e : α → ByteArray → ByteArray) (f : α → Bytes)
+    (he : ∀ x a, bl (e x a) = bl a ++ f x) (l : List α) (acc : ByteArray) :
+    bl (l.foldl (fun a x => e x a) acc) = bl acc ++ (l.map f).flatten := by
+  induction l generalizing acc with
+  | nil => simp
+  | cons x l ih => simp only [List.foldl_cons, ih, he, List.map_cons, List.flatten_cons, List.append_assoc]
+
+theorem list_spec {α : Type} (e : α → ByteArray → ByteArray) (f : α → Bytes)
+    (he : ∀ x a, bl (e x a) = bl a ++ f x) (l : List α) (acc : ByteArray) :
+    bl (list e l acc) = bl acc ++ Enc.list f l := by
+  simp only [list, Enc.list, foldl_spec e f he, u64_spec, List.append_assoc]
+
+theorem bytes_spec (b : Bytes) (acc : ByteArray) : bl (bytes b acc) = bl acc ++ Enc.bytes b :=
+  list_spec _ (fun x => [x]) (fun x a => bl_push a x) b acc
+theorem bits_spec (b : Bits) (acc : ByteArray) : bl (bits b acc) = bl acc ++ Enc.bits b :=
+  list_spec _ _ flag_spec b acc
+theorem felts_spec (v : List F) (acc : ByteArray) : bl (felts v acc) = bl acc ++ Enc.felts v :=
+  list_spec _ _ felt_spec v acc
+theorem boolH_spec (h : BoolH) (acc : ByteArray) : bl (boolH h acc) = bl acc ++ Enc.boolH h := u64_spec _ _
+theorem fieldH_spec (h : FieldH) (acc : ByteArray) : bl (fieldH h acc) = bl acc ++ Enc.fieldH h := u64_spec _ _
+theorem label_spec (l : Label) (acc : ByteArray) : bl (label l acc) = bl acc ++ Enc.label l := u64_spec _ _
+theorem pair_spec (p : FieldH × FieldH) (acc : ByteArray) : bl (pair p acc) = bl acc ++ Enc.pair p := by
+  simp only [pair, Enc.pair, fieldH_spec, List.append_assoc]
+
+/-- `encWire`, appended. -/
+def wire (w : Wire) (acc : ByteArray) : ByteArray :=
+  match w with
+  | .boolInput out owner w once rev v =>
+    bits v (flag rev (flag once (u64 w (party owner (boolH out (acc.push 1))))))
+  | .boolInputBoth oa ob w once rev v =>
+    bits v (flag rev (flag once (u64 w (boolH ob (boolH oa (acc.push 2))))))
+  | .boolPublic out v => bits v (boolH out (acc.push 3))
+  | .run out name n input => boolH input (u64 n (bytes name (boolH out (acc.push 4))))
+  | .concat out ps => list boolH ps (boolH out (acc.push 5))
+  | .slice out h lo hi => u64 hi (u64 lo (boolH h (boolH out (acc.push 6))))
+  | .pick out h is => list u64 is (boolH h (boolH out (acc.push 7)))
+  | .openBool h l => label l (boolH h (acc.push 8))
+  | .openBoolTo h r l _ => label l (party r (boolH h (acc.push 9)))
+  | .freeBool h => boolH h (acc.push 10)
+  | .fieldInput oa ob k rev v =>
+    felts v (flag rev (kind k (list fieldH ob (list fieldH oa (acc.push 11)))))
+  | .fieldPublic out v => felt v (fieldH out (acc.push 12))
+  | .fieldAdd out a b => fieldH b (fieldH a (fieldH out (acc.push 13)))
+  | .fieldSub out a b => fieldH b (fieldH a (fieldH out (acc.push 14)))
+  | .fieldScale out a k => u64 k (fieldH a (fieldH out (acc.push 15)))
+  | .fieldDivide out a k => felt k (fieldH a (fieldH out (acc.push 16)))
+  | .fieldMul outs ps => list pair ps (list fieldH outs (acc.push 17))
+  | .fieldCheck => acc.push 18
+  | .openField hs l => label l (list fieldH hs (acc.push 19))
+  | .freeField h => fieldH h (acc.push 20)
+  | .exchange len l p => bytes p (label l (u64 len (acc.push 21)))
+  | .program name k ins ms outs l =>
+    label l (list fieldH outs (list fieldH ms (list fieldH ins (u64 k (bytes name (acc.push 22))))))
+
+theorem wire_spec (w : Wire) (acc : ByteArray) : bl (wire w acc) = bl acc ++ encWire w := by
+  cases w <;> simp only [wire, encWire, bl_push, u64_spec, flag_spec, party_spec, kind_spec, felt_spec,
+    bytes_spec, bits_spec, felts_spec, boolH_spec, fieldH_spec, label_spec,
+    list_spec _ _ boolH_spec, list_spec _ _ u64_spec, list_spec _ _ fieldH_spec, list_spec _ _ pair_spec,
+    List.append_assoc, List.cons_append, List.nil_append, List.singleton_append]
+
+end EncA
+
+/-- **`encodeBatch` into a byte array** (`encodeBatchArray_eq`): what the runner sends. -/
+def encodeBatchArray (b : List Wire) : ByteArray := EncA.list EncA.wire b ByteArray.empty
+
+theorem encodeBatchArray_eq (b : List Wire) : (encodeBatchArray b).data.toList = encodeBatch b := by
+  have h := EncA.list_spec EncA.wire encWire EncA.wire_spec b ByteArray.empty
+  simpa [encodeBatchArray, encodeBatch, EncA.bl] using h
+
 namespace DecF
 def u64 : Dec Nat := fun s =>
   match Dec.takeList 8 s with

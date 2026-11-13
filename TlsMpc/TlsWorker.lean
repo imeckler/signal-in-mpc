@@ -74,6 +74,11 @@ structure Rpc where
   call : Operation → Bytes → M Bytes
   /-- Local public X.509/hostname/CertificateVerify validation. -/
   authenticate : String → List Bytes → Nat → Bytes → Bytes → M Bool
+  /-- `call` with the payload as a byte array: the same operation on the same bytes
+  (`payload.data.toList`), without building them as a list first (the script runner's batches,
+  op 93, are encoded straight into an array: `Engine.encodeBatchArray`). By default it is `call`;
+  the pipe (`TlsWorkerPipe.make`) writes the array as it is. -/
+  callArray : Operation → ByteArray → M Bytes := fun operation payload => call operation payload.data.toList
 
 def emptyReply (rpc : Rpc) (operation : Operation) (input : Bytes) : M Unit := do
   let output ← rpc.call operation input
@@ -167,12 +172,19 @@ def connectVia (rpc : Rpc) (hostname : String) (port : Nat) : Option Proxy → M
 selected first whenever another one is active (`active` tracks it; all controllers select at
 the same points, as every request is agreed). With one connection it never selects. -/
 def onConnection (rpc : Rpc) (active : IO.Ref Nat) (index : Nat) : Rpc :=
-  { rpc with call := fun operation input => do
+  { rpc with
+    call := fun operation input => do
       if (← liftM (active.get : IO Nat)) != index then
         insist (index < 64) "connection index"
         emptyReply rpc .useConnection [UInt8.ofNat index]
         liftM (active.set index : IO Unit)
-      rpc.call operation input }
+      rpc.call operation input
+    callArray := fun operation input => do
+      if (← liftM (active.get : IO Nat)) != index then
+        insist (index < 64) "connection index"
+        emptyReply rpc .useConnection [UInt8.ofNat index]
+        liftM (active.set index : IO Unit)
+      rpc.callArray operation input }
 
 def transport (rpc : Rpc) : Transport where
   send wire := emptyReply rpc .sendRecord wire

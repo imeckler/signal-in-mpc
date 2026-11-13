@@ -59,21 +59,31 @@ private structure PipeState where
   failed : Bool := false
   cleanupAvailable : Bool := false
 
+/-- A request frame's header: the operation code, the sequence number, the payload's length. -/
+def header (operation : Operation) (sequence size : Nat) : Bytes :=
+  [UInt8.ofNat (code operation)] ++ uint 8 sequence ++ uint 4 size
+
+/-- A frame is its header, then the payload (`Rpc.callArray` writes the two as one array). -/
+theorem frame_header (operation : Operation) (sequence : Nat) (payload : Bytes) :
+    frame operation sequence payload = header operation sequence payload.length ++ payload := rfl
+
 def make (input output : IO.FS.Stream)
     (authenticate : String → List Bytes → Nat → Bytes → Bytes → M Bool) : IO Rpc := do
   let state ← Std.Mutex.new ({} : PipeState)
-  return {
-    authenticate
-    call := fun operation payload => ExceptT.mk <| state.atomically fun stateRef => do
+  -- One exchange: the payload's length is `size`; `bytes sequence` is the whole frame (`call`: the
+  -- list frame as an array; `callArray`: the header's array, then the payload's, the same bytes by
+  -- `frame_header`).
+  let exchange : Operation → Nat → (Nat → ByteArray) → M Bytes := fun operation size bytes =>
+    ExceptT.mk <| state.atomically fun stateRef => do
       let before ← stateRef.get
       if before.failed && !(operation == .abort && before.cleanupAvailable) then
         return .error "worker pipe is terminal after failure"
       let action : M Bytes := do
-        insist (payload.length ≤ maxPayload) "worker pipe request exceeds bound"
+        insist (size ≤ maxPayload) "worker pipe request exceeds bound"
         let sequence := before.next
         insist (sequence < 2^64) "worker request sequence exhausted"
         liftM (stateRef.set { before with next := sequence+1, cleanupAvailable := false } : IO Unit)
-        liftM (output.write ⟨(frame operation sequence payload).toArray⟩)
+        liftM (output.write (bytes sequence))
         liftM output.flush
         let header ← readExact input 5
         let size := number (header.drop 1)
@@ -92,5 +102,11 @@ def make (input output : IO.FS.Stream)
       match result with
       | .error _ => stateRef.modify fun current => { current with failed := true }
       | .ok _ => pure ()
-      return result }
+      return result
+  return {
+    authenticate
+    call := fun operation payload =>
+      exchange operation payload.length fun sequence => ⟨(frame operation sequence payload).toArray⟩
+    callArray := fun operation payload =>
+      exchange operation payload.size fun sequence => ⟨(header operation sequence payload.size).toArray⟩ ++ payload }
 end TlsMpc.TlsWorkerPipe

@@ -576,13 +576,14 @@ def start (w : Flow.Worker) (me : Party) (loaded : Bytes → Bool) (programMasks
 
 /-- One batch on the pipe (op 93): the pending frees (`pending`) and then `ws`, encoded, out; the
 reply items in (as many as `itemCount`; the frees give none, `itemCount_append_frees`). The bytes are
-`encodeBatch` / `decodeReplies` of them, computed by `encodeBatchFast` / `decodeRepliesFast`
-(`encodeBatchFast_eq`, `decodeRepliesFast_eq`: the same functions, linear and word-at-a-time). -/
+`encodeBatch` / `decodeReplies` of them, computed by `encodeBatchArray` / `decodeRepliesFast`
+(`encodeBatchArray_eq`: the array holds exactly `encodeBatch all`, sent by `Rpc.callArray`, which
+writes those bytes; `decodeRepliesFast_eq`). -/
 def batch (r : Runner) (ws : List Wire) : M (List Datum) := do
   let fs ← get r.pending
   set r.pending []
   let all := fs ++ ws
-  let reply ← Flow.Legacy.call r.worker .batch (encodeBatchFast all)
+  let reply ← Flow.Legacy.callArray r.worker .batch (encodeBatchArray all)
   let some items := decodeRepliesFast reply | throw "undecodable batch reply"
   insist (items.length == itemCount r.me all) "batch reply count"
   return items

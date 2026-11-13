@@ -116,9 +116,9 @@ def ensure (r : Runner) (d : Tls.Direction) (need : Nat) : M Tls.Direction := do
       let c := Local.Ghash.oddCount m t
       if c = 0 then
         -- No odd power in (m, t] (only m = 1, t = 2): the square is local.
-        d := { d with shares := Local.Ghash.extendFastOf d.shares t (Secret.hide []), powers := t }
+        d := { d with shares := Local.Ghash.extendLimbOf d.shares t (Secret.hide []), powers := t }
         continue
-      let leftSlot ← r.stashBits ((Local.Ghash.leftsFastOf d.shares t).map bitsOfWs)
+      let leftSlot ← r.stashBits ((Local.Ghash.leftsLimbOf d.shares t).map bitsOfWs)
       let rightSlot ← r.stashBits (d.shares.map fun l => bitsOfW (l.getD 0 0))
       let masks ← r.random (16 * c)
       let maskSlot ← r.stashBits (masks.map fun ms => bitsOf (toB8 ms))
@@ -127,7 +127,7 @@ def ensure (r : Runner) (d : Tls.Direction) (need : Nat) : M Tls.Direction := do
       r.run (Ghash.roundScript n c leftSlot rightSlot maskSlot dst)
       let odd ← if r.me = .a then pure (masks.map fun ms => wsOfBits c (bitsOf (toB8 ms)))
         else do pure ((← r.take dst).map (wsOfBits c))
-      d := { d with shares := Local.Ghash.extendFastOf d.shares t odd, powers := t }
+      d := { d with shares := Local.Ghash.extendLimbOf d.shares t odd, powers := t }
   insist (need ≤ d.powers) "GHASH powers"
   return d
 
@@ -246,7 +246,7 @@ def sealPhases {Sc : Type} (r : Runner) (s : Refs Sc) (ctr : Nat → Script (B8 
   let (hc, pad) ← r.run (ctr n)
   let d ← ensure r (← sendOf s) (Local.Ghash.needed 5 (hc.length - 5))
   set s.conn { (← get s.conn) with send := some d }
-  let halfSlot ← r.stashBits ((Local.Ghash.halfFastOf d.shares (hc.take 5) (hc.drop 5)).map bitsOfW)
+  let halfSlot ← r.stashBits ((Local.Ghash.halfLimbOf d.shares (hc.take 5) (hc.drop 5)).map bitsOfW)
   let m ← r.allocB 4
   let tag ← r.run (Tls.tagScript m pad halfSlot)
   return ofB8 (hc ++ tag)
@@ -295,7 +295,7 @@ def scriptApplicationBackend {Sc : Type} (r : Runner) (ka : KeyAgreement Sc) (s 
     let hdr := toB8 (wire.take 5)
     let ct := toB8 ((wire.drop 5).take (wire.length - 21))
     let d ← ensure r d (Local.Ghash.needed 5 ct.length)
-    let halfSlot ← r.stashBits ((Local.Ghash.halfFastOf d.shares hdr ct).map bitsOfW)
+    let halfSlot ← r.stashBits ((Local.Ghash.halfLimbOf d.shares hdr ct).map bitsOfW)
     let cap := Tls.capacity wire.length
     let padded := toB8 wire ++ List.replicate (cap - wire.length) 0
     let n ← r.allocB 17

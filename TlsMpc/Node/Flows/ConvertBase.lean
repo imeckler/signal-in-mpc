@@ -105,6 +105,62 @@ def word (n : Nat) : Bits := bitsOfNat 255 n
 
 @[simp] theorem length_word (n : Nat) : (word n).length = 255 := length_bitsOfNat _ _
 
+/-- `bitsOfNat (a + b)`: the low `a` bits, then the next `b`. -/
+theorem bitsOfNat_add (a b n : Nat) : bitsOfNat (a + b) n = bitsOfNat a n ++ bitsOfNat b (n / 2 ^ a) := by
+  induction a generalizing n with
+  | zero => simp [bitsOfNat]
+  | succ a ih =>
+    rw [Nat.add_right_comm, bitsOfNat, ih, bitsOfNat, List.cons_append, Nat.div_div_eq_div_mul, Nat.pow_succ,
+      Nat.mul_comm (2 ^ a)]
+
+/-- `word`, computed 62 bits per big-number step (`wordFast_eq`): `bitsOfNat` halves a 255-bit number
+255 times, each a big-number division; here four divisions by 2⁶² cut it into machine-size pieces
+whose bits cost nothing to allocate. The IO glue's mask candidates (`Select.generatePool`: 704 words
+twice per pool generation) use it. -/
+def wordFast (n : Nat) : Bits :=
+  let q1 := n / 2 ^ 62
+  let q2 := q1 / 2 ^ 62
+  let q3 := q2 / 2 ^ 62
+  bitsOfNat 62 (n % 2 ^ 62) ++ (bitsOfNat 62 (q1 % 2 ^ 62) ++ (bitsOfNat 62 (q2 % 2 ^ 62) ++
+    (bitsOfNat 62 (q3 % 2 ^ 62) ++ bitsOfNat 7 (q3 / 2 ^ 62))))
+
+theorem natOf_append (a b : Bits) : natOf (a ++ b) = natOf a + 2 ^ a.length * natOf b := by
+  induction a with
+  | nil => simp [natOf]
+  | cons x a ih =>
+    simp only [List.cons_append, natOf, ih, List.length_cons, Nat.pow_succ]
+    rw [Nat.mul_add, ← Nat.mul_assoc, Nat.mul_comm 2 (2 ^ a.length)]
+    omega
+
+/-- `natOf`, 62 bits per big-number step: each piece's value is a machine-size number (`natOf` of at
+most 62 bits never leaves it); at most `k` pieces are cut off, the rest is `natOf` itself. -/
+def natOfChunks : Nat → Bits → Nat
+  | 0, bs => natOf bs
+  | k + 1, bs => if bs.length ≤ 62 then natOf bs else natOf (bs.take 62) + 2 ^ 62 * natOfChunks k (bs.drop 62)
+
+theorem natOfChunks_eq (k : Nat) (bs : Bits) : natOfChunks k bs = natOf bs := by
+  induction k generalizing bs with
+  | zero => rfl
+  | succ k ih =>
+    simp only [natOfChunks]
+    split
+    · rfl
+    · rename_i hn
+      have h := natOf_append (bs.take 62) (bs.drop 62)
+      rw [List.take_append_drop] at h
+      have hl : (bs.take 62).length = 62 := by simp; omega
+      rw [ih, h, hl]
+
+/-- `natOf` computed in machine-size pieces (`natOfFast_eq`); the mask pool's cut and bucket checks
+(`Masks.wordsMatch`: 1,376 words per pool generation) use it. -/
+def natOfFast (bs : Bits) : Nat := natOfChunks (bs.length / 62 + 1) bs
+
+theorem natOfFast_eq (bs : Bits) : natOfFast bs = natOf bs := natOfChunks_eq _ _
+
+theorem wordFast_eq (n : Nat) : wordFast n = word n := by
+  rw [word, show (255 : Nat) = 62 + (62 + (62 + (62 + 7))) from rfl]
+  simp only [wordFast, bitsOfNat_add, bitsOfNat_mod]
+
 theorem natOf_word (n : Nat) (h : n < 2 ^ 255) : natOf (word n) = n := by
   rw [word, natOf_bitsOfNat, Nat.mod_eq_of_lt h]
 

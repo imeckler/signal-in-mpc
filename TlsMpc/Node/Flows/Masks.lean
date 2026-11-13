@@ -209,7 +209,15 @@ def chunks (w : Nat) (l : Bits) : List Bits := chunksN w (l.length / w) l
 /-- The cut check on the replies: every opened word canonical and equal to the opened element. -/
 def wordsMatch (canon : Bool) (ws : List Bits) (es : List F) : Bool :=
   ws.length == es.length &&
-    (ws.zip es).all fun e => (!canon || decide (natOf e.1 < P)) && natOf e.1 == e.2.val
+    (ws.zip es).all fun e => (!canon || decide (natOfFast e.1 < P)) && natOfFast e.1 == e.2.val
+
+/-- **`wordsMatch` is the check on the words' values** (`natOf`; it computes them with `natOfFast`,
+`natOfFast_eq`, since 2026-11-13: 1,376 words of 255 bits per pool generation, one big-number step per
+bit before). -/
+theorem wordsMatch_eq (canon : Bool) (ws : List Bits) (es : List F) :
+    wordsMatch canon ws es = (ws.length == es.length &&
+      (ws.zip es).all fun e => (!canon || decide (natOf e.1 < P)) && natOf e.1 == e.2.val) := by
+  simp only [wordsMatch, natOfFast_eq]
 
 def cutCheck (vb : Bits) (ve : List F) : Bool := wordsMatch true (chunks W vb) ve
 def bucketCheck (vb : Bits) (ve : List F) : Bool := wordsMatch false (chunks W vb) ve

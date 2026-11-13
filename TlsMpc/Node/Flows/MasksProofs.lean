@@ -99,7 +99,7 @@ theorem zip_fst_snd {α β : Type} (l : List (α × β)) : (l.map Prod.fst).zip 
 theorem wordsMatch_pairs (canon : Bool) (l : List (Bits × F)) :
     wordsMatch canon (l.map Prod.fst) (l.map Prod.snd) =
       l.all fun e => (!canon || decide (natOf e.1 < P)) && natOf e.1 == e.2.val := by
-  simp [wordsMatch, zip_fst_snd]
+  simp [wordsMatch_eq, zip_fst_snd]
 
 /-! ## Candidates -/
 

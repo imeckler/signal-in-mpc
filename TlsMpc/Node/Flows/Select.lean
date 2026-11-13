@@ -426,17 +426,48 @@ def Session.tlsRefs (s : Session) (connection : Option Nat) : M (TlsBackend.Refs
 2⁻²⁵⁰ from uniform). -/
 def candidate (b : Bytes) : F := TlsMpc.FieldDag.ofNat (Engine.fromLEFast b)
 
+/-- The candidates' 255-bit words, each computed once (`Conv.wordFast`: four big-number steps instead
+of 255); `generatePool` stashes their concatenation and, per candidate, its coins from them. -/
+def candidateWords (cs : List F) : List Bits := cs.map fun c => Conv.wordFast c.val
+
+/-- Candidate `j`'s coins (its bits as field elements), from the words. -/
+def coinsOf (ws : List Bits) (j : Nat) : List F := (ws.getD j (Conv.wordFast 0)).map X25519.bitValue
+
+/-- **The stashed bits are the same**: the concatenated words are the candidates' `Conv.word`s. -/
+theorem candidateBits_eq (cands : Secret (List F)) :
+    (cands.map candidateWords).map List.flatten = cands.map fun cs => (cs.map fun c => Conv.word c.val).flatten := by
+  simp only [Secret.map, candidateWords, Conv.wordFast_eq]
+
+/-- **The stashed coins are the same**: candidate `j`'s coins from the words are its `Conv.word`'s
+bits as field elements, as `generatePool` computed them before. -/
+theorem getD_map {α β : Type} (f : α → β) (l : List α) (j : Nat) (d : α) :
+    (l.map f).getD j (f d) = f (l.getD j d) := by
+  induction l generalizing j with
+  | nil => simp
+  | cons x l ih => cases j <;> simp [ih]
+
+theorem coinsOf_eq (cs : List F) (j : Nat) :
+    coinsOf (candidateWords cs) j = (Conv.word (cs.getD j 0).val).map X25519.bitValue := by
+  simp only [coinsOf, candidateWords]
+  rw [show Conv.wordFast 0 = (fun c : F => Conv.wordFast c.val) 0 from rfl, getD_map, Conv.wordFast_eq]
+
+theorem candidateCoins_eq (cands : Secret (List F)) (j : Nat) :
+    (cands.map candidateWords).map (coinsOf · j) = cands.map fun cs => (Conv.word (cs.getD j 0).val).map X25519.bitValue := by
+  simp only [Secret.map, coinsOf_eq]
+
 /-- **Generate `p`'s pool** (`Masks.generate`): this party's `M` canonical random candidates (bits,
 elements, coins) and its challenge nonces and values in fresh store slots, the handle blocks from
 the counters; the new masks join the session's pool. -/
 def generatePool (r : Runner) (p : Masks.Params) : M Unit := do
   let raw ← r.randomM (64 * p.M)
   let cands : Secret (List F) := raw.map fun b => (Engine.byteBlocks 64 p.M b).map candidate
-  let bits ← r.stashBits (cands.map fun cs => (cs.map fun c => Conv.word c.val).flatten)
+  -- The words once (`candidateBits_eq`, `candidateCoins_eq`: the same values as `Conv.word` of each).
+  let words := cands.map candidateWords
+  let bits ← r.stashBits (words.map List.flatten)
   let elems ← r.stashElems cands
   let coins ← r.next.get
   for j in List.range p.M do
-    let _ ← r.stashElems (cands.map fun cs => (Conv.word (cs.getD j 0).val).map X25519.bitValue)
+    let _ ← r.stashElems (words.map (coinsOf · j))
   let cutNonce ← r.stashBytes (← r.randomM 32)
   let cutValue ← r.stashBytes (← r.randomM 32)
   let bucketNonce ← r.stashBytes (← r.randomM 32)

@@ -112,10 +112,10 @@ FLOW_ALLOWED = re.compile(r'^TlsMpc/Node/Flows/(\w*Legacy|\w*Backend|Runner|Sele
                           r'|^TlsMpc/Node/(Secret|Reveal|Channels)\.lean$')
 FLOW_SCOPE = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
 FLOW_PATTERN = re.compile(
-    r'\.(call|pipe|recording)\b'
+    r'\.(call|callArray|pipe|recording)\b'
     r'|\bTlsWorker\.(emptyReply|backend|applicationBackend|applicationSession|transport|applicationTransport|'
     r'waitingTransport|pollRecordLoop|awaitRecord|connect|connectVia|onConnection)\b'
-    r'|\bTlsWorkerPipe\.code\b|\bLegacy\.(call|empty|inputOwn|handle)\b|\binputOwn\b'
+    r'|\bTlsWorkerPipe\.code\b|\bLegacy\.(call|callArray|empty|inputOwn|handle)\b|\binputOwn\b'
     # (`KernelSpecs.Reveal.*`, the reveal kernel's specification, is another namespace: since S9 the
     # TLS proofs that use it are in the controller's closure through the script backends.)
     r'|(?<!KernelSpecs\.)\bReveal\.[a-z]\w*')

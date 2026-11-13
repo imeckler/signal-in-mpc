@@ -228,17 +228,96 @@ theorem sealValue_envelope_length (cert cw pw ew iw content : Nat)
   simp only [KernelSpecs.SealSend.sealValue]
   split <;> simp [sealV1_length]
 
+/-! The Signal message inside the envelope, by lengths (2026-11-13, later): building it (two HKDFs,
+AES-256-CBC, the MAC) only to measure it was ~6 ms of the controller's time per message
+(PERFORMANCE.md, "The script path's cost", second round). Its length is a function of the public
+widths and of the plaintext's and ratchet key's lengths (`canonical_wire_length`). -/
+
+/-- The length of `Signal.Varint.publicNatLoop _ fuel value` (it depends on the value only). -/
+def publicLen : Nat → Nat → Nat
+  | 0, _ => 0
+  | fuel + 1, value => if value < 128 then 1 else 1 + publicLen fuel (value / 128)
+
+theorem publicNatLoop_length {B : Type} (a : ByteAuth.Ops B) (fuel value : Nat) :
+    (Signal.Varint.publicNatLoop a fuel value).length = publicLen fuel value := by
+  induction fuel generalizing value with
+  | zero => rfl
+  | succ fuel ih =>
+    simp only [Signal.Varint.publicNatLoop, publicLen]
+    split <;> simp [ih, Nat.add_comm]
+
+theorem bytesField_length {B : Type} (a : ByteAuth.Ops B) (tag : Nat) (bytes : List B) :
+    (Signal.Serialization.bytesField a tag bytes).length = 1 + publicLen 10 bytes.length + bytes.length := by
+  simp [Signal.Serialization.bytesField, Signal.Varint.publicNat, publicNatLoop_length]
+  omega
+
+theorem encryptBlocks_length {B : Type} (o : Aes.Ops B) (expanded : List B) (he : expanded.length = 16 * (14 + 1)) :
+    ∀ (n : Nat) (iv p : List B), (Signal.Cbc.encryptBlocks o expanded n iv p).length = 16 * n
+  | 0, _, _ => rfl
+  | n + 1, iv, p => by
+    simp only [Signal.Cbc.encryptBlocks, List.length_append, Aes.encryptExpanded_length o 14 expanded _ he,
+      encryptBlocks_length o expanded he n]
+    omega
+
+theorem cbcEncryptCore_length {B : Type} (o : Aes.Ops B) (key iv p : List B) (hk : key.length = 32) :
+    (Signal.Cbc.encryptCore o key iv p).length = 16 * (p.length / 16 + 1) := by
+  simp only [Signal.Cbc.encryptCore]
+  exact encryptBlocks_length o _ (Aes.expandKey_length o 8 14 key (by omega) (by omega)) _ _ _
+
+/-- The length of `Signal.Serialization.content` without addresses, from the widths and the ratchet key's,
+ciphertext's and PQ part's lengths. -/
+def contentLen (cw pw ratchet ct pq : Nat) : Nat :=
+  1 + (1 + publicLen 10 (ratchet + 1) + (ratchet + 1)) + (1 + cw) + (1 + pw) + (1 + publicLen 10 ct + ct) +
+    (if pq = 0 then 0 else 1 + publicLen 10 pq + pq)
+
+theorem content_length {B W : Type} (s : Sha256.Ops B W) (a : ByteAuth.Ops B) (shape : Signal.Serialization.Shape)
+    (h : shape.withAddresses = false) (version : B) (counter previous ratchet ciphertext pq addresses : List B) :
+    (Signal.Serialization.content s a shape version counter previous ratchet ciphertext pq addresses).length =
+      contentLen shape.counterWidth shape.previousWidth ratchet.length ciphertext.length pq.length := by
+  simp only [Signal.Serialization.content, Signal.Serialization.pqField, Signal.Serialization.addressField, h, contentLen,
+    List.length_append, List.length_cons, List.length_nil, bytesField_length, Signal.Varint.encode_length]
+  split <;> simp [bytesField_length] <;> omega
+
+/-- The Signal message's length (`canonical_wire_length`). -/
+def wireLen (cw pw ew iw ratchet plaintext : Nat) : Nat :=
+  contentLen cw pw ratchet (16 * (plaintext / 16 + 1)) (2 + ew + iw) + 8
+
+/-- **The Signal message's length** of a seal (no addresses, no PQ chunk): a function of the public
+widths and of the ratchet key's and plaintext's lengths. -/
+theorem canonical_wire_length (cw pw ew iw : Nat) (i : Signal.SpqrSend.Input (BitVec 8)) :
+    (Signal.SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩ i).wire.length =
+      wireLen cw pw ew iw i.ratchet.length i.plaintext.length := by
+  have hk : ∀ c s : List (BitVec 8), (Signal.Symmetric.derive Sha256.concrete c s).material.cipherKey.length = 32 :=
+    fun c s => (Signal.Symmetric.messageMaterial_lengths _ _ _).1
+  simp only [Signal.SpqrSend.canonical, Signal.Send.message, List.length_append, Signal.MessageMac.tag_length]
+  rw [content_length _ _ _ rfl, cbcEncryptCore_length _ _ _ _ (hk _ _), Signal.SpqrMessage.content_length]
+  simp [wireLen]
+
 /-- The envelope length of `signal-seal-official|built` with these public parameters (see the
-section note; `sealEnvBytes_value`). -/
+section note; `sealEnvBytes_value`), computed from lengths (`canonical_wire_length`). -/
 def sealEnvBytes (cert classes : Nat) (official : Bool) (cw pw ew iw : Nat) : Nat :=
   let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
     (BVExpr.eval zeroA)
   let record := get "conversation"
   let text := get "text"
+  let i := KernelSpecs.SealFixed.inputOf 0 (KernelSpecs.SealFixed.stagedOf ((record.drop cert).take (182 + 80)) text) text
+    (KernelSpecs.SealFixed.contentBytes classes official)
   sealV1Len (get "ephemeralPublic").length (get "senderPublic").length ((record.drop 0).take cert).length
-    (Signal.SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩
-      (KernelSpecs.SealFixed.inputOf 0 (KernelSpecs.SealFixed.stagedOf ((record.drop cert).take (182 + 80)) text) text
-        (KernelSpecs.SealFixed.contentBytes classes official))).wire.length
+    (wireLen cw pw ew iw i.ratchet.length i.plaintext.length)
+
+/-- `sealEnvBytes` with the Signal message measured by building it (its definition from 2026-11-13
+until later that day). -/
+theorem sealEnvBytes_canonical (cert classes : Nat) (official : Bool) (cw pw ew iw : Nat) :
+    sealEnvBytes cert classes official cw pw ew iw =
+      let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+        (BVExpr.eval zeroA)
+      let record := get "conversation"
+      let text := get "text"
+      sealV1Len (get "ephemeralPublic").length (get "senderPublic").length ((record.drop 0).take cert).length
+        (Signal.SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩
+          (KernelSpecs.SealFixed.inputOf 0 (KernelSpecs.SealFixed.stagedOf ((record.drop cert).take (182 + 80)) text) text
+            (KernelSpecs.SealFixed.contentBytes classes official))).wire.length := by
+  simp only [sealEnvBytes, canonical_wire_length]
 
 /-- **`sealEnvBytes` is the value function's envelope length** on the all-zero inputs (its
 definition until 2026-11-13). -/
@@ -249,7 +328,7 @@ theorem sealEnvBytes_value (cert classes : Nat) (official : Bool) (cw pw ew iw :
       ((KernelSpecs.SealSend.sealValue cert cw pw ew iw (KernelSpecs.SealFixed.contentBytes classes official)
         (get "conversation") (get "text") (get "ephemeralPublic") (get "senderPublic") (get "ephemeralAgreement")
         (get "staticAgreement")).getD 3 []).length := by
-  simp only [sealEnvBytes]
+  rw [sealEnvBytes_canonical]
   exact (sealValue_envelope_length _ _ _ _ _ _ _ _ _ _ _ _).symm
 
 end SealLength

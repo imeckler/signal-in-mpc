@@ -20,10 +20,15 @@ open TlsMpc.TlsWire TlsMpc.TlsClient
 
 /-- The pipe with every call recorded in `used` (first use order), as the controller recorded it. -/
 def Worker.recording (w : Worker) : TlsWorker.Rpc :=
-  { w.pipe with call := fun op input => do
+  { w.pipe with
+    call := fun op input => do
       let code := TlsWorkerPipe.code op
       liftM (w.used.modify (fun codes => if codes.contains code then codes else codes ++ [code]) : IO Unit)
-      w.pipe.call op input }
+      w.pipe.call op input
+    callArray := fun op input => do
+      let code := TlsWorkerPipe.code op
+      liftM (w.used.modify (fun codes => if codes.contains code then codes else codes ++ [code]) : IO Unit)
+      w.pipe.callArray op input }
 
 /-- The worker's exchange (operation 39), for `Channels.exchange` (the peer channel) until the
 control link moves to Rust (S8). No connection is selected for it. -/
@@ -41,6 +46,17 @@ def call (w : Worker) (op : TlsWorker.Operation) (input : Bytes) : M Bytes := do
       insist output.isEmpty "unexpected worker response payload"
       liftM (w.active.set index : IO Unit)
   w.recording.call op input
+
+/-- `call` with the payload as a byte array (`Rpc.callArray`: the same operation on the bytes
+`input.data.toList`); the script runner sends its batches this way (`Runner.batch`). -/
+def callArray (w : Worker) (op : TlsWorker.Operation) (input : ByteArray) : M Bytes := do
+  if let some index := w.connection then
+    if (← liftM (w.active.get : IO Nat)) != index then
+      insist (index < 64) "connection index"
+      let output ← w.recording.call .useConnection [UInt8.ofNat index]
+      insist output.isEmpty "unexpected worker response payload"
+      liftM (w.active.set index : IO Unit)
+  w.recording.callArray op input
 
 /-- **A flow operation performed by a selected script** (`Flows/Select.lean`): recorded among the
 operations used under the legacy operation's code, as if the pipe had carried it, so the final

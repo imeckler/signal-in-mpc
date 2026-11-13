@@ -263,6 +263,196 @@ theorem extendFastOf_eq (shares : Secret (List W)) (t : Nat) (odd : Secret (List
     extendFastOf shares t odd = extendOf shares t odd := by
   simp only [extendFastOf, extendOf, extendFast_eq]
 
+/-! ### The multiplication on two 64-bit limbs (what the IO glue runs, 2026-11-13, later)
+
+`mulFast` still works on `BitVec 128`, an arbitrary-precision number: each of its ~1,000 shifts,
+XORs and bit tests per product allocates, and a record's GHASH glue (the doubling rounds' squares
+and left inputs, then this party's half: about 200 products per record) cost ~40 ms of the
+controller's time per message (PERFORMANCE.md, "The script path's cost", second round). `mulL` is the
+same algorithm (the same `powers` table and loop, `Ghash.multiply`) on `L`, two `UInt64` limbs; `L.toW`
+maps every step to `mulFast`'s (`toW_xorL`, `toW_shrL`, `bitL_eq`, the two constants), so
+`mulLimb x y := (mulL (L.ofW x) (L.ofW y)).toW` IS `mul` (`mul_eq_mulLimb`). The glue computes
+`halfLimbOf` / `leftsLimbOf` / `extendLimbOf`, each proved equal to `halfOf` / `leftsOf` /
+`extendOf`. Nothing proved about `mul` changed. -/
+
+/-- A GF(2¹²⁸) element as two 64-bit limbs of its `BitVec 128`: `hi` = bits 127…64, `lo` = 63…0. -/
+structure L where
+  hi : UInt64
+  lo : UInt64
+
+def L.toW (x : L) : W := x.hi.toBitVec ++ x.lo.toBitVec
+
+def L.ofW (w : W) : L := ⟨UInt64.ofBitVec (w.extractLsb' 64 64), UInt64.ofBitVec (w.extractLsb' 0 64)⟩
+
+theorem L.toW_ofW (w : W) : (L.ofW w).toW = w := by
+  apply BitVec.eq_of_getLsbD_eq
+  intro i hi
+  simp only [L.toW, L.ofW, BitVec.getLsbD_append, BitVec.getLsbD_extractLsb']
+  by_cases h : i < 64
+  · simp [h]
+  · have e : 64 + (i - 64) = i := by omega
+    have l : i - 64 < 64 := by omega
+    simp [h, e, l]
+
+def xorL (a b : L) : L := ⟨a.hi ^^^ b.hi, a.lo ^^^ b.lo⟩
+
+theorem toW_xorL (a b : L) : (xorL a b).toW = a.toW ^^^ b.toW := by
+  apply BitVec.eq_of_getLsbD_eq
+  intro i hi
+  simp only [L.toW, xorL, BitVec.getLsbD_append, BitVec.getLsbD_xor, UInt64.toBitVec_xor]
+  split <;> rfl
+
+/-- `Ghash.concrete.shr` (one place toward bit 0) on the limbs. -/
+def shrL (a : L) : L := ⟨a.hi >>> 1, (a.lo >>> 1) ||| (a.hi <<< 63)⟩
+
+theorem toW_shrL (a : L) : (shrL a).toW = a.toW.extractLsb' 1 128 := by
+  apply BitVec.eq_of_getLsbD_eq
+  intro i hi
+  simp only [L.toW, shrL, BitVec.getLsbD_append, BitVec.getLsbD_extractLsb']
+  by_cases h1 : i < 63
+  · have h2 : i < 64 := by omega
+    have h3 : 1 + i < 64 := by omega
+    simp [h1, h2, h3, hi]
+  · by_cases h2 : i < 64
+    · have h4 : i = 63 := by omega
+      subst h4
+      simp
+    · have h3 : ¬ 1 + i < 64 := by omega
+      have e : 1 + (i - 64) = 1 + i - 64 := by omega
+      simp [h2, h3, hi, e]
+
+/-- Bit `i < 64` of a word, without leaving machine arithmetic. -/
+def bit64 (v : UInt64) (i : Nat) : Bool := (v >>> UInt64.ofNat i) &&& 1 != 0
+
+theorem bit64_eq (v : UInt64) (i : Nat) (hi : i < 64) : bit64 v i = v.toBitVec.getLsbD i := by
+  have h64 : i % 2 ^ 64 = i := Nat.mod_eq_of_lt (by omega)
+  have h : ((v >>> UInt64.ofNat i) &&& 1).toNat = v.toNat >>> i % 2 := by
+    simp [UInt64.toNat_and, UInt64.toNat_shiftRight, UInt64.toNat_ofNat, h64, Nat.mod_eq_of_lt hi,
+      Nat.and_one_is_mod]
+  simp only [bit64, BitVec.getLsbD, Nat.testBit, UInt64.toNat_toBitVec]
+  rcases Nat.mod_two_eq_zero_or_one (v.toNat >>> i) with h2 | h2
+  · have e : ((v >>> UInt64.ofNat i) &&& 1) = 0 := UInt64.toNat_inj.mp (by rw [h, h2]; rfl)
+    rw [e]
+    simp [h2]
+  · have e : ((v >>> UInt64.ofNat i) &&& 1) = 1 := UInt64.toNat_inj.mp (by rw [h, h2]; rfl)
+    rw [e]
+    simp [h2]
+
+/-- Bit `i` of the element (`getLsbD` of `toW`, `bitL_eq`). -/
+def bitL (x : L) (i : Nat) : Bool :=
+  if i < 64 then bit64 x.lo i else if i < 128 then bit64 x.hi (i - 64) else false
+
+theorem bitL_eq (x : L) (i : Nat) : bitL x i = x.toW.getLsbD i := by
+  simp only [bitL, L.toW, BitVec.getLsbD_append]
+  by_cases h1 : i < 64
+  · simp [h1, bit64_eq _ _ h1]
+  · by_cases h2 : i < 128
+    · simp [h1, h2, bit64_eq _ (i - 64) (by omega)]
+    · simp only [h1, h2, if_false]
+      rw [BitVec.getLsbD_of_ge]
+      omega
+
+def zeroL : L := ⟨0, 0⟩
+def reductionL : L := ⟨0xe100000000000000, 0⟩
+
+theorem toW_zeroL : zeroL.toW = Ghash.concrete.const 0 := by decide
+theorem toW_reductionL : reductionL.toW = Ghash.concrete.const Ghash.reduction := by decide
+
+/-- `nextPowerFast` on the limbs. -/
+def nextPowerL (v : L) : L := xorL (shrL v) (if bitL v 0 then reductionL else zeroL)
+
+/-- `powersFast` on the limbs. -/
+def powersL : Nat → L → List L
+  | 0, _ => []
+  | n + 1, v => v :: powersL n (nextPowerL v)
+
+/-- `loopFast` on the limbs. -/
+def loopL (x : L) : List L → Nat → L → L
+  | [], _, z => z
+  | v :: rest, i, z => loopL x rest (i + 1) (xorL z (if bitL x (127 - i) then v else zeroL))
+
+/-- `mulFast` on the limbs. -/
+def mulL (x y : L) : L := loopL x (powersL 128 y) 0 zeroL
+
+/-- `mul`, computed on the limbs. -/
+def mulLimb (x y : W) : W := (mulL (L.ofW x) (L.ofW y)).toW
+
+theorem toW_select (c : Bool) (v : L) (x : W) (i : Nat) (h : c = x.getLsbD i) :
+    (if c then v else zeroL).toW = maskAnd x i v.toW := by
+  simp only [maskAnd, ← h]
+  cases c <;> simp [toW_zeroL]
+
+theorem toW_nextPowerL (v : L) : (nextPowerL v).toW = nextPowerFast v.toW := by
+  simp only [nextPowerL, nextPowerFast, toW_xorL, toW_shrL,
+    toW_select _ _ v.toW 0 (bitL_eq v 0), toW_reductionL]
+  rfl
+
+theorem powersL_map (n : Nat) (v : L) : (powersL n v).map L.toW = powersFast n v.toW := by
+  induction n generalizing v with
+  | zero => rfl
+  | succ n ih => simp only [powersL, powersFast, List.map_cons, ih, toW_nextPowerL]
+
+theorem loopL_toW (x : L) (l : List L) (i : Nat) (z : L) :
+    (loopL x l i z).toW = loopFast x.toW (l.map L.toW) i z.toW := by
+  induction l generalizing i z with
+  | nil => rfl
+  | cons v rest ih =>
+    simp only [loopL, loopFast, List.map_cons, ih, toW_xorL, toW_select _ _ x.toW (127 - i) (bitL_eq x _)]
+    rfl
+
+theorem mulL_toW (x y : L) : (mulL x y).toW = mulFast x.toW y.toW := by
+  simp only [mulL, mulFast, loopL_toW, powersL_map, toW_zeroL]
+
+theorem mulLimb_eq (x y : W) : mulLimb x y = mulFast x y := by
+  simp only [mulLimb, mulL_toW, L.toW_ofW]
+
+/-- **`mulLimb` is `mul`.** -/
+theorem mul_eq_mulLimb : @mul = @mulLimb := by
+  funext x y
+  rw [mulLimb_eq, mul_eq_mulFast]
+
+/-- `half` with `mulLimb`. -/
+def halfLimb (shares : List W) (aad ct : B8) : W :=
+  GhashShares.localTag mulLimb (blocks aad ct) ((shares.take (blocks aad ct).length).reverse)
+
+theorem halfLimb_eq (shares : List W) (aad ct : B8) : halfLimb shares aad ct = half shares aad ct := by
+  simp only [halfLimb, half, mul_eq_mulLimb]
+
+/-- `extend` with `mulLimb` (its squares). -/
+def extendLimb (base : List W) (t : Nat) (odd : List W) : List W :=
+  base ++ (List.range (t - base.length)).map fun i =>
+    if (base.length + 1 + i) % 2 = 0 then mulLimb (base.getD ((base.length + 1 + i) / 2 - 1) 0)
+      (base.getD ((base.length + 1 + i) / 2 - 1) 0)
+    else odd.getD (i / 2) 0
+
+theorem extendLimb_eq (base : List W) (t : Nat) (odd : List W) : extendLimb base t odd = extend base t odd := by
+  simp only [extendLimb, extend, square, mul_eq_mulLimb]
+
+/-- `lefts` with `mulLimb`. -/
+def leftsLimb (base : List W) (t : Nat) : List W :=
+  (oddPowers base.length t).map fun k => mulLimb (base.getD ((k - 1) / 2 - 1) 0) (base.getD ((k - 1) / 2 - 1) 0)
+
+theorem leftsLimb_eq (base : List W) (t : Nat) : leftsLimb base t = lefts base t := by
+  simp only [leftsLimb, lefts]
+  apply List.map_congr_left
+  intro k _
+  simp only [left, square, mul_eq_mulLimb]
+
+def halfLimbOf (shares : Secret (List W)) (aad ct : B8) : Secret W := shares.map (halfLimb · aad ct)
+def leftsLimbOf (shares : Secret (List W)) (t : Nat) : Secret (List W) := shares.map (leftsLimb · t)
+def extendLimbOf (shares : Secret (List W)) (t : Nat) (odd : Secret (List W)) : Secret (List W) :=
+  Secret.zipWith (fun b o => extendLimb b t o) shares odd
+
+theorem halfLimbOf_eq (shares : Secret (List W)) (aad ct : B8) : halfLimbOf shares aad ct = halfOf shares aad ct := by
+  simp only [halfLimbOf, halfOf, halfLimb_eq]
+
+theorem leftsLimbOf_eq (shares : Secret (List W)) (t : Nat) : leftsLimbOf shares t = leftsOf shares t := by
+  simp only [leftsLimbOf, leftsOf, leftsLimb_eq]
+
+theorem extendLimbOf_eq (shares : Secret (List W)) (t : Nat) (odd : Secret (List W)) :
+    extendLimbOf shares t odd = extendOf shares t odd := by
+  simp only [extendLimbOf, extendOf, extendLimb_eq]
+
 /-! ## P-GHASH (a): the two parties' shares XOR to the key powers -/
 
 /-- `H^(k+1)` (`GhashShares.power`, the repository multiplication). -/
