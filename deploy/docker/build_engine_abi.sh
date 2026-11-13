@@ -65,8 +65,10 @@ OT_OBJECTS="OT/BaseOT.o OT/BitDiagonal.o OT/MascotParams.o OT/OTExtension.o OT/O
     echo "-lstdc++"
     # rustc links with -nodefaultlibs and puts -lc before these arguments; the static C libraries
     # above (SimplestOT: __stack_chk_guard, which aarch64 glibc defines in the dynamic loader)
-    # need the C library again after them.
+    # need the C library again after them, and the C++ objects built for armv8-a call libgcc's
+    # outline atomics (__aarch64_cas4_acq_rel), which the compiler driver would add by itself.
     echo "-lm"
     echo "-lc"
+    echo "-lgcc"
 } >"$OUT/engine-abi-link-$VARIANT.txt"
 echo "engine library $OUT/libengine-abi-$VARIANT.a ($(sha256sum "$OUT/libengine-abi-$VARIANT.a" | cut -c1-16)...), word circuits at $WORD_DIR"
