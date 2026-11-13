@@ -92,19 +92,16 @@ theorem ephemeralWord_reveals (f0 maskSlot n0 f1 : Nat) (st : Curve.OffsetState)
 
 /-- **The store slots the ladder agreements read** (THE ADAPTER'S PARAMETER). `coins s`: this
 party's 252 swap-bit shares of scalar `s` as coins (bits 2 … 253 of the clamped scalar's
-`swap_bit`, party A's with the top bit; `X25519SwapBits.swapBit_shares`); `masks`: this party's
-fresh quotient-mask contributions, one element per job.
+`swap_bit`, party A's with the top bit; `X25519SwapBits.swapBit_shares`). Reading a coins slot
+again is harmless: P-BITS opens only the bit checks (zero for an honest party), not a masked value.
 
-MISMATCH (STACK_NOTES.md, join table): S14's `Job` names a scalar by the BYTE slot holding it
-(`own slot`, `fresh slot`) and `Gen` has no local step, but S11's ladder needs the scalar as
-XOR-shared swap bits in a COINS slot (a local computation on the party's own bytes, decision D1)
-and a FRESH mask slot per quotient round. Nothing in S14's `Gen` state supplies per-call slots, so
-`ReceiveBackend` (which stashes the byte slots and calls `curve` once per message) would have to
-stash these too and hand them in; reusing `masks` across two calls in one message would reuse
-mask contributions (the quotients' openings `z·m` would then reveal a ratio). -/
+J1, RESOLVED. This structure also held `masks`, ONE slot of quotient-mask contributions given to
+every agreement built from it; S14's op 50 runs two agreements with one curve, so both quotient
+rounds used the same masks and their openings `z₁·m`, `z₂·m` revealed `z₁ / z₂`. The masks now come
+from the state's supply (`Receive.St.slots`, `Receive.Gen.takeSlot`): every agreement takes a slot
+no other step took (`JoinOnce.receiveAgree_once`, `openFirst_reads_once`). -/
 structure AgreeSlots where
   coins : Scalar → Nat
-  masks : Nat
 
 /-- One job's swap bits as field bits (P-BITS; handles `f … f + 5·252 − 1`, the inputs and checks
 freed). -/
@@ -138,17 +135,26 @@ def wordsOf : List (FieldH × Bool) → Gen (List BoolH)
     let ws ← wordsOf rs
     pure (w :: ws)
 
-/-- **S14's `Curve.agree` from S11's ladder**: the jobs' swap bits and points, `x25519-fast` on all
-of them in one instruction and one masked-quotient round (handles `f … f + 7n`), abort on a zero
-flag, the results as fresh words; everything this function made is freed, its inputs are not. -/
-def receiveAgree (sl : AgreeSlots) (jobs : List Job) : Gen (List BoolH) := do
-  let ins ← jobsIn sl jobs
-  let f ← Receive.Gen.allocF (7 * jobs.length + 1)
-  let rs ← Receive.Gen.lift (Curve.agree f sl.masks ins.1)
+/-- What follows the ladders: abort on a zero flag, the results as fresh words, everything made
+freed. -/
+def agreeTail (made : List FieldH) (f n : Nat) (rs : List (FieldH × Bool)) : Gen (List BoolH) :=
   if rs.any (·.2) then Receive.Gen.fail "X25519 agreement: zero" else do
   let ws ← wordsOf rs
-  Receive.Gen.freeFields (ins.2 ++ Curve.hs (f + 1) (2 * jobs.length) ++ rs.map (·.1))
+  Receive.Gen.freeFields (made ++ Curve.hs (f + 1) (2 * n) ++ rs.map (·.1))
   pure ws
+
+/-- **S14's `Curve.agree` from S11's ladder**: the jobs' swap bits and points, `x25519-fast` on all
+of them in one instruction and one masked-quotient round (handles `f … f + 7n`) whose mask
+contributions are in a slot TAKEN FROM THE SUPPLY (J1: no other step reads it), abort on a zero
+flag, the results as fresh words; everything this function made is freed, its inputs are not. No
+job: no agreement. -/
+def receiveAgree (sl : AgreeSlots) (jobs : List Job) : Gen (List BoolH) :=
+  if jobs.isEmpty then pure [] else do
+  let ins ← jobsIn sl jobs
+  let slot ← Receive.Gen.takeSlot jobs.length
+  let f ← Receive.Gen.allocF (7 * jobs.length + 1)
+  let rs ← Receive.Gen.lift (Curve.agree f slot ins.1)
+  agreeTail ins.2 f jobs.length rs
 
 def receiveAgreeKinds : List RevealKind := Curve.agreeKinds ++ Convert.bitsKinds ++ Convert.f2wKinds
 
@@ -177,16 +183,23 @@ theorem wordsOf_reveals : ∀ rs, RevealsG receiveAgreeKinds (wordsOf rs)
     exact RevealsG.bind (Receive.toWord_reveals (by decide) _) fun _ =>
       RevealsG.bind (wordsOf_reveals rs) fun _ => RevealsG.pure _
 
+theorem agreeTail_reveals (made : List FieldH) (f n : Nat) (rs : List (FieldH × Bool)) :
+    RevealsG receiveAgreeKinds (agreeTail made f n rs) := by
+  unfold agreeTail
+  refine RevealsG.ite (RevealsG.fail _) ?_
+  exact RevealsG.bind (wordsOf_reveals rs) fun _ =>
+    RevealsG.bind (Receive.RevealsG.freeFields _) fun _ => RevealsG.pure _
+
 /-- **The joined receive agreements declare their kinds** (from every state, every job list). -/
 theorem receiveAgree_reveals (sl : AgreeSlots) (jobs : List Job) (st : Receive.St) :
     Reveals receiveAgreeKinds (receiveAgree sl jobs st) := by
   unfold receiveAgree
-  refine RevealsG.bind (jobsIn_reveals sl jobs) (fun ins => ?_) st
+  refine RevealsG.ite (RevealsG.pure _) ?_ st
+  refine RevealsG.bind (jobsIn_reveals sl jobs) (fun ins => ?_)
+  refine RevealsG.bind (RevealsG.takeSlot _) fun slot => ?_
   refine RevealsG.bind (RevealsG.allocF _) fun f => ?_
-  refine RevealsG.bind (RevealsG.lift ((Curve.agree_reveals f sl.masks ins.1).mono (by decide))) fun rs => ?_
-  refine RevealsG.ite (RevealsG.fail _) ?_
-  exact RevealsG.bind (wordsOf_reveals rs) fun _ =>
-    RevealsG.bind (Receive.RevealsG.freeFields _) fun _ => RevealsG.pure _
+  refine RevealsG.bind (RevealsG.lift ((Curve.agree_reveals f slot ins.1).mono (by decide))) fun rs => ?_
+  exact agreeTail_reveals _ _ _ _
 
 /-- **S14's curve parameter, joined**: S14's program-based signature and base check, S11's ladder
 agreements. -/
@@ -211,20 +224,20 @@ theorem receive_joined_reveals (sl : AgreeSlots) (pm : Receive.ProgramMasks) (lo
 
 /-! ## S15: the establishment's curve operations -/
 
-/-- Run a state-threaded script from the counters the caller allocated, with the masks taken for
-this call. -/
-def runAt {α : Type} (c : Counters) (pool : Conv.MaskPool) (g : Gen α) : Script α :=
-  (g { table := { ctr := c }, pool := pool }).bind fun p => .done p.1
+/-- Run a state-threaded script from the counters the caller allocated, with the masks and the slot
+supply taken for this call. -/
+def runAt {α : Type} (c : Counters) (pool : Conv.MaskPool) (slots : List (Nat × Nat)) (g : Gen α) : Script α :=
+  (g { table := { ctr := c }, pool := pool, slots := slots }).bind fun p => .done p.1
 
 theorem runAt_reveals {α : Type} {ks : List RevealKind} {g : Gen α} (h : RevealsG ks g) (c : Counters)
-    (pool : Conv.MaskPool) : Reveals ks (runAt c pool g) :=
+    (pool : Conv.MaskPool) (slots : List (Nat × Nat)) : Reveals ks (runAt c pool slots g) :=
   Every.bind (h _) fun _ => Every.done _
 
 /-- `xeddsa-recover` of the identity point (non-hinted path, as S14's base check): W2F, the
 program (3 outputs), F2W of each; the field handles freed. -/
 def liftG (pm : Receive.ProgramMasks) (point : BoolH) : Gen (BoolH × BoolH × BoolH) := do
   let u ← Receive.toField point
-  let r ← Receive.programStep Receive.xeddsaRecoverName [u] 3 pm.recover pm.recoverSlot Label.maskedDenominator
+  let r ← Receive.programStep Receive.xeddsaRecoverName [u] 3 pm.recover Label.maskedDenominator
   let v ← Receive.toWord (Receive.atF r 0)
   let x ← Receive.toWord (Receive.atF r 1)
   let y ← Receive.toWord (Receive.atF r 2)
@@ -280,7 +293,7 @@ def refreshCurveKinds : List RevealKind :=
 theorem liftG_reveals (pm : Receive.ProgramMasks) (point : BoolH) : RevealsG refreshCurveKinds (liftG pm point) := by
   unfold liftG
   refine RevealsG.bind (Receive.toField_reveals (by decide) _) fun u => ?_
-  refine RevealsG.bind (Receive.programStep_reveals .maskedDenominator (by decide) _ _ _ _ _) fun r => ?_
+  refine RevealsG.bind (Receive.programStep_reveals .maskedDenominator (by decide) _ _ _ _) fun r => ?_
   refine RevealsG.bind (Receive.toWord_reveals (by decide) _) fun _ => ?_
   refine RevealsG.bind (Receive.toWord_reveals (by decide) _) fun _ => ?_
   refine RevealsG.bind (Receive.toWord_reveals (by decide) _) fun _ => ?_
@@ -289,7 +302,7 @@ theorem liftG_reveals (pm : Receive.ProgramMasks) (point : BoolH) : RevealsG ref
 theorem programSignature_reveals (pm : Receive.ProgramMasks) (x y : FieldH) (bits : List FieldH) :
     RevealsG refreshCurveKinds (Receive.programSignature pm x y bits) := by
   unfold Receive.programSignature
-  exact RevealsG.bind (Receive.programStep_reveals .maskedDenominator (by decide) _ _ _ _ _) fun _ => RevealsG.pure _
+  exact RevealsG.bind (Receive.programStep_reveals .maskedDenominator (by decide) _ _ _ _) fun _ => RevealsG.pure _
 
 theorem checkG_reveals (pm1 pm2 : Receive.ProgramMasks) (x y ec pq : BoolH) :
     RevealsG refreshCurveKinds (checkG pm1 pm2 x y ec pq) := by
@@ -320,14 +333,57 @@ theorem agreeG_reveals (sl : AgreeSlots) (ip sp : BoolH) (o : Option BoolH) :
   refine RevealsG.bind (fun st => (receiveAgree_reveals sl _ st).mono (by decide)) fun _ => ?_
   exact RevealsG.bind (Receive.RevealsG.freeFields _) fun _ => RevealsG.pure _
 
-/-- What one establishment step's curve calls are given for this call (prepared by the IO layer:
-masks taken from the session pool, this party's fresh contributions in store slots). -/
+/-- What one establishment step's curve calls are given for this call (prepared by the IO layer,
+`Flows/RefreshBackend.lean`): EACH CALL ITS OWN masks from the session pool and its own supply of
+store slots of this party's fresh contributions (`liftSlots`: `xeddsa-recover`'s; `checkSlots`:
+the two `xeddsa-check`s', in that order; `agreeSlots`: the agreements' quotient masks).
+
+SIBLING OF J1, fixed with it: this structure had ONE `pool` from which `lift`, `check` and `agree`
+each ran (`runAt c rc.pool`), so step 0 of device 0 (`lift` then `check`) gave `check` the word
+masks `lift` had already used and freed (the engine refuses a freed handle: that step always
+aborted); and the program masks were named by fixed slots instead of being taken. `split` below
+cuts the three pools from one, disjoint (`split_disjoint`). -/
 structure RefreshCurve where
-  pool : Conv.MaskPool
+  liftPool : Conv.MaskPool
+  checkPool : Conv.MaskPool
+  agreePool : Conv.MaskPool
   recover : Receive.ProgramMasks
   check1 : Receive.ProgramMasks
   check2 : Receive.ProgramMasks
   agree : AgreeSlots
+  liftSlots : List (Nat × Nat)
+  checkSlots : List (Nat × Nat)
+  agreeSlots : List (Nat × Nat)
+
+/-- Word masks and bit pairs each call takes at most: `lift` W2F 1 + F2W 3; `check` W2F 2 + F2W 4
+and B2F 2·510; `agree` W2F up to 3 + F2W up to 7. -/
+def liftWords : Nat := 4
+def checkWords : Nat := 6
+def checkBits : Nat := 1020
+def agreeWords : Nat := 10
+
+/-- Three pools cut from one: `lift`'s, `check`'s and `agree`'s, in that order (word masks and
+bit pairs, first come first served), and what is left. -/
+def splitPool (p : Conv.MaskPool) : Conv.MaskPool × Conv.MaskPool × Conv.MaskPool × Conv.MaskPool :=
+  let w := p.words
+  ({ words := w.take liftWords },
+   { words := (w.drop liftWords).take checkWords, bits := p.bits.take checkBits },
+   { words := ((w.drop liftWords).drop checkWords).take agreeWords },
+   { words := ((w.drop liftWords).drop checkWords).drop agreeWords, bits := p.bits.drop checkBits })
+
+/-- **The three pools share no mask** (and none is left in the rest), when the pool had none
+twice: each mask reaches at most one call (P-CUT (h) across the calls of a step). -/
+theorem split_disjoint (p : Conv.MaskPool) (hd : p.Distinct) :
+    let s := splitPool p
+    (s.1.words ++ s.2.1.words ++ s.2.2.1.words ++ s.2.2.2.words).Nodup ∧
+      (s.1.bits ++ s.2.1.bits ++ s.2.2.1.bits ++ s.2.2.2.bits).Nodup := by
+  obtain ⟨hw, hb⟩ := hd
+  refine ⟨?_, ?_⟩
+  · simp only [splitPool, List.append_assoc]
+    rw [List.take_append_drop, List.take_append_drop, List.take_append_drop]
+    exact hw
+  · simp only [splitPool, List.nil_append, List.append_nil, List.take_append_drop]
+    exact hb
 
 /-- Id blocks (Boolean, field) each call takes from the session counters: upper bounds of what
 `liftG`, `checkG` and `agreeG` allocate (`toField` 2+2, `toWord` 3+1, `toFieldBits` 4+(2+k), a
@@ -341,16 +397,16 @@ def refreshOps (rc : RefreshCurve) : Refresh.CurveOps where
   liftIds := liftIdsOf rc
   checkIds := checkIdsOf rc
   agreeIds := agreeIdsOf
-  lift c point := runAt c rc.pool (liftG rc.recover point)
-  check c x y ec pq := runAt c rc.pool (checkG rc.check1 rc.check2 x y ec pq)
-  agree c ip sp o := runAt c rc.pool (agreeG rc.agree ip sp o)
+  lift c point := runAt c rc.liftPool rc.liftSlots (liftG rc.recover point)
+  check c x y ec pq := runAt c rc.checkPool rc.checkSlots (checkG rc.check1 rc.check2 x y ec pq)
+  agree c ip sp o := runAt c rc.agreePool rc.agreeSlots (agreeG rc.agree ip sp o)
   kinds := refreshCurveKinds
 
 /-- **S15's hypothesis `CurveOps.Reveals`, DISCHARGED for the joined operations.** -/
 theorem refreshOps_reveals (rc : RefreshCurve) : (refreshOps rc).Reveals where
-  lift c h := runAt_reveals (liftG_reveals rc.recover h) c rc.pool
-  check c x y e p := runAt_reveals (checkG_reveals rc.check1 rc.check2 x y e p) c rc.pool
-  agree c a b o := runAt_reveals (agreeG_reveals rc.agree a b o) c rc.pool
+  lift c h := runAt_reveals (liftG_reveals rc.recover h) c rc.liftPool rc.liftSlots
+  check c x y e p := runAt_reveals (checkG_reveals rc.check1 rc.check2 x y e p) c rc.checkPool rc.checkSlots
+  agree c a b o := runAt_reveals (agreeG_reveals rc.agree a b o) c rc.agreePool rc.agreeSlots
 
 /-- **T3 for the joined establishment, with no hypothesis on the curve operations**: every release
 of every refresh step (`opEstablish`) carries a refresh kind or one of the joined curve kinds, and

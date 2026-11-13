@@ -53,6 +53,14 @@ THE PARAMETERS (S11 and the runner; signatures in S14_NOTES.md):
 The conversions are S10's (`Convert.wordToField`, `fieldToWord`, `bitsToField`) with masks from
 the session's pool (`St.pool`); handle ids come from the contact table's counters (`St.table`).
 
+J1 (the join's mask slots, STACK_NOTES.md): every FIELD-ELEMENT input of these flows (a program's
+mask contributions, `programStep`; an agreement's quotient masks, `Join.receiveAgree`) reads a
+store slot TAKEN from the state's supply `St.slots` (`Gen.takeSlot`: the first entry, removed), so
+no slot of fresh randomness is read twice: two openings `b·m`, `b'·m` with one mask `m` would reveal
+the ratio `b / b'`. `Flows/JoinOnce.lean` proves it for every run (`openFirst_reads_once`,
+`session_reads_once`). Before J1, `ProgramMasks` named the slots and S11's agreements took theirs
+as a parameter (`Join.AgreeSlots.masks`), which op 50 used for both of its agreements.
+
 KINDS: `firstKinds` (certificateLength, contentShape, prekeyShape, prekeyIds, and the conversions'
 maskedWord, maskedFieldValue, maskedBit), `sessionKinds` (signalShape, sessionStatus, receivedText,
 accessKeyStatus, maskedFieldValue), plus the curve's `kinds`. Proved here: `openFirst_reveals`,
@@ -137,10 +145,14 @@ def contactBytes : Nat := 319
 /-! ## The script state and its combinators -/
 
 /-- The public state the receive scripts thread: the contact table (with the session's handle
-counters, `Table.ctr`) and the conversions' mask pool. -/
+counters, `Table.ctr`), the conversions' mask pool, and (J1) the supply of store slots holding
+this party's fresh field-element contributions: `(slot, count)`, the slot holding `count` fresh
+elements (drawn from `Channels.random` by the IO side before the script runs, decision D1). Each
+slot is taken once (`Gen.takeSlot`). -/
 structure St where
   table : Table := {}
   pool : Conv.MaskPool := {}
+  slots : List (Nat × Nat) := []
 
 /-- Scripts with the public state threaded through. -/
 abbrev Gen := StateT St Script
@@ -177,6 +189,14 @@ def takeBits (k : Nat) : Gen (List Conv.BitPair) := fun st =>
   match st.pool.takeBits k with
   | some (ps, p) => .done (ps, { st with pool := p })
   | none => .abort "mask pool"
+
+/-- **J1: a slot of fresh field elements from the supply**, `count` of them: the first entry,
+removed from the supply (so it is never handed out again); abort when the supply is empty or its
+first entry holds another number of elements. -/
+def takeSlot (count : Nat) : Gen Nat := fun st =>
+  match st.slots with
+  | (s, k) :: rest => if k = count then .done (s, { st with slots := rest }) else .abort "mask slot supply"
+  | [] => .abort "mask slot supply"
 
 end Gen
 
@@ -385,8 +405,14 @@ def programInstrs (f : Nat) (name : Bytes) (ins : List FieldH) (outs masks slot 
   [.program name 1 ins (fieldRange (f + 2 * masks) masks) (fieldRange (f + 3 * masks) outs) l] ++
   (fieldRange f (2 * masks)).map .freeField
 
-/-- **One field program** on `ins`: `outs` fresh output handles (the program's marks). -/
-def programStep (name : Bytes) (ins : List FieldH) (outs masks slot : Nat) (l : Label) : Gen (List FieldH) := do
+/-- The slot of a program step's mask contributions: taken from the supply when the program has
+masks (J1), none otherwise. -/
+def maskSlot (masks : Nat) : Gen Nat := if masks = 0 then pure 0 else Gen.takeSlot masks
+
+/-- **One field program** on `ins`: `outs` fresh output handles (the program's marks). Its
+`masks` mask contributions come from a slot taken from the supply (J1). -/
+def programStep (name : Bytes) (ins : List FieldH) (outs masks : Nat) (l : Label) : Gen (List FieldH) := do
+  let slot ← maskSlot masks
   let f ← Gen.allocF (3 * masks + outs)
   Gen.instrs (programInstrs f name ins outs masks slot l)
   pure (fieldRange (f + 3 * masks) outs)
@@ -438,26 +464,24 @@ def xeddsaCheckName : Bytes := ascii "xeddsa-check"
 def xeddsaRecoverName : Bytes := ascii "xeddsa-recover"
 def torsionName : Bytes := ascii "receive-torsion"
 
-/-- Mask counts and store slots of the three programs (the counts are the pinned programs'
-`masks`, fixed at session start; the slots hold this party's fresh contributions). -/
+/-- Mask counts of the three programs (the pinned programs' `masks`, fixed at session start). Their
+contributions' slots come from the supply, one per program step (J1; before J1 this structure
+also named the slots, `checkSlot`, `recoverSlot`, `torsionSlot`). -/
 structure ProgramMasks where
   check : Nat := 0
-  checkSlot : Nat := 0
   recover : Nat := 0
-  recoverSlot : Nat := 0
   torsion : Nat := 0
-  torsionSlot : Nat := 0
 
 /-- `xeddsa-check` through the `program` instruction (`service_kernels.h` line 313). -/
 def programSignature (pm : ProgramMasks) (x y : FieldH) (bits : List FieldH) : Gen (FieldH × FieldH) := do
-  let o ← programStep xeddsaCheckName ([x, y] ++ bits) 2 pm.check pm.checkSlot Label.maskedDenominator
+  let o ← programStep xeddsaCheckName ([x, y] ++ bits) 2 pm.check Label.maskedDenominator
   pure (atF o 0, atF o 1)
 
 /-- `xeddsa-recover` then `receive-torsion` through the `program` instruction (lines 358-359);
 the recovered coordinates are freed. -/
 def programBaseCheck (pm : ProgramMasks) (b : FieldH) : Gen (FieldH × FieldH × FieldH) := do
-  let r ← programStep xeddsaRecoverName [b] 3 pm.recover pm.recoverSlot Label.maskedDenominator
-  let t ← programStep torsionName [atF r 1, atF r 2] 2 pm.torsion pm.torsionSlot Label.maskedDenominator
+  let r ← programStep xeddsaRecoverName [b] 3 pm.recover Label.maskedDenominator
+  let t ← programStep torsionName [atF r 1, atF r 2] 2 pm.torsion Label.maskedDenominator
   Gen.freeFields [atF r 1, atF r 2]
   pure (atF r 0, atF t 0, atF t 1)
 
@@ -510,6 +534,15 @@ theorem takeBits (k : Nat) : RevealsG ks (Gen.takeBits k) := by
   unfold Gen.takeBits
   split
   · exact Every.done _
+  · exact Every.abort _
+
+theorem takeSlot (k : Nat) : RevealsG ks (Gen.takeSlot k) := by
+  intro st
+  unfold Gen.takeSlot
+  split
+  · split
+    · exact Every.done _
+    · exact Every.abort _
   · exact Every.abort _
 
 /-- A block of instructions without release. -/
@@ -608,9 +641,16 @@ theorem programInstrs_label (f : Nat) (name : Bytes) (ins : List FieldH) (outs m
   · subst h; simp [InstrP.label?]
   · obtain ⟨_, _, rfl⟩ := h; simp [InstrP.label?]
 
+theorem maskSlot_reveals {ks : List TlsMpc.Node.RevealKind} (masks : Nat) : RevealsG ks (maskSlot masks) := by
+  unfold maskSlot
+  split
+  · exact RevealsG.pure _
+  · exact RevealsG.takeSlot _
+
 theorem programStep_reveals {ks : List TlsMpc.Node.RevealKind} (k : TlsMpc.Node.RevealKind) (hk : k ∈ ks)
-    (name : Bytes) (ins : List FieldH) (outs masks slot : Nat) :
-    RevealsG ks (programStep name ins outs masks slot (Label.ofKind k)) :=
+    (name : Bytes) (ins : List FieldH) (outs masks : Nat) :
+    RevealsG ks (programStep name ins outs masks (Label.ofKind k)) :=
+  RevealsG.bind (maskSlot_reveals _) fun slot =>
   RevealsG.bind (RevealsG.allocF _) fun f =>
     RevealsG.bind (RevealsG.lift (every_seqs (Every.done _) _ (fun i hi => by
       rcases programInstrs_label f name ins outs masks slot _ i hi with h | h
@@ -627,10 +667,10 @@ def Curve.withPrograms (agree : List Job → Gen (List BoolH)) (kinds : List Tls
   kinds := .maskedDenominator :: kinds
   agree_reveals jobs st := (hagree jobs st).mono (fun _ hk => List.mem_cons_of_mem _ hk)
   signature_reveals _ _ _ :=
-    RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _ _) fun _ => RevealsG.pure _
+    RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _) fun _ => RevealsG.pure _
   baseCheck_reveals _ :=
-    RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _ _) fun _ =>
-      RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _ _) fun _ =>
+    RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _) fun _ =>
+      RevealsG.bind (programStep_reveals .maskedDenominator List.mem_cons_self _ _ _ _) fun _ =>
         RevealsG.bind (RevealsG.freeFields _) fun _ => RevealsG.pure _
 
 /-! ## Opened bytes: flags and widths (`service_kernels.h` `flag`, `width`) -/

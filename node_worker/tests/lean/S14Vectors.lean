@@ -188,7 +188,9 @@ theorem agreeStandIn_reveals : ∀ (js : List Job) (st : St), Reveals [] (agreeS
     (RevealsG.bind (inputA_reveals _ _) fun _ =>
       RevealsG.bind (fun st => agreeStandIn_reveals js st) fun _ => RevealsG.pure _) st
 
-def pm : ProgramMasks := { check := 1, checkSlot := 800 }
+/-- `xeddsa-check`'s one mask; its contributions are in slot 800, which op 50 takes from the supply
+(J1, `Receive.Gen.takeSlot`). -/
+def pm : ProgramMasks := { check := 1 }
 
 def curve : Curve := Curve.withPrograms agreeStandIn [] agreeStandIn_reveals pm
 
@@ -352,7 +354,7 @@ def main : IO Unit := do
   let some (h1, st) := t1 | IO.println "error take"
   let (r, t2) := step E r st (takeScript (some h1) buf 100 (envSize - 100))
   let some ((envH, size), st) := t2 | IO.println "error take 2"
-  let (r, o) := step E r st (openFirst curve (fun _ => true) fi envH size)
+  let (r, o) := step E r { st with slots := [(800, 1)] } (openFirst curve (fun _ => true) fi envH size)
   let some (res, st) := o | IO.println "error open"
   let some ((oneTime, opened), arrival) := res | IO.println "error refused"
   let certH := (st.table.ctr.bool)
