@@ -1,0 +1,6 @@
+# The repository root is NOT a Docker build context: images are built from the directory that
+# deploy/scripts/build_artifacts.py stages (DEPLOYMENT.md, "Build"). If someone builds from the
+# root anyway, send nothing: account state (real_signal/state/), the local test server's keys,
+# .deps/ (hundreds of GB, test keys under Player-Data) must never reach a Docker daemon.
+*
+**

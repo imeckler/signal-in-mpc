@@ -1,0 +1,12 @@
+# BuildKit ignore file for deploy/docker/dbnode.Dockerfile (context: the staged directory; only
+# src/.deps/secret-shared-db-handoff is used). Keys and build products never enter the context.
+**/.git
+**/target
+**/__pycache__
+**/Player-Data
+**/*.key
+**/*.share
+**/*.env
+src/real_signal
+src/local_signal_server
+bundle

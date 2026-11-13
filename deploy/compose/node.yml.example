@@ -1,0 +1,44 @@
+# One computation node (A or B) of a split deployment. Copy to node.yml on the node's host, with
+# node-a.env.example or node-b.env.example copied to node.env and every CHANGE-ME filled in.
+#
+#   docker compose -f node.yml --env-file node.env up -d        (deploy/scripts/stack.py up --compose ... --target production)
+#
+# Host networking: the node's addresses are its WireGuard addresses (the daemon's listeners, the
+# workers' port range base..base+639), and the firewall of DEPLOYMENT.md "Ports and firewall"
+# decides who reaches them. Nothing secret is in the image or in this file; everything secret is
+# a host directory mounted read-only, owned by uid 10001, mode 700/600.
+name: tls-mpc-node
+
+services:
+  node:
+    # Pin by digest: the digest both operators compared (verify_artifacts.py compare).
+    image: ${IMAGE:?set IMAGE in node.env, e.g. registry.example/tls-mpc-node@sha256:CHANGE-ME}
+    command: ["daemon"]
+    network_mode: host
+    restart: unless-stopped
+    stop_grace_period: 90s            # the daemon ends its sessions and kills their process trees
+    environment:
+      EXPECTED_MANIFEST_SHA256: ${EXPECTED_MANIFEST_SHA256:?the circuit manifest digest both nodes agreed on}
+      EXPECTED_WORD_DIR_SHA256: ${EXPECTED_WORD_DIR_SHA256:?the word-dir digest both nodes agreed on}
+      # SIGNAL_SCRIPTS is deliberately absent: it must stay unset in production for now.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    ulimits:
+      core: 0                          # no core dumps: a worker's memory holds shares
+    mem_limit: ${NODE_MEMORY:-28g}
+    volumes:
+      - ${NODE_CONFIG_DIR:?}:/srv/tls-mpc/config:ro          # node.json (node-a.json.example / node-b.json.example)
+      - ${NODE_SECRETS_DIR:?}:/srv/tls-mpc/secrets:ro        # peer.key, db-key.json, bearer (optional)
+      - ${NODE_STATE_DIR:?}:/srv/tls-mpc/state               # daemon state, the workers' Player-Data
+      - ${NODE_SCAFFOLD_DIR:?}:/srv/tls-mpc/shared:ro        # TEST scaffolding still required: export, tokens, CA (DEPLOYMENT.md "Not yet ready")
+      - ${CIRCUITS_DIR:?}:/srv/tls-mpc/circuits:ro           # manifest.txt + gate lists
+      - ${WORD_DIR:?}:/opt/tls-mpc/word:ro                   # word circuits + 22 V3 field programs (path compiled in)
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"               # an idle session logs several lines a second
+        max-file: "10"

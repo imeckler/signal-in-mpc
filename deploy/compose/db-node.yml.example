@@ -1,0 +1,49 @@
+# One of the five database nodes (secret-shared-db `server`) with its own Postgres. Copy to
+# db-node.yml with db-node.env.example as db-node.env on each database host. Placeholders only.
+#
+#   docker compose -f db-node.yml --env-file db-node.env up -d
+#
+# The node's configuration directory is the one `pki` generated for it (DEPLOYMENT.md, "Key
+# ceremony": today pki makes all five nodes' keys in one place). Three nodes reconstruct a
+# contact's key: never run three of them under one operator or provider.
+name: tls-mpc-dbnode
+
+services:
+  postgres:
+    # Pinned by digest (the digest of postgres:17 as pulled on the build machine, 2026-11-13).
+    image: postgres:17@sha256:5b96f1a16bd9768b060dd2ffe55cb6225c4d9ef4d214a8b21eb08134869a97e4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dbuser
+      POSTGRES_DB: ${DB_NAME:?e.g. node2}
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    command: ["postgres", "-c", "listen_addresses=127.0.0.1", "-c", "max_connections=120", "-p", "${PG_PORT:-5432}"]
+    network_mode: host
+    volumes:
+      - ${PG_DATA:?}:/var/lib/postgresql/data
+      - ${PG_PASSWORD_FILE:?}:/run/secrets/pg_password:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${PG_PORT:-5432} -U dbuser -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  node:
+    image: ${DBNODE_IMAGE:?e.g. registry.example/tls-mpc-dbnode@sha256:CHANGE-ME}
+    restart: unless-stopped
+    network_mode: host               # listens on its WireGuard address: peers, sync, relay, compute ports from network-config.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      RUST_LOG: info,sqlx=warn
+      RAYON_NUM_THREADS: "2"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    volumes:
+      - ${NODE_CONFIG_DIR:?}:/srv/ssdb/config:ro    # this node's pki output (config.json with its signing key; network config)
+    logging:
+      driver: json-file
+      options: {max-size: "100m", max-file: "10"}

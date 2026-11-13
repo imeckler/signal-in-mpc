@@ -1,0 +1,49 @@
+{
+ "_comment": "Node A (party 0) daemon configuration, container paths of deploy/compose/node.yml.example. node_daemon/README.md 'Configuration' is the reference; DEPLOYMENT.md 'Configuration reference' explains each field. Unknown keys such as this one are ignored by the daemon. Addresses: 10.77.0.1 = node A's WireGuard address, 10.77.0.2 = node B's (placeholders). Every CHANGE-ME must be replaced.",
+ "party": 0,
+ "listen": "10.77.0.1:19700",
+ "peer_listen": "10.77.0.1:19710",
+ "peer": "10.77.0.2:19710",
+ "peer_key_file": "/srv/tls-mpc/secrets/peer.key",
+ "state_directory": "/srv/tls-mpc/state/daemon",
+ "controller": "/opt/tls-mpc/bin/public_service_controller",
+ "worker": {
+  "binary": "/opt/tls-mpc/bin/node-worker",
+  "send_directory": "/srv/tls-mpc/state/worker-send",
+  "receive_directory": "/srv/tls-mpc/state/worker-receive",
+  "hosts": ["10.77.0.1", "10.77.0.2"],
+  "port_base": 23000
+ },
+ "circuits": {"tool": "/opt/tls-mpc/share/circuit_cache.py", "manifest": "/srv/tls-mpc/circuits/manifest.txt"},
+ "signal": {
+  "endpoint": "CHANGE-ME-signal-chat-host",
+  "port": 443,
+  "hostname": "CHANGE-ME-signal-chat-host",
+  "trust_root": "/srv/tls-mpc/config/signal-root-ca.pem",
+  "certificate_checker": "/opt/tls-mpc/bin/public_auth"
+ },
+ "database": {
+  "client": "/opt/tls-mpc/bin/handoff_client",
+  "network": "/srv/tls-mpc/config/network.json",
+  "key": "/srv/tls-mpc/secrets/db-key.json"
+ },
+ "application": {"token_file": "/srv/tls-mpc/secrets/bearer"},
+ "test": {
+  "_comment": "Still required scaffolding (DEPLOYMENT.md 'Not yet ready'): the account export (prekey private keys, sealed-sender certificate), signup tokens of pre-provisioned contacts, the KEM tool.",
+  "export": "/srv/tls-mpc/shared/mpc-export.json",
+  "tokens": "/srv/tls-mpc/shared/tokens",
+  "kem_tool": "/opt/tls-mpc/bin/lss-provision"
+ },
+ "environment": {
+  "SIGNAL_WORKER": "node",
+  "SIGNAL_CLIENT_PROFILE": "libsignal",
+  "SIGNAL_ACK_REFUSED": "0",
+  "SIGNAL_RECEIVE_JUMP": "3",
+  "TLS_WORKER_FIELD_BATCH": "3000",
+  "TLS_WORKER_PEER": "10.77.0.2",
+  "TLS_WORKER_LISTEN": "10.77.0.1"
+ },
+ "receive": true,
+ "timeouts": {"agree_seconds": 30, "start_margin_seconds": 30, "send_seconds": 600, "send_seconds_per_id": 60, "delete_seconds": 120, "peer_wait_seconds": 180},
+ "send_session": {"long_lived": true, "max_messages": 5000, "max_seconds": 21600, "max_megabytes": 0, "stall_seconds": 900, "attempts": 3}
+}

@@ -1,0 +1,10 @@
+# Offline builds inside the image from the vendored crate set (.deps/libsignal-vendor, copied into
+# the build context by deploy/scripts/build_artifacts.py context). Passed with `cargo --config`, so
+# it takes precedence over the crates' own .cargo/config.toml, whose vendored path is the build
+# machine's absolute path (DEPLOYMENT.md, "Proposed changes").
+[source.crates-io]
+replace-with = "vendored-sources"
+[source.vendored-sources]
+directory = "/src/.deps/libsignal-vendor"
+[net]
+offline = true

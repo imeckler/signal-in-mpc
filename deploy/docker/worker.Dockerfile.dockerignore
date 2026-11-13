@@ -1,0 +1,17 @@
+# Used by BuildKit for `docker build -f deploy/docker/worker.Dockerfile CONTEXT` (CONTEXT: the
+# directory deploy/scripts/build_artifacts.py stages, which already holds only what the build
+# needs). Defence in depth: account state, keys and build products never enter the context.
+# (No `**/target`: some vendored crates have source directories of that name; the staging step
+# leaves the crates' build directories out instead.)
+**/.git
+**/.lake
+**/__pycache__
+**/Player-Data
+**/*.key
+**/*.p12
+**/*.share
+**/*.env
+src/real_signal
+src/local_signal_server/state
+src/local_signal_server/logs
+src/local_signal_server/third_party
