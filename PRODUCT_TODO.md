@@ -872,6 +872,22 @@ who-signs-up exposure, not joint holding of first-message session keys.
 Cheaper alternative ("option 2"): erase the clear copy after `store`. Protects against a node
 compromised later, not one that kept a copy, and breaks prekey rotation unless joint signing exists.
 
+## 11d. Do not enable the hinted curve setting (`TLS_WORKER_HINTED=1`) — recorded 2026-11-14
+
+The check-value audit (`CHECK_VALUES_AUDIT.md`, branch `check-values`, section 3.1) could not show
+that the hinted curve programs' link checks (`edwards-bit-table`, `edwards-prepare-hinted`; legacy
+C++ `hinted_points.h`) are safe against a cheating node: the hinted points enter as unchecked field
+elements, the links are opened per window and per coordinate, masked denominators are opened, and
+the soundness theorems (`bitTable_sound`, `prepareTable_sound`) assume every link holds. Whether a
+cheating node can make the abort pattern depend on a contact's key is UNDECIDED (PROOF_GAPS F22c).
+
+A default deployment never runs these programs: the setting is off by default, and the script path
+never calls them even when it is on. Until decided: keep the setting off; deployment preflight
+should refuse it. Ways out: (a) drop the hinted path with the legacy C++ (the non-hinted programs
+compute the multiples inside the engine and need no new argument); (b) change and re-lower the two
+programs (on-curve check per hinted point from its owner's input only; links opened as one masked
+random combination; a link failure fatal and reported) and then prove it.
+
 ## 12. Testing still owed
 
 - [ ] Rerun the older fixture checks (`check_tls_worker_v3.py`, `check_tls_application_v3.py`,
