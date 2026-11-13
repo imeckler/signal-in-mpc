@@ -61,10 +61,28 @@ See `TlsMpc/Security.lean` section 7c and section 8. In short (all standard axio
   for the runs: open (`proofs/` `curve_hinted_Z_uniform`, `entries_sound` are about the program).
 * **T3**: the kinds of every flow (`*_reveals`, `s11_flows_reveal`, `Staged.viewD_kinds`,
   `prepareContacts_viewD_kinds`). Value-level T3: open.
-* **`_wf`**: none proved for the S11 scripts; every batch of the vector instances is admitted by
-  Lean's `checkBatch` (`verdict ok`) and by the Rust shell (`s11_pair.rs`).
-* **Honest runs through `jointRun`**: only `splitAgree`; the other flows are checked executably
+* **`_wf`** (F23, `Flows/CurveWF.lean` on `Flows/CurveWFBase.lean`): every S11 script —
+  `splitBegin`, `splitAgree`, `agree`, `offsetPrepare`, `offsetStep`, `offsetStepFast`, `lift`,
+  `tables`, `agreeHinted`, `agreeAffine`, `signatures`, `torsion`, `sharedBits` — and
+  `prepareContacts` as a `Staged` flow (`Staged.WellFormed`: first script with the lift's
+  postcondition `LiftPost`, second script from every context satisfying it). Hypotheses: the field
+  counter is ahead of `f0` (`∀ j ≥ f0, j ∉ seenF`), the programs loaded under their V3 signatures
+  (`WFB.CurveProgs`: inputs, masks, public outputs as `FieldProgramsV3.find` gives them), the handles
+  read live below `f0`, widths within `maxWidth`, op 66 at most 2047 recipients (one point exchange
+  of `32 + 32m ≤ 65536` bytes). The context is tracked as marks by id (`WFB.St`), so no proof
+  enumerates a block.
+* **Honest runs through `jointRun`** (F22, part): `splitAgree` (and `splitAgree_montU`: the handle
+  holds `montU (T_A + T_B)`, the denominator from `CompleteAddition`), `pointExchange_honest`,
+  `splitBegin_honest` (both parties get `u(P_A + P_B)`). The other flows are checked executably
   (`tests/s11_vectors.txt`: 51 `check … ok` lines against `Local/Edwards` and `X25519.spec`).
+* **`commit_open_sound` for `pointExchange`** (F25, `Flows/CurveCommit.lean`):
+  `pointExchange_sound` (an accepted exchange used the adversary's commitment chosen from its view
+  and our commitment only, opened under its own frame, different from ours; the points returned
+  are our continuation `pointsOf` on the two openings), `pointExchange_copy_aborts`.
+* **Liveness** (F33, F28, `Flows/CurveLive.lean`): `sqrt_complete` (`FieldInverse`,
+  `EulerCriterion`), `root_isSome`/`roots_isSome` (with `TwoNonSquare`: the lift's root never
+  fails), `addU_den_ne_zero` (`CompleteAddition`, discharged by `proofs/` `edwards_complete`).
+  Not proved (tested): `decode (encode P) = some P`, `toAffineAll` on nonzero `Z`.
 
 ## Kinds
 
@@ -119,7 +137,9 @@ the links in one opening, as the C++).
 
 ## Merge notes: files touched
 
-* New Lean: `TlsMpc/Node/Local/{Field,Edwards}.lean`, `TlsMpc/Node/Flows/{CurveBase,Curve,CurveProofs}.lean`.
+* New Lean: `TlsMpc/Node/Local/{Field,Edwards}.lean`, `TlsMpc/Node/Flows/{CurveBase,Curve,CurveProofs}.lean`,
+  and (follow-up) `TlsMpc/Node/Flows/{CurveWFBase,CurveWF,CurveLive,CurveCommit,CurveHonest}.lean`
+  (imported by `Security.lean` only). The branch merged `s10-conversions` (its `WFP` machinery).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (six labels, `kinds`, `all`, `all_codes`),
   `TlsMpc/Node/Flows/Registry.lean` (S11 entries, `s11_flows_reveal`; imports CurveProofs),
   `TlsMpc/Security.lean` (section 7c, section 8 items, `#print axioms` lines),
@@ -132,5 +152,7 @@ the links in one opening, as the C++).
   `Cargo.lock` (dev-dependency curve25519-dalek 4.1.3, vendored); new
   `node_worker/tests/{s11_curve.rs,s11_curve_vectors.txt,s11_pair.rs,s11_vectors.txt,e2e_s11.py,s11_program_checks.py,lean/S11Curve.lean,lean/S11Vectors.lean}`.
 * `SECURITY_AXIOMS.txt` not regenerated (check_axioms.py does not fit the 4 GB cap); the 14 new
-  entries were compiled standalone with standard axioms only.
+  entries, and the 7 follow-up entries (`s11_wf_split_offset`, `s11_wf_hinted`,
+  `s11_prepareContacts_wf`, `s11_splitBegin_honest`, `s11_splitAgree_montU`,
+  `s11_pointExchange_sound`, `s11_liveness`), were compiled standalone with standard axioms only.
 * After a merge with S12: every module importing `Engine/Labels` needs a rebuild.

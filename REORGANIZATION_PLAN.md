@@ -1708,9 +1708,16 @@ called by the controller (the flow API switches with S12–S16; the legacy libra
   agreement and algebraically (`addU_montU`), (b), (c), (d); P-HINT (a) (order of openings), (b)
   soundness, and completeness under H-QR/Euler as named hypotheses: op 66's status is exactly "q(u)
   is a nonzero square" (`prepareStatus_iff`); T3 kinds for every flow (`*_reveals`,
-  `Staged.viewD_kinds`). Open: honest runs of the other flows through `jointRun`, value-level T3,
-  `_wf` theorems (vectors admit every batch), the model form of `commit_open_sound` for the point
-  exchanges. No new kind (labels for 91–95 and 102 added).
+  `Staged.viewD_kinds`). No new kind (labels for 91–95 and 102 added).
+- Follow-up (same branch, after merging `s10-conversions`): `_wf` for every curve script and op 66
+  as a `Staged` flow (`Flows/CurveWF.lean`, `Security.lean` `s11_wf_split_offset`, `s11_wf_hinted`,
+  `s11_prepareContacts_wf`); `splitBegin` through `jointRun` and the split agreement's value with
+  no denominator hypothesis (`s11_splitBegin_honest`, `s11_splitAgree_montU`; `CompleteAddition` ←
+  `proofs/` `edwards_complete`); the model form of `commit_open_sound` for the point exchanges
+  (`s11_pointExchange_sound`); liveness: `sqrt` finds roots of squares and the lift's roots never
+  fail (`s11_liveness`, under `FieldInverse`/Euler/H-QR). Open: honest runs of `agree`, the offset
+  and hinted flows and op 66 through `jointRun`; value-level T3; P-HINT (c), (d) with the runs;
+  `decode ∘ encode` and `toAffineAll` liveness (tested only).
 - Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
   engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
   with an invalid key, four cheating cases) passes; `tests/e2e_s11.py` (real engines) written, not
