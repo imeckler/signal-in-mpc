@@ -1,10 +1,19 @@
 # Offline builds inside the image from the vendored crate set (.deps/libsignal-vendor, copied into
 # the build context by deploy/scripts/build_artifacts.py context). Passed with `cargo --config`, so
 # it takes precedence over the crates' own .cargo/config.toml, whose vendored path is the build
-# machine's absolute path (DEPLOYMENT.md, "Proposed changes").
+# machine's absolute path (DEPLOYMENT.md, "Proposed changes"). The two git sources are the ones
+# local_signal_server/provision/.cargo/config.toml replaces the same way (libsignal's).
 [source.crates-io]
 replace-with = "vendored-sources"
 [source.vendored-sources]
 directory = "/src/.deps/libsignal-vendor"
+[source.spqr-git]
+git = "https://github.com/signalapp/SparsePostQuantumRatchet.git"
+tag = "v1.6.0"
+replace-with = "vendored-sources"
+[source.boring-git]
+git = "https://github.com/signalapp/boring"
+tag = "signal-v5.3.0"
+replace-with = "vendored-sources"
 [net]
 offline = true
