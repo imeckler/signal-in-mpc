@@ -360,3 +360,87 @@ from the non-strict worker's kernel table was found).
 
 **Selectable for real now:** `random` (and `masks`, which then does nothing). Not: `tls`, `upgrade`
 (J22), the contact set (J21, J22 for its legacy neighbours, J23). The default stays all-legacy.
+
+## 10. J21, J22, J23 (main line, 2026-11-13, after the first real runs)
+
+**J21 (receive width).** Where 236 came from: a plain mistake, not another kernel form. The doc
+comments of `ReceiveFirst.session` ("Receiver record (236)") and `ReceiveKernel.session`, and the
+constant `ReceiveKernel.receiverBytes := 236`, were written in 9564a25 (the commit that made the receive
+kernels); the eight fields the same comment lists (root 32, chain 32, ratchet key 32, counter 4, PQ
+root 32, PQ chain 32, PQ index 4, base key 32) sum to 200, and `ReceiveFirst.session`'s third result
+has concatenated exactly these eight parts since that commit. No kernel reads the constant (no later-
+message or multi-key variant exists; `establish-session`'s own `receiver` is 192 and unrelated); the
+legacy C++ addresses the outputs by name (`out.at("plaintext")`), so only the script, which slices by
+width, was hurt. Fix, nothing in an emitter's closure touched (flat_kernel_emitter still 383714a5…):
+`Receive.receiverFields` / `Receive.receiverBytes` (= 200, `receiverBytes_eq`) in
+`Flows/Receive.lean` is THE width; `sessionOut` slices by it; `ReceiveFlowProofs.session_receiver_bits`
+proves the kernel's `receiver` output has `8 · receiverBytes` bits (for any message long enough to
+hold the copied fields; from `session_receiver_length` over any operations, with `keys_length`,
+`messageKeys_length`, `selectAt_length`, `session_message_length`). The layout checks take the width
+from that definition: `S14Vectors.lean` prints `layout receive-session receiver 200`, `e2e_s14.py`
+reads it, `loader.rs` `RECEIVER_BYTES` is tested against it (`receiver_bytes_is_the_scripts`, which
+also shows a 236-byte receiver is refused). No proof used the old width (only `sessionOut` named it;
+`stageInstrs_bounded`, `session_reveals`, `session_reads_once` are about `sessionOut` generically and
+compile unchanged). `s14_vectors.txt` regenerated: only the session stand-in's `sig`/`eval`, the two
+session batches and the new `layout` line differ; every `check … ok`. `e2e_s14.py layouts`: local set
+42 receive kernels, compact set 106, 0 differ. S14's `flow` mode cannot be built: S14_NOTES says only
+"build the receive fixture with `Flow.Receive.*` replaced by `ReceiveBackend.scriptApi`"; no such
+fixture exists (the script receive path runs in the real harness with the contact set instead).
+
+**J23 (op 44).** Chosen: a script, not a harness change. The harness change would have replaced the
+export's first contacts by real signups for every stage, changing the legacy runs' records (golden)
+and what each stage tests; op 44 is a one-instruction script on the contact table, the same shape as
+op 36. `Flows/ContactsAdmit.lean`: `admitScript` (A's 319-byte record as A's private input, B enters
+nothing, as `entered()`), `opAdmit` (refuses an id already in the table; enters the record as the
+state, size 319, kinds [0], no key); the account precondition and the record size in Select's
+`contactsAdmitTest` (group `contacts`). Proved: `opAdmit_inv` / `opAdmit_wf` (table invariant, WF),
+`opAdmit_bounded`, `opAdmit_disclosure` / `opAdmit_reveals` / `opAdmit_viewD_kinds` (nothing released),
+`admit_honest` / `opAdmit_honest` (the state handle holds the record). Security 7k `j23_*`. The TEST
+marking is unchanged: same flow function, same callers (`Start.fromExport`, `Serve.loadJob`), same
+`OwnInput.contactAdmit` row; nothing new reaches it.
+
+**J22 (legacy TLS state).** No C++ was added. Every legacy service operation requires the active
+connection's LEGACY TLS phase `retired`, which only the legacy handshake (ops 1-7) sets; with `tls`
+selected the phase stays `fresh` and the legacy library refuses each of them. The dependency table
+(also `Select.tlsDependent`):
+
+| op | flow function | legacy state it needs | script | selection name |
+|---|---|---|---|---|
+| 1-7 | `Tls.handshake` (`legacyBackend`) | creates the phase (fresh → retired) | `TlsBackend.scriptBackend` | `tls` |
+| 8 | `Tls.abortWorker`, backends' `abort` | none (Rust shell + `ea_legacy_abort`, any phase) | — | not dependent |
+| 9, 10, 11, 17, 39, 90, 92 | `Server.*`, `Channels.exchange` | none (Rust shell; 90 swaps the legacy connection, no phase check) | — | not dependent |
+| 12-16 | `Tls.application` (open, seal, control, rotate ×2) | retired + legacy record keys | `TlsBackend.scriptApplicationBackend` | `tls` |
+| 30 | `Tls.publicBuffer` | retired + `public_receive` (legacy 45/32) | `TlsBackend.publicBuffer` | `tls` |
+| 43 | `Tls.recordLength`, `revealRange` | retired + `public_receive` | `TlsBackend.recordLength/revealRange` | `tls` |
+| 91 | `Server.reset` | retired (`ea_legacy_reset`) | NEW: socket half `[1]` (Rust `Reset { legacy: false }`) + `Select.serverReset` (fresh script TLS state) | `tls` (wired here) |
+| 33 | `Random.joint` | retired | `Select.randomJoint` (`Flows/Random.lean`) | `random` |
+| 45 | `Upgrade.anonymous` | retired + service | `Select.upgradeAnonymous` (`Flows/Upgrade.lean`) | `upgrade` |
+| 32 | `Upgrade.authenticated` | retired, credentials | `UpgradeAuth.authenticated` | `account` |
+| 36, 37, 38, 40, 52, 63 | `Contacts.key/load/seal/evict/assign/loadDevices` | retired + service | `ContactsTable` | `contacts` |
+| 44 (TEST) | `Contacts.admitTest` | retired + admitted account | NEW: `ContactsAdmit.opAdmit` (J23) | `contacts` (wired here) |
+| 46 (TEST), 47, 53, 54, 55 | `Account.admitTest/credentials/key/seal/load` | retired + service | `Account.*` | `account` |
+| 66 | `Curve.prepareContacts` | retired, account, contacts | `ContactsPrepare` | `curve` |
+| 41, 42, 61, 62 | `Send.seal/request/sealDevices/requestDevices` | retired, contacts, account | `SendBackend` | `send` |
+| 48-51 | `Receive.take/drop/openFirst/session` | retired, account, records | `ReceiveBackend` | `receive` |
+| 56-60, 64, 65 | `Refresh.*` | retired, contacts | `RefreshBackend` | `refresh` |
+| 80, 81 | `Ceremony.secrets/register` (ceremony sessions only) | retired + service | none | **S16** |
+| 18-29, 31, 34, 35, 19 | retired fixture / private-profile ops | — | — | not forwarded by node_worker (S8) |
+
+The selection (`Flows/Select.lean`): `check names ceremony` refuses, at start agreement, a selection
+with `tls` that strands an operation of the table this session can issue (`stranded`; `ceremony` =
+the agreed `SIGNAL_CEREMONY`, passed by `Main.session`), naming each op and the names to select. Proved:
+`check_ok`, `check_closed` (accepted ⇒ every such op is scripted by a selected group),
+`check_needs`, `tls_needs_closedSet` (the smallest closed selection containing `tls` is all ten groups,
+`closedSet`, for any session but a ceremony), `check_contactSet` / `check_contactSet_partial` (now on
+`closedSet`), `check_contactSet_unclosed` (the old contact set + `tls` + `masks` strands ops 33 and 45),
+`check_ceremony_tls` (a ceremony session cannot select `tls` until S16), `stranded_without_tls`.
+Restated in Security 7k (`j22_*`, `select_contactSet`). Waits on S16: ops 80, 81 (ceremony sessions
+only).
+
+STATEMENTS CHANGED (names kept): `Select.check` takes the session kind (`ceremony : Bool`);
+`check_contactSet` / `check_contactSet_partial` and their restatement `select_contactSet` now state
+acceptance of `closedSet` (all ten groups) and refusal of each nine-group subset. The old statement
+(the contact set + `tls` + `masks` accepted) was true only of the old `check`, which accepted a
+selection that fails at run time (legacy ops 33 and 45 refused): it is now refuted
+(`check_contactSet_unclosed`). Every subset statement of the old `check_contactSet_partial` still holds
+(each of those eight-group selections is still refused). `Worker.startWith` gains `ceremony`.

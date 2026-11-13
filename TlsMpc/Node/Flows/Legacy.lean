@@ -42,6 +42,13 @@ def call (w : Worker) (op : TlsWorker.Operation) (input : Bytes) : M Bytes := do
       liftM (w.active.set index : IO Unit)
   w.recording.call op input
 
+/-- **A flow operation performed by a selected script** (`Flows/Select.lean`): recorded among the
+operations used under the legacy operation's code, as if the pipe had carried it, so the final
+report's check (`Main.session`: the send operations were used) counts the operations a session
+performed, however they ran. The script's own pipe traffic is recorded too (op 93). -/
+def note (w : Worker) (code : Nat) : M Unit :=
+  liftM (w.used.modify (fun codes => if codes.contains code then codes else codes ++ [code]) : IO Unit)
+
 /-- An operation whose reply must be empty (`TlsWorker.emptyReply`). -/
 def empty (w : Worker) (op : TlsWorker.Operation) (input : Bytes) : M Unit := do
   let output ← call w op input

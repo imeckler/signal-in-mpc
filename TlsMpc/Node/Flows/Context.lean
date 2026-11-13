@@ -107,7 +107,8 @@ structure Overrides where
 
 /-- This session's handle on the engines (one per worker process).
 - `pipe`: the worker pipe (`TlsWorkerProcess.spawn`), used only by `Flows/Legacy.lean`;
-- `used`: the worker operations used so far, in first-use order (the final report's check);
+- `used`: the worker operations used so far, in first-use order (the final report's check); a flow
+  operation a selected script performed is recorded under its legacy code (`Legacy.note`);
 - `active`: the worker's selected connection (operation 90), shared by every view;
 - `connection`: `some i` for the view of connection `i` (`on`): its operations select `i` first
   when another one is selected; `none`: no selection (what is not tied to a connection);

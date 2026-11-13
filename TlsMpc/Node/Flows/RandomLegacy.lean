@@ -14,7 +14,9 @@ open TlsMpc.TlsWire TlsMpc.TlsClient
 /-- **32 bytes of joint randomness** (op 33): both parties get the same bytes, which neither
 chose alone. Used, in the clear, for WebSocket masks, request masks, seal nonces and dealing ids. -/
 def joint (w : Worker) : M (Opened .jointRandom Bytes) := do
-  if let some f := w.overrides.randomJoint then return ← f
+  if let some f := w.overrides.randomJoint then
+    Legacy.note w 33
+    return ← f
   let random ← Legacy.call w .publicRandom []
   insist (random.length == 32) "invalid joint randomness"
   pure (Reveal.jointRandom random)

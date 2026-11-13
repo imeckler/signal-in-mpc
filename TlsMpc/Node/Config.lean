@@ -154,6 +154,10 @@ structure Config where
   exportFile : Option String
   /-- `SIGNAL_LOCAL_KEM` (scaffolding): the Kyber decapsulation tool (key on its stdin). -/
   kem : Option String
+  /-- `CIRCUIT_MANIFEST`: this node's circuit manifest, the one its worker loads in strict mode (the
+  worker reads the same variable). The script runner's `loaded` kernel names come from it
+  (`Main.session`; the session's MANIFEST argument is the circuit cache TOOL, not the manifest). -/
+  circuitManifest : Option String := none
   database : Option Database
   /-- `none` unless started with `--test`. -/
   test : Option TestHooks
@@ -245,6 +249,7 @@ def ofEnv (env : String → Option String) (test : Bool) : Except String Config 
     notifyFile := env "SIGNAL_NOTIFY_MESSAGE_FILE", notifyId := env "SIGNAL_NOTIFY_ID"
     notifyJournal := env "SIGNAL_NOTIFY_JOURNAL", serveDir := env "SIGNAL_SERVE_DIR"
     exportFile := env "SIGNAL_LOCAL_EXPORT", kem := env "SIGNAL_LOCAL_KEM", database
+    circuitManifest := env "CIRCUIT_MANIFEST"
     test := if test then some hooks else none
     ignoredHooks := if test then [] else hookNames.filter (fun name => (env name).isSome) }
 
@@ -256,7 +261,7 @@ def names : List String :=
    "SIGNAL_PREPARE_BATCH", "SIGNAL_BUNDLE_SLOTS", "SIGNAL_RECEIVE_JUMP", "TLS_WORKER_HINTED", "SIGNAL_RECORD",
    "SIGNAL_LOCAL_EXPECT", "SIGNAL_LOCAL_EVENTS", "SIGNAL_CEREMONY", "SIGNAL_CEREMONY_DIR",
    "SIGNAL_NOTIFY_MESSAGE_FILE", "SIGNAL_NOTIFY_ID", "SIGNAL_NOTIFY_JOURNAL", "SIGNAL_SERVE_DIR",
-   "SIGNAL_LOCAL_EXPORT", "SIGNAL_LOCAL_KEM", "SIGNAL_WORKER", "SIGNAL_SCRIPTS"] ++ hookNames
+   "SIGNAL_LOCAL_EXPORT", "SIGNAL_LOCAL_KEM", "SIGNAL_WORKER", "SIGNAL_SCRIPTS", "CIRCUIT_MANIFEST"] ++ hookNames
 
 /-- What the two controllers agree on at session start, as text: the `Agreed` settings, the
 session's kind, and the TEST hooks that change the agreed flow (not this node's paths, the TEST

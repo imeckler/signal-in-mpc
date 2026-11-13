@@ -14,13 +14,17 @@ open TlsMpc.TlsWire TlsMpc.TlsClient
 /-- **Collect `count` bytes of an authenticated record from `offset` into the held envelope,
 unopened** (op 48). -/
 def take (w : Worker) (handle offset count : Nat) : M Unit := do
-  if let some f := w.overrides.receiveTake then return ← f handle offset count
+  if let some f := w.overrides.receiveTake then
+    Legacy.note w 48
+    return ← f handle offset count
   let held ← Legacy.call w .envelopeTake (uint 8 handle ++ uint 2 offset ++ uint 2 count)
   insist (held.length == 4) "invalid envelope reply"
 
 /-- **Discard the held envelope** (op 49). -/
 def drop (w : Worker) : M Unit := do
-  if let some f := w.overrides.receiveDrop then return ← f
+  if let some f := w.overrides.receiveDrop then
+    Legacy.note w 49
+    return ← f
   Legacy.empty w .envelopeDrop []
 
 /-- **Open the held envelope as a new contact's first message** (op 50), with our identity public
@@ -29,7 +33,9 @@ the signer's id (public): refused with a status byte, or the prekey ids it names
 ciphertext. -/
 def openFirst (w : Worker) (identityPublic : Bytes) (now : Nat) (serverKey serverCertificate signerId : Bytes) :
     M FirstMessage := do
-  if let some f := w.overrides.receiveOpenFirst then return ← f identityPublic now serverKey serverCertificate signerId
+  if let some f := w.overrides.receiveOpenFirst then
+    Legacy.note w 50
+    return ← f identityPublic now serverKey serverCertificate signerId
   let opened ← Legacy.call w .envelopeOpen (identityPublic ++ uint 8 now ++ serverKey ++
     uint 2 serverCertificate.length ++ serverCertificate ++ uint 2 signerId.length ++ signerId)
   if opened.head? != some 255 then return .refused (Reveal.sessionStatus (opened.headD 0).toNat)
@@ -46,7 +52,9 @@ the KEM secret (OWN, `Secret`), our account's address and the request counter's 
 with a status byte, or the message's text. -/
 def session (w : Worker) (contact : ContactId) (address : Bytes) (signed oneTime secret : Secret Bytes) :
     M Received := do
-  if let some f := w.overrides.receiveSession then return ← f contact address signed oneTime secret
+  if let some f := w.overrides.receiveSession then
+    Legacy.note w 51
+    return ← f contact address signed oneTime secret
   let result ← Legacy.inputOwn w .envelopeSession
     (Secret.hide (uint 16 contact ++ address) ++ signed ++ oneTime ++ secret ++ Secret.hide (uint 8 (2 ^ 63)))
   if result.head? != some 255 then return .refused (Reveal.sessionStatus (result.headD 0).toNat)

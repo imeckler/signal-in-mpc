@@ -196,10 +196,16 @@ def session (test : Bool) (args : List String) : IO Unit := do
     let (loaded, programMasks) ← if config.agreed.scripts.isEmpty then
         pure ((fun _ => true : Engine.Bytes → Bool), (fun _ => none : Engine.Bytes → Option Nat))
       else do
-        let names ← Channels.Real.manifestNames manifest
         -- (only the groups that run these programs need the counts; the condition also keeps the
         -- term from being a closed one that the compiler would evaluate at program start)
         let uses := config.agreed.scripts.contains "receive" || config.agreed.scripts.contains "refresh"
+        -- The kernel names come from the circuit manifest the worker loads (`CIRCUIT_MANIFEST`); the
+        -- session's MANIFEST argument is the circuit cache tool, not a manifest.
+        let names ← match config.circuitManifest with
+          | some path => Channels.Real.manifestNames path
+          | none =>
+            if uses then throw (IO.userError "SIGNAL_SCRIPTS with receive or refresh needs CIRCUIT_MANIFEST (strict circuits)")
+            else pure []
         let counts := programMaskCounts (receivePrograms.filter fun _ => uses)
         pure ((fun name => names.contains name), (fun name => (counts.find? (·.1 == name)).map (·.2)))
     -- (J22: the selection must be closed for this session's kind; a ceremony session cannot select

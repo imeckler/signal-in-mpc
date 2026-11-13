@@ -205,16 +205,44 @@ def legacyApplicationBackend (w : Worker) : TlsApplication.Backend TlsWorker.Buf
     return applicationHandleKeys
   abort := Legacy.empty w .abort []
 
+/-- A selected script handshake backend, each operation recorded under its legacy code
+(`Legacy.note`: the final report counts the operations performed, however they ran). -/
+def notedBackend (w : Worker) (b : Backend Unit) : Backend Unit where
+  begin := do Legacy.note w 1; b.begin
+  derive k peer hash := do Legacy.note w 2; b.derive k peer hash
+  openHandshake k sequence wire := do Legacy.note w 3; b.openHandshake k sequence wire
+  authenticate hostname chain scheme hash signature := do
+    Legacy.note w 4
+    b.authenticate hostname chain scheme hash signature
+  verifyFinished k hash message := do Legacy.note w 5; b.verifyFinished k hash message
+  finish k serverHash clientHash certificate := do Legacy.note w 6; b.finish k serverHash clientHash certificate
+  retire k a := do Legacy.note w 7; b.retire k a
+  abort := b.abort
+
+/-- A selected script record backend, each operation recorded under its legacy code. -/
+def notedApplicationBackend (w : Worker) (b : TlsApplication.Backend TlsWorker.BufferHandle) :
+    TlsApplication.Backend TlsWorker.BufferHandle where
+  sealApplication keys sequence payload size padding := do
+    Legacy.note w 13
+    b.sealApplication keys sequence payload size padding
+  sealControl keys sequence kind content := do Legacy.note w 14; b.sealControl keys sequence kind content
+  openRecord keys sequence wire := do Legacy.note w 12; b.openRecord keys sequence wire
+  rotateSend keys := do Legacy.note w 15; b.rotateSend keys
+  rotateReceive keys := do Legacy.note w 16; b.rotateReceive keys
+  abort := b.abort
+
 /-- **A TLS session with the server** on the selected connection (ops 1-11): the handshake on the
 engines, records through the leader's socket. -/
 def handshake (w : Worker) (config : TlsWire.Config) : M (TlsClient.Session Unit) :=
-  TlsClient.run ((w.overrides.tlsBackend.map (· w.connection)).getD (legacyBackend w)) (Server.handshakeTransport w) config
+  TlsClient.run ((w.overrides.tlsBackend.map fun f => notedBackend w (f w.connection)).getD (legacyBackend w))
+    (Server.handshakeTransport w) config
 
 /-- **The application session after `handshake`** (ops 12-17), records received through
 `Server.waitingTransport` with `kept` (the slot `Server.awaitRecord` and the session loops fill). -/
 def application (w : Worker) (handshake : TlsClient.Session Unit) (kept : IO.Ref (Option Bytes)) :
     IO (TlsApplication.Session TlsWorker.BufferHandle) :=
-  TlsApplication.make ((w.overrides.tlsApplicationBackend.map (· w.connection)).getD (legacyApplicationBackend w))
+  TlsApplication.make ((w.overrides.tlsApplicationBackend.map fun f => notedApplicationBackend w (f w.connection)).getD
+      (legacyApplicationBackend w))
       (Server.waitingTransport w kept) {
     keys := applicationHandleKeys, hostname := handshake.hostname, alpn := handshake.alpn
     sendSequence := handshake.sendSequence, receiveSequence := handshake.receiveSequence
@@ -224,12 +252,16 @@ def application (w : Worker) (handshake : TlsClient.Session Unit) (kept : IO.Ref
 /-- **Public bytes into the engines, to be sealed and sent** (op 30): a WebSocket frame or request
 built here in the clear. The reply is the payload's buffer handle. -/
 def publicBuffer (w : Worker) (bytes : Bytes) : M TlsWorker.BufferHandle := do
-  if let some f := w.overrides.tlsPublicBuffer then return ← f w.connection bytes
+  if let some f := w.overrides.tlsPublicBuffer then
+    Legacy.note w 30
+    return ← f w.connection bytes
   Legacy.handle (← Legacy.call w .publicBuffer bytes) "invalid public buffer handle"
 
 /-- **The length of an authenticated record** (op 43 at an offset past any record): no byte. -/
 def recordLength (w : Worker) (handle : Nat) : M (Opened .serverBytes (Nat × Bytes)) := do
-  if let some f := w.overrides.tlsRecordLength then return ← f w.connection handle
+  if let some f := w.overrides.tlsRecordLength then
+    Legacy.note w 43
+    return ← f w.connection handle
   let probe ← Legacy.call w .revealRange (uint 8 handle ++ uint 2 65535 ++ uint 2 1)
   insist (probe.length == 2) "invalid reveal reply"
   pure (Reveal.serverBytes (number probe) [])
@@ -238,7 +270,9 @@ def recordLength (w : Worker) (handle : Nat) : M (Opened .serverBytes (Nat × By
 and the bytes (none past the length). The caller keeps to T1's budget (`PublicReceive.mayReveal`,
 `PublicReceive.budget`). -/
 def revealRange (w : Worker) (handle offset count : Nat) : M (Opened .serverBytes (Nat × Bytes)) := do
-  if let some f := w.overrides.tlsRevealRange then return ← f w.connection handle offset count
+  if let some f := w.overrides.tlsRevealRange then
+    Legacy.note w 43
+    return ← f w.connection handle offset count
   let out ← Legacy.call w .revealRange (uint 8 handle ++ uint 2 offset ++ uint 2 count)
   insist (out.length ≥ 2 && out.length ≤ 2 + count) "invalid reveal reply"
   pure (Reveal.serverBytes (number (out.take 2)) (out.drop 2))
