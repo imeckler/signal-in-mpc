@@ -97,8 +97,13 @@ def «seal» {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : Cont
   match res with
   | none => return Reveal.sealedEnvelope none
   | some sd =>
+    -- The entry as it is NOW: a first send prepared the contact above (`cv.staticAgreement`,
+    -- `cv.ephemeral`: F32's commit adds the static word to `derived`); writing back the entry read
+    -- before that dropped the word, so every later send re-prepared the contact (and the old word's
+    -- handle was never freed). The C++ prepares once per loaded contact.
     let t ← s.table.get
-    s.table.set (t.put contact { e with state := some sd.state })
+    let some e' := t.find? contact | throw "send unavailable"
+    s.table.set (t.put contact { e' with state := some sd.state })
     return Reveal.sealedEnvelope (some (timestampOf sd.timestamp, sd.envelopes.map ofB8))
 
 /-- **Op 61** (`Flow.Send.sealDevices`); `address` is our own account's (17 bytes). -/
@@ -122,8 +127,10 @@ def sealDevices {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : C
   match res with
   | none => return Reveal.sealedEnvelope none
   | some sd =>
+    -- The entry as it is now (the preparation above may have added to `derived`; see `seal`).
     let t ← s.table.get
-    s.table.set (t.put contact { e with state := some sd.state })
+    let some e' := t.find? contact | throw "send unavailable"
+    s.table.set (t.put contact { e' with state := some sd.state })
     return Reveal.sealedEnvelope (some (timestampOf sd.timestamp, sd.envelopes.map ofB8))
 
 /-- A fresh buffer id (shared with S12's buffers, so ids never collide). -/

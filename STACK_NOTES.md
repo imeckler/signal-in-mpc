@@ -483,3 +483,182 @@ so it would fail closed the same way (not run).
 **Selectable for real now:** `random`; the closed selection (all ten groups) for every session but a
 ceremony; `ceremonySet` (all eleven) for a ceremony session. Nothing waits on S16 any more (merged).
 The default stays all-legacy (golden-equal, re-checked after the last change).
+
+## 11. The script path's cost; the whole test set with scripts; before the default flips (2026-11-13, evening)
+
+### 11.1 The cost (commit 6642486; details and tables in PERFORMANCE.md, "The script path's cost")
+
+The engines were never the difference: per steady message the workers are equally busy and the
+openings the same; the extra time was the Lean controller between batches (0.57 s per message
+semi-honest) and per-batch work in the worker that grew with the session. Fixed: quadratic decoding
+(`Dec.take`), quadratic randomness cutting, GHASH products built from 128-bit masks, the envelope
+length computed by running the encryption, byte-wise big-number codecs; in the worker the per-batch
+context copy and the scan of every live engine value; trailing free-only batches now open the next
+batch. Sustained stage, seconds per message in session: semi-honest 1.68 → 1.07 (legacy 0.99–1.04),
+malicious 2.89 → 2.29 (legacy 2.23–2.44). What still separates them (~70 ms per message, all
+controller time) is listed there.
+
+**Proofs.** No theorem statement changed; nothing dropped or weakened. New: `Engine.takeList_eq`,
+`fromLEFast_eq`, `leFast_eq`, `le_eq_le_mod`, `le_add_split`, `byteBlocks_eq`, `EncF.*_eq`,
+`encWireFast_eq`, `encodeBatchFast_eq`, `DecF.*_eq`, `decDatumFast_eq`, `decodeRepliesFast_eq`;
+`Local.Ghash.maskAnd_eq`, `nextPowerFast_eq`, `powersFast_eq`, `loopFast_eq`, `mul_eq_mulFast`,
+`halfFast_eq`, `extendFast_eq`, `lefts_fast_eq`, `*FastOf_eq`; `Send.lengthDelimited_length`,
+`keystream_length`, `aes256Ctr_length`, `encrypt_length`, `sealV1_length`,
+`sealValue_envelope_length`, `sealEnvBytes_value`; `Runner.itemCount_append_frees`. CHANGED
+DEFINITION (statement users unaffected): `Send.sealEnvBytes` is now computed from lengths; its old
+definition is `sealEnvBytes_value`, which `SendProofs.sealOut_lengths` uses (one line). IO glue that
+now calls the proved-equal fast functions: `Runner.batch`, `JoinBackend.elems`,
+`ReceiveBackend.elems`, `Select.candidate`, `TlsBackend.ensure` / `sealPhases` / the open's half.
+**What is opened and its order: unchanged** (no script changed; the reveal-kind theorems
+(`*_reveals`, `*_disclosure`) and the ordering theorems (ORD-1/ORD-2, `drive_model`) are about the
+scripts and `drive`, untouched, and all rebuild). The one change of what the pipe carries: a
+finished script's trailing batch of frees travels at the head of the next batch (same instructions,
+same order; frees release nothing, D8 holds since they come first) — `drive_model` is about `drive`,
+not the IO loop, which was unverified glue before and still is (PROOF_GAPS J28). `csimp` would have
+been simpler but is an escape hatch the lint forbids in `TlsMpc/Node`.
+
+### 11.2 The test set with scripts (Task 2)
+
+Every row: `--strict-produced`, `SIGNAL_SCRIPTS` = the closed selection (ten groups; eleven,
+`ceremonySet`, for the ceremony), the tree after 6642486, this machine; legacy = the same stage
+all-legacy and strict (`pf_harness.py` in `.deps/lowering-scratch/`; logs `out/pf-h-TAG-MODE-STAGE.log`).
+Seconds are the harness's `elapsed`.
+
+**Manifest gaps found (legacy strict fails identically; J29).** The local strict set lacked the
+kernels of the app stage (`signal-seal-built 244 3 1 1 1 1`, a 200-byte text) and of several
+recovery shapes (`bundle-slot 0 0 0`, `0 0 1`): the legacy strict runs refused the same names
+("refused kernel signal-seal-built 244 3 …", "refused: kernel bundle-slot 0 0 0, 0 0 1"). 90 kernels
+that non-strict sessions had asked for (`local_signal_server/kernels.txt`) were added to the local
+set from the circuit cache of the CURRENT emitters, nothing lowered (`jx_missing.py local add`;
+backup `.deps/lowering-scratch/out/manifest-pfbak-local/`), less `bundle-seal 244 1 79 1 1 1 1`
+(the one-byte-short kernel; `send_script_kernels_check` flags it): 375 → 464 kernels; the script
+kernel check (`mg_cargo.py kcheck local`) 0 findings, `e2e_s14.py layouts` 96 receive kernels, 0 differ.
+
+| stage (mode) | scripts | legacy | records / differences |
+|---|---|---|---|
+| `--runs 2 --signup` (malicious) | pass, 162.8 s | golden; 168.4 s (earlier today) | equal to tests/golden (compare_records: same modulo masks) |
+| `--runs 2 --signup` (semi-honest) | pass, 132.1 s | golden | equal to golden |
+| `--runs 0 --db` (malicious) | pass, 207.7 s | golden; 215.5 s (earlier today) | equal to golden |
+| `--runs 0 --db` (semi-honest) | pass, 171.1 s | golden | equal to golden |
+| `--runs 0 --multi-device --db` (malicious) | pass, 411.6 s | pass, 394.2 s | no records; both devices decrypt in both |
+| `--runs 0 --app` (malicious) | pass, 169.3 s (after J29; before: refused kernel, as legacy) | pass, 162.5 s (after J29) | — |
+| `--runs 0 --sustained 16 --restart-after 8` (both) | pass; 17.1–17.4 s / 36.6 s in session | pass; 15.9 / 35.6 s | PERFORMANCE.md |
+| `--runs 0 --ceremony` (malicious, `ceremonySet`) | pass, 81.9 s | 83.8 s (earlier today, non-strict) | password in no record or log (stage check) |
+| `--recovery classify` (malicious) | pass, 32.3 s | | |
+| `--recovery devices` (malicious) | pass, 207.9 s | | the 403 line is a test client's (legacy too) |
+| `--recovery refresh-retry` (malicious) | pass, 223.5 s (after J29; before: refused `bundle-slot 0 0 0`) | strict: fails identically (refused `bundle-slot 0 0 0`, `0 0 1`) | |
+| `--recovery identity` (malicious) | pass, 133.4 s | | |
+| `--recovery unauthorized` (malicious) | pass, 112.4 s | | |
+| `--recovery drop` (malicious) | pass, 105.5 s; **op 91's script half runs** ("connection 1 was closed and replaced", the stage's required event: `Select.serverReset`) | | J22b's "not run" closed |
+| `--recovery throttle` (malicious) | pass, 141.8 s | | |
+| `--recovery bundle-fault` (malicious) | pass, 214.2 s | | |
+| `--recovery resume` (malicious) | pass, 121.4 s ("worker pipe I/O failed" is the stage's injected fault) | | |
+| `--recovery hang` (malicious) | pass, 118.9 s | | |
+| `--recovery devices --profile libsignal` (malicious) | FAILS CLOSED at op 61: the batch running `bundle-seal 244 0 79 1 1 1 1` is refused by `check` (not in the strict set), nothing opened | FAILS CLOSED identically (strict: "refused: kernel bundle-seal 244 0 79 1 1 1 1") | NEEDS_REVIEW 3f item 7 unchanged (kernel not fixed); non-strict legacy reaches the kernel and aborts on "conversation shape" (2026-11-12) |
+| compact signup `--devices 3` (malicious, libsignal) | pass, 77.4 s (receive 11.9, send 44.8) | 72.7 s (receive 10.1, send 42.4; earlier today) | both: delivered after device refresh |
+| `--runs 1 --circuits 1,3 --db` (malicious) | pass, 519.7 s | | dropped circuit replaced, nothing refused |
+| `--runs 1 --db --fingerprint` (malicious, libsignal profile) | pass, 359.8 s | | the reference check passes; its standing note (the local account's 22-character password; Signal-Android generates 24) is the harness's, unchanged |
+| `--runs 1 --db --hinted` (malicious) | pass, 248.3 s | | J20: ops 55/46 still convert the hinted bits (unused by the scripts) |
+| `--runs 1 --broadcasts 4 --link-delay-ms 1` (malicious) | pass; 194.5 s before the fix below, **140.9 s after** | pass, 142.2 s | per message, before the fix: legacy 7.7 s, scripts 15.0 s (busy 7.5 vs 14.7 s) |
+| `--runs 1 --broadcasts 4` (malicious, no delay) | pass, 82.6 s (after the fix; 85.8 before) | | |
+| `--runs 0 --sustained 16` (ONE session: the second notify sends to prepared contacts; malicious) | pass, 30.3 s in session (after the fix) | pass, 28.9 s | +4.8 % |
+| the same, semi-honest | pass, 15.4 s | pass, 13.9 s | +11 % |
+| `--runs 0 --app` (semi-honest) | pass, 137.7 s | | |
+| `--runs 0 --ceremony` (semi-honest, `ceremonySet`) | pass, 61.5 s; password in no record or log | | K7's "not run: semi-honest" closed |
+
+**A defect the link-delay run found (FIXED, J30).** With a 2 ms round trip the scripts took twice
+the legacy time per message, all of it inside the engines. Cause: `SendBackend.seal` (and
+`sealDevices`) wrote back the contact's table entry as read BEFORE the send prepared the contact,
+so the static agreement word that F32's commit had just added to `derived` was dropped, and EVERY
+later send to that contact prepared it again (a full `edwards-prepare` program, ~5,000 field
+multiplication rounds; the old word's handle was also never freed). The C++ prepares a loaded
+contact once. Fixed in the glue (the entry is re-read after the script); the scripts' preparations
+now equal the legacy's (`--broadcasts 4`: 8 → 4, as legacy). The sustained stage with a restart
+every eight messages could not see it (every message there is a first send).
+
+**Not runnable / not run.** `e2e_s12.py handshake`: cannot be built from the notes: the mode needs
+a `session_handshake_fixture` rebuilt on the script backend, which has no build target, and the
+script itself stops with "not automated" even when `TLS_SCRIPT_BACKEND_FIXTURE` names one (line
+180); what it would test (the scripted handshake and records on the real engines) runs in every
+row above. `e2e_s15.py refresh`: needs S15 vectors regenerated with S11's curve operations and a
+captured two-device prekey response (`S15_REFRESH_VECTORS`); none exist; the scripted two-device
+refresh runs in the compact `--devices 3` row and `--recovery devices` / `refresh-retry` /
+`bundle-fault`. `e2e_s14.py flow`: no fixture (section 10). ORD-2's rerun: `Session/RefreshProofs.lean`
+rebuilt against this tree (`lake build TlsMpcSecurity`, "Built TlsMpc.Node.Session.RefreshProofs");
+its theorems are about the session's operations (`Send.RefreshOps`), which call the same flow
+functions whether or not the override is selected. Semi-honest E fixtures: see 11.4.
+
+### 11.3 Before the default flips and the C++ goes
+
+1. **Measured parity, both modes (owner decision, 2026-11-13): NOT reached on one machine; reached
+   with a 2 ms round trip.** Evidence (after 6642486 and J30): sustained with restart (every
+   message a first send): semi-honest 1.07–1.09 s vs 0.99–1.04 s per message, malicious 2.29 vs
+   2.23–2.44; one session, repeat sends: semi-honest 0.96 vs 0.87 (+11 %), malicious 1.89 vs 1.81
+   (+5 %); `--broadcasts 4 --link-delay-ms 1`, malicious: 140.9 s vs 142.2 s. Semi-honest with
+   link delay: not run. What remains is controller time (PERFORMANCE.md, "What still separates"):
+   the preparation's glue (first send only), the ephemeral and static agreements' glue, the Signal
+   message built for the envelope length, the GHASH half on `BitVec`, and ~22 more pipe operations
+   per message. Owner: which link and which stage the parity criterion is measured on.
+2. **Manifests (J27, J29, K8).** The local set had 23 + 90 kernels appended by hand from the cache
+   (nothing lowered); the compact set 2 (and lacks 142 names non-strict sessions asked for). The
+   produced sets come from `scripts/produce_circuits.py DEPLOYMENT`, which reads the deployment's
+   `settings` through `handshake_backend/EmpHybridWork/CircuitInventory.lean`. For the produced sets
+   (local: `local_signal_server/deployment.json`; compact: its own deployment; production: the
+   production deployment's settings — `real_signal/state/` not read or touched) to come out complete:
+   `"ceremony": 1` (lists `ceremony-secrets`) AND a new CircuitInventory setting for
+   `ceremony-register-ctr SIZE 8 PAYLOAD 1 365` (its shape is the frame's, K8); `sends` must list
+   class 3 (`"3:1:1:1:1"`: the product's texts are at least 200 bytes, `signal-seal-built 244 3 …`,
+   `signal-request-ctr 244 1184|1216 …`), and the official forms for the libsignal profile; the
+   `signup_*` settings must cover the harness's own signups (envelopes 2224 and 2311: the
+   `receive-*` chains J27 lists) and the production account's; `bundle_slots` / `bundle_items` must
+   cover the zero-digit slots (`bundle-slot 0 0 0|1`); `seal_max` / the typed classes must cover
+   `tls-seal-class 896` (the scripted authenticated upgrade's request in the ceremony). Then
+   regenerate the sets (heavy, alone) instead of appending. `bundle-seal 244 0 79 …` (89-byte
+   official texts) waits on NEEDS_REVIEW 3f item 7.
+3. **The hinted path (J3, J20).** Only the non-hinted path is joined; with `TLS_WORKER_HINTED=1` the
+   scripts pass (`--runs 1 --db --hinted`, malicious) but ops 55 / 46 still convert the hinted bits
+   nobody uses. Decide: drop the hinted setting with the C++, or join the hinted programs.
+4. **J22b.** The table of which session kind issues which legacy op is by construction, not a
+   theorem. Op 91's script half now runs (`--recovery drop`, `--circuits`).
+5. **Golden records when the default flips: none change.** With scripts, `--runs 2 --signup` and
+   `--runs 0 --db` equal tests/golden in BOTH modes (compare_records: same modulo masks; the masks
+   already cover joint randomness, which the scripts draw by commit-then-open). Regenerate nothing;
+   re-check after the flip.
+6. **The deletion list** (REORGANIZATION_PLAN S16), who still references each file (sources that
+   `#include` it; build scripts; Lean files mention them only in doc comments):
+   * `legacy_abi.cpp`: included at the end of `engine_abi.cpp`; node_worker calls its ABI
+     (`engines.rs` `ea_legacy_dispatch`, `ea_legacy_reset`, `select`; `shell.rs` forwards
+     `is_legacy` codes); `build_hybrid_v3.py` compiles it. Delete together with the ABI functions
+     and the Rust `legacy` / `reset` / `select` engine halves (op 91's `[1]` form stays, socket only).
+   * `tls_worker_v3.cpp`, `service_kernels.h`: included by `legacy_abi.cpp` (and each other);
+     `build_hybrid_v3.py`, `check_tls_worker_v3.py`, `deployment/vm_pair_test/{build_linux.sh,
+     make_bundle.py}` and `real_signal/run_real_test.py` (a mention) refer to them.
+   * `tls_kernels.h`: included by `service_kernels.h`; `check_tls_worker_v3.py`.
+   * `dyn_word_mask.h`, `split_ecdh.h`, `gcm_shares.h`: included only by `tls_kernels.h`.
+   * `kernel.h`: included by `tls_kernels.h`, `gcm_shares.h` (the Rust loader re-implements its
+     manifest format, `loader.rs`; nothing else includes it).
+   * `edwards_points.h`: `service_kernels.h`, `hinted_points.h`; `pair_bench_fixture.cpp`.
+   * `hinted_points.h`: `service_kernels.h`, `pair_bench_fixture.cpp`, `rounds_fixture.cpp` (test set
+     E's `rounds_fixture`, to be ported to scripts first), `hinted_program_checks.py`.
+   * `x25519_fast.h`: `tls_kernels.h`, `split_ecdh.h`, `edwards_points.h`, and the fixtures
+     `curve_fixture_v2.cpp`, `curve_kdf_fixture.cpp`.
+   * `field_program.h`: included by `word_mask.h` (kept: `lean_run_fixture.cpp` uses it) and named by
+     `export_field_v3.py`; node_worker's `program.rs` implements its V3 format (comments only).
+     NOT deletable as listed unless `word_mask.h` drops it.
+   Also: `Reveal.lean`'s legacy wrappers, `Flows/*Legacy.lean`, `Flows/Legacy.lean`, the lint rule
+   forbidding `Legacy`, the 30-odd `*-report.json` files that hash these sources.
+7. **Semi-honest stages not run this evening:** `--multi-device --db`, the ten `--recovery` stages,
+   `--circuits`, `--fingerprint`, `--hinted`, compact `--devices 3`, `--link-delay-ms 1`; and
+   legacy-strict counterparts for most malicious recovery stages (each listed row says which).
+8. **Open items carried:** J28 (the runner's IO loop vs `drive`), J14 (rest), J15–J19, J21b, K1–K12
+   (S16_NOTES), F17 (IO glue unverified); the startup cost of the S10 pool's cut-and-choose (+1.0M
+   AND per session) and the GHASH doubling schedule (+0.13M AND per message) are design choices to
+   keep or revisit (PERFORMANCE.md).
+
+### 11.4 Semi-honest E fixtures (never run before), the node_worker `sh-v3` binary
+
+`e2e_s10.py` pass (180.9 s; every injected cut/bucket/bit-block deviation aborts as expected),
+`e2e_s11.py` pass (306.3 s; the agreement-share, hinted-lift, bit-table and point-encoding
+deviations abort), `e2e_s12.py` (vectors) pass (60.2 s), `e2e_s13.py` pass (121.3 s), `e2e_s15.py`
+(shape) pass (60.3 s); `e2e_s16.py` passed both modes before (S16). `e2e_s14.py layouts` (mode-free)
+on the sets after J29: local 96 receive kernels, compact 106, 0 differ.

@@ -2151,6 +2151,19 @@ and 81:
 - Tests: Lean vectors and `s16_pair.rs` (stand-ins); `e2e_s16.py` PASSES on the real engines in both
   modes; RunnerTest +7 checks. Gaps K1–K12 in `S16_NOTES.md`. No C++ deleted.
 
+**Status (2026-11-13, evening, main line; STACK_NOTES.md section 11, PERFORMANCE.md "The script path's
+cost").** OWNER DECISION: the default does not flip and the legacy C++ is not deleted until the script
+path is at least at speed parity with legacy per message on the sustained stage, in BOTH modes
+(measured). Where it stands: the script path's cost was the controller (quadratic decoding and
+randomness cutting, GHASH products built from masks, an envelope length computed by encryption,
+byte-wise codecs) and per-batch worker work, all fixed (6642486), and a glue defect that re-prepared a
+contact on every send (J30, fixed). Parity: with a 2 ms round trip, reached (malicious, 140.9 s vs
+142.2 s); on one machine not yet: per message +5 % (malicious) and +11 % (semi-honest) with repeat
+sends, +3 % / +8 % on the sustained stage with restarts; the rest is controller time (listed). The
+whole test set with scripts (STACK_NOTES 11.2): every stage run passes or, under the libsignal
+profile's `--recovery devices`, fails closed exactly as legacy; signup/db records equal the goldens in
+both modes; the readiness list is STACK_NOTES 11.3.
+
 ---
 
 **Proof tracks.** These are Lean-only, in new `*Proofs.lean` files, and touch no file the

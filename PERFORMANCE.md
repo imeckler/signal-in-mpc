@@ -554,6 +554,109 @@ Whole stages (seconds, the harness's `elapsed`; legacy column: the same stage al
 
 ("—": not run all-legacy this day.)
 
+### The script path's cost (2026-11-13, later: measured, then mostly removed)
+
+**How it was measured.** The sustained stage (`--runs 0 --sustained 16 --restart-after 8`, closed
+selection, `--strict-produced`; with eight contacts and a restart after eight messages EVERY message
+is a session's first send to its contact, so every message includes the contact's preparation, op
+66 / the C++'s `prepare`). Per worker operation the worker log gives the time inside the worker
+(`busy`), the AND gates, and the time outside it before the operation (the controller computing the
+next request, the pipe, the other party). New in node_worker (counts and durations only, never a
+value): one line per op 93 batch with `TLS_WORKER_BATCH_LOG=1` (bytes, instructions by kind, the
+circuits and programs it names, decode/agreement/check/execute times) and a per-session total line.
+The controller was sampled with macOS `sample` during the stage (`.deps/lowering-scratch/pf_sample*.py`).
+Per-message figures below are over the seven steady messages of a session (from one send circuit
+to the next; `pf_period.py`, `pf_ops.py`).
+
+**Finding.** The engines' work was NOT the difference: per message the workers were busy 371 ms
+(scripts) against 332 ms (legacy) in the semi-honest mode, and equally busy in the malicious mode;
+AND gates per steady message 2.95M against 2.83M (+4.6 %); the agreement waits were small. The
+time was the Lean controller between batches: 799 ms outside the worker per message against 228 ms,
+almost all of it in five places, each a plain algorithmic defect of IO-glue or codec code:
+
+| where (controller, per steady message, semi-honest) | before | after | fix |
+|---|---|---|---|
+| decoding a program's reply (`Dec.take` measured the whole rest of the input for every 32-byte element: quadratic) | ~150 ms | <1 ms | `Dec.takeList`; the runner decodes with `decodeRepliesFast` (= `decodeReplies`, `decodeRepliesFast_eq`) |
+| cutting 130 KB of randomness into 2,031 mask contributions (`(b.drop (64*i)).take 64`: quadratic) | ~140 ms | ~8 ms | `Engine.byteBlocks` (one pass, `byteBlocks_eq`), `fromLEFast` |
+| this party's GHASH half of a sealed record (each GF(2¹²⁸) product built 256 masks with `BitVec.replicate`) | ~115 ms | ~7 ms | `Local.Ghash.mulFast` (`mul_eq_mulFast`); the glue computes `halfFastOf` / `leftsFastOf` / `extendFastOf` (each proved equal to the original) |
+| the seal's envelope length (`sealEnvBytes` ran the whole sealed-sender encryption on zero inputs to measure it) | ~28 ms | ~10 ms | `sealEnvBytes` defined from lengths (`sealV1_length`); its old definition is the theorem `sealEnvBytes_value` |
+| encoding/decoding numbers byte by byte with big-number arithmetic | ~80 ms | small | `leFast` / `fromLEFast` (seven bytes per step); the runner encodes with `encodeBatchFast` (= `encodeBatch`) |
+
+In the worker, two costs grew with the session: `Interp::admit` CLONED the whole handle context for
+every batch (every id the session ever used: 0.16 ms per batch at the start of a session, 0.46 ms
+after eight messages, and growing), and `execute` scanned every live engine value after every batch.
+Now the batch is checked in place with an undo journal (a refused batch still leaves the context
+unchanged, tested) and only the batch's own handles are examined: 0.02 ms per batch, flat.
+
+Batches: a finished script whose last batch only frees handles no longer sends it alone; the frees
+open the next batch (`Runner.pending`): 74.6 → 47.9 pipe operations per message (legacy: 34.4), each
+one agreement (one control-link round trip) fewer. No opening was added, removed or reordered: the
+instructions and their order are unchanged, only the batch boundary of trailing frees moves (frees
+release nothing; the D8 rule, a release ends its batch, still holds: the frees come first).
+
+**Per operation, per steady message** (semi-honest; "out" = controller and pipe time before the
+operations; "opens" = openings and exchanges in the batches, each a party↔party round besides the
+batch's agreement; legacy operations have their rounds inside the C++):
+
+| operation | legacy ops / busy / out / AND | scripts BEFORE batches / busy / out / AND / opens | scripts AFTER batches / busy / out / AND / opens |
+|---|---|---|---|
+| 41 seal (preparation, ephemeral key, seal) | 1 / 294 ms / 0 / 2,187k | 10 / 285 / 363 / 2,187k / 8 | 10 / 292 / 48 / 2,187k / 8 |
+| 13 record seal (request) and its GHASH key powers | 1 / 20 / 0 / 446k | 3.4 / 30 / 182 / 574k / 3.4 | 3.4 / 21 / 16 / 574k / 3.4 |
+| 33 joint randomness, commitments | 2 / 0.2 / 0.1 / 0 | 10 / 8.6 / 4.5 / 0 / 10 | 8 / 0.8 / 2.6 / 0 / 8 |
+| 42 request, frees | 1 / 0.2 / 12 / 0 | 28 / 18 / 17 / 0 / 0 | 1.1 / 0.1 / 16 / 0 / 0 |
+| 43 reveals of the response | 19 / 3.5 / 125 / 2k | 20 / 15 / 124 / 2k / 20 | 20 / 4 / 127 / 2k / 20 |
+| 12 record open, 38 contact seal, 39 database, server I/O | 10 / 9 / 87 / 151k | 10 / 11 / 108 / 151k / 2 | 10 / 11 / 89 / 151k / 2 |
+| **total** | **34.4 / 332 / 228 / 2,825k** | **82.7 / 371 / 799 / 2,954k / 45** | **56.0 / 334 / 300 / 2,954k / 45** |
+
+Malicious, after: busy 1,415 ms per message (legacy 1,442), outside 361 ms (legacy 283).
+
+**AND gates (+7–10 % per message in the harness's figure).** Two parts, both design choices of the
+script path, neither a check the C++ skipped: (1) a session's start: +1.28M AND per session, of which
+1.03M is the S10 mask pool's cut-and-choose (`modadd-open` over the 672 opened candidates, P-CUT;
+the C++'s pool is generated differently, `dyn_word_mask.h`), the rest the GHASH key powers; with a
+restart every eight messages that is +0.16M per message; (2) steady state +0.13M per message: the
+GHASH key powers come from the doubling schedule (`Local/Ghash.lean`: every odd power of a round in
+ONE `gcm-multiply` run, ⌈log₂ n⌉ + 1 rounds instead of about n/2) which computes up to twice the
+powers a record needs. Both trade gates for rounds; under link delay rounds dominate.
+
+**Sustained stage after** (seconds per message in session; one run each, this machine; the legacy
+runs the same day):
+
+| mode | legacy | scripts before | scripts after |
+|---|---|---|---|
+| semi-honest | 0.99–1.04 (15.9, 16.6 s) | 1.68 (26.9 s) | 1.07–1.09 (17.1–17.4 s) |
+| malicious | 2.23–2.44 (35.6, 39.1 s) | 2.89 (46.3 s) | 2.29 (36.6 s, twice) |
+
+**Repeat sends to a prepared contact, and rounds (found later the same evening, J30).** The
+sustained stage above makes every message a first send. With repeat sends the scripts prepared the
+contact AGAIN on every message (the send's glue wrote back a stale table entry, dropping the
+prepared static word): invisible locally next to the other costs, but with `--link-delay-ms 1`
+(2 ms round trip; `--runs 1 --broadcasts 4`, malicious) a message took 15.0 s against legacy 7.7 s,
+the workers busy 14.7 s against 7.5 s — the preparation's ~5,000 field-multiplication rounds per
+message. Fixed (the entry re-read after the script). After the fix:
+
+| stage | legacy | scripts |
+|---|---|---|
+| `--runs 1 --broadcasts 4 --link-delay-ms 1`, malicious (harness elapsed) | 142.2 s | 140.9 s |
+| `--runs 0 --sustained 16` (one session; the second notify to prepared contacts), malicious, in session | 28.9 s (1.81 s per message) | 30.3 s (1.89 s) |
+| the same, semi-honest | 13.9 s (0.87 s) | 15.4 s (0.96 s) |
+
+So with a 2 ms round trip the script path is at parity (its fewer GHASH rounds offset its extra
+batch agreements); on one machine it is 5 % (malicious) to 11 % (semi-honest) slower per message.
+
+**What still separates scripts from legacy** (about 70 ms per message, both modes, all of it Lean
+controller time; the engines and rounds are at parity): the contact preparation's glue (cutting and
+encoding 2,031 mask contributions, ~25 ms), the ephemeral key's and the static agreement's glue
+(~10 ms), the Signal message the envelope length still builds (~10 ms, the length of
+`SpqrSend.canonical`'s wire could be proved like `sealV1_length`), the GHASH half on BitVec
+(~7 ms; a 64-bit-limb multiplication proved equal would make it negligible), and ~22 more pipe
+operations per message than legacy (agreement, encoding, a pipe round trip each; ~10 ms here, about
+2 ms each over a 2 ms round trip). The preparation share appears only on a session's first send to
+a contact, which in this stage is every message; in a long session to the same contacts it does not
+recur. Not done: the `csimp` attribute would have let the compiled code use the fast versions in
+place of the definitions, but the plan forbids it in `TlsMpc/Node` (lint `escape-hatches`), so the
+runner and the IO glue call the proved-equal fast functions by name.
+
 ## What remains, with estimates
 
 | What | Gain |
