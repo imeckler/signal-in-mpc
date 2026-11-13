@@ -116,6 +116,8 @@ import TlsMpc.Node.Flows.Join
 import TlsMpc.Node.Flows.JoinBackend
 import TlsMpc.Node.Flows.JoinOnce
 import TlsMpc.Node.Flows.Runner
+import TlsMpc.Node.Flows.Select
+import TlsMpc.Node.Flows.JoinIdentity
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -7497,6 +7499,141 @@ theorem runner_nextBatch_fill_only (hash : Bytes → Bytes) (me : Party) {α : T
 
 end FlowsRunner
 
+/-! ### 7j. The contact set made selectable: J8, J11, J12, J13, F32
+
+`TlsMpc/Node/Flows/Account.lean` (ops 47, 46 as scripts; the account state keeps the identity's
+swap-bit handles and the sender key word), `Flows/UpgradeAuth.lean` (op 32 on the script account
+state), `Flows/Join.lean` + `Flows/JoinIdentity.lean` (J8: the identity scalar's swap bits as field
+handles in the joined agreements, spared by every run), `Flows/ContactsPrepare.lean` (F32: op 66's
+contact-table glue; J12: the sender key), `Flows/Select.lean` (the contact set switches as one),
+`Flows/Runner.lean` (J13: slots released). **M** as above; the kernels' values through `Signal`'s
+specifications (the upgrade kernels, T2 for their circuits as `Contacts.Loaded`'s). -/
+
+section FlowsContactSet
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **Op 47 releases nothing** [M]. -/
+theorem s16_credentials_reveals (a : Account.State) (slot : Nat) :
+    Reveals [] (Account.credentialsStep a slot).1 :=
+  Account.credentialsStep_reveals a slot
+
+/-- **Op 46 (TEST) releases only the conversions' masked bits** [M]. -/
+theorem s16_admit_reveals (a : Account.State) (n f : Nat) (pool : Conv.MaskPool) (hinted : Bool)
+    (scalarSlot certSlot certLen : Nat) :
+    Reveals Account.openKinds55 (Account.admitStep a n f pool hinted scalarSlot certSlot certLen) :=
+  Account.admitStep_reveals a n f pool hinted scalarSlot certSlot certLen
+
+/-- **Op 32 releases only the joint nonce's commitment and opening** [M]: the credentials and the
+request are never opened. -/
+theorem s16_upgrade_reveals (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot n : Nat)
+    (cr : UpgradeAuth.Creds) :
+    Reveals Random.jointKinds (UpgradeAuth.authenticated hash me nonceSlot valueSlot n cr) :=
+  UpgradeAuth.authenticated_reveals hash me nonceSlot valueSlot n cr
+
+/-- **Op 32 is well formed** [M] from a context holding the credential handles with their marks. -/
+theorem s16_upgrade_wf (sigs : Bytes → Option Sig) (hash : Bytes → Bytes) (me : Party) (nonceSlot valueSlot n : Nat)
+    (cr : UpgradeAuth.Creds) (c : Ctx) (outM : List Mark) (hf : Contacts.Fresh c n)
+    (hp : ∀ p ∈ cr.parts, p.id < n ∧ c.bool? p = some UpgradeAuth.credInfo)
+    (hsig : sigs cr.name = some ⟨8 * (Account.credentialBytes * cr.parts.length + 16), outM⟩)
+    (hout : outM.length ≤ maxWidth) : WF sigs c (UpgradeAuth.authenticated hash me nonceSlot valueSlot n cr) :=
+  UpgradeAuth.authenticated_wf sigs hash me nonceSlot valueSlot n cr c outM hf hp hsig hout
+
+/-- **The shared upgrade kernel on the bundle op 32 builds** is the relay's request on the XOR of
+the credential shares and the nonce (`signalUpgradeShared_spec`) [K]. -/
+theorem s16_request_shared_value (a b nonce : Contacts.B8) (ha : a.length = 16 + UpgradeAuth.passwordBytes)
+    (hb : b.length = 16 + UpgradeAuth.passwordBytes) (hn : nonce.length = 16) :
+    Contacts.kernelOut (HybridKernel.signalUpgradeShared UpgradeAuth.passwordBytes) (a ++ b ++ nonce) =
+      Signal.RelayUpgrade.request ByteAuth.concrete UpgradeAuth.passwordBytes (List.zipWith (· ^^^ ·) a b ++ nonce) :=
+  UpgradeAuth.requestShared_value a b nonce ha hb hn
+
+/-- **The plain upgrade kernel** (credentials combined, op 55) [K]. -/
+theorem s16_request_plain_value (cred nonce : Contacts.B8) (hc : cred.length = 16 + UpgradeAuth.passwordBytes)
+    (hn : nonce.length = 16) :
+    Contacts.kernelOut (HybridKernel.signalUpgrade UpgradeAuth.passwordBytes) (cred ++ nonce) =
+      Signal.RelayUpgrade.request ByteAuth.concrete UpgradeAuth.passwordBytes (cred ++ nonce) :=
+  UpgradeAuth.requestPlain_value cred nonce hc hn
+
+/-- **J8** [M]: a job whose scalar has swap-bit handles runs nothing and makes nothing. -/
+theorem j8_jobBits_swaps (sl : Join.AgreeSlots) (j : Receive.Job) (hs : List FieldH) (h : sl.swaps j.scalar = some hs)
+    (st : Receive.St) : Join.jobBits sl j st = .done ((hs, []), st) :=
+  Join.jobBits_swaps sl j hs h st
+
+/-- **J8: the joined agreements spare the identity's swap-bit handles** [M]: along every branch no
+instruction frees them or consumes them as a program mask (handles allocated before the run, none a
+pool mask's). -/
+theorem j8_receiveAgree_spares (sl : Join.AgreeSlots) (jobs : List Receive.Job) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (Join.receiveAgree sl jobs st) :=
+  JoinIdentity.receiveAgree_spares sl jobs st S hbelow hpool
+
+/-- **J8 for S15's agreement step** [M]. -/
+theorem j8_agreeG_spares (sl : Join.AgreeSlots) (ip sp : BoolH) (o : Option BoolH) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (Join.agreeG sl ip sp o st) :=
+  JoinIdentity.agreeG_spares sl ip sp o st S hbelow hpool
+
+/-- **J12 and J8: the sender key's agreement spares them** [M]. -/
+theorem j12_senderPublic_spares (sl : Join.AgreeSlots) (st : Receive.St) (S : List FieldH)
+    (hbelow : ∀ h ∈ S, h.id < st.table.ctr.field) (hpool : ∀ m ∈ st.pool.words, m.field ∉ S) :
+    Every (JoinIdentity.Spares S) (ContactsPrepare.senderPublicG sl st) :=
+  JoinIdentity.senderPublicG_spares sl st S hbelow hpool
+
+/-- **J12: the sender key releases only the joined agreements' kinds** [M]. -/
+theorem j12_senderPublic_reveals (sl : Join.AgreeSlots) :
+    Receive.RevealsG Join.receiveAgreeKinds (ContactsPrepare.senderPublicG sl) :=
+  ContactsPrepare.senderPublicG_reveals sl
+
+/-- **F32: one contact's preparation releases only P-W2F's, P-OFFSET's and the agreements' kinds**
+[M], all registered. -/
+theorem f32_prepare_reveals (hash : Bytes → Bytes) (me : Party) (cert : BoolH) (certLen : Nat) (sl : Join.AgreeSlots)
+    (os : Curve.OffsetSlots) (state : BoolH) :
+    Receive.RevealsG ContactsPrepare.prepareKinds (ContactsPrepare.prepareOneG hash me cert certLen sl os state) ∧
+      ∀ k ∈ ContactsPrepare.prepareKinds, k ∈ Label.kinds :=
+  ⟨ContactsPrepare.prepareOneG_reveals hash me cert certLen sl os state, ContactsPrepare.prepareKinds_registered⟩
+
+/-- **F32: the status byte means "prepared"** [M]. -/
+theorem f32_prepareStatus_iff (t : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat) :
+    ContactsPrepare.statusByte t cache id = 255 ↔ ∃ p, ContactsPrepare.prepared? t cache id = some p :=
+  ContactsPrepare.prepareStatus_iff t cache id
+
+/-- **F32: after the commit the contact is prepared with its run's results, no other contact
+changes** [M]. -/
+theorem f32_commit (t : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat) (p : ContactsPrepare.Prepared)
+    (e : Contacts.Entry) (he : t.find? id = some e) :
+    ContactsPrepare.prepared? (ContactsPrepare.commit t cache id p).1 (ContactsPrepare.commit t cache id p).2 id = some p ∧
+      ∀ id', id' ≠ id → ContactsPrepare.prepared? (ContactsPrepare.commit t cache id p).1
+        (ContactsPrepare.commit t cache id p).2 id' = ContactsPrepare.prepared? t cache id' :=
+  ⟨ContactsPrepare.commit_prepared t cache id p e he, fun id' h => ContactsPrepare.commit_other t cache id id' p h⟩
+
+/-- **F32: the commit keeps the contact table's invariant** [M], given what the run leaves. -/
+theorem f32_commit_inv {c c' : Ctx} (t t' : Contacts.Table) (cache : ContactsPrepare.Cache) (id : Nat)
+    (p : ContactsPrepare.Prepared) (e : Contacts.Entry)
+    (hI : t.Inv c) (he : t.find? id = some e) (hent : t'.entries = t.entries) (hn : t.next ≤ t'.next)
+    (hf : Contacts.Fresh c' t'.next)
+    (hold : ∀ q ∈ t.entries, ∀ g ∈ q.2.handles, c'.bool? g = c.bool? g)
+    (hnew : t.next ≤ p.static.id) (hbelow : p.static.id < t'.next) (hlive : (c'.bool? p.static).isSome = true) :
+    (ContactsPrepare.commit t' cache id p).1.Inv c' :=
+  ContactsPrepare.commit_inv t t' cache id p e hI he hent hn hf hold hnew hbelow hlive
+
+/-- **The contact set is selectable, and only whole** (with `tls` and `masks`). -/
+theorem select_contactSet :
+    (Select.check (Select.contactSet ++ ["tls", "masks"])).toBool = true ∧
+      ∀ g ∈ Select.contactSet ++ ["tls", "masks"],
+        (Select.check ((Select.contactSet ++ ["tls", "masks"]).erase g)).toBool = false :=
+  ⟨Select.check_contactSet, Select.check_contactSet_partial⟩
+
+/-- **J13: a released slot reads as the base store** (so a script naming it fails the payload check)
+and the runner's `fresh` never hands out a released slot. -/
+theorem j13_release (m : Runner.Slots) (base : Store) (ns : List Nat) (s : Nat) (hs : s ∈ ns)
+    (l : Runner.Ledger) (hl : l.Inv) :
+    (((m.release ns).over base).bits s = base.bits s ∧ ((m.release ns).over base).elems s = base.elems s ∧
+      ((m.release ns).over base).bytes s = base.bytes s) ∧
+    (l.fresh.1 ∉ l.released ∧ l.fresh.2.Inv) ∧ (l.release ns).Inv :=
+  ⟨Runner.release_reads_base m base ns s hs, Runner.Ledger.fresh_not_released l hl, Runner.Ledger.release_inv l ns hl⟩
+
+end FlowsContactSet
+
 /-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
 on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
 
@@ -7926,10 +8063,16 @@ the matching section above in the same commit.
   bindings from S13's `bundle-seal` layout. Open: the joined flows through `jointRun` (values: S11's
   `agree`/`offsetStep` honest runs are themselves open); the handle-content facts `hcert`/`hpend`
   of `join_first_wired`; the IO glue (`JoinBackend`, `RefreshBackend`, `Select`, unverified, as
-  every backend); `_wf` of the joined scripts (their id blocks are counted, not proved); the
-  identity scalar's swap-bit coins for the joined agreements (J8: op 55 leaves the swap bits as
-  field handles). J1 (one mask slot for op 50's two agreements) is RESOLVED: section 7i
-  (`j1_openFirst_reads_once`, `j1_session_reads_once`, `j1_refreshOps_reads_once`).
+  every backend); `_wf` of the joined scripts (their id blocks are counted, not proved). J1 (one
+  mask slot for op 50's two agreements) is RESOLVED: section 7i (`j1_openFirst_reads_once`,
+  `j1_session_reads_once`, `j1_refreshOps_reads_once`). J8 (the identity scalar's swap bits are
+  field handles, not coins) is RESOLVED: section 7j (`j8_jobBits_swaps`, `j8_receiveAgree_spares`).
+* **The contact set** (section 7j): ops 47, 46, 32 as scripts (`s16_*`), op 66's glue (`f32_*`),
+  the sender key (`j12_*`), slot release (`j13_release`), the selection (`select_contactSet`).
+  Open: the joined scripts' `_wf` (op 66's glue: `f32_commit_inv` assumes what the run leaves);
+  `prepareOneG`, `senderPublicG` through `jointRun` (values: S11's `offsetPrepare` and `agree`
+  honest runs, the view kernel's `signalConversationView_spec`); op 32's request through
+  `jointRun` (the function-level values `s16_request_*` are proved); the hinted op 66 path (J3).
 * **The script runner** (section 7i): its pure core against the model (`runner_drive_model`,
   `runner_drive_bounded`, `runner_nextBatch_fill_only`). Open: the IO loop is `drive`'s steps by
   construction, not by a theorem (an IO function); the fake-pair test
@@ -8626,6 +8769,23 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.j1_refreshOps_reads_once
 #print axioms TlsMpc.Security.j1_refresh_pools_disjoint
 #print axioms TlsMpc.Security.runner_drive_model
+#print axioms TlsMpc.Security.s16_credentials_reveals
+#print axioms TlsMpc.Security.s16_admit_reveals
+#print axioms TlsMpc.Security.s16_upgrade_reveals
+#print axioms TlsMpc.Security.s16_upgrade_wf
+#print axioms TlsMpc.Security.s16_request_shared_value
+#print axioms TlsMpc.Security.s16_request_plain_value
+#print axioms TlsMpc.Security.j8_jobBits_swaps
+#print axioms TlsMpc.Security.j8_receiveAgree_spares
+#print axioms TlsMpc.Security.j8_agreeG_spares
+#print axioms TlsMpc.Security.j12_senderPublic_spares
+#print axioms TlsMpc.Security.j12_senderPublic_reveals
+#print axioms TlsMpc.Security.f32_prepare_reveals
+#print axioms TlsMpc.Security.f32_prepareStatus_iff
+#print axioms TlsMpc.Security.f32_commit
+#print axioms TlsMpc.Security.f32_commit_inv
+#print axioms TlsMpc.Security.select_contactSet
+#print axioms TlsMpc.Security.j13_release
 #print axioms TlsMpc.Security.runner_drive_bounded
 #print axioms TlsMpc.Security.runner_nextBatch_fill_only
 

@@ -625,6 +625,23 @@ j1_refresh_pools_disjoint: [propext]
 runner_drive_model: [Quot.sound, propext]
 runner_drive_bounded: [Quot.sound, propext]
 runner_nextBatch_fill_only: [Quot.sound, propext]
+s16_credentials_reveals: [propext]
+s16_admit_reveals: [Classical.choice, Quot.sound, propext]
+s16_upgrade_reveals: [Classical.choice, Quot.sound, propext]
+s16_upgrade_wf: [Classical.choice, Quot.sound, propext]
+s16_request_shared_value: [Classical.choice, Quot.sound, propext]
+s16_request_plain_value: [Classical.choice, Quot.sound, propext]
+j8_jobBits_swaps: [Classical.choice, Quot.sound, propext]
+j8_receiveAgree_spares: [Classical.choice, Quot.sound, propext]
+j8_agreeG_spares: [Classical.choice, Quot.sound, propext]
+j12_senderPublic_spares: [Classical.choice, Quot.sound, propext]
+j12_senderPublic_reveals: [Classical.choice, Quot.sound, propext]
+f32_prepare_reveals: [Classical.choice, Quot.sound, propext]
+f32_prepareStatus_iff: [Quot.sound, propext]
+f32_commit: [Classical.choice, Quot.sound, propext]
+f32_commit_inv: [Classical.choice, Quot.sound, propext]
+select_contactSet: [propext]
+j13_release: [Classical.choice, Quot.sound, propext]
 engine_label_ofKind_inj: [Quot.sound, propext]
 engine_label_all_distinct: [Quot.sound, propext]
 engine_label_all_nonzero: [Quot.sound, propext]
@@ -659,4 +676,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 # Restated theorems that depend (transitively) on a bv_decide proof
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
-# 2 of 646 entries
+# 2 of 663 entries
