@@ -325,10 +325,11 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
     (out.take 1 = [255] →
       r.1 = some (some ⟨te.take 8, [te.drop 8], ⟨n + 6⟩⟩) ∧
       r.2.2 = [⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩, ⟨envelopeLabel, .bits (bitsOf te)⟩] ∧
-      r.2.1.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes))) ∧
+      r.2.1.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
+      ∀ x, x < n → x ≠ a.ephAgreement.id → x ≠ a.state.id → r.2.1.bools x = J.bools x) ∧
     (out.take 1 ≠ [255] →
       r.1 = some none ∧ r.2.2 = [⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
-      r.2.1.bools a.state.id = J.bools a.state.id) := by
+      ∀ x, x < n → x ≠ a.ephAgreement.id → r.2.1.bools x = J.bools x) := by
   dsimp only
   obtain ⟨hT330, hcls4⟩ := textClass_le hcl
   obtain ⟨hT, -⟩ := textClass_some hcl
@@ -338,20 +339,13 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
   have hlen := sealOut_length a certB record db eb tb official classes cw pw ew iw hb hcl1
   generalize hO : sealOutOf a certB record db eb tb official classes cw pw ew iw = out at hlen ⊢
   generalize hEv : sealEnvBytes a.certLen classes official cw pw ew iw = env at hlen henv ⊢
-  -- id facts
+  -- id facts (the concatenation's lookups)
   have nk : ∀ i j : Nat, i ≠ j → (n + i = n + j) = False := fun i j h => by simp; omega
   have n0 : ∀ j : Nat, j ≠ 0 → (n = n + j) = False := fun j h => by simp; omega
   have n0' : ∀ j : Nat, j ≠ 0 → (n + j = n) = False := fun j h => by simp; omega
   have xd : ∀ k, (a.sender.id = n + k) = False := fun k => by simp; omega
   have xt : ∀ k, (a.static.id = n + k) = False := fun k => by simp; omega
   have xe : ∀ k, (a.ephAgreement.id = n + k) = False := fun k => by simp; omega
-  have xs : ∀ k, (a.state.id = n + k) = False := fun k => by simp; omega
-  have xd0 : (a.sender.id = n) = False := by simp; omega
-  have xt0 : (a.static.id = n) = False := by simp; omega
-  have xe0 : (a.ephAgreement.id = n) = False := by simp; omega
-  have xs0 : (a.state.id = n) = False := by simp; omega
-  have xe' : ∀ k, (n + k = a.ephAgreement.id) = False := fun k => by simp; omega
-  have xs' : (a.state.id = a.ephAgreement.id) = False := by simp; omega
   -- the bundle
   have hV : [bitsOf (certB ++ record), bitsOf a.text ++ wordBits a.ephPublic, db, eb, tb].flatten =
       bitsOf (certB ++ record) ++ (bitsOf a.text ++ (wordBits a.ephPublic ++ (db ++ (eb ++ tb)))) := by
@@ -373,7 +367,7 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
         ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩ :: (pubRun E (afterStatus n a (bitsOf (out.take 1))) J5).2.2) ∧
       J5.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
       J5.bools (n + 7) = some (bitsOf ((out.drop (1 + convBytes a.certLen)).take (8 + env))) ∧
-      J5.bools a.state.id = J.bools a.state.id := by
+      ∀ x, x < n → x ≠ a.ephAgreement.id → J5.bools x = J.bools x := by
     refine ⟨?J5, ?e, ?f6, ?f7, ?fs⟩
     case e =>
       unfold afterWidths
@@ -383,8 +377,8 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
       simp only [sealBlock, seqs_cons, seqs_nil]
       rw [pubRun_boolPublic]
       rw [pubRun_concat E _ _ _ _ [bitsOf (certB ++ record), bitsOf a.text ++ wordBits a.ephPublic, db, eb, tb] (by
-        simp (config := { decide := true }) only [List.mapM_cons, List.mapM_nil, setBool_bools, nk, n0, n0', xd, xt, xe,
-          xd0, xt0, xe0, eq_self_iff_true, if_true, if_false, h0, hd, he, ht]
+        simp (config := { decide := true }) only [List.mapM_cons, List.mapM_nil, setBool_bools, n0, n0', xd, xt, xe,
+          eq_self_iff_true, if_true, if_false, h0, hd, he, ht]
         rfl)]
       rw [hV, pubRun_run E _ _ _ _ _ _ _ _ hS (by simp) hVl, runCopies_one _ _ (by rw [hVl, Nat.one_mul]), hOut]
       rw [pubRun_slice E _ _ _ _ _ _ (bitsOf out) (by simp) (by simp [statusEnd]) (by rw [hBl]; simp [statusEnd]; omega)]
@@ -414,7 +408,8 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
       rw [slice_bytes out (1 + convBytes a.certLen) (1 + convBytes a.certLen + (8 + env)) (recordEnd a.certLen)
         (envelopeEnd a.certLen env) (by simp only [recordEnd]; omega) (by simp only [envelopeEnd, recordEnd]; omega),
         show 1 + convBytes a.certLen + (8 + env) - (1 + convBytes a.certLen) = 8 + env by omega]
-    · rw [bools_dropk_ne _ _ _ (by omega), bools_drop_ne _ _ _ (fun e => hes e.symm), bools_dropk_ne _ _ _ (by omega),
+    · intro x hx hxe
+      rw [bools_dropk_ne _ _ _ (by omega), bools_drop_ne _ _ _ hxe, bools_dropk_ne _ _ _ (by omega),
         bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega),
         bools_setk_ne _ _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega),
         bools_setk_ne _ _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega)]
@@ -430,9 +425,12 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
       (by dsimp only; rw [bools_dropk_ne _ _ _ (by omega), h7])]
     simp only [seqs_cons, seqs_nil]
     rw [pubRun_free, pubRun_free]
-    refine ⟨by simp only [pubRun, bytesOf_bitsOf], rfl, ?_⟩
-    dsimp only [pubRun]
-    rw [bools_drop_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), h6]
+    refine ⟨by simp only [pubRun, bytesOf_bitsOf], rfl, ?_, ?_⟩
+    · dsimp only [pubRun]
+      rw [bools_drop_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), h6]
+    · intro x hx hxe hxs
+      dsimp only [pubRun]
+      rw [bools_drop_ne _ _ _ hxs, bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), hst x hx hxe]
   · intro hrej
     have hst' : bitsOf (out.take 1) ≠ bitsOf [255] := fun e => hrej (bitsOf_inj _ _ e)
     unfold afterStatus
@@ -440,8 +438,10 @@ theorem afterWidths_run (E : Env) (n : Nat) (a : SealArgs) (official : Bool) (cl
     simp only [seqs_cons, seqs_nil]
     rw [pubRun_free, pubRun_free, pubRun_free]
     refine ⟨rfl, rfl, ?_⟩
+    intro x hx hxe
     dsimp only [pubRun]
-    rw [bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), hst]
+    rw [bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega), bools_dropk_ne _ _ _ (by omega),
+      hst x hx hxe]
 
 /-- **Op 41's first phase in the model**: the conversation, the widths kernel, the flags' opening. -/
 theorem sealScript_run (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (I : Ideal) (Cw : Circuit)
@@ -467,5 +467,290 @@ theorem sealScript_run (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (I
     runCopies_one _ _ hWw, pubRun_openThen E ⟨n + 1⟩ _ _ _ (Cw.eval (bitsOf (certB ++ record)))
       (bools_setk_eq _ _ _ _ rfl)]
   simp only [pubRun_free]
+
+/-- What the model of op 41 needs: the values behind the handles (certificate ‖ record, the sender
+key, the agreements), the ids below the session counter `n` and the freed ones distinct, the widths
+kernel loaded (as any circuit). -/
+structure SealModel (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (db eb tb : Bits) (I : Ideal)
+    (Cw : Circuit) (official : Bool) (classes : Nat) : Prop where
+  cls : textClass a.text.length = some (official, classes)
+  certLe : a.certLen ≤ 1024
+  certLen : certB.length = a.certLen
+  recLen : record.length = recordBytes
+  pkLen : a.ephPublic.length = 32
+  dbLen : db.length = 255
+  ebLen : eb.length = 255
+  tbLen : tb.length = 255
+  wk : E.circuits (widthsName a.certLen) = some Cw
+  wkIn : (bitsOf (certB ++ record)).length = Cw.inWidth
+  cn : a.cert.id < n
+  sn : a.state.id < n
+  dn : a.sender.id < n
+  tn : a.static.id < n
+  en : a.ephAgreement.id < n
+  es : a.ephAgreement.id ≠ a.state.id
+  ec : a.ephAgreement.id ≠ a.cert.id
+  cs : a.cert.id ≠ a.state.id
+  vc : I.bools a.cert.id = some (bitsOf certB)
+  vs : I.bools a.state.id = some (bitsOf record)
+  vd : I.bools a.sender.id = some db
+  ve : I.bools a.ephAgreement.id = some eb
+  vt : I.bools a.static.id = some tb
+
+/-- **Op 41 in the model, whole**: the releases are the flags, the status and (only on 255) the
+timestamp ‖ envelope; on 255 the result is the timestamp, the envelope and `n + 6`, which holds the
+kept record, and the certificate's value is untouched; otherwise `none` and the stored state's value
+is untouched. -/
+theorem seal_outcome (E : Env) (n : Nat) (a : SealArgs) (certB record : B8) (db eb tb : Bits) (I : Ideal)
+    (Cw : Circuit) (official : Bool) (classes : Nat) (h : SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : sealEnvBytes a.certLen classes official cw pw ew iw ≤ maxEnvelope)
+    (hS : E.circuits (sealName official a.certLen classes cw pw ew iw) =
+      some (shapedCircuit (sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + convBytes a.certLen)).take (8 + sealEnvBytes a.certLen classes official cw pw ew iw)
+    let r := pubRun E (sealScript n a) I
+    (out.take 1 = [255] →
+      r.1 = some (some ⟨te.take 8, [te.drop 8], ⟨n + 6⟩⟩) ∧
+      r.2.2 = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨envelopeLabel, .bits (bitsOf te)⟩] ∧
+      r.2.1.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
+      r.2.1.bools a.cert.id = some (bitsOf certB)) ∧
+    (out.take 1 ≠ [255] →
+      r.1 = some none ∧ r.2.2 = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      r.2.1.bools a.state.id = some (bitsOf record)) := by
+  dsimp only
+  have hn := h.cn
+  have hs := h.sn
+  have hd := h.dn
+  have ht := h.tn
+  have he := h.en
+  rw [sealScript_run E n a certB record I Cw official classes h.cls h.certLe h.wk h.wkIn h.vc h.vs]
+  have hJ : ∀ x, x < n → (((I.setBool ⟨n⟩ (bitsOf (certB ++ record))).setBool ⟨n + 1⟩
+      (Cw.eval (bitsOf (certB ++ record)))).dropBool ⟨n + 1⟩).bools x = I.bools x := by
+    intro x hx
+    rw [bools_dropk_ne _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega)]
+  have key := afterWidths_run E n a official classes (Cw.eval (bitsOf (certB ++ record))) certB record db eb tb mk
+    (((I.setBool ⟨n⟩ (bitsOf (certB ++ record))).setBool ⟨n + 1⟩ (Cw.eval (bitsOf (certB ++ record)))).dropBool ⟨n + 1⟩)
+    cw pw ew iw h.certLen h.recLen h.cls h.certLe h.pkLen h.dbLen h.ebLen h.tbLen hw henv hS h.dn h.tn h.en h.sn h.es
+    (by rw [bools_dropk_ne _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega), bools_setk_eq _ _ _ _ rfl])
+    (by rw [hJ _ h.dn, h.vd]) (by rw [hJ _ h.en, h.ve]) (by rw [hJ _ h.tn, h.vt])
+  dsimp only at key
+  obtain ⟨kA, kR⟩ := key
+  refine ⟨fun hacc => ?_, fun hrej => ?_⟩
+  · obtain ⟨e1, e2, e3, e4⟩ := kA hacc
+    refine ⟨e1, by rw [e2], e3, ?_⟩
+    rw [e4 _ h.cn (fun e => h.ec e.symm) h.cs, hJ _ h.cn, h.vc]
+  · obtain ⟨e1, e2, e3⟩ := kR hrej
+    refine ⟨e1, by rw [e2], ?_⟩
+    rw [e3 _ h.sn (fun e => h.es e.symm), hJ _ h.sn, h.vs]
+
+/-- **What the accepted op 41 computed** (`seal_accepted_value` on the script's own bundle): the
+reference send step accepts the stored state, the kept record with the certificate is
+`SealSend.advancedRecord`, the opened envelope is `sealV1` of the reference message. -/
+theorem sealOut_values (a : SealArgs) (certB record : B8) (db eb tb : Bits) (official : Bool)
+    (classes cw pw ew iw : Nat) (hcB : certB.length = a.certLen) (hr : record.length = recordBytes)
+    (hcl : textClass a.text.length = some (official, classes)) (hcert : a.certLen ≤ 1024)
+    (hw : cw ≤ 10 ∧ pw ≤ 10 ∧ ew ≤ 10 ∧ iw ≤ 10) :
+    let conv := certB ++ record
+    let w := wordBits a.ephPublic ++ (db ++ (eb ++ tb))
+    let sa := shapedAssign (sealK a.certLen cw pw ew iw classes official).inputs (bitsOf conv ++ (bitsOf a.text ++ w))
+    let get := fun name => (lookup (KernelSpecs.SealFixed.sealInputs a.certLen classes official) name).map
+      (BVExpr.eval sa)
+    let out := sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + convBytes a.certLen)).take (8 + sealEnvBytes a.certLen classes official cw pw ew iw)
+    let newRecord := (out.drop (1 + a.certLen)).take recordBytes
+    out.take 1 = [255] →
+    let staged := KernelSpecs.SealFixed.stagedOf ((conv.drop a.certLen).take (182 + 80)) a.text
+    let i := KernelSpecs.SealFixed.inputOf 0 staged a.text (KernelSpecs.SealFixed.contentBytes classes official)
+    let p := SpqrSend.canonical ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩ i
+    SpqrSend.accepted ⟨cw, pw, false⟩ ⟨ew, iw, 1, false⟩ i ∧
+    certB ++ newRecord = KernelSpecs.SealSend.advancedRecord a.certLen conv staged p ∧
+    te.take 8 = (a.text.drop (2 + KernelSpecs.SealFixed.contentBytes classes official)).take 8 ∧
+    te.drop 8 = KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+      (get "ephemeralAgreement") (get "staticAgreement") certB p.wire := by
+  intro conv w sa get out te newRecord hst staged i p
+  obtain ⟨hT, -⟩ := textClass_some hcl
+  obtain ⟨-, hcls4⟩ := textClass_le hcl
+  have hcl1 : 1 ≤ classes := textClass_pos hcl
+  have hb := sealBound_of a.certLen cw pw ew iw classes official hcert hcls4 hw
+  have hconv : conv.length = convBytes a.certLen := by simp [conv, hcB, hr, convBytes]
+  have hct : conv.take a.certLen = certB := List.take_left' hcB
+  obtain ⟨hA, -, hrec, hte⟩ := seal_accepted_value a.certLen cw pw ew iw classes official conv a.text w hconv hT hb
+    hcl1 hst
+  rw [hct] at hrec hte
+  have hts : ((a.text.drop (2 + KernelSpecs.SealFixed.contentBytes classes official)).take 8).length = 8 := by
+    obtain ⟨hT', -⟩ := textBytes_eq classes official hcl1
+    simp only [List.length_take, List.length_drop, hT, hT']
+    omega
+  have hte' : te = (a.text.drop (2 + KernelSpecs.SealFixed.contentBytes classes official)).take 8 ++
+      KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+        (get "ephemeralAgreement") (get "staticAgreement") certB p.wire := hte
+  refine ⟨hA, hrec, ?_, ?_⟩
+  · rw [hte', List.take_left' hts]
+  · rw [hte', List.drop_left' hts]
+
+/-- **F57: op 41 against any adversary, by value.** Whatever the adversary does, what it sees of op
+41 is a prefix of: the width flags (the widths kernel's output on certificate ‖ record), the status
+byte, and only when the status is 255, timestamp ‖ envelope (with `sealOut_values`: the built text's
+timestamp and `sealV1` of the reference message). On a refused status: at most the flags and the
+status. The honest party's view is the same prefix bound; a result, if any, is `pubRun`'s. -/
+theorem seal_view (E : Env) (me : Party) (adv : Adversary) (σ : Store) (vD : List Release)
+    (n : Nat) (a : SealArgs) (certB record : B8) (db eb tb : Bits) (I : Ideal)
+    (Cw : Circuit) (official : Bool) (classes : Nat) (h : SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : sealEnvBytes a.certLen classes official cw pw ew iw ≤ maxEnvelope)
+    (hS : E.circuits (sealName official a.certLen classes cw pw ew iw) =
+      some (shapedCircuit (sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + convBytes a.certLen)).take (8 + sealEnvBytes a.certLen classes official cw pw ew iw)
+    let o := withAdv E me adv (sealScript n a) σ I vD
+    (out.take 1 = [255] →
+      o.viewD <+: [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨envelopeLabel, .bits (bitsOf te)⟩]) ∧
+    (out.take 1 ≠ [255] →
+      o.viewD <+: [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      ∀ x, o.result = some x → x = none) := by
+  dsimp only
+  obtain ⟨v1, -, v3⟩ := withAdv_pub E me adv (sealScript_pubs n a) σ I vD
+  obtain ⟨kA, kR⟩ := seal_outcome E n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+  refine ⟨fun hacc => ?_, fun hrej => ?_⟩
+  · rw [← (kA hacc).2.1]; exact v1
+  · refine ⟨by rw [← (kR hrej).2.1]; exact v1, fun x hx => ?_⟩
+    have := v3 x hx
+    rw [(kR hrej).1] at this
+    exact (Option.some.inj this).symm
+
+/-- **F57, the flags only**: when the opened flags are not all 0/255 (`widthsOf` refuses), the
+adversary sees at most the flags. -/
+theorem seal_view_flags (E : Env) (me : Party) (adv : Adversary) (σ : Store) (vD : List Release)
+    (n : Nat) (a : SealArgs) (certB record : B8) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (hcl : textClass a.text.length = some (official, classes)) (hcert : a.certLen ≤ 1024)
+    (hW : E.circuits (widthsName a.certLen) = some Cw) (hWw : (bitsOf (certB ++ record)).length = Cw.inWidth)
+    (hc : I.bools a.cert.id = some (bitsOf certB)) (hs : I.bools a.state.id = some (bitsOf record))
+    (hw : widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = none) :
+    (withAdv E me adv (sealScript n a) σ I vD).viewD <+: [⟨widthsLabel, .bits (Cw.eval (bitsOf (certB ++ record)))⟩] := by
+  obtain ⟨v1, -, -⟩ := withAdv_pub E me adv (sealScript_pubs n a) σ I vD
+  have e := sealScript_run E n a certB record I Cw official classes hcl hcert hW hWw hc hs
+  dsimp only at e
+  rw [e] at v1
+  unfold afterWidths at v1
+  rw [hw] at v1
+  exact v1
+
+/-- **F51 for op 41: two honest parties.** Both end with the same result: on status 255 the timestamp,
+the envelope and the new state handle `n + 6`, which holds the kept record (the advanced one,
+`sealOut_values`); both saw exactly the flags, the status and timestamp ‖ envelope. On any other
+status both return `none`, the stored state's value is kept, and both saw only the flags and the
+status. -/
+theorem seal_joint (E : Env) (σA σB : Store) (n : Nat) (a : SealArgs) (certB record : B8) (db eb tb : Bits)
+    (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : sealEnvBytes a.certLen classes official cw pw ew iw ≤ maxEnvelope)
+    (hS : E.circuits (sealName official a.certLen classes cw pw ew iw) =
+      some (shapedCircuit (sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + convBytes a.certLen)).take (8 + sealEnvBytes a.certLen classes official cw pw ew iw)
+    let sd : Sealed := ⟨te.take 8, [te.drop 8], ⟨n + 6⟩⟩
+    let o := jointRun E (sealScript n a) (sealScript n a) σA σB I
+    (out.take 1 = [255] →
+      o.result = some (some sd, some sd) ∧
+      o.viewA = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨envelopeLabel, .bits (bitsOf te)⟩] ∧ o.viewB = o.viewA ∧
+      o.ideal.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take recordBytes)) ∧
+      o.ideal.bools a.cert.id = some (bitsOf certB)) ∧
+    (out.take 1 ≠ [255] →
+      o.result = some (none, none) ∧
+      o.viewA = [⟨widthsLabel, .bits flags⟩, ⟨envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧ o.viewB = o.viewA ∧
+      o.ideal.bools a.state.id = some (bitsOf record)) := by
+  dsimp only
+  obtain ⟨r1, r2, r3, r4⟩ := jointRun_pub E (sealScript_pubs n a) σA σB I
+  obtain ⟨kA, kR⟩ := seal_outcome E n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+  refine ⟨fun hacc => ?_, fun hrej => ?_⟩
+  · obtain ⟨e1, e2, e3, e4⟩ := kA hacc
+    refine ⟨by rw [r1, e1]; rfl, by rw [r3, e2], by rw [r4, r3], by rw [r2, e3], by rw [r2, e4]⟩
+  · obtain ⟨e1, e2, e3⟩ := kR hrej
+    refine ⟨by rw [r1, e1]; rfl, by rw [r3, e2], by rw [r4, r3], by rw [r2, e3]⟩
+
+/-! ## Op 42 in the model, and ORD-1 at script level (F59) -/
+
+/-- **Op 42 reads only the state it is given** (and the certificate): two honest parties end with the
+handle `m + 1` holding certificate ‖ the first record of that state's value, release nothing, and
+leave every other handle below `m` as it was. -/
+theorem request_joint (E : Env) (σA σB : Store) (m : Nat) (cert state : BoolH) (certB st : B8) (I : Ideal)
+    (hcm : cert.id < m) (hst : recordBytes ≤ st.length)
+    (hc : I.bools cert.id = some (bitsOf certB)) (hs : I.bools state.id = some (bitsOf st)) :
+    let o := jointRun E (requestScript m cert state) (requestScript m cert state) σA σB I
+    o.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧ o.viewA = [] ∧ o.viewB = [] ∧
+    o.ideal.bools (m + 1) = some (bitsOf (certB ++ st.take recordBytes)) ∧
+    ∀ x, x < m → o.ideal.bools x = I.bools x := by
+  dsimp only
+  obtain ⟨r1, r2, r3, r4⟩ := jointRun_pub E (requestScript_pubs m cert state) σA σB I
+  have e : pubRun E (requestScript m cert state) I =
+      (some ⟨m + 1⟩, (((I.setBool ⟨m⟩ (bitsOf (st.take recordBytes))).setBool ⟨m + 1⟩
+        (bitsOf (certB ++ st.take recordBytes))).dropBool ⟨m⟩), []) := by
+    unfold requestScript
+    simp only [seqs_cons, seqs_nil]
+    rw [pubRun_slice E _ _ _ _ _ _ (bitsOf st) hs (Nat.zero_le _) (by rw [length_bitsOf]; omega),
+      slice_bytes st 0 recordBytes 0 (8 * recordBytes) rfl rfl, List.drop_zero, Nat.sub_zero,
+      pubRun_concat E _ _ _ _ [bitsOf certB, bitsOf (st.take recordBytes)]
+        (by rw [List.mapM_cons, List.mapM_cons, List.mapM_nil, bools_setk_ne _ _ _ _ (by omega), hc,
+          bools_setk_eq _ _ _ _ rfl]; rfl),
+      show [bitsOf certB, bitsOf (st.take recordBytes)].flatten = bitsOf (certB ++ st.take recordBytes) by simp,
+      pubRun_free]
+    rfl
+  rw [e] at r1 r2 r3 r4
+  refine ⟨r1, r3, r4, ?_, fun x hx => ?_⟩
+  · rw [r2, bools_dropk_ne _ _ _ (by omega), bools_setk_eq _ _ _ _ rfl]
+  · rw [r2, bools_dropk_ne _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega), bools_setk_ne _ _ _ _ (by omega)]
+
+/-- **F59, ORD-1 at script level.** On the accepted path, the new state handle op 41 returns is
+`n + 6`, whose value (the kept record) the seal kernel's run defined before the envelope's opening;
+op 42 run on that handle (with fresh ids above it) reads exactly that value: the request's
+conversation is certificate ‖ the kept record, so the request is built from the state op 41 produced
+(and, by `sealOut_values`, from the advanced ratchet state). No other operation of the send changes
+the contact's entry: the backend's only table write is `put contact {e with state := sd.state}` after
+an accepted op 41 (`SendBackend.«seal»`), op 42 and the record seal only read. -/
+theorem send_state_order (E : Env) (σA σB : Store) (n : Nat) (a : SealArgs) (certB record : B8) (db eb tb : Bits)
+    (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : sealEnvBytes a.certLen classes official cw pw ew iw ≤ maxEnvelope)
+    (hS : E.circuits (sealName official a.certLen classes cw pw ew iw) =
+      some (shapedCircuit (sealK a.certLen cw pw ew iw classes official) mk))
+    (m : Nat) (hm : n + 8 ≤ m) (σA' σB' : Store) :
+    let out := sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let newRecord := (out.drop (1 + a.certLen)).take recordBytes
+    let o := jointRun E (sealScript n a) (sealScript n a) σA σB I
+    out.take 1 = [255] →
+    (∃ sd : Sealed, o.result = some (some sd, some sd) ∧ sd.state = ⟨n + 6⟩) ∧
+    let o2 := jointRun E (requestScript m a.cert ⟨n + 6⟩) (requestScript m a.cert ⟨n + 6⟩) σA' σB' o.ideal
+    o2.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧ o2.viewA = [] ∧
+    o2.ideal.bools (m + 1) = some (bitsOf (certB ++ newRecord)) := by
+  dsimp only
+  intro hacc
+  obtain ⟨kA, -⟩ := seal_joint E σA σB n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+  obtain ⟨e1, -, -, e4, e5⟩ := kA hacc
+  refine ⟨⟨_, e1, rfl⟩, ?_⟩
+  have hlen : recordBytes ≤ ((sealOutOf a certB record db eb tb official classes cw pw ew iw).drop
+      (1 + a.certLen) |>.take recordBytes).length := by
+    obtain ⟨-, hcls4⟩ := textClass_le h.cls
+    have hl := sealOut_length a certB record db eb tb official classes cw pw ew iw
+      (sealBound_of a.certLen cw pw ew iw classes official h.certLe hcls4 (widthsOf_le hw)) (textClass_pos h.cls)
+    simp only [List.length_take, List.length_drop, hl, convBytes]
+    omega
+  obtain ⟨q1, q2, -, q4, -⟩ := request_joint E σA' σB' m a.cert ⟨n + 6⟩ certB _ _ (by have := h.cn; omega)
+    hlen e5 e4
+  refine ⟨q1, q2, ?_⟩
+  rw [q4, List.take_of_length_le (by
+    simp only [List.length_take]; omega)]
 
 end TlsMpc.Node.Flows.Send
