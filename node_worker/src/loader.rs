@@ -180,6 +180,98 @@ impl Kernels {
     pub fn sig(&self, name: &[u8]) -> Option<Sig> {
         self.get(name).map(|k| k.sig.clone())
     }
+    /// Every kernel name, in order.
+    pub fn names(&self) -> impl Iterator<Item = &Vec<u8>> {
+        self.entries.keys()
+    }
+}
+
+/// `ReceiveFirst.varintWidth`.
+fn varint_width(n: u64) -> u64 {
+    if n < 128 { 1 } else if n < 16384 { 2 } else if n < 2097152 { 3 } else { 4 }
+}
+
+/// `ReceiveFirst.bodyOf` (natural subtraction saturates, as Lean's).
+fn body_of(total: u64) -> u64 {
+    if total.saturating_sub(2) < 128 {
+        total.saturating_sub(2)
+    } else if total.saturating_sub(3) < 16384 {
+        total.saturating_sub(3)
+    } else {
+        total.saturating_sub(4)
+    }
+}
+
+/// Stage S14 (TlsMpc/Node/Flows/Receive.lean): the layout a receive script assumes for the kernel
+/// of this manifest name (the closed forms of `Receive.*Out` and the kernels' inputs,
+/// `ReceiveKernels.lean`): the input bits of one copy (`None`: not checked, the certificate's
+/// signer size needs `certShape`) and the output fields' bits and marks, in order. `None` for a
+/// name that is not a receive kernel or whose parameters do not parse.
+pub fn receive_kernel_expected(name: &str) -> Option<(Option<u64>, Vec<(u64, Mark)>)> {
+    use Mark::{Never as N, Pub as P};
+    let mut words = name.split(' ');
+    let stem = words.next()?;
+    let a: Vec<u64> = words.map(|w| w.parse::<u64>().ok()).collect::<Option<Vec<u64>>>()?;
+    let w = 255u64;
+    let conversation = |cert: u64| 8 * (cert + 319);
+    Some(match (stem, a.as_slice()) {
+        ("receive-envelope-point", [s]) => (Some(8 * s), vec![(w, N)]),
+        ("receive-unseal-static", [s]) => (Some(8 * s + 256 + w), vec![(8, N), (256, N), (w, N), (256, N)]),
+        ("receive-unseal-message", [s]) => {
+            let message_at = 82 + varint_width(body_of(s.saturating_sub(81)));
+            let u = s.saturating_sub(message_at).saturating_sub(10);
+            (Some(8 * s + 8 + 256 + w), vec![(8, N), (8 * u, N), (16, P)])
+        }
+        ("receive-content-shape", [u, _, _]) => (Some(8 * u + 8), vec![(32, P)]),
+        ("receive-content", [u, c0, c1, hint]) => {
+            let cert = c0 % 128 + 128 * c1;
+            let msg = body_of(u.saturating_sub(5 + cert).saturating_sub(if *hint == 1 { 2 } else { 0 }));
+            (Some(8 * u + 8), vec![(8, N), (8, N), (8 * cert, N), (8 * msg, N)])
+        }
+        ("receive-certificate", [_, _, _, _]) => (None, vec![(8, N), (128, N), (8, N), (512, N), (1, N), (256, N), (253, N)]),
+        ("receive-certificate-verified", []) => (Some(8 + 512 + 3 * w), vec![(8, N)]),
+        ("receive-prekey-shape", [n]) => (Some(8 * n + 8), vec![(168, P)]),
+        ("receive-prekey-open", [n, _, _, _, _]) => (
+            Some(8 * n + 8 + 8 + 256),
+            vec![(8, N), (w, N), (w, N), (32, P), (32, P), (32, P), (8 * 1568, P)],
+        ),
+        ("receive-signal-shape", [n, _, _, _, _]) => (Some(8 * n + 8), vec![(104, P)]),
+        ("receive-session", [cert, n, one, _, _, _, _, _, low, high, _, _]) => {
+            let ct = if *high == 0 { *low } else { low % 128 + 128 * high };
+            let dh4 = if *one > 0 { w } else { 0 };
+            let input = 8 * n + 8 + 8 + 256 + 256 + 136 + 128 + 8 + 3 * w + dh4 + 256 + 6 * w + 8 * cert + 128 + 64;
+            (Some(input), vec![(8, P), (conversation(*cert), N), (8 * 236, N), (8 * (8 + ct), N)])
+        }
+        ("receive-text", [ct, cap]) => (Some(8 * (8 + ct)), vec![(8, P), (16, P), (8 * cap, P), (24, P)]),
+        ("receive-access-key", [cert, ct, _]) => (Some(conversation(*cert) + 8 * (8 + ct)), vec![(8, P), (conversation(*cert), N)]),
+        _ => return None,
+    })
+}
+
+/// The receive kernels of this table whose layout is not the one the S14 scripts assume, and a
+/// missing `receive-certificate-verified` (empty: the receive scripts may run; otherwise the
+/// worker that would run them must not start: fails closed).
+pub fn receive_kernels_check(k: &Kernels) -> Vec<String> {
+    let mut bad = Vec::new();
+    if k.sig(b"receive-certificate-verified").is_none() {
+        bad.push("receive-certificate-verified: missing".to_string());
+    }
+    for name in k.names() {
+        let Ok(text) = std::str::from_utf8(name) else { continue };
+        if !text.starts_with("receive-") {
+            continue;
+        }
+        let Some((input, fields)) = receive_kernel_expected(text) else {
+            bad.push(format!("{text}: not a receive kernel the scripts know"));
+            continue;
+        };
+        let sig = k.sig(name).expect("listed");
+        let marks: Vec<Mark> = fields.iter().flat_map(|(bits, m)| std::iter::repeat_n(*m, *bits as usize)).collect();
+        if input.is_some_and(|i| i != sig.in_width) || marks != sig.out_marks {
+            bad.push(format!("{text}: signature"));
+        }
+    }
+    bad
 }
 
 /// Stage S12 (TlsMpc/Node/Flows/{Ghash,Tls}.lean): the manifest kernels the Lean TLS scripts run
@@ -386,6 +478,12 @@ pub const FIELD_PROGRAMS: &[FieldProgramPin] = &[
     // Lean's `render`, so its pin is known now (tests/s10_vectors.txt `native`, checked in
     // tests/s10_pair.rs). The file is written from that text (S10_NOTES.md).
     FieldProgramPin { name: "field-mask-sub", file: "field-mask-sub.v3", sha256: FIELD_MASK_SUB_SHA256 },
+    // Stage S14 (Flows/Receive.lean `programSignature`, `programBaseCheck`): the receive programs,
+    // all outputs secret (FieldProgramsV3.find). PLACEHOLDERS that fail closed until the V3
+    // re-export's pins are pasted here (S14_NOTES.md).
+    FieldProgramPin { name: "xeddsa-check", file: "xeddsa-check.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "xeddsa-recover", file: "xeddsa-recover.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "receive-torsion", file: "receive-torsion.v3", sha256: PIN_FROM_REEXPORT },
 ];
 
 /// The placeholder pin of the S10 programs the re-export has not produced yet (not hex: never a
@@ -619,6 +717,49 @@ mod tests {
         let sig = Sig { in_width: 8 * 76, out_marks: vec![Mark::Pub; 128] };
         k.insert(b"gcm-key-share", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
         assert_eq!(tls_script_kernels_check(&k), vec!["gcm-key-share: signature".to_string()]);
+    }
+
+    #[test]
+    fn s14_receive_kernels_fail_closed() {
+        // Nothing loaded: the fixed-name kernel is missing.
+        assert_eq!(receive_kernels_check(&Kernels::default()), vec!["receive-certificate-verified: missing".to_string()]);
+        let put = |k: &mut Kernels, name: &str| {
+            let (input, fields) = receive_kernel_expected(name).unwrap();
+            let out_marks = fields.iter().flat_map(|(b, m)| std::iter::repeat_n(*m, *b as usize)).collect();
+            let sig = Sig { in_width: input.unwrap_or(7), out_marks };
+            k.insert(name.as_bytes(), Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        };
+        let mut k = Kernels::default();
+        for name in [
+            "receive-certificate-verified",
+            "receive-envelope-point 400",
+            "receive-unseal-static 400",
+            "receive-unseal-message 400",
+            "receive-content-shape 306 131 2",
+            "receive-content 306 131 2 0",
+            "receive-certificate 131 2 0 0",
+            "receive-prekey-shape 1800",
+            "receive-prekey-open 1800 0 2 1 1",
+            "receive-signal-shape 1800 0 2 1 1",
+            "receive-session 260 1800 0 2 1 1 1 1 48 0 0 0",
+            "receive-text 48 42",
+            "receive-access-key 260 48 30",
+        ] {
+            put(&mut k, name);
+        }
+        assert!(receive_kernels_check(&k).is_empty(), "{:?}", receive_kernels_check(&k));
+        // The session's status kept private instead of opened: refused.
+        let mut sig = k.sig(b"receive-session 260 1800 0 2 1 1 1 1 48 0 0 0").unwrap();
+        sig.out_marks[0] = Mark::Never;
+        k.insert(b"receive-session 260 1800 0 2 1 1 1 1 48 0 0 0", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        assert_eq!(receive_kernels_check(&k), vec!["receive-session 260 1800 0 2 1 1 1 1 48 0 0 0: signature".to_string()]);
+        // A receive kernel the scripts do not know: refused.
+        k.insert(b"receive-other 1", Kernel { flat: PathBuf::new(), sha256: String::new(), sig: Sig { in_width: 8, out_marks: vec![] } });
+        assert_eq!(receive_kernels_check(&k).len(), 2);
+        // The receive programs' placeholder pins fail closed.
+        for n in ["xeddsa-check", "xeddsa-recover", "receive-torsion"] {
+            assert_eq!(FIELD_PROGRAMS.iter().find(|p| p.name == n).unwrap().sha256, PIN_FROM_REEXPORT);
+        }
     }
 
     #[test]
