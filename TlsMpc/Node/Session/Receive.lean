@@ -212,9 +212,11 @@ def waiting : Nat → PublicReceive.State → Nat → Nat → SessionM Nat
       throw "TLS closed while waiting for messages"
 
 /-- **The receive session**: wait for `SIGNAL_LOCAL_EXPECT` delivered messages after the upgrade
-(`accept`: the expected accept value), then abort the TLS session. Returns the keepalives sent. -/
+(`accept`: the expected accept value), then (libsignal profile) a WebSocket Close after the closing
+keepalive's answer (`closeWebSocket`), then abort the TLS session. Returns the keepalives sent. -/
 def run (accept : Bytes) : SessionM Nat := do
   let pings ← waiting 4096 (PublicReceive.start (toBits accept)) 0 (← read).config.expect
+  closeWebSocket
   TlsApplication.abort (← get).pool.first.session
   return pings
 

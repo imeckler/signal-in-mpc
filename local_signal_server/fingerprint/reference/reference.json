@@ -406,6 +406,16 @@
      "masked": true,
      "length": 1,
      "payload_hex": "01"
+    },
+    {
+     "at": 32.0,
+     "fin": true,
+     "rsv": 0,
+     "opcode": 8,
+     "length_encoding": "short",
+     "masked": true,
+     "length": 2,
+     "payload_hex": "03e8"
     }
    ],
    "request_ids": [],

@@ -149,7 +149,9 @@ def main():
              # (rust/net/infra/src/ws/connection.rs, WS_KEEP_ALIVE_INTERVAL = 31 s).
              (31.4, 'c2s', 'plain', ws_frame(9, b'\x01')),
              (62.4, 'c2s', 'plain', ws_frame(9, b'\x02')),
-             # Disconnect: Close 1000 with an empty reason.
+             # Disconnect: Close 1000 with an empty reason (rust/net/infra/src/ws/connection.rs
+             # lines 328-346, Event::ClientDisconnect), then the stream is dropped: no
+             # close_notify, no wait for the server's Close.
              (63.0, 'c2s', 'plain', ws_frame(8, u16(1000)))]
     # Connection 2: authenticated socket: answers the server's requests with 200 "OK"
     # (`response_for_status`: status canonical reason), pings when idle.
@@ -157,7 +159,11 @@ def main():
              (0.05, 'c2s', 'raw', finished_record()),
              (0.05, 'c2s', 'plain', upgrade(True)),
              (0.3, 'c2s', 'plain', ws_frame(2, response(7, 200, 'OK'))),
-             (31.3, 'c2s', 'plain', ws_frame(9, b'\x01'))]
+             (31.3, 'c2s', 'plain', ws_frame(9, b'\x01')),
+             # Disconnect, as on connection 1: Close 1000, empty reason (rust/net/infra/src/ws/
+             # connection.rs, Event::ClientDisconnect); no close_notify after it (the stream is
+             # dropped without SSL_shutdown) and no wait for the server's Close.
+             (32.0, 'c2s', 'plain', ws_frame(8, u16(1000)))]
     # Connection 3: libsignal >= 0.97.1 direct route: grpc.chat.signal.org, ALPN h2.
     conn3 = [(0.0, 'c2s', 'raw', client_hello('grpc.chat.signal.org', ['h2'])),
              (0.05, 'c2s', 'raw', finished_record())]

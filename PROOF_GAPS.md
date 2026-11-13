@@ -99,14 +99,17 @@ S12 (branch `s12-tls`, not merged; GHASH shares and TLS as scripts):
 
 | # | Gap | Status |
 |---|---|---|
-| F13 | T4-TLS is at function level only, not through `jointRun`. The binding of `gcm-check`'s output to `tls-open-typed`'s `accepted` input relies on the concat order: tested, not proved. | open |
-| F14 | WF not proved for `roundScript`, `sealClassScript`, `openScript`, `revealScript`, `parserScript` or the handshake scripts (vectors pass for seal, open, GHASH; the handshake scripts are untested). WF proved for 7 scripts. | tested / open |
-| F15 | `tls-derive` has a `.word` input, so there is no model circuit for it and no value statement for `deriveScript`. | open |
-| F16 | The class seal's composition is not stated through the script. | open |
+| F13 | closed (see Closed): `seal_honest`, `open_binding`, `open_binding_honest`, `open_class`, `open_rejected_run`. | closed |
+| F13a | The handshake record, Finished, client Finished, reveal, range and update scripts have WF and function-level values only, no `jointRun` theorem (`derive_honest` is done). | open (small) |
+| F14 | closed (see Closed): WF for every S12 script on every branch. | closed |
+| F14a | The S12 WF theorems take each kernel's signature as explicit marks (`typedMarks`, `frameMarks`, …); that these equal `circuitOf`'s `kernelMarks` is not proved (the Rust loader's `tls_script_kernels_check` compares them at start). | conditional |
+| F15 | closed: `derive_out`, `derive_honest` (via a `shapedCircuit` for the word input). | closed |
+| F16 | closed: `sealClass_kernelOut`, `sealClass_is_record`. | closed |
 | F17 | `Flows/TlsBackend.lean` is unverified IO glue; `Runner` and `KeyAgreement` have written specifications only (the key agreement is S11's `Curve.agree`). | open (engineering) |
-| F18 | `Wire.Bounded` not shown for the S12 scripts. | open (small) |
+| F18 | closed: `Instr.Bounded` on every branch of all 17 S12 scripts (`Flows/TlsBounded.lean`). | closed |
 | F19 | S12's pair test uses table stand-ins for circuits; `e2e_s12.py` not run; the handshake fixture not moved (needs the controller-side runner and S11). | tested / pending |
-| F20 | P-GHASH (e) not restated for the scripts; (a) over a whole `ensure` through `jointRun` not proved; value-level T3 for `roundScript` with A honest not proved. P-GHASH (c) IS closed for the Lean code: `seal_is_record`, `check_accepts`. | open |
+| F20 | closed (see Closed): `ensure_shared`, `round_disclosure_A`, `tag_deviation`, `seal_deviation_rejected`, `check_deviation`. Value-level T3 for a whole seal and open against any adversary with A honest: `sealCtr_disclosure`, `tag_disclosure_A`, `open_disclosure_A`, `open_disclosure_rejected`. | closed |
+| F20a | Value-level T3 with B honest for the open and the tag is not written (the scripts are symmetric; only the A-honest case is). | open (small) |
 | F21 | Security.lean not compiled as a whole on the S10/S12 branches (4 GB cap during the re-lowering); every module importing `Labels` needs a rebuild after the merges. | pending check |
 
 S11 (branch `s11-curve`, not merged; local arithmetic and curve flows as scripts):
@@ -177,14 +180,18 @@ S13 (branch `s13-send`, not merged; send as scripts):
 
 | # | Gap | Status |
 |---|---|---|
-| F51 | T4 for send (`send_accepted`) is at function level, not through `jointRun`. | open |
-| F52 | No composed headline for op 61 (several devices); the `bundle-seal` output slicing is unproved. | open |
+| F51 | Closed for one device (see Closed): `send_joint`. Still open: the multi-device path through `jointRun`, and `Table.Inv` for the send's table commit (F59b). | partly closed |
+| F52 | closed (see Closed): `devices_accepted`, `gate_iff`, `devices_refused_view`. Still open: the first-message-after-refresh corollary (S15's binding, J6). | closed |
+| F59a | `send_joint` takes the T2 model circuits as hypotheses and assumes each stashed tag half equals `bitsOf (toBytes (half …))` (that equality is S12's). | conditional |
+| F59b | `Table.Inv` is not proved for the send's table commit (no `Contacts.Step` / WFP for ops 41 and 61). | open |
+| F59c | Op 61 has no envelope-size check (op 41 has `maxEnvelope`), so it has no `Wire.Bounded` proof. | open (small) |
+| F59d | Functional defect, not a gap in a proof: an official 89-byte text to a contact with an unanswered device aborts (`bundleOut_record_length`; NEEDS_REVIEW 3f item 7). Fails closed. | open (functional) |
 | F53 | `shapedCircuit` (the model circuit for kernels with 255-bit word inputs) extends the T2 trust (F1 / B3). | assumed |
 | F54 | WF and `Wire.Bounded` for ops 61 and 62 (tested by vectors; proved for op 41, the request scripts and the request record seal). | tested |
 | F55 | `Flows/SendBackend.lean` is unverified IO glue; S11's `Curve` half (`ephemeral`, `staticAgreement`, `senderPublic`) is a parameter; `Reveal.ephemeralPublic` to be added by S11; the runner's handle counters must be joined with `Contacts.Table.ctr`. | open (engineering) |
 | F56 | S13's pair test uses stand-in circuits; `e2e_s13.py` and the harness not run. | tested / pending |
-| F57 | The refusal statement (`seal_refused_silent`) is structural (what the script does), not a full statement about the adversary's view. | open |
-| F58 | `bundleEnvBytes` is not proved equal to the kernel's envelope length. | open (small) |
+| F57 | closed for op 41 (`seal_view`, `seal_view_flags`: against any adversary the view is a prefix of [flags, status] on refusal, or [flags, status, timestamp‖envelope] on acceptance, with values from the kernel theorems) and for op 61's gate (`devices_refused_view`). | closed |
+| F58 | closed: `bundleEnvBytes_eq`. | closed |
 | F59 | ORD-1 not restated for the script path; Security.lean not compiled as a whole on the branch. | pending |
 
 Closed by S13: E2 for the send path — `built`, `hframe`, `hmask` are not hypotheses of
@@ -276,6 +283,9 @@ instantiated in `Flows/Join.lean`). New gaps from the joins:
 | H4 | There is no C++ step any more: the offset flow uses the Lean `Curve.recode`, and `Local/Edwards` uses the programs' own formulas. | `recode64_value`, `stepIns_window`, `step_tableSum`; `add_eq`, `toAffine_eq`, `montU_eq` | branch `s11-curve`, not yet merged (residue: F34) |
 | H5 (part) | P-OFFSET about the step is closed; the two unmodelled aborts remain open. | `ephemeralKey_spec`, `stepIns_window` | branch `s11-curve` |
 | H6, G3 | P-HINT (b) for the script and the `prepareStatus` reveal: the status is 255 exactly when the coordinate's curve polynomial is a nonzero square. Conditional on H-QR and Euler's criterion as named hypotheses, both theorems in `proofs/`. | `lift_valid_sound`, `lift_valid_complete`, `prepareStatus_iff` | branch `s11-curve` |
+| F13, F14, F15, F16, F18, F20 | S12 second pass: the record seal and open through whole two-party runs (the jointly produced record is `TlsRecord.sealCore`; the acceptance byte is 255 exactly when the tag is GCM's; the gcm-check → tls-open-typed binding); WF and boundedness for every S12 script; GHASH share derivation over a whole `ensure`; a deviating tag half is rejected; the class seal; the derive kernel's value. | `seal_honest`, `open_binding_honest`, `open_class`, `open_rejected_run`, `ensure_shared`, `round_disclosure_A`, `seal_deviation_rejected`, `sealClass_is_record`, `derive_honest`, the `*_wf` and `*_bounded` families | branch `s12-tls` (ad385f0 … a0564a2), not yet merged |
+| F51 (one device), F52, F57, F58, F59 (script level) | S13 second pass: multi-device send end to end with no wiring hypothesis and all-or-nothing opening; single-device send through whole two-party runs; the adversary's view of a send; state before request at script level. | `devices_accepted`, `gate_iff`, `devices_refused_view`, `send_joint`, `seal_view`, `bundleEnvBytes_eq`, `send_state_order` | branch `s13-send` (ab1561b … 0f05a5d), not yet merged |
+| F22a, F25b, F22b (part) | S11 third pass: compiled curve programs compute their functions and do not abort on stated inputs; honest runs restated without per-program hypotheses; checks vanish on honest inputs (offset prepare, lift); batched inversion cannot fail. | `compileAll_good`, `Decl.live`, the `*_honest'` family, `prepare_checks`, `liftOpen_checks`, `liftPoint_Z_onCurve`, `toAffineAll_isSome` | branch `s11-curve` (2cbd872 … da1eee8), not yet merged |
 | (S12) | P-GHASH (c): the "halves" hypothesis of the record seal. | `seal_is_record`, `check_accepts` | branch `s12-tls`, not yet merged |
 | (P1) | T1 for all streams after the upgrade (about the model loop then; since C1, about the deployed loop; D1 closed since, below). | `ReceiveLoop.t1_model` (formerly `t1_all`) | main tree, uncommitted pending the merge |
 | D1 | T1 from the first byte of a fresh connection: from the start states the session uses (`{ PublicReceive.start accept with lenient, openBody }`: `Session/Pool.lean` `readUpgrade` and `openCircuits`, `Send.lean`, `Receive.lean`, `Ceremony.lean`), over every stream (the upgrade response's head up to CR LF CR LF, then frames) cut into records in any way (a record may end inside the head, or hold the head's end and the first frames), every position the session's record loop (`RecordLoop.run`, via `loop_sub`) reveals is allowed by `ReceiveSpec.classify` (head included) or is its first `error`. Two-phase relation `HeadSim` / `SimAll` against `classifyStream`'s `.head k` / `.frames st`; the completing byte is the last of its run (budget `4 - k`) and gives `Sim` at `Stream.init`. Lemma (i): the upgrade parser's activity byte is not 255 until it completes (true at `start`, kept by `upgradeByte`), so the frame parser gets inactive bytes and stays at its start state (`frameIdle`, `frameRefuses`, `frameByte_head`); lemma (ii): `payloadByte` on a non-data, non-final byte keeps the view and the upgrade parser's state (`payloadByte_head`). Hypotheses: `Faithful` (D8); the steps between records keep the view **and the upgrade parser's state** (`KeepsHead`, stronger than `Keeps`; the session's steps satisfy it: `keepsHead_afterRecord`, `keepsHead_replies`, `keepsHead_expect`); A8 as for C1. No leak found at the head/frame boundary. | `ReceiveStart.t1_start`, `t1_start_model`, `loopStart_good`, `sessionStart_good`, `headStep`, `headWindow`, `frameByte_head`, `payloadByte_head`, `upgradeByte`; Security.lean 4g `receivePolicy_t1_start`, `receivePolicy_t1_start_model`, `receivePolicy_frameByte_head`, `receivePolicy_payloadByte_head`, `receivePolicy_headStep`, `receivePolicy_keepsHead_afterRecord` | main tree, 2026-11-12, uncommitted |

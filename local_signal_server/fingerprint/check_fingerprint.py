@@ -40,7 +40,6 @@ ALLOWED = {
     'upgrade.password_length': 'the LOCAL test account\'s password (lss-provision) is 22 characters; Signal-Android has '
                                'generated 24 (base64 of 18 random bytes, Util.getSecret(18)): the product\'s account '
                                'password must be generated that way (PRODUCT_TODO section 2)',
-    'close.websocket':'sessions end without a WebSocket Close frame (libsignal sends Close 1000 on disconnect)',
 }
 
 
@@ -74,8 +73,11 @@ def compare_tls(r, ours, ref, where):
         r.compare('tls.' + key, a.get(key), b.get(key), where)
     for key in sorted(set(a['extension_detail']) | set(b['extension_detail'])):
         r.compare('tls.extension_detail.' + key, a['extension_detail'].get(key), b['extension_detail'].get(key), where)
+    # close_notify: libsignal's WebSocket over HTTP/1.1 ends with the Close frame and drops the TLS
+    # stream without SSL_shutdown, so no alert record (CLIENT_FINGERPRINT.md (b), Closing).
     flags = lambda pattern: dict(change_cipher_spec='change_cipher_spec' in pattern,
-                                 key_update=any(p.startswith('key_update') for p in pattern))
+                                 key_update=any(p.startswith('key_update') for p in pattern),
+                                 close_notify='alert(19)' in pattern)
     r.compare('tls.client_records', flags(ours['client_records']), flags(ref['client_records']), where)
 
 

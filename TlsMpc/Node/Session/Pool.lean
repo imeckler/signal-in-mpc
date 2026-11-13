@@ -58,7 +58,7 @@ def openConnection (index : Nat) : SessionM PublicReceive.State := do
   let handle ← Flow.Tls.publicBuffer on request
   TlsApplication.send session handle request.length
   let connection : Connection := { session, slot }
-  modifyPool fun p => { p with connections :=
+  modifyPool fun p => { (p.resetPings index) with connections :=
     if index < p.connections.size then p.connections.set! index connection else p.connections.push connection }
   readUpgrade session on (toBits upgrade.val.2)
 

@@ -84,6 +84,7 @@ import TlsMpc.KernelSpecs.ParseWebSocketFrame
 import TlsMpc.KernelSpecs.ParseWebSocketControl
 import TlsMpc.KernelSpecs.ParseTlsRecord
 import TlsMpc.Node.Policy.RequestProofs
+import TlsMpc.Node.Policy.CloseProofs
 import TlsMpc.KernelSpecs.KemCompose
 import TlsMpc.Node.Engine.Model
 import TlsMpc.Node.Flows.Random
@@ -106,6 +107,7 @@ import TlsMpc.Node.Policy.ReceiveInvariant
 import TlsMpc.Node.Types
 import TlsMpc.Node.Policy.ReceiveSession
 import TlsMpc.Node.Policy.ReceiveHead
+import TlsMpc.Node.Policy.ReceiveStart
 import TlsMpc.Node.Policy.ReceiveFrame
 import TlsMpc.Node.Session.ServeProofs
 import TlsMpc.Node.Policy.Rotation
@@ -3754,6 +3756,20 @@ theorem t8_ping_decode (count : Nat) (mask : List Byte) (hmask : mask.length = 4
     decodeFrame (PublicReceive.ping count mask) = some (sentFrame pingOpcode mask [BitVec.ofNat 8 count]) :=
   TlsMpc.Node.RequestProofs.ping_decode count mask hmask
 
+/-- **The Close sent at a session's orderly end** (libsignal profile, `Policy/Close.lean`): RFC
+6455's masked client Close frame (FIN, opcode 8) whose body is status code 1000 and no reason, the
+frame libsignal-net sends when it lets a connection go (`Policy/CloseProofs.lean`). -/
+theorem t8_close_reference (mask : List Byte) :
+    PublicReceive.close mask =
+      clientFrame TlsMpc.Node.CloseProofs.closeOpcode mask (TlsMpc.Node.CloseProofs.closeBody 1000 []) :=
+  TlsMpc.Node.CloseProofs.close_reference mask
+
+/-- The Close frame, read by RFC 6455: FIN, opcode 8, masked, minimal, payload the code 1000 only. -/
+theorem t8_close_decode (mask : List Byte) (hmask : mask.length = 4) :
+    decodeFrame (PublicReceive.close mask) =
+      some (sentFrame TlsMpc.Node.CloseProofs.closeOpcode mask (TlsMpc.Node.CloseProofs.closeBody 1000 [])) :=
+  TlsMpc.Node.CloseProofs.close_decode mask hmask
+
 /-- The keepalive is the frame of the reference `GET /v1/keepalive` request. -/
 theorem t8_keepalive_reference (id : Nat) (mask : List Byte) (hmask : mask.length = 4) (hid : id < 2 ^ 70) :
     PublicReceive.keepalive id mask =
@@ -4462,8 +4478,10 @@ model loop `recordLoop` / `streamRun` (4f) is what the proof runs through (`loop
 simulation (`sim_step`, `sim_pass`), the reference read byte by byte (`classifyFrames_stream`,
 `classify_stream`, `message_prefix`), the message level (`rshape_run_c`, `qshape_run_c`,
 `reply_run_safe`, `request_run_safe`, `envelope_noErr`), the frame layer (`frameByte_reject`), and the
-HTTP head before the upgrade (`upgrade_run_safe`, `frameByte_terminator`; not yet joined with the
-frames: PROOF_GAPS D1). -/
+HTTP head before the upgrade (`upgrade_run_safe`, `frameByte_terminator`), joined with the frames from
+the first byte of a fresh connection against `ReceiveSpec.classify` (`t1_start`, `t1_start_model`,
+`frameByte_head`, `payloadByte_head`, `headStep`, `keepsHead_afterRecord`; `ReceiveStart.lean`,
+PROOF_GAPS D1). -/
 
 section T1All
 open PublicReceive ReceiveProofs TlsMpc.Signal
@@ -4616,6 +4634,59 @@ theorem receivePolicy_frameByte_terminator {s s1 : State} {b : Byte} {ev : List 
     s1.terminator = ReceiveStream.Head.next s.terminator b ∧
       (s1.upgraded = true ↔ ReceiveStream.Head.next s.terminator b = 4) :=
   ReceiveHead.frameByte_terminator hu h
+
+/-- **T1 from the first byte of a connection, about the loop the session runs** (PROOF_GAPS D1). From
+the start states the session uses (`{ PublicReceive.start accept with lenient, openBody }`:
+`Session/Pool.lean`, `Send.lean`, `Receive.lean`, `Ceremony.lean`), over every stream (the upgrade
+response's head, then frames) cut into records in any way, with the engines as assumed (`Faithful`) and
+any steps between records that keep the view and the upgrade parser's state (`KeepsHead`), every stream
+position the loop has the engines reveal is allowed by `ReceiveSpec.classify` (head included), or is its
+first `error`. **C-gen**. -/
+theorem receivePolicy_t1_start (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte))
+    {β : Type} (O : Nat → List Byte → RecordLoop.Ops ReceiveLoop.RevealM β)
+    (hO : ∀ base r, ReceiveLoop.Faithful r base (O base r))
+    (g : Nat → State → Except String State) (hg : ∀ i, ReceiveStart.KeepsHead (g i)) :
+    ∀ q ∈ (ReceiveLoop.sessionRun O g { PublicReceive.start accept with lenient := lenient, openBody } records).1,
+      ReceiveSpec.allowedIn (ReceiveSpec.classify openBody records.flatten) q = true ∨
+        ReceiveSpec.firstError (ReceiveSpec.classify openBody records.flatten) = some q :=
+  ReceiveStart.t1_start openBody accept lenient records O hO g hg
+
+/-- **T1 from the first byte, about the model loop** (`streamRun`), against `ReceiveSpec.classify`. **M**. -/
+theorem receivePolicy_t1_start_model (openBody : Bool) (accept : List Byte) (lenient : Bool)
+    (records : List (List Byte)) :
+    ReceiveStart.T1Full openBody { PublicReceive.start accept with lenient := lenient, openBody } records :=
+  ReceiveStart.t1_start_model openBody accept lenient records
+
+/-- **The head's bytes leave the frame parser at its start state** (D1, lemma (i)): before the upgrade,
+`frameByte` changes only `upgraded` and `terminator` of the view, the event is neither data nor a
+message's end, and the upgrade parser stays not completed unless the byte completed it. **C**. -/
+theorem receivePolicy_frameByte_head {ob : Bool} {s s1 : State} {b : Byte} {ev : List Byte} {k : Nat}
+    (hs : ReceiveStart.HeadSim ob s k) (h : frameByte s b = .ok (s1, ev)) :
+    ReceiveSimByte.view s1 = { ReceiveSimByte.view s with upgraded := s1.upgraded, terminator := s1.terminator } ∧
+      s1.terminator = ReceiveStream.Head.next k b ∧ (s1.upgraded = true ↔ ReceiveStream.Head.next k b = 4) ∧
+      PublicReceive.get ev 1 = 0 ∧ PublicReceive.get ev 5 = 0 ∧
+      (s1.upgraded = false → 7 ≤ s1.upgrade.length ∧ PublicReceive.get s1.upgrade 6 ≠ on) :=
+  ReceiveStart.frameByte_head hs h
+
+/-- **`payloadByte` on a byte that is neither data nor a message's end keeps the view and the upgrade
+parser's state** (D1, lemma (ii)). **C**. -/
+theorem receivePolicy_payloadByte_head {s s' : State} {y : Byte} {first : Bool} {flags : List Byte} {c : Bool}
+    (h : payloadByte s y false false first flags = .ok (s', c)) :
+    ReceiveSimByte.view s' = ReceiveSimByte.view s ∧ s'.upgrade = s.upgrade :=
+  ReceiveStart.payloadByte_head h
+
+/-- **Every byte accepted before the upgrade keeps the head relation; the byte that completes
+CR LF CR LF gives the frame relation at the reference's initial state.** **C**. -/
+theorem receivePolicy_headStep {ob : Bool} {s s' : State} {b : Byte} {c : Bool} {k : Nat}
+    (hs : ReceiveStart.HeadSim ob s k) (h : step s b = .ok (s', c)) :
+    (ReceiveStream.Head.next k b = 4 → ∀ n, ReceiveSim.Sim ob s' ReceiveStream.Stream.init n) ∧
+      (ReceiveStream.Head.next k b ≠ 4 → ReceiveStart.HeadSim ob s' (ReceiveStream.Head.next k b)) :=
+  ReceiveStart.headStep hs h
+
+/-- **The session's step after a record keeps the view and the upgrade parser's state.** **C**. -/
+theorem receivePolicy_keepsHead_afterRecord (masks : List (List Byte)) :
+    ReceiveStart.KeepsHead (fun s => (replies s masks).map (fun p => { p.1 with requests := [] })) :=
+  ReceiveStart.keepsHead_afterRecord masks
 
 end T1All
 
@@ -6273,16 +6344,15 @@ the matching section above in the same commit.
   flow).
 
 ### The controller
-* **T1 (all streams)** — DONE after the upgrade, about the loop the session runs (section 4g:
+* **T1 (all streams)** — DONE, about the loop the session runs (section 4g:
   `receivePolicy_t1_all`, `receivePolicy_loop_sub`, `receivePolicy_run_fuel`,
-  `receivePolicy_view_replies`; PROOF_GAPS C1, C2 closed 2026-11-12). Still open: the start of a
-  connection — from `PublicReceive.start accept` (the HTTP head, then frames) against
-  `ReceiveSpec.classify`; the head's runs are proved (`receivePolicy_upgrade_run_safe`,
-  `receivePolicy_frameByte_terminator`) but not joined with the frames (needs: the head's bytes
-  leave the frame parser at a boundary; `payloadByte` keeps `upgraded`/`terminator`): PROOF_GAPS D1.
+  `receivePolicy_view_replies`; PROOF_GAPS C1, C2 closed 2026-11-12), and from the first byte of a
+  fresh connection (`{ PublicReceive.start accept with lenient, openBody }`, the HTTP head then
+  frames) against `ReceiveSpec.classify`: `receivePolicy_t1_start` (PROOF_GAPS D1 closed 2026-11-12;
+  steps between records must also keep the upgrade parser's state, `ReceiveStart.KeepsHead`).
   Assumed: `Faithful` (the engines' `revealRange` returns exactly the bytes asked for; a theorem for
   the S12 script backend on its branch, an assumption for the legacy operation 43). It is the
-  precondition of `Reveal.serverBytes` (`Flow.Tls.revealRange`). → **P1** (D1).
+  precondition of `Reveal.serverBytes` (`Flow.Tls.revealRange`). → **P1** (D8).
 * **T8** — request templates: for `build`/`buildDevices`/`buildFetch`/`assemble` the structural
   part is now proved (section 2d, about the controller's own builders in
   `TlsMpc/Node/Policy/Request.lean`): the frame is the WebSocket header and the message masked, slots
@@ -6722,6 +6792,8 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.t8_decode_clientFrame
 #print axioms TlsMpc.Security.t8_clientFrame_reference
 #print axioms TlsMpc.Security.t8_ping_decode
+#print axioms TlsMpc.Security.t8_close_reference
+#print axioms TlsMpc.Security.t8_close_decode
 #print axioms TlsMpc.Security.t8_keepalive_reference
 #print axioms TlsMpc.Security.t8_keepalive_decode
 #print axioms TlsMpc.Security.t8_reply_reference
@@ -6941,6 +7013,12 @@ inside `TlsPrivateSeal.seal_status`). Their axioms answer whether `bv_decide` ne
 #print axioms TlsMpc.Security.receivePolicy_frameByte_reject
 #print axioms TlsMpc.Security.receivePolicy_upgrade_run_safe
 #print axioms TlsMpc.Security.receivePolicy_frameByte_terminator
+#print axioms TlsMpc.Security.receivePolicy_t1_start
+#print axioms TlsMpc.Security.receivePolicy_t1_start_model
+#print axioms TlsMpc.Security.receivePolicy_frameByte_head
+#print axioms TlsMpc.Security.receivePolicy_payloadByte_head
+#print axioms TlsMpc.Security.receivePolicy_headStep
+#print axioms TlsMpc.Security.receivePolicy_keepsHead_afterRecord
 #print axioms TlsMpc.Security.ord1_sendSoft_agreed
 #print axioms TlsMpc.Security.ord1_sendMessage_acked
 #print axioms TlsMpc.Security.ord1_deliverJob_sendsAgreed

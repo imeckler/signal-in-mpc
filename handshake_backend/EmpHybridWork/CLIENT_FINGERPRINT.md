@@ -67,9 +67,9 @@ libsignal (Android 0.107.0, Desktop 0.106.0, iOS 0.106.1). This client speaks HT
 | 5 | Request JSON: field order, `?story=false`, space-padded device/registration ids. | Order and path **fixed**; padding **specified, not built** |
 | 6 | Timestamps: base + recipient index, built before the broadcast (they fall ever further behind the server clock, 1 ms apart). | **Fixed**: stamped from the agreed clock when sent |
 | 7 | Request ids from 2^63 (libsignal: 0 per connection). | **Not fixed**: shape impact (size-class owner), specified |
-| 8 | Keepalive: `GET /v1/keepalive` every 25 s (Android: WebSocket ping after 31 s idle). | **Fixed** on the receive socket; send-session refresh keepalive unchanged |
+| 8 | Keepalive: `GET /v1/keepalive` every 25 s (Android: WebSocket ping after 31 s idle). | **Fixed** (libsignal profile): a ping on the receive socket after 31 s without a record, and in a send session (device refresh; also the ceremony's waits) after 31 s without an exchange (`Session/Common.lean` `keepAlive`, `keepAliveSoft`: payload the ping count per connection from 1, not awaited); one closing `GET /v1/keepalive` of a receive session kept ((f)) |
 | 9 | A client-initiated TLS KeyUpdate after the first delivered message (BoringSSL never sends one). | **Fixed** (not sent under the libsignal profile) |
-| 10 | Ending a session without a WebSocket Close (libsignal: Close 1000). | Not fixed (allow-listed) |
+| 10 | Ending a session without a WebSocket Close (libsignal: Close 1000). | **Fixed** (libsignal profile): every connection of a send, serve, receive or ceremony session that ends normally gets a masked Close 1000 with no reason (`PublicReceive.close`, `Session/Common.lean` `closeWebSocket`); no close_notify, as libsignal ((b)) |
 
 Everything "fixed" is behind `SIGNAL_CLIENT_PROFILE=libsignal` (default `legacy` until the
 harness passes with it; see "Regression check").
@@ -131,7 +131,7 @@ select and we cannot do):
 | Client Finished timing | milliseconds after the server flight | seconds (the key schedule and Finished run in two-party computation: `tls-derive`, `tls-verify-finished`, `tls-finish`); **identifying to the server and to any observer, not fixable without making the handshake circuits faster** |
 | KeyUpdate from the client | never | **was** sent after the first delivered message; not under the libsignal profile |
 | Record padding | never | never (would change under the (d) replacement, see there) |
-| Closing | WebSocket Close 1000 (empty reason), then close_notify | the session ends without a Close frame (allow-listed; cheap to add as a public frame) |
+| Closing | WebSocket Close 1000, empty reason (`rust/net/infra/src/ws/connection.rs` 328-346, `Event::ClientDisconnect`), and nothing after it: libsignal does not wait for the server's Close, and on the HTTP/1.1 WebSocket path sends **no** close_notify (tokio-tungstenite's `send` only flushes; tokio-boring sends close_notify only from `poll_shutdown`, which nothing on that path calls, and boring's `SslStream` `Drop` frees the `SSL` without it). Correction: this row said "then close_notify". (On the h2 route the h2 connection's own close does call `shutdown`, `h2-0.4.16/src/proto/connection.rs:306`; not our transport.) | legacy: the session ends without a Close frame. **libsignal profile: the same Close** (sealed as a public buffer, size class 32), then up to 150 counted polls (about 3 s) for the end of the connection, the server's records not opened; then the abort as before (no close_notify). Not on a failed session (an abort stays an abort) |
 
 ## (c) WebSocket upgrade
 
@@ -280,7 +280,7 @@ frames are smaller (no `?story=false`, reordered JSON), and `request-shape` foll
 
 | | Official (Android) | Ours, libsignal profile |
 |---|---|---|
-| Keepalive | WebSocket ping, payload one byte (ping counter from 1), when 31 s pass without sending or without hearing from the server; no `/v1/keepalive` requests (Desktop and iOS do send `GET /v1/keepalive` every 30 s) | ping after 31 s without a record on the receive socket; the send session's 20 s keepalive during a device refresh is still a request; one `GET /v1/keepalive` before leaving a receive session (its answer proves our acknowledgements were read) |
+| Keepalive | WebSocket ping, payload one byte (ping counter from 1), when 31 s pass without sending or without hearing from the server; no `/v1/keepalive` requests (Desktop and iOS do send `GET /v1/keepalive` every 30 s) | ping after 31 s without a record on the receive socket; in a send session (between the steps of a device refresh) a ping after 31 s without an exchange, not awaited, no request (2026-11-12; before: a `GET /v1/keepalive` after 20 s, still so under the legacy profile); one `GET /v1/keepalive` before leaving a receive session (its answer proves our acknowledgements were read; kept, allow-listed); then a Close 1000 |
 | Server requests | `200 OK` acknowledgement of each delivered message; `queue/empty` answered | the same; delivered messages acknowledged only after the contact's state is stored (timing differs) |
 | Connection lifetime | auth socket held while the app is foregrounded or a push arrives; unauth socket held while in use, closed 30 s after its last use in the background | one session per broadcast or receive window; N send connections opened together (Tor), each handshaking within seconds |
 | What official clients do that we never do | profile fetches, `GET /v1/certificate/delivery` refreshes, prekey replenishment, receipts, typing indicators, sync messages to linked devices, storage service, attachments, group operations, reconnecting after network changes | none of these. Cheap and compatible with the owner's decisions: periodic `/v1/certificate/delivery` (needed anyway, PRODUCT_TODO section 2) and prekey checks on the authenticated socket. Never: receipts (owner), profile fetches of contacts (they would name the contact). |
@@ -310,7 +310,26 @@ generates 24 — the product account's password must be base64 of 18 random byte
 section 2). Measured: the client Finished leaves 0.57–0.89 s after the ClientHello (semi-honest,
 local), against milliseconds for BoringSSL.
 
+**State (2026-11-12, after the Close and the send-session ping; `--runs 0 --fingerprint`,
+semi-honest and malicious): passes**, 91 items compared over two connections. Both connections now
+end with a masked Close whose payload is `03e8` (`close.websocket` compared, no longer allowed) and
+no close_notify (`tls.client_records` now also compares `close_notify`, false on both sides); the
+reference's authenticated connection (2) gained the same Close (`make_reference.py`). Remaining
+allowed differences: `tls.cipher_suites`, `tls.extension_detail.supported_groups`,
+`tls.extension_detail.server_name` (local hostname), `tls.record_length`, `tls.handshake_length`,
+`tls.ja3`, `tls.ja3_md5`, `tls.ja4` (all following from the suites, groups and hostname),
+`tls.alpn_of_current_libsignal`, `request.id`, `request.body.canonical`,
+`request.body.space_padded_numbers`, `request.extra./v1/keepalive` (the receive session's closing
+keepalive), `upgrade.password_length`. The stage's send session has no device refresh, so the
+send-session ping is not exercised here (nor, so far, elsewhere: no harness refresh has yet stayed
+31 s without an exchange).
+
 Before making `libsignal` the default: run it in malicious mode and with `--db`,
 `--multi-device`, `--signup`, `--recovery`; add the official kernel names to
 `CircuitInventory.lean` (or `--strict` runs refuse `signal-seal-official`); produce circuits with
-`SIGNAL_CLIENT_PROFILE=libsignal` (request frame sizes differ).
+`SIGNAL_CLIENT_PROFILE=libsignal` (request frame sizes differ). Found 2026-11-12:
+`malicious --runs 0 --recovery devices --profile libsignal` fails at the resend after the device
+refresh: worker operation 61 (`seal_devices`) rejects "conversation shape"
+(`service_kernels.h:960`) after running `bundle-seal` with the official `80c − 1` padding (its
+`conversation` output is not `CERT + CONTACT` bytes). A kernel/worker matter for the multi-device
+send under this profile, not the controller's; the legacy profile's `bundle-seal … 80c` passes.

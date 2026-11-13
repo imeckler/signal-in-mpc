@@ -565,6 +565,19 @@ worker rebuilt from the same tree).
    "too long"; a field length past the end of its message also becomes malformed.
 6. **Mask key reused across control replies in one drain** (RFC 6455 §5.3): fixed in S4.
 
+7. **`bundle-seal` output is one byte short for the smallest official text class (found 2026-11-12
+   by the S13 proofs; functional, not a privacy defect; NOT fixed).** For an official-padding
+   text of 89 bytes (`classes = 1`, padded content 79) the kernel's conversation output is
+   `cert + 318` bytes, not the `cert + 319` the multi-device send slices (the record's plaintext
+   slot holds only the content: `cert + min 262 (182 + content) + 57`). Proved:
+   `Send.bundleOut_record_length` (branch `s13-send`). Effect: a multi-device send (a contact
+   with an unanswered device) of such a text aborts — the script after the width flags and
+   before any status is opened; the C++ `seal_devices` aborts the session too
+   (`need(... "conversation shape")`). Nothing wrong is released. The product's texts are at
+   least 200 bytes (owner decision), so this class should not occur; confirm, then either fix
+   `BundleKernel.bundleSeal` (an emitter input: needs a re-lowering, batch it) or refuse that
+   class early in the send.
+
 ## 4. Also waiting for a reviewer (pointers)
 
 - Bit pairs for Boolean-to-field conversion on the runtime-sized layer

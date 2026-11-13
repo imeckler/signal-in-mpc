@@ -45,7 +45,9 @@ structure Connection where
 - `states`: per connection, its response parser state while another one is in use (the recovery
   path: `deliverJob`, `serve`);
 - `parked`: the same for the non-recovery path (`loop`), kept apart as before S7;
-- `counters`: per connection, the sends so far (request ids count from 2^63 per connection). -/
+- `counters`: per connection, the sends so far (request ids count from 2^63 per connection);
+- `pings`: per connection, the WebSocket pings sent on it by a send session's keepalive (libsignal
+  profile: a ping's payload is its count on the connection, from 1, as libsignal-net's). -/
 structure Pool where
   first : Connection
   connections : Array Connection
@@ -53,9 +55,20 @@ structure Pool where
   states : Array PublicReceive.State := #[]
   parked : Array PublicReceive.State := #[]
   counters : Array Nat
+  pings : Array Nat := #[]
 
 /-- Connection `index` (connection 0 when there is no such index). -/
 def Pool.connection (pool : Pool) (index : Nat) : Connection := pool.connections.getD index pool.first
+
+/-- Count one more ping on connection `index`: the pool and the new count (1 for the first). -/
+def Pool.nextPing (pool : Pool) (index : Nat) : Pool × Nat :=
+  let padded := pool.pings ++ Array.replicate (index + 1 - pool.pings.size) 0
+  let count := padded.getD index 0 + 1
+  ({ pool with pings := padded.set! index count }, count)
+
+/-- Connection `index` is new (opened or replaced): its pings count from 1 again. -/
+def Pool.resetPings (pool : Pool) (index : Nat) : Pool :=
+  { pool with pings := if index < pool.pings.size then pool.pings.set! index 0 else pool.pings }
 
 /-- What the session's final report (and a job's result) says, accumulated as it runs. -/
 structure Report where
@@ -104,7 +117,8 @@ structure State where
   contacts : Contacts
   /-- Request ids of requests outside the sends' counter (keepalives, fetches, ceremony calls). -/
   extraIds : Nat := 0
-  /-- The agreed time of the last exchange with the server (keepalives after 20 s of quiet). -/
+  /-- The agreed time of the last exchange with the server (keepalives after 20 s of quiet; under the
+  libsignal profile a ping after 31 s). -/
   quiet : Nat := 0
   /-- Send: built content → text, for the content `notify` built (libsignal profile). -/
   bodies : List (Bytes × Bytes) := []

@@ -256,6 +256,8 @@ def run (stage : String) (accept : Bytes) : SessionM Nat := do
       let (s2, _) ← call s "PUT" "/v2/keys?identity=aci" json (Ceremony.oneTimeBody keys)
       s := s2
   modifyReport fun r => { r with ceremonyDone := true }
+  -- libsignal profile: a WebSocket Close 1000 first (`closeWebSocket`).
+  closeWebSocket
   TlsApplication.abort (← get).pool.first.session
   return 0
 

@@ -1,5 +1,6 @@
 import TlsMpc.Node.Session.State
 import TlsMpc.Node.Policy.RecordLoop
+import TlsMpc.Node.Policy.Close
 
 /-!
 # What every session kind uses (REORGANIZATION_PLAN.md stage S7)
@@ -13,7 +14,9 @@ import TlsMpc.Node.Policy.RecordLoop
   (`recordOps`); `sendPublic`;
 - waiting for a response: `awaitReply`, `keepAlive` (a failure ends the session) and their
   recovery forms `receiveSoft`, `awaitSoft`, `keepAliveSoft`, `drainOne` (a closed connection is
-  an outcome);
+  an outcome); under the libsignal profile the keepalive is a WebSocket ping after 31 s (`sendPing`);
+- `closeWebSocket`: the orderly end of a session under the libsignal profile (a WebSocket Close
+  1000 on every connection);
 - `note`: a public event of the recovery path (report, log, record).
 
 Moved from the controller's `main` (stage S7) with the same operations, order and error texts; the
@@ -160,12 +163,33 @@ def awaitReply : Nat → PublicReceive.State → SessionM PublicReceive.State
     | .control => awaitReply fuel s
     | .closed => throw "TLS closed before a response"
 
+/-- libsignal profile: the keepalive of a send session, as libsignal-net's (`rust/net/infra/src/ws/
+connection.rs` lines 304-326, `Event::ConnectionIdle`: `Message::Ping(vec![*ping_count])`, the
+count from 1 per connection; `WS_KEEP_ALIVE_INTERVAL` 31 s): a masked ping on the connection in use
+(`PublicReceive.ping`, a fresh joint mask), not awaited (the pong is a control frame the parser
+skips when the next record is read). -/
+def sendPing : SessionM Unit := do
+  let c ← read
+  let index ← current
+  let count ← modifyGet fun st =>
+    let (pool, count) := st.pool.nextPing index
+    (count, { st with pool })
+  let random := (← Flow.Random.joint c.w).val
+  sendPublic (toBytes (PublicReceive.ping (count % 256) (toBits (random.take 4))))
+
 /-- The server drops a socket that is silent for 90 seconds, and establishing one device's session
 takes about that long. Before each step: if 20 seconds have passed on the agreed clock since the
-last exchange, a keepalive is sent and its answer awaited. -/
+last exchange, a keepalive is sent and its answer awaited. Under the libsignal profile, as an
+Android client: after 31 seconds without an exchange, a WebSocket ping (`sendPing`), no request and
+nothing awaited. -/
 def keepAlive (s : PublicReceive.State) : SessionM PublicReceive.State := do
   let c ← read
   let now ← agreedClock
+  if c.official then
+    if now < (← get).quiet + 31000 then return s
+    sendPing
+    modify fun st => { st with quiet := now }
+    return s
   if now < (← get).quiet + 20000 then return s
   let id ← nextId
   let random := (← Flow.Random.joint c.w).val
@@ -230,10 +254,25 @@ def awaitSoft : Nat → PublicReceive.State → SessionM (PublicReceive.State ×
     | some .control => awaitSoft fuel s
     | some .closed => return (s, false)
 
-/-- `keepAlive` with a closed connection as an outcome (`false`). -/
+/-- `keepAlive` with a closed connection as an outcome (`false`). Under the libsignal profile the
+ping is not answered, so the connection is polled once before it (a record found is kept for the
+next read): a connection the server or the proxy closed is the outcome a keepalive left unanswered
+gives. -/
 def keepAliveSoft (s : PublicReceive.State) : SessionM (PublicReceive.State × Bool) := do
   let c ← read
   let now ← agreedClock
+  if c.official then
+    if now < (← get).quiet + 31000 then return (s, true)
+    let pool := (← get).pool
+    let slot := (pool.connection pool.current).slot
+    if (← io slot.get).isNone then
+      match ← Flow.Server.poll (c.w.on pool.current) with
+      | .closed => return (s, false)
+      | .nothing => pure ()
+      | .record wire => io (slot.set (some wire))
+    sendPing
+    modify fun st => { st with quiet := now }
+    return (s, true)
   if now < (← get).quiet + 20000 then return (s, true)
   let id ← nextId
   let random := (← Flow.Random.joint c.w).val
@@ -259,5 +298,52 @@ def drainOne (s : PublicReceive.State) : SessionM (PublicReceive.State × Bool) 
     return ({ s with requests := [] }, true)
   | some .control => return (s, true)
   | some .closed => return (s, false)
+
+/-- Polls for the server's answer to our Close (each at most 20 ms apart: about three seconds). -/
+def closePolls : Nat := 150
+
+/-- Connection `index` at the orderly end of a session (libsignal profile): skipped if the server or
+the proxy already closed it; otherwise our Close (`PublicReceive.close`: code 1000, no reason, a
+fresh joint mask), sealed as a public buffer like every control frame, then at most `closePolls`
+polls until the server ends the connection. What arrives meanwhile (the server's Close echo) is not
+opened: nothing more of the server's bytes is revealed, and nothing is answered after a Close (RFC
+6455 section 5.5.1). The polls are counted, not timed, so both controllers stop at the same one. -/
+def closeConnection (index : Nat) : SessionM Unit := do
+  let c ← read
+  let on := c.w.on index
+  let connection := (← get).pool.connection index
+  let slot := connection.slot
+  if (← io slot.get).isNone then
+    match ← Flow.Server.poll on with
+    | .closed => return
+    | .nothing => pure ()
+    | .record _ => pure ()
+  io (slot.set none)
+  let random := (← Flow.Random.joint c.w).val
+  let frame := toBytes (PublicReceive.close (toBits (random.take 4)))
+  c.ch.record (.sentPublic index frame)
+  let handle ← Flow.Tls.publicBuffer c.w frame
+  TlsApplication.send connection.session handle frame.length
+  for _ in [0:closePolls] do
+    match ← Flow.Server.poll on with
+    | .closed => return
+    | .nothing => c.ch.sleep 20
+    | .record _ => pure ()
+
+/-- **The orderly end of a session** (not of a failed one: that stays an abort), libsignal profile:
+every connection of the session gets a WebSocket Close 1000 with no reason (`closeConnection`), as
+libsignal-net sends one when it lets a connection go (`Policy/Close.lean`); the caller then aborts
+the TLS session as before. No TLS close_notify: libsignal's WebSocket over HTTP/1.1 drops the
+stream after the Close without `SSL_shutdown` (tokio-tungstenite's `send` only flushes, and
+tokio-boring/boring's `SslStream` sends close_notify only from `poll_shutdown`, which nothing on that
+path calls; its `Drop` frees the `SSL` without it). A connection that cannot be closed (the server
+went first, or the worker refused) is logged and skipped: the session's work is done by then and
+its outcome stands. Legacy profile: nothing (the session ends as before). -/
+def closeWebSocket : SessionM Unit := do
+  let c ← read
+  if !c.official then return
+  for index in [0:(← get).pool.connections.size] do
+    try closeConnection index
+    catch e => c.ch.log (.recovery s!"connection {index} was not closed with a WebSocket Close: {e}")
 
 end TlsMpc.Node.Session

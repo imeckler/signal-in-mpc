@@ -141,7 +141,12 @@ To verify from the sources on disk (libsignal v0.106.1 under `.deps/`, Signal-Se
 
 Done behind the `libsignal` profile: envelope length, headers, JSON field order and path,
 send-time timestamps, ping keepalive on the receive socket, no client key update; regression
-stage `--fingerprint`.
+stage `--fingerprint`. Since 2026-11-12 also: a WebSocket Close 1000 (empty reason) on every
+connection at the orderly end of a session, and no close_notify (libsignal sends none on its
+HTTP/1.1 WebSocket path: CLIENT_FINGERPRINT.md (b)); the send session's keepalive during a device
+refresh is a ping after 31 s idle instead of a `GET /v1/keepalive` after 20 s. Controller only, no
+new circuit shape. The receive session's one closing `GET /v1/keepalive` stays (its answer proves
+the acknowledgements were read).
 
 Open, largest first:
 - [ ] Transport: we speak HTTP/1.1 to `chat.signal.org`; current apps use HTTP/2 extended
@@ -150,8 +155,9 @@ Open, largest first:
 - [ ] ClientHello: one cipher suite and one group where BoringSSL offers several. Needs new
       capability. Plan and cost estimate owed.
 - [ ] Small ones, to do with the send-path work: space-padded device and registration ids,
-      request ids from 0 per connection (changes a size class), WebSocket Close at session end,
-      ping instead of a request for the send-session keepalive during a device refresh.
+      request ids from 0 per connection (changes a size class).
+- [x] WebSocket Close at session end; ping instead of a request for the send-session keepalive
+      during a device refresh (2026-11-12, libsignal profile).
 - [ ] Message timestamps 1.3–2 s older than the server's receipt in malicious mode.
 - [ ] Things official clients do and we never do: certificate refresh and prekey checks are cheap
       and needed anyway; receipts and profile fetches of contacts stay ruled out.

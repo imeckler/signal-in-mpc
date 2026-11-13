@@ -299,6 +299,8 @@ t8_buildDevices_reference: [Classical.choice, Quot.sound, propext]
 t8_decode_clientFrame: [Quot.sound, propext]
 t8_clientFrame_reference: [Quot.sound, propext]
 t8_ping_decode: [Quot.sound, propext]
+t8_close_reference: [Quot.sound, propext]
+t8_close_decode: [Quot.sound, propext]
 t8_keepalive_reference: [Classical.choice, Quot.sound, propext]
 t8_keepalive_decode: [Classical.choice, Quot.sound, propext]
 t8_reply_reference: [Classical.choice, Quot.sound, propext]
@@ -367,6 +369,12 @@ receivePolicy_request_run_safe: [Classical.choice, Quot.sound, propext]
 receivePolicy_frameByte_reject: [Classical.choice, Quot.sound, propext]
 receivePolicy_upgrade_run_safe: [Quot.sound, propext]
 receivePolicy_frameByte_terminator: [Classical.choice, Quot.sound, propext]
+receivePolicy_t1_start: [Classical.choice, Quot.sound, propext]
+receivePolicy_t1_start_model: [Classical.choice, Quot.sound, propext]
+receivePolicy_frameByte_head: [Classical.choice, Quot.sound, propext]
+receivePolicy_payloadByte_head: [Classical.choice, Quot.sound, propext]
+receivePolicy_headStep: [Classical.choice, Quot.sound, propext]
+receivePolicy_keepsHead_afterRecord: [Quot.sound, propext]
 receivePolicy_scanBody_tooLong: [Classical.choice, Quot.sound, propext]
 receivePolicy_scan_wrapper_tooLong: [Classical.choice, Quot.sound, propext]
 receivePolicy_replyScanBody_tooLong: [Classical.choice, Quot.sound, propext]
@@ -542,4 +550,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 # Restated theorems that depend (transitively) on a bv_decide proof
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
-# 2 of 529 entries
+# 2 of 537 entries

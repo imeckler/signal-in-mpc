@@ -99,7 +99,9 @@ def policyCheck : IO Unit := do
 /-- **The session's kind**, after `Start.run`: the ceremony's stage (SIGNAL_CEREMONY), the receive
 session (the authenticated socket), or a send session: the long-lived one (SIGNAL_SERVE_DIR), one
 notify on the recovery path (the database nodes), or one notify without it. A send session's
-contacts' state then goes back to the TEST store (`writeBack`). Returns the responses completed. -/
+contacts' state then goes back to the TEST store (`writeBack`); under the libsignal profile every
+connection then gets a WebSocket Close (`closeWebSocket`) before the abort. Returns the responses
+completed. -/
 def kind (started : Start.Started) : SessionM Nat := do
   let c ← read
   if let some stage := c.config.ceremony then
@@ -114,6 +116,7 @@ def kind (started : Start.Started) : SessionM Nat := do
       | none => Send.deliver started.accept inputs
     else Send.sendAll started.accept started.known inputs
   writeBack started.known
+  closeWebSocket
   TlsApplication.abort (← get).pool.first.session
   return finished
 
