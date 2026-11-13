@@ -97,6 +97,26 @@ class Worker:
         self.log.close()
 
 
+def manifest():
+    """A one-kernel manifest (tls-reveal 7) from the kernel cache, as tests/e2e_batches.py: the
+    workers run in strict circuit mode; the S10 flows use only the word circuits."""
+    cache = ROOT / '.deps/emp-hybrid-word-v1/cache'
+    d = OUT / 'circuits'
+    d.mkdir()
+    for record in sorted(cache.glob('*/kernel-tls-reveal-7.json'), key=lambda p: p.stat().st_mtime, reverse=True):
+        meta = json.loads(record.read_text())
+        flat, layout = record.with_suffix('.flat'), record.with_suffix('.layout')
+        if not (flat.is_file() and layout.is_file()):
+            continue
+        if hashlib.sha256(flat.read_bytes()).hexdigest() != meta['sha256'] or hashlib.sha256(layout.read_bytes()).hexdigest() != meta['layout_sha256']:
+            continue
+        (d / 'kernel-tls-reveal-7.flat').write_bytes(flat.read_bytes())
+        (d / 'kernel-tls-reveal-7.layout').write_bytes(layout.read_bytes())
+        (d / 'manifest.txt').write_text(f"EMP_HYBRID_CIRCUIT_MANIFEST_V1\n{meta['sha256']} {meta['layout_sha256']} tls-reveal 7\n")
+        return d / 'manifest.txt'
+    raise SystemExit('no usable tls-reveal 7 kernel in the cache')
+
+
 def native_program():
     text = VECTORS.read_text()
     line = next(l for l in text.splitlines() if l.startswith('native field-mask-sub '))
@@ -123,8 +143,8 @@ def main():
     with open(OUT / 'ssl-setup.log', 'w') as log:
         subprocess.run(['bash', str(MP / 'Scripts/setup-ssl.sh'), '2'], cwd=work, stdout=log, stderr=subprocess.STDOUT, check=True)
     (OUT / 'hosts').write_text('127.0.0.1\n' * 2)
-    env = dict(os.environ, DYLD_LIBRARY_PATH=str(MP), TLS_WORKER_PEER_WAIT='120', TLS_WORKER_TRIPLE_STOCK='0',
-               SIGNAL_TEST='1')
+    env = dict(os.environ, DYLD_LIBRARY_PATH=str(MP), CIRCUIT_MANIFEST=str(manifest()), TLS_WORKER_PEER_WAIT='120',
+               TLS_WORKER_TRIPLE_STOCK='0')
     started = time.monotonic()
     try:
         for i, f in enumerate(flows(VECTORS.read_text())):
