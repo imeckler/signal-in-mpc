@@ -487,6 +487,36 @@ message (the send circuit), and for traffic, semi-honest mode (8× less) if the 
 | The notify request's lifetime | read at the job's start (fresh: 120 s); write-backs allowed for 6 hours after it was issued, if its read was served (`notify_write_back_secs`; the nodes remember 4,096 served reads) | a job longer than 6 hours would get "retry later" for the rest; a session that dies after 120 s cannot resume the notify (the application signs a new one) |
 | Logs | an idle session ticks four times a second (once a second after a minute idle), two worker log lines a tick | log rotation (deployment) |
 
+## Lean script flows on the real engines (2026-11-13)
+
+First runs of the script stack (`SIGNAL_SCRIPTS`, STACK_NOTES.md section 9) on the real engines,
+this machine, local harness.
+
+Sustained stage (`--runs 0 --sustained 16 --restart-after 8`, eight contacts, two notifies of
+eight, 16 messages), all-legacy against `--scripts random` (joint randomness as op 93 batches; the
+only group that can be selected in a real session today):
+
+| mode | selection | wall s | in-session s | messages/s in session | s per message in session |
+|---|---|---|---|---|---|
+| malicious | legacy | 51.6 | 36.1 | 0.443 | 2.26 |
+| malicious | `random` | 51.4 | 35.2 | 0.455 | 2.20 |
+| semi-honest | legacy | 24.6 | 16.2 | 0.988 | 1.01 |
+| semi-honest | `random` | 24.8 | 16.1 | 0.994 | 1.01 |
+
+The difference is within run-to-run scatter: joint randomness is two exchanges (commit, open) per
+call instead of one worker operation, and costs no engine work.
+
+The TLS handshake through the scripts (`--scripts random,masks,tls,upgrade --strict-produced`,
+malicious; the run stops after the upgrade, PROOF_GAPS J22): from `connect` to the first request
+sealed after the upgrade the workers report about 2.36 s against about 1.89 s for the legacy
+handshake and upgrade in the same stage (the worker's own clock; one run each). It includes the
+deployed S10 mask generation (N = 16, B = 22: 704 candidates), about 0.33 s of it, sent as one
+batch of about 6 MB (the pipe bound was raised to 16 MiB for it).
+
+V3 field-program re-export: 68 s, 0.97 GB (alone). Real-engine fixtures (malicious): `e2e_s10.py`
+425 s (seven flows, each on fresh workers), `e2e_s11.py` 565 s (nine flows), `e2e_s12.py` 61 s,
+`e2e_s13.py` 127 s (3.65 GB peak), `e2e_s15.py` 61 s; each under 1 GB except S13.
+
 ## What remains, with estimates
 
 | What | Gain |

@@ -404,8 +404,9 @@ fn refusals_on_two_shells() {
     assert!(ra.is_ok() && rb.is_ok());
     let calls = p.0.engines.log.len();
     let (p, (ra, rb)) = both(p, BATCH, 1, mid[1].clone(), for_b(&mid[1]));
-    assert_eq!(ra.unwrap_err(), "instruction 2 refused by check");
-    assert_eq!(rb.unwrap_err(), "instruction 2 refused by check");
+    // (the message then names the instruction's skeleton, no private payload)
+    assert!(ra.unwrap_err().starts_with("instruction 2 refused by check: "));
+    assert!(rb.unwrap_err().starts_with("instruction 2 refused by check: "));
     assert_eq!(p.0.engines.log.len(), calls, "nothing of a refused batch runs");
 
     // Decision D8: a release that is not its batch's last instruction refuses the batch on both

@@ -709,7 +709,22 @@ impl Interp {
                 Wire::OpenBoolTo { h, .. } => work.bool(*h).map_or(0, |b| b.marks.len() as u64),
                 _ => 0,
             };
-            let shape = handles::check(sigs, &mut work, w).ok_or_else(|| format!("instruction {i} refused by check"))?;
+            // The refusal names the instruction's skeleton (`blank`: no private payload; the
+            // skeleton is what both workers agree on, public by construction), cut to 240 chars;
+            // for `run`, also the circuit's signature width and the input handle's width (public).
+            let widths = match w {
+                Wire::Run { circuit, input, .. } => format!(
+                    " [circuit in_width {:?}, out {:?}; input width {:?}]",
+                    sigs(circuit).map(|s| s.in_width),
+                    sigs(circuit).map(|s| s.out_marks.len()),
+                    work.bool(*input).map(|b| b.marks.len())
+                ),
+                _ => String::new(),
+            };
+            let shape = handles::check(sigs, &mut work, w).ok_or_else(|| {
+                let skel = format!("{:?}", w.blank());
+                format!("instruction {i} refused by check: {}{widths}", &skel[..skel.len().min(240)])
+            })?;
             if w.ends_batch() && i + 1 < batch.len() {
                 return Err(format!("instruction {i} releases data but does not end the batch"));
             }

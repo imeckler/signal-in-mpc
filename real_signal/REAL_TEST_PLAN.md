@@ -351,6 +351,19 @@ run a capture on the leader during the test (`sudo tcpdump -i any -w RUN/wire.pc
 
 ## 3. Run sequence
 
+> **2026-11-13 (script stack merged, STACK_NOTES.md section 9): nothing more to redo beyond the
+> 2026-11-12 note below.** The flat circuit sets (414 production / 413 compact / 352 local) are
+> unchanged: no emitter they come from changed (the flat emitters' binaries are byte-identical), so
+> `real_signal/state/circuits` stays valid; step A need not be repeated. The default behaviour is
+> unchanged: `SIGNAL_SCRIPTS` unset means every flow is the legacy operation (harness records equal
+> to tests/golden after every step). What did change in the worker, without changing what is sent:
+> it now also loads the 22 V3 field programs when their files are in `.deps/emp-hybrid-word-v1`
+> (written by the 2026-11-13 re-export; nothing in a legacy session runs them) and includes them in
+> the two workers' start agreement, so BOTH nodes must have the same files (both present or both
+> absent) or the workers stop before any request ("circuit manifest disagreement"); and the pipe
+> bound is 16 MiB instead of 2 MiB. The node_worker binary hash in `plan.json` will differ: redo
+> step B (the dry run) as already required below. Do not set `SIGNAL_SCRIPTS` for a real run.
+>
 > **Before the next real-service run (2026-11-12, evening): the production circuits are NEW and
 > the worker changed. Redo step B (the dry run) first; the owner runs it, no agent does.**
 > - The emitter batch (EMITTER_BATCH.md) was merged and `real_signal/state/circuits` re-produced:

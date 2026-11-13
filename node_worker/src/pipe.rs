@@ -14,8 +14,11 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::os::fd::FromRawFd;
 
-/// The request bound (`run`: "request bound"; TlsWorkerPipe.maxPayload).
-pub const MAX_REQUEST: usize = 2 * 1024 * 1024;
+/// The request bound (`run`: "request bound"; TlsWorkerPipe.maxPayload). 16 MiB since the script
+/// runner's mask generation (`Select.generatePool`, the deployed profile N = 16, B = 22: 704
+/// candidates, each with 255 field-element coins of 32 bytes) sends one batch of about 6 MB;
+/// 2 MiB before (no legacy operation comes near either bound).
+pub const MAX_REQUEST: usize = 16 * 1024 * 1024;
 pub const ABORT: u8 = 8;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1728,6 +1728,15 @@ builds on them).
 - Not done: the handle sharing with the legacy library (`legacy_get` / `legacy_put`): the
   selection instead requires every group that reads a table to switch together.
 
+**Status 2026-11-13 (main line; STACK_NOTES.md section 9).** `scripts-stack` merged (734c2b4) with
+the proof branches' later tips; `Main.session` calls `Worker.startWith` (J9, 04d7c5c); the V3
+re-export done (byte-identical V2 outputs, pins pasted, 31cbaa5); the S10–S15 real-engine fixtures
+run (S14's layouts check fails: PROOF_GAPS J21). In the real harness: `random` runs (both modes,
+records equal to golden); `masks` runs (idle); `tls` + `upgrade` complete a handshake and the
+upgrade on the real engines but cannot be selected without the contact set (J22); the contact set
+stops at the legacy op 44 (J23) and is blocked by J21. Only `random` is selectable for real; the
+default stays all-legacy.
+
 ---
 
 **S10. Conversions, masks, inversion.**

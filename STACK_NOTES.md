@@ -317,3 +317,46 @@ type). No theorem statement changed otherwise.
 | J19 | slots stashed inside `JoinBackend` (the TLS agreement's and the send's ephemeral masks), S12's `TlsBackend` (GHASH halves) and S13's `SendBackend` are not released (`TlsBackend.Runner` / `FieldRunner` have no `release`); `ReceiveBackend` (supply, op 51's coins and KEM slot) and `RefreshBackend` (the step's supplies, coins, entropy) do release theirs | open (small) |
 | J20 | op 55/46 still convert the hinted bits with `TLS_WORKER_HINTED`; the scripts never use them (op 66 is non-hinted, J3) | note |
 | J14 (rest) | record seal/open, a send, an accepted receive, a two-device refresh and op 66 are not driven through the runner; S11–S15 stand-in tables are still inline in their vector files | open |
+
+## 9. On the main line (integration engineer, 2026-11-13)
+
+**Merges.** In the stack worktree: `s11-curve` (da1eee8), `s12-tls` (f7e5ead), `s13-send`
+(0f05a5d), conflicts in `Security.lean` only (S12's "7c continued" → **7d (continued)**, after 7d;
+S13's "7e continued" after 7e; section 8 items take the newer text; prints unioned). Then
+`scripts-stack` into `two-party-hybrid-worker` (734c2b4): conflicts only in PROOF_GAPS.md (main's
+kept) and SECURITY_AXIOMS.txt (regenerated). Fixes the merge needed: `RefreshBackend.legacyApi`
+takes the scratch commit as an argument (the main line's lint rule `ordering-sites` allows one
+mention, `Session/Store.lean`); `CurveRunB.mem_stepIns` → `mem_stepIns_run` (clashed with
+`CurveWF.mem_stepIns` in Security.lean's imports); restatement `s11_offsetPrepare_honest'` →
+`s11_offsetPrepare_honest_derived` (check_axioms.py reads names between quotes). 757 restated
+theorems, standard axioms; lint 0 findings; the flat emitters' binaries unchanged (no re-lowering).
+
+**J9** (04d7c5c): `Main.session` calls `Flow.Worker.startWith running.rpc ch.random party
+config.agreed loaded programMasks`; `loaded` = the manifest's kernel names
+(`Channels.Real.manifestNames`), `programMasks` = `xeddsa-check`, `xeddsa-recover`,
+`receive-torsion`'s mask counts from `FieldProgramsV3.find` (computed at session start, only when
+receive or refresh is selected). Nothing is read with no group selected.
+
+**Re-export** (31cbaa5): byte-identical V2/Boolean outputs; pins pasted (the S11 ones equal the
+vectors' `pin` lines); `field-mask-sub.v3` written from the S10 vectors. Fixtures on the real
+engines: `e2e_batches.py` / `e2e_engines.rs` with the program flow's `field-quotient` round (a fresh
+worker pair: the vectors' program flow starts from an empty table), `e2e_s10.py`, `e2e_s11.py`,
+`s11_program_checks.py`, `e2e_s12.py` vectors, `e2e_s13.py`, `e2e_s15.py` shape (after moving the
+vectors' fetch to the real shape `126 6 26 102`) PASS; `e2e_s14.py layouts` FAILS (J21).
+
+**In the real harness** (`--scripts`; scripts need `--strict-produced`, J24 (b)):
+
+| selection | result | difference from all-legacy |
+|---|---|---|
+| `random` | malicious and semi-honest `--runs 2 --signup`: pass, records equal tests/golden | each op 33 becomes two op 93 batches (commit, open); nothing else |
+| `random,masks` | malicious `--runs 2 --signup`: pass, golden | none: nothing consumes the S10 pool without `tls` (generated on demand) |
+| `random,masks,tls,upgrade` | malicious `--runs 1 --db --strict-produced`: the TLS handshake (split ECDH through the V3 programs, deployed mask generation, derive, the encrypted handshake, Finished) and the upgrade run on the real engines; then the legacy op 46 is refused | J22: legacy service ops need the legacy library's TLS phase; `tls` cannot run without the contact set |
+| the contact set (+ `random`, `upgrade`) | malicious `--runs 1 --db --strict-produced`: handshake, upgrade, op 46 as a script, contacts' keys as scripts run; then the legacy op 44 (contact admit, TEST path) is refused | J23 (op 44 has no script); and J21 would break every receive |
+
+Two engineering fixes on the way: the pipe bound 2 MiB → 16 MiB on both sides (the deployed mask
+generation is one ~6 MB batch, J24 (a)); a refused batch now names the instruction's skeleton (no
+private payload) and, for `run`, the signature and input widths (that is how `tls-derive` missing
+from the non-strict worker's kernel table was found).
+
+**Selectable for real now:** `random` (and `masks`, which then does nothing). Not: `tls`, `upgrade`
+(J22), the contact set (J21, J22 for its legacy neighbours, J23). The default stays all-legacy.

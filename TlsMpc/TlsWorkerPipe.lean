@@ -33,7 +33,11 @@ def code : Operation → Nat
   | .ceremonySecrets => 80 | .ceremonyRegister => 81
   | .closeConnection => 92 | .batch => 93
 
-def maxPayload : Nat := 2 * 1024 * 1024
+/-- The bound on one request or response payload (node_worker `pipe::MAX_REQUEST`, the same value).
+16 MiB since the script runner's mask generation (`Flows/Select.lean` `generatePool`, the deployed
+profile N = 16, B = 22: 704 candidates, each with 255 field-element coins of 32 bytes) sends one
+batch of about 6 MB; 2 MiB before (no legacy operation comes near either bound). -/
+def maxPayload : Nat := 16 * 1024 * 1024
 
 def frame (operation : Operation) (sequence : Nat) (payload : Bytes) : Bytes :=
   [UInt8.ofNat (code operation)] ++ uint 8 sequence ++ uint 4 payload.length ++ payload
