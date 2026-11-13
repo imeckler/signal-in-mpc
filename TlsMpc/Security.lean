@@ -101,6 +101,7 @@ import TlsMpc.Node.Flows.MasksHonest
 import TlsMpc.Node.Flows.MasksHides
 import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Flows.TlsProofs
+import TlsMpc.Node.Flows.SendProofs
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6418,6 +6419,216 @@ theorem s12_tls_sealCtr_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (tr
 
 end FlowsS12
 
+/-! ### 7e. Send (stage S13; plan 8.1 T3, T4-SEND, T7 through the scripts; numbered 7d on the S13
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S13 scripts (`TlsMpc/Node/Flows/{Send,SendProofs}.lean`, the backend `Flows/SendBackend.lean`;
+S13_NOTES.md). **M**: a kernel's output read through the script's layout; the kernels' circuits
+computing their Lean definitions (`SendProofs.shapedCircuit`, `Contacts.kernelCircuit`) is T2's
+trust. The four words of a seal (ephemeral public key, sender key, ephemeral and static agreements)
+are S11's (E4). Compiled standalone in the S13 branch (scratch file with this text: standard axioms
+only). -/
+
+section FlowsS13
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+open TlsMpc.Signal
+
+/-- **T3 for the send scripts** [K]: every release of op 41 and op 61 is labelled counterWidths or
+sealedEnvelope, ops 42 and 62 release nothing, the request's record phase releases under
+sealedRecord only (on every branch, for every argument; with `viewD_kinds`, against any adversary). -/
+theorem s13_send_reveal :
+    (∀ n a, Reveals Send.sealKinds (Send.sealScript n a)) ∧
+    (∀ n a, Reveals Send.sealKinds (Send.devicesScript n a)) ∧
+    (∀ n cert state, Reveals [] (Send.requestScript n cert state)) ∧
+    (∀ n state ats, Reveals [] (Send.requestDevicesScript n state ats)) ∧
+    (∀ n traffic conv seq frame mask name,
+      Reveals Send.requestSealKinds (Send.requestCtrScript n traffic conv seq frame mask name)) :=
+  Registry.s13_flows_reveal
+
+/-- **The status gate** [K]: after a seal's status other than 255 is opened, the script releases
+nothing more (no envelope, no timestamp) and returns `none` with the state kept. -/
+theorem s13_seal_refused_silent (n : Nat) (a : Send.SealArgs) (st : Bits) (h : st ≠ bitsOf [255]) :
+    Silent (Send.afterStatus n a st) ∧ Send.afterStatus n a st =
+      seqs [.freeBool ⟨n + 5⟩, .freeBool ⟨n + 6⟩, .freeBool ⟨n + 7⟩] (.done none) :=
+  Send.seal_refused_silent n a st h
+
+/-- **An accepted seal, as the script opens and keeps it** [M] (`SealSend.signalSeal_value`,
+`sealValue_accepted` read through `sealScript`'s layout). -/
+theorem s13_seal_accepted_value (cert cw pw ew iw classes : Nat) (official : Bool) (conv text : List (BitVec 8))
+    (w : Bits) (hc : conv.length = Send.convBytes cert) (ht : text.length = Send.textBytes classes official)
+    (hb : Send.SealBound cert cw pw ew iw classes official) (hcl : 1 ≤ classes) :
+    let v := bitsOf conv ++ (bitsOf text ++ w)
+    let a := Send.shapedAssign (Send.sealK cert cw pw ew iw classes official).inputs v
+    let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+      (BVExpr.eval a)
+    let out := Send.shapedOut (Send.sealK cert cw pw ew iw classes official) v
+    out.take 1 = [255] →
+    let content := KernelSpecs.SealFixed.contentBytes classes official
+    let shape : Serialization.Shape := ⟨cw, pw, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨ew, iw, 1, false⟩
+    let staged := KernelSpecs.SealFixed.stagedOf ((conv.drop cert).take (182 + 80)) text
+    let i := KernelSpecs.SealFixed.inputOf 0 staged text content
+    let p := SpqrSend.canonical shape pqShape i
+    SpqrSend.accepted shape pqShape i ∧
+    ((out.drop (1 + cert)).take Send.recordBytes).length = Send.recordBytes ∧
+    conv.take cert ++ (out.drop (1 + cert)).take Send.recordBytes = KernelSpecs.SealSend.advancedRecord cert conv staged p ∧
+    (out.drop (1 + Send.convBytes cert)).take (8 + Send.sealEnvBytes cert classes official cw pw ew iw) =
+      (text.drop (2 + content)).take 8 ++
+        KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+          (get "ephemeralAgreement") (get "staticAgreement") (conv.take cert) p.wire :=
+  Send.seal_accepted_value cert cw pw ew iw classes official conv text w hc ht hb hcl
+
+/-- **`signal-request-ctr` on the script's bundle** [M]: `RequestFrame.signalRequestCtr_built` with
+`hframe`, `hmask` discharged by `requestCtrScript`'s layout (E2 for the send path). -/
+theorem s13_requestCtr_value (cert : Nat) (env : List (BitVec 8)) (ts id : Nat) (mask frame : List (BitVec 8))
+    (official : Bool) (offsets : List Nat)
+    (hb : PublicRequest.build env ts id mask official = .ok (frame, offsets))
+    (K seqB conv : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8) (hc : conv.length = Send.convBytes cert) :
+    let msg := PublicRequest.sendMessage env ts id official
+    (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0)
+        (offsets.getD 3 0)).outputs.map
+        (fun f => f.value.map (BVExpr.eval (assignOf (Send.requestIn K seqB conv frame mask)))) =
+      KernelSpecs.sealedRequest K seqB
+        (KernelSpecs.RequestFrame.buildHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.requestValues cert conv) msg))
+        (KernelSpecs.signalRequestSlots cert 0 0 0 0 conv).1 :=
+  Send.requestCtr_value cert env ts id mask frame official offsets hb K seqB conv hK hs hc
+
+/-- **`bundle-request-ctr` on the script's bundle** [M]: `RequestFrame.bundleRequestCtr_built` with
+`hframe`, `hmask` discharged by the layout; `paired` is the script path's own pairing
+(`Send.devicesName_paired`). -/
+theorem s13_bundleRequestCtr_value (envs : List (List (BitVec 8))) (ts id : Nat) (mask frame : List (BitVec 8))
+    (official : Bool) (payloadAt : Nat) (offsets : List Nat)
+    (hb : PublicRequest.buildDevices envs ts id mask official = .ok (frame, payloadAt, offsets))
+    (devices : List (Nat × Nat)) (hp : BundleKernel.pairs (offsets.drop 2) = some devices)
+    (K seqB records : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (hr : records.length = Send.recordBytes * devices.length) :
+    let msg := PublicRequest.devicesMessage envs ts id official
+    (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) devices).outputs.map
+        (fun f => f.value.map (BVExpr.eval (assignOf (Send.requestIn K seqB records frame mask)))) =
+      KernelSpecs.sealedRequest K seqB
+        (KernelSpecs.RequestFrame.assembleHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.devicesValues records) msg))
+        (KernelSpecs.bundleRequestValue records (offsets.getD 0 0) (offsets.getD 1 0) devices).1 :=
+  Send.bundleRequestCtr_value envs ts id mask frame official payloadAt offsets hb devices hp K seqB records hK hs hr
+
+/-- **The request's TLS record** [M] (P-GHASH (c) for the request sealer): header ‖ ciphertext of an
+accepted request and `gcm-tag`'s tag over its pad and both parties' halves of shared key powers is
+`TlsRecord.sealCore` of the plaintext. -/
+theorem s13_request_record (K seqB P : List (BitVec 8)) (hK : K.length = 60) (a b : List (BitVec 128)) (nPow : Nat)
+    (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow)
+    (hn : Local.Ghash.needed 5 (Send.innerOf P.length) ≤ nPow) :
+    let o := KernelSpecs.sealedRequest K seqB P 255
+    let hc := o.getD 1 [] ++ o.getD 2 []
+    let pad := o.getD 3 []
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB P 23 0 :=
+  Send.request_record K seqB P hK a b nPow hsh hn
+
+/-- **T4-SEND / T7 on the script path, the headline** [M]: op 41, op 42 and the record seal with NO
+worker-wiring hypothesis (`built`, `hframe`, `hmask` of `SealFrame.serverReceives_accepted` hold by
+the scripts' construction: the frame is `frameFor` of the script's own openings, the kernels' inputs
+are its concatenations). On an accepted send (status 255, request accepted 255): the reference send
+step accepts; the kept state is the advanced record; the opened envelope is the reference
+sealed-sender v1 envelope; what leaves for the server is the AES-GCM TLS record of the WebSocket frame
+of `sendMessage` carrying that envelope with the contact's fields in their slots. -/
+theorem s13_send_accepted (cert cw pw ew iw classes : Nat) (official : Bool) (certB record text : List (BitVec 8))
+    (w : Bits) (hcB : certB.length = cert)
+    (hr : record.length = Send.recordBytes) (ht : text.length = Send.textBytes classes official)
+    (hb : Send.SealBound cert cw pw ew iw classes official) (hcl : 1 ≤ classes)
+    (id : Nat) (mask frame : List (BitVec 8)) (offsets : List Nat) (K seqB : List (BitVec 8)) (hK : K.length = 60)
+    (hs : seqB.length = 8)
+    (a b : List (BitVec 128)) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) :
+    let conv := certB ++ record
+    let v := bitsOf conv ++ (bitsOf text ++ w)
+    let sa := Send.shapedAssign (Send.sealK cert cw pw ew iw classes official).inputs v
+    let get := fun name => (HybridKernel.lookup (KernelSpecs.SealFixed.sealInputs cert classes official) name).map
+      (BVExpr.eval sa)
+    let out := Send.shapedOut (Send.sealK cert cw pw ew iw classes official) v
+    let te := (out.drop (1 + Send.convBytes cert)).take (8 + Send.sealEnvBytes cert classes official cw pw ew iw)
+    let newRecord := (out.drop (1 + cert)).take Send.recordBytes
+    let ctr := kernelOut (HybridKernel.signalRequestCtr cert frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+      (offsets.getD 2 0) (offsets.getD 3 0)) (Send.requestIn K seqB (certB ++ newRecord) frame mask)
+    let hc := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (hc.take 5) (hc.drop 5))
+    out.take 1 = [255] →
+    Send.frameFor (te.drop 8) (te.take 8) id mask official = .ok (frame, offsets) →
+    ctr.take 1 = [255] →
+    Local.Ghash.needed 5 (Send.innerOf frame.length) ≤ nPow →
+    let content := KernelSpecs.SealFixed.contentBytes classes official
+    let shape : Serialization.Shape := ⟨cw, pw, false⟩
+    let pqShape : SpqrMessage.Shape := ⟨ew, iw, 1, false⟩
+    let staged := KernelSpecs.SealFixed.stagedOf ((conv.drop cert).take (182 + 80)) text
+    let i := KernelSpecs.SealFixed.inputOf 0 staged text content
+    let p := SpqrSend.canonical shape pqShape i
+    let envelope := KernelSpecs.SealValue.Reference.sealV1 i.receiver (get "ephemeralPublic") (get "senderPublic")
+      (get "ephemeralAgreement") (get "staticAgreement") certB p.wire
+    let msg := PublicRequest.sendMessage envelope (Send.beNat (te.take 8)) id official
+    SpqrSend.accepted shape pqShape i ∧
+    certB ++ newRecord = KernelSpecs.SealSend.advancedRecord cert conv staged p ∧
+    te.drop 8 = envelope ∧
+    hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB
+        (KernelSpecs.RequestFrame.buildHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render (KernelSpecs.RequestFrame.requestValues cert (certB ++ newRecord)) msg))
+        23 0 :=
+  Send.send_accepted cert cw pw ew iw classes official certB record text w hcB hr ht hb hcl id mask frame offsets K seqB
+    hK hs a b nPow hsh
+
+/-- **Op 41 is well formed** [K]: every branch's instructions pass the shell's `check`, given the
+handles live and the loaded signatures (`SealSigs`). -/
+theorem s13_sealScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (a : Send.SealArgs)
+    (cm sm dm tm em : List Mark) (hf : Fresh c n)
+    (hcn : a.cert.id < n) (hsn : a.state.id < n) (hdn : a.sender.id < n) (htn : a.static.id < n)
+    (hen : a.ephAgreement.id < n)
+    (hes : a.ephAgreement.id ≠ a.state.id) (hec : a.ephAgreement.id ≠ a.cert.id)
+    (hed : a.ephAgreement.id ≠ a.sender.id) (het : a.ephAgreement.id ≠ a.static.id)
+    (hc : c.bool? a.cert = some ⟨cm, false⟩) (hs : c.bool? a.state = some ⟨sm, false⟩)
+    (hd : c.bool? a.sender = some ⟨dm, false⟩) (ht : c.bool? a.static = some ⟨tm, false⟩)
+    (he : c.bool? a.ephAgreement = some ⟨em, false⟩)
+    (hcm : cm.length = 8 * a.certLen) (hsm : sm.length = 8 * Send.recordBytes) (hdm : dm.length = 255)
+    (htm : tm.length = 255) (hem : em.length = 255) (hpk : a.ephPublic.length = 32)
+    (hsig : Send.SealSigs sigs a.certLen) :
+    WF sigs c (Send.sealScript n a) :=
+  Send.sealScript_wf sigs c n a cm sm dm tm em hf hcn hsn hdn htn hen hes hec hed het hc hs hd ht he hcm hsm hdm htm
+    hem hpk hsig
+
+/-- **Op 42 is well formed** [K]. -/
+theorem s13_requestScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (cert state : BoolH)
+    (cm sm : List Mark) (hf : Fresh c n) (hcn : cert.id < n)
+    (hc : c.bool? cert = some ⟨cm, false⟩) (hs : c.bool? state = some ⟨sm, false⟩)
+    (hsm : 8 * Send.recordBytes ≤ sm.length) (hw : cm.length + 8 * Send.recordBytes ≤ maxWidth) :
+    WF sigs c (Send.requestScript n cert state) :=
+  Send.requestScript_wf sigs c n cert state cm sm hf hcn hc hs hsm hw
+
+/-- **The request's record phase is well formed** [K]. -/
+theorem s13_requestCtrScript_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (traffic conv : BoolH)
+    (seq frame mask : List (BitVec 8)) (name : Bytes) (C : Nat) (cm : List Mark) (hf : Fresh c n)
+    (htn : traffic.id < n) (hcn : conv.id < n)
+    (ht : c.bool? traffic = some ⟨List.replicate 480 .never, false⟩) (hc : c.bool? conv = some ⟨cm, false⟩)
+    (hcm : cm.length = 8 * C) (hs : seq.length = 8) (hm : mask.length = 4) (hsize : C + frame.length ≤ 65536)
+    (hsig : sigs name = some ⟨8 * (68 + C + frame.length + 4),
+      List.replicate (8 * (1 + 5 + Send.innerOf frame.length)) .pub ++ List.replicate 128 .never⟩) :
+    WF sigs c (Send.requestCtrScript n traffic conv seq frame mask name) :=
+  Send.requestCtrScript_wf sigs c n traffic conv seq frame mask name C cm hf htn hcn ht hc hcm hs hm hsize hsig
+
+/-- **Op 41's wires fit the pipe** [K] (`Wire.Bounded`). -/
+theorem s13_sealScript_bounded (n : Nat) (a : Send.SealArgs) (hn : n + 8 < B64)
+    (hids : a.cert.id < B64 ∧ a.state.id < B64 ∧ a.sender.id < B64 ∧ a.static.id < B64 ∧ a.ephAgreement.id < B64)
+    (hpk : a.ephPublic.length = 32) : Every Instr.Bounded (Send.sealScript n a) :=
+  Registry.send_sealScript_bounded n a hn hids hpk
+
+end FlowsS13
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -6617,7 +6828,16 @@ the matching section above in the same commit.
   through the script's layout: `s12_tls_seal_is_record`, `s12_tls_check_accepts`,
   `s12_tls_open_event_refines`, `s12_tls_reveal_value`, `s12_tls_verify_value`,
   `s12_tls_openHandshake_value`); not yet through `jointRun` (S12_NOTES.md, gaps), and the
-  derive step's agreement input is S11's (`TlsBackend.KeyAgreement`).
+  derive step's agreement input is S11's (`TlsBackend.KeyAgreement`). SEND (S13, section 7e): at
+  the function level, composed with the kernel theorems and WITHOUT the worker-wiring hypotheses
+  (`s13_send_accepted`, `s13_requestCtr_value`, `s13_bundleRequestCtr_value`, `s13_request_record`,
+  `s13_seal_accepted_value`); T3 (`s13_send_reveal`, `s13_seal_refused_silent`); WF of ops 41, 42 and
+  the request's record phase. Open (S13_NOTES.md, gaps S13-1 … S13-9): T4-SEND through `jointRun`;
+  the devices path's composed headline (op 61's kernels through `bundleSeal_get` only, `wired` is
+  S15's); WF and `Wire.Bounded` of ops 61 and 62 (tested); the four words are S11's (E4).
+* **T6 / ORD-1** restated over the Lean flow: the Lean send scripts do not change the ordering
+  argument (P4's theorem is about the session's Seal/StoreAck/Send events, unchanged since the
+  backend keeps the legacy results and call order); not restated here (P4 not done).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -6704,6 +6924,17 @@ end TlsMpc.Security
 `scripts/check_axioms.py` parses the lines below. Allowed: `propext`, `Classical.choice`,
 `Quot.sound` (and `Lean.ofReduceBool` only if a `bv_decide` proof needs it). -/
 
+#print axioms TlsMpc.Security.s13_send_reveal
+#print axioms TlsMpc.Security.s13_seal_refused_silent
+#print axioms TlsMpc.Security.s13_seal_accepted_value
+#print axioms TlsMpc.Security.s13_requestCtr_value
+#print axioms TlsMpc.Security.s13_bundleRequestCtr_value
+#print axioms TlsMpc.Security.s13_request_record
+#print axioms TlsMpc.Security.s13_send_accepted
+#print axioms TlsMpc.Security.s13_sealScript_wf
+#print axioms TlsMpc.Security.s13_requestScript_wf
+#print axioms TlsMpc.Security.s13_requestCtrScript_wf
+#print axioms TlsMpc.Security.s13_sealScript_bounded
 #print axioms TlsMpc.Security.lower_sound
 #print axioms TlsMpc.Security.lower_correct
 #print axioms TlsMpc.Security.lowerExpr_correct

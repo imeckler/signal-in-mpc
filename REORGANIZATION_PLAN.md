@@ -1790,6 +1790,30 @@ Tests: Q, F, D.
 
 Depends on S12. **3–4 weeks. Medium.** T7 (P5) is separate and can trail.
 
+**Status (2026-11-12, branch `s13-send`, on `s12-tls`; details in `S13_NOTES.md`).** Scripts and
+backend done, not selected (the controller-side runner and S11's curve half are parameters,
+`SendBackend.Curve`, whose signatures the notes give for the join):
+- `Flows/Send.lean`: `sealScript` (op 41), `devicesScript` (op 61), `requestScript` (op 42),
+  `requestDevicesScript` (op 62), `requestCtrScript` (the request's record phase before S12's
+  `Tls.tagScript`); the widths opening, kernel selection by name (`signal-seal-official|built`,
+  `bundle-seal`, `signal-request-ctr`, `bundle-request-ctr`), the status gate, `frameFor` (the frame
+  built from the script's own openings). `Flows/SendBackend.lean`: the legacy `Flow.Send` results.
+- Proved (function level, as S12): `send_accepted` (op 41 + op 42 + the record seal: on an accepted
+  send the record that leaves is `TlsRecord.sealCore` of the request frame carrying the reference
+  `sealV1` envelope of the reference `SpqrSend.canonical` step, the kept state is `advancedRecord`),
+  WITHOUT E2's `built`, `hframe`, `hmask` (the scripts do the wiring); `bundleRequestCtr_value`
+  (`hframe`, `hmask` discharged, `paired` the script's own); T3 kinds for every script
+  (`s13_flows_reveal`), `seal_refused_silent` (the gate); WF of ops 41 (every branch), 42 and the record
+  phase; `Wire.Bounded` for the same. Restated in Security.lean section 7d (11 entries, compiled
+  standalone). Open: T4 through `jointRun`; op 61's composed headline; WF/bounded of 61 and 62
+  (the vectors pass `checkBatch`); ORD-1 restatement (P4).
+- Kinds: none added (`counterWidths`, `sealedEnvelope`, `ephemeralPublic`, `sealedRecord` existed);
+  labels for 40 and 41 added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `send_script_kernels_check` (fails closed) with a unit test; Lean vectors
+  (`tests/lean/S13Vectors.lean`: one single-device send, one two-device send, every check ok) and the
+  stand-in pair test `tests/s13_pair.rs` (every reply equals Lean's model); `tests/e2e_s13.py`
+  written, not run.
+
 ---
 
 **S14. Receive a first message.**
