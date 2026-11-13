@@ -575,47 +575,42 @@ pub struct FieldProgramPin {
 /// programs' pins are added from the re-export's report (FIELD_PROGRAMS_V3.md).
 pub const FIELD_PROGRAMS: &[FieldProgramPin] = &[
     FieldProgramPin { name: "field-quotient", file: "field-quotient.v3", sha256: FIELD_QUOTIENT_SHA256 },
-    // Stage S10 (Flows/Masks, Flows/Convert): the exported programs' pins come from the V3
-    // re-export (FIELD_PROGRAMS_V3.md, `field_program_v3_pins.rs.txt`). Until then these are
-    // PLACEHOLDERS that FAIL CLOSED: no SHA-256 equals them, so a present file is refused
-    // ("field program pin: …") and the worker does not start; an absent file is not loaded and
-    // `check` refuses every `program` that names it.
-    FieldProgramPin { name: "field-bit-check", file: "field-bit-check.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "field-bit-xor", file: "field-bit-xor.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "field-recompose", file: "field-recompose.v3", sha256: PIN_FROM_REEXPORT },
+    // Stage S10 (Flows/Masks, Flows/Convert): the exported programs' pins, from the V3 re-export
+    // (FIELD_PROGRAMS_V3.md: `.deps/emp-hybrid-word-v1/field_program_v3_pins.txt`, 2026-11-13; the
+    // test `pins_equal_the_reexport` compares them when that file is present). A present file
+    // with another hash is refused ("field program pin: …") and the worker does not start; an
+    // absent file is not loaded and `check` refuses every `program` that names it.
+    FieldProgramPin { name: "field-bit-check", file: "field-bit-check.v3", sha256: "aa5e5a4c7b4ee2860d2bb3f7de47143d32bbe3d204c8cb97656020ecc067ec30" },
+    FieldProgramPin { name: "field-bit-xor", file: "field-bit-xor.v3", sha256: "6d0f9c19c2a82f40db6f7feed8a14bb65c4b9924db5599f75271563a26cbd7b6" },
+    FieldProgramPin { name: "field-recompose", file: "field-recompose.v3", sha256: "ba3dc0f5522aa254534022b43eb590208e43eaeeaefa9ec0c6af4145073d0c02" },
     // Natively written V3 (TlsMpc/Node/Flows/ConvertBase.lean `maskSub`: v − f, public): its text is
     // Lean's `render`, so its pin is known now (tests/s10_vectors.txt `native`, checked in
     // tests/s10_pair.rs). The file is written from that text (S10_NOTES.md).
     FieldProgramPin { name: "field-mask-sub", file: "field-mask-sub.v3", sha256: FIELD_MASK_SUB_SHA256 },
     // Stage S11 (Flows/Curve.lean): every curve program runs through program.rs (no
-    // field_program.h). PLACEHOLDERS that FAIL CLOSED until the V3 re-export, as the S10 ones; the
-    // values Lean's render gives are the `pin` lines of tests/s11_vectors.txt (the re-export must
-    // reproduce them; S11_NOTES.md).
-    FieldProgramPin { name: "edwards-on-curve", file: "edwards-on-curve.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-add-u", file: "edwards-add-u.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "x25519-fast", file: "x25519-fast.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-prepare", file: "edwards-prepare.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-offset-sum", file: "edwards-offset-sum.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "lift-open", file: "lift-open.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "lift-point", file: "lift-point.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-prepare-hinted", file: "edwards-prepare-hinted.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-offset-sum-fast", file: "edwards-offset-sum-fast.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-bit-table", file: "edwards-bit-table.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-bit-sum", file: "edwards-bit-sum.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-affine-bit-sum", file: "edwards-affine-bit-sum.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-signature-sum", file: "edwards-signature-sum.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "edwards-torsion-hinted", file: "edwards-torsion-hinted.v3", sha256: PIN_FROM_REEXPORT },
+    // field_program.h). The re-export's pins; they equal the `pin` lines of tests/s11_vectors.txt
+    // (Lean's render; S11_NOTES.md), checked by hand on the export (2026-11-13).
+    FieldProgramPin { name: "edwards-on-curve", file: "edwards-on-curve.v3", sha256: "2ebbbac3f5e8a22e62cc6a7ba7b3379c17754c645e26618e0b971e923cf9202d" },
+    FieldProgramPin { name: "edwards-add-u", file: "edwards-add-u.v3", sha256: "ba7666b48963cc1edbbd55c4e4471f47ea21c9935b6c198abc7031d859e21b93" },
+    FieldProgramPin { name: "x25519-fast", file: "x25519-fast.v3", sha256: "6abf49b0d1b48e1d5ecfdc2fa5dc560913acb0b0e47a53df628e7b3e9f5432bf" },
+    FieldProgramPin { name: "edwards-prepare", file: "edwards-prepare.v3", sha256: "dd49ba3e2fc7290b229e6ec97e2a98874bb2a06965ef801debbba93ee3d5d596" },
+    FieldProgramPin { name: "edwards-offset-sum", file: "edwards-offset-sum.v3", sha256: "69a1590014dfcbef34e0e7efcea43d44f7e04d937b3533df285c50f3f497a918" },
+    FieldProgramPin { name: "lift-open", file: "lift-open.v3", sha256: "780c7df1394833b06cb49d3bead5d3807bddddc61db772c37a439a048025a6ff" },
+    FieldProgramPin { name: "lift-point", file: "lift-point.v3", sha256: "fad82486a092a3b6087c34ea336d893e871d2924f90bd28e80b651e1cf36d3f7" },
+    FieldProgramPin { name: "edwards-prepare-hinted", file: "edwards-prepare-hinted.v3", sha256: "6fc578c53400e9bd3610c91878142056ae96db8416f1d60c529f9f1db5b86680" },
+    FieldProgramPin { name: "edwards-offset-sum-fast", file: "edwards-offset-sum-fast.v3", sha256: "399bd75fd9852bc31e517b0739164b88b3baae9b3e567a465c4825be5e03c1a8" },
+    FieldProgramPin { name: "edwards-bit-table", file: "edwards-bit-table.v3", sha256: "a8ec7ca059a824de8e4ee26886b840d95bd8d6f02cfacfa261b15fef8d269855" },
+    FieldProgramPin { name: "edwards-bit-sum", file: "edwards-bit-sum.v3", sha256: "47457a1bfe8e33c8b5458f82940d0c4a966f7182714f1659c0eb06dc9787db03" },
+    FieldProgramPin { name: "edwards-affine-bit-sum", file: "edwards-affine-bit-sum.v3", sha256: "3d4c1526d2698a3ef65271b38d7910727756c59ec8e6b7a8130d8c9bee9a9c5d" },
+    FieldProgramPin { name: "edwards-signature-sum", file: "edwards-signature-sum.v3", sha256: "d55883881bcf89d06f0f66f894e4cfa7aee0c19dd21c24492356ad9595d78935" },
+    FieldProgramPin { name: "edwards-torsion-hinted", file: "edwards-torsion-hinted.v3", sha256: "49069034e510932c17cc47746b14bc859c033eba35b86f8c0ed007a70da755a3" },
     // Stage S14 (Flows/Receive.lean `programSignature`, `programBaseCheck`): the receive programs,
-    // all outputs secret (FieldProgramsV3.find). PLACEHOLDERS that fail closed until the V3
-    // re-export's pins are pasted here (S14_NOTES.md).
-    FieldProgramPin { name: "xeddsa-check", file: "xeddsa-check.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "xeddsa-recover", file: "xeddsa-recover.v3", sha256: PIN_FROM_REEXPORT },
-    FieldProgramPin { name: "receive-torsion", file: "receive-torsion.v3", sha256: PIN_FROM_REEXPORT },
+    // all outputs secret (FieldProgramsV3.find). The re-export's pins (S14's vectors carry no pin
+    // lines; the stand-in pair test does not load these files).
+    FieldProgramPin { name: "xeddsa-check", file: "xeddsa-check.v3", sha256: "12a3f25482eacb0c2cd5ec22f0b21b43e9640722093a388654a789d29fd8e8b2" },
+    FieldProgramPin { name: "xeddsa-recover", file: "xeddsa-recover.v3", sha256: "a08a3e2f13060d58b58c43b347f6ec0271d607f792ad20c4d44fa1446d8a2522" },
+    FieldProgramPin { name: "receive-torsion", file: "receive-torsion.v3", sha256: "30f5484e852fe456f7edf21fafbc6c90dfe04ddc4c31a022614359fb2e1d144f" },
 ];
-
-/// The placeholder pin of the S10 programs the re-export has not produced yet (not hex: never a
-/// SHA-256, so it fails closed).
-pub const PIN_FROM_REEXPORT: &str = "PLACEHOLDER-S10-pin-from-the-V3-re-export";
 
 /// SHA-256 of `render FieldDagV3.quotient` (checked against the Lean text in
 /// tests/program_vectors.rs).
@@ -818,14 +813,62 @@ mod tests {
         names.sort();
         names.dedup();
         assert_eq!(names.len(), WORD_CIRCUITS.len());
-        // A placeholder pin fails closed: a present file is refused, the worker does not start.
+        // A present file that is not the pinned program fails closed: refused, the worker does not
+        // start.
         let dir = std::env::temp_dir().join(format!("node-worker-s10-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("field-bit-check.v3"), b"EMP_HYBRID_FIELD_DAG_V3\n").unwrap();
         let err = Programs::default().add_pinned(&dir, FIELD_PROGRAMS).unwrap_err();
         assert_eq!(err, "field program pin: field-bit-check");
         let _ = std::fs::remove_dir_all(&dir);
-        assert!(!PIN_FROM_REEXPORT.chars().all(|c| c.is_ascii_hexdigit()));
+        // Every pin is a SHA-256 (the re-export's; no placeholder is left), and no name is listed twice.
+        assert!(FIELD_PROGRAMS.iter().all(|p| hex64(p.sha256)), "a field program pin is not a SHA-256");
+        let mut names: Vec<&str> = FIELD_PROGRAMS.iter().map(|p| p.name).collect();
+        names.sort();
+        names.dedup();
+        assert_eq!(names.len(), FIELD_PROGRAMS.len());
+    }
+
+    #[test]
+    fn script_kernel_checks_on_a_manifest() {
+        // SCRIPT_KERNELS_MANIFEST=…/manifest.txt: the S12/S13/S14/S15 script-kernel checks on a
+        // produced set (the layouts the Lean scripts slice by vs the real kernels' layouts files);
+        // unset: nothing to check. Prints every finding, then fails if there is one.
+        let Ok(path) = std::env::var("SCRIPT_KERNELS_MANIFEST") else { return };
+        let m = Manifest::load(Path::new(&path)).unwrap();
+        let k = Kernels::from_manifest(&m).unwrap();
+        let mut found: Vec<String> = Vec::new();
+        found.extend(tls_script_kernels_check(&k).into_iter().map(|e| format!("tls: {e}")));
+        found.extend(receive_kernels_check(&k).into_iter().map(|e| format!("receive: {e}")));
+        found.extend(refresh_script_kernels_check(&k).into_iter().map(|e| format!("refresh: {e}")));
+        let certs: std::collections::BTreeSet<u64> = k
+            .names()
+            .filter_map(|n| std::str::from_utf8(n).ok()?.strip_prefix("signal-widths ")?.parse().ok())
+            .collect();
+        for cert in &certs {
+            found.extend(send_script_kernels_check(&k, *cert).into_iter().map(|e| format!("send {cert}: {e}")));
+        }
+        eprintln!("script kernels on {path}: {} kernels, certificate sizes {certs:?}, {} findings", k.entries.len(), found.len());
+        for f in &found {
+            eprintln!("  {f}");
+        }
+        assert!(found.is_empty());
+    }
+
+    #[test]
+    fn pins_equal_the_reexport() {
+        // The V3 re-export's pin list (FIELD_PROGRAMS_V3.md), when this machine has it: every
+        // program it exported is listed here with that pin, and every program listed here was
+        // exported (field-mask-sub is written from tests/s10_vectors.txt, not by the export).
+        let Ok(text) = std::fs::read_to_string(word_circuit_dir().join("field_program_v3_pins.txt")) else { return };
+        let exported: Vec<(&str, &str)> = text.lines().filter_map(|l| l.split_once(' ')).collect();
+        for (name, sha) in &exported {
+            let p = FIELD_PROGRAMS.iter().find(|p| p.name == *name).unwrap_or_else(|| panic!("{name} not in FIELD_PROGRAMS"));
+            assert_eq!(p.sha256, *sha, "{name}");
+        }
+        for p in FIELD_PROGRAMS.iter().filter(|p| p.name != "field-mask-sub") {
+            assert!(exported.iter().any(|(n, _)| *n == p.name), "{} not exported", p.name);
+        }
     }
 
     #[test]
@@ -914,9 +957,9 @@ mod tests {
         // A receive kernel the scripts do not know: refused.
         k.insert(b"receive-other 1", Kernel { flat: PathBuf::new(), sha256: String::new(), sig: Sig { in_width: 8, out_marks: vec![] } });
         assert_eq!(receive_kernels_check(&k).len(), 2);
-        // The receive programs' placeholder pins fail closed.
+        // The receive programs are pinned (the re-export's SHA-256s; `pins_equal_the_reexport`).
         for n in ["xeddsa-check", "xeddsa-recover", "receive-torsion"] {
-            assert_eq!(FIELD_PROGRAMS.iter().find(|p| p.name == n).unwrap().sha256, PIN_FROM_REEXPORT);
+            assert!(hex64(FIELD_PROGRAMS.iter().find(|p| p.name == n).unwrap().sha256), "{n}");
         }
     }
 

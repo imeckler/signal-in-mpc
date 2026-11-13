@@ -215,7 +215,7 @@
     "TlsMpc/X25519.lean": "df7406c1c2e9e258ce5c67f213ab76492ce691a7f83f3f0f91563d3847de83a0",
     "TlsMpc/X25519Fast.lean": "1027abc173c0a0669833384b6970b572097500adc44c313f7209e92df24fd769",
     "TlsMpc/X25519SwapBits.lean": "99f67472f228979f7d5956e7eb9aee634eeabfb185837dd1f2434b98b0654e6e",
-    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "e322ce849bee6c2e3b873effdf5f7efdec13eb4fc13184b923946e0004537ade"
+    "handshake_backend/EmpHybridWork/EmitWordMask.lean": "7c33e4f5ff1e0503744a89d2b45459a9e9e2e25762827e6e5b36b489f671e910"
   },
   "scope": "Conversion circuits defined and proved in Lean (TlsMpc/WordMask.lean), compiled by the validated gate-level compiler (TlsMpc/BoolDag.lean) and printed from Lean. Checked here against integer arithmetic on boundary and random inputs. The printer, this parser and the C++ loader are outside the Lean theorems."
 }

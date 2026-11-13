@@ -65,8 +65,8 @@ def request(code, seq, payload):
 
 
 class Worker:
-    def __init__(self, party, env, work, session):
-        self.log = open(OUT / f'worker-{party}.log', 'w')
+    def __init__(self, party, env, work, session, tag=''):
+        self.log = open(OUT / f'worker-{party}{tag}.log', 'w')
         self.p = subprocess.Popen([str(worker), str(party), str(OUT / 'hosts'), str(PORT),
                                    str(ROOT / 'handshake_backend/EmpHybridWork/circuit_cache.py'), session],
                                   cwd=str(work), env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.log)
@@ -100,9 +100,18 @@ def refused(payload_byte):
 
 
 def main():
-    # The `program` flow needs V3 programs loaded from pinned files; it runs on the stand-in
-    # engines only (tests/batch_pair.rs).
-    fl = [f for f in flows(VECTORS.read_text()) if f['name'] != 'program']
+    # The `program` flow needs V3 programs loaded from pinned files (loader.rs FIELD_PROGRAMS, the
+    # V3 re-export's files, FIELD_PROGRAMS_V3.md). Its rounds that name only pinned programs
+    # (`field-quotient`) run here; `test-allrows` is a vector-only program (no pin), so the rounds
+    # from its first use on run on the stand-in engines only (tests/batch_pair.rs).
+    fl = flows(VECTORS.read_text())
+    for f in fl:
+        if f['name'] == 'program':
+            cut = next((i for i, r in enumerate(f['rounds']) if any(b'test-allrows' in b for b in r['batch'])), len(f['rounds']))
+            report['program_rounds'] = f'{cut} of {len(f["rounds"])} (the rest name test-allrows, not pinned)'
+            f['rounds'] = f['rounds'][:cut]
+    if not any(f['name'] == 'program' and f['rounds'] for f in fl):
+        raise SystemExit('no program round to run (is field-quotient.v3 exported?)')
     path = manifest()
     work = OUT / 'work'
     work.mkdir()
@@ -111,10 +120,27 @@ def main():
     (OUT / 'hosts').write_text('127.0.0.1\n' * 2)
     env = dict(os.environ, DYLD_LIBRARY_PATH=str(MP), CIRCUIT_MANIFEST=str(path), TLS_WORKER_PEER_WAIT='120',
                TLS_WORKER_TRIPLE_STOCK='0')
-    session = secrets.token_hex(32)
     started = time.monotonic()
-    ws = [Worker(0, env, work, session), Worker(1, env, work, session)]
+    # Two sessions, each on a fresh pair of workers: the Lean vectors' `program` flow starts from an
+    # empty context (its handles 1… would clash with the earlier flows' live handles in one session).
+    ok = session_run([f for f in fl if f['name'] != 'program'], env, work, '', True)
+    if ok:
+        ok = session_run([f for f in fl if f['name'] == 'program'], env, work, '-program', False)
+    report['passed'] = ok
+    report['elapsed_seconds'] = round(time.monotonic() - started, 2)
+    (OUT / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
+    print(json.dumps(report, indent=1))
+    if not report['passed']:
+        raise SystemExit(1)
+
+
+def session_run(fl, env, work, tag, refusal):
+    """One worker session running the flows `fl` (then, if `refusal`, the refused batch and the latch).
+    Returns whether every reply equals Lean's."""
+    session = secrets.token_hex(32)
+    ws = [Worker(0, env, work, session, tag), Worker(1, env, work, session, tag)]
     seq = 0
+    passed = False
     try:
         for f in fl:
             for i, r in enumerate(f['rounds']):
@@ -131,19 +157,20 @@ def main():
                 seq += 1
                 if any(step[f'party{p}'] != 'ok' for p in (0, 1)):
                     raise RuntimeError(f"{f['name']} round {i}: reply differs from Lean's")
-        for party in (0, 1):
-            ws[party].send(request(BATCH, seq, refused(party + 1)))
-        got = [ws[0].reply(), ws[1].reply()]
-        report['steps'].append({'refused_batch_status': [g[0] if g else None for g in got]})
-        if any(g is None or g[0] != 1 for g in got):
-            raise RuntimeError('a batch refused by check was not rejected by both')
-        for party in (0, 1):
-            ws[party].send(request(BATCH, seq + 1, refused(party + 1)))
-        got = [ws[0].reply(), ws[1].reply()]
-        report['steps'].append({'after_refusal_status': [g[0] if g else None for g in got]})
-        if any(g is None or g[0] != 1 for g in got):
-            raise RuntimeError('the latch is not terminal after a rejected batch')
-        report['passed'] = True
+        if refusal:
+            for party in (0, 1):
+                ws[party].send(request(BATCH, seq, refused(party + 1)))
+            got = [ws[0].reply(), ws[1].reply()]
+            report['steps'].append({'refused_batch_status': [g[0] if g else None for g in got]})
+            if any(g is None or g[0] != 1 for g in got):
+                raise RuntimeError('a batch refused by check was not rejected by both')
+            for party in (0, 1):
+                ws[party].send(request(BATCH, seq + 1, refused(party + 1)))
+            got = [ws[0].reply(), ws[1].reply()]
+            report['steps'].append({'after_refusal_status': [g[0] if g else None for g in got]})
+            if any(g is None or g[0] != 1 for g in got):
+                raise RuntimeError('the latch is not terminal after a rejected batch')
+        passed = True
     except Exception as e:
         report['error'] = str(e)
     finally:
@@ -159,15 +186,11 @@ def main():
                 w.p.kill()
                 w.p.wait()
             w.log.close()
-        report['elapsed_seconds'] = round(time.monotonic() - started, 2)
-        report['exit_codes'] = [w.p.returncode for w in ws]
+        report[f'exit_codes{tag}'] = [w.p.returncode for w in ws]
         for party in (0, 1):
-            lines = (OUT / f'worker-{party}.log').read_text(errors='replace').splitlines()
-            report[f'worker{party}_log'] = [l[:300] for l in lines if 'operation' in l or 'aborted' in l or 'rejected' in l or 'security_mode' in l][-14:]
-        (OUT / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
-        print(json.dumps(report, indent=1))
-    if not report['passed']:
-        raise SystemExit(1)
+            lines = (OUT / f'worker-{party}{tag}.log').read_text(errors='replace').splitlines()
+            report[f'worker{party}{tag}_log'] = [l[:300] for l in lines if 'operation' in l or 'aborted' in l or 'rejected' in l or 'security_mode' in l][-14:]
+    return passed
 
 
 main()

@@ -3,7 +3,8 @@
 heavy-job lock, and its second mode needs S11 and the script runner). Two modes:
 
 1. `shape` (default): two node-worker processes run the rounds of tests/s15_vectors.txt up to the
-   `stage establish` line (the prekey fetch's seal, first phase, with `bundle-fetch-ctr 40 6 10 50`;
+   `stage establish` line (the prekey fetch's seal, first phase, with `bundle-fetch-ctr 126 6 26 102`, the
+   real fetch's shape: the emitter refuses the earlier `40 6 10 50`, whose slots overran the frame;
    two takes; the shape with `bundle-shape CAP`) while this script plays the controller's side of
    both pipes. The vectors' circuits are labelled stand-ins EXCEPT the shape's, which computes the
    kernel's meaning (one flag per body byte, 255 for JSON punctuation): every batch must be accepted
@@ -12,7 +13,7 @@ heavy-job lock, and its second mode needs S11 and the script runner). Two modes:
 
        python3 scripts/guarded.py --heavy 16 1800 python3 node_worker/tests/e2e_s15.py NODE_WORKER
 
-   Prerequisites: the kernel cache (.deps/emp-hybrid-word-v1/cache) holds `bundle-fetch-ctr 40 6 10 50`
+   Prerequisites: the kernel cache (.deps/emp-hybrid-word-v1/cache) holds `bundle-fetch-ctr 126 6 26 102`
    and `bundle-shape CAP` (CAP from the vectors' `sig` lines; produce_circuits.py with these names,
    heavy, alone). A one-session manifest of exactly these kernels is written here.
 

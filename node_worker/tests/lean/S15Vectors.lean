@@ -74,7 +74,10 @@ def punct (b : BitVec 8) : Bool := b.toNat ∈ [123, 125, 91, 93, 58, 44, 34]
 def shapeC (cap : Nat) : Circuit :=
   ⟨8 * cap, pub (8 * cap), fun v => bitsOf ((bytesOf v).map fun b => if punct b then 255 else 0)⟩
 
-def frame : B8 := (List.range 40).map fun i => BitVec.ofNat 8 (i * 11 + 3)
+/-- The fetch's frame: the shape of the real prekey fetch (`bundle-fetch-ctr 126 6 26 102`, the
+manifest sets' kernel; the emitter refuses a frame whose slots do not fit, so the earlier test
+shape `40 6 10 50` could not be lowered for `e2e_s15.py`). -/
+def frame : B8 := (List.range 126).map fun i => BitVec.ofNat 8 (i * 11 + 3)
 def mask : B8 := [1, 2, 3, 4]
 def cert : Nat := 24
 
@@ -97,7 +100,7 @@ def sessionIn (oneTime : Bool) : Nat :=
     (if oneTime then 32 else 0) + 8 * 8
 
 def circuitTable : List (String × Circuit) :=
-  [("bundle-fetch-ctr 40 6 10 50", standC (8 * (60 + 8 + 319 + 40 + 4)) (pub (8 * (1 + 5 + 41)) ++ nev 128) 1 (bitsOf [255])),
+  [("bundle-fetch-ctr 126 6 26 102", standC (8 * (60 + 8 + 319 + 126 + 4)) (pub (8 * (1 + 5 + 127)) ++ nev 128) 1 (bitsOf [255])),
    ("bundle-shape " ++ toString cap, shapeC cap),
    ("bundle-slot 1 0 0", standC (8 * slotIn true false false) (nev (8 * slotOut false)) 2),
    ("bundle-slot 0 1 1", standC (8 * slotIn false true true) (nev (8 * slotOut true)) 3),
@@ -262,11 +265,11 @@ def main : IO Unit := do
   let st0 : Refresh.RState := {}
   -- the fetch's seal, first phase (op 56)
   let r := { r with lines := r.lines ++ ["stage fetch"] }
-  let f := Refresh.opFetch t0 st0 contact traffic (List.replicate 8 0) frame mask 6 10 50
+  let f := Refresh.opFetch t0 st0 contact traffic (List.replicate 8 0) frame mask 6 26 102
   let (r, fr) := step r f.script
   let some fr := fr | IO.println "error fetch"
   let (t, st) := f.commit fr
-  let fetchOk := fr.1.length == 5 + 41
+  let fetchOk := fr.1.length == 5 + 127
   let (r, _) := step r (Tls.dropScript [fr.2])
   -- the body in two takes (op 57)
   let half := total / 2

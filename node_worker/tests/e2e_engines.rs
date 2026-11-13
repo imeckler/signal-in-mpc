@@ -97,9 +97,9 @@ struct Worker {
 }
 
 impl Worker {
-    fn start(party: u8, out: &Path, work: &Path, manifest: &Path, session: &str) -> Worker {
+    fn start(party: u8, out: &Path, work: &Path, manifest: &Path, session: &str, tag: &str) -> Worker {
         let mp = repo().join(".deps/two-party-comparison/data61-MP-SPDZ-113c4e4");
-        let log = std::fs::File::create(out.join(format!("worker-{party}.log"))).unwrap();
+        let log = std::fs::File::create(out.join(format!("worker-{party}{tag}.log"))).unwrap();
         let mut child = Command::new(env!("CARGO_BIN_EXE_node-worker"))
             .arg(party.to_string())
             .arg(out.join("hosts"))
@@ -168,9 +168,22 @@ impl Worker {
 fn lean_flows_on_the_real_engines() {
     let started = Instant::now();
     // The `program` flow needs its V3 programs loaded from pinned files (loader.rs
-    // FIELD_PROGRAMS); `test-allrows` is a vector-only program, so it runs on the stand-in
-    // engines only (tests/batch_pair.rs).
-    let flows: Vec<_> = common::flows(&common::text()).into_iter().filter(|f| f.name != "program").collect();
+    // FIELD_PROGRAMS; the files are the V3 re-export's, FIELD_PROGRAMS_V3.md). Its rounds that
+    // name only pinned programs (`field-quotient`) run here; `test-allrows` is a vector-only
+    // program (no pin), so the rounds from its first use on run on the stand-in engines only
+    // (tests/batch_pair.rs).
+    let names_allrows = |b: &[u8]| b.windows(12).any(|w| w == b"test-allrows");
+    let flows: Vec<_> = common::flows(&common::text())
+        .into_iter()
+        .map(|mut f| {
+            if f.name == "program" {
+                let cut = f.rounds.iter().position(|r| r.batch.iter().any(|b| names_allrows(b))).unwrap_or(f.rounds.len());
+                f.rounds.truncate(cut);
+            }
+            f
+        })
+        .collect();
+    assert!(flows.iter().any(|f| f.name == "program" && !f.rounds.is_empty()), "no program round runs");
     let out = Path::new(env!("CARGO_TARGET_TMPDIR")).join(format!("node-worker-e2e-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&out);
     std::fs::create_dir_all(&out).unwrap();
@@ -188,12 +201,31 @@ fn lean_flows_on_the_real_engines() {
         .expect("setup-ssl.sh");
     assert!(ssl.success(), "setup-ssl.sh");
     std::fs::write(out.join("hosts"), "127.0.0.1\n127.0.0.1\n").unwrap();
-    let session = sha_hex(format!("{:?} {}", SystemTime::now(), std::process::id()).as_bytes());
-    let mut ws = [Worker::start(0, &out, &work, &manifest, &session), Worker::start(1, &out, &work, &manifest, &session)];
+    // Two sessions, each on a fresh pair of workers: the vectors' `program` flow starts from an
+    // empty context (its handles 1… would clash with the earlier flows' live handles).
+    let first: Vec<&common::Flow> = flows.iter().filter(|f| f.name != "program").collect();
+    let second: Vec<&common::Flow> = flows.iter().filter(|f| f.name == "program").collect();
+    one_session(&first, &out, &work, &manifest, "", true, started);
+    one_session(&second, &out, &work, &manifest, "-program", false, started);
+    eprintln!("e2e: passed ({} flows)", flows.len());
+}
+
+/// One worker session: the flows, then (if `refusal`) a batch `check` refuses and the latch.
+fn one_session(
+    flows: &[&common::Flow],
+    out: &Path,
+    work: &Path,
+    manifest: &Path,
+    tag: &str,
+    refusal: bool,
+    started: Instant,
+) {
+    let session = sha_hex(format!("{:?} {} {tag}", SystemTime::now(), std::process::id()).as_bytes());
+    let mut ws = [Worker::start(0, out, work, manifest, &session, tag), Worker::start(1, out, work, manifest, &session, tag)];
 
     let mut failure = None;
     let mut seq = 0u64;
-    'flows: for flow in &flows {
+    'flows: for flow in flows {
         for (i, round) in flow.rounds.iter().enumerate() {
             let t = Instant::now();
             for p in 0..2 {
@@ -215,7 +247,7 @@ fn lean_flows_on_the_real_engines() {
             seq += 1;
         }
     }
-    if failure.is_none() {
+    if failure.is_none() && refusal {
         for (p, w) in ws.iter_mut().enumerate() {
             w.send(&request(BATCH, seq, &refused(p as u8 + 1)));
         }
@@ -237,16 +269,15 @@ fn lean_flows_on_the_real_engines() {
     }
     let [a, b] = ws;
     let codes = [a.finish(), b.finish()];
-    eprintln!("e2e: exit codes {codes:?}, {:.1}s, logs in {}", started.elapsed().as_secs_f64(), out.display());
+    eprintln!("e2e{tag}: exit codes {codes:?}, {:.1}s, logs in {}", started.elapsed().as_secs_f64(), out.display());
     for p in 0..2 {
-        let log = std::fs::read_to_string(out.join(format!("worker-{p}.log"))).unwrap_or_default();
+        let log = std::fs::read_to_string(out.join(format!("worker-{p}{tag}.log"))).unwrap_or_default();
         for line in log.lines().filter(|l| l.contains("security_mode") || l.contains("rejected") || l.contains("aborted")) {
-            eprintln!("e2e: worker {p}: {}", &line[..line.len().min(300)]);
+            eprintln!("e2e{tag}: worker {p}: {}", &line[..line.len().min(300)]);
         }
     }
     if let Some(f) = failure {
         panic!("{f}");
     }
     assert_eq!(codes, [Some(0), Some(0)], "both workers end cleanly");
-    eprintln!("e2e: passed ({} flows)", flows.len());
 }
