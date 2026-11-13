@@ -105,6 +105,9 @@ import TlsMpc.Node.Flows.CurveLive
 import TlsMpc.Node.Flows.CurveCommit
 import TlsMpc.Node.Flows.CurveHonest
 import TlsMpc.Node.Flows.CurveRunI
+import TlsMpc.Node.Flows.CurveRunJ
+import TlsMpc.Node.Flows.CurveRunK
+import TlsMpc.Node.Flows.CurveLocalLive
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6086,8 +6089,11 @@ Status per entry: **M** (ideal model of `Engine/Model.lean`) or **K** (values, i
 model); hypotheses named `[hyp: …]`. `FieldInverse` (Fermat for p) is FieldDagV3's named
 hypothesis (discharged in `proofs/`: `FieldBridge.toZMod_inverse`). H-QR (`Curve.TwoNonSquare`)
 and Euler's criterion (`Curve.EulerCriterion`) are named hypotheses here, discharged in `proofs/`
-by `two_not_square` and `euler_criterion` (with `Local.Field.pow_eq`). H-GROUP is not assumed by any
-entry here: the entries state the main-package values the `proofs/` group-law theorems
+by `two_not_square` and `euler_criterion` (with `Local.Field.pow_eq`). H-GROUP enters only as named
+hypotheses of the liveness entries (`Curve.CompleteAddition` ← `edwards_complete`, `Curve.AddClosed` ←
+`pointAddValue_is_group_add`, `Curve.ExtClosed` ← `extAddValue_is_group_add`,
+`Curve.RecipientOnCurve` ← `recipient_on_curve`); otherwise the entries state the main-package
+values the `proofs/` group-law theorems
 (`pointAddValue_is_group_add`, `extAddValue_is_group_add`, `window_table`, `bitTable_entries`,
 `offsetSum_scalar_mult`/`offsetSum_recoded`, `bitSum_is_x25519`, `prepareHinted_initial_point`,
 `montQ_square_iff`, `liftPoint_valid_point`) are about. SECURITY_MAP: the curve kinds 91–95, 102.
@@ -6702,6 +6708,186 @@ theorem s11_quotientMany_disclosure (E : Env) (me : Party) (adv : Adversary)
           if z j * mv j = 0 then ofNat 1 else ofNat 0)⟩] :=
   Curve.quotientMany_disclosure E me adv hq σ I vD f slot pairs x z hx hz hlo
 
+/-! #### F22a, F22b, F25b, F22 (part): the programs as loaded, honest inputs, the local inversions
+
+Named hypotheses added (each a theorem of `proofs/`, SecurityMathlib section 7): `Curve.AddClosed`
+(`pointAddValue_is_group_add` with `curveCheck_zero_iff`), `Curve.ExtClosed`
+(`extAddValue_is_group_add`; `Curve.ExtGood` is `ExtRep` in field elements),
+`Curve.RecipientOnCurve` (`recipient_on_curve`), with `Curve.CompleteAddition` (`edwards_complete`)
+and `FieldInverse`. The loader's facts are hypotheses `dX.program = some p` (the text under the
+name is the declaration's validated compilation: pins, `parse_render`) and `p.masks = m` (the
+count the shell checks, F25c). -/
+
+/-- **A compiled program is live where its SOURCE divisions are nonzero** [K] (F22a, generic): every
+node of an accepted `compileAll` is a subterm of the source expressions (an invariant of the
+memoising generator), so a declaration's V3 program never aborts, with masks nonzero below its mask
+count, on an input where every division `a / b` of its expressions has `b ≠ 0` (`DivOk`). -/
+theorem s11_decl_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (d : TlsMpc.FieldProgramsV3.Decl)
+    (p : TlsMpc.FieldDag.V3.Program) (hp : d.program = some p) (input : Nat → F)
+    (hd : ∀ e ∈ d.exprs, TlsMpc.FieldDag.Compiled.DivOk input e) (mask : Nat → F)
+    (hm : ∀ j, j < p.masks → mask j ≠ 0) : (TlsMpc.FieldDag.V3.eval p input mask).isSome :=
+  TlsMpc.FieldDag.Compiled.Decl.live hinv d p hp input hd mask hm
+
+/-- **F22a: every masked curve program computes its declaration and is live on its honest inputs**
+[K; hyp: `FieldInverse`, `CompleteAddition`, `AddClosed`, `ExtClosed`, `RecipientOnCurve`]. The
+input conditions (`Curve.PL.*In`): `edwards-prepare` — `u + 1`, `121666 − 121665·y²`, `2·x²` nonzero,
+the recipient check zero, the 504 scalar inputs bits; `edwards-offset-sum` — the initial and the 64
+signed window points on the curve, the sum's `y ≠ 1`; `lift-point` — both mask points and the
+selected point on the curve, `1 + valid·u ≠ 0`; `edwards-prepare-hinted` and `edwards-bit-table` —
+the point and the 2·63 hint points on the curve (and the scalar bits bits); `edwards-signature-sum` —
+the selection bits and `flip` bits, the 509 entries represented points; `edwards-torsion-hinted` —
+both hint points on the curve. -/
+theorem s11_programs_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hC : Curve.CompleteAddition)
+    (hA : Curve.AddClosed) (hX : Curve.ExtClosed) (hR : Curve.RecipientOnCurve) (p : TlsMpc.FieldDag.V3.Program)
+    (input : Nat → F) :
+    (Curve.dPrepare.program = some p → p.masks = 2031 →
+      Curve.ComputesD p 506 2031 1531 (fun i => TlsMpc.EdwardsAffine.prepare.map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.PrepareIn input → Curve.Live p input)) ∧
+    (Curve.dOffsetSum.program = some p → p.masks = 128 →
+      Curve.ComputesD p 194 128 1 (fun i => TlsMpc.EdwardsAffine.offsetSum.map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.OffsetSumIn input → Curve.Live p input)) ∧
+    (Curve.dLiftPoint.program = some p → p.masks = 5 →
+      Curve.ComputesD p 9 5 5 (fun i => (TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.LiftPointIn input → Curve.Live p input)) ∧
+    (Curve.dPrepareHinted.program = some p → p.masks = 1150 →
+      Curve.ComputesD p 884 1150 1656 (fun i => (TlsMpc.EdwardsHinted.prepareHinted ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.PrepareHintedIn input → Curve.Live p input)) ∧
+    (Curve.dBitTable.program = some p → p.masks = 252 →
+      Curve.ComputesD p 380 252 1150 (fun i => (TlsMpc.EdwardsHinted.bitTable ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.BitTableIn input → Curve.Live p input)) ∧
+    (Curve.dSignatureSum.program = some p → p.masks = 2 →
+      Curve.ComputesD p 2546 2 2 (fun i => (TlsMpc.EdwardsHinted.signatureSum ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.SignatureIn input → Curve.Live p input)) ∧
+    (Curve.dTorsion.program = some p → p.masks = 4 →
+      Curve.ComputesD p 7 4 2 (fun i => (TlsMpc.EdwardsHinted.torsionHinted ()).map (TlsMpc.FieldDag.Expr.eval i)) ∧
+      (Curve.PL.TorsionIn input → Curve.Live p input)) :=
+  ⟨fun hd hm => ⟨Curve.prepare_computesD hinv p hd hm, Curve.prepare_live hinv hC hA hR p hd input⟩,
+   fun hd hm => ⟨Curve.offsetSum_computesD hinv p hd hm, Curve.offsetSum_live hinv hC hA p hd input⟩,
+   fun hd hm => ⟨Curve.liftPoint_computesD hinv p hd hm, Curve.liftPoint_live hinv hC hA p hd input⟩,
+   fun hd hm => ⟨Curve.prepareHinted_computesD hinv p hd hm, Curve.prepareHinted_live hinv hC hA hX p hd input⟩,
+   fun hd hm => ⟨Curve.bitTable_computesD hinv p hd hm, Curve.bitTable_live hinv hC hA hX p hd input⟩,
+   fun hd hm => ⟨Curve.signatureSum_computesD hinv p hd hm, Curve.signatureSum_live hinv hX p hd input⟩,
+   fun hd hm => ⟨Curve.torsion_computesD hinv p hd hm, Curve.torsion_live hinv hC hA hX p hd input⟩⟩
+
+/-- **F22a: the mask-free curve programs compute their declarations on every input** [K; hyp:
+`FieldInverse`] (`x25519-fast`, `edwards-offset-sum-fast`, `edwards-bit-sum`,
+`edwards-affine-bit-sum`, `lift-open`, `edwards-on-curve`, `edwards-add-u`; `Live` is then
+automatic: `Curve.live_of_computes`). -/
+theorem s11_maskfree_computes (hinv : TlsMpc.FieldDag.V3.FieldInverse) (p : TlsMpc.FieldDag.V3.Program)
+    (hm : p.masks = 0) :
+    (Curve.dX25519.program = some p →
+      Conv.Computes p 257 [.never, .never] (fun i => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dOffsetSumFast.program = some p →
+      Conv.Computes p 194 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.offsetSumFast ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dBitSum.program = some p →
+      Conv.Computes p 1261 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.bitSum ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dAffineBitSum.program = some p →
+      Conv.Computes p 757 [.never, .never] (fun i => (TlsMpc.EdwardsHinted.affineBitSum ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dLiftOpen.program = some p →
+      Conv.Computes p 8 [.pub, .pub, .pub, .pub, .pub, .never]
+        (fun i => (TlsMpc.EdwardsHinted.liftOpen ()).map (TlsMpc.FieldDag.Expr.eval i))) ∧
+    (Curve.dOnCurve.program = some p → Conv.Computes p 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i])) ∧
+    (Curve.dAddU.program = some p →
+      Conv.Computes p 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i))) :=
+  ⟨fun hd => Curve.x25519_computes hinv p hd hm, fun hd => Curve.offsetSumFast_computes hinv p hd hm,
+   fun hd => Curve.bitSum_computes hinv p hd hm, fun hd => Curve.affineBitSum_computes hinv p hd hm,
+   fun hd => Curve.liftOpen_computes hinv p hd hm, fun hd => Curve.onCurve_computes hinv p hd hm,
+   fun hd => Curve.addU_computes hinv p hd hm⟩
+
+/-- **F22b: the checks vanish on honest inputs** [K; hyp: `AddClosed`]. `edwards-prepare`'s 505
+leading outputs (the masked recipient check, the bit checks) are zero on `PrepareIn` inputs;
+`lift-open`'s four checks are zero for bits and curve mask points; `lift-point`'s opened
+`Z = M_A + M_B + P` is a curve point on `LiftPointIn` inputs; `edwards-bit-table`'s 126 link checks are
+zero when its window bases are linked (`EdwardsHinted.LinkedFrom`, `bitTable_sound`'s hypothesis;
+for honest hints this is the group law, `proofs/` `bitTable_entries`). -/
+theorem s11_checks_vanish (hA : Curve.AddClosed) (input : Nat → F) :
+    (Curve.PL.PrepareIn input → ∀ i, i < 505 →
+      (TlsMpc.EdwardsAffine.prepare.map (TlsMpc.FieldDag.Expr.eval input)).getD i 0 = 0) ∧
+    (Curve.PL.IsBit (input 2) → Curve.PL.IsBit (input 3) →
+      TlsMpc.Node.Local.Edwards.curveValue (input 4, input 5) = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue (input 6, input 7) = 0 → ∀ i, i < 4 →
+      ((TlsMpc.EdwardsHinted.liftOpen ()).map (TlsMpc.FieldDag.Expr.eval input)).getD (1 + i) 0 = 0) ∧
+    (Curve.PL.LiftPointIn input →
+      TlsMpc.Node.Local.Edwards.onCurve (((TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval input)).getD 3 0,
+        ((TlsMpc.EdwardsHinted.liftPoint ()).map (TlsMpc.FieldDag.Expr.eval input)).getD 4 0) = true) ∧
+    (Curve.TableLinked input → ∀ i, i < 126 →
+      ((TlsMpc.EdwardsHinted.bitTable ()).map (TlsMpc.FieldDag.Expr.eval input)).getD i 0 = 0) :=
+  ⟨Curve.prepare_checks input, Curve.liftOpen_checks input, Curve.liftPoint_Z_onCurve hA input,
+   Curve.bitTable_checks input⟩
+
+/-- **F22a + F22b, `offsetPrepare` through `jointRun` without program hypotheses** [M; hyp:
+`FieldInverse`, `CompleteAddition`, `AddClosed`, `RecipientOnCurve`]: `edwards-prepare` loaded as its
+declaration's program (2031 masks), the honest inputs `PrepareIn`; the 505 checks are derived. Both
+parties return `prepState f0 (P_A + P_B)`; the table handles hold the program's outputs 505 … 1530.
+(The other restated runs, same composition: `Curve.agree_honest'`, `offsetStep_value'`,
+`offsetStepFast_honest'`, `signatures_honest'`, `torsion_honest'`, `agreeAffine_honest'`,
+`agreeHinted_honest'`, `tables_honest'` (link checks from `TableLinked`), `splitAgree_montU'`, in
+`Flows/CurveRunJ.lean`.) -/
+theorem s11_offsetPrepare_honest' (E : Env) (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hCA : Curve.CompleteAddition)
+    (hAC : Curve.AddClosed) (hR : Curve.RecipientOnCurve)
+    (hh : ∀ m, (E.hash m).length = 32) (pp : TlsMpc.FieldDag.V3.Program)
+    (hP : E.programs Curve.prepareName = some pp) (hd : Curve.dPrepare.program = some pp) (hm2031 : pp.masks = 2031)
+    (σA σB : Store) (I : Ideal) (f0 : Nat) (s : Curve.OffsetSlots) (u : FieldH) (uv : F)
+    (hu : I.fields u.id = some uv) (hul : u.id < f0)
+    (rA rB : F) (hrA : σA.elems s.r = [rA]) (hrB : σB.elems s.r = [rB])
+    (bA bB : Nat → Bool) (hbA : σA.elems s.bits = (List.range 252).map fun i => TlsMpc.X25519.bitValue (bA i))
+    (hbB : σB.elems s.bits = (List.range 252).map fun i => TlsMpc.X25519.bitValue (bB i))
+    (mA mB : Nat → F) (hmA : σA.elems s.masks = (List.range 2031).map mA)
+    (hmB : σB.elems s.masks = (List.range 2031).map mB) (hm : ∀ i, i < 2031 → mA i + mB i ≠ 0)
+    (hin : Curve.PL.PrepareIn (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))
+    (PA PB : TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes s.nonce).length = 32) (hsA : (σA.bytes s.share).length = 32)
+    (hnB : (σB.bytes s.nonce).length = 32) (hsB : (σB.bytes s.share).length = 32)
+    (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes s.share) = some PA)
+    (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes s.share) = some PB)
+    (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+    (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+    (hc : E.hash (commitFrame Curve.offsetTag .a (σA.bytes s.nonce) (σA.bytes s.share)) ≠
+      E.hash (commitFrame Curve.offsetTag .b (σB.bytes s.nonce) (σB.bytes s.share))) :
+    ∃ J, Run.JRet (jointRun E (Curve.offsetPrepare E.hash .a f0 s u) (Curve.offsetPrepare E.hash .b f0 s u) σA σB I)
+        (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB)) (Curve.prepState f0 (TlsMpc.Node.Local.Edwards.add PA PB))
+        J σA σB ∧
+      (∀ i, i < 1026 → J.fields (Curve.prepOuts f0 + 505 + i) =
+        some ((TlsMpc.EdwardsAffine.prepare.map
+          (TlsMpc.FieldDag.Expr.eval (fun i => (Curve.prepVals uv rA rB bA bB).getD i 0))).getD (505 + i) 0)) ∧
+      (∀ k, k < f0 → J.fields k = I.fields k) :=
+  Curve.offsetPrepare_honest' E hinv hCA hAC hR hh pp hP hd hm2031 σA σB I f0 s u uv hu hul rA rB hrA hrB bA bB hbA hbB
+    mA mB hmA hmB hm hin PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
+/-- **F25b: the batched inversion, the hints and the public table never fail on curve points** [K;
+hyp: `FieldInverse`, `AddClosed`, `ExtClosed`]: `invAll` returns the inverses of nonzero elements
+(its check passes), `toAffineAll` succeeds on nonzero `Z`; a party's hints succeed when `Z` and its
+mask point are curve points; the public table of a curve point succeeds. -/
+theorem s11_toAffineAll_live (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hA : Curve.AddClosed) (hX : Curve.ExtClosed) :
+    (∀ zs : List F, (∀ z ∈ zs, z ≠ 0) → TlsMpc.Node.Local.Edwards.invAll zs = some (zs.map inverse)) ∧
+    (∀ es : List TlsMpc.Node.Local.Edwards.ExtV, (∀ e ∈ es, e.z ≠ 0) →
+      (TlsMpc.Node.Local.Edwards.toAffineAll es).isSome = true) ∧
+    (∀ (me : Party) (z mask : TlsMpc.Node.Local.Edwards.Value), TlsMpc.Node.Local.Edwards.curveValue z = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue mask = 0 → (TlsMpc.Node.Local.Edwards.hints me z mask).isSome = true) ∧
+    (∀ p : TlsMpc.Node.Local.Edwards.Value, TlsMpc.Node.Local.Edwards.curveValue p = 0 →
+      (TlsMpc.Node.Local.Edwards.publicTable p).isSome = true) :=
+  ⟨Curve.LL.invAll_some hinv, Curve.LL.toAffineAll_isSome hinv, Curve.LL.hints_isSome hinv hA hX,
+   Curve.LL.publicTable_isSome hinv hX⟩
+
+/-- **F22 (part): the point exchange with `m` points each** [M]: every chunk decodes, the points and
+the sums are valid, the commitments differ ⇒ both parties return the `m` sums `P_A,j + P_B,j`
+(the K₀ exchange of `prepareSecond`). -/
+theorem s11_pointExchange_many_honest (E : Env) (hh : ∀ m, (E.hash m).length = 32) (tag : Bytes)
+    (σA σB : Store) (I : Ideal) (nA sA nB sB m : Nat) (PA PB : Nat → TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes nA).length = 32) (hsA : (σA.bytes sA).length = 32 * m)
+    (hnB : (σB.bytes nB).length = 32) (hsB : (σB.bytes sB).length = 32 * m)
+    (hdA : ∀ j, j < m → TlsMpc.Node.Local.Edwards.decode (((σA.bytes sA).drop (32 * j)).take 32) = some (PA j))
+    (hdB : ∀ j, j < m → TlsMpc.Node.Local.Edwards.decode (((σB.bytes sB).drop (32 * j)).take 32) = some (PB j))
+    (hvA : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (PA j) = true)
+    (hvB : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (PB j) = true)
+    (hvS : ∀ j, j < m → TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add (PA j) (PB j)) = true)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes sA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes sB))) :
+    Run.JRet (jointRun E (Curve.pointExchange E.hash .a tag nA sA m) (Curve.pointExchange E.hash .b tag nB sB m) σA σB I)
+      ((List.range m).map fun j => TlsMpc.Node.Local.Edwards.add (PA j) (PB j))
+      ((List.range m).map fun j => TlsMpc.Node.Local.Edwards.add (PA j) (PB j)) I σA σB :=
+  Curve.pointExchange_many_honest E hh tag σA σB I nA sA nB sB m PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
 end FlowsS11
 
 /-! ## 8. NOT YET PROVED
@@ -6885,17 +7071,27 @@ the matching section above in the same commit.
   (`s11_hinted_honest`), `lift`, `agreeHinted` (`s11_lift_agreeHinted_honest`), under the named
   program hypotheses `Curve.ComputesD` / `Curve.Live` (discharged for translated artifacts by
   `FieldDagV3.eval_compileAll`, `eval_ofArtifact_some` given nonzero honest denominators) and
-  nonzero mask sums. OPEN: honest runs of `prepareSecond` (its K₀ exchange carries m points;
-  `pointExchange_honest` is for one) and `prepareContacts` as a staged flow (checked executably:
+  nonzero mask sums. Since the third follow-up (F22a, F22b, F25b): those program hypotheses are
+  DISCHARGED (`s11_decl_live`: a compiled program is live where its source divisions are nonzero;
+  `s11_programs_live`, `s11_maskfree_computes`: every curve program the flows run, from the loader's
+  facts and per-program input conditions, under the named group facts `AddClosed`, `ExtClosed`,
+  `RecipientOnCurve`, `CompleteAddition`, theorems of `proofs/`), the runs restated without them
+  (`Curve.*_honest'`, headline `s11_offsetPrepare_honest'`), the checks derived on honest inputs
+  for `offsetPrepare` and `lift` and the lift's `Z` on the curve (`s11_checks_vanish`); the batched
+  inversion, the hints and the public table never fail on curve points (`s11_toAffineAll_live`);
+  the point exchange with m points (`s11_pointExchange_many_honest`). OPEN: the bit table's link
+  checks from honest hints (reduced to `EdwardsHinted.LinkedFrom`, the group law for the hints'
+  multiples: `proofs/` `bitTable_entries`); the input conditions from the state the earlier flows
+  leave (e.g. the offset table's entries are curve points); honest runs of `prepareSecond` and
+  `prepareContacts` as a staged flow (checked executably:
   `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
   for the curve flows other than the point exchanges and the quotient round
   (`s11_quotientMany_disclosure`: [z_j·m_j, flags] for the masks the engines hold): the opened
   checks, `w`, `Z` and the programs' own `D` openings are proved only at the level of kinds; P-HINT (c), (d) composed with the runs (`entries_sound`,
   `curve_hinted_Z_uniform` are about the program); that the local step's mask points are uniform
   on the curve group (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/`
-  `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points and the
-  batched inversion `toAffineAll` on nonzero `Z` (liveness of decoding and of the local hints;
-  tested against curve25519-dalek, not proved). → **S11 follow-up**.
+  `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points (liveness of
+  decoding; tested against curve25519-dalek, not proved). → **S11 follow-up**.
 * `commit_open_sound`: proved for every S10 commit-then-open site (all are `Random.joint`; section
   7b, `s10_commit_open_sound`). The S11 point exchanges (`Curve.pointExchange`, same frame
   `tag ‖ party ‖ nonce ‖ value`): the gate only (`Curve.pointExchange_gate`); the model statement
@@ -7485,6 +7681,13 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s11_hinted_honest
 #print axioms TlsMpc.Security.s11_lift_agreeHinted_honest
 #print axioms TlsMpc.Security.s11_quotientMany_disclosure
+#print axioms TlsMpc.Security.s11_decl_live
+#print axioms TlsMpc.Security.s11_programs_live
+#print axioms TlsMpc.Security.s11_maskfree_computes
+#print axioms TlsMpc.Security.s11_checks_vanish
+#print axioms TlsMpc.Security.s11_offsetPrepare_honest'
+#print axioms TlsMpc.Security.s11_toAffineAll_live
+#print axioms TlsMpc.Security.s11_pointExchange_many_honest
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

@@ -1725,6 +1725,20 @@ called by the controller (the flow API switches with S12–S16; the legacy libra
   honest runs of `prepareSecond` (m-point K₀ exchange) and op 66 as a staged flow; value-level
   T3 beyond the point exchanges and the quotient round (`s11_quotientMany_disclosure`); P-HINT
   (c), (d) with the runs; `decode ∘ encode` and `toAffineAll` liveness (tested only).
+- Third follow-up (F22a, F22b, F25b, F22 part; `Flows/CurveCompiled.lean`, `CurveProgLive.lean`,
+  `CurveRunJ.lean`, `CurveLocalLive.lean`, `CurveRunK.lean`): `ComputesD`/`Live` discharged for
+  every curve program the flows run — generically, a compiled program is live where its SOURCE
+  divisions are nonzero (`s11_decl_live`: the memoising generator keeps only subterms), then per
+  program from its definition with explicit input conditions (`s11_programs_live`,
+  `s11_maskfree_computes`) under the named group facts `CompleteAddition`, `AddClosed`,
+  `ExtClosed`, `RecipientOnCurve` (each a `proofs/` theorem); every honest run restated without
+  program hypotheses (`Curve.*_honest'`, `s11_offsetPrepare_honest'`); checks derived on honest
+  inputs for `offsetPrepare` and `lift`, the lift's `Z` on the curve, the bit table's link checks
+  reduced to `LinkedFrom` (`s11_checks_vanish`); `toAffineAll`, the hints and the public table never
+  fail on curve points (`s11_toAffineAll_live`); the m-point exchange
+  (`s11_pointExchange_many_honest`). Open: `prepareSecond`/op 66 through `jointRun`, the links
+  from honest hints, `decode ∘ encode`, value-level T3 beyond the point exchanges and the quotient
+  round, P-HINT (c), (d) with the runs.
 - Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
   engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
   with an invalid key, four cheating cases) passes; `tests/e2e_s11.py` (real engines) written, not
