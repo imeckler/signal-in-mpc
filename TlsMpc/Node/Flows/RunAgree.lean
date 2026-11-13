@@ -435,6 +435,128 @@ theorem ret_bind {α β : Type} (s : Script α) (f : α → Script β) (σ : Sto
 
 end Returned
 
+/-! ## Two honest parties: runs that return (for the honest-correctness theorems)
+
+`JRet o a b J σA σB`: the joint run returned `(a, b)`, with the engines in state `J` and the two
+stores as given. Each lemma adds one combinator in front of a joint run that returns. -/
+
+/-- The joint run returned `(a, b)` with the engines in state `J` and the stores `sA`, `sB`. -/
+def JRet {α β : Type} (o : Outcome2 α β) (a : α) (b : β) (J : Ideal) (sA sB : Store) : Prop :=
+  o.result = some (a, b) ∧ o.ideal = J ∧ o.storeA = sA ∧ o.storeB = sB
+
+section JointReturned
+
+variable (E : Env)
+
+theorem jret_done {α β : Type} (a : α) (b : β) (σA σB : Store) (I : Ideal) :
+    JRet (jointRun E (.done a) (.done b) σA σB I) a b I σA σB := ⟨rfl, rfl, rfl, rfl⟩
+
+theorem jret_step {α β : Type} (iA iB : Instr) (kA : Reply → Script α) (kB : Reply → Script β) (σA σB : Store)
+    (I : Ideal) (wA wB : Wire) (I1 : Ideal) (toA toB : Option Release) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hsk : iA.skel = iB.skel) (hA : fill E.hash .a σA iA = some wA) (hB : fill E.hash .b σB iB = some wB)
+    (hst : idealStep E .a wA wB.part I = some (I1, toA, toB))
+    (hk : JRet (jointRun E (kA (absorb E.hash .a iA σA toA).1) (kB (absorb E.hash .b iB σB toB).1)
+      (absorb E.hash .a iA σA toA).2 (absorb E.hash .b iB σB toB).2 I1) a b J sA sB) :
+    JRet (jointRun E (.step iA kA) (.step iB kB) σA σB I) a b J sA sB := by
+  unfold JRet at hk ⊢
+  simp only [jointRun, if_pos hsk, hA, hB, hst]
+  exact hk
+
+theorem jret_locals {α β : Type} (tA : Script α) (tB : Script β) (σA σB : Store) (a : α) (b : β) (J : Ideal)
+    (sA sB : Store) :
+    ∀ (is : List Instr), (∀ i ∈ is, isLocal i = true) → ∀ (I I' : Ideal), runLocal E is I = some I' →
+      JRet (jointRun E tA tB σA σB I') a b J sA sB →
+      JRet (jointRun E (seqs is tA) (seqs is tB) σA σB I) a b J sA sB
+  | [], _, I, I', h, hk => by
+    simp only [runLocal, Option.some.injEq] at h
+    subst h
+    exact hk
+  | i :: is, hp, I, I', h, hk => by
+    have hi := hp i (by simp)
+    simp only [runLocal] at h
+    cases hs : localStep E i I with
+    | none => rw [hs] at h; cases h
+    | some I1 =>
+      rw [hs] at h
+      have ih := jret_locals tA tB σA σB a b J sA sB is (fun j hj => hp j (by simp [hj])) I1 I' h hk
+      show JRet (jointRun E (seq i (seqs is tA)) (seq i (seqs is tB)) σA σB I) a b J sA sB
+      refine jret_step E i i _ _ σA σB I (blankWire i) (blankWire i) I1 none none a b J sA sB rfl
+        (fill_local _ _ _ i hi) (fill_local _ _ _ i hi) (by rw [idealStep_local E .a _ I i hi, hs]; rfl) ?_
+      rw [absorb_none, absorb_none]
+      exact ih
+
+theorem jret_openThen {α β : Type} (h0 : BoolH) (l : Label) (kA : Bits → Script α) (kB : Bits → Script β)
+    (σA σB : Store) (I : Ideal) (v : Bits) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hv : I.bools h0.id = some v) (hk : JRet (jointRun E (kA v) (kB v) σA σB I) a b J sA sB) :
+    JRet (jointRun E (openThen h0 l kA) (openThen h0 l kB) σA σB I) a b J sA sB := by
+  unfold TlsMpc.Node.Flows.Contacts.openThen
+  exact jret_step E _ _ _ _ σA σB I (.openBool h0 l) (.openBool h0 l) I (some ⟨l, .bits v⟩) (some ⟨l, .bits v⟩)
+    a b J sA sB rfl rfl rfl (by simp only [idealStep, hv]) hk
+
+theorem jret_openFieldThen {α β : Type} (hs : List FieldH) (l : Label) (kA : List F → Script α)
+    (kB : List F → Script β) (σA σB : Store) (I : Ideal) (v : List F) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hv : hs.mapM (fun g => I.fields g.id) = some v) (hk : JRet (jointRun E (kA v) (kB v) σA σB I) a b J sA sB) :
+    JRet (jointRun E (openFieldThen hs l kA) (openFieldThen hs l kB) σA σB I) a b J sA sB := by
+  unfold TlsMpc.Node.Flows.Run.openFieldThen
+  exact jret_step E _ _ _ _ σA σB I (.openField hs l) (.openField hs l) I (some ⟨l, .elems v⟩)
+    (some ⟨l, .elems v⟩) a b J sA sB rfl rfl rfl (by simp only [idealStep, hv]) hk
+
+theorem jret_program {α β : Type} (name : Bytes) (copies : Nat) (ins masks outs : List FieldH) (l : Label)
+    (tA : Script α) (tB : Script β) (σA σB : Store) (I : Ideal) (p : TlsMpc.FieldDag.V3.Program)
+    (vi vm vo opened : List F) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hp : E.programs name = some p) (hi : ins.mapM (fun g => I.fields g.id) = some vi)
+    (hm : masks.mapM (fun g => I.fields g.id) = some vm) (hr : runProgram p copies vi vm = some (vo, opened))
+    (hl : vo.length = outs.length)
+    (hk : JRet (jointRun E tA tB σA σB (I.setFields outs vo)) a b J sA sB) :
+    JRet (jointRun E (seq (.program name copies ins masks outs l) tA) (seq (.program name copies ins masks outs l) tB)
+      σA σB I) a b J sA sB := by
+  unfold seq
+  exact jret_step E _ _ _ _ σA σB I (.program name copies ins masks outs l) (.program name copies ins masks outs l)
+    (I.setFields outs vo) (some ⟨l, .elems opened⟩) (some ⟨l, .elems opened⟩) a b J sA sB rfl rfl rfl
+    (by simp only [idealStep, hp, hi, hm, hr, hl, if_true]) hk
+
+theorem jret_boolInputBoth {α β : Type} (oa ob : BoolH) (w : Nat) (once rev : Bool) (slotA slotB : Nat)
+    (tA : Script α) (tB : Script β) (σA σB : Store) (I : Ideal) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hlA : (σA.bits slotA).length = w) (hlB : (σB.bits slotB).length = w)
+    (hk : JRet (jointRun E tA tB σA σB (bothBools .a I oa ob (σA.bits slotA) (σB.bits slotB))) a b J sA sB) :
+    JRet (jointRun E (seq (.boolInputBoth oa ob w once rev slotA) tA) (seq (.boolInputBoth oa ob w once rev slotB) tB)
+      σA σB I) a b J sA sB := by
+  unfold seq
+  exact jret_step E _ _ _ _ σA σB I (.boolInputBoth oa ob w once rev (σA.bits slotA))
+    (.boolInputBoth oa ob w once rev (σB.bits slotB)) _ none none a b J sA sB rfl (by simp [fill, hlA])
+    (by simp [fill, hlB]) (by simp [idealStep, Wire.part, bothBools, hlA, hlB]) hk
+
+theorem jret_fieldInput {α β : Type} (oa ob : List FieldH) (kd : FieldIn) (rev : Bool) (slotA slotB : Nat)
+    (tA : Script α) (tB : Script β) (σA σB : Store) (I : Ideal) (a : α) (b : β) (J : Ideal) (sA sB : Store)
+    (hab : oa.length = ob.length)
+    (hlA : (σA.elems slotA).length = oa.length) (hcA : coinsOk kd (σA.elems slotA) = true)
+    (hlB : (σB.elems slotB).length = oa.length) (hcB : coinsOk kd (σB.elems slotB) = true)
+    (hk : JRet (jointRun E tA tB σA σB (bothFields .a I oa ob (σA.elems slotA) (σB.elems slotB))) a b J sA sB) :
+    JRet (jointRun E (seq (.fieldInput oa ob kd rev slotA) tA) (seq (.fieldInput oa ob kd rev slotB) tB)
+      σA σB I) a b J sA sB := by
+  unfold seq
+  exact jret_step E _ _ _ _ σA σB I (.fieldInput oa ob kd rev (σA.elems slotA))
+    (.fieldInput oa ob kd rev (σB.elems slotB)) _ none none a b J sA sB rfl (by simp [fill, hlA, hcA])
+    (by simp [fill, hlB, hcB]) (by simp [idealStep, Wire.part, bothFields, hlA, hcA, hlB, hcB, ← hab]) hk
+
+theorem jret_bind {α β γ δ : Type} (tA : Script α) (tB : Script β) (fA : α → Script γ) (fB : β → Script δ)
+    (σA σB : Store) (I : Ideal) (a : α) (b : β) (J1 : Ideal) (sA1 sB1 : Store) (c : γ) (d : δ) (J : Ideal)
+    (sA sB : Store) (h1 : JRet (jointRun E tA tB σA σB I) a b J1 sA1 sB1)
+    (h2 : JRet (jointRun E (fA a) (fB b) sA1 sB1 J1) c d J sA sB) :
+    JRet (jointRun E (tA.bind fA) (tB.bind fB) σA σB I) c d J sA sB := by
+  obtain ⟨r1, r2, r3, r4⟩ := h1
+  rw [jointRun_bind E tA tB fA fB σA σB I a b r1, r2, r3, r4]
+  exact h2
+
+theorem jret_ite {α β : Type} (c : Bool) (tA : Script α) (tB : Script β) (r r' : String) (σA σB : Store)
+    (I : Ideal) (a : α) (b : β) (J : Ideal) (sA sB : Store) (hc : c = true)
+    (hk : JRet (jointRun E tA tB σA σB I) a b J sA sB) :
+    JRet (jointRun E (if c then tA else .abort r) (if c then tB else .abort r') σA σB I) a b J sA sB := by
+  subst hc
+  exact hk
+
+end JointReturned
+
 /-! ## `Random.joint` and `Random.challenge` read only two byte slots -/
 
 section Joint
@@ -499,6 +621,45 @@ theorem agree_challenge (hh : ∀ m, (E.hash m).length = 32) (σ σ' : Store) (I
   split
   · exact Agree.done E me adv _ _ _ _ _ _ ⟨rfl, rfl, rfl, rfl⟩
   · exact Agree.abort E me adv _ _ _ _ _ _
+
+/-- Two honest parties' `joint`: both return r_A ⊕ r_B, and the engines and both stores are as
+before (P-RAND (a) with the final state). -/
+theorem jret_joint (hh : ∀ m, (E.hash m).length = 32) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes vB))) :
+    JRet (jointRun E (joint E.hash .a nA vA) (joint E.hash .b nB vB) σA σB I)
+      (xorBytes (σA.bytes vA) (σB.bytes vB)) (xorBytes (σA.bytes vA) (σB.bytes vB)) I σA σB := by
+  refine ⟨prand_a_honest E σA σB I nA vA nB vB hh hnA hvA hnB hvB hc,
+    prand_a_honest_ideal E σA σB I nA vA nB vB hh hnA hvA hnB hvB hc, ?_, ?_⟩
+  all_goals
+    have dA : (σA.bytes nA ++ σA.bytes vA).drop 32 = σA.bytes vA := List.drop_left' hnA
+    have tA : (σA.bytes nA ++ σA.bytes vA).take 32 = σA.bytes nA := List.take_left' hnA
+    have dB : (σB.bytes nB ++ σB.bytes vB).drop 32 = σB.bytes vB := List.drop_left' hnB
+    have tB : (σB.bytes nB ++ σB.bytes vB).take 32 = σB.bytes nB := List.take_left' hnB
+    have hc' := Ne.symm hc
+    simp only [joint, Script.exchange, Script.ensure, Script.bind_eq, Script.pure_eq, Script.bind_step]
+    simp [jointRun, fill, Payload.eval, InstrP.skel, InstrP.map, idealStep, Wire.part, absorb, hh, hnA, hvA,
+      hnB, hvB, accepts, dA, tA, dB, tB, hc, hc', Party.other, xorBytes_comm (σB.bytes vB)]
+
+/-- **P-CHAL (a) with the final state**: two honest parties' `challenge` returns the permutation
+of the seed r_A ⊕ r_B to both (when its expansion succeeds), and changes nothing else. -/
+theorem jret_challenge (hh : ∀ m, (E.hash m).length = 32) (σA σB : Store) (I : Ideal) (nA vA nB vB : Nat)
+    (domain : Bytes) (n : Nat)
+    (hnA : (σA.bytes nA).length = 32) (hvA : (σA.bytes vA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hvB : (σB.bytes vB).length = 32)
+    (hc : E.hash (commitFrame tag .a (σA.bytes nA) (σA.bytes vA)) ≠
+      E.hash (commitFrame tag .b (σB.bytes nB) (σB.bytes vB)))
+    (π : List Nat) (hπ : permOf E.hash domain (xorBytes (σA.bytes vA) (σB.bytes vB)) n = some π) :
+    JRet (jointRun E (challenge E.hash .a nA vA domain n) (challenge E.hash .b nB vB domain n) σA σB I)
+      π π I σA σB := by
+  unfold challenge
+  refine jret_bind E _ _ _ _ σA σB I _ _ I σA σB π π I σA σB
+    (jret_joint E hh σA σB I nA vA nB vB hnA hvA hnB hvB hc) ?_
+  unfold finish
+  rw [hπ]
+  exact jret_done E π π σA σB I
 
 /-- An accepted challenge is a permutation of `[0, n)` (P-CHAL (b)), in any run. -/
 theorem challenge_result_spec (σ : Store) (I : Ideal) (vD : List Release) (nonce value : Nat)
