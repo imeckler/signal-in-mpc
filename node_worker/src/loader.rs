@@ -348,6 +348,24 @@ pub const FIELD_PROGRAMS: &[FieldProgramPin] = &[
     // Lean's `render`, so its pin is known now (tests/s10_vectors.txt `native`, checked in
     // tests/s10_pair.rs). The file is written from that text (S10_NOTES.md).
     FieldProgramPin { name: "field-mask-sub", file: "field-mask-sub.v3", sha256: FIELD_MASK_SUB_SHA256 },
+    // Stage S11 (Flows/Curve.lean): every curve program runs through program.rs (no
+    // field_program.h). PLACEHOLDERS that FAIL CLOSED until the V3 re-export, as the S10 ones; the
+    // values Lean's render gives are the `pin` lines of tests/s11_vectors.txt (the re-export must
+    // reproduce them; S11_NOTES.md).
+    FieldProgramPin { name: "edwards-on-curve", file: "edwards-on-curve.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-add-u", file: "edwards-add-u.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "x25519-fast", file: "x25519-fast.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-prepare", file: "edwards-prepare.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-offset-sum", file: "edwards-offset-sum.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "lift-open", file: "lift-open.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "lift-point", file: "lift-point.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-prepare-hinted", file: "edwards-prepare-hinted.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-offset-sum-fast", file: "edwards-offset-sum-fast.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-bit-table", file: "edwards-bit-table.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-bit-sum", file: "edwards-bit-sum.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-affine-bit-sum", file: "edwards-affine-bit-sum.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-signature-sum", file: "edwards-signature-sum.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "edwards-torsion-hinted", file: "edwards-torsion-hinted.v3", sha256: PIN_FROM_REEXPORT },
 ];
 
 /// The placeholder pin of the S10 programs the re-export has not produced yet (not hex: never a
