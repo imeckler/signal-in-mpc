@@ -176,6 +176,13 @@ def identityChanged : Label := ofKind .identityChanged
 /-- `establish-session`'s `status` byte, one per device. Kind `deviceStatus` (62). -/
 def deviceStatus : Label := ofKind .deviceStatus
 
+/-! The registration ceremony (stage S16, kind 70). -/
+
+/-- `ceremony-secrets`' `masked` output, opened to both parties (op 80): the account password XOR
+both parties' masks; each party's XOR share of the password is made from it locally. Kind
+`maskedPassword` (70). -/
+def maskedPassword : Label := ofKind .maskedPassword
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
@@ -186,7 +193,8 @@ def kinds : List RevealKind :=
    .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope,
    .certificateLength, .contentShape, .prekeyShape, .prekeyIds, .signalShape, .sessionStatus,
    .receivedText, .accessKeyStatus,
-   .bundleShape, .identityChanged, .deviceStatus]
+   .bundleShape, .identityChanged, .deviceStatus,
+   .maskedPassword]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
@@ -198,7 +206,8 @@ def all : List Label :=
    serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope,
    certificateLength, contentShape, prekeyShape, prekeyIds, signalShape, sessionStatus,
    receivedText, accessKeyStatus,
-   bundleShape, identityChanged, deviceStatus]
+   bundleShape, identityChanged, deviceStatus,
+   maskedPassword]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -225,6 +234,7 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) =
     [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102,
-     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62] := rfl
+     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62,
+     70] := rfl
 
 end TlsMpc.Node.Engine.Label

@@ -145,6 +145,9 @@ import TlsMpc.Node.Policy.ReceiveFrame
 import TlsMpc.Node.Session.ServeProofs
 import TlsMpc.Node.Policy.Rotation
 import TlsMpc.Node.Stock.Use
+import TlsMpc.Node.Flows.CeremonyRun
+import TlsMpc.Node.Flows.CeremonyWF
+import TlsMpc.Node.Flows.CeremonyBounded
 import Lean.Elab.Command
 
 /-!
@@ -9166,6 +9169,197 @@ theorem j13_release (m : Runner.Slots) (base : Store) (ns : List Nat) (s : Nat) 
 
 end FlowsContactSet
 
+/-! ### 7k. The registration ceremony (stage S16: ops 80, 81; plan 8.1 T3, T4-CEREMONY)
+
+`TlsMpc/Node/Flows/Ceremony.lean` (the scripts, T3, the shares), `Flows/CeremonyWF.lean` (WF),
+`Flows/CeremonyRun.lean` (two honest parties; the kernels on the scripts' bundles),
+`Flows/CeremonyBounded.lean` (the registry and the pipe); selected by the agreed group `ceremony`
+(`Flows/Select.lean`). **M** as section 7a; the kernels' values through `CeremonyProofs`
+(`ceremonySecrets_spec`, `registerPlaintext_spec`) and, for the run of op 80, T2 for the circuit named
+`ceremony-secrets` (`Ceremony.SecretsLoaded`, as `Contacts.Loaded`). No new reveal kind:
+`maskedPassword` (70) existed (now also a label, `Label.maskedPassword`). -/
+
+section FlowsCeremony
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **T3 for op 80** [M]: every release is labelled `maskedPassword`. -/
+theorem s16_ceremony_secrets_reveals (n seedSlot maskSlot recoverySlot : Nat) :
+    Reveals Ceremony.secretsKinds (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) :=
+  Ceremony.secrets_reveals n seedSlot maskSlot recoverySlot
+
+/-- **T3 for op 80 against any adversary** [M]. -/
+theorem s16_ceremony_secrets_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n seedSlot maskSlot recoverySlot : Nat) :
+    ∀ r ∈ (withAdv E me adv (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) σ I vD).viewD,
+      ∃ k ∈ Ceremony.secretsKinds, r.label = Label.ofKind k :=
+  Ceremony.secrets_viewD_kinds E me adv σ I vD n seedSlot maskSlot recoverySlot
+
+/-- **T3 for op 81's engine part** [M]: the adversary's view is empty (the record seal releases
+under `Send.requestSealKinds` only, `s13_send_reveal`). -/
+theorem s16_ceremony_register_viewD (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (n : Nat) (password recovery : BoolH) (tail : Contacts.B8) :
+    (withAdv E me adv (Ceremony.registerScript n password recovery tail) σ I vD).viewD = [] :=
+  Ceremony.register_viewD E me adv σ I vD n password recovery tail
+
+/-- **The ceremony's scripts declare their kinds; the kinds are registered** [M]. -/
+theorem s16_ceremony_flows_reveal :
+    ((∀ n a b c, Reveals Ceremony.secretsKinds (Ceremony.secretsScript n a b c)) ∧
+      (∀ st n a b c, Reveals Ceremony.secretsKinds (Ceremony.secretsStep st n a b c)) ∧
+      (∀ n p r t, Reveals [] (Ceremony.registerScript n p r t)) ∧
+      (∀ st n t, Reveals [] (Ceremony.registerStep st n t))) ∧
+    ∀ k ∈ Ceremony.secretsKinds, k ∈ Label.kinds :=
+  ⟨Registry.s16_flows_reveal, Registry.s16_kinds_registered⟩
+
+/-- **Op 80 is well formed** [M] from any context in which the ids from `n` are fresh. -/
+theorem s16_ceremony_secrets_wf (sigs : Bytes → Option Sig) (c : Ctx) (n seedSlot maskSlot recoverySlot : Nat)
+    (hf : Contacts.Fresh c n) (hsig : sigs Ceremony.secretsName = some ⟨8 * Ceremony.inputBytes, Ceremony.secretsMarks⟩) :
+    WF sigs c (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) :=
+  Ceremony.secretsScript_wf sigs c n seedSlot maskSlot recoverySlot hf hsig
+
+/-- **Op 81's engine part is well formed** [M] on op 80's handles (private, not once). -/
+theorem s16_ceremony_register_wf (sigs : Bytes → Option Sig) (c : Ctx) (n : Nat) (password recovery : BoolH)
+    (tail : Contacts.B8) (hf : Contacts.Fresh c n) (hpn : password.id < n) (hrn : recovery.id < n)
+    (hne : password.id ≠ recovery.id)
+    (hp : c.bool? password = some (Ceremony.privInfo (8 * Ceremony.passwordBytes)))
+    (hr : c.bool? recovery = some (Ceremony.privInfo (8 * Ceremony.recoveryBytes))) :
+    WF sigs c (Ceremony.registerScript n password recovery tail) :=
+  Ceremony.registerScript_wf sigs c n password recovery tail hf hpn hrn hne hp hr
+
+/-- **The ceremony's wires fit the pipe** [M]: op 80, op 81's engine part, and the registration
+request's record phase. -/
+theorem s16_ceremony_bounded (n m k : Nat) (a b c : Nat) (password recovery traffic conv : BoolH)
+    (tail seq frame mask : Contacts.B8) (payloadAt authAt recoveryAt : Nat)
+    (hn : n + 11 < B64) (hm : m + 2 < B64) (hp : password.id < B64) (hr : recovery.id < B64)
+    (hk : k + 6 < B64) (ht : traffic.id < B64) (hc : conv.id < B64) (hs : seq.length = 8) (hmask : mask.length = 4)
+    (hf : frame.length ≤ 16384) (hpa : payloadAt ≤ 16384) (ha : authAt ≤ 16384) (htl : tail.length ≤ 2)
+    (hra : recoveryAt ≤ 16384) :
+    Every Instr.Bounded (Ceremony.secretsScript n a b c) ∧
+    Every Instr.Bounded (Ceremony.registerScript m password recovery tail) ∧
+    Every Instr.Bounded (Send.requestCtrScript k traffic conv seq frame mask
+      (Ceremony.registerName frame.length payloadAt authAt tail.length recoveryAt)) :=
+  ⟨Registry.secretsScript_bounded n a b c hn, Registry.registerScript_bounded m password recovery tail hm hp hr,
+    Registry.registerCtr_bounded k traffic conv seq frame mask payloadAt authAt recoveryAt tail.length hk ht hc hs hmask
+      hf hpa ha htl hra⟩
+
+/-- **The opened value hides the password** (plan 7.0's bijection form) [F]: for every password and
+every value of the other party's mask, each opened value comes from exactly one honest mask. -/
+theorem s16_ceremony_masked_hides (word other target : Contacts.B8) (hw : word.length = target.length)
+    (ho : other.length = target.length) :
+    ∃ mask : Contacts.B8, mask.length = target.length ∧
+      List.zipWith (· ^^^ ·) word (List.zipWith (· ^^^ ·) other mask) = target ∧
+      ∀ m : Contacts.B8, m.length = target.length →
+        List.zipWith (· ^^^ ·) word (List.zipWith (· ^^^ ·) other m) = target → m = mask :=
+  Ceremony.masked_hides_list word other target hw ho
+
+/-- **The two parties' replies of op 80 XOR to password ‖ recovery** [F] (`Ceremony.shareOf`, the C++'s
+reply, on the opened masked password). -/
+theorem s16_ceremony_shares_xor (password maskA maskB recoveryA recoveryB : Contacts.B8)
+    (hp : password.length = Ceremony.passwordBytes) (ha : maskA.length = Ceremony.passwordBytes)
+    (hb : maskB.length = Ceremony.passwordBytes) :
+    List.zipWith (· ^^^ ·)
+        (Ceremony.shareOf .a maskA recoveryA (List.zipWith (· ^^^ ·) password (List.zipWith (· ^^^ ·) maskA maskB)))
+        (Ceremony.shareOf .b maskB recoveryB (List.zipWith (· ^^^ ·) password (List.zipWith (· ^^^ ·) maskA maskB))) =
+      password ++ List.zipWith (· ^^^ ·) recoveryA recoveryB :=
+  Ceremony.shares_xor password maskA maskB recoveryA recoveryB hp ha hb
+
+/-- **`ceremony-secrets` on the bundle op 80 concatenates** is `Ceremony.secrets` on the parties'
+bytes [K]. -/
+theorem s16_ceremony_secretsOut_value (sA sB mA mB rA rB : Contacts.B8) (hsA : sA.length = 18) (hsB : sB.length = 18)
+    (hmA : mA.length = 22) (hmB : mB.length = 22) (hrA : rA.length = 32) (hrB : rB.length = 32) :
+    Contacts.kernelOut (CeremonyKernel.ceremonySecrets ()) (Ceremony.secretsIn sA sB mA mB rA rB) =
+      (Ceremony.reference sA sB mA mB rA rB).flatten :=
+  Ceremony.secretsOut_value sA sB mA mB rA rB hsA hsB hmA hmB hrA hrB
+
+/-- **T4-CEREMONY for op 80** [M]: two honest parties return the password and recovery handles and
+the reference's masked password; the handles hold the reference's password and recovery password;
+handles below `n` are untouched. -/
+theorem s16_ceremony_secrets_honest (E : Env) (σA σB : Store) (hE : Ceremony.SecretsLoaded E) (I : Ideal)
+    (n seedSlot maskSlot recoverySlot : Nat) (sA sB mA mB rA rB : Contacts.B8)
+    (hsA : sA.length = 18) (hsB : sB.length = 18) (hmA : mA.length = 22) (hmB : mB.length = 22)
+    (hrA : rA.length = 32) (hrB : rB.length = 32)
+    (hσA : σA.bits seedSlot = Contacts.bitsOf sA ∧ σA.bits maskSlot = Contacts.bitsOf mA ∧
+      σA.bits recoverySlot = Contacts.bitsOf rA)
+    (hσB : σB.bits seedSlot = Contacts.bitsOf sB ∧ σB.bits maskSlot = Contacts.bitsOf mB ∧
+      σB.bits recoverySlot = Contacts.bitsOf rB) :
+    (jointRun E (Ceremony.secretsScript n seedSlot maskSlot recoverySlot)
+        (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) σA σB I).result =
+      some (⟨⟨n + 8⟩, ⟨n + 9⟩, (Ceremony.reference sA sB mA mB rA rB).getD 2 []⟩,
+        ⟨⟨n + 8⟩, ⟨n + 9⟩, (Ceremony.reference sA sB mA mB rA rB).getD 2 []⟩) ∧
+    (jointRun E (Ceremony.secretsScript n seedSlot maskSlot recoverySlot)
+        (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) σA σB I).ideal.bools (n + 8) =
+      some (Contacts.bitsOf ((Ceremony.reference sA sB mA mB rA rB).getD 0 [])) ∧
+    (jointRun E (Ceremony.secretsScript n seedSlot maskSlot recoverySlot)
+        (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) σA σB I).ideal.bools (n + 9) =
+      some (Contacts.bitsOf ((Ceremony.reference sA sB mA mB rA rB).getD 1 [])) ∧
+    ∀ j, j < n → (jointRun E (Ceremony.secretsScript n seedSlot maskSlot recoverySlot)
+        (Ceremony.secretsScript n seedSlot maskSlot recoverySlot) σA σB I).ideal.bools j = I.bools j :=
+  Ceremony.secrets_honest E σA σB hE I n seedSlot maskSlot recoverySlot sA sB mA mB rA rB hsA hsB hmA hmB hrA hrB
+    hσA hσB
+
+/-- **Op 81's engine part on two honest parties** [M]: the secrets handle holds tail ‖ password ‖
+recovery. -/
+theorem s16_ceremony_register_honest (E : Env) (σA σB : Store) (I : Ideal) (n : Nat) (password recovery : BoolH)
+    (tail pw rc : Contacts.B8) (htl : tail.length ≤ 2) (hpn : password.id < n) (hrn : recovery.id < n)
+    (hp : I.bools password.id = some (Contacts.bitsOf pw)) (hr : I.bools recovery.id = some (Contacts.bitsOf rc)) :
+    (jointRun E (Ceremony.registerScript n password recovery tail) (Ceremony.registerScript n password recovery tail)
+        σA σB I).result = some (⟨n + 1⟩, ⟨n + 1⟩) ∧
+    (jointRun E (Ceremony.registerScript n password recovery tail) (Ceremony.registerScript n password recovery tail)
+        σA σB I).ideal.bools (n + 1) = some (Contacts.bitsOf (tail ++ (pw ++ rc))) :=
+  Ceremony.register_honest E σA σB I n password recovery tail pw rc htl hpn hrn hp hr
+
+/-- **`ceremony-register-ctr` on every assignment** [K]: `[255]`, the header, the AES-CTR of the inner
+plaintext, the pad; the plaintext is `Ceremony.fill` of the frame with the two slots. -/
+theorem s16_ceremony_registerCtr_spec (size payloadAt authAt tail recoveryAt : Nat)
+    (assign : Std.Tactic.BVDecide.BVExpr.Assignment) :
+    let get := fun name => (HybridKernel.lookup (CeremonyKernel.registerInputs size tail) name).map
+      (Std.Tactic.BVDecide.BVExpr.eval assign)
+    (CeremonyKernel.ceremonyRegisterCtr size payloadAt authAt tail recoveryAt).outputs.map
+        (fun field => field.value.map (Std.Tactic.BVDecide.BVExpr.eval assign)) =
+      KernelSpecs.sealedRequest (get "clientApplication") (get "sequence")
+        (TlsMpc.Ceremony.fill ByteAuth.concrete (get "frame") (get "mask") payloadAt
+          (TlsMpc.Ceremony.registerSlots ByteAuth.concrete (get "secrets") tail authAt recoveryAt)) 255 :=
+  Ceremony.ceremonyRegisterCtr_spec size payloadAt authAt tail recoveryAt assign
+
+/-- **T4-CEREMONY (the headline)** [M + K]: op 80 then op 81 on two honest parties: the request's
+secrets handle holds tail ‖ password ‖ recovery password of the reference, and the register kernel on
+the record seal's bundle with those secrets outputs `sealedRequest` of the frame filled with
+base64(tail ‖ password) and base64(recovery password). -/
+theorem s16_ceremony_honest (E : Env) (σA σB : Store) (hE : Ceremony.SecretsLoaded E) (I : Ideal)
+    (n m seedSlot maskSlot recoverySlot : Nat) (hm : n + 11 ≤ m) (sA sB mA mB rA rB tail : Contacts.B8)
+    (hsA : sA.length = 18) (hsB : sB.length = 18) (hmA : mA.length = 22) (hmB : mB.length = 22)
+    (hrA : rA.length = 32) (hrB : rB.length = 32) (htl : tail.length ≤ 2)
+    (hσA : σA.bits seedSlot = Contacts.bitsOf sA ∧ σA.bits maskSlot = Contacts.bitsOf mA ∧
+      σA.bits recoverySlot = Contacts.bitsOf rA)
+    (hσB : σB.bits seedSlot = Contacts.bitsOf sB ∧ σB.bits maskSlot = Contacts.bitsOf mB ∧
+      σB.bits recoverySlot = Contacts.bitsOf rB) :
+    let s := (Ceremony.secretsScript n seedSlot maskSlot recoverySlot).bind fun r =>
+      Ceremony.registerScript m r.password r.recovery tail
+    let ref := Ceremony.reference sA sB mA mB rA rB
+    (jointRun E s s σA σB I).result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧
+    (jointRun E s s σA σB I).ideal.bools (m + 1) = some (Contacts.bitsOf (tail ++ (ref.getD 0 [] ++ ref.getD 1 []))) ∧
+    ∀ (payloadAt authAt recoveryAt : Nat) (K seqB frame mask : Contacts.B8), K.length = 60 → seqB.length = 8 →
+      mask.length = 4 →
+      (CeremonyKernel.ceremonyRegisterCtr frame.length payloadAt authAt tail.length recoveryAt).outputs.map
+          (fun field => field.value.map (Std.Tactic.BVDecide.BVExpr.eval (Contacts.assignOf
+            (Ceremony.registerIn K seqB (tail ++ (ref.getD 0 [] ++ ref.getD 1 [])) frame mask)))) =
+        KernelSpecs.sealedRequest K seqB
+          (TlsMpc.Ceremony.fill ByteAuth.concrete frame mask payloadAt
+            [(authAt, Signal.RelayEncoding.base64 ByteAuth.concrete (tail ++ ref.getD 0 [])),
+             (recoveryAt, Signal.RelayEncoding.base64 ByteAuth.concrete (ref.getD 1 []))]) 255 :=
+  Ceremony.ceremony_honest E σA σB hE I n m seedSlot maskSlot recoverySlot hm sA sB mA mB rA rB tail hsA hsB hmA hmB
+    hrA hrB htl hσA hσB
+
+/-- **The `ceremony` group is selectable** with `tls`, `masks`, `random`, `upgrade`, and not without
+any of them. -/
+theorem s16_ceremony_select :
+    (Select.check ["ceremony", "tls", "masks", "random", "upgrade"]).toBool = true ∧
+      ∀ g ∈ ["tls", "masks", "random", "upgrade"],
+        (Select.check (["ceremony", "tls", "masks", "random", "upgrade"].erase g)).toBool = false := by
+  decide
+
+end FlowsCeremony
+
 /-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
 on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
 
@@ -9648,6 +9842,16 @@ the matching section above in the same commit.
   `prepareOneG`, `senderPublicG` through `jointRun` (values: S11's `offsetPrepare` and `agree`
   honest runs, the view kernel's `signalConversationView_spec`); op 32's request through
   `jointRun` (the function-level values `s16_request_*` are proved); the hinted op 66 path (J3).
+* **The ceremony** (section 7k, S16: ops 80, 81): T3 (`s16_ceremony_secrets_*`,
+  `s16_ceremony_register_viewD`), WF (`s16_ceremony_*_wf`), the pipe (`s16_ceremony_bounded`), the
+  hiding of the opened value in the bijection form (`s16_ceremony_masked_hides`), the shares
+  (`s16_ceremony_shares_xor`), T4-CEREMONY through `jointRun` for op 80 and op 81's engine part
+  (`s16_ceremony_secrets_honest`, `s16_ceremony_register_honest`) and the headline
+  (`s16_ceremony_honest`, the register kernel at function level). Open (S16_NOTES.md K1–K12):
+  value-level T3 for op 80 against any adversary (only by kind), the record seal's run on the
+  registration request (S13's run theorems for a generic conversation, not restated), op 80 → op 81
+  WF composition (a WFP form), the IO glue (`Select.ceremonySecrets`, `ceremonyRegister`), the
+  `openBoolTo` variant of the plan (needs a re-lowered kernel).
 * **The script runner** (section 7i): its pure core against the model (`runner_drive_model`,
   `runner_drive_bounded`, `runner_nextBatch_fill_only`). Open: the IO loop is `drive`'s steps by
   construction, not by a theorem (an IO function); the fake-pair test
@@ -10409,6 +10613,21 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s12_tls_derive_honest
 #print axioms TlsMpc.Security.s12_tls_sealCtr_disclosure
 #print axioms TlsMpc.Security.s12_tls_open_disclosure_A
+#print axioms TlsMpc.Security.s16_ceremony_secrets_reveals
+#print axioms TlsMpc.Security.s16_ceremony_secrets_viewD_kinds
+#print axioms TlsMpc.Security.s16_ceremony_register_viewD
+#print axioms TlsMpc.Security.s16_ceremony_flows_reveal
+#print axioms TlsMpc.Security.s16_ceremony_secrets_wf
+#print axioms TlsMpc.Security.s16_ceremony_register_wf
+#print axioms TlsMpc.Security.s16_ceremony_bounded
+#print axioms TlsMpc.Security.s16_ceremony_masked_hides
+#print axioms TlsMpc.Security.s16_ceremony_shares_xor
+#print axioms TlsMpc.Security.s16_ceremony_secretsOut_value
+#print axioms TlsMpc.Security.s16_ceremony_secrets_honest
+#print axioms TlsMpc.Security.s16_ceremony_register_honest
+#print axioms TlsMpc.Security.s16_ceremony_registerCtr_spec
+#print axioms TlsMpc.Security.s16_ceremony_honest
+#print axioms TlsMpc.Security.s16_ceremony_select
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

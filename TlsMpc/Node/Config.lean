@@ -67,7 +67,8 @@ structure Agreed where
 /-- The flow groups `SIGNAL_SCRIPTS` may name (`Flows/Select.lean` says which are available and what
 each needs). -/
 def scriptNames : List String :=
-  ["random", "upgrade", "contacts", "account", "masks", "tls", "curve", "send", "receive", "refresh"]
+  ["random", "upgrade", "contacts", "account", "masks", "tls", "curve", "send", "receive", "refresh",
+   "ceremony"]
 
 /-- TEST hooks (only with `--test`). -/
 structure TestHooks where

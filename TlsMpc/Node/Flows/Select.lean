@@ -4,6 +4,7 @@ import TlsMpc.Node.Flows.Upgrade
 import TlsMpc.Node.Flows.UpgradeAuth
 import TlsMpc.Node.Flows.ContactsPrepare
 import TlsMpc.Node.Flows.Masks
+import TlsMpc.Node.Flows.Ceremony
 
 /-!
 # The selection: legacy operations or Lean scripts, flow group by flow group (agreed)
@@ -38,6 +39,7 @@ THE GROUPS (`Config.scriptNames`), what each replaces, what it needs, and whethe
   | `send` | `Send.seal/sealDevices/request/requestDevices` (ops 41, 42, 61, 62) | the contact set | yes |
   | `receive` | `Receive.take/drop/openFirst/session` (ops 48-51) | the contact set | yes (J8) |
   | `refresh` | `Refresh.*` (ops 56-60, 64, 65) | the contact set | yes (J8, J12) |
+  | `ceremony` | `Ceremony.secrets/register` (ops 80, 81, `Flows/Ceremony.lean`, S16) | `tls`, `masks`, `random`, `upgrade` | yes |
 
 THE CONTACT SET (`contactSet`: `contacts`, `account`, `curve`, `send`, `receive`, `refresh`) switches
 AS ONE: its handles cannot be shared with the legacy library (the legacy worker's contact table,
@@ -82,6 +84,10 @@ def requires (g : String) : List String :=
   match g with
   | "tls" => ["masks"]
   | "upgrade" => ["tls"]
+  -- S16: ops 80, 81. The request is sealed by the scripted record layer (`tls`); the ceremony
+  -- session's other operations (ops 33, 45) are refused by the legacy library once `tls` is
+  -- selected (its TLS phase is never reached: J22), so `random` and `upgrade` come with it.
+  | "ceremony" => ["tls", "masks", "random", "upgrade"]
   | _ => []
 
 /-- The groups whose script implementation cannot run yet, and why: none since J8, J11, J12, F32. -/
@@ -125,6 +131,8 @@ structure Session where
   hinted : Bool
   /-- `SIGNAL_RECEIVE_JUMP`. -/
   jump : Nat
+  /-- S16: the ceremony's handles between ops 80 and 81 (`Ceremony.State`). -/
+  ceremony : IO.Ref Ceremony.State
 
 def get {α : Type} (r : IO.Ref α) : M α := (r.get : IO α)
 def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
@@ -134,7 +142,8 @@ def Session.start (r : Runner) (agreed : Config.Agreed) : IO Session := do
            buffers := ← IO.mkRef {}, requests := ← IO.mkRef [],
            receive := { envelope := ← IO.mkRef none, arrival := ← IO.mkRef none },
            refresh := { state := ← IO.mkRef {}, fetches := ← IO.mkRef [] }, hinted := agreed.hinted,
-           jump := ((agreed.receiveJump.bind String.toNat?).getD 0) }
+           jump := ((agreed.receiveJump.bind String.toNat?).getD 0),
+           ceremony := ← IO.mkRef {} }
 
 /-- A connection's TLS state (connection 0 when no connection is selected), made on first use. -/
 def Session.tlsRefs (s : Session) (connection : Option Nat) : M (TlsBackend.Refs JoinBackend.SplitState) := do
@@ -320,6 +329,47 @@ def upgradeAuthenticated (s : Session) (c : Option Nat) (state : Nat) :
   set refs.buffers b'
   return (⟨id⟩, UpgradeAuth.requestBytes, Reveal.upgradeAccept accept)
 
+/-- **S16: op 80** (`Ceremony.secretsStep`): this party's seed, mask and recovery half from its own
+randomness (rule 5) into fresh store slots, the script, the slots released; the two kept handles go
+to the ceremony state; the reply is this party's shares (`Ceremony.shareOf`, the C++'s reply),
+computed from its own mask and recovery half and the opened masked password. -/
+def ceremonySecrets (s : Session) : M (Secret Bytes) := do
+  let r := s.runner
+  let st ← get s.ceremony
+  insist (!st.made) "ceremony secrets unavailable"
+  let seed ← r.randomM Ceremony.seedBytes
+  let mask ← r.randomM Ceremony.passwordBytes
+  let recovery ← r.randomM Ceremony.recoveryBytes
+  let seedSlot ← r.stashBits (seed.map fun b => bitsOf (toB8 b))
+  let maskSlot ← r.stashBits (mask.map fun b => bitsOf (toB8 b))
+  let recoverySlot ← r.stashBits (recovery.map fun b => bitsOf (toB8 b))
+  let n ← r.allocB 11
+  let m ← r.runReleasing (Ceremony.secretsStep st n seedSlot maskSlot recoverySlot) [seedSlot, maskSlot, recoverySlot]
+  set s.ceremony (Ceremony.State.afterSecrets m)
+  return Secret.zipWith (fun mk rc => ofB8 (Ceremony.shareOf r.me (toB8 mk) (toB8 rc) m.masked)) mask recovery
+
+/-- **S16: op 81** (`Ceremony.registerStep`): the secrets handle tail ‖ password ‖ recovery, kept as a
+request buffer (`SendBackend.Request`) whose record seal is `Send.requestCtrScript` with
+`ceremony-register-ctr SIZE PAYLOAD AUTH TAIL RECOVERY` (sealed by the record layer's
+`sealApplication`, as op 42's requests). `find`'s ranges are checked here. -/
+def ceremonyRegister (s : Session) (payloadAt : Nat) (offsets : List Nat) (mask tail frame : Bytes) :
+    M TlsWorker.BufferHandle := do
+  let r := s.runner
+  let st ← get s.ceremony
+  let authAt := offsets.getD 0 0
+  let recoveryAt := offsets.getD 1 0
+  insist (mask.length == 4 && offsets.length == 2 &&
+    Ceremony.registerOk frame.length payloadAt authAt tail.length recoveryAt) "ceremony register unavailable"
+  let n ← r.allocB 2
+  let conv ← r.run (Ceremony.registerStep st n (toB8 tail))
+  set s.ceremony st.afterRegister
+  let b ← get s.buffers
+  set s.buffers { b with next := b.next + 1 }
+  let rq : SendBackend.Request :=
+    ⟨conv, Ceremony.registerName frame.length payloadAt authAt tail.length recoveryAt, toB8 frame, toB8 mask⟩
+  set s.requests ((b.next, rq) :: (← get s.requests))
+  return ⟨b.next⟩
+
 /-- **The overrides of the selected groups.** -/
 def overrides (s : Session) (names : List String) : Flow.Overrides :=
   let r := s.runner
@@ -439,6 +489,9 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
       let st ← Runner.get r.state
       let cache ← get s.prepared
       return Reveal.prepareStatus (ids.map fun id => UInt8.ofNat (ContactsPrepare.statusByte st.table cache id))
+    ceremonySecrets := on "ceremony" (ceremonySecrets s)
+    ceremonyRegister := on "ceremony" fun payloadAt offsets mask tail frame =>
+      ceremonyRegister s payloadAt offsets mask tail frame
     sendSeal := on "send" fun id built => do SendBackend.seal r.tls sendCurve (← sendRefs none) id built
     sendSealDevices := on "send" fun id address built devices => do
       SendBackend.sealDevices r.tls sendCurve (← sendRefs none) id address built devices
