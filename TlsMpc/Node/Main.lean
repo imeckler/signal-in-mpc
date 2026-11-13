@@ -10,6 +10,7 @@ import TlsMpc.Node.Session.Ceremony
 import TlsMpc.Node.Session.Send
 import TlsMpc.Node.Session.Serve
 import TlsMpc.Node.Session.Delete
+import TlsMpc.FieldProgramsV3
 
 /-!
 # The node controller (`public_service_controller`; REORGANIZATION_PLAN.md stage S7)
@@ -139,6 +140,19 @@ def run (context : Context) : IO (Except String Nat × Report) := do
     let (outcome, state) ← ((body.run context).run).run initial
     pure (outcome, state.report)
 
+/-- **The mask counts of the V3 programs the receive and refresh scripts run** (`xeddsa-check`,
+`xeddsa-recover`, `receive-torsion`: `Flows/ReceiveBackend.lean` `programMasks`,
+`Flows/RefreshBackend.lean` `counts`), from their declarations (`FieldProgramsV3.find`): the files
+the worker loads are these programs' renders, pinned in `node_worker/src/loader.rs`
+`FIELD_PROGRAMS`, so a count here equals the loaded program's `masks`. Any other name: `none`
+(the script then aborts with "receive program shape"). Computed once, at the start of a session
+that selects scripts (the names are an argument, so nothing is computed when the controller starts). -/
+def programMaskCounts (names : List String) : List (Engine.Bytes × Nat) :=
+  names.filterMap fun n => ((FieldProgramsV3.find n).bind (·.program)).map fun p => (Engine.ascii n, p.masks)
+
+/-- The receive programs (`programMaskCounts`). -/
+def receivePrograms : List String := ["xeddsa-check", "xeddsa-recover", "receive-torsion"]
+
 /-- **One two-party session**: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT
 HOSTNAME AUTH TRUST UNUSED. Spawns the worker WORKER (`node_worker`'s binary; the C++ worker only
 with `SIGNAL_WORKER=legacy`; its certificate check is the checker at AUTH, with TRUST), runs the
@@ -174,7 +188,21 @@ def session (test : Bool) (args : List String) : IO Unit := do
   try
     -- The flow API's handle on the engines (`TlsMpc/Node/Flow.lean`): every worker operation of
     -- this session is a `Flow.*` function of it; it records the operations used (the final check).
-    let w ← Flow.Worker.start running.rpc ch.random
+    -- The agreed `SIGNAL_SCRIPTS` selects flow groups that run as Lean scripts (`Flows/Select.lean`,
+    -- STACK_NOTES J9); with none selected `startWith` is `Flow.Worker.start` and nothing is read.
+    -- Otherwise the script runner gets the kernels the worker loaded (the manifest's names: a
+    -- receive kernel the manifest lacks refuses the message) and the V3 receive programs' mask
+    -- counts (the pinned files are the renders of these declarations, FIELD_PROGRAMS_V3.md).
+    let (loaded, programMasks) ← if config.agreed.scripts.isEmpty then
+        pure ((fun _ => true : Engine.Bytes → Bool), (fun _ => none : Engine.Bytes → Option Nat))
+      else do
+        let names ← Channels.Real.manifestNames manifest
+        -- (only the groups that run these programs need the counts; the condition also keeps the
+        -- term from being a closed one that the compiler would evaluate at program start)
+        let uses := config.agreed.scripts.contains "receive" || config.agreed.scripts.contains "refresh"
+        let counts := programMaskCounts (receivePrograms.filter fun _ => uses)
+        pure ((fun name => names.contains name), (fun name => (counts.find? (·.1 == name)).map (·.2)))
+    let w ← Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed loaded programMasks
     let context : Context := { ch, w, config, party, session, endpoint, port, tlsConfig
                                envelope := fun _ _ => throw "a delivered envelope before the session started" }
     let (outcome, report) ← run context

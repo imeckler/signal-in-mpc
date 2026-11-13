@@ -342,6 +342,16 @@ def ceremonyFile (directory : System.FilePath) (input : CeremonyInput) : IO Stri
   let path := directory / input.fileName
   if ← path.pathExists then pure (← IO.FS.readFile path).trimAscii.toString else pure ""
 
+/-- **The kernel names of the session's circuit manifest** (STACK_NOTES J9: `Flow.Worker.startWith`'s
+`loaded`), as bytes. The format is `node_worker/src/loader.rs` `Manifest::parse`'s: a format line,
+then rows `SHA256 LAYOUT_SHA256 NAME [PARAMETERS]` with single spaces, so the name is everything
+after the 130th character. Read only when `SIGNAL_SCRIPTS` names a group (`Main.session`). -/
+def manifestNames (path : String) : IO (List (List UInt8)) := do
+  let rows := ((← IO.FS.readFile path).splitOn "\n").drop 1
+  return rows.filterMap fun row =>
+    let name := row.toList.drop 130
+    if row.length > 130 then some (name.map fun c => UInt8.ofNat c.toNat) else none
+
 end TlsMpc.Node.Channels.Real
 
 namespace TlsMpc.Node
