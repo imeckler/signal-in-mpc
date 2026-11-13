@@ -46,7 +46,8 @@ VARIANT = {'malicious': 'v3', 'semi-honest': 'sh-v3'}
 RUST_NIGHTLY = 'nightly-2025-09-24'
 # Tracked paths the image is built from (git ls-files under these prefixes, at --commit).
 SOURCE_PREFIXES = ['TlsMpc/', 'TlsMpc.lean', 'lakefile.toml', 'lake-manifest.json', 'lean-toolchain', 'handshake_backend/',
-                   'signal_backend/TextNotificationWork/', 'node_worker/', 'node_daemon/', 'local_signal_server/provision/',
+                   'signal_backend/TextNotificationWork/', 'signal_backend/Oracle/src/session_send_projection.rs',   # (the KEM tool's #[path] module)
+                   'node_worker/', 'node_daemon/', 'local_signal_server/provision/',
                    'deploy/', 'deployment/vm_pair_test/']
 NEVER_STAGE = ('real_signal/', 'local_signal_server/state', 'Player-Data')
 
