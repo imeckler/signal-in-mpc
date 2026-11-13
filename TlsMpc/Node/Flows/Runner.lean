@@ -438,6 +438,12 @@ structure Slots where
 def Slots.store (m : Slots) : Store :=
   { bits := fun j => m.bits.getD j [], elems := fun j => m.elems.getD j [], bytes := fun j => m.bytes.getD j [] }
 
+/-- The slots over a base store (a slot written here hides the base's; TEST: the vector tests'
+fixed stores, `Runner.start`'s `base`). -/
+def Slots.over (m : Slots) (base : Store) : Store :=
+  { bits := fun j => m.bits[j]?.getD (base.bits j), elems := fun j => m.elems[j]?.getD (base.elems j),
+    bytes := fun j => m.bytes[j]?.getD (base.bytes j) }
+
 /-- **The runner**: the session's one script state and this party's store (module doc). -/
 structure Runner where
   me : Party
@@ -459,6 +465,8 @@ structure Runner where
   programMasks : Bytes → Option Nat
   /-- The most batches one script may take. -/
   bound : Nat := 1000000
+  /-- What the store holds before anything was stashed (empty in a session; TEST: a fixed store). -/
+  base : Store := {}
 
 namespace Runner
 
@@ -467,9 +475,10 @@ def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
 
 /-- A runner for this party (`me`), from its flow context; the state starts empty (the counters at
 0, no mask pool: `Masks.generate` fills it, stage S10). -/
-def start (w : Flow.Worker) (me : Party) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat) : IO Runner := do
+def start (w : Flow.Worker) (me : Party) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat)
+    (base : Store := {}) (first : Nat := 1) : IO Runner := do
   return { me, hash := TlsMpc.TlsWire.hash, worker := { w with connection := none }, state := ← IO.mkRef {},
-           slots := ← IO.mkRef {}, next := ← IO.mkRef 1, random := w.random, loaded, programMasks }
+           slots := ← IO.mkRef {}, next := ← IO.mkRef first, random := w.random, loaded, programMasks, base }
 
 /-- One batch on the pipe (op 93): its encoding out, its reply items in (as many as `itemCount`). -/
 def batch (r : Runner) (ws : List Wire) : M (List Datum) := do
@@ -487,7 +496,7 @@ where
   | 0, _ => throw "script batch bound"
   | n + 1, s => do
     let m ← get r.slots
-    let σ := m.store
+    let σ := m.over r.base
     match nextBatch r.hash r.me σ s with
     | ⟨_, .aborted reason⟩ => throw s!"script aborted: {reason}"
     | ⟨ws, .finished a⟩ =>
@@ -525,7 +534,7 @@ def stashElems (r : Runner) (v : Secret (List F)) : M Nat := do
 
 /-- A bit slot's content (what was opened to this party alone), kept secret. -/
 def takeBits (r : Runner) (n : Nat) : M (Secret Bits) := do
-  return Secret.hide ((← get r.slots).bits.getD n [])
+  return Secret.hide (((← get r.slots).over r.base).bits n)
 
 def randomM (r : Runner) (n : Nat) : M (Secret Bytes) := (r.random n : IO (Secret Bytes))
 
