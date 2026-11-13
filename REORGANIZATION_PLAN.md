@@ -2124,6 +2124,22 @@ Tests: Q, F, K, E, D. Then, once, the whole F set in both modes with `--strict-p
 
 Depends on S13, S14 and S15. **2–3 weeks. Medium.**
 
+**Status (2026-11-13, branch `s16-remaining`, from the main line b609702; details and the table of
+every C++ worker operation in `S16_NOTES.md`).** Ops 32, 47, 46 were already scripts (STACK_NOTES
+section 8); op 44 (J23), J21, J22 and the `Main.lean` wiring are the main line's. Done here, ops 80
+and 81:
+- `Flows/Ceremony.lean` (`secretsScript`, `registerScript`, the state and the shares), selected by the
+  agreed group `ceremony` (needs `tls`, `masks`, `random`, `upgrade`); the registration request is
+  sealed by S13's `Send.requestCtrScript` with `ceremony-register-ctr …` and S12's tag.
+- Proved (Security.lean section 7k, 15 entries, standard axioms): T3 for both (kind `maskedPassword`,
+  existing; op 81 releases nothing), WF, `Wire.Bounded`, the bijection form of `masked_hides` and the
+  shares' XOR; T4-CEREMONY through `jointRun` for op 80 and op 81's engine part, the new kernel-level
+  `ceremonyRegisterCtr_spec`, and the headline `s16_ceremony_honest`.
+- Not done: the plan's `openBoolTo` replies (the kernel marks `masked` public; a re-lowered kernel
+  would be needed); the ceremony kernels are in neither the local nor the compact manifest (K8).
+- Tests: Lean vectors and `s16_pair.rs` (stand-ins); `e2e_s16.py` PASSES on the real engines in both
+  modes; RunnerTest +7 checks. Gaps K1–K12 in `S16_NOTES.md`. No C++ deleted.
+
 ---
 
 **Proof tracks.** These are Lean-only, in new `*Proofs.lean` files, and touch no file the
