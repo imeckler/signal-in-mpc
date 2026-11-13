@@ -192,6 +192,9 @@ def scriptApi {Sc : Type} (r : Runner) (src : Sources Sc) (s : Refs) : Api where
     let rc ← curveFor r src (← get s.state) index step
     let (status, _) ← runStep r src s fun t st =>
       Refresh.opEstablish (Join.refreshOps rc) acct t st contact registration index devices step at_ widths entropy
+    -- J13: the step's slots (its supplies, the fresh scalars' coins, the entropy) are released.
+    r.release ([entropy, rc.agree.coins (.fresh 0), rc.agree.coins (.fresh 1)] ++
+      (rc.liftSlots ++ rc.checkSlots ++ rc.agreeSlots).map (·.1))
     return Reveal.deviceStatus [UInt8.ofNat status]
   scratchSeal contact version := do
     let acct ← src.account

@@ -55,6 +55,8 @@ structure Runner where
   loaded : Bytes → Bool
   /-- The V3 programs the worker loaded: their mask counts (`ProgSig.masks`). -/
   programMasks : Bytes → Option Nat
+  /-- J13: release store slots whose script has finished (`Runner.release`; none by default). -/
+  release : List Nat → M Unit := fun _ => pure ()
 
 /-- S11's agreements with their kinds (`Receive.Curve.agree`; S14_NOTES.md), and (J1) the element
 counts of the slots one call on `n` jobs takes from the supply (`Join.receiveAgree`: `[n]`, its
@@ -166,6 +168,7 @@ def runWith {α : Type} (r : Runner) (supply : List (Nat × Nat)) (g : Gen α) :
   set r.state { st with slots := supply }
   let a ← runGen r g
   set r.state { (← get r.state) with slots := [] }
+  r.release (supply.map (·.1))
   return a
 
 /-! ## The flow API with the legacy signatures -/
@@ -242,7 +245,9 @@ def scriptApi (r : Runner) (curve : Op → M (Curve × List (Nat × Nat))) (reve
     let (cv, supply) ← curve (.session a.oneTime)
     let sp : SessionPublic := { address := toB8 address, requestId := toB8 (TlsMpc.TlsWire.uint 8 (2 ^ 63)), jump }
     let ss : SessionSecrets := { certificate, cert, signedSlot, oneTimeSlot, kemSlot, ratchetSlot }
-    match ← runWith r supply (Receive.session cv r.loaded a sp ss) with
+    let res ← runWith r supply (Receive.session cv r.loaded a sp ss)
+    r.release [signedSlot, oneTimeSlot, kemSlot, ratchetSlot]
+    match res with
     | none => return .refused (Reveal.sessionStatus 0)
     | some (text, record) =>
       let st ← get r.state

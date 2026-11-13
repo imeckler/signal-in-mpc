@@ -675,6 +675,7 @@ def receive (r : Runner) : ReceiveBackend.Runner where
   random := r.randomM
   loaded := r.loaded
   programMasks := r.programMasks
+  release := r.release
 
 /-- J1: fresh slots for the element counts `cs` (one new slot per count). -/
 def supply (r : Runner) (cs : List Nat) : M (List (Nat × Nat)) := ReceiveBackend.supplyOf r.receive cs
