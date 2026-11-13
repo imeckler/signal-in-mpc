@@ -1,6 +1,8 @@
 import TlsMpc.Node.Config
 import TlsMpc.Node.Flows.RefreshBackend
 import TlsMpc.Node.Flows.Upgrade
+import TlsMpc.Node.Flows.UpgradeAuth
+import TlsMpc.Node.Flows.ContactsPrepare
 import TlsMpc.Node.Flows.Masks
 
 /-!
@@ -30,16 +32,26 @@ THE GROUPS (`Config.scriptNames`), what each replaces, what it needs, and whethe
   | `masks` | the S10 pool (`Masks.generate`, refilled on demand) | the V3 `field-*` programs | yes (needs the re-export to run) |
   | `tls` | `Tls.handshake`'s and `Tls.application`'s backends, `publicBuffer`, `recordLength`, `revealRange` (ops 1-8, 12-16, 30, 43) | `masks` (split ECDH's F2W) | yes (needs the re-export: split ECDH's V3 programs) |
   | `upgrade` | `Upgrade.anonymous` (op 45) | `tls` (op 45 also sets the legacy service's receive state, `Upgrade.lean`; with the record layer in Lean nothing reads it) | yes |
-  | `contacts` | `Contacts.key/load/loadDevices/seal/evict/assign` (ops 36-38, 40, 52, 63) | `account`, `curve`, `send`, `receive`, `refresh` (the legacy ops read the worker's contact table) | blocked by `curve`, `account` |
-  | `account` | `Account.key/load/seal` (ops 53-55) | `contacts`; the authenticated upgrade (op 32, S16) reads the credentials from the legacy worker | NO |
-  | `curve` | `Curve.prepareContacts` (op 66) | `contacts`, `masks` | NO: op 66's contact-table glue (F32) is not written |
-  | `send` | `Send.seal/sealDevices/request/requestDevices` (ops 41, 42, 61, 62) | `contacts`, `curve`, `tls`, `masks` | blocked by `curve` |
-  | `receive` | `Receive.take/drop/openFirst/session` (ops 48-51) | `contacts`, `account`, `tls`, `masks`; the identity scalar's swap-bit coins (J8) | blocked |
-  | `refresh` | `Refresh.*` (ops 56-60, 64, 65) | `contacts`, `account`, `tls`, `masks`; J8 | blocked |
+  | `contacts` | `Contacts.key/load/loadDevices/seal/evict/assign` (ops 36-38, 40, 52, 63) | the contact set below | yes |
+  | `account` | `Account.key/credentials/load/seal/admitTest` (ops 53, 47, 55, 54, 46), `Upgrade.authenticated` (op 32, `Flows/UpgradeAuth.lean`) | the contact set | yes (J11) |
+  | `curve` | `Curve.prepareContacts` (op 66, `Flows/ContactsPrepare.lean`) | the contact set | yes (F32) |
+  | `send` | `Send.seal/sealDevices/request/requestDevices` (ops 41, 42, 61, 62) | the contact set | yes |
+  | `receive` | `Receive.take/drop/openFirst/session` (ops 48-51) | the contact set | yes (J8) |
+  | `refresh` | `Refresh.*` (ops 56-60, 64, 65) | the contact set | yes (J8, J12) |
+
+THE CONTACT SET (`contactSet`: `contacts`, `account`, `curve`, `send`, `receive`, `refresh`) switches
+AS ONE: its handles cannot be shared with the legacy library (the legacy worker's contact table,
+account and caches are not the script engine's handles), so every group of the set needs every
+other one, and `tls` and `masks` (the record layer seals the requests; every curve step converts).
 
 `check` refuses a selection that names an unavailable group or misses a needed one, at session
-start, with the reason. Every override is written (the switch is a setting, not a code change);
-the pieces a blocked group lacks raise their reason when reached.
+start, with the reason. Every override is written (the switch is a setting, not a code change).
+
+What remains OUTSIDE this module for the contact set to RUN (STACK_NOTES section 6): the V3
+field-program re-export and its pins; `Main.session` calling `Worker.startWith` (J9); the
+manifest's kernel names (`loaded`, so a receive kernel the manifest lacks refuses the message) and
+the V3 programs' mask counts (`programMasks`: `xeddsa-check`, `xeddsa-recover`, `receive-torsion`
+for receive and refresh) passed to `Worker.startWith`.
 
 The `Reveal.*` wrappers: the script implementations make their `Opened` values with the SAME
 `Reveal.*` functions as the legacy ones (the reveal list does not change, plan 4.3). STACK_NOTES J4,
@@ -61,22 +73,19 @@ open TlsMpc.FieldDag (F)
 
 /-! ## What a selection needs -/
 
+/-- The groups that switch together (module doc: no handle sharing with the legacy library). -/
+def contactSet : List String := ["contacts", "account", "curve", "send", "receive", "refresh"]
+
 /-- The groups a group needs selected with it (module doc). -/
-def requires : String → List String
+def requires (g : String) : List String :=
+  if contactSet.contains g then contactSet ++ ["tls", "masks"] else
+  match g with
   | "tls" => ["masks"]
   | "upgrade" => ["tls"]
-  | "contacts" => ["account", "curve", "send", "receive", "refresh"]
-  | "account" => ["contacts"]
-  | "curve" => ["contacts", "masks"]
-  | "send" => ["contacts", "curve", "tls", "masks"]
-  | "receive" => ["contacts", "account", "tls", "masks"]
-  | "refresh" => ["contacts", "account", "tls", "masks"]
   | _ => []
 
-/-- The groups whose script implementation cannot run yet, and why. -/
-def unavailable : List (String × String) :=
-  [("curve", "op 66's contact-table glue is not written (F32: prepareContacts' offset states and static words into the contact entries)"),
-   ("account", "the authenticated upgrade (op 32, S16) reads the account's credentials from the legacy worker")]
+/-- The groups whose script implementation cannot run yet, and why: none since J8, J11, J12, F32. -/
+def unavailable : List (String × String) := []
 
 /-- **A selection is accepted** when every group it names is available and every group a named
 group needs is named too. -/
@@ -88,6 +97,14 @@ def check (names : List String) : Except String Unit := do
       unless names.contains m do
         throw s!"SIGNAL_SCRIPTS: {n} needs {m} selected too"
 
+/-- **The contact set is selectable, whole**: `check` accepts it with `tls` and `masks`. -/
+theorem check_contactSet : (check (contactSet ++ ["tls", "masks"])).toBool = true := by decide
+
+/-- **…and only whole**: without any one of its groups (or without `tls`, or `masks`) it is refused. -/
+theorem check_contactSet_partial :
+    ∀ g ∈ contactSet ++ ["tls", "masks"], (check ((contactSet ++ ["tls", "masks"]).erase g)).toBool = false := by
+  decide
+
 /-! ## The session's script state -/
 
 /-- Everything the selected script implementations share: the runner (state, store, counters,
@@ -97,7 +114,8 @@ refresh's state. -/
 structure Session where
   runner : Runner
   account : IO.Ref Account.State
-  identitySwaps : IO.Ref (Option (List FieldH))
+  /-- Op 66's offset states next to the contact table (`ContactsPrepare.Cache`, F32). -/
+  prepared : IO.Ref ContactsPrepare.Cache
   conns : IO.Ref (List (Nat × IO.Ref (Tls.Conn JoinBackend.SplitState)))
   buffers : IO.Ref Tls.Buffers
   requests : IO.Ref (List (Nat × SendBackend.Request))
@@ -112,7 +130,7 @@ def get {α : Type} (r : IO.Ref α) : M α := (r.get : IO α)
 def set {α : Type} (r : IO.Ref α) (a : α) : M Unit := (r.set a : IO Unit)
 
 def Session.start (r : Runner) (agreed : Config.Agreed) : IO Session := do
-  return { runner := r, account := ← IO.mkRef {}, identitySwaps := ← IO.mkRef none, conns := ← IO.mkRef [],
+  return { runner := r, account := ← IO.mkRef {}, prepared := ← IO.mkRef [], conns := ← IO.mkRef [],
            buffers := ← IO.mkRef {}, requests := ← IO.mkRef [],
            receive := { envelope := ← IO.mkRef none, arrival := ← IO.mkRef none },
            refresh := { state := ← IO.mkRef {}, fetches := ← IO.mkRef [] }, hinted := agreed.hinted,
@@ -207,15 +225,93 @@ def withCounters {α : Type} (s : Session) (f : Account.State → M (α × Accou
   set s.account a'
   return x
 
-/-- The account's handles the refresh reads. -/
+/-- **J8: the agreements' scalars.** The identity scalar's swap bits are the account's field handles
+(`Account.State.identity`, op 55 / op 46): no coins slot. An `own` or `fresh` scalar's slot is the
+coins slot the IO side stashed for it (`ReceiveBackend.session`, `RefreshBackend.curveFor`). -/
+def agreeSlots (s : Session) : M Join.AgreeSlots := do
+  let a ← get s.account
+  let some ids := a.identity | throw "account not loaded (no identity swap bits)"
+  return { coins := fun sc => match sc with
+             | .own x => x
+             | .fresh x => x
+             | .identity => 0,
+           swaps := fun sc => match sc with
+             | .identity => some ids
+             | _ => none }
+
+/-- Run a state-threaded script whose agreements take `counts` from the supply (J1: new slots). -/
+def runAgree {α : Type} (s : Session) (counts : List Nat) (g : Receive.Gen α) : M α := do
+  let r := s.runner
+  ReceiveBackend.runWith r.receive (← r.supply counts) g
+
+/-- **J12: the account's sender key word**, made once (`ContactsPrepare.senderPublicG`: X25519 of the
+identity with 9, as the C++'s `agreement_word(identity, 9)`) and kept in the account state. -/
+def senderPublic (s : Session) : M BoolH := do
+  if let some w := (← get s.account).senderPublic then return w
+  let sl ← agreeSlots s
+  refill s.runner 2 0
+  let w ← runAgree s [1] (ContactsPrepare.senderPublicG sl)
+  set s.account { (← get s.account) with senderPublic := some w }
+  return w
+
+/-- The account's handles the refresh reads (J12: the sender key word from the account state). -/
 def refreshAccount (s : Session) : M Refresh.Account := do
   let a ← get s.account
   let some (certificate, cert) := a.certificate | throw "account not loaded"
-  throw s!"refresh: the account's sender key word is not in the script account state (certificate {certificate.id}, {cert} bytes)"
+  return { certificate, cert, senderPublic := ← senderPublic s }
 
-/-- The tags of what the receive and refresh lack today (J8). -/
-def noIdentityCoins {α : Type} : M α :=
-  throw "the identity scalar's swap-bit coins are not available to the joined agreements (J8: op 55 leaves the swap bits as field handles)"
+/-- **F32: one contact's preparation** (`ContactsPrepare.prepareOneG`) and its commit: fresh store
+slots for the offset agreement (this party's random scalar share: its coins and its K₀ half; one
+random element; 2031 mask contributions; a commitment nonce), one supply slot for the static
+agreement's quotient, the identity's swap-bit handles. -/
+def prepareOne (s : Session) (id : Nat) (state : BoolH) : M Unit := do
+  let r := s.runner
+  let a ← get s.account
+  let some (cert, certLen) := a.certificate | throw "prepare unavailable"
+  let sl ← agreeSlots s
+  refill r 4 0
+  let scalar ← r.randomM 32
+  let os : Curve.OffsetSlots :=
+    { r := ← r.stashElems (← JoinBackend.elems r.tls 1),
+      bits := ← r.stashElems (scalar.map Curve.offsetCoins),
+      masks := ← r.stashElems (← JoinBackend.elems r.tls Curve.prepMasks),
+      nonce := ← r.stashBytes (← r.randomM 32),
+      share := ← r.stashBytes (scalar.map Curve.offsetShare) }
+  let p ← runAgree s [1] (ContactsPrepare.prepareOneG r.hash r.me cert certLen sl os state)
+  let st ← Runner.get r.state
+  let (t', c') := ContactsPrepare.commit st.table (← get s.prepared) id p
+  Runner.set r.state { st with table := t' }
+  set s.prepared c'
+
+/-- A contact's prepared values, preparing it first when it is loaded and not prepared (the C++'s
+`prepare(c)` on a first send). -/
+def preparedOf (s : Session) (id : Nat) : M (Option ContactsPrepare.Prepared) := do
+  let st ← Runner.get s.runner.state
+  let cache ← get s.prepared
+  if let some p := ContactsPrepare.prepared? st.table cache id then return some p
+  match ContactsPrepare.needs st.table cache id with
+  | none => return none
+  | some state =>
+    prepareOne s id state
+    let st' ← Runner.get s.runner.state
+    return ContactsPrepare.prepared? st'.table (← get s.prepared) id
+
+/-- **J11: op 32 on the script account state** (`UpgradeAuth.authenticated`): the request's handle
+is kept as a buffer of the connection (sealed by the record layer like any buffer, S12). -/
+def upgradeAuthenticated (s : Session) (c : Option Nat) (state : Nat) :
+    M (TlsWorker.BufferHandle × Nat × Opened .upgradeAccept Bytes) := do
+  let r := s.runner
+  insist (state == 1) "provider upgrade"
+  let some cr := UpgradeAuth.credsOf (← get s.account) | throw "upgrade unavailable"
+  let nonce ← r.stashBytes (← r.randomM 32)
+  let value ← r.stashBytes (← r.randomM 32)
+  let n ← r.allocB 3
+  let (h, accept) ← r.run (UpgradeAuth.authenticated r.hash r.me nonce value n cr)
+  insist (accept.length == 28) "invalid upgrade receipt"
+  let refs ← s.tlsRefs c
+  let (id, b') := (← get refs.buffers).add (.publicBytes h UpgradeAuth.requestBytes)
+  set refs.buffers b'
+  return (⟨id⟩, UpgradeAuth.requestBytes, Reveal.upgradeAccept accept)
 
 /-- **The overrides of the selected groups.** -/
 def overrides (s : Session) (names : List String) : Flow.Overrides :=
@@ -224,12 +320,19 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
   let ka := JoinBackend.keyAgreement r.tls r.field
   let sendRefs (c : Option Nat) : M (SendBackend.Refs JoinBackend.SplitState) := do
     return { table := r.table, account := s.account, requests := s.requests, tls := ← s.tlsRefs c }
+  -- F32, J12: the send's cached curve values from op 66's glue and the account state.
   let sendCurve : SendBackend.Curve := JoinBackend.sendCurve r.tls r.field
-    { offsets := fun _ => throw "send: the contact's offset state comes from op 66 (curve, F32)",
-      statics := fun _ => throw "send: the contact's static agreement comes from op 66 (curve, F32)",
-      senderPublic := throw "send: the account's sender key word is not in the script account state" }
+    { offsets := fun id => do
+        refill r 2 0
+        return (← preparedOf s id).map (·.offset),
+      statics := fun id => do return (← preparedOf s id).map (·.static),
+      senderPublic := senderPublic s }
   let refreshSources (c : Option Nat) : M (RefreshBackend.Sources JoinBackend.SplitState) := do
-    return { table := r.table, account := refreshAccount s, identityCoins := noIdentityCoins, tls := ← s.tlsRefs c }
+    return { table := r.table, account := refreshAccount s,
+             identitySwaps := do
+               let some ids := (← get s.account).identity | throw "account not loaded (no identity swap bits)"
+               return ids,
+             tls := ← s.tlsRefs c }
   let receiveApi : M ReceiveBackend.Api := do
     let refs ← s.tlsRefs none
     let certificate : M (BoolH × Nat) := do
@@ -239,7 +342,13 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
     let revealed (h : Nat) : M (BoolH × Nat) := do
       refill r 32 510
       TlsBackend.revealed r.tls refs h
-    return ReceiveBackend.scriptApi r.receive (fun _ => noIdentityCoins) revealed certificate s.jump s.receive
+    -- J8: the joined agreements with the identity's swap-bit handles (no coins slot for it).
+    let curve (op : ReceiveBackend.Op) : M (Receive.Curve × List (Nat × Nat)) := do
+      refill r 32 510
+      let sl ← agreeSlots s
+      ReceiveBackend.programCurve r.receive
+        ⟨Join.receiveAgree sl, Join.receiveAgreeKinds, Join.receiveAgree_reveals sl, fun n => [n]⟩ op
+    return ReceiveBackend.scriptApi r.receive curve revealed certificate s.jump s.receive
   { randomJoint := on "random" (randomJoint r)
     upgradeAnonymous := on "upgrade" (upgradeAnonymous r)
     tlsBackend := on "tls" fun c =>
@@ -293,7 +402,35 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
       let st' ← Runner.get r.state
       Runner.set r.state { st' with pool := o.pool }
       set s.account { o.state with ctr := st'.table.ctr }
-      set s.identitySwaps (some o.swaps)
+    accountCredentials := on "account" fun share => do
+      insist (share.length == Account.credentialBytes) "account credentials"
+      withCounters s fun a => do
+        let slot ← r.stashBits (share.map fun b => bitsOf (toB8 b))
+        let st := Account.credentialsStep a slot
+        let p ← r.run st.1
+        return ((), st.2 p)
+    accountAdmitTest := on "account" fun identity certificate => do
+      insist (identity.length == 32 && !certificate.isEmpty && certificate.length ≤ 1024) "account admission"
+      refill r 0 (if s.hinted then 503 else 252)
+      let n ← r.allocB 19
+      let f ← r.allocF 507
+      let scalarSlot ← r.stashBits (identity.map fun b => bitsOf (toB8 b))
+      let certSlot ← r.stashBits ((Secret.hide certificate).map fun b => bitsOf (toB8 b))
+      let st ← Runner.get r.state
+      let o ← r.run (Account.admitStep (← get s.account) n f st.pool s.hinted scalarSlot certSlot certificate.length)
+      let st' ← Runner.get r.state
+      Runner.set r.state { st' with pool := o.pool }
+      set s.account { o.state with ctr := st'.table.ctr }
+    upgradeAuthenticated := on "account" fun c state => upgradeAuthenticated s c state
+    curvePrepareContacts := on "curve" fun ids => do
+      insist (!ids.isEmpty && ids.length ≤ 64) "prepare unavailable"
+      for id in ids do
+        let st ← Runner.get r.state
+        if let some state := ContactsPrepare.needs st.table (← get s.prepared) id then
+          prepareOne s id state
+      let st ← Runner.get r.state
+      let cache ← get s.prepared
+      return Reveal.prepareStatus (ids.map fun id => UInt8.ofNat (ContactsPrepare.statusByte st.table cache id))
     sendSeal := on "send" fun id built => do SendBackend.seal r.tls sendCurve (← sendRefs none) id built
     sendSealDevices := on "send" fun id address built devices => do
       SendBackend.sealDevices r.tls sendCurve (← sendRefs none) id address built devices
