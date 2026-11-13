@@ -148,7 +148,7 @@ def sumAdds (π₁ π₂ : List Nat) : List Instr :=
   ((pairs p).zipIdx).map fun e =>
     .fieldAdd (sumH p f e.2) (fOf p f e.1.1 (member p π₁ π₂ e.1.2.1 0)) (fOf p f e.1.1 (member p π₁ π₂ e.1.2.1 e.1.2.2))
 
-def sums : List FieldH := (List.range p.D).map (sumH p f)
+def sums : List FieldH := ((pairs p).zipIdx).map fun e => sumH p f e.2
 
 /-- The reference pair of kept reference `j` (A's word, then B's). -/
 def refPair (π₁ π₂ : List Nat) (j : Nat) : List Nat :=
