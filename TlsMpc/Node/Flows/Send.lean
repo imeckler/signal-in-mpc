@@ -405,6 +405,28 @@ def requestCtrScript (n : Nat) (traffic conv : BoolH) (seq frame mask : B8) (nam
         (if (bytesOf out).take 1 = [255] then .done ((bytesOf out).drop 1, ⟨n + 4⟩)
          else .abort "private request rejected"))
 
+/-! ## The request frame on the script path -/
+
+/-- A big-endian number (the opened timestamp, as the legacy reply's `number`). -/
+def beNat (b : B8) : Nat := b.foldl (fun acc x => 256 * acc + x.toNat) 0
+
+/-- **The request frame of a send, built in the clear from the script's own openings** (the opened
+envelope and timestamp; `PublicRequest.build`, the controller's builder): the frame and slot offsets
+`requestCtrScript` then names its kernel by and feeds. No worker passes them on (E2's `built`). -/
+def frameFor (envelope timestamp : B8) (id : Nat) (mask : B8) (official : Bool) :
+    Except String (B8 × List Nat) :=
+  PublicRequest.build envelope (beNat timestamp) id mask official
+
+/-- The kernel `requestCtrScript` runs for a single-device request built by `frameFor`. -/
+def requestNameOf (cert : Nat) (frame : B8) (offsets : List Nat) : Bytes :=
+  requestName cert frame.length (offsets.getD 0 0) (offsets.getD 1 0) (offsets.getD 2 0) (offsets.getD 3 0)
+
+/-- The devices' slot pairs as `bundle-request-ctr`'s name lists them (`BundleKernel.pairs`): the
+script path pairs the offsets `PublicRequest.buildDevices` returned itself (E2's `paired`). -/
+def devicesNameOf (frame : B8) (payloadAt : Nat) (offsets : List Nat) : Option Bytes :=
+  (BundleKernel.pairs (offsets.drop 2)).map fun ds =>
+    bundleRequestName frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0) ds
+
 /-! ## The reveal list -/
 
 def sealKinds : List TlsMpc.Node.RevealKind := [.counterWidths, .sealedEnvelope]
