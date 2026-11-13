@@ -1054,7 +1054,9 @@ S1 builds version 1 from C.1–C.5. Each later stage adds its theorems in the sa
 - **Q (quick):**
   - `lake build public_service_controller` (heavy: take the lock);
   - `public_service_controller recovery-check`;
-  - `cargo test` in `node_daemon` (and `node_worker` from S8);
+  - `cargo test` in `node_daemon` (and `node_worker` from S8: `cargo test --offline
+    --no-default-features` in `node_worker/`, no engines; the engine-linked forms, e.g.
+    `--features test-engine,e2e`, are heavy and belong to K);
   - the S0 lints.
 - **L (local):** `check_signal_service_local.py MODE --runs 2 --signup --db` for MODE in
   `malicious`, `semi-honest`.
@@ -1624,6 +1626,43 @@ on the Rust side, because S8's Lean change is two lines.
 
 **5–6 weeks. Medium engineering, protocol care** (identical agreement semantics; leader/follower
 record forwarding; the closed-connection signal).
+
+**Status (2026-11-12, the switch).** The crate, the engine ABI libraries and set K against
+`node_worker` were done earlier (node_worker/src/lib.rs); now the controller runs it by default:
+- **Controller.** `Config.Agreed.legacyWorker` (`SIGNAL_WORKER`: `node`, the default, or `legacy`)
+  is an agreed setting (in `agreedText`: `worker=node|legacy`). `Main.session` refuses a WORKER
+  binary of the other kind before spawning (`node-worker` for `node`; anything else for
+  `legacy`), so a node pair cannot mix them silently. The spawn itself is unchanged
+  (`TlsWorkerProcess.spawn`, same argv and pipe protocol). The C++ worker stays selectable for one
+  more stage for comparison; remove the setting with the C++ shell binaries.
+- **Callers.** `check_signal_service_local.py` (`--worker node|legacy`, default node; also
+  `SIGNAL_WORKER` in the daemons' `environment`) and `run_real_test.py` choose the binary with
+  `worker_binary(mode, strict)`: the production build (`v3` / `sh-v3`) when the sessions are
+  strict (CIRCUIT_MANIFEST), else the `-test` build (it also loads unpinned circuits, as the C++
+  fixture did); both build it first with **`node_worker/build.sh VARIANT`** (like
+  node_daemon/build.sh; offline; quick when up to date). `run_real_test.py production` without
+  `--manifest` is now a dry-run problem. The relay of `--link-delay-ms` forwards the control link
+  (PORT+20, plus the test shift) as well. Deployment docs (node_daemon/README.md "Configuration",
+  deployment/vm_pair_test/README.md "Ports"): the control port must be open between the nodes
+  (inside `port_base` .. `port_base+639`).
+- **Tests, all passed with `node_worker`:** Q (`cargo test --offline --no-default-features` in
+  `node_worker`: 45 tests; recovery-check 29/29, policy-check 14/14, parse-bench, lint 0); compact
+  strict signups (production build `v3`) with 3, 2 (no one-time prekey) and 4 devices, and with 3
+  in semi-honest mode; `--runs 2 --signup` and `--runs 0 --db` in both modes (all four golden
+  record sets equal); `--runs 0 --app`, `--ceremony`, `--runs 0 --recovery devices`,
+  `--runs 0 --sustained 16 --restart-after 8`, each in both modes; set K
+  (`check_tls_worker_v3.py` via `.deps/lowering-scratch/s8_check_worker.py`: malicious ok/split,
+  untrusted/split, ok/ladder; semi-honest ok/split). Latency at `--link-delay-ms 1`: the same as
+  the C++ worker within noise (PERFORMANCE.md, "Whole sessions through the relay"); the C++ worker
+  passed the same run through `--worker legacy`.
+- **Open.** (1) The double agreement and the compiled-in unpinned path of lib.rs's design note
+  remain until the C++ shell binaries are retired (its wording "until the controller switches
+  (S7)" now means: until they are retired). (2) Once, the very first session that ran the `v3`
+  production build ended within 0.3 s with both workers gone before their first reply ("truncated
+  worker pipe response"); not reproduced in a two-worker probe of the same build and environment,
+  nor in the four later strict signup runs (eight sessions). Its logs went to a run directory under real_signal/state,
+  which the agent does not read; if it recurs, the worker's stderr is in that run's
+  `receive-party-N.log`.
 
 ---
 

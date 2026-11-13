@@ -315,6 +315,22 @@ the first message stops at the MAC check.
 | Field engine time in the session | 2 s | 51 s | 2.9 s |
 | Worker time of the session | 18 s | 75 s | 26 s |
 
+**The Rust worker (S8, 2026-11-12).** The same run (`--runs 1 --broadcasts 4 --link-delay-ms 1`,
+party 0's worker, malicious) with `node_worker` and with the C++ worker (`--worker legacy`),
+back to back on the same tree and circuits:
+
+| | C++ `tls-worker-fixture-v3` | `node_worker` |
+|---|---|---|
+| A contact's first send (operation 41, busy) | 16.87, 13.92, 14.30, 14.21 s | 16.83, 13.94, 14.41, 14.13 s |
+| A later send (operation 41, busy) | 1.30, 1.11, 1.23, 0.89 s | 1.34, 1.18, 1.23, 0.94 s |
+| Send to send, steady state (median of the last four) | 1.31 to 1.93 s (1.70) | 1.43 to 2.17 s (1.77) |
+| Worker time of the session | 72.7 s | 73.4 s |
+
+The same within noise; a later send is about 0.04 s slower with `node_worker`, as expected from
+its double agreement (each forwarded operation is agreed on the control link and again inside
+the legacy library, one extra message delay; lib.rs, "Design note"), which goes when the legacy
+dispatch loses its own agreement.
+
 A steady-state message is 0.3 to 0.9 s slower at 2 ms than on localhost, before and after:
 its field rounds were never the larger part (0.27 s, now 0.08 s). What remains is listed below.
 The target "not slower than localhost by more than the server's latency" is not met.

@@ -96,6 +96,11 @@ that, it is the cloud product, not the dedicated server with a 10 Gbit/s uplink.
   address (WireGuard); inbound TCP 22 from your own address. Nothing else.
 - **Inside the tunnel** (no public port): TCP 5201 (iperf3), 5301 (volume test), 26000 to 26799
   (benchmark; party 0 listens, party 1 dials), 27000 to 27199 on loopback (`selftest.sh`).
+- **The node daemons' sessions** (not this kit's benchmark): a session at worker port P uses P,
+  P+10 and, with the Rust worker `node_worker` (the default since REORGANIZATION_PLAN.md S8),
+  P+20 for the control link between the two workers. Allow the whole range `port_base` ..
+  `port_base+639` between the two nodes inside the tunnel (node_daemon/README.md,
+  "Configuration").
 - The Boolean engine's listener binds the tunnel address you give it. The field engine's
   library binds its listeners to all interfaces and has no setting for that (its connections
   are TLS with the two certificates of `bench_certs.sh`). So also close the machine itself:

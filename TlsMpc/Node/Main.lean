@@ -137,14 +137,22 @@ def run (context : Context) : IO (Except String Nat × Report) := do
     pure (outcome, state.report)
 
 /-- **One two-party session**: WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT
-HOSTNAME AUTH TRUST UNUSED. Spawns the worker (its certificate check is the checker at AUTH, with
-TRUST), runs the session, and reports (`DaemonLine.finalReport`). -/
+HOSTNAME AUTH TRUST UNUSED. Spawns the worker WORKER (`node_worker`'s binary; the C++ worker only
+with `SIGNAL_WORKER=legacy`; its certificate check is the checker at AUTH, with TRUST), runs the
+session, and reports (`DaemonLine.finalReport`). -/
 def session (test : Bool) (args : List String) : IO Unit := do
   let [worker,directory,party,hosts,basePort,manifest,session,endpoint,port,hostname,auth,trust,_unused] := args |
     throw (IO.userError "WORKER DIRECTORY PARTY HOSTS PORT MANIFEST SESSION ENDPOINT PORT HOSTNAME AUTH TRUST UNUSED")
   -- Every setting of this session (`Config`); the agreed ones are compared with the other node's
   -- at the start (`Start.connect`).
   let config ← Config.read test
+  -- The worker (S8): `node_worker`'s `node-worker` for the session's mode (the caller builds it
+  -- with node_worker/build.sh), or, with the agreed `SIGNAL_WORKER=legacy`, the C++
+  -- `tls-worker*-fixture-v3` for one more stage. A binary of the other kind is refused here,
+  -- before anything is spawned, rather than discovered at the workers' link.
+  let nodeWorker := (System.FilePath.mk worker).fileName == some "node-worker"
+  unless nodeWorker != config.agreed.legacyWorker do
+    throw (IO.userError s!"SIGNAL_WORKER={if config.agreed.legacyWorker then "legacy" else "node"} does not match the worker binary {worker} (node: node_worker's node-worker; legacy: a tls-worker*-fixture-v3)")
   -- Every channel of the session (plan 3.2): the only way this session reaches the outside,
   -- besides the worker pipe.
   let ch := Channels.real config party

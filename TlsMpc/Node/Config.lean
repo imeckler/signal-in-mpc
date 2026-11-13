@@ -52,6 +52,11 @@ structure Agreed where
   hinted : Bool
   /-- `SIGNAL_TOR_CIRCUITS` (resolved: 0 without a proxy, 1 by default with one). -/
   circuits : Nat
+  /-- `SIGNAL_WORKER=legacy`: the session's worker is the C++ `tls-worker*-fixture-v3`, kept
+  selectable for one more stage to compare it with `node_worker` (REORGANIZATION_PLAN.md S8);
+  `node` (the default): `node_worker`'s `node-worker`. The controller refuses a WORKER binary of
+  the other kind (`Main.session`). Agreed: the two kinds link their workers differently. -/
+  legacyWorker : Bool
   deriving BEq, Repr
 
 /-- TEST hooks (only with `--test`). -/
@@ -167,6 +172,10 @@ def ofEnv (env : String → Option String) (test : Bool) : Except String Config 
     | none | some "legacy" => pure false
     | some "libsignal" => pure true
     | some other => throw s!"SIGNAL_CLIENT_PROFILE must be libsignal or legacy, not {other}"
+  let legacyWorker ← match env "SIGNAL_WORKER" with
+    | none | some "node" => pure false
+    | some "legacy" => pure true
+    | some other => throw s!"SIGNAL_WORKER must be node or legacy, not {other}"
   let circuitCount ← number? "SIGNAL_TOR_CIRCUITS" (env "SIGNAL_TOR_CIRCUITS")
   let socks ← match env "SIGNAL_TOR_SOCKS" with
     | none => pure none
@@ -212,7 +221,7 @@ def ofEnv (env : String → Option String) (test : Bool) : Except String Config 
       bundleSlots := env "SIGNAL_BUNDLE_SLOTS" != some "0"
       receiveJump := env "SIGNAL_RECEIVE_JUMP"
       hinted := env "TLS_WORKER_HINTED" == some "1"
-      circuits }
+      circuits, legacyWorker }
     socks, record := env "SIGNAL_RECORD", account, credentialsFile
     expect := ((env "SIGNAL_LOCAL_EXPECT").bind String.toNat?).getD 1
     events := (env "SIGNAL_LOCAL_EVENTS").isSome
@@ -231,7 +240,7 @@ def names : List String :=
    "SIGNAL_PREPARE_BATCH", "SIGNAL_BUNDLE_SLOTS", "SIGNAL_RECEIVE_JUMP", "TLS_WORKER_HINTED", "SIGNAL_RECORD",
    "SIGNAL_LOCAL_EXPECT", "SIGNAL_LOCAL_EVENTS", "SIGNAL_CEREMONY", "SIGNAL_CEREMONY_DIR",
    "SIGNAL_NOTIFY_MESSAGE_FILE", "SIGNAL_NOTIFY_ID", "SIGNAL_NOTIFY_JOURNAL", "SIGNAL_SERVE_DIR",
-   "SIGNAL_LOCAL_EXPORT", "SIGNAL_LOCAL_KEM"] ++ hookNames
+   "SIGNAL_LOCAL_EXPORT", "SIGNAL_LOCAL_KEM", "SIGNAL_WORKER"] ++ hookNames
 
 /-- What the two controllers agree on at session start, as text: the `Agreed` settings, the
 session's kind, and the TEST hooks that change the agreed flow (not this node's paths, the TEST
@@ -242,7 +251,7 @@ def agreedText (c : Config) : String :=
     s!"timestamp={h.timestamp} pause_after={h.pauseAfter} pause_refresh={h.pauseRefresh} broadcasts={h.broadcasts} extra_contacts={h.extraContacts} new_contact={h.newContact}"
   s!"settings v1; profile={if a.official then "libsignal" else "legacy"} ack_refused={!a.keepRefused} recovery={a.recovery} " ++
   s!"prepare_batch={a.prepareBatch} bundle_slots={a.bundleSlots} receive_jump={a.receiveJump} hinted={a.hinted} " ++
-  s!"circuits={a.circuits}; socket={c.account.label} expect={c.expect} ceremony={c.ceremony} serve={c.serveDir.isSome} " ++
+  s!"circuits={a.circuits} worker={if a.legacyWorker then "legacy" else "node"}; socket={c.account.label} expect={c.expect} ceremony={c.ceremony} serve={c.serveDir.isSome} " ++
   s!"notify={c.notifyFile.isSome} export={c.exportFile.isSome} database={c.database.isSome}; test={hooks}"
 
 /-- The SHA-256 the two controllers exchange at session start (`PeerMsg.settingsDigest`, plan 3.1). -/

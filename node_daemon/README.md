@@ -244,7 +244,7 @@ with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
   "peer_key_file": "…/peer.key",              // hex, at least 16 bytes, shared by the two nodes
   "state_directory": "…/node-0",              // the daemon's own: logs/, work/, journal/, events.jsonl
   "controller": "…/public_service_controller",
-  "worker": { "binary": "…/tls-worker-fixture-v3",   // or the semi-honest worker
+  "worker": { "binary": "…/node_worker/target/v3/release/node-worker",   // sh-v3 for semi-honest (node_worker/build.sh)
               "send_directory": "…", "receive_directory": "…",   // the workers' key material, one per session kind
               "hosts": ["10.0.0.1", "10.0.0.2"], "port_base": 23000 },   // sessions use port_base .. port_base+639
   "circuits": { "tool": "…/circuit_cache.py", "manifest": null },   // manifest: CIRCUIT_MANIFEST (strict mode)
@@ -264,6 +264,22 @@ with a proxy); its controller prints `{"event":"ready"}` when they are up. Then:
 ```
 
 The controller inherits the daemon's working directory (the repository root, for `circuit_cache.py`).
+
+**The worker** (REORGANIZATION_PLAN.md S8) is `node_worker`'s binary: `node_worker/build.sh v3`
+(malicious) or `sh-v3` (semi-honest), after `build_hybrid_v3.py --engine-abi` of the same variant.
+These production builds load circuits only in strict mode, so set `circuits.manifest`; the
+`-test` variants (`v3-test`, `sh-v3-test`) also load unpinned circuits and are for development
+only. For one more stage the C++ worker can still be chosen for comparison: `worker.binary` the
+`tls-worker*-fixture-v3` binary AND `"environment": {"SIGNAL_WORKER": "legacy"}` on both nodes
+(an agreed setting: the controller refuses a binary that does not match it, and the two nodes
+must agree on it).
+
+**Ports between the two nodes.** A session at worker port P uses P (the Boolean engine), P+10
+(the field engine) and, with `node_worker`, **P+20: the control link** between the two workers
+(agreement, record forwarding; party 0's worker listens, party 1's dials). The firewall /
+WireGuard rules between the two nodes must therefore allow the whole range `port_base` ..
+`port_base+639` (send sessions at +0..+280, receive sessions at +320..+600, each with its +10
+and +20), not only the first two ports of each session.
 
 ## The application stand-in
 
