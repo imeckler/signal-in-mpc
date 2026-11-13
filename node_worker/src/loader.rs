@@ -182,6 +182,44 @@ impl Kernels {
     }
 }
 
+/// Stage S12 (TlsMpc/Node/Flows/{Ghash,Tls}.lean): the manifest kernels the Lean TLS scripts run
+/// under a fixed name, with the signature each script's WF theorem assumes (input bits of one
+/// copy; output bits and their one mark). They are ordinary manifest kernels (pinned by the
+/// manifest, as the legacy library's `KernelCache` loads them: no re-export is needed); this list
+/// only lets a worker that would run the script backend refuse to start when one is missing or
+/// has another layout (fails closed, `tls_script_kernels_check`). The shape-parameterised ones
+/// (`tls-seal-ctr KIND N PAD`, `tls-seal-class CAP`, `tls-open-typed CAP`, `tls-frame CAP`,
+/// `tls-reveal-masked CAP`, `tls-open-handshake N`, `tls-finish N`) are looked up by name at
+/// `run` like every manifest kernel (a missing one refuses the batch).
+pub const TLS_SCRIPT_KERNELS: &[(&str, u64, u64, Mark)] = &[
+    // GHASH key-power shares: the masked value is opened to B only (layout code 3).
+    ("gcm-key-share", 8 * 76, 128, Mark::ToB),
+    ("gcm-multiply", 8 * 80, 128, Mark::ToB),
+    // The tag is public; the tag check's acceptance byte is private.
+    ("gcm-tag", 8 * 48, 128, Mark::Pub),
+    ("gcm-check", 8 * 116, 8, Mark::Never),
+    ("tls-parser-initial", 8, 88, Mark::Never),
+    ("tls-update", 8 * 60, 480, Mark::Never),
+    ("tls-verify-finished", 8 * 128, 8, Mark::Pub),
+];
+
+/// The S12 fixed-name kernels this kernel table lacks or has with another signature (empty: the
+/// script backend may run; otherwise it must not start).
+pub fn tls_script_kernels_check(k: &Kernels) -> Vec<String> {
+    let mut bad = Vec::new();
+    for (name, in_width, out_width, mark) in TLS_SCRIPT_KERNELS {
+        match k.sig(name.as_bytes()) {
+            None => bad.push(format!("{name}: missing")),
+            Some(s) => {
+                if s.in_width != *in_width || s.out_marks.len() as u64 != *out_width || s.out_marks.iter().any(|m| m != mark) {
+                    bad.push(format!("{name}: signature"));
+                }
+            }
+        }
+    }
+    bad
+}
+
 /// A Lean word circuit outside the kernel manifest, which the engines load from its own pinned
 /// file exactly as the legacy library does (`word_mask.h` line 27: `LeanCircuit{
 /// EMP_WORD_CIRCUIT_DIR "/xor-bit.flat", WORD_XOR_BIT_SHA}`; `ea_circuit_load` builds the same
@@ -563,6 +601,24 @@ mod tests {
         assert_eq!(err, "field program pin: field-bit-check");
         let _ = std::fs::remove_dir_all(&dir);
         assert!(!PIN_FROM_REEXPORT.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn s12_tls_kernels_fail_closed() {
+        // Nothing loaded: every S12 kernel is reported missing.
+        let empty = Kernels::default();
+        assert_eq!(tls_script_kernels_check(&empty).len(), TLS_SCRIPT_KERNELS.len());
+        // The signatures the scripts' WF theorems assume: accepted.
+        let mut k = Kernels::default();
+        for (name, in_width, out_width, mark) in TLS_SCRIPT_KERNELS {
+            let sig = Sig { in_width: *in_width, out_marks: vec![*mark; *out_width as usize] };
+            k.insert(name.as_bytes(), Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        }
+        assert!(tls_script_kernels_check(&k).is_empty());
+        // A key share opened to both parties instead of to B only is refused.
+        let sig = Sig { in_width: 8 * 76, out_marks: vec![Mark::Pub; 128] };
+        k.insert(b"gcm-key-share", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        assert_eq!(tls_script_kernels_check(&k), vec!["gcm-key-share: signature".to_string()]);
     }
 
     #[test]
