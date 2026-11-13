@@ -103,6 +103,8 @@ import TlsMpc.Node.Flows.Registry
 import TlsMpc.Node.Flows.TlsProofs
 import TlsMpc.Node.Flows.SendProofs
 import TlsMpc.Node.Flows.ReceiveFlowProofs
+import TlsMpc.Node.Flows.RefreshFirstProofs
+import TlsMpc.Node.Flows.RefreshWF
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6737,6 +6739,142 @@ theorem s14_provisional_ids (j k : Nat) (hj : j + 2 < 2 ^ 64) (hk : k + 2 < 2 ^ 
 
 end FlowsS14
 
+/-! ### 7g. Device refresh (stage S15; plan 8.1 T3, T4-REFRESH, ORD-2; numbered 7d on the S15
+branch, renumbered when the stages were joined on `scripts-stack`)
+
+The S15 scripts (`TlsMpc/Node/Flows/Refresh.lean`, proofs `RefreshFlowProofs.lean`,
+`RefreshSlotProofs.lean`, `RefreshKemProofs.lean`, `RefreshFirstProofs.lean`, `RefreshWF.lean`;
+S15_NOTES.md). Status letters as above. S11's curve operations are a parameter (`Refresh.CurveOps`)
+whose own `Reveals` is a hypothesis; the circuits computing their Lean kernels is T2's trust; the
+KEM and session kernels' output widths (`KemWidths`, `SessionWidths`) are the pinned layouts.
+Compiled standalone in this stage (the whole file exceeds the stage's 4 GB cap): standard axioms. -/
+
+section FlowsS15
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+
+/-- **T3 for the establishment** [M; hyp: S11's `Reveals`]: against any adversary, every release of a
+refresh step carries the label of `sealedRecord`, `bundleShape`, `identityChanged`, `deviceStatus`,
+`sealedBlob` or one of S11's kinds: the keys response body is opened only as its punctuation flags,
+the first device's `changed` byte and each device's status. -/
+theorem s15_refresh_viewD_kinds (E : Env) (me : Party) (adv : Adversary) (cv : Refresh.CurveOps)
+    (hcv : cv.Reveals) (acct : Refresh.Account) (t : Contacts.Table) (st : Refresh.RState)
+    (id registration index count step start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (slot : Nat) (σ : Store)
+    (I : Ideal) (vD : List Release) :
+    ∀ r ∈ (withAdv E me adv (Refresh.opEstablish cv acct t st id registration index count step start w slot).script
+      σ I vD).viewD, ∃ k ∈ Refresh.refreshKinds cv.kinds, r.label = Label.ofKind k :=
+  Refresh.refresh_viewD_kinds E me adv cv hcv acct t st id registration index count step start w slot σ I vD
+
+/-- **T3, the other refresh scripts** [M]: each declares its kinds (`Registry.s15_flows_reveal`). -/
+theorem s15_flows_reveal_restated :
+    (∀ n body size, Reveals Refresh.shapeKinds (Refresh.shapeScript n body size)) ∧
+    (∀ t st, Reveals [] (Refresh.opDrop t st).script) ∧ (∀ t st id, Reveals [] (Refresh.opCommit t st id).script) :=
+  ⟨Registry.s15_flows_reveal.2.2.1, Registry.s15_flows_reveal.2.2.2.2.2.2.2.2.1,
+    Registry.s15_flows_reveal.2.2.2.2.2.2.2.2.2⟩
+
+/-- **ORD-2 on the table** [K]: `opCommit` is the only refresh operation that changes a contact's
+entry, and only to the content the scratch's seal sealed, when the scratch is complete and sealed
+for that contact. -/
+theorem s15_ord2_commit (t : Contacts.Table) (st : Refresh.RState) (id : Nat) (r : Unit)
+    (h : ((Refresh.opCommit t st id).commit r).1.entries ≠ t.entries) :
+    ∃ e content size kinds, t.find? id = some e ∧ st.contact = some id ∧ st.sealed = some (content, size, kinds) ∧
+      st.ready = true ∧
+      ((Refresh.opCommit t st id).commit r).1 = t.put id (Refresh.committed e content size kinds st.changed) :=
+  Refresh.opCommit_entry t st id r h
+
+/-- **ORD-2: a dropped scratch leaves the table unchanged** [K]. -/
+theorem s15_ord2_drop (t : Contacts.Table) (st : Refresh.RState) (r : Unit) :
+    ((Refresh.opDrop t st).commit r) = (t, {}) := Refresh.opDrop_table t st r
+
+/-- **ORD-2: the establishment changes no entry** [K] (likewise fetch, take, shape, scratch seal:
+`opFetch_entries`, `opTake_entries`, `opShape_entries`, `opScratchSeal_entries`). -/
+theorem s15_ord2_establish (cv : Refresh.CurveOps) (acct : Refresh.Account) (t : Contacts.Table)
+    (st : Refresh.RState) (id registration index count step start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths)
+    (slot : Nat) (r : Refresh.Status × Refresh.RState) :
+    ((Refresh.opEstablish cv acct t st id registration index count step start w slot).commit r).1.entries = t.entries :=
+  Refresh.opEstablish_entries cv acct t st id registration index count step start w slot r
+
+/-- **The splice and the digit counts from one source** [M]: from the held body, `bundle-slot`'s
+input is the cut with the item spliced by `BundleSlots.splice w` followed by `widthsOf w` of the
+SAME `w` (the `inconsistent_width_*` combination cannot be formed). -/
+theorem s15_slot_one_source (E : Env) (n : Nat) (body : BoolH) (X : B8) (start : Nat)
+    (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool) (I : Ideal) (hb : I.bools body.id = some (bitsOf X))
+    (hbn : body.id < n) (hp : Refresh.placedOk X.length start w first last = true) :
+    ∃ I', runPlain E (Refresh.slotInput n body X.length start w first last) I = some I' ∧
+      I'.bools (n + 4) = some (bitsOf (Refresh.slotBytes X start w first last ++ Refresh.widthsOf w)) ∧
+      ∀ j, j < n → I'.bools j = I.bools j :=
+  Refresh.slotInput_value E n body X start w first last I hb hbn hp
+
+/-- **T4, the parse** [K]: the kernel the script feeds outputs `BundleResponse.device` on the body
+the server sent (`bundleSlot_device`). -/
+theorem s15_parse_device (X : B8) (start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool)
+    (hp : Refresh.placedOk X.length start w first last = true) :
+    let out := TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X
+    TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+        (Refresh.slotAssign X start w first last) =
+      [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+        out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+      (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []]) :=
+  Refresh.parse_device X start w first last hp
+
+/-- **T4, the parse, any counts: device or refused** [K] (`bundleSlot_parses_or_refuses`). -/
+theorem s15_parse_or_refuse (X : B8) (start : Nat) (w : TlsMpc.Signal.BundleResponse.Widths) (first last : Bool)
+    (hp : Refresh.placedOk X.length start w first last = true) :
+    ((TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X).getD 0 [] = [255] ∧
+      (∀ w', (TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w' X).getD 0 [] = [255] →
+        w' = w) ∧
+      let out := TlsMpc.Signal.BundleResponse.device TlsMpc.ByteAuth.concrete X.length start w X
+      TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+          (Refresh.slotAssign X start w first last) =
+        [out.getD 0 [], out.getD 1 [], out.getD 2 [], out.getD 3 [], out.getD 4 [], out.getD 5 [], out.getD 6 [],
+          out.getD 7 [], out.getD 8 [], out.getD 9 []] ++
+        (if w.oneTime = 0 then [] else [out.getD 10 [], out.getD 11 []])) ∨
+    (∀ field ∈ TlsMpc.ReceiveKernel.values (TlsMpc.BundleSlotKernel.bundleSlot first last (w.oneTime != 0))
+        (Refresh.slotAssign X start w first last), ∀ byte ∈ field, byte = 0) :=
+  Refresh.parse_parses_or_refuses X start w first last hp
+
+/-- **T4, the encapsulation** [K; hyp: `KemWidths`]: every name binding of `kernels_compose` holds
+for the script's wiring, so the script's encapsulation is `pipeline`. -/
+theorem s15_kem_pipeline (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) : Refresh.kemFlow K eA eB = (TlsMpc.KernelSpecs.KemCompose.pipeline true K eA eB).flatten :=
+  Refresh.kemFlow_pipeline K eA eB hW hK hA hB
+
+/-- **T4, the encapsulation, valid key** [K; hyp: `KemWidths`]: status 255, the reference ciphertext
+and secret. -/
+theorem s15_kem_accept (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) (hvalid : TlsMpc.KernelSpecs.KemCompose.KeyValid K)
+    (hs : (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).success = 255) :
+    Refresh.kemFlow K eA eB = [255] ++ (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).bytes.take 1568 ++
+      (TlsMpc.KernelSpecs.KemCompose.specEnc true K eA eB).bytes.drop 1568 :=
+  Refresh.kemFlow_accept K eA eB hW hK hA hB hvalid hs
+
+/-- **T4, the encapsulation, invalid key: nothing released** [K; hyp: `KemWidths`]. -/
+theorem s15_kem_invalid (K eA eB : B8) (hW : Refresh.KemWidths) (hK : K.length = 1568) (hA : eA.length = 32)
+    (hB : eB.length = 32) (h : ¬ TlsMpc.KernelSpecs.KemCompose.KeyValid K) : ∀ b ∈ Refresh.kemFlow K eA eB, b = 0 :=
+  Refresh.kemFlow_invalid K eA eB hW hK hA hB h
+
+/-- **T4, the first message: `wired` for the script** [K; hyp: `SessionWidths`, the send binds the
+handed records]: the scratch hands the send `establish-session`'s outputs 1 and 2, so
+`firstMessage_envelope` / `openedEnvelopes_first` apply. -/
+theorem s15_first_wired (cert content : Nat) (s : TlsMpc.KernelSpecs.EstablishDevices.DeviceSession)
+    (d : TlsMpc.KernelSpecs.EstablishDevices.DeviceSeal) (hW : Refresh.SessionWidths cert d.withOneTime)
+    (established : (s.outputs cert d.withOneTime).getD 0 [] = [255])
+    (hconv : d.input cert content "conversation" = Refresh.keptConversation (s.outputs cert d.withOneTime).flatten cert)
+    (hpend : d.input cert content "pending" = Refresh.keptPending (s.outputs cert d.withOneTime).flatten cert)
+    (opened : (d.outputs cert content).getD 0 [] = [255]) :
+    TlsMpc.KernelSpecs.EstablishDevices.wired cert content (s, d) :=
+  Refresh.first_wired cert content s d hW established hconv hpend opened
+
+/-- **A drop keeps the table's invariant** [M] (`opDrop_inv`). -/
+theorem s15_drop_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Contacts.Table) (st : Refresh.RState)
+    (hT : t.Inv c) (hR : st.Inv c t) :
+    WFP sigs (fun c' r => ((Refresh.opDrop t st).commit r).1.Inv c' ∧ ((Refresh.opDrop t st).commit r).2.Inv c' t) c
+      (Refresh.opDrop t st).script :=
+  Refresh.opDrop_inv sigs c t st hT hR
+
+end FlowsS15
+
 /-! ## 8. NOT YET PROVED
 
 Comments, not theorems. Each line names the statement (REORGANIZATION_PLAN.md section 7 / 8.1)
@@ -6953,6 +7091,18 @@ the matching section above in the same commit.
   (needs S10's conversions' and S11's agreements' run-level specifications and the receive kernels
   as model circuits with word inputs), the whole flows' WF, a value-level T3 for every release of a
   run (S14_NOTES.md, F22-F27).
+* **T4-REFRESH** (S15, section 7g):
+  the parse in the model (`s15_slot_one_source`, `s15_parse_device`, `s15_parse_or_refuse`), the
+  encapsulation's wiring at the function level (`s15_kem_pipeline`, `s15_kem_accept`,
+  `s15_kem_invalid`, hyp. `KemWidths`), the first message's `wired` (`s15_first_wired`, hyp.
+  `SessionWidths` and the send's binding). Open: the KEM block and the session step through
+  `runPlain`/`jointRun`, the signature verification (S11's `check`), the agreements (S11's
+  `agree`), WF of the fetch, establishment and scratch-seal scripts (tested by the vectors), and
+  `opCommit`'s preservation of `Table.Inv` (S15_NOTES.md, gaps).
+* **ORD-2** — a refresh's scratch becomes the contact's state only by `opCommit`
+  (`s15_ord2_commit`, `s15_ord2_establish`, `s15_ord2_drop`: S15, section 7g, script level); that
+  the controllers call it only after both saw the nodes acknowledge the sealed scratch is the
+  session-level ORD-2 (P4, `Session/RefreshProofs.lean` on the main line), unchanged by the switch.
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -7554,6 +7704,19 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s14_refused_text_zero
 #print axioms TlsMpc.Security.s14_certificateLength_zero
 #print axioms TlsMpc.Security.s14_provisional_ids
+#print axioms TlsMpc.Security.s15_refresh_viewD_kinds
+#print axioms TlsMpc.Security.s15_flows_reveal_restated
+#print axioms TlsMpc.Security.s15_ord2_commit
+#print axioms TlsMpc.Security.s15_ord2_drop
+#print axioms TlsMpc.Security.s15_ord2_establish
+#print axioms TlsMpc.Security.s15_slot_one_source
+#print axioms TlsMpc.Security.s15_parse_device
+#print axioms TlsMpc.Security.s15_parse_or_refuse
+#print axioms TlsMpc.Security.s15_kem_pipeline
+#print axioms TlsMpc.Security.s15_kem_accept
+#print axioms TlsMpc.Security.s15_kem_invalid
+#print axioms TlsMpc.Security.s15_first_wired
+#print axioms TlsMpc.Security.s15_drop_inv
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

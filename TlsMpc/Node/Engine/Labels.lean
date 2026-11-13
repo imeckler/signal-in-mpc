@@ -166,6 +166,16 @@ def receivedText : Label := ofKind .receivedText
 /-- `receive-access-key`'s status byte. Kind `accessKeyStatus` (57). -/
 def accessKeyStatus : Label := ofKind .accessKeyStatus
 
+/-! Device refresh (stage S15, kinds 60-62). -/
+
+/-- `bundle-shape`'s one flag per body byte (JSON punctuation or not). Kind `bundleShape` (60). -/
+def bundleShape : Label := ofKind .bundleShape
+/-- `bundle-rebind`'s `changed` byte (the bundle's identity key is a new one), first device only.
+Kind `identityChanged` (61). -/
+def identityChanged : Label := ofKind .identityChanged
+/-- `establish-session`'s `status` byte, one per device. Kind `deviceStatus` (62). -/
+def deviceStatus : Label := ofKind .deviceStatus
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
@@ -175,7 +185,8 @@ def kinds : List RevealKind :=
    .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
    .serverBytes, .ghashMaskedPower, .counterWidths, .sealedEnvelope,
    .certificateLength, .contentShape, .prekeyShape, .prekeyIds, .signalShape, .sessionStatus,
-   .receivedText, .accessKeyStatus]
+   .receivedText, .accessKeyStatus,
+   .bundleShape, .identityChanged, .deviceStatus]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
@@ -186,7 +197,8 @@ def all : List Label :=
    handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
    serverBytes, ghashMaskedPower, counterWidths, sealedEnvelope,
    certificateLength, contentShape, prekeyShape, prekeyIds, signalShape, sessionStatus,
-   receivedText, accessKeyStatus]
+   receivedText, accessKeyStatus,
+   bundleShape, identityChanged, deviceStatus]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -213,6 +225,6 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) =
     [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102,
-     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57] := rfl
+     2, 3, 4, 5, 6, 7, 8, 9, 40, 41, 50, 51, 52, 53, 54, 55, 56, 57, 60, 61, 62] := rfl
 
 end TlsMpc.Node.Engine.Label

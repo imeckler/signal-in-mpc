@@ -1878,6 +1878,29 @@ Tests: Q, F (`--multi-device`, `--recovery devices,refresh-retry,identity,bundle
 
 Depends on S12. **3 weeks. Medium–strong.**
 
+**Status (2026-11-12, branch `s15-refresh`, from `s12-tls`, in parallel with S11 and S13; details in
+`S15_NOTES.md`).** Scripts and proofs done, not selected (no IO layer: the controller-side runner
+does not exist yet; S11's curve operations are a parameter, `Refresh.CurveOps`, and S13's send the
+consumer of the committed records, signatures in the notes):
+- `Flows/Refresh.lean`: `fetchScript` (with `bundle-fetch-ctr`, the record seal's first phase),
+  `takeScript`, `shapeScript`, the nine establishment steps (`parseScript` — `bundle-slot` fed by ONE
+  `pick` whose positions and `widths` come from the same `Widths` —, S11's lift/check/agree,
+  `challengeScript`, `verifyScript`, the twelve KEM runs wired by the script, `sessionScript`),
+  `scratchSealScript`, and the operations `opFetch/opTake/opShape/opEstablish/opScratchSeal/
+  opCommit/opDrop` on the contact table and the refresh state `RState` (invariant `RState.Inv`).
+- Proved: T3 for every script and operation (`refresh_viewD_kinds`, against any adversary, S11's
+  kinds as hypothesis); T4 parse in the model (`slotInput_value`, `parse_device`,
+  `parse_parses_or_refuses`, `parse_fields`); T4 KEM: all name bindings of `kernels_compose` for the
+  script's wiring (`kemFlow_pipeline`, `kemFlow_accept`, `kemFlow_invalid`; output widths a
+  hypothesis); the first message's `wired` (`first_wired`, `stored_record`); ORD-2 at the script
+  level (`opCommit_entry`, `opDrop_table`, `op*_entries`); WF of shape and take, `opDrop_inv`.
+  Restated in Security.lean section 7d (compiled standalone: standard axioms). Open: the KEM block
+  through `runPlain`, WF of the establishment (tested), `opCommit`'s `Table.Inv` (notes, F42–F50).
+- No new kind (60–62 existed); labels added in `Engine/Labels.lean`, registered in `Registry`.
+- Rust: `loader.rs` `REFRESH_SCRIPT_KERNELS` (fail closed); Lean vectors of a two-device refresh
+  with labelled stand-in circuits (every batch admitted) and the pair test `s15_pair.rs`;
+  `e2e_s15.py` written, not run.
+
 ---
 
 **S16. Upgrade, account, ceremony; closing the C++.**

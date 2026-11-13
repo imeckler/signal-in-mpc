@@ -376,6 +376,51 @@ pub fn send_script_kernels_check(k: &Kernels, cert: u64) -> Vec<String> {
     bad
 }
 
+/// Stage S15 (TlsMpc/Node/Flows/Refresh.lean): the fixed-name manifest kernels the refresh scripts
+/// run, with the signature the scripts slice at (input bits of one copy; output segments as
+/// (bits, mark), in order: `bundle-rebind` opens only its last byte, `changed`). A worker that
+/// would run the refresh scripts refuses to start when one is missing or has another layout (fails
+/// closed, `refresh_script_kernels_check`). The shape-parameterised ones (`bundle-fetch-ctr SIZE
+/// PAYLOAD UUID KEY`, `bundle-shape CAP`, `bundle-slot FIRST LAST ONETIME`, `establish-session CERT
+/// ONETIME`, `contact-seal N`) are looked up by name at `run` (a missing one refuses the batch).
+pub const REFRESH_SCRIPT_KERNELS: &[(&str, u64, &[(u64, Mark)])] = &[
+    ("establish-points 0", 8 * 64, &[(510, Mark::Never)]),
+    ("establish-points 1", 8 * 96, &[(765, Mark::Never)]),
+    ("establish-challenges", 255 * 2 + 8 * (32 + 64 + 1568 + 64), &[(1020, Mark::Never)]),
+    ("establish-verified", 255 * 5 + 8 * 128, &[(8, Mark::Never)]),
+    ("bundle-rebind", 8 * (319 + 1 + 1 + 32), &[(8 * 33, Mark::Never), (8, Mark::Pub)]),
+    ("kem-hash kyber", 8 * 1632, &[(8 * 97, Mark::Never)]),
+    ("kem-ntt", 8 * 32, &[(8 * 1536, Mark::Never)]),
+    ("kem-matrix 0", 8 * 1568, &[(8 * 1537, Mark::Never)]),
+    ("kem-matrix 1", 8 * 1568, &[(8 * 1537, Mark::Never)]),
+    ("kem-matrix 2", 8 * 1568, &[(8 * 1537, Mark::Never)]),
+    ("kem-matrix 3", 8 * 1568, &[(8 * 1537, Mark::Never)]),
+    ("kem-u 0", 8 * 3104, &[(8 * 352, Mark::Never)]),
+    ("kem-u 1", 8 * 3104, &[(8 * 352, Mark::Never)]),
+    ("kem-u 2", 8 * 3104, &[(8 * 352, Mark::Never)]),
+    ("kem-u 3", 8 * 3104, &[(8 * 352, Mark::Never)]),
+    ("kem-v", 8 * 3168, &[(8 * 160, Mark::Never)]),
+    ("kem-finish kyber", 8 * 1605, &[(8 * 1601, Mark::Never)]),
+];
+
+/// The S15 fixed-name kernels this kernel table lacks or has with another signature (empty: the
+/// refresh scripts may run; otherwise they must not start).
+pub fn refresh_script_kernels_check(k: &Kernels) -> Vec<String> {
+    let mut bad = Vec::new();
+    for (name, in_width, segments) in REFRESH_SCRIPT_KERNELS {
+        let want: Vec<Mark> = segments.iter().flat_map(|(n, m)| std::iter::repeat(*m).take(*n as usize)).collect();
+        match k.sig(name.as_bytes()) {
+            None => bad.push(format!("{name}: missing")),
+            Some(s) => {
+                if s.in_width != *in_width || s.out_marks != want {
+                    bad.push(format!("{name}: signature"));
+                }
+            }
+        }
+    }
+    bad
+}
+
 /// A Lean word circuit outside the kernel manifest, which the engines load from its own pinned
 /// file exactly as the legacy library does (`word_mask.h` line 27: `LeanCircuit{
 /// EMP_WORD_CIRCUIT_DIR "/xor-bit.flat", WORD_XOR_BIT_SHA}`; `ea_circuit_load` builds the same
@@ -873,6 +918,27 @@ mod tests {
         for n in ["xeddsa-check", "xeddsa-recover", "receive-torsion"] {
             assert_eq!(FIELD_PROGRAMS.iter().find(|p| p.name == n).unwrap().sha256, PIN_FROM_REEXPORT);
         }
+    }
+
+    #[test]
+    fn s15_refresh_kernels_fail_closed() {
+        let empty = Kernels::default();
+        assert_eq!(refresh_script_kernels_check(&empty).len(), REFRESH_SCRIPT_KERNELS.len());
+        let mut k = Kernels::default();
+        for (name, in_width, segments) in REFRESH_SCRIPT_KERNELS {
+            let out_marks: Vec<Mark> = segments.iter().flat_map(|(n, m)| std::iter::repeat(*m).take(*n as usize)).collect();
+            let sig = Sig { in_width: *in_width, out_marks };
+            k.insert(name.as_bytes(), Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        }
+        assert!(refresh_script_kernels_check(&k).is_empty());
+        // A rebind whose private verified/uuid/accessKey would be openable is refused.
+        let sig = Sig { in_width: 8 * 353, out_marks: vec![Mark::Pub; 8 * 34] };
+        k.insert(b"bundle-rebind", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        assert_eq!(refresh_script_kernels_check(&k), vec!["bundle-rebind: signature".to_string()]);
+        // A KEM stage with a public output (the secret would be openable) is refused.
+        let sig = Sig { in_width: 8 * 1605, out_marks: vec![Mark::Pub; 8 * 1601] };
+        k.insert(b"kem-finish kyber", Kernel { flat: PathBuf::new(), sha256: String::new(), sig });
+        assert_eq!(refresh_script_kernels_check(&k).len(), 2);
     }
 
     #[test]
