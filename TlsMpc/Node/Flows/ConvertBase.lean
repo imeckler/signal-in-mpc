@@ -405,11 +405,9 @@ structure WordMask where
   field : FieldH
   deriving DecidableEq, Repr
 
-/-- A bit pair: bit `index` of the Boolean bundle `bundle`, and a field element holding the same
-bit (P-PAIR). -/
+/-- A bit pair: a one-bit Boolean handle and a field element holding the same bit (P-PAIR). -/
 structure BitPair where
-  bundle : BoolH
-  index : Nat
+  bit : BoolH
   field : FieldH
   deriving DecidableEq, Repr
 

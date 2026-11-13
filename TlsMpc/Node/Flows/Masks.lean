@@ -169,7 +169,7 @@ def fieldIds : Nat := 2 * p.M + p.D + p.words + 5 * (p.bits * W) + 2 * p.bits
 end Layout
 
 /-- How many Boolean ids a generation takes (from `b`). -/
-def boolIds (p : Params) : Nat := 12 + p.words
+def boolIds (p : Params) : Nat := 12 + p.words + p.bits * W
 
 /-! ## The script -/
 
@@ -240,9 +240,18 @@ def maskBlock (π₁ π₂ : List Nat) : List Instr :=
 /-- The word masks the pool gets. -/
 def maskList : List WordMask := (List.range p.words).map fun j => ⟨⟨b + 12 + j⟩, ⟨maskBase p f + j⟩⟩
 
-/-- The bit pairs the pool gets: bit i of block j is bit 256·j + i of the finalized bundle. -/
+/-- The first Boolean id of the bit pairs' one-bit handles. -/
+def bitBase : Nat := b + 12 + p.words
+
+/-- The bit pairs the pool gets: bit i of block j is bit 256·j + i of the finalized bundle (a
+one-bit slice), with the field XOR of the two parties' coins. -/
 def pairList : List BitPair :=
-  (List.range p.bits).flatMap fun j => (List.range W).map fun i => ⟨⟨b + 10⟩, 256 * j + i, xorH p f (j * W + i)⟩
+  (List.range p.bits).flatMap fun j => (List.range W).map fun i => ⟨⟨bitBase p b + j * W + i⟩, xorH p f (j * W + i)⟩
+
+/-- The one-bit slices of the bit pairs. -/
+def pairSlices : List Instr :=
+  (List.range p.bits).flatMap fun j => (List.range W).map fun i =>
+    (.slice ⟨bitBase p b + j * W + i⟩ ⟨b + 10⟩ (256 * j + i) (256 * j + i + 1) : Instr)
 
 /-- Step 8's inputs: per bit block, each party's reference coins. -/
 def coinInputs (s : Slots) (π₁ π₂ : List Nat) : List Instr :=
@@ -270,7 +279,8 @@ def bitPhase (s : Slots) (π₁ π₂ : List Nat) : Script Unit :=
   seq (.program bitCheckName (2 * (p.bits * W)) (allCoins p f) [] (chkOuts p f) Label.bitBlockChecks) <|
   openFieldThen (recOuts p f ++ chkOuts p f) Label.bitBlockChecks fun z =>
   if z.all (· == 0) then
-    seq (.program bitXorName (p.bits * W) (xorIns p f) [] (xorOuts p f) Label.bitBlockChecks) (.done ())
+    seq (.program bitXorName (p.bits * W) (xorIns p f) [] (xorOuts p f) Label.bitBlockChecks) <|
+    seqs (pairSlices p b) (.done ())
   else .abort "bit block inconsistent with verified reference"
 
 /-- Steps 6–8. -/
@@ -279,7 +289,7 @@ def finishPhase (s : Slots) (π₁ π₂ : List Nat) : Script MaskPool :=
   openThen ⟨b + 11⟩ Label.referenceFlags fun fl =>
   if fl.all id then
     seqs (maskBlock p b f π₁ π₂) <|
-    (bitPhase p f s π₁ π₂).bind fun _ => .done ⟨maskList p b f, pairList p b f⟩
+    (bitPhase p b f s π₁ π₂).bind fun _ => .done ⟨maskList p b f, pairList p b f⟩
   else .abort "kept reference out of range"
 
 /-- **`Masks.generate`** (malicious mode): the pool of `p.words` word masks and `255·p.bits` bit
@@ -361,15 +371,21 @@ theorem bucketPhase_reveals (p : Params) (b f : Nat) (π₁ π₂ : List Nat) :
       simp at hi; rcases hi with rfl | rfl <;> exact LabelIn.of_none rfl)
   · exact Every.abort _
 
-theorem bitPhase_reveals (p : Params) (f : Nat) (s : Slots) (π₁ π₂ : List Nat) :
-    Reveals generateKinds (bitPhase p f s π₁ π₂) := by
+theorem pairSlices_local (p : Params) (b : Nat) : ∀ i ∈ pairSlices p b, isLocal i = true := by
+  intro i hi
+  simp only [pairSlices, List.mem_flatMap, List.mem_map] at hi
+  obtain ⟨j, -, k, -, rfl⟩ := hi
+  rfl
+
+theorem bitPhase_reveals (p : Params) (b f : Nat) (s : Slots) (π₁ π₂ : List Nat) :
+    Reveals generateKinds (bitPhase p b f s π₁ π₂) := by
   unfold bitPhase
   split
   · exact Every.done _
   · refine every_seqs (every_seq (labelIn_mem (by decide) rfl) (every_seq (labelIn_mem (by decide) rfl)
       (every_openFieldThen (labelIn_mem (by decide) rfl) fun z => ?_))) _ (fun i hi => ?_)
     · split
-      · exact every_seq (labelIn_mem (by decide) rfl) (Every.done _)
+      · exact every_seq (labelIn_mem (by decide) rfl) (local_reveals (Every.done _) _ (pairSlices_local p b))
       · exact Every.abort _
     · simp only [coinInputs, List.mem_map] at hi
       obtain ⟨j, -, rfl⟩ := hi
@@ -380,7 +396,7 @@ theorem finishPhase_reveals (p : Params) (b f : Nat) (s : Slots) (π₁ π₂ : 
   unfold finishPhase
   refine local_reveals (every_openThen (labelIn_mem (by decide) rfl) fun fl => ?_) _ (finalBlock_local p b π₁ π₂)
   split
-  · exact local_reveals (Every.bind (bitPhase_reveals p f s π₁ π₂) (fun _ => Every.done _)) _
+  · exact local_reveals (Every.bind (bitPhase_reveals p b f s π₁ π₂) (fun _ => Every.done _)) _
       (maskBlock_local p b f π₁ π₂)
   · exact Every.abort _
 

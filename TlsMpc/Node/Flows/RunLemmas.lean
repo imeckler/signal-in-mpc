@@ -271,4 +271,38 @@ theorem jointRun_sayThen (E : Env) {α β : Type} (len : Nat) (l : Label) (bA bB
     (jointRun E (sayThen len l bA kA) (sayThen len l bB kB) σA σB I).ideal = (jointRun E (kA bB) (kB bA) σA σB I).ideal := by
   simp [sayThen, jointRun, fill, InstrP.map, InstrP.skel, Payload.eval, hA, hB, idealStep, Wire.part, absorb]
 
+/-! ## Program steps (`seq` of a `program` instruction: unit reply, releases its openings) -/
+
+theorem viewD_program (E : Env) (me : Party) (adv : Adversary) {α : Type} (name : Bytes) (copies : Nat)
+    (ins masks outs : List FieldH) (l : Label) (s : Script α) (σ : Store) (I : Ideal) (vD : List Release)
+    (L : List Release) (p : TlsMpc.FieldDag.V3.Program) (vi vm vo opened : List F)
+    (hp : E.programs name = some p) (hi : ins.mapM (fun h => I.fields h.id) = some vi)
+    (hm : masks.mapM (fun h => I.fields h.id) = some vm) (hr : runProgram p copies vi vm = some (vo, opened))
+    (hl : vo.length = outs.length)
+    (hk : (withAdv E me adv s σ (I.setFields outs vo) (vD ++ [⟨l, .elems opened⟩])).viewD <+: L) :
+    (withAdv E me adv (seq (.program name copies ins masks outs l) s) σ I vD).viewD <+: ⟨l, .elems opened⟩ :: L := by
+  simp only [seq, withAdv, fill, InstrP.map, Wire.early, Option.toList_none, List.append_nil]
+  split
+  · exact List.nil_prefix
+  · simp only [idealStep, hp, hi, hm, hr, hl, if_true, absorb, Option.toList_some, List.cons_append, List.nil_append]
+    exact List.cons_prefix_cons.mpr ⟨rfl, hk⟩
+
+theorem jointRun_program (E : Env) {α β : Type} (name : Bytes) (copies : Nat) (ins masks outs : List FieldH)
+    (l : Label) (sA : Script α) (sB : Script β) (σA σB : Store) (I : Ideal)
+    (p : TlsMpc.FieldDag.V3.Program) (vi vm vo opened : List F)
+    (hp : E.programs name = some p) (hi : ins.mapM (fun h => I.fields h.id) = some vi)
+    (hm : masks.mapM (fun h => I.fields h.id) = some vm) (hr : runProgram p copies vi vm = some (vo, opened))
+    (hl : vo.length = outs.length) :
+    (jointRun E (seq (.program name copies ins masks outs l) sA) (seq (.program name copies ins masks outs l) sB) σA σB I).result =
+      (jointRun E sA sB σA σB (I.setFields outs vo)).result ∧
+    (jointRun E (seq (.program name copies ins masks outs l) sA) (seq (.program name copies ins masks outs l) sB) σA σB I).ideal =
+      (jointRun E sA sB σA σB (I.setFields outs vo)).ideal := by
+  simp [seq, jointRun, fill, InstrP.map, InstrP.skel, idealStep, hp, hi, hm, hr, hl, absorb]
+
+/-- `mapM` of a function that always succeeds. -/
+theorem mapM_some {α β : Type} (g : α → β) (f : α → Option β) (h : ∀ a, f a = some (g a)) :
+    ∀ l : List α, l.mapM f = some (l.map g)
+  | [] => rfl
+  | a :: l => by simp [List.mapM_cons, h a, mapM_some g f h l]
+
 end TlsMpc.Node.Flows.Run
