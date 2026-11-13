@@ -59,8 +59,15 @@ structure Request where
   frame : B8
   mask : B8
 
+/-- The session's contact table as the runner holds it (`Flows/Runner.lean`: the table inside the
+one script state, so its counters `Table.ctr` are the session's ONE `Counters`, the same ones the
+runner's `allocB` draws from). -/
+structure TableRef where
+  get : M Contacts.Table
+  set : Contacts.Table → M Unit
+
 structure Refs (Sc : Type) where
-  table : IO.Ref Contacts.Table
+  table : TableRef
   account : IO.Ref Account.State
   requests : IO.Ref (List (Nat × Request))
   tls : TlsBackend.Refs Sc
@@ -75,7 +82,7 @@ def timestampOf (ts : B8) : Nat := Send.beNat ts
 /-- **Op 41** (`Flow.Send.seal`). -/
 def «seal» {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : ContactId) (built : Bytes) :
     M (Opened .sealedEnvelope (Option (Nat × List Bytes))) := do
-  let t ← get s.table
+  let t ← s.table.get
   let some e := t.find? contact | throw "send unavailable"
   let some state := e.state | throw "contact state not loaded"
   insist (e.kinds == [0]) "send unavailable"
@@ -89,14 +96,14 @@ def «seal» {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : Cont
   match res with
   | none => return Reveal.sealedEnvelope none
   | some sd =>
-    let t ← get s.table
-    set s.table (t.put contact { e with state := some sd.state })
+    let t ← s.table.get
+    s.table.set (t.put contact { e with state := some sd.state })
     return Reveal.sealedEnvelope (some (timestampOf sd.timestamp, sd.envelopes.map ofB8))
 
 /-- **Op 61** (`Flow.Send.sealDevices`); `address` is our own account's (17 bytes). -/
 def sealDevices {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : ContactId) (address built : Bytes)
     (devices : Nat) : M (Opened .sealedEnvelope (Option (Nat × List Bytes))) := do
-  let t ← get s.table
+  let t ← s.table.get
   let some e := t.find? contact | throw "send unavailable"
   let some state := e.state | throw "send unavailable"
   insist (e.kinds.length == devices && devices > 0) "send unavailable"
@@ -114,8 +121,8 @@ def sealDevices {Sc : Type} (r : Runner) (cv : Curve) (s : Refs Sc) (contact : C
   match res with
   | none => return Reveal.sealedEnvelope none
   | some sd =>
-    let t ← get s.table
-    set s.table (t.put contact { e with state := some sd.state })
+    let t ← s.table.get
+    s.table.set (t.put contact { e with state := some sd.state })
     return Reveal.sealedEnvelope (some (timestampOf sd.timestamp, sd.envelopes.map ofB8))
 
 /-- A fresh buffer id (shared with S12's buffers, so ids never collide). -/
@@ -134,7 +141,7 @@ def requestOk (cert size : Nat) (offsets : List Nat) : Bool :=
 /-- **Op 42** (`Flow.Send.request`). -/
 def request {Sc : Type} (r : Runner) (s : Refs Sc) (contact : ContactId) (offsets : List Nat) (mask frame : Bytes) :
     M TlsWorker.BufferHandle := do
-  let t ← get s.table
+  let t ← s.table.get
   let some e := t.find? contact | throw "request unavailable"
   let some state := e.state | throw "request unavailable"
   let (cert, certLen) ← certificate (← get s.account)
@@ -150,7 +157,7 @@ def request {Sc : Type} (r : Runner) (s : Refs Sc) (contact : ContactId) (offset
 two, then per device two) and the device count. -/
 def requestDevices {Sc : Type} (r : Runner) (s : Refs Sc) (contact : ContactId) (payloadAt : Nat) (offsets : List Nat)
     (devices : Nat) (mask frame : Bytes) : M TlsWorker.BufferHandle := do
-  let t ← get s.table
+  let t ← s.table.get
   let some e := t.find? contact | throw "request unavailable"
   let some state := e.state | throw "request unavailable"
   let some name := Send.devicesNameOf (toB8 frame) payloadAt offsets | throw "request unavailable"

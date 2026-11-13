@@ -63,6 +63,11 @@ inductive Operation where
   two values inserted. Payload: payload start 2, credential slot 2, recovery slot 2, mask 4,
   the count (1) and bytes of the public tail of `NUMBER:`, the frame. Reply: handle 8. -/
   | ceremonySecrets | ceremonyRegister
+  /- node_worker's own operations (REORGANIZATION_PLAN.md S8/S9): `closeConnection` (92) closes
+  the selected connection's server socket (`ServerOp::Close`); `batch` (93) is one batch of the
+  engine instruction set (`TlsMpc/Node/Engine.lean`: payload `encodeBatch`, reply
+  `encodeReplies`), sent only by the script runner (`TlsMpc/Node/Flows/Runner.lean`). -/
+  | closeConnection | batch
   deriving Repr, BEq
 
 structure Rpc where
