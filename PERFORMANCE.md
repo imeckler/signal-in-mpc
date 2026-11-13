@@ -544,7 +544,7 @@ Whole stages (seconds, the harness's `elapsed`; legacy column: the same stage al
 
 | stage | legacy | closed (scripts) |
 |---|---|---|
-| malicious `--runs 2 --signup` | (non-strict golden run; strict needed K8-style manifest lines, see PROOF_GAPS J27) | 178.8 |
+| malicious `--runs 2 --signup` | 168.4 (non-strict golden run; legacy strict fails on the local set's missing 2224 signup kernels, PROOF_GAPS J27) | 178.8 |
 | malicious `--runs 0 --db` | 215.5 (non-strict) | 226.7 |
 | malicious `--runs 1 --db` | 239.5 (strict) | 274.2 |
 | compact signup `--devices 3` (libsignal) | 72.7 (receive 10.1, send 42.4) | 87.3 (receive 13.8, send 52.8) |
