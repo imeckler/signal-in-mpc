@@ -280,6 +280,161 @@ theorem Agree.fieldInput {α : Type} {Q : α → Store → Ideal → Store → I
 
 end
 
+/-! ## Runs that returned: what each step did (for "if the run does not abort, then …")
+
+`Ret o x J`: the run returned `x` and left the engines in state `J`. Each lemma peels one
+combinator off a run that returned, against any adversary: the step succeeded in the
+functionality, and the rest of the run returned the same from the state the step left (with some
+adversary view, which these statements do not track). -/
+
+/-- The run returned `x` with the engines in state `J`. -/
+def Ret {α : Type} (o : Outcome α) (x : α) (J : Ideal) : Prop := o.result = some x ∧ o.ideal = J
+
+section Returned
+
+variable (E : Env) (me : Party) (adv : Adversary)
+
+theorem ret_step {α : Type} (i : Instr) (k : Reply → Script α) (σ : Store) (I : Ideal) (vD : List Release)
+    (x : α) (J : Ideal) (h : Ret (withAdv E me adv (.step i k) σ I vD) x J) :
+    ∃ w part I1 toH toD, fill E.hash me σ i = some w ∧ idealStep E me w part I = some (I1, toH, toD) ∧
+      Ret (withAdv E me adv (k (absorb E.hash me i σ toH).1) (absorb E.hash me i σ toH).2 I1 (vD ++ toD.toList))
+        x J := by
+  unfold Ret at h ⊢
+  simp only [withAdv] at h
+  revert h
+  split
+  · simp
+  · next w hw =>
+    split
+    · simp
+    · next part hp =>
+      split
+      · simp
+      · next I1 toH toD hst =>
+        intro h
+        exact ⟨w, part, I1, toH, toD, hw, hst, h⟩
+
+theorem ret_done {α : Type} (a : α) (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal)
+    (h : Ret (withAdv E me adv (.done a) σ I vD) x J) : x = a ∧ J = I := by
+  obtain ⟨h1, h2⟩ := h
+  simp only [withAdv, Option.some.injEq] at h1 h2
+  exact ⟨h1.symm, h2.symm⟩
+
+theorem ret_ite {α : Type} (c : Bool) (s : Script α) (r : String) (σ : Store) (I : Ideal) (vD : List Release)
+    (x : α) (J : Ideal) (h : Ret (withAdv E me adv (if c then s else .abort r) σ I vD) x J) :
+    c = true ∧ Ret (withAdv E me adv s σ I vD) x J := by
+  cases c
+  · obtain ⟨h1, -⟩ := h
+    simp [withAdv] at h1
+  · exact ⟨rfl, h⟩
+
+theorem ret_locals {α : Type} (s : Script α) (σ : Store) (x : α) (J : Ideal) :
+    ∀ (is : List Instr), (∀ i ∈ is, isLocal i = true) → ∀ (I : Ideal) (vD : List Release),
+    Ret (withAdv E me adv (seqs is s) σ I vD) x J →
+    ∃ I', runLocal E is I = some I' ∧ Ret (withAdv E me adv s σ I' vD) x J
+  | [], _, I, vD, h => ⟨I, rfl, h⟩
+  | i :: is, hp, I, vD, h => by
+    have hi := hp i (by simp)
+    obtain ⟨w, part, I1, toH, toD, hw, hst, hk⟩ := ret_step E me adv i _ σ I vD x J h
+    rw [fill_local _ _ _ i hi, Option.some.injEq] at hw
+    subst hw
+    rw [idealStep_local E me _ I i hi] at hst
+    cases hs : localStep E i I with
+    | none => rw [hs] at hst; cases hst
+    | some I' =>
+      rw [hs] at hst
+      simp only [Option.map_some, Option.some.injEq, Prod.mk.injEq] at hst
+      obtain ⟨rfl, rfl, rfl⟩ := hst
+      rw [absorb_none, Option.toList_none, List.append_nil] at hk
+      obtain ⟨I'', h1, h2⟩ := ret_locals s σ x J is (fun j hj => hp j (by simp [hj])) I' vD hk
+      exact ⟨I'', by simp [runLocal, hs, h1], h2⟩
+
+theorem ret_openThen {α : Type} (h0 : BoolH) (l : Label) (k : Bits → Script α) (σ : Store) (I : Ideal)
+    (vD : List Release) (x : α) (J : Ideal) (h : Ret (withAdv E me adv (openThen h0 l k) σ I vD) x J) :
+    ∃ v vD', I.bools h0.id = some v ∧ Ret (withAdv E me adv (k v) σ I vD') x J := by
+  obtain ⟨w, part, I1, toH, toD, hw, hst, hk⟩ := ret_step E me adv _ _ σ I vD x J h
+  simp only [fill, InstrP.map, Option.some.injEq] at hw
+  subst hw
+  simp only [idealStep] at hst
+  cases hv : I.bools h0.id with
+  | none => rw [hv] at hst; cases hst
+  | some v =>
+    rw [hv] at hst
+    simp only [Option.some.injEq, Prod.mk.injEq] at hst
+    obtain ⟨rfl, rfl, rfl⟩ := hst
+    exact ⟨v, _, rfl, hk⟩
+
+theorem ret_openFieldThen {α : Type} (hs : List FieldH) (l : Label) (k : List F → Script α) (σ : Store) (I : Ideal)
+    (vD : List Release) (x : α) (J : Ideal) (h : Ret (withAdv E me adv (openFieldThen hs l k) σ I vD) x J) :
+    ∃ v vD', hs.mapM (fun g => I.fields g.id) = some v ∧ Ret (withAdv E me adv (k v) σ I vD') x J := by
+  obtain ⟨w, part, I1, toH, toD, hw, hst, hk⟩ := ret_step E me adv _ _ σ I vD x J h
+  simp only [fill, InstrP.map, Option.some.injEq] at hw
+  subst hw
+  simp only [idealStep] at hst
+  cases hv : hs.mapM (fun g => I.fields g.id) with
+  | none => rw [hv] at hst; cases hst
+  | some v =>
+    rw [hv] at hst
+    simp only [Option.some.injEq, Prod.mk.injEq] at hst
+    obtain ⟨rfl, rfl, rfl⟩ := hst
+    exact ⟨v, _, rfl, hk⟩
+
+theorem ret_program {α : Type} (name : Bytes) (copies : Nat) (ins masks outs : List FieldH) (l : Label)
+    (s : Script α) (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal)
+    (h : Ret (withAdv E me adv (seq (.program name copies ins masks outs l) s) σ I vD) x J) :
+    ∃ p vi vm vo opened vD', E.programs name = some p ∧ ins.mapM (fun g => I.fields g.id) = some vi ∧
+      masks.mapM (fun g => I.fields g.id) = some vm ∧ runProgram p copies vi vm = some (vo, opened) ∧
+      Ret (withAdv E me adv s σ (I.setFields outs vo) vD') x J := by
+  obtain ⟨w, part, I1, toH, toD, hw, hst, hk⟩ := ret_step E me adv _ _ σ I vD x J h
+  simp only [fill, InstrP.map, Option.some.injEq] at hw
+  subst hw
+  obtain ⟨p, vi, vm, vo, opened, h1, h2, h3, h4, -, rfl, rfl, rfl⟩ :=
+    idealStep_program E me name copies ins masks outs l part I I1 toH toD hst
+  exact ⟨p, vi, vm, vo, opened, _, h1, h2, h3, h4, hk⟩
+
+theorem ret_fieldInput {α : Type} (oa ob : List FieldH) (kd : FieldIn) (rev : Bool) (slot : Nat) (s : Script α)
+    (σ : Store) (I : Ideal) (vD : List Release) (x : α) (J : Ideal) (hab : oa.length = ob.length)
+    (h : Ret (withAdv E me adv (seq (.fieldInput oa ob kd rev slot) s) σ I vD) x J) :
+    ∃ pe, pe.length = oa.length ∧ (σ.elems slot).length = oa.length ∧
+      Ret (withAdv E me adv s σ (bothFields me I oa ob (σ.elems slot) pe) vD) x J := by
+  obtain ⟨w, part, I1, toH, toD, hw, hst, hk⟩ := ret_step E me adv _ _ σ I vD x J h
+  simp only [fill] at hw
+  split at hw
+  · next hf =>
+    simp only [Option.some.injEq] at hw
+    subst hw
+    cases me
+    · simp only [idealStep, if_true] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part.elems, by rw [hab]; exact hc.2.1, hf.1, by simpa [absorb, bothFields] using hk⟩
+      · cases hst
+    · simp only [idealStep, reduceCtorEq, if_false] at hst
+      split at hst
+      · next hc =>
+        simp only [Option.some.injEq, Prod.mk.injEq] at hst
+        obtain ⟨rfl, rfl, rfl⟩ := hst
+        exact ⟨part.elems, hc.1, hf.1, by simpa [absorb, bothFields] using hk⟩
+      · cases hst
+  · cases hw
+
+theorem ret_bind {α β : Type} (s : Script α) (f : α → Script β) (σ : Store) (I : Ideal) (vD : List Release)
+    (y : β) (J : Ideal) (h : Ret (withAdv E me adv (s.bind f) σ I vD) y J) :
+    ∃ a vD', (withAdv E me adv s σ I vD).result = some a ∧
+      Ret (withAdv E me adv (f a) (withAdv E me adv s σ I vD).store (withAdv E me adv s σ I vD).ideal vD') y J := by
+  unfold Ret at h ⊢
+  rw [withAdv_bind] at h
+  revert h
+  cases hr : (withAdv E me adv s σ I vD).result with
+  | none => simp [Outcome.stop]
+  | some a =>
+    intro h
+    exact ⟨a, _, rfl, h⟩
+
+end Returned
+
 /-! ## `Random.joint` and `Random.challenge` read only two byte slots -/
 
 section Joint
