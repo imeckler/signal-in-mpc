@@ -153,6 +153,13 @@ contact's state cannot produce a message, else the timestamp and the envelope pe
 server. Bound: `signalSealBuilt_spec`, `signalSeal_value`, `sealValue_accepted`. -/
 def sealedEnvelope (sealed : Option (Nat × List Bytes)) : Opened .sealedEnvelope (Option (Nat × List Bytes)) := ⟨sealed⟩
 
+/-- **`ephemeralPublic`** (inside ops 41, 61: the send's curve half, `Flows/JoinBackend.lean`
+`sendCurve`, S11's offset step): a message's ephemeral X25519 public key u(K₀ + τ·B), 32 bytes,
+public in the sealed-sender envelope. Bound: `Curve.ephemeralKey_spec` (`s11_ephemeralKey`: a
+function of the public K₀ and the joint public offset τ only). Added when the stages were joined
+(`scripts-stack`). -/
+def ephemeralPublic (key : Bytes) : Opened .ephemeralPublic Bytes := ⟨key⟩
+
 /-- **`prepareStatus`** (`Flow.Curve.prepareContacts`, op 66): one status byte per contact.
 Bound: none yet (SECURITY_MAP D). -/
 def prepareStatus (statuses : Bytes) : Opened .prepareStatus Bytes := ⟨statuses⟩
