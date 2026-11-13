@@ -686,22 +686,46 @@ The decrypted content is a Signal `Content` whose first field is a
 `DataMessage` whose first field is the body: `0A len (0A len body …) …`. Only
 the body is released (a data message also carries the sender's profile key). -/
 
+/-- The value `low mod 128 + 128 · high` of a varint of at most two bytes (its first byte `low`,
+its second byte `high`, or 0 when it has one byte) as two big-endian bytes. No gates. -/
+def decodeLength (a : ByteAuth.Ops B) (low high : B) : List B :=
+  [(List.range 7).foldl (fun acc k => a.xor acc (a.and (a.maskBit high (k + 1)) (a.const (2 ^ k)))) (a.const 0),
+    a.xor (a.and low (a.const 127)) (a.and (a.maskBit high 0) (a.const 128))]
+
+/-- `xs + carry` on big-endian bit masks (`carry` a mask), and the carry out of the top bit. -/
+def incBits (a : ByteAuth.Ops B) : List B → B → List B × B
+  | [], carry => ([], carry)
+  | x :: xs, carry =>
+      let r := incBits a xs carry
+      (a.xor x r.2 :: r.1, a.and x r.2)
+
 /-- Status (1), body length (2, big endian), body (`capacity` bytes, zero
 beyond the length), and three flags saying whether the body starts at offset
 4, 5 or 6 of the content (the widths of the two length prefixes). `plain` is
-the session's fourth result. Zero unless the content has that form and the
-body fits. -/
+the session's fourth result. Zero unless the content has that form, the
+DataMessage's length prefix has at most two bytes, the body lies inside the
+DataMessage (`2 + w₁ + w₂ + len₂ ≤ 1 + w₁ + len₁`, i.e. `len₂ + w₂ + 1 ≤ len₁`), the
+DataMessage lies inside the content, and the body fits. -/
 def text (a : ByteAuth.Ops B) (capacity : Nat) (plain : List B) : List (List B) :=
   let c := plain.drop 8
   let wide := top a (OpenResult.get a c 1)
   let low := Unpad.chooseByte a wide (OpenResult.get a c 4) (OpenResult.get a c 3)
   let long := top a low
   let high := a.and long (Unpad.chooseByte a wide (OpenResult.get a c 5) (OpenResult.get a c 4))
-  let length := [(List.range 7).foldl (fun acc k => a.xor acc (a.and (a.maskBit high (k + 1)) (a.const (2 ^ k)))) (a.const 0),
-    a.xor (a.and low (a.const 127)) (a.and (a.maskBit high 0) (a.const 128))]
+  let length := decodeLength a low high
+  -- the DataMessage's length `len₁` (its second byte only when the first has the continuation bit)
+  let outer := decodeLength a (OpenResult.get a c 1) (a.and wide (OpenResult.get a c 2))
+  -- `len₂ + w₂` (`w₂` is 1, or 2 when `long`) must be below `len₁`
+  let inner := (incBits a (incBits a (maskBits a length) long).1 (a.const 255)).1
+  let inside := (compareBits a inner (maskBits a outer) (a.const 0) (a.const 255)).1
+  -- `1 + w₁ + len₁ ≤ c.length` (always true when `c.length ≥ 16386`)
+  let fits := whenever a (decide (c.length < 16386))
+    (either a (atMost a outer (lit a [(c.length - 3) / 256 % 256, (c.length - 3) % 256]))
+      (a.and (a.not wide) (atMost a outer (lit a [(c.length - 2) / 256 % 256, (c.length - 2) % 256]))))
   let ok := all a [ByteAuth.eqMask a (OpenResult.get a c 0) (a.const 10),
     ByteAuth.eqMask a (Unpad.chooseByte a wide (OpenResult.get a c 3) (OpenResult.get a c 2)) (a.const 10),
-    a.not (top a high), atMost a length (lit a [capacity / 256 % 256, capacity % 256])]
+    a.not (top a high), atMost a length (lit a [capacity / 256 % 256, capacity % 256]),
+    a.not (a.and wide (top a (OpenResult.get a c 2))), inside, fits]
   [[ok], ByteAuth.release a ok length,
     (List.range capacity).map (fun i => all a [ok, a.not (atMost a length (lit a [i / 256 % 256, i % 256])),
       pick a [(a.and (a.not wide) (a.not long), OpenResult.get a c (4 + i)), (a.xor wide long, OpenResult.get a c (5 + i)),
@@ -939,17 +963,41 @@ theorem session_map (ho : AesInverse.Hom o o' f) (hs : Sha256.Hom s s' f fw) (ha
     MessageMac.verifyMask_map hs ha, Establish.session_map ha, Establish.metadata_map ha,
     ChainSend.nextCounter_map hs ha]
 
-theorem text_map (ha : ByteAuth.Hom a a' f) (capacity : Nat) (plain : List B) :
-    (text a capacity plain).map (List.map f) = text a' capacity (plain.map f) := by
-  have length (high : B) :
+theorem decodeLength_map (ha : ByteAuth.Hom a a' f) (low high : B) :
+    (decodeLength a low high).map f = decodeLength a' (f low) (f high) := by
+  have length :
       f ((List.range 7).foldl (fun acc k => a.xor acc (a.and (a.maskBit high (k + 1)) (a.const (2 ^ k)))) (a.const 0)) =
         (List.range 7).foldl (fun acc k => a'.xor acc (a'.and (a'.maskBit (f high) (k + 1)) (a'.const (2 ^ k))))
           (a'.const 0) := by
     rw [foldl_hom (f := f) _ (fun acc k => a'.xor acc (a'.and (a'.maskBit (f high) (k + 1)) (a'.const (2 ^ k))))
       (fun acc x => by simp only [ha.xor, ha.and, ha.maskBit, ha.const]), ha.const]
+  simp only [decodeLength, List.map_cons, List.map_nil, length, ha.xor, ha.and, ha.maskBit, ha.const]
+
+theorem incBits_map (ha : ByteAuth.Hom a a' f) (xs : List B) (carry : B) :
+    (incBits a xs carry).1.map f = (incBits a' (xs.map f) (f carry)).1 ∧
+      f (incBits a xs carry).2 = (incBits a' (xs.map f) (f carry)).2 := by
+  induction xs with
+  | nil => exact ⟨rfl, rfl⟩
+  | cons x xs ih =>
+      simp only [incBits, List.map_cons, ha.xor, ha.and, ih.1, ih.2, and_self]
+
+theorem incBits_fst_map (ha : ByteAuth.Hom a a' f) (xs : List B) (carry : B) :
+    (incBits a xs carry).1.map f = (incBits a' (xs.map f) (f carry)).1 := (incBits_map ha xs carry).1
+
+theorem incBits_snd_map (ha : ByteAuth.Hom a a' f) (xs : List B) (carry : B) :
+    f (incBits a xs carry).2 = (incBits a' (xs.map f) (f carry)).2 := (incBits_map ha xs carry).2
+
+theorem compareBits_fst_map (ha : ByteAuth.Hom a a' f) (xs ys : List B) (less equal : B) :
+    f (compareBits a xs ys less equal).1 = (compareBits a' (xs.map f) (ys.map f) (f less) (f equal)).1 := by
+  rw [← compareBits_map ha]
+
+theorem text_map (ha : ByteAuth.Hom a a' f) (capacity : Nat) (plain : List B) :
+    (text a capacity plain).map (List.map f) = text a' capacity (plain.map f) := by
   simp only [text, List.map_cons, List.map_nil, List.map_map, Function.comp_def, ByteAuth.release_map ha, all_map ha,
     ByteAuth.eqMask_map ha, OpenResult.get_map ha, List.map_drop, ha.const, Unpad.chooseByte_map ha, top_map ha,
-    ha.not, ha.and, ha.xor, ha.maskBit, atMost_map ha, lit_map ha, pick_map ha, length]
+    ha.not, ha.and, ha.xor, ha.maskBit, atMost_map ha, lit_map ha, pick_map ha, decodeLength_map ha,
+    compareBits_fst_map ha, incBits_fst_map ha, maskBits_map ha, whenever_map ha, either_map ha,
+    List.length_map, List.length_drop]
 
 end Refinement
 

@@ -1,6 +1,8 @@
 import TlsMpc.FlatLowering
+import TlsMpc.FlatKernelLayout
 import TlsMpc.CeremonyKernels
 open TlsMpc Std.Tactic.BVDecide
+open TlsMpc.FlatKernelLayout (lowerKernel layoutText)
 
 /-! The ceremony kernels of `TlsMpc/CeremonyKernels.lean` as flat gate lists.
 
@@ -8,50 +10,10 @@ open TlsMpc Std.Tactic.BVDecide
 
 prints `INPUT_BITS OUTPUT_BITS AND_GATES GATES`. An executable of its own (as
 `EmitKemKernel.lean` was) so that adding these kernels does not change `flat_kernel_emitter`,
-whose hash keys the cache of every other circuit; `selection`, `layoutText` and `lowerKernel`
-are copied from `EmitFlatKernel.lean` unchanged. `circuit_cache.py` sends kernel names that
-start with `ceremony-` here. -/
-
-def selection (fields : List HybridKernel.Output) (byteCount : Nat) :
-    Except String (Array (Fin (8 * byteCount))) := do
-  let mut chosen : Array (Fin (8 * byteCount)) := #[]
-  let mut offset := 0
-  for field in fields do
-    unless field.bits ≤ 8 * field.value.length && 0 < field.bits do
-      throw s!"output field {field.name} width"
-    for bit in List.range field.bits do
-      let i := 8 * offset + bit
-      if h : i < 8 * byteCount then
-        chosen := chosen.push ⟨8 * (byteCount - 1 - i / 8) + i % 8, by omega⟩
-      else throw "output index"
-    offset := offset + field.value.length
-  pure chosen
-
-def fieldName (name : String) : Bool := !name.isEmpty && name.all Char.isAlphanum
-
-def layoutText (k : HybridKernel.Kernel) : String :=
-  let inputs := k.inputs.map fun f => s!"I {f.1} {f.2.bits}\n"
-  let outputs := k.outputs.map fun f =>
-    let opened := if f.audience == 1 then 2 else if f.audience == 2 then 3 else if f.opened then 1 else 0
-    s!"O {f.name} {f.bits} {opened}\n"
-  "EMP_HYBRID_KERNEL_LAYOUT_V1\n" ++ String.join inputs ++ String.join outputs
-
-def lowerKernel (k : HybridKernel.Kernel) : Except String FlatLowering.Flat := do
-  let bytes := k.outputs.flatMap (·.value)
-  let chosen ← selection k.outputs bytes.length
-  let widths := (k.inputs.flatMap fun f => match f.2 with
-    | .bytes count => List.replicate count 8
-    | .word => [255]).toArray
-  let names := k.inputs.map (·.1)
-  unless names.eraseDups.length == names.length &&
-      (k.outputs.map (·.name)).eraseDups.length == k.outputs.length do
-    throw "duplicate field name"
-  unless names.all fieldName && k.outputs.all (fieldName ·.name) do throw "field name"
-  let flat ← FlatLowering.lowerExpr (ByteCircuit.joinExpr bytes) widths chosen
-  unless (k.inputs.map (·.2.bits)).foldl (· + ·) 0 == flat.inputs &&
-      (k.outputs.map (·.bits)).foldl (· + ·) 0 == flat.outputs.size do
-    throw "kernel layout"
-  pure flat
+whose hash keys the cache of every other circuit; `lowerKernel` and `layoutText` are the shared
+ones of `TlsMpc/FlatKernelLayout.lean` (they were copies; same output, now with
+`FlatKernelLayout.lowerKernel_loaded`). `circuit_cache.py` sends kernel names that start with
+`ceremony-` here. -/
 
 def main (args : List String) : IO Unit := do
   let flatPath :: layoutPath :: "kernel" :: rest := args

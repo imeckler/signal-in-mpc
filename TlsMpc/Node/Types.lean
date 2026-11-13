@@ -23,10 +23,9 @@ peer. A value of type `Opened r α` can only be made by `r`'s function in `Revea
 docstring says which flow produces it, what it reveals, and the theorem that bounds it.
 
 **Codes.** Each kind has a fixed numeric `code` (`RevealKind.code`, grouped by tens). The engine's
-release labels (`TlsMpc/Node/Engine/Labels.lean`, stage S9, provisional codes today) must map to
-these codes: one label per kind, the label's code being `RevealKind.code` of its kind. That file
-is not imported here on purpose (it is being written concurrently); the two are reconciled after
-stage S6. Codes are never reused; a new kind takes a new code. -/
+release labels are these codes: `TlsMpc/Node/Engine/Labels.lean` imports this file and
+`Label.ofKind k = ⟨k.code⟩` is each kind's label (`Label.ofKind_inj`). Codes are never reused; a new
+kind takes a new code. -/
 inductive RevealKind where
   -- TLS (codes 1-19)
   /-- The client's X25519 key share and hello random (op 1, `begin`). -/

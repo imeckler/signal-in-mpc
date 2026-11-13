@@ -130,7 +130,9 @@ def stop(p):
 def session(run, label, server, export_dir, auth, work, hosts, party_env, common, timeout, during=None):
     """One two-party session; both controllers' outputs kept under the run directory."""
     sh = run.mode == 'semi-honest'
-    worker = BASE / ('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3')
+    # node_worker for the mode (production variant when strict), or the C++ worker with
+    # SIGNAL_WORKER=legacy (check_signal_service_local.worker_binary).
+    worker = harness.worker_binary(run.mode, strict='CIRCUIT_MANIFEST' in common)
     port = 22700 if sh else 22600
     session_id = secrets.token_hex(32)
     processes, logs = [], []
@@ -206,9 +208,15 @@ def main():
     problems = []
     if hours_left < 2:
         problems.append(f'the sender certificate expires in {hours_left:.1f} hours: refresh it first')
-    for path in (CONTROLLER, LSS, BASE / 'tls-worker-fixture-v3', Path(server['tls_trust_root_pem'])):
+    legacy = os.environ.get('SIGNAL_WORKER', 'node') == 'legacy'
+    workers = [BASE / 'tls-worker-fixture-v3', BASE / 'tls-worker-sh-fixture-v3'] if legacy else \
+        [ROOT / 'node_worker/target' / v / 'release/node-worker' for v in ('v3', 'sh-v3', 'v3-test', 'sh-v3-test')]
+    for path in (CONTROLLER, LSS, Path(server['tls_trust_root_pem'])):
         if not Path(path).exists():
             problems.append(f'missing {path}')
+    if not legacy and a.target == 'production' and not a.manifest:
+        problems.append('production with node_worker needs --manifest: its production build loads only pinned circuits '
+                        '(the -test build that also loads unpinned ones is never pointed at Signal\'s service)')
     if a.manifest and not Path(a.manifest).exists():
         problems.append(f'missing manifest {a.manifest}')
     previous, contact = None, None
@@ -235,7 +243,8 @@ def main():
                 deployment_hints=hints, certificate_hours_left=round(hours_left, 1), sealed_sender_server_key_id=export['sealed_sender_server']['key_id'],
                 environment={k: v for k, v in common.items()}, git_head=git('rev-parse', 'HEAD'),
                 git_dirty_files=git('status', '--porcelain').count('\n') + 1, git_diff_sha256=hashlib.sha256(git('diff').encode()).hexdigest(),
-                binaries={str(path): sha256(path) for path in (CONTROLLER, LSS, BASE / 'tls-worker-fixture-v3', BASE / 'tls-worker-sh-fixture-v3')},
+                worker='legacy' if legacy else 'node',
+                binaries={str(path): sha256(path) for path in (CONTROLLER, LSS, *workers)},
                 problems=problems, wait_minutes=a.wait_minutes)
     (run.dir / 'plan.json').write_text(json.dumps(plan, indent=1) + '\n')
     run.log('plan', directory=str(run.dir), problems=problems, certificate_hours_left=round(hours_left, 1))

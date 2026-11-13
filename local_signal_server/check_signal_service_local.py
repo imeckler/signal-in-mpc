@@ -52,6 +52,22 @@ def lss(*args, capture=False):
     return r.stdout if capture else None
 
 
+def worker_binary(mode, strict=None):
+    """The worker the controllers spawn (REORGANIZATION_PLAN.md S8). Default: node_worker's
+    binary for the mode, built here (node_worker/build.sh: quick when up to date; it needs the
+    engine library of the same variant, build_hybrid_v3.py --engine-abi): the production variant
+    when the sessions are strict (CIRCUIT_MANIFEST), else the -test variant, which also loads
+    unpinned circuits as the C++ fixture does. SIGNAL_WORKER=legacy (--worker legacy, an agreed
+    controller setting, Config.lean): the C++ tls-worker*-fixture-v3, for one more stage."""
+    sh = mode == 'semi-honest'
+    if os.environ.get('SIGNAL_WORKER', 'node') == 'legacy':
+        return ROOT / '.deps/two-party-comparison' / ('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3')
+    strict = bool(os.environ.get('CIRCUIT_MANIFEST')) if strict is None else strict
+    variant = ('sh-v3' if sh else 'v3') + ('' if strict else '-test')
+    run(['bash', ROOT / 'node_worker/build.sh', variant])
+    return ROOT / 'node_worker/target' / variant / 'release/node-worker'
+
+
 def receive(name, seconds=15):
     out = lss('receive', name, str(seconds), capture=True)
     return [json.loads(line) for line in out.splitlines() if line.startswith('{')]
@@ -131,17 +147,19 @@ def run_mpc(export, mode, texts, party_env=None, during=None, endpoint='127.0.0.
     hosts = output / 'hosts'
     hosts.write_text('127.0.0.1\n' * 2)
     session = secrets.token_hex(32)
-    worker = base / ('tls-worker-sh-fixture-v3' if sh else 'tls-worker-fixture-v3')
+    worker = worker_binary(mode)
     controller = ROOT / '.lake/build/bin/public_service_controller'
     trust = STATE / 'tls' / 'ca.pem'
     port = 22300 if sh else 22200
     processes, logs, cases = [], [], []
     # TEST (--link-delay-ms): every link between the two workers through the delay relay. The
-    # connecting worker dials PORT + shift (TLS_WORKER_TEST_LINK_SHIFT), where the relay listens.
+    # connecting worker dials PORT + shift (TLS_WORKER_TEST_LINK_SHIFT), where the relay listens:
+    # the Boolean engine's PORT, the field engine's PORT+10 and node_worker's control link PORT+20.
     relay, link_delay = None, float(os.environ.get('SIGNAL_LINK_DELAY_MS', '0'))
     if link_delay > 0:
         shift = 40
-        relay = subprocess.Popen([str(base / 'delay-relay'), str(link_delay), f'{port + shift}:{port}', f'{port + 10 + shift}:{port + 10}'],
+        relay = subprocess.Popen([str(base / 'delay-relay'), str(link_delay), f'{port + shift}:{port}', f'{port + 10 + shift}:{port + 10}',
+                                  f'{port + 20 + shift}:{port + 20}'],
                                  stderr=open(output / 'delay-relay.log', 'w'))
         env['TLS_WORKER_TEST_LINK_SHIFT'] = str(shift)
     # --record DIR: each session's SIGNAL_RECORD, per party, numbered in the order the sessions
@@ -509,7 +527,7 @@ def run_ceremony(mode, texts):
             nodes[party].mkdir(parents=True)
             config = dict(
                 party=party, state_directory=str(directory / f'node-{party}'), controller=str(controller),
-                worker=dict(binary=str(base / ('tls-worker-sh-fixture-v3' if mode == 'semi-honest' else 'tls-worker-fixture-v3')),
+                worker=dict(binary=str(worker_binary(mode, strict=False)),
                             send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
                             hosts=['127.0.0.1', '127.0.0.1'], port_base=23400),
                 circuits=dict(tool=str(CACHE), manifest=None),
@@ -518,7 +536,8 @@ def run_ceremony(mode, texts):
                 database=dict(client=str(cluster.BIN / 'handoff_client'), network=str(cluster.network),
                               key=str(cluster.config / f'compute-nodes/{party}/key.json')),
                 test=dict(export=str(EXPORT), tokens=str(cluster.dir / 'tokens'), kem_tool=str(tool)),
-                environment=dict(DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000'))
+                environment=dict(DYLD_LIBRARY_PATH=str(mp), TLS_WORKER_FIELD_BATCH='3000',
+                                 SIGNAL_WORKER=os.environ.get('SIGNAL_WORKER', 'node')))
             (directory / f'node-{party}.json').write_text(json.dumps(config, indent=1))
         # A. The operator's inputs: number, captcha and keys on node 0; the code on node 1.
         lss('ceremony-keys', name, nodes[0] / 'keys.json')
@@ -629,7 +648,7 @@ class AppNodes:
                 party=party, listen=addresses[party], peer_listen=self.PEER_ADDRESSES[party], peer=self.PEER_ADDRESSES[1 - party],
                 peer_key_file=str(directory / 'peer.key'),
                 state_directory=str(directory / f'node-{party}'), controller=str(ROOT / '.lake/build/bin/public_service_controller'),
-                worker=dict(binary=str(base / ('tls-worker-sh-fixture-v3' if mode == 'semi-honest' else 'tls-worker-fixture-v3')),
+                worker=dict(binary=str(worker_binary(mode)),
                             send_directory=str(directory / 'worker-send'), receive_directory=str(directory / 'worker-receive'),
                             hosts=['127.0.0.1', '127.0.0.1'], port_base=23000),
                 circuits=dict(tool=str(CACHE), manifest=os.environ.get('CIRCUIT_MANIFEST')),
@@ -638,7 +657,8 @@ class AppNodes:
                 database=dict(client=str(cluster.BIN / 'handoff_client'), network=str(cluster.network),
                               key=str(cluster.config / f'compute-nodes/{party}/key.json')),
                 test=dict(export=str(EXPORT), tokens=str(cluster.dir / 'tokens'), kem_tool=str(tool)),
-                environment=dict(DYLD_LIBRARY_PATH=str(base / 'data61-MP-SPDZ-113c4e4'), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG)),
+                environment=dict(DYLD_LIBRARY_PATH=str(base / 'data61-MP-SPDZ-113c4e4'), TLS_WORKER_FIELD_BATCH='3000', CIRCUIT_CACHE_LOG=str(KERNEL_LOG),
+                                 SIGNAL_WORKER=os.environ.get('SIGNAL_WORKER', 'node')),
                 timeouts=dict(send_seconds=360, send_seconds_per_id=30),
                 send_session=dict(send_session or {}))
             (directory / f'node-{party}.json').write_text(json.dumps(config, indent=1))
@@ -1599,7 +1619,11 @@ def main():
                    'openings sent by both workers at once (one message delay per round instead of two)')
     p.add_argument('--record', help='write each session\'s SIGNAL_RECORD per party into this (new or empty) directory, '
                    'session-NN-party-P.jsonl: what scripts/compare_records.py compares (REORGANIZATION_PLAN.md, test set D)')
+    p.add_argument('--worker', choices=['node', 'legacy'], default=os.environ.get('SIGNAL_WORKER', 'node'),
+                   help='node (default): node_worker; legacy: the C++ tls-worker*-fixture-v3 (SIGNAL_WORKER=legacy, '
+                   'an agreed controller setting), kept for one more stage to compare the two (REORGANIZATION_PLAN.md S8)')
     a = p.parse_args()
+    os.environ['SIGNAL_WORKER'] = a.worker
     if a.record:
         Path(a.record).mkdir(parents=True, exist_ok=True)
         if any(Path(a.record).iterdir()):

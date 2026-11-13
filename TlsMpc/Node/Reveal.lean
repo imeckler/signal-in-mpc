@@ -24,12 +24,12 @@ Later they become the script openings; the list itself does not change.
 | `sealedRecord` (7) | `Flow.Tls.application` (ops 13, 14) | a sealed record (header, ciphertext, tag), sent to the server | `tlsRecord_sealCore_compiled`, `tlsSealCtr_spec`, `gcmTag_spec` |
 | `serverBytes` (8) | `Flow.Tls.recordLength`, `Flow.Tls.revealRange` (op 43) | bytes of an authenticated server record, and its length; the caller keeps to T1's budget (`PublicReceive.mayReveal`, `budget`) | `tlsRevealMasked_value`; T1: `receivePolicy_request_body_unrevealed`, `receivePolicy_response_body_unrevealed` (section 4f; T1 for all streams open, section 8) |
 | `ghashMaskedPower` (9) | declared (S12) | | `ghash_share_hides` |
-| `jointRandom` (20) | `Flow.Random.joint` (op 33) | 32 bytes of joint randomness (masks, nonces, request masks) | the S9 script: `prand_a_honest`, `prand_b_ideal`; the legacy op: none (SECURITY_MAP D) |
+| `jointRandom` (20) | `Flow.Random.joint` (op 33) | 32 bytes of joint randomness (masks, nonces, request masks) | the S9 script: `prand_a_honest`, `prand_b_ideal`; the legacy op: none (SECURITY_MAP D). In the script version it is never a label on the wire: the controller computes it from the `commitment`/`commitOpening` (100/101) releases |
 | `parity` (21) | declared: `Channels.exchange` (`PeerMsg.parity`) | the database read's parity shares (trusted, designed public) | none (SECURITY_MAP D) |
-| `upgradeNonce` (22) | `Flow.Upgrade.anonymous` (op 45) | the unauthenticated upgrade's nonce (joint randomness) and its RFC 6455 accept value | the S9 script: `upgrade_honest`; `wsAccept_accept_spec` |
+| `upgradeNonce` (22) | `Flow.Upgrade.anonymous` (op 45) | the unauthenticated upgrade's nonce (joint randomness) and its RFC 6455 accept value | the S9 script: `upgrade_honest`; `wsAccept_accept_spec`. In the script version it is never a label on the wire: the controller computes it from the `commitment`/`commitOpening` (100/101) releases |
 | `upgradeAccept` (23) | `Flow.Upgrade.authenticated` (op 32) | the authenticated upgrade's expected accept value (of a joint nonce); the request stays in the engines | `signalUpgradeShared_spec`, `signalUpgrade_spec` |
-| `blobAccepted` (30) | `Flow.Contacts.load`, `Flow.Contacts.loadDevices` (ops 37, 63) | whether a stored blob opened under the contact's key (one bit) | `contactOpen_accepted_iff`, `contactOpen_rejected` |
-| `sealedBlob` (31) | `Flow.Contacts.seal`, `Flow.Account.seal`, `Flow.Refresh.scratchSeal` (ops 38, 54, 64) | a sealed state: check value and ciphertext (stored on the database nodes) | `contactSeal_spec`, `contact_round_trip` |
+| `blobAccepted` (30) | `Flow.Contacts.load`, `Flow.Contacts.loadDevices` (ops 37, 63) | whether a stored blob opened under the contact's key (one bit) | `contactOpen_accepted_iff`, `contactOpen_rejected`; the S9 script: `open_disclosure`, `open_released_byte`, `open_viewD_kinds` |
+| `sealedBlob` (31) | `Flow.Contacts.seal`, `Flow.Account.seal`, `Flow.Refresh.scratchSeal` (ops 38, 54, 64) | a sealed state: check value and ciphertext (stored on the database nodes) | `contactSeal_spec`, `contact_round_trip`; the S9 script: `seal_disclosure`, `seal_viewD_kinds`, `write_disclosure` |
 | `assignStatus` (32) | `Flow.Contacts.assign` (op 52) | whether a provisional contact took its signup token's id (one bit) | none yet (SECURITY_MAP D) |
 | `counterWidths` (40) | declared (inside op 41) | | `signalWidths_spec`, `signalWidths_value` |
 | `sealedEnvelope` (41) | `Flow.Send.seal`, `Flow.Send.sealDevices` (ops 41, 61) | refused, or the timestamp and the sealed-sender envelope(s) (sent to the server) | `signalSealBuilt_spec`, `signalSeal_value`, `sealValue_accepted`, `chainSend_reject_preserves_state` |
@@ -49,7 +49,8 @@ Later they become the script openings; the list itself does not change.
 | `maskedPassword` (70) | `Flow.Ceremony.secrets` (op 80) | to this party only: its XOR shares of the two passwords (`Secret`) | `ceremonySecrets_spec`, `ceremony_masked_hides` |
 | `maskedBit` … `scalarBitChecks` (80-87) | declared (S10) | | section 6a |
 | `maskedDenominator` … `linkChecks` (90-95) | declared (S11) | | section 6b |
-| `commitment`, `commitOpening`, `ownPublicPoint` (100-102) | declared (S9-S11; inside op 33 and the curve ops today) | | the S9 script: `prand_commit_before_open`; section 6d |
+| `commitment`, `commitOpening` (100, 101) | the release labels of the S9 scripts `Random.joint`, `Upgrade.publicUpgrade`, `Contacts.writeScript` (inside op 33 in the legacy flows) | this party's commitment to its joint-randomness contribution, then its opening | `prand_disclosure`, `prand_commit_before_open`, `joint_viewD_kinds` |
+| `ownPublicPoint` (102) | declared (S11; inside the curve ops today) | | section 6d |
 
 "Declared": no flow releases this kind to the controller today (it is released and consumed
 inside a worker operation); its function comes with the flow's Lean script.

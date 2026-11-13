@@ -45,14 +45,12 @@ to pass over the body (`skip := n`).
 reference parser's state (`TlsWebSocketFrame.step`, via `runByte_active`), and hands `payloadByte`
 that step's event.
 
-## Not here (what T1 for every stream still needs)
+## Not here
 
-* a streaming form of `ReceiveSpec.classifyFrames` (it is a recursive function of the whole stream)
-  and its agreement with the reference, and the frame layer's simulation of it: message assembly
-  across fragments, control frames, the reject lemmas against the reference's `error` bytes;
-* the request scanner against `ReceiveSpec.request` for every field order (`request_body_unrevealed`
-  covers the server's order), and `fieldMissing`'s runs against the reference's `text` bytes;
-* the loop: `recordLoop`'s runs (`budget`) against the classes above, with the one-byte allowance.
+The streaming reference (`Policy/ReceiveStream.lean`), responses and requests for every field order
+(`Policy/ReceiveReply.lean`, `Policy/ReceiveRequestScan.lean`), the header rejections
+(`Policy/ReceiveFrame.lean`) and the upgrade head (`Policy/ReceiveHead.lean`) are in their own files;
+what T1 for every stream still needs is listed in `Policy/ReceiveProofs.lean`'s header.
 -/
 
 open TlsMpc TlsMpc.Signal

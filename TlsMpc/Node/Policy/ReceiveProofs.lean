@@ -54,22 +54,76 @@ The scanners' `for` loops are rewritten as plain functions (`scan_eq`, `fieldMis
 `T1` states the property for every stream (with the one-byte allowance after the first malformed
 byte; it stays: a response's next key and the byte after it are revealed in one run).
 
-## What is not proved here
+## What is proved elsewhere, and what is not proved
 
-* The per-byte glue: that `step` keeps `request`/`reply` equal to the message's payload so far
-  (the frame parser delivers payload bytes in order; `TlsMpc/KernelSpecs/ParseWebSocketFrame.lean`
-  has the frame side) and sets `skip` from `scan`/`replyScan`'s answer. The theorems above take the
-  state's `request`/`reply` and frame position as hypotheses. For server requests and the frame
-  side it is in `Policy/ReceiveInvariant.lean` (`payloadByte_request_*`, `frameByte_frame`); for
-  responses it is still open.
-* Delivered envelopes: proved at the scanner level in `Policy/ReceiveEnvelope.lean`
-  (`envelope_payload_unrevealed`, every byte string), and linked to `step`/`stepSkipped` in
-  `Policy/ReceiveInvariant.lean` (`envRun_safe`, `request_envelope_safe`: every move of the
-  controller over a delivered envelope's body reveals only what `envWalk` reveals).
-* Field layouts other than the server's order, and the relation to `ReceiveSpec.classify` (checked
-  by `ReceiveTest` on generated streams).
-* `T1` itself for all streams: checked by `ReceiveTest` (generated and mutated streams), proved for
-  the parts above.
+**`T1` for every stream is proved: `ReceiveLoop.t1_all`** (standard axioms only):
+
+    ∀ (openBody : Bool) (accept : List Byte) (lenient : Bool) (records : List (List Byte)),
+      T1 openBody { PublicReceive.start accept with upgraded := true, lenient, openBody } records
+
+(`ReceiveTest.upgraded openBody` is the case `accept = []`, `lenient = true`), and more generally
+`ReceiveLoop.t1_frames`: `T1 openBody s records` for every state `s` that simulates the reference's
+initial state (`ReceiveSim.Sim openBody s Stream.init _`). Its parts: `ReceiveLoop.run_safe` (every
+run, every state the loop reaches, every byte string), `loop_good` (one record, with `stepWindow` and
+`passBulk`/`passOne`), `go_good` (records); `ReceiveSim.sim_step`, `sim_pass` (the simulation kept by
+every accepted and every passed byte); `ReceiveComplete` (`complete = true`); `ReceiveEnvDone`
+(delivered envelopes walked to their end have no `error`).
+
+**What is not proved.**
+
+* The fresh connection: from `PublicReceive.start accept` (not upgraded: the HTTP head first)
+  against `ReceiveSpec.classify` (head, then frames). `ReceiveHead` has the head's runs
+  (`upgrade_run_safe`, `frameByte_terminator`); still missing are that the frame parser is at a
+  frame boundary when the head ends (the head's bytes leave it alone) and the composition of the two.
+* `recordLoop` is a pure model of the controller's loop (`TlsMpc/Node/Session/Common.lean`,
+  `record`, in `SessionM`); the theorems are about the model. The real loop has the same structure
+  (`passBulk (min count passRoom)` then `passOne` one at a time; `insist mayReveal`; a run of
+  `budget s` bytes; `step` on each, with the same check of the rest of the run; `envelopes := []`
+  after each step), and differs in: the engines' `revealRange` returns the run and the record's
+  length (the model takes `(bytes.drop offset).take (budget s)` of a known record); a completed
+  envelope is handed to `Context.envelope` (which may throw) before `envelopes := []`; it has no fuel.
+  Between records the session also applies `replies`, `requests := []` and `expect`; `Sim` depends
+  on the state only through `view` (`ReceiveSim.sim_congr`), which `requests := []` and `expect` keep
+  (`ReceiveLoop.view_requests`, `view_expect`) and `replies` keeps by construction (it returns
+  `{ s with control := _ }`: `view_control`; the lemma about `replies` itself is not proved), but
+  `t1_all` is stated for `streamRun`, which does not apply them.
+
+The parts, in the files that prove them:
+
+* Here: passing over (`go_skip`), the server's layouts (`request_body_unrevealed`,
+  `response_body_unrevealed`), too-long varints refused.
+* `Policy/ReceiveEnvelope.lean`, `Policy/ReceiveInvariant.lean`: delivered envelopes, scanner level
+  (`envelope_payload_unrevealed`) and controller level (`envRun_safe`, `request_envelope_safe`); the
+  per-byte glue for requests (`payloadByte_request_*`) and the frame side (`frameByte_frame`).
+* `Policy/ReceiveStream.lean` (item 1): the reference byte by byte, equal to the recursive one for
+  every stream (`classifyFrames_stream`, `classify_stream`); a byte's class depends only on the bytes
+  before it, and on the message's length when it is complete (`message_causal`, `message_prefix`,
+  `message_at`).
+* `Policy/ReceiveReply.lean` (item 2, responses): every field order, every byte string, with or
+  without `openBody`. The controller's view `RShape` is kept by every byte the scanner accepts and every
+  body it passes over (`rshape_more`, `rshape_skip`); every run `replyBudget` allows from it is public,
+  or ends at the reference's first `error` (`rshape_budget`). Controller level: `ReplyIn`,
+  `payloadByte_replyIn`, `stepPassed_replyIn`, `reply_run_safe`.
+* `Policy/ReceiveRequestScan.lean` (item 2, requests): the same for `scan` and `fieldMissing`, every
+  field order, delivered message or not (`qshape_more`, `qshape_skip`, `qshape_run`: every run inside a
+  request is public); controller level `QIn`, `payloadByte_qIn`, `stepSkipped_qIn`, `request_run_safe`.
+* `Policy/ReceiveFrame.lean` (item 3, part): every header byte at which the reference enters its error
+  state is refused by the frame parser and by `frameByte` (`first_reject`, `second_reject`,
+  `extLo_reject`, `frameByte_reject`).
+* `Policy/ReceiveHead.lean` (item 5): before the upgrade, every run stays inside the HTTP head
+  (`upgrade_run_safe`, `frameByte_terminator`).
+
+* `Policy/ReceiveSimFrame.lean`, `ReceiveSimByte.lean`, `ReceiveSim.lean` (T1 item 1): the
+  frame-position simulation `ReceiveSim.Sim` (frame parser against `Stream.Phase`: `frame_sim_step`;
+  the message state across fragments and control frames: `MsgSim`; `payloadByte` decomposed and
+  depending only on `view`: `payloadByte_eq`, `payloadByte_view`), kept by every accepted byte
+  (`sim_step`) and every passed byte (`sim_pass`, any byte value).
+* `Policy/ReceiveComplete.lean` (item 2): `complete = true` (`rshape_run_c`, `rshape_noerr_c`,
+  `qshape_run_c`, `qshape_noerr_c`, `qshape_body_c`; the open field from `replyMissing_fields`,
+  `fieldMissing_open`).
+* `Policy/ReceiveEnvDone.lean` (item 3): `envelope_noErr`, `envWalk_noErr`.
+* `Policy/ReceiveLoop.lean` (item 4): `run_safe`, `window_sim`, `pass_sim`, `loop_good`, `go_good`,
+  `t1_frames`, `start_sim`, `t1_all`.
 -/
 
 namespace ReceiveProofs

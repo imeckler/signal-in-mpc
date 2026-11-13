@@ -351,6 +351,29 @@ run a capture on the leader during the test (`sudo tcpdump -i any -w RUN/wire.pc
 
 ## 3. Run sequence
 
+> **Before the next real-service run (2026-11-12, evening): the production circuits are NEW and
+> the worker changed. Redo step B (the dry run) first; the owner runs it, no agent does.**
+> - The emitter batch (EMITTER_BATCH.md) was merged and `real_signal/state/circuits` re-produced:
+>   414 kernels, 404 byte-identical to the 05:00 production; the 8 `bundle-slot` kernels (padding
+>   byte now NUL, so the worker's splice changed with them) and the 2 `receive-text` kernels
+>   (three more acceptance checks) are new. The manifest's hash changed, so the plan's
+>   `manifest_sha256` will differ from any earlier dry run. Step A is DONE for this tree; do not
+>   mix these circuits with an older worker or the reverse (every device establishment would be
+>   refused).
+> - The controller now spawns the Rust worker `node_worker` (REORGANIZATION_PLAN.md S8) by
+>   default: `run_real_test.py` builds and uses `node_worker/target/v3/release/node-worker`
+>   (`sh-v3` in semi-honest mode) when `--manifest` is given, which every command below does;
+>   without `--manifest` a production run is refused by the dry run's problem list (the production
+>   build loads only pinned circuits). `plan.json` now records `worker` and the node_worker binary
+>   hashes. To run with the C++ worker as before (for comparison, one more stage), set
+>   `SIGNAL_WORKER=legacy` in the environment of the run.
+> - Locally, node_worker passed the full harness set in both modes, including the compact
+>   (production-like) signups with 2, 3 and 4 devices against the new strict compact manifest.
+>   Once (not reproduced since), the very first session with the `v3` build ended at once with
+>   "truncated worker pipe response" from both controllers; if that happens, stop, keep the run
+>   directory (the workers' stderr is in `receive-party-N.log`) and see REORGANIZATION_PLAN.md S8
+>   status, "Open" (2), before trying again.
+
 ### The next run (after 2026-11-12's), in order
 
 All commands from the repository root. Steps A and B are offline; C and D contact Signal's
@@ -361,8 +384,10 @@ A. Produce the production circuits (again after any change to the Lean kernels; 
 
        python3 scripts/guarded.py --heavy 28 10800 python3 scripts/produce_circuits.py real_signal/deployment-production.json real_signal/state/circuits --max-gb 26
 
-   `--max-gb 26` because `tls-open-typed 12288` (the four-device prekey response) peaks at
-   23.6 GB; everything else stays under 12.3 GB. **Done 2026-11-12** (05:00 local): 414 kernels,
+   `--max-gb 26` because `tls-open-typed 12288` (the four-device prekey response) peaked at
+   23.6 GB (14.6 GB when re-lowered for the emitter batch); everything else stays under 12.3 GB.
+   **Done again 2026-11-12 evening** after the emitter batch (see the note above: 414 kernels,
+   412.6M AND gates, 31.1 GB). **Done 2026-11-12** (05:00 local): 414 kernels,
    412.6M AND gates, 31.1 GB of gate lists, 43 min with the earlier production's kernels in the
    cache (from an empty cache: about 1.5 to 2 hours). Against the 436 of the first run: +8
    `bundle-slot`, +4 `bundle-shape` (7168 to 12288), `tls-open-typed 12288` and its

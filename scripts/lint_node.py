@@ -47,6 +47,16 @@ Checks:
                         flow implementations (TlsMpc/Node/Flows/*Legacy.lean, Flows/Legacy.lean) and
                         where they are defined (Secret.lean, Reveal.lean; Channels.lean for
                         operation 39, the peer channel).
+  session-state         On since S7. The controller's executable root
+                        (handshake_backend/EmpHybridWork/PublicServiceController.lean) is only
+                        `import TlsMpc.Node.Main` and `def main := TlsMpc.Node.Main.main`; the session
+                        code is TlsMpc/Node/Main.lean and TlsMpc/Node/Session/*.lean, which the
+                        io-baseline (strict) and flow-calls checks cover as every TlsMpc/Node file.
+                        Session state is threaded explicitly (`Session.State`, P4): `IO.Ref`,
+                        `IO.mkRef` and `ST.Ref` appear in Session/*.lean only in State.lean (the
+                        `Connection` type: a connection's receive slot), Pool.lean and Start.lean
+                        (where a connection and its slot are made); Main.lean may hold the worker
+                        spawn's certificate result.
 
 Comments and string literals are ignored. Patterns are textual: an `open IO.FS` (or similar)
 followed by an unprefixed call would hide a site, so such an `open` is itself reported as a
@@ -61,8 +71,14 @@ NODE_DIR = 'TlsMpc/Node'
 IO_ALLOWED = {'TlsMpc/Node/Channels.lean', 'TlsMpc/Node/Worker.lean'}
 CONFIG_READER = 'TlsMpc/Node/Channels.lean'   # Config.read, the one IO.getEnv (stage S4)
 SECRET_ALLOWED = re.compile(r'^TlsMpc/Node/(Secret|Engine|Channels|Reveal)\.lean$|^TlsMpc/Node/Local/')
-ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls']
-DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls']
+ALL_CHECKS = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state']
+DEFAULT_ON = ['io-baseline', 'escape-hatches', 'emitter-isolation', 'secret-val', 'message-fields', 'flow-calls', 'session-state']
+# Stage S7: the executable root, and where a session may hold a reference (check session-state).
+CONTROLLER_ROOT = 'handshake_backend/EmpHybridWork/PublicServiceController.lean'
+CONTROLLER_ROOT_TEXT = ['import TlsMpc.Node.Main', 'def main := TlsMpc.Node.Main.main']
+SESSION_DIR = 'TlsMpc/Node/Session'
+SESSION_REF_ALLOWED = {'TlsMpc/Node/Session/State.lean', 'TlsMpc/Node/Session/Pool.lean', 'TlsMpc/Node/Session/Start.lean'}
+SESSION_REF = re.compile(r'\b(IO\.Ref|IO\.mkRef|ST\.Ref|mkRef)\b')
 # Stage S6: where the worker may be called directly, and `Opened` / own input made (check flow-calls).
 FLOW_ALLOWED = re.compile(r'^TlsMpc/Node/Flows/(\w*Legacy)\.lean$|^TlsMpc/Node/(Secret|Reveal|Channels)\.lean$')
 FLOW_SCOPE = re.compile(r'^handshake_backend/EmpHybridWork/PublicServiceController\.lean$|^TlsMpc/Node/')
@@ -405,6 +421,26 @@ def check_flow_calls(report):
     return findings
 
 
+def check_session_state(report):
+    findings = []
+    root = os.path.join(ROOT, CONTROLLER_ROOT)
+    if os.path.isfile(root):
+        lines = [l.strip() for l in source(CONTROLLER_ROOT).split('\n') if l.strip()]
+        if lines != CONTROLLER_ROOT_TEXT:
+            findings.append(f'session-state: {CONTROLLER_ROOT} must be only {CONTROLLER_ROOT_TEXT} (comments aside); found {lines[:6]}')
+    files = lean_files(SESSION_DIR) if os.path.isdir(os.path.join(ROOT, SESSION_DIR)) else []
+    for rel in files:
+        if rel in SESSION_REF_ALLOWED:
+            continue
+        text = source(rel)
+        for m in SESSION_REF.finditer(text):
+            findings.append(f'session-state: {rel}:{line_of(text, m.start())}: `{m.group(0)}` (session state is a field of '
+                            f'Session.State, threaded explicitly)')
+    if report:
+        print(f'[session-state] controller root checked; {len(files)} session files; {len(findings)} findings')
+    return findings
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('--report', action='store_true')
@@ -442,6 +478,8 @@ def main():
             findings += check_message_fields(a.report)
         elif check == 'flow-calls':
             findings += check_flow_calls(a.report)
+        elif check == 'session-state':
+            findings += check_session_state(a.report)
     for line in findings:
         print('FAIL', line)
     print(f'lint_node: {len(findings)} findings ({", ".join(checks)})')

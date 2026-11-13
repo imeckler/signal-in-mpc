@@ -502,12 +502,24 @@ with that reason). Results: PERFORMANCE.md, "The long-lived send session".
 **Switch off.** Revert the three hunks (`ReceiveFirst.lean` `gaps`/`withAccessKey`;
 `PublicServiceController.lean` `provisionals` and the `contactsPrepare` call in `restamp`).
 
-## 3f. Kernel defects found by the proof work (2026-11-12; kernels NOT changed yet)
+## 3f. Kernel defects found by the proof work (2026-11-12; 1 and 2 fixed in the emitter batch)
 
 Each fix changes a kernel, so it needs one re-lowering of the affected kernels and a new
-manifest. Do them together.
+manifest. Do them together. Defects 1 and 2: **fixed in the emitter batch (branch
+`emitter-batch`, EMITTER_BATCH.md), takes effect after re-lowering** (and, for 2, with the C++
+worker rebuilt from the same tree).
 
-1. **`receive-text` opens bytes a protobuf parse rejects.** Proved:
+1. **FIXED in the emitter batch, takes effect after re-lowering.** `ReceiveFirst.text`'s `ok` now
+   also requires the top bit of `len₁`'s second byte clear (when `len₁` has two bytes), the body
+   inside the DataMessage (`len₂ + w₂ + 1 ≤ len₁`, i.e. `2 + w₁ + w₂ + len₂ ≤ 1 + w₁ + len₁`), and
+   the DataMessage inside the content (`1 + w₁ + len₁ ≤ content length`; the reference parse
+   checks it too, so without it the iff below would fail). `overlongBody_accepted` is now
+   `overlongBody_refused` (status 0, nothing opened); `accepted_iff_reference` /
+   `text_status_iff_reference` / `text_accepted_reference`: the kernel accepts exactly what the
+   reference protobuf reading accepts, for length prefixes of at most two bytes and a body within
+   the capacity, and then opens exactly the reference body. About 190 more AND gates per
+   `receive-text` shape (estimate; the shapes have millions). Original entry:
+   **`receive-text` opens bytes a protobuf parse rejects.** Proved:
    `ReceiveAcceptText.overlongBody_accepted` / `overlongBody_reference`
    (`TlsMpc/KernelSpecs/ReceiveAcceptText.lean`). Content `0A 03 0A 05 61 62 63 64 65 00…`
    (a 3-byte DataMessage whose body claims 5 bytes) is accepted and "abcde" is opened. The kernel
@@ -517,7 +529,18 @@ manifest. Do them together.
    opened bytes are the token, so a malicious sender chooses which of its plaintext bytes are
    treated as the token. Fix: add `2 + w₁ + w₂ + len₂ ≤ 1 + w₁ + len₁` and the top bit of
    `len₁`'s second byte to `ok`.
-2. **`bundle-slot` with inconsistent width bytes.** Proved:
+2. **FIXED in the emitter batch, takes effect after re-lowering (with the worker rebuilt).** No
+   change to the kernel alone could fix it: with `0` padding, the body's `05` spliced with two
+   digits and `5` spliced with one give the SAME slot `005`, and every other input can be equal
+   too (`zero_padding_ambiguous`). So the splice now pads with the byte 0 (NUL,
+   `BundleSlots.filler`; `service_kernels.h` `bundle_establish` and `check_bundle_slots.py`
+   changed with it), and `slotValid` requires the padding to be the filler and the rest digits.
+   The filler is not a digit, so a slot is accepted only with its true width
+   (`slotValid_width`, no canonical-body hypothesis); `inconsistent_width_accepts` is now
+   `inconsistent_width_refused` (every width byte); `bundleSlot_any_widths` holds for any item
+   whose fields do not start with a NUL byte (no JSON text has one), whether or not `device`
+   accepts it. Roughly +120 to +200 AND gates per `bundle-slot` kernel (estimate, of ~102.6k /
+   ~105.5k; the re-lowering's manifest has the exact counts). Original entry: **`bundle-slot` with inconsistent width bytes.** Proved:
    `inconsistent_width_accepts` (`TlsMpc/KernelSpecs/BundleSlotWhole.lean`). A response body with
    a leading-zero number (`05`), spliced with one digit count and declared with another, is
    accepted where `BundleResponse.device` refuses; the released value is still that number.
