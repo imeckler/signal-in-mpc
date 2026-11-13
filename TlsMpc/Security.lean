@@ -7329,6 +7329,85 @@ theorem s15_drop_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Contacts.Table
 
 end FlowsS15
 
+/-! ### 7h. The joins: S11's curve flows as the parameters of S12–S15 (`scripts-stack`)
+
+`TlsMpc/Node/Flows/Join.lean` (scripts and proofs) and `Flows/JoinBackend.lean` (IO glue, no
+theorems); STACK_NOTES.md has the join table. The parameters the branches left open are
+instantiated with S11's flows and S10's conversions; each composed script declares the union of
+its parts' kinds, and S15's hypothesis `CurveOps.Reveals` is DISCHARGED for the joined
+operations. **M** as above. -/
+
+section FlowsJoin
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **S12's key agreement, joined** [M]: the agreement script (`Curve.splitAgree`, zero check,
+`Convert.fieldToWord`) releases only P-SPLIT's and P-F2W's kinds. -/
+theorem join_splitAgreeWord_reveals (f0 tSlot maskSlot n0 f1 : Nat) (m : Conv.WordMask) :
+    Reveals Join.keyAgreementKinds (Join.splitAgreeWord f0 tSlot maskSlot n0 f1 m) :=
+  Join.splitAgreeWord_reveals f0 tSlot maskSlot n0 f1 m
+
+/-- **S13's ephemeral pair, joined** [M]: the offset step and field to word release only P-OFFSET's
+and P-F2W's kinds. -/
+theorem join_ephemeralWord_reveals (f0 maskSlot n0 f1 : Nat) (st : Curve.OffsetState) (τ : Nat)
+    (m : Conv.WordMask) :
+    Reveals Join.ephemeralKinds (Join.ephemeralWord f0 maskSlot n0 f1 st τ m) :=
+  Join.ephemeralWord_reveals f0 maskSlot n0 f1 st τ m
+
+/-- **S14's curve parameter, joined** [M]: S11's ladder agreements on P-BITS swap bits declare
+their kinds from every state; with S14's program-based signature and base check, ops 50 and 51
+release only registered kinds (S14's `openFirst_reveals`, `session_reveals` instantiated). -/
+theorem join_receive_reveals (sl : Join.AgreeSlots) (pm : Receive.ProgramMasks) (loaded : Bytes → Bool) :
+    (∀ fi env size, Receive.RevealsG (Receive.firstKinds ++ .maskedDenominator :: Join.receiveAgreeKinds)
+      (Receive.openFirst (Join.receiveCurve sl pm) loaded fi env size)) ∧
+    (∀ a sp ss, Receive.RevealsG (Receive.sessionKinds ++ .maskedDenominator :: Join.receiveAgreeKinds)
+      (Receive.session (Join.receiveCurve sl pm) loaded a sp ss)) ∧
+    (∀ k ∈ Receive.firstKinds ++ Receive.sessionKinds ++ .maskedDenominator :: Join.receiveAgreeKinds,
+      k ∈ Label.kinds) :=
+  Join.receive_joined_reveals sl pm loaded
+
+/-- **S15's `CurveOps.Reveals`, discharged** [M]. -/
+theorem join_refreshOps_reveals (rc : Join.RefreshCurve) : (Join.refreshOps rc).Reveals :=
+  Join.refreshOps_reveals rc
+
+/-- **T3 for the joined establishment, no hypothesis on the curve** [M]. -/
+theorem join_refresh_reveals (rc : Join.RefreshCurve) (acct : Refresh.Account) (t : Contacts.Table)
+    (st : Refresh.RState) (id registration index count step start : Nat)
+    (w : TlsMpc.Signal.BundleResponse.Widths) (slot : Nat) :
+    Reveals (Refresh.refreshKinds Join.refreshCurveKinds)
+      (Refresh.opEstablish (Join.refreshOps rc) acct t st id registration index count step start w slot).script ∧
+    ∀ k ∈ Refresh.refreshKinds Join.refreshCurveKinds, k ∈ Label.kinds :=
+  Join.refresh_joined_reveals rc acct t st id registration index count step start w slot
+
+open TlsMpc.KernelSpecs.EstablishDevices (DeviceSession DeviceSeal wired) in
+/-- **S15's `first_wired` bindings from S13's `bundle-seal` layout** [K]: for the bundle S13's
+`devicesScript` builds, `wired` holds given only that the certificate bytes are the session's
+certificate input (`hcert`) and the pending block is the session's (`hpend`). -/
+theorem join_first_wired (cert content : Nat) (s : DeviceSession) (oneTime : Bool) (cw pw ew iw : Nat)
+    (certBytes pending address text : Contacts.B8) (w : Bits)
+    (hW : Refresh.SessionWidths cert oneTime)
+    (established : (s.outputs cert oneTime).getD 0 [] = [255])
+    (hcert : certBytes = s.input cert oneTime "certificate")
+    (hpend : pending = (s.outputs cert oneTime).getD 2 [])
+    (hc : (certBytes ++ ((s.outputs cert oneTime).getD 1 []).drop cert).length = Send.convBytes cert)
+    (hp : pending.length = TlsMpc.EstablishKernel.pendingBytes) (ha : address.length = 17)
+    (ht : text.length = content + 10) (d : DeviceSeal)
+    (hd : d = ⟨oneTime, cw, pw, ew, iw, Send.shapedAssign (TlsMpc.BundleKernel.sealInputs cert content)
+      (Contacts.bitsOf (certBytes ++ ((s.outputs cert oneTime).getD 1 []).drop cert) ++
+        (Contacts.bitsOf pending ++ (Contacts.bitsOf address ++ (Contacts.bitsOf text ++ w))))⟩)
+    (opened : (d.outputs cert content).getD 0 [] = [255]) :
+    wired cert content (s, d) :=
+  Join.join_first_wired cert content s oneTime cw pw ew iw certBytes pending address text w hW established
+    hcert hpend hc hp ha ht d hd opened
+
+/-- **Every kind the joined scripts release is a registered label.** -/
+theorem join_kinds_registered :
+    ∀ k ∈ Join.keyAgreementKinds ++ Curve.splitKinds ++ Join.ephemeralKinds ++ Random.jointKinds ++
+      Join.receiveAgreeKinds ++ Join.refreshCurveKinds, k ∈ Label.kinds :=
+  Join.join_kinds_registered
+
+end FlowsJoin
+
 /-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
 on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
 
@@ -7753,6 +7832,13 @@ the matching section above in the same commit.
   (`s15_ord2_commit`, `s15_ord2_establish`, `s15_ord2_drop`: S15, section 7g, script level); that
   the controllers call it only after both saw the nodes acknowledge the sealed scratch is the
   session-level ORD-2 (P4, `Session/RefreshProofs.lean` on the main line), unchanged by the switch.
+* **The joins** (section 7h, `scripts-stack`): the S12–S15 curve parameters instantiated with S11's
+  flows; proved: the composed kinds, S15's `CurveOps.Reveals` (discharged), S15's `first_wired`
+  bindings from S13's `bundle-seal` layout. Open: the joined flows through `jointRun` (values: S11's
+  `agree`/`offsetStep` honest runs are themselves open); S14's agreement slots (`Join.AgreeSlots`:
+  per-call coin and mask slots are an IO-side precondition nothing supplies yet); the handle-content
+  facts `hcert`/`hpend` of `join_first_wired`; the IO glue (`JoinBackend`, unverified, as every
+  backend); `_wf` of the joined scripts (their id blocks are counted, not proved).
 * **T9** — peer messages are public: by type since S5 (`Messages.checkPublic`, section 7-channels;
   `peerMsg_reply_kind`). Open: `PeerMsg.flow` only from `Reveal.lean` (S9: no flow sends an
   own-secret opening to the peer through the controller before the scripts).
@@ -8432,6 +8518,13 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s11_pointExchange_sound
 #print axioms TlsMpc.Security.s11_liveness
 #print axioms TlsMpc.Security.s11_pointExchange_disclosure
+#print axioms TlsMpc.Security.join_splitAgreeWord_reveals
+#print axioms TlsMpc.Security.join_ephemeralWord_reveals
+#print axioms TlsMpc.Security.join_receive_reveals
+#print axioms TlsMpc.Security.join_refreshOps_reveals
+#print axioms TlsMpc.Security.join_refresh_reveals
+#print axioms TlsMpc.Security.join_first_wired
+#print axioms TlsMpc.Security.join_kinds_registered
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
