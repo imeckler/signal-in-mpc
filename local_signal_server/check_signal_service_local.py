@@ -1622,8 +1622,19 @@ def main():
     p.add_argument('--worker', choices=['node', 'legacy'], default=os.environ.get('SIGNAL_WORKER', 'node'),
                    help='node (default): node_worker; legacy: the C++ tls-worker*-fixture-v3 (SIGNAL_WORKER=legacy, '
                    'an agreed controller setting), kept for one more stage to compare the two (REORGANIZATION_PLAN.md S8)')
+    p.add_argument('--scripts', default='', help='SIGNAL_SCRIPTS for every session (an agreed controller setting): the flow '
+                   'groups that run as Lean scripts through the controller\'s script runner (operation 93) instead of the '
+                   'worker\'s legacy operations, comma separated (TlsMpc/Node/Flows/Select.lean). Runnable on the real '
+                   'engines today: random (exchanges only). masks, tls, upgrade need the V3 field-program re-export; '
+                   'contacts, account, curve, send, receive, refresh are refused until their prerequisites exist '
+                   '(STACK_NOTES.md section 6). Needs --worker node, and Main.session calling Flow.Worker.startWith '
+                   '(until then the controllers agree on the setting but run every flow legacy)')
     a = p.parse_args()
     os.environ['SIGNAL_WORKER'] = a.worker
+    if a.scripts:
+        if a.worker != 'node':
+            p.error('--scripts needs --worker node (the script runner talks to node_worker\'s operation 93)')
+        os.environ['SIGNAL_SCRIPTS'] = a.scripts
     if a.record:
         Path(a.record).mkdir(parents=True, exist_ok=True)
         if any(Path(a.record).iterdir()):
