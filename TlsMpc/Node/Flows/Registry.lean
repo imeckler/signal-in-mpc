@@ -3,6 +3,7 @@ import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
 import TlsMpc.Node.Flows.Inversion
 import TlsMpc.Node.Flows.CurveProofs
+import TlsMpc.Node.Flows.Tls
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -49,7 +50,14 @@ def declared : List (String × List RevealKind) :=
    ("Curve.lift", Curve.liftKinds), ("Curve.tables", Curve.tableKinds),
    ("Curve.agreeHinted", Curve.agreeKinds), ("Curve.agreeAffine", Curve.agreeKinds),
    ("Curve.signatures", Curve.signatureKinds), ("Curve.torsion", Curve.signatureKinds),
-   ("Curve.sharedBits", Convert.bitsKinds), ("Curve.prepareContacts", Curve.prepareKinds)]
+   ("Curve.sharedBits", Convert.bitsKinds), ("Curve.prepareContacts", Curve.prepareKinds),
+   -- stage S12
+   ("Ghash.keyShare", Ghash.ghashKinds), ("Ghash.round", Ghash.ghashKinds),
+   ("Tls.sealCtr", Tls.sealKinds), ("Tls.sealClass", Tls.sealKinds), ("Tls.tag", Tls.sealKinds),
+   ("Tls.open", Tls.openKinds), ("Tls.parser", []), ("Tls.update", []), ("Tls.reveal", Tls.revealKinds),
+   ("Tls.range", Tls.revealKinds), ("Tls.public", []), ("Tls.drop", []), ("Tls.derive", []),
+   ("Tls.openHandshake", Tls.handshakeKinds), ("Tls.verify", Tls.handshakeKinds),
+   ("Tls.finish", Tls.handshakeKinds), ("Tls.agree", [])]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/
@@ -116,6 +124,32 @@ theorem s11_flows_reveal :
     Curve.agreeHinted_reveals, Curve.agreeAffine_reveals, Curve.signatures_reveals, Curve.torsion_reveals,
     Curve.sharedBits_reveals, fun _ _ f0 s us _ => Curve.prepareFirst_reveals f0 s.lift us,
     Curve.prepareContacts_second_reveals⟩
+
+/-- **Every S12 script flow declares its kinds** (on every branch, for every argument). -/
+theorem s12_flows_reveal :
+    (∀ n traffic maskSlot dst, Reveals Ghash.ghashKinds (Ghash.keyShareScript n traffic maskSlot dst)) ∧
+    (∀ n c l r m dst, Reveals Ghash.ghashKinds (Ghash.roundScript n c l r m dst)) ∧
+    (∀ n traffic content seq kind size padding,
+      Reveals Tls.sealKinds (Tls.sealCtrScript n traffic content seq kind size padding)) ∧
+    (∀ n traffic content seq size, Reveals Tls.sealKinds (Tls.sealClassScript n traffic content seq size)) ∧
+    (∀ n pad halfSlot, Reveals Tls.sealKinds (Tls.tagScript n pad halfSlot)) ∧
+    (∀ n parser traffic seq tag record size cap halfSlot,
+      Reveals Tls.openKinds (Tls.openScript n parser traffic seq tag record size cap halfSlot)) ∧
+    (∀ n, Reveals [] (Tls.parserScript n)) ∧
+    (∀ n traffic, Reveals [] (Tls.updateScript n traffic)) ∧
+    (∀ n length content cap, Reveals Tls.revealKinds (Tls.revealScript n length content cap)) ∧
+    (∀ n bytes lo hi, Reveals Tls.revealKinds (Tls.rangeScript n bytes lo hi)) ∧
+    (∀ n bytes, Reveals [] (Tls.publicScript n bytes)) ∧
+    (∀ hs, Reveals [] (Tls.dropScript hs)) ∧
+    (∀ n agreement hash, Reveals [] (Tls.deriveScript n agreement hash)) ∧
+    (∀ n serverHs seq record, Reveals Tls.handshakeKinds (Tls.openHandshakeScript n serverHs seq record)) ∧
+    (∀ n serverHs hash message, Reveals Tls.handshakeKinds (Tls.verifyScript n serverHs hash message)) ∧
+    (∀ n main clientHs sh ch cert, Reveals Tls.handshakeKinds (Tls.finishScript n main clientHs sh ch cert)) ∧
+    (∀ n digest valid, Reveals [] (Tls.agreeScript n digest valid)) :=
+  ⟨Ghash.keyShare_reveals, Ghash.round_reveals, Tls.sealCtr_reveals, Tls.sealClass_reveals, Tls.tag_reveals,
+    Tls.open_reveals, Tls.parser_reveals, Tls.update_reveals, Tls.reveal_reveals, Tls.range_reveals,
+    Tls.public_reveals, Tls.drop_reveals, Tls.derive_reveals, Tls.openHandshake_reveals, Tls.verify_reveals,
+    Tls.finish_reveals, Tls.agree_reveals⟩
 
 /-- **Registered labels only**: in any run of a script that declares registered kinds, against any
 adversary, every release the adversary receives carries a label of `Label.all`. -/

@@ -114,19 +114,44 @@ def linkChecks : Label := ofKind .linkChecks
 after its commitment (`commitment`). Kind `ownPublicPoint` (102). -/
 def ownPublicPoint : Label := ofKind .ownPublicPoint
 
+/-! TLS and GHASH shares (stage S12, kinds 2-9). -/
+
+/-- `tls-open-handshake`'s gated result (type 21/22 and plaintext only). Kind `handshakeRecord` (2). -/
+def handshakeRecord : Label := ofKind .handshakeRecord
+/-- `tls-verify-finished`'s acceptance byte. Kind `finishedAccepted` (3). -/
+def finishedAccepted : Label := ofKind .finishedAccepted
+/-- `tls-finish`'s sealed client Finished record. Kind `clientFinished` (4). -/
+def clientFinished : Label := ofKind .clientFinished
+/-- `tls-open-typed`'s one bit "authenticated handshake record". Kind `recordKindBit` (5). -/
+def recordKindBit : Label := ofKind .recordKindBit
+/-- A received record's event bytes (`tls-open-typed` or `tls-frame`). Kind `recordEvent` (6). -/
+def recordEvent : Label := ofKind .recordEvent
+/-- A sealed record's header and ciphertext (`tls-seal-*`), its tag (`gcm-tag`), and a class
+kernel's `accepted` byte. Kind `sealedRecord` (7). -/
+def sealedRecord : Label := ofKind .sealedRecord
+/-- An authenticated record's length and revealed bytes (`tls-reveal-masked`). Kind `serverBytes` (8). -/
+def serverBytes : Label := ofKind .serverBytes
+/-- A GHASH key power (or product) masked by A's fresh mask, opened to B only (`gcm-key-share`,
+`gcm-multiply`). Kind `ghashMaskedPower` (9). -/
+def ghashMaskedPower : Label := ofKind .ghashMaskedPower
+
 /-- The kinds the script flows release under, in the order of `all`. -/
 def kinds : List RevealKind :=
   [.commitment, .commitOpening, .blobAccepted, .sealedBlob,
    .maskedBit, .maskedWord, .maskedFieldValue, .cutCandidates, .bucketSums, .referenceFlags,
    .bitBlockChecks, .scalarBitChecks, .maskedDenominator,
-   .curveChecks, .liftW, .liftZ, .pointValid, .linkChecks, .ownPublicPoint]
+   .curveChecks, .liftW, .liftZ, .pointValid, .linkChecks, .ownPublicPoint,
+   .handshakeRecord, .finishedAccepted, .clientFinished, .recordKindBit, .recordEvent, .sealedRecord,
+   .serverBytes, .ghashMaskedPower]
 
 /-- Every label a flow uses. -/
 def all : List Label :=
   [jointRandomCommitment, jointRandomOpening, blobAccepted, sealedBlob,
    maskedBit, maskedWord, maskedFieldValue, cutCandidates, bucketSums, referenceFlags,
    bitBlockChecks, scalarBitChecks, maskedDenominator,
-   curveChecks, liftW, liftZ, pointValid, linkChecks, ownPublicPoint]
+   curveChecks, liftW, liftZ, pointValid, linkChecks, ownPublicPoint,
+   handshakeRecord, finishedAccepted, clientFinished, recordKindBit, recordEvent, sealedRecord,
+   serverBytes, ghashMaskedPower]
 
 /-- **The registry is the kinds' labels**: every label of `all` is `ofKind` of a kind. -/
 theorem all_eq : all = kinds.map ofKind := rfl
@@ -152,6 +177,7 @@ theorem all_nonzero : ∀ l ∈ all, l.code ≠ 0 := by
 
 /-- The codes, for the record (the Rust test vectors carry them). -/
 theorem all_codes : all.map (·.code) =
-    [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102] := rfl
+    [100, 101, 30, 31, 80, 81, 82, 83, 84, 85, 86, 87, 90, 91, 92, 93, 94, 95, 102,
+     2, 3, 4, 5, 6, 7, 8, 9] := rfl
 
 end TlsMpc.Node.Engine.Label

@@ -1748,6 +1748,30 @@ Tests: Q, F, K (`check_typed_open.py`, `check_tls_worker_v3.py`), D.
 
 Depends on S11. **4–5 weeks. Medium–strong.**
 
+**Status (2026-11-12, branch `s12-tls`, started early in parallel with S11; details in
+`S12_NOTES.md`).** Scripts and backends done, not selected (the controller-side runner sending op 93
+batches does not exist yet; S11's X25519 agreement is a parameter, `TlsBackend.KeyAgreement`, whose
+signature and specification the notes give for the join):
+- `Local/Ghash.lean` (local GF(2¹²⁸) arithmetic, `half`, the doubling schedule),
+  `Flows/Ghash.lean` (key share; doubling rounds: every odd power of a round in one `gcm-multiply`
+  run, 1 + ⌈log₂ n⌉ rounds instead of ~n/2), `Flows/Tls.lean` (seal ctr / class + tag, typed open,
+  parser, key update, reveal and ranges, public buffers, handshake scripts, the `Conn`/`Buffers`
+  state for `Session/Pool`, the 64-record window, drop-after-seal), `Flows/TlsProofs.lean`,
+  `Flows/TlsBackend.lean` (`scriptBackend`, `scriptApplicationBackend`: the legacy backends' types).
+- Proved: P-GHASH (a) per round with the kernels' resharing, (b), (c) (`seal_is_record`:
+  `sealCtr_with_tag_is_seal` with `halves` discharged; `check_accepts`), (d) (bijection form; B
+  honest: empty view; A honest: exactly the masked value); T3 kinds for every script (registered);
+  T4-TLS at the function level (seal, tag check, typed open with `typed_pair_refines` /
+  `class_fields` / `tlsOpenTyped_gated`, reveal, handshake record, Finished, client Finished); WF
+  for seven scripts (the seal's two phases among them); the window. Restated in Security.lean section 7c. Open: T4 through `jointRun`,
+  WF for the open/seal/round/handshake scripts (the vectors pass `checkBatch`), the derive script's
+  word input, the class seal's composition (S12_NOTES.md, gaps F13-F21).
+- No new kind (all S12 kinds existed); labels for kinds 2-9 added in `Engine/Labels.lean`.
+- Rust: `loader.rs` `TLS_SCRIPT_KERNELS` (fail closed); Lean vectors and the stand-in pair test
+  `s12_pair.rs` (GHASH shares, a seal, an open, a forged open: every reply equals Lean's model);
+  `e2e_s12.py` written, not run (needs the kernels lowered and the heavy lock; its handshake mode
+  needs the runner and S11).
+
 ---
 
 **S13. Send.**
