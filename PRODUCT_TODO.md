@@ -842,6 +842,36 @@ the broadcast.
 - [ ] Measure: prepare cost per device in both modes, and the broadcast rate to prepared
       three-device contacts (three envelopes per send; not measured yet).
 
+## 11c. Generate the identity key jointly (queued by the owner 2026-11-13: do not start yet)
+
+Today the ACI identity private key is in the clear on both nodes (`CEREMONY.md` sections 4 and 8,
+decision 2). A node colluding with the Signal server (or with whoever can read the server's queue)
+can open the sealed-sender layer of envelopes addressed to the account and read who signs up. A
+node alone cannot (no password, so no authenticated socket; envelopes are never in the clear in a
+session).
+
+Queued work ("option 3"):
+
+- Joint key generation in the ceremony: each node picks a share; the public key is the sum of the
+  two public shares, computed in the clear; one conversion inside the engines at the `store` stage
+  turns the shares into the bit form the sessions load from the account's row. X25519 clamping of
+  the shared scalar needs care.
+- Joint signing of prekeys with the identity key (ceremony and every prekey rotation): a two-party
+  Schnorr-style XEdDSA signature (public hash input, signature linear in the key shares; a
+  commit-then-open round for the nonce). Needed in any case if the clear key is erased.
+- Both written in Lean with proofs; no clear copy of the identity private key ever exists.
+
+Expected cost: none per message (sessions already use the identity key as a secret loaded from the
+sealed account row — inferred from `CEREMONY.md` and the receive proofs' `ScalarHolds`, to be
+confirmed when the work starts); seconds in the ceremony; the cost is the build and proof effort.
+
+Not covered: signed prekeys, one-time prekeys and Kyber keys stay in the clear (Kyber decapsulation
+runs outside the engines). The sealed-sender layer needs only the identity key, so this closes the
+who-signs-up exposure, not joint holding of first-message session keys.
+
+Cheaper alternative ("option 2"): erase the clear copy after `store`. Protects against a node
+compromised later, not one that kept a copy, and breaks prekey rotation unless joint signing exists.
+
 ## 12. Testing still owed
 
 - [ ] Rerun the older fixture checks (`check_tls_worker_v3.py`, `check_tls_application_v3.py`,
