@@ -94,6 +94,10 @@ See `TlsMpc/Security.lean` section 7c and section 8. In short (all standard axio
   `s11_hinted_honest`, `s11_lift_agreeHinted_honest` (compiled standalone: standard axioms only).
   Still open: `prepareSecond` (its K₀ exchange carries m points; `pointExchange_honest` is for one)
   and `prepareContacts` as a staged flow through `Staged.jointRun`.
+* **Value-level T3 for the quotient round** (F24, part; `Flows/CurveRunI.lean`):
+  `quotientMany_disclosure` (against any adversary the view is a prefix of [`z_j·m_j`, the zero
+  flags] for the masks the engines hold; `s11_quotientMany_disclosure`). Open: the checks, `w`,
+  `Z` and the programs' own `D` openings with values; P-HINT (c), (d) composed with the runs (F27).
 * **`commit_open_sound` for `pointExchange`** (F25, `Flows/CurveCommit.lean`):
   `pointExchange_sound` (an accepted exchange used the adversary's commitment chosen from its view
   and our commitment only, opened under its own frame, different from ours; the points returned
@@ -160,8 +164,8 @@ the links in one opening, as the C++).
 
 * New Lean: `TlsMpc/Node/Local/{Field,Edwards}.lean`, `TlsMpc/Node/Flows/{CurveBase,Curve,CurveProofs}.lean`,
   and (follow-up) `TlsMpc/Node/Flows/{CurveWFBase,CurveWF,CurveLive,CurveCommit,CurveHonest}.lean`
-  (imported by `Security.lean` only), and (second follow-up) `TlsMpc/Node/Flows/CurveRun{,B,C,D,E,F,G,H}.lean`
-  (a chain; `Security.lean` imports `CurveRunH`). The branch merged `s10-conversions` (its `WFP` machinery).
+  (imported by `Security.lean` only), and (second follow-up) `TlsMpc/Node/Flows/CurveRun{,B,C,D,E,F,G,H,I}.lean`
+  (a chain; `Security.lean` imports `CurveRunI`). The branch merged `s10-conversions` (its `WFP` machinery).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (six labels, `kinds`, `all`, `all_codes`),
   `TlsMpc/Node/Flows/Registry.lean` (S11 entries, `s11_flows_reveal`; imports CurveProofs),
   `TlsMpc/Security.lean` (section 7c, section 8 items, `#print axioms` lines),

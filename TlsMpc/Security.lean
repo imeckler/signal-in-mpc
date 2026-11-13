@@ -104,7 +104,7 @@ import TlsMpc.Node.Flows.CurveWF
 import TlsMpc.Node.Flows.CurveLive
 import TlsMpc.Node.Flows.CurveCommit
 import TlsMpc.Node.Flows.CurveHonest
-import TlsMpc.Node.Flows.CurveRunH
+import TlsMpc.Node.Flows.CurveRunI
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6686,6 +6686,22 @@ theorem s11_lift_agreeHinted_honest (E : Env) :
    fun hinv pb f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm =>
     Curve.agreeHinted_honest E hinv pb f hP hC hq σA σB I f0 rho qslot jobs hjobs hdef ρA ρB qA qB hrA hrB hqA hqB hqm⟩
 
+/-- **Value-level disclosure of the quotient round** [M] (F24, part): against any adversary, the
+adversary's view of `quotientMany` (the last step of `agree`, `offsetStepFast`, `agreeHinted`,
+`agreeAffine`) is a prefix of [the masked denominators `z_j · m_j`, the zero flags], for the masks
+`m_j` the engines hold; each flag is 1 exactly when its denominator opening is 0. -/
+theorem s11_quotientMany_disclosure (E : Env) (me : Party) (adv : Adversary)
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient) (σ : Store) (I : Ideal)
+    (vD : List Release) (f slot : Nat) (pairs : List (FieldH × FieldH)) (x z : Nat → F)
+    (hx : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).1.id = some (x j))
+    (hz : ∀ j, j < pairs.length → I.fields (pairs.getD j (⟨0⟩, ⟨0⟩)).2.id = some (z j))
+    (hlo : ∀ p ∈ pairs, p.1.id < f ∧ p.2.id < f) :
+    ∃ mv : Nat → F, (withAdv E me adv (Curve.quotientMany f slot pairs) σ I vD).viewD <+:
+      [⟨Label.maskedDenominator, .elems ((List.range pairs.length).map fun j => z j * mv j)⟩,
+       ⟨Label.maskedDenominator, .elems ((List.range pairs.length).map fun j =>
+          if z j * mv j = 0 then ofNat 1 else ofNat 0)⟩] :=
+  Curve.quotientMany_disclosure E me adv hq σ I vD f slot pairs x z hx hz hlo
+
 end FlowsS11
 
 /-! ## 8. NOT YET PROVED
@@ -6872,8 +6888,9 @@ the matching section above in the same commit.
   nonzero mask sums. OPEN: honest runs of `prepareSecond` (its K₀ exchange carries m points;
   `pointExchange_honest` is for one) and `prepareContacts` as a staged flow (checked executably:
   `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
-  for the curve flows other than the point exchanges (the opened checks, `w`, `Z`, the masked
-  denominators: only their kinds are proved); P-HINT (c), (d) composed with the runs (`entries_sound`,
+  for the curve flows other than the point exchanges and the quotient round
+  (`s11_quotientMany_disclosure`: [z_j·m_j, flags] for the masks the engines hold): the opened
+  checks, `w`, `Z` and the programs' own `D` openings are proved only at the level of kinds; P-HINT (c), (d) composed with the runs (`entries_sound`,
   `curve_hinted_Z_uniform` are about the program); that the local step's mask points are uniform
   on the curve group (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/`
   `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points and the
@@ -7467,6 +7484,7 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s11_offset_honest
 #print axioms TlsMpc.Security.s11_hinted_honest
 #print axioms TlsMpc.Security.s11_lift_agreeHinted_honest
+#print axioms TlsMpc.Security.s11_quotientMany_disclosure
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call

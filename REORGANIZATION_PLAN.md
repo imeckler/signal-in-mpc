@@ -1723,7 +1723,8 @@ called by the controller (the flow API switches with S12–S16; the legacy libra
   `torsion`, `lift`, `agreeHinted` (`s11_agree_honest`, `s11_offset_honest`, `s11_hinted_honest`,
   `s11_lift_agreeHinted_honest`), under the named program hypotheses `ComputesD`/`Live`. Open:
   honest runs of `prepareSecond` (m-point K₀ exchange) and op 66 as a staged flow; value-level
-  T3; P-HINT (c), (d) with the runs; `decode ∘ encode` and `toAffineAll` liveness (tested only).
+  T3 beyond the point exchanges and the quotient round (`s11_quotientMany_disclosure`); P-HINT
+  (c), (d) with the runs; `decode ∘ encode` and `toAffineAll` liveness (tested only).
 - Rust: 14 loader entries with placeholder pins (fail closed); `tests/s11_pair.rs` (stand-in
   engines, real compiled programs through program.rs: split, nine agreements, offset, hinted, op 66
   with an invalid key, four cheating cases) passes; `tests/e2e_s11.py` (real engines) written, not
