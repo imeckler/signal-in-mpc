@@ -1,21 +1,108 @@
 # Deploying the two-party Signal client
 
-How to build, configure, start, run and roll back a deployment: two computation nodes (each a
-node daemon, the Lean controller and the Rust worker with its two engines), five database nodes
-(`secret-shared-db`), and the application server that calls `notify(ids, message)` and
-`delete(ids)`. The tooling is in `deploy/` (scripts, Dockerfiles, compose files); this document
-is its manual. Written 2026-11-13 on branch `two-party-hybrid-worker`.
+Two computation nodes, five database nodes and a monitoring page, deployed by
+`python3 deploy/deploy.py` from two small files: `deployment.toml` (shared by everyone, public)
+and `operator.toml` (each operator's own, private). Several parts of the product are not ready
+for production (Reference, 0.2) and the cloud paths of the tool have never run against a provider
+(Status, below).
 
-Read section 0 first: several parts of the product are not ready for a production deployment,
-and parts of this tooling have not been run.
+**Every operator needs:** Docker, Python 3.11+, ssh; this repository at the agreed commit,
+fetched by yourself from the repository (never a copy from another operator); an account at
+the provider(s) you use, or machines you already have (Ubuntu 22.04+ / Debian 12+).
 
-`deploy/` is new rather than an addition to `deployment/`: `deployment/` holds the provider
-research and the two-machine benchmark kit (`vm_pair_test/`), which this tooling reuses
-(`make_bundle.py`, `build_linux.sh`, `bench_certs.sh`) but does not change.
+## Deploying with several operators (the normal case)
+
+| Step | Who | Types | Sends |
+|---|---|---|---|
+| 1 | coordinator | `python3 deploy/deploy.py init`; edits `deploy/deployment.toml`: name, `security`, `worker_logic`, who operates each node, the application server's public keys | `deployment.toml` to everyone |
+| 2 | builder | `python3 deploy/deploy.py build --out images/` (fills the image, circuit and word-dir digests into `deployment.toml`) | `deployment.toml` again, and `images/` |
+| 3 | every operator | edits `deploy/operator.toml`: their name, each of their nodes' `provider`/`region`/`size`, credentials as `env:VARIABLE` | nothing: it is private |
+| 4 | every operator | `python3 deploy/deploy.py plan`, then `python3 deploy/deploy.py join` | the `*.bundle.json` files `join` prints, to every other operator |
+| 5 | every operator | puts every bundle in `bundles/`; `python3 deploy/deploy.py collect bundles/` | nothing |
+| 6 | all together | read the printed fingerprint (`12345-67890-...`) aloud on a call or in person: it must be identical for everyone | nothing |
+| 7 | every operator | `python3 deploy/deploy.py start bundles/ --fingerprint 12345-67890-...` | nothing |
+| 8 | the two computation operators | the account step (below) | |
+
+`join` makes the machines, installs Docker, WireGuard, the firewall, the images, the circuits,
+and makes every private key **on the node that uses it**; only public keys leave. `start` builds
+the tunnel mesh and the per-sender firewall rules from the bundles, starts the services, the
+monitoring page and the certificate timer, and runs pre-flight and the two-node comparison
+(it fails loudly on a difference). The database nodes wait until every database operator has
+run `start` and then start together (Reference 10, change 19); the page says "waiting" until
+then. Afterwards: `status` (each node in one line), `monitor` (opens
+your page through ssh), `logs` (redacted), `upgrade`, `destroy` (asks for the name typed back;
+keeps data disks unless `--delete-data`). `python3 deploy/deploy.py` alone says what is next.
+
+**Why compare the fingerprint.** Bundles travel by whatever channel you like; whoever relays
+them could swap a key for their own. The fingerprint is a hash of `deployment.toml` and every
+bundle; comparing it by voice, video or in person is the only step that authenticates the keys
+(no PKI, no accounts). It also covers what each node actually runs (image, circuit-manifest and
+word-dir digests, field-program pins, agreed-settings digests, the deploy tool's own digest),
+and `collect` shows any difference. **What it does not authenticate: that the software is
+honest.** It proves everyone runs the same digests, not what they contain.
+
+**Who builds the software.** Builds are not reproducible yet (Reference, 10, proposed change 11).
+Either everyone runs the images one builder built from the agreed commit (`builds =
+"one-builder"`, the default: image digests are enforced), or each operator builds from that
+commit themselves (`builds = "each-operator"`, `join --images build-here`): then the image digests
+differ, and only the commit, the circuit manifest, the pins and the agreed settings can be
+compared, not the binaries. Reproducible builds are the open item that removes this choice.
+
+## Deploying alone
+
+Write one operator name for every node in `deployment.toml`, then
+`python3 deploy/deploy.py up` (= join + collect + start, no fingerprint to compare).
+**Trust:** whoever runs this with root on both computation nodes can read both. One operator
+gives convenience, not the two-party protection; the tool warns. To rehearse everything on
+this computer first, with no cloud account: `provider = "local"` for every node,
+`[signal] endpoint = "local-test"`, then `deploy.py testapp up` (a test application server),
+`deploy.py up --with-account` (it makes a test account on the local Signal server) and
+`deploy.py testapp send` (one signup and one send).
+
+## The account step
+
+The Signal account's registration (SMS code, ban risk) cannot be push-button. `start` leaves
+the computation daemons stopped until it is done (the monitoring page says "waiting for the
+account step"). The owner registers the account (Reference, 5; CEREMONY.md) and gives each
+computation operator a directory with `common/` (the account export, the contacts' signup tokens)
+and only their own `party-N/credentials.share`; both run, within a minute of each other,
+`python3 deploy/deploy.py account install DIR`. It creates the account's row on the database
+nodes (the ceremony's `store` stage, both nodes at once), deletes the share, starts the daemons.
+With `endpoint = "local-test"`, `deploy.py account local-test` does all of it against the local
+server. With `endpoint = "production"`, `join`/`start` need `--i-have-the-go-ahead`.
+
+## Status of the push-button tool (2026-11-13)
+
+"Tested here" = run on this computer on the `local` provider: containers that stand in for
+ssh-reachable Ubuntu machines, reached by ssh and configured by the same Ansible roles as any
+machine (the `existing` path). Three simulated operators with separate private files and state
+directories exchanged only bundle files.
+
+| Part | State |
+|---|---|
+| Configuration validation (both files) | tested here: 18 unit checks, `python3 deploy/pushbutton/test_pushbutton.py` |
+| Bundles, fingerprint, consistency checks | tested here: the three operators computed the same fingerprint; a swapped WireGuard key gave a different one and `start` refused it |
+| `join` on `local` (= the `existing` path: Docker, WireGuard, firewall, data disk, images by digest, circuits and word files copied and checked, keys made on each node) | tested here, 7 machines |
+| `start`: WireGuard full mesh, per-sender firewall, database nodes (Postgres + server), daemons' configuration, monitoring page, certificate timer, pre-flight, two-node comparison | tested here: kernel WireGuard inside the machine containers, every handshake up; the comparison reported EQUAL |
+| Account step (`account local-test`, `account install` by both computation operators at once) | tested here against the LOCAL Signal server |
+| One signup and one 200-byte send | tested here, **intermittent**: in 1 of 3 full runs a signup reached both daemons and a 200-byte text was delivered, agreed and decrypted by the new user from a sealed envelope; in the others every receive session failed at once. Cause found: the database nodes, started minutes apart by different operators, never connected (Reference 10, change 19). The start barrier that fixes it is written and lint-clean but **its end-to-end run was stopped before the send (untested)** |
+| `status`, the page (through `monitor`'s ssh tunnel), `logs` | tested here; the page was checked for secrets |
+| `upgrade` keeps the database; `destroy` then `join`/`start` restores keys and data from the kept disks | tested here: the database tables survive `upgrade`; after `destroy` + `join` the same keys came back (identical fingerprint) and the tables were restored from the kept volume |
+| Certificate timer | tested here as far as it goes: it reads the expiry and, inside the margin, calls the entry point, which only records "refresh due" (the refresh job does not exist: Reference 10, change 15) |
+| `existing` on a real remote machine | never run (the local containers stand in; same code) |
+| OpenTofu modules `hetzner`, `upcloud`, `ovh` | validated offline: `tofu init` + `tofu validate` pass for both stacks of each; `tofu plan` with dummy credentials plans for hetzner and ovh; upcloud's plugin refuses to plan without valid credentials (one refused login to its API). Never applied: written, validated offline, never run against the provider |
+| Ansible | `--syntax-check` passes for all 7 playbooks; ansible-lint passes (one line-length fix) |
+| x86-64 images (`build --platform linux/amd64`) | never built (the tested images are arm64, built earlier) |
+| `endpoint = "production"` | written, reviewed by reading, never executed |
+| `up` (one person, every node) | written, never run (it chains the tested join/collect/start) |
+| semi-honest mode, `worker_logic = "lean"` | written, never run (they select the image / environment only) |
+| `build` (images for another platform) | written, never run (`build --record` of existing images was run) |
 
 ---
 
-## 0. Status of this tooling, and what is not ready
+# Reference
+
+## 0. Status of the older tooling (deploy/scripts, Dockerfiles, compose), and what is not ready
 
 ### 0.1 What was built and run here, and what is only written
 
@@ -655,6 +742,21 @@ establishment would be refused).
 
 ### 6.6 Monitoring and health checks
 
+With the push-button tool: every node runs a health endpoint (`deploy/node/pb_health.py`, port
+9100 on its tunnel address and localhost; the firewall admits only the other mesh members). It
+exposes, by design, only public status: node and role, unit and container states, image digests,
+circuit / word-dir / settings digests and the pre-flight facts (hashes and the agreed settings
+text), tunnel handshake ages, disk and memory use, the daemon's `status` reduced to numbers and
+yes/no (no ids), the sender certificate's and the field-engine certificates' expiry dates, the
+database's last epoch. Never keys, shares, the export's private parts, journals, work files or
+contact ids. Each operator's page (port 8088, localhost; `deploy.py monitor` opens an ssh tunnel
+to it) shows that operator's nodes; the node named in `[monitoring] combined_page_on` also
+serves a page of every node, pulled over the tunnel. Why not Uptime Kuma or Grafana: they need
+an account and set-up and cannot show this system's own checks (the two nodes' agreed-settings
+digests equal, certificate expiry); the page is one file on the nodes. Prekey replenishment and
+signed-prekey rotation are not automated jobs (PRODUCT_TODO.md section 1: open items), so the page
+has nothing to show for them yet.
+
 - `stack.py status`: the daemon answers; a receive session is running; requests by state.
 - Daemon log: `send session … ready`, `send session memory` (every 10 s), session restarts and
   their reasons, notifies `failed` / `rejected` / `expired`.
@@ -725,6 +827,22 @@ then each with `--peer` on the other's file.
 
 ```
 DEPLOYMENT.md                      this document
+deploy/deploy.py                   THE push-button tool (init, build, plan, join, collect, start, account,
+                                   status, monitor, logs, upgrade, destroy, up, testapp, next)
+deploy/deployment.example.toml     the shared deployment file, commented
+deploy/operator.example.toml       an operator's private file, commented
+deploy/.gitignore                  .state/ (tofu state, ssh keys, bundles, logs), the two real files
+deploy/pushbutton/                 the tool's Python (standard library only): config, providers, bundles,
+                                   tofu, local, tools, flow; test_pushbutton.py (unit checks)
+deploy/providers/{hetzner,upcloud,ovh}/{disk,machine}/main.tf   OpenTofu modules (one pair per provider)
+deploy/providers/local/machine.Dockerfile   the local provider's stand-in machine (systemd + sshd)
+deploy/tools/ansible.Dockerfile    the pinned Ansible the tool runs (no host install)
+deploy/ansible/                    playbooks (join, start, account, status, logs, stop, testapp) and roles
+                                   (base, datadisk, firewall, software, identity, wireguard, meshfw,
+                                   dbnode, mpcnode, health, certrefresh)
+deploy/node/pb_node.py             on each node: keys made there, digests, daemon-link key, certificates
+deploy/node/pb_health.py           on each node: health endpoint (:9100), monitoring page (:8088), verdicts, logs
+deploy/node/pb_certificate.py      on the computation nodes: the sender-certificate timer's check
 .dockerignore                      the repository root is never a build context (sends nothing)
 deploy/scripts/deploylib.py        shared helpers: manifests, pins, settings digest mirror, redaction
 deploy/scripts/preflight.py        pre-flight checks of one node; --export / --peer
@@ -790,6 +908,52 @@ Not made here (another engineer is working in these files); each is small.
     NEEDS_REVIEW.md 3f item 7 fails closed below that: refuse shorter texts at the daemon (or fix
     `bundle-seal` and regenerate).
 14. A release-build, long-lived database client (PERFORMANCE.md: about 0.4 s per message).
+15. **P-CERT, the joint sender-certificate refresh** (the push-button path needs it; its timer is
+    wired to a TODO entry point, `deploy/node/pb_certificate.py` `refresh()`). Today nothing
+    refreshes the certificate in a way a session would use: sessions take it from the account's
+    row on the database nodes (`Start.lean` 74-81) and no code rewrites that row once it exists
+    (`Start.lean` 160-167, create-if-missing only). The ceremony's `certificate` stage is not a
+    safe substitute: it re-uploads the one-time prekeys (`Ceremony.lean` 254-257), needs the
+    registration's credentials share (deleted after the account step), uses port_base+140, which
+    overlaps the daemon's send sessions at +40k, displaces the receive session's socket (4409), and
+    writes the certificate to a side file no session reads. Proposed: a daemon job kind
+    (`{"op":"refresh-certificate"}`, party 0 leads over peer-start, or inside the receive session as
+    PRODUCT_TODO.md section 7 intends) that opens the authenticated socket from the row's
+    credentials, does only `GET /v1/certificate/delivery?includeE164=false`, requires the
+    deployment's certificate length (circuits exist only for it), re-seals and rewrites the row (a
+    versioned overwrite in the database client), updates the export's `certificate_hex` /
+    `certificate_expires_ms` while the export is still read, uses its own port block, and ends the
+    long-lived send session so it reloads. Then `refresh()` becomes one request to the local daemon.
+16. secret-shared-db `pki`, non-local mode: the peer and sync ports in `network-config.json`
+    (8000, 10001) differ from what each node's `config.json` binds (8002+i, 10002+i), and the
+    WireGuard files' ListenPort/Endpoint disagree; `-d` copies the Postgres password into the shared
+    network configuration. The push-button path does not use `pki`'s layout: each database node
+    runs a throwaway `pki` on its own machine and keeps only its own seed (public keys derived
+    from it), and `deploy.py` assembles the network configuration from the public parts with
+    one port per role (worked around; the fix belongs in `pki`, with change 7).
+17. Daemon `status`: add the time of the last successful send and receive (numbers only), so the
+    monitoring page can show them; today it shows the counts `status` returns.
+18. A refresh of the field engine's 30-day certificates without a restart (with change 8):
+    today the page shows their expiry and renewing means `certs init`/`trust` again on both nodes
+    and new bundles (a new fingerprint).
+
+19. secret-shared-db `server`: it dials its peers once, 10 s after it starts, and never again
+    ("Client N not connected, skipping" for ever). Found by the push-button test: database nodes
+    started minutes apart by different operators never connected, no epoch reached consensus
+    (an epoch needs threshold + max_malicious = 4 signatures), and every receive session then
+    failed while loading the account ("operation 8 local abort"). Proposed: reconnect to peers
+    with back-off. Worked around in the tooling: each database node's start waits (up to 30
+    minutes) until every other database node is waiting or running, then all start at the same
+    30-second boundary (`pb_health.py db-barrier`). A node restarted alone later (reboot,
+    upgrade) still depends on whether its peers reconnect to it: not tested.
+
+Which of these the push-button path depends on: 19 (database peers reconnecting; worked around
+for a coordinated start only), 15 (certificate refresh: the timer only alerts until it exists)
+and 8/18 (field-engine certificates expire after 30 days: the page warns 7
+days ahead; renewal is manual). Worked around in the tooling: 3 (the word dir is mounted at the
+compiled-in path), 4 (the settings-digest mirror), 7 and 16 (per-node database keys), 10 (the
+field engine's ports are closed by the per-sender firewall on the tunnel). Needed for the
+`each-operator` build mode to compare binaries: 11.
 
 ---
 
@@ -815,6 +979,19 @@ Not made here (another engineer is working in these files); each is small.
 10. A monitoring stack, and who is alerted.
 11. Release of the first deployment: after the two-machine test (`deployment/vm_pair_test`),
     after the next real-service run, or both?
+12. Push-button tool: who is the coordinator and who builds the images (one builder whose images
+    everyone runs, or each operator building from the agreed commit, which cannot be compared
+    binary for binary until builds are reproducible)?
+13. The research's cheapest computation pair is dedicated or VPS machines (Hetzner AX102, OVH
+    VPS-6), which no OpenTofu module creates: deploy those with `provider = "existing"` after
+    ordering them, or prefer cloud VMs (`hetzner`, `upcloud`, `ovh` Public Cloud) for push-button
+    creation?
+14. Monitoring: the per-operator page and an optional combined page exist; nobody is alerted. Is
+    a page enough, or should failures send mail / a push notification (to whom)?
+15. Until the joint certificate refresh (proposed change 15) exists, the timer only alerts: who
+    refreshes by hand every 7 days, and is building P-CERT the next priority?
+16. The application server must join the tunnel mesh (its WireGuard key in deployment.toml): who
+    operates it and does it need to reach the database nodes too (today: only the two daemons)?
 
 ---
 
