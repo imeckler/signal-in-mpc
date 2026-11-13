@@ -53,8 +53,15 @@ def poll (w : Worker) : M Polled := do
   return .record wire
 
 /-- **Replace the selected connection** (op 91) after a poll reported it closed, by a fresh one to
-connect and shake hands on again; the other connections are untouched. -/
-def reset (w : Worker) : M Unit := Legacy.empty w .resetConnection []
+connect and shake hands on again; the other connections are untouched. With `tls` selected (J22)
+the scripts own the connection's TLS state: op 91 with payload `[1]` replaces only the socket (the
+legacy library's connection never left its fresh phase, so there is nothing of it to reset), and the
+selection's `serverReset` gives the connection a fresh script TLS state. -/
+def reset (w : Worker) : M Unit := do
+  if let some f := w.overrides.serverReset then
+    Legacy.empty w .resetConnection [1]
+    return ← f w.connection
+  Legacy.empty w .resetConnection []
 
 /-- The handshake's transport: records sent (op 10) and received (op 11) by the leader's socket. -/
 def handshakeTransport (w : Worker) : Transport where

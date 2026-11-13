@@ -9148,11 +9148,11 @@ theorem f32_commit_inv {c c' : Ctx} (t t' : Contacts.Table) (cache : ContactsPre
     (ContactsPrepare.commit t' cache id p).1.Inv c' :=
   ContactsPrepare.commit_inv t t' cache id p e hI he hent hn hf hold hnew hbelow hlive
 
-/-- **The contact set is selectable, and only whole** (with `tls` and `masks`). -/
+/-- **The contact set is selectable, and only whole** (J22: with `tls`, `masks`, `random` and
+`upgrade`, `Select.closedSet`; for any session but a registration ceremony). -/
 theorem select_contactSet :
-    (Select.check (Select.contactSet ++ ["tls", "masks"])).toBool = true ∧
-      ∀ g ∈ Select.contactSet ++ ["tls", "masks"],
-        (Select.check ((Select.contactSet ++ ["tls", "masks"]).erase g)).toBool = false :=
+    (Select.check Select.closedSet false).toBool = true ∧
+      ∀ g ∈ Select.closedSet, (Select.check (Select.closedSet.erase g) false).toBool = false :=
   ⟨Select.check_contactSet, Select.check_contactSet_partial⟩
 
 /-- **J13: a released slot reads as the base store** (so a script naming it fails the payload check)
@@ -9165,6 +9165,92 @@ theorem j13_release (m : Runner.Slots) (base : Store) (ns : List Nat) (s : Nat) 
   ⟨Runner.release_reads_base m base ns s hs, Runner.Ledger.fresh_not_released l hl, Runner.Ledger.release_inv l ns hl⟩
 
 end FlowsContactSet
+
+/-! ### 7k. The first real-engine runs' defects: J21, J22, J23
+
+`TlsMpc/Node/Flows/Receive.lean` + `ReceiveFlowProofs.lean` (J21: the receiver record's width is ONE
+definition outside the emitter closure, `Receive.receiverBytes`, proved to be the kernel's),
+`Flows/Select.lean` (J22: a selection with `tls` must not strand a legacy operation that needs the
+legacy library's TLS phase), `Flows/ContactsAdmit.lean` (J23: op 44, TEST, as a script on the
+contact table). **M** as above. -/
+
+section FlowsRealRuns
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows
+
+/-- **J21: the session script's slice of `receive-session`'s `receiver` output is the kernel's
+width** (`8 · Receive.receiverBytes` = 1600 bits), for any message long enough to hold the fields the
+record copies. -/
+theorem j21_session_receiver_bits (cert size : Nat) (p : TlsMpc.Signal.ReceiveFirst.PreKeyShape)
+    (q : TlsMpc.Signal.ReceiveFirst.SignalShape) (jump : Nat) (h1 : 36 ≤ p.signalSize size)
+    (h2 : p.signalAt size + 36 ≤ size) (h3 : p.keysAt + 35 ≤ size) :
+    ((TlsMpc.ReceiveKernel.session cert size p q jump).outputs.map (·.bits)).getD 2 0 =
+      (Receive.sessionOut cert q.ciphertext).getD 2 0 :=
+  Receive.Proofs.session_receiver_bits cert size p q jump h1 h2 h3
+
+/-- **J21: the receiver record has 200 bytes** (root, chain, ratchet key, counter, PQ root, PQ chain, PQ
+index, base key), not the 236 the kernels' documentation says. -/
+theorem j21_receiverBytes : Receive.receiverBytes = 200 := Receive.receiverBytes_eq
+
+/-- **J22: an accepted selection strands no legacy operation** [selection]: with `tls` selected, every
+legacy operation that needs the legacy library's retired TLS phase and that this session can issue is
+replaced by a script of a selected group. -/
+theorem j22_check_closed (names : List String) (ceremony : Bool) (h : (Select.check names ceremony).toBool = true)
+    (htls : names.contains "tls" = true) :
+    ∀ o ∈ Select.tlsDependent, (ceremony || !o.ceremonyOnly) = true →
+      ∃ g, o.group = some g ∧ names.contains g = true :=
+  Select.check_closed names ceremony h htls
+
+/-- **J22: the smallest closed selection containing `tls` is all ten groups** (any session but a
+registration ceremony). -/
+theorem j22_tls_needs_closedSet (names : List String) (h : (Select.check names false).toBool = true)
+    (htls : names.contains "tls" = true) : ∀ g ∈ Select.closedSet, names.contains g = true :=
+  Select.tls_needs_closedSet names h htls
+
+/-- **J22: the selection the stack accepted before (the contact set with `tls` and `masks`) is refused**:
+it strands op 33 and op 45; and **a ceremony session cannot select `tls`** until S16 scripts ops 80, 81. -/
+theorem j22_refusals :
+    (Select.check (Select.contactSet ++ ["tls", "masks"]) false).toBool = false ∧
+      ∀ names : List String, names.contains "tls" = true → (Select.check names true).toBool = false :=
+  ⟨Select.check_contactSet_unclosed, Select.check_ceremony_tls⟩
+
+/-- **J23: op 44 (TEST) releases nothing**, to either party, against any adversary [M]. -/
+theorem j23_admit_disclosure (E : Env) (me : Party) (adv : Adversary) (σ : Store) (I : Ideal)
+    (vD : List Release) (t : Contacts.Table) (id slot : Nat) :
+    (withAdv E me adv (Contacts.opAdmit t id slot).script σ I vD).viewD = [] ∧
+      (withAdv E me adv (Contacts.opAdmit t id slot).script σ I vD).viewH = [] :=
+  Contacts.opAdmit_disclosure E me adv σ I vD t id slot
+
+/-- **J23: op 44 declares no kind** [M]. -/
+theorem j23_admit_reveals (t : Contacts.Table) (id slot : Nat) :
+    Reveals Contacts.admitKinds (Contacts.opAdmit t id slot).script :=
+  Contacts.opAdmit_reveals t id slot
+
+/-- **J23: op 44 is well formed and keeps the contact table's invariant** [M]. -/
+theorem j23_admit_inv (sigs : Bytes → Option Sig) (c : Ctx) (t : Contacts.Table) (id slot : Nat)
+    (hI : t.Inv c) :
+    WFP sigs (fun c' h => ((Contacts.opAdmit t id slot).commit h).Inv c') c (Contacts.opAdmit t id slot).script :=
+  Contacts.opAdmit_inv sigs c t id slot hI
+
+/-- **J23: op 44 sends only bounded wires** [M]. -/
+theorem j23_admit_bounded (t : Contacts.Table) (id slot : Nat) (ht : t.next + 1 < B64) :
+    Every Instr.Bounded (Contacts.opAdmit t id slot).script :=
+  Contacts.opAdmit_bounded t id slot ht
+
+/-- **J23: the honest run of op 44** [M]: a new contact is entered with its record as its state (the
+state handle holds the record's bits), no key, one device of kind 0. -/
+theorem j23_admit_honest (E : Env) (σA σB : Store) (I : Ideal) (t : Contacts.Table) (id slotA slotB : Nat)
+    (record : Contacts.B8) (hr : record.length = Contacts.recordBytes) (hσA : σA.bits slotA = Contacts.bitsOf record)
+    (hnew : t.find? id = none) :
+    (jointRun E (Contacts.opAdmit t id slotA).script (Contacts.opAdmit t id slotB).script σA σB I).result =
+        some (⟨t.next⟩, ⟨t.next⟩) ∧
+      ((Contacts.opAdmit t id slotA).commit ⟨t.next⟩).find? id =
+        some { state := some ⟨t.next⟩, size := Contacts.recordBytes, kinds := [0] } ∧
+      (jointRun E (Contacts.opAdmit t id slotA).script (Contacts.opAdmit t id slotB).script σA σB I).ideal.bools t.next =
+        some (Contacts.bitsOf record) :=
+  Contacts.opAdmit_honest E σA σB I t id slotA slotB record hr hσA hnew
+
+end FlowsRealRuns
 
 /-! ### 7-labels. Labels, the reveal registry and the engine's batching (stages S9, S6; numbered 7b
 on the main line, renamed when the main line was merged into `scripts-stack`, whose 7b is S10)
@@ -10374,6 +10460,16 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.f32_commit_inv
 #print axioms TlsMpc.Security.select_contactSet
 #print axioms TlsMpc.Security.j13_release
+#print axioms TlsMpc.Security.j21_session_receiver_bits
+#print axioms TlsMpc.Security.j21_receiverBytes
+#print axioms TlsMpc.Security.j22_check_closed
+#print axioms TlsMpc.Security.j22_tls_needs_closedSet
+#print axioms TlsMpc.Security.j22_refusals
+#print axioms TlsMpc.Security.j23_admit_disclosure
+#print axioms TlsMpc.Security.j23_admit_reveals
+#print axioms TlsMpc.Security.j23_admit_inv
+#print axioms TlsMpc.Security.j23_admit_bounded
+#print axioms TlsMpc.Security.j23_admit_honest
 #print axioms TlsMpc.Security.runner_drive_bounded
 #print axioms TlsMpc.Security.runner_nextBatch_fill_only
 #print axioms TlsMpc.Security.s11_quotientMany_honest

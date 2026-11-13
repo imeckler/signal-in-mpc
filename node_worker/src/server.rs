@@ -31,8 +31,11 @@ pub enum ServerOp {
     Poll,
     /// 90: make connection `index` the active one (the next unused index opens a fresh one).
     Select(u8),
-    /// 91: the active connection, reported closed, is replaced by a fresh one.
-    Reset,
+    /// 91: the active connection, reported closed, is replaced by a fresh one. Empty payload: the
+    /// legacy library's TLS state of the connection too (it must have been retired). Payload `[1]`
+    /// (STACK_NOTES J22: the Lean scripts own the connection's TLS state, `SIGNAL_SCRIPTS` with
+    /// `tls`): the socket only; the legacy library's connection never left its fresh phase.
+    Reset { legacy: bool },
     /// 92 (new): close the active connection's socket. Afterwards it counts as closed (91 resets it).
     Close,
 }
@@ -70,7 +73,7 @@ impl ServerOp {
             Self::RECEIVE => need(p.is_empty(), "receive").map(|_| ServerOp::Receive),
             Self::POLL => need(p.is_empty(), "poll").map(|_| ServerOp::Poll),
             Self::SELECT => need(p.len() == 1, "use connection").map(|_| ServerOp::Select(p[0])),
-            Self::RESET => need(p.is_empty(), "reset connection").map(|_| ServerOp::Reset),
+            Self::RESET => need(p.is_empty() || p == [1], "reset connection").map(|_| ServerOp::Reset { legacy: p.is_empty() }),
             Self::CLOSE => need(p.is_empty(), "close connection").map(|_| ServerOp::Close),
             _ => Err("not a server operation".into()),
         }

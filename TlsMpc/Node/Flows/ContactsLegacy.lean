@@ -58,8 +58,10 @@ def assign (w : Worker) (provisional contact : ContactId) : M (Opened .assignSta
   let reply ← Legacy.call w .contactAssign (uint 16 provisional ++ uint 16 contact)
   pure (Reveal.assignStatus (reply == [255]))
 
-/-- TEST: **admit a contact from the export** (op 44): its record (`Secret`) under its id. -/
+/-- TEST: **admit a contact from the export** (op 44): its record (`Secret`) under its id. With
+`contacts` selected, the TEST script `Contacts.opAdmit` (`Flows/ContactsAdmit.lean`, J23). -/
 def admitTest (w : Worker) (contact : ContactId) (record : Secret Bytes) : M Unit := do
+  if let some f := w.overrides.contactsAdmitTest then return ← f contact record
   let _ ← Legacy.inputOwn w .contactAdmit (Secret.hide (uint 16 contact) ++ record)
 
 end Contacts

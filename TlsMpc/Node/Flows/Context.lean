@@ -69,6 +69,11 @@ structure Overrides where
   contactsSeal : Option (ContactId → Bytes → TlsClient.M (Opened .sealedBlob Bytes)) := none
   contactsEvict : Option (ContactId → TlsClient.M Unit) := none
   contactsAssign : Option (ContactId → ContactId → TlsClient.M (Opened .assignStatus Bool)) := none
+  /-- TEST: op 44 (`Contacts.admitTest`, J23). -/
+  contactsAdmitTest : Option (ContactId → Secret Bytes → TlsClient.M Unit) := none
+  /-- Op 91's script half (J22): the connection's script TLS state replaced by a fresh one, for the
+  view's connection index; `Flow.Server.reset` sends the socket half. -/
+  serverReset : Option (Option Nat → TlsClient.M Unit) := none
   accountKey : Option (Secret Bytes → TlsClient.M Unit) := none
   accountLoad : Option (Bytes → TlsClient.M Unit) := none
   accountSeal : Option (Bytes → TlsClient.M (Opened .sealedBlob Bytes)) := none

@@ -202,7 +202,10 @@ def session (test : Bool) (args : List String) : IO Unit := do
         let uses := config.agreed.scripts.contains "receive" || config.agreed.scripts.contains "refresh"
         let counts := programMaskCounts (receivePrograms.filter fun _ => uses)
         pure ((fun name => names.contains name), (fun name => (counts.find? (·.1 == name)).map (·.2)))
-    let w ← Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed loaded programMasks
+    -- (J22: the selection must be closed for this session's kind; a ceremony session cannot select
+    -- `tls` until S16 scripts ops 80 and 81.)
+    let w ← Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed config.ceremony.isSome
+      loaded programMasks
     let context : Context := { ch, w, config, party, session, endpoint, port, tlsConfig
                                envelope := fun _ _ => throw "a delivered envelope before the session started" }
     let (outcome, report) ← run context

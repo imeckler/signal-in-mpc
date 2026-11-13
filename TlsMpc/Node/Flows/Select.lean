@@ -3,6 +3,7 @@ import TlsMpc.Node.Flows.RefreshBackend
 import TlsMpc.Node.Flows.Upgrade
 import TlsMpc.Node.Flows.UpgradeAuth
 import TlsMpc.Node.Flows.ContactsPrepare
+import TlsMpc.Node.Flows.ContactsAdmit
 import TlsMpc.Node.Flows.Masks
 
 /-!
@@ -18,7 +19,8 @@ operation, exactly as before. No caller changes: `Worker.startWith` returns the 
 THE ONE LINE `Main.session` NEEDS (not made here: `TlsMpc/Node/Main.lean` and `Session/*` are being
 refactored on the main line) — replace `Flow.Worker.start running.rpc ch.random` by
 
-    Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed (fun _ => true) (fun _ => none)
+    Flow.Worker.startWith running.rpc ch.random (← natural party) config.agreed config.ceremony.isSome
+      (fun _ => true) (fun _ => none)
 
 (the last two: the kernels and the V3 programs' mask counts the worker loaded, from its manifest;
 `fun _ => true` makes an unloaded receive kernel abort the session instead of refusing the message,
@@ -30,9 +32,9 @@ THE GROUPS (`Config.scriptNames`), what each replaces, what it needs, and whethe
   |---|---|---|---|
   | `random` | `Random.joint` (op 33) | nothing | yes (exchanges only, no engine call) |
   | `masks` | the S10 pool (`Masks.generate`, refilled on demand) | the V3 `field-*` programs | yes (needs the re-export to run) |
-  | `tls` | `Tls.handshake`'s and `Tls.application`'s backends, `publicBuffer`, `recordLength`, `revealRange` (ops 1-8, 12-16, 30, 43) | `masks` (split ECDH's F2W) | yes (needs the re-export: split ECDH's V3 programs) |
+  | `tls` | `Tls.handshake`'s and `Tls.application`'s backends, `publicBuffer`, `recordLength`, `revealRange`, the script half of `Server.reset` (ops 1-8, 12-16, 30, 43, 91) | `masks` (split ECDH's F2W); CLOSED only with every group of `closedSet` (J22, `stranded`) | yes (needs the re-export: split ECDH's V3 programs) |
   | `upgrade` | `Upgrade.anonymous` (op 45) | `tls` (op 45 also sets the legacy service's receive state, `Upgrade.lean`; with the record layer in Lean nothing reads it) | yes |
-  | `contacts` | `Contacts.key/load/loadDevices/seal/evict/assign` (ops 36-38, 40, 52, 63) | the contact set below | yes |
+  | `contacts` | `Contacts.key/load/loadDevices/seal/evict/assign/admitTest` (ops 36-38, 40, 52, 63; 44 TEST, J23) | the contact set below | yes |
   | `account` | `Account.key/credentials/load/seal/admitTest` (ops 53, 47, 55, 54, 46), `Upgrade.authenticated` (op 32, `Flows/UpgradeAuth.lean`) | the contact set | yes (J11) |
   | `curve` | `Curve.prepareContacts` (op 66, `Flows/ContactsPrepare.lean`) | the contact set | yes (F32) |
   | `send` | `Send.seal/sealDevices/request/requestDevices` (ops 41, 42, 61, 62) | the contact set | yes |
@@ -46,6 +48,10 @@ other one, and `tls` and `masks` (the record layer seals the requests; every cur
 
 `check` refuses a selection that names an unavailable group or misses a needed one, at session
 start, with the reason. Every override is written (the switch is a setting, not a code change).
+J22: `check` also refuses a selection with `tls` that leaves a legacy operation needing the legacy
+library's TLS phase (`tlsDependent`, `stranded`) without its script; for every session but a
+registration ceremony the smallest accepted selection with `tls` is all ten groups (`closedSet`,
+`tls_needs_closedSet`), and a ceremony session cannot select `tls` until S16 (`check_ceremony_tls`).
 
 What remains OUTSIDE this module for the contact set to RUN (STACK_NOTES section 6): the V3
 field-program re-export and its pins; `Main.session` calling `Worker.startWith` (J9); the
@@ -87,23 +93,222 @@ def requires (g : String) : List String :=
 /-- The groups whose script implementation cannot run yet, and why: none since J8, J11, J12, F32. -/
 def unavailable : List (String × String) := []
 
-/-- **A selection is accepted** when every group it names is available and every group a named
-group needs is named too. -/
-def check (names : List String) : Except String Unit := do
-  for n in names do
-    if let some (_, why) := unavailable.find? (·.1 == n) then
-      throw s!"SIGNAL_SCRIPTS: {n} is not available: {why}"
-    for m in requires n do
-      unless names.contains m do
-        throw s!"SIGNAL_SCRIPTS: {n} needs {m} selected too"
+/-! ## J22: the legacy operations that need the legacy library's TLS state
 
-/-- **The contact set is selectable, whole**: `check` accepts it with `tls` and `masks`. -/
-theorem check_contactSet : (check (contactSet ++ ["tls", "masks"])).toBool = true := by decide
+Every legacy service operation of `tls_worker_v3.cpp` requires the ACTIVE connection's legacy TLS
+phase to be `retired` (`need(phase==Phase::retired && service, …)`; op 91 through `ea_legacy_reset`,
+`legacy_abi.cpp`). Only the legacy handshake (ops 1-7, `Tls.legacyBackend`) moves that phase; with
+`tls` selected the handshake is a script and the legacy phase of every connection stays `fresh`, so
+every legacy operation below is refused by the legacy library. A selection with `tls` is therefore
+CLOSED only if every one of them is replaced by a selected script (or, for the ceremony's, the
+session is not a ceremony session: only `Session/Ceremony.lean` calls them, and a ceremony session
+is part of the agreed settings, `Config.agreedText`'s `ceremony=`). No C++ bridges script state into
+the legacy library (the owner's rule): the selection refuses what it cannot close. STACK_NOTES.md
+section 10 has the same table with each script's file. -/
 
-/-- **…and only whole**: without any one of its groups (or without `tls`, or `masks`) it is refused. -/
+/-- A legacy worker operation that needs the legacy library's retired TLS phase: its code, the flow
+function that issues it, the selection name whose script replaces it (`none`: no script yet), and
+whether only a registration ceremony session issues it. -/
+structure LegacyOp where
+  code : Nat
+  flow : String
+  group : Option String
+  ceremonyOnly : Bool := false
+  deriving DecidableEq, Repr
+
+/-- **The table** (STACK_NOTES.md section 10). -/
+def tlsDependent : List LegacyOp :=
+  [⟨12, "Tls.application (open record)", some "tls", false⟩,
+   ⟨13, "Tls.application (seal record)", some "tls", false⟩,
+   ⟨14, "Tls.application (seal control)", some "tls", false⟩,
+   ⟨15, "Tls.application (rotate send key)", some "tls", false⟩,
+   ⟨16, "Tls.application (rotate receive key)", some "tls", false⟩,
+   ⟨30, "Tls.publicBuffer", some "tls", false⟩,
+   ⟨43, "Tls.recordLength/revealRange", some "tls", false⟩,
+   ⟨91, "Server.reset", some "tls", false⟩,
+   ⟨33, "Random.joint", some "random", false⟩,
+   ⟨45, "Upgrade.anonymous", some "upgrade", false⟩,
+   ⟨32, "Upgrade.authenticated", some "account", false⟩,
+   ⟨36, "Contacts.key", some "contacts", false⟩,
+   ⟨37, "Contacts.load", some "contacts", false⟩,
+   ⟨38, "Contacts.seal", some "contacts", false⟩,
+   ⟨40, "Contacts.evict", some "contacts", false⟩,
+   ⟨44, "Contacts.admitTest (TEST)", some "contacts", false⟩,
+   ⟨52, "Contacts.assign", some "contacts", false⟩,
+   ⟨63, "Contacts.loadDevices", some "contacts", false⟩,
+   ⟨46, "Account.admitTest (TEST)", some "account", false⟩,
+   ⟨47, "Account.credentials", some "account", false⟩,
+   ⟨53, "Account.key", some "account", false⟩,
+   ⟨54, "Account.seal", some "account", false⟩,
+   ⟨55, "Account.load", some "account", false⟩,
+   ⟨66, "Curve.prepareContacts", some "curve", false⟩,
+   ⟨41, "Send.seal", some "send", false⟩,
+   ⟨42, "Send.request", some "send", false⟩,
+   ⟨61, "Send.sealDevices", some "send", false⟩,
+   ⟨62, "Send.requestDevices", some "send", false⟩,
+   ⟨48, "Receive.take", some "receive", false⟩,
+   ⟨49, "Receive.drop", some "receive", false⟩,
+   ⟨50, "Receive.openFirst", some "receive", false⟩,
+   ⟨51, "Receive.session", some "receive", false⟩,
+   ⟨56, "Refresh.fetch", some "refresh", false⟩,
+   ⟨57, "Refresh.take", some "refresh", false⟩,
+   ⟨58, "Refresh.drop", some "refresh", false⟩,
+   ⟨59, "Refresh.shape", some "refresh", false⟩,
+   ⟨60, "Refresh.establish", some "refresh", false⟩,
+   ⟨64, "Refresh.scratchSeal", some "refresh", false⟩,
+   ⟨65, "Refresh.scratchCommit", some "refresh", false⟩,
+   ⟨80, "Ceremony.secrets", none, true⟩,
+   ⟨81, "Ceremony.register", none, true⟩]
+
+/-- Whether a selected script replaces the operation. -/
+def scripted (names : List String) (o : LegacyOp) : Bool :=
+  match o.group with
+  | some g => names.contains g
+  | none => false
+
+/-- **The operations a selection strands**: with `tls` selected, every operation of the table this
+session can issue (`ceremony`: the session is a registration ceremony) that no selected script
+replaces. Without `tls` the legacy handshake runs and nothing is stranded. -/
+def stranded (names : List String) (ceremony : Bool) : List LegacyOp :=
+  if names.contains "tls" then tlsDependent.filter fun o => (ceremony || !o.ceremonyOnly) && !scripted names o
+  else []
+
+/-- The refusal's text: each stranded operation, and the names to select (or "S16"). -/
+def strandedMessage (ops : List LegacyOp) : String :=
+  let want := (ops.filterMap (·.group)).eraseDups
+  "SIGNAL_SCRIPTS: tls owns every connection's TLS state, so the legacy library's TLS phase never reaches " ++
+  "retired, and these legacy operations of this session would be refused: " ++
+  String.intercalate ", " (ops.map fun o => s!"op {o.code} {o.flow}" ++
+    (match o.group with
+     | some g => s!" (select {g})"
+     | none => " (no script yet: S16)")) ++
+  (if want.isEmpty then "" else s!"; select also: {String.intercalate "," want}")
+
+/-- The named groups that are unavailable, with the reason. -/
+def unavailableNamed (names : List String) : List (String × String) :=
+  names.filterMap fun n => (unavailable.find? (·.1 == n)).map fun p => (n, p.2)
+
+/-- The (group, needed group) pairs a selection misses. -/
+def needsMissing (names : List String) : List (String × String) :=
+  names.flatMap fun n => ((requires n).filter fun m => !names.contains m).map fun m => (n, m)
+
+/-- **A selection is accepted** when every group it names is available, every group a named group
+needs is named too, and (J22) it strands no legacy operation of this session (`stranded`). -/
+def check (names : List String) (ceremony : Bool) : Except String Unit :=
+  match unavailableNamed names with
+  | (n, why) :: _ => .error s!"SIGNAL_SCRIPTS: {n} is not available: {why}"
+  | [] =>
+    match needsMissing names with
+    | (n, m) :: _ => .error s!"SIGNAL_SCRIPTS: {n} needs {m} selected too"
+    | [] =>
+      match stranded names ceremony with
+      | [] => .ok ()
+      | ops => .error (strandedMessage ops)
+
+theorem check_ok (names : List String) (ceremony : Bool) (h : (check names ceremony).toBool = true) :
+    unavailableNamed names = [] ∧ needsMissing names = [] ∧ stranded names ceremony = [] := by
+  unfold check at h
+  cases h1 : unavailableNamed names with
+  | cons p ps =>
+    obtain ⟨n, why⟩ := p
+    simp [h1, Except.toBool] at h
+  | nil =>
+    cases h2 : needsMissing names with
+    | cons p ps =>
+      obtain ⟨n, m⟩ := p
+      simp [h1, h2, Except.toBool] at h
+    | nil =>
+      cases h3 : stranded names ceremony with
+      | cons p ps => simp [h1, h2, h3, Except.toBool] at h
+      | nil => exact ⟨rfl, rfl, rfl⟩
+
+/-- **J22, the closure: an accepted selection strands no legacy operation.** If `check` accepts a
+selection with `tls`, every legacy operation of the table that this session can issue is replaced by
+a script of a selected group. -/
+theorem check_closed (names : List String) (ceremony : Bool) (h : (check names ceremony).toBool = true)
+    (htls : names.contains "tls" = true) :
+    ∀ o ∈ tlsDependent, (ceremony || !o.ceremonyOnly) = true → ∃ g, o.group = some g ∧ names.contains g = true := by
+  intro o ho hk
+  have hs := (check_ok names ceremony h).2.2
+  simp only [stranded, htls, ↓reduceIte, List.filter_eq_nil_iff] at hs
+  have hsc : scripted names o = true := by
+    have := hs o ho
+    revert this
+    cases scripted names o <;> simp [hk]
+  unfold scripted at hsc
+  cases hg : o.group with
+  | none => simp [hg] at hsc
+  | some g => simp only [hg] at hsc; exact ⟨g, rfl, hsc⟩
+
+/-- An accepted selection names every group a named group needs. -/
+theorem check_needs (names : List String) (ceremony : Bool) (h : (check names ceremony).toBool = true) :
+    ∀ n ∈ names, ∀ m ∈ requires n, names.contains m = true := by
+  intro n hn m hm
+  have hs := (check_ok names ceremony h).2.1
+  simp only [needsMissing, List.flatMap_eq_nil_iff, List.map_eq_nil_iff, List.filter_eq_nil_iff] at hs
+  have := hs n hn m hm
+  simpa using this
+
+/-- **The closed selection with `tls`** for every session that is not a registration ceremony: the
+contact set, `tls`, `masks`, and the two groups whose legacy operations need the legacy TLS phase too,
+`random` (op 33) and `upgrade` (op 45). -/
+def closedSet : List String := contactSet ++ ["tls", "masks", "random", "upgrade"]
+
+/-- **J22: the smallest closed selection containing `tls` is all ten groups** (`closedSet`): any
+selection with `tls` that `check` accepts, for a session that is not a ceremony, contains every
+group of `closedSet`. -/
+theorem tls_needs_closedSet (names : List String) (h : (check names false).toBool = true)
+    (htls : names.contains "tls" = true) : ∀ g ∈ closedSet, names.contains g = true := by
+  have hc := check_closed names false h htls
+  have via : ∀ code flow g, (⟨code, flow, some g, false⟩ : LegacyOp) ∈ tlsDependent → names.contains g = true := by
+    intro code flow g hm
+    obtain ⟨g', hg', hc'⟩ := hc _ hm rfl
+    simp only [Option.some.injEq] at hg'
+    subst hg'
+    exact hc'
+  intro g hg
+  simp only [closedSet, contactSet, List.cons_append, List.nil_append, List.mem_cons, List.not_mem_nil,
+    or_false] at hg
+  rcases hg with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  · exact via 36 "Contacts.key" _ (by decide)
+  · exact via 53 "Account.key" _ (by decide)
+  · exact via 66 "Curve.prepareContacts" _ (by decide)
+  · exact via 41 "Send.seal" _ (by decide)
+  · exact via 48 "Receive.take" _ (by decide)
+  · exact via 56 "Refresh.fetch" _ (by decide)
+  · exact htls
+  · have := check_needs names false h "tls" (by simpa using htls) "masks" (by decide)
+    exact this
+  · exact via 33 "Random.joint" _ (by decide)
+  · exact via 45 "Upgrade.anonymous" _ (by decide)
+
+/-- **The closed selection is accepted** (any session but a ceremony). -/
+theorem check_contactSet : (check closedSet false).toBool = true := by decide
+
+/-- **…and only whole**: without any one of its ten groups it is refused. -/
 theorem check_contactSet_partial :
-    ∀ g ∈ contactSet ++ ["tls", "masks"], (check ((contactSet ++ ["tls", "masks"]).erase g)).toBool = false := by
+    ∀ g ∈ closedSet, (check (closedSet.erase g) false).toBool = false := by
   decide
+
+/-- **J22: the selection the stack accepted before is not closed**: the contact set with `tls` and
+`masks` only strands op 33 (`Random.joint`) and op 45 (`Upgrade.anonymous`), so it is refused. -/
+theorem check_contactSet_unclosed : (check (contactSet ++ ["tls", "masks"]) false).toBool = false := by decide
+
+/-- **J22: no selection with `tls` is accepted for a registration ceremony session** until S16
+scripts ops 80 and 81 (`Ceremony.secrets`, `Ceremony.register`). -/
+theorem check_ceremony_tls (names : List String) (htls : names.contains "tls" = true) :
+    (check names true).toBool = false := by
+  cases h : (check names true).toBool with
+  | false => rfl
+  | true =>
+    obtain ⟨g, hg, -⟩ := check_closed names true h htls ⟨80, "Ceremony.secrets", none, true⟩ (by decide) rfl
+    cases hg
+
+/-- Without `tls` nothing is stranded (the legacy handshake runs as before). -/
+theorem stranded_without_tls (names : List String) (ceremony : Bool) (h : names.contains "tls" = false) :
+    stranded names ceremony = [] := by
+  unfold stranded
+  simp only [h, Bool.false_eq_true, ↓reduceIte]
 
 /-! ## The session's script state -/
 
@@ -389,6 +594,19 @@ def overrides (s : Session) (names : List String) : Flow.Overrides :=
     contactsEvict := on "contacts" fun id => tableStep r fun t => Contacts.opEvict t id
     contactsAssign := on "contacts" fun p id => do
       return Reveal.assignStatus (← tableStep r fun t => Contacts.opAssign t p id)
+    -- TEST (op 44, J23; `Flows/ContactsAdmit.lean`): the C++'s `need` on the account (admitted, its
+    -- certificate in) and the record's size here; the table's own refusal (an id already present) in
+    -- `opAdmit`. Party A's record bits are A's input (B's slot holds its own copy, unread).
+    contactsAdmitTest := on "contacts" fun id record => do
+      insist ((← get s.account).certificate.isSome && record.length == Contacts.recordBytes) "contact admission"
+      let slot ← r.stashBits (record.map fun b => bitsOf (toB8 b))
+      let _ ← tableStep r (fun t => Contacts.opAdmit t id slot) [slot]
+    -- Op 91 (J22): the connection's script TLS state is replaced by a fresh one (the socket half is
+    -- `Flow.Server.reset`'s, with the legacy library left alone: its phase never left `fresh`).
+    serverReset := on "tls" fun c => do
+      let i := c.getD 0
+      let fresh ← (IO.mkRef {} : IO (IO.Ref (Tls.Conn JoinBackend.SplitState)))
+      set s.conns ((i, fresh) :: (← get s.conns).filter (·.1 != i))
     accountKey := on "account" fun share => withCounters s fun a => do
       let slot ← r.stashBits (share.map fun b => bitsOf (toB8 b))
       let st := Account.keyStep a slot
@@ -485,13 +703,15 @@ namespace TlsMpc.Node.Flow
 open TlsMpc.TlsWire
 
 /-- **The flow context with the agreed selection** (`Flows/Select.lean`): as `Worker.start`, then,
-when `agreed.scripts` names groups (accepted by `Select.check`), one script runner for this party
-(`party`: 0 for A) and the overrides of those groups. With no group it is `Worker.start`. -/
+when `agreed.scripts` names groups (accepted by `Select.check`, for this session's kind: `ceremony`,
+the session is a registration ceremony, J22), one script runner for this party (`party`: 0 for A)
+and the overrides of those groups. With no group it is `Worker.start`. -/
 def Worker.startWith (pipe : TlsWorker.Rpc) (random : Nat → IO (Secret Bytes)) (party : Nat)
-    (agreed : Config.Agreed) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat) : IO Worker := do
+    (agreed : Config.Agreed) (ceremony : Bool) (loaded : Bytes → Bool) (programMasks : Bytes → Option Nat) :
+    IO Worker := do
   let w ← Worker.start pipe random
   if agreed.scripts.isEmpty then return w
-  match Flows.Select.check agreed.scripts with
+  match Flows.Select.check agreed.scripts ceremony with
   | .error e => throw (IO.userError e)
   | .ok () =>
     let r ← Flows.Runner.Runner.start w (if party = 0 then .a else .b) loaded programMasks

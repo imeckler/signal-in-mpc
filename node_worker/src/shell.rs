@@ -202,11 +202,15 @@ impl<E: Engines> Shell<E> {
                 self.connections.select(to);
                 Ok(vec![])
             }
-            ServerOp::Reset => {
-                // Only a connection reported closed is replaced; the engines check that its TLS
-                // session had been retired.
+            ServerOp::Reset { legacy } => {
+                // Only a connection reported closed is replaced; with the legacy TLS state
+                // (`legacy`) the engines check that its TLS session had been retired. Without it
+                // (J22: the scripts own the TLS state) only the socket goes; the legacy library's
+                // connection is untouched (still fresh).
                 need(!self.connections.connected(), "reset connection")?;
-                self.engines.reset()?;
+                if legacy {
+                    self.engines.reset()?;
+                }
                 Ok(vec![])
             }
             ServerOp::Close => {

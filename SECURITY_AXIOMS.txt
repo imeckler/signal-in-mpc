@@ -738,6 +738,16 @@ f32_commit: [Classical.choice, Quot.sound, propext]
 f32_commit_inv: [Classical.choice, Quot.sound, propext]
 select_contactSet: [propext]
 j13_release: [Classical.choice, Quot.sound, propext]
+j21_session_receiver_bits: [Classical.choice, Quot.sound, propext]
+j21_receiverBytes: []
+j22_check_closed: [Classical.choice, Quot.sound, propext]
+j22_tls_needs_closedSet: [Classical.choice, Quot.sound, propext]
+j22_refusals: [Classical.choice, Quot.sound, propext]
+j23_admit_disclosure: [Quot.sound, propext]
+j23_admit_reveals: [Quot.sound, propext]
+j23_admit_inv: [Classical.choice, Quot.sound, propext]
+j23_admit_bounded: [Classical.choice, Quot.sound, propext]
+j23_admit_honest: [Classical.choice, Quot.sound, propext]
 engine_label_ofKind_inj: [Quot.sound, propext]
 engine_label_all_distinct: [Quot.sound, propext]
 engine_label_all_nonzero: [Quot.sound, propext]
@@ -773,4 +783,4 @@ reached: _private.TlsMpc.TlsWebSocketActivity.0.TlsMpc.TlsWebSocketActivity.or_z
 depends: recordClass_open_padded
 depends: recordClass_sealCiphertext_padded
 depends: s12_tls_sealClass_is_record
-# 3 of 759 entries
+# 3 of 769 entries
