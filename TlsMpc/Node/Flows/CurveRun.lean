@@ -311,4 +311,278 @@ theorem quotientMany_honest (hinv : FieldInverse) (hq : E.programs Inversion.quo
 
 end Quotients
 
+/-! ## `X25519.inverse` is `FieldDag.inverse` -/
+
+/-- Big-endian value of a bit list, from the accumulator `v`. -/
+def bitsVal : Nat → List Bool → Nat
+  | v, [] => v
+  | v, b :: rest => bitsVal (2 * v + b.toNat) rest
+
+theorem bitsVal_testBits (n : Nat) : ∀ (k v : Nat),
+    bitsVal v ((List.range k).reverse.map (fun i => n.testBit i)) = v * 2 ^ k + n % 2 ^ k
+  | 0, v => by simp [bitsVal, Nat.mod_one]
+  | k + 1, v => by
+    rw [List.range_succ, List.reverse_append, List.reverse_singleton, List.singleton_append, List.map_cons]
+    show bitsVal (2 * v + (n.testBit k).toNat) _ = _
+    rw [bitsVal_testBits n k, Nat.mod_pow_succ, Nat.toNat_testBit, Nat.pow_succ]
+    generalize n % 2 ^ k = R
+    generalize n / 2 ^ k % 2 = t
+    generalize 2 ^ k = P
+    rw [Nat.add_mul]
+    ac_rfl
+
+/-- `X25519.powBits` on the concrete field from the accumulator `x^v` is `x^(v ‖ bits)`. -/
+theorem powBits_power (x : F) : ∀ (bits : List Bool) (v : Nat),
+    X25519.powBits X25519.concrete x (TlsMpc.FieldDag.power x v) bits = TlsMpc.FieldDag.power x (bitsVal v bits)
+  | [], _ => rfl
+  | b :: rest, v => by
+    have e : (if b = true then TlsMpc.FieldDag.power x v * TlsMpc.FieldDag.power x v * x
+        else TlsMpc.FieldDag.power x v * TlsMpc.FieldDag.power x v) =
+        TlsMpc.FieldDag.power x (2 * v + b.toNat) := by
+      rw [← TlsMpc.FieldDag.V3.power_add, ← Nat.two_mul]
+      cases b
+      · rfl
+      · show TlsMpc.FieldDag.power x (2 * v) * x = x * TlsMpc.FieldDag.power x (2 * v)
+        exact Fin.mul_comm _ _
+    show X25519.powBits X25519.concrete x (if b = true then TlsMpc.FieldDag.power x v * TlsMpc.FieldDag.power x v * x
+        else TlsMpc.FieldDag.power x v * TlsMpc.FieldDag.power x v) rest = _
+    rw [e]
+    exact powBits_power x rest (2 * v + b.toNat)
+
+theorem modulus_sub_two_lt : modulus - 2 < 2 ^ 255 :=
+  Nat.lt_of_le_of_lt (Nat.sub_le _ _) (Nat.sub_lt (Nat.two_pow_pos 255) (by decide))
+
+/-- **`X25519.inverse` (square-and-multiply on the bits of p − 2) is `FieldDag.inverse`.** -/
+theorem x25519_inverse_eq (x : F) : X25519.inverse X25519.concrete x = inverse x := by
+  have hb : bitsVal 0 X25519.inverseBits = modulus - 2 := by
+    rw [X25519.inverseBits, bitsVal_testBits (modulus - 2) 255 0, Nat.zero_mul, Nat.zero_add,
+      Nat.mod_eq_of_lt modulus_sub_two_lt]
+  show X25519.powBits X25519.concrete x (TlsMpc.FieldDag.power x 0) X25519.inverseBits = TlsMpc.FieldDag.power x (modulus - 2)
+  rw [powBits_power, hb]
+
+/-! ## X25519 agreements (`Curve.agree`) -/
+
+/-- The 257 values of one `x25519-fast` instance (`ladderIns`): 0, 0, the 252 swap bits of steps
+2 … 253 for `bits`, 0, 0, the point `u`. -/
+def ladderVals (bits : Nat → Bool) (u : F) : List F :=
+  [ofNat 0, ofNat 0] ++ (List.range 252).map (fun k => X25519.bitValue (X25519Fast.swapBitSpec bits (k + 2))) ++
+    [ofNat 0, ofNat 0, u]
+
+/-- The program's projective output `(x₂, z₂)` on those values. -/
+def ladderOut (bits : Nat → Bool) (u : F) : X25519.Coordinates F :=
+  X25519Fast.compute X25519.concrete (fun i => (ladderVals bits u).getD i 0) ((ladderVals bits u).getD 256 0)
+
+theorem ladderVals_length (bits : Nat → Bool) (u : F) : (ladderVals bits u).length = 257 := by
+  simp [ladderVals]
+
+theorem ladderVals_swap (bits : Nat → Bool) (u : F) (t : Nat) (h2 : 2 ≤ t) (h3 : t ≤ 253) :
+    (ladderVals bits u).getD t 0 = X25519.bitValue (X25519Fast.swapBitSpec bits t) := by
+  unfold ladderVals
+  rw [List.getD_eq_getElem?_getD, List.getElem?_append_left (by simp; omega),
+    List.getElem?_append_right (by simp; omega)]
+  have ht : t - [ofNat 0, ofNat 0].length < 252 := by simp; omega
+  rw [List.getElem?_map, List.getElem?_range ht]
+  simp only [Option.map_some, Option.getD_some, List.length_cons, List.length_nil]
+  rw [show t - (0 + 1 + 1) + 2 = t by omega]
+
+theorem ladderVals_u (bits : Nat → Bool) (u : F) : (ladderVals bits u).getD 256 0 = u := by
+  unfold ladderVals
+  rw [List.getD_eq_getElem?_getD, List.getElem?_append_right (by simp)]
+  simp
+
+/-- `x25519-fast`'s expressions evaluate to the concrete ladder's `(x₂, z₂)`. -/
+theorem exprs_eval (i : Nat → F) :
+    X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i) =
+      [(X25519Fast.compute X25519.concrete i (i 256)).x2, (X25519Fast.compute X25519.concrete i (i 256)).z2] := by
+  have hm := X25519Fast.compute_map (X25519.evaluationHom i) TlsMpc.FieldDag.Expr.input (.input 256)
+  have e1 : (TlsMpc.FieldDag.Expr.eval i ∘ TlsMpc.FieldDag.Expr.input) = i := funext fun _ => rfl
+  have e2 : TlsMpc.FieldDag.Expr.eval i (.input 256) = i 256 := rfl
+  rw [e1, e2] at hm
+  rw [← hm]
+  rfl
+
+theorem exprs_ladder (bits : Nat → Bool) (u : F) :
+    X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval fun i => (ladderVals bits u).getD i 0) =
+      [(ladderOut bits u).x2, (ladderOut bits u).z2] := by
+  unfold ladderOut
+  rw [exprs_eval]
+
+/-- **The RFC result is the quotient of the program's outputs** (`X25519Fast.spec_eq_quotient`, with
+`x25519_inverse_eq`). -/
+theorem ladderOut_spec (bits : Nat → Bool) (u : F) :
+    (ladderOut bits u).x2 * inverse (ladderOut bits u).z2 = X25519.spec bits u := by
+  have h := X25519Fast.spec_eq_quotient bits u (fun i => (ladderVals bits u).getD i 0)
+    (fun t h2 h3 => ladderVals_swap bits u t h2 h3)
+  unfold ladderOut
+  rw [ladderVals_u, ← x25519_inverse_eq, h]
+
+theorem mem_getD {α : Type} {l : List α} {a : α} (d : α) (h : a ∈ l) : ∃ j, j < l.length ∧ l.getD j d = a := by
+  obtain ⟨j, hj, e⟩ := List.getElem_of_mem h
+  exact ⟨j, hj, by simp [List.getD_eq_getElem?_getD, hj, e]⟩
+
+theorem getD_mem {α : Type} {l : List α} (d : α) {j : Nat} (h : j < l.length) : l.getD j d ∈ l := by
+  simp [List.getD_eq_getElem?_getD, h]
+
+section Agree
+
+variable (E : Env)
+
+/-- **F22, `agree` through `jointRun`: n X25519 agreements.** Job `j`'s 252 swap-bit handles hold
+the swap bits `swapBitSpec bits_j t` of steps `t = 2 … 253` (what `Convert.sharedBits` produces from
+the XOR-shared scalar, with `X25519SwapBits`), its point handle holds `u_j`; every job handle lies
+below `f0`; `x25519-fast` is loaded and computes its exported expressions (`Conv.Computes`, as for
+`splitAgree_honest`); `field-quotient` is loaded; the parties' slot `slot` holds their mask
+contributions with nonzero sums. Then both parties return the quotient handles (with some zero
+flags), their stores are unchanged, handle `f0 + 1 + 2n + 3n + 2j` holds `X25519.spec bits_j u_j`
+(RFC 7748), and nothing below `f0` changes. Hypotheses: `FieldInverse`, the two programs loaded,
+the mask sums nonzero. -/
+theorem agree_honest (hinv : FieldInverse) (px : TlsMpc.FieldDag.V3.Program)
+    (hP : E.programs x25519Name = some px)
+    (hPC : Conv.Computes px 257 [.never, .never] (fun i => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some quotient)
+    (σA σB : Store) (I : Ideal) (f0 slot : Nat) (jobs : List (List FieldH × FieldH))
+    (bits : Nat → Nat → Bool) (u mA mB : Nat → F)
+    (hsw : ∀ j, j < jobs.length → (jobs.getD j ([], ⟨0⟩)).1.length = 252 ∧
+      ∀ k, k < 252 → I.fields ((jobs.getD j ([], ⟨0⟩)).1.getD k ⟨0⟩).id =
+        some (X25519.bitValue (X25519Fast.swapBitSpec (bits j) (k + 2))))
+    (hu : ∀ j, j < jobs.length → I.fields (jobs.getD j ([], ⟨0⟩)).2.id = some (u j))
+    (hlo : ∀ j, j < jobs.length → (∀ h ∈ (jobs.getD j ([], ⟨0⟩)).1, h.id < f0) ∧ (jobs.getD j ([], ⟨0⟩)).2.id < f0)
+    (hA : σA.elems slot = (List.range jobs.length).map mA) (hB : σB.elems slot = (List.range jobs.length).map mB)
+    (hm : ∀ j, j < jobs.length → mA j + mB j ≠ 0) :
+    ∃ (J : Ideal) (zf : Nat → Bool), JRet (jointRun E (agree f0 slot jobs) (agree f0 slot jobs) σA σB I)
+        ((List.range jobs.length).map fun j => (quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j))
+        ((List.range jobs.length).map fun j => (quotResult (f0 + 1 + 2 * jobs.length) jobs.length j, zf j)) J σA σB ∧
+      (∀ j, j < jobs.length →
+        J.fields (f0 + 1 + 2 * jobs.length + 3 * jobs.length + 2 * j) = some (X25519.spec (bits j) (u j))) ∧
+      (∀ k, k < f0 → J.fields k = I.fields k) := by
+  by_cases h0 : jobs.length = 0
+  · have hp : jobs = [] := List.length_eq_zero_iff.mp h0
+    subst hp
+    refine ⟨I, fun _ => false, ?_, fun j hj => by simp at hj, fun _ _ => rfl⟩
+    unfold agree
+    simp only [List.length_nil, ↓reduceIte, List.range_zero, List.map_nil]
+    exact jret_done E _ _ σA σB I
+  have hall : jobs.all (fun j => j.1.length == 252) = true := by
+    rw [List.all_eq_true]
+    intro x hx
+    obtain ⟨j, hj, rfl⟩ := mem_getD ([], ⟨0⟩) hx
+    rw [(hsw j hj).1]
+    rfl
+  have hflat : jobs.flatMap (fun j => ladderIns ⟨f0⟩ j.1 j.2) =
+      (List.range jobs.length).flatMap (fun j => ladderIns ⟨f0⟩ (jobs.getD j ([], ⟨0⟩)).1 (jobs.getD j ([], ⟨0⟩)).2) :=
+    flatMap_getD jobs ([], ⟨0⟩) _
+  unfold agree
+  simp only [if_neg h0, hall, if_true]
+  rw [hflat]
+  generalize jobs.length = n at hsw hu hlo hA hB hm h0 ⊢
+  -- the constant 0
+  let I1 := I.setField ⟨f0⟩ (ofNat 0)
+  have i1o : ∀ k, k ≠ f0 → I1.fields k = I.fields k := fun k hk => by simp [I1, Ideal.setField, hk]
+  have i10 : I1.fields f0 = some (ofNat 0) := by simp [I1, Ideal.setField]
+  -- the ladder inputs
+  let chunks := (List.range n).map fun j => ladderVals (bits j) (u j)
+  have hins : ((List.range n).flatMap (fun j => ladderIns ⟨f0⟩ (jobs.getD j ([], ⟨0⟩)).1 (jobs.getD j ([], ⟨0⟩)).2)).mapM
+      (fun h => I1.fields h.id) = some chunks.flatten := by
+    rw [TlsMpc.Node.Flows.Masks.flatten_map']
+    apply mapM_flatMap_vals
+    intro j hj
+    have hj' := List.mem_range.mp hj
+    obtain ⟨hl252, hv⟩ := hsw j hj'
+    obtain ⟨lo1, lo2⟩ := hlo j hj'
+    have hz : ([⟨f0⟩, ⟨f0⟩] : List FieldH).mapM (fun h => I1.fields h.id) = some [ofNat 0, ofNat 0] := by
+      simp [List.mapM_cons, i10]
+    have hsws : (jobs.getD j ([], ⟨0⟩)).1.mapM (fun h => I1.fields h.id) =
+        some ((List.range 252).map fun k => X25519.bitValue (X25519Fast.swapBitSpec (bits j) (k + 2))) := by
+      conv => lhs; rw [← map_getD_all (jobs.getD j ([], ⟨0⟩)).1 ⟨0⟩, hl252]
+      apply mapM_map_vals
+      intro k hk
+      have hk' := List.mem_range.mp hk
+      have hlt := lo1 _ (getD_mem ⟨0⟩ (by rw [hl252]; exact hk'))
+      rw [i1o _ (by omega), hv k hk']
+    have hu' : ([⟨f0⟩, ⟨f0⟩, (jobs.getD j ([], ⟨0⟩)).2] : List FieldH).mapM (fun h => I1.fields h.id) =
+        some [ofNat 0, ofNat 0, u j] := by
+      simp only [List.mapM_cons, List.mapM_nil, i10, i1o _ (Nat.ne_of_lt lo2), hu j hj']
+      rfl
+    exact mapM_append_vals _ _ _ _ _ (mapM_append_vals _ _ _ _ _ hz hsws) hu'
+  -- the program
+  let vo := ((List.range n).map fun j => [(ladderOut (bits j) (u j)).x2, (ladderOut (bits j) (u j)).z2]).flatten
+  have hcl : ∀ c ∈ chunks, c.length = 257 := by
+    intro c hc
+    simp only [chunks, List.mem_map] at hc
+    obtain ⟨j, -, rfl⟩ := hc
+    exact ladderVals_length _ _
+  have hrun0 := runProgram_chunks px 257 [.never, .never] _ hPC chunks hcl
+  have hrun : runProgram px n chunks.flatten [] = some (vo, []) := by
+    have e1 : chunks.length = n := by simp [chunks]
+    have e2 : (chunks.map fun c => X25519Fast.exprs.map (TlsMpc.FieldDag.Expr.eval fun i => c.getD i 0)).flatten = vo := by
+      simp only [chunks, vo, List.map_map, Function.comp_def, exprs_ladder]
+    rw [e1, e2] at hrun0
+    exact hrun0
+  have hvl : ∀ c ∈ (List.range n).map (fun j => [(ladderOut (bits j) (u j)).x2, (ladderOut (bits j) (u j)).z2]),
+      c.length = 2 := by
+    intro c hc
+    simp only [List.mem_map] at hc
+    obtain ⟨j, -, rfl⟩ := hc
+    rfl
+  have hvol : vo.length = 2 * n := by
+    rw [length_flatten_eq 2 _ hvl]
+    simp [Nat.mul_comm]
+  let I2 := I1.setFields (hs (f0 + 1) (2 * n)) vo
+  obtain ⟨c2, c3⟩ := setFields_hs I1 (f0 + 1) (2 * n) vo hvol
+  let I3 := I2.dropField ⟨f0⟩
+  have i3x : ∀ j, j < n → I3.fields (f0 + 1 + 2 * j) = some (ladderOut (bits j) (u j)).x2 := by
+    intro j hj
+    simp only [I3, Ideal.dropField, if_neg (show f0 + 1 + 2 * j ≠ f0 by omega)]
+    show (I1.setFields (hs (f0 + 1) (2 * n)) vo).fields _ = _
+    rw [c3 (2 * j) (by omega)]
+    have := flatten_getD 2 _ j 0 (0 : F) hvl (by simpa using hj) (by decide)
+    rw [show j * 2 + 0 = 2 * j by omega, getD_map_range _ _ _ _ hj] at this
+    rw [this, List.getD_cons_zero]
+  have i3z : ∀ j, j < n → I3.fields (f0 + 2 + 2 * j) = some (ladderOut (bits j) (u j)).z2 := by
+    intro j hj
+    simp only [I3, Ideal.dropField, if_neg (show f0 + 2 + 2 * j ≠ f0 by omega)]
+    show (I1.setFields (hs (f0 + 1) (2 * n)) vo).fields _ = _
+    rw [show f0 + 2 + 2 * j = f0 + 1 + (2 * j + 1) by omega, c3 (2 * j + 1) (by omega)]
+    have := flatten_getD 2 _ j 1 (0 : F) hvl (by simpa using hj) (by decide)
+    rw [show j * 2 + 1 = 2 * j + 1 by omega, getD_map_range _ _ _ _ hj] at this
+    rw [this]
+    simp only [List.getD_cons_succ, List.getD_cons_zero]
+  have i3o : ∀ k, k < f0 → I3.fields k = I.fields k := by
+    intro k hk
+    simp only [I3, Ideal.dropField, if_neg (show k ≠ f0 by omega)]
+    show (I1.setFields (hs (f0 + 1) (2 * n)) vo).fields _ = _
+    rw [c2 _ (Or.inl (by omega)), i1o _ (by omega)]
+  -- the quotients
+  let pairs : List (FieldH × FieldH) := (List.range n).map fun j => (⟨f0 + 1 + 2 * j⟩, ⟨f0 + 2 + 2 * j⟩)
+  have hpl : pairs.length = n := by simp [pairs]
+  have hpg : ∀ j, j < n → pairs.getD j (⟨0⟩, ⟨0⟩) = (⟨f0 + 1 + 2 * j⟩, ⟨f0 + 2 + 2 * j⟩) :=
+    fun j hj => getD_map_range _ _ _ _ hj
+  obtain ⟨J, hJ, hJq, hJo⟩ := quotientMany_honest E hinv hq σA σB I3 (f0 + 1 + 2 * n) slot pairs
+    (fun j => (ladderOut (bits j) (u j)).x2) (fun j => (ladderOut (bits j) (u j)).z2) mA mB
+    (fun j hj => by rw [hpl] at hj; rw [hpg j hj]; exact i3x j hj)
+    (fun j hj => by rw [hpl] at hj; rw [hpg j hj]; exact i3z j hj)
+    (fun p hp => by
+      simp only [pairs, List.mem_map, List.mem_range] at hp
+      obtain ⟨j, hj, rfl⟩ := hp
+      exact ⟨by dsimp only; omega, by dsimp only; omega⟩)
+    (by rw [hpl, hA]) (by rw [hpl, hB]) (fun j hj => by rw [hpl] at hj; exact hm j hj)
+  rw [hpl] at hJ hJq hJo
+  refine ⟨J, fun j => decide ((ladderOut (bits j) (u j)).z2 = 0), ?_, fun j hj => ?_, fun k hk => ?_⟩
+  · show JRet (jointRun E (seqs [_] (seq _ (seqs [_] _))) (seqs [_] (seq _ (seqs [_] _))) σA σB I) _ _ _ _ _
+    refine jret_locals E _ _ σA σB _ _ J σA σB [_] (fun i hi => by
+      simp only [List.mem_singleton] at hi
+      subst hi
+      rfl) I I1 rfl ?_
+    refine jret_program E _ _ _ _ _ _ _ _ σA σB I1 px _ [] vo [] _ _ J σA σB hP hins rfl hrun
+      (by rw [hvol]; simp [hs]) ?_
+    refine jret_locals E _ _ σA σB _ _ J σA σB [_] (fun i hi => by
+      simp only [List.mem_singleton] at hi
+      subst hi
+      rfl) I2 I3 rfl ?_
+    exact hJ
+  · rw [hJq j hj, ladderOut_spec]
+  · rw [hJo k (Or.inl (by omega)), i3o k hk]
+
+end Agree
+
 end TlsMpc.Node.Flows.Curve
