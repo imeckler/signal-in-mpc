@@ -126,6 +126,8 @@ import TlsMpc.Node.Flows.TlsBounded
 import TlsMpc.Node.Flows.TlsClassSeal
 import TlsMpc.Node.Flows.TlsDerive
 import TlsMpc.Node.Flows.TlsT3
+import TlsMpc.Node.Flows.SendRecordRun
+import TlsMpc.Node.Flows.SendDevicesBounded
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -7901,6 +7903,248 @@ theorem s13_sealScript_bounded (n : Nat) (a : Send.SealArgs) (hn : n + 8 < B64)
 
 end FlowsS13
 
+/-! ### 7e. Send, continued (stage S13 follow-up: F51, F52, F54 in part, F57, F58, F59)
+
+`TlsMpc/Node/Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean` (S13_NOTES.md). **M**
+as in 7e: the kernels' circuits computing their Lean definitions (`shapedCircuit` for kernels with
+word inputs, `Contacts.kernelCircuit` for byte kernels) is T2's trust; the words of a seal are S11's
+(E4). Compiled standalone in the S13 branch (scratch file with this text: standard axioms only). -/
+
+section FlowsS13b
+
+open TlsMpc.Node TlsMpc.Node.Engine TlsMpc.Node.Flows TlsMpc.Node.Flows.Contacts
+open Std.Tactic.BVDecide
+open TlsMpc.Signal
+
+/-- **F58: `bundleEnvBytes` is `bundle-seal`'s envelope length** [K], on every assignment, under the
+kernel's own parameter bound. -/
+theorem s13_bundleEnvBytes_eq (cert content : Nat) (oneTime : Bool) (cw pw ew iw : Nat) (a : BVExpr.Assignment)
+    (hb : Send.BundleBound cert content cw pw ew iw) :
+    ((ReceiveKernel.values (BundleKernel.bundleSeal cert oneTime content cw pw ew iw) a).getD 3 []).length =
+      Send.bundleEnvBytes cert oneTime content cw pw ew iw :=
+  Send.bundleEnvBytes_eq cert content oneTime cw pw ew iw a hb
+
+/-- **`bundle-seal`'s conversation field** [K]: `cert + min 262 (182 + content) + 57` bytes. For an
+official 89-byte text (content 79) this is `cert + 318`, one byte short of what `devicesScript`
+slices: such a send to an unanswered device aborts before any status is opened (gap S13-10). -/
+theorem s13_bundleOut_record_length (cert content : Nat) (oneTime : Bool) (cw pw ew iw : Nat)
+    (a : BVExpr.Assignment) (hb : Send.BundleBound cert content cw pw ew iw) :
+    ((ReceiveKernel.values (BundleKernel.bundleSeal cert oneTime content cw pw ew iw) a).getD 1 []).length =
+      cert + min 262 (182 + content) + 57 :=
+  Send.bundleOut_record_length cert content oneTime cw pw ew iw a hb
+
+/-- **F52: op 61 + op 62 + the record seal on the script path** [M]. When the one opening of all
+statuses is all 255 and the request's accepted byte is 255: every device's status is 255 and its
+kept record the advanced one; the envelopes `splitEnvelopes` cuts out of the one opening of all
+timestamps ‖ envelopes are, in device order, the reference envelopes (`sealV1` for kind 0,
+`EstablishSeal.envelopeOf` for kinds 1, 2); op 62 reads the advanced records from the new state;
+the bytes for the server are `TlsRecord.sealCore` of the frame of `devicesMessage` holding those
+envelopes. No `built`, `hframe`, `hmask`, `paired` hypothesis. -/
+theorem s13_devices_accepted (c : Send.DevCtx) (ds : List Send.DevSend) (hc : c.Ok) (hd : ∀ d ∈ ds, d.Ok c)
+    (hne : ds ≠ []) (id : Nat) (mask frame : List (BitVec 8)) (payloadAt : Nat) (offsets : List Nat)
+    (devices : List (Nat × Nat)) (K seqB : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (a b : List Tls.W) (nPow : Nat) (hsh : Local.Ghash.Shared a b (HybridKernel.hashKeyOf K) nPow) :
+    let statuses := (ds.map (Send.DevSend.status c)).flatten
+    let parts := Send.splitEnvelopes (ds.map (Send.DevSend.env c)) (ds.map (Send.DevSend.sealed c)).flatten
+    let envelopes := parts.map (·.2)
+    let timestamp := (parts.headD ([], [])).1
+    let newState := (ds.map fun d => d.kept c ++ (if d.kind = 0 then [] else d.pending)).flatten
+    let records := ((deviceSpans 0 (ds.map (·.kind))).map fun s =>
+      (newState.drop s.1.1).take Send.recordBytes).flatten
+    let ctr := kernelOut (BundleKernel.bundleRequestCtr frame.length payloadAt (offsets.getD 0 0) (offsets.getD 1 0)
+      devices) (Send.requestIn K seqB records frame mask)
+    let head := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half a (head.take 5) (head.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half b (head.take 5) (head.drop 5))
+    statuses = List.replicate ds.length 255 →
+    PublicRequest.buildDevices envelopes (Send.beNat timestamp) id mask c.official = .ok (frame, payloadAt, offsets) →
+    BundleKernel.pairs (offsets.drop 2) = some devices →
+    ctr.take 1 = [255] →
+    Local.Ghash.needed 5 (Send.innerOf frame.length) ≤ nPow →
+    let msg := PublicRequest.devicesMessage (ds.map (Send.DevSend.reference c)) (Send.beNat c.timestamp) id c.official
+    (∀ d ∈ ds, d.status c = [255] ∧ d.kept c = d.advanced c) ∧
+    envelopes = ds.map (Send.DevSend.reference c) ∧
+    timestamp = c.timestamp ∧
+    records = (ds.map (Send.DevSend.advanced c)).flatten ∧
+    head ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) =
+      TlsRecord.sealCore Gcm.concrete ((K.drop 32).take 16) ((K.drop 48).take 12) seqB
+        (KernelSpecs.RequestFrame.assembleHeader (PublicRequest.total msg) mask ++
+          KernelSpecs.RequestFrame.maskFrom mask 0
+            (KernelSpecs.RequestFrame.render
+              (KernelSpecs.RequestFrame.devicesValues (ds.map (Send.DevSend.advanced c)).flatten) msg))
+        23 0 :=
+  Send.devices_accepted c ds hc hd hne id mask frame payloadAt offsets devices K seqB hK hs a b nPow hsh
+
+/-- **F52: all or nothing** [K]: when some device's status is not 255, the opened statuses are not
+all 255, and the rest of op 61 is silent: against any adversary nothing more is released to anyone,
+no envelope of any device is opened, and the stored state is kept. -/
+theorem s13_devices_refused_view (E : Env) (me : Party) (adv : Adversary) (c : Send.DevCtx) (ds : List Send.DevSend)
+    (hc : c.Ok) (hd : ∀ d ∈ ds, d.Ok c) (hbad : ∃ d ∈ ds, d.status c ≠ [255])
+    (n : Nat) (a : Send.DevicesArgs) (envs : List Nat) (σ : Store) (I : Ideal) (vD : List Release) :
+    let st := bitsOf (ds.map (Send.DevSend.status c)).flatten
+    st ≠ bitsOf (List.replicate ds.length 255) ∧
+    Silent (Send.afterStatuses n ds.length a envs st) ∧
+    (withAdv E me adv (Send.afterStatuses n ds.length a envs st) σ I vD).viewD = [] ∧
+    (withAdv E me adv (Send.afterStatuses n ds.length a envs st) σ I vD).viewH = [] :=
+  Send.devices_refused_view E me adv c ds hc hd hbad n a envs σ I vD
+
+/-- **Public scripts, two honest parties** [K]: a script of plain instructions and openings run by
+both parties in lockstep ends with `pubRun`'s result for both, its ideal state, and both views equal
+to its releases. -/
+theorem s13_jointRun_pub (E : Env) {α : Type} {s : Script α} (hs : Every (fun i => Send.pubInstr i = true) s)
+    (σA σB : Store) (I : Ideal) :
+    (jointRun E s s σA σB I).result = (Send.pubRun E s I).1.map (fun a => (a, a)) ∧
+    (jointRun E s s σA σB I).ideal = (Send.pubRun E s I).2.1 ∧
+    (jointRun E s s σA σB I).viewA = (Send.pubRun E s I).2.2 ∧
+    (jointRun E s s σA σB I).viewB = (Send.pubRun E s I).2.2 :=
+  Send.jointRun_pub E hs σA σB I
+
+/-- **Public scripts, any adversary** [K]: the views are prefixes of `pubRun`'s releases and a result
+is `pubRun`'s. -/
+theorem s13_withAdv_pub (E : Env) (me : Party) (adv : Adversary) {α : Type} {s : Script α}
+    (hs : Every (fun i => Send.pubInstr i = true) s) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv s σ I vD).viewD <+: (Send.pubRun E s I).2.2 ∧
+    (withAdv E me adv s σ I vD).viewH <+: (Send.pubRun E s I).2.2 ∧
+    ∀ x, (withAdv E me adv s σ I vD).result = some x → (Send.pubRun E s I).1 = some x :=
+  Send.withAdv_pub E me adv hs σ I vD
+
+/-- **F57: op 41's view by value, against any adversary** [M]: a prefix of [flags, status] when the
+status is not 255 (and the result, if any, is `none`), of [flags, status, timestamp ‖ envelope]
+otherwise; the values: the widths kernel's output on certificate ‖ record, the seal kernel's slices
+(`sealOut_values`: the envelope is `sealV1` of the reference message). -/
+theorem s13_seal_view (E : Env) (me : Party) (adv : Adversary) (σ : Store) (vD : List Release)
+    (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8)) (db eb tb : Bits) (I : Ideal)
+    (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let o := withAdv E me adv (Send.sealScript n a) σ I vD
+    (out.take 1 = [255] →
+      o.viewD <+: [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨Send.envelopeLabel, .bits (bitsOf te)⟩]) ∧
+    (out.take 1 ≠ [255] →
+      o.viewD <+: [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      ∀ x, o.result = some x → x = none) :=
+  Send.seal_view E me adv σ vD n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+
+/-- **F51 for op 41** [M]: two honest parties end with the same result; on 255 the timestamp, the
+envelope and the new state `n + 6` holding the kept record, both views [flags, status, timestamp ‖
+envelope], every other handle below the counter untouched; otherwise `none`, views [flags, status],
+the stored state's value kept. -/
+theorem s13_seal_joint (E : Env) (σA σB : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk)) :
+    let flags := Cw.eval (bitsOf (certB ++ record))
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let sd : Send.Sealed := ⟨te.take 8, [te.drop 8], ⟨n + 6⟩⟩
+    let o := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    (out.take 1 = [255] →
+      o.result = some (some sd, some sd) ∧
+      o.viewA = [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩,
+        ⟨Send.envelopeLabel, .bits (bitsOf te)⟩] ∧ o.viewB = o.viewA ∧
+      o.ideal.bools (n + 6) = some (bitsOf ((out.drop (1 + a.certLen)).take Send.recordBytes)) ∧
+      ∀ x, x < n → x ≠ a.ephAgreement.id → x ≠ a.state.id → o.ideal.bools x = I.bools x) ∧
+    (out.take 1 ≠ [255] →
+      o.result = some (none, none) ∧
+      o.viewA = [⟨Send.widthsLabel, .bits flags⟩, ⟨Send.envelopeLabel, .bits (bitsOf (out.take 1))⟩] ∧
+      o.viewB = o.viewA ∧ o.ideal.bools a.state.id = some (bitsOf record)) :=
+  Send.seal_joint E σA σB n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS
+
+/-- **F51: a whole single-device send through `jointRun`** [M]: op 41 (accepted), op 42 on op 41's new
+state handle, the request's CTR phase, S12's tag phase; the same results at every phase for both
+parties, and header ‖ ciphertext ‖ tag are exactly the bytes `s13_send_accepted` characterises
+(`TlsRecord.sealCore` of the request frame carrying the reference sealed-sender envelope). -/
+theorem s13_send_joint (E : Env) (σA σB σA' σB' : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk))
+    (traffic : BoolH) (K seqB : List (BitVec 8)) (hK : K.length = 60) (hs : seqB.length = 8)
+    (htn : traffic.id < n) (hte : traffic.id ≠ a.ephAgreement.id) (hts : traffic.id ≠ a.state.id)
+    (hKv : I.bools traffic.id = some (bitsOf K))
+    (m p q : Nat) (hm : n + 8 ≤ m) (hp : m + 2 ≤ p) (hq : p + 6 ≤ q)
+    (id : Nat) (mask frame : List (BitVec 8)) (offsets : List Nat) (marksR marksT : List Mark) (halfSlot : Nat)
+    (hR : E.circuits (Send.requestNameOf a.certLen frame offsets) =
+      some (kernelCircuit (HybridKernel.signalRequestCtr a.certLen frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+        (offsets.getD 2 0) (offsets.getD 3 0)) (68 + Send.convBytes a.certLen + frame.length + 4) marksR))
+    (hT : E.circuits Tls.tagName = some (kernelCircuit HybridKernel.gcmTag 48 marksT))
+    (ga gb : List Tls.W) :
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let te := (out.drop (1 + Send.convBytes a.certLen)).take (8 + Send.sealEnvBytes a.certLen classes official cw pw ew iw)
+    let newRecord := (out.drop (1 + a.certLen)).take Send.recordBytes
+    let ctr := kernelOut (HybridKernel.signalRequestCtr a.certLen frame.length (offsets.getD 0 0) (offsets.getD 1 0)
+      (offsets.getD 2 0) (offsets.getD 3 0)) (Send.requestIn K seqB (certB ++ newRecord) frame mask)
+    let hc := (ctr.drop 1).take (5 + Send.innerOf frame.length)
+    let pad := (ctr.drop (1 + 5 + Send.innerOf frame.length)).take 16
+    let hA := Local.Ghash.toBytes (Local.Ghash.half ga (hc.take 5) (hc.drop 5))
+    let hB := Local.Ghash.toBytes (Local.Ghash.half gb (hc.take 5) (hc.drop 5))
+    out.take 1 = [255] →
+    Send.frameFor (te.drop 8) (te.take 8) id mask official = .ok (frame, offsets) →
+    ctr.take 1 = [255] →
+    σA'.bits halfSlot = bitsOf hA → σB'.bits halfSlot = bitsOf hB →
+    let o1 := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    let o2 := jointRun E (Send.requestScript m a.cert ⟨n + 6⟩) (Send.requestScript m a.cert ⟨n + 6⟩) σA σB o1.ideal
+    let o3 := jointRun E
+      (Send.requestCtrScript p traffic ⟨m + 1⟩ seqB frame mask (Send.requestNameOf a.certLen frame offsets))
+      (Send.requestCtrScript p traffic ⟨m + 1⟩ seqB frame mask (Send.requestNameOf a.certLen frame offsets))
+      σA σB o2.ideal
+    let o4 := jointRun E (Tls.tagScript q ⟨p + 4⟩ halfSlot) (Tls.tagScript q ⟨p + 4⟩ halfSlot) σA' σB' o3.ideal
+    ∃ (sd : Send.Sealed) (hc' tag : List (BitVec 8)),
+      o1.result = some (some sd, some sd) ∧ sd.state = ⟨n + 6⟩ ∧ sd.envelopes = [te.drop 8] ∧
+      o1.ideal.bools (n + 6) = some (bitsOf newRecord) ∧
+      o2.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧
+      o3.result = some ((hc', ⟨p + 4⟩), (hc', ⟨p + 4⟩)) ∧
+      o4.result = some (tag, tag) ∧
+      hc' ++ tag = hc ++ kernelOut HybridKernel.gcmTag (pad ++ (hA ++ hB)) :=
+  Send.send_joint E σA σB σA' σB' n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS traffic
+    K seqB hK hs htn hte hts hKv m p q hm hp hq id mask frame offsets marksR marksT halfSlot hR hT ga gb
+
+/-- **F59: ORD-1 at script level** [M]: on the accepted path op 41 returns the new state handle
+`n + 6` (defined by the seal kernel's run before the envelope's opening), and op 42 run on that
+handle reads exactly the kept record: the request is built from the state op 41 produced. -/
+theorem s13_send_state_order (E : Env) (σA σB : Store) (n : Nat) (a : Send.SealArgs) (certB record : List (BitVec 8))
+    (db eb tb : Bits) (I : Ideal) (Cw : Circuit) (official : Bool) (classes : Nat)
+    (h : Send.SealModel E n a certB record db eb tb I Cw official classes)
+    (cw pw ew iw : Nat) (mk : List Mark)
+    (hw : Send.widthsOf (bytesOf (Cw.eval (bitsOf (certB ++ record)))) = some (cw, pw, ew, iw))
+    (henv : Send.sealEnvBytes a.certLen classes official cw pw ew iw ≤ Send.maxEnvelope)
+    (hS : E.circuits (Send.sealName official a.certLen classes cw pw ew iw) =
+      some (Send.shapedCircuit (Send.sealK a.certLen cw pw ew iw classes official) mk))
+    (m : Nat) (hm : n + 8 ≤ m) (σA' σB' : Store) :
+    let out := Send.sealOutOf a certB record db eb tb official classes cw pw ew iw
+    let newRecord := (out.drop (1 + a.certLen)).take Send.recordBytes
+    let o := jointRun E (Send.sealScript n a) (Send.sealScript n a) σA σB I
+    out.take 1 = [255] →
+    (∃ sd : Send.Sealed, o.result = some (some sd, some sd) ∧ sd.state = ⟨n + 6⟩) ∧
+    let o2 := jointRun E (Send.requestScript m a.cert ⟨n + 6⟩) (Send.requestScript m a.cert ⟨n + 6⟩) σA' σB' o.ideal
+    o2.result = some (⟨m + 1⟩, ⟨m + 1⟩) ∧ o2.viewA = [] ∧
+    o2.ideal.bools (m + 1) = some (bitsOf (certB ++ newRecord)) :=
+  Send.send_state_order E σA σB n a certB record db eb tb I Cw official classes h cw pw ew iw mk hw henv hS m hm σA' σB'
+
+/-- **F54 in part: op 62's wires fit the pipe** [K] (`Wire.Bounded`). -/
+theorem s13_requestDevicesScript_bounded (n : Nat) (state : BoolH) (ats : List Nat) (hn : n + ats.length < B64)
+    (hs : state.id < B64) (hat : ∀ x ∈ ats, 8 * (x + Send.recordBytes) < B64) :
+    Every Instr.Bounded (Send.requestDevicesScript n state ats) :=
+  Registry.requestDevicesScript_bounded n state ats hn hs hat
+
+end FlowsS13b
+
 /-! ### 7f. Receive a first message (stage S14; plan 8.1 T3, T4-RECV, T13; numbered 7d on the S14
 branch, renumbered when the stages were joined on `scripts-stack`)
 
@@ -8873,12 +9117,22 @@ the matching section above in the same commit.
   the function level, composed with the kernel theorems and WITHOUT the worker-wiring hypotheses
   (`s13_send_accepted`, `s13_requestCtr_value`, `s13_bundleRequestCtr_value`, `s13_request_record`,
   `s13_seal_accepted_value`); T3 (`s13_send_reveal`, `s13_seal_refused_silent`); WF of ops 41, 42 and
-  the request's record phase. Open (S13_NOTES.md, gaps S13-1 … S13-9): T4-SEND through `jointRun`;
-  the devices path's composed headline (op 61's kernels through `bundleSeal_get` only, `wired` is
-  S15's); WF and `Wire.Bounded` of ops 61 and 62 (tested); the four words are S11's (E4).
-* **T6 / ORD-1** restated over the Lean flow: the Lean send scripts do not change the ordering
-  argument (P4's theorem is about the session's Seal/StoreAck/Send events, unchanged since the
-  backend keeps the legacy results and call order); not restated here (P4 not done).
+  the request's record phase. Section 7e (S13 follow-up): T4-SEND through `jointRun` for one device
+  (`s13_seal_joint`, `s13_send_joint`: op 41, op 42, the CTR phase and the tag, both parties the
+  same results, the bytes those of `s13_send_accepted`); the devices path's composed headline
+  (`s13_devices_accepted`, no wiring hypothesis) and all-or-nothing (`s13_devices_refused_view`);
+  the `bundle-seal` slicing (`s13_bundleEnvBytes_eq`, `s13_bundleOut_record_length`); op 41's view
+  by value against any adversary (`s13_seal_view`). Open (S13_NOTES.md, gaps S13-1 … S13-13): the
+  devices path through `jointRun`; `Table.Inv` for the send's table commit; WF of ops 61 and 62
+  and `Wire.Bounded` of op 61 (op 62's: `s13_requestDevicesScript_bounded`); `wired` (S15's); the
+  four words are S11's (E4); an official 89-byte text cannot be sent to an unanswered device (the
+  run aborts: `s13_bundleOut_record_length`).
+* **T6 / ORD-1** restated over the Lean flow: the script-level facts are proved
+  (`s13_send_state_order`: the accepted op 41 returns the new state handle, defined by the seal
+  kernel's run before the envelope is opened; op 42 on that handle reads exactly the kept record;
+  `s13_seal_joint`: on refusal the stored state's value is kept). The session-level ORD-1 theorem
+  (P4: the session's Seal/StoreAck/Send events) is unchanged since the backend keeps the legacy
+  results and call order; its restatement over the Lean flow waits for the controller switch.
 * **T4-RECV** (S14, section 7f): at the
   function level (`s14_accept_certificate`, `s14_text`, `s14_record`); open: through `jointRun`
   (needs S10's conversions' and S11's agreements' run-level specifications and the receive kernels
@@ -9017,6 +9271,17 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s13_requestScript_wf
 #print axioms TlsMpc.Security.s13_requestCtrScript_wf
 #print axioms TlsMpc.Security.s13_sealScript_bounded
+#print axioms TlsMpc.Security.s13_bundleEnvBytes_eq
+#print axioms TlsMpc.Security.s13_bundleOut_record_length
+#print axioms TlsMpc.Security.s13_devices_accepted
+#print axioms TlsMpc.Security.s13_devices_refused_view
+#print axioms TlsMpc.Security.s13_jointRun_pub
+#print axioms TlsMpc.Security.s13_withAdv_pub
+#print axioms TlsMpc.Security.s13_seal_view
+#print axioms TlsMpc.Security.s13_seal_joint
+#print axioms TlsMpc.Security.s13_send_joint
+#print axioms TlsMpc.Security.s13_send_state_order
+#print axioms TlsMpc.Security.s13_requestDevicesScript_bounded
 #print axioms TlsMpc.Security.lower_sound
 #print axioms TlsMpc.Security.lower_correct
 #print axioms TlsMpc.Security.lowerExpr_correct

@@ -93,6 +93,57 @@ Restated in `TlsMpc/Security.lean` section 7d (11 entries, compiled standalone w
   `requestScript_bounded`, `requestCtrScript_bounded`.
 * Not proved: see the gaps below.
 
+### Follow-up (S13-1, S13-2, S13-4 in part, S13-7, S13-8, S13-9)
+
+New files `Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean` (only new modules; no
+existing statement changed); Security.lean section 7e (11 entries, compiled standalone with the same
+text: `propext`, `Classical.choice`, `Quot.sound` only; `s13_jointRun_pub`, `s13_withAdv_pub`:
+`propext`, `Quot.sound`). The S10 branch was merged first (`RunAgree` and the run lemmas).
+* **Op 61's composed headline** (`SendDevices.devices_accepted`): device by device (`DevSend`: kind,
+  widths, stored record and pending block, four words; `DevCtx`: certificate, class, text, address)
+  the kernel on the script's own bundle; when the one status opening is all 255 and the request's
+  accepted byte is 255: every status is 255 and the kept record is the advanced one
+  (`DevSend.advanced`: `SealSend.advancedRecord` for kind 0, the advanced session block for kinds 1,
+  2); the envelopes `splitEnvelopes` cuts out of the one opening are the reference envelopes in
+  device order (`DevSend.reference`: `sealV1` / `EstablishSeal.envelopeOf`) and the timestamp the
+  text's; op 62 reads the advanced records from the new state (`spans_records`); the bytes for the
+  server are `TlsRecord.sealCore` of the frame of `devicesMessage` holding those envelopes. No
+  `built`, `hframe`, `hmask`, `paired`. The `wired` corollary (the first message after a refresh,
+  `EstablishDevices.openedEnvelopes_first`) still needs S15's binding (J6).
+* **All or nothing** (`gate_iff`, `devices_refused`, `devices_refused_view`): when some device's
+  status is not 255 the rest of op 61 is silent against any adversary (no envelope of any device is
+  opened) and returns `none`.
+* **`bundle-seal` slicing** (`bundleEnvBytes_eq`: the computed envelope length is the kernel's, on
+  every assignment; `bundleOut_record_length`, `bundleOut_lengths`, `bundle_accepted_value`).
+* **Through the model's runs** (`SendRun.lean`): `pubRun` (a script of plain instructions and
+  openings in the ideal model), `jointRun_pub` (two honest parties end with its result, twice, and
+  see its releases), `withAdv_pub` (any adversary sees a prefix). `seal_outcome`, `seal_joint` (op 41:
+  on 255 both parties return the timestamp, the envelope and `n + 6`, which holds the kept record;
+  every other handle below the counter untouched; otherwise `none`, the stored state's value kept,
+  only flags and status seen), `request_joint` (op 42 reads only its state handle),
+  `SendRecordRun.requestCtr_joint`, `tag_joint` (S12's tag with each party's half from its own
+  store), **`send_joint`** (op 41, op 42, CTR phase, tag: the same results at every phase, and the
+  bytes for the server are exactly those `send_accepted` characterises).
+* **The refusal by value** (`seal_view`, `seal_view_flags`): against any adversary op 41's view is a
+  prefix of [flags, status] on refusal (and the result, if any, `none`), of [flags, status,
+  timestamp ‖ envelope] otherwise, with the values from the kernels (`sealOut_values`); when the
+  flags are not 0/255, at most the flags.
+* **ORD-1 at script level** (`send_state_order`): the accepted op 41 returns the new state handle
+  `n + 6` (defined by the seal kernel's run before the envelope's opening); op 42 run on that handle
+  reads exactly the kept record. The backend's only table write is `put contact {e with state :=
+  sd.state}` after an accepted op 41 (`SendBackend.«seal»`, `sealDevices`); ops 42, 62 and the record
+  seal only read.
+* **`Wire.Bounded` of op 62** (`Registry.requestDevicesScript_bounded`).
+* **Finding** (`bundleOut_record_length`): for an official 89-byte text (`classes = 1`, padded content
+  79) `bundle-seal`'s conversation field has `cert + 318` bytes, not `cert + 319`: the record's
+  plaintext slot holds only the content (`Establish.part text 2 79`). `devicesScript`'s envelope
+  slice then ends past the kernel's output and the run aborts (the shell's `check` refuses the
+  batch) after the width flags and before any status. Fail-closed; the C++ `seal_devices` aborted the
+  session at `need(... "conversation shape")` after opening that device's status. Effect: an
+  official-padding 89-byte text cannot be sent to a contact with an unanswered device. The fix
+  belongs to the kernel (`BundleKernel.bundleSeal`, emitter-imported) or to an early refusal in
+  `devicesScript`; not changed here.
+
 ## C++ that becomes deletable, and when
 
 After (1) the controller-side runner sends Lean batches (op 93), (2) S11's `Curve.offset.step`,
@@ -172,19 +223,26 @@ New gaps (to add under F):
 
 | # | Gap | Status |
 |---|---|---|
-| S13-1 | T4-SEND is at the function level (kernel outputs read through the script's layout); not through `jointRun`. That the scripts' concat/slice order produces exactly the bundles the theorems use (`requestIn`, `bitsOf conv ++ (bitsOf text ++ words)`) is by the scripts' text, checked by the vectors, not a run-level theorem. | open |
-| S13-2 | Op 61 has no composed headline: per device `bundleSeal_get` (+ `EstablishDevices.openedEnvelopes_reference`) and `seal_accepted_value` for kind 0, the request `bundleRequestCtr_value`; the slicing of `bundle-seal`'s outputs (status 1, conversation `cert + 319`, envelope `bundleEnvBytes`) is not proved (the kind-0 analogue `sealOut_lengths` is). | open |
+| S13-1 | T4-SEND through `jointRun`: CLOSED for one device (`SendRecordRun.send_joint`, `SendRun.seal_joint`, `request_joint`, `requestCtr_joint`, `tag_joint`: the scripts' concat/slice order is now a run-level theorem). Remaining: op 61 / op 62 through `jointRun` (function level only, `devices_accepted`); `Table.Inv` for the send's table commit (`SendBackend` puts the new state; no `opSend` step with a WFP proof). | narrowed |
+| S13-2 | Op 61's composed headline and the `bundle-seal` slicing: CLOSED (`SendDevices.devices_accepted`, `bundleOut_lengths`, `bundle_accepted_value`, all-or-nothing `devices_refused_view`). | closed |
 | S13-3 | `shapedCircuit`: the model circuit of a kernel with `.word` inputs (255 bits read as one variable, `BitVec.ofBoolListLE`) is the T2 trust extended to word inputs (the lowered circuit's word wire order). | assumed (T2) |
-| S13-4 | WF and `Wire.Bounded` not proved for `devicesScript` (op 61) and `requestDevicesScript` (op 62); the vectors' batches all pass `checkBatch`. | tested |
+| S13-4 | WF not proved for `devicesScript` (op 61) and `requestDevicesScript` (op 62); `Wire.Bounded` proved for op 62 (`Registry.requestDevicesScript_bounded`), not for op 61 (see S13-12); the vectors' batches all pass `checkBatch`. | tested / narrowed |
 | S13-5 | `Flows/SendBackend.lean` is unverified IO glue; `Runner` and `Curve` are parameters with written specifications only; the counters of the runner and of `Contacts.Table` must be joined; nothing selects the backend. | open (engineering) |
 | S13-6 | The stand-in pair test's circuits are a table of the kernels' specifications; `e2e_s13.py` not run (needs the vectors' kernels lowered and the heavy lock); harness Q/F/D not run on the script path. | tested / pending |
-| S13-7 | The refusal statement is structural (`seal_refused_silent`: nothing released after a status ≠ 255; `Reveals` for the kinds), not a view statement listing exactly the two releases (widths, status) against any adversary. | open (small) |
-| S13-8 | `bundleEnvBytes` (the `bundle-seal` envelope length computed from `sealMessageValue` on zeros) is not proved equal to the kernel's output length (a wrong length makes `check` refuse the slice or opens a prefix of public bytes). | open (small) |
-| S13-9 | ORD-1 not restated over the Lean flow (P4 not done; the backend keeps the legacy results and call order). Security.lean as a whole not compiled on this branch (4 GB; section 7d standalone); every importer of `Engine/Labels.lean` needs a rebuild after the merge (`kinds`/`all` grew). | open / pending check |
+| S13-7 | The refusal as a view statement: CLOSED for op 41 (`SendRun.seal_view`: against any adversary a prefix of [flags, status] on refusal, of [flags, status, timestamp ‖ envelope] otherwise, values from the kernels; `seal_view_flags`) and for op 61's gate (`devices_refused_view`). Op 61's view by value before the gate (flags, statuses) is only by kinds. | closed (op 41) |
+| S13-8 | `bundleEnvBytes` equals the kernel's envelope length: CLOSED (`SendDevices.bundleEnvBytes_eq`, every assignment, under `BundleBound`). | closed |
+| S13-9 | ORD-1's script-level facts: CLOSED (`SendRun.send_state_order`; `seal_joint` keeps the state's value on refusal). The session-level ORD-1 theorem over the Lean flow waits for the controller switch (the backend keeps the legacy results and call order). Security.lean as a whole not compiled on this branch (sections 7d, 7e standalone); every importer of `Engine/Labels.lean` needs a rebuild after the merge. | narrowed / pending check |
+| S13-10 | An official 89-byte text (`classes = 1`, content 79) to a contact with an unanswered device aborts: `bundle-seal`'s conversation field is `cert + 318` bytes (`bundleOut_record_length`), one short of `devicesScript`'s slice. Fail-closed (abort before any status; the C++ aborted the session after the status). Fix in the kernel or an early refusal in `devicesScript`. | open (functional) |
+| S13-11 | `send_joint` / `seal_joint` take the model circuits as hypotheses (`shapedCircuit`, `kernelCircuit`, T2) and the stores' halves as `bitsOf` of `Local.Ghash.toBytes (half …)` (S12's stash writes `bitsOfW` of `halfOf`; their equality is S12's). | conditional |
+| S13-12 | `devicesScript` has no `maxEnvelope` check (op 41 has one), so `Wire.Bounded` of op 61 needs an unproved length bound on `bundleEnvBytes` / `sealEnvBytes`. | open (small) |
+| S13-13 | `Table.Inv` is not proved preserved by the send's table commit (`SendBackend.«seal»`/`sealDevices` put the new state handle): no `Contacts.Step` for ops 41/61 and no WFP (post-condition) form of `sealScript_wf`. | open |
 
 ## Merge notes: files touched
 
-* New Lean: `TlsMpc/Node/Flows/{Send,SendProofs,SendBackend}.lean`.
+* New Lean: `TlsMpc/Node/Flows/{Send,SendProofs,SendBackend}.lean`; follow-up
+  `TlsMpc/Node/Flows/{SendDevices,SendRun,SendRecordRun,SendDevicesBounded}.lean` (Security.lean
+  imports `SendRecordRun` and `SendDevicesBounded`; section 7e and its `#print axioms` lines appended;
+  section 8's SEND and ORD-1 items updated). The branch now also carries `s10-conversions` (merged).
 * Changed Lean: `TlsMpc/Node/Engine/Labels.lean` (labels `counterWidths` (40), `sealedEnvelope` (41);
   `kinds`, `all`, `all_codes`), `TlsMpc/Node/Flows/Registry.lean` (imports `Flows.Send`; S13 entries
   in `declared`; `s13_flows_reveal`; the bounded theorems), `TlsMpc/Security.lean` (imports
