@@ -105,6 +105,12 @@ import TlsMpc.Node.Flows.SendProofs
 import TlsMpc.Node.Flows.ReceiveFlowProofs
 import TlsMpc.Node.Flows.RefreshFirstProofs
 import TlsMpc.Node.Flows.RefreshWF
+import TlsMpc.Node.Flows.CurveWF
+import TlsMpc.Node.Flows.CurveLive
+import TlsMpc.Node.Flows.CurveCommit
+import TlsMpc.Node.Flows.CurveHonest
+import TlsMpc.Node.Flows.Join
+import TlsMpc.Node.Flows.JoinBackend
 import TlsMpc.Node.Messages
 import TlsMpc.KernelSpecs.ParseWebSocketAccept
 import TlsMpc.KernelSpecs.ParseWebSocketControlFrame
@@ -6238,6 +6244,149 @@ theorem s11_flows_reveal :
     (∀ hash me f0 s us ids r, Reveals Curve.prepareKinds ((Curve.prepareContacts hash me f0 s us ids).second r)) :=
   Registry.s11_flows_reveal
 
+/-- **The curve scripts are well formed** [M] (F23): from any context whose field counter is ahead
+of `f0`, with the curve programs loaded under their V3 signatures (`Curve.WFB.CurveProgs`) and the
+handles each script reads live below `f0`, the shell's `check` admits every instruction on every
+branch. (Split ECDH, the ladders, the offset preparation and step.) -/
+theorem s11_wf_split_offset (sigs : Bytes → Option Sig) (c : Ctx) (f0 : Nat)
+    (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF) (hP : Curve.WFB.CurveProgs c.progs) :
+    (∀ tSlot maskSlot, WF sigs c (Curve.splitAgree f0 tSlot maskSlot)) ∧
+    (∀ hash me nonce share, WF sigs c (Curve.splitBegin hash me nonce share)) ∧
+    (∀ slot (jobs : List (List FieldH × FieldH)), jobs.length ≤ maxWidth →
+      (∀ jb ∈ jobs, (∀ x ∈ jb.1, (c.field? x).isSome = true ∧ x.id < f0) ∧
+        (c.field? jb.2).isSome = true ∧ jb.2.id < f0) → WF sigs c (Curve.agree f0 slot jobs)) ∧
+    (∀ hash me s u, (c.field? u).isSome = true ∧ u.id < f0 → WF sigs c (Curve.offsetPrepare hash me f0 s u)) ∧
+    (∀ maskSlot st τ, Curve.StateLive c f0 st → WF sigs c (Curve.offsetStep f0 maskSlot st τ)) ∧
+    (∀ slot st τ, Curve.StateLive c f0 st → WF sigs c (Curve.offsetStepFast f0 slot st τ)) :=
+  ⟨fun tSlot maskSlot => Curve.splitAgree_wf sigs c f0 tSlot maskSlot hfresh hP,
+   fun hash me nonce share => Curve.splitBegin_wf sigs c hash me nonce share,
+   fun slot jobs hw hj => Curve.agree_wf sigs c f0 slot jobs hfresh hP hw hj,
+   fun hash me s u hu => Curve.offsetPrepare_wf sigs c hash me f0 s u hfresh hP hu,
+   fun maskSlot st τ hst => Curve.offsetStep_wf sigs c f0 maskSlot st τ hfresh hP hst,
+   fun slot st τ hst => Curve.offsetStepFast_wf sigs c f0 slot st τ hfresh hP hst⟩
+
+/-- **The hinted scripts are well formed** [M] (F23): the lift, bit tables, agreements from tables,
+signatures, torsion, shared bits. -/
+theorem s11_wf_hinted (sigs : Bytes → Option Sig) (c : Ctx) (f0 : Nat)
+    (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF) (hP : Curve.WFB.CurveProgs c.progs) :
+    (∀ s (us : List FieldH), us.length ≤ maxWidth → (∀ u ∈ us, (c.field? u).isSome = true ∧ u.id < f0) →
+      WF sigs c (Curve.lift f0 s us)) ∧
+    (∀ s (pts : List Curve.Lifted), pts.length ≤ maxWidth →
+      (∀ l ∈ pts, (c.field? l.x).isSome = true ∧ (c.field? l.y).isSome = true ∧ l.x.id < f0 ∧ l.y.id < f0) →
+      WF sigs c (Curve.tables f0 s pts) ∧ ∀ hintSlot rSlot maskSlot, WF sigs c (Curve.torsion f0 hintSlot rSlot maskSlot pts)) ∧
+    (∀ rho qslot (jobs : List Curve.HintedJob), jobs.length ≤ maxWidth → (∀ jb ∈ jobs, Curve.JobLive c f0 jb) →
+      WF sigs c (Curve.agreeHinted f0 rho qslot jobs)) ∧
+    (∀ rho qslot (jobs : List (List FieldH × List FieldH)), jobs.length ≤ maxWidth →
+      (∀ jb ∈ jobs, ∀ x ∈ jb.1 ++ jb.2, (c.field? x).isSome = true ∧ x.id < f0) →
+      WF sigs c (Curve.agreeAffine f0 rho qslot jobs)) ∧
+    (∀ maskSlot (baseT : List FieldH) (jobs : List (List FieldH × List FieldH)), jobs.length ≤ maxWidth →
+      (∀ x ∈ baseT, (c.field? x).isSome = true ∧ x.id < f0) →
+      (∀ jb ∈ jobs, ∀ x ∈ jb.1 ++ jb.2, (c.field? x).isSome = true ∧ x.id < f0) →
+      WF sigs c (Curve.signatures f0 maskSlot baseT jobs)) ∧
+    (∀ slot, c.progs Conv.bitCheckName = some ⟨1, 0, [.pub]⟩ → c.progs Conv.bitXorName = some ⟨2, 0, [.never]⟩ →
+      WF sigs c (Curve.sharedBits f0 slot)) :=
+  ⟨fun s us hw hus => Curve.lift_wf sigs c f0 s us hfresh hP hw hus,
+   fun s pts hw hp => ⟨Curve.tables_wf sigs c f0 s pts hfresh hP hw hp,
+     fun hintSlot rSlot maskSlot => Curve.torsion_wf sigs c f0 hintSlot rSlot maskSlot pts hfresh hP hw hp⟩,
+   fun rho qslot jobs hw hj => Curve.agreeHinted_wf sigs c f0 rho qslot jobs hfresh hP hw hj,
+   fun rho qslot jobs hw hj => Curve.agreeAffine_wf sigs c f0 rho qslot jobs hfresh hP hw hj,
+   fun maskSlot baseT jobs hw hb hj => Curve.signatures_wf sigs c f0 maskSlot baseT jobs hfresh hP hw hb hj,
+   fun slot hp1 hp2 => Curve.sharedBits_wf sigs c f0 slot hfresh hp1 hp2⟩
+
+/-- **Op 66 is well formed as a staged flow** [M] (F23): the first script with the lift's
+postcondition, the second script (after the local step, which does not touch the handle table)
+from every context satisfying it; at most 2047 recipients (one point exchange carries every K₀). -/
+theorem s11_prepareContacts_wf (sigs : Bytes → Option Sig) (c : Ctx) (hash : Bytes → Bytes) (me : Party) (f0 : Nat)
+    (s : Curve.PrepareSlots) (us identityBits : List FieldH) (hfresh : ∀ j, f0 ≤ j → j ∉ c.seenF)
+    (hP : Curve.WFB.CurveProgs c.progs) (hw : us.length ≤ 2047)
+    (hus : ∀ u ∈ us, (c.field? u).isSome = true ∧ u.id < f0)
+    (hid : ∀ x ∈ identityBits, (c.field? x).isSome = true ∧ x.id < f0) :
+    Curve.Staged.WellFormed sigs (fun c' r => Curve.LiftPost (fun j => c.field? ⟨j⟩) f0 us.length c.progs c' r.1) c
+      (Curve.prepareContacts hash me f0 s us identityBits) :=
+  Curve.prepareContacts_wf sigs c hash me f0 s us identityBits hfresh hP hw hus hid
+
+/-- **Split ECDH key generation, two honest parties** [M] (F22): both obtain the same key share
+`u(P_A + P_B)` (32 bytes), engines and stores unchanged. -/
+theorem s11_splitBegin_honest (E : Env) (hh : ∀ m, (E.hash m).length = 32) (σA σB : Store) (I : Ideal)
+    (nA sA nB sB : Nat) (PA PB : TlsMpc.Node.Local.Edwards.Value)
+    (hnA : (σA.bytes nA).length = 32) (hsA : (σA.bytes sA).length = 32)
+    (hnB : (σB.bytes nB).length = 32) (hsB : (σB.bytes sB).length = 32)
+    (hdA : TlsMpc.Node.Local.Edwards.decode (σA.bytes sA) = some PA)
+    (hdB : TlsMpc.Node.Local.Edwards.decode (σB.bytes sB) = some PB)
+    (hvA : TlsMpc.Node.Local.Edwards.isValid PA = true) (hvB : TlsMpc.Node.Local.Edwards.isValid PB = true)
+    (hvS : TlsMpc.Node.Local.Edwards.isValid (TlsMpc.Node.Local.Edwards.add PA PB) = true)
+    (hc : E.hash (commitFrame Curve.splitTag .a (σA.bytes nA) (σA.bytes sA)) ≠
+      E.hash (commitFrame Curve.splitTag .b (σB.bytes nB) (σB.bytes sB))) :
+    Run.JRet (jointRun E (Curve.splitBegin E.hash .a nA sA) (Curve.splitBegin E.hash .b nB sB) σA σB I)
+      (TlsMpc.Node.Local.Field.toBytes (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add PA PB)))
+      (TlsMpc.Node.Local.Field.toBytes (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add PA PB)))
+      I σA σB :=
+  Curve.splitBegin_honest E hh σA σB I nA sA nB sB PA PB hnA hsA hnB hsB hdA hdB hvA hvB hvS hc
+
+/-- **The split agreement, no denominator hypothesis** [M] (F22, F28 with `CompleteAddition`
+[hyp: discharged by `proofs/` `edwards_complete`]): the handle holds `montU (T_A + T_B)`. -/
+theorem s11_splitAgree_montU (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hC : Curve.CompleteAddition) (E : Env)
+    (pOn pAdd : TlsMpc.FieldDag.V3.Program)
+    (hOn : E.programs Curve.onCurveName = some pOn) (hAdd : E.programs Curve.addUName = some pAdd)
+    (hOnC : Conv.Computes pOn 2 [.pub] (fun i => [TlsMpc.EdwardsShare.onCurve.eval i]))
+    (hAddC : Conv.Computes pAdd 4 [.never, .never] (fun i => TlsMpc.EdwardsShare.addU.map (TlsMpc.FieldDag.Expr.eval i)))
+    (hq : E.programs Inversion.quotientName = some TlsMpc.FieldDag.V3.quotient)
+    (σA σB : Store) (I : Ideal) (f0 tSlot maskSlot : Nat) (xA yA xB yB mA mB : F)
+    (hA : σA.elems tSlot = [xA, yA]) (hB : σB.elems tSlot = [xB, yB])
+    (hmA : σA.elems maskSlot = [mA]) (hmB : σB.elems maskSlot = [mB]) (hm : mA + mB ≠ 0)
+    (hcA : TlsMpc.Node.Local.Edwards.curveValue (xA, yA) = 0) (hcB : TlsMpc.Node.Local.Edwards.curveValue (xB, yB) = 0) :
+    (jointRun E (Curve.splitAgree f0 tSlot maskSlot) (Curve.splitAgree f0 tSlot maskSlot) σA σB I).ideal.fields (f0 + 11) =
+      some (TlsMpc.Node.Local.Edwards.montU (TlsMpc.Node.Local.Edwards.add (xA, yA) (xB, yB))) :=
+  Curve.splitAgree_montU hinv hC E pOn pAdd hOn hAdd hOnC hAddC hq σA σB I f0 tSlot maskSlot xA yA xB yB mA mB
+    hA hB hmA hmB hm hcA hcB
+
+/-- **`commit_open_sound` for the point exchanges** [M] (F25): an accepted exchange used the
+adversary's commitment chosen before our opening, opened under its own frame, different from ours,
+and the returned points are our continuation on the two openings; a copied commitment aborts. -/
+theorem s11_pointExchange_sound (E : Env) (me : Party) (adv : Adversary) (tag : Bytes) (nonce points count : Nat)
+    (σ : Store) (I : Ideal) (vD : List Release) :
+    (∀ xs, (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).result = some xs →
+      ∃ p1 p2,
+        adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩])
+            (InstrP.exchange 32 Curve.commitLabel (Payload.commitment tag nonce points) : Instr).skel = some p1 ∧
+        adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+            ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩])
+            (InstrP.exchange (32 + 32 * count) Label.ownPublicPoint (Payload.opening [nonce, points]) : Instr).skel =
+          some p2 ∧
+        E.hash (commitFrame tag me.other (p2.bytes.take 32) (p2.bytes.drop 32)) = p1.bytes ∧
+        p1.bytes ≠ Curve.ourCommitP E me σ tag nonce points ∧
+        (withAdv E me adv (Curve.pointsOf me count (Curve.ourOpeningP σ nonce points) p2.bytes) σ I
+          (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+            ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩])).result = some xs) ∧
+    (∀ p1, adv.act (vD ++ [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩])
+        (InstrP.exchange 32 Curve.commitLabel (Payload.commitment tag nonce points) : Instr).skel = some p1 →
+      p1.bytes = Curve.ourCommitP E me σ tag nonce points →
+      (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).result = none) :=
+  ⟨fun xs h => Curve.pointExchange_sound E me adv tag nonce points count σ I vD xs h,
+   fun p1 h1 hc => Curve.pointExchange_copy_aborts E me adv tag nonce points count σ I vD p1 h1 hc⟩
+
+/-- **Liveness facts** [K] (F33): under `FieldInverse`, `EulerCriterion` [hyp: `proofs/`
+`euler_criterion`] and `TwoNonSquare` [hyp: `proofs/` `two_not_square`], `sqrt` finds a root of
+every square and the lift's public roots never fail (its "lift root" abort cannot fire); F28: the
+split agreement's denominator is nonzero on curve points under `CompleteAddition`. -/
+theorem s11_liveness (hinv : TlsMpc.FieldDag.V3.FieldInverse) (hE : Curve.EulerCriterion) (hQR : Curve.TwoNonSquare) :
+    (∀ x : F, (∃ r, r * r = x) → (TlsMpc.Node.Local.Field.sqrt x).isSome = true) ∧
+    (∀ ws : List F, (Curve.roots ws).isSome = true) ∧
+    (Curve.CompleteAddition → ∀ x1 y1 x2 y2 : F, TlsMpc.Node.Local.Edwards.curveValue (x1, y1) = 0 →
+      TlsMpc.Node.Local.Edwards.curveValue (x2, y2) = 0 → ofNat 121666 + ofNat 121665 * (x1 * x2 * (y1 * y2)) ≠ 0) :=
+  ⟨Curve.sqrt_complete hinv hE, Curve.roots_isSome hinv hE hQR,
+   fun hC x1 y1 x2 y2 h1 h2 => Curve.addU_den_ne_zero hinv hC x1 y1 x2 y2 h1 h2⟩
+
+/-- **Value-level disclosure of the point exchanges** [M] (F24, part): against any adversary, the
+adversary's view of `pointExchange` (hence of `splitBegin`'s and the offset preparation's K₀
+exchange) is a prefix of [our commitment, our opening]. -/
+theorem s11_pointExchange_disclosure (E : Env) (me : Party) (adv : Adversary) (tag : Bytes)
+    (nonce points count : Nat) (σ : Store) (I : Ideal) (vD : List Release) :
+    (withAdv E me adv (Curve.pointExchange E.hash me tag nonce points count) σ I vD).viewD <+:
+      [⟨Curve.commitLabel, .bytes (Curve.ourCommitP E me σ tag nonce points)⟩,
+       ⟨Label.ownPublicPoint, .bytes (Curve.ourOpeningP σ nonce points)⟩] :=
+  Curve.pointExchange_disclosure E me adv tag nonce points count σ I vD
+
 end FlowsS11
 
 /-! ### 7d. GHASH key-power shares and TLS (stage S12; plan 7.1 P-GHASH, 8.1 T3/T4-TLS; numbered 7c
@@ -7042,15 +7191,24 @@ the matching section above in the same commit.
   (`s11_stepIns_window`: exactly `offsetSum_recoded`'s hypothesis; there is no C++ `step`), (b) the
   key the script returns (`s11_ephemeralKey`), (c), (d) gates (`Curve.offsetPrepare_gate`,
   `Curve.pointExchange_gate`); P-HINT (a) (`s11_lift_order`), (b) soundness with `FieldInverse` and
-  completeness under H-QR/Euler as named hypotheses (`s11_prepareStatus_iff`). OPEN: honest runs
-  through `jointRun` of `agree`, `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`,
-  `agreeHinted`, `agreeAffine`, `signatures`, `torsion`, `prepareContacts` (checked executably:
+  completeness under H-QR/Euler as named hypotheses (`s11_prepareStatus_iff`). Since the S11
+  follow-up: `_wf` for every curve script and op 66 as a staged flow (`s11_wf_split_offset`,
+  `s11_wf_hinted`, `s11_prepareContacts_wf`); `splitBegin` through `jointRun`
+  (`s11_splitBegin_honest`) and the split agreement's value with the denominator discharged
+  (`s11_splitAgree_montU`, `CompleteAddition` ← `proofs/` `edwards_complete`); the model form of
+  `commit_open_sound` for the point exchanges (`s11_pointExchange_sound`) and their value-level
+  disclosure (`s11_pointExchange_disclosure`: a prefix of [our commitment, our opening]); `sqrt` and the lift's
+  roots never fail (`s11_liveness`). OPEN: honest runs through `jointRun` of `agree`,
+  `offsetPrepare`, `offsetStep(Fast)`, `lift`, `tables`, `agreeHinted`, `agreeAffine`,
+  `signatures`, `torsion`, `prepareContacts` (checked executably:
   `node_worker/tests/s11_vectors.txt`, every `check … ok`); value-level disclosure (T3 with values)
-  for the curve flows beyond the kinds; `_wf` theorems for the curve scripts (every batch of the
-  vector instances admitted: `verdict ok`); P-HINT (d) composed with the runs (`entries_sound` is
-  about the program); that the local step's mask points are uniform on the curve group
-  (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/` `curve_hinted_Z_uniform` assumes it).
-  → **S11 follow-up**.
+  for the curve flows other than the point exchanges (the opened checks, `w`, `Z`, the masked
+  denominators: only their kinds are proved); P-HINT (c), (d) composed with the runs (`entries_sound`,
+  `curve_hinted_Z_uniform` are about the program); that the local step's mask points are uniform
+  on the curve group (`randomPoint`, the map (r, t) ↦ r·B + t·T₈; `proofs/`
+  `curve_hinted_Z_uniform` assumes it); `decode (encode P) = some P` on curve points and the
+  batched inversion `toAffineAll` on nonzero `Z` (liveness of decoding and of the local hints;
+  tested against curve25519-dalek, not proved). → **S11 follow-up**.
 * **P-GHASH**: (a) for the doubling schedule (`s12_ghash_shared_extend`, the kernels' resharing
   `s12_ghash_keyShare_shared`, `s12_ghash_round_shared`), (b) (`s12_ghash_halves_xor`), (c) for the
   Lean code (`s12_tls_seal_is_record`, `s12_tls_check_accepts`), (d) (`s12_ghash_keyShare_hides`,
@@ -7717,6 +7875,14 @@ end TlsMpc.Security
 #print axioms TlsMpc.Security.s15_kem_invalid
 #print axioms TlsMpc.Security.s15_first_wired
 #print axioms TlsMpc.Security.s15_drop_inv
+#print axioms TlsMpc.Security.s11_wf_split_offset
+#print axioms TlsMpc.Security.s11_wf_hinted
+#print axioms TlsMpc.Security.s11_prepareContacts_wf
+#print axioms TlsMpc.Security.s11_splitBegin_honest
+#print axioms TlsMpc.Security.s11_splitAgree_montU
+#print axioms TlsMpc.Security.s11_pointExchange_sound
+#print axioms TlsMpc.Security.s11_liveness
+#print axioms TlsMpc.Security.s11_pointExchange_disclosure
 
 /-! The five `bv_decide` uses of the repository (SECURITY_MAP C.6) sit in these public theorems
 (two private helpers each in `TlsWebSocketActivity` and `TlsPrivateSeal`, and one tactic call
