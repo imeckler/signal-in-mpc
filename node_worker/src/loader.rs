@@ -202,13 +202,66 @@ pub struct WordCircuit {
 /// The word circuits `run` may name. `xor-bit`: one XOR gate, inputs (a, b), output a ⊕ b,
 /// private (op 54 combines the two credential shares with 8·38 copies on the interleaved
 /// shares, Account.lean `combineBlock`).
-pub const WORD_CIRCUITS: &[WordCircuit] = &[WordCircuit {
-    name: "xor-bit",
-    file: "xor-bit.flat",
-    sha256: "6495137f2dc968d4553b3560a5e09d4a1cdc182503460dbb0773783f35feadac",
-    in_width: 2,
-    out_marks: &[Mark::Never],
-}];
+///
+/// Stage S10 (TlsMpc/Node/Flows/ConvertBase.lean `WordLoaded`, the same names and marks): the
+/// conversion circuits of `TlsMpc/WordMask.lean` and `TlsMpc/X25519SwapBits.lean`, with the pins
+/// `word_circuit_pins.h` already carries (lower_word_circuits.py). A pinned file may be registered
+/// under two names with different output marks: `modadd` (field to word: the result stays private)
+/// and `modadd-open` (the bucket check: opened); `xor-bit` and `xor-bit-open` (bits to field: the
+/// masked bit is opened). `finalize-mask` / `finalize-bits`: 255 private bits, then the public flag.
+/// `into-field-open`: the masked word of word to field (opened). `swap-bits`: 252 private bits.
+pub const WORD_CIRCUITS: &[WordCircuit] = &[
+    WordCircuit {
+        name: "xor-bit",
+        file: "xor-bit.flat",
+        sha256: WORD_XOR_BIT_SHA256,
+        in_width: 2,
+        out_marks: &[Mark::Never],
+    },
+    WordCircuit { name: "xor-bit-open", file: "xor-bit.flat", sha256: WORD_XOR_BIT_SHA256, in_width: 2, out_marks: &[Mark::Pub] },
+    WordCircuit { name: "modadd", file: "modadd.flat", sha256: WORD_MODADD_SHA256, in_width: 510, out_marks: &NEVER_255 },
+    WordCircuit { name: "modadd-open", file: "modadd.flat", sha256: WORD_MODADD_SHA256, in_width: 510, out_marks: &PUB_255 },
+    WordCircuit {
+        name: "finalize-mask",
+        file: "finalize-mask.flat",
+        sha256: "a75d51c2a8bb91340ce67e862c40004f5ed82c54d4bf2d382184a17b1085f78b",
+        in_width: 510,
+        out_marks: &FINAL_MARKS,
+    },
+    WordCircuit {
+        name: "finalize-bits",
+        file: "finalize-bits.flat",
+        sha256: "acf15435c59a090ab66ae2808db5ddc8ded70d25364cdd65e54aa5b24cbb2060",
+        in_width: 510,
+        out_marks: &FINAL_MARKS,
+    },
+    WordCircuit {
+        name: "into-field-open",
+        file: "into-field.flat",
+        sha256: "d4888fa12489dadd4aa4937d613c78b36736fad61e30c6f2e21c02d283f22c70",
+        in_width: 510,
+        out_marks: &PUB_255,
+    },
+    WordCircuit {
+        name: "swap-bits",
+        file: "swap-bits.flat",
+        sha256: "6c981ca7f9e63f434d28338d89e1e5768dbc4e9578a05d1956ab6e152fbd60a7",
+        in_width: 256,
+        out_marks: &NEVER_252,
+    },
+];
+
+const WORD_XOR_BIT_SHA256: &str = "6495137f2dc968d4553b3560a5e09d4a1cdc182503460dbb0773783f35feadac";
+const WORD_MODADD_SHA256: &str = "20ab904cf9a10d7cfd0ee45af4e77eb78fa3551ff1e0f657f9121e7ce6baea04";
+const NEVER_255: [Mark; 255] = [Mark::Never; 255];
+const PUB_255: [Mark; 255] = [Mark::Pub; 255];
+const NEVER_252: [Mark; 252] = [Mark::Never; 252];
+const FINAL_MARKS: [Mark; 256] = final_marks();
+const fn final_marks() -> [Mark; 256] {
+    let mut m = [Mark::Never; 256];
+    m[255] = Mark::Pub;
+    m
+}
 
 /// The directory of the pinned word circuits: the engine library's `EMP_WORD_CIRCUIT_DIR`
 /// (build_hybrid_v3.py: `.deps/emp-hybrid-word-v1`), or `NODE_WORKER_WORD_DIR` at build time.
@@ -281,12 +334,33 @@ pub struct FieldProgramPin {
 /// public zero flag (Lean `FieldDagV3.quotient`; its text is fixed by Lean's printer, so its pin
 /// is known before the export; tests/engine_vectors.txt carries the text). The compiled
 /// programs' pins are added from the re-export's report (FIELD_PROGRAMS_V3.md).
-pub const FIELD_PROGRAMS: &[FieldProgramPin] =
-    &[FieldProgramPin { name: "field-quotient", file: "field-quotient.v3", sha256: FIELD_QUOTIENT_SHA256 }];
+pub const FIELD_PROGRAMS: &[FieldProgramPin] = &[
+    FieldProgramPin { name: "field-quotient", file: "field-quotient.v3", sha256: FIELD_QUOTIENT_SHA256 },
+    // Stage S10 (Flows/Masks, Flows/Convert): the exported programs' pins come from the V3
+    // re-export (FIELD_PROGRAMS_V3.md, `field_program_v3_pins.rs.txt`). Until then these are
+    // PLACEHOLDERS that FAIL CLOSED: no SHA-256 equals them, so a present file is refused
+    // ("field program pin: …") and the worker does not start; an absent file is not loaded and
+    // `check` refuses every `program` that names it.
+    FieldProgramPin { name: "field-bit-check", file: "field-bit-check.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "field-bit-xor", file: "field-bit-xor.v3", sha256: PIN_FROM_REEXPORT },
+    FieldProgramPin { name: "field-recompose", file: "field-recompose.v3", sha256: PIN_FROM_REEXPORT },
+    // Natively written V3 (TlsMpc/Node/Flows/ConvertBase.lean `maskSub`: v − f, public): its text is
+    // Lean's `render`, so its pin is known now (tests/s10_vectors.txt `native`, checked in
+    // tests/s10_pair.rs). The file is written from that text (S10_NOTES.md).
+    FieldProgramPin { name: "field-mask-sub", file: "field-mask-sub.v3", sha256: FIELD_MASK_SUB_SHA256 },
+];
+
+/// The placeholder pin of the S10 programs the re-export has not produced yet (not hex: never a
+/// SHA-256, so it fails closed).
+pub const PIN_FROM_REEXPORT: &str = "PLACEHOLDER-S10-pin-from-the-V3-re-export";
 
 /// SHA-256 of `render FieldDagV3.quotient` (checked against the Lean text in
 /// tests/program_vectors.rs).
 pub const FIELD_QUOTIENT_SHA256: &str = "ec4abf2bfd564dae04801e00de2d6ca21503321c1af86909fb2871007f8f1e34";
+
+/// SHA-256 of `render Conv.maskSub` (`field-mask-sub`; checked against the Lean text in
+/// tests/s10_pair.rs).
+pub const FIELD_MASK_SUB_SHA256: &str = "1dd3b23751bf286d034dad86bf90bd9ab46ec0e35adb90eb3da57b4b6c6ff4bf";
 
 /// The V3 field programs of `program` (interp.rs), by name, parsed.
 #[derive(Debug, Clone, Default)]
@@ -422,8 +496,10 @@ mod tests {
         let real = word_circuit_dir();
         if real.join("xor-bit.flat").is_file() {
             let mut k = Kernels::default();
-            assert_eq!(k.add_word_circuits(&real).unwrap(), vec!["xor-bit"]);
+            let added = k.add_word_circuits(&real).unwrap();
+            assert!(added.contains(&"xor-bit") && added.contains(&"xor-bit-open"));
             assert_eq!(k.sig(b"xor-bit"), Some(Sig { in_width: 2, out_marks: vec![Mark::Never] }));
+            assert_eq!(k.sig(b"xor-bit-open"), Some(Sig { in_width: 2, out_marks: vec![Mark::Pub] }));
             // Twice: the name is taken.
             assert!(k.add_word_circuits(&real).is_err());
             let c = Circuits::Unpinned;
@@ -457,6 +533,36 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         let c = Circuits::Unpinned;
         assert_ne!(agreement_digest(&c, &[], &["field-quotient"]), agreement_digest(&c, &[], &[]));
+    }
+
+    #[test]
+    fn s10_word_circuits_and_placeholders() {
+        // The S10 word circuits: the shapes and marks of ConvertBase.lean `WordLoaded`.
+        let get = |n: &str| WORD_CIRCUITS.iter().find(|w| w.name == n).unwrap();
+        assert_eq!((get("modadd").in_width, get("modadd").out_marks.len()), (510, 255));
+        assert!(get("modadd").out_marks.iter().all(|m| *m == Mark::Never));
+        assert!(get("modadd-open").out_marks.iter().all(|m| *m == Mark::Pub));
+        assert_eq!(get("modadd").sha256, get("modadd-open").sha256);
+        for n in ["finalize-mask", "finalize-bits"] {
+            let m = get(n).out_marks;
+            assert_eq!(m.len(), 256);
+            assert!(m[..255].iter().all(|x| *x == Mark::Never) && m[255] == Mark::Pub, "{n}");
+        }
+        assert!(get("into-field-open").out_marks.iter().all(|m| *m == Mark::Pub));
+        assert_eq!((get("swap-bits").in_width, get("swap-bits").out_marks.len()), (256, 252));
+        // The names are distinct.
+        let mut names: Vec<&str> = WORD_CIRCUITS.iter().map(|w| w.name).collect();
+        names.sort();
+        names.dedup();
+        assert_eq!(names.len(), WORD_CIRCUITS.len());
+        // A placeholder pin fails closed: a present file is refused, the worker does not start.
+        let dir = std::env::temp_dir().join(format!("node-worker-s10-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("field-bit-check.v3"), b"EMP_HYBRID_FIELD_DAG_V3\n").unwrap();
+        let err = Programs::default().add_pinned(&dir, FIELD_PROGRAMS).unwrap_err();
+        assert_eq!(err, "field program pin: field-bit-check");
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(!PIN_FROM_REEXPORT.chars().all(|c| c.is_ascii_hexdigit()));
     }
 
     #[test]

@@ -88,8 +88,24 @@ def profile (N bits : Nat) : Option Params :=
 /-- The worker's profile (`TlsKernels::prepare` / `take_mask`: N = 16, so B = 22). -/
 theorem profile_worker : profile 16 0 = some ⟨16, 22, 0⟩ := rfl
 
-/-- TEST ONLY (`Config.test`; the stand-in vectors): N = 2, B = 2. Not a deployed profile. -/
-def testParams (bits : Nat) : Params := ⟨2, 2, bits⟩
+/-- TEST ONLY (`Config.test`; the stand-in vectors): N kept references in buckets of B = 2, far
+below the statistical target. Not a deployed profile (`profile` never yields it). -/
+def testParams (N bits : Nat) : Params := ⟨N, 2, bits⟩
+
+/-- The test parameters are not a deployed profile. -/
+theorem testParams_not_deployed (N bits : Nat) : ∀ p, profile N bits = some p → p ≠ testParams N bits := by
+  intro p h e
+  subst e
+  unfold profile at h
+  split at h
+  · next B hB =>
+    split at h
+    · simp only [Option.some.injEq, testParams, Params.mk.injEq] at h
+      obtain ⟨-, rfl, -⟩ := h
+      unfold bucketFor at hB
+      split at hB <;> simp at hB
+    · cases h
+  · cases h
 
 /-- The challenge domains (fixed per call: plan R18). -/
 def domain (p : Params) (phase : String) : Bytes :=

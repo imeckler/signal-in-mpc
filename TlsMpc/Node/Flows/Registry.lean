@@ -1,6 +1,7 @@
 import TlsMpc.Node.Flows.Upgrade
 import TlsMpc.Node.Flows.Account
 import TlsMpc.Node.Flows.ContactsWrite
+import TlsMpc.Node.Flows.Inversion
 
 /-!
 # The script flows against the reveal list and the pipe: one place for the registry checks
@@ -34,7 +35,12 @@ def declared : List (String × List RevealKind) :=
   [("Random.joint", Random.jointKinds), ("Upgrade.publicUpgrade", Random.jointKinds),
    ("Contacts.key", keyKinds), ("Contacts.seal", sealKinds), ("Contacts.open", openKinds),
    ("Contacts.write", writeKinds), ("Contacts.evict", []), ("Contacts.assign", []),
-   ("Account.key", keyKinds), ("Account.seal", sealKinds)]
+   ("Account.key", keyKinds), ("Account.seal", sealKinds),
+   -- stage S10
+   ("Random.challenge", Random.jointKinds), ("Masks.generate", Masks.generateKinds),
+   ("Convert.wordToField", Convert.w2fKinds), ("Convert.fieldToWord", Convert.f2wKinds),
+   ("Convert.bitsToField", Convert.b2fKinds), ("Convert.sharedBits", Convert.bitsKinds),
+   ("Inversion.quotient", Inversion.inversionKinds), ("Account.open", Account.openKinds55)]
 
 /-- **The registry check**: every kind a script flow declares is one of the label registry's
 kinds (`Label.kinds`), whose labels are `Label.all`. -/
@@ -63,6 +69,20 @@ theorem script_flows_reveal :
     openScript_reveals, writeScript_reveals, opKey_reveals, opSeal_reveals, opOpen_reveals,
     opEvict_reveals, opAssign_reveals, opWrite_reveals, Account.keyStep_reveals, Account.opSeal_reveals,
     Account.sealStep_reveals⟩
+
+/-- **Every S10 script flow declares its kinds** (on every branch, for every argument). -/
+theorem s10_flows_reveal :
+    (∀ hash me nonce value dom n, Reveals Random.jointKinds (Random.challenge hash me nonce value dom n)) ∧
+    (∀ p b f hash me s, Reveals Masks.generateKinds (Masks.generate p b f hash me s)) ∧
+    (∀ n0 f0 u m, Reveals Convert.w2fKinds (Convert.wordToField n0 f0 u m)) ∧
+    (∀ n0 f0 v m, Reveals Convert.f2wKinds (Convert.fieldToWord n0 f0 v m)) ∧
+    (∀ n0 f0 x ps, Reveals Convert.b2fKinds (Convert.bitsToField n0 f0 x ps)) ∧
+    (∀ f0 n slot, Reveals Convert.bitsKinds (Convert.sharedBits f0 n slot)) ∧
+    (∀ f0 slot x z, Reveals Inversion.inversionKinds (Inversion.quotientScript f0 slot x z)) ∧
+    (∀ a n f pool hinted version check ct,
+      Reveals Account.openKinds55 (Account.openStep a n f pool hinted version check ct)) :=
+  ⟨Random.challenge_reveals, Masks.generate_reveals, Convert.w2f_reveals, Convert.f2w_reveals,
+    Convert.b2f_reveals, Convert.bits_reveals, Inversion.quotient_reveals, Account.openStep_reveals⟩
 
 /-- **Registered labels only**: in any run of a script that declares registered kinds, against any
 adversary, every release the adversary receives carries a label of `Label.all`. -/
