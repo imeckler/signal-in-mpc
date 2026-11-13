@@ -102,6 +102,8 @@ def checks():
     env = dl.daemon_session_env(config)
     if (env.get('SIGNAL_SCRIPTS') or '').strip() and os.environ.get('TLS_MPC_ALLOW_SCRIPTS') != '1':
         die('SIGNAL_SCRIPTS must stay unset/empty in production for now (STACK_NOTES.md 11.3)')
+    if (env.get('TLS_WORKER_HINTED') or '0') != '0' or (os.environ.get('TLS_WORKER_HINTED') or '0') != '0':
+        die('TLS_WORKER_HINTED=1 is refused: the hinted curve programs are not yet shown safe against a cheating node (PRODUCT_TODO.md 11d)')
     hooks = [h for h in dl.TEST_HOOKS + ['SIGNAL_LOCAL_CREDENTIALS', 'SIGNAL_LOCAL_CREDENTIALS_FILE', 'TLS_WORKER_TEST_LINK_SHIFT'] if os.environ.get(h)]
     if hooks:
         die('TEST settings or credentials in the environment: ' + ', '.join(hooks))

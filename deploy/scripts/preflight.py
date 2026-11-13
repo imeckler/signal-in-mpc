@@ -154,6 +154,10 @@ def check_settings(r, config, facts, allow_scripts):
     r.check(not hooks, 'test hooks', 'none set', 'set (ignored without --test, but must not be configured): ' + ', '.join(hooks))
     creds = [n for n in ('SIGNAL_LOCAL_CREDENTIALS', 'SIGNAL_LOCAL_CREDENTIALS_FILE') if (config.get('environment') or {}).get(n) or os.environ.get(n)]
     r.check(not creds, 'credentials in environment', 'none', 'set: ' + ', '.join(creds) + ' (the account comes from the database nodes)')
+    # The hinted (constant-depth) curve programs' checks are not yet shown safe against a cheating
+    # node (PRODUCT_TODO.md section 11d): refused outright, whatever else is allowed.
+    r.check(env.get('TLS_WORKER_HINTED', '0') in ('', '0'), 'TLS_WORKER_HINTED', 'off (the default, reviewed path)',
+            '=1 refused: the hinted curve programs are not yet shown safe against a cheating node (PRODUCT_TODO.md 11d)')
     shifted = [n for n in ('TLS_WORKER_TEST_LINK_SHIFT', 'TLS_WORKER_TEST_PRODUCER', 'TLS_WORKER_SERVICE_FIXTURE', 'SIGNAL_LINK_DELAY_MS') if env.get(n)]
     r.check(not shifted, 'test-only worker settings', 'none', 'set: ' + ', '.join(shifted))
     try:
