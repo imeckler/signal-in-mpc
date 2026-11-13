@@ -17,6 +17,7 @@ open TlsMpc.TlsWire TlsMpc.TlsClient
 timestamp and its envelope (one). The contact's state has advanced. -/
 def «seal» (w : Worker) (contact : ContactId) (built : Bytes) :
     M (Opened .sealedEnvelope (Option (Nat × List Bytes))) := do
+  if let some f := w.overrides.sendSeal then return ← f contact built
   let sealed ← Legacy.call w .contactSend (uint 16 contact ++ built)
   if sealed == [0] then return Reveal.sealedEnvelope none
   insist (sealed.length ≥ 10) "invalid sealed envelope reply"
@@ -30,6 +31,7 @@ def «seal» (w : Worker) (contact : ContactId) (built : Bytes) :
 message; else the timestamp and the `devices` envelopes in order. -/
 def sealDevices (w : Worker) (contact : ContactId) (address built : Bytes) (devices : Nat) :
     M (Opened .sealedEnvelope (Option (Nat × List Bytes))) := do
+  if let some f := w.overrides.sendSealDevices then return ← f contact address built devices
   let sealed ← Legacy.call w .devicesSend (uint 16 contact ++ address ++ built)
   if sealed == [0] then return Reveal.sealedEnvelope none
   insist (sealed.length ≥ 10) "invalid sealed envelopes reply"
@@ -49,6 +51,7 @@ with `mask`), its private slots at `offsets`; the contact's fields are inserted 
 the request's buffer handle, to seal and send. -/
 def request (w : Worker) (contact : ContactId) (offsets : List Nat) (mask frame : Bytes) :
     M TlsWorker.BufferHandle := do
+  if let some f := w.overrides.sendRequest then return ← f contact offsets mask frame
   Legacy.handle (← Legacy.call w .contactRequest (uint 16 contact ++ offsets.flatMap (uint 2) ++ mask ++ frame))
     "invalid request handle"
 
@@ -56,6 +59,7 @@ def request (w : Worker) (contact : ContactId) (offsets : List Nat) (mask frame 
 the slots' offsets (two for the contact, then per device) and the device count. -/
 def requestDevices (w : Worker) (contact : ContactId) (payloadAt : Nat) (offsets : List Nat) (devices : Nat)
     (mask frame : Bytes) : M TlsWorker.BufferHandle := do
+  if let some f := w.overrides.sendRequestDevices then return ← f contact payloadAt offsets devices mask frame
   Legacy.handle (← Legacy.call w .devicesRequest (uint 16 contact ++ uint 2 payloadAt ++ uint 2 (offsets.getD 0 0) ++
       uint 2 (offsets.getD 1 0) ++ [UInt8.ofNat devices] ++ (offsets.drop 2).flatMap (uint 2) ++ mask ++ frame))
     "invalid request handle"

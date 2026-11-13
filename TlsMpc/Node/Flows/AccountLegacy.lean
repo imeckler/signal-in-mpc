@@ -13,15 +13,18 @@ open TlsMpc.TlsWire TlsMpc.TlsClient
 
 /-- **The account's key into the engines** (op 53): this party's additive share (`Secret`). -/
 def key (w : Worker) (share : Secret Bytes) : M Unit := do
+  if let some f := w.overrides.accountKey then return ← f share
   let _ ← Legacy.inputOwn w .accountKey share
 
 /-- **Load the account's record** (identity key, credentials, certificate) from its stored blob
 (op 55). The worker refuses a blob that does not open (the session ends); nothing is opened. -/
 def load (w : Worker) (stored : Bytes) : M Unit := do
+  if let some f := w.overrides.accountLoad then return ← f stored
   let _ ← Legacy.call w .accountOpen stored
 
 /-- **Seal the account's record under the nonce `version`** (op 54): `check ‖ ciphertext`. -/
 def «seal» (w : Worker) (version : Bytes) : M (Opened .sealedBlob Bytes) := do
+  if let some f := w.overrides.accountSeal then return ← f version
   let stored ← Legacy.call w .accountSeal version
   insist (stored.length > 16) "invalid stored account state"
   pure (Reveal.sealedBlob stored)

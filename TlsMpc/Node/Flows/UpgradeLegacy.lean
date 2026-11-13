@@ -16,6 +16,7 @@ namespace Upgrade
 /-- **The unauthenticated WebSocket upgrade** (op 45): a nonce of joint randomness (16 bytes) and
 its RFC 6455 accept value (28). The upgrade request is built from the nonce in the clear. -/
 def anonymous (w : Worker) : M (Opened .upgradeNonce (Bytes × Bytes)) := do
+  if let some f := w.overrides.upgradeAnonymous then return ← f
   let upgrade ← Legacy.call w .publicUpgrade []
   insist (upgrade.length == 44) "invalid public upgrade receipt"
   pure (Reveal.upgradeNonce (upgrade.take 16) (upgrade.drop 16))
